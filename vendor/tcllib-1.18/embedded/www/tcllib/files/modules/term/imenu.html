@@ -1,0 +1,252 @@
+
+<div class='fossil-doc' data-title='term::interact::menu - Terminal control'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">term::interact::menu(n) 0.1 tcllib &quot;Terminal control&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>term::interact::menu - Terminal widget, menu</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Class API</a></li>
+<li class="doctools_section"><a href="#section3">Object API</a></li>
+<li class="doctools_section"><a href="#section4">Configuration</a></li>
+<li class="doctools_section"><a href="#section5">Interaction</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">term::interact::menu <span class="opt">?0.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">term::interact::menu</b> <i class="arg">object</i> <i class="arg">dict</i> <span class="opt">?<i class="arg">options</i>...?</span></a></li>
+<li><a href="#2"><i class="arg">object</i> <b class="method">interact</b></a></li>
+<li><a href="#3"><i class="arg">object</i> <b class="method">done</b></a></li>
+<li><a href="#4"><i class="arg">object</i> <b class="method">clear</b></a></li>
+<li><a href="#5"><i class="arg">object</i> <b class="method">configure</b></a></li>
+<li><a href="#6"><i class="arg">object</i> <b class="method">configure</b> <i class="arg">option</i></a></li>
+<li><a href="#7"><i class="arg">object</i> <b class="method">configure</b> <i class="arg">option</i> <i class="arg">value</i>...</a></li>
+<li><a href="#8"><i class="arg">object</i> <b class="method">cget</b> <i class="arg">option</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a class for the creation of a simple menu
+control.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Class API</a></h2>
+<p>The package exports a single command, the class command, enabling the
+creation of menu instances. Its API is:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">term::interact::menu</b> <i class="arg">object</i> <i class="arg">dict</i> <span class="opt">?<i class="arg">options</i>...?</span></a></dt>
+<dd><p>This command creates a new menu object with the name <i class="arg">object</i>,
+initializes it, and returns the fully qualified name of the object
+command as its result.</p>
+<p>The argument is the menu to show, possibly followed by configuration
+options and their values. The options are explained in the section
+<span class="sectref"><a href="#section4">Configuration</a></span>. The menu is a dictionary maping labels
+to symbolic action codes.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Object API</a></h2>
+<p>The objects created by the class command provide the methods listed
+below:</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><i class="arg">object</i> <b class="method">interact</b></a></dt>
+<dd><p>Shows the menu in the screen at the configured location and starts
+interacting with it. This opens its own event loop for the processing
+of incoming characters. The method returns when the interaction has
+completed. See section <span class="sectref"><a href="#section5">Interaction</a></span> for a description of the
+possible interaction.</p>
+<p>The method returns the symbolic action of the menu item selected by
+the user at the end of the interaction.</p></dd>
+<dt><a name="3"><i class="arg">object</i> <b class="method">done</b></a></dt>
+<dd><p>This method can be used by user supplied actions to terminate the
+interaction with the object.</p></dd>
+<dt><a name="4"><i class="arg">object</i> <b class="method">clear</b></a></dt>
+<dd><p>This method can be used by user supplied actions to remove the menu
+from the terminal.</p></dd>
+<dt><a name="5"><i class="arg">object</i> <b class="method">configure</b></a></dt>
+<dd></dd>
+<dt><a name="6"><i class="arg">object</i> <b class="method">configure</b> <i class="arg">option</i></a></dt>
+<dd></dd>
+<dt><a name="7"><i class="arg">object</i> <b class="method">configure</b> <i class="arg">option</i> <i class="arg">value</i>...</a></dt>
+<dd></dd>
+<dt><a name="8"><i class="arg">object</i> <b class="method">cget</b> <i class="arg">option</i></a></dt>
+<dd><p>Standard methods to retrieve and configure the options of the menu.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Configuration</a></h2>
+<p>A menu instance recognizes the following options:</p>
+<dl class="doctools_options">
+<dt><b class="option">-in</b> chan</dt>
+<dd><p>Specifies the channel to read character sequences from. Defaults to
+<b class="const">stdin</b>.</p></dd>
+<dt><b class="option">-out</b> chan</dt>
+<dd><p>Specifies the channel to write the menu contents to. Defaults to
+<b class="const">stdout</b>.</p></dd>
+<dt><b class="option">-column</b> int</dt>
+<dd><p>Specifies the column of the terminal where the left margin of the
+menu display should appear. Defaults to 0, i.e. the left-most
+column.</p></dd>
+<dt><b class="option">-line</b> int</dt>
+<dd><p>Specifies the line of the terminal where the top margin of the menu
+display should appear. Defaults to 0, i.e. the top-most line.</p></dd>
+<dt><b class="option">-height</b> int</dt>
+<dd><p>Specifies the number of lines of text to show at most in the
+display. Defaults to 25.</p></dd>
+<dt><b class="option">-actions</b> dict</dt>
+<dd><p>Specifies a dictionary containing additional actions, using character
+sequences as keys. Note that these sequences cannot override the
+hardwired sequences described in section <span class="sectref"><a href="#section5">Interaction</a></span>.</p></dd>
+<dt><b class="option">-hilitleft</b> int</dt>
+<dd></dd>
+<dt><b class="option">-hilitright</b> int</dt>
+<dd><p>By default the entire selected menu entry is highlighted in revers
+output. However, when present these two options restrict revers dispay
+to the specified sub-range of the entry.</p></dd>
+<dt><b class="option">-framed</b> bool</dt>
+<dd><p>By default the menu is shown using only header and footer out of
+characters box graphics. If this flag is set the menu is fully
+enclosed in a box.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Interaction</a></h2>
+<p>A menu object recognizes the control sequences listed below and acts
+as described. The user can supply more control sequences to act on via
+the configuration, but is not able to overide these defaults.</p>
+<dl class="doctools_definitions">
+<dt>Cursor Up</dt>
+<dd><p>The selection is moved up one entry, except if the first entry of the
+menu is already selected.</p></dd>
+<dt>Cursor Down</dt>
+<dd><p>The selection is moved down one entry, except if the last entry of the
+menu is already selected.</p></dd>
+<dt>Enter/Return</dt>
+<dd><p>The interaction with the object is terminated.</p></dd>
+</dl>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>term</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key95">control</a>, <a href="../../../../index.html#key672">menu</a>, <a href="../../../../index.html#key92">terminal</a>, <a href="../../../../index.html#key788">text display</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Terminal control</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2006 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

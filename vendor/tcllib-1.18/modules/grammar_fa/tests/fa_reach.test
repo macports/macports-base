@@ -1,0 +1,344 @@
+# -*- tcl -*-
+# finite_automaton.test:  tests for the grammar::fa container.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: fa_reach.test,v 1.4 2007/04/12 03:43:14 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+test fa-reach-${setimpl}-1.0 {reachability} {
+    grammar::fa a
+    catch {a reachable_states x} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodreachable_states type selfns win self"}
+
+
+test fa-reach-${setimpl}-1.1 {!reachability} {
+    grammar::fa a
+    catch {a unreachable_states a} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodunreachable_states type selfns win self"}
+
+
+test fa-reach-${setimpl}-1.2 {reachability} {
+    grammar::fa a
+    catch {a reachable} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodreachable type selfns win self s"}
+
+
+test fa-reach-${setimpl}-1.3 {reachability} {
+    grammar::fa a
+    catch {a reachable x} res
+    a destroy
+    set res
+} {Illegal state "x"}
+
+
+test fa-reach-${setimpl}-1.4 {reachability} {
+    grammar::fa a
+    catch {a reachable x y} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodreachable type selfns win self s"}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-reach-${setimpl}-2.0 {reachable states, empty fa} {
+    grammar::fa a
+    set res [a reachable_states]
+    a destroy
+    set res
+} {}
+
+
+test fa-reach-${setimpl}-2.1 {reachable states, state addition, plain} {
+    grammar::fa a
+    a state add x
+    set res [a reachable_states]
+    a destroy
+    set res
+} {}
+
+test fa-reach-${setimpl}-2.2 {reachable states, state addition, final} {
+    grammar::fa a
+    a state add x
+    a final add x
+    set res [a reachable_states]
+    a destroy
+    set res
+} {}
+
+
+test fa-reach-${setimpl}-2.3 {reachable states, state addition, start} {
+    grammar::fa a
+    a state add x
+    a start add x
+    set res [a reachable_states]
+    a destroy
+    set res
+} x
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-reach-${setimpl}-3.0 {unreachable states, empty fa} {
+    grammar::fa a
+    set res [a unreachable_states]
+    a destroy
+    set res
+} {}
+
+
+test fa-reach-${setimpl}-3.1 {unreachable states, state addition, plain} {
+    grammar::fa a
+    a state add x
+    set res [a unreachable_states]
+    a destroy
+    set res
+} x
+
+test fa-reach-${setimpl}-3.2 {unreachable states, state addition, final} {
+    grammar::fa a
+    a state add x
+    a final add x
+    set res [a unreachable_states]
+    a destroy
+    set res
+} x
+
+
+test fa-reach-${setimpl}-3.3 {unreachable states, state addition, start} {
+    grammar::fa a
+    a state add x
+    a start add x
+    set res [a unreachable_states]
+    a destroy
+    set res
+} {}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+foreach {n code setup_result} {
+    00 x       {{} {} x   x x {}}
+    01 x-      {{} {} x   x x {}}
+    02 xe      {{} {} x   x x {}}
+    03 xy      {{} {} {x y}  x x     y   y y     x    {x y} {x y} {}}
+    04 xy-     {{} {} {x y}  x {x y} {}  y y     x    {x y} {x y} {}}
+    05 xye     {{} {} {x y}  x {x y} {}  y y     x    {x y} {x y} {}}
+    06 xyee    {{} {} {x y}  x {x y} {}  y {x y} {}  {x y} {x y} {}}
+    07 xye-    {{} {} {x y}  x {x y} {}  y {x y} {}  {x y} {x y} {}}
+    08 xy--    {{} {} {x y}  x {x y} {}  y {x y} {}  {x y} {x y} {}}
+    09 xy-=    {{} {} {x y}  x {x y} {}  y {x y} {}  {x y} {x y} {}}
+    10 xyz/ee  {
+	{}    {}      {x y z}    x       {x y z} {}
+	y     y       {x z}      z       z       {x y}
+	{x y} {x y z} {}         {x z}   {x y z} {}
+	{y z} {y z}   x          {x y z} {x y z} {}
+    }
+    11 xyz/e-  {
+	{}    {}      {x y z}    x       {x y z} {}
+	y     y       {x z}      z       z       {x y}
+	{x y} {x y z} {}         {x z}   {x y z} {}
+	{y z} {y z}   x          {x y z} {x y z} {}
+    }
+    12 xyz/--  {
+	{}    {}      {x y z}    x       {x y z} {}
+	y     y       {x z}      z       z       {x y}
+	{x y} {x y z} {}         {x z}   {x y z} {}
+	{y z} {y z}   x          {x y z} {x y z} {}
+    }
+    13 xyz/-=  {
+	{}    {}      {x y z}    x       {x y z} {}
+	y     y       {x z}      z       z       {x y}
+	{x y} {x y z} {}         {x z}   {x y z} {}
+	{y z} {y z}   x          {x y z} {x y z} {}
+    }
+    14 xyz|ee  {
+	{}    {}      {x y z}    x       {x z}   y
+	y     {y z}   x          z       z       {x y}
+	{x y} {x y z} {}         {x z}   {x z}   y
+	{y z} {y z}   x          {x y z} {x y z} {}
+    }
+    15 xyz|e-  {
+	{}    {}      {x y z}    x       {x z}   y
+	y     {y z}   x          z       z       {x y}
+	{x y} {x y z} {}         {x z}   {x z}   y
+	{y z} {y z}   x          {x y z} {x y z} {}
+    }
+    16 xyz|--  {
+	{}    {}      {x y z}    x       {x z}   y
+	y     {y z}   x          z       z       {x y}
+	{x y} {x y z} {}         {x z}   {x z}   y
+	{y z} {y z}   x          {x y z} {x y z} {}
+    }
+    17 xyz|-=  {
+	{}    {}      {x y z}    x       {x z}   y
+	y     {y z}   x          z       z       {x y}
+	{x y} {x y z} {}         {x z}   {x z}   y
+	{y z} {y z}   x          {x y z} {x y z} {}
+    }
+    18 xyz+eee {
+	{}    {}      {x y z}  x       {x y z} {}
+	y     {x y z} {}       z       {x y z} {}
+	{x y} {x y z} {}       {x z}   {x y z} {}
+	{y z} {x y z} {}       {x y z} {x y z} {}
+    }
+    19 xyz+ee- {
+	{}    {}      {x y z}  x       {x y z} {}
+	y     {x y z} {}       z       {x y z} {}
+	{x y} {x y z} {}       {x z}   {x y z} {}
+	{y z} {x y z} {}       {x y z} {x y z} {}
+    }
+    20 xyz+e-- {
+	{}    {}      {x y z}  x       {x y z} {}
+	y     {x y z} {}       z       {x y z} {}
+	{x y} {x y z} {}       {x z}   {x y z} {}
+	{y z} {x y z} {}       {x y z} {x y z} {}
+    }
+    21 xyz+e-= {
+	{}    {}      {x y z}  x       {x y z} {}
+	y     {x y z} {}       z       {x y z} {}
+	{x y} {x y z} {}       {x z}   {x y z} {}
+	{y z} {x y z} {}       {x y z} {x y z} {}
+    }
+    22 xyz+--- {
+	{}    {}      {x y z}  x       {x y z} {}
+	y     {x y z} {}       z       {x y z} {}
+	{x y} {x y z} {}       {x z}   {x y z} {}
+	{y z} {x y z} {}       {x y z} {x y z} {}
+    }
+    23 xyz+--= {
+	{}    {}      {x y z}  x       {x y z} {}
+	y     {x y z} {}       z       {x y z} {}
+	{x y} {x y z} {}       {x z}   {x y z} {}
+	{y z} {x y z} {}       {x y z} {x y z} {}
+    }
+    24 xyz+-=_ {
+	{}    {}      {x y z}  x       {x y z} {}
+	y     {x y z} {}       z       {x y z} {}
+	{x y} {x y z} {}       {x z}   {x y z} {}
+	{y z} {x y z} {}       {x y z} {x y z} {}
+    }
+    25 xyz&eee {
+	{}    {}      {x y z}    x       {x y z} {}
+	y     {y z}   x          z       z       {x y}
+	{x y} {x y z} {}         {x z}   {x y z} {}
+	{y z} {y z}   x          {x y z} {x y z} {}
+    }
+    26 xyz&ee- {
+	{}    {}      {x y z}    x       {x y z} {}
+	y     {y z}   x          z       z       {x y}
+	{x y} {x y z} {}         {x z}   {x y z} {}
+	{y z} {y z}   x          {x y z} {x y z} {}
+    }
+    27 xyz&e-- {
+	{}    {}      {x y z}    x       {x y z} {}
+	y     {y z}   x          z       z       {x y}
+	{x y} {x y z} {}         {x z}   {x y z} {}
+	{y z} {y z}   x          {x y z} {x y z} {}
+    }
+    28 xyz&e-= {
+	{}    {}      {x y z}    x       {x y z} {}
+	y     {y z}   x          z       z       {x y}
+	{x y} {x y z} {}         {x z}   {x y z} {}
+	{y z} {y z}   x          {x y z} {x y z} {}
+    }
+    29 xyz&--- {
+	{}    {}      {x y z}    x       {x y z} {}
+	y     {y z}   x          z       z       {x y}
+	{x y} {x y z} {}         {x z}   {x y z} {}
+	{y z} {y z}   x          {x y z} {x y z} {}
+    }
+    30 xyz&--= {
+	{}    {}      {x y z}    x       {x y z} {}
+	y     {y z}   x          z       z       {x y}
+	{x y} {x y z} {}         {x z}   {x y z} {}
+	{y z} {y z}   x          {x y z} {x y z} {}
+    }
+    31 xyz&-=_ {
+	{}    {}      {x y z}    x       {x y z} {}
+	y     {y z}   x          z       z       {x y}
+	{x y} {x y z} {}         {x z}   {x y z} {}
+	{y z} {y z}   x          {x y z} {x y z} {}
+    }
+    32 xyz!ee  {
+	{}    {}      {x y z}  x       {x y z} {}
+	y     {y z}   x        z       z       {x y}
+	{x y} {x y z} {}       {x z}   {x y z} {}
+	{y z} {y z}   x        {x y z} {x y z} {}
+    }
+    33 xyz!e-  {
+	{}    {}      {x y z}  x       {x y z} {}
+	y     {y z}   x        z       z       {x y}
+	{x y} {x y z} {}       {x z}   {x y z} {}
+	{y z} {y z}   x        {x y z} {x y z} {}
+    }
+    34 xyz!--  {
+	{}    {}      {x y z}  x       {x y z} {}
+	y     {y z}   x        z       z       {x y}
+	{x y} {x y z} {}       {x z}   {x y z} {}
+	{y z} {y z}   x        {x y z} {x y z} {}
+    }
+    35 xyz!-=  {
+	{}    {}      {x y z}  x       {x y z} {}
+	y     {y z}   x        z       z       {x y}
+	{x y} {x y z} {}       {x z}   {x y z} {}
+	{y z} {y z}   x        {x y z} {x y z} {}
+    }
+    36 xyz!-e  {
+	{}    {}      {x y z}  x       {x y z} {}
+	y     {y z}   x        z       z       {x y}
+	{x y} {x y z} {}       {x z}   {x y z} {}
+	{y z} {y z}   x        {x y z} {x y z} {}
+    }
+} {
+    foreach {fset reachable unreach} $setup_result {
+	set key ${n}.${code}.([join $fset {}])
+	set expected {}
+	foreach x $reachable {lappend expected 1}
+	foreach x $unreach   {lappend expected 0}
+
+	test fa-reach-${setimpl}-4.$key {reachable states} {
+	    grammar::fa a
+	    gen $code
+	    a start set $fset
+	    set res [lsort [a reachable_states]]
+	    a destroy
+	    set res
+	} $reachable ; # {}
+
+	test fa-reach-${setimpl}-5.$key {!reachable states} {
+	    grammar::fa a
+	    gen $code
+	    a start set $fset
+	    set res [lsort [a unreachable_states]]
+	    a destroy
+	    set res
+	} $unreach ; # {}
+
+	test fa-reach-${setimpl}-6.$key {reachability testing} {
+	    grammar::fa a
+	    gen $code
+	    a start set $fset
+	    set res {}
+	    foreach x $reachable {lappend res [a reachable $x]}
+	    foreach x $unreach   {lappend res [a reachable $x]}
+	    a destroy
+	    set res
+	} $expected ; # {}
+    }
+}
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

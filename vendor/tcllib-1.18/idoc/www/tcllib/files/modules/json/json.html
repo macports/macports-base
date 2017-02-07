@@ -1,0 +1,230 @@
+
+<html><head>
+<title>json - JSON</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'json.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2006 ActiveState Software Inc.   -- Copyright &copy; 2009 Thomas Maeder, Glue Software Engineering AG
+   -->
+<! -- json.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">json(n) 1.3.3 tcllib &quot;JSON&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>json - JSON parser</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">json <span class="opt">?1.3.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::json::json2dict</b> <i class="arg">txt</i></a></li>
+<li><a href="#2"><b class="cmd">::json::many-json2dict</b> <i class="arg">txt</i> <span class="opt">?<i class="arg">max</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">json</b> package provides a simple Tcl-only library for parsing the
+JSON <a href="http://www.json.org/">http://www.json.org/</a> data exchange format as specified in RFC 4627
+<a href="http://www.ietf.org/rfc/rfc4627.txt">http://www.ietf.org/rfc/rfc4627.txt</a>.
+There is some ambiguity in parsing JSON because JSON has type information that
+is not maintained by the Tcl conversion.  The <b class="package">json</b> package returns
+data as a Tcl <b class="cmd"><a href="../../../../index.html#key704">dict</a></b>.  Either the <b class="package"><a href="../../../../index.html#key704">dict</a></b> package or Tcl 8.5 is
+required for use.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::json::json2dict</b> <i class="arg">txt</i></a></dt>
+<dd><p>Parse JSON formatted text <i class="arg">txt</i> into a Tcl dict and return
+the value.</p>
+<p>If <i class="arg">txt</i> contains more than one JSON entity only the
+first one is returned.</p></dd>
+<dt><a name="2"><b class="cmd">::json::many-json2dict</b> <i class="arg">txt</i> <span class="opt">?<i class="arg">max</i>?</span></a></dt>
+<dd><p>Parse JSON formatted text <i class="arg">txt</i> containing multiple JSON entities
+into a list of dictionaries and return that list.</p>
+<p>If <i class="arg">max</i> is specified exactly that many entities are extracted
+from <i class="arg">txt</i>. By default the command will attempt to extract all, without
+limits. A value of &quot;<i class="arg">max</i> == 0&quot; does not make sense and will cause the
+command to throw an error.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">EXAMPLES</a></h2>
+<p>An example of a JSON array converted to Tcl.  A JSON array is returned as a
+single item with multiple elements.</p>
+<pre class="doctools_example">[
+    {
+       &quot;precision&quot;: &quot;zip&quot;,
+       &quot;Latitude&quot;:  37.7668,
+       &quot;Longitude&quot;: -122.3959,
+       &quot;Address&quot;:   &quot;&quot;,
+       &quot;City&quot;:      &quot;SAN FRANCISCO&quot;,
+       &quot;State&quot;:     &quot;CA&quot;,
+       &quot;Zip&quot;:       &quot;94107&quot;,
+       &quot;Country&quot;:   &quot;US&quot;
+    },
+    {
+       &quot;precision&quot;: &quot;zip&quot;,
+       &quot;Latitude&quot;:  37.371991,
+       &quot;Longitude&quot;: -122.026020,
+       &quot;Address&quot;:   &quot;&quot;,
+       &quot;City&quot;:      &quot;SUNNYVALE&quot;,
+       &quot;State&quot;:     &quot;CA&quot;,
+       &quot;Zip&quot;:       &quot;94085&quot;,
+       &quot;Country&quot;:   &quot;US&quot;
+    }
+]
+=&gt;
+{Country US Latitude 37.7668 precision zip State CA City {SAN FRANCISCO} Address {} Zip 94107 Longitude -122.3959} {Country US Latitude 37.371991 precision zip State CA City SUNNYVALE Address {} Zip 94085 Longitude -122.026020}
+</pre>
+<p>An example of a JSON object converted to Tcl.  A JSON object is returned as a
+multi-element list (a dict).</p>
+<pre class="doctools_example">{
+    &quot;Image&quot;: {
+        &quot;Width&quot;:  800,
+        &quot;Height&quot;: 600,
+        &quot;Title&quot;:  &quot;View from 15th Floor&quot;,
+        &quot;Thumbnail&quot;: {
+            &quot;Url&quot;:    &quot;http://www.example.com/image/481989943&quot;,
+            &quot;Height&quot;: 125,
+            &quot;Width&quot;:  &quot;100&quot;
+        },
+        &quot;IDs&quot;: [116, 943, 234, 38793]
+    }
+}
+=&gt;
+Image {IDs {116 943 234 38793} Thumbnail {Width 100 Height 125 Url http://www.example.com/image/481989943} Width 800 Height 600 Title {View from 15th Floor}}
+</pre>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>json</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key205">data exchange</a>, <a href="../../../../index.html#key204">exchange format</a>, <a href="../../../../index.html#key207">javascript</a>, <a href="../../../../index.html#key206">json</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>CGI programming</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2006 ActiveState Software Inc.<br>
+Copyright &copy; 2009 Thomas Maeder, Glue Software Engineering AG</p>
+</div>
+</div></body></html>

@@ -1,0 +1,78 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset PACKAGE_VERSION 0.1]
+[manpage_begin cron n [vset PACKAGE_VERSION]]
+[keywords {cron}]
+[keywords {odie}]
+[copyright {2015 Sean Woods <yoda@etoyoc.com>}]
+[moddesc   {cron}]
+[titledesc {Tool for automating the period callback of commands}]
+[category  System]
+[require Tcl 8.5]
+[require cron [opt [vset PACKAGE_VERSION]]]
+[description]
+[para]
+
+The [package cron] package provides a Pure-tcl set of tools to allow
+programs to schedule tasks to occur at regular intervals. Rather than
+force each task to issue it's own call to the event loop, the cron
+system mimics the cron utility in Unix: on task periodically checks to
+see if something is to be done, and issues all commands for a given
+time step at once.
+
+The cron package is intended to work in time scales greater than 1 second.
+
+[section Commands]
+[list_begin definitions]
+
+[call [cmd ::cron::at] [arg ?processname?] [arg timecode] [arg command]]
+
+This command registers a [arg command] to be called at the time specified by [arg timecode].
+If [arg timecode] is expressed as an integer, the timecode is assumed to be in unixtime. All
+other inputs will be interpreted by [cmd {clock scan}] and converted to unix time.
+This task can be modified by subsequent calls to
+this package's commands by referencing [arg processname]. If [arg processname] exists,
+it will be replaced.
+
+If [arg processname] is not given, one is generated and returned by the command.
+
+[example_begin]
+::cron::at start_coffee {Tomorrow at 9:00am}  {remote::exec::coffeepot power on}
+::cron::at shutdown_coffee {Tomorrow at 12:00pm}  {remote::exec::coffeepot power off}
+[example_end]
+
+[call [cmd ::cron::cancel] [arg processname]]
+
+This command unregisters the process [arg processname] and cancels any pending commands.
+Note: processname can be a process created by either [cmd ::cron::at] or [cmd ::cron::every].
+
+[example_begin]
+::cron::cancel check_mail
+[example_end]
+
+[call [cmd ::cron::every] [arg processname] [arg frequency] [arg command]]
+
+This command registers a [arg command] to be called at the interval of [arg frequency].
+[arg frequency] is given in seconds. This task can be modified by subsequent calls to
+this package's commands by referencing [arg processname]. If [arg processname] exists,
+it will be replaced.
+
+[example_begin]
+::cron::every check_mail 900  ::imap_client::check_mail
+::cron::every backup_db  3600 {::backup_procedure ::mydb}
+[example_end]
+
+[call [cmd ::cron::in] [arg ?processname?] [arg timecode] [arg command]]
+
+This command registers a [arg command] to be called after a delay of time specified by [arg timecode].
+[arg timecode] is expressed as an seconds.
+This task can be modified by subsequent calls to
+this package's commands by referencing [arg processname]. If [arg processname] exists,
+it will be replaced.
+
+If [arg processname] is not given, one is generated and returned by the command.
+
+[list_end]
+[para]
+[vset CATEGORY odie]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

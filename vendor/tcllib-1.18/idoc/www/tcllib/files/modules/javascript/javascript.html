@@ -1,0 +1,216 @@
+
+<html><head>
+<title>javascript - HTML and Java Script Generation</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'javascript.man' by tcllib/doctools with format 'html'
+   -->
+<! -- javascript.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">javascript(n) 1.0.2 tcllib &quot;HTML and Java Script Generation&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>javascript - Procedures to generate HTML and Java Script structures.</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8</b></li>
+<li>package require <b class="pkgname">javascript <span class="opt">?1.0.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::javascript::makeSelectorWidget</b> <i class="arg">id leftLabel leftValueList rightLabel rightValueList rightNameList</i> <span class="opt">?<i class="arg">length</i>?</span> <span class="opt">?<i class="arg">minWidth</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::javascript::makeSubmitButton</b> <i class="arg">name value</i></a></li>
+<li><a href="#3"><b class="cmd">::javascript::makeProtectedSubmitButton</b> <i class="arg">name value msg</i></a></li>
+<li><a href="#4"><b class="cmd">::javascript::makeMasterButton</b> <i class="arg">master value slavePattern boolean</i></a></li>
+<li><a href="#5"><b class="cmd">::javascript::makeParentCheckbox</b> <i class="arg">parentName childName</i></a></li>
+<li><a href="#6"><b class="cmd">::javascript::makeChildCheckbox</b> <i class="arg">parentName childName</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">::javascript</b> package provides commands that generate
+HTML and Java Script code.  These commands typically return an HTML
+string as their result.  In particular, they do not output their
+result to <b class="const">stdout</b>.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::javascript::makeSelectorWidget</b> <i class="arg">id leftLabel leftValueList rightLabel rightValueList rightNameList</i> <span class="opt">?<i class="arg">length</i>?</span> <span class="opt">?<i class="arg">minWidth</i>?</span></a></dt>
+<dd><p>Construct HTML code to create a dual-multi-selection megawidget.  This
+megawidget consists of two side-by-side multi-selection boxes
+separated by a left arrow and a right arrow button.  The right arrow
+button moves all items selected in the left box to the right box.  The
+left arrow button moves all items selected in the right box to the
+left box.  The <i class="arg">id</i> argument is the suffix of all HTML objects in
+this megawidget.  The <i class="arg">leftLabel</i> argument is the text that
+appears above the left selection box.  The <i class="arg">leftValueList</i>
+argument is the values of items in the left selection box.  The
+<i class="arg">leftNameList</i> argument is the names to appear in the left
+selection box.  The <i class="arg">rightLabel</i> argument is the text that appears
+above the right selection box.  The <i class="arg">rightValueList</i> argument is
+the values of items in the right selection box.  The
+<i class="arg">rightNameList</i> argument is the names to appear in the right
+selection box.  The <i class="arg">length</i> argument (optional) determines the
+number of elts to show before adding a vertical scrollbar; it defaults
+to 8.  The <i class="arg">minWidth</i> argument (optional) is the number of spaces
+to determine the minimum box width; it defaults to 32.</p></dd>
+<dt><a name="2"><b class="cmd">::javascript::makeSubmitButton</b> <i class="arg">name value</i></a></dt>
+<dd><p>Create an HTML submit button that resets a hidden field for each
+registered multi-selection box.  The <i class="arg">name</i> argument is the name
+of the HTML button object to create.  The <i class="arg">value</i> argument is the
+label of the HTML button object to create.</p></dd>
+<dt><a name="3"><b class="cmd">::javascript::makeProtectedSubmitButton</b> <i class="arg">name value msg</i></a></dt>
+<dd><p>Create an HTML submit button that prompts the user with a
+continue/cancel shutdown warning before the form is submitted.  The
+<i class="arg">name</i> argument is the name of the HTML button object to create.
+The <i class="arg">value</i> argument is the label of the HTML button object to
+create. The <i class="arg">msg</i> argument is the message to display when the
+button is pressed.</p></dd>
+<dt><a name="4"><b class="cmd">::javascript::makeMasterButton</b> <i class="arg">master value slavePattern boolean</i></a></dt>
+<dd><p>Create an HTML button that sets its slave checkboxs to the boolean
+value.  The <i class="arg">master</i> argument is the name of the child's parent
+html checkbox object.  The <i class="arg">value</i> argument is the value of the
+master.  The <i class="arg">slaves</i> argument is the name of child html checkbox
+object to create.  The <i class="arg">boolean</i> argument is the java script
+boolean value that will be given to all the slaves; it must be &quot;true&quot;
+or &quot;false&quot;.</p></dd>
+<dt><a name="5"><b class="cmd">::javascript::makeParentCheckbox</b> <i class="arg">parentName childName</i></a></dt>
+<dd><p>Create an HTML checkbox and tie its value to that of its child
+checkbox.  If the parent is unchecked, the child is automatically
+unchecked.  The <i class="arg">parentName</i> argument is the name of parent html
+checkbox object to create. The <i class="arg">childName</i> argument is the name of
+the parent's child html checkbox object.</p></dd>
+<dt><a name="6"><b class="cmd">::javascript::makeChildCheckbox</b> <i class="arg">parentName childName</i></a></dt>
+<dd><p>Create an HTML checkbox and tie its value to that of its parent
+checkbox.  If the child is checked, the parent is automatically
+checked.  The <i class="arg">parentName</i> argument is the name of the child's
+parent html checkbox object.  The <i class="arg">childName</i> argument is the name
+of child html checkbox object to create.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>javascript</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../html/html.html">html</a>, <a href="../ncgi/ncgi.html">ncgi</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key619">checkbox</a>, <a href="../../../../index.html#key616">html</a>, <a href="../../../../index.html#key207">javascript</a>, <a href="../../../../index.html#key738">selectionbox</a>, <a href="../../../../index.html#key737">submitbutton</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>CGI programming</p>
+</div>
+</div></body></html>

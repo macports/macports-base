@@ -1,0 +1,71 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin fileutil::magic::cfront n 1.0]
+[see_also file(1)]
+[see_also fileutil]
+[see_also magic(5)]
+[keywords {file recognition}]
+[keywords {file type}]
+[keywords {file utilities}]
+[keywords mime]
+[keywords type]
+[moddesc   {file utilities}]
+[titledesc {Generator core for compiler of magic(5) files}]
+[category  {Programming tools}]
+[require Tcl 8.4]
+[require fileutil::magic::cfront [opt 1.0]]
+[require fileutil::magic::cgen [opt 1.0]]
+[require fileutil::magic::rt [opt 1.0]]
+[require struct::list]
+[require fileutil]
+[description]
+[para]
+
+This package provides the frontend of a compiler of magic(5) files
+into recognizers based on the [package fileutil::magic::rt] recognizer
+runtime package. For the generator backed used by this compiler see
+the package [package fileutil::magic::cgen].
+
+[section COMMANDS]
+
+[list_begin definitions]
+
+[call [cmd ::fileutil::magic::cfront::compile] [arg path]...]
+
+This command takes the paths of one or more files and directories and
+compiles all the files, and the files in all the directories into a
+single recognizer for all the file types specified in these files.
+
+[para]
+
+All the files have to be in the format specified by magic(5).
+
+[para]
+
+The result of the command is a Tcl script containing the generated
+recognizer.
+
+[call [cmd ::fileutil::magic::cfront::procdef] [arg procname] [arg path]...]
+
+This command behaves like [cmd ::fileutil::magic::cfront::compile]
+with regard to the specified path arguments, then wraps the resulting
+recognizer script into a procedure named [arg procname], puts code
+setting up the namespace of [arg procname] in front, and returns the
+resulting script.
+
+[call [cmd ::fileutil::magic::cfront::install] [arg path]...]
+
+This command uses [cmd ::fileutil::magic::cfront::procdef] to compile
+each of the paths into a recognizer procedure and installs the result
+in the current interpreter.
+
+[para]
+
+The name of each new procedure is derived from the name of the
+file/directory used in its creation, with file/directory [file FOO]
+causing the creation of procedure [const ::fileutil::magic::/FOO::run].
+
+[list_end]
+
+[vset CATEGORY {fileutil :: magic}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

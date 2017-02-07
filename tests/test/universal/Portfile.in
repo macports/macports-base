@@ -1,5 +1,5 @@
-# $Id$
 PortSystem 1.0
+
 name            universal
 version         1
 categories      test

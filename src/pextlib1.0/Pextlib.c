@@ -1,11 +1,10 @@
 /*
  * Pextlib.c
- * $Id$
  *
  * Copyright (c) 2002 - 2003 Apple Inc.
  * Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
  * Copyright (c) 2004 Landon Fuller <landonf@macports.org>
- * Copyright (c) 2012 The MacPorts Project
+ * Copyright (c) 2007 - 2016 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +45,7 @@
 /* required for vasprintf(3) on Linux */
 #define _GNU_SOURCE
 
+#include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -612,6 +612,40 @@ int CheckBrokenDNSCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc
     return TCL_OK;
 }
 
+/*
+	set_max_open_files
+
+	synopsis: set_max_open_files
+
+	raises the limit of open files to the maximum
+*/
+int SetMaxOpenFilesCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, Tcl_Obj *CONST objv[] UNUSED)
+{
+	struct rlimit rl;
+
+    if (getrlimit(RLIMIT_NOFILE, &rl) == -1) {
+        Tcl_SetErrno(errno);
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "set_max_open_files: getrlimit failed: ", (char *)Tcl_PosixError(interp), NULL);
+        return TCL_ERROR;
+    } else {
+#ifdef OPEN_MAX
+        if (rl.rlim_max > OPEN_MAX) {
+            rl.rlim_max = OPEN_MAX;
+        }
+#endif
+        rl.rlim_cur = rl.rlim_max;
+        if (setrlimit(RLIMIT_NOFILE, &rl) == -1) {
+            Tcl_SetErrno(errno);
+            Tcl_ResetResult(interp);
+            Tcl_AppendResult(interp, "set_max_open_files: setrlimit failed: ", (char *)Tcl_PosixError(interp), NULL);
+            return TCL_ERROR;
+        }
+    }
+
+	return TCL_OK;
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
     if (Tcl_InitStubs(interp, "8.4", 0) == NULL)
@@ -672,6 +706,7 @@ int Pextlib_Init(Tcl_Interp *interp)
     Tcl_CreateObjCommand(interp, "term_get_size", TermGetSizeCmd, NULL, NULL);
 
     Tcl_CreateObjCommand(interp, "check_broken_dns", CheckBrokenDNSCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "set_max_open_files", SetMaxOpenFilesCmd, NULL, NULL);
 
     if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
         return TCL_ERROR;

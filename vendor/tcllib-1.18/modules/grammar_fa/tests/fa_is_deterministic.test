@@ -1,0 +1,75 @@
+# -*- tcl -*-
+# finite_automaton.test:  tests for the grammar::fa container.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: fa_is_deterministic.test,v 1.7 2007/04/12 03:43:14 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+if {![::tcltest::testConstraint runtotal]} {
+    ::tcltest::cleanupTests
+    return
+}
+
+# -------------------------------------------------------------------------
+
+foreach {n code setup_result} {
+    00 x       {{} 0 x 1}
+    01 x-      {{} 0 x 1}
+    02 xe      {{} 0 x 0}
+    03 xy      {{} 0 x 1 y 1 {x y} 0}
+    04 xy-     {{} 0 x 1 y 1 {x y} 0}
+    05 xye     {{} 0 x 0 y 0 {x y} 0}
+    06 xyee    {{} 0 x 0 y 0 {x y} 0}
+    07 xye-    {{} 0 x 0 y 0 {x y} 0}
+    08 xy--    {{} 0 x 1 y 1 {x y} 0}
+    09 xy-=    {{} 0 x 1 y 1 {x y} 0}
+    10 xyz/ee  {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    11 xyz/e-  {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    12 xyz/--  {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    13 xyz/-=  {{} 0 x 1 y 1 z 1 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    14 xyz|ee  {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    15 xyz|e-  {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    16 xyz|--  {{} 0 x 1 y 1 z 1 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    17 xyz|-=  {{} 0 x 1 y 1 z 1 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    18 xyz+eee {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    19 xyz+ee- {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    20 xyz+e-- {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    21 xyz+e-= {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    22 xyz+--- {{} 0 x 1 y 1 z 1 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    23 xyz+--= {{} 0 x 1 y 1 z 1 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    24 xyz+-=_ {{} 0 x 1 y 1 z 1 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    25 xyz&eee {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    26 xyz&ee- {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    27 xyz&e-- {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    28 xyz&e-= {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    29 xyz&--- {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    30 xyz&--= {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    31 xyz&-=_ {{} 0 x 1 y 1 z 1 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    32 xyz!ee  {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    33 xyz!e-  {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    34 xyz!--  {{} 0 x 1 y 1 z 1 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    35 xyz!-=  {{} 0 x 1 y 1 z 1 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+    36 xyz!-e  {{} 0 x 0 y 0 z 0 {x y} 0 {x z} 0 {y z} 0 {x y z} 0}
+} {
+    foreach {stset expected} $setup_result {
+	foreach {fset __} $setup_result {
+	    set key ${n}.${code}.([join $stset {}]).([join $fset {}])
+
+	    test fa-is-${setimpl}-deterministic-1.$key {is deterministic} {
+		grammar::fa a
+		gen $code
+		a start set $stset
+		a final set $fset
+		set res [a is deterministic]
+		a destroy
+		set res
+	    } $expected ; # {}
+	}
+    }
+}
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

@@ -1,0 +1,201 @@
+# -*- tcl -*-
+# sha1.test:  tests for the sha1 commands
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2001 by ActiveState Tool Corp.
+# All rights reserved.
+#
+# RCS: @(#) $Id: sha1.test,v 1.13 2006/10/13 06:23:28 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    if {[useTcllibC]} {
+        useLocalKeep sha1.tcl sha1
+    } else {
+        useLocal     sha1.tcl sha1
+    }
+    TestAccelInit             sha1
+}
+
+# -------------------------------------------------------------------------
+# Now the package specific tests....
+# -------------------------------------------------------------------------
+
+test sha1-1.0 {sha1} {
+    catch {::sha1::sha1} result
+    set result
+} "wrong # args: should be \"sha1 ?-hex? -filename file | string\""
+
+test sha1-1.1 {sha1} {
+    catch {::sha1::hmac} result
+    set result
+} "wrong # args: should be \"hmac ?-hex? -key key -filename file | string\""
+
+test sha1-1.2 {sha1} {
+    catch {::sha1::hmac key} result
+    set result
+} "wrong # args: should be \"hmac ?-hex? -key key -filename file | string\""
+
+# -------------------------------------------------------------------------
+# Digest / HMac
+
+set vectorsD {
+    "abc"
+    "a9993e364706816aba3e25717850c26c9cd0d89d"
+    "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
+    "84983e441c3bd26ebaae4aa1f95129e5e54670f1"
+    "x"
+    "11f6ad8ec52a2984abaafd7c3b516503785c2072"
+}
+
+set vectorsHM {
+    ""     ""      "fbdb1d1b18aa6c08324b7d64b71fb76370690e1d"
+    "foo"  "hello" "4c883e9bc42763641bba04185d492de00de7ce2c"
+    "bar"  "world" "a905e79f51faa446cb5a3888b577e34577ef7fce"
+    "key"  "text"  "369e2959eb49450338b212748f77d8ded74847bb"
+    "sha1" "hmac"  "2660aeeccf432596e56f8f8260de971322e8935b"
+    "hmac" "sha1"  "170523fd610da92dd4b4fb948a01a8365d66511a"
+    "sha1" "sha1"  "5154473317173f66212fc59365233ffd9cbaab94"
+    "hmac" "hmac"  "9e08393f6ac829c4385930ea38567dad582d958f"
+    "01234567abcdefgh01234567abcdefgh01234567abcdefgh01234567abcdefgh==" "hello world"
+    "dd80c541f75064d70e53a6b7b0a45210127f484e"
+}
+
+# -------------------------------------------------------------------------
+# RFC 2202 has a set of test vectors for HMAC-MD5 and HMAC-SHA1.
+# This is those test vectors...
+# -------------------------------------------------------------------------
+
+set vectorsRFC \
+        [list \
+        [string repeat \x0b 20] "Hi There" \
+        b617318655057264e28bc0b6fb378c8ef146be00 \
+        "Jefe" "what do ya want for nothing?" \
+        effcdf6ae5eb2fa2d27416d5f184df9c259a7c79 \
+        [string repeat \xaa 20] [string repeat \xdd 50] \
+        125d7342b9ac11cd91a39af48aa17b4f63f175d3 \
+        \
+        [binary format H* 0102030405060708090a0b0c0d0e0f10111213141516171819]\
+        [string repeat \xcd 50] \
+        4c9007f4026250c6bc8414f9bf50c86c2d7235da \
+        [string repeat \x0c 20] "Test With Truncation" \
+        4c1a03424b55e07fe7f27be1d58bb9324a9a5a04 \
+        [string repeat \xaa 80] \
+        "Test Using Larger Than Block-Size Key - Hash Key First" \
+        aa4ae5e15272d00e95705637ce8a3b55ed402112 \
+        [string repeat \xaa 80] \
+        "Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data" \
+        e8e99d0f45237d786d6bbaa7965c7808bbff1a91 \
+        ]
+
+# -------------------------------------------------------------------------
+
+test sha1-5.1 {Check hashing data that begins with hyphen} {
+    list [catch {::sha1::sha1 -hello} msg] $msg
+} {0 bd32f1769a47f98c73348c87f5d6842ccd129911}
+
+test sha1-5.2 {Check hashing data that begins with hyphen} {
+    list [catch {::sha1::sha1 -hex -- -hello} msg] $msg
+} {0 bd32f1769a47f98c73348c87f5d6842ccd129911}
+
+test sha1-5.3 {Check hashing data that begins with hyphen} {
+    list [catch {::sha1::sha1 --} msg] $msg
+} {0 e6a9fc04320a924f46c7c737432bb0389d9dd095}
+
+test sha1-5.4 {Check hashing data that begins with hyphen} {
+    list [catch {::sha1::sha1 -hex -- --} msg] $msg
+} {0 e6a9fc04320a924f46c7c737432bb0389d9dd095}
+
+test sha1-6.1 {Check hashing data that begins with hyphen} {
+    list [catch {::sha1::hmac - -hello} msg] $msg
+} {0 872c0aa5dca317c3be39a209c5aaa4d8139052b1}
+
+test sha1-6.2 {Check hashing data that begins with hyphen} {
+    list [catch {::sha1::hmac -- -hello} msg] $msg
+} {0 a0e2547c63c9de64338efb19b0c6c533968748cc}
+
+test sha1-6.3 {Check hashing data that begins with hyphen} {
+    list [catch {::sha1::hmac -hex -key -- --} msg] $msg
+} {0 d1efe5ea394610b39c10b97418278199ddd65766}
+
+test sha1-6.4 {Check hashing data that begins with hyphen} {
+    list [catch {::sha1::hmac -hex -key - --} msg] $msg
+} {0 01c134b54ab872941acfce0cf3202f16ee64fb14}
+
+# -------------------------------------------------------------------------
+
+set testfile [makeFile {} sha1[pid].data]
+
+# pattern repeatcount sha1-hash
+set vectors \
+    [list \
+         0 "\x00" 81922 a9fb4910179d5088ab606944ca0216e4403a5141 \
+         1 "\x5a" 81920 fef13bbee20792b7b2e65f15d5e4dd6ae04e2323 \
+         2 "\x01\x23\x45\x67\x89\xab\xcd\xef" 2048 \
+           846b9be26036a0b3c16a32805b5f3a85f8d0e0f5 \
+         ]
+
+foreach {n pattern repeat hash} $vectors {
+    test sha1-7.$n "file hashing" {
+        list [catch {
+            set f [open $testfile w]
+            fconfigure $f -encoding binary -translation binary
+            puts -nonewline $f [string repeat $pattern $repeat]
+            close $f
+            sha1::sha1 -hex -file $testfile
+        } msg] $msg
+    } [list 0 $hash]
+}
+
+removeFile $testfile
+
+# -------------------------------------------------------------------------
+# Implementation dependent tests last.
+
+TestAccelDo sha1 impl {
+    set n 0
+    foreach {msg expected} $vectorsD {
+        test sha1-$impl-2.$n "sha1 ($impl impl)" {
+            list [catch {::sha1::sha1 $msg} r] $r
+        } [list 0 $expected] ; # {}
+        incr n
+    }
+
+    set n 0
+    foreach {key text expected} $vectorsHM {
+        test sha1-$impl-3.$n "hmac ($impl impl)" {
+            list [catch {::sha1::hmac $key $text} r] $r
+        } [list 0 $expected] ; # {}
+        incr n
+    }
+
+    set n 0
+    foreach {key msg hash} $vectorsRFC {
+        test sha1-$impl-4a.$n "RFC2202 test vectors for HMAC-SHA1 ($impl)" {
+            list [catch {::sha1::hmac $key $msg} r] $r
+        } [list 0 $hash] ; # {}
+        incr n
+    }
+}
+
+# -------------------------------------------------------------------------
+
+TestAccelExit sha1
+testsuiteCleanup
+
+# -------------------------------------------------------------------------
+# Local Variables:
+#   mode: tcl
+#   indent-tabs-mode: nil
+# End:

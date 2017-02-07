@@ -1,0 +1,274 @@
+<div class='fossil-doc' data-title='comm_wire - Remote communication'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">comm_wire(n) 3 tcllib &quot;Remote communication&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>comm_wire - The comm wire protocol</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Wire Protocol Version 3</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Basic Layer</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Basic Message Layer</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Negotiation Messages - Initial Handshake</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Script/Command Messages</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">comm</b></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package"><a href="comm.html">comm</a></b> command provides an inter-interpreter remote
+execution facility much like Tk's <b class="cmd">send(n)</b>, except that it uses
+sockets rather than the X server for the communication path.  As a
+result, <b class="package"><a href="comm.html">comm</a></b> works with multiple interpreters, works on
+Windows and Macintosh systems, and provides control over the remote
+execution path.</p>
+<p>This document contains a specification of the various versions of the
+wire protocol used by comm internally for the communication between
+its endpoints. It has no relevance to users of <b class="package"><a href="comm.html">comm</a></b>, only to
+developers who wish to modify the package, write a compatible facility
+in a different language, or some other facility based on the same
+protocol.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Wire Protocol Version 3</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Basic Layer</a></h3>
+<p>The basic encoding for <em>all</em> data is UTF-8. Because of this
+binary data, including the NULL character, can be sent over the wire
+as is, without the need for armoring it.</p>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Basic Message Layer</a></h3>
+<p>On top of the <span class="sectref"><a href="#subsection1">Basic Layer</a></span> we have a
+<i class="term">message oriented</i> exchange of data.
+The totality of all characters written to the channel is a Tcl list,
+with each element a separate <i class="term"><a href="../../../../index.html#key361">message</a></i>, each itself a list. The
+messages in the overall list are separated by EOL. Note that EOL
+characters can occur within the list as well. They can be
+distinguished from the message-separating EOL by the fact that the
+data from the beginning up to their location is not a valid Tcl list.</p>
+<p>EOL is signaled through the linefeed character, i.e <b class="const">LF</b>, or,
+hex <b class="const">0x0a</b>. This is following the unix convention for
+line-endings.</p>
+<p>As a list each message is composed of <i class="term">words</i>. Their meaning
+depends on when the message was sent in the overall exchange. This is
+described in the upcoming sections.</p>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Negotiation Messages - Initial Handshake</a></h3>
+<p>The command protocol is defined like this:</p>
+<ul class="doctools_itemized">
+<li><p>The first message send by a client to a server, when opening the
+connection, contains two words. The first word is a list as well, and
+contains the versions of the wire protocol the client is willing to
+accept, with the most preferred version first. The second word is the
+TCP port the client is listening on for connections to itself. The
+value <b class="const">0</b> is used here to signal that the client will not listen
+for connections, i.e. that it is purely for sending commands, and not
+receiving them.</p></li>
+<li><p>The first message sent by the server to the client, in response to the
+message above contains only one word. This word is a list, containing
+the string <b class="const">vers</b> as its first element, and the version of the
+wire protocol the server has selected from the offered versions as the
+second.</p></li>
+</ul>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Script/Command Messages</a></h3>
+<p>All messages coming after the <span class="sectref"><a href="#subsection3">initial handshake</a></span>
+consist of three words. These are an instruction, a transaction id,
+and the payload. The valid instructions are shown below. The
+transaction ids are used by the client to match any incoming replies
+to the command messages it sent. This means that a server has to copy
+the transaction id from a command message to the reply it sends for
+that message.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">send</b></dt>
+<dd></dd>
+<dt><b class="const">async</b></dt>
+<dd></dd>
+<dt><b class="const">command</b></dt>
+<dd><p>The payload is the Tcl script to execute on the server. It is actually
+a list containing the script fragments. These fragment are
+<b class="cmd">concat</b>enated together by the server to form the full script to
+execute on the server side.
+This emulates the Tcl &quot;eval&quot; semantics.
+In most cases it is best to have only one word in the list, a list
+containing the exact command.</p>
+<p>Examples:</p>
+<pre class="doctools_example">
+    (a)     {send 1 {{array get tcl_platform}}}
+    (b)     {send 1 {array get tcl_platform}}
+    (c)     {send 1 {array {get tcl_platform}}}
+    are all valid representations of the same command. They are
+    generated via
+    (a')    send {array get tcl_platform}
+    (b')    send array get tcl_platform
+    (c')    send array {get tcl_platform}
+    respectively
+</pre>
+<p>Note that (a), generated by (a'), is the usual form, if only single
+commands are sent by the client.
+For example constructed using <b class="cmd"><a href="../../../../index.html#key302">list</a></b>, if the command contains
+variable arguments. Like</p>
+<pre class="doctools_example">
+    send [list array get $the_variable]
+</pre>
+<p>These three instructions all invoke the script on the server
+side. Their difference is in the treatment of result values, and thus
+determines if a reply is expected.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">send</b></dt>
+<dd><p>A reply is expected. The sender is waiting for the result.</p></dd>
+<dt><b class="const">async</b></dt>
+<dd><p>No reply is expected, the sender has no interest in the result and is
+not waiting for any.</p></dd>
+<dt><b class="const">command</b></dt>
+<dd><p>A reply is expected, but the sender is not waiting for it. It has
+arranged to get a process-internal notification when the result
+arrives.</p></dd>
+</dl></dd>
+<dt><b class="const">reply</b></dt>
+<dd><p>Like the previous three command, however the tcl script in the payload
+is highly restricted.
+It has to be a syntactically valid Tcl <b class="cmd"><a href="../../../../index.html#key187">return</a></b> command. This
+contains result code, value, error code, and error info.</p>
+<p>Examples:</p>
+<pre class="doctools_example">
+    {reply 1 {return -code 0 {}}}
+    {reply 1 {return -code 0 {osVersion 2.4.21-99-default byteOrder littleEndian machine i686 platform unix os Linux user andreask wordSize 4}}}
+</pre>
+</dd>
+</dl>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>comm</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="comm.html">comm</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key40">comm</a>, <a href="../../../../index.html#key355">communication</a>, <a href="../../../../index.html#key360">ipc</a>, <a href="../../../../index.html#key361">message</a>, <a href="../../../../index.html#key358">remote communication</a>, <a href="../../../../index.html#key357">remote execution</a>, <a href="../../../../index.html#key354">rpc</a>, <a href="../../../../index.html#key352">socket</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005 Docs. Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

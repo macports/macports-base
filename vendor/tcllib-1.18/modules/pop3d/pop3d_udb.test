@@ -1,0 +1,244 @@
+# -*- tcl -*-
+# pop3_udb.test:  tests for the simple pop3 user database.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2002 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: pop3d_udb.test,v 1.7 2006/10/09 21:41:41 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal pop3d_udb.tcl pop3d::udb
+}
+
+# ----------------------------------------------------------------------
+
+test pop3-udb-1.0 {anon create/destroy} {
+    set udb [::pop3d::udb::new]
+    $udb destroy
+    regsub {[0-9]+$} $udb {} udb
+    set udb
+} p3udb
+
+test pop3-udb-1.1 {named create/destroy} {
+    set udb [::pop3d::udb::new foo]
+    $udb destroy
+    set udb
+} foo
+
+test pop3-udb-1.2 {multiple create} {
+    ::pop3d::udb::new foo
+    catch {::pop3d::udb::new foo} msg
+    foo destroy
+    set msg
+} {command "foo" already exists, unable to create user database}
+
+test pop3-udb-1.3 {correct creation, destruction} {
+    ::pop3d::udb::new foo
+    set res [list [info exists ::pop3d::udb::udb::foo::lastfile]]
+    foo destroy
+    lappend res   [info exists ::pop3d::udb::udb::foo::lastfile]
+} {1 0}
+
+test pop3-udb-1.4 {unknown method} {
+    set udb [::pop3d::udb::new]
+    catch {$udb foo} res
+    $udb destroy
+    set res
+} {bad option "foo": must be add, destroy, exists, lookup, read, remove, rename, save, or who}
+
+
+test pop3-udb-2.0 {adding entries, created empty} {
+    set udb [::pop3d::udb::new]
+    set res [$udb who]
+    $udb destroy
+    set res
+} {}
+
+test pop3-udb-2.1 {adding entries} {
+    set udb [::pop3d::udb::new]
+    $udb add bar blurb ****
+    set res [$udb who]
+    $udb destroy
+    set res
+} {bar}
+
+test pop3-udb-2.2 {adding entries, missing user} {
+    set udb [::pop3d::udb::new]
+    catch {$udb add {} blurb ****} res
+    $udb destroy
+    set res
+} {user specification missing}
+
+test pop3-udb-2.3 {adding entries, missing passwd} {
+    set udb [::pop3d::udb::new]
+    catch {$udb add bar {} ****} res
+    $udb destroy
+    set res
+} {password not specified}
+
+test pop3-udb-2.4 {adding entries, missing storage} {
+    set udb [::pop3d::udb::new]
+    catch {$udb add bar blurb {}} res
+    $udb destroy
+    set res
+} {storage location not defined}
+
+
+test pop3-udb-3.0 {removing entries} {
+    set udb [::pop3d::udb::new]
+    $udb add bar blurb ****
+    set res [list [$udb who]]
+    $udb remove bar
+    lappend res [$udb who]
+    $udb destroy
+    set res
+} {bar {}}
+
+test pop3-udb-3.1 {removing entries} {
+    set udb [::pop3d::udb::new]
+    catch {$udb remove bar} res
+    $udb destroy
+    set res
+} {user "bar" not known}
+
+test pop3-udb-3.2 {removing entries} {
+    set udb [::pop3d::udb::new]
+    catch {$udb remove {}} res
+    $udb destroy
+    set res
+} {user specification missing}
+
+
+test pop3-udb-4.0 {renaming entries} {
+    set udb [::pop3d::udb::new]
+    $udb add bar blurb ****
+    set res [list [$udb who]]
+    $udb rename bar booze
+    lappend res [$udb who]
+    $udb destroy
+    set res
+} {bar booze}
+
+test pop3-udb-4.1 {renaming entries} {
+    set udb [::pop3d::udb::new]
+    catch {$udb rename {} {}} res
+    $udb destroy
+    set res
+} {user specification missing}
+
+test pop3-udb-4.2 {renaming entries} {
+    set udb [::pop3d::udb::new]
+    catch {$udb rename bar {}} res
+    $udb destroy
+    set res
+} {user specification missing}
+
+test pop3-udb-4.3 {renaming entries} {
+    set udb [::pop3d::udb::new]
+    catch {$udb rename bar floss} res
+    $udb destroy
+    set res
+} {user "bar" not known}
+
+test pop3-udb-4.4 {renaming entries} {
+    set udb [::pop3d::udb::new]
+    $udb add bar blurb ****
+    $udb add booze blurb ****
+    catch {$udb rename bar booze} res
+    $udb destroy
+    set res
+} {user "booze" is known}
+
+
+test pop3-udb-5.0 {searching for entries} {
+    set udb [::pop3d::udb::new]
+    $udb add bar blurb ****
+    set res [$udb lookup bar]
+    $udb destroy
+    set res
+} {blurb ****}
+
+test pop3-udb-5.1 {searching for entries} {
+    set udb [::pop3d::udb::new]
+    catch {$udb lookup bar} res
+    $udb destroy
+    set res
+} {user "bar" not known}
+
+
+test pop3-udb-6.0 {existence of entries} {
+    set udb [::pop3d::udb::new]
+    $udb add bar blurb ****
+    set res [$udb exists bar]
+    $udb destroy
+    set res
+} 1
+
+test pop3-udb-6.1 {existence of entries} {
+    set udb [::pop3d::udb::new]
+    set res [$udb exists bar]
+    $udb destroy
+    set res
+} 0
+
+# = who = already tested as part of add/remove
+
+
+test pop3-udb-7.0 {save database} {
+    makeFile {} __UDB__
+    makeFile {} __UDB__.old
+    set udb [::pop3d::udb::new]
+    $udb add bar blurb ****
+    $udb add booze Xblurb ***X
+    $udb save __UDB__
+    $udb destroy
+    set res [viewFile __UDB__]
+    removeFile __UDB__
+    removeFile __UDB__.old
+    set res
+} {# -*- tcl -*-
+# ----------- user authentication database -
+
+	add bar blurb ****
+	add booze Xblurb ***X
+}
+
+test pop3-udb-7.1 {read database} {
+    makeFile {} __UDB__
+    makeFile {} __UDB__.old
+    set udb [::pop3d::udb::new]
+    $udb add bar blurb ****
+    $udb add booze Xblurb ***X
+    $udb save __UDB__
+    $udb destroy
+
+    set udb [::pop3d::udb::new]
+    $udb read __UDB__
+    set res [list [lsort [$udb who]]]
+    foreach u [lsort [$udb who]] {
+	lappend res [$udb lookup $u]
+    }
+    $udb destroy
+
+    removeFile __UDB__
+    removeFile __UDB__.old
+    set res
+} {{bar booze} {blurb ****} {Xblurb ***X}}
+
+
+
+# ----------------------------------------------------------------------
+testsuiteCleanup

@@ -1,0 +1,376 @@
+<?xml version="1.0" ?>
+<?xml-stylesheet href="api.css" type="text/css" ?>
+<!DOCTYPE api SYSTEM "api.dtd" [
+]>
+  <api>
+  <title>Treeql API</title>
+  <header>
+    <p>Treeql is a fairly thin query facility over tree-structured data types.  It implements an ordered set of nodes (really a list) which are generated and filtered by application of the treeql query language to each node in turn.</p>
+  </header>
+
+  <group>
+    <name>TreeQL Object Interface</name>
+    <header>
+      <p>TreeQL is a Snit type which implements the treeql query language.</p>
+      <p>This group of methods provides the tcl interface to the treeql language.</p>
+    </header>
+
+    <function>
+      <name>TreeQL</name>
+      <args>
+	<arg>name</arg>
+	-tree <arg>tree</arg>
+	?-query <arg>query</arg>?
+	?-nodes <arg>nodes</arg>?
+	<arg>args</arg>
+      </args>
+      <result>a new query object</result>
+      <detail>
+	<p><arg>name</arg> names the object to be constructed</p>
+	<p>-query specifies a parent query</p>
+	<p>-nodes specifies an initial node list</p>
+	<p>-tree specifies the underlying tree over which this </p>
+	<p><arg>args</arg> are the query operations to be performed</p>
+      </detail>
+      <detail></detail>
+    </function>
+
+    <method>
+      <object><arg>query</arg></object>
+      <name>query</name>
+      <args><arg>args</arg></args>
+      <result>perform the new query <arg>args</arg></result>
+    </method>
+    
+    <method>
+      <object><arg>query</arg></object>
+      <name>result</name>
+      <args></args>
+      <result>return the node set as a list</result>
+    </method>
+    
+    <method>
+      <object><arg>query</arg></object>
+      <name>discard</name>
+      <args></args>
+      <result>returns result, and destroys this query</result>
+      <detail>(useful in constructing a sub-query)</detail>
+    </method>
+
+  </group>
+
+  <group>
+    <name>Structural generators</name>
+
+    <header>These tree-structural operations add nodes to the node set</header>
+
+    <function>
+      <name>ancestors</name>
+      <args></args>
+      <result>all nodes on the path from node to root</result>
+    </function>
+    
+    <function>
+      <name>rootpath</name>
+      <args></args>
+      <result>all nodes on the path from root to node</result>
+    </function>
+    
+    <function>
+      <name>parent</name>
+      <args></args>
+      <result>node parent</result>
+    </function>
+    
+    <function>
+      <name>children</name>
+      <args></args>
+      <result>node children</result>
+    </function>
+    
+    <function>
+      <name>left</name>
+      <args></args>
+      <result>previous sibling</result>
+    </function>
+    
+    <function>
+      <name>right</name>
+      <args></args>
+      <result>next sibling</result>
+    </function>
+    
+    <function>
+      <name>prev</name>
+      <args></args>
+      <result>previous siblings in reverse order</result>
+    </function>
+    
+    <function>
+      <name>esib</name>
+      <args></args>
+      <result>previous siblings in tree order</result>
+    </function>
+    
+    <function>
+      <name>next</name>
+      <args></args>
+      <result>next siblings in tree order</result>
+    </function>
+    
+    <function>
+      <name>root</name>
+      <args></args>
+      <result>the tree root</result>
+    </function>
+    
+    <function>
+      <name>tree</name>
+      <args></args>
+      <result>all nodes in the tree</result>
+    </function>
+    
+    <function>
+      <name>descendants</name>
+      <args></args>
+      <result>all subtrees rooted at node</result>
+    </function>
+    
+    <function>
+      <name>forward</name>
+      <args></args>
+      <result>flattened next subtrees</result>
+    </function>
+    
+    <function>
+      <name>backward</name>
+      <args></args>
+      <result>flattened previous subtrees in reverse tree order</result>
+    </function>
+    
+    <function>
+      <name>later</name>
+      <args></args>
+      <result>flattened next subtrees</result>
+      <detail>Synonym for [forward]</detail>
+    </function>
+    
+    <function>
+      <name>earlier</name>
+      <args></args>
+      <result>flattened previous subtrees in tree order</result>
+    </function>
+    
+  </group>
+
+  <group>
+    <name>Attribute Filters</name>
+    <header>These operations filter the node set by reference to attributes</header>
+    <function>
+      <name>hasatt</name>
+      <args><arg>attr</arg></args>
+      <result>Reduce to nodes with attribute <arg>attr</arg> (can be a glob)</result>
+    </function>
+    
+    <function>
+      <name>withatt</name>
+      <args><arg>attr</arg> <arg>value</arg></args>
+      <result>Reduce to nodes with attribute <arg>attr</arg> of <arg>value</arg></result>
+    </function>
+    
+    <function>
+      <name>withatt!</name>
+      <args><arg>attr</arg> <arg>val</arg></args>
+      <result>Reduce to nodes with attribute <arg>attr</arg> of <arg>value</arg></result>
+      <detail><arg>attr</arg> must exist in each node of node set</detail>
+    </function>
+    
+    <function>
+      <name>attof</name>
+      <args><arg>attr</arg> <arg>vals</arg></args>
+      <result>Reduce to nodes with attribute <arg>attr</arg> value one of list of <arg>vals</arg></result>
+    </function>
+    
+    <function>
+      <name>attmatch</name>
+      <args><arg>attr</arg> <arg>match</arg></args>
+      <result>Reduce to nodes whose attribute <arg>attr</arg> [string match]es <arg>match</arg></result>
+    </function>
+    
+  </group>
+
+  <group>
+    <name>Attribute Mutators</name>
+    <header>These operators change node attributes within the underlying tree.</header>
+    <function>
+      <name>string</name>
+      <args><arg>op</arg> <arg>attr</arg></args>
+      <result>apply string operation <arg>op</arg> to attribute <arg>attr</arg> on each node</result>
+    </function>
+
+    <function>
+      <name>set</name>
+      <args><arg>attr</arg> <arg>val</arg></args>
+      <result>Side Effect: set attribute <arg>attr</arg> to <arg>val</arg></result>
+    </function>
+    
+    <function>
+      <name>unset</name>
+      <args><arg>attr</arg></args>
+      <result>Side Effect: unset attribute <arg>attr</arg></result>
+    </function>
+  </group>
+  
+  <group>
+    <name>Attribute String Accessors</name>
+    <header>
+      <p>These operators change node attributes within the underlying tree.</p>
+      <p>Their results are stored in the node set, but are not actually nodes.</p>
+    </header>
+
+    <function>
+      <name>getvals</name>
+      <args><arg>pattern</arg></args>
+      <result>returns the list of attribute values of attributes matching <arg>pattern</arg></result>
+    </function>
+    
+    <function>
+      <name>get</name>
+      <args><arg>attr</arg></args>
+      <result>returns the list of attribute values of attributes matching <arg>attr</arg></result>
+    </function>
+    
+    <function>
+      <name>attlist</name>
+      <args></args>
+      <result>returns list of attribute values of the current node, in an unspecified order.</result>
+    </function>
+    
+    <function>
+      <name>attrs</name>
+      <args><arg>glob</arg></args>
+      <result>returns list of lists of attributes of each node</result>
+    </function>
+    
+    <function>
+      <name>attval</name>
+      <args><arg>attname</arg></args>
+      <result>returns values of attribute attname</result>
+    </function>
+    
+  </group>
+
+  <group>
+    <name>SubQueries</name>
+    <header>SubQueries yield node sets which can augment, reduce or replace the current node set</header>
+    <function>
+      <name>andq</name>
+      <args><arg>query</arg></args>
+      <result>Replace node set with the set-intersection of the subquery <arg>query</arg></result>
+    </function>
+    
+    <function>
+      <name>orq</name>
+      <args><arg>query</arg></args>
+      <result>Replace node set with the set-union of the subquery <arg>query</arg></result>
+    </function>
+    
+    <function>
+      <name>notq</name>
+      <args><arg>query</arg></args>
+      <result>Replace node set with the set of nodes from subquery <arg>query</arg> which are not in the current node set</result>
+    </function>
+    
+  </group>
+
+  <group>
+    <name>Node Set Operations</name>
+    <function>
+      <name>unique</name>
+      <args></args>
+      <result>remove duplicate nodes, preserving order</result>
+    </function>
+    
+    <function>
+      <name>select</name>
+      <args></args>
+      <result>select the first node of the node set</result>
+    </function>
+    
+    <function>
+      <name>transform</name>
+      <args><arg>var</arg> <arg>query</arg> <arg>body</arg></args>
+      <result>replace the node set with result of the subquery</result>
+    </function>
+    
+    <function>
+      <name>quote</name>
+      <args><arg>val</arg></args>
+      <result>append the literal <arg>val</arg> to node set</result>
+    </function>
+    
+    <function>
+      <name>replace</name>
+      <args><arg>val</arg></args>
+      <result>replace the node set with the literal</result>
+    </function>
+    
+  </group>
+
+  <group>
+    <name>Node Set Iterators</name>
+    <function>
+      <name>foreach</name>
+      <args><arg>var</arg> <arg>query</arg> <arg>body</arg></args>
+      <result>perform a subquery <arg>query</arg> then map <arg>body</arg> over results</result>
+    </function>
+    
+    <function>
+      <name>with</name>
+      <args><arg>query</arg> <arg>body</arg></args>
+      <result>perform a query, then evaluate <arg>body</arg></result>
+    </function>
+
+    <function>
+      <name>over</name>
+      <args><arg>var</arg><arg>body</arg></args>
+      <result>map <arg>body</arg> over node set</result>
+    </function>
+
+    <function>
+      <name>delete</name>
+      <args></args>
+      <result>delete all nodes in node set</result>
+    </function>
+    
+  </group>
+
+  <group>
+    <name>Typed node support</name>
+    <header>These filters and accessors assume the existence of an attribute called '@type', and are short-hand forms useful for cost-like tree query, html tree editing, and so on.</header>
+    <function>
+      <name>nodetype</name>
+      <args></args>
+      <result>returns the node type of nodes</result>
+    </function>
+    
+    <function>
+      <name>oftype</name>
+      <args><arg>t</arg></args>
+      <result>Reduce to nodes of type <arg>t</arg></result>
+    </function>
+    
+    <function>
+      <name>nottype</name>
+      <args><arg>t</arg></args>
+      <result>Reduce to nodes not of type <arg>t</arg></result>
+    </function>
+    
+    <function>
+      <name>oftypes</name>
+      <args><arg>attrs</arg></args>
+      <result> Reduce to nodes whose @type is one of <arg>attrs</arg></result>
+    </function>
+  </group>
+
+</api>

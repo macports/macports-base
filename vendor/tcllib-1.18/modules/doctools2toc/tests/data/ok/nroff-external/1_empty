@@ -1,0 +1,4 @@
+.so man.macros
+.TH TOC
+.SH "TABLE OF CONTENTS"
+TOC

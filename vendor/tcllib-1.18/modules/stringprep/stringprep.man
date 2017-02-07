@@ -1,0 +1,151 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin stringprep n 1.0.1]
+[see_also unicode(n)]
+[keywords stringprep]
+[keywords unicode]
+[copyright {2007-2009, Sergei Golovan <sgolovan@nes.ru>}]
+[moddesc {Preparation of Internationalized Strings}]
+[titledesc {Implementation of stringprep}]
+[require Tcl 8.3]
+[require stringprep 1.0.1]
+[description]
+[para]
+
+This is an implementation in Tcl of the Preparation of Internationalized
+Strings ("stringprep"). It allows to define stringprep profiles and use
+them to prepare Unicode strings for comparison as defined in RFC-3454.
+
+[section "COMMANDS"]
+
+[list_begin definitions]
+[call [cmd "::stringprep::register"] \
+        [arg profile] \
+        [opt [arg "-mapping list"]] \
+        [opt [arg "-normalization form"]] \
+        [opt [arg "-prohibited list"]] \
+        [opt [arg "-prohibitedList list"]] \
+        [opt [arg "-prohibitedCommand command"]] \
+        [opt [arg "-prohibitedBidi boolean"]]]
+
+Register the [package stringprep] profile named [arg profile]. Options
+are the following.
+
+[para]
+
+Option [arg -mapping] specifies [package stringprep] mapping tables.
+This parameter takes list of tables from appendix B of RFC-3454. The usual
+list values are {B.1 B.2} or {B.1 B.3} where B.1 contains characters which
+commonly map to nothing, B.3 specifies case folding, and B.2 is used in
+profiles with unicode normalization form KC. Defult value is {} which means
+no mapping.
+
+[para]
+
+Option [arg -normalization] takes a string and if it is nonempty then it
+uses as a name of Unicode normalization form. Any value of "D", "C", "KD"
+or "KC" may be used, though RFC-3454 defines only two options: no
+normalization or normalization using form KC.
+
+[para]
+
+Option [arg -prohibited] takes a list of RFC-3454 tables with prohibited
+characters. Current version does allow to prohibit either all tables from
+C.3 to C.9 or neither of them. An example of this list for RFC-3491 is
+{A.1 C.1.2 C.2.2 C.3 C.4 C.5 C.6 C.7 C.8 C.9}.
+
+[para]
+
+Option [arg -prohibitedList] specifies a list of additional prohibited
+characters. The list contains not characters themselves but their Unicode
+numbers. For example, Nodeprep specification from RFC-3920 forbids the
+following codes: {0x22 0x26 0x27 0x2f 0x3a 0x3c 0x3e 0x40} (\" \& \' / : < > @).
+
+[para]
+
+Option [arg -prohibitedCommand] specifies a command which is called for
+every character code in mapped and normalized string. If the command returns
+true then the character is considered prohibited. This option is useful when
+a list for [arg -prohibitedList] is too large.
+
+[para]
+
+Option [arg -prohibitedBidi] takes boolean value and if it is true then the
+bidirectional character processing rules defined in section 6 of RFC-3454 are
+used.
+
+[call [cmd "::stringprep::stringprep"] \
+        [arg profile] \
+        [arg string]]
+
+Performs [package stringprep] operations defined in profile [arg profile]
+to string [arg string]. Result is a prepared string or one of the following
+errors: [arg invalid_profile] (profile [arg profile] is not defined),
+[arg prohibited_character] (string [arg string] contains a prohibited character)
+or [arg prohibited_bidi] (string [arg string] contains a prohibited bidirectional
+sequence).
+
+[call [cmd "::stringprep::compare"] \
+        [arg profile] \
+        [arg string1] \
+        [arg string2]]
+
+Compares two unicode strings prepared accordingly to [package stringprep]
+profile [arg profile]. The command returns 0 if prepared strings are equal,
+-1 if [arg string1] is lexicographically less than [arg string2], or
+1 if [arg string1] is lexicographically greater than [arg string2].
+
+[list_end]
+
+[section EXAMPLES]
+
+Nameprep profile definition (see RFC-3491):
+
+[example {
+::stringprep::register nameprep \
+    -mapping {B.1 B.2} \
+    -normalization KC \
+    -prohibited {A.1 C.1.2 C.2.2 C.3 C.4 C.5 C.6 C.7 C.8 C.9} \
+    -prohibitedBidi 1
+}]
+
+Nodeprep and resourceprep profile definitions (see RFC-3920):
+
+[example {
+::stringprep::register nodeprep \
+    -mapping {B.1 B.2} \
+    -normalization KC \
+    -prohibited {A.1 C.1.1 C.1.2 C.2.1 C.2.2 C.3 C.4 C.5 C.6 C.7 C.8 C.9} \
+    -prohibitedList {0x22 0x26 0x27 0x2f 0x3a 0x3c 0x3e 0x40} \
+    -prohibitedBidi 1
+
+::stringprep::register resourceprep \
+    -mapping {B.1} \
+    -normalization KC \
+    -prohibited {A.1 C.1.2 C.2.1 C.2.2 C.3 C.4 C.5 C.6 C.7 C.8 C.9} \
+    -prohibitedBidi 1
+}]
+
+[section "REFERENCES"]
+
+[list_begin enum]
+
+[enum]
+    "Preparation of Internationalized Strings ('stringprep')",
+    ([uri http://www.ietf.org/rfc/rfc3454.txt])
+
+[enum]
+    "Nameprep: A Stringprep Profile for Internationalized Domain Names (IDN)",
+    ([uri http://www.ietf.org/rfc/rfc3491.txt])
+
+[enum]
+    "Extensible Messaging and Presence Protocol (XMPP): Core",
+    ([uri http://www.ietf.org/rfc/rfc3920.txt])
+
+[list_end]
+
+[section "AUTHORS"]
+Sergei Golovan
+
+[vset CATEGORY stringprep]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

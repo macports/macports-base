@@ -1,0 +1,46 @@
+# -*- tcl -*-
+# pe_op.test:  tests for the pt::pe::op package.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: pt_pexpr_op.test,v 1.1 2010/03/26 05:07:24 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    useAccel [useTcllibC] struct/sets.tcl struct::set
+    TestAccelInit                         struct::set
+
+    use fileutil/fileutil.tcl  fileutil ; # For tests/common
+    use snit/snit.tcl          snit
+
+    source [localPath tests/common]
+}
+testing {
+    useLocal pt_pexpr_op.tcl pt::pe::op
+}
+
+# -------------------------------------------------------------------------
+
+set mytestdir tests/data
+
+# -------------------------------------------------------------------------
+
+TestAccelDo struct::set setimpl {
+    source [localPath tests/pt_pexpr_op.tests]
+}
+
+#----------------------------------------------------------------------
+
+unset mytestdir
+TestAccelExit struct::set
+testsuiteCleanup
+return

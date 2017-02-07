@@ -1,0 +1,137 @@
+# -*- tcl -*-
+#Metric Weighted K-Center - Tests
+#
+#
+#Set of tests includes also tests for subprocedures used by Weighted Metric K-Center Algorithm:
+#- Max Weighted Independent Set
+
+# ------------------------------------------------------------------------------------
+# Tests concerning returning right values by algorithm
+
+#Test 1.0 - Tight Example simulation for graph with 8 nodes
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-WeightedKCenter-1.0 { Tight Example, n+4 - nodes graph } {
+    SETUP_WEIGHTEDKCENTER_1 nodeWeights
+    set result [lsort -dict [struct::graph::op::WeightedKCenter mygraph $nodeWeights 3]]
+    mygraph destroy
+    set result
+} {node1 node4}
+
+#Test 1.1 - Tight Example simulation for graph with 8 nodes
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-WeightedKCenter-1.1 { Tight Example, n+4 - nodes graph } {
+    SETUP_WEIGHTEDKCENTER_1 nodeWeights
+    set result [lsort -dict [struct::graph::op::WeightedKCenter mygraph $nodeWeights 9]]
+    mygraph destroy
+    set result
+} {node1 node4}
+
+#Test 1.2 - Tight Example simulation for graph with 8 nodes
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-WeightedKCenter-1.2 { Tight Example, n+4 - nodes graph } {
+    SETUP_WEIGHTEDKCENTER_1 nodeWeights
+    catch { struct::graph::op::WeightedKCenter mygraph $nodeWeights 1 } result
+    mygraph destroy
+    set result
+} {No k-center found for restriction W = 1}
+
+#Test 1.3 - 
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-WeightedKCenter-1.3 {  } {
+    SETUP_WEIGHTEDKCENTER_2 nodeWeights
+    set result [lsort -dict [struct::graph::op::WeightedKCenter mygraph $nodeWeights 2]]
+    mygraph destroy
+    set result
+} {node6}
+
+#Test 1.4 - 
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-WeightedKCenter-1.4 {  } {
+    SETUP_WEIGHTEDKCENTER_3 nodeWeights
+    set result [lsort -dict [struct::graph::op::WeightedKCenter mygraph $nodeWeights 1]]
+    mygraph destroy
+    set result
+} {node1}
+
+#Test 1.5 - 
+# Tcl: 12345->1234->124     | Initial different sorting of the arcs causes selection of different maximal
+# C:   12346->1246->146->14 | independent sets, which then drives the heuristics to different solutions.
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-WeightedKCenter-1.5 {  } {
+    SETUP_WEIGHTEDKCENTER_3 nodeWeights
+    set result [lsort -dict [struct::graph::op::WeightedKCenter mygraph $nodeWeights 3]]
+    mygraph destroy
+    set result
+} [tmE {node1 node2 node4} {node1 node4}]
+
+#Test 1.6
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-WeightedKCenter-1.6 { Independent Set, 24 nodes graph } {
+    SETUP_INDEPENDENTSET_1
+    set nodeWeights {}
+    foreach node [mygraph nodes] {
+	lappend nodeWeights [list $node 1]
+    }	
+    set result [struct::graph::op::GreedyWeightedMaxIndependentSet mygraph $nodeWeights]
+    set result [list [ismaxindependentset mygraph $result] [llength $result]]
+    mygraph destroy
+    set result
+} {1 8}
+
+#Test 1.7
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-WeightedKCenter-1.7 { Independent Set, complete K4 } {
+    SETUP_UNWEIGHTED_K4
+    set nodeWeights {{node1 1} {node2 2} {node3 2} {node4 2}}
+    set result [lsort -dict [struct::graph::op::GreedyWeightedMaxIndependentSet mygraph \
+				 $nodeWeights]]
+    mygraph destroy
+    set result
+} {node1}
+
+#Test 1.8
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-WeightedKCenter-1.8 { Independent Set, C5 } {
+    SETUP_C5
+    set nodeWeights {{node1 1} {node2 2} {node3 3} {node4 4} {node5 5}}
+    set result [lsort -dict [struct::graph::op::GreedyWeightedMaxIndependentSet mygraph \
+				 $nodeWeights]]
+    mygraph destroy
+    set result
+} {node1 node3}
+
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-WeightedKCenter-2.0 { WeightedKCenter, wrong args, missing } {
+    catch {struct::graph::op::WeightedKCenter} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::WeightedKCenter {G nodeWeights W} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-WeightedKCenter-2.1 { WeightedKCenter, wrong args, missing } {
+    catch {struct::graph::op::WeightedKCenter G} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::WeightedKCenter {G nodeWeights W} 1]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-WeightedKCenter-2.2 { WeightedKCenter, wrong args, missing } {
+    catch {struct::graph::op::WeightedKCenter G x} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::WeightedKCenter {G nodeWeights W} 2]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-WeightedKCenter-2.3 { WeightedKCenter, wrong args, too many} {
+    catch {struct::graph::op::WeightedKCenter G y x z} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::WeightedKCenter {G nodeWeights W}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+
+#Test 3.0 - case when W is too low
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-WeightedKCenter-3.0 { WeightedKCenter, wrong input } {
+    SETUP_KCENTER_1
+    catch { struct::graph::op::WeightedKCenter mygraph nodeWeights 0 } result
+    mygraph destroy
+    set result
+} [WrongValueAtInput {W}]
+
+#Test 3.1 - case when given graph doesn't have weights at all edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-WeightedKCenter-3.1 {WeightedKCenter, lack of weights at edges } {
+    SETUP_UNWEIGHTED_K4
+    catch {struct::graph::op::WeightedKCenter mygraph nodeWeights 5 } result
+    mygraph destroy
+    set result
+} [UnweightedArcOccurance]

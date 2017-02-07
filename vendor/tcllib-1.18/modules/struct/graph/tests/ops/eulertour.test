@@ -1,0 +1,189 @@
+# -*- tcl -*-
+# Graph ops tests - Euler tours.
+# Copyright (c) 2008-2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: eulertour.test,v 1.4 2009/09/21 23:48:03 andreas_kupries Exp $
+
+# Syntax: struct::graph::op::isEulerian? G A
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-1.0 {isEulerian?, wrong args, missing} {
+    catch {struct::graph::op::isEulerian?} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::isEulerian? {g ?eulervar? ?tourstart?} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-1.1 {isEulerian?, wrong args, too many} {
+    catch {struct::graph::op::isEulerian? g x y z} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::isEulerian? {g ?eulervar? ?tourstart?}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.0 {isEulerian?, empty graph} {
+    SETUP
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.1 {isEulerian?, nodes, no arcs} {
+    SETUP
+    mygraph node insert 0 1 2 3 4 5
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.2 {isEulerian?} {
+    SETUP_A
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.3 {isEulerian?} {
+    SETUP_B
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.4 {isEulerian?} {
+    SETUP_B2
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.5 {isEulerian?} {
+    SETUP_C
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.6 {isEulerian?} {
+    SETUP_D
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.7 {isEulerian?} {
+    SETUP_E
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.8 {isEulerian?} {
+    SETUP_F
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.9 {isEulerian?} {
+    SETUP_G
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.10 {isEulerian?} {
+    SETUP_H
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.11 {isEulerian?} {
+    SETUP_I
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.12 {isEulerian?} {
+    SETUP_J
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.13 {isEulerian?} {
+    SETUP_K
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.14 {isEulerian?} {
+    SETUP_K2
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.15 {isEulerian?} {
+    SETUP_L
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 0
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.16 {isEulerian?} {
+    SETUP_M
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 1
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.17 {isEulerian?} {
+    SETUP_N
+    set result [struct::graph::op::isEulerian? mygraph]
+    mygraph destroy
+    set result
+} 1
+
+# ---------------------------------------------------
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-4.4 {isEulerian?, and tour} {
+    SETUP_B2
+    set result [struct::graph::op::isEulerian? mygraph tour]
+    lappend result [EulerTour mygraph $tour]
+    mygraph destroy
+    set result
+} {1 ok}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-4.14 {isEulerian?, and tour} {
+    SETUP_K2
+    set result [struct::graph::op::isEulerian? mygraph tour]
+    lappend result [EulerTour mygraph $tour]
+    mygraph destroy
+    set result
+} {1 ok}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-3.16 {isEulerian?, and tour} {
+    SETUP_M
+    set result [struct::graph::op::isEulerian? mygraph tour]
+    lappend result [EulerTour mygraph $tour]
+    mygraph destroy
+    set result
+} {1 ok}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-isEulerian?-4.17 {isEulerian?, and tour} {
+    SETUP_N
+    set result [struct::graph::op::isEulerian? mygraph tour]
+    lappend result [EulerTour mygraph $tour]
+    mygraph destroy
+    set result
+} {1 ok}
+
+# ---------------------------------------------------

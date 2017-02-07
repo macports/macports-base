@@ -10,11 +10,22 @@ SYNOPSIS
 --------
 [cmdsynopsis]
 *port* [*-vd*] *reclaim*
+    [--enable-reminders] [--disable-reminders]
 
 DESCRIPTION
 -----------
-*port reclaim* will reclaim disk space by uninstalling inactive ports on your
-system, and removing unneeded or unused installation files.
+*port reclaim* will find files that can be removed to reclaim disk space by uninstalling inactive ports on your
+system, and removing unneeded or unused installation files.  The user is then provided interactive options for files to remove.  No files are removed initially, until the user selects them from the provided list.
+
+OPTIONS
+-------
+*--enable-reminders*::
+Enable regular reminders to run *port reclaim*. Using this option will only
+update the configuration; the reclaim process will not be run.
+
+*--disable-reminders*::
+Disable reminders to run *port reclaim*. Using this option will only
+update the configuration; the reclaim process will not be run.
 
 include::global-flags.txt[]
 

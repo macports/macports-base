@@ -1,0 +1,120 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin rc4 n 1.1.0]
+[see_also aes(n)]
+[see_also blowfish(n)]
+[see_also des(n)]
+[keywords arcfour]
+[keywords {data integrity}]
+[keywords encryption]
+[keywords rc4]
+[keywords security]
+[keywords {stream cipher}]
+[copyright {2003, Pat Thoyts <patthoyts@users.sourceforge.net>}]
+[moddesc   {RC4 Stream Cipher}]
+[titledesc {Implementation of the RC4 stream cipher}]
+[category  {Hashes, checksums, and encryption}]
+[require Tcl 8.2]
+[require rc4 [opt 1.1.0]]
+[description]
+[para]
+
+This package is an implementation in Tcl of the RC4 stream cipher
+developed by Ron Rivest of RSA Data Security Inc. The cipher was a
+trade secret of RSA but was reverse-engineered and published to the
+internet in 1994. It is used in a number of network protocols for
+securing communications. To evade trademark restrictions this cipher
+is sometimes known as ARCFOUR.
+
+[section {COMMANDS}]
+
+[list_begin definitions]
+
+[call [cmd "::rc4::rc4"] \
+     [opt "[arg -hex]"] \
+     [arg "-key keyvalue" ] \
+     [opt [arg "-command lst"]] \
+     [opt [arg "-out channel"]] \
+     [lb] [arg "-in channel"] | \
+     [arg "-infile filename"] | [arg "string"] [rb]]
+
+Perform the RC4 algorithm on either the data provided by the argument
+or on the data read from the [arg "-in"] channel. If an [arg "-out"]
+channel is given then the result will be written to this channel.
+Giving the [arg "-hex"] option will return a hexadecimal encoded
+version of the result if not using an [arg -out] channel.
+
+[para]
+
+The data to be processes can be specified either as a string argument to
+the rc4 command, or as a filename or a pre-opened channel. If the
+[arg "-infile"] argument is given then the file is opened, the data read
+and processed and the file is closed. If the [arg "-in"] argument is
+given then data is read from the channel until the end of file. The
+channel is not closed. If the [arg "-out"] argument is given then the
+processing result is written to this channel.
+
+[para]
+
+If [arg "-command"] is provided then the rc4 command does not return
+anything. Instead the command provided is called with the rc4 result data
+appended as the final parameter. This is most useful when reading from Tcl
+channels as a fileevent is setup on the channel and the data processed in
+chunks
+
+[para]
+
+Only one of [arg "-infile"], [arg "-in"] or [arg "string"] should be given.
+
+[list_end]
+
+[section "PROGRAMMING INTERFACE"]
+
+[list_begin definitions]
+
+[call [cmd "::rc4::RC4Init"] [arg "keydata"]]
+
+Initialize a new RC4 key. The [arg keydata] is any amount of binary
+data and is used to initialize the cipher internal state.
+
+[call [cmd "::rc4::RC4"] [arg "Key"] [arg "data"]]
+
+Encrypt or decrypt the input data using the key obtained by calling
+[cmd RC4Init].
+
+[call [cmd "::rc4::RC4Final"] [arg "Key"]]
+
+This should be called to clean up resources associated with
+[arg Key]. Once this function has been called the key is destroyed.
+
+[list_end]
+
+[section "EXAMPLES"]
+
+[example {
+% set keydata [binary format H* 0123456789abcdef]
+% rc4::rc4 -hex -key $keydata HelloWorld
+3cf1ae8b7f1c670b612f
+% rc4::rc4 -hex -key $keydata [binary format H* 3cf1ae8b7f1c670b612f]
+HelloWorld
+}]
+
+[example {
+ set Key [rc4::RC4Init "key data"]
+ append ciphertext [rc4::RC4 $Key $plaintext]
+ append ciphertext [rc4::RC4 $Key $additional_plaintext]
+ rc4::RC4Final $Key
+}]
+
+[example {
+ proc ::Finish {myState data} {
+     DoStuffWith $myState $data
+ }
+ rc4::rc4 -in $socket -command [list ::Finish $ApplicationState]
+}]
+
+[section "AUTHORS"]
+Pat Thoyts
+
+[vset CATEGORY rc4]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

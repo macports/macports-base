@@ -1,6 +1,5 @@
 /*
  * curl.h
- * $Id$
  *
  * Copyright (c) 2005 Paul Guyot, The MacPorts Project.
  * All rights reserved.

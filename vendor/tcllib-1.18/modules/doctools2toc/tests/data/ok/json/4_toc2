@@ -1,0 +1,31 @@
+{
+    "doctools::toc" : {
+        "label" : "Table of Contents",
+        "items" : [{
+            "reference" : {
+                "label" : "doctools::toc::introduction",
+                "desc"  : "DocTools - Tables of Contents",
+                "id"    : "introduction.man"
+            }
+        },{
+            "division" : {
+                "items" : [{
+                    "reference" : {
+                        "label" : "doctools::toc::parse",
+                        "desc"  : "Parsing text in doctoc format",
+                        "id"    : "parse.man"
+                    }
+                }],
+                "label" : "Processing",
+                "id"    : "processing.man"
+            }
+        },{
+            "reference" : {
+                "id"    : "structure.man",
+                "desc"  : "doctoc serialization utilities",
+                "label" : "doctools::toc::structure"
+            }
+        }],
+        "title" : "TOC"
+    }
+}

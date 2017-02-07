@@ -1,0 +1,529 @@
+# Tests for the 'set' module in the 'struct' library. -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2004-2008 by Andreas Kupries
+#
+# RCS: @(#) $Id: sets.testsuite,v 1.6 2008/03/09 04:38:47 andreas_kupries Exp $
+
+#----------------------------------------------------------------------
+
+test set-${impl}-1.0 {nothing} {
+    catch {setop} msg
+    set msg
+} [Nothing]
+
+test set-${impl}-1.1 {bogus} {
+    catch {setop foo} msg
+    set msg
+} {bad option "foo": must be add, contains, difference, empty, equal, exclude, include, intersect, intersect3, size, subsetof, subtract, symdiff, or union}
+
+
+test set-${impl}-2.0 {emptiness} {
+    catch {setop empty} msg
+    set msg
+} [tmWrong empty {set} 0]
+
+test set-${impl}-2.1 {emptiness} {
+    catch {setop empty a b} msg
+    set msg
+} [tmTooMany empty {set}]
+
+test set-${impl}-2.2 {emptiness} {
+    setop empty $sempty
+} 1
+
+test set-${impl}-2.3 {emptiness} {
+    setop empty $smultiples
+} 0
+
+test set-${impl}-2.4 {emptiness} {
+    setop empty $sa
+} 0
+
+
+test set-${impl}-3.0 {size} {
+    catch {setop size} msg
+    set msg
+} [tmWrong size {set} 0]
+
+test set-${impl}-3.1 {size} {
+    catch {setop size a b} msg
+    set msg
+} [tmTooMany size {set}]
+
+test set-${impl}-3.2 {size} {
+    setop size $sempty
+} 0
+
+test set-${impl}-3.3 {size} {
+    setop size $smultiples
+} 7
+
+test set-${impl}-3.4 {size} {
+    setop size $sa
+} 4
+
+
+test set-${impl}-4.0 {union} {
+    setop union
+} {}
+
+test set-${impl}-4.1 {union} {
+    setop union $sempty
+} $sempty
+
+test set-${impl}-4.2 {union} {
+    luniq [setop union $smultiples]
+} [luniq $smultiples]
+
+test set-${impl}-4.3 {union} {
+    luniq [setop union $sa]
+} $sa
+
+test set-${impl}-4.4 {union} {
+    lsort [setop union $sa $sb]
+} $sf
+
+test set-${impl}-4.5 {union} {
+    lsort [setop union $sa $sc]
+} $sd
+
+test set-${impl}-4.6 {union} {
+    lsort [setop union $sa $sd]
+} $sd
+
+test set-${impl}-4.7 {union} {
+    lsort [setop union $sa $sempty]
+} $sa
+
+test set-${impl}-4.8 {union} {
+    lsort [setop union $sempty $sa]
+} $sa
+
+test set-${impl}-4.9 {union} {
+    lsort [setop union $sempty $sempty]
+} $sempty
+
+test set-${impl}-4.10 {union} {
+    lsort [setop union $sa $sempty $smultiples]
+} $sg
+
+
+test set-${impl}-5.0 {intersect} {
+    setop intersect
+} {}
+
+test set-${impl}-5.1 {intersect} {
+    setop intersect $sempty
+} $sempty
+
+test set-${impl}-5.2 {intersect} {
+    luniq [setop intersect $smultiples]
+} [luniq $smultiples]
+
+test set-${impl}-5.3 {intersect} {
+    luniq [setop intersect $sa]
+} $sa
+
+test set-${impl}-5.4 {intersect} {
+    lsort [setop intersect $sa $sb]
+} $sempty
+
+test set-${impl}-5.5 {intersect} {
+    lsort [setop intersect $sa $sc]
+} $sh
+
+test set-${impl}-5.6 {intersect} {
+    lsort [setop intersect $sa $sd]
+} $sa
+
+test set-${impl}-5.7 {intersect} {
+    lsort [setop intersect $sa $sempty]
+} $sempty
+
+test set-${impl}-5.8 {intersect} {
+    lsort [setop intersect $sempty $sa]
+} $sempty
+
+test set-${impl}-5.9 {intersect} {
+    lsort [setop intersect $sempty $sempty]
+} $sempty
+
+test set-${impl}-5.10 {intersect} {
+    lsort [setop intersect $sa $sempty $smultiples]
+} $sempty
+
+test set-${impl}-5.11 {intersect} {
+    lsort [setop intersect $sa $sa]
+} $sa
+
+test set-${impl}-5.12 {intersect} {
+    lsort [setop intersect $sa $sc $sd]
+} $sh
+
+test set-${impl}-5.13 {intersect} {
+    lsort [setop intersect $sa $sc {x y}]
+} $sempty
+
+
+test set-${impl}-6.0 {difference} {
+    catch {setop difference} msg
+    set msg
+} [tmWrong difference {A B} 0]
+
+test set-${impl}-6.1 {difference} {
+    catch {setop difference a} msg
+    set msg
+} [tmWrong difference {A B} 1]
+
+test set-${impl}-6.2 {difference} {
+    catch {setop difference a b c} msg
+    set msg
+} [tmTooMany difference {A B}]
+
+test set-${impl}-6.3 {difference} {
+    luniq [setop difference $sa $sempty]
+} $sa
+
+test set-${impl}-6.4 {difference} {
+    setop difference $sempty $sa
+} $sempty
+
+test set-${impl}-6.5 {difference} {
+    lsort [setop difference $sa $sb]
+} $sa
+
+test set-${impl}-6.6 {difference} {
+    lsort [setop difference $sa $sc]
+} $si
+
+test set-${impl}-6.7 {difference} {
+    lsort [setop difference $sa $sd]
+} $sempty
+
+test set-${impl}-6.8 {difference} {
+    lsort [setop difference $sd $sa]
+} $sj
+
+test set-${impl}-6.9 {difference} {
+    lsort [setop difference \
+	    [list "Washington, DC (District of Columbia)" Maryland Virginia] \
+	    [list "Washington, DC (District of Columbia)" Virginia]]
+} Maryland
+
+test set-${impl}-6.10 {difference} {
+    lsort [setop difference \
+	    [list DC Maryland Virginia] \
+	    [list DC Virginia]]
+} Maryland
+
+
+test set-${impl}-7.0 {symdiff} {
+    catch {setop symdiff} msg
+    set msg
+} [tmWrong symdiff {A B} 0]
+
+test set-${impl}-7.1 {symdiff} {
+    catch {setop symdiff a} msg
+    set msg
+} [tmWrong symdiff {A B} 1]
+
+test set-${impl}-7.2 {symdiff} {
+    catch {setop symdiff a b c} msg
+    set msg
+} [tmTooMany symdiff {A B}]
+
+test set-${impl}-7.3 {symdiff} {
+    lsort [setop symdiff $sa $sempty]
+} $sa
+
+test set-${impl}-7.4 {symdiff} {
+    lsort [setop symdiff $sempty $sa]
+} $sa
+
+test set-${impl}-7.5 {symdiff} {
+    lsort [setop symdiff $sa $sb]
+} $sf
+
+test set-${impl}-7.6 {symdiff} {
+    lsort [setop symdiff $sa $sc]
+} $sk
+
+test set-${impl}-7.7 {symdiff} {
+    lsort [setop symdiff $sa $sd]
+} $sj
+
+test set-${impl}-7.8 {symdiff} {
+    lsort [setop symdiff $sd $sa]
+} $sj
+
+
+test set-${impl}-8.0 {intersect3} {
+    catch {setop intersect3} msg
+    set msg
+} [tmWrong intersect3 {A B} 0]
+
+test set-${impl}-8.1 {intersect3} {
+    catch {setop intersect3 a} msg
+    set msg
+} [tmWrong intersect3 {A B} 1]
+
+test set-${impl}-8.2 {intersect3} {
+    catch {setop intersect3 a b c} msg
+    set msg
+} [tmTooMany intersect3 {A B}]
+
+test set-${impl}-8.3 {intersect3} {
+    foreach {i da db} [setop intersect3 $sa $sempty] break
+    list [lsort $i] [lsort $da] [lsort $db]
+} [list $sempty $sa $sempty]
+
+test set-${impl}-8.4 {intersect3} {
+    foreach {i da db} [setop intersect3 $sempty $sa] break
+    list [lsort $i] [lsort $da] [lsort $db]
+} [list $sempty $sempty $sa]
+
+test set-${impl}-8.5 {intersect3} {
+    foreach {i da db} [setop intersect3 $sa $sb] break
+    list [lsort $i] [lsort $da] [lsort $db]
+} [list $sempty $sa $sb]
+
+test set-${impl}-8.6 {intersect3} {
+    foreach {i da db} [setop intersect3 $sa $sc] break
+    list [lsort $i] [lsort $da] [lsort $db]
+} [list $sh $si $sj]
+
+test set-${impl}-8.7 {intersect3} {
+    foreach {i da db} [setop intersect3 $sa $sd] break
+    list [lsort $i] [lsort $da] [lsort $db]
+} [list $sa $sempty $sj]
+
+test set-${impl}-8.8 {intersect3} {
+    foreach {i da db} [setop intersect3 $sempty $sempty] break
+    list [lsort $i] [lsort $da] [lsort $db]
+} [list $sempty $sempty $sempty]
+
+test set-${impl}-8.9 {intersect3} {
+    foreach {i da db} [setop intersect3 $sa $sa] break
+    list [lsort $i] [lsort $da] [lsort $db]
+} [list $sa $sempty $sempty]
+
+
+test set-${impl}-9.0 {equal} {
+    catch {setop equal} msg
+    set msg
+} [tmWrong equal {A B} 0]
+
+test set-${impl}-9.1 {equal} {
+    catch {setop equal a} msg
+    set msg
+} [tmWrong equal {A B} 1]
+
+test set-${impl}-9.2 {equal} {
+    catch {setop equal a b c} msg
+    set msg
+} [tmTooMany equal {A B}]
+
+test set-${impl}-9.3 {equal} {
+    setop equal $sempty $sempty
+} 1
+
+test set-${impl}-9.4 {equal} {
+    setop equal $sempty $sa
+} 0
+
+test set-${impl}-9.5 {equal} {
+    setop equal $sa $sempty
+} 0
+
+test set-${impl}-9.6 {equal} {
+    setop equal $sa $sb
+} 0
+
+test set-${impl}-9.7 {equal} {
+    setop equal $sa $sa
+} 1
+
+test set-${impl}-9.8 {equal} {
+    setop equal $sa $sd
+} 0
+
+test set-${impl}-9.9 {equal} {
+    setop equal $smultiples $sg
+} 1
+
+
+test set-${impl}-10.0 {include} {
+    catch {setop include} msg
+    set msg
+} [tmWrong include {Avar element} 0]
+
+test set-${impl}-10.1 {include} {
+    catch {setop include A} msg
+    set msg
+} [tmWrong include {Avar element} 1]
+
+test set-${impl}-10.2 {include, non-existing variable} {
+    catch {unset A}
+    setop include A B
+    set A
+} {B}
+
+test set-${impl}-10.3 {include, missing} {
+    catch {unset A} ; set A $sa
+    setop include A B
+    lsort $A
+} {B a::foo b::foo c::foo d::foo}
+
+test set-${impl}-10.4 {include, known} {
+    catch {unset A} ; set A $sa
+    setop include A a::foo
+    lsort $A
+} $sa
+
+test set-${impl}-10.5-bug-1908098 {include, non-existent variable} {
+    catch {unset A}
+    catch {unset res}
+    lappend res [setop include A a::foo]
+    lappend res [lsort $A]
+} {{} a::foo}
+
+test set-${impl}-11.0 {exclude} {
+    catch {setop exclude} msg
+    set msg
+} [tmWrong exclude {Avar element} 0]
+
+test set-${impl}-11.1 {exclude} {
+    catch {setop exclude A} msg
+    set msg
+} [tmWrong exclude {Avar element} 1]
+
+test set-${impl}-11.2 {exclude, non-existent variable} {
+    catch {unset X}
+    catch {setop exclude X B} msg
+    set msg
+} {can't read "X": no such variable}
+
+test set-${impl}-11.3 {exclude} {
+    catch {unset A} ; set A $sa
+    setop exclude A B
+    lsort $A
+} $sa
+
+test set-${impl}-11.4 {exclude} {
+    catch {unset A} ; set A $sa
+    setop exclude A a::foo
+    lsort $A
+} $sl
+
+
+test set-${impl}-12.0 {add} {
+    catch {setop add} msg
+    set msg
+} [tmWrong add {Avar B} 0]
+
+test set-${impl}-12.1 {add} {
+    catch {setop add A} msg
+    set msg
+} [tmWrong add {Avar B} 1]
+
+test set-${impl}-12.2 {add, non-existent variable} {
+    catch {unset A}
+    catch {unset res}
+    lappend res [setop add A B]
+    lappend res $A
+} {{} B}
+
+test set-${impl}-12.3 {add, missing} {
+    catch {unset A} ; set A $sa
+    setop add A $sb
+    lsort $A
+} $sf
+
+test set-${impl}-12.4 {add, missing&known} {
+    catch {unset A} ; set A $sa
+    setop add A $sc
+    lsort $A
+} $sd
+
+test set-${impl}-12.5 {add, known} {
+    catch {unset A} ; set A $sa
+    setop add A $sa
+    lsort $A
+} $sa
+
+
+test set-${impl}-13.0 {subtract} {
+    catch {setop subtract} msg
+    set msg
+} [tmWrong subtract {Avar B} 0]
+
+test set-${impl}-13.1 {subtract} {
+    catch {setop subtract A} msg
+    set msg
+} [tmWrong subtract {Avar B} 1]
+
+test set-${impl}-13.2 {subtract, non-existent variable} {
+    catch {unset X}
+    catch {setop subtract X B} msg
+    set msg
+} {can't read "X": no such variable}
+
+test set-${impl}-13.3 {subtract} {
+    catch {unset A} ; set A $sa
+    setop subtract A $sb
+    lsort $A
+} $sa
+
+test set-${impl}-13.4 {subtract} {
+    catch {unset A} ; set A $sa
+    setop subtract A $sc
+    lsort $A
+} $si
+
+test set-${impl}-13.5 {subtract} {
+    catch {unset A} ; set A $sa
+    setop subtract A $sa
+    lsort $A
+} {}
+
+
+test set-${impl}-14.0 {subsetof} {
+    catch {setop subsetof} msg
+    set msg
+} [tmWrong subsetof {A B} 0]
+
+test set-${impl}-14.1 {subsetof} {
+    catch {setop subsetof A} msg
+    set msg
+} [tmWrong subsetof {A B} 1]
+
+test set-${impl}-14.2 {subsetof} {
+    setop subsetof $sa $sb
+} 0
+
+test set-${impl}-14.3 {subsetof} {
+    setop subsetof $sa $sc
+} 0
+
+test set-${impl}-14.4 {subsetof} {
+    setop subsetof $sa $sa
+} 1
+
+test set-${impl}-14.5 {subsetof} {
+    setop subsetof $sa $sf
+} 1
+
+#----------------------------------------------------------------------
+
+test set-${impl}-15.0 {shimmering, keep order} {
+    set pure [list a b c d e f]     ; # pure value
+    setop difference {} $pure       ; # shimmer to set
+    llength $pure                   ; # shimmer back to list    
+    string range $pure 0 end        ; # generate and query the string rep
+} {a b c d e f}
+
+#----------------------------------------------------------------------

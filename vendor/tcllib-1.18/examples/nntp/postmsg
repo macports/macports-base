@@ -1,0 +1,192 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+
+package require Tcl 8.5
+package require nntp
+package require fileutil
+
+# This application, derived from its sibling 'postnews', takes a
+# message file and directly posts it to a given server, and group. All
+# other information, like destination group, subject, sender, etc. are
+# expected to be in the message itself. This means that the message
+# file is expected to have the proper format for a mail/news posting.
+#
+# Using "-" for the message file causes the command to read the
+# message from stdin.
+
+proc main {} {
+    if {![cmdline]} usage
+    checkmessage
+    postmessage
+}
+
+proc cmdline {} {
+    global argv newsserver message user password
+
+    if {[lindex $argv 0] eq "-via"} {
+	if {[llength $argv] != 4} {return 0}
+	set argv [lassign $argv _ accountfile]
+
+	lassign [split [validatefile {account file} $accountfile] \n] user password
+    }
+
+    if {[llength $argv] != 2} {return 0}
+
+    # Retrieve arguments
+
+    lassign $argv newsserver messagefile
+
+    # Validate messagefile
+    if {$messagefile eq "-"} {
+	set message [read stdin]
+    } else {
+	set message [validatefile {message file} $messagefile]
+    }
+    return 1
+}
+
+proc validatefile {which path} {
+    if {![file exists   $path]} { stop "$which does not exist: $path" }
+    if {![file isfile   $path]} { stop "$which not a file: $path" }
+    if {![file readable $path]} { stop "$which not readable: $path" }
+    return [fileutil::cat $path]
+}
+
+proc usage {} {
+    global argv0
+    puts stderr "$argv0: wrong # args, should be \"$argv0 ?-via accountfile? server messagefile\""
+    exit 1
+}
+
+proc stop {text} {
+    global argv0
+    puts stderr "$argv0: $text"
+    exit 1
+}
+
+proc checkmessage {} {
+    processmessage
+    need Newsgroups
+    need Subject
+    need From
+
+    add "X-Posting-Engine" "Tcllib nntp/postmsg on Tcl [info patchlevel]"
+    # Some news-servers handle the adding of the Lines: header itself
+    #add Lines [llength $body]
+    add "Content-Type" "text/plain; charset=iso-8859-1"
+
+    regenerate
+    return
+}
+
+proc processmessage {} {
+    global message head body
+
+    array set head {}
+    set body {}
+    set inBody 0
+    set lastheader {}
+
+    foreach line [split $message "\n"] {
+	if {$inBody} {
+	    lappend body $line
+	} elseif {[string length $line] == 0} {
+	    set inBody 1
+	} elseif {[regexp {^([^ :]+): +(.*)} $line => header value]} {
+	    set header [string tolower $header]
+	    set value [string trim $value]
+	    if {[string length $value]} {
+		set head($header) "$value "
+	    }
+	    set lastheader $header
+	} else {
+	    append head($lastheader) "[string trim $line] "
+	}
+    }
+
+    return
+}
+
+proc need {header} {
+    global head
+    if {[info exist head([string tolower $header])]} return
+    stop "Required header \"${header}:\" is missing"
+}
+
+# Add the given header to the message to be posted, if not already present.
+proc add {header value} {
+    global head
+    set header [string tolower $header]
+    if {[info exist head($header)]} return
+    set head($header) $value
+    return
+}
+
+proc regenerate {} {
+    global message head body
+
+    foreach {header value} [array get head] {
+	lappend lines "[capitalise $header]: [string trim $value]"
+    }
+    lappend lines {}
+    lappend lines $body
+
+    set message [join $lines \n]
+    return
+}
+
+proc capitalise {string} {
+    set result {}
+    foreach word [split $string "-"] {lappend result [capitalise1 $word]}
+    join $result "-"
+}
+
+proc capitalise1 {word} {
+    set c0 [string index $word 0]
+    set cr [string range $word 1 end]
+    return [string toupper $c0][string tolower $cr]
+}
+
+proc postmessage {} {
+    global newsserver message user password
+
+    nntp_cmd 1 {open       } {set news [nntp::nntp $newsserver]}
+    nntp_cmd 1 {mode reader} {$news mode_reader}
+
+    if {[info exists user]} {
+	nntp_cmd 1 {authinfo   } {$news authinfo $user $password}
+    }
+
+    puts stdout "post [llength [split $message \n]] lines"
+
+    nntp_cmd 0 {post       } {$news post $message}
+    nntp_cmd 1 {quit       } {$news quit}
+    return
+}
+
+proc nntp_cmd {exit title cmd {oktitle {}}} {
+    global argv0 
+
+    puts -nonewline stdout $title
+    flush stdout
+    if {[catch {
+	set res [uplevel 1 $cmd]
+    } msg]} {
+	puts stdout " error: $msg"
+	#puts stderr "$argv0: nntp error: $msg"
+	if {$exit} {
+	    exit 1
+	}
+	return 0
+    } else {
+	if {$oktitle != {}} {
+	    puts stdout " $res $oktitle"
+	} else {
+	    puts stdout " $res"
+	}
+	return 1
+    }
+}
+
+main
+exit

@@ -1,0 +1,395 @@
+
+<html><head>
+<title>math::optimize - Tcl Math Library</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'optimize.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2004 Arjen Markus &lt;arjenmarkus@users.sourceforge.net&gt;   -- Copyright &copy; 2004,2005 Kevn B. Kenny &lt;kennykb@users.sourceforge.net&gt;
+   -->
+<! -- math::optimize.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::optimize(n) 1.0 tcllib &quot;Tcl Math Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::optimize - Optimisation routines</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PROCEDURES</a></li>
+<li class="doctools_section"><a href="#section3">NOTES</a></li>
+<li class="doctools_section"><a href="#section4">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">math::optimize <span class="opt">?1.0?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::optimize::minimum</b> <i class="arg">begin</i> <i class="arg">end</i> <i class="arg">func</i> <i class="arg">maxerr</i></a></li>
+<li><a href="#2"><b class="cmd">::math::optimize::maximum</b> <i class="arg">begin</i> <i class="arg">end</i> <i class="arg">func</i> <i class="arg">maxerr</i></a></li>
+<li><a href="#3"><b class="cmd">::math::optimize::min_bound_1d</b> <i class="arg">func</i> <i class="arg">begin</i> <i class="arg">end</i> <span class="opt">?<b class="option">-relerror</b> <i class="arg">reltol</i>?</span> <span class="opt">?<b class="option">-abserror</b> <i class="arg">abstol</i>?</span> <span class="opt">?<b class="option">-maxiter</b> <i class="arg">maxiter</i>?</span> <span class="opt">?<b class="option">-trace</b> <i class="arg">traceflag</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">::math::optimize::min_unbound_1d</b> <i class="arg">func</i> <i class="arg">begin</i> <i class="arg">end</i> <span class="opt">?<b class="option">-relerror</b> <i class="arg">reltol</i>?</span> <span class="opt">?<b class="option">-abserror</b> <i class="arg">abstol</i>?</span> <span class="opt">?<b class="option">-maxiter</b> <i class="arg">maxiter</i>?</span> <span class="opt">?<b class="option">-trace</b> <i class="arg">traceflag</i>?</span></a></li>
+<li><a href="#5"><b class="cmd">::math::optimize::solveLinearProgram</b> <i class="arg">objective</i> <i class="arg">constraints</i></a></li>
+<li><a href="#6"><b class="cmd">::math::optimize::linearProgramMaximum</b> <i class="arg">objective</i> <i class="arg">result</i></a></li>
+<li><a href="#7"><b class="cmd">::math::optimize::nelderMead</b> <i class="arg">objective</i> <i class="arg">xVector</i> <span class="opt">?<b class="option">-scale</b> <i class="arg">xScaleVector</i>?</span> <span class="opt">?<b class="option">-ftol</b> <i class="arg">epsilon</i>?</span> <span class="opt">?<b class="option">-maxiter</b> <i class="arg">count</i>?</span> <span class="opt">?<span class="opt">?-trace?</span> <i class="arg">flag</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package implements several optimisation algorithms:</p>
+<ul class="doctools_itemized">
+<li><p>Minimize or maximize a function over a given interval</p></li>
+<li><p>Solve a linear program (maximize a linear function subject to linear
+constraints)</p></li>
+<li><p>Minimize a function of several variables given an initial guess for the
+location of the minimum.</p></li>
+</ul>
+<p>The package is fully implemented in Tcl. No particular attention has
+been paid to the accuracy of the calculations. Instead, the
+algorithms have been used in a straightforward manner.</p>
+<p>This document describes the procedures and explains their usage.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PROCEDURES</a></h2>
+<p>This package defines the following public procedures:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::optimize::minimum</b> <i class="arg">begin</i> <i class="arg">end</i> <i class="arg">func</i> <i class="arg">maxerr</i></a></dt>
+<dd><p>Minimize the given (continuous) function by examining the values in the
+given interval. The procedure determines the values at both ends and in the
+centre of the interval and then constructs a new interval of 1/2 length
+that includes the minimum. No guarantee is made that the <em>global</em>
+minimum is found.</p>
+<p>The procedure returns the &quot;x&quot; value for which the function is minimal.</p>
+<p><em>This procedure has been deprecated - use min_bound_1d instead</em></p>
+<p><i class="arg">begin</i> - Start of the interval</p>
+<p><i class="arg">end</i> - End of the interval</p>
+<p><i class="arg">func</i> - Name of the function to be minimized (a procedure taking
+one argument).</p>
+<p><i class="arg">maxerr</i> - Maximum relative error (defaults to 1.0e-4)</p></dd>
+<dt><a name="2"><b class="cmd">::math::optimize::maximum</b> <i class="arg">begin</i> <i class="arg">end</i> <i class="arg">func</i> <i class="arg">maxerr</i></a></dt>
+<dd><p>Maximize the given (continuous) function by examining the values in the
+given interval. The procedure determines the values at both ends and in the
+centre of the interval and then constructs a new interval of 1/2 length
+that includes the maximum. No guarantee is made that the <em>global</em>
+maximum is found.</p>
+<p>The procedure returns the &quot;x&quot; value for which the function is maximal.</p>
+<p><em>This procedure has been deprecated - use max_bound_1d instead</em></p>
+<p><i class="arg">begin</i> - Start of the interval</p>
+<p><i class="arg">end</i> - End of the interval</p>
+<p><i class="arg">func</i> - Name of the function to be maximized (a procedure taking
+one argument).</p>
+<p><i class="arg">maxerr</i> - Maximum relative error (defaults to 1.0e-4)</p></dd>
+<dt><a name="3"><b class="cmd">::math::optimize::min_bound_1d</b> <i class="arg">func</i> <i class="arg">begin</i> <i class="arg">end</i> <span class="opt">?<b class="option">-relerror</b> <i class="arg">reltol</i>?</span> <span class="opt">?<b class="option">-abserror</b> <i class="arg">abstol</i>?</span> <span class="opt">?<b class="option">-maxiter</b> <i class="arg">maxiter</i>?</span> <span class="opt">?<b class="option">-trace</b> <i class="arg">traceflag</i>?</span></a></dt>
+<dd><p>Miminizes a function of one variable in the given interval.  The procedure
+uses Brent's method of parabolic interpolation, protected by golden-section
+subdivisions if the interpolation is not converging.  No guarantee is made
+that a <em>global</em> minimum is found.  The function to evaluate, <i class="arg">func</i>,
+must be a single Tcl command; it will be evaluated with an abscissa appended
+as the last argument.</p>
+<p><i class="arg">x1</i> and <i class="arg">x2</i> are the two bounds of
+the interval in which the minimum is to be found.  They need not be in
+increasing order.</p>
+<p><i class="arg">reltol</i>, if specified, is the desired upper bound
+on the relative error of the result; default is 1.0e-7.  The given value
+should never be smaller than the square root of the machine's floating point
+precision, or else convergence is not guaranteed.  <i class="arg">abstol</i>, if specified,
+is the desired upper bound on the absolute error of the result; default
+is 1.0e-10.  Caution must be used with small values of <i class="arg">abstol</i> to
+avoid overflow/underflow conditions; if the minimum is expected to lie
+about a small but non-zero abscissa, you consider either shifting the
+function or changing its length scale.</p>
+<p><i class="arg">maxiter</i> may be used to constrain the number of function evaluations
+to be performed; default is 100.  If the command evaluates the function
+more than <i class="arg">maxiter</i> times, it returns an error to the caller.</p>
+<p><i class="arg">traceFlag</i> is a Boolean value. If true, it causes the command to
+print a message on the standard output giving the abscissa and ordinate
+at each function evaluation, together with an indication of what type
+of interpolation was chosen.  Default is 0 (no trace).</p></dd>
+<dt><a name="4"><b class="cmd">::math::optimize::min_unbound_1d</b> <i class="arg">func</i> <i class="arg">begin</i> <i class="arg">end</i> <span class="opt">?<b class="option">-relerror</b> <i class="arg">reltol</i>?</span> <span class="opt">?<b class="option">-abserror</b> <i class="arg">abstol</i>?</span> <span class="opt">?<b class="option">-maxiter</b> <i class="arg">maxiter</i>?</span> <span class="opt">?<b class="option">-trace</b> <i class="arg">traceflag</i>?</span></a></dt>
+<dd><p>Miminizes a function of one variable over the entire real number line.
+The procedure uses parabolic extrapolation combined with golden-section
+dilatation to search for a region where a minimum exists, followed by
+Brent's method of parabolic interpolation, protected by golden-section
+subdivisions if the interpolation is not converging.  No guarantee is made
+that a <em>global</em> minimum is found.  The function to evaluate, <i class="arg">func</i>,
+must be a single Tcl command; it will be evaluated with an abscissa appended
+as the last argument.</p>
+<p><i class="arg">x1</i> and <i class="arg">x2</i> are two initial guesses at where the minimum
+may lie.  <i class="arg">x1</i> is the starting point for the minimization, and
+the difference between <i class="arg">x2</i> and <i class="arg">x1</i> is used as a hint at the
+characteristic length scale of the problem.</p>
+<p><i class="arg">reltol</i>, if specified, is the desired upper bound
+on the relative error of the result; default is 1.0e-7.  The given value
+should never be smaller than the square root of the machine's floating point
+precision, or else convergence is not guaranteed.  <i class="arg">abstol</i>, if specified,
+is the desired upper bound on the absolute error of the result; default
+is 1.0e-10.  Caution must be used with small values of <i class="arg">abstol</i> to
+avoid overflow/underflow conditions; if the minimum is expected to lie
+about a small but non-zero abscissa, you consider either shifting the
+function or changing its length scale.</p>
+<p><i class="arg">maxiter</i> may be used to constrain the number of function evaluations
+to be performed; default is 100.  If the command evaluates the function
+more than <i class="arg">maxiter</i> times, it returns an error to the caller.</p>
+<p><i class="arg">traceFlag</i> is a Boolean value. If true, it causes the command to
+print a message on the standard output giving the abscissa and ordinate
+at each function evaluation, together with an indication of what type
+of interpolation was chosen.  Default is 0 (no trace).</p></dd>
+<dt><a name="5"><b class="cmd">::math::optimize::solveLinearProgram</b> <i class="arg">objective</i> <i class="arg">constraints</i></a></dt>
+<dd><p>Solve a <em>linear program</em> in standard form using a straightforward
+implementation of the Simplex algorithm. (In the explanation below: The
+linear program has N constraints and M variables).</p>
+<p>The procedure returns a list of M values, the values for which the
+objective function is maximal or a single keyword if the linear program
+is not feasible or unbounded (either &quot;unfeasible&quot; or &quot;unbounded&quot;)</p>
+<p><i class="arg">objective</i> - The M coefficients of the objective function</p>
+<p><i class="arg">constraints</i> - Matrix of coefficients plus maximum values that
+implement the linear constraints. It is expected to be a list of N lists
+of M+1 numbers each, M coefficients and the maximum value.</p></dd>
+<dt><a name="6"><b class="cmd">::math::optimize::linearProgramMaximum</b> <i class="arg">objective</i> <i class="arg">result</i></a></dt>
+<dd><p>Convenience function to return the maximum for the solution found by the
+solveLinearProgram procedure.</p>
+<p><i class="arg">objective</i> - The M coefficients of the objective function</p>
+<p><i class="arg">result</i> - The result as returned by solveLinearProgram</p></dd>
+<dt><a name="7"><b class="cmd">::math::optimize::nelderMead</b> <i class="arg">objective</i> <i class="arg">xVector</i> <span class="opt">?<b class="option">-scale</b> <i class="arg">xScaleVector</i>?</span> <span class="opt">?<b class="option">-ftol</b> <i class="arg">epsilon</i>?</span> <span class="opt">?<b class="option">-maxiter</b> <i class="arg">count</i>?</span> <span class="opt">?<span class="opt">?-trace?</span> <i class="arg">flag</i>?</span></a></dt>
+<dd><p>Minimizes, in unconstrained fashion, a function of several variable over all
+of space.  The function to evaluate, <i class="arg">objective</i>, must be a single Tcl
+command. To it will be appended as many elements as appear in the initial guess at
+the location of the minimum, passed in as a Tcl list, <i class="arg">xVector</i>.</p>
+<p><i class="arg">xScaleVector</i> is an initial guess at the problem scale; the first
+function evaluations will be made by varying the co-ordinates in <i class="arg">xVector</i>
+by the amounts in <i class="arg">xScaleVector</i>.  If <i class="arg">xScaleVector</i> is not supplied,
+the co-ordinates will be varied by a factor of 1.0001 (if the co-ordinate
+is non-zero) or by a constant 0.0001 (if the co-ordinate is zero).</p>
+<p><i class="arg">epsilon</i> is the desired relative error in the value of the function
+evaluated at the minimum. The default is 1.0e-7, which usually gives three
+significant digits of accuracy in the values of the x's.</p>
+<p>pp
+<i class="arg">count</i> is a limit on the number of trips through the main loop of
+the optimizer.  The number of function evaluations may be several times
+this number.  If the optimizer fails to find a minimum to within <i class="arg">ftol</i>
+in <i class="arg">maxiter</i> iterations, it returns its current best guess and an
+error status. Default is to allow 500 iterations.</p>
+<p><i class="arg">flag</i> is a flag that, if true, causes a line to be written to the
+standard output for each evaluation of the objective function, giving
+the arguments presented to the function and the value returned. Default is
+false.</p>
+<p>The <b class="cmd">nelderMead</b> procedure returns a list of alternating keywords and
+values suitable for use with <b class="cmd">array set</b>. The meaning of the keywords is:</p>
+<p><i class="arg">x</i> is the approximate location of the minimum.</p>
+<p><i class="arg">y</i> is the value of the function at <i class="arg">x</i>.</p>
+<p><i class="arg">yvec</i> is a vector of the best N+1 function values achieved, where
+N is the dimension of <i class="arg">x</i></p>
+<p><i class="arg">vertices</i> is a list of vectors giving the function arguments
+corresponding to the values in <i class="arg">yvec</i>.</p>
+<p><i class="arg">nIter</i> is the number of iterations required to achieve convergence or
+fail.</p>
+<p><i class="arg">status</i> is 'ok' if the operation succeeded, or 'too-many-iterations'
+if the maximum iteration count was exceeded.</p>
+<p><b class="cmd">nelderMead</b> minimizes the given function using the downhill
+simplex method of Nelder and Mead.  This method is quite slow - much
+faster methods for minimization are known - but has the advantage of being
+extremely robust in the face of problems where the minimum lies in
+a valley of complex topology.</p>
+<p><b class="cmd">nelderMead</b> can occasionally find itself &quot;stuck&quot; at a point where
+it can make no further progress; it is recommended that the caller
+run it at least a second time, passing as the initial guess the
+result found by the previous call.  The second run is usually very
+fast.</p>
+<p><b class="cmd">nelderMead</b> can be used in some cases for constrained optimization.
+To do this, add a large value to the objective function if the parameters
+are outside the feasible region.  To work effectively in this mode,
+<b class="cmd">nelderMead</b> requires that the initial guess be feasible and
+usually requires that the feasible region be convex.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">NOTES</a></h2>
+<p>Several of the above procedures take the <em>names</em> of procedures as
+arguments. To avoid problems with the <em>visibility</em> of these
+procedures, the fully-qualified name of these procedures is determined
+inside the optimize routines. For the user this has only one
+consequence: the named procedure must be visible in the calling
+procedure. For instance:</p>
+<pre class="doctools_example">
+    namespace eval ::mySpace {
+       namespace export calcfunc
+       proc calcfunc { x } { return $x }
+    }
+    #
+    # Use a fully-qualified name
+    #
+    namespace eval ::myCalc {
+       puts [min_bound_1d ::myCalc::calcfunc $begin $end]
+    }
+    #
+    # Import the name
+    #
+    namespace eval ::myCalc {
+       namespace import ::mySpace::calcfunc
+       puts [min_bound_1d calcfunc $begin $end]
+    }
+</pre>
+<p>The simple procedures <em>minimum</em> and <em>maximum</em> have been
+deprecated: the alternatives are much more flexible, robust and
+require less function evaluations.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">EXAMPLES</a></h2>
+<p>Let us take a few simple examples:</p>
+<p>Determine the maximum of f(x) = x^3 exp(-3x), on the interval (0,10):</p>
+<pre class="doctools_example">
+proc efunc { x } { expr {$x*$x*$x * exp(-3.0*$x)} }
+puts &quot;Maximum at: [::math::optimize::max_bound_1d efunc 0.0 10.0]&quot;
+</pre>
+<p>The maximum allowed error determines the number of steps taken (with
+each step in the iteration the interval is reduced with a factor 1/2).
+Hence, a maximum error of 0.0001 is achieved in approximately 14 steps.</p>
+<p>An example of a <em>linear program</em> is:</p>
+<p>Optimise the expression 3x+2y, where:</p>
+<pre class="doctools_example">
+   x &gt;= 0 and y &gt;= 0 (implicit constraints, part of the
+                     definition of linear programs)
+   x + y   &lt;= 1      (constraints specific to the problem)
+   2x + 5y &lt;= 10
+</pre>
+<p>This problem can be solved as follows:</p>
+<pre class="doctools_example">
+   set solution [::math::optimize::solveLinearProgram  { 3.0   2.0 }  { { 1.0   1.0   1.0 }
+        { 2.0   5.0  10.0 } } ]
+</pre>
+<p>Note, that a constraint like:</p>
+<pre class="doctools_example">
+   x + y &gt;= 1
+</pre>
+<p>can be turned into standard form using:</p>
+<pre class="doctools_example">
+   -x  -y &lt;= -1
+</pre>
+<p>The theory of linear programming is the subject of many a text book and
+the Simplex algorithm that is implemented here is the best-known
+method to solve this type of problems, but it is not the only one.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>math :: optimize</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key312">linear program</a>, <a href="../../../../index.html#key71">math</a>, <a href="../../../../index.html#key310">maximum</a>, <a href="../../../../index.html#key309">minimum</a>, <a href="../../../../index.html#key311">optimization</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2004 Arjen Markus &lt;arjenmarkus@users.sourceforge.net&gt;<br>
+Copyright &copy; 2004,2005 Kevn B. Kenny &lt;kennykb@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

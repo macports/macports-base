@@ -1,0 +1,143 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctools2toc_introduction n 2.0]
+[see_also doctoc_intro]
+[see_also doctools]
+[see_also doctools2doc_introduction]
+[see_also doctools2idx_introduction]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_intro]
+[see_also doctools_lang_syntax]
+[see_also doctools_plugin_apiref]
+[keywords contents]
+[keywords conversion]
+[keywords formatting]
+[keywords markup]
+[keywords parsing]
+[keywords plugin]
+[keywords {semantic markup}]
+[keywords {table of contents}]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {DocTools - Tables of Contents}]
+[category  {Documentation tools}]
+[comment {
+}]
+[description]
+
+[term doctoc] (short for [emph {documentation tables of contents}])
+stands for a set of related, yet different, entities which are working
+together for the easy creation and transformation of tables and
+contents for documentation.
+
+[para]
+
+These are
+
+[list_begin enumerated]
+[enum]
+A tcl based language for the semantic markup of a table of contents.
+Markup is represented by Tcl commands.
+
+Beginners should start with the
+[manpage {doctoc language introduction}].
+
+The formal specification is split over two documents, one dealing with
+the [manpage {doctoc language syntax}], the other a
+[manpage {doctoc language command reference}].
+
+[enum]
+A set of packages for the programmatic manipulation of tables of
+contents in memory, and their conversion between various formats,
+reading and writing. The aforementioned markup language is one of the
+formats which can be both read from and written to.
+
+[enum]
+The system for the conversion of tables of contents is based on a
+plugin mechanism, for this we have two APIs describing the interface
+between the packages above and the import/export plugins.
+
+[list_end]
+
+[para]
+Which of the more detailed documents are relevant to the reader of
+this introduction depends on their role in the documentation process.
+
+[para]
+
+[list_begin enumerated]
+[enum]
+A [manpage writer] of documentation has to understand the markup language
+itself. A beginner to doctoc should read the more informally written
+[manpage {doctoc language introduction}] first. Having digested this
+the formal [manpage {doctoc language syntax}] specification should
+become understandable. A writer experienced with doctoc may only
+need the [manpage {doctoc language command reference}] from time to
+time to refresh her memory.
+
+[para]
+While a document is written the [syscmd dtp] application can be used
+to validate it, and after completion it also performs the conversion
+into the chosen system of visual markup, be it *roff, HTML, plain
+text, wiki, etc. The simpler [syscmd dtplite] application makes
+internal use of doctoc when handling directories of documentation,
+automatically generating a proper table of contents for them.
+
+[enum]
+A [term processor] of documentation written in the [term doctoc]
+markup language has to know which tools are available for use.
+
+[para]
+The main tool is the aforementioned [syscmd dtp] application provided
+by Tcllib. The simpler [syscmd dtplite] does not expose doctoc to the
+user. At the bottom level, common to both applications, however we
+find the three packages providing the basic facilities to handle
+tables of contents, i.e. import from textual formats, programmatic
+manipulation in memory, and export to textual formats. These are
+
+[list_begin definitions]
+[def [package doctoools::toc]]
+Programmatic manipulation of tables of contents in memory.
+
+[def [package doctoools::toc::import]]
+Import of tables of contents from various textual formats. The set of
+supported formats is extensible through plugin packages.
+
+[def [package doctoools::toc::export]]
+Export of tables of contents to various textual formats. The set of
+supported formats is extensible through plugin packages.
+
+[list_end]
+See also section [sectref {Package Overview}] for an overview of the
+dependencies between these and other, supporting packages.
+
+[enum]
+At last, but not least, [term {plugin writers}] have to understand the
+interaction between the import and export packages and their plugins.
+These APIs are described in the documentation for the two relevant
+packages, i.e.
+
+[list_begin itemized]
+[item] [package doctoools::toc::import]
+[item] [package doctoools::toc::export]
+[list_end]
+
+[list_end]
+
+[section {Related formats}]
+
+The doctoc format does not stand alone, it has two companion formats.
+These are called [term docidx] and [term doctools], and they are
+intended for the markup of [term {keyword indices}], and of general
+documentation, respectively.
+
+They are described in their own sets of documents, starting at
+the [manpage {DocTools - Keyword Indices}] and
+the [manpage {DocTools - General}], respectively.
+
+[section {Package Overview}]
+[include include/dependencies.inc]
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

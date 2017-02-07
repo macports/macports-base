@@ -1,0 +1,70 @@
+# -*- tcl -*-
+# Graph ops tests - Dijkstra, distances
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: distance.test,v 1.2 2009/09/15 19:24:12 andreas_kupries Exp $
+
+# Syntax: struct::graph::op::distance G N N' ?options?
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-distance-1.0 {distance, wrong args, missing} {
+    catch {struct::graph::op::distance} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::distance {g origin destination args} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-distance-1.1 {distance, wrong args, missing} {
+    catch {struct::graph::op::distance g} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::distance {g origin destination args} 1]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-distance-1.2 {distance, wrong args, missing} {
+    catch {struct::graph::op::distance g o} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::distance {g origin destination args} 2]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-distance-2.0 {distance, bad node} {
+    SETUP
+    catch {struct::graph::op::distance mygraph foo bar} result
+    mygraph destroy
+    set result
+} {node "foo" does not exist in graph "mygraph"}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-distance-2.1 {distance, bad node} {
+    SETUP
+    mygraph node insert foo
+    catch {struct::graph::op::distance mygraph foo bar} result
+    mygraph destroy
+    set result
+} {node "bar" does not exist in graph "mygraph"}
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+set n 0
+foreach {setup origin destination distance undistance} {
+    SETUP_A 'node0' 'node6' 5 5
+    SETUP_A 'node0' 'node0' 0 0
+} {
+    test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-distance-3.$n "distance, $setup/$origin/$destination, directed" {
+	$setup
+	set result [struct::graph::op::distance mygraph $origin $destination -arcmode directed]
+	mygraph destroy
+	set result
+    } $distance
+
+    test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-distance-4.$n "distance, $setup/$origin/$destination, undirected" {
+	$setup
+	set result [struct::graph::op::distance mygraph $origin $destination -arcmode undirected]
+	mygraph destroy
+	set result
+    } $undistance
+
+    incr n
+}
+
+# ---------------------------------------------------

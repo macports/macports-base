@@ -1,10 +1,9 @@
 # et:ts=4
 # portchecksum.tcl
-# $Id$
 #
 # Copyright (c) 2002 - 2004 Apple Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
-# Copyright (c) 2006-2011 The MacPorts Project
+# Copyright (c) 2006 - 2012, 2014 - 2015 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -138,8 +137,7 @@ proc portchecksum::parse_checksums {checksums_str} {
         }
     } error]} {
         # An error occurred.
-        global errorInfo
-        ui_debug "$errorInfo"
+        ui_debug $::errorInfo
         ui_error "Couldn't parse checksum line ($checksums_str) [$error]"
 
         # Something wrong happened.
@@ -210,7 +208,7 @@ proc portchecksum::checksum_start {args} {
 #
 proc portchecksum::checksum_main {args} {
     global UI_PREFIX all_dist_files checksum_types checksums_array portverbose checksum.skip \
-           usealtworkpath altprefix default_checksum_types
+           default_checksum_types
 
     # If no files have been downloaded, there is nothing to checksum.
     if {![info exists all_dist_files]} {
@@ -244,11 +242,7 @@ proc portchecksum::checksum_main {args} {
             # get the full path of the distfile.
             set fullpath [file join $distpath $distfile]
             if {![file isfile $fullpath]} {
-                if {!$usealtworkpath && [file isfile "${altprefix}${fullpath}"]} {
-                    set fullpath "${altprefix}${fullpath}"
-                } else {
-                    return -code error "$distfile does not exist in $distpath"
-                }
+                return -code error "$distfile does not exist in $distpath"
             }
 
             # check that there is at least one checksum for the distfile.
@@ -286,7 +280,7 @@ proc portchecksum::checksum_main {args} {
 
                 if {[tbool fail] && ![regexp {\.html?$} ${distfile}] &&
                     ![catch {strsed [exec [findBinary file $portutil::autoconf::file_path] $fullpath --brief --mime] {s/;.*$//}} mimetype]
-                    && "text/html" == $mimetype} {
+                    && "text/html" eq $mimetype} {
                     # file --mime-type would be preferable to file --mime and strsed, but is only available as of Snow Leopard
                     set wrong_mimetype yes
                     set htmlfile_path ${fullpath}.html
@@ -345,11 +339,7 @@ proc portchecksum::checksum_main {args} {
                     # get the full path of the distfile.
                     set fullpath [file join $distpath $distfile]
                     if {![file isfile $fullpath]} {
-                        if {!$usealtworkpath && [file isfile "${altprefix}${fullpath}"]} {
-                            set fullpath "${altprefix}${fullpath}"
-                        } else {
-                            return -code error "$distfile does not exist in $distpath"
-                        }
+                        return -code error "$distfile does not exist in $distpath"
                     }
 
                     foreach type $missing_types {

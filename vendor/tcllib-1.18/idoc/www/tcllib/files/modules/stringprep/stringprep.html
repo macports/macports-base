@@ -1,0 +1,233 @@
+
+<html><head>
+<title>stringprep - Preparation of Internationalized Strings</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'stringprep.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2007-2009, Sergei Golovan &lt;sgolovan@nes.ru&gt;
+   -->
+<! -- stringprep.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">stringprep(n) 1.0.1 tcllib &quot;Preparation of Internationalized Strings&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>stringprep - Implementation of stringprep</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section4">REFERENCES</a></li>
+<li class="doctools_section"><a href="#section5">AUTHORS</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.3</b></li>
+<li>package require <b class="pkgname">stringprep 1.0.1</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::stringprep::register</b> <i class="arg">profile</i> <span class="opt">?<i class="arg">-mapping list</i>?</span> <span class="opt">?<i class="arg">-normalization form</i>?</span> <span class="opt">?<i class="arg">-prohibited list</i>?</span> <span class="opt">?<i class="arg">-prohibitedList list</i>?</span> <span class="opt">?<i class="arg">-prohibitedCommand command</i>?</span> <span class="opt">?<i class="arg">-prohibitedBidi boolean</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::stringprep::stringprep</b> <i class="arg">profile</i> <i class="arg">string</i></a></li>
+<li><a href="#3"><b class="cmd">::stringprep::compare</b> <i class="arg">profile</i> <i class="arg">string1</i> <i class="arg">string2</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This is an implementation in Tcl of the Preparation of Internationalized
+Strings (&quot;stringprep&quot;). It allows to define stringprep profiles and use
+them to prepare Unicode strings for comparison as defined in RFC-3454.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::stringprep::register</b> <i class="arg">profile</i> <span class="opt">?<i class="arg">-mapping list</i>?</span> <span class="opt">?<i class="arg">-normalization form</i>?</span> <span class="opt">?<i class="arg">-prohibited list</i>?</span> <span class="opt">?<i class="arg">-prohibitedList list</i>?</span> <span class="opt">?<i class="arg">-prohibitedCommand command</i>?</span> <span class="opt">?<i class="arg">-prohibitedBidi boolean</i>?</span></a></dt>
+<dd><p>Register the <b class="package">stringprep</b> profile named <i class="arg">profile</i>. Options
+are the following.</p>
+<p>Option <i class="arg">-mapping</i> specifies <b class="package">stringprep</b> mapping tables.
+This parameter takes list of tables from appendix B of RFC-3454. The usual
+list values are {B.1 B.2} or {B.1 B.3} where B.1 contains characters which
+commonly map to nothing, B.3 specifies case folding, and B.2 is used in
+profiles with unicode normalization form KC. Defult value is {} which means
+no mapping.</p>
+<p>Option <i class="arg">-normalization</i> takes a string and if it is nonempty then it
+uses as a name of Unicode normalization form. Any value of &quot;D&quot;, &quot;C&quot;, &quot;KD&quot;
+or &quot;KC&quot; may be used, though RFC-3454 defines only two options: no
+normalization or normalization using form KC.</p>
+<p>Option <i class="arg">-prohibited</i> takes a list of RFC-3454 tables with prohibited
+characters. Current version does allow to prohibit either all tables from
+C.3 to C.9 or neither of them. An example of this list for RFC-3491 is
+{A.1 C.1.2 C.2.2 C.3 C.4 C.5 C.6 C.7 C.8 C.9}.</p>
+<p>Option <i class="arg">-prohibitedList</i> specifies a list of additional prohibited
+characters. The list contains not characters themselves but their Unicode
+numbers. For example, Nodeprep specification from RFC-3920 forbids the
+following codes: {0x22 0x26 0x27 0x2f 0x3a 0x3c 0x3e 0x40} (\&quot; \&amp; \' / : &lt; &gt; @).</p>
+<p>Option <i class="arg">-prohibitedCommand</i> specifies a command which is called for
+every character code in mapped and normalized string. If the command returns
+true then the character is considered prohibited. This option is useful when
+a list for <i class="arg">-prohibitedList</i> is too large.</p>
+<p>Option <i class="arg">-prohibitedBidi</i> takes boolean value and if it is true then the
+bidirectional character processing rules defined in section 6 of RFC-3454 are
+used.</p></dd>
+<dt><a name="2"><b class="cmd">::stringprep::stringprep</b> <i class="arg">profile</i> <i class="arg">string</i></a></dt>
+<dd><p>Performs <b class="package">stringprep</b> operations defined in profile <i class="arg">profile</i>
+to string <i class="arg">string</i>. Result is a prepared string or one of the following
+errors: <i class="arg">invalid_profile</i> (profile <i class="arg">profile</i> is not defined),
+<i class="arg">prohibited_character</i> (string <i class="arg">string</i> contains a prohibited character)
+or <i class="arg">prohibited_bidi</i> (string <i class="arg">string</i> contains a prohibited bidirectional
+sequence).</p></dd>
+<dt><a name="3"><b class="cmd">::stringprep::compare</b> <i class="arg">profile</i> <i class="arg">string1</i> <i class="arg">string2</i></a></dt>
+<dd><p>Compares two unicode strings prepared accordingly to <b class="package">stringprep</b>
+profile <i class="arg">profile</i>. The command returns 0 if prepared strings are equal,
+-1 if <i class="arg">string1</i> is lexicographically less than <i class="arg">string2</i>, or
+1 if <i class="arg">string1</i> is lexicographically greater than <i class="arg">string2</i>.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">EXAMPLES</a></h2>
+<p>Nameprep profile definition (see RFC-3491):</p>
+<pre class="doctools_example">
+::stringprep::register nameprep  -mapping {B.1 B.2}  -normalization KC  -prohibited {A.1 C.1.2 C.2.2 C.3 C.4 C.5 C.6 C.7 C.8 C.9}  -prohibitedBidi 1
+</pre>
+<p>Nodeprep and resourceprep profile definitions (see RFC-3920):</p>
+<pre class="doctools_example">
+::stringprep::register nodeprep  -mapping {B.1 B.2}  -normalization KC  -prohibited {A.1 C.1.1 C.1.2 C.2.1 C.2.2 C.3 C.4 C.5 C.6 C.7 C.8 C.9}  -prohibitedList {0x22 0x26 0x27 0x2f 0x3a 0x3c 0x3e 0x40}  -prohibitedBidi 1
+::stringprep::register resourceprep  -mapping {B.1}  -normalization KC  -prohibited {A.1 C.1.2 C.2.1 C.2.2 C.3 C.4 C.5 C.6 C.7 C.8 C.9}  -prohibitedBidi 1
+</pre>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">REFERENCES</a></h2>
+<ol class="doctools_enumerated">
+<li><p>&quot;Preparation of Internationalized Strings ('stringprep')&quot;,
+    (<a href="http://www.ietf.org/rfc/rfc3454.txt">http://www.ietf.org/rfc/rfc3454.txt</a>)</p></li>
+<li><p>&quot;Nameprep: A Stringprep Profile for Internationalized Domain Names (IDN)&quot;,
+    (<a href="http://www.ietf.org/rfc/rfc3491.txt">http://www.ietf.org/rfc/rfc3491.txt</a>)</p></li>
+<li><p>&quot;Extensible Messaging and Presence Protocol (XMPP): Core&quot;,
+    (<a href="http://www.ietf.org/rfc/rfc3920.txt">http://www.ietf.org/rfc/rfc3920.txt</a>)</p></li>
+</ol>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">AUTHORS</a></h2>
+<p>Sergei Golovan</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>stringprep</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="unicode.html">unicode(n)</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key645">stringprep</a>, <a href="../../../../index.html#key646">unicode</a></p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2007-2009, Sergei Golovan &lt;sgolovan@nes.ru&gt;</p>
+</div>
+</div></body></html>

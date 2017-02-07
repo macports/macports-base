@@ -1,0 +1,223 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin stooop n 4.4.1]
+[keywords C++]
+[keywords class]
+[keywords object]
+[keywords {object oriented}]
+[moddesc   {Simple Tcl Only Object Oriented Programming}]
+[titledesc {Object oriented extension.}]
+[category  {Programming tools}]
+[require Tcl 8.3]
+[require stooop [opt 4.4.1]]
+[description]
+[para]
+
+This package provides commands to extend Tcl in an object oriented
+manner, using a familiar C++ like syntax and behaviour. Stooop only
+introduces a few new commands: [cmd class], [cmd new], [cmd delete],
+[cmd virtual] and [cmd classof]. Along with a few coding conventions,
+that is basically all you need to know to use stooop. Stooop is meant
+to be as simple to use as possible.
+
+[para]
+
+This manual is very succinct and is to be used as a quick reminder for
+the programmer, who should have read the thorough [uri stooop_man.html]
+HTML documentation at this point.
+
+[list_begin definitions]
+
+[call [cmd ::stooop::class] [arg {name body}]]
+
+This command creates a class. The body, similar in contents to a Tcl
+namespace (which a class actually also is), contains member procedure
+definitions. Member procedures can also be defined outside the class
+body, by prefixing their name with [const class::], as you would
+proceed with namespace procedures.
+
+[list_begin definitions]
+
+[def "[cmd proc] [arg class] \{[const this] [opt [arg {arg arg ...}]]\} [opt "[arg base] \{[opt [arg {arg arg ...}]]\} ..."] [arg body]"]
+
+This is the constructor procedure for the class. It is invoked
+following a [cmd new] invocation on the class. It must have the same
+name as the class and a first argument named [const this]. Any number
+of base classes specifications, including arguments to be passed to
+their constructor, are allowed before the actual body of the
+procedure.
+
+[def "[cmd proc] ~[arg class] \{[const this]\} [arg body]"]
+
+This is the destructor procedure for the class. It is invoked
+following a [cmd delete] invocation. Its name must be the
+concatenation of a single [const ~] character followed by the class
+name (as in C++). It must have a single argument named [const this].
+
+[def "[cmd proc] [arg name] \{[const this] [opt [arg {arg arg ...}]]\} [arg body]"]
+
+This is a member procedure of the class, as its first argument is
+named [const this]. It allows a simple access of member data for the
+object referenced by [const this] inside the procedure. For example:
+
+[example {
+   set ($this,data) 0
+}]
+
+[def "[cmd proc] [arg name] \{[opt [arg {arg arg ...}]]\} [arg body]"]
+
+This is a static (as in C++) member procedure of the class, as its
+first argument is not named [const this]. Static (global) class data
+can be accessed as in:
+
+[example {
+   set (data) 0
+}]
+
+[def "[cmd proc] [arg class] \{[const {this copy}]\} [arg body]"]
+
+This is the optional copy procedure for the class. It must have the
+same name as the class and exactly 2 arguments named [const this] and
+[const copy]. It is invoked following a [cmd new] invocation on an
+existing object of the class.
+
+[list_end]
+
+[call [cmd ::stooop::new] [arg class] [opt [arg {arg arg ...}]]]
+
+This command is used to create an object. The first argument is the
+class name and is followed by the arguments needed by the
+corresponding class constructor. A unique identifier for the object
+just created is returned.
+
+[call [cmd ::stooop::delete] [arg object] [opt [arg {object ...}]]]
+
+This command is used to delete one or several objects. It takes one or
+more object identifiers as argument(s).
+
+[call [cmd ::stooop::virtual] [const proc] [arg name] \{[const this] [opt [arg {arg arg ...}]]\} [opt [arg {body}]]]
+
+The [cmd virtual] specifier may be used on member procedures to
+achieve dynamic binding. A procedure in a base class can then be
+redefined (overloaded) in the derived class(es). If the base class
+procedure is invoked on an object, it is actually the derived class
+procedure which is invoked, if it exists. If the base class procedure
+has no body, then it is considered to be a pure virtual and the
+derived class procedure is always invoked.
+
+[call [cmd ::stooop::classof] [arg object]]
+
+This command returns the class of the existing object passed as single
+parameter.
+
+[call [cmd ::stooop::new] [arg object]]
+
+This command is used to create an object by copying an existing
+object. The copy constructor of the corresponding class is invoked if
+it exists, otherwise a simple copy of the copied object data members
+is performed.
+
+[list_end]
+
+[section DEBUGGING]
+
+[list_begin definitions]
+
+[def {Environment variables}]
+
+[list_begin definitions]
+
+[def [var STOOOPCHECKDATA]]
+
+Setting this variable to any true value will cause stooop to check for
+invalid member or class data access.
+
+[def [var STOOOPCHECKPROCEDURES]]
+
+Setting this variable to any true value will cause stooop to check for
+invalid member procedure arguments and pure interface classes
+instanciation.
+
+[def [var STOOOPCHECKALL]]
+
+Setting this variable to any true value will cause stooop to activate
+both procedure and data member checking.
+
+[def [var STOOOPCHECKOBJECTS]]
+
+Setting this variable to any true value will cause stooop to activate
+object checking. The following stooop namespace procedures then become
+available for debugging: [cmd printObjects], [cmd record] and
+[cmd report].
+
+[def [var STOOOPTRACEPROCEDURES]]
+
+Setting this environment variable to either [const stdout],
+
+[const stderr] or a file name, activates procedure tracing. The
+stooop library will then output to the specified channel 1 line of
+informational text for each member procedure invocation.
+
+[def [var STOOOPTRACEPROCEDURESFORMAT]]
+
+Defines the trace procedures output format. Defaults to
+[const {"class: %C, procedure: %p, object: %O, arguments: %a"}].
+
+[def [var STOOOPTRACEDATA]]
+
+Setting this environment variable to either [const stdout],
+
+[const stderr] or a file name, activates data tracing. The stooop
+library will then output to the specified channel 1 line of
+informational text for each member data access.
+
+[def [var STOOOPTRACEDATAFORMAT]]
+
+Defines the trace data output format. Defaults to
+[const {"class: %C, procedure: %p, array: %A, object: %O, member: %m, operation: %o, value: %v"}].
+
+[def [var STOOOPTRACEDATAOPERATIONS]]
+
+When tracing data output, by default, all read, write and unsetting
+accesses are reported, but the user can set this variable to any
+combination of the letters [const r], [const w], and [const u] for
+more specific tracing (please refer to the [cmd trace] Tcl manual page
+for more information).
+
+[def [var STOOOPTRACEALL]]
+
+Setting this environment variable to either [const stdout],
+
+[const stderr] or a file name, enables both procedure and data
+tracing.
+
+[list_end]
+
+[call [cmd ::stooop::printObjects] [opt [arg pattern]]]
+
+Prints an ordered list of existing objects, in creation order, oldest
+first. Each output line contains the class name, object identifier and
+the procedure within which the creation occurred. The optional pattern
+argument (as in the Tcl [cmd {string match}] command) can be used to
+limit the output to matching class names.
+
+[call [cmd ::stooop::record]]
+
+When invoked, a snapshot of all existing stooop objects is
+taken. Reporting can then be used at a later time to see which objects
+were created or deleted in the interval.
+
+[call [cmd ::stooop::report] [opt [arg pattern]]]
+
+Prints the created and deleted objects since the [cmd ::stooop::record]
+procedure was invoked last. If present, the pattern argument limits
+the output to matching class names.
+
+[list_end]
+
+[section EXAMPLES]
+
+Please see the full HTML documentation in [uri stooop_man.html].
+
+[vset CATEGORY stooop]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

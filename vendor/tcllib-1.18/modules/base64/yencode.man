@@ -1,0 +1,96 @@
+[manpage_begin yencode n 1.1.2]
+[keywords encoding]
+[keywords ydecode]
+[keywords yEnc]
+[keywords yencode]
+[copyright {2002, Pat Thoyts}]
+[moddesc   {Text encoding & decoding binary data}]
+[titledesc {Y-encode/decode binary data}]
+[category  {Text processing}]
+[require Tcl 8.2]
+[require yencode [opt 1.1.2]]
+[description]
+[para]
+
+This package provides a Tcl-only implementation of the yEnc file
+encoding. This is a recently introduced method of encoding binary
+files for transmission through Usenet. This encoding packs binary data
+into a format that requires an 8-bit clean transmission layer but that
+escapes characters special to the [term NNTP] posting protocols. See
+[uri http://www.yenc.org/] for details concerning the algorithm.
+
+[list_begin definitions]
+
+[call [cmd ::yencode::encode] [arg string]]
+
+returns the yEnc encoded data.
+
+[call [cmd ::yencode::decode] [arg "string"]]
+
+Decodes the given yEnc encoded data.
+
+[call [cmd ::yencode::yencode] \
+  [opt "[option -name] [arg string]"] \
+  [opt "[option -line] [arg integer]"] \
+  [opt "[option -crc32] [arg boolean]"] \
+  "([option -file] [arg filename] | [opt [option --]] [arg string])"]
+
+Encode a file or block of data.
+
+[call [cmd ::yencode::ydecode] \
+  "([option -file] [arg filename] | [opt [option --]] [arg string])"]
+
+Decode a file or block of data. A file may contain more than one
+embedded file so the result is a list where each element is a three
+element list of filename, file size and data.
+
+[list_end]
+
+[section OPTIONS]
+
+[list_begin definitions]
+
+[def "-filename name"]
+
+Cause the yencode or ydecode commands to read their data from the
+named file rather that taking a string parameter.
+
+[def "-name string"]
+
+The encoded data header line contains the suggested file name to be
+used when unpacking the data. Use this option to change this from the
+default of "data.dat".
+
+[def "-line integer"]
+
+The yencoded data header line contains records the line length used
+during the encoding. Use this option to select a line length other
+that the default of 128. Note that NNTP imposes a 1000 character line
+length limit and some gateways may have trouble with more than 255
+characters per line.
+
+[def "-crc32 boolean"]
+
+The yEnc specification recommends the inclusion of a cyclic redundancy
+check value in the footer. Use this option to change the default from
+[arg true] to [arg false].
+
+[list_end]
+
+[para]
+[example {
+% set d [yencode::yencode -file testfile.txt]
+=ybegin line=128 size=584 name=testfile.txt
+ -o- data not shown -o-
+=yend size=584 crc32=ded29f4f
+}]
+
+[section References]
+
+[list_begin enum]
+[enum] [uri http://www.yenc.org/yenc-draft.1.3.txt]
+[list_end]
+
+[vset CATEGORY base64]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

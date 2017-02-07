@@ -1,0 +1,135 @@
+# -*- tcl -*-
+# fourier.test --
+#    Test cases for the Fourier transforms in the
+#    ::math::fourier package
+#
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 2.1
+
+support {
+    useLocal math.tcl math
+}
+testing {
+    useLocal fourier.tcl math::fourier
+}
+
+# -------------------------------------------------------------------------
+
+namespace import ::math::fourier::*
+
+# -------------------------------------------------------------------------
+
+proc matchComplex {expected actual} {
+    set match 1
+    foreach a $actual e $expected {
+        foreach {are aim} $a break
+        foreach {ere eim} $e break
+        if {abs($are-$ere) > 0.1e-8 ||
+            abs($aim-$eim) > 0.1e-8} {
+            set match 0
+            break
+        }
+    }
+    return $match
+}
+
+customMatch numbers matchComplex
+
+# -------------------------------------------------------------------------
+
+test "dft-1.0" "Four numbers" \
+   -match numbers -body {
+    dft {1 2 3 4}
+} -result {{10 0.0} {-2.0 2.0} {-2 0.0} {-2.0 -2.0}}
+
+test "dft-1.1" "Five numbers" \
+   -match numbers -body {
+    dft {1 2 3 4 5}
+} -result {{15.0 0.0} {-2.5 3.44095480118} {-2.5 0.812299240582} {-2.5 -0.812299240582} {-2.5 -3.44095480118}}
+
+test "dft-1.2" "Four numbers - inverse" \
+   -match numbers -body {
+    inverse_dft {{10 0.0} {-2.0 2.0} {-2 0.0} {-2.0 -2.0}}
+} -result {{1.0 0.0} {2.0 0.0} {3.0 0.0} {4.0 0.0}}
+
+test "dft-1.3" "Five numbers - inverse" \
+   -match numbers -body {
+     inverse_dft {{15.0 0.0} {-2.5 3.44095480118} {-2.5 0.812299240582} {-2.5 -0.812299240582} {-2.5 -3.44095480118}}
+} -result {{1.0 0.0} {2.0 8.881784197e-17} {3.0 4.4408920985e-17} {4.0 4.4408920985e-17} {5.0 -8.881784197e-17}}
+
+# Testing to and from DFT
+#
+proc test_DFT {points {real 0} {iterations 20}} {
+    set in_dataL [list]
+    for {set k 0} {$k < $points} {incr k} {
+        if {$real} then {
+            lappend in_dataL [expr {2*rand()-1}]
+        } else {
+            lappend in_dataL [list [expr {2*rand()-1}] [expr {2*rand()-1}]]
+        }
+    }
+    set time1 [time {
+        set conv_dataL [dft $in_dataL]
+    } $iterations]
+    set time2 [time {
+        set out_dataL [inverse_dft $conv_dataL]
+    } $iterations]
+    set err 0.0
+    foreach iz $in_dataL oz $out_dataL {
+        if {$real} then {
+            foreach {o1 o2} $oz {break}
+            set err [expr {$err + ($i-$o1)*($i-$o1) + $o2*$o2}]
+        } else {
+            foreach i $iz o $oz {
+                set err [expr {$err + ($i-$o)*($i-$o)}]
+            }
+        }
+    }
+    return [list $time1 $time2 [expr {sqrt($err/$points)}]]
+}
+
+test "dft-2.1" "10 numbers - to and from" \
+   -body {
+    foreach {t1 t2 err} [test_DFT 10] break
+    set small_error [expr {$err < 1.0e-10}]
+} -result 1
+
+test "dft-2.2" "100 numbers - to and from" \
+   -body {
+    foreach {t1 t2 err} [test_DFT 100] break
+    set small_error [expr {$err < 1.0e-10}]
+} -result 1
+
+test "dft-2.3" "DFT versus FFT" \
+   -body {
+
+    foreach {dft1 dft2 err} [test_DFT 100] break
+    foreach {fft1 fft2 err} [test_DFT 128] break
+
+    set dft1 [lindex $dft1 0]
+    set dft2 [lindex $dft2 0]
+    set fft1 [lindex $fft1 0]
+    set fft2 [lindex $fft2 0]
+
+    # Expect a dramatic difference - at least factor 3!
+    set fft_used [expr {$dft1 > 3.0*$fft1 && $dft2 > 3.0*$fft2}]
+} -result 1
+
+test "dft-2.4" "1024 numbers - to and from" \
+   -body {
+    foreach {t1 t2 err} [test_DFT 1024 0 1] break
+    set small_error [expr {$err < 1.0e-10}]
+} -result 1
+
+
+# TODO: tests for lowpass and highpass filters
+
+# End of test cases
+testsuiteCleanup

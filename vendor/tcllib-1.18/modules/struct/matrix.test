@@ -1,0 +1,2314 @@
+# -*- tcl -*-
+# matrix.test:  tests for the matrix structure.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2001 by Andreas Kupries <a.kupries@westend.com>
+# All rights reserved.
+#
+# RCS: @(#) $Id: matrix.test,v 1.21 2006/10/09 21:41:42 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+support {
+    useLocalFile matrix.testsupport
+}
+testing {
+    useLocal matrix.tcl struct::matrix
+}
+
+# -------------------------------------------------------------------------
+
+namespace import struct::matrix
+
+#----------------------------------------------------------------------
+# Serialized matrix for some tests.
+
+set matdata {{2 0 f j} {c g b a} {a 02 01 3}}
+
+#----------------------------------------------------------------------
+
+test matrix-0.1 {matrix errors} {
+    matrix mymatrix
+    catch {matrix mymatrix} msg
+    mymatrix destroy
+    set msg
+} "command \"::mymatrix\" already exists, unable to create matrix"
+
+test matrix-0.2 {matrix errors} {
+    matrix mymatrix
+    catch {mymatrix} msg
+    mymatrix destroy
+    set msg
+} "wrong # args: should be \"::mymatrix option ?arg arg ...?\""
+
+test matrix-0.3 {matrix errors} {
+    matrix mymatrix
+    catch {mymatrix foo} msg
+    mymatrix destroy
+    set msg
+} "bad option \"foo\": must be -->, =, add, cells, cellsize, columns, columnwidth, delete, deserialize, destroy, format, get, insert, link, links, rowheight, rows, search, serialize, set, sort, swap, transpose, or unlink"
+
+test matrix-0.4 {matrix errors} {
+    matrix mymatrix
+    catch {mymatrix add foo} msg
+    mymatrix destroy
+    set msg
+} "bad option \"foo\": must be column, columns, row, or rows"
+
+test matrix-0.5 {matrix errors} {
+    matrix mymatrix
+    catch {mymatrix delete foo} msg
+    mymatrix destroy
+    set msg
+} "bad option \"foo\": must be column, columns, row, or rows"
+
+test matrix-0.6 {matrix errors} {
+    matrix mymatrix
+    catch {mymatrix get foo} msg
+    mymatrix destroy
+    set msg
+} "bad option \"foo\": must be cell, column, rect, or row"
+
+test matrix-0.7 {matrix errors} {
+    matrix mymatrix
+    catch {mymatrix set foo} msg
+    mymatrix destroy
+    set msg
+} "bad option \"foo\": must be cell, column, rect, or row"
+
+test matrix-0.8 {matrix errors} {
+    matrix mymatrix
+    catch {mymatrix format foo} msg
+    mymatrix destroy
+    set msg
+} "bad option \"foo\": must be 2chan, or 2string"
+
+test matrix-0.9 {matrix errors} {
+    matrix mymatrix
+    catch {mymatrix swap foo} msg
+    mymatrix destroy
+    set msg
+} "bad option \"foo\": must be columns, or rows"
+
+test matrix-0.10 {matrix errors} {
+    catch {matrix set} msg
+    set msg
+} "command \"::set\" already exists, unable to create matrix"
+
+test matrix-0.11 {matrix errors} {
+    matrix mymatrix
+    catch {mymatrix set cell 0 0 foo} msg
+    mymatrix destroy
+    set msg
+} {bad column index 0, column does not exist}
+
+test matrix-0.12 {matrix errors} {
+    matrix mymatrix
+    mymatrix add column
+    catch {mymatrix set cell 0 0 foo} msg
+    mymatrix destroy
+    set msg
+} {bad row index 0, row does not exist}
+
+test matrix-0.13 {matrix errors} {
+    matrix mymatrix
+    catch {mymatrix insert foo} msg
+    mymatrix destroy
+    set msg
+} "bad option \"foo\": must be column, or row"
+
+test matrix-1.0 {create} {
+    set name [matrix]
+    set result [list $name [string equal [info commands $name] "$name"]]
+    $name destroy
+    set result
+} [list ::matrix1 1]
+
+
+test matrix-1.1 {columns, rows & cells} {
+    matrix mymatrix
+    set result [list [mymatrix rows] [mymatrix columns] [mymatrix cells]]
+    mymatrix destroy
+    set result
+} {0 0 0}
+
+test matrix-1.2 {columns, rows & cells} {
+    matrix mymatrix
+    mymatrix add column
+    set result [list [mymatrix rows] [mymatrix columns] [mymatrix cells]]
+    mymatrix destroy
+    set result
+} {0 1 0}
+
+test matrix-1.3 {columns, rows & cells} {
+    matrix mymatrix
+    mymatrix add row
+    set result [list [mymatrix rows] [mymatrix columns] [mymatrix cells]]
+    mymatrix destroy
+    set result
+} {1 0 0}
+
+test matrix-1.4 {columns, rows & cells} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row
+    set result [list [mymatrix rows] [mymatrix columns] [mymatrix cells]]
+    mymatrix destroy
+    set result
+} {1 1 1}
+
+test matrix-1.5 {columns, rows & cells} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row
+    mymatrix add column
+    mymatrix add row
+    set result [list [mymatrix rows] [mymatrix columns] [mymatrix cells]]
+    mymatrix destroy
+    set result
+} {2 2 4}
+
+test matrix-2.0 {add error} {
+    matrix mymatrix
+    catch {mymatrix add} msg
+    mymatrix destroy
+    set msg
+} {wrong # args: should be "::mymatrix add option ?arg arg ...?"}
+
+test matrix-2.1 {add column, add row} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2} {3 4}}
+
+test matrix-2.2 {add column, add row} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row
+    mymatrix add column
+    mymatrix add row
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{{} {}} {{} {}}}
+
+test matrix-2.3 {add columns, add rows} {
+    matrix mymatrix
+    mymatrix add columns 4
+    mymatrix add rows    4
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{{} {} {} {}} {{} {} {} {}} {{} {} {} {}} {{} {} {} {}}}
+
+test matrix-2.4 {add columns, add rows} {
+    matrix mymatrix
+    mymatrix add rows    4
+    mymatrix add columns 4
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{{} {} {} {}} {{} {} {} {}} {{} {} {} {}} {{} {} {} {}}}
+
+test matrix-2.5 {add columns, add rows} {
+    matrix mymatrix
+    catch {mymatrix add columns 0} result
+    mymatrix destroy
+    set result
+} {A value of n <= 0 is not allowed}
+
+test matrix-2.6 {add columns, add rows} {
+    matrix mymatrix
+    catch {mymatrix add rows 0} result
+    mymatrix destroy
+    set result
+} {A value of n <= 0 is not allowed}
+
+test matrix-2.7 {add column, add row, cut off} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2 5 6 7}
+    mymatrix add row {3 4 8 9 10}
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2} {3 4}}
+
+
+
+test matrix-3.1 {sizes, widths, heights} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {23}
+    mymatrix add row [list "4\n5" 6]
+    set result [list [mymatrix cellsize 0 0] [mymatrix columnwidth 1] [mymatrix rowheight 1]]
+    mymatrix destroy
+    set result
+} {1 2 2}
+
+test matrix-3.2 {sizes, widths, heights} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {23}
+    mymatrix add row [list "4\n5" 6]
+    catch {mymatrix cellsize -1 -1} result
+    mymatrix destroy
+    set result
+} {bad column index -1, column does not exist}
+
+test matrix-3.3 {sizes, widths, heights} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {23}
+    mymatrix add row [list "4\n5" 6]
+    catch {mymatrix cellsize 5 -1} result
+    mymatrix destroy
+    set result
+} {bad column index 5, column does not exist}
+
+test matrix-3.4 {sizes, widths, heights} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {23}
+    mymatrix add row [list "4\n5" 6]
+    catch {mymatrix cellsize 0 -1} result
+    mymatrix destroy
+    set result
+} {bad row index -1, row does not exist}
+
+test matrix-3.5 {sizes, widths, heights} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {23}
+    mymatrix add row [list "4\n5" 6]
+    catch {mymatrix cellsize 0 5} result
+    mymatrix destroy
+    set result
+} {bad row index 5, row does not exist}
+
+test matrix-3.6 {sizes, widths, heights} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {23}
+    mymatrix add row [list "4\n5" 6]
+    catch {mymatrix rowheight -1} result
+    mymatrix destroy
+    set result
+} {bad row index -1, row does not exist}
+
+test matrix-3.7 {sizes, widths, heights} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {23}
+    mymatrix add row [list "4\n5" 6]
+    catch {mymatrix rowheight 5} result
+    mymatrix destroy
+    set result
+} {bad row index 5, row does not exist}
+
+test matrix-3.8 {sizes, widths, heights} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {23}
+    mymatrix add row [list "4\n5" 6]
+    catch {mymatrix columnwidth -1} result
+    mymatrix destroy
+    set result
+} {bad column index -1, column does not exist}
+
+test matrix-3.9 {sizes, widths, heights} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {23}
+    mymatrix add row [list "4\n5" 6]
+    catch {mymatrix columnwidth 5} result
+    mymatrix destroy
+    set result
+} {bad column index 5, column does not exist}
+
+
+test matrix-3.10 {sizes, widths, heights} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row [list "\033\[01;34mapps\033\[0m"]
+    set result [list [mymatrix cellsize 0 0] [mymatrix columnwidth 0] [mymatrix rowheight 0]]
+    mymatrix destroy
+    set result
+} {16 4 1}
+
+test matrix-4.0 {delete error} {
+    matrix mymatrix
+    catch {mymatrix delete} msg
+    mymatrix destroy
+    set msg
+} {wrong # args: should be "::mymatrix delete option ?arg arg ...?"}
+
+test matrix-4.1 {deletion of rows and columns} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2a}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row [list 7 8 "9\na"]
+
+    set     resa [list [mymatrix columnwidth 0]]
+    lappend resa [mymatrix columnwidth 1]
+    lappend resa [mymatrix columnwidth 2]
+
+    set result [list [mymatrix get rect 0 0 end end]]
+    mymatrix delete column 1
+    lappend result [mymatrix get rect 0 0 end end]
+    mymatrix delete row 1
+    lappend result [mymatrix get rect 0 0 end end]
+
+    lappend resa [mymatrix columnwidth 0]
+    lappend resa [mymatrix columnwidth 1]
+
+    mymatrix destroy
+    lappend result $resa
+    set result
+} {{{1 2a 5} {3 4 6} {7 8 {9
+a}}} {{1 5} {3 6} {7 {9
+a}}} {{1 5} {7 {9
+a}}} {1 2 1 1 1}}
+
+test matrix-4.1a {deletion of rows and columns} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2a}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row [list 7 8 "9\na"]
+
+    set     resb [list [mymatrix rowheight 0]]
+    lappend resb [mymatrix rowheight 1]
+    lappend resb [mymatrix rowheight 2]
+
+    set result [list [mymatrix get rect 0 0 end end]]
+    mymatrix delete row 1
+    mymatrix delete column 1
+    lappend result [mymatrix get rect 0 0 end end]
+
+    lappend resb [mymatrix rowheight 0]
+    lappend resb [mymatrix rowheight 1]
+
+    mymatrix destroy
+    lappend result $resb
+    set result
+} {{{1 2a 5} {3 4 6} {7 8 {9
+a}}} {{1 5} {7 {9
+a}}} {1 1 2 1 2}}
+
+test matrix-4.2 {deletion of rows and columns} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    set result [list [mymatrix get rect 0 0 end end]]
+    mymatrix delete column 0
+    lappend result [mymatrix get rect 0 0 end end]
+    mymatrix delete row 0
+    lappend result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{{1 2 5} {3 4 6} {7 8 9}} {{2 5} {4 6} {8 9}} {{4 6} {8 9}}}
+
+test matrix-4.3 {deletion of rows and columns} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    set result [list [mymatrix get rect 0 0 end end]]
+    mymatrix delete column end
+    lappend result [mymatrix get rect 0 0 end end]
+    mymatrix delete row end
+    lappend result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{{1 2 5} {3 4 6} {7 8 9}} {{1 2} {3 4} {7 8}} {{1 2} {3 4}}}
+
+test matrix-4.4 {deletion of rows and columns} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix delete column -1} result
+    mymatrix destroy
+    set result
+} {bad column index -1, column does not exist}
+
+test matrix-4.5 {deletion of rows and columns} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix delete column 5} result
+    mymatrix destroy
+    set result
+} {bad column index 5, column does not exist}
+
+test matrix-4.6 {deletion of rows and columns} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix delete row -1} result
+    mymatrix destroy
+    set result
+} {bad row index -1, row does not exist}
+
+test matrix-4.7 {deletion of rows and columns} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix delete row 5} result
+    mymatrix destroy
+    set result
+} {bad row index 5, row does not exist}
+
+test matrix-4.8 {deletion of rows and columns} {
+    matrix mymatrix
+    catch {mymatrix delete rows 0} result
+    mymatrix destroy
+    set result
+} {A value of n <= 0 is not allowed}
+
+test matrix-4.9 {deletion of rows and columns} {
+    matrix mymatrix
+    catch {mymatrix delete rows -1} result
+    mymatrix destroy
+    set result
+} {A value of n <= 0 is not allowed}
+
+test matrix-4.10 {deletion of rows and columns} {
+    matrix mymatrix
+    catch {mymatrix delete rows 1} result
+    mymatrix destroy
+    set result
+} {A value of n > #rows is not allowed}
+
+test matrix-4.11 {deletion of rows and columns} {
+    matrix mymatrix
+    mymatrix add rows 2
+    catch {mymatrix delete rows 3} result
+    mymatrix destroy
+    set result
+} {A value of n > #rows is not allowed}
+
+test matrix-4.12 {deletion of rows and columns} {
+    matrix mymatrix
+    catch {mymatrix delete columns 0} result
+    mymatrix destroy
+    set result
+} {A value of n <= 0 is not allowed}
+
+test matrix-4.13 {deletion of rows and columns} {
+    matrix mymatrix
+    catch {mymatrix delete columns -1} result
+    mymatrix destroy
+    set result
+} {A value of n <= 0 is not allowed}
+
+test matrix-4.14 {deletion of rows and columns} {
+    matrix mymatrix
+    catch {mymatrix delete columns 1} result
+    mymatrix destroy
+    set result
+} {A value of n > #columns is not allowed}
+
+test matrix-4.15 {deletion of rows and columns} {
+    matrix mymatrix
+    mymatrix add rows 2
+    catch {mymatrix delete columns 3} result
+    mymatrix destroy
+    set result
+} {A value of n > #columns is not allowed}
+
+test matrix-4.16 {deletion of rows and columns} {
+    matrix mymatrix
+    mymatrix add rows    2
+    mymatrix add columns 3
+    mymatrix set rect 0 0 {{a b c} {d e f}}
+    mymatrix delete rows 1
+    set result [mymatrix get rect 0 0 2 0]
+    mymatrix destroy
+    set result
+} {{a b c}}
+
+test matrix-4.17 {deletion of rows and columns} {
+    matrix mymatrix
+    mymatrix add rows    2
+    mymatrix add columns 3
+    mymatrix set rect 0 0 {{a b c} {d e f}}
+    mymatrix delete columns 1
+    set result [mymatrix get rect 0 0 1 1]
+    mymatrix destroy
+    set result
+} {{a b} {d e}}
+
+test matrix-4.18 {deletion of rows and columns} {
+    matrix mymatrix
+    mymatrix add rows    2
+    mymatrix add columns 3
+    mymatrix set rect 0 0 {{a b c} {d e f}}
+    mymatrix delete rows    1
+    mymatrix delete columns 1
+    set result [mymatrix get rect 0 0 1 0]
+    mymatrix destroy
+    set result
+} {{a b}}
+
+
+test matrix-5.0 {format error} {
+    matrix mymatrix
+    catch {mymatrix format} msg
+    mymatrix destroy
+    set msg
+} {wrong # args: should be "::mymatrix format option ?arg arg ...?"}
+
+test matrix-5.1 {formatting} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    set result [mymatrix format 2string tclformat]
+    mymatrix destroy
+    set result
+} "# ::mymatrix 3 x 3
+matrix ::mymatrix
+::mymatrix add rows    3
+::mymatrix add columns 3
+::mymatrix set rect 0 0 {{1 2 5} {3 4 6} {7 8 9}}"
+
+test matrix-5.2 {internal format} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    set result [mymatrix format 2string]
+    mymatrix destroy
+    set result
+} "1 2 5\n3 4 6\n7 8 9"
+
+test matrix-5.3 {internal format} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3a 4}
+    mymatrix add column {5 6}
+    mymatrix add row [list 7 8 "9\nb"]
+    set result [mymatrix format 2string]
+    mymatrix destroy
+    set result
+} "1  2 5\n3a 4 6\n7  8 9\n     b"
+
+if {![catch {package require memchan}]} {
+    # We have memory channels and can therefore test
+    # 'format2channel-via' too.
+
+    test matrix-5.4 {formatting} {
+	matrix mymatrix
+	mymatrix add column
+	mymatrix add row {1}
+	mymatrix add column {2}
+	mymatrix add row {3 4}
+	mymatrix add column {5 6}
+	mymatrix add row {7 8 9}
+
+	set chan [memchan]
+	mymatrix format 2chan tclformat $chan
+	mymatrix destroy
+
+	seek $chan 0
+	set result [read $chan]
+	close $chan
+	set result
+    } "# mymatrix 3 x 3
+matrix mymatrix
+mymatrix add rows    3
+mymatrix add columns 3
+mymatrix set rect 0 0 {{1 2 5} {3 4 6} {7 8 9}}"
+}
+
+test matrix-6.0 {set/get error} {
+    matrix mymatrix
+    catch {mymatrix set} msga
+    catch {mymatrix get} msgb
+    mymatrix destroy
+    list $msga $msgb
+} {{wrong # args: should be "::mymatrix set option ?arg arg ...?"} {wrong # args: should be "::mymatrix get option ?arg arg ...?"}}
+
+test matrix-6.1 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    set result [mymatrix get cell 0 2]
+    mymatrix destroy
+    set result
+} 7
+
+test matrix-6.2 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    set result [mymatrix get column 1]
+    mymatrix destroy
+    set result
+} {2 4 8}
+
+test matrix-6.3 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    set result [mymatrix get row 2]
+    mymatrix destroy
+    set result
+} {7 8 9}
+
+test matrix-6.4 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    set result [mymatrix get rect 1 1 end end]
+    mymatrix destroy
+    set result
+} {{4 6} {8 9}}
+
+test matrix-6.5 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix set cell 0 2 foo
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2 5} {3 4 6} {foo 8 9}}
+
+test matrix-6.6 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix set column 1 {a b c}
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 a 5} {3 b 6} {7 c 9}}
+
+test matrix-6.7 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix set row 2 {bar buz nex}
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2 5} {3 4 6} {bar buz nex}}
+
+test matrix-6.8 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix set rect 1 1 {{c d} {e f}}
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2 5} {3 c d} {7 e f}}
+
+test matrix-6.9 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix set column 1 {a b}
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 a 5} {3 b 6} {7 {} 9}}
+
+test matrix-6.10 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix set column 1 {a b c d e f}
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 a 5} {3 b 6} {7 c 9}}
+
+test matrix-6.11 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix set row 2 {bar buz}
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2 5} {3 4 6} {bar buz {}}}
+
+test matrix-6.12 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix set row 2 {bar buz nex floz}
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2 5} {3 4 6} {bar buz nex}}
+
+test matrix-6.13 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix set rect 1 1 {{c d e} {f g h} {i j k}}
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2 5} {3 c d} {7 f g}}
+
+test matrix-6.14 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix set rect -1 -1 {{c d e} {f g h} {i j k}}
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{g h 5} {j k 6} {7 8 9}}
+
+test matrix-6.15 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get cell -1 2} result
+    mymatrix destroy
+    set result
+} {bad column index -1, column does not exist}
+
+test matrix-6.16 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get cell 5 2} result
+    mymatrix destroy
+    set result
+} {bad column index 5, column does not exist}
+
+test matrix-6.17 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get cell 0 -1} result
+    mymatrix destroy
+    set result
+} {bad row index -1, row does not exist}
+
+test matrix-6.18 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get cell 0 5} result
+    mymatrix destroy
+    set result
+} {bad row index 5, row does not exist}
+
+test matrix-6.19 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get column -1} result
+    mymatrix destroy
+    set result
+} {bad column index -1, column does not exist}
+
+test matrix-6.20 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get column 5} result
+    mymatrix destroy
+    set result
+} {bad column index 5, column does not exist}
+
+test matrix-6.21 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get row -1} result
+    mymatrix destroy
+    set result
+} {bad row index -1, row does not exist}
+
+test matrix-6.22 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get row 5} result
+    mymatrix destroy
+    set result
+} {bad row index 5, row does not exist}
+
+test matrix-6.23 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get rect -1 1 end end} result
+    mymatrix destroy
+    set result
+} {bad column index -1, column does not exist}
+
+test matrix-6.24 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get rect 5 1 end end} result
+    mymatrix destroy
+    set result
+} {bad column index 5, column does not exist}
+
+test matrix-6.25 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get rect 1 1 -1 end} result
+    mymatrix destroy
+    set result
+} {bad column index -1, column does not exist}
+
+test matrix-6.26 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get rect 1 1 5 end} result
+    mymatrix destroy
+    set result
+} {bad column index 5, column does not exist}
+
+test matrix-6.27 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get rect 1 -1 end end} result
+    mymatrix destroy
+    set result
+} {bad row index -1, row does not exist}
+
+test matrix-6.28 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get rect 1 5 end end} result
+    mymatrix destroy
+    set result
+} {bad row index 5, row does not exist}
+
+test matrix-6.29 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get rect 1 1 end -1} result
+    mymatrix destroy
+    set result
+} {bad row index -1, row does not exist}
+
+test matrix-6.30 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get rect 1 1 end 5} result
+    mymatrix destroy
+    set result
+} {bad row index 5, row does not exist}
+
+test matrix-6.31 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix set column -1 {a b c}} result
+    mymatrix destroy
+    set result
+} {bad column index -1, column does not exist}
+
+test matrix-6.32 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix set column 5 {a b c}} result
+    mymatrix destroy
+    set result
+} {bad column index 5, column does not exist}
+
+test matrix-6.33 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix set row -1 {a b c}} result
+    mymatrix destroy
+    set result
+} {bad row index -1, row does not exist}
+
+test matrix-6.34 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix set row 5 {a b c}} result
+    mymatrix destroy
+    set result
+} {bad row index 5, row does not exist}
+
+test matrix-6.35 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix set rect 5 1 {{a b} {c d}}} result
+    mymatrix destroy
+    set result
+} {bad column index 5, column does not exist}
+
+test matrix-6.36 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix set rect 1 5 {{a b} {c d}}} result
+    mymatrix destroy
+    set result
+} {bad row index 5, row does not exist}
+
+
+test matrix-6.43 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix get rect end end 1 1} result
+    mymatrix destroy
+    set result
+} {Invalid cell indices, wrong ordering}
+
+test matrix-6.44 {set and get in all forms} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix set cell 0 0 foo
+    set result [list [mymatrix get rect 0 0 end end]]
+    mymatrix set cell 0 0 foo
+    lappend result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {foo foo}
+
+
+
+
+test matrix-7.0 {swap error} {
+    matrix mymatrix
+    catch {mymatrix swap} msg
+    mymatrix destroy
+    set msg
+} {wrong # args: should be "::mymatrix swap option ?arg arg ...?"}
+
+test matrix-7.1 {swapping} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix swap columns 1 end
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 5 2} {3 6 4} {7 9 8}}
+
+test matrix-7.2 {swapping} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix swap rows 1 end
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2 5} {7 8 9} {3 4 6}}
+
+test matrix-7.3 {swapping} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix swap columns -1 end} result
+    mymatrix destroy
+    set result
+} {bad column index -1, column does not exist}
+
+test matrix-7.4 {swapping} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix swap columns 5 end} result
+    mymatrix destroy
+    set result
+} {bad column index 5, column does not exist}
+
+test matrix-7.5 {swapping} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix swap columns 1 -1} result
+    mymatrix destroy
+    set result
+} {bad column index -1, column does not exist}
+
+test matrix-7.6 {swapping} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix swap columns 1 5} result
+    mymatrix destroy
+    set result
+} {bad column index 5, column does not exist}
+
+test matrix-7.7 {swapping} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix swap rows -1 end} result
+    mymatrix destroy
+    set result
+} {bad row index -1, row does not exist}
+
+test matrix-7.8 {swapping} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix swap rows 5 end} result
+    mymatrix destroy
+    set result
+} {bad row index 5, row does not exist}
+
+test matrix-7.9 {swapping} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix swap rows 1 -1} result
+    mymatrix destroy
+    set result
+} {bad row index -1, row does not exist}
+
+test matrix-7.10 {swapping} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    catch {mymatrix swap rows 1 5} result
+    mymatrix destroy
+    set result
+} {bad row index 5, row does not exist}
+
+test matrix-8.0 {insert error} {
+    matrix mymatrix
+    catch {mymatrix insert} msg
+    mymatrix destroy
+    set msg
+} {wrong # args: should be "::mymatrix insert option ?arg arg ...?"}
+
+test matrix-8.1 {insertion} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+
+    mymatrix insert column 0 {a b c}
+
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{a 1 2 5} {b 3 4 6} {c 7 8 9}}
+
+test matrix-8.2 {insertion} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+
+    mymatrix insert column 1 {a b c}
+
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 a 2 5} {3 b 4 6} {7 c 8 9}}
+
+test matrix-8.3 {insertion} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+
+    mymatrix insert column end {a b c}
+
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2 5 a} {3 4 6 b} {7 8 9 c}}
+
+test matrix-8.4 {insertion} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+
+    mymatrix insert column 3 {a b c}
+
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2 5 a} {3 4 6 b} {7 8 9 c}}
+
+test matrix-8.5 {insertion} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+
+    mymatrix insert column -1 {a b c}
+
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{a 1 2 5} {b 3 4 6} {c 7 8 9}}
+
+
+test matrix-8.6 {insertion} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+
+    mymatrix insert row 0 {a b c}
+
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{a b c} {1 2 5} {3 4 6} {7 8 9}}
+
+test matrix-8.7 {insertion} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+
+    mymatrix insert row 1 {a b c}
+
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2 5} {a b c} {3 4 6} {7 8 9}}
+
+test matrix-8.8 {insertion} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+
+    mymatrix insert row end {a b c}
+
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2 5} {3 4 6} {7 8 9} {a b c}}
+
+test matrix-8.9 {insertion} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+
+    mymatrix insert row 3 {a b c}
+
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2 5} {3 4 6} {7 8 9} {a b c}}
+
+test matrix-8.10 {insertion} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+
+    mymatrix insert row -1 {a b c}
+
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{a b c} {1 2 5} {3 4 6} {7 8 9}}
+
+test matrix-8.11 {insertion} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix insert row 1 {1}
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {1}
+
+test matrix-8.12 {insertion} {
+    matrix mymatrix
+    mymatrix add row
+    mymatrix insert column 1 {1}
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {1}
+
+test matrix-9.0 {link errors} {
+    matrix mymatrix
+    catch {mymatrix link} msg
+    mymatrix destroy
+    set msg
+} {::mymatrix: wrong # args: link ?-transpose? arrayvariable}
+
+test matrix-9.1 {link errors} {
+    matrix mymatrix
+    catch {mymatrix link 1 2 3} msg
+    mymatrix destroy
+    set msg
+} {::mymatrix: wrong # args: link ?-transpose? arrayvariable}
+
+test matrix-9.2 {link errors} {
+    matrix mymatrix
+    catch {mymatrix link foo 2} msg
+    mymatrix destroy
+    set msg
+} {::mymatrix: illegal syntax: link ?-transpose? arrayvariable}
+
+test matrix-9.3 {link errors} {
+    matrix mymatrix
+    mymatrix link foo
+    catch {mymatrix link foo} msg
+    mymatrix destroy
+    set msg
+} {::mymatrix link: Variable "foo" already linked to matrix}
+
+test matrix-9.4 {linking, initial transfer} {
+    catch {unset a}
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix link a
+    set result [dictsort [array get a]]
+    mymatrix destroy
+    set result
+} {0,0 1 0,1 3 0,2 7 1,0 2 1,1 4 1,2 8 2,0 5 2,1 6 2,2 9}
+
+test matrix-9.5 {linking, initial transfer} {
+    catch {unset a}
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix link -transpose a
+    set result [dictsort [array get a]]
+    mymatrix destroy
+    set result
+} {0,0 1 0,1 2 0,2 5 1,0 3 1,1 4 1,2 6 2,0 7 2,1 8 2,2 9}
+
+
+test matrix-9.6 {linking, trace array -> matrix} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix link a
+    set a(1,0) foo
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 foo 5} {3 4 6} {7 8 9}}
+
+test matrix-9.7 {linking, trace array -> matrix} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix link -transpose a
+    set a(1,0) foo
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2 5} {foo 4 6} {7 8 9}}
+
+test matrix-9.8 {linking, trace and unlink} {
+    catch {unset a}
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix link a
+    set a(1,0) foo
+    set result [list [mymatrix get rect 0 0 end end]]
+    mymatrix unlink a
+    set a(1,0) 2
+    lappend result [dictsort [array get a]]
+    mymatrix destroy
+    set result
+} {{{1 foo 5} {3 4 6} {7 8 9}} {0,0 1 0,1 3 0,2 7 1,0 2 1,1 4 1,2 8 2,0 5 2,1 6 2,2 9}}
+
+test matrix-9.9 {linking} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix link a
+    catch {set a(1,5) foo} result
+    mymatrix destroy
+    set result
+} {can't set "a(1,5)": bad row index 5, row does not exist}
+
+test matrix-9.10 {unlink unknown} {
+    matrix mymatrix
+    set result [list [mymatrix links]]
+    mymatrix unlink foo
+    lappend result [mymatrix links]
+    mymatrix destroy
+    set result
+} {{} {}}
+
+test matrix-9.11 {auto unlink} {
+    matrix mymatrix
+    mymatrix add column
+    mymatrix add row {1}
+    mymatrix add column {2}
+    mymatrix add row {3 4}
+    mymatrix add column {5 6}
+    mymatrix add row {7 8 9}
+    mymatrix link a
+    set result [list [mymatrix links]]
+    unset a
+    lappend result [mymatrix links]
+    mymatrix destroy
+    set result
+} {a {}}
+
+test matrix-9.12 {unset in linked array} {
+    matrix mymatrix
+    mymatrix add columns 3
+    mymatrix add row {1 2 3}
+    mymatrix add row {a b c}
+
+    catch {unset a}
+    mymatrix link a
+
+    set     result [list]
+    lappend result [dictsort [array get a]]
+    unset a(0,0)
+    lappend result [mymatrix get rect 0 0 end end]
+
+    mymatrix destroy
+    set result
+} {{0,0 1 0,1 a 1,0 2 1,1 b 2,0 3 2,1 c} {{{} 2 3} {a b c}}}
+
+test matrix-9.12a {unset in linked array} {
+    matrix mymatrix
+    mymatrix add columns 3
+    mymatrix add row {1 2 3}
+    mymatrix add row {a b c}
+
+    catch {unset a}
+    mymatrix link a
+    catch {unset b}
+    mymatrix link b
+
+    set     result [list]
+    lappend result [dictsort [array get a]]
+    unset a(0,0)
+    lappend result [dictsort [array get b]]
+
+    mymatrix destroy
+    set result
+} {{0,0 1 0,1 a 1,0 2 1,1 b 2,0 3 2,1 c} {0,1 a 1,0 2 1,1 b 2,0 3 2,1 c}}
+
+test matrix-9.13 {operation on linked matrix} {
+    catch {unset a}
+    matrix mymatrix
+    mymatrix add columns 4
+    mymatrix add row {1 2 3}
+    mymatrix link a
+    mymatrix add row {a b c d}
+    set result [mymatrix get rect 0 0 end end]
+    mymatrix destroy
+    set result
+} {{1 2 3 {}} {a b c d}}
+
+test matrix-10.1 {search errors} {
+    matrix mymatrix
+    catch {mymatrix search} msg
+    mymatrix destroy
+    set msg
+} {wrong # args: should be "::mymatrix search ?option...? (all|row row|column col|rect c r c r) pattern"}
+
+test matrix-10.2 {search errors} {
+    matrix mymatrix
+    catch {mymatrix search 1} msg
+    mymatrix destroy
+    set msg
+} {wrong # args: should be "::mymatrix search ?option...? (all|row row|column col|rect c r c r) pattern"}
+
+test matrix-10.3 {search errors} {
+    matrix mymatrix
+    catch {mymatrix search 1 2 3 4 5} msg
+    mymatrix destroy
+    set msg
+} {wrong # args: should be "::mymatrix search ?option...? (all|row row|column col|rect c r c r) pattern"}
+
+test matrix-10.4 {search errors} {
+    matrix mymatrix
+    catch {mymatrix search 1 2 3 4 5 6 7 8} msg
+    mymatrix destroy
+    set msg
+} {wrong # args: should be "::mymatrix search ?option...? (all|row row|column col|rect c r c r) pattern"}
+
+test matrix-10.5 {search errors} {
+    matrix mymatrix
+    catch {mymatrix search -foo 2 3 4} msg
+    mymatrix destroy
+    set msg
+} {invalid option "-foo": should be -nocase, -exact, -glob, or -regexp}
+
+test matrix-10.6 {search errors} {
+    matrix mymatrix
+    catch {mymatrix search -exact foo 3 4} msg
+    mymatrix destroy
+    set msg
+} {invalid range spec "foo": should be all, column, row, or rect}
+
+test matrix-10.7 {search errors} {
+    matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {1  2  3 4 5}
+    mymatrix add row {6  7  8 9 0}
+    mymatrix add row {a  b  c d e}
+    mymatrix add row {ab ba f g h}
+    mymatrix add row {cd 4d x y z}
+    catch {mymatrix search -exact rect 4 0 2 1 foo} msg
+    mymatrix destroy
+    set msg
+} {Invalid cell indices, wrong ordering}
+
+test matrix-10.8 {search errors} {
+    matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {1  2  3 4 5}
+    mymatrix add row {6  7  8 9 0}
+    mymatrix add row {a  b  c d e}
+    mymatrix add row {ab ba f g h}
+    mymatrix add row {cd 4d x y z}
+    catch {mymatrix search -exact rect 2 1 4 0 foo} msg
+    mymatrix destroy
+    set msg
+} {Invalid cell indices, wrong ordering}
+
+
+test matrix-10.9 "searching, default" {
+    matrix mymatrix
+    mymatrix add columns 5
+    mymatrix add row {1  2  3 4 5}
+    mymatrix add row {6  7  8 9 0}
+    mymatrix add row {a  b  c d e}
+    mymatrix add row {ab ba f g h}
+    mymatrix add row {cd 4d x y z}
+    set result [mymatrix search row 2 b]
+    mymatrix destroy
+    set result
+} {{1 2}}
+
+foreach {n mode range pattern result} {
+    10 -exact  {all}          {ab}  {{0 3}}
+    11 -glob   {all}          {a*}  {{0 2} {0 3}}
+    12 -regexp {all}          {b.}  {{1 3}}
+    13 -exact  {row    2}     {b}   {{1 2}}
+    14 -glob   {row    3}     {b*}  {{1 3}}
+    15 -regexp {row    4}     {d}   {{0 4} {1 4}}
+    16 -exact  {column 2}     {c}   {{2 2}}
+    17 -glob   {column 0}     {a*}  {{0 2} {0 3}}
+    18 -regexp {column 1}     {b.*} {{1 2} {1 3}}
+    19 -exact  {rect 1 1 3 3} {c}   {{2 2}}
+    20 -glob   {rect 1 1 3 3} {b*}  {{1 2} {1 3}}
+    21 -regexp {rect 1 1 3 3} {b.*} {{1 2} {1 3}}
+    22 -nocase {rect 1 1 3 3} {C}   {{2 2}}
+} {
+    test matrix-10.$n "searching ($mode $range $pattern)" {
+	matrix mymatrix
+	mymatrix add columns 5
+	mymatrix add row {1  2  3 4 5}
+	mymatrix add row {6  7  8 9 0}
+	mymatrix add row {a  b  c d e}
+	mymatrix add row {ab ba f g h}
+	mymatrix add row {cd 4d x y z}
+	set result [eval mymatrix search $mode $range $pattern]
+	mymatrix destroy
+	set result
+    } $result ; # {}
+}
+
+
+test matrix-11.0 {sorting matrices: not enough arguments} {
+    matrix mymatrix
+    catch {mymatrix sort} msg
+    mymatrix destroy
+    set msg
+} [tcltest::wrongNumArgs {::struct::matrix::_sort} {name cmd args} 1]
+
+test matrix-11.1 {sorting matrices: not enough arguments} {
+    matrix mymatrix
+    catch {mymatrix sort} msg
+    mymatrix destroy
+    set msg
+} [tcltest::wrongNumArgs {::struct::matrix::_sort} {name cmd args} 1]
+
+test matrix-11.2 {sorting matrices: bad method} {
+    matrix mymatrix
+    catch {mymatrix sort foo} msg
+    mymatrix destroy
+    set msg
+} {bad option "foo": must be columns, or rows}
+
+test matrix-11.3 {sorting matrices: not enough arguments} {
+    matrix mymatrix
+    catch {mymatrix sort rows} msg
+    mymatrix destroy
+    set msg
+} {wrong # args: should be "::mymatrix sort option ?arg arg ...?"}
+
+test matrix-11.4 {sorting matrices: to many arguments} {
+    matrix mymatrix
+    catch {mymatrix sort rows foo bar} msg
+    mymatrix destroy
+    set msg
+} {invalid option "foo": should be -increasing, or -decreasing}
+
+test matrix-11.5 {sorting matrices: bad option} {
+    matrix mymatrix
+    catch {mymatrix sort rows -foo bar} msg
+    mymatrix destroy
+    set msg
+} {invalid option "-foo": should be -increasing, or -decreasing}
+
+test matrix-11.6 {sorting matrices: not enough arguments} {
+    matrix mymatrix
+    catch {mymatrix sort columns} msg
+    mymatrix destroy
+    set msg
+} {wrong # args: should be "::mymatrix sort option ?arg arg ...?"}
+
+test matrix-11.7 {sorting matrices: to many arguments} {
+    matrix mymatrix
+    catch {mymatrix sort columns foo bar} msg
+    mymatrix destroy
+    set msg
+} {invalid option "foo": should be -increasing, or -decreasing}
+
+test matrix-11.8 {sorting matrices: bad option} {
+    matrix mymatrix
+    catch {mymatrix sort columns -foo bar} msg
+    mymatrix destroy
+    set msg
+} {invalid option "-foo": should be -increasing, or -decreasing}
+
+test matrix-11.9 {sorting matrices: bad index} {
+    matrix mymatrix
+    mymatrix add rows    3
+    mymatrix add columns 4
+    catch {mymatrix sort rows -1} msg
+    mymatrix destroy
+    set msg
+} {bad column index -1, column does not exist}
+
+test matrix-11.10 {sorting matrices: bad index} {
+    matrix mymatrix
+    mymatrix add rows    3
+    mymatrix add columns 4
+    catch {mymatrix sort rows 4} msg
+    mymatrix destroy
+    set msg
+} {bad column index 4, column does not exist}
+
+test matrix-11.11 {sorting matrices: bad index} {
+    matrix mymatrix
+    mymatrix add rows    3
+    mymatrix add columns 4
+    catch {mymatrix sort rows foo} msg
+    mymatrix destroy
+    set msg
+} {bad column index "foo", syntax error}
+
+test matrix-11.12 {sorting matrices: bad index} {
+    matrix mymatrix
+    mymatrix add rows    3
+    mymatrix add columns 4
+    catch {mymatrix sort columns -1} msg
+    mymatrix destroy
+    set msg
+} {bad row index -1, row does not exist}
+
+test matrix-11.13 {sorting matrices: bad index} {
+    matrix mymatrix
+    mymatrix add rows    3
+    mymatrix add columns 4
+    catch {mymatrix sort columns 3} msg
+    mymatrix destroy
+    set msg
+} {bad row index 3, row does not exist}
+
+test matrix-11.14 {sorting matrices: bad index} {
+    matrix mymatrix
+    mymatrix add rows    3
+    mymatrix add columns 4
+    catch {mymatrix sort columns foo} msg
+    mymatrix destroy
+    set msg
+} {bad row index "foo", syntax error}
+
+
+foreach {n cmd res resd} {
+    1 {rows    0} {{2 0 f j} {a 02 01 3} {c g b a}} {{c g b a} {a 02 01 3} {2 0 f j}}
+    2 {rows    1} {{2 0 f j} {a 02 01 3} {c g b a}} {{c g b a} {a 02 01 3} {2 0 f j}}
+    3 {rows    2} {{a 02 01 3} {c g b a} {2 0 f j}} {{2 0 f j} {c g b a} {a 02 01 3}}
+    4 {rows    3} {{a 02 01 3} {c g b a} {2 0 f j}} {{2 0 f j} {c g b a} {a 02 01 3}}
+    5 {columns 0} {{0 2 f j} {g c b a} {02 a 01 3}} {{j f 2 0} {a b c g} {3 01 a 02}}
+    6 {columns 1} {{j f 2 0} {a b c g} {3 01 a 02}} {{0 2 f j} {g c b a} {02 a 01 3}}
+    7 {columns 2} {{f 0 j 2} {b g a c} {01 02 3 a}} {{2 j 0 f} {c a g b} {a 3 02 01}}
+} {
+    test matrix-12.$n "sorting matrices: $cmd" {
+	matrix mymatrix
+	mymatrix add rows    3
+	mymatrix add columns 4
+	mymatrix set rect 0 0 $matdata
+	eval [list mymatrix sort] $cmd
+	set result [mymatrix get rect 0 0 3 2]
+	mymatrix destroy
+	set result
+    } $res
+
+    test matrix-13.$n "sorting matrices: $cmd, -decreasing" {
+	matrix mymatrix
+	mymatrix add rows    3
+	mymatrix add columns 4
+	mymatrix set rect 0 0 $matdata
+	eval [linsert [linsert $cmd 1 -decreasing] 0 mymatrix sort]
+	set result [mymatrix get rect 0 0 3 2]
+	mymatrix destroy
+	set result
+    } $resd
+}
+
+test matrix-14.0 {transposition} {
+    matrix mymatrix
+    mymatrix transpose
+    set result [list [mymatrix rows] [mymatrix columns]]
+    mymatrix destroy
+    set result
+} {0 0}
+
+test matrix-14.1 {transposition} {
+    matrix mymatrix
+    mymatrix add rows 2
+    mymatrix transpose
+    set result [list [mymatrix rows] [mymatrix columns]]
+    mymatrix destroy
+    set result
+} {0 2}
+
+test matrix-14.2 {transposition} {
+    matrix mymatrix
+    mymatrix add columns 2
+    mymatrix transpose
+    set result [list [mymatrix rows] [mymatrix columns]]
+    mymatrix destroy
+    set result
+} {2 0}
+
+test matrix-14.3 {transposition} {
+    matrix mymatrix
+    mymatrix add rows    2
+    mymatrix add columns 3
+    mymatrix set rect 0 0 {{a b c} {d e f}}
+
+    mymatrix transpose
+    set result [list [mymatrix rows] [mymatrix columns] [mymatrix get rect 0 0 1 2]]
+    mymatrix destroy
+    set result
+} {3 2 {{a d} {b e} {c f}}}
+
+test matrix-14.4 {transposition} {
+    matrix mymatrix
+    mymatrix add rows    3
+    mymatrix add columns 2
+    mymatrix set rect 0 0 {{a d} {b e} {c f}}
+
+    mymatrix transpose
+    set result [list [mymatrix rows] [mymatrix columns] [mymatrix get rect 0 0 2 1]]
+    mymatrix destroy
+    set result
+} {2 3 {{a b c} {d e f}}}
+
+test matrix-14.5 {transposition} {
+    matrix mymatrix
+    mymatrix add rows    2
+    mymatrix add columns 2
+    mymatrix set rect 0 0 {{a b} {d e}}
+
+    mymatrix transpose
+    set result [list [mymatrix rows] [mymatrix columns] [mymatrix get rect 0 0 1 1]]
+    mymatrix destroy
+    set result
+} {2 2 {{a d} {b e}}}
+
+
+
+############################################################
+# V. Objects to values and back ...
+# - serialize deserialize = -->
+############################################################
+
+test matrix-15.0 {serialization, bogus rectangle} {
+    matrix mymatrix
+    catch {mymatrix serialize 1 1 3 3} result
+    mymatrix destroy
+    set result
+} {bad column index 1, column does not exist}
+
+test matrix-15.1 {serialization, all} {
+    matrix mymatrix
+    mymatrix add columns 4
+    mymatrix add rows    3
+    mymatrix set rect    0 0 $matdata
+
+    set serial [mymatrix serialize]
+    set result [validate_serial mymatrix $serial]
+    mymatrix destroy
+    set result
+
+    # set serial =
+    # {3 4 {{2 0 f j} {c g b a} {a 02 01 3}}}
+} ok
+
+test matrix-15.2 {serialization, submatrix} {
+    matrix mymatrix
+    mymatrix add columns 4
+    mymatrix add rows    3
+    mymatrix set rect    0 0 $matdata
+
+    set serial [mymatrix serialize 1 1 2 2]
+    set result [validate_serial mymatrix $serial {1 1 2 2}]
+    mymatrix destroy
+    set result
+
+    # set serial =
+    # {2 2 {{g b} {02 01}}}
+} ok
+
+# ---------------------------------------------------  
+
+test matrix-16.0 {deserialization, wrong #args} {
+    matrix mymatrix
+    catch {mymatrix deserialize foo bar} result
+    mymatrix destroy
+    set result
+} [tcltest::tooManyArgs {::struct::matrix::_deserialize} {name serial}]
+
+test matrix-16.1 {deserialization} {
+    matrix mymatrix
+    set serial {3 4}
+    set fail [catch {mymatrix deserialize $serial} result]
+    mymatrix destroy
+    list $fail $result
+} {1 {error in serialization: list length not 3.}}
+
+test matrix-16.2 {deserialization} {
+    matrix mymatrix
+    set serial {1 1 {{1}} .}
+    set fail [catch {mymatrix deserialize $serial} result]
+    mymatrix destroy
+    list $fail $result
+} {1 {error in serialization: list length not 3.}}
+
+test matrix-16.3 {deserialization} {
+    matrix mymatrix
+    set serial {. 1 {}}
+    set fail [catch {mymatrix deserialize $serial} result]
+    mymatrix destroy
+    list $fail $result
+} {1 {error in serialization: bad number of rows ".".}}
+
+test matrix-16.4 {deserialization} {
+    matrix mymatrix
+    set serial {-1 1 {}}
+    set fail [catch {mymatrix deserialize $serial} result]
+    mymatrix destroy
+    list $fail $result
+} {1 {error in serialization: bad number of rows "-1".}}
+
+test matrix-16.5 {deserialization} {
+    matrix mymatrix
+    set serial {1 . {}}
+    set fail [catch {mymatrix deserialize $serial} result]
+    mymatrix destroy
+    list $fail $result
+} {1 {error in serialization: bad number of columns ".".}}
+
+test matrix-16.6 {deserialization} {
+    matrix mymatrix
+    set serial {1 -1 {}}
+    set fail [catch {mymatrix deserialize $serial} result]
+    mymatrix destroy
+    list $fail $result
+} {1 {error in serialization: bad number of columns "-1".}}
+
+test matrix-16.7 {deserialization} {
+    matrix mymatrix
+    set serial {2 2 {{a b} {c d} {e f}}}
+    set fail [catch {mymatrix deserialize $serial} result]
+    mymatrix destroy
+    list $fail $result
+} {1 {error in serialization: data for to many rows.}}
+
+test matrix-16.8 {deserialization} {
+    matrix mymatrix
+    set serial {2 2 {{a b} {c d e}}}
+    set fail [catch {mymatrix deserialize $serial} result]
+    mymatrix destroy
+    list $fail $result
+} {1 {error in serialization: data for to many columns.}}
+
+test matrix-16.9 {deserialization} {
+    matrix mymatrix
+
+    # Our check of the success of the deserialization
+    # is to validate the generated matrix against the
+    # serialized data.
+
+    set serial {4 3 {{a b c} {d e} {f}}}
+
+    set     result [list]
+    lappend result [validate_serial mymatrix $serial]
+
+    mymatrix deserialize $serial
+    lappend result [validate_serial mymatrix $serial]
+    mymatrix destroy
+    set result
+} {dim/row-mismatch ok}
+
+test matrix-16.10 {deserialization} {
+    matrix mymatrix
+
+    # Our check of the success of the deserialization
+    # is to validate the generated matrix against the
+    # serialized data.
+
+    # Applying to serialization one after the
+    # other. Checking that the second operation
+    # completely squashes the data from the first.
+
+    set seriala {4 3 {{a b c} {d e} {f}}}
+    set serialb {2 2 {{. /} {= %}}}
+
+    set     result [list]
+    lappend result [validate_serial mymatrix $seriala]
+    lappend result [validate_serial mymatrix $serialb]
+
+    mymatrix deserialize $seriala
+    lappend result [validate_serial mymatrix $seriala]
+    lappend result [validate_serial mymatrix $serialb]
+
+    mymatrix deserialize $serialb
+    lappend result [validate_serial mymatrix $seriala]
+    lappend result [validate_serial mymatrix $serialb]
+
+    mymatrix destroy
+    set result
+} {dim/row-mismatch dim/row-mismatch ok dim/row-mismatch dim/row-mismatch ok}
+
+# ---------------------------------------------------  
+
+test matrix-17.1 {matrix assignment} {
+    matrix mymatrix
+    catch {mymatrix = foo bar} result
+    mymatrix destroy
+    set result
+} [tcltest::tooManyArgs {::struct::matrix::_=} {name source}]
+
+test matrix-17.2 {matrix assignment} {
+    set serial {2 2 {{. /} {= %}}}
+
+    matrix mymatrix
+    matrix bmatrix
+
+    mymatrix deserialize $serial
+
+    set result [validate_serial bmatrix $serial]
+    bmatrix = mymatrix
+    lappend result [validate_serial bmatrix $serial]
+
+    mymatrix destroy
+    bmatrix  destroy
+    set result
+} {dim/row-mismatch ok}
+
+# ---------------------------------------------------  
+
+test matrix-18.1 {reverse matrix assignment} {
+    matrix mymatrix
+    catch {mymatrix --> foo bar} result
+    mymatrix destroy
+    set result
+} [tcltest::tooManyArgs {::struct::matrix::_-->} {name dest}]
+
+test matrix-18.2 {reverse matrix assignment} {
+
+    set serial {4 3 {{a b c} {d e} {f}}}
+
+    matrix mymatrix
+    matrix bmatrix
+
+    mymatrix deserialize $serial
+
+    set result [validate_serial bmatrix $serial]
+    mymatrix --> bmatrix
+    lappend result [validate_serial bmatrix $serial]
+
+    mymatrix destroy
+    bmatrix  destroy
+    set result
+} {dim/row-mismatch ok}
+
+# ---------------------------------------------------  
+
+test matrix-19.1 {copy construction, wrong # args} {
+    catch {matrix mymatrix = a b} result
+    set result
+} {wrong # args: should be "matrix ?name ?=|:=|as|deserialize source??"}
+
+test matrix-19.2 {copy construction, unknown operator} {
+    catch {matrix mymatrix foo a} result
+    set result
+} {wrong # args: should be "matrix ?name ?=|:=|as|deserialize source??"}
+
+test matrix-19.3 {copy construction, value} {
+    set serial {4 3 {{a b c} {d e} {f}}}
+
+    matrix mymatrix deserialize $serial
+    set result [validate_serial mymatrix $serial]
+    mymatrix destroy
+
+    set result
+} ok
+
+test matrix-19.4 {copy construction, matrix} {
+    set serial {4 3 {{a b c} {d e} {f}}}
+
+    matrix mymatrix deserialize $serial
+    matrix bmatrix = mymatrix
+
+    set result [validate_serial bmatrix $serial]
+    mymatrix destroy
+    bmatrix  destroy
+
+    set result
+} ok
+
+# ---------------------------------------------------
+
+# Future tests: query rowheight, column width before and after delete
+# row/column to ascertain that the cached values are correctly
+# shifted.
+
+# Test 'format 2chan', have to redirect a channel for this.
+
+# Future: Tests involving cached information (row heights, col widths)
+# should use special commands to peek at the cache only, without
+# recalculation.
+
+testsuiteCleanup
+

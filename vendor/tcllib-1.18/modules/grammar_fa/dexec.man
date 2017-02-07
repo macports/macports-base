@@ -1,0 +1,183 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin grammar::fa::dexec n 0.2]
+[keywords automaton]
+[keywords execution]
+[keywords {finite automaton}]
+[keywords grammar]
+[keywords parsing]
+[keywords {regular expression}]
+[keywords {regular grammar}]
+[keywords {regular languages}]
+[keywords running]
+[keywords state]
+[keywords transducer]
+[copyright {2004 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[copyright {2007 Bogdan <rftghost@users.sourceforge.net>}]
+[moddesc   {Finite automaton operations and usage}]
+[titledesc {Execute deterministic finite automatons}]
+[category  {Grammars and finite automata}]
+[require Tcl 8.4]
+[require snit]
+[require grammar::fa::dexec [opt 0.2]]
+[description]
+[para]
+
+This package provides a class for executors constructed from
+deterministic [term {finite automatons}] (DFA). Executors are objects
+which are given a string of symbols in a piecemal fashion, perform
+state transitions and report back when they enter a final state, or
+find an error in the input.
+
+For the actual creation of the DFAs the executors are based on we have
+the packages [package grammar::fa] and [package grammar::fa::op].
+
+[para]
+
+The objects follow a push model. Symbols are pushed into the executor,
+and when something important happens, i.e. error occurs, a state transition,
+or a final state is entered this will be reported via the callback
+specified via the option [option -command]. Note that conversion of
+this into a pull model where the environment retrieves messages from
+the object and the object uses a callback to ask for more symbols is
+a trivial thing.
+
+[para]
+
+[emph {Side note}]:
+
+The acceptor objects provided by [package grammar::fa::dacceptor]
+could have been implemented on top of the executors provided here, but
+were not, to get a bit more performance (we avoid a number of method
+calls and the time required for their dispatch).
+
+[para]
+
+[section API]
+
+The package exports the API described here.
+
+[list_begin definitions]
+
+[call [cmd ::grammar::fa::dexec] [arg daName] [arg fa] [opt "[option -any] [arg any]"] [opt "[option -command] [arg cmdprefix]"]]
+
+Creates a new deterministic executor with an associated global Tcl
+command whose name is [arg daName]. This command may be used to invoke
+various operations on the executor. It has the following general form:
+
+[list_begin definitions]
+
+[call [cmd daName] [arg option] [opt [arg "arg arg ..."]]]
+
+[arg Option] and the [arg arg]s determine the exact behavior of the
+command. See section [sectref {EXECUTOR METHODS}] for more
+explanations.
+
+[para]
+
+The executor will be based on the deterministic finite automaton
+stored in the object [arg fa]. It will keep a copy of the relevant
+data of the FA in its own storage, in a form easy to use for its
+purposes. This also means that changes made to the [arg fa] after the
+construction of the executor [emph {will not}] influence the executor.
+
+[para]
+
+If [arg any] has been specified, then the executor will convert all
+symbols in the input which are unknown to the base FA to that symbol
+before proceeding with the processing.
+
+[list_end]
+[list_end]
+
+[section {EXECUTOR METHODS}]
+[para]
+
+All executors provide the following methods for their manipulation:
+
+[list_begin definitions]
+
+[call [arg daName] [method destroy]]
+
+Destroys the automaton, including its storage space and associated
+command.
+
+[call [arg daName] [method put] [arg symbol]]
+
+Takes the current state of the executor and the [arg symbol] and
+performs the appropriate state transition. Reports any errors
+encountered via the command callback, as well as entering a final
+state of the underlying FA.
+
+[para]
+
+When an error is reported all further invokations of [method put] will
+do nothing, until the error condition has been cleared via an
+invokation of method [method reset].
+
+[call [arg daName] [method reset]]
+
+Unconditionally sets the executor into the start state of the
+underlying FA. This also clears any error condition  [method put] may
+have encountered.
+
+[call [arg daName] [method state]]
+
+Returns the current state of the underlying FA. This allow for
+introspection without the need to pass data from the callback command.
+
+[list_end]
+
+[section {EXECUTOR CALLBACK}]
+
+The callback command [arg cmdprefix] given to an executor via the
+option [option -command] will be executed by the object at the global
+level, using the syntax described below. Note that [arg cmdprefix] is
+not simply the name of a command, but a full command prefix. In other
+words it may contain additional fixed argument words beyond the
+command word.
+
+[list_begin definitions]
+
+[call [arg cmdprefix] [method error] [arg code] [arg message]]
+
+The executor has encountered an error, and [arg message] contains a
+human-readable text explaining the nature of the problem.
+
+The [arg code] on the other hand is a fixed machine-readable text.
+The following error codes can be generated by executor objects.
+
+[list_begin definitions]
+[def [const BADSYM]]
+
+An unknown symbol was found in the input. This can happen if and only
+if no [option -any] symbol was specified.
+
+[def [const BADTRANS]]
+
+The underlying FA has no transition for the current combination of
+input symbol and state. In other words, the executor was not able to
+compute a new state for this combination.
+
+[list_end]
+
+[call [arg cmdprefix] [method final] [arg stateid]]
+
+The executor has entered the final state [arg stateid].
+
+[call [arg cmdprefix] [method reset]]
+
+The executor was reset.
+
+[call [arg cmdprefix] [method state] [arg stateid]]
+
+The FA changed state due to a transition. [arg stateid] is the new state.
+
+[list_end]
+
+[para]
+
+[section EXAMPLES]
+
+[vset CATEGORY grammar_fa]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

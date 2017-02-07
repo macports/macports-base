@@ -1,0 +1,386 @@
+# -*- tcl -*-
+# finite_automaton.test:  tests for the grammar::fa container.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: fa_start.test,v 1.6 2009/10/27 21:17:23 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+test fa-start-${setimpl}-1.0 {start states, error} {
+    grammar::fa a
+    catch {a startstates x} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodstartstates type selfns win self"}
+
+
+test fa-start-${setimpl}-1.1 {start query, error} {
+    grammar::fa a
+    catch {a start?} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodstart? type selfns win self s"}
+
+
+test fa-start-${setimpl}-1.2 {start query, error} {
+    grammar::fa a
+    catch {a start? x y} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodstart? type selfns win self s"}
+
+
+test fa-start-${setimpl}-1.3 {start query, error} {
+    grammar::fa a
+    catch {a start? x} res
+    a destroy
+    set res
+} {Illegal state "x"}
+
+
+test fa-start-${setimpl}-1.4 {start query set, error} {
+    grammar::fa a
+    catch {a start?set} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodstart?set type selfns win self states"}
+
+
+test fa-start-${setimpl}-1.5 {start query set, error} {
+    grammar::fa a
+    catch {a start?set x y} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodstart?set type selfns win self states"}
+
+
+test fa-start-${setimpl}-1.6 {start query set, error} {
+    grammar::fa a
+    catch {a start?set x} res
+    a destroy
+    set res
+} {Illegal state "x"}
+
+
+test fa-start-${setimpl}-1.7 {start query set, error} {
+    grammar::fa a
+    a state add x
+    catch {a start?set {x y}} res
+    a destroy
+    set res
+} {Illegal state "y"}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-start-${setimpl}-2.0 {start, error} {
+    grammar::fa a
+    catch {a start} res
+    a destroy
+    set res
+} {wrong number args: should be "::a start method args"}
+# [tcltest::wrongNumArgs ::grammar::fa::Snit_methodstart {type selfns win self cmd args} 5]
+
+
+test fa-start-${setimpl}-2.1 {start, error} {
+    grammar::fa a
+    catch {a start foo} res
+    a destroy
+    set res
+} {"::a start foo" is not defined}
+
+
+test fa-start-${setimpl}-2.2 {start, error} {
+    grammar::fa a
+    catch {a start add} res
+    a destroy
+    set res
+} [tcltest::wrongNumArgs ::grammar::fa::Snit_hmethodstart_add {type selfns win self state args} 5]
+
+test fa-start-${setimpl}-2.3 {start, error} {
+    grammar::fa a
+    catch {a start add x y} res
+    a destroy
+    set res
+} {Illegal state "x"}
+
+
+test fa-start-${setimpl}-2.4 {start, error} {
+    grammar::fa a
+    catch {a start add x} res
+    a destroy
+    set res
+} {Illegal state "x"}
+
+
+test fa-start-${setimpl}-2.5 {start states} {
+    grammar::fa a
+    catch {a start remove} res
+    a destroy
+    set res
+} [tcltest::wrongNumArgs ::grammar::fa::Snit_hmethodstart_remove {type selfns win self state args} 5]
+
+
+test fa-start-${setimpl}-2.6 {start states} {
+    grammar::fa a
+    catch {a start remove x y} res
+    a destroy
+    set res
+} {Illegal state "x"}
+
+
+test fa-start-${setimpl}-2.7 {start states} {
+    grammar::fa a
+    catch {a start remove x} res
+    a destroy
+    set res
+} {Illegal state "x"}
+
+
+test fa-start-${setimpl}-2.8 {start states} {
+    grammar::fa a
+    catch {a start set} res
+    a destroy
+    set res
+} [tcltest::wrongNumArgs ::grammar::fa::Snit_hmethodstart_set {type selfns win self states} 4]
+
+
+test fa-start-${setimpl}-2.9 {start states} {
+    grammar::fa a
+    a state add x
+    catch {a start set {x y}} res
+    a destroy
+    set res
+} {Illegal state "y"}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-start-${setimpl}-3.0 {start states, empty fa} {
+    grammar::fa a
+    set res [a startstates]
+    a destroy
+    set res
+} {}
+
+
+test fa-start-${setimpl}-3.1 {start states, plain state} {
+    grammar::fa a
+    a state add x
+    set res [a startstates]
+    a destroy
+    set res
+} {}
+
+
+test fa-start-${setimpl}-3.2 {start states, state addition} {
+    grammar::fa a
+    a state add x
+    a start add x
+    set res [a startstates]
+    a destroy
+    set res
+} x
+
+
+test fa-start-${setimpl}-3.3 {start states, state addition} {
+    grammar::fa a
+    a state add x y
+    a start add x y
+    set res [lsort [a startstates]]
+    a destroy
+    set res
+} {x y}
+
+
+test fa-start-${setimpl}-3.4 {start states, state addition, and remova;} {
+    grammar::fa a
+    a state add x y
+    a start add x y
+    set     res {}
+    lappend res [a startstates]
+    a start remove y
+    lappend res [a startstates]
+    a start remove x
+    lappend res [a startstates]
+    a destroy
+    set res
+} {{x y} x {}}
+
+
+test fa-start-${setimpl}-3.5 {start states, state addition, and remova;} {
+    grammar::fa a
+    a state add x y
+    a start add x y
+    set     res {}
+    lappend res [a startstates]
+    a state delete y
+    lappend res [a startstates]
+    a state delete x
+    lappend res [a startstates]
+    a destroy
+    set res
+} {{x y} x {}}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-start-${setimpl}-4.0 {start?} {
+    grammar::fa a
+    a state add x
+    set res [a start? x]
+    a destroy
+    set res
+} 0
+
+
+test fa-start-${setimpl}-4.1 {start?} {
+    grammar::fa a
+    a state add x
+    a start add x
+    set res [a start? x]
+    a destroy
+    set res
+} 1
+
+
+test fa-start-${setimpl}-4.2 {start?} {
+    grammar::fa a
+    a state add x
+    a start add x
+    set     res [a start? x]
+    a start remove x
+    lappend res [a start? x]
+    a destroy
+    set res
+} {1 0}
+
+
+test fa-start-${setimpl}-4.3 {start?} {
+    grammar::fa a
+    a state add x
+    a start add x
+    set     res [a start? x]
+    a state delete x
+    catch {a start? x} msg
+    lappend res $msg
+    a destroy
+    set res
+} {1 {Illegal state "x"}}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-start-${setimpl}-5.0 {start?set} {
+    grammar::fa a
+    a state add x
+    set res [a start?set x]
+    a destroy
+    set res
+} 0
+
+
+test fa-start-${setimpl}-5.1 {start?set} {
+    grammar::fa a
+    a state add x
+    a start add x
+    set res [a start?set x]
+    a destroy
+    set res
+} 1
+
+
+test fa-start-${setimpl}-5.2 {start?set} {
+    grammar::fa a
+    set res {}
+    a state add x
+    a start add x
+    lappend res [a start?set x]
+    a start remove x
+    lappend res [a start?set x]
+    a destroy
+    set res
+} {1 0}
+
+
+test fa-start-${setimpl}-5.3 {start?set} {
+    grammar::fa a
+    set res {}
+    a state add x y
+    a start add x
+    lappend res [a start?set y]
+    lappend res [a start?set {x y}]
+    a destroy
+    set res
+} {0 1}
+
+
+test fa-start-${setimpl}-5.4 {start?set} {
+    grammar::fa a
+    a state add x
+    set     res {}
+    lappend res [a start?  x]
+    lappend res [a start remove x]
+    lappend res [a start?  x]
+    a destroy
+    set res
+} {0 {} 0}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+test fa-start-${setimpl}-6.0 {start clear} {
+    grammar::fa a
+    a state add x
+    a start add x
+    set     res {}
+    lappend res [a startstates]
+    a start clear
+    lappend res [a startstates]
+    a destroy
+    set res
+} {x {}}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+test fa-start-${setimpl}-7.0 {start set} {
+    grammar::fa a
+    a state add x
+    a start set x
+    set res [a startstates]
+    a destroy
+    set res
+} x
+
+
+test fa-start-${setimpl}-7.1 {start set} {
+    grammar::fa a
+    a state add x y
+    a start set {x y}
+    set res [lsort [a startstates]]
+    a destroy
+    set res
+} {x y}
+
+
+test fa-start-${setimpl}-7.2 {start set} {
+    grammar::fa a
+    set res {}
+    a state add x y z
+    a start add z
+    lappend res [a startstates]
+    a start set {x y}
+    lappend res [lsort [a startstates]]
+    a destroy
+    set res
+} {z {x y}}
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

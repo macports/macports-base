@@ -1,0 +1,3246 @@
+
+<div class='fossil-doc' data-title='snitfaq - Snit's Not Incr Tcl, OO system'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">snitfaq(n) 2.2 tcllib &quot;Snit's Not Incr Tcl, OO system&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>snitfaq - Snit Frequently Asked Questions</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">OVERVIEW</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">What is this document?</a></li>
+<li class="doctools_subsection"><a href="#subsection2">What is Snit?</a></li>
+<li class="doctools_subsection"><a href="#subsection3">What version of Tcl does Snit require?</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Where can I download Snit?</a></li>
+<li class="doctools_subsection"><a href="#subsection5">What are Snit's goals?</a></li>
+<li class="doctools_subsection"><a href="#subsection6">How is Snit different from other OO frameworks?</a></li>
+<li class="doctools_subsection"><a href="#subsection7">What can I do with Snit?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">SNIT VERSIONS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection8">Which version of Snit should I use?</a></li>
+<li class="doctools_subsection"><a href="#subsection9">How do I select the version of Snit I want to use?</a></li>
+<li class="doctools_subsection"><a href="#subsection10">How are Snit 1.3 and Snit 2.2 incompatible?</a></li>
+<li class="doctools_subsection"><a href="#subsection11">Are there other differences between Snit 1.x and Snit 2.2?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">OBJECTS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection12">What is an object?</a></li>
+<li class="doctools_subsection"><a href="#subsection13">What is an abstract data type?</a></li>
+<li class="doctools_subsection"><a href="#subsection14">What kinds of abstract data types does Snit provide?</a></li>
+<li class="doctools_subsection"><a href="#subsection15">What is a snit::type?</a></li>
+<li class="doctools_subsection"><a href="#subsection16">What is a snit::widget?, the short story</a></li>
+<li class="doctools_subsection"><a href="#subsection17">What is a snit::widgetadaptor?, the short story</a></li>
+<li class="doctools_subsection"><a href="#subsection18">How do I create an instance of a snit::type?</a></li>
+<li class="doctools_subsection"><a href="#subsection19">How do I refer to an object indirectly?</a></li>
+<li class="doctools_subsection"><a href="#subsection20">How can I generate the object name automatically?</a></li>
+<li class="doctools_subsection"><a href="#subsection21">Can types be renamed?</a></li>
+<li class="doctools_subsection"><a href="#subsection22">Can objects be renamed?</a></li>
+<li class="doctools_subsection"><a href="#subsection23">How do I destroy a Snit object?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section5">INSTANCE METHODS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection24">What is an instance method?</a></li>
+<li class="doctools_subsection"><a href="#subsection25">How do I define an instance method?</a></li>
+<li class="doctools_subsection"><a href="#subsection26">How does a client call an instance method?</a></li>
+<li class="doctools_subsection"><a href="#subsection27">How does an instance method call another instance method?</a></li>
+<li class="doctools_subsection"><a href="#subsection28">Are there any limitations on instance method names?</a></li>
+<li class="doctools_subsection"><a href="#subsection29">What is a hierarchical method?</a></li>
+<li class="doctools_subsection"><a href="#subsection30">How do I define a hierarchical method?</a></li>
+<li class="doctools_subsection"><a href="#subsection31">How do I call hierarchical methods?</a></li>
+<li class="doctools_subsection"><a href="#subsection32">How do I make an instance method private?</a></li>
+<li class="doctools_subsection"><a href="#subsection33">Are there any limitations on instance method arguments?</a></li>
+<li class="doctools_subsection"><a href="#subsection34">What implicit arguments are passed to each instance method?</a></li>
+<li class="doctools_subsection"><a href="#subsection35">What is $type?</a></li>
+<li class="doctools_subsection"><a href="#subsection36">What is $self?</a></li>
+<li class="doctools_subsection"><a href="#subsection37">What is $selfns?</a></li>
+<li class="doctools_subsection"><a href="#subsection38">What is $win?</a></li>
+<li class="doctools_subsection"><a href="#subsection39">How do I pass an instance method as a callback?</a></li>
+<li class="doctools_subsection"><a href="#subsection40">How do I delegate instance methods to a component?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section6">INSTANCE VARIABLES</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection41">What is an instance variable?</a></li>
+<li class="doctools_subsection"><a href="#subsection42">How is a scalar instance variable defined?</a></li>
+<li class="doctools_subsection"><a href="#subsection43">How is an array instance variable defined?</a></li>
+<li class="doctools_subsection"><a href="#subsection44">What happens if I don't initialize an instance variable?</a></li>
+<li class="doctools_subsection"><a href="#subsection45">Are there any limitations on instance variable names?</a></li>
+<li class="doctools_subsection"><a href="#subsection46">Do I need to declare my instance variables in my methods?</a></li>
+<li class="doctools_subsection"><a href="#subsection47">How do I pass an instance variable's name to another object?</a></li>
+<li class="doctools_subsection"><a href="#subsection48">How do I make an instance variable public?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section7">OPTIONS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection49">What is an option?</a></li>
+<li class="doctools_subsection"><a href="#subsection50">How do I define an option?</a></li>
+<li class="doctools_subsection"><a href="#subsection51">How can a client set options at object creation?</a></li>
+<li class="doctools_subsection"><a href="#subsection52">How can a client retrieve an option's value?</a></li>
+<li class="doctools_subsection"><a href="#subsection53">How can a client set options after object creation?</a></li>
+<li class="doctools_subsection"><a href="#subsection54">How should an instance method access an option value?</a></li>
+<li class="doctools_subsection"><a href="#subsection55">How can I make an option read-only?</a></li>
+<li class="doctools_subsection"><a href="#subsection56">How can I catch accesses to an option's value?</a></li>
+<li class="doctools_subsection"><a href="#subsection57">What is a -cgetmethod?</a></li>
+<li class="doctools_subsection"><a href="#subsection58">How can I catch changes to an option's value?</a></li>
+<li class="doctools_subsection"><a href="#subsection59">What is a -configuremethod?</a></li>
+<li class="doctools_subsection"><a href="#subsection60">How can I validate an option's value?</a></li>
+<li class="doctools_subsection"><a href="#subsection61">What is a -validatemethod?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section8">TYPE VARIABLES</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection62">What is a type variable?</a></li>
+<li class="doctools_subsection"><a href="#subsection63">How is a scalar type variable defined?</a></li>
+<li class="doctools_subsection"><a href="#subsection64">How is an array-valued type variable defined?</a></li>
+<li class="doctools_subsection"><a href="#subsection65">What happens if I don't initialize a type variable?</a></li>
+<li class="doctools_subsection"><a href="#subsection66">Are there any limitations on type variable names?</a></li>
+<li class="doctools_subsection"><a href="#subsection67">Do I need to declare my type variables in my methods?</a></li>
+<li class="doctools_subsection"><a href="#subsection68">How do I pass a type variable's name to another object?</a></li>
+<li class="doctools_subsection"><a href="#subsection69">How do I make a type variable public?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section9">TYPE METHODS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection70">What is a type method?</a></li>
+<li class="doctools_subsection"><a href="#subsection71">How do I define a type method?</a></li>
+<li class="doctools_subsection"><a href="#subsection72">How does a client call a type method?</a></li>
+<li class="doctools_subsection"><a href="#subsection73">Are there any limitations on type method names?</a></li>
+<li class="doctools_subsection"><a href="#subsection74">How do I make a type method private?</a></li>
+<li class="doctools_subsection"><a href="#subsection75">Are there any limitations on type method arguments?</a></li>
+<li class="doctools_subsection"><a href="#subsection76">How does an instance or type method call a type method?</a></li>
+<li class="doctools_subsection"><a href="#subsection77">How do I pass a type method as a callback?</a></li>
+<li class="doctools_subsection"><a href="#subsection78">Can type methods be hierarchical?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section10">PROCS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection79">What is a proc?</a></li>
+<li class="doctools_subsection"><a href="#subsection80">How do I define a proc?</a></li>
+<li class="doctools_subsection"><a href="#subsection81">Are there any limitations on proc names?</a></li>
+<li class="doctools_subsection"><a href="#subsection82">How does a method call a proc?</a></li>
+<li class="doctools_subsection"><a href="#subsection83">How can I pass a proc to another object as a callback?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section11">TYPE CONSTRUCTORS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection84">What is a type constructor?</a></li>
+<li class="doctools_subsection"><a href="#subsection85">How do I define a type constructor?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section12">CONSTRUCTORS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection86">What is a constructor?</a></li>
+<li class="doctools_subsection"><a href="#subsection87">How do I define a constructor?</a></li>
+<li class="doctools_subsection"><a href="#subsection88">What does the default constructor do?</a></li>
+<li class="doctools_subsection"><a href="#subsection89">Can I choose a different set of arguments for the constructor?</a></li>
+<li class="doctools_subsection"><a href="#subsection90">Are there any limitations on constructor arguments?</a></li>
+<li class="doctools_subsection"><a href="#subsection91">Is there anything special about writing the constructor?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section13">DESTRUCTORS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection92">What is a destructor?</a></li>
+<li class="doctools_subsection"><a href="#subsection93">How do I define a destructor?</a></li>
+<li class="doctools_subsection"><a href="#subsection94">Are there any limitations on destructor arguments?</a></li>
+<li class="doctools_subsection"><a href="#subsection95">What implicit arguments are passed to the destructor?</a></li>
+<li class="doctools_subsection"><a href="#subsection96">Must components be destroyed explicitly?</a></li>
+<li class="doctools_subsection"><a href="#subsection97">Is there any special about writing a destructor?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section14">COMPONENTS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection98">What is a component?</a></li>
+<li class="doctools_subsection"><a href="#subsection99">How do I declare a component?</a></li>
+<li class="doctools_subsection"><a href="#subsection100">How is a component named?</a></li>
+<li class="doctools_subsection"><a href="#subsection101">Are there any limitations on component names?</a></li>
+<li class="doctools_subsection"><a href="#subsection102">What is an owned component?</a></li>
+<li class="doctools_subsection"><a href="#subsection103">What does the install command do?</a></li>
+<li class="doctools_subsection"><a href="#subsection104">Must owned components be created in the constructor?</a></li>
+<li class="doctools_subsection"><a href="#subsection105">Are there any limitations on component object names?</a></li>
+<li class="doctools_subsection"><a href="#subsection106">Must I destroy the components I own?</a></li>
+<li class="doctools_subsection"><a href="#subsection107">Can I expose a component's object command as part of my interface?</a></li>
+<li class="doctools_subsection"><a href="#subsection108">How do I expose a component's object command?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section15">TYPE COMPONENTS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection109">What is a type component?</a></li>
+<li class="doctools_subsection"><a href="#subsection110">How do I declare a type component?</a></li>
+<li class="doctools_subsection"><a href="#subsection111">How do I install a type component?</a></li>
+<li class="doctools_subsection"><a href="#subsection112">Are there any limitations on type component names?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section16">DELEGATION</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection113">What is delegation?</a></li>
+<li class="doctools_subsection"><a href="#subsection114">How can I delegate a method to a component object?</a></li>
+<li class="doctools_subsection"><a href="#subsection115">Can I delegate to a method with a different name?</a></li>
+<li class="doctools_subsection"><a href="#subsection116">Can I delegate to a method with additional arguments?</a></li>
+<li class="doctools_subsection"><a href="#subsection117">Can I delegate a method to something other than an object?</a></li>
+<li class="doctools_subsection"><a href="#subsection118">How can I delegate a method to a type component object?</a></li>
+<li class="doctools_subsection"><a href="#subsection119">How can I delegate a type method to a type component object?</a></li>
+<li class="doctools_subsection"><a href="#subsection120">How can I delegate an option to a component object?</a></li>
+<li class="doctools_subsection"><a href="#subsection121">Can I delegate to an option with a different name?</a></li>
+<li class="doctools_subsection"><a href="#subsection122">How can I delegate any unrecognized method or option to a component object?</a></li>
+<li class="doctools_subsection"><a href="#subsection123">How can I delegate all but certain methods or options to a component?</a></li>
+<li class="doctools_subsection"><a href="#subsection124">Can a hierarchical method be delegated?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section17">WIDGETS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection125">What is a snit::widget?</a></li>
+<li class="doctools_subsection"><a href="#subsection126">How do I define a snit::widget?</a></li>
+<li class="doctools_subsection"><a href="#subsection127">How do snit::widgets differ from snit::types?</a></li>
+<li class="doctools_subsection"><a href="#subsection128">What is a hull component?</a></li>
+<li class="doctools_subsection"><a href="#subsection129">How can I set the hull type for a snit::widget?</a></li>
+<li class="doctools_subsection"><a href="#subsection130">How should I name widgets which are components of a snit::widget?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section18">WIDGET ADAPTORS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection131">What is a snit::widgetadaptor?</a></li>
+<li class="doctools_subsection"><a href="#subsection132">How do I define a snit::widgetadaptor?</a></li>
+<li class="doctools_subsection"><a href="#subsection133">Can I adapt a widget created elsewhere in the program?</a></li>
+<li class="doctools_subsection"><a href="#subsection134">Can I adapt another megawidget?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section19">THE TK OPTION DATABASE</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection135">What is the Tk option database?</a></li>
+<li class="doctools_subsection"><a href="#subsection136">Do snit::types use the Tk option database?</a></li>
+<li class="doctools_subsection"><a href="#subsection137">What is my snit::widget's widget class?</a></li>
+<li class="doctools_subsection"><a href="#subsection138">What is my snit::widgetadaptor's widget class?</a></li>
+<li class="doctools_subsection"><a href="#subsection139">What are option resource and class names?</a></li>
+<li class="doctools_subsection"><a href="#subsection140">What are the resource and class names for my megawidget's options?</a></li>
+<li class="doctools_subsection"><a href="#subsection141">How does Snit initialize my megawidget's locally-defined options?</a></li>
+<li class="doctools_subsection"><a href="#subsection142">How does Snit initialize delegated options?</a></li>
+<li class="doctools_subsection"><a href="#subsection143">How does Snit initialize options delegated to the hull?</a></li>
+<li class="doctools_subsection"><a href="#subsection144">How does Snit initialize options delegated to other components?</a></li>
+<li class="doctools_subsection"><a href="#subsection145">What happens if I install a non-widget as a component of widget?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section20">ENSEMBLE COMMANDS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection146">What is an ensemble command?</a></li>
+<li class="doctools_subsection"><a href="#subsection147">How can I create an ensemble command using Snit?</a></li>
+<li class="doctools_subsection"><a href="#subsection148">How can I create an ensemble command using an instance of a snit::type?</a></li>
+<li class="doctools_subsection"><a href="#subsection149">How can I create an ensemble command using a snit::type?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section21">PRAGMAS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection150">What is a pragma?</a></li>
+<li class="doctools_subsection"><a href="#subsection151">How do I set a pragma?</a></li>
+<li class="doctools_subsection"><a href="#subsection152">How can I get rid of the &quot;info&quot; type method?</a></li>
+<li class="doctools_subsection"><a href="#subsection153">How can I get rid of the &quot;destroy&quot; type method?</a></li>
+<li class="doctools_subsection"><a href="#subsection154">How can I get rid of the &quot;create&quot; type method?</a></li>
+<li class="doctools_subsection"><a href="#subsection155">How can I get rid of type methods altogether?</a></li>
+<li class="doctools_subsection"><a href="#subsection156">Why can't I create an object that replaces an old object with the same name?</a></li>
+<li class="doctools_subsection"><a href="#subsection157">How can I make my simple type run faster?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section22">MACROS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection158">What is a macro?</a></li>
+<li class="doctools_subsection"><a href="#subsection159">What are macros good for?</a></li>
+<li class="doctools_subsection"><a href="#subsection160">How do I do conditional compilation?</a></li>
+<li class="doctools_subsection"><a href="#subsection161">How do I define new type definition syntax?</a></li>
+<li class="doctools_subsection"><a href="#subsection162">Are there are restrictions on macro names?</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section23">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">OVERVIEW</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">What is this document?</a></h3>
+<p>This is an atypical FAQ list, in that few of the questions are
+frequently asked.  Rather, these are the questions I think a newcomer
+to Snit should be asking.  This file is not a complete reference to
+Snit, however; that information is in the <b class="cmd"><a href="snit.html">snit</a></b> man page.</p>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">What is Snit?</a></h3>
+<p>Snit is a framework for defining abstract data types and megawidgets
+in pure Tcl.  The name &quot;Snit&quot; stands for &quot;Snit's Not Incr Tcl&quot;,
+signifying that Snit takes a different approach to defining objects
+than does Incr Tcl, the best known object framework for Tcl.  Had
+I realized that Snit would become at all popular, I'd probably have
+chosen something else.</p>
+<p>The primary purpose of Snit is to be <i class="term">object glue</i>--to help you
+compose diverse objects from diverse sources into types and
+megawidgets with clean, convenient interfaces so that you can more
+easily build your application.</p>
+<p>Snit isn't about theoretical purity or minimalist design; it's about
+being able to do powerful things easily and consistently without
+having to think about them--so that you can concentrate on building
+your application.</p>
+<p>Snit isn't about implementing thousands of nearly identical
+carefully-specified lightweight thingamajigs--not as individual Snit
+objects.  Traditional Tcl methods will be much faster, and not much
+more complicated.  But Snit <em>is</em> about implementing a clean interface
+to manage a collection of thousands of nearly identical
+carefully-specified lightweight thingamajigs (e.g., think of the text
+widget and text tags, or the canvas widget and canvas objects).  Snit
+lets you hide the details of just how those thingamajigs are
+stored--so that you can ignore it, and concentrate on building your
+application.</p>
+<p>Snit isn't a way of life, a silver bullet, or the Fountain of
+Youth. It's just a way of managing complexity--and of managing some of
+the complexity of managing complexity--so that you can concentrate on
+building your application.</p>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">What version of Tcl does Snit require?</a></h3>
+<p>Snit 1.3 requires Tcl 8.3 or later; Snit 2.2 requires Tcl 8.5 or
+later.  See <span class="sectref"><a href="#section3">SNIT VERSIONS</a></span> for the differences between Snit
+1.3 and Snit 2.2.</p>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Where can I download Snit?</a></h3>
+<p>Snit is part of Tcllib, the standard Tcl library, so you might already
+have it.  It's also available at the Snit Home Page,
+<a href="http://www.wjduquette.com/snit">http://www.wjduquette.com/snit</a>.</p>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">What are Snit's goals?</a></h3>
+<ul class="doctools_itemized">
+<li><p>A Snit object should be at least as efficient as a hand-coded Tcl
+object (see <a href="http://www.wjduquette.com/tcl/objects.html">http://www.wjduquette.com/tcl/objects.html</a>).</p></li>
+<li><p>The fact that Snit was used in an object's implementation should be
+transparent (and irrelevant) to clients of that object.</p></li>
+<li><p>Snit should be able to encapsulate objects from other sources,
+particularly Tk widgets.</p></li>
+<li><p>Snit megawidgets should be (to the extent possible) indistinguishable
+in interface from Tk widgets.</p></li>
+<li><p>Snit should be Tclish--that is, rather than trying to emulate C++,
+Smalltalk, or anything else, it should try to emulate Tcl itself.</p></li>
+<li><p>It should have a simple, easy-to-use, easy-to-remember syntax.</p></li>
+</ul>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">How is Snit different from other OO frameworks?</a></h3>
+<p>Snit is unique among Tcl object systems in that
+it is based not on inheritance but on delegation.  Object
+systems based on inheritance only allow you to inherit from classes
+defined using the same system, and that's a shame.  In Tcl, an object
+is anything that acts like an object; it shouldn't matter how the
+object was implemented.  I designed Snit to help me build applications
+out of the materials at hand; thus, Snit is designed to be able to
+incorporate and build on any object, whether it's a hand-coded object,
+a Tk widget, an Incr Tcl object, a BWidget or almost anything else.</p>
+<p>Note that you can achieve the effect of inheritance using
+<span class="sectref"><a href="#section14">COMPONENTS</a></span> and <span class="sectref"><a href="#section16">DELEGATION</a></span>--and you can inherit
+from anything that looks like a Tcl object.</p>
+</div>
+<div id="subsection7" class="doctools_subsection"><h3><a name="subsection7">What can I do with Snit?</a></h3>
+<p>Using Snit, a programmer can:</p>
+<ul class="doctools_itemized">
+<li><p>Create abstract data types and Tk megawidgets.</p></li>
+<li><p>Define instance variables, type variables, and Tk-style options.</p></li>
+<li><p>Define constructors, destructors, instance methods, type methods, procs.</p></li>
+<li><p>Assemble a type out of component types.  Instance methods and options
+can be delegated to the component types automatically.</p></li>
+</ul>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">SNIT VERSIONS</a></h2>
+<div id="subsection8" class="doctools_subsection"><h3><a name="subsection8">Which version of Snit should I use?</a></h3>
+<p>The current Snit distribution includes two versions, Snit 1.3 and Snit
+2.2.  The reason that both are included is that Snit 2.2 takes
+advantage of a number of new features of Tcl 8.5 to improve run-time
+efficiency; as a side-effect, the ugliness of Snit's error messages
+and stack traces has been reduced considerably.  The cost of using
+Snit 2.2, of course, is that you must target Tcl 8.5.</p>
+<p>Snit 1.3, on the other hand, lacks Snit 2.2's optimizations, but
+requires only Tcl 8.3 and later.</p>
+<p>In short, if you're targetting Tcl 8.3 or 8.4 you should use Snit 1.3.  If
+you can afford to target Tcl 8.5, you should definitely use Snit 2.2.
+If you will be targetting both, you can use Snit 1.3 exclusively, or
+(if your code is unaffected by the minor incompatibilities between the
+two versions) you can use Snit 1.3 for Tcl 8.4 and Snit 2.2 for Tcl
+8.5.</p>
+</div>
+<div id="subsection9" class="doctools_subsection"><h3><a name="subsection9">How do I select the version of Snit I want to use?</a></h3>
+<p>To always use Snit 1.3 (or a later version of Snit 1.x), invoke Snit
+as follows:</p>
+<pre class="doctools_example">package require snit 1.3
+</pre>
+<p>To always use Snit 2.2 (or a later version of Snit 2.x), say this
+instead:</p>
+<pre class="doctools_example">package require snit 2.2
+</pre>
+<p>Note that if you request Snit 2.2 explicitly, your application will
+halt with Tcl 8.4, since Snit 2.2 is unavailable for Tcl 8.4.</p>
+<p>If you wish your application to always use the latest available
+version of Snit, don't specify a version number:</p>
+<pre class="doctools_example">package require snit
+</pre>
+<p>Tcl will find and load the latest version that's available relative to
+the version of Tcl being used.  In this case, be careful to avoid
+using any incompatible features.</p>
+</div>
+<div id="subsection10" class="doctools_subsection"><h3><a name="subsection10">How are Snit 1.3 and Snit 2.2 incompatible?</a></h3>
+<p>To the extent possible, Snit 2.2 is intended to be a drop-in
+replacement for Snit 1.3. Unfortunately, some incompatibilities were
+inevitable because Snit 2.2 uses Tcl 8.5's new
+<b class="cmd">namespace ensemble</b> mechanism to implement subcommand dispatch.
+This approach is much faster than the mechanism used in Snit 1.3, and
+also results in much better error messages; however, it also places
+new constraints on the implementation.</p>
+<p>There are four specific incompatibilities between Snit 1.3 and Snit 2.2.</p>
+<ul class="doctools_itemized">
+<li><p>Snit 1.3 supports implicit naming of objects.  Suppose you define a
+new <b class="cmd">snit::type</b> called <b class="cmd">dog</b>.  You can create instances of
+<b class="cmd">dog</b> in three ways:</p>
+<pre class="doctools_example">dog spot               ;# Explicit naming
+set obj1 [dog %AUTO%]  ;# Automatic naming
+set obj2 [dog]         ;# Implicit naming
+</pre>
+<p>In Snit 2.2, type commands are defined using the <b class="cmd">namespace ensemble</b>
+mechanism; and <b class="cmd">namespace ensemble</b> doesn't allow an ensemble command
+to be called without a subcommand.  In short, using
+<b class="cmd">namespace ensemble</b> there's no way to support implicit naming.</p>
+<p>All is not lost, however.  If the type has no type methods, then the
+type command is a simple command rather than an ensemble, and
+<b class="cmd">namespace ensemble</b> is not used.  In this case, implicit naming
+is still possible.</p>
+<p>In short, you can have implicit naming if you're willing to do without
+type methods (including the standard type methods, like
+<b class="cmd">$type info</b>).  To do so, use the <b class="const">-hastypemethods</b> pragma:</p>
+<pre class="doctools_example">pragma -hastypemethods 0</pre>
+</li>
+<li><p>Hierarchical methods and type methods are implemented differently in
+Snit 2.2.</p>
+<p>A hierarchical method is an instance method which has
+subcommands; these subcommands are themselves methods.  The Tk text
+widget's <b class="cmd">tag</b> command and its subcommands are examples of
+hierarchical methods.  You can implement such subcommands in Snit
+simply by including multiple words in the method names:</p>
+<pre class="doctools_example">method {tag configure} {tag args} { ... }
+method {tag cget} {tag option} {...}
+</pre>
+<p>Here we've implicitly defined a <b class="cmd">tag</b> method which has two
+subcommands, <b class="cmd">configure</b> and <b class="cmd">cget</b>.</p>
+<p>In Snit 1.3, hierarchical methods could be called in two ways:</p>
+<pre class="doctools_example">$obj tag cget -myoption      ;# The good way
+$obj {tag cget} -myoption    ;# The weird way
+</pre>
+<p>In the second call, we see that a hierarchical method or type method
+is simply one whose name contains multiple words.</p>
+<p>In Snit 2.2 this is no longer the case, and the &quot;weird&quot; way of calling
+hierarchical methods and type methods no longer works.</p></li>
+<li><p>The third incompatibility derives from the second.  In Snit 1.3,
+hierarchical methods were also simply methods whose name contains
+multiple words.  As a result, <b class="cmd">$obj info methods</b> returned the
+full names of all hierarchical methods.  In the example above,
+the list returned by <b class="cmd">$obj info methods</b> would include
+<b class="cmd">tag configure</b> and <b class="cmd">tag cget</b> but not <b class="cmd">tag</b>, since
+<b class="cmd">tag</b> is defined only implicitly.</p>
+<p>In Snit 2.2, hierarchical methods and type methods are no longer
+simply ones whose
+name contains multiple words; in the above example, the list returned
+by <b class="cmd">$obj info methods</b> would include <b class="cmd">tag</b> but not
+<b class="cmd">tag configure</b> or <b class="cmd">tag cget</b>.</p></li>
+<li><p>The fourth incompatibility is due to a new feature.  Snit 2.2 uses
+the new <b class="cmd">namespace path</b> command so that a type's code can
+call any command defined in the type's parent namespace without
+qualification or importation.  For example, suppose you have a
+package called <b class="cmd">mypackage</b> which defines a number of commands
+including a type, <b class="cmd">::mypackage::mytype</b>.  Thanks to
+<b class="cmd">namespace path</b>, the type's code can call any of the other
+commands defined in <b class="cmd">::mypackage::</b>.</p>
+<p>This is extremely convenient.  However, it also means that commands
+defined in the parent namespace, <b class="cmd">::mypackage::</b> can block the
+type's access to identically named commands in the global namespace.
+This can lead to bugs.  For example, Tcllib includes a type called
+<b class="cmd">::tie::std::file</b>.  This type's code calls the standard
+<b class="cmd"><a href="../../../../index.html#key31">file</a></b> command.  When run with Snit 2.2, the code broke--
+the type's command, <b class="cmd">::tie::std::file</b>, is itself a command
+in the type's parent namespace, and so instead of calling
+the standard <b class="cmd"><a href="../../../../index.html#key31">file</a></b> command, the type found itself calling
+itself.</p></li>
+</ul>
+</div>
+<div id="subsection11" class="doctools_subsection"><h3><a name="subsection11">Are there other differences between Snit 1.x and Snit 2.2?</a></h3>
+<p>Yes.</p>
+<ul class="doctools_itemized">
+<li><p>Method dispatch is considerably faster.</p></li>
+<li><p>Many error messages and stack traces are cleaner.</p></li>
+<li><p>The <b class="const">-simpledispatch</b> pragma is obsolete, and ignored if
+present. In Snit 1.x, <b class="const">-simpledispatch</b> substitutes a faster
+mechanism for method dispatch, at the cost of losing certain features.
+Snit 2.2 method dispatch is faster still in all cases, so
+<b class="const">-simpledispatch</b> is no longer needed.</p></li>
+<li><p>In Snit 2.2, a type's code (methods, type methods, etc.) can call commands
+from the type's parent namespace without qualifying or importing
+them, i.e., type <b class="cmd">::parentns::mytype</b>'s code can call
+<b class="cmd">::parentns::someproc</b> as just <b class="cmd">someproc</b>.</p>
+<p>This is extremely useful when a type is defined as part of a larger
+package, and shares a parent namespace with the rest of the package;
+it means that the type can call other commands defined by the
+package without any extra work.</p>
+<p>This feature depends on the new Tcl 8.5 <b class="cmd">namespace path</b> command,
+which is why it hasn't been implemented for V1.x.  V1.x code can
+achieve something similar by placing</p>
+<pre class="doctools_example">namespace import [namespace parent]::*</pre>
+<p>in a type constructor.  This is less useful, however, as it picks up
+only those commands which have already been exported by the parent
+namespace at the time the type is defined.</p></li>
+</ul>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">OBJECTS</a></h2>
+<div id="subsection12" class="doctools_subsection"><h3><a name="subsection12">What is an object?</a></h3>
+<p>A full description of object-oriented programming is beyond
+the scope of this FAQ, obviously.  In simple terms, an object is an instance of
+an abstract data type--a coherent bundle of code and data.
+There are many ways to represent objects in Tcl/Tk; the best known
+examples are the Tk widgets.</p>
+<p>A Tk widget is an object; it is represented by a Tcl command.
+The object's methods are subcommands of the Tcl command.  The object's
+properties are options accessed using the <b class="method">configure</b> and
+<b class="method">cget</b> methods.  Snit uses the same conventions as Tk widgets do.</p>
+</div>
+<div id="subsection13" class="doctools_subsection"><h3><a name="subsection13">What is an abstract data type?</a></h3>
+<p>In computer science terms, an abstract data type is a complex data
+structure along with a set of operations--a stack, a queue, a
+binary tree, etc--that is to say, in modern terms, an object.  In systems
+that include some form of inheritance the word <i class="term"><a href="../../../../index.html#key240">class</a></i> is
+usually used instead of <i class="term">abstract data type</i>, but as Snit
+doesn't implement inheritance as it's ordinarily understood
+the older term seems more appropriate.  Sometimes this is called
+<i class="term">object-based</i> programming as opposed to object-oriented
+programming.  Note that you can easily create the effect of
+inheritance using <span class="sectref"><a href="#section14">COMPONENTS</a></span> and <span class="sectref"><a href="#section16">DELEGATION</a></span>.</p>
+<p>In Snit, as in Tk, a <i class="term"><a href="../../../../index.html#key117">type</a></i> is a command that creates instances
+-- objects -- which belong to the type.  Most types define some number
+of <i class="term">options</i> which can be set at creation time, and usually can be
+changed later.</p>
+<p>Further, an <i class="term">instance</i> is also a Tcl command--a command that
+gives access to the operations which are defined for that abstract
+data type.  Conventionally, the operations are defined as subcommands
+of the instance command.  For example, to insert
+text into a Tk text widget, you use the text widget's <b class="method">insert</b>
+subcommand:</p>
+<pre class="doctools_example">    # Create a text widget and insert some text in it.
+    text .mytext -width 80 -height 24
+    .mytext insert end &quot;Howdy!&quot;
+</pre>
+<p>In this example, <b class="cmd"><a href="../../../../index.html#key248">text</a></b> is the <i class="term"><a href="../../../../index.html#key117">type</a></i> command and
+<b class="cmd">.mytext</b> is the <i class="term">instance</i> command.</p>
+<p>In Snit, object subcommands are generally called
+<span class="sectref"><a href="#section5">INSTANCE METHODS</a></span>.</p>
+</div>
+<div id="subsection14" class="doctools_subsection"><h3><a name="subsection14">What kinds of abstract data types does Snit provide?</a></h3>
+<p>Snit allows you to define three kinds of abstract data type:</p>
+<ul class="doctools_itemized">
+<li><p><b class="cmd">snit::type</b></p></li>
+<li><p><b class="cmd">snit::widget</b></p></li>
+<li><p><b class="cmd">snit::widgetadaptor</b></p></li>
+</ul>
+</div>
+<div id="subsection15" class="doctools_subsection"><h3><a name="subsection15">What is a snit::type?</a></h3>
+<p>A <b class="cmd">snit::type</b> is a non-GUI abstract data type, e.g., a stack or a
+queue.  <b class="cmd">snit::type</b>s are defined using the <b class="cmd">snit::type</b>
+command.  For example, if you were designing a kennel management
+system for a dog breeder, you'd need a dog type.</p>
+<pre class="doctools_example">% snit::type dog {
+    # ...
+}
+::dog
+%
+</pre>
+<p>This definition defines a new command (<b class="cmd">::dog</b>, in this case)
+that can be used to define dog objects.</p>
+<p>An instance of a <b class="cmd">snit::type</b> can have <span class="sectref"><a href="#section5">INSTANCE METHODS</a></span>,
+<span class="sectref"><a href="#section6">INSTANCE VARIABLES</a></span>, <span class="sectref"><a href="#section7">OPTIONS</a></span>, and <span class="sectref"><a href="#section14">COMPONENTS</a></span>.
+The type itself can have <span class="sectref"><a href="#section9">TYPE METHODS</a></span>,
+<span class="sectref"><a href="#section8">TYPE VARIABLES</a></span>, <span class="sectref"><a href="#section15">TYPE COMPONENTS</a></span>, and
+<span class="sectref"><a href="#section10">PROCS</a></span>.</p>
+</div>
+<div id="subsection16" class="doctools_subsection"><h3><a name="subsection16">What is a snit::widget?, the short story</a></h3>
+<p>A <b class="cmd">snit::widget</b> is a Tk megawidget built using Snit; it is very
+similar to a <b class="cmd">snit::type</b>.  See <span class="sectref"><a href="#section17">WIDGETS</a></span>.</p>
+</div>
+<div id="subsection17" class="doctools_subsection"><h3><a name="subsection17">What is a snit::widgetadaptor?, the short story</a></h3>
+<p>A <b class="cmd">snit::widgetadaptor</b> uses Snit to wrap an existing widget type
+(e.g., a Tk label), modifying its interface to a lesser or greater
+extent.  It is very similar to a <b class="cmd">snit::widget</b>.
+See <span class="sectref"><a href="#section18">WIDGET ADAPTORS</a></span>.</p>
+</div>
+<div id="subsection18" class="doctools_subsection"><h3><a name="subsection18">How do I create an instance of a snit::type?</a></h3>
+<p>You create an instance of a <b class="cmd">snit::type</b> by passing the new
+instance's name to the type's create method.  In the following
+example, we create a <b class="cmd">dog</b> object called <b class="cmd">spot</b>.</p>
+<pre class="doctools_example">% snit::type dog {
+    # ....
+}
+::dog
+% dog create spot
+::spot
+%
+</pre>
+<p>In general, the <b class="method">create</b> method name can be omitted so long as
+the instance name doesn't conflict with any defined
+<span class="sectref"><a href="#section9">TYPE METHODS</a></span>. (See <span class="sectref"><a href="#section15">TYPE COMPONENTS</a></span> for the
+special case in which this doesn't work.)
+So the following example is identical to the
+previous example:</p>
+<pre class="doctools_example">% snit::type dog {
+    # ....
+}
+::dog
+% dog spot
+::spot
+%
+</pre>
+<p>This document generally uses the shorter form.</p>
+<p>If the <b class="cmd">dog</b> type defines <span class="sectref"><a href="#section7">OPTIONS</a></span>, these can usually be
+given defaults at creation time:</p>
+<pre class="doctools_example">% snit::type dog {
+    option -breed mongrel
+    option -color brown
+    method bark {} { return &quot;$self barks.&quot; }
+}
+::dog
+% dog create spot -breed dalmation -color spotted
+::spot
+% spot cget -breed
+dalmation
+% spot cget -color
+spotted
+%
+</pre>
+<p>Once created, the instance name now names a new Tcl command that is used
+to manipulate the object.  For example, the following code makes the
+dog bark:</p>
+<pre class="doctools_example">% spot bark
+::spot barks.
+%
+</pre>
+</div>
+<div id="subsection19" class="doctools_subsection"><h3><a name="subsection19">How do I refer to an object indirectly?</a></h3>
+<p>Some programmers prefer to save the object name in a variable, and
+reference it that way.  For example,</p>
+<pre class="doctools_example">% snit::type dog { ... }
+::dog
+% set d [dog spot -breed dalmation -color spotted]
+::spot
+% $d cget -breed
+dalmation
+% $d bark
+::spot barks.
+%
+</pre>
+<p>If you prefer this style, you might prefer to have Snit
+generate the instance's name automatically.</p>
+</div>
+<div id="subsection20" class="doctools_subsection"><h3><a name="subsection20">How can I generate the object name automatically?</a></h3>
+<p>If you'd like Snit to generate an object name for you,
+use the <b class="const">%AUTO%</b> keyword as the requested name:</p>
+<pre class="doctools_example">% snit::type dog { ... }
+::dog
+% set d [dog %AUTO%]
+::dog2
+% $d bark
+::dog2 barks.
+%
+</pre>
+<p>The <b class="const">%AUTO%</b> keyword can be embedded in a longer string:</p>
+<pre class="doctools_example">% set d [dog obj_%AUTO%]
+::obj_dog4
+% $d bark
+::obj_dog4 barks.
+%
+</pre>
+</div>
+<div id="subsection21" class="doctools_subsection"><h3><a name="subsection21">Can types be renamed?</a></h3>
+<p>Tcl's <b class="cmd">rename</b> command renames other commands.  It's a common
+technique in Tcl to modify an existing command by renaming it and
+defining a new command with the original name; the new command usually
+calls the renamed command.</p>
+<p><b class="cmd">snit::type</b> commands, however, should never be renamed; to do so breaks
+the connection between the type and its objects.</p>
+</div>
+<div id="subsection22" class="doctools_subsection"><h3><a name="subsection22">Can objects be renamed?</a></h3>
+<p>Tcl's <b class="cmd">rename</b> command renames other commands.  It's a common
+technique in Tcl to modify an existing command by renaming it and
+defining a new command with the original name; the new command usually
+calls the renamed command.</p>
+<p>All Snit objects (including <i class="term">widgets</i> and <i class="term">widgetadaptors</i>)
+can be renamed, though this flexibility has some consequences:</p>
+<ul class="doctools_itemized">
+<li><p>In an instance method, the implicit argument <b class="variable">self</b> will always
+contain the object's current name, so instance methods can always call
+other instance methods using <b class="variable">$self</b>.</p></li>
+<li><p>If the object is renamed, however, then <b class="variable">$self</b>'s value will change.
+Therefore, don't use <b class="variable">$self</b> for anything that will break if
+<b class="variable">$self</b> changes. For example, don't pass a callback command to
+another object like this:</p>
+<pre class="doctools_example">
+    .btn configure -command [list $self ButtonPress]
+</pre>
+<p>You'll get an error if <b class="cmd">.btn</b> calls your command after your object is
+renamed.</p></li>
+<li><p>Instead, your object should define its callback command like this:</p>
+<pre class="doctools_example">
+    .btn configure -command [mymethod ButtonPress]
+</pre>
+<p>The <b class="cmd">mymethod</b> command returns code that will call the desired
+method safely; the caller of the callback can add additional
+arguments to the end of the command as usual.</p></li>
+<li><p>Every object has a private namespace; the name of this namespace is
+available in method bodies, etc., as the value of the implicit
+argument <b class="variable">selfns</b>.  This value is constant for the life of the
+object.  Use <b class="variable">$selfns</b> instead of <b class="variable">$self</b> if you need a
+unique token to identify the object.</p></li>
+<li><p>When a <b class="cmd">snit::widget</b>'s instance command is renamed, its Tk window
+name remains the same -- and is still extremely
+important. Consequently, the Tk window name is available in
+method bodies as the value of the implicit argument <b class="variable">win</b>.
+This value is constant for the
+life of the object.  When creating child windows, it's best to use
+<b class="variable">$win.child</b> rather than <b class="variable">$self.child</b> as the name of the
+child window.</p></li>
+</ul>
+</div>
+<div id="subsection23" class="doctools_subsection"><h3><a name="subsection23">How do I destroy a Snit object?</a></h3>
+<p>Any Snit object of any type can be destroyed by renaming
+it to the empty string using the Tcl <b class="cmd">rename</b> command.</p>
+<p>Snit megawidgets (i.e., instances of <b class="cmd">snit::widget</b> and
+<b class="cmd">snit::widgetadaptor</b>) can be destroyed like any other widget: by
+using the Tk <b class="cmd">destroy</b> command on the widget or on one of its
+ancestors in the window hierarchy.</p>
+<p>Every instance of a <b class="cmd">snit::type</b> has a <b class="method">destroy</b> method:</p>
+<pre class="doctools_example">% snit::type dog { ... }
+::dog
+% dog spot
+::spot
+% spot bark
+::spot barks.
+% spot destroy
+% spot barks
+invalid command name &quot;spot&quot;
+%
+</pre>
+<p>Finally, every Snit type has a type method called <b class="method">destroy</b>; calling it
+destroys the type and all of its instances:</p>
+<pre class="doctools_example">% snit::type dog { ... }
+::dog
+% dog spot
+::spot
+% spot bark
+::spot barks.
+% dog destroy
+% spot bark
+invalid command name &quot;spot&quot;
+% dog fido
+invalid command name &quot;dog&quot;
+%
+</pre>
+</div>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">INSTANCE METHODS</a></h2>
+<div id="subsection24" class="doctools_subsection"><h3><a name="subsection24">What is an instance method?</a></h3>
+<p>An instance method is a procedure associated with a specific object
+and called as a subcommand of the object's command.  It is given free
+access to all of the object's type variables, instance variables, and
+so forth.</p>
+</div>
+<div id="subsection25" class="doctools_subsection"><h3><a name="subsection25">How do I define an instance method?</a></h3>
+<p>Instance methods are defined in the type definition using
+the <b class="cmd"><a href="../../../../index.html#key371">method</a></b> statement.  Consider the following code that might be
+used to add dogs to a computer simulation:</p>
+<pre class="doctools_example">% snit::type dog {
+    method bark {} {
+        return &quot;$self barks.&quot;
+    }
+    method chase {thing} {
+        return &quot;$self chases $thing.&quot;
+    }
+}
+::dog
+%
+</pre>
+<p>A dog can bark, and it can chase things.</p>
+<p>The <b class="cmd"><a href="../../../../index.html#key371">method</a></b> statement looks just like a normal Tcl <b class="cmd"><a href="../../../../index.html#key591">proc</a></b>,
+except that it appears in a <b class="cmd">snit::type</b> definition.  Notice that
+every instance method gets an implicit argument called <b class="variable">self</b>;
+this argument contains the object's name.  (There's more on
+implicit method arguments below.)</p>
+</div>
+<div id="subsection26" class="doctools_subsection"><h3><a name="subsection26">How does a client call an instance method?</a></h3>
+<p>The method name becomes a subcommand of the object.  For example,
+let's put a simulated dog through its paces:</p>
+<pre class="doctools_example">% dog spot
+::spot
+% spot bark
+::spot barks.
+% spot chase cat
+::spot chases cat.
+%
+</pre>
+</div>
+<div id="subsection27" class="doctools_subsection"><h3><a name="subsection27">How does an instance method call another instance method?</a></h3>
+<p>If method A needs to call method B on the same object, it does so just
+as a client does: it calls method B as a subcommand of the object
+itself, using the object name stored in the implicit argument <b class="variable">self</b>.</p>
+<p>Suppose, for example, that our dogs never chase anything without
+barking at them:</p>
+<pre class="doctools_example">% snit::type dog {
+    method bark {} {
+        return &quot;$self barks.&quot;
+    }
+    method chase {thing} {
+        return &quot;$self chases $thing.  [$self bark]&quot;
+    }
+}
+::dog
+% dog spot
+::spot
+% spot bark
+::spot barks.
+% spot chase cat
+::spot chases cat.  ::spot barks.
+%
+</pre>
+</div>
+<div id="subsection28" class="doctools_subsection"><h3><a name="subsection28">Are there any limitations on instance method names?</a></h3>
+<p>Not really, so long as you avoid the standard instance method names:
+<b class="method">configure</b>, <b class="method">configurelist</b>, <b class="method">cget</b>,
+<b class="method">destroy</b>, and <b class="method">info</b>.  Also, method names consisting of
+multiple words define hierarchical methods.</p>
+</div>
+<div id="subsection29" class="doctools_subsection"><h3><a name="subsection29">What is a hierarchical method?</a></h3>
+<p>An object's methods are subcommands of the object's instance command.
+Hierarchical methods allow an object's methods to have subcommands of
+their own; and these can in turn have subcommands, and so on.  This
+allows the programmer to define a tree-shaped command structure, such
+as is used by many of the Tk widgets--the subcommands of the
+Tk <b class="cmd"><a href="../../../../index.html#key248">text</a></b> widget's <b class="cmd">tag</b> method are hierarchical methods.</p>
+</div>
+<div id="subsection30" class="doctools_subsection"><h3><a name="subsection30">How do I define a hierarchical method?</a></h3>
+<p>Define methods whose names consist of multiple words.  These words
+define the hierarchy implicitly.  For example, the following code
+defines a <b class="cmd">tag</b> method with subcommands <b class="cmd">cget</b> and
+<b class="cmd">configure</b>:</p>
+<pre class="doctools_example">snit::widget mytext {
+    method {tag configure} {tag args} { ... }
+    method {tag cget} {tag option} {...}
+}
+</pre>
+<p>Note that there is no explicit definition for the <b class="cmd">tag</b> method;
+it is implicit in the definition of <b class="cmd">tag configure</b> and
+<b class="cmd">tag cget</b>.  If you tried to define <b class="cmd">tag</b> explicitly in this
+example, you'd get an error.</p>
+</div>
+<div id="subsection31" class="doctools_subsection"><h3><a name="subsection31">How do I call hierarchical methods?</a></h3>
+<p>As subcommands of subcommands.</p>
+<pre class="doctools_example">% mytext .text
+.text
+% .text tag configure redtext -foreground red -background black
+% .text tag cget redtext -foreground
+red
+%
+</pre>
+</div>
+<div id="subsection32" class="doctools_subsection"><h3><a name="subsection32">How do I make an instance method private?</a></h3>
+<p>It's often useful to define private methods, that is, instance methods
+intended to be called only by other methods of the same object.</p>
+<p>Snit doesn't implement any access control on instance methods, so all
+methods are <em>de facto</em> public.  Conventionally, though, the
+names of public methods begin with a lower-case letter, and the names
+of private methods begin with an upper-case letter.</p>
+<p>For example, suppose our simulated dogs only bark in response to other
+stimuli; they never bark just for fun.  So the <b class="method">bark</b> method
+becomes <b class="method">Bark</b> to indicate that it is private:</p>
+<pre class="doctools_example">% snit::type dog {
+    # Private by convention: begins with uppercase letter.
+    method Bark {} {
+        return &quot;$self barks.&quot;
+    }
+    method chase {thing} {
+        return &quot;$self chases $thing. [$self Bark]&quot;
+    }
+}
+::dog
+% dog fido
+::fido
+% fido chase cat
+::fido chases cat. ::fido barks.
+%
+</pre>
+</div>
+<div id="subsection33" class="doctools_subsection"><h3><a name="subsection33">Are there any limitations on instance method arguments?</a></h3>
+<p>Method argument lists are defined just like normal Tcl <b class="cmd"><a href="../../../../index.html#key591">proc</a></b> argument
+lists; in particular, they can include arguments with default values
+ and the <b class="variable">args</b> argument.</p>
+<p>However, every method also has a number of implicit arguments
+provided by Snit in addition to those explicitly defined.  The names
+of these implicit arguments may not used to name explicit arguments.</p>
+</div>
+<div id="subsection34" class="doctools_subsection"><h3><a name="subsection34">What implicit arguments are passed to each instance method?</a></h3>
+<p>The arguments implicitly passed to every method are <b class="variable">type</b>,
+<b class="variable">selfns</b>, <b class="variable">win</b>, and <b class="variable">self</b>.</p>
+</div>
+<div id="subsection35" class="doctools_subsection"><h3><a name="subsection35">What is $type?</a></h3>
+<p>The implicit argument <b class="variable">type</b> contains the fully qualified name of
+the object's type:</p>
+<pre class="doctools_example">% snit::type thing {
+    method mytype {} {
+        return $type
+    }
+}
+::thing
+% thing something
+::something
+% something mytype
+::thing
+%
+</pre>
+</div>
+<div id="subsection36" class="doctools_subsection"><h3><a name="subsection36">What is $self?</a></h3>
+<p>The implicit argument <b class="variable">self</b> contains the object's fully
+qualified name.</p>
+<p>If the object's command is renamed, then <b class="variable">$self</b> will change to
+match in subsequent calls.  Thus, your code should not assume that
+<b class="variable">$self</b> is constant unless you know for sure that the object
+will never be renamed.</p>
+<pre class="doctools_example">% snit::type thing {
+    method myself {} {
+        return $self
+    }
+}
+::thing
+% thing mutt
+::mutt
+% mutt myself
+::mutt
+% rename mutt jeff
+% jeff myself
+::jeff
+%
+</pre>
+</div>
+<div id="subsection37" class="doctools_subsection"><h3><a name="subsection37">What is $selfns?</a></h3>
+<p>Each Snit object has a private namespace in which to store its
+<span class="sectref"><a href="#section6">INSTANCE VARIABLES</a></span> and <span class="sectref"><a href="#section7">OPTIONS</a></span>.  The implicit argument
+<b class="variable">selfns</b> contains the name of this namespace; its value never changes, and
+is constant for the life of the object, even if the object's name
+changes:</p>
+<pre class="doctools_example">% snit::type thing {
+    method myNameSpace {} {
+        return $selfns
+    }
+}
+::thing
+% thing jeff
+::jeff
+% jeff myNameSpace
+::thing::Snit_inst3
+% rename jeff mutt
+% mutt myNameSpace
+::thing::Snit_inst3
+%
+</pre>
+<p>The above example reveals how Snit names an instance's private
+namespace; however, you should not write code that depends on the
+specific naming convention, as it might change in future releases.</p>
+</div>
+<div id="subsection38" class="doctools_subsection"><h3><a name="subsection38">What is $win?</a></h3>
+<p>The implicit argument <b class="variable">win</b> is defined for all Snit methods,
+though it really makes sense only for those of
+<span class="sectref"><a href="#section17">WIDGETS</a></span> and <span class="sectref"><a href="#section18">WIDGET ADAPTORS</a></span>.  <b class="variable">$win</b> is simply
+the original name of the object, whether it's been renamed or not.
+For widgets and widgetadaptors, it is also therefore the name of a Tk
+window.</p>
+<p>When a <b class="cmd">snit::widgetadaptor</b> is used to modify the interface of a
+widget or megawidget, it must rename the widget's original command and
+replace it with its own.</p>
+<p>Thus, using <b class="variable">win</b> whenever the Tk window name is called for
+means that a <b class="cmd">snit::widget</b> or <b class="cmd">snit::widgetadaptor</b> can be
+adapted by a <b class="cmd">snit::widgetadaptor</b>.  See <span class="sectref"><a href="#section17">WIDGETS</a></span> for
+more information.</p>
+</div>
+<div id="subsection39" class="doctools_subsection"><h3><a name="subsection39">How do I pass an instance method as a callback?</a></h3>
+<p>It depends on the context.</p>
+<p>Suppose in my application I have a <b class="cmd">dog</b> object named <b class="cmd">fido</b>,
+and I want <b class="cmd">fido</b> to bark when a Tk button called <b class="cmd">.bark</b> is
+pressed.  In this case, I create the callback command in the usual
+way, using <b class="cmd"><a href="../../../../index.html#key302">list</a></b>:</p>
+<pre class="doctools_example">    button .bark -text &quot;Bark!&quot; -command [list fido bark]
+</pre>
+<p>In typical Tcl style, we use a callback to hook two independent
+components together.  But suppose that the <b class="cmd">dog</b> object has
+a graphical interface and owns the button itself?  In this case,
+the <b class="cmd">dog</b> must pass one of its own instance methods to the
+button it owns.  The obvious thing to do is this:</p>
+<pre class="doctools_example">% snit::widget dog {
+    constructor {args} {
+        #...
+        button $win.barkbtn -text &quot;Bark!&quot; -command [list $self bark]
+        #...
+    }
+}
+::dog
+%
+</pre>
+<p>(Note that in this example, our <b class="cmd">dog</b>
+becomes a <b class="cmd">snit::widget</b>, because it has GUI behavior.  See
+<span class="sectref"><a href="#section17">WIDGETS</a></span> for more.)  Thus, if we create a <b class="cmd">dog</b> called
+<b class="cmd">.spot</b>, it will create a Tk button called <b class="cmd">.spot.barkbtn</b>;
+when pressed, the button will call <b class="cmd">$self bark</b>.</p>
+<p>Now, this will work--provided that <b class="cmd">.spot</b> is never renamed to
+something else.  But surely renaming widgets is
+abnormal?  And so it is--unless <b class="cmd">.spot</b> is the hull component of a
+<b class="cmd">snit::widgetadaptor</b>.  If it is, then it will be renamed, and
+<b class="cmd">.spot</b> will become the name of the <b class="cmd">snit::widgetadaptor</b>
+object.  When the button is pressed, the command <b class="cmd">$self bark</b>
+will be handled by the <b class="cmd">snit::widgetadaptor</b>, which might or might
+not do the right thing.</p>
+<p>There's a safer way to do it, and it looks like this:</p>
+<pre class="doctools_example">% snit::widget dog {
+    constructor {args} {
+        #...
+        button $win.barkbtn -text &quot;Bark!&quot; -command [mymethod bark]
+        #...
+    }
+}
+::dog
+%
+</pre>
+<p>The command <b class="cmd">mymethod</b> takes any number of arguments, and can be
+used like <b class="cmd"><a href="../../../../index.html#key302">list</a></b> to build up a callback command; the only
+difference is that <b class="cmd">mymethod</b> returns a
+form of the command that won't change even if the instance's name
+changes.</p>
+<p>On the other hand, you might prefer to allow a widgetadaptor to
+override a method such that your renamed widget will call the
+widgetadaptor's method instead of its own.  In this case,
+using <b class="cmd">[list $self bark]</b> will do what you want...but
+this is a technique which should be used only in carefully controlled
+circumstances.</p>
+</div>
+<div id="subsection40" class="doctools_subsection"><h3><a name="subsection40">How do I delegate instance methods to a component?</a></h3>
+<p>See <span class="sectref"><a href="#section16">DELEGATION</a></span>.</p>
+</div>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">INSTANCE VARIABLES</a></h2>
+<div id="subsection41" class="doctools_subsection"><h3><a name="subsection41">What is an instance variable?</a></h3>
+<p>An instance variable is a private variable associated with some
+particular Snit object.  Instance variables can be scalars or arrays.</p>
+</div>
+<div id="subsection42" class="doctools_subsection"><h3><a name="subsection42">How is a scalar instance variable defined?</a></h3>
+<p>Scalar instance variables are defined in the type definition using the
+<b class="cmd">variable</b> statement.  You can simply name it, or you can
+initialize it with a value:</p>
+<pre class="doctools_example">snit::type mytype {
+    # Define variable &quot;greeting&quot; and initialize it with &quot;Howdy!&quot;
+    variable greeting &quot;Howdy!&quot;
+}
+</pre>
+</div>
+<div id="subsection43" class="doctools_subsection"><h3><a name="subsection43">How is an array instance variable defined?</a></h3>
+<p>Array instance variables are also defined in the type definition
+using the <b class="cmd">variable</b> command.  You can initialize them at the same
+time by specifying the <b class="const">-array</b> option:</p>
+<pre class="doctools_example">snit::type mytype {
+    # Define array variable &quot;greetings&quot;
+    variable greetings -array {
+        formal &quot;Good Evening&quot;
+        casual &quot;Howdy!&quot;
+    }
+}
+</pre>
+</div>
+<div id="subsection44" class="doctools_subsection"><h3><a name="subsection44">What happens if I don't initialize an instance variable?</a></h3>
+<p>Variables do not really exist until they are given values.  If you
+do not initialize a variable when you define it, then you must be
+sure to assign a value to it (in the constructor, say, or in some
+method) before you reference it.</p>
+</div>
+<div id="subsection45" class="doctools_subsection"><h3><a name="subsection45">Are there any limitations on instance variable names?</a></h3>
+<p>Just a few.</p>
+<p>First, every Snit object has a built-in instance variable called
+<b class="variable">options</b>, which should never be redefined.</p>
+<p>Second, all names beginning with &quot;Snit_&quot; are reserved for
+use by Snit internal code.</p>
+<p>Third, instance variable names containing the namespace delimiter
+(<b class="const">::</b>) are likely to cause great confusion.</p>
+</div>
+<div id="subsection46" class="doctools_subsection"><h3><a name="subsection46">Do I need to declare my instance variables in my methods?</a></h3>
+<p>No. Once you've defined an instance variable in the type definition,
+it can be used in any instance code (instance methods, the
+constructor, and the destructor) without declaration.  This differs
+from normal Tcl practice, in which all non-local variables in a proc
+need to be declared.</p>
+<p>There is a speed penalty to having all instance variables implicitly
+available in all instance code.  Even though your code need not
+declare the variables explicitly, Snit must still declare them,
+and that takes time.  If you have ten instance variables, a method
+that uses none of them must still pay the declaration penalty for
+all ten.  In most cases, the additional runtime cost is negligible.
+If extreme cases, you might wish to avoid it; there are two methods
+for doing so.</p>
+<p>The first is to define a single instance variable, an array, and store
+all of your instance data in the array.  This way, you're only paying
+the declaration penalty for one variable--and you probably need the
+variable most of the time anyway.  This method breaks down if your
+instance variables include multiple arrays; in Tcl 8.5, however,
+the <b class="cmd"><a href="../../../../index.html#key704">dict</a></b> command might come to your rescue.</p>
+<p>The second method is to declare your instance variables explicitly
+in your instance code, while <em>not</em> including them in the type
+definition:</p>
+<pre class="doctools_example">snit::type dog {
+    constructor {} {
+        variable mood
+        set mood happy
+    }
+    method setmood {newMood} {
+        variable mood
+        set mood $newMood
+    }
+    method getmood {} {
+        variable mood
+        return $mood
+    }
+}
+</pre>
+<p>This allows you to ensure that only the required variables are
+included in each method, at the cost of longer code and run-time
+errors when you forget to declare a variable you need.</p>
+</div>
+<div id="subsection47" class="doctools_subsection"><h3><a name="subsection47">How do I pass an instance variable's name to another object?</a></h3>
+<p>In Tk, it's common to pass a widget a variable name; for example, Tk
+label widgets have a <b class="option">-textvariable</b> option which names the
+variable which will contain the widget's text.  This allows the
+program to update the label's value just by assigning a new value to
+the variable.</p>
+<p>If you naively pass the instance variable name to the label widget,
+you'll be confused by the result; Tk will assume that the name names a
+global variable.  Instead, you need to provide a fully-qualified
+variable name.  From within an instance method or a constructor, you
+can fully qualify the variable's name using the <b class="cmd">myvar</b> command:</p>
+<pre class="doctools_example">snit::widget mywidget {
+    variable labeltext &quot;&quot;
+    constructor {args} {
+        # ...
+        label $win.label -textvariable [myvar labeltext]
+        # ...
+    }
+}
+</pre>
+</div>
+<div id="subsection48" class="doctools_subsection"><h3><a name="subsection48">How do I make an instance variable public?</a></h3>
+<p>Practically speaking, you don't.  Instead, you'll implement public
+variables as <span class="sectref"><a href="#section7">OPTIONS</a></span>.
+Alternatively, you can write <span class="sectref"><a href="#section5">INSTANCE METHODS</a></span> to set and get
+the variable's value.</p>
+</div>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">OPTIONS</a></h2>
+<div id="subsection49" class="doctools_subsection"><h3><a name="subsection49">What is an option?</a></h3>
+<p>A type's options are the equivalent of what other object-oriented
+languages would call public member variables or properties: they are
+data values which can be retrieved and (usually) set by the clients of
+an object.</p>
+<p>Snit's implementation of options follows the Tk model fairly exactly,
+except that <b class="cmd">snit::type</b> objects usually don't interact with
+<span class="sectref"><a href="#section19">THE TK OPTION DATABASE</a></span>; <b class="cmd">snit::widget</b> and
+<b class="cmd">snit::widgetadaptor</b> objects, on the other hand, always do.</p>
+</div>
+<div id="subsection50" class="doctools_subsection"><h3><a name="subsection50">How do I define an option?</a></h3>
+<p>Options are defined in the type definition using the <b class="cmd">option</b>
+statement.  Consider the following type, to be used in an application
+that manages a list of dogs for a pet store:</p>
+<pre class="doctools_example">snit::type dog {
+    option -breed -default mongrel
+    option -color -default brown
+    option -akc   -default 0
+    option -shots -default 0
+}
+</pre>
+<p>According to this, a dog has four notable properties: a
+breed, a color, a flag that says whether it's pedigreed with the
+American Kennel Club, and another flag that says whether it has had
+its shots.  The default dog, evidently, is a brown mutt.</p>
+<p>There are a number of options you can specify when defining an option;
+if <b class="const">-default</b> is the only one, you can omit the word
+<b class="const">-default</b> as follows:</p>
+<pre class="doctools_example">snit::type dog {
+    option -breed mongrel
+    option -color brown
+    option -akc   0
+    option -shots 0
+}
+</pre>
+<p>If no <b class="const">-default</b> value is specified, the option's default value
+will be the empty string (but see <span class="sectref"><a href="#section19">THE TK OPTION DATABASE</a></span>).</p>
+<p>The Snit man page refers to options like these as &quot;locally defined&quot; options.</p>
+</div>
+<div id="subsection51" class="doctools_subsection"><h3><a name="subsection51">How can a client set options at object creation?</a></h3>
+<p>The normal convention is that the client may pass any number of
+options and their values after the object's name at object creation.
+For example, the <b class="cmd">::dog</b> command defined in the previous answer can now
+be used to create individual dogs.  Any or all of the options may be
+set at creation time.</p>
+<pre class="doctools_example">% dog spot -breed beagle -color &quot;mottled&quot; -akc 1 -shots 1
+::spot
+% dog fido -shots 1
+::fido
+%
+</pre>
+<p>So <b class="cmd">::spot</b> is a pedigreed beagle; <b class="cmd">::fido</b> is a typical mutt,
+but his owners evidently take care of him, because he's had his shots.</p>
+<p><em>Note:</em> If the type defines a constructor, it can specify a
+different object-creation syntax.  See <span class="sectref"><a href="#section12">CONSTRUCTORS</a></span> for more
+information.</p>
+</div>
+<div id="subsection52" class="doctools_subsection"><h3><a name="subsection52">How can a client retrieve an option's value?</a></h3>
+<p>Retrieve option values using the <b class="method">cget</b> method:</p>
+<pre class="doctools_example">% spot cget -color
+mottled
+% fido cget -breed
+mongrel
+%
+</pre>
+</div>
+<div id="subsection53" class="doctools_subsection"><h3><a name="subsection53">How can a client set options after object creation?</a></h3>
+<p>Any number of options may be set at one time using the
+<b class="method">configure</b> instance method.  Suppose that closer inspection
+shows that ::fido is not a brown mongrel, but rather a rare Arctic Boar
+Hound of a lovely dun color:</p>
+<pre class="doctools_example">% fido configure -color dun -breed &quot;Arctic Boar Hound&quot;
+% fido cget -color
+dun
+% fido cget -breed
+Arctic Boar Hound
+</pre>
+<p>Alternatively, the <b class="method">configurelist</b> method takes a list of
+options and values; occasionally this is more convenient:</p>
+<pre class="doctools_example">% set features [list -color dun -breed &quot;Arctic Boar Hound&quot;]
+-color dun -breed {Arctic Boar Hound}
+% fido configurelist $features
+% fido cget -color
+dun
+% fido cget -breed
+Arctic Boar Hound
+%
+</pre>
+<p>In Tcl 8.5, the <b class="cmd">*</b> keyword can be used with
+<b class="method">configure</b> in this case:</p>
+<pre class="doctools_example">% set features [list -color dun -breed &quot;Arctic Boar Hound&quot;]
+-color dun -breed {Arctic Boar Hound}
+% fido configure {*}$features
+% fido cget -color
+dun
+% fido cget -breed
+Arctic Boar Hound
+%
+</pre>
+<p>The results are the same.</p>
+</div>
+<div id="subsection54" class="doctools_subsection"><h3><a name="subsection54">How should an instance method access an option value?</a></h3>
+<p>There are two ways an instance method can set and retrieve an option's
+value.  One is to use the <b class="method">configure</b> and <b class="method">cget</b>
+methods, as shown below.</p>
+<pre class="doctools_example">% snit::type dog {
+    option -weight 10
+    method gainWeight {} {
+        set wt [$self cget -weight]
+        incr wt
+        $self configure -weight $wt
+    }
+}
+::dog
+% dog fido
+::fido
+% fido cget -weight
+10
+% fido gainWeight
+% fido cget -weight
+11
+%
+</pre>
+<p>Alternatively, Snit provides a built-in array instance variable called
+<b class="variable">options</b>.  The indices are the option names; the values are the
+option values.  The method <b class="method">gainWeight</b> can thus be rewritten as
+follows:</p>
+<pre class="doctools_example">
+    method gainWeight {} {
+        incr options(-weight)
+    }
+</pre>
+<p>As you can see, using the <b class="variable">options</b> variable involves considerably
+less typing and is the usual way to do it.  But if you use
+<b class="const">-configuremethod</b> or <b class="const">-cgetmethod</b> (described in the following
+answers), you might wish to use the <b class="method">configure</b> and
+<b class="method">cget</b> methods anyway, just so that any special processing you've
+implemented is sure to get done.  Also, if the option is delegated to
+a component then <b class="method">configure</b> and <b class="method">cget</b> are the only way
+to access it without accessing the component directly.  See
+<span class="sectref"><a href="#section16">DELEGATION</a></span> for more information.</p>
+</div>
+<div id="subsection55" class="doctools_subsection"><h3><a name="subsection55">How can I make an option read-only?</a></h3>
+<p>Define the option with <b class="const">-readonly yes</b>.</p>
+<p>Suppose you've got an option that determines how
+instances of your type are constructed; it must be set at creation
+time, after which it's constant.  For example, a dog never changes its
+breed; it might or might not have had its shots, and if not can have
+them at a later time.  <b class="const">-breed</b> should be read-only, but
+<b class="const">-shots</b> should not be.</p>
+<pre class="doctools_example">% snit::type dog {
+    option -breed -default mongrel -readonly yes
+    option -shots -default no
+}
+::dog
+% dog fido -breed retriever
+::fido
+% fido configure -shots yes
+% fido configure -breed terrier
+option -breed can only be set at instance creation
+%
+</pre>
+</div>
+<div id="subsection56" class="doctools_subsection"><h3><a name="subsection56">How can I catch accesses to an option's value?</a></h3>
+<p>Define a <b class="const">-cgetmethod</b> for the option.</p>
+</div>
+<div id="subsection57" class="doctools_subsection"><h3><a name="subsection57">What is a -cgetmethod?</a></h3>
+<p>A <b class="const">-cgetmethod</b> is a method that's called whenever the related
+option's value is queried via the
+<b class="method">cget</b> instance method.  The handler can compute the option's
+value, retrieve it from a database, or do anything else you'd like it to do.</p>
+<p>Here's what the default behavior would look like if
+written using a <b class="const">-cgetmethod</b>:</p>
+<pre class="doctools_example">snit::type dog {
+    option -color -default brown -cgetmethod GetOption
+    method GetOption {option} {
+        return $options($option)
+    }
+}
+</pre>
+<p>Any instance method can be used, provided that it takes one argument,
+the name of the option whose value is to be retrieved.</p>
+</div>
+<div id="subsection58" class="doctools_subsection"><h3><a name="subsection58">How can I catch changes to an option's value?</a></h3>
+<p>Define a <b class="const">-configuremethod</b> for the option.</p>
+</div>
+<div id="subsection59" class="doctools_subsection"><h3><a name="subsection59">What is a -configuremethod?</a></h3>
+<p>A <b class="const">-configuremethod</b> is a method that's called whenever the
+related option is given a new value via the <b class="method">configure</b> or
+<b class="method">configurelist</b> instance methods. The method can
+pass the value on to some other object, store it in a database, or do
+anything else you'd like it to do.</p>
+<p>Here's what the default configuration behavior would look like if
+written using a <b class="const">-configuremethod</b>:</p>
+<pre class="doctools_example">snit::type dog {
+    option -color -default brown -configuremethod SetOption
+    method SetOption {option value} {
+        set options($option) $value
+    }
+}
+</pre>
+<p>Any instance method can be used, provided that it takes two arguments,
+the name of the option and the new value.</p>
+<p>Note that if your method doesn't store the value in the <b class="variable">options</b>
+array, the <b class="variable">options</b> array won't get updated.</p>
+</div>
+<div id="subsection60" class="doctools_subsection"><h3><a name="subsection60">How can I validate an option's value?</a></h3>
+<p>Define a <b class="const">-validatemethod</b>.</p>
+</div>
+<div id="subsection61" class="doctools_subsection"><h3><a name="subsection61">What is a -validatemethod?</a></h3>
+<p>A <b class="const">-validatemethod</b> is a method that's called whenever the
+related option is given a new value via the <b class="method">configure</b> or
+<b class="method">configurelist</b> instance methods.  It's the method's
+responsibility to determine whether the new value is valid, and throw
+an error if it isn't.  The <b class="const">-validatemethod</b>, if any, is called
+before the value is stored in the <b class="variable">options</b> array; in particular,
+it's called before the <b class="const">-configuremethod</b>, if any.</p>
+<p>For example, suppose an option always takes a Boolean value.  You can
+ensure that the value is in fact a valid Boolean like this:</p>
+<pre class="doctools_example">% snit::type dog {
+    option -shots -default no -validatemethod BooleanOption
+    method BooleanOption {option value} {
+        if {![string is boolean -strict $value]} {
+            error &quot;expected a boolean value, got \&quot;$value\&quot;&quot;
+        }
+    }
+}
+::dog
+% dog fido
+% fido configure -shots yes
+% fido configure -shots NotABooleanValue
+expected a boolean value, got &quot;NotABooleanValue&quot;
+%
+</pre>
+<p>Note that the same <b class="const">-validatemethod</b> can be used to validate any number
+of boolean options.</p>
+<p>Any method can be a <b class="const">-validatemethod</b> provided that it takes
+two arguments, the option name and the new option value.</p>
+</div>
+</div>
+<div id="section8" class="doctools_section"><h2><a name="section8">TYPE VARIABLES</a></h2>
+<div id="subsection62" class="doctools_subsection"><h3><a name="subsection62">What is a type variable?</a></h3>
+<p>A type variable is a private variable associated with a Snit type
+rather than with a particular instance of the type.  In C++ and Java,
+the term <i class="term">static member variable</i> is used for the same notion.
+Type variables can be scalars or arrays.</p>
+</div>
+<div id="subsection63" class="doctools_subsection"><h3><a name="subsection63">How is a scalar type variable defined?</a></h3>
+<p>Scalar type variables are defined in the type definition using the
+<b class="cmd">typevariable</b> statement.  You can simply name it, or you can
+initialize it with a value:</p>
+<pre class="doctools_example">
+snit::type mytype {
+    # Define variable &quot;greeting&quot; and initialize it with &quot;Howdy!&quot;
+    typevariable greeting &quot;Howdy!&quot;
+}
+</pre>
+<p>Every object of type <b class="cmd">mytype</b> now has access to a single variable
+called <b class="variable">greeting</b>.</p>
+</div>
+<div id="subsection64" class="doctools_subsection"><h3><a name="subsection64">How is an array-valued type variable defined?</a></h3>
+<p>Array-valued type variables are also defined using the
+<b class="cmd">typevariable</b> command; to initialize them, include the
+<b class="const">-array</b> option:</p>
+<pre class="doctools_example">snit::type mytype {
+    # Define typearray variable &quot;greetings&quot;
+    typevariable greetings -array {
+        formal &quot;Good Evening&quot;
+        casual &quot;Howdy!&quot;
+    }
+}
+</pre>
+</div>
+<div id="subsection65" class="doctools_subsection"><h3><a name="subsection65">What happens if I don't initialize a type variable?</a></h3>
+<p>Variables do not really exist until they are given values.  If you
+do not initialize a variable when you define it, then you must be
+sure to assign a value to it (in the type constructor, say)
+before you reference it.</p>
+</div>
+<div id="subsection66" class="doctools_subsection"><h3><a name="subsection66">Are there any limitations on type variable names?</a></h3>
+<p>Type variable names have the same restrictions as
+the names of <span class="sectref"><a href="#section6">INSTANCE VARIABLES</a></span> do.</p>
+</div>
+<div id="subsection67" class="doctools_subsection"><h3><a name="subsection67">Do I need to declare my type variables in my methods?</a></h3>
+<p>No. Once you've defined a type variable in the type definition, it can
+be used in <span class="sectref"><a href="#section5">INSTANCE METHODS</a></span> or <span class="sectref"><a href="#section9">TYPE METHODS</a></span> without
+declaration.  This differs from normal Tcl practice, in which all
+non-local variables in a proc need to be declared.</p>
+<p>Type variables are subject to the same speed/readability tradeoffs
+as instance variables; see
+<span class="sectref"><a href="#subsection46">Do I need to declare my instance variables in my methods?</a></span></p>
+</div>
+<div id="subsection68" class="doctools_subsection"><h3><a name="subsection68">How do I pass a type variable's name to another object?</a></h3>
+<p>In Tk, it's common to pass a widget a variable name; for example, Tk
+label widgets have a <b class="option">-textvariable</b> option which names the
+variable which will contain the widget's text.  This allows the
+program to update the label's value just by assigning a new value to
+the variable.</p>
+<p>If you naively pass a type variable name to the label widget, you'll
+be confused by the result; Tk will assume that the name names a global
+variable.  Instead, you need to provide a fully-qualified variable
+name.  From within an instance method or a constructor, you can fully
+qualify the type variable's name using the <b class="cmd">mytypevar</b> command:</p>
+<pre class="doctools_example">snit::widget mywidget {
+    typevariable labeltext &quot;&quot;
+    constructor {args} {
+        # ...
+        label $win.label -textvariable [mytypevar labeltext]
+        # ...
+    }
+}
+</pre>
+</div>
+<div id="subsection69" class="doctools_subsection"><h3><a name="subsection69">How do I make a type variable public?</a></h3>
+<p>There are two ways to do this.  The preferred way is to write a pair
+of <span class="sectref"><a href="#section9">TYPE METHODS</a></span> to set and query the type variable's value.</p>
+<p>Type variables are stored in the type's namespace, which has
+the same name as the type itself.  Thus, you can also
+publicize the type variable's name in your
+documentation so that clients can access it directly.  For example,</p>
+<pre class="doctools_example">snit::type mytype {
+    typevariable myvariable
+}
+set ::mytype::myvariable &quot;New Value&quot;
+</pre>
+</div>
+</div>
+<div id="section9" class="doctools_section"><h2><a name="section9">TYPE METHODS</a></h2>
+<div id="subsection70" class="doctools_subsection"><h3><a name="subsection70">What is a type method?</a></h3>
+<p>A type method is a procedure associated with the type itself rather
+than with any specific instance of the type, and called as a
+subcommand of the type command.</p>
+</div>
+<div id="subsection71" class="doctools_subsection"><h3><a name="subsection71">How do I define a type method?</a></h3>
+<p>Type methods are defined in the type definition using the
+<b class="cmd">typemethod</b> statement:</p>
+<pre class="doctools_example">snit::type dog {
+    # List of pedigreed dogs
+    typevariable pedigreed
+    typemethod pedigreedDogs {} {
+        return $pedigreed
+    }
+}
+</pre>
+<p>Suppose the <b class="cmd">dog</b> type maintains a list of the names of the dogs
+that have pedigrees.  The <b class="cmd">pedigreedDogs</b> type method returns this
+list.</p>
+<p>The <b class="cmd">typemethod</b> statement looks just like a normal Tcl
+<b class="cmd"><a href="../../../../index.html#key591">proc</a></b>, except that it appears in a <b class="cmd">snit::type</b> definition.
+Notice that every type method gets an implicit argument called
+<b class="variable">type</b>, which contains the fully-qualified type name.</p>
+</div>
+<div id="subsection72" class="doctools_subsection"><h3><a name="subsection72">How does a client call a type method?</a></h3>
+<p>The type method name becomes a subcommand of the type's command.  For
+example, assuming that the constructor adds each pedigreed dog to the
+list of <b class="variable">pedigreedDogs</b>,</p>
+<pre class="doctools_example">snit::type dog {
+    option -pedigreed 0
+    # List of pedigreed dogs
+    typevariable pedigreed
+    typemethod pedigreedDogs {} {
+        return $pedigreed
+    }
+    # ...
+}
+dog spot -pedigreed 1
+dog fido
+foreach dog [dog pedigreedDogs] { ... }
+</pre>
+</div>
+<div id="subsection73" class="doctools_subsection"><h3><a name="subsection73">Are there any limitations on type method names?</a></h3>
+<p>Not really, so long as you avoid the standard type method names:
+<b class="method">create</b>, <b class="method">destroy</b>, and <b class="method">info</b>.</p>
+</div>
+<div id="subsection74" class="doctools_subsection"><h3><a name="subsection74">How do I make a type method private?</a></h3>
+<p>It's sometimes useful to define private type methods, that is, type
+methods intended to be called only by other type or instance methods
+of the same object.</p>
+<p>Snit doesn't implement any access control on type methods; by
+convention, the names of public methods begin with a lower-case
+letter, and the names of private methods begin with an upper-case
+letter.</p>
+<p>Alternatively, a Snit <b class="cmd"><a href="../../../../index.html#key591">proc</a></b> can be used as a private type method; see
+<span class="sectref"><a href="#section10">PROCS</a></span>.</p>
+</div>
+<div id="subsection75" class="doctools_subsection"><h3><a name="subsection75">Are there any limitations on type method arguments?</a></h3>
+<p>Method argument lists are defined just like normal Tcl proc argument
+lists; in particular, they can include arguments with default values
+and the <b class="variable">args</b> argument.</p>
+<p>However, every type method is called with an implicit argument called
+<b class="variable">type</b> that contains the name of the type command.  In addition,
+type methods should by convention avoid using the names of the
+arguments implicitly defined for <span class="sectref"><a href="#section5">INSTANCE METHODS</a></span>.</p>
+</div>
+<div id="subsection76" class="doctools_subsection"><h3><a name="subsection76">How does an instance or type method call a type method?</a></h3>
+<p>If an instance or type method needs to call a type method, it should
+use <b class="variable">$type</b> to do so:</p>
+<pre class="doctools_example">snit::type dog {
+    typemethod pedigreedDogs {} { ... }
+    typemethod printPedigrees {} {
+        foreach obj [$type pedigreedDogs] { ... }
+    }
+}
+</pre>
+</div>
+<div id="subsection77" class="doctools_subsection"><h3><a name="subsection77">How do I pass a type method as a callback?</a></h3>
+<p>It's common in Tcl to pass a snippet of code to another object, for it
+to call later.  Because types cannot be renamed, you can just
+use the type name, or, if the callback is registered from within
+a type method, <b class="variable">type</b>.  For example, suppose we want to print a
+list of pedigreed dogs when a Tk button is pushed:</p>
+<pre class="doctools_example">
+button .btn -text &quot;Pedigrees&quot; -command [list dog printPedigrees]
+pack .btn
+</pre>
+<p>Alternatively, from a method or type method you can use the
+<b class="cmd">mytypemethod</b> command, just as you would use <b class="cmd">mymethod</b>
+to define a callback command for <span class="sectref"><a href="#section5">INSTANCE METHODS</a></span>.</p>
+</div>
+<div id="subsection78" class="doctools_subsection"><h3><a name="subsection78">Can type methods be hierarchical?</a></h3>
+<p>Yes, you can define hierarchical type methods in just the same way as
+you can define hierarchical instance methods.  See
+<span class="sectref"><a href="#section5">INSTANCE METHODS</a></span> for more.</p>
+</div>
+</div>
+<div id="section10" class="doctools_section"><h2><a name="section10">PROCS</a></h2>
+<div id="subsection79" class="doctools_subsection"><h3><a name="subsection79">What is a proc?</a></h3>
+<p>A Snit <b class="cmd"><a href="../../../../index.html#key591">proc</a></b> is really just a Tcl proc defined within the type's
+namespace.  You can use procs for private code that isn't related to
+any particular instance.</p>
+</div>
+<div id="subsection80" class="doctools_subsection"><h3><a name="subsection80">How do I define a proc?</a></h3>
+<p>Procs are defined by including a <b class="cmd"><a href="../../../../index.html#key591">proc</a></b> statement in the type
+definition:</p>
+<pre class="doctools_example">snit::type mytype {
+    # Pops and returns the first item from the list stored in the
+    # listvar, updating the listvar
+   proc pop {listvar} { ... }
+   # ...
+}
+</pre>
+</div>
+<div id="subsection81" class="doctools_subsection"><h3><a name="subsection81">Are there any limitations on proc names?</a></h3>
+<p>Any name can be used, so long as it does not begin with <b class="const">Snit_</b>;
+names beginning with <b class="const">Snit_</b> are reserved for Snit's own use.
+However, the wise programmer will avoid <b class="cmd"><a href="../../../../index.html#key591">proc</a></b> names (<b class="cmd"><a href="../../../../index.html#key301">set</a></b>,
+<b class="cmd"><a href="../../../../index.html#key302">list</a></b>, <b class="cmd">if</b>, etc.) that would shadow standard Tcl
+command names.</p>
+<p><b class="cmd"><a href="../../../../index.html#key591">proc</a></b> names, being private, should begin with a capital letter according
+to convention; however, as there are typically no public <b class="cmd"><a href="../../../../index.html#key591">proc</a></b>s
+in the type's namespace it doesn't matter much either way.</p>
+</div>
+<div id="subsection82" class="doctools_subsection"><h3><a name="subsection82">How does a method call a proc?</a></h3>
+<p>Just like it calls any Tcl command.  For example,</p>
+<pre class="doctools_example">snit::type mytype {
+    # Pops and returns the first item from the list stored in the
+    # listvar, updating the listvar
+    proc pop {listvar} { ... }
+    variable requestQueue {}
+    # Get one request from the queue and process it.
+    method processRequest {} {
+        set req [pop requestQueue]
+    }
+}
+</pre>
+</div>
+<div id="subsection83" class="doctools_subsection"><h3><a name="subsection83">How can I pass a proc to another object as a callback?</a></h3>
+<p>The <b class="cmd">myproc</b> command returns a callback command for the
+<b class="cmd"><a href="../../../../index.html#key591">proc</a></b>, just as <b class="cmd">mymethod</b> does for a method.</p>
+</div>
+</div>
+<div id="section11" class="doctools_section"><h2><a name="section11">TYPE CONSTRUCTORS</a></h2>
+<div id="subsection84" class="doctools_subsection"><h3><a name="subsection84">What is a type constructor?</a></h3>
+<p>A type constructor is a body of code that initializes the type as a
+whole, rather like a C++ static initializer.  The body of a type
+constructor is executed once when the type is defined, and never
+again.</p>
+<p>A type can have at most one type constructor.</p>
+</div>
+<div id="subsection85" class="doctools_subsection"><h3><a name="subsection85">How do I define a type constructor?</a></h3>
+<p>A type constructor is defined by using the <b class="cmd">typeconstructor</b>
+statement in the type definition.  For example, suppose the type uses
+an array-valued type variable as a look-up table, and the values in
+the array have to be computed at start-up.</p>
+<pre class="doctools_example">% snit::type mytype {
+    typevariable lookupTable
+    typeconstructor {
+        array set lookupTable {key value...}
+    }
+}
+</pre>
+</div>
+</div>
+<div id="section12" class="doctools_section"><h2><a name="section12">CONSTRUCTORS</a></h2>
+<div id="subsection86" class="doctools_subsection"><h3><a name="subsection86">What is a constructor?</a></h3>
+<p>In object-oriented programming, an object's constructor is responsible
+for initializing the object completely at creation time. The constructor
+receives the list of options passed to the <b class="cmd">snit::type</b> command's
+<b class="method">create</b> method and can then do whatever it likes.  That might include
+computing instance variable values, reading data from files, creating
+other objects, updating type and instance variables, and so forth.</p>
+<p>The constructor's return value is ignored (unless it's an
+error, of course).</p>
+</div>
+<div id="subsection87" class="doctools_subsection"><h3><a name="subsection87">How do I define a constructor?</a></h3>
+<p>A constructor is defined by using the <b class="cmd">constructor</b> statement in
+the type definition.  Suppose that it's desired to keep a list of all
+pedigreed dogs.  The list can be maintained in a
+type variable and retrieved by a type method.  Whenever a dog is
+created, it can add itself to the list--provided that it's registered
+with the American Kennel Club.</p>
+<pre class="doctools_example">% snit::type dog {
+    option -akc 0
+    typevariable akcList {}
+    constructor {args} {
+        $self configurelist $args
+        if {$options(-akc)} {
+            lappend akcList $self
+        }
+    }
+    typemethod akclist {} {
+        return $akcList
+    }
+}
+::dog
+% dog spot -akc 1
+::spot
+% dog fido
+::fido
+% dog akclist
+::spot
+%
+</pre>
+</div>
+<div id="subsection88" class="doctools_subsection"><h3><a name="subsection88">What does the default constructor do?</a></h3>
+<p>If you don't provide a constructor explicitly, you get the default
+constructor, which is identical to the explicitly-defined
+constructor shown here:</p>
+<pre class="doctools_example">snit::type dog {
+    constructor {args} {
+        $self configurelist $args
+    }
+}
+</pre>
+<p>When the constructor is called, <b class="variable">args</b> will be set to the list of
+arguments that follow the object's name.  The constructor is allowed
+to interpret this list any way it chooses; the normal convention is
+to assume that it's a list of option names and values, as shown in the
+example above.  If you simply want to save the option values, you
+should use the <b class="method">configurelist</b> method, as shown.</p>
+</div>
+<div id="subsection89" class="doctools_subsection"><h3><a name="subsection89">Can I choose a different set of arguments for the constructor?</a></h3>
+<p>Yes, you can.  For example, suppose we wanted to be sure that the
+breed was explicitly stated for every dog at creation time, and
+couldn't be changed thereafter.  One way to do that is as follows:</p>
+<pre class="doctools_example">% snit::type dog {
+    variable breed
+    option -color brown
+    option -akc 0
+    constructor {theBreed args} {
+        set breed $theBreed
+        $self configurelist $args
+    }
+    method breed {} { return $breed }
+}
+::dog
+% dog spot dalmatian -color spotted -akc 1
+::spot
+% spot breed
+dalmatian
+</pre>
+<p>The drawback is that this syntax is non-standard, and may
+limit the compatibility of your new type with other people's code.
+For example, Snit assumes that it can create
+<span class="sectref"><a href="#section14">COMPONENTS</a></span> using the standard creation syntax.</p>
+</div>
+<div id="subsection90" class="doctools_subsection"><h3><a name="subsection90">Are there any limitations on constructor arguments?</a></h3>
+<p>Constructor argument lists are subject to the same limitations
+as those on instance method argument lists.  It has the
+same implicit arguments, and can contain default values and the
+<b class="variable">args</b> argument.</p>
+</div>
+<div id="subsection91" class="doctools_subsection"><h3><a name="subsection91">Is there anything special about writing the constructor?</a></h3>
+<p>Yes.  Writing the constructor can be tricky if you're delegating
+options to components, and there are specific issues relating to
+<b class="cmd">snit::widget</b>s and <b class="cmd">snit::widgetadaptor</b>s.  See
+<span class="sectref"><a href="#section16">DELEGATION</a></span>, <span class="sectref"><a href="#section17">WIDGETS</a></span>,
+<span class="sectref"><a href="#section18">WIDGET ADAPTORS</a></span>, and <span class="sectref"><a href="#section19">THE TK OPTION DATABASE</a></span>.</p>
+</div>
+</div>
+<div id="section13" class="doctools_section"><h2><a name="section13">DESTRUCTORS</a></h2>
+<div id="subsection92" class="doctools_subsection"><h3><a name="subsection92">What is a destructor?</a></h3>
+<p>A destructor is a special kind of method that's called when an object
+is destroyed.  It's responsible for doing any necessary clean-up when
+the object goes away: destroying <span class="sectref"><a href="#section14">COMPONENTS</a></span>, closing files,
+and so forth.</p>
+</div>
+<div id="subsection93" class="doctools_subsection"><h3><a name="subsection93">How do I define a destructor?</a></h3>
+<p>Destructors are defined by using the <b class="cmd">destructor</b> statement in the
+type definition.</p>
+<p>Suppose we're maintaining a list of pedigreed dogs;
+then we'll want to remove dogs from it when they are destroyed.</p>
+<pre class="doctools_example">snit::type dog {
+    option -akc 0
+    typevariable akcList {}
+    constructor {args} {
+        $self configurelist $args
+        if {$options(-akc)} {
+            lappend akcList $self
+        }
+    }
+    destructor {
+        set ndx [lsearch $akcList $self]
+        if {$ndx != -1} {
+            set akcList [lreplace $akcList $ndx $ndx]
+        }
+    }
+    typemethod akclist {} {
+        return $akcList
+    }
+}
+</pre>
+</div>
+<div id="subsection94" class="doctools_subsection"><h3><a name="subsection94">Are there any limitations on destructor arguments?</a></h3>
+<p>Yes; a destructor has no explicit arguments.</p>
+</div>
+<div id="subsection95" class="doctools_subsection"><h3><a name="subsection95">What implicit arguments are passed to the destructor?</a></h3>
+<p>The destructor gets the same implicit arguments that are passed to
+<span class="sectref"><a href="#section5">INSTANCE METHODS</a></span>: <b class="variable">type</b>, <b class="variable">selfns</b>, <b class="variable">win</b>, and
+<b class="variable">self</b>.</p>
+</div>
+<div id="subsection96" class="doctools_subsection"><h3><a name="subsection96">Must components be destroyed explicitly?</a></h3>
+<p>Yes and no.</p>
+<p>Any Tk widgets created by a <b class="cmd">snit::widget</b> or
+<b class="cmd">snit::widgetadaptor</b> will be destroyed automatically by Tk
+when the megawidget is destroyed, in keeping with normal Tk behavior
+(destroying a parent widget destroys the whole tree).</p>
+<p>Components of normal <b class="cmd">snit::types</b>, on the other hand,
+are never destroyed automatically, nor are non-widget components
+of Snit megawidgets.  If your object creates them in its
+constructor, then it should generally destroy them in its destructor.</p>
+</div>
+<div id="subsection97" class="doctools_subsection"><h3><a name="subsection97">Is there any special about writing a destructor?</a></h3>
+<p>Yes.  If an object's constructor throws an error, the object's
+destructor will be called to clean up; this means that the object
+might not be completely constructed when the destructor is called.
+This can cause the destructor to throw its own error; the result
+is usually misleading, confusing, and unhelpful.  Consequently, it's
+important to write your destructor so that it's fail-safe.</p>
+<p>For example, a <b class="cmd">dog</b> might create a <b class="cmd">tail</b> component; the
+component will need to be destroyed.  But suppose there's an error
+while processing the creation options--the destructor will be called,
+and there will be no <b class="cmd">tail</b> to destroy.  The simplest solution is
+generally to catch and ignore any errors while destroying components.</p>
+<pre class="doctools_example">snit::type dog {
+    component tail
+    constructor {args} {
+        $self configurelist $args
+        set tail [tail %AUTO%]
+    }
+    destructor {
+        catch {$tail destroy}
+    }
+}
+</pre>
+</div>
+</div>
+<div id="section14" class="doctools_section"><h2><a name="section14">COMPONENTS</a></h2>
+<div id="subsection98" class="doctools_subsection"><h3><a name="subsection98">What is a component?</a></h3>
+<p>Often an object will create and manage a number of other objects.  A
+Snit megawidget, for example, will often create a number of Tk
+widgets.  These objects are part of the main object; it is composed
+of them, so they are called components of the object.</p>
+<p>But Snit also has a more precise meaning for
+<span class="sectref"><a href="#section14">COMPONENT</a></span>.  The components of a Snit object are those
+objects to which methods or options can be delegated.
+(See <span class="sectref"><a href="#section16">DELEGATION</a></span> for more information about delegation.)</p>
+</div>
+<div id="subsection99" class="doctools_subsection"><h3><a name="subsection99">How do I declare a component?</a></h3>
+<p>First, you must decide what role a component plays within your object,
+and give the role a name.  Then, you declare the component using its
+role name and the <b class="cmd">component</b> statement.  The <b class="cmd">component</b>
+statement declares an <i class="term">instance variable</i> which is used to
+store the component's command name when the component is created.</p>
+<p>For example, suppose your <b class="cmd">dog</b> object
+creates a <b class="cmd">tail</b> object (the better to wag with, no doubt):</p>
+<pre class="doctools_example">snit::type dog {
+    component mytail
+    constructor {args} {
+        # Create and save the component's command
+        set mytail [tail %AUTO% -partof $self]
+        $self configurelist $args
+    }
+    method wag {} {
+        $mytail wag
+    }
+}
+</pre>
+<p>As shown here, it doesn't matter what the <b class="cmd">tail</b> object's real
+name is; the <b class="cmd">dog</b> object refers to it by its component name.</p>
+<p>The above example shows one way to delegate the <b class="method">wag</b> method to
+the <b class="variable">mytail</b> component; see <span class="sectref"><a href="#section16">DELEGATION</a></span> for an easier way.</p>
+</div>
+<div id="subsection100" class="doctools_subsection"><h3><a name="subsection100">How is a component named?</a></h3>
+<p>A component has two names.  The first name is that of the component
+variable; this represents the role the component object plays within
+the Snit object.  This is the component name proper, and is the name
+used to refer to the component within Snit code.  The second name is
+the name of the actual component object created by the Snit object's
+constructor.  This second name is always a Tcl command name, and is
+referred to as the component's object name.</p>
+<p>In the example in the previous question, the component name is
+<b class="const">mytail</b>; the <b class="const">mytail</b> component's object name is chosen
+automatically by Snit since <b class="const">%AUTO%</b> was used when the component
+object was created.</p>
+</div>
+<div id="subsection101" class="doctools_subsection"><h3><a name="subsection101">Are there any limitations on component names?</a></h3>
+<p>Yes.  <b class="cmd">snit::widget</b> and <b class="cmd">snit::widgetadaptor</b> objects have a special
+component called the <b class="variable">hull</b> component; thus, the name <b class="variable">hull</b>
+should be used for no other purpose.</p>
+<p>Otherwise, since component names are in fact instance variable names
+they must follow the rules for <span class="sectref"><a href="#section6">INSTANCE VARIABLES</a></span>.</p>
+</div>
+<div id="subsection102" class="doctools_subsection"><h3><a name="subsection102">What is an owned component?</a></h3>
+<p>An <i class="term">owned</i> component is a component whose object command's
+lifetime is controlled by the <b class="cmd">snit::type</b> or <b class="cmd">snit::widget</b>.</p>
+<p>As stated above, a component is an object to
+which our object can delegate methods or options.  Under this
+definition, our object will usually create its component objects,
+but not necessarily.  Consider the following: a dog object has a tail
+component; but tail knows that it's part of the dog:</p>
+<pre class="doctools_example">snit::type dog {
+    component mytail
+    constructor {args} {
+        set mytail [tail %AUTO% -partof $self]
+        $self configurelist $args
+    }
+    destructor {
+        catch {$mytail destroy}
+    }
+    delegate method wagtail to mytail as wag
+    method bark {} {
+        return &quot;$self barked.&quot;
+    }
+}
+ snit::type tail {
+     component mydog
+     option -partof -readonly yes
+     constructor {args} {
+         $self configurelist $args
+         set mydog $options(-partof)
+     }
+     method wag {} {
+         return &quot;Wag, wag.&quot;
+     }
+     method pull {} {
+         $mydog bark
+     }
+ }
+</pre>
+<p>Thus, if you ask a dog to wag its tail, it tells its tail to wag;
+and if you pull the dog's tail, the tail tells the dog to bark.  In
+this scenario, the tail is a component of the dog, and the dog is a
+component of the tail, but the dog owns the tail and not the other way
+around.</p>
+</div>
+<div id="subsection103" class="doctools_subsection"><h3><a name="subsection103">What does the install command do?</a></h3>
+<p>The <b class="cmd">install</b> command creates an owned component using a specified
+command, and assigns the result to the component's instance variable.
+For example:</p>
+<pre class="doctools_example">snit::type dog {
+    component mytail
+    constructor {args} {
+        # set mytail [tail %AUTO% -partof $self]
+        install mytail using tail %AUTO% -partof $self
+        $self configurelist $args
+    }
+}
+</pre>
+<p>In a <b class="cmd">snit::type</b>'s code, the <b class="cmd">install</b>
+command shown above is equivalent to the <b class="const">set mytail</b> command
+that's commented out.  In a <b class="cmd">snit::widget</b>'s or
+<b class="cmd">snit::widgetadaptor</b>'s, code, however, the
+<b class="cmd">install</b> command also queries <span class="sectref"><a href="#section19">THE TK OPTION DATABASE</a></span>
+and initializes the new component's options accordingly.  For consistency,
+it's a good idea to get in the habit of using <b class="cmd">install</b> for all
+owned components.</p>
+</div>
+<div id="subsection104" class="doctools_subsection"><h3><a name="subsection104">Must owned components be created in the constructor?</a></h3>
+<p>No, not necessarily.  In fact, there's no reason why an
+object can't destroy and recreate a component multiple times over
+its own lifetime.</p>
+</div>
+<div id="subsection105" class="doctools_subsection"><h3><a name="subsection105">Are there any limitations on component object names?</a></h3>
+<p>Yes.</p>
+<p>Component objects which are Tk widgets or megawidgets must have valid
+Tk window names.</p>
+<p>Component objects which are not widgets or megawidgets must have
+fully-qualified command names, i.e., names which include the full
+namespace of the command.  Note that Snit always creates objects with
+fully qualified names.</p>
+<p>Next, the object names of components and owned by your object
+must be unique.  This is no problem for widget components, since
+widget names are always unique; but consider the following code:</p>
+<pre class="doctools_example">snit::type tail { ... }
+snit::type dog {
+    delegate method wag to mytail
+    constructor {} {
+        install mytail using tail mytail
+    }
+}
+</pre>
+<p>This code uses the component name, <b class="const">mytail</b>, as the component object
+name.  This is not good, and here's why: Snit instance code executes
+in the Snit type's namespace.  In this case, the <b class="const">mytail</b> component is
+created in the <b class="const">::dog::</b> namespace, and will thus have the name
+<b class="cmd">::dog::mytail</b>.</p>
+<p>Now, suppose you create two dogs.  Both dogs will attempt to
+create a tail called <b class="cmd">::dog::mytail</b>.  The first will succeed,
+and the second will fail, since Snit won't let you create an object if
+its name is already a command.  Here are two ways to avoid this situation:</p>
+<p>First, if the component type is a <b class="cmd">snit::type</b> you can
+specify <b class="const">%AUTO%</b> as its name, and be guaranteed to get a unique name.
+This is the safest thing to do:</p>
+<pre class="doctools_example">
+    install mytail using tail %AUTO%
+</pre>
+<p>If the component type isn't a <b class="cmd">snit::type</b> you can create
+the component in the object's instance namespace:</p>
+<pre class="doctools_example">
+    install mytail using tail ${selfns}::mytail
+</pre>
+<p>Make sure you pick a unique name within the instance namespace.</p>
+</div>
+<div id="subsection106" class="doctools_subsection"><h3><a name="subsection106">Must I destroy the components I own?</a></h3>
+<p>That depends.  When a parent widget is destroyed, all child widgets
+are destroyed automatically. Thus, if your object is a <b class="cmd">snit::widget</b>
+or <b class="cmd">snit::widgetadaptor</b> you don't need to destroy any components
+that are widgets, because they will generally be children or
+descendants of your megawidget.</p>
+<p>If your object is an instance of <b class="cmd">snit::type</b>, though, none of its
+owned components will be destroyed automatically, nor will be
+non-widget components of a <b class="cmd">snit::widget</b> be destroyed
+automatically.  All such owned components must be destroyed
+explicitly, or they won't be destroyed at all.</p>
+</div>
+<div id="subsection107" class="doctools_subsection"><h3><a name="subsection107">Can I expose a component's object command as part of my interface?</a></h3>
+<p>Yes, and there are two ways to do it.  The most appropriate way is
+usually to use <span class="sectref"><a href="#section16">DELEGATION</a></span>.  Delegation allows you to pass
+the options and methods you specify along to particular components.
+This effectively hides the components from the users of your type, and
+ensures good encapsulation.</p>
+<p>However, there are times when it's appropriate, not to mention
+simpler, just to make the entire component part of your type's public
+interface.</p>
+</div>
+<div id="subsection108" class="doctools_subsection"><h3><a name="subsection108">How do I expose a component's object command?</a></h3>
+<p>When you declare the component, specify the <b class="cmd">component</b>
+statement's <b class="const">-public</b> option.  The value of this option is the
+name of a method which will be delegated to your component's object
+command.</p>
+<p>For example, supposed you've written a combobox megawidget which owns
+a listbox widget, and you want to make the listbox's entire interface
+public.  You can do it like this:</p>
+<pre class="doctools_example">snit::widget combobox {
+     component listbox -public listbox
+     constructor {args} {
+         install listbox using listbox $win.listbox ....
+     }
+}
+combobox .mycombo
+.mycombo listbox configure -width 30
+</pre>
+<p>Your comobox widget, <b class="cmd">.mycombo</b>, now has a <b class="method">listbox</b> method
+which has all of the same subcommands as the listbox widget itself.
+Thus, the above code sets the listbox component's width to 30.</p>
+<p>Usually you'll let the method name be the same as the component name;
+however, you can name it anything you like.</p>
+</div>
+</div>
+<div id="section15" class="doctools_section"><h2><a name="section15">TYPE COMPONENTS</a></h2>
+<div id="subsection109" class="doctools_subsection"><h3><a name="subsection109">What is a type component?</a></h3>
+<p>A type component is a component that belongs to the type itself
+instead of to a particular instance of the type.  The relationship
+between components and type components is the same as the
+relationship between <span class="sectref"><a href="#section6">INSTANCE VARIABLES</a></span> and
+<span class="sectref"><a href="#section8">TYPE VARIABLES</a></span>.  Both <span class="sectref"><a href="#section5">INSTANCE METHODS</a></span> and
+<span class="sectref"><a href="#section9">TYPE METHODS</a></span> can be delegated to type components.</p>
+<p>Once you understand <span class="sectref"><a href="#section14">COMPONENTS</a></span> and
+<span class="sectref"><a href="#section16">DELEGATION</a></span>, type components are just more of the same.</p>
+</div>
+<div id="subsection110" class="doctools_subsection"><h3><a name="subsection110">How do I declare a type component?</a></h3>
+<p>Declare a type component using the <b class="cmd">typecomponent</b> statement.  It
+takes the same options (<b class="const">-inherit</b> and <b class="const">-public</b>) as the
+<b class="cmd">component</b> statement does, and defines a type variable to hold
+the type component's object command.</p>
+<p>Suppose in your model you've got many dogs, but only one
+veterinarian.  You might make the veterinarian a type component.</p>
+<pre class="doctools_example">snit::type veterinarian { ... }
+snit::type dog {
+    typecomponent vet
+    # ...
+}
+</pre>
+</div>
+<div id="subsection111" class="doctools_subsection"><h3><a name="subsection111">How do I install a type component?</a></h3>
+<p>Just use the <b class="cmd"><a href="../../../../index.html#key301">set</a></b> command to assign the component's object
+command to the type component.  Because types
+(even <b class="cmd">snit::widget</b> types) are not widgets, and do not have
+options anyway, the extra features of the <b class="cmd">install</b> command are
+not needed.</p>
+<p>You'll usually install type components in the type constructor, as
+shown here:</p>
+<pre class="doctools_example">snit::type veterinarian { ... }
+snit::type dog {
+    typecomponent vet
+    typeconstructor {
+        set vet [veterinarian %AUTO%]
+    }
+}
+</pre>
+</div>
+<div id="subsection112" class="doctools_subsection"><h3><a name="subsection112">Are there any limitations on type component names?</a></h3>
+<p>Yes, the same as on <span class="sectref"><a href="#section6">INSTANCE VARIABLES</a></span>,
+<span class="sectref"><a href="#section8">TYPE VARIABLES</a></span>, and normal <span class="sectref"><a href="#section14">COMPONENTS</a></span>.</p>
+</div>
+</div>
+<div id="section16" class="doctools_section"><h2><a name="section16">DELEGATION</a></h2>
+<div id="subsection113" class="doctools_subsection"><h3><a name="subsection113">What is delegation?</a></h3>
+<p>Delegation, simply put, is when you pass a task you've been given to
+one of your assistants.  (You do have assistants, don't you?)  Snit
+objects can do the same thing.  The following example shows one way in
+which the <b class="cmd">dog</b> object can delegate its <b class="cmd">wag</b> method and its
+<b class="option">-taillength</b> option to its <b class="cmd">tail</b> component.</p>
+<pre class="doctools_example">snit::type dog {
+    variable mytail
+    option -taillength -configuremethod SetTailOption -cgetmethod GetTailOption
+    method SetTailOption {option value} {
+         $mytail configure $option $value
+    }
+    method GetTailOption {option} {
+         $mytail cget $option
+    }
+    method wag {} {
+        $mytail wag
+    }
+    constructor {args} {
+        install mytail using tail %AUTO% -partof $self
+        $self configurelist $args
+    }
+}
+</pre>
+<p>This is the hard way to do it, by it demonstrates what delegation is
+all about.  See the following answers for the easy way to do it.</p>
+<p>Note that the constructor calls the <b class="method">configurelist</b> method
+<b class="cmd"><a href="../../../../index.html#key413">after</a></b> it creates its <b class="cmd">tail</b>; otherwise,
+if <b class="option">-taillength</b> appeared in the list of <b class="variable">args</b> we'd get an
+error.</p>
+</div>
+<div id="subsection114" class="doctools_subsection"><h3><a name="subsection114">How can I delegate a method to a component object?</a></h3>
+<p>Delegation occurs frequently enough that Snit makes it easy. Any
+method can be delegated to any component or type component
+by placing a single <b class="cmd">delegate</b> statement in the type definition.
+(See <span class="sectref"><a href="#section14">COMPONENTS</a></span> and <span class="sectref"><a href="#section15">TYPE COMPONENTS</a></span>
+for more information about component names.)</p>
+<p>For example, here's a much better way to delegate the <b class="cmd">dog</b>
+object's <b class="cmd">wag</b> method:</p>
+<pre class="doctools_example">% snit::type dog {
+    delegate method wag to mytail
+    constructor {} {
+        install mytail using tail %AUTO%
+    }
+}
+::dog
+% snit::type tail {
+    method wag {} { return &quot;Wag, wag, wag.&quot;}
+}
+::tail
+% dog spot
+::spot
+% spot wag
+Wag, wag, wag.
+</pre>
+<p>This code has the same effect as the code shown under the previous
+question: when a <b class="cmd">dog</b>'s <b class="cmd">wag</b> method is called, the call and
+its arguments are passed along automatically to the <b class="cmd">tail</b> object.</p>
+<p>Note that when a component is mentioned in a <b class="cmd">delegate</b> statement,
+the component's instance variable is defined implicitly.  However,
+it's still good practice to declare it explicitly using the
+<b class="cmd">component</b> statement.</p>
+<p>Note also that you can define a method name using the <b class="cmd"><a href="../../../../index.html#key371">method</a></b>
+statement, or you can define it using <b class="cmd">delegate</b>; you can't do
+both.</p>
+</div>
+<div id="subsection115" class="doctools_subsection"><h3><a name="subsection115">Can I delegate to a method with a different name?</a></h3>
+<p>Suppose you wanted to delegate the <b class="cmd">dog</b>'s <b class="method">wagtail</b> method to
+the <b class="cmd">tail</b>'s <b class="method">wag</b> method.  After all you wag the tail, not
+the dog.  It's easily done:</p>
+<pre class="doctools_example">snit::type dog {
+    delegate method wagtail to mytail as wag
+    constructor {args} {
+        install mytail using tail %AUTO% -partof $self
+        $self configurelist $args
+    }
+}
+</pre>
+</div>
+<div id="subsection116" class="doctools_subsection"><h3><a name="subsection116">Can I delegate to a method with additional arguments?</a></h3>
+<p>Suppose the <b class="cmd">tail</b>'s <b class="method">wag</b> method takes as an argument the
+number of times the tail should be wagged.  You want to delegate the
+<b class="cmd">dog</b>'s <b class="method">wagtail</b> method to the <b class="cmd">tail</b>'s <b class="method">wag</b>
+method, specifying that the tail should be wagged exactly three times.
+This is easily done, too:</p>
+<pre class="doctools_example">snit::type dog {
+    delegate method wagtail to mytail as {wag 3}
+    # ...
+}
+snit::type tail {
+    method wag {count} {
+        return [string repeat &quot;Wag &quot; $count]
+    }
+    # ...
+}
+</pre>
+</div>
+<div id="subsection117" class="doctools_subsection"><h3><a name="subsection117">Can I delegate a method to something other than an object?</a></h3>
+<p>Normal method delegation assumes that you're delegating a method (a
+subcommand of an object command) to a method of another object (a
+subcommand of a different object command).  But not all Tcl objects
+follow Tk conventions, and not everything you'd to which you'd like
+to delegate a method is necessary an object.  Consequently, Snit makes
+it easy to delegate a method to pretty much anything you like using
+the <b class="cmd">delegate</b> statement's <b class="const">using</b> clause.</p>
+<p>Suppose your dog simulation stores dogs in a database, each dog as a
+single record.  The database API you're using provides a number of
+commands to manage records; each takes the record ID (a string you
+choose) as its first argument.  For example, <b class="cmd">saverec</b>
+saves a record.  If you let the record ID be the name of the dog
+object, you can delegate the dog's <b class="method">save</b> method to the
+<b class="cmd">saverec</b> command as follows:</p>
+<pre class="doctools_example">snit::type dog {
+    delegate method save using {saverec %s}
+}
+</pre>
+<p>The <b class="const">%s</b> is replaced with the instance name when the
+<b class="method">save</b> method is called; any additional arguments are the
+appended to the resulting command.</p>
+<p>The <b class="const">using</b> clause understands a number of other %-conversions;
+in addition to the instance name, you can substitute in the method
+name (<b class="const">%m</b>), the type name (<b class="const">%t</b>), the instance
+namespace (<b class="const">%n</b>), the Tk window name (<b class="const">%w</b>), and,
+if a component or typecomponent name was given in the
+<b class="cmd">delegate</b> statement, the component's object command
+(<b class="const">%c</b>).</p>
+</div>
+<div id="subsection118" class="doctools_subsection"><h3><a name="subsection118">How can I delegate a method to a type component object?</a></h3>
+<p>Just exactly as you would to a component object.  The
+<b class="cmd">delegate method</b> statement accepts both component and type
+component names in its <b class="const">to</b> clause.</p>
+</div>
+<div id="subsection119" class="doctools_subsection"><h3><a name="subsection119">How can I delegate a type method to a type component object?</a></h3>
+<p>Use the <b class="cmd">delegate typemethod</b> statement.  It works like
+<b class="cmd">delegate method</b>, with these differences: first, it defines
+a type method instead of an instance method; second, the
+<b class="const">using</b> clause ignores the <b class="const">%s</b>, <b class="const">%n</b>,
+and <b class="const">%w</b> %-conversions.</p>
+<p>Naturally, you can't delegate a type method to an instance
+component...Snit wouldn't know which instance should receive it.</p>
+</div>
+<div id="subsection120" class="doctools_subsection"><h3><a name="subsection120">How can I delegate an option to a component object?</a></h3>
+<p>The first question in this section (see <span class="sectref"><a href="#section16">DELEGATION</a></span>) shows
+one way to delegate an option to a component; but this pattern occurs
+often enough that Snit makes it easy.  For example, every <b class="cmd">tail</b>
+object has a <b class="option">-length</b> option; we want to allow the creator of
+a <b class="cmd">dog</b> object to set the tail's length.  We can do this:</p>
+<pre class="doctools_example">% snit::type dog {
+    delegate option -length to mytail
+    constructor {args} {
+        install mytail using tail %AUTO% -partof $self
+        $self configurelist $args
+    }
+}
+::dog
+% snit::type tail {
+    option -partof
+    option -length 5
+}
+::tail
+% dog spot -length 7
+::spot
+% spot cget -length
+7
+</pre>
+<p>This produces nearly the same result as the <b class="const">-configuremethod</b> and
+<b class="const">-cgetmethod</b> shown under the first question in this
+section: whenever a <b class="cmd">dog</b> object's <b class="option">-length</b> option is set
+or retrieved, the underlying <b class="cmd">tail</b> object's option is set or
+retrieved in turn.</p>
+<p>Note that you can define an option name using the <b class="cmd">option</b>
+statement, or you can define it using <b class="cmd">delegate</b>; you can't do
+both.</p>
+</div>
+<div id="subsection121" class="doctools_subsection"><h3><a name="subsection121">Can I delegate to an option with a different name?</a></h3>
+<p>In the previous answer we delegated the <b class="cmd">dog</b>'s <b class="option">-length</b>
+option down to its <b class="cmd">tail</b>.  This is, of course, wrong.  The dog
+has a length, and the tail has a length, and they are different.  What
+we'd really like to do is give the <b class="cmd">dog</b> a <b class="option">-taillength</b>
+option, but delegate it to the <b class="cmd">tail</b>'s <b class="option">-length</b> option:</p>
+<pre class="doctools_example">snit::type dog {
+    delegate option -taillength to mytail as -length
+    constructor {args} {
+        set mytail [tail %AUTO% -partof $self]
+        $self configurelist $args
+    }
+}
+</pre>
+</div>
+<div id="subsection122" class="doctools_subsection"><h3><a name="subsection122">How can I delegate any unrecognized method or option to a component object?</a></h3>
+<p>It may happen that a Snit object gets most of its behavior from one of
+its components.  This often happens with <b class="cmd">snit::widgetadaptors</b>,
+for example, where we wish to slightly the modify the behavior of an
+existing widget.  To carry on with our <b class="cmd">dog</b> example, however, suppose
+that we have a <b class="cmd">snit::type</b> called <b class="cmd">animal</b> that implements a
+variety of animal behaviors--moving, eating, sleeping, and so forth.
+We want our <b class="cmd">dog</b> objects to inherit these same behaviors, while
+adding dog-like behaviors of its own.
+Here's how we can give a <b class="cmd">dog</b> methods and options of its own
+while delegating all other methods and options to its <b class="cmd">animal</b>
+component:</p>
+<pre class="doctools_example">snit::type dog {
+    delegate option * to animal
+    delegate method * to animal
+    option -akc 0
+    constructor {args} {
+        install animal using animal %AUTO% -name $self
+        $self configurelist $args
+    }
+    method wag {} {
+        return &quot;$self wags its tail&quot;
+    }
+}
+</pre>
+<p>That's it.  A <b class="cmd">dog</b> is now an <b class="cmd">animal</b> that has a
+<b class="option">-akc</b> option and can <b class="cmd">wag</b> its tail.</p>
+<p>Note that we don't need to specify the full list of method names or
+option names that <b class="cmd">animal</b> will receive.
+It gets anything <b class="cmd">dog</b> doesn't recognize--and if it doesn't
+recognize it either, it will simply throw an error, just as it should.</p>
+<p>You can also delegate all unknown type methods to a type component
+using <b class="cmd">delegate typemethod *</b>.</p>
+</div>
+<div id="subsection123" class="doctools_subsection"><h3><a name="subsection123">How can I delegate all but certain methods or options to a component?</a></h3>
+<p>In the previous answer, we said that every <b class="cmd">dog</b> is
+an <b class="cmd">animal</b> by delegating all unknown methods and options to the
+<b class="variable">animal</b> component. But what if the <b class="cmd">animal</b> type has some
+methods or options that we'd like to suppress?</p>
+<p>One solution is to explicitly delegate all the options and methods,
+and forgo the convenience of <b class="cmd">delegate method *</b> and
+<b class="cmd">delegate option *</b>.  But if we wish to suppress only a few
+options or methods, there's an easier way:</p>
+<pre class="doctools_example">snit::type dog {
+    delegate option * to animal except -numlegs
+    delegate method * to animal except {fly climb}
+    # ...
+    constructor {args} {
+        install animal using animal %AUTO% -name $self -numlegs 4
+        $self configurelist $args
+    }
+    # ...
+}
+</pre>
+<p>Dogs have four legs, so we specify that explicitly when we create the
+<b class="variable">animal</b> component, and explicitly exclude <b class="option">-numlegs</b> from the
+set of delegated options.  Similarly, dogs can neither
+<b class="method">fly</b> nor <b class="method">climb</b>,
+so we exclude those <b class="cmd">animal</b> methods as shown.</p>
+</div>
+<div id="subsection124" class="doctools_subsection"><h3><a name="subsection124">Can a hierarchical method be delegated?</a></h3>
+<p>Yes; just specify multiple words in the delegated method's name:</p>
+<pre class="doctools_example">snit::type tail {
+    method wag {} {return &quot;Wag, wag&quot;}
+    method droop {} {return &quot;Droop, droop&quot;}
+}
+snit::type dog {
+    delegate method {tail wag} to mytail
+    delegate method {tail droop} to mytail
+    # ...
+    constructor {args} {
+        install mytail using tail %AUTO%
+        $self configurelist $args
+    }
+    # ...
+}
+</pre>
+<p>Unrecognized hierarchical methods can also be delegated; the following
+code delegates all subcommands of the &quot;tail&quot; method to the &quot;mytail&quot;
+component:</p>
+<pre class="doctools_example">snit::type dog {
+    delegate method {tail *} to mytail
+    # ...
+}
+</pre>
+</div>
+</div>
+<div id="section17" class="doctools_section"><h2><a name="section17">WIDGETS</a></h2>
+<div id="subsection125" class="doctools_subsection"><h3><a name="subsection125">What is a snit::widget?</a></h3>
+<p>A <b class="cmd">snit::widget</b> is the Snit version of what Tcl programmers
+usually call a <i class="term">megawidget</i>: a widget-like object usually
+consisting of one or more Tk widgets all contained within a Tk frame.</p>
+<p>A <b class="cmd">snit::widget</b> is also a special kind of <b class="cmd">snit::type</b>.  Just
+about everything in this FAQ list that relates to <b class="cmd">snit::types</b>
+also applies to <b class="cmd">snit::widgets</b>.</p>
+</div>
+<div id="subsection126" class="doctools_subsection"><h3><a name="subsection126">How do I define a snit::widget?</a></h3>
+<p><b class="cmd">snit::widgets</b> are defined using the <b class="cmd">snit::widget</b> command,
+just as <b class="cmd">snit::types</b> are defined by the <b class="cmd">snit::type</b> command.</p>
+<p>The body of the definition can contain all of the same kinds of
+statements, plus a couple of others which will be mentioned below.</p>
+</div>
+<div id="subsection127" class="doctools_subsection"><h3><a name="subsection127">How do snit::widgets differ from snit::types?</a></h3>
+<ul class="doctools_itemized">
+<li><p>The name of an instance of a <b class="cmd">snit::type</b> can be any valid Tcl
+command name, in any namespace.
+The name of an instance of a <b class="cmd">snit::widget</b> must be a valid Tk
+widget name, and its parent widget must already exist.</p></li>
+<li><p>An instance of a <b class="cmd">snit::type</b> can be destroyed by calling
+its <b class="cmd">destroy</b> method.  Instances of a <b class="cmd">snit::widget</b> have no
+destroy method; use the Tk <b class="cmd">destroy</b> command instead.</p></li>
+<li><p>Every instance of a <b class="cmd">snit::widget</b> has one predefined component
+called its <b class="variable">hull</b> component.
+The hull is usually a Tk <b class="cmd"><a href="../../../../index.html#key673">frame</a></b> or <b class="cmd">toplevel</b> widget; any other
+widgets created as part of the <b class="cmd">snit::widget</b> will usually be
+contained within the hull.</p></li>
+<li><p><b class="cmd">snit::widget</b>s can have their options receive default values from
+<span class="sectref"><a href="#section19">THE TK OPTION DATABASE</a></span>.</p></li>
+</ul>
+</div>
+<div id="subsection128" class="doctools_subsection"><h3><a name="subsection128">What is a hull component?</a></h3>
+<p>Snit can't create a Tk widget object; only Tk can do that.
+Thus, every instance of a <b class="cmd">snit::widget</b> must be wrapped around a
+genuine Tk widget; this Tk widget is called the <i class="term">hull component</i>.
+Snit effectively piggybacks the behavior you define (methods, options,
+and so forth) on top of the hull component so that the whole thing
+behaves like a standard Tk widget.</p>
+<p>For <b class="cmd">snit::widget</b>s the hull component must be a Tk widget that
+defines the <b class="const">-class</b> option.</p>
+<p><b class="cmd">snit::widgetadaptor</b>s differ from <b class="cmd">snit::widget</b>s chiefly in
+that any kind of widget can be used as the hull component; see
+<span class="sectref"><a href="#section18">WIDGET ADAPTORS</a></span>.</p>
+</div>
+<div id="subsection129" class="doctools_subsection"><h3><a name="subsection129">How can I set the hull type for a snit::widget?</a></h3>
+<p>A <b class="cmd">snit::widget</b>'s hull component will usually be a Tk <b class="cmd"><a href="../../../../index.html#key673">frame</a></b>
+widget; however, it may be any Tk widget that defines the
+<b class="const">-class</b> option.  You can
+explicitly choose the hull type you prefer by including the <b class="cmd">hulltype</b>
+command in the widget definition:</p>
+<pre class="doctools_example">snit::widget mytoplevel {
+    hulltype toplevel
+    # ...
+}
+</pre>
+<p>If no <b class="cmd">hulltype</b> command appears, the hull will be a <b class="cmd"><a href="../../../../index.html#key673">frame</a></b>.</p>
+<p>By default, Snit recognizes the following hull types: the Tk widgets
+<b class="cmd"><a href="../../../../index.html#key673">frame</a></b>, <b class="cmd">labelframe</b>, <b class="cmd">toplevel</b>, and the Tile widgets
+<b class="cmd">ttk::frame</b>, <b class="cmd">ttk::labelframe</b>, and <b class="cmd">ttk::toplevel</b>.  To
+enable the use of some other kind of widget as the hull type, you can
+<b class="cmd">lappend</b> the widget command to the variable <b class="variable">snit::hulltypes</b> (always
+provided the widget defines the <b class="const">-class</b> option.  For example,
+suppose Tk gets a new widget type called a <b class="cmd">prettyframe</b>:</p>
+<pre class="doctools_example">lappend snit::hulltypes prettyframe
+snit::widget mywidget {
+    hulltype prettyframe
+    # ...
+}
+</pre>
+</div>
+<div id="subsection130" class="doctools_subsection"><h3><a name="subsection130">How should I name widgets which are components of a snit::widget?</a></h3>
+<p>Every widget, whether a genuine Tk widget or a Snit megawidget, has to
+have a valid Tk window name.  When a <b class="cmd">snit::widget</b> is first
+created, its instance name, <b class="variable">self</b>, is a Tk window name;
+however, if the <b class="cmd">snit::widget</b> is used as the hull component by a
+<b class="cmd">snit::widgetadaptor</b> its instance name will be changed to
+something else.  For this reason, every <b class="cmd">snit::widget</b> method,
+constructor, destructor, and so forth is passed another implicit
+argument, <b class="variable">win</b>, which is the window name of the megawidget.  Any
+children should be named using <b class="variable">win</b> as the root.</p>
+<p>Thus, suppose you're writing a toolbar widget, a frame consisting of a
+number of buttons placed side-by-side.  It might look something like
+this:</p>
+<pre class="doctools_example">snit::widget toolbar {
+    delegate option * to hull
+    constructor {args} {
+        button $win.open -text Open -command [mymethod open]
+        button $win.save -text Save -command [mymethod save]
+        # ....
+        $self configurelist $args
+    }
+}
+</pre>
+<p>See also the question on renaming objects, toward the top of this
+file.</p>
+</div>
+</div>
+<div id="section18" class="doctools_section"><h2><a name="section18">WIDGET ADAPTORS</a></h2>
+<div id="subsection131" class="doctools_subsection"><h3><a name="subsection131">What is a snit::widgetadaptor?</a></h3>
+<p>A <b class="cmd">snit::widgetadaptor</b> is a kind of <b class="cmd">snit::widget</b>.  Whereas
+a <b class="cmd">snit::widget</b>'s hull is automatically created and is always a
+Tk frame, a <b class="cmd">snit::widgetadaptor</b> can be based on any Tk
+widget--or on any Snit megawidget, or even (with luck) on megawidgets
+defined using some other package.</p>
+<p>It's called a <i class="term">widget adaptor</i> because it allows you to take an
+existing widget and customize its behavior.</p>
+</div>
+<div id="subsection132" class="doctools_subsection"><h3><a name="subsection132">How do I define a snit::widgetadaptor?</a></h3>
+<p>Use the <b class="cmd">snit::widgetadaptor</b> command.  The definition for a
+<b class="cmd">snit::widgetadaptor</b> looks just like that for a <b class="cmd">snit::type</b>
+or <b class="cmd">snit::widget</b>, except that the constructor must create and
+install the hull component.</p>
+<p>For example, the following code creates a read-only text widget by the
+simple device of turning its <b class="method">insert</b> and <b class="method">delete</b>
+methods into no-ops.  Then, we define new methods, <b class="method">ins</b> and
+<b class="method">del</b>,
+which get delegated to the hull component as <b class="method">insert</b> and
+<b class="method">delete</b>.  Thus, we've adapted the text widget and given it new
+behavior while still leaving it fundamentally a text widget.</p>
+<pre class="doctools_example">::snit::widgetadaptor rotext {
+    constructor {args} {
+        # Create the text widget; turn off its insert cursor
+        installhull using text -insertwidth 0
+        # Apply any options passed at creation time.
+        $self configurelist $args
+    }
+    # Disable the text widget's insert and delete methods, to
+    # make this readonly.
+    method insert {args} {}
+    method delete {args} {}
+    # Enable ins and del as synonyms, so the program can insert and
+    # delete.
+    delegate method ins to hull as insert
+    delegate method del to hull as delete
+    # Pass all other methods and options to the real text widget, so
+    # that the remaining behavior is as expected.
+    delegate method * to hull
+    delegate option * to hull
+}
+</pre>
+<p>The most important part is in the constructor.
+Whereas <b class="cmd">snit::widget</b> creates the hull for you,
+<b class="cmd">snit::widgetadaptor</b> cannot -- it doesn't know what kind of
+widget you want.  So the first thing the constructor does is create
+the hull component (a Tk text widget in this case), and then installs
+it using the <b class="cmd">installhull</b> command.</p>
+<p><em>Note:</em> There is no instance command until you create one by
+installing a hull component.  Any attempt to pass methods to <b class="variable">$self</b>
+prior to calling <b class="cmd">installhull</b> will fail.</p>
+</div>
+<div id="subsection133" class="doctools_subsection"><h3><a name="subsection133">Can I adapt a widget created elsewhere in the program?</a></h3>
+<p>Yes.</p>
+<p>At times, it can be convenient to adapt a pre-existing widget instead
+of creating your own.
+For example, the Bwidget <b class="cmd">PagesManager</b> widget manages a
+set of <b class="cmd"><a href="../../../../index.html#key673">frame</a></b> widgets, only one of which is visible at a time.
+The application chooses which <b class="cmd"><a href="../../../../index.html#key673">frame</a></b> is visible.  All of the
+These <b class="cmd"><a href="../../../../index.html#key673">frame</a></b>s are created by the <b class="cmd">PagesManager</b> itself, using
+its <b class="method">add</b> method.  It's convenient to adapt these frames to
+do what we'd like them to do.</p>
+<p>In a case like this, the Tk widget will already exist when the
+<b class="cmd">snit::widgetadaptor</b> is created.  Snit provides an alternate form
+of the <b class="cmd">installhull</b> command for this purpose:</p>
+<pre class="doctools_example">snit::widgetadaptor pageadaptor {
+    constructor {args} {
+        # The widget already exists; just install it.
+        installhull $win
+        # ...
+    }
+}
+</pre>
+</div>
+<div id="subsection134" class="doctools_subsection"><h3><a name="subsection134">Can I adapt another megawidget?</a></h3>
+<p>Maybe. If the other megawidget is a <b class="cmd">snit::widget</b> or
+<b class="cmd">snit::widgetadaptor</b>, then yes.  If it isn't then, again, maybe.
+You'll have to try it and see.  You're most likely to have trouble
+with widget destruction--you have to make sure that your
+megawidget code receives the <b class="const">&lt;Destroy&gt;</b> event before the
+megawidget you're adapting does.</p>
+</div>
+</div>
+<div id="section19" class="doctools_section"><h2><a name="section19">THE TK OPTION DATABASE</a></h2>
+<div id="subsection135" class="doctools_subsection"><h3><a name="subsection135">What is the Tk option database?</a></h3>
+<p>The Tk option database is a database of default option values
+maintained by Tk itself; every Tk application has one.  The concept of
+the option database derives from something called the X Windows
+resource database; however, the option database is available in every
+Tk implementation, including those which do not use the X Windows
+system (e.g., Microsoft Windows).</p>
+<p>Full details about the Tk option database are beyond the scope of this
+document; both <em>Practical Programming in Tcl and Tk</em> by Welch,
+Jones, and Hobbs, and <em>Effective Tcl/Tk Programming</em> by
+Harrison and McClennan., have good introductions to it.</p>
+<p>Snit is implemented so that most of the time it will simply do the
+right thing with respect to the option database, provided that the
+widget developer does the right thing by Snit.  The body of this
+section goes into great deal about what Snit requires.  The following
+is a brief statement of the requirements, for reference.</p>
+<ul class="doctools_itemized">
+<li><p>If the widget's default widget class is not what is desired, set it
+explicitly using the <b class="cmd">widgetclass</b> statement in the widget
+definition.</p></li>
+<li><p>When defining or delegating options, specify the resource and class
+names explicitly when necessary.</p></li>
+<li><p>Use the <b class="cmd">installhull using</b> command to create and install the
+hull for <b class="cmd">snit::widgetadaptor</b>s.</p></li>
+<li><p>Use the <b class="cmd">install</b> command to create and install all
+components which are widgets.</p></li>
+<li><p>Use the <b class="cmd">install</b> command to create and install
+components which aren't widgets if you'd like them to
+receive option values from the option database.</p></li>
+</ul>
+<p>The interaction of Tk widgets with the option database is a complex
+thing; the interaction of Snit with the option database is even more
+so, and repays attention to detail.</p>
+</div>
+<div id="subsection136" class="doctools_subsection"><h3><a name="subsection136">Do snit::types use the Tk option database?</a></h3>
+<p>No, they don't; querying the option database requires a Tk window
+name, and <b class="cmd">snit::type</b>s don't have one.</p>
+<p>If you create an instance of a <b class="cmd">snit::type</b> as a
+component of a <b class="cmd">snit::widget</b> or <b class="cmd">snit::widgetadaptor</b>, on the
+other hand, and if any options are delegated to the component,
+and if you use <b class="cmd">install</b> to create and install it, then
+the megawidget will query the option database on the
+<b class="cmd">snit::type</b>'s behalf.  This might or might not be what you
+want, so take care.</p>
+</div>
+<div id="subsection137" class="doctools_subsection"><h3><a name="subsection137">What is my snit::widget's widget class?</a></h3>
+<p>Every Tk widget has a &quot;widget class&quot;: a name that is used when adding
+option settings to the database.  For Tk widgets, the widget class is
+the same as the widget command name with an initial capital.  For
+example, the widget class of the Tk <b class="cmd">button</b> widget is
+<b class="const">Button</b>.</p>
+<p>Similarly, the widget class of a <b class="cmd">snit::widget</b> defaults to the
+unqualified type name with the first letter capitalized.  For example,
+the widget class of</p>
+<pre class="doctools_example">snit::widget ::mylibrary::scrolledText { ... }
+</pre>
+<p>is <b class="const">ScrolledText</b>.</p>
+<p>The widget class can also be set explicitly using the
+<b class="cmd">widgetclass</b> statement within the <b class="cmd">snit::widget</b> definition:</p>
+<pre class="doctools_example">snit::widget ::mylibrary::scrolledText {
+    widgetclass Text
+    # ...
+}
+</pre>
+<p>The above definition says that a <b class="cmd">scrolledText</b> megawidget has the
+same widget class as an ordinary <b class="cmd"><a href="../../../../index.html#key248">text</a></b> widget.  This might or
+might not be a good idea, depending on how the rest of the megawidget
+is defined, and how its options are delegated.</p>
+</div>
+<div id="subsection138" class="doctools_subsection"><h3><a name="subsection138">What is my snit::widgetadaptor's widget class?</a></h3>
+<p>The widget class of a <b class="cmd">snit::widgetadaptor</b> is just the widget
+class of its hull widget; Snit has no control over this.</p>
+<p>Note that the widget class can be changed only for <b class="cmd"><a href="../../../../index.html#key673">frame</a></b> and
+<b class="cmd">toplevel</b> widgets, which is why these are the valid hull types
+for <b class="cmd">snit::widget</b>s.</p>
+<p>Try to use <b class="cmd">snit::widgetadaptor</b>s only to make small modifications
+to another widget's behavior.  Then, it will usually not make sense to
+change the widget's widget class anyway.</p>
+</div>
+<div id="subsection139" class="doctools_subsection"><h3><a name="subsection139">What are option resource and class names?</a></h3>
+<p>Every Tk widget option has three names: the option name, the resource
+name, and the class name.
+The option name begins with a hyphen and is all lowercase; it's used
+when creating widgets, and with the <b class="cmd">configure</b> and <b class="cmd">cget</b>
+commands.</p>
+<p>The resource and class names are used to initialize option
+default values by querying the option database.
+The resource name is usually just the option
+name minus the hyphen, but may contain uppercase letters at word
+boundaries; the class name is usually just the resource
+name with an initial capital, but not always.  For example, here are
+the option, resource, and class names for several Tk <b class="cmd"><a href="../../../../index.html#key248">text</a></b>
+widget options:</p>
+<pre class="doctools_example">    -background         background         Background
+    -borderwidth        borderWidth        BorderWidth
+    -insertborderwidth  insertBorderWidth  BorderWidth
+    -padx               padX               Pad
+</pre>
+<p>As is easily seen, sometimes the resource and class names can be
+inferred from the option name, but not always.</p>
+</div>
+<div id="subsection140" class="doctools_subsection"><h3><a name="subsection140">What are the resource and class names for my megawidget's options?</a></h3>
+<p>For options implicitly delegated to a component using
+<b class="cmd">delegate option *</b>, the resource and class names will be
+exactly those defined by the component.  The <b class="cmd">configure</b> method
+returns these names, along with the option's default and current
+values:</p>
+<pre class="doctools_example">% snit::widget mytext {
+    delegate option * to text
+    constructor {args} {
+        install text using text .text
+        # ...
+    }
+    # ...
+}
+::mytext
+% mytext .text
+.text
+% .text configure -padx
+-padx padX Pad 1 1
+%
+</pre>
+<p>For all other options (whether locally defined or explicitly
+delegated), the resource and class names can be defined explicitly, or
+they can be allowed to have default values.</p>
+<p>By default, the resource name is just the option name minus the
+hyphen; the the class name is just the option name with an initial
+capital letter.  For example, suppose we explicitly delegate &quot;-padx&quot;:</p>
+<pre class="doctools_example">% snit::widget mytext {
+    option -myvalue 5
+    delegate option -padx to text
+    delegate option * to text
+    constructor {args} {
+        install text using text .text
+        # ...
+    }
+    # ...
+}
+::mytext
+% mytext .text
+.text
+% .text configure -myvalue
+-myvalue myvalue Myvalue 5 5
+% .text configure -padx
+-padx padx Padx 1 1
+%
+</pre>
+<p>Here the resource and class names are chosen using the default rules.
+Often these rules are sufficient, but in the case of &quot;-padx&quot; we'd most
+likely prefer that the option's resource and class names are the same
+as for the built-in Tk widgets.  This is easily done:</p>
+<pre class="doctools_example">% snit::widget mytext {
+    delegate option {-padx padX Pad} to text
+    # ...
+}
+::mytext
+% mytext .text
+.text
+% .text configure -padx
+-padx padX Pad 1 1
+%
+</pre>
+</div>
+<div id="subsection141" class="doctools_subsection"><h3><a name="subsection141">How does Snit initialize my megawidget's locally-defined options?</a></h3>
+<p>The option database is queried for each of the megawidget's
+locally-defined options, using the option's resource and class name.
+If the result isn't &quot;&quot;, then it replaces the default value given in
+widget definition.  In either case, the default can be overridden by
+the caller.  For example,</p>
+<pre class="doctools_example">option add *Mywidget.texture pebbled
+snit::widget mywidget {
+    option -texture smooth
+    # ...
+}
+mywidget .mywidget -texture greasy
+</pre>
+<p>Here, <b class="const">-texture</b> would normally default to &quot;smooth&quot;, but because of
+the entry added to the option database it defaults to &quot;pebbled&quot;.
+However, the caller has explicitly overridden the default, and so the
+new widget will be &quot;greasy&quot;.</p>
+</div>
+<div id="subsection142" class="doctools_subsection"><h3><a name="subsection142">How does Snit initialize delegated options?</a></h3>
+<p>That depends on whether the options are delegated to the hull, or to
+some other component.</p>
+</div>
+<div id="subsection143" class="doctools_subsection"><h3><a name="subsection143">How does Snit initialize options delegated to the hull?</a></h3>
+<p>A <b class="cmd">snit::widget</b>'s hull is a widget, and given that its class has
+been set it is expected to query the option database for itself.  The
+only exception concerns options that are delegated to it with a
+different name.  Consider the following code:</p>
+<pre class="doctools_example">option add *Mywidget.borderWidth 5
+option add *Mywidget.relief sunken
+option add *Mywidget.hullbackground red
+option add *Mywidget.background green
+snit::widget mywidget {
+    delegate option -borderwidth to hull
+    delegate option -hullbackground to hull as -background
+    delegate option * to hull
+    # ...
+}
+mywidget .mywidget
+set A [.mywidget cget -relief]
+set B [.mywidget cget -hullbackground]
+set C [.mywidget cget -background]
+set D [.mywidget cget -borderwidth]
+</pre>
+<p>The question is, what are the values of variables A, B, C and D?</p>
+<p>The value of A is &quot;sunken&quot;.  The hull is a Tk frame which has been
+given the widget class <b class="const">Mywidget</b>; it will automatically query the
+option database and pick up this value.  Since the <b class="const">-relief</b> option is
+implicitly delegated to the hull, Snit takes no action.</p>
+<p>The value of B is &quot;red&quot;.  The hull will automatically pick up the
+value &quot;green&quot; for its <b class="const">-background</b> option, just as it picked up the
+<b class="const">-relief</b> value.  However, Snit knows that <b class="const">-hullbackground</b>
+is mapped to the hull's <b class="const">-background</b> option; hence, it queries
+the option database for <b class="const">-hullbackground</b> and gets &quot;red&quot; and
+updates the hull accordingly.</p>
+<p>The value of C is also &quot;red&quot;, because <b class="const">-background</b> is implicitly
+delegated to the hull; thus, retrieving it is the same as retrieving
+<b class="const">-hullbackground</b>.  Note that this case is unusual; the
+<b class="const">-background</b> option should probably have been excluded using the delegate
+statement's <b class="const">except</b> clause, or (more likely) delegated to some other
+component.</p>
+<p>The value of D is &quot;5&quot;, but not for the reason you think.  Note that as
+it is defined above, the resource name for <b class="const">-borderwidth</b> defaults to
+<b class="const">borderwidth</b>, whereas the option database entry is
+<b class="const">borderWidth</b>, in
+accordance with the standard Tk naming for this option.  As with
+<b class="const">-relief</b>, the hull picks up its own <b class="const">-borderwidth</b>
+option before Snit
+does anything.  Because the option is delegated under its own name,
+Snit assumes that the correct thing has happened, and doesn't worry
+about it any further.  To avoid confusion, the
+<b class="const">-borderwidth</b> option
+should have been delegated like this:</p>
+<pre class="doctools_example">    delegate option {-borderwidth borderWidth BorderWidth} to hull
+</pre>
+<p>For <b class="cmd">snit::widgetadaptor</b>s, the case is somewhat altered.  Widget
+adaptors retain the widget class of their hull, and the hull is not
+created automatically by Snit.  Instead, the <b class="cmd">snit::widgetadaptor</b>
+must call <b class="cmd">installhull</b> in its constructor.  The normal way
+to do this is as follows:</p>
+<pre class="doctools_example">snit::widgetadaptor mywidget {
+    # ...
+    constructor {args} {
+        # ...
+        installhull using text -foreground white
+        # ...
+    }
+    # ...
+}
+</pre>
+<p>In this case, the <b class="cmd">installhull</b> command will create the hull using
+a command like this:</p>
+<pre class="doctools_example">    set hull [text $win -foreground white]
+</pre>
+<p>The hull is a <b class="cmd"><a href="../../../../index.html#key248">text</a></b> widget, so its widget class is <b class="const">Text</b>.  Just
+as with <b class="cmd">snit::widget</b> hulls, Snit assumes that it will pick up
+all of its normal option values automatically, without help from Snit.
+Options delegated from a different name are initialized from the
+option database in the same way as described above.</p>
+<p>In earlier versions of Snit, <b class="cmd">snit::widgetadaptor</b>s were expected
+to call <b class="cmd">installhull</b> like this:</p>
+<pre class="doctools_example">    installhull [text $win -foreground white]
+</pre>
+<p>This form still works--but Snit will not query the option database as
+described above.</p>
+</div>
+<div id="subsection144" class="doctools_subsection"><h3><a name="subsection144">How does Snit initialize options delegated to other components?</a></h3>
+<p>For hull components, Snit assumes that Tk will do most of the work
+automatically.  Non-hull components are somewhat more complicated, because
+they are matched against the option database twice.</p>
+<p>A component widget remains a widget still, and is therefore
+initialized from the option database in the usual way.  A <b class="cmd"><a href="../../../../index.html#key248">text</a></b>
+widget remains a <b class="cmd"><a href="../../../../index.html#key248">text</a></b> widget whether it is a component of a
+megawidget or not, and will be created as such.</p>
+<p>But then, the option database is queried for all options delegated to
+the component, and the component is initialized accordingly--provided
+that the <b class="cmd">install</b> command is used to create it.</p>
+<p>Before option database support was added to Snit, the usual way to
+create a component was to simply create it in the constructor and
+assign its command name to the component variable:</p>
+<pre class="doctools_example">snit::widget mywidget {
+    delegate option -background to myComp
+    constructor {args} {
+        set myComp [text $win.text -foreground black]
+    }
+}
+</pre>
+<p>The drawback of this method is that Snit has no opportunity to
+initialize the component properly.  Hence, the following approach is
+now used:</p>
+<pre class="doctools_example">snit::widget mywidget {
+    delegate option -background to myComp
+    constructor {args} {
+        install myComp using text $win.text -foreground black
+    }
+}
+</pre>
+<p>The <b class="cmd">install</b> command does the following:</p>
+<ul class="doctools_itemized">
+<li><p>Builds a list of the options explicitly included in the <b class="cmd">install</b>
+command--in this case, <b class="const">-foreground</b>.</p></li>
+<li><p>Queries the option database for all options delegated explicitly to
+the named component.</p></li>
+<li><p>Creates the component using the specified command, after inserting
+into it a list of options and values read from the option database.
+Thus, the explicitly included options (like <b class="const">-foreground</b>) will
+override anything read from the option database.</p></li>
+<li><p>If the widget definition implicitly delegated options to the component
+using <b class="cmd">delegate option *</b>, then Snit calls the newly created
+component's <b class="cmd">configure</b> method to receive a list of all of the
+component's options.  From this Snit builds a list of options
+implicitly delegated to the component which were not explicitly
+included in the <b class="cmd">install</b> command.  For all such options, Snit
+queries the option database and configures the component accordingly.</p></li>
+</ul>
+<p>You don't really need to know all of this; just use <b class="cmd">install</b> to
+install your components, and Snit will try to do the right thing.</p>
+</div>
+<div id="subsection145" class="doctools_subsection"><h3><a name="subsection145">What happens if I install a non-widget as a component of widget?</a></h3>
+<p>A <b class="cmd">snit::type</b> never queries the option database.
+However, a <b class="cmd">snit::widget</b> can have non-widget components.  And if
+options are delegated to those components, and if the <b class="cmd">install</b>
+command is used to install those components, then they will be
+initialized from the option database just as widget components are.</p>
+<p>However, when used within a megawidget, <b class="cmd">install</b> assumes that the
+created component uses a reasonably standard widget-like creation
+syntax.  If it doesn't, don't use <b class="cmd">install</b>.</p>
+</div>
+</div>
+<div id="section20" class="doctools_section"><h2><a name="section20">ENSEMBLE COMMANDS</a></h2>
+<div id="subsection146" class="doctools_subsection"><h3><a name="subsection146">What is an ensemble command?</a></h3>
+<p>An ensemble command is a command with subcommands.  Snit objects are
+all ensemble commands; however, the term more usually refers to
+commands like the standard Tcl commands <b class="cmd"><a href="../../../../index.html#key280">string</a></b>, <b class="cmd"><a href="../../../../index.html#key31">file</a></b>,
+and <b class="cmd">clock</b>.  In a sense, these are singleton objects--there's
+only one instance of them.</p>
+</div>
+<div id="subsection147" class="doctools_subsection"><h3><a name="subsection147">How can I create an ensemble command using Snit?</a></h3>
+<p>There are two ways--as a <b class="cmd">snit::type</b>, or as an instance of
+a <b class="cmd">snit::type</b>.</p>
+</div>
+<div id="subsection148" class="doctools_subsection"><h3><a name="subsection148">How can I create an ensemble command using an instance of a snit::type?</a></h3>
+<p>Define a type whose <span class="sectref"><a href="#section5">INSTANCE METHODS</a></span> are the subcommands
+of your ensemble command.  Then, create an instance of the type with
+the desired name.</p>
+<p>For example, the following code uses <span class="sectref"><a href="#section16">DELEGATION</a></span> to create
+a work-alike for the standard <b class="cmd"><a href="../../../../index.html#key280">string</a></b> command:</p>
+<pre class="doctools_example">snit::type ::mynamespace::mystringtype {
+    delegate method * to stringhandler
+    constructor {} {
+        set stringhandler string
+    }
+}
+::mynamespace::mystringtype mystring
+</pre>
+<p>We create the type in a namespace, so that the type command is hidden;
+then we create a single instance with the desired name--
+<b class="cmd">mystring</b>, in this case.</p>
+<p>This method has two drawbacks.  First, it leaves the type command
+floating about.  More seriously, your shiny new ensemble
+command will have <b class="method">info</b> and <b class="method">destroy</b> subcommands that
+you probably have no use for.  But read on.</p>
+</div>
+<div id="subsection149" class="doctools_subsection"><h3><a name="subsection149">How can I create an ensemble command using a snit::type?</a></h3>
+<p>Define a type whose <span class="sectref"><a href="#section9">TYPE METHODS</a></span> are the subcommands
+of your ensemble command.</p>
+<p>For example, the following code uses <span class="sectref"><a href="#section16">DELEGATION</a></span> to create
+a work-alike for the standard <b class="cmd"><a href="../../../../index.html#key280">string</a></b> command:</p>
+<pre class="doctools_example">snit::type mystring {
+    delegate typemethod * to stringhandler
+    typeconstructor {
+        set stringhandler string
+    }
+}
+</pre>
+<p>Now the type command itself is your ensemble command.</p>
+<p>This method has only one drawback, and though it's major, it's
+also surmountable.  Your new ensemble command will have
+<b class="method">create</b>, <b class="method">info</b> and <b class="method">destroy</b> subcommands
+you don't want.  And worse yet, since the <b class="method">create</b> method
+can be implicit, users of your command will accidentally be creating
+instances of your <b class="cmd">mystring</b> type if they should mispell one
+of the subcommands.  The command will succeed--the first time--but
+won't do what's wanted.  This is very bad.</p>
+<p>The work around is to set some <span class="sectref"><a href="#section21">PRAGMAS</a></span>, as shown here:</p>
+<pre class="doctools_example">snit::type mystring {
+    pragma -hastypeinfo    no
+    pragma -hastypedestroy no
+    pragma -hasinstances   no
+    delegate typemethod * to stringhandler
+    typeconstructor {
+        set stringhandler string
+    }
+}
+</pre>
+<p>Here we've used the <b class="cmd">pragma</b> statement to tell Snit that we don't
+want the <b class="method">info</b> typemethod or the <b class="method">destroy</b> typemethod,
+and that our type has no instances; this eliminates the
+<b class="method">create</b> typemethod and all related code.  As
+a result, our ensemble command will be well-behaved, with no
+unexpected subcommands.</p>
+</div>
+</div>
+<div id="section21" class="doctools_section"><h2><a name="section21">PRAGMAS</a></h2>
+<div id="subsection150" class="doctools_subsection"><h3><a name="subsection150">What is a pragma?</a></h3>
+<p>A pragma is an option you can set in your type definitions that
+affects how the type is defined and how it works once it is defined.</p>
+</div>
+<div id="subsection151" class="doctools_subsection"><h3><a name="subsection151">How do I set a pragma?</a></h3>
+<p>Use the <b class="cmd">pragma</b> statement.  Each pragma is an option with a
+value; each time you use the <b class="cmd">pragma</b> statement you can set one or
+more of them.</p>
+</div>
+<div id="subsection152" class="doctools_subsection"><h3><a name="subsection152">How can I get rid of the &quot;info&quot; type method?</a></h3>
+<p>Set the <b class="const">-hastypeinfo</b> pragma to <b class="const">no</b>:</p>
+<pre class="doctools_example">snit::type dog {
+    pragma -hastypeinfo no
+    # ...
+}
+</pre>
+<p>Snit will refrain from defining the <b class="method">info</b> type method.</p>
+</div>
+<div id="subsection153" class="doctools_subsection"><h3><a name="subsection153">How can I get rid of the &quot;destroy&quot; type method?</a></h3>
+<p>Set the <b class="const">-hastypedestroy</b> pragma to <b class="const">no</b>:</p>
+<pre class="doctools_example">snit::type dog {
+    pragma -hastypedestroy no
+    # ...
+}
+</pre>
+<p>Snit will refrain from defining the <b class="method">destroy</b> type method.</p>
+</div>
+<div id="subsection154" class="doctools_subsection"><h3><a name="subsection154">How can I get rid of the &quot;create&quot; type method?</a></h3>
+<p>Set the <b class="const">-hasinstances</b> pragma to <b class="const">no</b>:</p>
+<pre class="doctools_example">snit::type dog {
+    pragma -hasinstances no
+    # ...
+}
+</pre>
+<p>Snit will refrain from defining the <b class="method">create</b> type method;
+if you call the type command with an unknown method name, you'll get
+an error instead of a new instance of the type.</p>
+<p>This is useful if you wish to use a <b class="cmd">snit::type</b> to define
+an ensemble command rather than a type with instances.</p>
+<p>Pragmas <b class="const">-hastypemethods</b> and <b class="const">-hasinstances</b> cannot
+both be false (or there'd be nothing left).</p>
+</div>
+<div id="subsection155" class="doctools_subsection"><h3><a name="subsection155">How can I get rid of type methods altogether?</a></h3>
+<p>Normal Tk widget type commands don't have subcommands; all they do is
+create widgets--in Snit terms, the type command calls the
+<b class="method">create</b> type method directly.  To get the same behavior from
+Snit, set the <b class="const">-hastypemethods</b> pragma to <b class="const">no</b>:</p>
+<pre class="doctools_example">snit::type dog {
+    pragma -hastypemethods no
+    #...
+}
+# Creates ::spot
+dog spot
+# Tries to create an instance called ::create
+dog create spot
+</pre>
+<p>Pragmas <b class="const">-hastypemethods</b> and <b class="const">-hasinstances</b> cannot
+both be false (or there'd be nothing left).</p>
+</div>
+<div id="subsection156" class="doctools_subsection"><h3><a name="subsection156">Why can't I create an object that replaces an old object with the same name?</a></h3>
+<p>Up until Snit 0.95, you could use any name for an instance of a
+<b class="cmd">snit::type</b>, even if the name was already in use by some other
+object or command.  You could do the following, for example:</p>
+<pre class="doctools_example">snit::type dog { ... }
+dog proc
+</pre>
+<p>You now have a new dog named &quot;proc&quot;, which is probably not something
+that you really wanted to do.  As a result, Snit now throws an error
+if your chosen instance name names an existing command.  To restore
+the old behavior, set the <b class="const">-canreplace</b> pragma to <b class="const">yes</b>:</p>
+<pre class="doctools_example">snit::type dog {
+    pragma -canreplace yes
+    # ...
+}
+</pre>
+</div>
+<div id="subsection157" class="doctools_subsection"><h3><a name="subsection157">How can I make my simple type run faster?</a></h3>
+<p>In Snit 1.x, you can set the <b class="const">-simpledispatch</b> pragma to <b class="const">yes</b>.</p>
+<p>Snit 1.x method dispatch is both flexible and fast, but the flexibility
+comes with a price.  If your type doesn't require the flexibility, the
+<b class="const">-simpledispatch</b> pragma allows you to substitute a simpler
+dispatch mechanism that runs quite a bit faster.  The limitations
+are these:</p>
+<ul class="doctools_itemized">
+<li><p>Methods cannot be delegated.</p></li>
+<li><p><b class="cmd">uplevel</b> and <b class="cmd">upvar</b> do not work as expected: the
+caller's scope is two levels up rather than one.</p></li>
+<li><p>The option-handling methods
+(<b class="cmd">cget</b>, <b class="cmd">configure</b>, and <b class="cmd">configurelist</b>) are very
+slightly slower.</p></li>
+</ul>
+<p>In Snit 2.2, the <b class="const">-simpledispatch</b> macro is obsolete, and
+ignored; all Snit 2.2 method dispatch is faster than Snit 1.x's
+<b class="const">-simpledispatch</b>.</p>
+</div>
+</div>
+<div id="section22" class="doctools_section"><h2><a name="section22">MACROS</a></h2>
+<div id="subsection158" class="doctools_subsection"><h3><a name="subsection158">What is a macro?</a></h3>
+<p>A Snit macro is nothing more than a Tcl proc that's defined in the
+Tcl interpreter used to compile Snit type definitions.</p>
+</div>
+<div id="subsection159" class="doctools_subsection"><h3><a name="subsection159">What are macros good for?</a></h3>
+<p>You can use Snit macros to define new type definition syntax, and to
+support conditional compilation.</p>
+</div>
+<div id="subsection160" class="doctools_subsection"><h3><a name="subsection160">How do I do conditional compilation?</a></h3>
+<p>Suppose you want your type to use a fast C extension if it's
+available; otherwise, you'll fallback to a slower Tcl implementation.
+You want to define one set of methods in the first case, and another
+set in the second case.  But how can your type definition know whether
+the fast C extension is available or not?</p>
+<p>It's easily done.  Outside of any type definition, define a macro that
+returns 1 if the extension is available, and 0 otherwise:</p>
+<pre class="doctools_example">if {$gotFastExtension} {
+    snit::macro fastcode {} {return 1}
+} else {
+    snit::macro fastcode {} {return 0}
+}
+</pre>
+<p>Then, use your macro in your type definition:</p>
+<pre class="doctools_example">snit::type dog {
+    if {[fastcode]} {
+        # Fast methods
+        method bark {} {...}
+        method wagtail {} {...}
+    } else {
+        # Slow methods
+        method bark {} {...}
+        method wagtail {} {...}
+    }
+}
+</pre>
+</div>
+<div id="subsection161" class="doctools_subsection"><h3><a name="subsection161">How do I define new type definition syntax?</a></h3>
+<p>Use a macro.  For example, your <b class="cmd">snit::widget</b>'s
+<b class="const">-background</b> option should be propagated to a number
+of component widgets.  You could implement that like this:</p>
+<pre class="doctools_example">snit::widget mywidget {
+    option -background -default white -configuremethod PropagateBackground
+    method PropagateBackground {option value} {
+        $comp1 configure $option $value
+        $comp2 configure $option $value
+        $comp3 configure $option $value
+    }
+}
+</pre>
+<p>For one option, this is fine; if you've got a number of options, it
+becomes tedious and error prone.  So package it as a macro:</p>
+<pre class="doctools_example">snit::macro propagate {option &quot;to&quot; components} {
+    option $option -configuremethod Propagate$option
+    set body &quot;\n&quot;
+    foreach comp $components {
+        append body &quot;\$$comp configure $option \$value\n&quot;
+    }
+    method Propagate$option {option value} $body
+}
+</pre>
+<p>Then you can use it like this:</p>
+<pre class="doctools_example">snit::widget mywidget {
+    option -background default -white
+    option -foreground default -black
+    propagate -background to {comp1 comp2 comp3}
+    propagate -foreground to {comp1 comp2 comp3}
+}
+</pre>
+</div>
+<div id="subsection162" class="doctools_subsection"><h3><a name="subsection162">Are there are restrictions on macro names?</a></h3>
+<p>Yes, there are.  You can't redefine any standard Tcl commands or Snit
+type definition statements.  You can use any other command name,
+including the name of a previously defined macro.</p>
+<p>If you're using Snit macros in your application, go ahead and name
+them in the global namespace, as shown above.  But if you're using
+them to define types or widgets for use by others, you should define
+your macros in the same namespace as your types or widgets.  That way,
+they won't conflict with other people's macros.</p>
+<p>If my fancy <b class="cmd">snit::widget</b> is called <b class="cmd">::mylib::mywidget</b>,
+for example, then I should define my <b class="cmd">propagate</b> macro as
+<b class="cmd">::mylib::propagate</b>:</p>
+<pre class="doctools_example">snit::macro mylib::propagate {option &quot;to&quot; components} { ... }
+snit::widget ::mylib::mywidget {
+    option -background default -white
+    option -foreground default -black
+    mylib::propagate -background to {comp1 comp2 comp3}
+    mylib::propagate -foreground to {comp1 comp2 comp3}
+}
+</pre>
+</div>
+</div>
+<div id="section23" class="doctools_section"><h2><a name="section23">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>snit</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key241">BWidget</a>, <a href="../../../../index.html#key237">C++</a>, <a href="../../../../index.html#key244">Incr Tcl</a>, <a href="../../../../index.html#key242">adaptors</a>, <a href="../../../../index.html#key240">class</a>, <a href="../../../../index.html#key239">mega widget</a>, <a href="../../../../index.html#key243">object</a>, <a href="../../../../index.html#key236">object oriented</a>, <a href="../../../../index.html#key235">widget</a>, <a href="../../../../index.html#key238">widget adaptors</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2003-2006, by William H. Duquette</p>
+</div>
+</div>

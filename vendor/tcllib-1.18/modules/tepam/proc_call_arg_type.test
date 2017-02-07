@@ -1,0 +1,312 @@
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# proc_call_arg_type.test
+# This file is part of the enhanced procedure and argument manager's regression
+# test. It validates the declaration and call of the procedure sub commands.
+#
+# Copyright (C) 2009, 2010 Andreas Drollinger
+# 
+# Id: proc_call_arg_type.test
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+source [file join \
+   [file dirname [file dirname [file join [pwd] [info script]]]] \
+   devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 1.0
+
+catch {namespace delete ::tepam}
+testing {
+   useLocal tepam.tcl tepam
+}
+
+# Tests is an extension of the test command. It adds the option -variations that allows \
+# specifying a list values. For each of these values the test command is executed, replacing all '%1' 
+# of the original test command string by the altered value.
+proc tests {name description args} {
+   set VariationList(0) {""}; # Default variation list 0, in case no variations are required
+   for {set NbrVariationLists 0} {1} {incr NbrVariationLists} {
+      set VariationListPos [lsearch -exact $args -variations]
+      if {$VariationListPos<0} break
+      set VariationList($NbrVariationLists) [lindex $args [expr $VariationListPos+1]]
+      set args [lreplace $args $VariationListPos [expr $VariationListPos+1]]
+   }
+   for {set TestNbr 0} {$TestNbr<[llength $VariationList(0)]} {incr TestNbr} {
+      set TestExec "test \"$name\.$TestNbr\" \"$description.$TestNbr\""
+      foreach Arg $args {
+         set NewArg $Arg
+         for {set vl 0} {$vl<$NbrVariationLists} {incr vl} {
+            regsub -all "%[expr $vl+1]" $NewArg [lindex $VariationList($vl) $TestNbr] NewArg
+         }
+         append TestExec " \{$NewArg\}"
+      }
+      uplevel 1 $TestExec
+   }
+}
+
+######## Standard types ########
+   
+   tepam::procedure AllTypeProcedure {
+      -args {
+         {-untyped -optional}
+         {-untyped2 -type "" -optional}
+         {-string -type string -optional}
+         {-text -type text -optional}
+         {-integer -type integer -optional}
+         {-alnum -type alnum -optional}
+         {-alpha -type alpha -optional}
+         {-ascii -type ascii -optional}
+         {-control -type control -optional}
+         {-boolean -type boolean -optional}
+         {-digit -type digit -optional}
+         {-double -type double -optional}
+         {-graph -type graph -optional}
+         {-lower -type lower -optional}
+         {-print -type print -optional}
+         {-punct -type punct -optional}
+         {-space -type space -optional}
+         {-upper -type upper -optional}
+         {-wordchar -type wordchar -optional}
+         {-xdigit -type xdigit -optional}
+         {-color -type color -optional}
+         {-font -type font -optional}
+      }
+   } {
+   }
+   
+      tests tepam-procargtype.string "tepam, Procedure argument type check - String " \
+               -variations {0 12 3456789 a abcdefxyz ABCDXYZ .lkajs 98237().{} ==} \
+               -body "AllTypeProcedure -string   \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.text "tepam, Procedure argument type check - Text " \
+               -variations {0 12 3456789 a abcdefxyz ABCDXYZ .lkajs 98237().{} ==} \
+               -body "AllTypeProcedure -text   \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.int1 "tepam, Procedure argument type check - Integer 1" \
+               -variations { 0 1 2 9 10 11 01 0010 100 0x10 0xFF} \
+               -body "AllTypeProcedure -integer  \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.int2 "tepam, Procedure argument type check - Integer 2" \
+               -variations { "" " " a x 0x FF . , ?  0.123 1.123 1.2e2 1.3E-1} \
+               -body "AllTypeProcedure -integer  \"%1\"" \
+               -returnCodes error -result "*requires type 'integer'*" -output "" -match glob
+      tests tepam-procargtype.alnum1 "tepam, Procedure argument type check - Alnum 1" \
+               -variations { "" 0123456779 abcdefghijABCDEFGHIJ zZ} \
+               -body "AllTypeProcedure -alnum    \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.alnum2 "tepam, Procedure argument type check - Alnum 2" \
+               -variations { " " 1.123 _ ? . , = } \
+               -body "AllTypeProcedure -alnum    \"%1\"" \
+               -returnCodes error -result "*requires type 'alnum'*" -output "" -match glob
+      tests tepam-procargtype.ascii "tepam, Procedure argument type check - Ascii" \
+               -variations { abcdefghijklmnopqrstuvfxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 +*} \
+               -body "AllTypeProcedure -ascii    \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.bool1 "tepam, Procedure argument type check - Boolean 1" \
+               -variations { 0 1 TRUE FALSE true false} \
+               -body "AllTypeProcedure -boolean  \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.bool2 "tepam, Procedure argument type check - Boolean 2" \
+               -variations { "" " " 2 3 4 5 6 7 8 9 0xa 0xFF 1.123} \
+               -body "AllTypeProcedure -boolean  \"%1\"" \
+               -returnCodes error -result "*requires type 'boolean'*" -output "" -match glob
+      tests tepam-procargtype.digit1 "tepam, Procedure argument type check - Digit 1" \
+               -variations { "" 0 1 2 3 4 5 6 7 8 9 0123456789} \
+               -body "AllTypeProcedure -digit    \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.digit2 "tepam, Procedure argument type check - Digit 2" \
+               -variations { " " a b c d e f g h i j k l m n A B C D E F G H I J K L + g %} \
+               -body "AllTypeProcedure -digit    \"%1\"" \
+               -returnCodes error -result "*requires type 'digit'*" -output "" -match glob
+      tests tepam-procargtype.double1 "tepam, Procedure argument type check - Double 1" \
+               -variations { 0 1 4 10 100 0x100 0xFFFF 00123 0.0 0.1 1.123 23.456 1E-1 1.23e3} \
+               -body "AllTypeProcedure -double   \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.double2 "tepam, Procedure argument type check - Double 2" \
+               -variations { "" " " 0xFX1 a 12F ? .} \
+               -body "AllTypeProcedure -double   \"%1\"" \
+               -returnCodes error -result "*requires type 'double'*" -output "" -match glob
+      tests tepam-procargtype.lower1 "tepam, Procedure argument type check - Lower 1" \
+               -variations { "" adsf lkva oiuwwe myxy} \
+               -body "AllTypeProcedure -lower    \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.lower2 "tepam, Procedure argument type check - Lower 2" \
+               -variations { " " asXdf asd.f "_:;" a_a} \
+               -body "AllTypeProcedure -lower    \"%1\"" \
+               -returnCodes error -result "*requires type 'lower'*" -output "" -match glob
+      tests tepam-procargtype.space1 "tepam, Procedure argument type check - Space 1" \
+               -variations {"" " " "   "} \
+               -body "AllTypeProcedure -space \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.space2 "tepam, Procedure argument type check - Space 2" \
+               -variations { a lka 123 _ ? . , } \
+               -body "AllTypeProcedure -space    \"%1\"" \
+               -returnCodes error -result "*requires type 'space'*" -output "" -match glob
+      tests tepam-procargtype.upper1 "tepam, Procedure argument type check - Upper 1" \
+               -variations { "" A B CDEF GHIJKLMNO PQRSTUVWXYZ} \
+               -body "AllTypeProcedure -upper    \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.upper2 "tepam, Procedure argument type check - Upper 2" \
+               -variations { " " a b cde CD.EF GHI1KLMNO PQRSTuVWXYZ ? . , ) (} \
+               -body "AllTypeProcedure -upper    \"%1\"" \
+               -returnCodes error -result "*requires type 'upper'*" -output "" -match glob
+      tests tepam-procargtype.xdigit1 "tepam, Procedure argument type check - Xdigit 1" \
+               -variations { 0123456789abcdefABCDEF} \
+               -body "AllTypeProcedure -xdigit   \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.xdigit2 "tepam, Procedure argument type check - Xdigit 2" \
+               -variations { g h i x y z _ ? .} \
+               -returnCodes error -body "AllTypeProcedure -xdigit   \"%1\"" \
+               -result "*requires type 'xdigit'*" -output "" -match glob
+
+######## Standard types, multiple accepted arguments ########
+   
+   tepam::procedure AllTypeProcedure_Multiple {
+      -args {
+         {-untyped -optional -multiple}
+         {-untyped2 -type "" -optional}
+         {-string -type string -optional -multiple}
+         {-text -type text -optional -multiple}
+         {-integer -type integer -optional -multiple}
+         {-alnum -type alnum -optional -multiple}
+         {-alpha -type alpha -optional -multiple}
+         {-ascii -type ascii -optional -multiple}
+         {-control -type control -optional -multiple}
+         {-boolean -type boolean -optional -multiple}
+         {-digit -type digit -optional -multiple}
+         {-double -type double -optional -multiple}
+         {-graph -type graph -optional -multiple}
+         {-lower -type lower -optional -multiple}
+         {-print -type print -optional -multiple}
+         {-punct -type punct -optional -multiple}
+         {-space -type space -optional -multiple}
+         {-upper -type upper -optional -multiple}
+         {-wordchar -type wordchar -optional -multiple}
+         {-xdigit -type xdigit -optional -multiple}
+         {-color -type color -optional -multiple}
+         {-font -type font -optional -multiple}
+      }
+   } {
+   }
+   
+      tests tepam-procargtype.string "tepam, Procedure argument type check - String" \
+               -variations { 0 12 3456789 a abcdefxyz ABCDXYZ .lkajs 98237().{} ==} \
+               -body "AllTypeProcedure_Multiple -string   \"%1\" -string \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.text "tepam, Procedure argument type check - Text" \
+               -variations { 0 12 3456789 a abcdefxyz ABCDXYZ .lkajs 98237().{} ==} \
+               -body "AllTypeProcedure_Multiple -text   \"%1\" -text \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.int1 "tepam, Procedure argument type check - Integer 1" \
+               -variations { 0 1 2 9 10 11 01 0010 100 0x10 0xFF} \
+               -body "AllTypeProcedure_Multiple -integer  \"%1\" -integer \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.int2 "tepam, Procedure argument type check - Integer 2" \
+               -variations { "" " " a x 0x FF . , ?  0.123 1.123 1.2e2 1.3E-1} \
+               -body "AllTypeProcedure_Multiple -integer  \"%1\" -integer \"%1\"" \
+               -returnCodes error -result "*requires type 'integer'*" -output "" -match glob
+      tests tepam-procargtype.alnum1 "tepam, Procedure argument type check - Alnum 1" \
+               -variations { "" 0123456779 abcdefghijABCDEFGHIJ zZ} \
+               -body "AllTypeProcedure_Multiple -alnum    \"%1\" -alnum \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.alnum2 "tepam, Procedure argument type check - Alnum2" \
+               -variations { " " 1.123 _ ? . , = } \
+               -body "AllTypeProcedure_Multiple -alnum    \"%1\" -alnum \"%1\"" \
+               -returnCodes error -result "*requires type 'alnum'*" -output "" -match glob
+      tests tepam-procargtype.ascii "tepam, Procedure argument type check - Ascii" \
+               -variations { abcdefghijklmnopqrstuvfxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 +*} \
+               -body "AllTypeProcedure_Multiple -ascii    \"%1\" -ascii \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.bool1 "tepam, Procedure argument type check - Boolean 1" \
+               -variations { 0 1 TRUE FALSE true false} \
+               -body "AllTypeProcedure_Multiple -boolean  \"%1\" -boolean \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.bool2 "tepam, Procedure argument type check - Boolean 2" \
+               -variations { "" " " 2 3 4 5 6 7 8 9 0xa 0xFF 1.123} \
+               -body "AllTypeProcedure_Multiple -boolean  \"%1\" -boolean \"%1\"" \
+               -returnCodes error -result "*requires type 'boolean'*" -output "" -match glob
+      tests tepam-procargtype.digit1 "tepam, Procedure argument type check - Digit 1" \
+               -variations { "" 0 1 2 3 4 5 6 7 8 9 0123456789} \
+               -body "AllTypeProcedure_Multiple -digit    \"%1\" -digit \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.digit2 "tepam, Procedure argument type check - Digit 2" \
+               -variations { " " a b c d e f g h i j k l m n A B C D E F G H I J K L + g %} \
+               -body "AllTypeProcedure_Multiple -digit    \"%1\" -digit \"%1\"" \
+               -returnCodes error -result "*requires type 'digit'*" -output "" -match glob
+      tests tepam-procargtype.double1 "tepam, Procedure argument type check - Double 1" \
+               -variations { 0 1 4 10 100 0x100 0xFFFF 00123 0.0 0.1 1.123 23.456 1E-1 1.23e3} \
+               -body "AllTypeProcedure_Multiple -double   \"%1\" -double \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.double2 "tepam, Procedure argument type check - Double 2" \
+               -variations { "" " " 0xFX1 a 12F ? .} \
+               -body "AllTypeProcedure_Multiple -double   \"%1\" -double \"%1\"" \
+               -returnCodes error -result "*requires type 'double'*" -output "" -match glob
+      tests tepam-procargtype.lower1 "tepam, Procedure argument type check - Lower 1" \
+               -variations { "" adsf lkva oiuwwe myxy} \
+               -body "AllTypeProcedure_Multiple -lower    \"%1\" -lower \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.lower2 "tepam, Procedure argument type check - Lower 2" \
+               -variations { " " asXdf asd.f "_:;" a_a} \
+               -body "AllTypeProcedure_Multiple -lower    \"%1\" -lower \"%1\"" \
+               -returnCodes error -result "*requires type 'lower'*" -output "" -match glob
+      tests tepam-procargtype.space1 "tepam, Procedure argument type check - Space 1" \
+               -variations {"" " " "   "} \
+               -body "AllTypeProcedure_Multiple -space \"%1\" -space \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.space2 "tepam, Procedure argument type check - Space 2" \
+               -variations { a lka 123 _ ? . , } \
+               -body "AllTypeProcedure_Multiple -space    \"%1\" -space \"%1\"" \
+               -returnCodes error -result "*requires type 'space'*" -output "" -match glob
+      tests tepam-procargtype.upper1 "tepam, Procedure argument type check - Upper 1" \
+               -variations { "" A B CDEF GHIJKLMNO PQRSTUVWXYZ} \
+               -body "AllTypeProcedure_Multiple -upper    \"%1\" -upper \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.upper2 "tepam, Procedure argument type check - Upper 2" \
+               -variations { " " a b cde CD.EF GHI1KLMNO PQRSTuVWXYZ ? . , ) (} \
+               -body "AllTypeProcedure_Multiple -upper    \"%1\" -upper \"%1\"" \
+               -returnCodes error -result "*requires type 'upper'*" -output "" -match glob
+      tests tepam-procargtype.xdigit1 "tepam, Procedure argument type check - Xdigit 1" \
+               -variations { 0123456789abcdefABCDEF} \
+               -body "AllTypeProcedure_Multiple -xdigit   \"%1\" -xdigit \"%1\"" \
+               -result "" -output ""
+      tests tepam-procargtype.xdigit2 "tepam, Procedure argument type check - Xdigit 2" \
+               -variations { g h i x y z _ ? .} \
+               -body "AllTypeProcedure_Multiple -xdigit   \"%1\" -xdigit \"%1\"" \
+               -returnCodes error -result "*requires type 'xdigit'*" -output "" -match glob
+
+######## Unknown types or untyped arguments ########
+
+   # Bad type declarations
+      test tepam-procargtype.badtd "tepam, Procedure argument type check - Bad type declaration" \
+               -body "tepam::procedure AllTypeProcedure {-args {{-unknown -type unknown -optional}} } {}" \
+               -returnCodes error -result "*type 'unknown' not known*" -output "" -match glob
+
+   # Unknown types
+      tests tepam-procargtype.unknown "tepam, Procedure argument type check - Unknown type" \
+               -body "tepam::procedure AllTypeProcedure {-args {{-unknown -optional}} } {}" \
+               -result "" -output ""
+
+######## That's all ########
+
+::tcltest::cleanupTests
+return
+
+##########################################################################
+# Id: proc_call_arg_type.test
+# Modifications:
+#
+# Revision 1.2  2012/05/07 20:26:02  droll
+# * TEPAM version 0.4.0
+# * Add the new text procedure argument type and the text multi line data
+#   entry widget.
+#
+# Revision 1.1  2010/02/11 21:50:55  droll
+# * TEPAM module checkin
+##########################################################################
+

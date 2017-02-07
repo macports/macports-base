@@ -1,0 +1,251 @@
+snit::type a_pe_grammar {
+    constructor {} {
+        install myg using pt::peg::container ${selfns}::G
+        $myg start {n Grammar}
+
+        $myg add   ALNUM
+        $myg mode  ALNUM         leaf
+        $myg rule  ALNUM         {x {t <} {t a} {t l} {t n} {t u} {t m} {t >} {n WHITESPACE}}
+
+        $myg add   ALPHA
+        $myg mode  ALPHA         leaf
+        $myg rule  ALPHA         {x {t <} {t a} {t l} {t p} {t h} {t a} {t >} {n WHITESPACE}}
+
+        $myg add   AND
+        $myg mode  AND           leaf
+        $myg rule  AND           {x {t &} {n WHITESPACE}}
+
+        $myg add   APOSTROPH
+        $myg mode  APOSTROPH     void
+        $myg rule  APOSTROPH     {t '}
+
+        $myg add   ASCII
+        $myg mode  ASCII         leaf
+        $myg rule  ASCII         {x {t <} {t a} {t s} {t c} {t i} {t i} {t >} {n WHITESPACE}}
+
+        $myg add   Attribute
+        $myg mode  Attribute     value
+        $myg rule  Attribute     {x {/ {n VOID} {n LEAF}} {n COLON}}
+
+        $myg add   Char
+        $myg mode  Char          value
+        $myg rule  Char          {/ {n CharSpecial} {n CharOctalFull} {n CharOctalPart} {n CharUnicode} {n CharUnescaped}}
+
+        $myg add   CharOctalFull
+        $myg mode  CharOctalFull leaf
+        $myg rule  CharOctalFull {x {t \134} {.. 0 2} {.. 0 7} {.. 0 7}}
+
+        $myg add   CharOctalPart
+        $myg mode  CharOctalPart leaf
+        $myg rule  CharOctalPart {x {t \134} {.. 0 7} {? {.. 0 7}}}
+
+        $myg add   CharSpecial
+        $myg mode  CharSpecial   leaf
+        $myg rule  CharSpecial   {x {t \134} {/ {t n} {t r} {t t} {t '} {t \42} {t \133} {t \135} {t \134}}}
+
+        $myg add   CharUnescaped
+        $myg mode  CharUnescaped leaf
+        $myg rule  CharUnescaped {x {! {t \134}} dot}
+
+        $myg add   CharUnicode
+        $myg mode  CharUnicode   leaf
+        $myg rule  CharUnicode   {x {t \134} {t u} xdigit {? {x xdigit {? {x xdigit {? xdigit}}}}}}
+
+        $myg add   Class
+        $myg mode  Class         value
+        $myg rule  Class         {x {n OPENB} {* {x {! {n CLOSEB}} {n Range}}} {n CLOSEB} {n WHITESPACE}}
+
+        $myg add   CLOSE
+        $myg mode  CLOSE         void
+        $myg rule  CLOSE         {x {t \51} {n WHITESPACE}}
+
+        $myg add   CLOSEB
+        $myg mode  CLOSEB        void
+        $myg rule  CLOSEB        {t \135}
+
+        $myg add   COLON
+        $myg mode  COLON         void
+        $myg rule  COLON         {x {t :} {n WHITESPACE}}
+
+        $myg add   COMMENT
+        $myg mode  COMMENT       void
+        $myg rule  COMMENT       {x {t #} {* {x {! {n EOL}} dot}} {n EOL}}
+
+        $myg add   CONTROL
+        $myg mode  CONTROL       leaf
+        $myg rule  CONTROL       {x {t <} {t c} {t o} {t n} {t t} {t r} {t o} {t l} {t >} {n WHITESPACE}}
+
+        $myg add   DAPOSTROPH
+        $myg mode  DAPOSTROPH    void
+        $myg rule  DAPOSTROPH    {t \42}
+
+        $myg add   DDIGIT
+        $myg mode  DDIGIT        leaf
+        $myg rule  DDIGIT        {x {t <} {t d} {t d} {t i} {t g} {t i} {t t} {t >} {n WHITESPACE}}
+
+        $myg add   Definition
+        $myg mode  Definition    value
+        $myg rule  Definition    {x {? {n Attribute}} {n Identifier} {n IS} {n Expression} {n SEMICOLON}}
+
+        $myg add   DIGIT
+        $myg mode  DIGIT         leaf
+        $myg rule  DIGIT         {x {t <} {t d} {t i} {t g} {t i} {t t} {t >} {n WHITESPACE}}
+
+        $myg add   DOT
+        $myg mode  DOT           leaf
+        $myg rule  DOT           {x {t .} {n WHITESPACE}}
+
+        $myg add   EOF
+        $myg mode  EOF           void
+        $myg rule  EOF           {! dot}
+
+        $myg add   EOL
+        $myg mode  EOL           void
+        $myg rule  EOL           {/ {t \n} {t \r}}
+
+        $myg add   Expression
+        $myg mode  Expression    value
+        $myg rule  Expression    {x {n Sequence} {* {x {n SLASH} {n Sequence}}}}
+
+        $myg add   Final
+        $myg mode  Final         void
+        $myg rule  Final         {x {t E} {t N} {t D} {n WHITESPACE} {n SEMICOLON} {n WHITESPACE}}
+
+        $myg add   Grammar
+        $myg mode  Grammar       value
+        $myg rule  Grammar       {x {n WHITESPACE} {n Header} {* {n Definition}} {n Final} {n EOF}}
+
+        $myg add   GRAPH
+        $myg mode  GRAPH         leaf
+        $myg rule  GRAPH         {x {t <} {t g} {t r} {t a} {t p} {t h} {t >} {n WHITESPACE}}
+
+        $myg add   Header
+        $myg mode  Header        value
+        $myg rule  Header        {x {n PEG} {n Identifier} {n StartExpr}}
+
+        $myg add   Ident
+        $myg mode  Ident         leaf
+        $myg rule  Ident         {x {/ {t _} {t :} alpha} {* {/ {t _} {t :} alnum}}}
+
+        $myg add   Identifier
+        $myg mode  Identifier    value
+        $myg rule  Identifier    {x {n Ident} {n WHITESPACE}}
+
+        $myg add   IS
+        $myg mode  IS            void
+        $myg rule  IS            {x {t <} {t -} {n WHITESPACE}}
+
+        $myg add   LEAF
+        $myg mode  LEAF          leaf
+        $myg rule  LEAF          {x {t l} {t e} {t a} {t f} {n WHITESPACE}}
+
+        $myg add   Literal
+        $myg mode  Literal       value
+        $myg rule  Literal       {/ {x {n APOSTROPH} {* {x {! {n APOSTROPH}} {n Char}}} {n APOSTROPH} {n WHITESPACE}} {x {n DAPOSTROPH} {* {x {! {n DAPOSTROPH}} {n Char}}} {n DAPOSTROPH} {n WHITESPACE}}}
+
+        $myg add   LOWER
+        $myg mode  LOWER         leaf
+        $myg rule  LOWER         {x {t <} {t l} {t o} {t w} {t e} {t r} {t >} {n WHITESPACE}}
+
+        $myg add   NOT
+        $myg mode  NOT           leaf
+        $myg rule  NOT           {x {t !} {n WHITESPACE}}
+
+        $myg add   OPEN
+        $myg mode  OPEN          void
+        $myg rule  OPEN          {x {t \50} {n WHITESPACE}}
+
+        $myg add   OPENB
+        $myg mode  OPENB         void
+        $myg rule  OPENB         {t \133}
+
+        $myg add   PEG
+        $myg mode  PEG           void
+        $myg rule  PEG           {x {t P} {t E} {t G} {! {/ {t _} {t :} alnum}} {n WHITESPACE}}
+
+        $myg add   PLUS
+        $myg mode  PLUS          leaf
+        $myg rule  PLUS          {x {t +} {n WHITESPACE}}
+
+        $myg add   Prefix
+        $myg mode  Prefix        value
+        $myg rule  Prefix        {x {? {/ {n AND} {n NOT}}} {n Suffix}}
+
+        $myg add   Primary
+        $myg mode  Primary       value
+        $myg rule  Primary       {/ {n ALNUM} {n ALPHA} {n ASCII} {n CONTROL} {n DDIGIT} {n DIGIT} {n GRAPH} {n LOWER} {n PRINTABLE} {n PUNCT} {n SPACE} {n UPPER} {n WORDCHAR} {n XDIGIT} {n Identifier} {x {n OPEN} {n Expression} {n CLOSE}} {n Literal} {n Class} {n DOT}}
+
+        $myg add   PRINTABLE
+        $myg mode  PRINTABLE     leaf
+        $myg rule  PRINTABLE     {x {t <} {t p} {t r} {t i} {t n} {t t} {t >} {n WHITESPACE}}
+
+        $myg add   PUNCT
+        $myg mode  PUNCT         leaf
+        $myg rule  PUNCT         {x {t <} {t p} {t u} {t n} {t c} {t t} {t >} {n WHITESPACE}}
+
+        $myg add   QUESTION
+        $myg mode  QUESTION      leaf
+        $myg rule  QUESTION      {x {t ?} {n WHITESPACE}}
+
+        $myg add   Range
+        $myg mode  Range         value
+        $myg rule  Range         {/ {x {n Char} {n TO} {n Char}} {n Char}}
+
+        $myg add   SEMICOLON
+        $myg mode  SEMICOLON     void
+        $myg rule  SEMICOLON     {x {t \73} {n WHITESPACE}}
+
+        $myg add   Sequence
+        $myg mode  Sequence      value
+        $myg rule  Sequence      {+ {n Prefix}}
+
+        $myg add   SLASH
+        $myg mode  SLASH         void
+        $myg rule  SLASH         {x {t /} {n WHITESPACE}}
+
+        $myg add   SPACE
+        $myg mode  SPACE         leaf
+        $myg rule  SPACE         {x {t <} {t s} {t p} {t a} {t c} {t e} {t >} {n WHITESPACE}}
+
+        $myg add   STAR
+        $myg mode  STAR          leaf
+        $myg rule  STAR          {x {t *} {n WHITESPACE}}
+
+        $myg add   StartExpr
+        $myg mode  StartExpr     value
+        $myg rule  StartExpr     {x {n OPEN} {n Expression} {n CLOSE}}
+
+        $myg add   Suffix
+        $myg mode  Suffix        value
+        $myg rule  Suffix        {x {n Primary} {? {/ {n QUESTION} {n STAR} {n PLUS}}}}
+
+        $myg add   TO
+        $myg mode  TO            void
+        $myg rule  TO            {t -}
+
+        $myg add   UPPER
+        $myg mode  UPPER         leaf
+        $myg rule  UPPER         {x {t <} {t u} {t p} {t p} {t e} {t r} {t >} {n WHITESPACE}}
+
+        $myg add   VOID
+        $myg mode  VOID          leaf
+        $myg rule  VOID          {x {t v} {t o} {t i} {t d} {n WHITESPACE}}
+
+        $myg add   WHITESPACE
+        $myg mode  WHITESPACE    void
+        $myg rule  WHITESPACE    {* {/ space {n COMMENT}}}
+
+        $myg add   WORDCHAR
+        $myg mode  WORDCHAR      leaf
+        $myg rule  WORDCHAR      {x {t <} {t w} {t o} {t r} {t d} {t c} {t h} {t a} {t r} {t >} {n WHITESPACE}}
+
+        $myg add   XDIGIT
+        $myg mode  XDIGIT        leaf
+        $myg rule  XDIGIT        {x {t <} {t x} {t d} {t i} {t g} {t i} {t t} {t >} {n WHITESPACE}}
+
+        return
+    }
+
+    component myg
+    delegate method * to myg
+}

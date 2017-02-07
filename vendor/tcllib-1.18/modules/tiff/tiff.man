@@ -1,0 +1,174 @@
+[manpage_begin tiff n 0.2.1]
+[keywords image]
+[keywords tif]
+[keywords tiff]
+[copyright {2005-2006, Aaron Faupell <afaupell@users.sourceforge.net>}]
+[moddesc   {TIFF image manipulation}]
+[titledesc {TIFF reading, writing, and querying and manipulation of meta data}]
+[category  {File formats}]
+[require Tcl 8.2]
+[require tiff [opt 0.2.1]]
+[description]
+[para]
+
+This package provides commands to query, modify, read, and write TIFF images.
+TIFF stands for [term {Tagged Image File Format}] and is a standard
+for lossless storage of photographical images and associated metadata.
+It is specified at [uri http://partners.adobe.com/public/developer/tiff/index.html].
+[para]
+Multiple images may be stored in a single TIFF file. The [opt image] options to the functions
+in this package are for accessing images other than the first. Data in a TIFF image is
+stored as a series of tags having a numerical value, which are represented in either a 4 digit
+hexadecimal format or a string name. For a reference on defined tags and their meanings see
+[uri http://www.awaresystems.be/imaging/tiff/tifftags.html]
+
+[section COMMANDS]
+[list_begin definitions]
+
+[call [cmd ::tiff::isTIFF] [arg file]]
+
+Returns a boolean value indicating if [arg file] is a
+TIFF image.
+
+[call [cmd ::tiff::byteOrder] [arg file]]
+
+Returns either [const big] or [const little].
+
+Throws an error if [arg file] is not a TIFF image.
+
+[call [cmd ::tiff::numImages] [arg file]]
+
+Returns the number of images in [arg file].
+
+Throws an error if [arg file] is not a TIFF image.
+
+[call [cmd ::tiff::dimensions] [arg file] [opt image]]
+
+Returns the dimensions of image number [opt image] in [arg file] as a list of the
+horizontal and vertical pixel count.
+
+Throws an error if [arg file] is not a TIFF image.
+
+[call [cmd ::tiff::imageInfo] [arg file] [opt image]]
+
+Returns a dictionary with keys [const ImageWidth], [const ImageLength],
+[const BitsPerSample], [const Compression], [const PhotometricInterpretation],
+[const ImageDescription], [const Orientation], [const XResolution],
+[const YResolution], [const ResolutionUnit], [const DateTime], [const Artist],
+and [const HostComputer]. The values are the associated properties of
+the TIFF [opt image] in [arg file]. Values may be empty if the associated tag is not
+present in the file.
+
+[example {
+    puts [::tiff::imageInfo photo.tif]
+
+    ImageWidth 686 ImageLength 1024 BitsPerSample {8 8 8} Compression 1
+    PhotometricInterpretation 2 ImageDescription {} Orientation 1
+    XResolution 170.667 YResolution 170.667 ResolutionUnit 2 DateTime {2005:12:28 19:44:45}
+    Artist {} HostComputer {}
+}]
+
+There is nothing special about these tags, this is simply a convience procedure which calls
+[cmd getEntry] with common entries.
+
+Throws an error if [arg file] is not a TIFF image.
+
+[call [cmd ::tiff::entries] [arg file] [opt image]]
+
+Returns a list of all entries in the given [arg file] and [opt image]
+in hexadecimal format.
+
+Throws an error if [arg file] is not a TIFF image.
+
+[call [cmd ::tiff::getEntry] [arg file] [arg entry] [opt image]]
+
+Returns the value of [arg entry] from image [opt image] in the TIFF [arg file].
+[arg entry] may be a list of multiple entries. If an entry does not exist, an
+empty string is returned
+
+[example {
+    set data [::tiff::getEntry photo.tif {0131 0132}]
+    puts "file was written at [lindex $data 0] with software [lindex $data 1]"
+}]
+
+Throws an error if [arg file] is not a TIFF image.
+
+[call [cmd ::tiff::addEntry] [arg file] [arg entry] [opt image]]
+
+Adds the specified entries to the image named by [opt image] (default 0), or optionally [const all].
+[arg entry] must be a list where each element is a list of tag, type, and value. If a tag already
+exists, it is overwritten.
+
+[example {
+    ::tiff::addEntry photo.tif {{010e 2 "an example photo"} {013b 2 "Aaron F"}}
+}]
+
+The data types are defined as follows
+[list_begin definitions]
+[def [const 1]] BYTE (8 bit unsigned integer)
+[def [const 2]] ASCII
+[def [const 3]] SHORT (16 bit unsigned integer)
+[def [const 4]] LONG (32 bit unsigned integer)
+[def [const 5]] RATIONAL
+[def [const 6]] SBYTE (8 bit signed byte)
+[def [const 7]] UNDEFINED (uninterpreted binary data)
+[def [const 8]] SSHORT (signed 16 bit integer)
+[def [const 9]] SLONG (signed 32 bit integer)
+[def [const 10]] SRATIONAL
+[def [const 11]] FLOAT (32 bit floating point number)
+[def [const 12]] DOUBLE (64 bit floating point number)
+[list_end]
+
+Throws an error if [arg file] is not a TIFF image.
+
+[call [cmd ::tiff::deleteEntry] [arg file] [arg entry] [opt image]]
+
+Deletes the specified entries from the image named by [opt image] (default 0), or optionally [const all].
+
+Throws an error if [arg file] is not a TIFF image.
+
+[call [cmd ::tiff::getImage] [arg file] [opt image]]
+
+Returns the name of a Tk image containing the image at index [opt image] from [arg file]
+Throws an error if [arg file] is not a TIFF image, or if image is an unsupported format.
+Supported formats are uncompressed 24 bit RGB and uncompressed 8 bit palette.
+
+[call [cmd ::tiff::writeImage] [arg image] [arg file] [opt entry]]
+
+Writes the contents of the Tk image [arg image] to a tiff file [arg file]. Files are
+written in the 24 bit uncompressed format, with big endian byte order. Additional entries
+to be added to the image may be specified, in the same format as [cmd tiff::addEntry]
+
+[call [cmd ::tiff::nametotag] [arg names]]
+
+Returns a list with [arg names] translated from string to 4 digit format. 4 digit names
+in the input are passed through unchanged. Strings without a defined tag name will throw
+an error.
+
+[call [cmd ::tiff::tagtoname] [arg tags]]
+
+Returns a list with [arg tags] translated from 4 digit to string format. If a tag does
+not have a defined name it is passed through unchanged.
+
+[call [cmd ::tiff::debug] [arg file]]
+
+Prints everything we know about the given file in a nice format.
+
+[list_end]
+
+[section VARIABLES]
+
+The mapping of 4 digit tag names to string names uses the array ::tiff::tiff_tags. The reverse
+mapping uses the array ::tiff::tiff_sgat.
+
+[section LIMITATIONS]
+
+[list_begin enumerated]
+[enum] Cannot write exif ifd
+[enum] Reading limited to uncompressed 8 bit rgb and 8 bit palletized images
+[enum] Writing limited to uncompressed 8 bit rgb
+[list_end]
+
+[vset CATEGORY tiff]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

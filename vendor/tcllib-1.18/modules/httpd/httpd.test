@@ -1,0 +1,285 @@
+# httpd.test - Copyright (c) 2015 Sean Woods
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.6 ;# tool requires 8.6
+testsNeedTcltest 2
+
+testsNeed TclOO 1
+
+support {
+  use cmdline/cmdline.tcl cmdline
+  use fileutil/fileutil.tcl fileutil
+  use sha1/sha1.tcl sha1
+  use uri/uri.tcl uri
+  use ncgi/ncgi.tcl ncgi
+
+  use dns/ip.tcl ip
+  use nettool/nettool.tcl nettool
+
+  use dicttool/dicttool.tcl dicttool
+  use cron/cron.tcl cron
+  use oodialect/oodialect.tcl oo::dialect
+  use oometa/oometa.tcl oo::meta
+  use tool/index.tcl tool
+}
+
+testing {
+  useLocal httpd.tcl httpd
+}
+
+# -------------------------------------------------------------------------
+
+namespace eval ::httpd {}
+namespace eval ::httpd::test {}
+
+###
+# Minimal test harness for the .tests
+# Not intended for public consumption
+# (But if you find it handy, please steal!)
+namespace eval ::httpd::test {}
+
+proc ::httpd::test::send {port text} {
+  set sock [socket localhost $port]
+  variable reply
+  set reply($sock) {}
+  chan configure $sock -translation binary -blocking 0 -buffering full -buffersize 4096
+  chan event $sock readable [list ::httpd::test::get_reply $sock]
+  
+  set headers {}
+  set body {}
+  set read_headers 1
+  foreach line [split $text \n] {
+    if {$read_headers} {
+      if { $line eq {} } {
+        set read_headers 0
+      } else {
+        append headers $line \n
+      }
+    } else {
+      append body $line \n
+    }
+  }
+  append headers "Content-Type: text/plain" \n
+  append headers "Content-Length: [string length $body]" \n
+  puts $sock "$headers\n$body"
+  flush $sock
+  while {$reply($sock) eq {}} {
+    update
+  }
+  #vwait [namespace current]::reply($sock)
+  return $reply($sock)
+}
+
+proc ::httpd::test::get_reply {sock} {
+  variable buffer
+  set data [read $sock]
+  append buffer($sock) $data
+  if {[eof $sock]} {
+    chan event $sock readable {}
+    set [namespace current]::reply($sock) $buffer($sock)
+    unset buffer($sock)
+  }
+}
+
+
+
+###
+# Build the reply class
+###
+tool::class create ::httpd::test::reply {  
+  superclass ::httpd::reply 
+  
+  method error {code {msg {}}} {
+    my reset
+    my variable data error_codes
+    if {![info exists data(url)]} {
+      set data(url) {}
+    }
+    if {![info exists error_codes($code)]} {
+      set errorstring "Unknown Error Code"
+    } else {
+      set errorstring $error_codes($code)
+    }
+    my reply_headers replace {}
+    my reply_headers set Status: "$code $errorstring"
+    my reply_headers set Content-Type: {text/plain}
+    my puts "
+$code $errorstring
+Got the error $code $errorstring
+
+while trying to obtain $data(url)
+"
+  }
+
+  method reset {} {
+    my variable reply_body
+    my reply_headers replace {Status: {200 OK} Content-Type: text/plain}
+    set reply_body {}
+  }
+  
+  method content {} {
+    my reset
+    switch [my query_headers get REQUEST_URI] {
+      /file {
+        my variable reply_file
+        set reply_file [file join $::here pkgIndex.tcl]
+      }
+      /time {
+	my puts [clock seconds]
+      }
+      /error {
+	error {
+The programmer asked me to die this way
+	}
+      }
+      /echo -
+      default {
+        my puts [my PostData]
+      }
+    }
+  }
+
+  ###
+  # Output the result or error to the channel
+  # and destroy this object
+  ###
+  method output {} {
+    my variable reply_body reply_file reply_chan chan
+    chan configure $chan  -translation {binary binary}
+
+    set headers [my reply_headers dump]
+    if {[dict exists $headers Status:]} {
+      set result "[my EncodeStatus [dict get $headers Status:]]\n"
+    } else {
+      set result "[my EncodeStatus {505 Internal Error}]\n"
+
+    }
+    foreach {key value} $headers {
+      # Ignore Status and Content-length, if given
+      if {$key in {Status: Content-length:}} continue
+      append result "$key $value" \n
+    }
+    if {![info exists reply_file] || [string length $reply_body]} {
+      ###
+      # Return dynamic content
+      ###
+      set reply_body [string trim $reply_body]
+      append result "Content-length: [string length $reply_body]" \n \n
+      append result $reply_body
+      puts -nonewline $chan $result
+    } else {
+      ###
+      # Return a stream of data from a file
+      ###
+      append result "Content-length: [file size $reply_file]" \n \n
+      puts -nonewline $chan $result
+      set reply_chan [open $reply_file r]
+      chan copy $reply_chan $chan
+      catch {close $reply_chan}
+    }
+    chan flush $chan    
+    my destroy
+  }
+}
+
+###
+# Build the server
+###
+tool::class create httpd::test::app {
+  superclass ::httpd::server
+  
+  property reply_class ::httpd::test::reply
+}
+
+httpd::test::app create TESTAPP port 10001
+
+
+test httpd-client-0001 {Do an echo request} {
+
+set reply [::httpd::test::send 10001 {POST /echo HTTP/1.0
+
+THIS IS MY CODE
+}]
+} {HTTP/1.0 200 OK
+Content-Type: text/plain
+Connection: close
+Content-length: 15
+
+THIS IS MY CODE}
+
+test httpd-client-0002 {Do another echo request} {
+set reply [::httpd::test::send 10001 {POST /echo HTTP/1.0
+
+THOUGH THERE ARE MANY LIKE IT
+}]
+} {HTTP/1.0 200 OK
+Content-Type: text/plain
+Connection: close
+Content-length: 29
+
+THOUGH THERE ARE MANY LIKE IT}
+
+test httpd-client-0003 {Do another echo request} {
+set reply [::httpd::test::send 10001 {POST /echo HTTP/1.0
+
+THIS ONE ALONE IS MINE
+}]
+} {HTTP/1.0 200 OK
+Content-Type: text/plain
+Connection: close
+Content-length: 22
+
+THIS ONE ALONE IS MINE}
+
+test httpd-client-0004 {URL Generates Error} {
+
+set reply [::httpd::test::send 10001 {POST /error HTTP/1.0
+
+THIS ONE ALONE IS MINE
+}] } {HTTP/1.0 500 Server Internal Error
+Content-Type: text/plain
+Connection: close
+Content-length: 89
+
+500 Server Internal Error
+Got the error 500 Server Internal Error
+
+while trying to obtain}
+
+set checkreply [subst {HTTP/1.0 200 OK
+Content-Type: text/plain
+Connection: close
+Content-length: 10
+
+[clock seconds]}]
+
+test httpd-client-0005 {URL Different output with a different request} {
+set reply [::httpd::test::send 10001 {POST /time HTTP/1.0
+
+THIS ONE ALONE IS MINE
+}] } $checkreply
+
+set fin [open [file join $here pkgIndex.tcl] r]
+set checkreply [read $fin]
+close $fin
+test httpd-client-0006 {Return a file} {
+set reply [::httpd::test::send 10001 {POST /file HTTP/1.0
+}] } "HTTP/1.0 200 OK
+Content-Type: text/plain
+Connection: close
+Content-length: [string length $checkreply]
+
+$checkreply"
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

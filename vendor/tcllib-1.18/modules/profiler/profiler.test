@@ -1,0 +1,474 @@
+# Profiler tests.                                              -*- tcl -*-
+#
+# Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# All rights reserved.
+#
+# RCS: @(#) $Id: profiler.test,v 1.20 2006/10/09 21:41:41 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 1.0
+
+testing {
+    useLocal profiler.tcl profiler
+}
+
+::tcltest::testConstraint tcl8.4only \
+	[expr {![package vsatisfies [package provide Tcl] 8.5]}]
+
+# -------------------------------------------------------------------------
+
+test profiler-1.0 {profiler::init redirects the proc command} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	list [interp alias {} proc] [info commands ::_oldProc]
+    }]
+    interp delete $c
+    set result
+} [list ::profiler::profProc ::_oldProc]
+
+test profiler-2.0 {profiler creates two wrapper proc and real proc} {tcl8.3only} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	proc foo {} {
+	    puts "foo!"
+	}
+	list [info commands foo] [info commands fooORIG]
+    }]
+    interp delete $c
+    set result
+} [list foo fooORIG]
+test profiler-2.1 {profiler creates procs in correct scope} {tcl8.3only} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	namespace eval foo {}
+	proc ::foo::foo {} {
+	    puts "foo!"
+	}
+	list [info commands ::foo::foo] [info commands ::foo::fooORIG]
+    }]
+    interp delete $c
+    set result
+} [list ::foo::foo ::foo::fooORIG]
+test profiler-2.2 {profiler creates procs in correct scope} {tcl8.3only} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	namespace eval foo {
+	    proc foo {} {
+		puts "foo!"
+	    }
+	}
+	list [info commands ::foo::foo] [info commands ::foo::fooORIG]
+    }]
+    interp delete $c
+    set result
+} [list ::foo::foo ::foo::fooORIG]
+test profiler-2.3 {profiler creates procs in correct scope} {tcl8.3only} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	namespace eval foo {
+	    namespace eval bar {}
+	    proc bar::foo {} {
+		puts "foo!"
+	    }
+	}
+	list [info commands ::foo::bar::foo] \
+		[info commands ::foo::bar::fooORIG]
+    }]
+    interp delete $c
+    set result
+} [list ::foo::bar::foo ::foo::bar::fooORIG]
+test profiler-2.4 {profiler creates procs in correct scope} {tcl8.3only} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	namespace eval foo {
+	    proc ::foo {} {
+		puts "foo!"
+	    }
+	}
+	list [info commands ::foo] \
+		[info commands ::fooORIG]
+    }]
+    interp delete $c
+    set result
+} [list ::foo ::fooORIG]
+
+test profiler-3.1 {profiler wrappers do profiling} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	proc ::foo {} {
+	    set foobar 0
+	}
+	foo
+	foo
+	foo
+	foo
+	profiler::dump ::foo
+    }]
+    interp delete $c
+    array set bar $result
+    array set foo $bar(::foo)
+    list callCount $foo(callCount) callerDist $foo(callerDist)
+} [list callCount 4 callerDist [list GLOBAL 4]]
+
+test profiler::leaveHandler::initialize_descendent_time {} {
+    # Verify that the profiler tracks descendent time correctly.  We'll make
+    # a simple call tree, foo -> bar, then invoke foo, then check the profiler
+    # stats to see that _some_ descendent time has been logged for the call 
+    # to bar.  We won't be able to predict exactly how much time will get 
+    # billed there, but it should be non-zero.
+
+    set c [interp create]
+    interp alias $c parentSet {} set
+    array set stats [lindex [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+
+	profiler::init
+	proc ::foo {} {
+	    ::bar
+	}
+        proc ::bar {} {
+            after 300
+        }
+	foo
+
+	profiler::dump ::foo
+    }] 1]
+    interp delete $c
+    list descendantTime [expr {$stats(descendantTime) > 0}]
+} {descendantTime 1}
+test profiler::leaveHandler::increment_descendent_time {} {
+    # Verify that the profiler increments descendent time each time a
+    # a descendent is invoked.  We'll make a simple call tree, foo -> bar, then
+    # invoke foo, check the descendent time for foo, then invoke foo again and
+    # check the descendent time again.  It should have been incremented after
+    # the second call.
+
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	proc ::foo {} {
+	    ::bar
+	}
+        proc ::bar {} {
+            after 300
+        }
+	foo
+        array set stats [lindex [profiler::dump ::foo] 1]
+        set before $stats(descendantTime)
+        foo
+        array set stats [lindex [profiler::dump ::foo] 1]
+        set after $stats(descendantTime)
+        list before [expr {$before - $before}] \
+            after [expr {($after - $before) > 0}]
+    }]
+    interp delete $c
+    set result
+} {before 0 after 1}
+
+test profiler-4.1 {profiler::print produces nicer output than dump} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	proc ::foo {} {
+	    set foobar 0
+	}
+	foo
+	foo
+	foo
+	foo
+	profiler::print ::foo
+    }]
+    interp delete $c
+    regsub {Compile time:.*} $result {} result
+    string trim $result
+} "Profiling information for ::foo
+============================================================
+            Total calls:  4
+    Caller distribution:
+  GLOBAL:  4"
+
+test profiler-5.1 {profiler respects suspend/resume} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	proc ::foo {} {
+	    set foobar 0
+	}
+	foo
+	foo
+	foo
+	foo
+	profiler::suspend ::foo ; # note the qualification, has to match proc!
+	foo
+	foo
+	set res [profiler::print ::foo]
+	profiler::resume
+	set res
+    }]
+    interp delete $c
+    regsub {Compile time:.*} $result {} result
+    string trim $result
+} "Profiling information for ::foo
+============================================================
+            Total calls:  4
+    Caller distribution:
+  GLOBAL:  4"
+
+test profiler-6.1 {profiler handles functions with funny names} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set     auto_path [parentSet auto_path]
+	lappend auto_path [file dirname [file dirname [info script]]]
+	package require profiler
+	profiler::init
+	proc ::foo(bar) {} {
+	    set foobar 0
+	}
+	foo(bar); foo(bar); foo(bar)
+	profiler::dump ::foo(bar)
+    }]
+    interp delete $c
+    array set bar $result
+    array set foo ${bar(::foo(bar))}
+    list callCount $foo(callCount) callerDist $foo(callerDist)
+} [list callCount 3 callerDist [list GLOBAL 3]]
+
+test profiler-7.1 {sortFunctions} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	catch {profiler::sortFunctions} res
+	set res
+    }]
+    interp delete $c
+    set result
+} "unknown statistic \"\": should be calls, compileTime, exclusiveRuntime,\
+nonCompileTime, totalRuntime, avgExclusiveRuntime, or avgRuntime"
+test profiler-7.2 {sortFunctions} tcl8.4only {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	profiler::sortFunctions calls
+    }]
+    interp delete $c
+    set result
+} [list [list ::bar 1] [list ::foo 2]]
+test profiler-7.2-85 {sortFunctions} tcl8.5plus {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	profiler::sortFunctions calls
+    }]
+    interp delete $c
+    set result
+} [list [list ::tcl::clock::scan 0] [list ::tcl::clock::format 0] [list ::tcl::clock::add 0] [list ::bar 1] [list ::foo 2]]
+test profiler-7.3 {sortFunctions} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	catch {profiler::sortFunctions compileTime}
+    }]
+    interp delete $c
+    set result
+} 0
+test profiler-7.4 {sortFunctions} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	catch {profiler::sortFunctions totalRuntime}
+    }]
+    interp delete $c
+    set result
+} 0
+test profiler-7.5 {sortFunctions} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	catch {profiler::sortFunctions avgRuntime}
+    }]
+    interp delete $c
+    set result
+} 0
+
+test profiler-8.1 {reset} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	profiler::reset
+	profiler::dump ::foo
+    }]
+    interp delete $c
+    array set bar $result
+    array set foo $bar(::foo)
+    list callCount $foo(callCount) callerDist $foo(callerDist)
+} [list callCount 0 callerDist [list ]]
+test profiler-8.2 {reset with a pattern} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	profiler::reset ::foo
+	profiler::dump *
+    }]
+    interp delete $c
+    array set data $result
+    catch {unset foo}
+    catch {unset bar}
+    array set foo $data(::foo)
+    array set bar $data(::bar)
+    list [list callCount $foo(callCount) callerDist $foo(callerDist)] \
+	    [list callCount $bar(callCount) callerDist $bar(callerDist)]
+} [list [list callCount 0 callerDist [list ]] \
+	[list callCount 1 callerDist [list GLOBAL 1]]]
+
+test profiler-9.1 {dump for multiple functions} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    set result [$c eval {
+	set auto_path [parentSet auto_path]
+	package require profiler
+	profiler::init
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	profiler::dump *
+    }]
+    interp delete $c
+    array set data $result
+    catch {unset foo}
+    catch {unset bar}
+    array set foo $data(::foo)
+    array set bar $data(::bar)
+    list [list callCount $foo(callCount) callerDist $foo(callerDist)] \
+	    [list callCount $bar(callCount) callerDist $bar(callerDist)]
+} [list [list callCount 2 callerDist [list GLOBAL 2]] \
+	[list callCount 1 callerDist [list GLOBAL 1]]]
+
+catch {unset foo}
+catch {unset bar}
+
+testsuiteCleanup

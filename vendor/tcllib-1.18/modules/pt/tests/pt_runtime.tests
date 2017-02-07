@@ -1,0 +1,150 @@
+# -*- tcl -*-
+
+# Testing the handling of various simple grammars for specific inputs,
+# using both interpretation and generated parsers.
+
+# -------------------------------------------------------------------------
+
+proc makei {g} {
+    set p [pt::peg::interp P]
+    $p use $g
+    return $p
+}
+
+proc makep {g suffix} {
+    # Generate a snit parser for G, then make an instance to
+    # handle the actual parsing of the input.
+    pt::peg::to::tclparam reset
+    pt::peg::to::tclparam configure -name TEMPLATE$suffix
+    pt::peg::to::tclparam configure -file TEST$suffix
+
+    pt::tclparam::configuration::snit def \
+	PARSER$suffix SNIT_PACKAGE$suffix 1 \
+	{pt::peg::to::tclparam configure}
+
+    set c [pt::peg::to::tclparam convert [$g serialize]]
+
+    # The catch is required because the generated code ends in
+    # 'return' (ending the code in the file). This command must not
+    # stop us from setting this up in memory.
+    catch { uplevel 1 $c }
+
+    return [::PARSER$suffix P]
+}
+
+proc reformat {ast} {
+    return [join [split [pt::ast print $ast] \n]]
+}
+
+# -------------------------------------------------------------------------
+
+foreach {k section expected} {
+    0 leaf  {<Grammar> :: 0 1     <String> :: 0 1}
+    1 value {<Grammar> :: 0 1     <String> :: 0 1}
+    2 void  {<Grammar> :: 0 1}
+} {
+    # Set the grammar up...
+    set g [pt::peg::container G]
+    $g start {n Grammar}
+    $g add   Grammar String
+    $g modes [list Grammar value String $section]
+    $g rules {
+	Grammar {n String}
+	String  {x {t b} {* {t a}} {t c}}
+    }
+
+    test pt-runtime-rde:${rdeimpl}-stack:${stackimpl}-1.$k "$section, pt::peg::interp, X* (bracketed)" -setup {
+	set p [makei $g]
+    } -body {
+	reformat [$p parset {bc}]
+    } -cleanup {
+	$p destroy
+    } -result $expected
+
+    test pt-runtime-rde:${rdeimpl}-stack:${stackimpl}-2.$k "$section, pt::peg::to::tclparam/snit, X* (bracketed)" -setup {
+	set p [makep $g $k$section]
+    } -body {
+	reformat [$p parset {bc}]
+    } -cleanup {
+	$p destroy
+    } -result $expected
+
+    $g destroy
+}
+
+# -------------------------------------------------------------------------
+
+foreach {k section expected} {
+    0 leaf  {<Grammar> :: 0 1     <String> :: 1 0}
+    1 value {<Grammar> :: 0 1     <String> :: 1 0}
+    2 void  {<Grammar> :: 0 1}
+} {
+    # Set the grammar up
+    set g [pt::peg::container G]
+    $g start {n Grammar}
+    $g add   Grammar String
+    $g modes [list Grammar value String $section]
+    $g rules {
+	Grammar {x {t b} {n String} {t c}}
+	String  {* {t a}}
+    }
+
+    test pt-runtime-rde:${rdeimpl}-stack:${stackimpl}-3.$k "$section, pt::peg::interp, X* (alone)" -setup {
+	set p [makei $g]
+    } -body {
+	reformat [$p parset {bc}]
+    } -cleanup {
+	$p destroy
+    } -result $expected
+
+    test pt-runtime-rde:${rdeimpl}-stack:${stackimpl}-4.$k "$section, pt::peg::to::tclparam/snit, X* (alone)" -setup {
+	set p [makep $g $k$section]
+    } -body {
+	reformat [$p parset {bc}]
+    } -cleanup {
+	$p destroy
+    } -result $expected
+
+    $g destroy
+}
+
+# -------------------------------------------------------------------------
+
+foreach {k section expected} {
+    0 leaf  {<Grammar> :: 0 1     <String> :: 1 0}
+    1 value {<Grammar> :: 0 1     <String> :: 1 0}
+    2 void  {<Grammar> :: 0 1}
+} {
+    # Set the grammar up
+    set g [pt::peg::container G]
+    $g start {n Grammar}
+    $g add   Grammar String
+    $g modes [list Grammar value String $section]
+    $g rules {
+	Grammar {x {t b} {n String} {t c}}
+	String  {? {t a}}
+    }
+
+    test pt-runtime-rde:${rdeimpl}-stack:${stackimpl}-5.$k "$section, pt::peg::interp, X? (alone)" -setup {
+	set p [makei $g]
+    } -body {
+	reformat [$p parset {bc}]
+    } -cleanup {
+	$p destroy
+    } -result $expected
+
+    test pt-runtime-rde:${rdeimpl}-stack:${stackimpl}-6.$k "$section, pt::peg::to::tclparam/snit, X? (alone)" -setup {
+	set p [makep $g $k$section]
+    } -body {
+	reformat [$p parset {bc}]
+    } -cleanup {
+	$p destroy
+    } -result $expected
+
+    $g destroy
+}
+
+#----------------------------------------------------------------------
+unset p g k section expected
+rename makep {}
+rename makei {}

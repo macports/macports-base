@@ -1,0 +1,247 @@
+
+<div class='fossil-doc' data-title='bench_lang_intro - Benchmarking/Performance tools'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">bench_lang_intro(n) 1.0 tcllib &quot;Benchmarking/Performance tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>bench_lang_intro - bench language introduction</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#section1">Description</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Fundamentals</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Basics</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Pre- and postprocessing</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Advanced pre- and postprocessing</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section2">FURTHER READING</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This document is an informal introduction to version 1 of the bench
+language based on a multitude of examples. After reading this a
+benchmark writer should be ready to understand the formal
+<i class="term"><a href="bench_lang_spec.html">bench language specification</a></i>.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Fundamentals</a></h3>
+<p>In the broadest terms possible the <i class="term"><a href="../../../../index.html#key98">bench language</a></i> is
+essentially Tcl, plus a number of commands to support the declaration
+of benchmarks.
+A document written in this language is a Tcl script and has the same
+syntax.</p>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Basics</a></h3>
+<p>One of the most simplest benchmarks which can be written in bench is</p>
+<pre class="doctools_example">
+bench -desc LABEL -body {
+    set a b
+}
+</pre>
+<p>This code declares a benchmark named <b class="const">LABEL</b> which measures the
+time it takes to assign a value to a variable. The Tcl code doing this
+assignment is the <b class="option">-body</b> of the benchmark.</p>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Pre- and postprocessing</a></h3>
+<p>Our next example demonstrates how to declare <i class="term">initialization</i> and
+<i class="term"><a href="../../../../index.html#key158">cleanup</a></i> code, i.e. code computing information for the use of
+the <b class="option">-body</b>, and for releasing such resources after the
+measurement is done.
+They are the <b class="option">-pre</b>- and the <b class="option">-post</b>-body, respectively.</p>
+<p>In our example, directly drawn from the benchmark suite of Tcllib's
+<b class="package"><a href="../aes/aes.html">aes</a></b> package, the concrete initialization code constructs the
+key schedule used by the encryption command whose speed we measure,
+and the cleanup code releases any resources bound to that schedule.</p>
+<pre class="doctools_example">
+bench -desc &quot;AES-${len} ECB encryption core&quot; <b class="option">-pre</b> {
+    set key [aes::Init ecb $k $i]
+} -body {
+    aes::Encrypt $key $p
+} <b class="option">-post</b> {
+    aes::Final $key
+}
+</pre>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Advanced pre- and postprocessing</a></h3>
+<p>Our last example again deals with initialization and cleanup code. To
+see the difference to the regular initialization and cleanup discussed
+in the last section it is necessary to know a bit more about how bench
+actually measures the speed of the the <b class="option">-body</b>.</p>
+<p>Instead of running the <b class="option">-body</b> just once the system actually
+executes the <b class="option">-body</b> several hundred times and then returns the
+average of the found execution times. This is done to remove
+environmental effects like machine load from the result as much as
+possible, with outliers canceling each other out in the average.</p>
+<p>The drawback of doing things this way is that when we measure
+operations which are not idempotent we will most likely not measure
+the time for the operation we want, but of the state(s) the system is
+in after the first iteration, a mixture of things we have no interest
+in.</p>
+<p>Should we wish, for example, to measure the time it takes to include
+an element into a set, with the element not yet in the set, and the
+set having specific properties like being a shared Tcl_Obj, then the
+first iteration will measure the time for this. <em>However</em> all
+subsequent iterations will measure the time to include an element
+which is already in the set, and the Tcl_Obj holding the set will not
+be shared anymore either. In the end the timings taken for the several
+hundred iterations of this state will overwhelm the time taken from
+the first iteration, the only one which actually measured what we
+wanted.</p>
+<p>The advanced initialization and cleanup codes, <b class="option">-ipre</b>- and the
+<b class="option">-ipost</b>-body respectively, are present to solve this very
+problem. While the regular initialization and cleanup codes are
+executed before and after the whole series of iterations the advanced
+codes are executed before and after each iteration of the body,
+without being measured themselves. This allows them to bring the
+system into the exact state the body wishes to measure.</p>
+<p>Our example, directly drawn from the benchmark suite of Tcllib's
+<b class="package"><a href="../struct/struct_set.html">struct::set</a></b> package, is for exactly the example we used
+above to demonstrate the necessity for the advanced initialization and
+cleanup. Its concrete initialization code constructs a variable
+refering to a set with specific properties (The set has a string
+representation, which is shared) affecting the speed of the inclusion
+command, and the cleanup code releases the temporary variables created
+by this initialization.</p>
+<pre class="doctools_example">
+bench -desc &quot;set include, missing &lt;SC&gt; x$times $n&quot; <b class="option">-ipre</b> {
+    set A $sx($times,$n)
+    set B $A
+} -body {
+    struct::set include A x
+} <b class="option">-ipost</b> {
+    unset A B
+}
+</pre>
+</div>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">FURTHER READING</a></h2>
+<p>Now that this document has been digested the reader, assumed to be a
+<i class="term">writer</i> of benchmarks, he should be fortified enough to be able
+to understand the formal <i class="term">bench language specfication</i>. It will
+also serve as the detailed specification and cheat sheet for all
+available commands and their syntax.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>bench</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="bench_intro.html">bench_intro</a>, <a href="bench_lang_spec.html">bench_lang_spec</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key98">bench language</a>, <a href="../../../../index.html#key101">benchmark</a>, <a href="../../../../index.html#key369">examples</a>, <a href="../../../../index.html#key100">performance</a>, <a href="../../../../index.html#key99">testing</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Benchmark tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2007 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

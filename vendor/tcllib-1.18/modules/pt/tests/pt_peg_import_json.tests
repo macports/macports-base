@@ -1,0 +1,32 @@
+# -*- tcl -*-
+# General set of error cases regarding the number of arguments.
+
+test pt-peg-import-json-1.0 {import, wrong#args} -body {
+    import
+} -returnCodes error -result {wrong # args: should be "import text"}
+
+test pt-peg-import-json-1.1 {import, wrong#args} -body {
+    import S XXX
+} -returnCodes error -result {wrong # args: should be "import text"}
+
+# -------------------------------------------------------------------------
+
+# Testing the processing of various forms of json input.
+
+foreach {k section} {
+    0 -ultracompact
+    1 -indented
+    2 -indalign
+} {
+    TestFilesProcess $mytestdir ok peg_json$section peg_serial-canonical -> n label input data expected {
+	test pt-peg-import-json-2.$k.$n "pt::peg::import::json, $label$section, ok :- $input" -body {
+	    import $data
+	} -result $expected
+    }
+}
+
+# TODO :: Should test handling of failures as well, for various forms
+# of malformed json input (essentially bad serializations).
+
+#----------------------------------------------------------------------
+unset n label input data expected

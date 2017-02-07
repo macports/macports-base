@@ -1,0 +1,239 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin irc n 0.6.1]
+[see_also {rfc 1459}]
+[keywords chat]
+[keywords irc]
+[moddesc   {Low Level Tcl IRC Interface}]
+[titledesc {Create IRC connection and interface.}]
+[category  Networking]
+[require Tcl]
+[require irc [opt 0.6.1]]
+[description]
+
+This package provides low-level commands to deal with the IRC protocol
+(Internet Relay Chat) for immediate and interactive multi-cast
+communication.
+
+[para]
+
+[list_begin definitions]
+
+[call [cmd ::irc::config] [opt key] [opt value]]
+
+Sets configuration [opt key] to [opt value]. The configuration keys
+currently defined are the boolean flags [const logger] and [const debug].
+[const logger] makes [package irc] use the logger package for printing
+error. [const debug] requires [const logger] and prints extra debug output.
+
+If no [opt key] or [opt value] is given the current values are returned.
+
+[call [cmd ::irc::connection]]
+
+The command creates a new object to deal with an IRC connection.
+Creating this IRC object does not automatically create the network
+connection.  It returns a new irc namespace command which can be used
+to interact with the new IRC connection.  NOTE: the old form of the
+connection command, which took a hostname and port as arguments, is
+deprecated.  Use [cmd connect] instead to specify this information.
+
+[call [cmd ::irc::connections]]
+
+Returns a list of all the current connections that were created with
+[const connection]
+
+[list_end]
+
+[section {Per-connection Commands}]
+[para]
+
+In the following list of available connection methods [arg net]
+represents a connection command as returned by
+[cmd ::irc::connection].
+
+[list_begin definitions]
+
+[call [arg net] [method registerevent] [arg event] [arg script]]
+
+Registers a callback handler for the specific event.  Events available
+are those described in RFC 1459
+
+[uri http://www.rfc-editor.org/rfc/rfc1459.txt].
+
+In addition, there are several other events defined.
+
+[const defaultcmd] adds a command that is called if no other callback
+is present.  [const EOF] is called if the connection signals an End of
+File condition. The events [const defaultcmd], [const defaultnumeric],
+[const defaultevent], and [const EOF] are required.
+
+[arg script] is executed in the connection namespace, which can take
+advantage of several commands (see [sectref {Callback Commands}]
+below) to aid in the parsing of data.
+
+[call [arg net] [method getevent] [arg event] [arg script]]
+
+Returns the current handler for the event if one exists. Otherwise an
+empty string is returned.
+
+[call [arg net] [method eventexists] [arg event] [arg script]]
+
+Returns a boolean value indicating the existence of the event handler.
+
+[call [arg net] [method connect] [arg hostname] [opt port]]
+
+This causes the socket to be established.  [cmd ::irc::connection]
+created the namespace and the commands to be used, but did not
+actually open the socket. This is done here.  NOTE: the older form of
+'connect' did not require the user to specify a hostname and port,
+which were specified with 'connection'.  That form is deprecated.
+
+[call [arg net] [method config] [opt key] [opt value]]
+
+The same as [cmd ::irc::config] but sets and gets options for the [arg net]
+connection only.
+
+[call [arg net] [method log] [arg level] [arg message]]
+
+If logger is turned on by [method config] this will write a log [arg message]
+at [arg level].
+
+[call [arg net] [method logname]]
+
+Returns the name of the logger instance if logger is turned on.
+
+[call [arg net] [method connected]]
+
+Returns a boolean value indicating if this connection is connected to a server.
+
+[call [arg net] [method sockname]]
+
+Returns a 3 element list consisting of the ip address, the hostname, and the port
+of the local end of the connection, if currently connected.
+
+[call [arg net] [method peername]]
+
+Returns a 3 element list consisting of the ip address, the hostname, and the port
+of the remote end of the connection, if currently connected.
+
+[call [arg net] [method socket]]
+
+Return the Tcl channel for the socket used by the connection.
+
+[call [arg net] [method user] [arg username] [arg localhostname] [arg localdomainname] [arg userinfo]]
+
+Sends USER command to server.  [arg username] is the username you want
+to appear.  [arg localhostname] is the host portion of your hostname, [arg localdomainname]
+is your domain name, and [arg userinfo] is a short description of who you are. The 2nd and 3rd
+arguments are normally ignored by the IRC server.
+
+[call [arg net] [method nick] [arg nick]]
+
+NICK command.  [arg nick] is the nickname you wish to use for the
+particular connection.
+
+[call [arg net] [method ping] [arg target]]
+
+Send a CTCP PING to [arg target].
+
+[call [arg net] [method serverping]]
+
+PING the server.
+
+[call [arg net] [method join] [arg channel] [opt [arg key]]]
+
+[arg channel] is the IRC channel to join.  IRC channels typically
+begin with a hashmark ("#") or ampersand ("&").
+
+[call [arg net] [method part] [arg channel] [opt [arg message]]]
+
+Makes the client leave [arg channel]. Some networks may support the optional
+argument [arg message]
+
+[call [arg net] [method quit] [opt [arg message]]]
+
+Instructs the IRC server to close the current connection. The package
+will use a generic default if no [arg message] was specified.
+
+[call [arg net] [method privmsg] [arg target] [arg message]]
+
+Sends [arg message] to [arg target], which can be either a channel, or
+another user, in which case their nick is used.
+
+[call [arg net] [method notice] [arg target] [arg message]]
+
+Sends a [const notice] with message [arg message] to [arg target],
+which can be either a channel, or another user, in which case their nick is used.
+
+[call [arg net] [method ctcp] [arg target] [arg message]]
+
+Sends a CTCP of type [arg message] to [arg target]
+
+[call [arg net] [method kick] [arg channel] [arg target] [opt [arg message]]]
+
+Kicks the user [arg target] from the channel [arg channel] with a [arg message].
+The latter can be left out.
+
+[call [arg net] [method mode] [arg target] [arg args]]
+
+Sets the mode [arg args] on the target [arg target]. [arg target] may be a channel,
+a channel user, or yourself.
+
+[call [arg net] [method topic] [arg channel] [arg message]]
+
+Sets the topic on [arg channel] to [arg message] specifying an empty string
+will remove the topic.
+
+[call [arg net] [method invite] [arg channel] [arg target]]
+
+Invites [arg target] to join the channel [arg channel]
+
+[call [arg net] [method send] [arg text]]
+
+Sends [arg text] to the IRC server.
+
+[call [arg net] [method destroy]]
+
+Deletes the connection and its associated namespace and information.
+
+[list_end]
+
+[section {Callback Commands}]
+[para]
+
+These commands can be used within callbacks
+
+[list_begin definitions]
+
+[call [cmd who] [opt [const address]]]
+
+Returns the nick of the user who performed a command.  The optional
+keyword [const address] causes the command to return the user in the
+format "username@address".
+
+[call [cmd action]]
+
+Returns the action performed, such as KICK, PRIVMSG, MODE, etc...
+Normally not useful, as callbacks are bound to a particular event.
+
+[call [cmd target]]
+
+Returns the target of a particular command, such as the channel or
+user to whom a PRIVMSG is sent.
+
+[call [cmd additional]]
+
+Returns a list of any additional arguments after the target.
+
+[call [cmd header]]
+
+Returns the entire event header (everything up to the :) as a proper list.
+
+[call [cmd msg]]
+
+Returns the message portion of the command (the part after the :).
+
+[list_end]
+
+[vset CATEGORY irc]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

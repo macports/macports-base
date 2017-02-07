@@ -1,0 +1,73 @@
+2013-05-31  Andreas Kupries  <andreask@activestate.com>
+
+	* coroutine.tcl: Added Colin Macleod and http://wiki/21555
+	* coro_auto.tcl: to the set of acknowledged contributors
+	  and references for the module.
+
+2013-05-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* coro_auto.tcl: Replaced uses of 'namespace current' in the wrap_
+	* coro_auto.man: commands with a hardwired namespace name. As the
+	  wrappers get renamed into different namespaces (:: and
+	  ::tcl::chan) the result of 'namespace current' points to the
+	  wrong namespace, causing the commands to miss the renamed
+	  builtins, and fail. Bumped version to 1.1.1
+	* pkgIndex.tcl: Updated version numbers.
+
+2013-03-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* coroutine.man: Renamed, clashes with Tcl core manpage.
+	* tcllib_coroutine.man: New name.
+
+2013-02-08  Andreas Kupries  <andreask@activestate.com>
+
+	* coroutine.man: Fixed missing short package title.
+	* coro_auto.man: Ditto.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	*
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	*
+
+2011-04-18  Andreas Kupries  <andreask@activestate.com>
+
+	* coroutine.tcl: [Bug 3252952]: Fixed clash between ::coroutine
+	* coroutine.man: builtin of Tcl 8.6, and the same-named ensemble
+	  of the package. Moved package command ::coroutine to
+	  ::coroutine::util. Bumped version to 1.1.
+
+	* coro_auto.tcl: [Bug 3252952]: Updated user of package coroutine
+	* coro_auto.man: to the new command name. Bumped version to 1.1.
+
+	* pkgIndex.tcl: Updated version numbers.
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	*
+
+2010-08-17  Andreas Kupries  <andreask@activestate.com>
+
+	* coroutine.man: Added package documentation.
+	* coro_auto.man:
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	*
+
+2009-11-10  Andreas Kupries  <andreask@activestate.com>
+
+	* New module 'coroutine' providing to coroutine utility packages
+	  for easier use of channel operations. These packages are for Tcl
+	  8.6+.
+

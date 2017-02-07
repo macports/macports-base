@@ -1,0 +1,3 @@
+Doctools Error in macro at line 4, column 0:
+[class .c.]
+--> (FmtError) Manpage error (nodonecmd), "class .c." : Command not allowed after [manpage_end].

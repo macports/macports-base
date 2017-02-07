@@ -1,0 +1,271 @@
+# -*- tcl -*- asn.pcx
+# Syntax of the commands provided by package asn.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register asn
+pcx::tcldep   0.8.4 needs tcl 8.4
+
+namespace eval ::asn {}
+
+pcx::message outOfMinRange {The number "%1$s" is below the allowed minimum of "%2$s"} err
+pcx::message outOfMaxRange {The number "%1$s" is aboove the allowed maximum of "%2$s"} err
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 0.8.3 std ::asn::asnApplication \
+    {checkSimpleArgs 2 2 {
+	checkWholeNum
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnApplicationConstr \
+    {checkSimpleArgs 1 -1 {
+	checkWholeNum
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnBMPString \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnBitString \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnBoolean \
+    {checkSimpleArgs 1 1 {
+	checkBoolean
+    }}
+pcx::check 0.8.3 std ::asn::asnChoice \
+    {checkSimpleArgs 1 -1 {
+	checkWholeNum
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnChoiceConstr \
+    {checkSimpleArgs 1 -1 {
+	checkWholeNum
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnContext \
+    {checkSimpleArgs 2 2 {
+	checkWholeNum
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnContextConstr \
+    {checkSimpleArgs 1 -1 {
+	checkWholeNum
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnEnumeration \
+    {checkSimpleArgs 1 1 {
+	checkWholeNum
+    }}
+pcx::check 0.8.3 std ::asn::asnGetApplication \
+    {checkSimpleArgs 2 4 {
+	checkVarNameWrite
+	checkVarNameWrite
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetBMPString \
+    {checkSimpleArgs 2 2 {
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetBitString \
+    {checkSimpleArgs 2 2 {
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetBoolean \
+    {checkSimpleArgs 2 2 {
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetContext \
+    {checkSimpleArgs 2 4 {
+	checkVarNameWrite
+	checkVarNameWrite
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetEnumeration \
+    {checkSimpleArgs 2 2 {
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetIA5String \
+    {checkSimpleArgs 2 2 {
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetInteger \
+    {checkSimpleArgs 2 2 {
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetLength \
+    {checkSimpleArgs 2 2 {
+	checkVarname
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetNull \
+    {checkSimpleArgs 1 1 {
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetNumericString \
+    {checkSimpleArgs 2 2 {
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetObjectIdentifier \
+    {checkSimpleArgs 2 2 {
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetOctetString \
+    {checkSimpleArgs 2 2 {
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetPrintableString \
+    {checkSimpleArgs 2 2 {
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetResponse \
+    {checkSimpleArgs 2 2 {
+	checkChannelID
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetSequence \
+    {checkSimpleArgs 2 2 {
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetSet \
+    {checkSimpleArgs 2 2 {
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetString \
+    {checkSimpleArgs 2 3 {
+	checkVarNameWrite
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetUTCTime \
+    {checkSimpleArgs 2 2 {
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnGetUTF8String \
+    {checkSimpleArgs 2 2 {
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnIA5String \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnInteger \
+    {checkSimpleArgs 1 1 {
+	checkInt
+    }}
+pcx::check 0.8.3 std ::asn::asnNull \
+    {checkAtEnd}
+pcx::check 0.8.3 std ::asn::asnNumericString \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnObjectIdentifier \
+    {checkSimpleArgs 1 1 {
+	checkListValues 2 -1 {
+	    {pcx::checkRange 0 2}
+	    {pcx::checkRange 0 39}
+	    checkWholeNum
+	}
+    }}
+pcx::check 0.8.3 std ::asn::asnOctetString \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnPeekByte \
+    {checkSimpleArgs 2 2 {
+	checkVarname
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnPeekTag \
+    {checkSimpleArgs 4 4 {
+	checkVarname
+	checkVarNameWrite
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.8.3 std ::asn::asnPrintableString \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnRetag \
+    {checkSimpleArgs 2 2 {
+	checkVarNameWrite
+	checkWholeNum
+    }}
+pcx::check 0.8.3 std ::asn::asnSequence \
+    {checkSimpleArgs 0 -1 {
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnSequenceFromList \
+    {checkSimpleArgs 1 1 {
+	checkList
+    }}
+pcx::check 0.8.3 std ::asn::asnSet \
+    {checkSimpleArgs 0 -1 {
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnSetFromList \
+    {checkSimpleArgs 1 1 {
+	checkList
+    }}
+pcx::check 0.8.3 std ::asn::asnString \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnTag \
+    {checkSimpleArgs 1 3 {
+	checkWholeNum
+	{checkKeyword 1 {UNIVERSAL CONTEXT APPLICATION PRIVATE U C A P}}
+	{checkKeyword 1 {C P 0 1}}
+    }}
+pcx::check 0.8.3 std ::asn::asnUTCTime \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::asnUTF8String \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 0.8.3 std ::asn::defaultStringType \
+    {checkSimpleArgs 0 1 {
+	{checkKeyword 1 {BMP UTF8}}
+    }}
+
+proc pcx::checkInitRange {min max t i} {
+    set w [lindex $t $i]
+    if {[getLiteral $w num] && ![catch {incr num 0}]} {
+	if {($min != {}) && ($num < $min)} {
+	    logError pcx::outOfMinRange [getTokenRange $w] $num $min
+	}
+	if {($max != {}) && ($num > $max)} {
+	    logError pcx::outOfMaxRange [getTokenRange $w] $num $min
+	}
+    }
+    return [checkInt $t $i]
+}
+
+# Initialization via pcx::init.
+# Use a ::asn::init procedure for non-standard initialization.
+pcx::complete

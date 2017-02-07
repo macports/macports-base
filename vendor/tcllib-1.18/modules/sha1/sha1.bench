@@ -1,0 +1,46 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'sha1' module.
+# This allow developers to monitor/gauge/track package performance.
+#
+# (c) 2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+# We need at least version 8.2 for the package and thus the
+# benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.2]} {
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+set moddir [file dirname [file dirname [info script]]]
+lappend auto_path $moddir
+
+package forget sha1
+catch {namespace delete ::sha1}
+source [file join [file dirname [info script]] sha1.tcl]
+
+set key "01234567abcdefgh01234567abcdefgh01234567abcdefgh01234567abcdefgh=="
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+foreach n {1 10 100 1000 10000} {
+    bench -desc "SHA1 sha_ $n" -pre {
+	set str [string repeat " " $n]
+    } -body {
+	sha1::sha1 $str
+    }
+
+    bench -desc "SHA1 hmac $n" -pre {
+	set str [string repeat " " $n]
+    } -body {
+	sha1::hmac $key $str
+    }
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete

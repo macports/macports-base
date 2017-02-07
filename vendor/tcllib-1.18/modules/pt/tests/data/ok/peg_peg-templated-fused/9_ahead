@@ -1,0 +1,12 @@
+# -*- text -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+PEG TEMPLATE (TEST)
+
+ TEST <- &'a' IDENTIFIER ;
+
+END;
+
+#
+#

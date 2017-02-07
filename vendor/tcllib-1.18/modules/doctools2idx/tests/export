@@ -1,0 +1,153 @@
+# -*- tcl -*-
+# idx_export.testsuite: Tests for the managed of index export plugins.
+#
+# Copyright (c) 2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: export,v 1.1 2009/04/01 04:28:37 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+# Tests are run for all formats we have an export plugin for.
+
+# -------------------------------------------------------------------------
+
+set mytestdir      tests/data
+set mytestconfig   {fox dog lazy jump}
+set mytestincludes [TestFilesGlob $mytestdir]
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# docidx markup
+
+# Testing the export of docidx markup through an exporter manager, for
+# all possible configurations.
+
+foreach {k nl in al section} {
+    0 0 0 0 -ultracompact
+    1 1 0 0 -compact
+    2 1 1 0 -indented
+    3 1 0 1 -aligned
+    4 1 1 1 -indalign
+    5 0 1 0 -indented
+    6 0 0 1 -aligned
+    7 0 1 1 -indalign
+} {
+    TestFilesProcess $mytestdir ok serial docidx$section -> n label input data expected {
+	test doctools-idx-export-plugin-docidx-20.$k.$n "doctools::idx::export /docidx, $label$section, ok" -setup {
+	    doctools::idx::export OUT
+	    OUT config set newlines $nl
+	    OUT config set indented $in
+	    OUT config set aligned  $al
+	} -body {
+	    stripcomments [OUT export serial $data docidx]
+	} -cleanup {
+	    OUT destroy
+	} -result $expected
+    }
+}
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# text markup
+
+TestFilesProcess $mytestdir ok serial text -> n label input data expected {
+    test doctools-idx-export-plugin-text-21.$n "doctools::idx::export /text, $label, ok" -setup {
+	doctools::idx::export OUT
+    } -body {
+	OUT export serial $data text
+    } -cleanup {
+	OUT destroy
+    } -result $expected
+}
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# json markup
+
+foreach {k in al section} {
+    0 0 0 -ultracompact
+    1 1 0 -indented
+    2 0 1 -indalign
+    3 1 1 -indalign
+} {
+    TestFilesProcess $mytestdir ok serial json$section -> n label input data expected {
+	test doctools-idx-export-plugin-json-22.$k.$n "doctools::idx::export /json, $label$section, ok" -setup {
+	    doctools::idx::export OUT
+	    OUT config set indented $in
+	    OUT config set aligned  $al
+	} -body {
+	    OUT export serial $data json
+	} -cleanup {
+	    OUT destroy
+	} -result $expected
+    }
+}
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# html markup
+
+foreach {k nl in section} {
+    0 0 0 -ultracompact
+    1 0 1 -indented
+    2 1 0 -compact
+    3 1 1 -indented
+} {
+    TestFilesProcess $mytestdir ok serial html$section -> n label input data expected {
+	test doctools-idx-export-plugin-html-23.$k.$n "doctools::idx::export /html, $label$section, ok" -setup {
+	    doctools::idx::export OUT
+	    OUT config set newlines $nl
+	    OUT config set indented $in
+	    OUT config set user _dummy_
+	} -body {
+	    striphtmlcomments [OUT export serial $data html] 3
+	} -cleanup {
+	    OUT destroy
+	} -result $expected
+    }
+}
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# wiki markup
+
+foreach {k style section} {
+    0 list  -list
+    1 table -table
+} {
+    TestFilesProcess $mytestdir ok serial wiki$section -> n label input data expected {
+	test doctools-idx-export-plugin-wiki-23.$k.$n "doctools::idx::export /wiki, $label$section, ok" -setup {
+	    doctools::idx::export OUT
+	    OUT config set style $style
+	} -body {
+	    OUT export serial $data wiki
+	} -cleanup {
+	    OUT destroy
+	} -result $expected
+    }
+}
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# nroff markup
+
+foreach {k inline section} {
+    0 0 -external
+    1 1 -inlined
+} {
+    TestFilesProcess $mytestdir ok serial nroff$section -> n label input data expected {
+	test doctools-idx-export-plugin-nroff-24.$k.$n "doctools::idx::export /nroff, $label$section, ok" -setup {
+	    doctools::idx::export OUT
+	    OUT config set inline $inline
+	} -body {
+	    stripnroffcomments [stripmanmacros [OUT export serial $data nroff]]
+	} -cleanup {
+	    OUT destroy
+	} -result $expected
+    }
+}
+
+# -------------------------------------------------------------------------
+unset mytestdir n label input data expected
+return

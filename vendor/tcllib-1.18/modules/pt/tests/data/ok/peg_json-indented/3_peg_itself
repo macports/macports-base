@@ -1,0 +1,247 @@
+{
+    "pt::grammar::peg" : {
+        "rules" : {
+            "ALNUM" : {
+                "is" : "x {t <} {t a} {t l} {t n} {t u} {t m} {t >} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "ALPHA" : {
+                "is" : "x {t <} {t a} {t l} {t p} {t h} {t a} {t >} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "AND" : {
+                "is" : "x {t &} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "APOSTROPH" : {
+                "is" : "t '",
+                "mode" : "void"
+            },
+            "ASCII" : {
+                "is" : "x {t <} {t a} {t s} {t c} {t i} {t i} {t >} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "Attribute" : {
+                "is" : "x {/ {n VOID} {n LEAF}} {n COLON}",
+                "mode" : "value"
+            },
+            "Char" : {
+                "is" : "/ {n CharSpecial} {n CharOctalFull} {n CharOctalPart} {n CharUnicode} {n CharUnescaped}",
+                "mode" : "value"
+            },
+            "CharOctalFull" : {
+                "is" : "x {t \\\\} {.. 0 2} {.. 0 7} {.. 0 7}",
+                "mode" : "leaf"
+            },
+            "CharOctalPart" : {
+                "is" : "x {t \\\\} {.. 0 7} {? {.. 0 7}}",
+                "mode" : "leaf"
+            },
+            "CharSpecial" : {
+                "is" : "x {t \\\\} {/ {t n} {t r} {t t} {t '} {t {\"}} {t {[}} {t \\]} {t \\\\}}",
+                "mode" : "leaf"
+            },
+            "CharUnescaped" : {
+                "is" : "x {! {t \\\\}} dot",
+                "mode" : "leaf"
+            },
+            "CharUnicode" : {
+                "is" : "x {t \\\\} {t u} xdigit {? {x xdigit {? {x xdigit {? xdigit}}}}}",
+                "mode" : "leaf"
+            },
+            "Class" : {
+                "is" : "x {n OPENB} {* {x {! {n CLOSEB}} {n Range}}} {n CLOSEB} {n WHITESPACE}",
+                "mode" : "value"
+            },
+            "CLOSE" : {
+                "is" : "x {t )} {n WHITESPACE}",
+                "mode" : "void"
+            },
+            "CLOSEB" : {
+                "is" : "t \\]",
+                "mode" : "void"
+            },
+            "COLON" : {
+                "is" : "x {t :} {n WHITESPACE}",
+                "mode" : "void"
+            },
+            "COMMENT" : {
+                "is" : "x {t #} {* {x {! {n EOL}} dot}} {n EOL}",
+                "mode" : "void"
+            },
+            "CONTROL" : {
+                "is" : "x {t <} {t c} {t o} {t n} {t t} {t r} {t o} {t l} {t >} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "DAPOSTROPH" : {
+                "is" : "t {\"}",
+                "mode" : "void"
+            },
+            "DDIGIT" : {
+                "is" : "x {t <} {t d} {t d} {t i} {t g} {t i} {t t} {t >} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "Definition" : {
+                "is" : "x {? {n Attribute}} {n Identifier} {n IS} {n Expression} {n SEMICOLON}",
+                "mode" : "value"
+            },
+            "DIGIT" : {
+                "is" : "x {t <} {t d} {t i} {t g} {t i} {t t} {t >} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "DOT" : {
+                "is" : "x {t .} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "EOF" : {
+                "is" : "! dot",
+                "mode" : "void"
+            },
+            "EOL" : {
+                "is" : "/ {t {\n}} {t {\r}}",
+                "mode" : "void"
+            },
+            "Expression" : {
+                "is" : "x {n Sequence} {* {x {n SLASH} {n Sequence}}}",
+                "mode" : "value"
+            },
+            "Final" : {
+                "is" : "x {t E} {t N} {t D} {n WHITESPACE} {n SEMICOLON} {n WHITESPACE}",
+                "mode" : "void"
+            },
+            "Grammar" : {
+                "is" : "x {n WHITESPACE} {n Header} {* {n Definition}} {n Final} {n EOF}",
+                "mode" : "value"
+            },
+            "GRAPH" : {
+                "is" : "x {t <} {t g} {t r} {t a} {t p} {t h} {t >} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "Header" : {
+                "is" : "x {n PEG} {n Identifier} {n StartExpr}",
+                "mode" : "value"
+            },
+            "Ident" : {
+                "is" : "x {/ {t _} {t :} alpha} {* {/ {t _} {t :} alnum}}",
+                "mode" : "leaf"
+            },
+            "Identifier" : {
+                "is" : "x {n Ident} {n WHITESPACE}",
+                "mode" : "value"
+            },
+            "IS" : {
+                "is" : "x {t <} {t -} {n WHITESPACE}",
+                "mode" : "void"
+            },
+            "LEAF" : {
+                "is" : "x {t l} {t e} {t a} {t f} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "Literal" : {
+                "is" : "/ {x {n APOSTROPH} {* {x {! {n APOSTROPH}} {n Char}}} {n APOSTROPH} {n WHITESPACE}} {x {n DAPOSTROPH} {* {x {! {n DAPOSTROPH}} {n Char}}} {n DAPOSTROPH} {n WHITESPACE}}",
+                "mode" : "value"
+            },
+            "LOWER" : {
+                "is" : "x {t <} {t l} {t o} {t w} {t e} {t r} {t >} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "NOT" : {
+                "is" : "x {t !} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "OPEN" : {
+                "is" : "x {t (} {n WHITESPACE}",
+                "mode" : "void"
+            },
+            "OPENB" : {
+                "is" : "t {[}",
+                "mode" : "void"
+            },
+            "PEG" : {
+                "is" : "x {t P} {t E} {t G} {! {/ {t _} {t :} alnum}} {n WHITESPACE}",
+                "mode" : "void"
+            },
+            "PLUS" : {
+                "is" : "x {t +} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "Prefix" : {
+                "is" : "x {? {/ {n AND} {n NOT}}} {n Suffix}",
+                "mode" : "value"
+            },
+            "Primary" : {
+                "is" : "/ {n ALNUM} {n ALPHA} {n ASCII} {n CONTROL} {n DDIGIT} {n DIGIT} {n GRAPH} {n LOWER} {n PRINTABLE} {n PUNCT} {n SPACE} {n UPPER} {n WORDCHAR} {n XDIGIT} {n Identifier} {x {n OPEN} {n Expression} {n CLOSE}} {n Literal} {n Class} {n DOT}",
+                "mode" : "value"
+            },
+            "PRINTABLE" : {
+                "is" : "x {t <} {t p} {t r} {t i} {t n} {t t} {t >} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "PUNCT" : {
+                "is" : "x {t <} {t p} {t u} {t n} {t c} {t t} {t >} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "QUESTION" : {
+                "is" : "x {t ?} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "Range" : {
+                "is" : "/ {x {n Char} {n TO} {n Char}} {n Char}",
+                "mode" : "value"
+            },
+            "SEMICOLON" : {
+                "is" : "x {t {;}} {n WHITESPACE}",
+                "mode" : "void"
+            },
+            "Sequence" : {
+                "is" : "+ {n Prefix}",
+                "mode" : "value"
+            },
+            "SLASH" : {
+                "is" : "x {t /} {n WHITESPACE}",
+                "mode" : "void"
+            },
+            "SPACE" : {
+                "is" : "x {t <} {t s} {t p} {t a} {t c} {t e} {t >} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "STAR" : {
+                "is" : "x {t *} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "StartExpr" : {
+                "is" : "x {n OPEN} {n Expression} {n CLOSE}",
+                "mode" : "value"
+            },
+            "Suffix" : {
+                "is" : "x {n Primary} {? {/ {n QUESTION} {n STAR} {n PLUS}}}",
+                "mode" : "value"
+            },
+            "TO" : {
+                "is" : "t -",
+                "mode" : "void"
+            },
+            "UPPER" : {
+                "is" : "x {t <} {t u} {t p} {t p} {t e} {t r} {t >} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "VOID" : {
+                "is" : "x {t v} {t o} {t i} {t d} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "WHITESPACE" : {
+                "is" : "* {/ space {n COMMENT}}",
+                "mode" : "void"
+            },
+            "WORDCHAR" : {
+                "is" : "x {t <} {t w} {t o} {t r} {t d} {t c} {t h} {t a} {t r} {t >} {n WHITESPACE}",
+                "mode" : "leaf"
+            },
+            "XDIGIT" : {
+                "is" : "x {t <} {t x} {t d} {t i} {t g} {t i} {t t} {t >} {n WHITESPACE}",
+                "mode" : "leaf"
+            }
+        },
+        "start" : "n Grammar"
+    }
+}

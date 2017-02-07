@@ -1,0 +1,3 @@
+root ()
+....node1 (col 0 line 2 range {0 5} text {a b c
+} type Text)

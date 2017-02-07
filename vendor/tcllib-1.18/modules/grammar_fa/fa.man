@@ -1,0 +1,652 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin grammar::fa n 0.4]
+[keywords automaton]
+[keywords {finite automaton}]
+[keywords grammar]
+[keywords parsing]
+[keywords {regular expression}]
+[keywords {regular grammar}]
+[keywords {regular languages}]
+[keywords state]
+[keywords transducer]
+[copyright {2004-2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Finite automaton operations and usage}]
+[titledesc {Create and manipulate finite automatons}]
+[category  {Grammars and finite automata}]
+[require Tcl 8.4]
+[require snit 1.3]
+[require struct::list]
+[require struct::set]
+[require grammar::fa::op [opt 0.2]]
+[require grammar::fa     [opt 0.4]]
+[description]
+[para]
+
+This package provides a container class for
+[term {finite automatons}] (Short: FA).
+
+It allows the incremental definition of the automaton, its
+manipulation and querying of the definition.
+
+While the package provides complex operations on the automaton
+(via package [package grammar::fa::op]), it does not have the
+ability to execute a definition for a stream of symbols.
+
+Use the packages
+[package grammar::fa::dacceptor] and
+[package grammar::fa::dexec] for that.
+
+Another package related to this is [package grammar::fa::compiler]. It
+turns a FA into an executor class which has the definition of the FA
+hardwired into it. The output of this package is configurable to suit
+a large number of different implementation languages and paradigms.
+
+[para]
+
+For more information about what a finite automaton is see section
+[sectref {FINITE AUTOMATONS}].
+
+[section API]
+
+The package exports the API described here.
+
+[list_begin definitions]
+
+[call [cmd ::grammar::fa] [arg faName] [opt "[const =]|[const :=]|[const <--]|[const as]|[const deserialize] [arg src]|[const fromRegex] [arg re] [opt [arg over]]"]]
+
+Creates a new finite automaton with an associated global Tcl command
+whose name is [arg faName]. This command may be used to invoke various
+operations on the automaton. It has the following general form:
+
+[list_begin definitions]
+
+[call [cmd faName] [arg option] [opt [arg "arg arg ..."]]]
+
+[arg Option] and the [arg arg]s determine the exact behavior of the
+command. See section [sectref {FA METHODS}] for more explanations. The
+new automaton will be empty if no [arg src] is specified. Otherwise
+it will contain a copy of the definition contained in the [arg src].
+
+The [arg src] has to be a FA object reference for all operators except
+[const deserialize] and [const fromRegex]. The [const deserialize]
+operator requires [arg src] to be the serialization of a FA instead,
+and [const fromRegex] takes a regular expression in the form a of a
+syntax tree. See [cmd ::grammar::fa::op::fromRegex] for more detail on
+that.
+
+[list_end]
+[list_end]
+
+[section {FA METHODS}]
+[para]
+
+All automatons provide the following methods for their manipulation:
+
+[list_begin definitions]
+
+[call [arg faName] [method destroy]]
+
+Destroys the automaton, including its storage space and associated
+command.
+
+[call [arg faName] [method clear]]
+
+Clears out the definition of the automaton contained in [arg faName],
+but does [emph not] destroy the object.
+
+[call [arg faName] [method =] [arg srcFA]]
+
+Assigns the contents of the automaton contained
+in [arg srcFA] to [arg faName], overwriting any
+existing definition.
+
+This is the assignment operator for automatons. It copies the
+automaton contained in the FA object [arg srcFA] over the automaton
+definition in [arg faName]. The old contents of [arg faName] are
+deleted by this operation.
+
+[para]
+
+This operation is in effect equivalent to
+[para]
+[example_begin]
+    [arg faName] [method deserialize] [lb][arg srcFA] [method serialize][rb]
+[example_end]
+
+[call [arg faName] [method -->] [arg dstFA]]
+
+This is the reverse assignment operator for automatons. It copies the
+automation contained in the object [arg faName] over the automaton
+definition in the object [arg dstFA].
+
+The old contents of [arg dstFA] are deleted by this operation.
+
+[para]
+
+This operation is in effect equivalent to
+[para]
+[example_begin]
+    [arg dstFA] [method deserialize] [lb][arg faName] [method serialize][rb]
+[example_end]
+
+[call [arg faName] [method serialize]]
+
+This method serializes the automaton stored in [arg faName]. In other
+words it returns a tcl [emph value] completely describing that
+automaton.
+
+This allows, for example, the transfer of automatons over arbitrary
+channels, persistence, etc.
+
+This method is also the basis for both the copy constructor and the
+assignment operator.
+
+[para]
+
+The result of this method has to be semantically identical over all
+implementations of the [package grammar::fa] interface. This is what
+will enable us to copy automatons between different implementations of
+the same interface.
+
+[para]
+
+The result is a list of three elements with the following structure:
+
+[list_begin enumerated]
+[enum]
+The constant string [const grammar::fa].
+
+[enum]
+A list containing the names of all known input symbols. The order of
+elements in this list is not relevant.
+
+[enum]
+The last item in the list is a dictionary, however the order of the
+keys is important as well. The keys are the states of the serialized
+FA, and their order is the order in which to create the states when
+deserializing. This is relevant to preserve the order relationship
+between states.
+
+[para]
+
+The value of each dictionary entry is a list of three elements
+describing the state in more detail.
+
+[list_begin enumerated]
+[enum]
+A boolean flag. If its value is [const true] then the state is a
+start state, otherwise it is not.
+
+[enum]
+A boolean flag. If its value is [const true] then the state is a
+final state, otherwise it is not.
+
+[enum]
+The last element is a dictionary describing the transitions for the
+state. The keys are symbols (or the empty string), and the values are
+sets of successor states.
+
+[list_end]
+[list_end]
+[para]
+
+Assuming the following FA (which describes the life of a truck driver
+in a very simple way :)
+
+[para]
+[example {
+    Drive -- yellow --> Brake -- red --> (Stop) -- red/yellow --> Attention -- green --> Drive
+    (...) is the start state.
+}]
+[para]
+
+a possible serialization is
+
+[para]
+[example {
+    grammar::fa \\
+    {yellow red green red/yellow} \\
+    {Drive     {0 0 {yellow     Brake}} \\
+     Brake     {0 0 {red        Stop}} \\
+     Stop      {1 0 {red/yellow Attention}} \\
+     Attention {0 0 {green      Drive}}}
+}]
+[para]
+
+A possible one, because I did not care about creation order here
+
+[call [arg faName] [method deserialize] [arg serialization]]
+
+This is the complement to [method serialize]. It replaces the
+automaton definition in [arg faName] with the automaton described by
+the [arg serialization] value. The old contents of [arg faName] are
+deleted by this operation.
+
+[call [arg faName] [method states]]
+
+Returns the set of all states known to [arg faName].
+
+[call [arg faName] [method state] [method add] [arg s1] [opt "[arg s2] ..."]]
+
+Adds the states [arg s1], [arg s2], et cetera to the FA definition in
+[arg faName]. The operation will fail any of the new states is already
+declared.
+
+[call [arg faName] [method state] [method delete] [arg s1] [opt "[arg s2] ..."]]
+
+Deletes the state [arg s1], [arg s2], et cetera, and all associated
+information from the FA definition in [arg faName]. The latter means
+that the information about in- or outbound transitions is deleted as
+well. If the deleted state was a start or final state then this
+information is invalidated as well. The operation will fail if the
+state [arg s] is not known to the FA.
+
+[call [arg faName] [method state] [method exists] [arg s]]
+
+A predicate. It tests whether the state [arg s] is known to the FA in
+[arg faName].
+
+The result is a boolean value. It will be set to [const true] if the
+state [arg s] is known, and [const false] otherwise.
+
+[call [arg faName] [method state] [method rename] [arg s] [arg snew]]
+
+Renames the state [arg s] to [arg snew]. Fails if [arg s] is not a
+known state. Also fails if [arg snew] is already known as a state.
+
+[call [arg faName] [method startstates]]
+
+Returns the set of states which are marked as [term start] states,
+also known as [term initial] states.
+
+See [sectref {FINITE AUTOMATONS}] for explanations what this means.
+
+[call [arg faName] [method start] [method add] [arg s1] [opt "[arg s2] ..."]]
+
+Mark the states [arg s1], [arg s2], et cetera in the FA [arg faName]
+as [term start] (aka [term initial]).
+
+[call [arg faName] [method start] [method remove] [arg s1] [opt "[arg s2] ..."]]
+
+Mark the states [arg s1], [arg s2], et cetera in the FA [arg faName]
+as [term {not start}] (aka [term {not accepting}]).
+
+[call [arg faName] [method start?] [arg s]]
+
+A predicate. It tests if the state [arg s] in the FA [arg faName] is
+[term start] or not.
+
+The result is a boolean value. It will be set to [const true] if the
+state [arg s] is [term start], and [const false] otherwise.
+
+[call [arg faName] [method start?set] [arg stateset]]
+
+A predicate. It tests if the set of states [arg stateset] contains at
+least one start state. They operation will fail if the set contains an
+element which is not a known state.
+
+The result is a boolean value. It will be set to [const true] if a
+start state is present in [arg stateset], and [const false] otherwise.
+
+[call [arg faName] [method finalstates]]
+
+Returns the set of states which are marked as [term final] states,
+also known as [term accepting] states.
+
+See [sectref {FINITE AUTOMATONS}] for explanations what this means.
+
+[call [arg faName] [method final] [method add] [arg s1] [opt "[arg s2] ..."]]
+
+Mark the states [arg s1], [arg s2], et cetera in the FA [arg faName]
+as [term final] (aka [term accepting]).
+
+[call [arg faName] [method final] [method remove] [arg s1] [opt "[arg s2] ..."]]
+
+Mark the states [arg s1], [arg s2], et cetera in the FA [arg faName]
+as [term {not final}] (aka [term {not accepting}]).
+
+[call [arg faName] [method final?] [arg s]]
+
+A predicate. It tests if the state [arg s] in the FA [arg faName] is
+[term final] or not.
+
+The result is a boolean value. It will be set to [const true] if the
+state [arg s] is [term final], and [const false] otherwise.
+
+[call [arg faName] [method final?set] [arg stateset]]
+
+A predicate. It tests if the set of states [arg stateset] contains at
+least one final state. They operation will fail if the set contains an
+element which is not a known state.
+
+The result is a boolean value. It will be set to [const true] if a
+final state is present in [arg stateset], and [const false] otherwise.
+
+[call [arg faName] [method symbols]]
+
+Returns the set of all symbols known to the FA [arg faName].
+
+[call [arg faName] [method symbols@] [arg s] [opt [arg d]]]
+
+Returns the set of all symbols for which the state [arg s] has transitions.
+If the empty symbol is present then [arg s] has epsilon transitions. If two
+states are specified the result is the set of symbols which have transitions
+from [arg s] to [arg t]. This set may be empty if there are no transitions
+between the two specified states.
+
+[call [arg faName] [method symbols@set] [arg stateset]]
+
+Returns the set of all symbols for which at least one state in the set
+of states [arg stateset] has transitions.
+
+In other words, the union of [lb][arg faName] [method symbols@] [var s][rb]
+for all states [var s] in [arg stateset].
+
+If the empty symbol is present then at least one state contained in
+[arg stateset] has epsilon transitions.
+
+[call [arg faName] [method symbol] [method add] [arg sym1] [opt "[arg sym2] ..."]]
+
+Adds the symbols [arg sym1], [arg sym2], et cetera to the FA
+definition in [arg faName]. The operation will fail any of the symbols
+is already declared. The empty string is not allowed as a value for the symbols.
+
+[call [arg faName] [method symbol] [method delete] [arg sym1] [opt "[arg sym2] ..."]]
+
+Deletes the symbols [arg sym1], [arg sym2] et cetera, and all
+associated information from the FA definition in [arg faName]. The
+latter means that all transitions using the symbols are deleted as
+well. The operation will fail if any of the symbols is not known to
+the FA.
+
+[call [arg faName] [method symbol] [method rename] [arg sym] [arg newsym]]
+
+Renames the symbol [arg sym] to [arg newsym]. Fails if [arg sym] is
+not a known symbol. Also fails if [arg newsym] is already known as a
+symbol.
+
+[call [arg faName] [method symbol] [method exists] [arg sym]]
+
+A predicate. It tests whether the symbol [arg sym] is known to the FA
+in [arg faName].
+
+The result is a boolean value. It will be set to [const true] if the
+symbol [arg sym] is known, and [const false] otherwise.
+
+[call [arg faName] [method next ] [arg s] [arg sym] [opt "[const -->] [arg next]"]]
+
+Define or query transition information.
+
+[para]
+
+If [arg next] is specified, then the method will add a transition from
+the state [arg s] to the [term successor] state [arg next] labeled with
+the symbol [arg sym] to the FA contained in [arg faName]. The
+operation will fail if [arg s], or [arg next] are not known states, or
+if [arg sym] is not a known symbol. An exception to the latter is that
+[arg sym] is allowed to be the empty string. In that case the new
+transition is an [term {epsilon transition}] which will not consume
+input when traversed. The operation will also fail if the combination
+of ([arg s], [arg sym], and [arg next]) is already present in the FA.
+
+[para]
+
+If [arg next] was not specified, then the method will return
+the set of states which can be reached from [arg s] through
+a single transition labeled with symbol [arg sym].
+
+[call [arg faName] [method !next] [arg s] [arg sym] [opt "[const -->] [arg next]"]]
+
+Remove one or more transitions from the Fa in [arg faName].
+[para]
+
+If [arg next] was specified then the single transition from the state
+[arg s] to the state [arg next] labeled with the symbol [arg sym] is
+removed from the FA. Otherwise [emph all] transitions originating in
+state [arg s] and labeled with the symbol [arg sym] will be removed.
+
+[para]
+
+The operation will fail if [arg s] and/or [arg next] are not known as
+states. It will also fail if a non-empty [arg sym] is not known as
+symbol. The empty string is acceptable, and allows the removal of
+epsilon transitions.
+
+[call [arg faName] [method nextset] [arg stateset] [arg sym]]
+
+Returns the set of states which can be reached by a single transition
+originating in a state in the set [arg stateset] and labeled with the
+symbol [arg sym].
+
+[para]
+
+In other words, this is the union of
+[lb][arg faName] next [var s] [arg symbol][rb]
+for all states [var s] in [arg stateset].
+
+[call [arg faName] [method is] [method deterministic]]
+
+A predicate. It tests whether the FA in [arg faName] is a
+deterministic FA or not.
+
+The result is a boolean value. It will be set to [const true] if the
+FA is deterministic, and [const false] otherwise.
+
+[call [arg faName] [method is] [method complete]]
+
+A predicate. It tests whether the FA in [arg faName] is a complete FA
+or not. A FA is complete if it has at least one transition per state
+and symbol. This also means that a FA without symbols, or states is
+also complete.
+
+The result is a boolean value. It will be set to [const true] if the
+FA is deterministic, and [const false] otherwise.
+
+[para]
+
+Note: When a FA has epsilon-transitions transitions over a symbol for
+a state S can be indirect, i.e. not attached directly to S, but to a
+state in the epsilon-closure of S. The symbols for such indirect
+transitions count when computing completeness.
+
+[call [arg faName] [method is] [method useful]]
+
+A predicate. It tests whether the FA in [arg faName] is an useful FA
+or not. A FA is useful if all states are [term reachable]
+and [term useful].
+
+The result is a boolean value. It will be set to [const true] if the
+FA is deterministic, and [const false] otherwise.
+
+[call [arg faName] [method is] [method epsilon-free]]
+
+A predicate. It tests whether the FA in [arg faName] is an
+epsilon-free FA or not. A FA is epsilon-free if it has no epsilon
+transitions. This definition means that all deterministic FAs are
+epsilon-free as well, and epsilon-freeness is a necessary
+pre-condition for deterministic'ness.
+
+The result is a boolean value. It will be set to [const true] if the
+FA is deterministic, and [const false] otherwise.
+
+[call [arg faName] [method reachable_states]]
+
+Returns the set of states which are reachable from a start state by
+one or more transitions.
+
+[call [arg faName] [method unreachable_states]]
+
+Returns the set of states which are not reachable from any start state
+by any number of transitions. This is
+
+[para]
+[example {
+	 [faName states] - [faName reachable_states]
+}]
+
+[call [arg faName] [method reachable] [arg s]]
+
+A predicate. It tests whether the state [arg s] in the FA [arg faName]
+can be reached from a start state by one or more transitions.
+
+The result is a boolean value. It will be set to [const true] if the
+state can be reached, and [const false] otherwise.
+
+[call [arg faName] [method useful_states]]
+
+Returns the set of states which are able to reach a final state by
+one or more transitions.
+
+[call [arg faName] [method unuseful_states]]
+
+Returns the set of states which are not able to reach a final state by
+any number of transitions. This is
+
+[para]
+[example {
+	 [faName states] - [faName useful_states]
+}]
+
+[call [arg faName] [method useful] [arg s]]
+
+A predicate. It tests whether the state [arg s] in the FA [arg faName]
+is able to reach a final state by one or more transitions.
+
+The result is a boolean value. It will be set to [const true] if the
+state is useful, and [const false] otherwise.
+
+[call [arg faName] [method epsilon_closure] [arg s]]
+
+Returns the set of states which are reachable from the state [arg s]
+in the FA [arg faName] by one or more epsilon transitions, i.e
+transitions over the empty symbol, transitions which do not consume
+input. This is called the [term {epsilon closure}] of [arg s].
+
+[call [arg faName] [method reverse]]
+[call [arg faName] [method complete]]
+[call [arg faName] [method remove_eps]]
+[call [arg faName] [method trim] [opt [arg what]]]
+[call [arg faName] [method determinize] [opt [arg mapvar]]]
+[call [arg faName] [method minimize] [opt [arg mapvar]]]
+
+[call [arg faName] [method complement]]
+[call [arg faName] [method kleene]]
+[call [arg faName] [method optional]]
+[call [arg faName] [method union] [arg fa] [opt [arg mapvar]]]
+[call [arg faName] [method intersect] [arg fa] [opt [arg mapvar]]]
+[call [arg faName] [method difference] [arg fa] [opt [arg mapvar]]]
+[call [arg faName] [method concatenate] [arg fa] [opt [arg mapvar]]]
+
+[call [arg faName] [method fromRegex] [arg regex] [opt [arg over]]]
+
+These methods provide more complex operations on the FA.  Please see
+the same-named commands in the package [package grammar::fa::op] for
+descriptions of what they do.
+
+[list_end]
+
+[para]
+
+[section EXAMPLES]
+[para]
+
+[section {FINITE AUTOMATONS}]
+[para]
+
+For the mathematically inclined, a FA is a 5-tuple (S,Sy,St,Fi,T) where
+
+[list_begin itemized]
+[item]
+S is a set of [term {states}],
+
+[item]
+Sy a set of [term {input symbols}],
+
+[item]
+St is a subset of S, the set of [term start] states, also known as
+[term initial] states.
+
+[item]
+Fi is a subset of S, the set of [term final] states, also known as
+[term accepting].
+
+[item]
+T is a function from S x (Sy + epsilon) to {S}, the [term {transition function}].
+
+Here [const epsilon] denotes the empty input symbol and is distinct
+from all symbols in Sy; and {S} is the set of subsets of S. In other
+words, T maps a combination of State and Input (which can be empty) to
+a set of [term {successor states}].
+
+[list_end]
+[para]
+
+In computer theory a FA is most often shown as a graph where the nodes
+represent the states, and the edges between the nodes encode the
+transition function: For all n in S' = T (s, sy) we have one edge
+between the nodes representing s and n resp., labeled with sy. The
+start and accepting states are encoded through distinct visual
+markers, i.e. they are attributes of the nodes.
+
+[para]
+
+FA's are used to process streams of symbols over Sy.
+
+[para]
+
+A specific FA is said to [term accept] a finite stream sy_1 sy_2
+... sy_n if there is a path in the graph of the FA beginning at a
+state in St and ending at a state in Fi whose edges have the labels
+sy_1, sy_2, etc. to sy_n.
+
+The set of all strings accepted by the FA is the [term language] of
+the FA. One important equivalence is that the set of languages which
+can be accepted by an FA is the set of [term {regular languages}].
+
+[para]
+
+Another important concept is that of deterministic FAs. A FA is said
+to be [term deterministic] if for each string of input symbols there
+is exactly one path in the graph of the FA beginning at the start
+state and whose edges are labeled with the symbols in the string.
+
+While it might seem that non-deterministic FAs to have more power of
+recognition, this is not so. For each non-deterministic FA we can
+construct a deterministic FA which accepts the same language (-->
+Thompson's subset construction).
+
+[para]
+
+While one of the premier applications of FAs is in [term parsing],
+especially in the [term lexer] stage (where symbols == characters),
+this is not the only possibility by far.
+
+[para]
+
+Quite a lot of processes can be modeled as a FA, albeit with a
+possibly large set of states. For these the notion of accepting states
+is often less or not relevant at all. What is needed instead is the
+ability to act to state changes in the FA, i.e. to generate some
+output in response to the input.
+
+This transforms a FA into a [term {finite transducer}], which has an
+additional set OSy of [term {output symbols}] and also an additional
+[term {output function}] O which maps from "S x (Sy + epsilon)" to
+"(Osy + epsilon)", i.e a combination of state and input, possibly
+empty to an output symbol, or nothing.
+
+[para]
+
+For the graph representation this means that edges are additional
+labeled with the output symbol to write when this edge is traversed
+while matching input. Note that for an application "writing an output
+symbol" can also be "executing some code".
+
+[para]
+
+Transducers are not handled by this package. They will get their own
+package in the future.
+
+[vset CATEGORY grammar_fa]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

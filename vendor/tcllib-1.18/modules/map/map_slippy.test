@@ -1,0 +1,144 @@
+# Tests for the map::slippy module.                           -*- tcl -*- 
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2010 Andreas Kupries
+# All rights reserved.
+#
+# RCS: @(#) $Id: map_slippy.test,v 1.2 2011/03/24 20:33:34 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+package require tcltest
+
+source [file join \
+    [file dirname [file dirname [file join [pwd] [info script]]]] \
+    devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.1
+
+support {
+    use snit/snit.tcl      snit
+    use math/math.tcl      math
+    use math/constants.tcl math::constants
+}
+testing {
+    useLocal map_slippy.tcl map::slippy
+}
+
+# -------------------------------------------------------------------------
+
+proc 4digits {args} {
+    set res {}
+    foreach arg $args {lappend res [expr (round(10000*$arg))/10000.0]}
+    return $res
+}
+
+#
+# Match floating point numbers to within 4 digits.
+#
+
+proc matchNumbers {expected actual} {
+    set match 1
+    foreach a $actual e $expected {
+        if {abs($a-$e) > 1e-4} {
+            set match 0
+            break
+        }
+    }
+    return $match
+}
+
+customMatch 4digits matchNumbers
+
+# -------------------------------------------------------------------------
+# Encoding tests
+# -------------------------------------------------------------------------
+
+test map-slippy-7.0 {tile 2geo} -body {
+    ::map::slippy tile 2geo {11 504 775}
+} -match 4digits -result {11.0 67.0674 -43.7695}
+
+# -------------------------------------------------------------------------
+# Converting between the three coordinate systems.
+# -------------------------------------------------------------------------
+
+foreach {n tile point geo tilei} {
+    0  {0 0 0}     {0 0 0}     {0  85.0511287798 -180.0} {0 0 0}
+    1  {0 1 1}     {0 256 256} {0 -85.0511287798  180.0} {0 0 1}
+    2  {0 0.5 0.5} {0 128 128} {0 0 0}                   {0 0 0}
+    3  {1 0 0}     {1 0 0}     {1  85.0511287798 -180.0} {1 0 0}
+    4  {1 1 1}     {1 256 256} {1 0 0}                   {1 1 1}
+    5  {1 0.5 0.5} {1 128 128} {1  66.5132604431  -90.0} {1 0 0}
+    6  {1 2 2}     {1 512 512} {1 -85.0511287798  180.0} {1 1 2}
+    7  {1 1.5 1.5} {1 384 384} {1 -66.5132604431   90.0} {1 1 1}
+} {
+    # The tilei results for .1/.6 are
+    # |0 0 1| instead of |0 1 1|
+    # |1 1 2|            |1 2 2|
+    # due to round off. As a float is it shown as 1.0, internally it
+    # is actually 0.9999...
+
+    test map-slippy-8.$n {tile -> point} -body {
+	::map::slippy tile 2point $tile
+    } -match 4digits -result $point
+
+    test map-slippy-9.$n {point -> tile} -body {
+	::map::slippy point 2tile $point
+    } -match 4digits -result $tile
+
+    test map-slippy-10.$n {point -> tile -> point} -body {
+	::map::slippy tile 2point [::map::slippy point 2tile $point]
+    } -match 4digits -result $point
+
+    test map-slippy-11.$n {tile -> point -> tile} -body {
+	::map::slippy point 2tile [::map::slippy tile 2point $tile]
+    } -match 4digits -result $tile
+
+    test map-slippy-12.$n {tile -> geo} -body {
+	::map::slippy tile 2geo $tile
+    } -match 4digits -result $geo
+
+    test map-slippy-13.$n {geo -> tile/float} -body {
+	::map::slippy geo 2tile.float $geo
+    } -match 4digits -result $tile
+
+    test map-slippy-13a.$n {geo -> tile} -body {
+	::map::slippy geo 2tile $geo
+    } -match 4digits -result $tilei
+
+    test map-slippy-14.$n {geo -> tile/float -> geo} -body {
+	::map::slippy tile 2geo [::map::slippy geo 2tile.float $geo]
+    } -match 4digits -result $geo
+
+    test map-slippy-15.$n {tile/float -> geo -> tile/float} -body {
+	::map::slippy geo 2tile.float [::map::slippy tile 2geo $tile]
+    } -match 4digits -result $tile
+
+    test map-slippy-16.$n {point -> geo} -body {
+	::map::slippy point 2geo $point
+    } -match 4digits -result $geo
+
+    test map-slippy-17.$n {geo -> point} -body {
+	::map::slippy geo 2point $geo
+    } -match 4digits -result $point
+
+    test map-slippy-18.$n {geo -> point -> geo} -body {
+	::map::slippy point 2geo [::map::slippy geo 2point $geo]
+    } -match 4digits -result $geo
+
+    test map-slippy-19.$n {point -> geo -> point} -body {
+	::map::slippy geo 2point [::map::slippy point 2geo $point]
+    } -match 4digits -result $point
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

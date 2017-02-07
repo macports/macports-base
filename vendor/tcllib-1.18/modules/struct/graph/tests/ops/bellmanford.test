@@ -1,0 +1,137 @@
+# -*- tcl -*-
+#Bellman-Ford's Algorithm - Tests
+#
+#Searching distances between selected node and all other nodes in graph.
+
+#------------------------------------------------------------------------------------
+#Tests concerning returning right values by algorithm
+
+#Tests 1.0 and 1.1 - couting right values for special cases of graphs
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-1.0 { BellmanFord, graph simulation } {
+    SETUP_BELLMANFORD_1
+    set result [dictsort [struct::graph::op::BellmanFord mygraph node1]]
+    mygraph destroy
+    set result
+} {node1 0 node2 1 node3 2 node4 3}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-1.1 { BellmanFord, graph simulation } {
+    SETUP_BELLMANFORD_2
+    set result [dictsort [struct::graph::op::BellmanFord mygraph node1]]
+    mygraph destroy
+    set result
+} {node1 0 node2 8 node3 5 node4 7 node5 3 node6 5}
+
+#Tests 1.2 - 1.4 - Test cases when there occur existance of cycle with negative sum of weights at edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-1.2 { BellmanFord, negative cycles } {
+    SETUP_NEGATIVECYCLE_1
+    catch { struct::graph::op::BellmanFord mygraph node1 } result
+    mygraph destroy
+    set result
+} [NegativeCycleOccurance {mygraph}]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-1.3 { BellmanFord, negative cycles } {
+    SETUP_NEGATIVECYCLE_2
+    catch { struct::graph::op::BellmanFord mygraph node1 } result
+    mygraph destroy
+    set result
+} [NegativeCycleOccurance {mygraph}]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-1.4 { BellmanFord, negative cycles } {
+    SETUP_NEGATIVECYCLE_3
+    catch { struct::graph::op::BellmanFord mygraph node1 } result
+    mygraph destroy
+    set result
+} [NegativeCycleOccurance {mygraph}]
+
+#Test 1.5 - do the algorithm finds a proper solution for directed complete graph with one edge deleted?
+#checking proper source - target relation
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-1.5 { BellmanFord, complete graph } {
+    SETUP_K4
+    set result [dictsort [struct::graph::op::BellmanFord mygraph node4]]
+    mygraph destroy
+    set result
+} {node1 2 node2 2 node3 3 node4 0}
+
+#Test 1.6 - coherent graph case, graph with startnode without edges pointing out, setting Inf values
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-1.6 { BellmanFord, uncoherence } {
+    SETUP_PARTIALLYCONNECTED_1
+    set result [dictsort [struct::graph::op::BellmanFord mygraph node5]]
+    mygraph destroy
+    set result
+} {node1 Inf node2 Inf node3 Inf node4 Inf node5 0}
+
+#Test 1.7 - case when we are given a graph without any edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-1.7 { BellmanFord, no edges } {
+    SETUP_NOEDGES_1
+    set result [dictsort [struct::graph::op::BellmanFord mygraph node1]]
+    mygraph destroy
+    set result
+} {node1 0 node2 Inf node3 Inf node4 Inf}
+
+#Test 1.8 - case when we are given a graph with all edge's weights set to 0
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-1.8 { BellmanFord, all weights set to 0 } {
+    SETUP_ZEROWEIGHTED_K4
+    set result [dictsort [struct::graph::op::BellmanFord mygraph node1]]
+    mygraph destroy
+    set result	
+} {node1 0 node2 0 node3 0 node4 0}
+
+#Test 1.9 - case when we are given a graph with some edge's weights set to 0
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-1.9 { BellmanFord, some weights set to 0 } {
+    SETUP_PARTIALLYZEROWEIGHTED
+    set result [dictsort [struct::graph::op::BellmanFord mygraph node1]]
+    mygraph destroy
+    set result	
+} {node1 0 node2 0 node3 0 node4 1}
+
+#Test 1.10 - case when we are given a complete K4 graph with some edge's weights set to 0
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-1.10 { BellmanFord, some weights set to 0 } {
+    SETUP_PARTIALLYZEROWEIGHTED_K4
+    set result [dictsort [struct::graph::op::BellmanFord mygraph node1]]
+    mygraph destroy
+    set result	
+} {node1 0 node2 0 node3 0 node4 0}
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-2.0 { BellmanFord, wrong args, missing } {
+    catch {struct::graph::op::BellmanFord} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::BellmanFord {G startnode} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-2.1 { BellmanFord, wrong args, missing } {
+    catch {struct::graph::op::BellmanFord G} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::BellmanFord {G startnode} 1]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-2.2 { BellmanFord, wrong args, too many} {
+    catch {struct::graph::op::BellmanFord G startnode x} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::BellmanFord {G startnode}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+#Test 3.0 - case when startnode doesn't exist in given graph
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-3.0 {BellmanFord, unexisting node } {
+    SETUP
+    catch {struct::graph::op::BellmanFord mygraph startnode} result
+    mygraph destroy
+    set result
+} [MissingNode mygraph startnode]
+
+#Test 3.1 - case when given graph doesn't have weights at all edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-3.1 {BellmanFord, lack of weights at edges } {
+    SETUP_UNWEIGHTED_K4
+    catch {struct::graph::op::BellmanFord mygraph startnode} result
+    mygraph destroy
+    set result
+} [UnweightedArcOccurance]
+
+#Test 3.2 - case when given graph doesn't have weights at some edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BellmanFord-3.1 {BellmanFord, partial lack of weights at edges } {
+    SETUP_PARTIALLYWEIGHTED_K4
+    catch {struct::graph::op::BellmanFord mygraph startnode} result
+    mygraph destroy
+    set result
+} [UnweightedArcOccurance]

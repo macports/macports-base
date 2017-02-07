@@ -1,7 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
-# $Id$
 #
-# Copyright (c) 2007 - 2014 The MacPorts Project
+# Copyright (c) 2007 - 2016 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -349,17 +348,17 @@ proc portlint::lint_main {args} {
            lint_required lint_optional replaced_by conflicts
     set portarch [get_canonical_archs]
 
-    if (!$seen_portsystem) {
+    if {!$seen_portsystem} {
         ui_error "Didn't find PortSystem specification"
         incr errors
-    }  elseif {$portsystem != $lint_portsystem} {
+    }  elseif {$portsystem ne $lint_portsystem} {
         ui_error "Unknown PortSystem: $portsystem"
         incr errors
     } else {
         ui_info "OK: Found PortSystem $portsystem"
     }
 
-    if ($seen_portgroup) {
+    if {$seen_portgroup} {
         # Using a PortGroup is optional
         foreach {portgroup portgroupversion} [array get portgroups] {
             if {![file exists [getportresourcepath $porturl "port1.0/group/${portgroup}-${portgroupversion}.tcl"]]} {
@@ -374,7 +373,7 @@ proc portlint::lint_main {args} {
     foreach req_var $lint_required {
 
         if {$req_var eq "master_sites"} {
-            if {${fetch.type} != "standard"} {
+            if {${fetch.type} ne "standard"} {
                 ui_info "OK: $req_var not required for fetch.type ${fetch.type}"
                 continue
             }
@@ -474,7 +473,7 @@ proc portlint::lint_main {args} {
             foreach vconflict [ditem_key $variant conflicts] {
                 set exists 0
                 foreach v $all_variants {
-                    if {$vconflict == [ditem_key $v name]} {
+                    if {$vconflict eq [ditem_key $v name]} {
                         set exists 1
                         break
                     }
@@ -518,8 +517,7 @@ proc portlint::lint_main {args} {
     foreach depspec $all_depends {
         set dep [lindex [split $depspec :] end]
         if {[catch {set res [mport_lookup $dep]} error]} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             continue
         }
         if {$res eq ""} {
@@ -552,8 +550,7 @@ proc portlint::lint_main {args} {
             incr errors
         } else {
             if {[catch {set res [mport_lookup $replaced_by]} error]} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
             }
             if {$res eq ""} {
                 ui_error "replaced_by references unknown port: $replaced_by"
@@ -572,8 +569,7 @@ proc portlint::lint_main {args} {
                 continue
             }
             if {[catch {set res [mport_lookup $cport]} error]} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
                 continue
             }
             if {$res eq ""} {
@@ -596,14 +592,14 @@ proc portlint::lint_main {args} {
     }
 
     foreach addr $maintainers {
-        if {$addr == "nomaintainer@macports.org" ||
-                $addr == "openmaintainer@macports.org"} {
+        if {$addr eq "nomaintainer@macports.org" ||
+                $addr eq "openmaintainer@macports.org"} {
             ui_warn "Using full email address for no/open maintainer"
             incr warnings
         } elseif {[regexp "^(.+)@macports.org$" $addr -> localpart]} {
             ui_warn "Maintainer email address for $localpart includes @macports.org"
             incr warnings
-        } elseif {$addr == "darwinports@opendarwin.org"} {
+        } elseif {$addr eq "darwinports@opendarwin.org"} {
             ui_warn "Using legacy email address for no/open maintainer"
             incr warnings
         } elseif {[regexp "^(.+)@(.+)$" $addr -> localpart domain]} {
@@ -667,13 +663,13 @@ proc portlint::lint_main {args} {
     }
 
     # these checks are only valid for ports stored in the regular tree directories
-    if {[info exists category] && $portcatdir != $category} {
+    if {[info exists category] && $portcatdir ne $category} {
         ui_error "Portfile parent directory $portcatdir does not match primary category $category"
         incr errors
     } else {
         ui_info "OK: Portfile parent directory matches primary category"
     }
-    if {$portdir != $name} {
+    if {$portdir ne $name} {
         ui_error "Portfile directory $portdir does not match port name $name"
         incr errors
     } else {

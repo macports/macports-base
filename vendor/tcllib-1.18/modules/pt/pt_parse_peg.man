@@ -1,0 +1,38 @@
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt_parse_peg i 1]
+[include include/module.inc]
+[titledesc {Parser Tools PEG Parser}]
+[require pt::parse::peg 1]
+[description]
+[include include/ref_intro.inc]
+
+This package provides a class whose instances are parsers for parsing
+expression grammars in textual form.
+
+[section {Class API}]
+
+[list_begin definitions]
+[call [cmd pt::parse::peg] [opt [arg objectName]]]
+
+The class command constructs parser instances, i.e. objects. The
+result of the command is the fully-qualified name of the instance
+command.
+
+[para]
+
+If no [arg objectName] is specified the class will generate and use an
+automatic name. If the [arg objectName] was specified, but is not
+fully qualified the command will be created in the current namespace.
+
+[list_end]
+
+[section {Instances API}]
+
+All parser instances provide at least the methods shown below:
+
+[list_begin definitions]
+[include include/std_parser_object_api.inc]
+[list_end]
+
+[include include/feedback.inc]
+[manpage_end]

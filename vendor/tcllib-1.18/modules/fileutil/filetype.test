@@ -1,0 +1,193 @@
+# -*- tcl -*-
+# Tests for the find function.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# Copyright (c) 2001 by ActiveState Tool Corp.
+# Copyright (c) 2005-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: filetype.test,v 1.1 2007/08/03 23:07:25 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+support {
+    useTcllibFile fumagic/fumagic.testsupport ; # Filetype helpers.
+    use           cmdline/cmdline.tcl cmdline
+}
+testing {
+    useLocal fileutil.tcl fileutil
+}
+
+# -------------------------------------------------------------------------
+
+set path [makeFile {} bogus]
+removeFile bogus
+
+# -------------------------------------------------------------------------
+
+test fileType-1.1 {test file non-existance} {
+    set res [catch {fileutil::fileType $path} msg]
+    list $res $msg
+} [list 1 "file not found: '$path'"]
+
+test fileType-1.2 {test file directory} {
+    set f [makeDirectory fileTypeTest]
+    set res [catch {fileutil::fileType $f} msg]
+    removeDirectory fileTypeTest
+    list $res $msg
+} [list 0 [list directory]]
+
+test fileType-1.3 {test file empty} {
+    set f [makeEmptyFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removeEmptyFile
+    list $res $msg
+} [list 0 [list empty]]
+
+test fileType-1.4 {test simple binary} {
+    set f [makeBinFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removeBinFile
+    list $res $msg
+} [list 0 [list binary]]
+
+test fileType-1.5 {test elf executable} {
+    set f [makeElfFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removeElfFile
+    list $res $msg
+} [list 0 [list binary executable elf]]
+
+test fileType-1.6 {test simple text} {
+    set f [makeTextFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removeTextFile
+    list $res $msg
+} [list 0 [list text]]
+
+test fileType-1.7 {test script file} {
+    set f [makeScriptFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removeScriptFile
+    list $res $msg
+} [list 0 [list text script /bin/tclsh]]
+
+test fileType-1.8 {test html text} {
+    set f [makeHtmlFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removeHtmlFile
+    list $res $msg
+} [list 0 [list text html]]
+
+test fileType-1.9 {test xml text} {
+    set f [makeXmlFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removeXmlFile
+    list $res $msg
+} [list 0 [list text xml]]
+
+test fileType-1.10 {test xml with dtd text} {
+    set f [makeXmlDTDFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removeXmlDTDFile
+    list $res $msg
+} [list 0 [list text xml foobar]]
+
+test fileType-1.11 {test PGP message} {
+    set f [makePGPFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removePGPFile
+    list $res $msg
+} [list 0 [list text message pgp]]
+
+test fileType-1.12 {test binary graphic jpeg} {
+    set f [makeJpegFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removeJpegFile
+    list $res $msg
+} [list 0 [list binary graphic jpeg jfif]]
+
+test fileType-1.13 {test binary graphic gif} {
+    set f [makeGifFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removeGifFile
+    list $res $msg
+} [list 0 [list binary graphic gif]]
+
+test fileType-1.14 {test binary graphic png} {
+    set f [makePngFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removePngFile
+    list $res $msg
+} [list 0 [list binary graphic png]]
+
+test fileType-1.15 {test binary graphic tiff} {
+    set f [makeTiffFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removeTiffFile
+    list $res $msg
+} [list 0 [list binary graphic tiff]]
+
+test fileType-1.16 {test binary pdf} {
+    set f [makePdfFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removePdfFile
+    list $res $msg
+} [list 0 [list binary pdf]]
+
+test fileType-1.17 {test text ps} {
+    set f [makePSFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removePSFile
+    list $res $msg
+} [list 0 [list text ps eps]]
+
+test fileType-1.18 {test text eps} {
+    set f [makeEPSFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removeEPSFile
+    list $res $msg
+} [list 0 [list text ps eps]]
+
+test fileType-1.19 {test binary gravity_wave_data_frame} {
+    set f [makeIgwdFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removeIgwdFile
+    list $res $msg
+} [list 0 [list binary gravity_wave_data_frame]]
+
+test fileType-1.20 {test binary compressed bzip} {
+    set f [makeBzipFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removeBzipFile
+    list $res $msg
+} [list 0 [list binary compressed bzip]]
+
+test fileType-1.21 {test binary compressed gzip} {
+    set f [makeGzipFile]
+    set res [catch {fileutil::fileType $f} msg]
+    removeGzipFile
+    list $res $msg
+} [list 0 [list binary compressed gzip]]
+
+test fileType-1.22 {text pdf} {
+    set f [localPath test-data/pdf4tcl_01.pdf]
+    set res [catch {fileutil::fileType $f} msg]
+    list $res $msg
+} [list 0 [list text pdf]]
+
+# -------------------------------------------------------------------------
+
+unset path
+testsuiteCleanup
+return

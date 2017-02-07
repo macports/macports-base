@@ -1,0 +1,38 @@
+# -*- tcl -*- sum.pcx
+# Syntax of the commands provided by package sum.
+
+# For use by TclDevKit's static syntax checker.
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the documentation describing the format of the code contained in this file
+#
+
+package require pcx
+pcx::register sum
+pcx::tcldep   1.1.0 needs tcl 8.2
+
+namespace eval ::sum {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 1.1.0 std ::crc::sum \
+    {checkConstrained {checkSimpleArgs 1 -1 {
+	{checkSwitches 1 {
+	    -bsd
+	    -sysv
+	    {-channel  {checkSetConstraint fn checkChannelID}}
+	    {-chunksize checkInt}
+	    {-filename {checkSetConstraint fn checkFileName}}
+	    {-format    checkWord}
+	    {-timeout   checkWholeNum}
+	    --
+	} {checkConstraint {
+	    {fn  {checkSimpleArgs 0 0 {}}}
+	    {!fn {checkSimpleArgs 1 1 checkWord}}
+	} {}}}
+    }}}
+
+# Initialization via pcx::init.
+# Use a ::sum::init procedure for non-standard initialization.
+pcx::complete

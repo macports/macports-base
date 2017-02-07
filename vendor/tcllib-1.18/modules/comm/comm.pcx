@@ -1,0 +1,99 @@
+# -*- tcl -*- comm.pcx
+# Syntax of the commands provided by package comm.
+
+# For use by TclDevKit's static syntax checker.
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the documentation describing the format of the code contained in this file
+#
+
+package require pcx
+pcx::register comm
+pcx::tcldep   4.5.7 needs tcl 8.3
+
+namespace eval ::comm {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+# TODO: new, word = name of comm channel object, register in scan mode, using this syntax.
+# TODO: hook, word = bind script, look at tk bind syntax.
+
+pcx::check 4.5.7 std ::comm::comm \
+    {checkSimpleArgs 1 -1 {
+	{checkOption {
+	    {abort        {checkSimpleArgs 0 0 {}}}
+	    {channels     {checkSimpleArgs 0 0 {}}}
+	    {configure    {checkSimpleArgs 0 -1 {
+		comm::checkCommSwitches
+	    }}}
+	    {connect      {checkSimpleArgs 1 1 {
+		comm::checkCommId
+	    }}}
+	    {debug        {checkSimpleArgs 1 1 {
+		checkBoolean
+	    }}}
+	    {destroy      {checkSimpleArgs 0 0 {}}}
+	    {hook         {checkSimpleArgs 1 2 {
+		comm::checkCommHook
+		checkWord
+	    }}}
+	    {ids          {checkSimpleArgs 0 0 {}}}
+	    {interps      {checkSimpleArgs 0 0 {}}}
+	    {new          {checkSimpleArgs 1 -1 {
+		checkWord
+		comm::checkCommSwitches
+	    }}}
+	    {remoteid     {checkSimpleArgs 0 0 {}}}
+	    {return_async {checkSimpleArgs 0 0 {}}}
+	    {self         {checkSimpleArgs 0 0 {}}}
+	    {send         {checkSimpleArgs 1 -1 {
+		{checkSwitches 1 {
+		    -async
+		    {-command {checkWord}}
+		} {checkSimpleArgs 2 -1 {
+		    comm::checkCommId
+		    checkEvalArgs
+		}}}
+	    }}}
+	    {shutdown     {checkSimpleArgs 1 1 {comm::checkCommId}}}
+	} {}}
+    }}
+pcx::check 4.5.7 std ::comm::comm_send \
+    {checkSimpleArgs 0 0 {}}
+
+# Initialization via pcx::init.
+# Use a ::comm::init procedure for non-standard initialization.
+
+proc comm::checkCommId {t i} {
+    return [checkListValues 1 2 {
+	checkWholeNum
+	checkWord
+    } $t $i]
+}
+
+proc comm::checkCommHook {t i} {
+    return [checkKeyword 1 {
+	connecting connected incoming eval callback reply lost
+    } $t $i]
+}
+
+proc comm::checkCommSwitches {t i} {
+    # socket, serial, encoding are read-only, hence the check that
+    # they are used only without an argument.
+    return [checkSwitches 1 {
+	{-chan      {checkSimpleArgs 0 0 {}}}
+	{-encoding  checkWord}
+	{-events    {checkListValues 0 -1 {comm::checkCommHook}}}
+	{-interp    checkWord}
+	{-listen    checkBoolean}
+	{-local     checkBoolean}
+	{-port      checkWholeNum}
+	{-serial    {checkSimpleArgs 0 0 {}}}
+	{-silent    checkBoolean}
+	{-socket    {checkSimpleArgs 0 0 {}}}
+	{-socketcmd checkWord}
+    } {} $t $i]
+}
+
+pcx::complete

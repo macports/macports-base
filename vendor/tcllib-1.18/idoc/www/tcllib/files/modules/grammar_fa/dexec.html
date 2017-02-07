@@ -1,0 +1,268 @@
+
+<html><head>
+<title>grammar::fa::dexec - Finite automaton operations and usage</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'dexec.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2004 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;   -- Copyright &copy; 2007 Bogdan &lt;rftghost@users.sourceforge.net&gt;
+   -->
+<! -- grammar::fa::dexec.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">grammar::fa::dexec(n) 0.2 tcllib &quot;Finite automaton operations and usage&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>grammar::fa::dexec - Execute deterministic finite automatons</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">EXECUTOR METHODS</a></li>
+<li class="doctools_section"><a href="#section4">EXECUTOR CALLBACK</a></li>
+<li class="doctools_section"><a href="#section5">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">snit</b></li>
+<li>package require <b class="pkgname">grammar::fa::dexec <span class="opt">?0.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::grammar::fa::dexec</b> <i class="arg">daName</i> <i class="arg">fa</i> <span class="opt">?<b class="option">-any</b> <i class="arg">any</i>?</span> <span class="opt">?<b class="option">-command</b> <i class="arg">cmdprefix</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">daName</b> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+<li><a href="#3"><i class="arg">daName</i> <b class="method">destroy</b></a></li>
+<li><a href="#4"><i class="arg">daName</i> <b class="method">put</b> <i class="arg">symbol</i></a></li>
+<li><a href="#5"><i class="arg">daName</i> <b class="method">reset</b></a></li>
+<li><a href="#6"><i class="arg">daName</i> <b class="method">state</b></a></li>
+<li><a href="#7"><i class="arg">cmdprefix</i> <b class="method">error</b> <i class="arg">code</i> <i class="arg">message</i></a></li>
+<li><a href="#8"><i class="arg">cmdprefix</i> <b class="method">final</b> <i class="arg">stateid</i></a></li>
+<li><a href="#9"><i class="arg">cmdprefix</i> <b class="method">reset</b></a></li>
+<li><a href="#10"><i class="arg">cmdprefix</i> <b class="method">state</b> <i class="arg">stateid</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a class for executors constructed from
+deterministic <i class="term">finite automatons</i> (DFA). Executors are objects
+which are given a string of symbols in a piecemal fashion, perform
+state transitions and report back when they enter a final state, or
+find an error in the input.
+For the actual creation of the DFAs the executors are based on we have
+the packages <b class="package"><a href="fa.html">grammar::fa</a></b> and <b class="package"><a href="faop.html">grammar::fa::op</a></b>.</p>
+<p>The objects follow a push model. Symbols are pushed into the executor,
+and when something important happens, i.e. error occurs, a state transition,
+or a final state is entered this will be reported via the callback
+specified via the option <b class="option">-command</b>. Note that conversion of
+this into a pull model where the environment retrieves messages from
+the object and the object uses a callback to ask for more symbols is
+a trivial thing.</p>
+<p><em>Side note</em>:
+The acceptor objects provided by <b class="package"><a href="dacceptor.html">grammar::fa::dacceptor</a></b>
+could have been implemented on top of the executors provided here, but
+were not, to get a bit more performance (we avoid a number of method
+calls and the time required for their dispatch).</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<p>The package exports the API described here.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::grammar::fa::dexec</b> <i class="arg">daName</i> <i class="arg">fa</i> <span class="opt">?<b class="option">-any</b> <i class="arg">any</i>?</span> <span class="opt">?<b class="option">-command</b> <i class="arg">cmdprefix</i>?</span></a></dt>
+<dd><p>Creates a new deterministic executor with an associated global Tcl
+command whose name is <i class="arg">daName</i>. This command may be used to invoke
+various operations on the executor. It has the following general form:</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">daName</b> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p><i class="arg">Option</i> and the <i class="arg">arg</i>s determine the exact behavior of the
+command. See section <span class="sectref"><a href="#section3">EXECUTOR METHODS</a></span> for more
+explanations.</p>
+<p>The executor will be based on the deterministic finite automaton
+stored in the object <i class="arg">fa</i>. It will keep a copy of the relevant
+data of the FA in its own storage, in a form easy to use for its
+purposes. This also means that changes made to the <i class="arg">fa</i> after the
+construction of the executor <em>will not</em> influence the executor.</p>
+<p>If <i class="arg">any</i> has been specified, then the executor will convert all
+symbols in the input which are unknown to the base FA to that symbol
+before proceeding with the processing.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">EXECUTOR METHODS</a></h2>
+<p>All executors provide the following methods for their manipulation:</p>
+<dl class="doctools_definitions">
+<dt><a name="3"><i class="arg">daName</i> <b class="method">destroy</b></a></dt>
+<dd><p>Destroys the automaton, including its storage space and associated
+command.</p></dd>
+<dt><a name="4"><i class="arg">daName</i> <b class="method">put</b> <i class="arg">symbol</i></a></dt>
+<dd><p>Takes the current state of the executor and the <i class="arg">symbol</i> and
+performs the appropriate state transition. Reports any errors
+encountered via the command callback, as well as entering a final
+state of the underlying FA.</p>
+<p>When an error is reported all further invokations of <b class="method">put</b> will
+do nothing, until the error condition has been cleared via an
+invokation of method <b class="method">reset</b>.</p></dd>
+<dt><a name="5"><i class="arg">daName</i> <b class="method">reset</b></a></dt>
+<dd><p>Unconditionally sets the executor into the start state of the
+underlying FA. This also clears any error condition  <b class="method">put</b> may
+have encountered.</p></dd>
+<dt><a name="6"><i class="arg">daName</i> <b class="method">state</b></a></dt>
+<dd><p>Returns the current state of the underlying FA. This allow for
+introspection without the need to pass data from the callback command.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">EXECUTOR CALLBACK</a></h2>
+<p>The callback command <i class="arg">cmdprefix</i> given to an executor via the
+option <b class="option">-command</b> will be executed by the object at the global
+level, using the syntax described below. Note that <i class="arg">cmdprefix</i> is
+not simply the name of a command, but a full command prefix. In other
+words it may contain additional fixed argument words beyond the
+command word.</p>
+<dl class="doctools_definitions">
+<dt><a name="7"><i class="arg">cmdprefix</i> <b class="method">error</b> <i class="arg">code</i> <i class="arg">message</i></a></dt>
+<dd><p>The executor has encountered an error, and <i class="arg">message</i> contains a
+human-readable text explaining the nature of the problem.
+The <i class="arg">code</i> on the other hand is a fixed machine-readable text.
+The following error codes can be generated by executor objects.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">BADSYM</b></dt>
+<dd><p>An unknown symbol was found in the input. This can happen if and only
+if no <b class="option">-any</b> symbol was specified.</p></dd>
+<dt><b class="const">BADTRANS</b></dt>
+<dd><p>The underlying FA has no transition for the current combination of
+input symbol and state. In other words, the executor was not able to
+compute a new state for this combination.</p></dd>
+</dl></dd>
+<dt><a name="8"><i class="arg">cmdprefix</i> <b class="method">final</b> <i class="arg">stateid</i></a></dt>
+<dd><p>The executor has entered the final state <i class="arg">stateid</i>.</p></dd>
+<dt><a name="9"><i class="arg">cmdprefix</i> <b class="method">reset</b></a></dt>
+<dd><p>The executor was reset.</p></dd>
+<dt><a name="10"><i class="arg">cmdprefix</i> <b class="method">state</b> <i class="arg">stateid</i></a></dt>
+<dd><p>The FA changed state due to a transition. <i class="arg">stateid</i> is the new state.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">EXAMPLES</a></h2>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>grammar_fa</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key320">automaton</a>, <a href="../../../../index.html#key429">execution</a>, <a href="../../../../index.html#key325">finite automaton</a>, <a href="../../../../index.html#key11">grammar</a>, <a href="../../../../index.html#key26">parsing</a>, <a href="../../../../index.html#key324">regular expression</a>, <a href="../../../../index.html#key322">regular grammar</a>, <a href="../../../../index.html#key321">regular languages</a>, <a href="../../../../index.html#key430">running</a>, <a href="../../../../index.html#key2">state</a>, <a href="../../../../index.html#key12">transducer</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Grammars and finite automata</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2004 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;<br>
+Copyright &copy; 2007 Bogdan &lt;rftghost@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

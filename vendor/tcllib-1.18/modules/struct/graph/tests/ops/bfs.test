@@ -1,0 +1,204 @@
+# -*- tcl -*-
+#Breadth-First Search procedures
+#
+# ------------------------------------------------------------------------------------
+# Tests concerning returning right values by algorithm
+
+# ------------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------------
+#Tests for shortest paths finding using BFS algorithm
+#Test 1.0 
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-ShortestsPathsByBFS-1.0 { graph simulation } {
+    SETUP_BFS_1
+    set result [dictsort [struct::graph::op::ShortestsPathsByBFS mygraph s distances]]
+    mygraph destroy
+    set result
+} {a 2 b 7 c 13 d 9 s 0 x 5}
+
+#Test 1.1
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-ShortestsPathsByBFS-1.1 { graph simulation } {
+    SETUP_BFS_1
+    set result [dictsort [struct::graph::op::ShortestsPathsByBFS mygraph s paths]]
+    mygraph destroy
+    set result
+} {a {s x} b {s x a} c {s x a b} d {s x a b} x s}
+
+#Test 1.2
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-ShortestsPathsByBFS-1.2 { graph simulation } {
+    SETUP_BFS_2
+    set result [dictsort [struct::graph::op::ShortestsPathsByBFS mygraph s distances]]
+    mygraph destroy
+    set result
+} {a 13 b 23 c 11 d 9 s 0 t 18}
+
+#Test 1.3
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-ShortestsPathsByBFS-1.3 { graph simulation } {
+    SETUP_BFS_2
+    set result [dictsort [struct::graph::op::ShortestsPathsByBFS mygraph s paths]]
+    mygraph destroy
+    set result
+} {a {s d} b {s d c t} c {s d} d s t {s d c}}
+
+#Test 1.4
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-ShortestsPathsByBFS-1.4 { graph simulation } {
+    SETUP_BELLMANFORD_2
+    set result [dictsort [struct::graph::op::ShortestsPathsByBFS mygraph node1 distances]]
+    mygraph destroy
+    set result
+} {node1 0 node2 8 node3 5 node4 7 node5 3 node6 5}
+
+#Test 1.5
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-ShortestsPathsByBFS-1.5 { graph simulation } {
+    SETUP_BELLMANFORD_2
+    set result [dictsort [struct::graph::op::ShortestsPathsByBFS mygraph node1 paths]]
+    mygraph destroy
+    set result
+} {node2 node1 node3 {node1 node2 node4} node4 {node1 node2} node5 {node1 node2 node4 node3} node6 {node1 node2 node4 node3 node5}}
+
+#Tests for standard BFS Algorithm
+#Test 1.6
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BFS-1.6 { graph simulation } {
+    SETUP_BFS_2
+    set solution [struct::graph::op::BFS mygraph s graph]
+    set result "[lsort [$solution nodes]] | [lsort [$solution arcs]]"
+    $solution destroy
+    mygraph destroy
+    set result
+} [tmE \
+       {a b c d s t | {a b} {c t} {d c} {s a} {s d}} \
+       {a b c d s t | {a b} {a c} {b t} {s a} {s d}}]
+# Tcl ordering: d,a | Both results are valid.
+# C   ordering: a,d |
+
+#Test 1.7
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BFS-1.7 { graph simulation } {
+    SETUP_BFS_2
+    set result [struct::graph::op::BFS mygraph s tree]
+    set tree {}
+    foreach node [$result nodes] {
+	lappend tree [list $node [lsort [$result children $node]]]
+    }
+    mygraph destroy
+    $result destroy
+    lsort $tree
+} [tmE \
+       {{a b} {b {}} {c t} {d c} {s {a d}} {t {}}} \
+       {{a {b c}} {b t} {c {}} {d {}} {s {a d}} {t {}}}]
+# See 1.6.
+
+#Test 1.8
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BFS-1.8 { graph simulation } {
+    SETUP_MDST_1
+    set solution [struct::graph::op::BFS mygraph d graph]
+    set result "[lsort [$solution nodes]] | [lsort [$solution arcs]]"
+    mygraph destroy
+    $solution destroy
+    set result
+} [tmE \
+       {a b c d e f g h i j | {b a} {d c} {d e} {d h} {e f} {e g} {g i} {h b} {h j}} \
+       {a b c d e f g h i j | {b a} {c b} {c g} {d c} {d e} {d h} {e f} {g i} {h j}}]
+
+#Test 1.9
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BFS-1.9 { graph simulation } {
+    SETUP_MDST_1
+    set result [struct::graph::op::BFS mygraph d tree]
+    set tree {}
+    foreach node [$result nodes] {
+	lappend tree [list $node [lsort [$result children $node]]]
+    }
+    mygraph destroy
+    $result destroy
+    lsort $tree
+} [tmE \
+       {{a {}} {b a} {c {}} {d {c e h}} {e {f g}} {f {}} {g i} {h {b j}} {i {}} {j {}}} \
+       {{a {}} {b a} {c {b g}} {d {c e h}} {e f} {f {}} {g i} {h j} {i {}} {j {}}}]
+
+#Test 1.10
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BFS-1.10 { graph simulation } {
+    SETUP_BELLMANFORD_2
+    set solution [struct::graph::op::BFS mygraph node1 graph]
+    set result "[lsort [$solution nodes]] | [lsort [$solution arcs]]"
+    mygraph destroy
+    $solution destroy
+    set result
+} [tmE \
+       {node1 node2 node3 node4 node5 node6 | {node1 node2} {node1 node3} {node2 node4} {node3 node5} {node4 node6}} \
+       {node1 node2 node3 node4 node5 node6 | {node1 node2} {node1 node3} {node3 node4} {node3 node5} {node4 node6}}]
+
+#Test 1.11
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BFS-1.11 { graph simulation } {
+    SETUP_BELLMANFORD_2
+    set result [struct::graph::op::BFS mygraph node1 tree]
+    set tree {}
+    foreach node [$result nodes] {
+	lappend tree [list $node [lsort [$result children $node]]]
+    }
+    mygraph destroy
+    $result destroy
+    lsort $tree
+} [tmE \
+       {{node1 {node2 node3}} {node2 node4} {node3 node5} {node4 node6} {node5 {}} {node6 {}}} \
+       {{node1 {node2 node3}} {node2 {}} {node3 {node4 node5}} {node4 node6} {node5 {}} {node6 {}}}]
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-ShortestsPathsByBFS-2.0 { BFS, wrong args, missing } {
+    catch {struct::graph::op::ShortestsPathsByBFS} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::ShortestsPathsByBFS {G s outputFormat} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-ShortestsPathsByBFS-2.1 { BFS, wrong args, missing } {
+    catch {struct::graph::op::ShortestsPathsByBFS G} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::ShortestsPathsByBFS {G s outputFormat} 1]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-ShortestsPathsByBFS-2.2 { BFS, wrong args, missing } {
+    catch {struct::graph::op::ShortestsPathsByBFS G s} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::ShortestsPathsByBFS {G s outputFormat} 2]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-ShortestsPathsByBFS-2.3 { BFS, wrong args, too many} {
+    catch {struct::graph::op::ShortestsPathsByBFS G a b c} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::ShortestsPathsByBFS {G s outputFormat}]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BFS-2.4 { BFS, wrong args, missing } {
+    catch {struct::graph::op::BFS} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::BFS {G s outputFormat} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BFS-2.5 { BFS, wrong args, missing } {
+    catch {struct::graph::op::BFS G} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::BFS {G s outputFormat} 1]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BFS-2.6 { BFS, wrong args, missing } {
+    catch {struct::graph::op::BFS G s} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::BFS {G s outputFormat} 2]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BFS-2.7 { BFS, wrong args, too many} {
+    catch {struct::graph::op::BFS G a b c} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::BFS {G s outputFormat}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+#Test 3.0
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-ShortestsPathsByBFS-3.0 { ShortestsPathsByBFS } {
+    SETUP
+    catch {struct::graph::op::ShortestsPathsByBFS mygraph s badOption} result
+    mygraph destroy
+    set result
+} {Unknown output format "badOption", expected distances, or paths.}
+
+#Test 3.1
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-BFS-3.1 { BFS } {
+    SETUP
+    catch {struct::graph::op::BFS mygraph s badOption} result
+    mygraph destroy
+    set result
+} {Unknown output format "badOption", expected graph, or tree.}

@@ -1,0 +1,65 @@
+set here [file dirname [file join [pwd] [info script]]]
+puts LOADING
+source [file join $here .. oodialect oodialect.tcl]
+source [file join $here .. dicttool dicttool.tcl]
+source [file join $here .. oometa oometa.tcl]
+source [file join $here .. sha1 sha1.tcl]
+
+source [file join $here index.tcl]
+
+tool::class create foo {
+  option color {default blue}
+}
+
+puts "START DEMO"
+foo create bar
+puts [bar cget color]
+bar configure color green
+puts [bar cget color]
+
+
+tool::class create car {
+  option color {
+    default: white
+  }
+  variable location home
+  array physics {
+    speed 0
+    accel 0
+    position {0 0}
+  }
+
+  method physics {field args} {
+    my variable physics
+    if {[llength $args]} {
+      set physics($field) $args
+    }
+    return $physics($field)
+  }
+  method location {} {
+    my variable location
+    return $location
+  }
+  method move newloc {
+    my variable location
+    set location $newloc
+  }
+}
+
+car create car1 color green
+car1 cget color
+#> green
+car create car2
+car2 cget color
+#> white
+
+car1 location
+#> home
+car1 move work
+car1 location
+#> work
+puts [car1 physics speed]
+#> 0
+car1 physics speed 10
+puts [car1 physics speed]
+#> 10

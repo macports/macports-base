@@ -1,6 +1,5 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portdistfiles.tcl
-# $Id$
 #
 # Copyright (c) 2008-2011 The MacPorts Project
 # All rights reserved.
@@ -53,7 +52,7 @@ proc portdistfiles::distfiles_start {args} {
 }
 
 proc portdistfiles::distfiles_main {args} {
-    global UI_PREFIX master_sites patch_sites patchfiles checksums_array \
+    global master_sites patch_sites patchfiles checksums_array \
            portdbpath dist_subdir all_dist_files
     
     # give up on ports that do not provide URLs

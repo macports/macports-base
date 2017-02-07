@@ -1,0 +1,250 @@
+# -*- tcl -*-
+# Tests for complex number functions in math library  -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# $Id: qcomplex.test,v 1.10 2006/10/09 21:41:41 andreas_kupries Exp $
+#
+# Copyright (c) 2004 by Arjen Markus
+# All rights reserved.
+#
+# Note:
+#    By evaluating the tests in a different namespace than global,
+#    we assure that the namespace issue (Bug #...) is checked.
+#
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 2.1
+
+support {
+    useLocal math.tcl math
+}
+testing {
+    useLocal qcomplex.tcl math::complexnumbers
+}
+
+# -------------------------------------------------------------------------
+
+namespace import -force ::math::complexnumbers::*
+
+proc matchNumbers { expected actual } {
+   set match 1
+   foreach a $actual e $expected {
+      if { abs($a-$e) > 1.0e-10 } {
+         set match 0
+         break
+      }
+   }
+   return $match
+}
+
+customMatch numbers matchNumbers
+
+# -------------------------------------------------------------------------
+
+#
+# Test cases: arithmetical operations
+#
+test "Complex-1.1" "Arithmetic - add 1" -match numbers -body {
+   set a [complex 1 0]
+   set b [complex 0 1]
+   set c [+ $a $b]
+} -result [complex 1 1]
+
+test "Complex-1.2" "Arithmetic - add 2" -match numbers -body {
+   set a [complex 1.1 -1.1]
+   set b [complex 1.1  1.1]
+   set c [+ $a $b]
+} -result [complex 2.2 0]
+
+test "Complex-1.3" "Arithmetic - subtract 1" -match numbers -body {
+   set a [complex 1 0]
+   set b [complex 0 1]
+   set c [- $a $b]
+} -result [complex 1 -1]
+
+test "Complex-1.4" "Arithmetic - subtract 2" -match numbers -body {
+   set a [complex 1.1 -1.1]
+   set b [complex 1.1  1.1]
+   set c [- $a $b]
+} -result [complex 0 -2.2]
+
+test "Complex-1.5" "Arithmetic - multiply 1" -match numbers -body {
+   set a [complex 1 -1]
+   set b [complex 0  1]
+   set c [* $a $b]
+} -result [complex 1 1]
+
+test "Complex-1.6" "Arithmetic - multiply 2" -match numbers -body {
+   set a [complex 0  1]
+   set b [complex 0  1]
+   set c [* $a $b]
+} -result [complex -1 0]
+
+test "Complex-1.7" "Arithmetic - divide 1" -match numbers -body {
+   set a [complex 1.1 1]
+   set b [complex 1.1 1]
+   set c [/ $a $b]
+} -result [complex 1 0]
+
+test "Complex-1.8" "Arithmetic - divide 2" -match numbers -body {
+   set a [complex 1  1]
+   set b [complex 0  1]
+   set c [/ $a $b]
+} -result [complex 1 -1]
+
+test "Complex-1.9" "Arithmetic - conjugate 1" -match numbers -body {
+   set a [complex 0  1]
+   set c [conj $a]
+} -result [complex 0 -1]
+
+test "Complex-1.10" "Arithmetic - conjugate 2" -match numbers -body {
+   set a [complex 1  0]
+   set c [conj $a]
+} -result [complex 1 0]
+
+test "Complex-2.1" "Conversion - real 1" -match numbers -body {
+   set a [complex 1  2]
+   set c [real $a]
+} -result 1
+
+test "Complex-2.2" "Conversion - real 2" -match numbers -body {
+   set a [complex 0  2]
+   set c [real $a]
+} -result 0
+
+test "Complex-2.3" "Conversion - imag 1" -match numbers -body {
+   set a [complex 1  2]
+   set c [imag $a]
+} -result 2
+
+test "Complex-2.4" "Conversion - imag 2" -match numbers -body {
+   set a [complex 0  2]
+   set c [imag $a]
+} -result 2
+
+test "Complex-2.5" "Conversion - mod 1" -match numbers -body {
+   set a [complex 0  1]
+   set c [mod $a]
+} -result 1
+
+test "Complex-2.6" "Conversion - mod 2" -match numbers -body {
+   set a [complex 3  4]
+   set c [mod $a]
+} -result 5
+
+test "Complex-2.7" "Conversion - arg 1" -match numbers -body {
+   set a [complex 0  1]
+   set c [arg $a]
+} -result [expr {2.0*atan(1.0)}]
+
+test "Complex-2.8" "Conversion - arg 2" -match numbers -body {
+   set a [complex 1  1]
+   set c [arg $a]
+} -result [expr {atan(1.0)}]
+
+test "Complex-2.9" "Conversion - tostring" -body {
+   set c    "[tostring [complex 1 0]] "
+   append c "[tostring [complex 0 1]] "
+   append c "[tostring [complex 1 1]] "
+   append c "[tostring [complex 1 -1]] "
+   append c "[tostring [complex 0 -1]] "
+   append c "[tostring [complex 2 -3]] "
+} -result "1 i 1+i 1-i -i 2-3i "
+
+test "Complex-3.1" "Elementary - exp 1" -match numbers -body {
+   set a [complex 1  0]
+   set c [exp $a]
+} -result [complex [expr {exp(1.0)}] 0.0]
+
+test "Complex-3.2" "Elementary - exp 2" -match numbers -body {
+   set a [complex 0  1]
+   set c [exp $a]
+} -result [complex [expr {cos(1.0)}] [expr {sin(1.0)}]]
+
+test "Complex-3.3" "Elementary - sin 1" -match numbers -body {
+   set a [complex 1  0]
+   set c [sin $a]
+} -result [complex [expr {sin(1.0)}] 0.0]
+
+test "Complex-3.4" "Elementary - sin 2" -match numbers -body {
+   set a  [complex 0 1]
+   set c  [sin $a]
+   #
+   # Calculate from the (complex) definition
+   #
+   set d1 [exp [complex -1 0]]
+   set d2 [exp [complex  1 0]]
+   set e  [/ [- $d1 $d2] [complex 0 2]]
+   set diff [- $c $e]
+} -result [complex 0 0]
+
+test "Complex-3.5" "Elementary - cos 1" -match numbers -body {
+   set a [complex 1  0]
+   set c [cos $a]
+} -result [complex [expr {cos(1.0)}] 0.0]
+
+test "Complex-3.6" "Elementary - cos 2" -match numbers -body {
+   set a  [complex 0 1]
+   set c  [cos $a]
+   set d1 [exp [complex -1 0]]
+   set d2 [exp [complex  1 0]]
+   set e  [/ [+ $d1 $d2] [complex 2 0]]
+   set diff [- $c $e]
+} -result [complex 0 0]
+
+test "Complex-3.7" "Elementary - tan 1" -match numbers -body {
+   set a  [complex 1 0]
+   set c  [tan $a]
+} -result [complex [expr {tan(1.0)}] 0]
+
+test "Complex-3.8" "Elementary - tan 2" -match numbers -body {
+   set a  [complex 0 1]
+   set c  [tan $a]
+   set d1 [sin $a]
+   set d2 [cos $a]
+   set e  [/ $d1 $d2]
+   set diff [- $c $e]
+} -result [complex 0 0]
+
+test "Complex-3.9" "Elementary - log 1" -match numbers -body {
+   set a  [complex 1 0]
+   set c  [log $a]
+} -result [complex 0 0]
+
+test "Complex-3.10" "Elementary - log 2" -match numbers -body {
+   set a  [complex 0 1]
+   set c  [log $a]
+} -result [complex 0 [expr {2.0*atan(1.0)}]]
+
+test "Complex-3.11" "Elementary - sqrt 1" -match numbers -body {
+   set a  [complex -1 0]
+   set c  [sqrt $a]
+} -result [complex 0 1]
+
+test "Complex-3.12" "Elementary - sqrt 2" -match numbers -body {
+   set a  [complex  0 4]
+   set c  [sqrt $a]
+} -result [complex [expr {sqrt(2)}] [expr {sqrt(2)}]]
+
+test "Complex-3.13" "Elementary - pow 1" -match numbers -body {
+   set a  [complex -1   0]
+   set b  [complex  0.5 0]
+   set c  [pow $a $b]
+} -result [complex 0 1]
+
+test "Complex-3.14" "Elementary - pow 2" -match numbers -body {
+   set a  [complex  [expr {exp(1.0)}] 0]
+   set b  [complex  0 [expr {4.0*atan(1.0)}]]
+   set c  [pow $a $b]
+} -result [complex -1 0]
+
+testsuiteCleanup

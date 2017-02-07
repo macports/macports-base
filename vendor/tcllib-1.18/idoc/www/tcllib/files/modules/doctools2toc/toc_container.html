@@ -1,0 +1,513 @@
+
+<html><head>
+<title>doctools::toc - Documentation tools</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'toc_container.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- doctools::toc.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">doctools::toc(n) 2 tcllib &quot;Documentation tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>doctools::toc - Holding tables of contents</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Concepts</a></li>
+<li class="doctools_section"><a href="#section3">API</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Package commands</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Object command</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Object methods</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">ToC serialization format</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">doctools::toc <span class="opt">?2?</span></b></li>
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">doctools::toc::structure</b></li>
+<li>package require <b class="pkgname">struct::tree</b></li>
+<li>package require <b class="pkgname">snit</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::doctools::toc</b> <i class="arg">objectName</i></a></li>
+<li><a href="#2"><b class="cmd">objectName</b> <b class="method">method</b> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+<li><a href="#3"><i class="arg">objectName</i> <b class="method">destroy</b></a></li>
+<li><a href="#4"><i class="arg">objectName</i> <b class="method">+ reference</b> <i class="arg">id</i> <i class="arg">label</i> <i class="arg">docid</i> <i class="arg">desc</i></a></li>
+<li><a href="#5"><i class="arg">objectName</i> <b class="method">+ division</b> <i class="arg">id</i> <i class="arg">label</i> <span class="opt">?<i class="arg">docid</i>?</span></a></li>
+<li><a href="#6"><i class="arg">objectName</i> <b class="method">remove</b> <i class="arg">id</i></a></li>
+<li><a href="#7"><i class="arg">objectName</i> <b class="method">up</b> <i class="arg">id</i></a></li>
+<li><a href="#8"><i class="arg">objectName</i> <b class="method">next</b> <i class="arg">id</i></a></li>
+<li><a href="#9"><i class="arg">objectName</i> <b class="method">prev</b> <i class="arg">id</i></a></li>
+<li><a href="#10"><i class="arg">objectName</i> <b class="method">child</b> <i class="arg">id</i> <i class="arg">label</i> <span class="opt">?<i class="arg">...</i>?</span></a></li>
+<li><a href="#11"><i class="arg">objectName</i> <b class="method">element</b> <span class="opt">?<i class="arg">...</i>?</span></a></li>
+<li><a href="#12"><i class="arg">objectName</i> <b class="method">children</b> <i class="arg">id</i></a></li>
+<li><a href="#13"><i class="arg">objectName</i> <b class="method">type</b> <i class="arg">id</i></a></li>
+<li><a href="#14"><i class="arg">objectName</i> <b class="method">full-label</b> <i class="arg">id</i></a></li>
+<li><a href="#15"><i class="arg">objectName</i> <b class="method">elabel</b> <i class="arg">id</i> <span class="opt">?<i class="arg">newlabel</i>?</span></a></li>
+<li><a href="#16"><i class="arg">objectName</i> <b class="method">description</b> <i class="arg">id</i> <span class="opt">?<i class="arg">newdesc</i>?</span></a></li>
+<li><a href="#17"><i class="arg">objectName</i> <b class="method">document</b> <i class="arg">id</i> <span class="opt">?<i class="arg">newdocid</i>?</span></a></li>
+<li><a href="#18"><i class="arg">objectName</i> <b class="method">title</b></a></li>
+<li><a href="#19"><i class="arg">objectName</i> <b class="method">title</b> <i class="arg">text</i></a></li>
+<li><a href="#20"><i class="arg">objectName</i> <b class="method">label</b></a></li>
+<li><a href="#21"><i class="arg">objectName</i> <b class="method">label</b> <i class="arg">text</i></a></li>
+<li><a href="#22"><i class="arg">objectName</i> <b class="method">importer</b></a></li>
+<li><a href="#23"><i class="arg">objectName</i> <b class="method">importer</b> <i class="arg">object</i></a></li>
+<li><a href="#24"><i class="arg">objectName</i> <b class="method">exporter</b></a></li>
+<li><a href="#25"><i class="arg">objectName</i> <b class="method">exporter</b> <i class="arg">object</i></a></li>
+<li><a href="#26"><i class="arg">objectName</i> <b class="method">deserialize =</b> <i class="arg">data</i> <span class="opt">?<i class="arg">format</i>?</span></a></li>
+<li><a href="#27"><i class="arg">objectName</i> <b class="method">deserialize +=</b> <i class="arg">data</i> <span class="opt">?<i class="arg">format</i>?</span></a></li>
+<li><a href="#28"><i class="arg">objectName</i> <b class="method">serialize</b> <span class="opt">?<i class="arg">format</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a class to contain and programmatically
+manipulate tables of contents.</p>
+<p>This is one of the three public pillars the management of tables of
+contents resides on. The other two pillars are</p>
+<ol class="doctools_enumerated">
+<li><p><i class="term"><a href="toc_export.html">Exporting tables of contents</a></i>, and</p></li>
+<li><p><i class="term">Importing tables of contents</i></p></li>
+</ol>
+<p>For information about the <span class="sectref"><a href="#section2">Concepts</a></span> of tables of contents, and
+their parts, see the same-named section.
+For information about the data structure which is used to encode
+tables of contents as values see the section
+<span class="sectref"><a href="#section4">ToC serialization format</a></span>.
+This is the only format directly known to this class. Conversions from
+and to any other format are handled by export and import manager
+objects. These may be attached to a container, but do not have to be,
+it is merely a convenience.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Concepts</a></h2>
+<ol class="doctools_enumerated">
+<li><p>A <i class="term"><a href="../../../../index.html#key157">table of contents</a></i> consists of a (possibly empty) list of
+<i class="term">elements</i>.</p></li>
+<li><p>Each element in the list is identified by its label.</p></li>
+<li><p>Each element is either a <i class="term"><a href="../../../../index.html#key251">reference</a></i>, or a <i class="term">division</i>.</p></li>
+<li><p>Each reference has an associated document, identified by a symbolic
+id, and a textual description.</p></li>
+<li><p>Each division may have an associated document, identified by a
+symbolic id.</p></li>
+<li><p>Each division consists consists of a (possibly empty) list of
+<i class="term">elements</i>, with each element following the rules as specified in
+item 2 and above.</p></li>
+</ol>
+<p>A few notes</p>
+<ol class="doctools_enumerated">
+<li><p>The above rules span up a tree of elements, with references as the
+leaf nodes, and divisions as the inner nodes, and each element
+representing an entry in the whole table of contents.</p></li>
+<li><p>The identifying labels of any element E are unique within their
+division (or toc), and the full label of any element E is the list of
+labels for all nodes on the unique path from the root of the tree to
+E, including E.</p></li>
+</ol>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">API</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Package commands</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::doctools::toc</b> <i class="arg">objectName</i></a></dt>
+<dd><p>This command creates a new container object with an associated Tcl
+command whose name is <i class="arg">objectName</i>. This <i class="term"><a href="../../../../index.html#key243">object</a></i> command is
+explained in full detail in the sections <span class="sectref"><a href="#subsection2">Object command</a></span>
+and <span class="sectref"><a href="#subsection3">Object methods</a></span>. The object command will be created
+under the current namespace if the <i class="arg">objectName</i> is not fully
+qualified, and in the specified namespace otherwise.</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Object command</a></h3>
+<p>All objects created by the <b class="cmd">::doctools::toc</b> command have the
+following general form:</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">objectName</b> <b class="method">method</b> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p>The method <b class="method">method</b> and its <i class="arg">arg</i>'uments determine the
+exact behavior of the command.
+See section <span class="sectref"><a href="#subsection3">Object methods</a></span> for the detailed
+specifications.</p></dd>
+</dl>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Object methods</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="3"><i class="arg">objectName</i> <b class="method">destroy</b></a></dt>
+<dd><p>This method destroys the object it is invoked for.</p></dd>
+<dt><a name="4"><i class="arg">objectName</i> <b class="method">+ reference</b> <i class="arg">id</i> <i class="arg">label</i> <i class="arg">docid</i> <i class="arg">desc</i></a></dt>
+<dd><p>This method adds a new reference element to the table of contents,
+under the element specified via its handle <i class="arg">id</i>. This parent
+element has to be a division element, or the root. An error is thrown
+otherwise.
+The new element will be externally identified by its <i class="arg">label</i>,
+which has to be be unique within the parent element. An error is
+thrown otherwise.</p>
+<p>As a reference element it will refer to a document identified by the
+symbolic <i class="arg">docid</i>. This reference must not be the empty string, an
+error is thrown otherwise.
+Beyond the label the element also has a longer descriptive string,
+supplied via <i class="arg">desc</i>.</p>
+<p>The result of the method is the handle (id) of the new element.</p></dd>
+<dt><a name="5"><i class="arg">objectName</i> <b class="method">+ division</b> <i class="arg">id</i> <i class="arg">label</i> <span class="opt">?<i class="arg">docid</i>?</span></a></dt>
+<dd><p>This method adds a new division element to the table of contents,
+under the element specified via its handle <i class="arg">id</i>. This parent
+element has to be a division element, or the root. An error is thrown
+otherwise.
+The new element will be externally identified by its <i class="arg">label</i>,
+which has to be be unique within the parent element. An error is
+thrown otherwise.</p>
+<p>As a division element it is can refer to a document, identified by the
+symbolic <i class="arg">docid</i>, but may choose not to.</p>
+<p>The result of the method is the handle (id) of the new element.</p></dd>
+<dt><a name="6"><i class="arg">objectName</i> <b class="method">remove</b> <i class="arg">id</i></a></dt>
+<dd><p>This method removes the element identified by the handle <i class="arg">id</i> from
+the table of contents.
+If the element is a division all of its children, if any, are removed
+as well. The root element/division of the table of contents cannot be
+removed however, only its children.</p>
+<p>The result of the method is the empty string.</p></dd>
+<dt><a name="7"><i class="arg">objectName</i> <b class="method">up</b> <i class="arg">id</i></a></dt>
+<dd><p>This method returns the handle of the parent for the element
+identified by its handle <i class="arg">id</i>, or the empty string if <i class="arg">id</i>
+refered to the root element.</p></dd>
+<dt><a name="8"><i class="arg">objectName</i> <b class="method">next</b> <i class="arg">id</i></a></dt>
+<dd><p>This method returns the handle of the right sibling for the element
+identified by its handle <i class="arg">id</i>, or the handle of the parent if the
+element has no right sibling, or the empty string if <i class="arg">id</i> refered
+to the root element.</p></dd>
+<dt><a name="9"><i class="arg">objectName</i> <b class="method">prev</b> <i class="arg">id</i></a></dt>
+<dd><p>This method returns the handle of the left sibling for the element
+identified by its handle <i class="arg">id</i>, or the handle of the parent if the
+element has no left sibling, or the empty string if <i class="arg">id</i> refered
+to the root element.</p></dd>
+<dt><a name="10"><i class="arg">objectName</i> <b class="method">child</b> <i class="arg">id</i> <i class="arg">label</i> <span class="opt">?<i class="arg">...</i>?</span></a></dt>
+<dd><p>This method returns the handle of a child of the element identified by
+its handle <i class="arg">id</i>. The child itself is identified by a series of
+labels.</p></dd>
+<dt><a name="11"><i class="arg">objectName</i> <b class="method">element</b> <span class="opt">?<i class="arg">...</i>?</span></a></dt>
+<dd><p>This method returns the handle of the element identified by a series
+of labels, starting from the root of the table of contents. The series
+of labels is allowed to be empty, in which case the handle of the root
+element is returned.</p></dd>
+<dt><a name="12"><i class="arg">objectName</i> <b class="method">children</b> <i class="arg">id</i></a></dt>
+<dd><p>This method returns a list containing the handles of all children of
+the element identified by the handle <i class="arg">id</i>, from first to last, in
+that order.</p></dd>
+<dt><a name="13"><i class="arg">objectName</i> <b class="method">type</b> <i class="arg">id</i></a></dt>
+<dd><p>This method returns the type of the element, either <b class="const">reference</b>,
+or <b class="const">division</b>.</p></dd>
+<dt><a name="14"><i class="arg">objectName</i> <b class="method">full-label</b> <i class="arg">id</i></a></dt>
+<dd><p>This method is the complement of the method <b class="method">element</b>,
+converting the handle <i class="arg">id</i> of an element into a list of labels
+full identifying the element within the whole table of contents.</p></dd>
+<dt><a name="15"><i class="arg">objectName</i> <b class="method">elabel</b> <i class="arg">id</i> <span class="opt">?<i class="arg">newlabel</i>?</span></a></dt>
+<dd><p>This method queries and/or changes the label of the element identified
+by the handle <i class="arg">id</i>. If the argument <i class="arg">newlabel</i> is present then
+the label is changed to that value. Regardless of this, the result of
+the method is the current value of the label.</p>
+<p>If the label is changed the new label has to be unique within the
+containing division, or an error is thrown.</p>
+<p>Further, of the <i class="arg">id</i> refers to the root element of the table of
+contents, then using this method is equivalent to using the method
+<i class="arg">label</i>, i.e. it is accessing the global label for the whole
+table.</p></dd>
+<dt><a name="16"><i class="arg">objectName</i> <b class="method">description</b> <i class="arg">id</i> <span class="opt">?<i class="arg">newdesc</i>?</span></a></dt>
+<dd><p>This method queries and/or changes the description of the element
+identified by the handle <i class="arg">id</i>. If the argument <i class="arg">newdesc</i> is
+present then the description is changed to that value. Regardless of
+this, the result of the method is the current value of the description.</p>
+<p>The element this method operates on has to be a reference element, or
+an error will be thrown.</p></dd>
+<dt><a name="17"><i class="arg">objectName</i> <b class="method">document</b> <i class="arg">id</i> <span class="opt">?<i class="arg">newdocid</i>?</span></a></dt>
+<dd><p>This method queries and/or changes the document reference of the
+element identified by the handle <i class="arg">id</i>.
+If the argument <i class="arg">newdocid</i> is present then the description is
+changed to that value. Regardless of this, the result of the method is
+the current value of the document reference.</p>
+<p>Setting the reference to the empty string means unsetting it, and is
+allowed only for division elements. Conversely, if the result is the
+empty string then the element has no document reference, and this can
+happen only for division elements.</p></dd>
+<dt><a name="18"><i class="arg">objectName</i> <b class="method">title</b></a></dt>
+<dd><p>Returns the currently defined title of the table of contents.</p></dd>
+<dt><a name="19"><i class="arg">objectName</i> <b class="method">title</b> <i class="arg">text</i></a></dt>
+<dd><p>Sets the title of the table of contents to <i class="arg">text</i>, and returns it as
+the result of the command.</p></dd>
+<dt><a name="20"><i class="arg">objectName</i> <b class="method">label</b></a></dt>
+<dd><p>Returns the currently defined label of the table of contents.</p></dd>
+<dt><a name="21"><i class="arg">objectName</i> <b class="method">label</b> <i class="arg">text</i></a></dt>
+<dd><p>Sets the label of the table of contents to <i class="arg">text</i>, and returns it as
+the result of the command.</p></dd>
+<dt><a name="22"><i class="arg">objectName</i> <b class="method">importer</b></a></dt>
+<dd><p>Returns the import manager object currently attached to the container,
+if any.</p></dd>
+<dt><a name="23"><i class="arg">objectName</i> <b class="method">importer</b> <i class="arg">object</i></a></dt>
+<dd><p>Attaches the <i class="arg">object</i> as import manager to the container, and
+returns it as the result of the command.
+Note that the <i class="arg">object</i> is <em>not</em> put into ownership of the
+container. I.e., destruction of the container will <em>not</em> destroy
+the <i class="arg">object</i>.</p>
+<p>It is expected that <i class="arg">object</i> provides a method named
+<b class="method">import text</b> which takes a text and a format name, and
+returns the canonical serialization of the table of contents contained in
+the text, assuming the given format.</p></dd>
+<dt><a name="24"><i class="arg">objectName</i> <b class="method">exporter</b></a></dt>
+<dd><p>Returns the export manager object currently attached to the container,
+if any.</p></dd>
+<dt><a name="25"><i class="arg">objectName</i> <b class="method">exporter</b> <i class="arg">object</i></a></dt>
+<dd><p>Attaches the <i class="arg">object</i> as export manager to the container, and
+returns it as the result of the command.
+Note that the <i class="arg">object</i> is <em>not</em> put into ownership of the
+container. I.e., destruction of the container will <em>not</em> destroy
+the <i class="arg">object</i>.</p>
+<p>It is expected that <i class="arg">object</i> provides a method named
+<b class="method">export object</b> which takes the container and a format name,
+and returns a text encoding table of contents stored in the container, in
+the given format. It is further expected that the <i class="arg">object</i> will
+use the container's method <b class="method">serialize</b> to obtain the
+serialization of the table of contents from which to generate the text.</p></dd>
+<dt><a name="26"><i class="arg">objectName</i> <b class="method">deserialize =</b> <i class="arg">data</i> <span class="opt">?<i class="arg">format</i>?</span></a></dt>
+<dd><p>This method replaces the contents of the table object with the table
+contained in the <i class="arg">data</i>. If no <i class="arg">format</i> was specified it is
+assumed to be the regular serialization of a table of contents.</p>
+<p>Otherwise the object will use the attached import manager to convert
+the data from the specified format to a serialization it can handle.
+In that case an error will be thrown if the container has no import
+manager attached to it.</p>
+<p>The result of the method is the empty string.</p></dd>
+<dt><a name="27"><i class="arg">objectName</i> <b class="method">deserialize +=</b> <i class="arg">data</i> <span class="opt">?<i class="arg">format</i>?</span></a></dt>
+<dd><p>This method behaves like <b class="method">deserialize =</b> in its essentials,
+except that it merges the table of contents in the <i class="arg">data</i> to its
+contents instead of replacing it.
+The method will throw an error if merging is not possible, i.e. would
+produce an invalid table. The existing content is left unchanged in
+that case.</p>
+<p>The result of the method is the empty string.</p></dd>
+<dt><a name="28"><i class="arg">objectName</i> <b class="method">serialize</b> <span class="opt">?<i class="arg">format</i>?</span></a></dt>
+<dd><p>This method returns the table of contents contained in the object. If no
+<i class="arg">format</i> is not specified the returned result is the canonical
+serialization of its contents.</p>
+<p>Otherwise the object will use the attached export manager to convert
+the data to the specified format.
+In that case an error will be thrown if the container has no export
+manager attached to it.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">ToC serialization format</a></h2>
+<p>Here we specify the format used by the doctools v2 packages to
+serialize tables of contents as immutable values for transport,
+comparison, etc.</p>
+<p>We distinguish between <i class="term">regular</i> and <i class="term">canonical</i>
+serializations.
+While a table of contents may have more than one regular serialization
+only exactly one of them will be <i class="term">canonical</i>.</p>
+<dl class="doctools_definitions">
+<dt>regular serialization</dt>
+<dd><ol class="doctools_enumerated">
+<li><p>The serialization of any table of contents is a nested Tcl dictionary.</p></li>
+<li><p>This dictionary holds a single key, <b class="const">doctools::toc</b>, and its
+value. This value holds the contents of the table of contents.</p></li>
+<li><p>The contents of the table of contents are a Tcl dictionary holding the
+title of the table of contents, a label, and its elements. The
+relevant keys and their values are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">title</b></dt>
+<dd><p>The value is a string containing the title of the table of contents.</p></dd>
+<dt><b class="const">label</b></dt>
+<dd><p>The value is a string containing a label for the table of contents.</p></dd>
+<dt><b class="const">items</b></dt>
+<dd><p>The value is a Tcl list holding the elements of the table, in the
+order they are to be shown.</p>
+<p>Each element is a Tcl list holding the type of the item, and its
+description, in this order. An alternative description would be that
+it is a Tcl dictionary holding a single key, the item type, mapped to
+the item description.</p>
+<p>The two legal item types and their descriptions are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">reference</b></dt>
+<dd><p>This item describes a single entry in the table of contents,
+referencing a single document.
+To this end its value is a Tcl dictionary containing an id for the
+referenced document, a label, and a longer textual description which
+can be associated with the entry.
+The relevant keys and their values are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">id</b></dt>
+<dd><p>The value is a string containing the id of the document associated
+with the entry.</p></dd>
+<dt><b class="const">label</b></dt>
+<dd><p>The value is a string containing a label for this entry. This string
+also identifies the entry, and no two entries (references and
+divisions) in the containing list are allowed to have the same label.</p></dd>
+<dt><b class="const">desc</b></dt>
+<dd><p>The value is a string containing a longer description for this entry.</p></dd>
+</dl></dd>
+<dt><b class="const">division</b></dt>
+<dd><p>This item describes a group of entries in the table of contents,
+inducing a hierarchy of entries.
+To this end its value is a Tcl dictionary containing a label for the
+group, an optional id to a document for the whole group, and the list
+of entries in the group.
+The relevant keys and their values are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">id</b></dt>
+<dd><p>The value is a string containing the id of the document associated
+with the whole group. This key is optional.</p></dd>
+<dt><b class="const">label</b></dt>
+<dd><p>The value is a string containing a label for the group. This string
+also identifies the entry, and no two entries (references and
+divisions) in the containing list are allowed to have the same label.</p></dd>
+<dt><b class="const">items</b></dt>
+<dd><p>The value is a Tcl list holding the elements of the group, in the
+order they are to be shown.
+This list has the same structure as the value for the keyword
+<b class="const">items</b> used to describe the whole table of contents, see
+above. This closes the recusrive definition of the structure, with
+divisions holding the same type of elements as the whole table of
+contents, including other divisions.</p></dd>
+</dl></dd>
+</dl></dd>
+</dl>
+</li>
+</ol></dd>
+<dt>canonical serialization</dt>
+<dd><p>The canonical serialization of a table of contents has the format as
+specified in the previous item, and then additionally satisfies the
+constraints below, which make it unique among all the possible
+serializations of this table of contents.</p>
+<ol class="doctools_enumerated">
+<li><p>The keys found in all the nested Tcl dictionaries are sorted in
+ascending dictionary order, as generated by Tcl's builtin command
+<b class="cmd">lsort -increasing -dict</b>.</p></li>
+</ol></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>doctools</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key18">HTML</a>, <a href="../../../../index.html#key19">TMML</a>, <a href="../../../../index.html#key20">conversion</a>, <a href="../../../../index.html#key386">doctoc markup</a>, <a href="../../../../index.html#key185">documentation</a>, <a href="../../../../index.html#key247">formatting</a>, <a href="../../../../index.html#key250">generation</a>, <a href="../../../../index.html#key206">json</a>, <a href="../../../../index.html#key186">latex</a>, <a href="../../../../index.html#key16">markup</a>, <a href="../../../../index.html#key21">nroff</a>, <a href="../../../../index.html#key26">parsing</a>, <a href="../../../../index.html#key252">plugin</a>, <a href="../../../../index.html#key251">reference</a>, <a href="../../../../index.html#key106">table</a>, <a href="../../../../index.html#key157">table of contents</a>, <a href="../../../../index.html#key245">tcler's wiki</a>, <a href="../../../../index.html#key248">text</a>, <a href="../../../../index.html#key183">wiki</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Documentation tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

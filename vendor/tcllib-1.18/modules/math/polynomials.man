@@ -1,0 +1,219 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin math::polynomials n 1.0.1]
+[keywords math]
+[keywords {polynomial functions}]
+[copyright {2004 Arjen Markus <arjenmarkus@users.sourceforge.net>}]
+[moddesc   {Tcl Math Library}]
+[titledesc {Polynomial functions}]
+[category  Mathematics]
+[require Tcl [opt 8.3]]
+[require math::polynomials [opt 1.0.1]]
+
+[description]
+[para]
+This package deals with polynomial functions of one variable:
+
+[list_begin itemized]
+[item]
+the basic arithmetic operations are extended to polynomials
+[item]
+computing the derivatives and primitives of these functions
+[item]
+evaluation through a general procedure or via specific procedures)
+[list_end]
+
+[section "PROCEDURES"]
+
+The package defines the following public procedures:
+
+[list_begin definitions]
+
+[call [cmd ::math::polynomials::polynomial] [arg coeffs]]
+
+Return an (encoded) list that defines the polynomial. A polynomial
+[example {
+   f(x) = a + b.x + c.x**2 + d.x**3
+}]
+can be defined via:
+[example {
+   set f [::math::polynomials::polynomial [list $a $b $c $d]
+}]
+
+[list_begin arguments]
+[arg_def list coeffs] Coefficients of the polynomial (in ascending
+order)
+[list_end]
+
+[para]
+
+[call [cmd ::math::polynomials::polynCmd] [arg coeffs]]
+
+Create a new procedure that evaluates the polynomial. The name of the
+polynomial is automatically generated. Useful if you need to evualuate
+the polynomial many times, as the procedure consists of a single
+[lb]expr[rb] command.
+
+[list_begin arguments]
+[arg_def list coeffs] Coefficients of the polynomial (in ascending
+order) or the polynomial definition returned by the [emph polynomial]
+command.
+[list_end]
+
+[para]
+
+[call [cmd ::math::polynomials::evalPolyn] [arg polynomial] [arg x]]
+
+Evaluate the polynomial at x.
+
+[list_begin arguments]
+[arg_def list polynomial] The polynomial's definition (as returned by
+the polynomial command).
+order)
+
+[arg_def float x] The coordinate at which to evaluate the polynomial
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::polynomials::addPolyn] [arg polyn1] [arg polyn2]]
+
+Return a new polynomial which is the sum of the two others.
+
+[list_begin arguments]
+[arg_def list polyn1] The first polynomial operand
+
+[arg_def list polyn2] The second polynomial operand
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::polynomials::subPolyn] [arg polyn1] [arg polyn2]]
+
+Return a new polynomial which is the difference of the two others.
+
+[list_begin arguments]
+[arg_def list polyn1] The first polynomial operand
+
+[arg_def list polyn2] The second polynomial operand
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::polynomials::multPolyn] [arg polyn1] [arg polyn2]]
+
+Return a new polynomial which is the product of the two others. If one
+of the arguments is a scalar value, the other polynomial is simply
+scaled.
+
+[list_begin arguments]
+[arg_def list polyn1] The first polynomial operand or a scalar
+
+[arg_def list polyn2] The second polynomial operand or a scalar
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::polynomials::divPolyn] [arg polyn1] [arg polyn2]]
+
+Divide the first polynomial by the second polynomial and return the
+result. The remainder is dropped
+
+[list_begin arguments]
+[arg_def list polyn1] The first polynomial operand
+
+[arg_def list polyn2] The second polynomial operand
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::polynomials::remainderPolyn] [arg polyn1] [arg polyn2]]
+
+Divide the first polynomial by the second polynomial and return the
+remainder.
+
+[list_begin arguments]
+[arg_def list polyn1] The first polynomial operand
+
+[arg_def list polyn2] The second polynomial operand
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::polynomials::derivPolyn] [arg polyn]]
+
+Differentiate the polynomial and return the result.
+
+[list_begin arguments]
+[arg_def list polyn] The polynomial to be differentiated
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::polynomials::primitivePolyn] [arg polyn]]
+
+Integrate the polynomial and return the result. The integration
+constant is set to zero.
+
+[list_begin arguments]
+[arg_def list polyn] The polynomial to be integrated
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::polynomials::degreePolyn] [arg polyn]]
+
+Return the degree of the polynomial.
+
+[list_begin arguments]
+[arg_def list polyn] The polynomial to be examined
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::polynomials::coeffPolyn] [arg polyn] [arg index]]
+
+Return the coefficient of the term of the index'th degree of the
+polynomial.
+
+[list_begin arguments]
+[arg_def list polyn] The polynomial to be examined
+[arg_def int  index] The degree of the term
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::polynomials::allCoeffsPolyn] [arg polyn]]
+
+Return the coefficients of the polynomial (in ascending order).
+
+[list_begin arguments]
+[arg_def list polyn] The polynomial in question
+
+[list_end]
+
+[list_end]
+
+[section "REMARKS ON THE IMPLEMENTATION"]
+
+The implementation for evaluating the polynomials at some point uses
+Horn's rule, which guarantees numerical stability and a minimum of
+arithmetic operations.
+
+To recognise that a polynomial definition is indeed a correct
+definition, it consists of a list of two elements: the keyword
+"POLYNOMIAL" and the list of coefficients in descending order. The
+latter makes it easier to implement Horner's rule.
+
+[vset CATEGORY {math :: polynomials}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

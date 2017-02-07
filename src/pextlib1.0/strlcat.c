@@ -1,5 +1,4 @@
-/*  $Id$
-**
+/*
 **  Replacement for a missing strlcat.
 **
 **  Written by Russ Allbery <rra@stanford.edu>

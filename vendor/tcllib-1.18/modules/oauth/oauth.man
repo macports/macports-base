@@ -1,0 +1,191 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset PACKAGE_VERSION 1.0]
+[manpage_begin oauth n [vset PACKAGE_VERSION]]
+[keywords {oauth}]
+[keywords {RFC 5849}]
+[keywords {RFC 2718}]
+[keywords twitter]
+[copyright {2014 Javi P. <hxm@eggdrop.es>}]
+[moddesc   {oauth}]
+[titledesc {oauth API base signature}]
+[category  Networking]
+[require Tcl 8.5]
+[require oauth [opt [vset PACKAGE_VERSION]]]
+[description]
+[para]
+
+The [package oauth] package provides a simple Tcl-only library
+for communication with [uri http://oauth.net oauth] APIs.
+
+This current version of the package supports the Oauth 1.0 Protocol,
+as specified in [uri http://tools.ietf.org/rfc/rfc5849.txt {RFC 5849}].
+
+[include ../common-text/tls-security-notes.inc]
+
+[section Commands]
+
+[list_begin definitions]
+[call [cmd ::oauth::config]]
+
+When this command is invoked without arguments it returns a dictionary
+containing the current values of all options.
+
+[call [cmd ::oauth::config] [opt [arg options]...]]
+
+When invoked with arguments, options followed by their values, it is used
+to set and query various parameters of application and client, like proxy
+host and user agent for the HTTP requests. The detailed list of options
+is below:
+
+[list_begin options]
+[opt_def -accesstoken [arg string]]
+This is the user's token.
+
+[opt_def -accesstokensecret [arg string]]
+This is the user's secret token.
+
+[opt_def -consumerkey [arg string]]
+This is the public token of your app.
+
+[opt_def -consumersecret [arg string]]
+This is the private token of your app.
+
+[opt_def -debug [arg bool]]
+The default value is [const off]. If you change this option to [const on],
+the basic signature just created will be printed to stdout, among other
+debug output.
+
+[opt_def -oauthversion [arg version]]
+This is the version of the OAuth protocol to use.
+At the moment only [const 1.0] is supported, the default.
+
+[opt_def -proxyhost [arg hostname]]
+You can set up a proxy host for send contact the oauth's api server.
+
+[opt_def -proxyport [arg port-number]]
+Port number of your proxy.
+
+[opt_def -signmethod [arg method]]
+The signature method to use. OAuth 1.0 only supports [const HMAC-SHA1], the default.
+
+[opt_def -timeout [arg milliseconds]]
+Timeout in milliseconds for your query.
+The default value is [const 6000], i.e. 6 seconds.
+
+[opt_def -urlencoding [emph encoding]]
+The encoding used for creating the x-url-encoded URLs with
+[cmd ::http::formatQuery]. The default is [const utf-8], as specified
+by [uri http://tools.ietf.org/rfc/rfc2718.txt {RFC 2718}].
+
+[list_end]
+
+[call [cmd ::oauth::header] [arg baseURL] [opt [arg postQuery]]]
+
+This command is the base signature creator. With proper settings for various tokens
+and secrets (See [cmd ::oauth::config]) the result is the base authentication string
+to send to the server.
+
+[para] You do not need to call this procedure to create the query because
+[cmd ::oauth::query] (see below) will do for it for you.
+
+Doing so is useful for debugging purposes, though.
+
+[list_begin arguments]
+[arg_def url baseURL]
+
+This argument is the URI path to the OAuth API server.
+If you plan send a GET query, you should provide a full path.
+
+[example_begin]
+HTTP GET 
+::oauth::header {https://api.twitter.com/1.1/users/lookup.json?screen_name=AbiertaMente} 
+[example_end]
+
+[arg_def url-encoded-string postQuery]
+
+When you have to send a header in POST format, you have to put the query string into this argument.
+
+[example_begin]
+::oauth::header {https://api.twitter.com/1.1/friendships/create.json} {user_id=158812437&follow=true}
+[example_end]
+
+[list_end]
+
+[call [cmd ::oauth::query] [arg baseURL] [opt [arg postQuery]]]
+
+This procedure will use the settings made with [cmd ::oauth::config] to create the
+basic authentication and then send the command to the server API.
+
+It takes the same arguments as [cmd ::oauth::header].
+
+[para] The returned result will be a list containing 2 elements. The first
+element will be a dictionary containing the HTTP header data response.
+This allows you, for example, to check the X-Rate-Limit from OAuth.
+The second element will be the raw data returned from API server.
+This string is usually a json object which can be further decoded with the
+functions of package [package json], or any other json-parser for Tcl.
+
+[para] Here is an example of how it would work in Twitter. Do not forget to
+replace the placeholder tokens and keys of the example with your own tokens
+and keys when trying it out.
+
+[example {% package require oauth
+% package require json
+% oauth::config -consumerkey {your_consumer_key}\
+-consumersecret {your_consumer_key_secret}\
+-accesstoken {your_access_token}\
+-accesstokensecret {your_access_token_secret}
+
+% set response [oauth::query https://api.twitter.com/1.1/users/lookup.json?screen_name=AbiertaMente]
+% set jsondata [lindex $response 1]
+% set data [json::json2dict $jsondata]
+$ set data [lindex $data 0]
+% dict for {key val} $data {puts "$key => $val"}
+id => 158812437
+id_str => 158812437
+name => Un Librepensador
+screen_name => AbiertaMente
+location => Explico mis tuits ahí →
+description => 160Caracteres para un SMS y contaba mi vida entera sin recortar vocales. Ahora en Twitter, podemos usar hasta 140 y a mí me sobrarían 20 para contaros todo lo q
+url => http://t.co/SGs3k9odBn
+entities => url {urls {{url http://t.co/SGs3k9odBn expanded_url http://librepensamiento.es display_url librepensamiento.es indices {0 22}}}} description {urls {}}
+protected => false
+followers_count => 72705
+friends_count => 53099
+listed_count => 258
+created_at => Wed Jun 23 18:29:58 +0000 2010
+favourites_count => 297
+utc_offset => 7200
+time_zone => Madrid
+geo_enabled => false
+verified => false
+statuses_count => 8996
+lang => es
+status => created_at {Sun Oct 12 08:02:38 +0000 2014} id 521209314087018496 id_str 521209314087018496 text {@thesamethanhim http://t.co/WFoXOAofCt} source {<a href="http://twitter.com" rel="nofollow">Twitter Web Client</a>} truncated false in_reply_to_status_id 521076457490350081 in_reply_to_status_id_str 521076457490350081 in_reply_to_user_id 2282730867 in_reply_to_user_id_str 2282730867 in_reply_to_screen_name thesamethanhim geo null coordinates null place null contributors null retweet_count 0 favorite_count 0 entities {hashtags {} symbols {} urls {{url http://t.co/WFoXOAofCt expanded_url http://www.elmundo.es/internacional/2014/03/05/53173dc1268e3e3f238b458a.html display_url elmundo.es/internacional/… indices {16 38}}} user_mentions {{screen_name thesamethanhim name Ἑλένη id 2282730867 id_str 2282730867 indices {0 15}}}} favorited false retweeted false possibly_sensitive false lang und
+contributors_enabled => false
+is_translator => true
+is_translation_enabled => false
+profile_background_color => 709397
+profile_background_image_url => http://pbs.twimg.com/profile_background_images/704065051/9309c02aa2728bdf543505ddbd408e2e.jpeg
+profile_background_image_url_https => https://pbs.twimg.com/profile_background_images/704065051/9309c02aa2728bdf543505ddbd408e2e.jpeg
+profile_background_tile => true
+profile_image_url => http://pbs.twimg.com/profile_images/2629816665/8035fb81919b840c5cc149755d3d7b0b_normal.jpeg
+profile_image_url_https => https://pbs.twimg.com/profile_images/2629816665/8035fb81919b840c5cc149755d3d7b0b_normal.jpeg
+profile_banner_url => https://pbs.twimg.com/profile_banners/158812437/1400828874
+profile_link_color => FF3300
+profile_sidebar_border_color => FFFFFF
+profile_sidebar_fill_color => A0C5C7
+profile_text_color => 333333
+profile_use_background_image => true
+default_profile => false
+default_profile_image => false
+following => true
+follow_request_sent => false
+notifications => false}]
+
+[list_end]
+[para]
+
+[vset CATEGORY oauth]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

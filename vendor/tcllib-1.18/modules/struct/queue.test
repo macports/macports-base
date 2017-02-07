@@ -1,0 +1,107 @@
+# -*- tcl -*-
+# queue.test:  tests for the queue package.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# Copyright (c) 2008 Andreas Kupries
+# All rights reserved.
+#
+# RCS: @(#) $Id: queue.test,v 1.18 2010/03/24 06:13:00 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useAccel [useTcllibC] struct/queue.tcl struct::queue
+    TestAccelInit                          struct::queue
+}
+
+#----------------------------------------------------------------------
+
+# The global variable 'impl' is part of the public API the testsuite
+# (in queue.testsuite) can expect from the environment.
+
+TestAccelDo struct::queue impl {
+    namespace import -force struct::queue
+
+    switch -exact -- $impl {
+	critcl {
+	    set MY myqueue
+
+	    proc tmWrong {m loarg n {xarg {}}} {
+		return [tcltest::wrongNumArgs "myqueue $m" $loarg $n]
+	    }
+
+	    proc tmTooMany {m loarg {xarg {}}} {
+		return [tcltest::tooManyArgs "myqueue $m" $loarg]
+	    }
+
+	    proc tmTake {tcl c} { return $c }
+	}
+	tcl {
+	    set MY ::myqueue
+
+	    if {[package vsatisfies [package provide Tcl] 8.5]} {
+		if {[catch {package present TclOO}]} {
+		    # Without TclOO
+		    proc tmWrong {m loarg n {xarg {}}} {
+			if {$xarg == {}} {set xarg $loarg}
+			if {$xarg != {}} {set xarg " $xarg"}
+			incr n
+			return [tcltest::wrongNumArgs "I $m" "name$xarg" $n]
+		    }
+
+		    proc tmTooMany {m loarg {xarg {}}} {
+			if {$xarg == {}} {set xarg $loarg}
+			if {$xarg != {}} {set xarg " $xarg"}
+			return [tcltest::tooManyArgs "I $m" "name$xarg"]
+		    }
+		} else {
+		    # OO implementation.
+		    proc tmWrong {m loarg n {xarg {}}} {
+			if {$xarg == {}} {set xarg $loarg}
+			if {$xarg != {}} {set xarg " $xarg"}
+			incr n
+			return [tcltest::wrongNumArgs "myqueue $m" "$loarg" $n]
+		    }
+
+		    proc tmTooMany {m loarg {xarg {}}} {
+			if {$xarg == {}} {set xarg $loarg}
+			if {$xarg != {}} {set xarg " $xarg"}
+			return [tcltest::tooManyArgs "myqueue $m" "$loarg"]
+		    }
+		}
+	    } else {
+		proc tmWrong {m loarg n {xarg {}}} {
+		    if {$xarg == {}} {set xarg $loarg}
+		    if {$xarg != {}} {set xarg " $xarg"}
+		    incr n
+		    return [tcltest::wrongNumArgs "::struct::queue::I::$m" "name$xarg" $n]
+		}
+
+		proc tmTooMany {m loarg {xarg {}}} {
+		    if {$xarg == {}} {set xarg $loarg}
+		    if {$xarg != {}} {set xarg " $xarg"}
+		    return [tcltest::tooManyArgs "::struct::queue::I::$m" "name$xarg"]
+		}
+	    }
+
+	    proc tmTake {tcl c} { return $tcl }
+	}
+    }
+
+    source [localPath queue.testsuite]
+}
+
+#----------------------------------------------------------------------
+TestAccelExit struct::queue
+testsuiteCleanup

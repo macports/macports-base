@@ -1,6 +1,5 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portmain.tcl
-# $Id$
 #
 # Copyright (c) 2004 - 2005, 2007 - 2012 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
@@ -57,7 +56,7 @@ options prefix name version revision epoch categories maintainers \
         supported_archs depends_skip_archcheck installs_libs \
         license_noconflict copy_log_files \
         compiler.cpath compiler.library_path \
-        add_users altprefix
+        add_users
 
 # Order of option_proc and option_export matters. Filter before exporting.
 
@@ -146,33 +145,12 @@ if {[option os.platform] eq "darwin"} {
 default compiler.cpath {${prefix}/include}
 default compiler.library_path {${prefix}/lib}
 
-# start gsoc08-privileges
-
 # Record initial euid/egid
 set euid [geteuid]
 set egid [getegid]
 
-# if unable to write to workpath, implies running without either root privileges
-# or a shared directory owned by the group so use ~/.macports
-default altprefix {[file join $user_home .macports]}
-if { $euid != 0 && (([info exists workpath] && [file exists $workpath] && ![file writable $workpath]) || ([info exists portdbpath] && ![file writable [file join $portdbpath build]])) } {
-
-    # set global variable indicating to other functions to use ~/.macports as well
-    set usealtworkpath yes
-
-    default worksymlink {[file normalize [file join ${altprefix}${portpath} work]]}
-    default distpath {[file normalize [file join ${altprefix}${portdbpath} distfiles ${dist_subdir}]]}
-    set portbuildpath "${altprefix}${portbuildpath}"
-
-    ui_debug "Going to use alternate build prefix: $altprefix"
-    ui_debug "workpath = $workpath"
-} else {
-    set usealtworkpath no
-    default worksymlink {[file normalize [file join $portpath work]]}
-    default distpath {[file normalize [file join $portdbpath distfiles ${dist_subdir}]]}
-}
-
-# end gsoc08-privileges
+default worksymlink {[file normalize [file join $portpath work]]}
+default distpath {[file normalize [file join $portdbpath distfiles ${dist_subdir}]]}
 
 proc portmain::main {args} {
     return 0

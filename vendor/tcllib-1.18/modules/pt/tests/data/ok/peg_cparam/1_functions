@@ -1,0 +1,121 @@
+/*
+ * -*- tcl -*-
+ * Parsing Expression Grammar 'TEMPLATE'.
+ * Generated for unknown, from file 'TEST'
+ */
+
+/*
+ * Declaring the parse functions
+ */
+
+<<attributes>> void <<ns>>sym_Expression (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sym_Function (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sequence_9 (<<STATE>> <<state>>);
+<<attributes>> void <<ns>>sym_Sinus (<<STATE>> <<state>>);
+
+/*
+ * Precomputed table of strings (symbols, error messages, etc.).
+ */
+
+static char const* <<string-table>> [22] = {
+    /*        0 = */   "alnum",
+    /*        1 = */   "alpha",
+    /*        2 = */   "ascii",
+    /*        3 = */   "control",
+    /*        4 = */   "ddigit",
+    /*        5 = */   "digit",
+    /*        6 = */   "graph",
+    /*        7 = */   "lower",
+    /*        8 = */   "print",
+    /*        9 = */   "punct",
+    /*       10 = */   "space",
+    /*       11 = */   "upper",
+    /*       12 = */   "wordchar",
+    /*       13 = */   "xdigit",
+    /*       14 = */   "n Expression",
+    /*       15 = */   "Expression",
+    /*       16 = */   "n Function",
+    /*       17 = */   "Function",
+    /*       18 = */   "str sin(",
+    /*       19 = */   "t )",
+    /*       20 = */   "n Sinus",
+    /*       21 = */   "Sinus"
+};
+
+/*
+ * Grammar Start Expression
+ */
+
+<<attributes>> void <<ns>><<main>> (<<STATE>> <<state>>) { <<prelude>>
+    <<self>> <<ns>>sym_Expression (<<state>>);
+    return;
+}
+
+/*
+ * value Symbol 'Expression'
+ */
+
+<<attributes>> void <<ns>>sym_Expression (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * (Function)
+    */
+
+    if (rde_param_i_symbol_start_d (<<state>>, 15)) return ;
+    <<self>> <<ns>>sym_Function (<<state>>);
+    rde_param_i_symbol_done_d_reduce (<<state>>, 15, 14);
+    return;
+}
+
+/*
+ * value Symbol 'Function'
+ */
+
+<<attributes>> void <<ns>>sym_Function (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * (Sinus)
+    */
+
+    if (rde_param_i_symbol_start_d (<<state>>, 17)) return ;
+    <<self>> <<ns>>sym_Sinus (<<state>>);
+    rde_param_i_symbol_done_d_reduce (<<state>>, 17, 16);
+    return;
+}
+
+/*
+ * value Symbol 'Sinus'
+ */
+
+<<attributes>> void <<ns>>sym_Sinus (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     "sin\("
+    *     (Expression)
+    *     '\)'
+    */
+
+    if (rde_param_i_symbol_start_d (<<state>>, 21)) return ;
+    <<self>> <<ns>>sequence_9 (<<state>>);
+    rde_param_i_symbol_done_d_reduce (<<state>>, 21, 20);
+    return;
+}
+
+<<attributes>> void <<ns>>sequence_9 (<<STATE>> <<state>>) { <<prelude>>
+   /*
+    * x
+    *     "sin\("
+    *     (Expression)
+    *     '\)'
+    */
+
+    rde_param_i_state_push_void (<<state>>);
+    rde_param_i_next_str (<<state>>, "sin(", 18);
+    if (rde_param_i_seq_void2value(<<state>>)) return;
+    <<self>> <<ns>>sym_Expression (<<state>>);
+    if (rde_param_i_seq_value2value(<<state>>)) return;
+    rde_param_i_next_char (<<state>>, ")", 19);
+    rde_param_i_state_merge_value (<<state>>);
+    return;
+}
+
+/*
+ */

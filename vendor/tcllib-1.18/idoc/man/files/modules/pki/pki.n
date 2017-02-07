@@ -1,0 +1,497 @@
+'\"
+'\" Generated from file 'pki\&.man' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) 2010, 2011, 2012, 2013, Roy Keene, Andreas Kupries
+'\"
+.TH "pki" n 0\&.6 tcllib "public key encryption"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+pki \- Implementation of the public key cipher
+.SH SYNOPSIS
+package require \fBTcl  8\&.5\fR
+.sp
+package require \fBpki  ?0\&.6?\fR
+.sp
+\fB::pki::encrypt\fR ?\fI-binary\fR? ?\fI-hex\fR? ?\fI-pad\fR? ?\fI-nopad\fR? ?\fI-priv\fR? ?\fI-pub\fR? ?\fI--\fR? \fIinput\fR \fIkey\fR
+.sp
+\fB::pki::decrypt\fR ?\fI-binary\fR? ?\fI-hex\fR? ?\fI-unpad\fR? ?\fI-nounpad\fR? ?\fI-priv\fR? ?\fI-pub\fR? ?\fI--\fR? \fIinput\fR \fIkey\fR
+.sp
+\fB::pki::sign\fR \fIinput\fR \fIkey\fR ?\fIalgo\fR?
+.sp
+\fB::pki::verify\fR \fIsignedmessage\fR \fIplaintext\fR \fIkey\fR ?\fIalgo\fR?
+.sp
+\fB::pki::key\fR \fIkey\fR ?\fIpassword\fR? ?\fIencodePem\fR?
+.sp
+\fB::pki::pkcs::parse_key\fR \fIkey\fR ?\fIpassword\fR?
+.sp
+\fB::pki::x509::parse_cert\fR \fIcert\fR
+.sp
+\fB::pki::rsa::generate\fR \fIbitlength\fR ?\fIexponent\fR?
+.sp
+\fB::pki::x509::verify_cert\fR \fIcert\fR \fItrustedcerts\fR ?\fIintermediatecerts\fR?
+.sp
+\fB::pki::x509::validate_cert\fR \fIcert\fR ?\fB-sign_message\fR \fIdn_of_signer\fR? ?\fB-encrypt_message\fR \fIdn_of_signer\fR? ?\fB-sign_cert\fR \fIdn_to_be_signed\fR \fIca_depth\fR? ?\fB-ssl\fR \fIdn\fR?
+.sp
+\fB::pki::pkcs::create_csr\fR \fIkeylist\fR \fInamelist\fR ?\fIencodePem\fR? ?\fIalgo\fR?
+.sp
+\fB::pki::pkcs::parse_csr\fR \fIcsr\fR
+.sp
+\fB::pki::x509::create_cert\fR \fIsignreqlist\fR \fIcakeylist\fR \fIserial_number\fR \fInotBefore\fR \fInotAfter\fR \fIisCA\fR \fIextensions\fR ?\fIencodePem\fR? ?\fIalgo\fR?
+.sp
+.BE
+.SH DESCRIPTION
+.PP
+.SH COMMANDS
+.TP
+\fB::pki::encrypt\fR ?\fI-binary\fR? ?\fI-hex\fR? ?\fI-pad\fR? ?\fI-nopad\fR? ?\fI-priv\fR? ?\fI-pub\fR? ?\fI--\fR? \fIinput\fR \fIkey\fR
+Encrypt a message using PKI (probably RSA)\&.
+Requires the caller to specify either \fB-priv\fR to encrypt with
+the private key or \fB-pub\fR to encrypt with the public key\&.  The
+default option is to pad and return in hex\&.  One of \fB-pub\fR or
+\fB-priv\fR must be specified\&.
+The \fB-hex\fR option causes the data to be returned in encoded as
+a hexidecimal string, while the \fB-binary\fR option causes the data
+to be returned as a binary string\&.  If they are specified multiple
+times, the last one specified is used\&.
+The \fB-pad\fR option causes the data to be padded per PKCS#1 prior
+to being encrypted\&.  The \fB-nopad\fR inhibits this behaviour\&.  If
+they are specified multiple times, the last one specified is used\&.
+The input to encrypt is specified as \fIinput\fR\&.
+The \fIkey\fR parameter, holding the key to use, is a return value
+from either
+\fB::pki::pkcs::parse_key\fR,
+\fB::pki::x509::parse_cert\fR, or
+\fB::pki::rsa::generate\fR\&.
+.sp
+Mapping to OpenSSL's \fBopenssl\fR application:
+.RS
+.IP [1]
+"openssl rsautl -encrypt" == "::pki::encrypt -binary -pub"
+.IP [2]
+"openssl rsautl -sign"    == "::pki::encrypt -binary -priv"
+.RE
+.TP
+\fB::pki::decrypt\fR ?\fI-binary\fR? ?\fI-hex\fR? ?\fI-unpad\fR? ?\fI-nounpad\fR? ?\fI-priv\fR? ?\fI-pub\fR? ?\fI--\fR? \fIinput\fR \fIkey\fR
+Decrypt a message using PKI (probably RSA)\&. See \fB::pki::encrypt\fR for option handling\&.
+.sp
+Mapping to OpenSSL's \fBopenssl\fR application:
+.RS
+.IP [1]
+"openssl rsautl -decrypt" == "::pki::decrypt -binary -priv"
+.IP [2]
+"openssl rsautl -verify"  == "::pki::decrypt -binary -pub"
+.RE
+.TP
+\fB::pki::sign\fR \fIinput\fR \fIkey\fR ?\fIalgo\fR?
+Digitally sign message \fIinput\fR using the private \fIkey\fR\&.  If \fIalgo\fR
+is ommited "sha1" is assumed\&.  Possible values for \fIalgo\fR include
+"md5", "sha1", "sha256", and "raw"\&.  Specifyin "raw" for \fIalgo\fR will
+inhibit the building of an ASN\&.1 structure to encode which hashing
+algorithm was chosen\&.
+The \fIinput\fR should be the plain text, hashing will be performed on it\&.
+The \fIkey\fR should include the private key\&.
+.TP
+\fB::pki::verify\fR \fIsignedmessage\fR \fIplaintext\fR \fIkey\fR ?\fIalgo\fR?
+Verify a digital signature using a public \fIkey\fR\&.  Returns true or false\&.
+.TP
+\fB::pki::key\fR \fIkey\fR ?\fIpassword\fR? ?\fIencodePem\fR?
+Convert a key structure into a serialized PEM (default) or DER encoded private key suitable for other applications\&.  For RSA keys this means PKCS#1\&.
+.TP
+\fB::pki::pkcs::parse_key\fR \fIkey\fR ?\fIpassword\fR?
+Convert a PKCS#1 private \fIkey\fR into a usable key, i\&.e\&. one which
+can be used as argument for
+\fB::pki::encrypt\fR,
+\fB::pki::decrypt\fR,
+\fB::pki::sign\fR, and
+\fB::pki::verify\fR\&.
+.TP
+\fB::pki::x509::parse_cert\fR \fIcert\fR
+Convert an X\&.509 certificate to a usable (public) key, i\&.e\&. one which
+can be used as argument for
+\fB::pki:encrypt\fR,
+\fB::pki::decrypt\fR, and
+\fB::pki::verify\fR\&.
+The \fIcert\fR argument can be either PEM or DER encoded\&.
+.TP
+\fB::pki::rsa::generate\fR \fIbitlength\fR ?\fIexponent\fR?
+Generate a new RSA key pair, the parts of which can be used as
+argument for
+\fB::pki::encrypt\fR,
+\fB::pki::decrypt\fR,
+\fB::pki::sign\fR, and
+\fB::pki::verify\fR\&.
+The \fIbitlength\fR argument is the length of the public key modulus\&.
+The \fIexponent\fR argument should generally not be specified unless
+you really know what you are doing\&.
+.TP
+\fB::pki::x509::verify_cert\fR \fIcert\fR \fItrustedcerts\fR ?\fIintermediatecerts\fR?
+Verify that a trust can be found between the certificate specified in the
+\fIcert\fR argument and one of the certificates specified in the list
+of certificates in the \fItrustedcerts\fR argument\&.  (Eventually the
+chain can be through untrusted certificates listed in the \fIintermediatecerts\fR
+argument, but this is currently unimplemented)\&.
+The certificates specified in the \fIcert\fR and \fItrustedcerts\fR option
+should be parsed (from \fB::pki::x509::parse_cert\fR)\&.
+.TP
+\fB::pki::x509::validate_cert\fR \fIcert\fR ?\fB-sign_message\fR \fIdn_of_signer\fR? ?\fB-encrypt_message\fR \fIdn_of_signer\fR? ?\fB-sign_cert\fR \fIdn_to_be_signed\fR \fIca_depth\fR? ?\fB-ssl\fR \fIdn\fR?
+Validate that a certificate is valid to be used in some capacity\&.  If
+multiple options are specified they must all be met for this procedure
+to return "true"\&.
+Currently, only the \fB-sign_cert\fR option is functional\&.
+Arguments for the \fB-sign_cert\fR option are \fIdn_to_be_signed\fR
+and \fIca_depth\fR\&.  The \fIdn_to_be_signed\fR is the distinguished from
+the subject of a certificate to verify that the certificate specified in
+the \fIcert\fR argument can sign\&.  The \fIca_depth\fR argument is used to
+indicate at which depth the verification should be done at\&.  Some
+certificates are limited to how far down the chain they can be used to
+verify a given certificate\&.
+.TP
+\fB::pki::pkcs::create_csr\fR \fIkeylist\fR \fInamelist\fR ?\fIencodePem\fR? ?\fIalgo\fR?
+Generate a certificate signing request from a key pair specified in
+the \fIkeylist\fR argument\&.
+The \fInamelist\fR argument is a list of "name" followed by "value"
+pairs to encoding as the requested distinguished name in the CSR\&.
+The \fIencodePem\fR option specifies whether or not the result should
+be PEM encoded or DER encoded\&.  A "true" value results in the result
+being PEM encoded, while any other value 9results in the the result
+being DER encoded\&.  DER encoding is the default\&.
+The \fIalgo\fR argument specifies the hashing algorithm we should use
+to sign this certificate signing request with\&.  The default is "sha1"\&.
+Other possible values include "md5" and "sha256"\&.
+.TP
+\fB::pki::pkcs::parse_csr\fR \fIcsr\fR
+Parse a Certificate Signing Request\&.  The \fIcsr\fR argument can be
+either PEM or DER encoded\&.
+.TP
+\fB::pki::x509::create_cert\fR \fIsignreqlist\fR \fIcakeylist\fR \fIserial_number\fR \fInotBefore\fR \fInotAfter\fR \fIisCA\fR \fIextensions\fR ?\fIencodePem\fR? ?\fIalgo\fR?
+Sign a signing request (usually from \fB::pki::pkcs::create_csr\fR or
+\fB::pki::pkcs::parse_csr\fR) with a Certificate Authority (CA) certificate\&.
+The \fIsignreqlist\fR argument should be the parsed signing request\&.
+The \fIcakeylist\fR argument should be the parsed CA certificate\&.
+The \fIserial_number\fR argument should be a serial number unique to
+this certificate from this certificate authority\&.
+The \fInotBefore\fR and \fInotAfter\fR arguments should contain the
+time before and after which (respectively) the certificate should
+be considered invalid\&.  The time should be encoded as something
+\fBclock format\fR will accept (i\&.e\&., the results of \fBclock seconds\fR
+and \fBclock add\fR)\&.
+The \fIisCA\fR argument is a boolean argumen describing whether or not
+the signed certificate should be a a CA certificate\&.  If specified as
+true the "id-ce-basicConstraints" extension is added with the arguments
+of "critical" being true, "allowCA" being true, and caDepth being
+-1 (infinite)\&.
+The \fIextensions\fR argument is a list of extensions and their parameters
+that should be encoded into the created certificate\&.   Currently only one
+extension is understood ("id-ce-basicConstraints")\&.  It accepts three
+arguments \fIcritical\fR \fIallowCA\fR \fIcaDepth\fR\&.  The \fIcritical\fR
+argument to this extension (and any extension) whether or not the
+validator should reject the certificate as invalid if it does not
+understand the extension (if set to "true") or should ignore the extension
+(if set to "false")\&.  The \fIallowCA\fR argument is used to specify
+as a boolean value whether or not we can be used a certificate
+authority (CA)\&.  The \fIcaDepth\fR argument indicates how many children
+CAs can be children of this CA in a depth-wise fashion\&.  A value of "0"
+for the \fIcaDepth\fR argument means that this CA cannot sign a CA
+certificate and have the result be valid\&.  A value of "-1" indicates
+infinite depth\&.
+.PP
+.SH EXAMPLES
+.CS
+
+
+
+.CE
+.CS
+
+
+
+.CE
+.SH REFERENCES
+.IP [1]
+.PP
+.SH AUTHORS
+Roy Keene
+.SH "BUGS, IDEAS, FEEDBACK"
+This document, and the package it describes, will undoubtedly contain
+bugs and other problems\&.
+Please report such in the category \fIrsa\fR of the
+\fITcllib Trackers\fR [http://core\&.tcl\&.tk/tcllib/reportlist]\&.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation\&.
+.SH "SEE ALSO"
+aes(n), blowfish(n), des(n), md5(n), sha1(n)
+.SH KEYWORDS
+cipher, data integrity, encryption, public key cipher, rsa, security
+.SH CATEGORY
+Hashes, checksums, and encryption
+.SH COPYRIGHT
+.nf
+Copyright (c) 2010, 2011, 2012, 2013, Roy Keene, Andreas Kupries
+
+.fi

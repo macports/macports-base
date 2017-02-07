@@ -1,6 +1,5 @@
 /*
  * entry.h
- * $Id$
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
  * Copyright (c) 2012 The MacPorts Project

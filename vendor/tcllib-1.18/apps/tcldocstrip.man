@@ -1,0 +1,197 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcldocstrip n 1.0]
+[see_also docstrip]
+[keywords .dtx]
+[keywords conversion]
+[keywords docstrip]
+[keywords documentation]
+[keywords LaTeX]
+[keywords {literate programming}]
+[keywords markup]
+[keywords source]
+[copyright {2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[titledesc {Tcl-based Docstrip Processor}]
+[moddesc   {Textprocessing toolbox}]
+[category  {Documentation tools}]
+[description]
+[para]
+
+The application described by this document, [syscmd tcldocstrip], is a
+relative of [syscmd docstrip], a simple literate programming tool for
+LaTeX.
+
+[para]
+
+[syscmd tcldocstrip] is based upon the package [package docstrip].
+
+[subsection {USE CASES}]
+
+[syscmd tcldocstrip] was written with the following three use cases in
+mind.
+
+[para]
+[list_begin enumerated]
+[enum]
+Conversion of a single input file according to the listed guards into
+the stripped output. This handles the most simple case of a set of
+guards specifying a single document found in a single input file.
+
+[enum]
+Stitching, or the assembly of an output from several sets of guards,
+in a specific order, and possibly from different files. This is the
+second common case. One document spread over several inputs, and/or
+spread over different guard sets.
+
+[enum]
+Extraction and listing of all the unique guard expressions and guards
+used within a document to help a person which did not author the
+document in question in familiarizing itself with it.
+
+[list_end]
+
+[subsection {COMMAND LINE}]
+
+[list_begin definitions]
+
+[call [cmd tcldocstrip] [arg output] [opt options] [arg input] [opt [arg guards]]]
+
+This is the form for use case [lb]1[rb]. It converts the [arg input]
+file according to the specified [arg guards] and options. The result
+is written to the named [arg output] file.
+
+Usage of the string [const "-"] as the name of the output signals that
+the result should be written to [const stdout]. The guards are
+document-specific and have to be known to the caller. The
+[arg options] will be explained later, in section [sectref OPTIONS].
+
+[list_begin arguments]
+
+[arg_def path output in]
+
+This argument specifies where to write the generated document. It can
+be the path to a file or directory, or [const -].
+
+The last value causes the application to write the generated
+documented to [const stdout].
+
+[para]
+
+If the [arg output] does not exist then [lb]file dirname $output[rb]
+has to exist and must be a writable directory.
+
+[arg_def path inputfile in]
+
+This argument specifies the path to the file to process. It has to
+exist, must be readable, and written in [term docstrip] format.
+
+[list_end]
+[para]
+
+[call [cmd tcldocstrip] [opt options] [arg output] ([opt options] [arg input] [arg guards])...]
+
+This is the form for use case [lb]2[rb]. It differs from the form for
+use case [lb]1[rb] by the possibility of having options before the
+output file, which apply in general, and specifying more than one
+inputfile, each with its own set of input specific options and guards.
+
+[para]
+
+It extracts data from the various [arg input] files, according to the
+specified [arg options] and [arg guards], and writes the result to the
+given [arg output], in the order of their specification on the command
+line. Options specified before the output are global settings, whereas
+the options specified before each input are valid only just for this
+input file. Unspecified values are taken from the global settings, or
+defaults. As for form [lb]1[rb] using the string [const "-"] as output
+causes the application to write to stdout.
+
+Using the string [const "."] for an input file signals that the last
+input file should be used again. This enables the assembly of the
+output from one input file using multiple and different sets of
+guards, without having to specify the full name of the file every
+time.
+
+[call [cmd tcldocstrip] [option -guards] [arg input]]
+
+This is the form for use case [lb]3[rb].
+
+It determines the guards, and unique guard expressions used within the
+provided [arg input] document. The found strings are written to
+stdout, one string per line.
+
+[list_end]
+
+[subsection OPTIONS]
+
+This section describes all the options available to the user of the
+application, with the exception of the option [option -guards]. This
+option was described already, in section [sectref {COMMAND LINE}].
+
+[para]
+[list_begin options]
+[opt_def -metaprefix string]
+
+This option is inherited from the command [cmd docstrip::extract]
+provided by the package [package docstrip].
+
+[para]
+
+It specifies the string by which the '%%' prefix of a metacomment line
+will be replaced. Defaults to '%%'. For Tcl code this would typically
+be '#'.
+
+[opt_def -onerror mode]
+
+This option is inherited from the command [cmd docstrip::extract]
+provided by the package [package docstrip].
+
+[para]
+
+It controls what will be done when a format error in the [arg text]
+being processed is detected. The settings are:
+
+[list_begin definitions]
+[def [const ignore]]
+Just ignore the error; continue as if nothing happened.
+
+[def [const puts]]
+Write an error message to [const stderr], then continue processing.
+
+[def [const throw]]
+Throw an error. [var ::errorCode] is set to a list whose first element
+is [const DOCSTRIP], second element is the type of error, and third
+element is the line number where the error is detected. This is the
+default.
+[list_end]
+
+[opt_def -trimlines bool]
+
+This option is inherited from the command [cmd docstrip::extract]
+provided by the package [package docstrip].
+
+[para]
+
+Controls whether [emph spaces] at the end of a line should be trimmed
+away before the line is processed. Defaults to [const true].
+
+[opt_def -preamble text]
+[opt_def -postamble text]
+[opt_def -nopreamble]
+[opt_def -nopostamble]
+
+The -no*amble options deactivate file pre- and postambles altogether,
+whereas the -*amble options specify the [emph user] part of the file
+pre- and postambles. This part can be empty, in that case only the
+standard parts are shown. This is the default.
+
+[para]
+
+Preambles, when active, are written before the actual content of a
+generated file. In the same manner postambles are, when active,
+written after the actual content of a generated file.
+
+[list_end]
+
+[vset CATEGORY docstrip]
+[include ../modules/doctools2base/include/feedback.inc]
+[manpage_end]

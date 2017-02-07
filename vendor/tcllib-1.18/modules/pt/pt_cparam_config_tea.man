@@ -1,0 +1,48 @@
+[vset VERSION 0.1]
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt::cparam::configuration::tea n [vset VERSION]]
+[include include/module.inc]
+[titledesc {C/PARAM, Canned configuration, TEA}]
+[require pt::cparam::configuration::tea [opt [vset VERSION]]]
+[description]
+[include include/ref_intro.inc]
+
+This package is an adjunct to [package pt::peg::to::cparam], to make
+the use of this highly configurable package easier by providing a
+canned configuration. When applied this configuration causes the
+package [package pt::peg::to::cparam] to generate plain parser code
+ready for inclusion into a [term TEA]-based C extension.
+
+[para]
+
+It is a supporting package in the Core Layer of Parser Tools.
+[para][image arch_core_support][para]
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::pt::cparam::configuration::tea] [method def] \
+	[arg name] [arg pkg] [arg version] [arg cmdprefix]]
+
+The command applies the configuration provided by this package to the
+[arg cmdprefix], causing the creation of [package tea]-based parsers
+whose class is [arg name], in package [arg pkg] with [arg version].
+
+[para]
+
+The use of a command prefix as API allows application of the
+configuration to not only [package pt::peg::to::cparam]
+([cmd {pt::peg::to::cparam configure}]), but also export manager
+instances and PEG containers ([cmd {$export configuration set}] and
+[cmd {[$container exporter] configuration set}] respectively).
+
+[para]
+
+Or anything other command prefix accepting two arguments, option and
+value.
+
+[list_end]
+
+[include include/feedback.inc]
+[manpage_end]

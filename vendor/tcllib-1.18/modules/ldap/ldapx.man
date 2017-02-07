@@ -1,0 +1,772 @@
+[comment {-*- tcl -*- doctools manpage}]
+[comment {$Id: ldapx.man,v 1.14 2009/01/29 06:16:19 andreas_kupries Exp $}]
+[manpage_begin ldapx n 0.2.5]
+[keywords {directory access}]
+[keywords internet]
+[keywords ldap]
+[keywords {ldap client}]
+[keywords ldif]
+[keywords protocol]
+[keywords {rfc 2251}]
+[keywords {rfc 2849}]
+[copyright {2006 Pierre David <pdav@users.sourceforge.net>}]
+[moddesc   {LDAP extended object interface}]
+[titledesc {LDAP extended object interface}]
+[category  Networking]
+[require Tcl 8.4]
+[require ldapx [opt 1.0]]
+[description]
+[para]
+
+The [package ldapx] package provides an extended Tcl interface to
+LDAP directores and LDIF files. The [package ldapx] package is built
+upon the [package ldap] package in order to get low level LDAP access.
+
+[para]
+
+LDAP access is compatible with RFC 2251
+([uri http://www.rfc-editor.org/rfc/rfc2251.txt]).
+LDIF access is compatible with RFC 2849
+([uri http://www.rfc-editor.org/rfc/rfc2849.txt]).
+
+[section OVERVIEW]
+
+The [package ldapx] package provides objects to interact with LDAP
+directories and LDIF files with an easy to use programming interface.
+It implements three [package snit]::type classes.
+
+[para]
+
+The first class, [class entry], is used to store individual entries.
+Two different formats are available: the first one is the
+[emph standard] format, which represents an entry as read from the
+directory. The second format is the [emph change] format, which
+stores differences between two standard entries.
+
+[para]
+
+With these entries, an application which wants to modify an entry
+in a directory needs to read a (standard) entry from the directory,
+create a fresh copy into a new (standard) entry, modify the new
+copy, and then compute the differences between the two entries into
+a new (change) entry, which may be commited to the directory.
+
+[para]
+
+Such kinds of modifications are so heavily used that standard entries
+may contain their own copy of the original data. With such a copy,
+the application described above reads a (standard) entry from the
+directory, backs-up the original data, modifies the entry, and
+computes the differences between the entry and its backup. These
+differences are then commited to the directory.
+
+[para]
+
+Methods are provided to compute differences between two entries,
+to apply differences to an entry in order to get a new entry, and
+to get or set attributes in standard entries.
+
+[para]
+
+The second class is the [class ldap] class. It provides a method
+to [method connect] and bind to the directory with a uniform access
+to LDAP and LDAPS through an URL (ldap:// or ldaps://). The
+[method traverse] control structure executes a body for each entry
+found in the directory. The [method commit] method applies some
+changes (represented as [class entry] objects) to the directory.
+Since some attributes are represented as UTF-8 strings, the option
+[option -utf8] controls which attributes must be converted and
+which attributes must not be converted.
+
+[para]
+
+The last class is the [class ldif] class. It provides a method to
+associate a standard Tcl [emph channel] to an LDIF object. Then,
+methods [method read] and [method write] read or write entries from
+or to this channel. This class can make use of standard or change
+entries, according to the type of the LDIF file which may contain
+either standard entries or change entries (but not both at the same
+time). The option [option -utf8] works exactly as with the
+[class ldap] class.
+
+[section {ENTRY CLASS}]
+
+[subsection {Entry Instance Data}]
+
+An instance of the [class entry] class keeps the following data:
+
+[list_begin definitions]
+
+    [def dn]
+
+	This is the DN of the entry, which includes (in LDAP
+	terminology) the RDN (relative DN) and the Superior parts.
+
+    [def format]
+
+	The format may be [emph uninitialized] (entry not yet used),
+	[emph standard] or [emph change]. Most methods check the
+	format of the entry, which can be reset with the
+	[method reset] method.
+
+    [def attrvals]
+
+	In a [emph standard] entry, this is where the attributes
+	and associated values are stored. Many methods provide
+	access to these informations. Attribute names are always
+	converted into lower case.
+
+    [def backup]
+
+	In a [emph standard] entry, the backup may contain a copy
+	of the dn and all attributes and values. Methods
+	[method backup] and [method restore] manipulate these data,
+	and method [method diff] may use this backup.
+
+    [def change]
+
+	In a [emph change] entry, these data represent the
+	modifications. Such modifications are handled by specialized
+	methods such as [method apply] or [method commit].
+	Detailed format should not be used directly by programs.
+	[para]
+	Internally, modifications are represented as a list of
+	elements, each element has one of the following formats
+	(which match the corresponding LDAP operations):
+
+	[list_begin enumerated]
+
+	    [enum]
+		{[const add] {attr1 {val1...valn} attr2 {...} ...}}
+		[para]
+		Addition of a new entry.
+
+	    [enum]
+		{[const mod] {modop {attr1 [opt val1...valn]} attr2 ...} {modop ...} ...}
+		[para]
+		Modification of one or more attributes and/or values,
+		where <modop> can be [const modadd], [const moddel]
+		or [const modrepl] (see the LDAP modify operation).
+
+	    [enum]
+		{[const del]}
+		[para]
+		Deletion of an old entry.
+
+	    [enum]
+		{[const modrdn] newrdn deleteoldrdn [opt newsuperior]}
+		[para]
+		Renaming of an entry.
+
+	[list_end]
+
+[list_end]
+
+[subsection {Entry Options}]
+
+No option is defined by this class.
+
+[subsection {Methods for all kinds of entries}]
+
+[list_begin definitions]
+    [call [arg e] [method reset]]
+
+	This method resets the entry to an uninitialized state.
+
+    [call [arg e] [method dn] [opt [arg newdn]]]
+
+	This method returns the current DN of the entry. If the
+	optional [arg newdn] is specified, it replaces the current
+	DN of the entry.
+
+    [call [arg e] [method rdn]]
+
+	This method returns the RDN part of the DN of the entry.
+
+    [call [arg e] [method superior]]
+
+	This method returns the superior part of the DN of the entry.
+
+    [call [arg e] [method print]]
+
+	This method returns the entry as a string ready to be printed.
+
+[list_end]
+
+[para]
+
+[subsection {Methods for standard entries only}]
+
+In all methods, attribute names are converted in lower case.
+
+[list_begin definitions]
+    [call [arg se] [method isempty]]
+
+	This method returns 1 if the entry is empty (i.e. without
+	any attribute).
+
+    [call [arg se] [method get] [arg attr]]
+
+	This method returns all values of the attribute [arg attr],
+	or the empty list if the attribute is not fond.
+
+    [call [arg se] [method get1] [arg attr]]
+
+	This method returns the first value of the attribute.
+
+    [call [arg se] [method set] [arg attr] [arg values]]
+
+	This method sets the values (list [arg values]) of the
+	attribute [arg attr]. If the list is empty, this method
+	deletes all
+
+    [call [arg se] [method set1] [arg attr] [arg value]]
+
+	This method sets the values of the attribute [arg attr] to
+	be an unique value [arg value]. Previous values, if any,
+	are replaced by the new value.
+
+    [call [arg se] [method add] [arg attr] [arg values]]
+
+	This method adds all elements the list [arg values] to the
+	values of the attribute [arg attr].
+
+    [call [arg se] [method add1] [arg attr] [arg value]]
+
+	This method adds a single value given by the parameter
+	[arg value] to the attribute [arg attr].
+
+    [call [arg se] [method del] [arg attr] [opt [arg values]]]
+
+	If the optional list [arg values] is specified, this method
+	deletes all specified values from the attribute [arg attr].
+	If the argument [arg values] is not specified, this method
+	deletes all values.
+
+    [call [arg se] [method del1] [arg attr] [arg value]]
+
+	This method deletes a unique [arg value] from the attribute
+	[arg attr].
+
+    [call [arg se] [method getattr]]
+
+	This method returns all attributes names.
+
+    [call [arg se] [method getall]]
+
+	This method returns all attributes and values from the
+	entry, packed in a list of pairs <attribute, list of values>.
+
+    [call [arg se] [method setall] [arg avpairs]]
+
+	This method sets at once all attributes and values. The
+	format of the [arg avpairs] argument is the same as the one
+	returned by method [method getall].
+
+    [call [arg se] [method backup] [opt [arg other]]]
+
+	This method stores in an [arg other] standard entry object
+	a copy of the current DN and attributes/values. If the
+	optional [arg other] argument is not specified, copy is
+	done in the current entry (in a specific place, see section
+	[sectref OVERVIEW]).
+
+    [call [arg se] [method swap]]
+
+	This method swaps the current and backup contexts of the
+	entry.
+
+    [call [arg se] [method restore] [opt [arg other]]]
+
+	If the optional argument [arg other] is given, which must
+	then be a [emph standard] entry, this method restores the
+	current entry into the [arg other] entry. If the argument
+	[arg other] argument is not specified, this methods restores
+	the current entry from its internal backup (see section
+	[sectref OVERVIEW]).
+
+    [call [arg se] [method apply] [arg centry]]
+
+	This method applies changes defined in the [arg centry]
+	argument, which must be a [emph change] entry.
+
+[list_end]
+
+[subsection {Methods for change entries only}]
+
+[list_begin definitions]
+    [call [arg ce] [method change] [opt [arg new]]]
+
+	If the optional argument [arg new] is specified, this method
+	modifies the change list (see subsection [sectref {Entry Instance Data}] for
+	the exact format). In both cases, current change list is
+	returned.
+	Warning: values returned by this method should only be used
+	by specialized methods such as [method apply] or
+	[method commit].
+
+    [call [arg ce] [method diff] [arg new] [opt [arg old]]]
+
+	This method computes the differences between the [arg new]
+	and [arg old] entries under the form of a change list, and
+	stores this list into the current [emph change] entry. If
+	the optional argument [arg old] is not specified, difference
+	is computed from the entry and its internal backup (see
+	section [sectref OVERVIEW]). Return value is the computed
+	change list.
+
+[list_end]
+
+[subsection {Entry Example}]
+
+[example {
+    package require ldapx
+
+    #
+    # Create an entry and fill it as a standard entry with
+    # attributes and values
+    #
+    ::ldapx::entry create e
+    e dn "uid=joe,ou=people,o=mycomp"
+    e set1 "uid"             "joe"
+    e set  "objectClass"     {person anotherObjectClass}
+    e set1 "givenName"       "Joe"
+    e set1 "sn"              "User"
+    e set  "telephoneNumber" {+31415926535 +2182818}
+    e set1 "anotherAttr"     "This is a beautiful day, isn't it?"
+
+    puts stdout "e\n[e print]"
+
+    #
+    # Create a second entry as a backup of the first, and
+    # make some changes on it.
+    # Entry is named automatically by snit.
+    #
+
+    set b [::ldapx::entry create %AUTO%]
+    e backup $b
+
+    puts stdout "$b\n[$b print]"
+
+    $b del  "anotherAttr"
+    $b del1 "objectClass" "anotherObjectClass"
+
+    #
+    # Create a change entry, a compute differences between first
+    # and second entry.
+    #
+
+    ::ldapx::entry create c
+    c diff e $b
+
+    puts stdout "$c\n[$c print]"
+
+    #
+    # Apply changes to first entry. It should be the same as the
+    # second entry, now.
+    #
+
+    e apply c
+
+    ::ldapx::entry create nc
+    nc diff e $b
+
+    puts stdout "nc\n[nc print]"
+
+    #
+    # Clean-up
+    #
+
+    e destroy
+    $b destroy
+    c destroy
+    nc destroy
+}]
+
+[section {LDAP CLASS}]
+
+[subsection {Ldap Instance Data}]
+
+An instance of the [class ldap] class keeps the following data:
+
+[list_begin definitions]
+
+    [def channel]
+
+	This is the channel used by the [package ldap] package for
+	communication with the LDAP server.
+
+    [def lastError]
+
+	This variable contains the error message which appeared in
+	the last method of the [class ldap] class (this string is
+	modified in nearly all methods). The [method error] method
+	may be used to fetch this message.
+
+[list_end]
+
+[subsection {Ldap Options}]
+
+A first set of options of the [class ldap] class is used during
+search operations (methods [method traverse], [method search] and
+[method read], see below).
+
+[list_begin options]
+
+    [opt_def -scope [const base]|[const one]|[const sub]]
+
+	Specify the scope of the LDAP search to be one of
+	[const base], [const one] or [const sub] to specify
+	a base object, one-level or subtree search.
+	[para]
+	The default is [const sub].
+
+    [opt_def -derefaliases [const never]|[const seach]|[const find]|[const always]]
+
+	Specify how aliases dereferencing is handled:
+	[const never] is used to specify that aliases are never derefenced,
+	[const always] that aliases are always derefenced,
+	[const search] that aliases are dereferenced when searching,
+	or [const find] that aliases are dereferenced only  when
+	locating  the  base object for the search.
+	[para]
+	The default is [const never].
+
+    [opt_def -sizelimit integer]
+
+	Specify the maximum number of entries to be retreived
+	during a search. A value of [const 0] means no limit.
+	[para]
+	Default is [const 0].
+
+    [opt_def -timelimit integer]
+
+	Specify the time limit for a search to complete.
+	A value of [const 0] means no limit.
+	[para]
+	Default is [const 0].
+
+    [opt_def -attrsonly [const 0]|[const 1]]
+
+	Specify if only attribute names are to be retrieved (value
+	[const 1]). Normally (value [const 0]), attribute values
+	are also retrieved.
+	[para]
+	Default is [const 0].
+
+[list_end]
+
+[para]
+
+The last option is used when getting entries or committing changes
+in the directory:
+
+[list_begin options]
+
+    [opt_def -utf8 {pattern-yes pattern-no}]
+
+	Specify which attribute values are encoded in UTF-8. This
+	information is specific to the LDAP schema in use by the
+	application, since some attributes such as jpegPhoto, for
+	example, are not encoded in UTF-8. This option takes the
+	form of a list with two regular expressions suitable for
+	the [cmd regexp] command (anchored by ^ and $).
+	The first specifies which attribute names are to be UTF-8
+	encoded, and the second selects, among those, the attribute
+	names which will not be UTF-8 encoded.  It is thus possible
+	to say: convert all attributes, except jpegPhoto.
+
+	[para]
+
+	Default is {{.*} {}}, meaning: all attributes are converted,
+	without exception.
+
+[list_end]
+
+[subsection {Ldap Methods}]
+
+[list_begin definitions]
+    [call [arg la] [method error] [opt [arg newmsg]]]
+
+	This method returns the error message that occurred in the
+	last call to a [class ldap] class method. If the optional
+	argument [arg newmsg] is supplied, it becomes the last
+	error message.
+
+    [call [arg la] [method connect] [arg url] [opt [arg binddn]] [opt [arg bindpw]]]
+
+	This method connects to the LDAP server using given URL
+	(which can be of the form [uri ldap://host:port] or
+	[uri ldaps://host:port]). If an optional [arg binddn]
+	argument is given together with the [arg bindpw] argument,
+	the [method connect] binds to the LDAP server using the
+	specified DN and password.
+
+    [call [arg la] [method disconnect]]
+
+	This method disconnects (and unbinds, if necessary) from
+	the LDAP server.
+
+    [call [arg la] [method traverse] [arg base] [arg filter] [arg attrs] [arg entry] [arg body]]
+
+	This method is a new control structure. It searches the
+	LDAP directory from the specified base DN (given by the
+	[arg base] argument) and selects entries based on the
+	argument [arg filter]. For each entry found, this method
+	fetches attributes specified by the [arg attrs] argument
+	(or all attributes if it is an empty list), stores them in
+	the [arg entry] instance of class [class entry] and executes
+	the script defined by the argument [arg body]. Options are
+	used to refine the search.
+
+	[para]
+
+	Caution: when this method is used, the script [arg body]
+	cannot perform another LDAP search (methods [method traverse],
+	[method search] or [method read]).
+
+    [call [arg la] [method search] [arg base] [arg filter] [arg attrs]]
+
+	This method searches the directory using the same way as
+	method [method traverse]. All found entries are stored in
+	newly created instances of class [class entry], which are
+	returned in a list. The newly created instances should be
+	destroyed when they are no longer used.
+
+    [call [arg la] [method read] [arg base] [arg filter] [arg entry] ... [arg entry]]
+
+	This method reads one or more entries, using the same search
+	criteria as methods [method traverse] and [method search].
+	All attributes are stored in the entries. This method
+	provides a quick way to read some entries. It returns the
+	number of entries found in the directory (which may be more
+	than the number of read entries). If called without any
+	[arg entry] argument, this method just returns the number
+	of entries found, without returning any data.
+
+    [call [arg la] [method commit] [arg entry] ... [arg entry]]
+
+	This method commits the changes stored in the [arg entry]
+	arguments. Each [arg entry] may be either a [emph change]
+	entry, or a [emph standard] entry with a backup.
+	[para]
+	Note: in the future, this method should use the LDAP
+	transaction extension provided by OpenLDAP 2.3 and later.
+
+[list_end]
+
+[subsection {Ldap Example}]
+
+[example {
+    package require ldapx
+
+    #
+    # Connects to the LDAP directory
+    #
+
+    ::ldapx::ldap create l
+    set url "ldap://server.mycomp.com"
+    if {! [l connect $url "cn=admin,o=mycomp" "mypasswd"]} then {
+	puts stderr "error: [l error]"
+	exit 1
+    }
+
+    #
+    # Search all entries matching some criterion
+    #
+
+    l configure -scope one
+    ::ldapx::entry create e
+    set n 0
+    l traverse "ou=people,o=mycomp" "(sn=Joe*)" {sn givenName} e {
+	puts "dn: [e dn]"
+	puts "  sn:        [e get1 sn]"
+	puts "  givenName: [e get1 givenName]"
+	incr n
+    }
+    puts "$n entries found"
+    e destroy
+
+    #
+    # Add a telephone number to some entries
+    # Note this modification cannot be done in the "traverse" operation.
+    #
+
+    set lent [l search "ou=people,o=mycomp" "(sn=Joe*)" {}]
+    ::ldapx::entry create c
+    foreach e $lent {
+	$e backup
+	$e add1 "telephoneNumber" "+31415926535"
+	c diff $e
+	if {! [l commit c]} then {
+	    puts stderr "error: [l error]"
+	    exit 1
+	}
+	$e destroy
+    }
+
+    l disconnect
+    l destroy
+}]
+
+[section {LDIF CLASS}]
+
+[subsection {Ldif Instance Data}]
+
+An instance of the [class ldif] class keeps the following data:
+
+[list_begin definitions]
+
+    [def channel]
+
+	This is the Tcl channel used to retrieve or store LDIF file
+	contents. The association between an instance and a channel
+	is made by the method [method channel]. There is no need
+	to disrupt this association when the LDIF file operation
+	has ended.
+
+    [def format]
+
+	LDIF files may contain [emph standard] entries or
+	[emph change] entries, but not both. This variable contains
+	the detected format of the file (when reading) or the format
+	of entries written to the file (when writing).
+
+    [def lastError]
+
+	This variable contains the error message which appeared in
+	the last method of the [class ldif] class (this string is
+	modified in nearly all methods). The [method error] method
+	may be used to fetch this message.
+
+    [def version]
+
+	This is the version of the LDIF file. Only version 1 is
+	supported: the method [method read] can only read from
+	version 1 files, and method [method write] only creates
+	version 1 files.
+
+[list_end]
+
+[subsection {Ldif Options}]
+
+This class defines two options:
+
+[list_begin options]
+
+    [opt_def -ignore {list-of-attributes}]
+
+	This option is used to ignore certain attribute names on
+	reading. For example, to read OpenLDAP replica files (replog),
+	one must ignore [const replica] and [const time] attributes
+	since they do not conform to the RFC 2849 standard for LDIF
+	files.
+	[para]
+	Default is empty list: no attribute is ignored.
+
+    [opt_def -utf8 {pattern-yes pattern-no}]
+
+	Specify which attribute values are encoded in UTF-8. This
+	information is specific to the LDAP schema in use by the
+	application, since some attributes such as jpegPhoto, for
+	example, are not encoded in UTF-8. This option takes the
+	form of a list with two regular expressions suitable for
+	the [cmd regexp] command (anchored by ^ and $).
+	The first specifies which attribute names are to be UTF-8
+	encoded, and the second selects, among those, the attribute
+	names which will not be UTF-8 encoded.  It is thus possible
+	to say: convert all attributes, except jpegPhoto.
+
+	[para]
+
+	Default is {{.*} {}}, meaning: all attributes are converted,
+	without exception.
+
+[list_end]
+
+[subsection {Ldif Methods}]
+
+[list_begin definitions]
+
+    [call [arg li] [method channel] [arg chan]]
+
+	This method associates the Tcl channel named [arg chan]
+	with the LDIF instance. It resets the type of LDIF object
+	to [emph uninitialized].
+
+    [call [arg li] [method error] [opt [arg newmsg]]]
+
+	This method returns the error message that occurred in the
+	last call to a [class ldif] class method. If the optional
+	argument [arg newmsg] is supplied, it becomes the last
+	error message.
+
+    [call [arg li] [method read] [arg entry]]
+
+	This method reads the next entry from the LDIF file and
+	stores it in the [arg entry] object of class [class entry].
+	The entry may be a [emph standard] or [emph change] entry.
+
+    [call [arg li] [method write] [arg entry]]
+
+	This method writes the entry given in the argument
+	[arg entry] to the LDIF file.
+
+[list_end]
+
+[subsection {Ldif Example}]
+
+[example {
+    package require ldapx
+
+    # This examples reads a LDIF file containing entries,
+    # compare them to a LDAP directory, and writes on standard
+    # output an LDIF file containing changes to apply to the
+    # LDAP directory to match exactly the LDIF file.
+
+    ::ldapx::ldif create liin
+    liin channel stdin
+
+    ::ldapx::ldif create liout
+    liout channel stdout
+
+    ::ldapx::ldap create la
+    if {! [la connect "ldap://server.mycomp.com"]} then {
+	puts stderr "error: [la error]"
+	exit 1
+    }
+    la configure -scope one
+
+    # Reads LDIF file
+
+    ::ldapx::entry create e1
+    ::ldapx::entry create e2
+    ::ldapx::entry create c
+
+    while {[liin read e1] != 0} {
+	set base [e1 superior]
+	set id [e1 rdn]
+	if {[la read $base "($id)" e2] == 0} then {
+	    e2 reset
+	}
+
+	c diff e1 e2
+	if {[llength [c change]] != 0} then {
+	    liout write c
+	}
+    }
+
+    la disconnect
+    la destroy
+    e1 destroy
+    e2 destroy
+    c destroy
+    liout destroy
+    liin destroy
+}]
+
+[section References]
+
+[vset CATEGORY ldap]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

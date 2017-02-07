@@ -1,0 +1,76 @@
+
+All commands require a 'package require nntp'
+
+1. Connecting to default news server
+
+    nntp::nntp
+
+2. Connecting to non-default news server at non-default port
+
+    nntp::nntp nntpserver.example.net 110
+
+3. Connection to default nntp server and getting a list of newsgroups.
+
+    # It might take awhile to print all the newsgroups
+    set connection [nntp::nntp]
+    set newsgroups [list ]
+    foreach newsgroup [$connection list] {
+        lappend newsgroups [lindex $newsgroup 0]
+    }
+    puts [join $newsgroups ", "]
+
+4. Get basic information about a newsgroup
+
+    set connection [nntp::nntp]
+    foreach {total first last group} [$connection group comp.lang.tcl] {
+        break
+    }
+    puts " newsgroup: $group\n message count: $total\n first message: $first\n\
+           last message: $last"
+
+5. Get your daily dose of c.l.t. from a tcl prompt
+
+    set connection [nntp::nntp]
+    $connection group comp.lang.tcl
+    puts [join [$connection article] \n]
+
+    # Repeat this until there are no more messages to read:
+    $connection next
+    puts [join [$connection article] \n]
+
+6. Get the number, who sent the message, and the subjects of the first
+   10 messages in c.l.t
+
+    set connection [nntp::nntp]
+    $connection group comp.lang.tcl
+    set messageList [list ]
+
+    foreach {total first last group} [$connection group comp.lang.tcl] {
+        break
+    }
+
+    # Since we only want to see the first 10 messages, set last to $first + 10
+    set last [expr {$first + 10}]
+    set subjectList [$connection xhdr subject "$first-$last"]
+    set fromList [$connection xhdr from "$first-$last"]
+
+    foreach subject $subjectList from $fromList {
+        if {([regexp {(\d+)\s+([^\s].*)} $from match number from] > 0) &&
+                ([regexp {\d+\s+([^\s].*)} $subject match subject] > 0)} {
+            lappend messageList "$number\t$from\t$subject"
+        }
+    }
+
+    puts [join $messageList \n]
+
+7. Search for all messages written by Jeff Hobbs in c.l.t
+
+
+    set connection [nntp::nntp]
+    $connection group comp.lang.tcl
+
+    foreach {total first last group} [$connection group comp.lang.tcl] {
+        break
+    }
+
+    $connection xpat from $first-$last "*Jeffrey Hobbs*"

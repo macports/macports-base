@@ -1,0 +1,197 @@
+
+<div class='fossil-doc' data-title='doctoc_lang_syntax - Documentation tools'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">doctoc_lang_syntax(n) 1.0 tcllib &quot;Documentation tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>doctoc_lang_syntax - doctoc language syntax</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Fundamentals</a></li>
+<li class="doctools_section"><a href="#section3">Lexical definitions</a></li>
+<li class="doctools_section"><a href="#section4">Syntax</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This document contains the formal specification of the syntax of the
+doctoc markup language, version 1.1 in Backus-Naur-Form. This document
+is intended to be a reference, complementing the
+<i class="term"><a href="doctoc_lang_cmdref.html">doctoc language command reference</a></i>.
+A beginner should read the much more informally written
+<i class="term"><a href="doctoc_lang_intro.html">doctoc language introduction</a></i> first before trying to
+understand either this document or the command reference.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Fundamentals</a></h2>
+<p>In the broadest terms possible the <i class="term">doctoc markup language</i> is
+like SGML and similar languages. A document written in this language
+consists primarily of markup commands, with text embedded into it at
+some places.</p>
+<p>Each markup command is a just Tcl command surrounded by a matching
+pair of <b class="const">[</b> and <b class="const">]</b>. Which commands are available,
+and their arguments, i.e. syntax is specified in the
+<i class="term"><a href="doctoc_lang_cmdref.html">doctoc language command reference</a></i>.</p>
+<p>In this document we specify first the lexeme, and then the syntax,
+i.e. how we can mix text and markup commands with each other.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Lexical definitions</a></h2>
+<p>In the syntax rules listed in the next section</p>
+<ol class="doctools_enumerated">
+<li><p>&lt;TEXT&gt; stands for all text except markup commands.</p></li>
+<li><p>Any XXX stands for the markup command [xxx] including its
+arguments. Each markup command is a Tcl command surrounded by a
+matching pair of <b class="const">[</b> and <b class="const">]</b>. Inside of these
+delimiters the usual rules for a Tcl command apply with regard to word
+quotation, nested commands, continuation lines, etc.</p></li>
+<li><p>&lt;WHITE&gt; stands for all text consisting only of spaces, newlines,
+tabulators and the <b class="cmd"><a href="../../../../index.html#key155">comment</a></b> markup command.</p></li>
+</ol>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Syntax</a></h2>
+<p>The rules listed here specify only the syntax of doctoc documents. The
+lexical level of the language was covered in the previous section.</p>
+<p>Regarding the syntax of the (E)BNF itself</p>
+<ol class="doctools_enumerated">
+<li><p>The construct { X } stands for zero or more occurrences of X.</p></li>
+<li><p>The construct [ X ] stands for zero or one occurrence of X.</p></li>
+</ol>
+<p>The syntax:</p>
+<pre class="doctools_example">
+toc       = defs
+            TOC_BEGIN
+            contents
+            TOC_END
+            { &lt;WHITE&gt; }
+defs      = { INCLUDE | VSET | &lt;WHITE&gt; }
+contents  = { defs entry } [ defs ]
+entry     = ITEM | division
+division  = DIVISION_START
+            contents
+            DIVISION_END
+</pre>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>doctools</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="doctoc_intro.html">doctoc_intro</a>, <a href="doctoc_lang_cmdref.html">doctoc_lang_cmdref</a>, <a href="doctoc_lang_faq.html">doctoc_lang_faq</a>, <a href="doctoc_lang_intro.html">doctoc_lang_intro</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key511">doctoc commands</a>, <a href="../../../../index.html#key510">doctoc language</a>, <a href="../../../../index.html#key386">doctoc markup</a>, <a href="../../../../index.html#key545">doctoc syntax</a>, <a href="../../../../index.html#key16">markup</a>, <a href="../../../../index.html#key136">semantic markup</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Documentation tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2007-2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

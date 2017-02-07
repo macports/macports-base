@@ -1,0 +1,107 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-11-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* export_docidx.man: Added headers to properly mark files as manpages
+	* export_html.man: even if not containing having manpage_begin, and
+	* export_json.man: vice versa, preventing recognition of subordinate
+	* export_nroff.man: include files as manpages.
+	* export_text.man:
+	* export_wiki.man:
+	* import_docidx.man:
+	* import_json.man:
+	* include/export/plugin.inc:
+	* include/import/plugin.inc:
+	* include/msgcat.inc:
+	* msgcat_c.man:
+	* msgcat_de.man:
+	* msgcat_en.man:
+	* msgcat_fr.man:
+
+	* tests/data/ok/json/1_nokeys: Fixed bad JSON.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-11-23  Andreas Kupries  <andreask@activestate.com>
+
+	* import_json.tcl: Added pragma to tell sak.tcl that the 'package
+	  provide dict' is a fake.
+
+2009-08-07  Andreas Kupries  <andreask@activestate.com>
+
+	* export_docidx.tcl: Added missing '@mdgen NODEP' hints for the
+	* export_html.tcl: pseudo-packages 'doctools::idx::export::plugin'
+	* export_json.tcl: and 'doctools::idx::import::plugin' to keep them
+	* export_nroff.tcl: out of the requirements listed in the meta data.
+	* export_text.tcl:
+	* export_wiki.tcl:
+	* import_docidx.tcl:
+	* import_json.tcl: 
+
+2009-04-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* container.test: Updated the nroff export plugin and related files
+	* export.test: to new name of the nroff man.macros package. Bumped
+	* export_nroff.tcl: to version 0.3.
+	* export_nroff.test:
+	* export_nroff.man:
+	* pkgIndex.tcl:
+	* include/dependencies.inc:
+	* include/export/format/nroff.inc:
+
+2009-04-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* container.man: Fix version mismatch.
+	* export_docidx.tcl: Fix version mismatch.
+	* tests/container: Fix test names.
+
+2009-04-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* include/export/plugin.inc: Made version info configurable
+        * export_docidx.tcl: Version 0.1, unchanged
+        * export_json.tcl: Version 0.1, unchanged
+
+        * export_html.tcl: Bumped version to 0.2.
+        * export_nroff.tcl: Ditto.
+        * export_text.tcl: Ditto.
+        * export_wiki.tcl: Ditto.
+
+        * export_html.tcl: Fixed plugin API check.
+        * export_nroff.tcl: Ditto.
+        * export_text.tcl: Ditto.
+        * export_wiki.tcl: Ditto, plus fix in file mapping.
+	* pkgIndex.tcl: Bumped to version 0.2.
+
+        * export.man: Typo fixed.
+        * import.man: Ditto.
+        * introduction.man: Ditto.
+        * include/msgcat.inc: Ditto.
+        * include/export/config/html.inc: Ditto.
+        * include/import/plugin.inc: Ditto.
+        * import_docidx.tcl: Ditto. 
+        * import_json.tcl: Ditto.
+        * tests/parse: Ditto.
+
+2009-03-31  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Doctools version 2, index processing.

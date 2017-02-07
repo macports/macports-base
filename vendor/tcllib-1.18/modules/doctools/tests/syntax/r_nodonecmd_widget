@@ -1,0 +1,3 @@
+Doctools Error in macro at line 4, column 0:
+[widget .w.]
+--> (FmtError) Manpage error (nodonecmd), "widget .w." : Command not allowed after [manpage_end].

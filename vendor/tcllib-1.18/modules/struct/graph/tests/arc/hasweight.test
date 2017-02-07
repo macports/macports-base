@@ -1,0 +1,58 @@
+# -*- tcl -*-
+# Graph tests - arc hasweight
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: hasweight.test,v 1.1 2008/10/11 23:23:48 andreas_kupries Exp $
+
+# Syntax: graph arc hasweight
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-arc-hasweight-1.0 {arc hasweight, wrong#args, missing} {
+    SETUP
+    catch {mygraph arc hasweight} res
+    mygraph destroy
+    set res
+} [tmWrong {arc hasweight} arc 0]
+
+test graph-${impl}-${setimpl}-arc-hasweight-1.1 {arc hasweight, wrong#args, too many} {
+    SETUP
+    catch {mygraph arc hasweight a b} res
+    mygraph destroy
+    set res
+} [tmTooMany {arc hasweight} arc]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-arc-hasweight-2.0 {arc hasweight, missing arc} {
+    SETUP
+    catch {mygraph arc hasweight a} res
+    mygraph destroy
+    set res
+} [MissingArc $MY a]
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-arc-hasweight-3.0 {arc hasweight, arc missing weight} {
+    SETUP
+    mygraph node insert 0
+    mygraph arc  insert 0 0 a
+    set res [mygraph arc hasweight a]
+    mygraph destroy
+    set res
+} 0
+
+test graph-${impl}-${setimpl}-arc-hasweight-3.` {arc hasweight, arc has weight} {
+    SETUP
+    mygraph node insert 0
+    mygraph arc  insert 0 0 a
+    mygraph arc  setweight a 1
+    set res [mygraph arc hasweight a]
+    mygraph destroy
+    set res
+} 1
+
+# -------------------------------------------------------------------------

@@ -1,0 +1,343 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin bee n 0.1]
+[keywords bee]
+[keywords BitTorrent]
+[keywords bittorrent]
+[keywords serialization]
+[keywords torrent]
+[copyright {2004 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {BitTorrent}]
+[titledesc {BitTorrent Serialization Format Encoder/Decoder}]
+[category  Networking]
+[require Tcl 8.4]
+[require bee [opt 0.1]]
+[description]
+[para]
+
+The [package bee] package provides de- and encoder commands for data
+in bencoding (speak 'bee'), the serialization format for data and
+messages used by the BitTorrent application.
+
+[para]
+
+[section {PUBLIC API}]
+
+[subsection ENCODER]
+
+The package provides one encoder command for each of the basic forms,
+and two commands per container, one taking a proper tcl data structure
+to encode in the container, the other taking the same information as
+several arguments.
+
+[para]
+[list_begin definitions]
+
+[call [cmd ::bee::encodeString] [arg string]]
+
+Returns the bee-encoding of the [arg string].
+
+[call [cmd ::bee::encodeNumber] [arg integer]]
+
+Returns the bee-encoding of the [arg integer] number.
+
+[call [cmd ::bee::encodeListArgs] [arg value]...]
+
+Takes zero or more bee-encoded values and returns the bee-encoding of
+their list.
+
+[call [cmd ::bee::encodeList] [arg list]]
+
+Takes a list of bee-encoded values and returns the bee-encoding of the
+list.
+
+[call [cmd ::bee::encodeDictArgs] [arg key] [arg value]...]
+
+Takes zero or more pairs of keys and values and returns the
+bee-encoding of the dictionary they form. The values are expected to
+be already bee-encoded, but the keys must not be. Their encoding will
+be done by the command itself.
+
+[call [cmd ::bee::encodeDict] [arg dict]]
+
+Takes a dictionary list of string keys and bee-encoded values and
+returns the bee-encoding of the list. Note that the keys in the input
+must not be bee-encoded already. This will be done by the command
+itself.
+
+[list_end]
+[para]
+
+[subsection DECODER]
+
+The package provides two main decoder commands, one for decoding a
+string expected to contain a complete data structure, the other for
+the incremental decoding of bee-values arriving on a channel. The
+latter command is asynchronous and provides the completed decoded
+values to the user through a command callback.
+
+[para]
+[list_begin definitions]
+
+[call [cmd ::bee::decode] [arg string] [opt [arg endvar]] [opt [arg start]]]
+
+Takes the bee-encoding in the string and returns one decoded value. In
+the case of this being a container all contained values are decoded
+recursively as well and the result is a properly nested tcl list
+and/or dictionary.
+
+[para]
+
+If the optional [arg endvar] is set then it is the name of a variable
+to store the index of the first character [emph after] the decoded
+value into. In other words, if the string contains more than one value
+then [arg endvar] can be used to obtain the position of the bee-value
+after the bee-value currently decoded. together with [arg start], see
+below, it is possible to iterate over the string to extract all
+contained values.
+
+[para]
+
+The optional [arg start] index defaults to [const 0], i.e. the
+beginning of the string. It is the index of the first character of the
+bee-encoded value to extract.
+
+[call [cmd ::bee::decodeIndices] [arg string] [opt [arg endvar]] [opt [arg start]]]
+
+Takes the same arguments as [cmd ::bee::decode] and returns the same
+information in [arg endvar]. The result however is different. Instead
+of the tcl value contained in the [arg string] it returns a list
+describing the value with respect to type and location (indices for
+the first and last character of the bee-value). In case of a container
+the structure also contains the same information for all the embedded
+values.
+
+[para]
+
+Formally the results for the various types of bee-values are:
+
+[list_begin definitions]
+[def string]
+
+A list containing three elements:
+
+[list_begin itemized]
+[item]
+The constant string [const string], denoting the type of the value.
+
+[item]
+An integer number greater than or equal to zero. This is the index of
+the first character of the bee-value in the input [arg string].
+
+[item]
+An integer number greater than or equal to zero. This is the index of
+the last character of the bee-value in the input [arg string].
+
+[list_end]
+[para]
+
+[emph Note] that this information is present in the results for all
+four types of bee-values, with only the first element changing
+according to the type of the value.
+
+[def integer]
+
+The result is like for strings, except that the type element contains
+the constant string [const integer].
+
+[def list]
+
+The result is like before, with two exceptions: One, the type element
+contains the constant string [const list]. And two, the result
+actually contains four elements. The last element is new, and contains
+the index data as described here for all elements of the bee-list.
+
+[def dictionary]
+
+The result is like for strings, except that the type element contains
+the constant string [const dict]. A fourth element is present as well,
+with a slightly different structure than for lists. The element is a
+dictionary mapping from the strings keys of the bee-dictionary to a
+list containing two elements. The first of them is the index
+information for the key, and the second element is the index
+information for the value the key maps to. This structure is the only
+which contains not only index data, but actual values from the
+bee-string. While the index information of the keys is unique enough,
+i.e. serviceable as keys, they are not easy to navigate when trying to
+find particular element. Using the actual keys makes this much easier.
+
+[list_end]
+[para]
+
+[call [cmd ::bee::decodeChannel] [arg chan] \
+	[option -command] [arg cmdprefix] \
+	[opt [option -exact]] \
+	[opt "[option -prefix] [arg data]"] \
+]
+
+The command creates a decoder for a series of bee-values arriving on
+the channel [arg chan] and returns its handle. This handle can be used
+to remove the decoder again.
+
+Setting up another bee decoder on [arg chan] while a bee decoder is
+still active will fail with an error message.
+
+[para]
+[list_begin definitions]
+[def [option -command]]
+
+The command prefix [arg cmdprefix] specified by the [emph required]
+option [option -command] is used to report extracted values and
+exceptional situations (error, and EOF on the channel).
+
+The callback will be executed at the global level of the interpreter,
+with two or three arguments. The exact call signatures are
+
+[para]
+[list_begin definitions]
+[call [cmd cmdprefix] [method eof] [arg token]]
+
+The decoder has reached eof on the channel [arg chan]. No further
+invocations of the callback will be made after this. The channel has
+already been closed at the time of the call, and the [arg token] is
+not valid anymore as well.
+
+[call [cmd cmdprefix] [method error] [arg token] [arg message]]
+
+The decoder encountered an error, which is not eof. For example a
+malformed bee-value. The [arg message] provides details about the
+error. The decoder token is in the same state as for eof,
+i.e. invalid. The channel however is kept open.
+
+[call [cmd cmdprefix] [method value] [arg token] [arg value]]
+
+The decoder received and successfully decoded a bee-value.
+
+The format of the equivalent tcl [arg value] is the same as returned
+by [cmd ::bee::decode]. The channel is still open and the decoder
+token is valid. This means that the callback is able to remove the
+decoder.
+
+[list_end]
+[para]
+
+[def [option -exact]]
+
+By default the decoder assumes that the remainder of the data in the
+channel consists only of bee-values, and reads as much as possible per
+event, without regard for boundaries between bee-values. This means
+that if the the input contains non-bee data after a series of
+bee-value the beginning of that data may be lost because it was
+already read by the decoder, but not processed.
+
+[para]
+
+The [option -exact] was made for this situation. When specified the
+decoder will take care to not read any characters behind the currently
+processed bee-value, so that any non-bee data is kept in the channel
+for further processing after removal of the decoder.
+
+[para]
+
+[def [option -prefix]]
+
+If this option is specified its value is assumed to be the beginning
+of the bee-value and used to initialize the internal decoder
+buffer. This feature is required if the creator of the decoder used
+data from the channel to determine if it should create the decoder or
+not. Without the option this data would be lost to the decoding.
+
+[list_end]
+[para]
+
+[call [cmd ::bee::decodeCancel] [arg token]]
+
+This command cancels the decoder set up by [cmd ::bee::decodeChannel]
+and represented by the handle [arg token].
+
+[call [cmd ::bee::decodePush] [arg token] [arg string]]
+
+This command appends the [arg string] to the internal decoder
+buffer. It is the runtime equivalent of the option [option -prefix] of
+[cmd ::bee::decodeChannel]. Use it to push data back into the decoder
+when the [method value] callback used data from the channel to
+determine if it should decode another bee-value or not.
+
+[list_end]
+[para]
+
+[section {FORMAT DEFINITION}]
+
+Data in the bee serialization format is constructed from two basic
+forms, and two container forms. The basic forms are strings and
+integer numbers, and the containers are lists and dictionaries.
+
+[para]
+[list_begin definitions]
+[def "String [arg S]"]
+
+A string [arg S] of length [arg L] is encoded by the string
+
+"[arg L][const :][arg S]", where the length is written out in textual
+form.
+
+[def "Integer [arg N]"]
+
+An integer number [arg N] is encoded by the string
+
+"[const i][arg N][const e]".
+
+[def "List [arg v1] ... [arg vn]"]
+
+A list of the values [arg v1] to [arg vn] is encoded by the string
+
+"[const l][arg BV1]...[arg BVn][const e]"
+
+where "BV[var i]" is the bee-encoding of the value "v[var i]".
+
+[def "Dict [arg k1] -> [arg v1] ..."]
+
+A dictionary mapping the string key [arg k][var i] to the value
+
+[arg v][var i], for [var i] in [const 1] ... [var n]
+is encoded by the string
+
+"[const d][arg BK][var i][arg BV][ var i]...[const e]"
+
+for i in [const 1] ... [var n], where "BK[var i]" is the bee-encoding
+of the key string "k[var i]".  and "BV[var i]" is the bee-encoding of
+the value "v[var i]".
+
+[para]
+
+[emph Note]: The bee-encoding does not retain the order of the keys in
+the input, but stores in a sorted order. The sorting is done for the
+"raw strings".
+
+[list_end]
+[para]
+
+Note that the type of each encoded item can be determined immediately
+from the first character of its representation:
+
+[para]
+[list_begin definitions]
+[def i]
+Integer.
+[def l]
+List.
+[def d]
+Dictionary.
+[def "[lb]0-9[rb]"]
+String.
+[list_end]
+[para]
+
+By wrapping an integer number into [const i]...[const e] the format
+makes sure that they are different from strings, which all begin with
+a digit.
+
+[section EXAMPLES]
+
+[vset CATEGORY bee]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

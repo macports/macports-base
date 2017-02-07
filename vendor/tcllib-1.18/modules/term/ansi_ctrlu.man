@@ -1,0 +1,79 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin term::ansi::ctrl::unix n 0.1.1]
+[keywords ansi]
+[keywords columns]
+[keywords control]
+[keywords cooked]
+[keywords {input mode}]
+[keywords lines]
+[keywords raw]
+[keywords rows]
+[keywords terminal]
+[copyright {2006-2011 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Terminal control}]
+[titledesc {Control operations and queries}]
+[category  {Terminal control}]
+[require Tcl 8.4]
+[require term::ansi::ctrl::unix [opt 0.1.1]]
+[description]
+
+[emph {WARNING}]: This package is unix-specific and depends on the
+availability of two unix system commands for terminal control,
+i.e. [syscmd stty] and [syscmd tput], both of which have to be found
+in the [var {$PATH}]. If any of these two commands is missing the
+loading of the package will fail.
+
+[para]
+
+The package provides commands to switch the standard input of the
+current process between [term raw] and [term cooked] input modes, and
+to query the size of terminals, i.e. the available number of columns
+and lines.
+
+[section API]
+[subsection Introspection]
+
+[list_begin definitions]
+[call [cmd ::term::ansi::ctrl::unix::import] [opt [arg ns]] [opt [arg arg]...]]
+
+This command imports some or all attribute commands into the namespace
+[arg ns]. This is by default the namespace [emph ctrl]. Note that this
+is relative namespace name, placing the imported command into a child
+of the current namespace. By default all commands are imported, this
+can howver be restricted by listing the names of the wanted commands
+after the namespace argument.
+
+[list_end]
+
+[subsection Operations]
+[list_begin definitions]
+
+[call [cmd ::term::ansi::ctrl::unix::raw]]
+
+This command switches the standard input of the current process to
+[term raw] input mode. This means that from then on all characters
+typed by the user are immediately reported to the application instead
+of waiting in the OS buffer until the Enter/Return key is received.
+
+[call [cmd ::term::ansi::ctrl::unix::cooked]]
+
+This command switches the standard input of the current process to
+[term cooked] input mode. This means that from then on all characters
+typed by the user are kept in OS buffers for editing until the
+Enter/Return key is received.
+
+[call [cmd ::term::ansi::ctrl::unix::columns]]
+
+This command queries the terminal connected to the standard input for
+the number of columns available for display.
+
+[call [cmd ::term::ansi::ctrl::unix::rows]]
+
+This command queries the terminal connected to the standard input for
+the number of rows (aka lines) available for display.
+
+[list_end]
+
+[vset CATEGORY term]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

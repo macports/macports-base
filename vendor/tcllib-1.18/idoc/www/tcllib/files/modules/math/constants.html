@@ -1,0 +1,253 @@
+
+<html><head>
+<title>math::constants - Tcl Math Library</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'constants.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2004 Arjen Markus &lt;arjenmarkus@users.sourceforge.net&gt;
+   -->
+<! -- math::constants.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::constants(n) 1.0.2 tcllib &quot;Tcl Math Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::constants - Mathematical and numerical constants</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PROCEDURES</a></li>
+<li class="doctools_section"><a href="#section3">Constants</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl <span class="opt">?8.3?</span></b></li>
+<li>package require <b class="pkgname">math::constants <span class="opt">?1.0.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::constants::constants</b> <i class="arg">args</i></a></li>
+<li><a href="#2"><b class="cmd">::math::constants::print-constants</b> <i class="arg">args</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package defines some common mathematical and numerical constants.
+By using the package you get consistent values for numbers like pi and
+ln(10).</p>
+<p>It defines two commands:</p>
+<ul class="doctools_itemized">
+<li><p>One for importing the constants</p></li>
+<li><p>One for reporting which constants are defined and what values they
+actually have.</p></li>
+</ul>
+<p>The motivation for this package is that quite often, with
+(mathematical) computations, you need a good approximation to, say,
+the ratio of degrees to radians. You can, of course, define this
+like:</p>
+<pre class="doctools_example">
+    variable radtodeg [expr {180.0/(4.0*atan(1.0))}]
+</pre>
+<p>and use the variable radtodeg whenever you need the conversion.</p>
+<p>This has two drawbacks:</p>
+<ul class="doctools_itemized">
+<li><p>You need to remember the proper formula or value and that is
+error-prone.</p></li>
+<li><p>Especially with the use of mathematical functions like <em>atan</em>
+you assume that they have been accurately implemented. This is seldom or
+never the case and for each platform you can get subtle differences.</p></li>
+</ul>
+<p>Here is the way you can do it with the <em>math::constants</em> package:</p>
+<pre class="doctools_example">
+    package require math::constants
+    ::math::constants::constants radtodeg degtorad
+</pre>
+<p>which creates two variables, radtodeg and (its reciprocal) degtorad
+in the calling namespace.</p>
+<p>Constants that have been defined (their values are mostly taken
+from mathematical tables with more precision than usually can be
+handled) include:</p>
+<ul class="doctools_itemized">
+<li><p>basic constants like pi, e, gamma (Euler's constant)</p></li>
+<li><p>derived values like ln(10) and sqrt(2)</p></li>
+<li><p>purely numerical values such as 1/3 that are included for convenience
+and for the fact that certain seemingly trivial computations like:</p>
+<pre class="doctools_example">
+    set value [expr {3.0*$onethird}]
+</pre>
+<p>give <em>exactly</em> the value you expect (if IEEE arithmetic is
+available).</p></li>
+</ul>
+<p>The full set of named constants is listed in section <span class="sectref"><a href="#section3">Constants</a></span>.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PROCEDURES</a></h2>
+<p>The package defines the following public procedures:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::constants::constants</b> <i class="arg">args</i></a></dt>
+<dd><p>Import the constants whose names are given as arguments</p></dd>
+<dt><a name="2"><b class="cmd">::math::constants::print-constants</b> <i class="arg">args</i></a></dt>
+<dd><p>Print the constants whose names are given as arguments on the screen
+(name, value and description) or, if no arguments are given, print all
+defined constants. This is mainly a convenience procedure.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Constants</a></h2>
+<dl class="doctools_definitions">
+<dt><b class="const">pi</b></dt>
+<dd><p>Ratio of circle circumference to diameter</p></dd>
+<dt><b class="const">e</b></dt>
+<dd><p>Base for natural logarithm</p></dd>
+<dt><b class="const">ln10</b></dt>
+<dd><p>Natural logarithm of 10</p></dd>
+<dt><b class="const">phi</b></dt>
+<dd><p>Golden ratio</p></dd>
+<dt><b class="const">gamma</b></dt>
+<dd><p>Euler's constant</p></dd>
+<dt><b class="const">sqrt2</b></dt>
+<dd><p>Square root of 2</p></dd>
+<dt><b class="const">thirdrt2</b></dt>
+<dd><p>One-third power of 2</p></dd>
+<dt><b class="const">sqrt3</b></dt>
+<dd><p>Square root of 3</p></dd>
+<dt><b class="const">radtodeg</b></dt>
+<dd><p>Conversion from radians to degrees</p></dd>
+<dt><b class="const">degtorad</b></dt>
+<dd><p>Conversion from degrees to radians</p></dd>
+<dt><b class="const">onethird</b></dt>
+<dd><p>One third (0.3333....)</p></dd>
+<dt><b class="const">twothirds</b></dt>
+<dd><p>Two thirds (0.6666....)</p></dd>
+<dt><b class="const">onesixth</b></dt>
+<dd><p>One sixth (0.1666....)</p></dd>
+<dt><b class="const">huge</b></dt>
+<dd><p>(Approximately) largest number</p></dd>
+<dt><b class="const">tiny</b></dt>
+<dd><p>(Approximately) smallest number not equal zero</p></dd>
+<dt><b class="const">eps</b></dt>
+<dd><p>Smallest number such that 1+eps != 1</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>math :: constants</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key609">constants</a>, <a href="../../../../index.html#key807">degrees</a>, <a href="../../../../index.html#key806">e</a>, <a href="../../../../index.html#key71">math</a>, <a href="../../../../index.html#key805">pi</a>, <a href="../../../../index.html#key610">radians</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2004 Arjen Markus &lt;arjenmarkus@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

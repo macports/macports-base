@@ -1,0 +1,55 @@
+# -*- tcl -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+#
+# Grammar Start Expression
+#
+
+<<def>> <<ns>><<main>> {} {
+    <<self>> sym_TEST
+    return
+}
+
+#
+# value Symbol 'TEST'
+#
+
+<<def>> <<ns>>sym_TEST {} {
+    # x
+    #     &
+    #         'a'
+    #     (IDENTIFIER)
+
+    <<runtime>> si:void_symbol_start TEST
+    <<self>> sequence_6
+    <<runtime>> si:void_leaf_symbol_end TEST
+    return
+}
+
+<<def>> <<ns>>sequence_6 {} {
+    # x
+    #     &
+    #         'a'
+    #     (IDENTIFIER)
+
+    <<runtime>> si:void_state_push
+    <<self>> ahead_3
+    <<runtime>> si:voidvoid_part
+    <<runtime>> i_status_fail ; # Undefined symbol 'IDENTIFIER'
+    <<runtime>> si:void_state_merge
+    return
+}
+
+<<def>> <<ns>>ahead_3 {} {
+    # &
+    #     'a'
+
+    <<runtime>> i_loc_push
+    <<runtime>> si:next_char a
+    <<runtime>> i_loc_pop_rewind
+    return
+}
+
+#
+#

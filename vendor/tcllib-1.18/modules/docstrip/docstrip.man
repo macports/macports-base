@@ -1,0 +1,435 @@
+[manpage_begin docstrip n 1.2]
+[see_also docstrip_util]
+[keywords .dtx]
+[keywords docstrip]
+[keywords documentation]
+[keywords LaTeX]
+[keywords {literate programming}]
+[keywords source]
+[copyright "2003\u20132010 Lars Hellstr\u00F6m\
+  <Lars dot Hellstrom at residenset dot net>"]
+[moddesc {Literate programming tool}]
+[titledesc {Docstrip style source code extraction}]
+[category  {Documentation tools}]
+[require Tcl 8.4]
+[require docstrip [opt 1.2]]
+[vset emdash \u2014]
+[description]
+
+[syscmd Docstrip] is a tool created to support a brand of Literate
+Programming. It is most common in the (La)TeX community, where it
+is being used for pretty much everything from the LaTeX core and up,
+but there is nothing about [syscmd docstrip] which prevents using it
+for other types of software.
+[para]
+
+In short, the basic principle of literate programming is that program
+source should primarily be written and structured to suit the
+developers (and advanced users who want to peek "under the hood"), not
+to suit the whims of a compiler or corresponding source code consumer.
+This means literate sources often need some kind of "translation" to an
+illiterate form that dumb software can understand.
+The [package docstrip] Tcl package handles this translation.
+[para]
+
+Even for those who do not whole-hartedly subscribe to the philosophy
+behind literate programming, [syscmd docstrip] can bring greater
+clarity to in particular:
+[list_begin itemized]
+  [item] programs employing non-obvious mathematics
+  [item] projects where separate pieces of code, perhaps in
+    different languages, need to be closely coordinated.
+[list_end]
+The first is by providing access to much more powerful typographical
+features for source code comments than are possible in plain text.
+The second is because all the separate pieces of code can be kept
+next to each other in the same source file.
+[para]
+
+The way it works is that the programmer edits directly only one or
+several "master" source code files, from which [syscmd docstrip]
+generates the more traditional "source" files compilers or the like
+would expect. The master sources typically contain a large amount of
+documentation of the code, sometimes even in places where the code
+consumers would not allow any comments. The etymology of "docstrip"
+is that this [emph doc]umentation was [emph strip]ped away (although
+"code extraction" might be a better description, as it has always
+been a matter of copying selected pieces of the master source rather
+than deleting text from it).
+The [package docstrip] Tcl package contains a reimplementation of
+the basic extraction functionality from the [syscmd docstrip]
+program, and thus makes it possible for a Tcl interpreter to read
+and interpret the master source files directly.
+[para]
+
+Readers who are not previously familiar with [syscmd docstrip] but
+want to know more about it may consult the following sources.
+[list_begin enumerated]
+[enum]
+  [emph {The tclldoc package and class}],
+  [uri {http://ctan.org/tex-archive/macros/latex/contrib/tclldoc/}].
+[enum]
+  [emph {The DocStrip utility}],
+  [uri {http://ctan.org/tex-archive/macros/latex/base/docstrip.dtx}].
+[enum]
+  [emph {The doc and shortvrb Packages}],
+  [uri {http://ctan.org/tex-archive/macros/latex/base/doc.dtx}].
+[enum]
+  Chapter 14 of
+  [emph {The LaTeX Companion}] (second edition),
+  Addison-Wesley, 2004; ISBN 0-201-36299-6.
+[list_end]
+
+[section {File format}]
+
+The basic unit [syscmd docstrip] operates on are the [emph lines] of
+a master source file. Extraction consists of selecting some of these
+lines to be copied from input text to output text. The basic
+distinction is that between [emph {code lines}] (which are copied and
+do not begin with a percent character) and [emph {comment lines}]
+(which begin with a percent character and are not copied).
+
+[example {
+   docstrip::extract [join {
+     {% comment}
+     {% more comment !"#$%&/(}
+     {some command}
+     { % blah $blah "Not a comment."}
+     {% abc; this is comment}
+     {# def; this is code}
+     {ghi}
+     {% jkl}
+   } \n] {}
+}]
+returns the same sequence of lines as
+[example {
+   join {
+     {some command}
+     { % blah $blah "Not a comment."}
+     {# def; this is code}
+     {ghi} ""
+   } \n
+}]
+
+It does not matter to [syscmd docstrip] what format is used for the
+documentation in the comment lines, but in order to do better than
+plain text comments, one typically uses some markup language. Most
+commonly LaTeX is used, as that is a very established standard and
+also provides the best support for mathematical formulae, but the
+[package docstrip::util] package also gives some support for
+[term doctools]-like markup.
+[para]
+
+Besides the basic code and comment lines, there are also
+[emph {guard lines}], which begin with the two characters '%<', and
+[emph {meta-comment lines}], which begin with the two characters
+'%%'. Within guard lines there is furthermore the distinction between
+[emph {verbatim guard lines}], which begin with '%<<', and ordinary
+guard lines, where the '%<' is not followed by another '<'. The last
+category is by far the most common.
+[para]
+
+Ordinary guard lines conditions extraction of the code line(s) they
+guard by the value of a boolean expression; the guarded block of
+code lines will only be included if the expression evaluates to true.
+The syntax of an ordinary guard line is one of
+[example {
+    '%' '<' STARSLASH EXPRESSION '>'
+    '%' '<' PLUSMINUS EXPRESSION '>' CODE
+}]
+where
+[example {
+    STARSLASH  ::=  '*' | '/'
+    PLUSMINUS  ::=  | '+' | '-'
+    EXPRESSION ::= SECONDARY | SECONDARY ',' EXPRESSION
+                 | SECONDARY '|' EXPRESSION
+    SECONDARY  ::= PRIMARY | PRIMARY '&' SECONDARY
+    PRIMARY    ::= TERMINAL | '!' PRIMARY | '(' EXPRESSION ')'
+    CODE       ::= { any character except end-of-line }
+}]
+Comma and vertical bar both denote 'or'. Ampersand denotes 'and'.
+Exclamation mark denotes 'not'. A TERMINAL can be any nonempty string
+of characters not containing '>', '&', '|', comma, '(', or ')',
+although the [syscmd docstrip] manual is a bit restrictive and only
+guarantees proper operation for strings of letters (although even
+the LaTeX core sources make heavy use also of digits in TERMINALs).
+The second argument of [cmd docstrip::extract] is the list of those
+TERMINALs that should count as having the value 'true'; all other
+TERMINALs count as being 'false' when guard expressions are evaluated.
+[para]
+
+In the case of a '%<*[emph EXPRESSION]>' guard, the lines guarded are
+all lines up to the next '%</[emph EXPRESSION]>' guard with the same
+[emph EXPRESSION] (compared as strings). The blocks of code delimited
+by such '*' and '/' guard lines must be properly nested.
+[example {
+   set text [join {
+      {begin}
+      {%<*foo>}
+      {1}
+      {%<*bar>}
+      {2}
+      {%</bar>}
+      {%<*!bar>}
+      {3}
+      {%</!bar>}
+      {4}
+      {%</foo>}
+      {5}
+      {%<*bar>}
+      {6}
+      {%</bar>}
+      {end}
+   } \n]
+   set res [docstrip::extract $text foo]
+   append res [docstrip::extract $text {foo bar}]
+   append res [docstrip::extract $text bar]
+}]
+sets $res to the result of
+[example {
+   join {
+      {begin}
+      {1}
+      {3}
+      {4}
+      {5}
+      {end}
+      {begin}
+      {1}
+      {2}
+      {4}
+      {5}
+      {6}
+      {end}
+      {begin}
+      {5}
+      {6}
+      {end} ""
+   } \n
+}]
+
+In guard lines without a '*', '/', '+', or '-' modifier after the
+'%<', the guard applies only to the CODE following the '>' on that
+single line. A '+' modifier is equivalent to no modifier. A '-'
+modifier is like the case with no modifier, but the expression is
+implicitly negated, i.e., the CODE of a '%<-' guard line is only
+included if the expression evaluates to false.
+[para]
+
+Metacomment lines are "comment lines which should not be stripped
+away", but be extracted like code lines; these are sometimes used for
+copyright notices and similar material. The '%%' prefix is however
+not kept, but substituted by the current [option -metaprefix], which
+is customarily set to some "comment until end of line" character (or
+character sequence) of the language of the code being extracted.
+[example {
+   set text [join {
+      {begin}
+      {%<foo> foo}
+      {%<+foo>plusfoo}
+      {%<-foo>minusfoo}
+      {middle}
+      {%% some metacomment}
+      {%<*foo>}
+      {%%another metacomment}
+      {%</foo>}
+      {end}
+   } \n]
+   set res [docstrip::extract $text foo -metaprefix {# }]
+   append res [docstrip::extract $text bar -metaprefix {#}]
+}]
+sets $res to the result of
+[example {
+   join {
+      {begin}
+      { foo}
+      {plusfoo}
+      {middle}
+      {#  some metacomment}
+      {# another metacomment}
+      {end}
+      {begin}
+      {minusfoo}
+      {middle}
+      {# some metacomment}
+      {end} ""
+   } \n
+}]
+
+Verbatim guards can be used to force code line
+interpretation of a block of lines even if some of them happen to look
+like any other type of lines to docstrip. A verbatim guard has the
+form '%<<[emph END-TAG]' and the verbatim block is terminated by the
+first line that is exactly '%[emph END-TAG]'.
+[example {
+   set text [join {
+      {begin}
+      {%<*myblock>}
+      {some stupid()}
+      {   #computer<program>}
+      {%<<QQQ-98765}
+      {% These three lines are copied verbatim (including percents}
+      {%% even if -metaprefix is something different than %%).}
+      {%</myblock>}
+      {%QQQ-98765}
+      {   using*strange@programming<language>}
+      {%</myblock>}
+      {end}
+   } \n]
+   set res [docstrip::extract $text myblock -metaprefix {# }]
+   append res [docstrip::extract $text {}]
+}]
+sets $res to the result of
+[example {
+   join {
+      {begin}
+      {some stupid()}
+      {   #computer<program>}
+      {% These three lines are copied verbatim (including percents}
+      {%% even if -metaprefix is something different than %%).}
+      {%</myblock>}
+      {   using*strange@programming<language>}
+      {end}
+      {begin}
+      {end} ""
+   } \n
+}]
+The processing of verbatim guards takes place also inside blocks of
+lines which due to some outer block guard will not be copied.
+[para]
+
+The final piece of [syscmd docstrip] syntax is that extraction
+stops at a line that is exactly "\endinput"; this is often used to
+avoid copying random whitespace at the end of a file. In the unlikely
+case that one wants such a code line, one can protect it with a
+verbatim guard.
+
+[section Commands]
+
+The package defines two commands.
+
+[list_begin definitions]
+[call [cmd docstrip::extract] [arg text] [arg terminals] [
+   opt "[arg option] [arg value] ..."
+]]
+  The [cmd extract] command docstrips the [arg text] and returns the
+  extracted lines of code, as a string with each line terminated with
+  a newline. The [arg terminals] is the list of those guard
+  expression terminals which should evaluate to true.
+  The available options are:
+  [list_begin options]
+  [opt_def -annotate [arg lines]]
+    Requests the specified number of lines of annotation to follow
+    each extracted line in the result. Defaults to 0. Annotation lines
+    are mostly useful when the extracted lines are to undergo some
+    further transformation. A first annotation line is a list of three
+    elements: line type, prefix removed in extraction, and prefix
+    inserted in extraction. The line type is one of: 'V' (verbatim),
+    'M' (metacomment), '+' (+ or no modifier guard line), '-' (-
+    modifier guard line), '.' (normal line). A second annotation line
+    is the source line number. A third annotation line is the current
+    stack of block guards. Requesting more than three lines of
+    annotation is currently not supported.
+  [opt_def -metaprefix [arg string]]
+    The string by which the '%%' prefix of a metacomment line will
+    be replaced. Defaults to '%%'. For Tcl code this would typically
+    be '#'.
+  [opt_def -onerror [arg keyword]]
+    Controls what will be done when a format error in the [arg text]
+    being processed is detected. The settings are:
+    [list_begin definitions]
+    [def [const ignore]]
+      Just ignore the error; continue as if nothing happened.
+    [def [const puts]]
+      Write an error message to [const stderr], then continue
+      processing.
+    [def [const throw]]
+      Throw an error. The [option -errorcode] is set to a list whose
+      first element is [const DOCSTRIP], second element is the
+      type of error, and third element is the line number where
+      the error is detected. This is the default.
+    [list_end]
+  [opt_def -trimlines [arg boolean]]
+    Controls whether [emph spaces] at the end of a line should be
+    trimmed away before the line is processed. Defaults to true.
+  [list_end]
+
+  It should be remarked that the [arg terminals] are often called
+  "options" in the context of the [syscmd docstrip] program, since
+  these specify which optional code fragments should be included.
+
+[call [cmd docstrip::sourcefrom] [arg filename] [arg terminals] [
+   opt "[arg option] [arg value] ..."
+]]
+  The [cmd sourcefrom] command is a docstripping emulation of
+  [cmd source]. It opens the file [arg filename], reads it, closes it,
+  docstrips the contents as specified by the [arg terminals], and
+  evaluates the result in the local context of the caller, during
+  which time the [cmd info] [method script] value will be the
+  [arg filename]. The options are passed on to [cmd fconfigure] to
+  configure the file before its contents are read. The
+  [option -metaprefix] is set to '#', all other [cmd extract]
+  options have their default values.
+[list_end]
+
+
+[section {Document structure}]
+
+The file format (as described above) determines whether a master
+source code file can be processed correctly by [syscmd docstrip],
+but the usefulness of the format is to no little part also dependent
+on that the code and comment lines together constitute a well-formed
+document.
+[para]
+
+For a document format that does not require any non-Tcl software, see
+the [cmd ddt2man] command in the [package docstrip::util] package. It
+is suggested that files employing that document format are given the
+suffix [file .ddt], to distinguish them from the more traditional
+LaTeX-based [file .dtx] files.
+[para]
+
+Master source files with [file .dtx] extension are usually set up so
+that they can be typeset directly by [syscmd latex] without any
+support from other files. This is achieved by beginning the file
+with the lines
+[example_begin]
+   % \iffalse
+   %<*driver>
+   \documentclass{tclldoc}
+   \begin{document}
+   \DocInput{[emph filename.dtx]}
+   \end{document}
+   %</driver>
+   % \fi
+[example_end]
+or some variation thereof. The trick is that the file gets read twice.
+With normal LaTeX reading rules, the first two lines are comments and
+therefore ignored. The third line is the document preamble, the fourth
+line begins the document body, and the sixth line ends the document,
+so LaTeX stops there [vset emdash] non-comments below that point in
+the file are never subjected to the normal LaTeX reading rules. Before
+that, however, the \DocInput command on the fifth line is processed,
+and that does two things: it changes the interpretation of '%' from
+"comment" to "ignored", and it inputs the file specified in the
+argument (which is normally the name of the file the command is in).
+It is this second time that the file is being read that the comments
+and code in it are typeset.
+[para]
+
+The function of the \iffalse ... \fi is to skip lines two to seven
+on this second time through; this is similar to the "if 0 { ... }"
+idiom for block comments in Tcl code, and it is needed here because
+(amongst other things) the \documentclass command may only be
+executed once. The function of the <driver> guards is to prevent this
+short piece of LaTeX code from being extracted by [syscmd docstrip].
+The total effect is that the file can function both as a LaTeX
+document and as a [syscmd docstrip] master source code file.
+[para]
+
+It is not necessary to use the tclldoc document class, but that does
+provide a number of features that are convenient for [file .dtx]
+files containing Tcl code. More information on this matter can be
+found in the references above.
+
+[manpage_end]

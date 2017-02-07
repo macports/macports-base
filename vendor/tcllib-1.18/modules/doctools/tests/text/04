@@ -1,0 +1,28 @@
+
+TEST - 
+Generated from file '.FILE.' by tcllib/doctools with format 'text'
+TEST(z) 3.14.15.926 .MODULE. ""
+
+NAME
+====
+
+TEST -
+
+DESCRIPTION
+===========
+
+BEGINNE HIER
+
+
+| Example Block  More Lines
+
+
+| Inlined Example \
+| Next Line
+
+FERTIG
+
+COPYRIGHT
+=========
+
+Copyright (c) .COPYRIGHT.

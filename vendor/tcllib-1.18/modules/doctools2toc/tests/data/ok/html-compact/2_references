@@ -1,0 +1,30 @@
+<html>
+<head>
+<title>Table of Contents</title>
+<style></style>
+</head>
+
+<body>
+<div class="doctools">
+<div class="toc-header">
+<h1 class="toc-title">Table of Contents</h1>
+<!-- Customization Point: header -->
+<hr class="toc-navsep">
+</div>
+<!-- - Start Table Of Contents ---------------------------------- -->
+<dl class="toc-contents">
+<dt class="toc-ref"><a href="structure.man">doctools::toc::structure</a></dt>
+<dd class="toc-ref">doctoc serialization utilities</dd>
+<dt class="toc-ref"><a href="parse.man">doctools::toc::parse</a></dt>
+<dd class="toc-ref">Parsing text in doctoc format</dd>
+<dt class="toc-ref"><a href="introduction.man">doctools::toc::introduction</a></dt>
+<dd class="toc-ref">DocTools - Tables of Contents</dd>
+</dl>
+<!-- - Stop  Table Of Contents ---------------------------------- -->
+<div class="toc-footer">
+<hr class="toc-navsep">
+<!-- Customization Point: footer -->
+</div>
+</div>
+</body>
+</html>

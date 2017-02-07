@@ -1,0 +1,297 @@
+# -*- tcl -*-
+#
+# fmt.nroff
+#
+# (c) 2002 Andreas Kupries <andreas_kupries@sourceforge.net>
+#
+# [expand] definitions to convert a tcl based manpage definition into
+# Wiki markup.
+#
+################################################################
+
+dt_source _common.tcl   ; # Shared code
+
+proc fmt_postprocess {wiki} {
+    # Strip empty lines out of the generated wiki source
+    # and trim leading blanks, except in code samples.
+    #
+    set lines [list]
+    set codeblock 0
+    foreach line [split $wiki \n] {
+	if {![string compare $line "======"]} {
+	    set codeblock [expr {!$codeblock}]
+	    lappend lines $line
+	    continue
+	}
+	if {$codeblock} {
+	    lappend lines $line
+	} else {
+	    if {[string match " |*" $line]} {
+		# Verbatim / example
+		lappend lines [string trimright $line]
+	    } elseif {[string match ". *" $line]} {
+		# Verbatim / regular
+		lappend lines [string range [string trimright $line] 1 end]
+	    } elseif {[regexp {^   \* .*} $line]} {
+		# Itemized lists.
+		lappend lines [string map {[ [[ ] ]]} [string trimright $line]]
+	    } elseif {[string match "   1. *" $line]} {
+		# Enumerated lists
+		lappend lines [string map {[ [[ ] ]]} [string trimright $line]]
+	    } elseif {[regexp "^   .*: " $line]} {
+		# Definition list
+		lappend lines [string map {[ [[ ] ]]} $line]
+	    } elseif {[string match " *" $line]} {
+		# Unwanted indentation
+		lappend lines [string map {[ [[ ] ]]} [string trim $line]]
+	    } else {
+		# Everything else
+		lappend lines [string map {[ [[ ] ]]} [string trimright $line]]
+	    }
+	}
+    }
+    set wiki [join $lines \n]\n
+
+    regsub {^[ ]+} $wiki {} wiki
+    return $wiki
+}
+
+
+################################################################
+## Backend for *roff markup
+
+c_pass 1 fmt_manpage_begin {title section version} NOP
+c_pass 2 fmt_manpage_begin {title section version} {
+    set module      [dt_module]
+    set shortdesc   [c_get_module]
+    set description [c_get_title]
+
+    set     hdr ""
+    append  hdr "'''$title $version'''"
+    if {[string length $module]} { 
+	append  hdr " '''$module'''"
+    }
+    if {[string length $shortdesc]} {
+	append  hdr " ''$shortdesc''"
+    }
+    append  hdr \n
+    append  hdr \n
+    append  hdr "$description"
+    append  hdr \n
+    return $hdr
+}
+
+c_pass 1 fmt_moddesc   {desc} {c_set_module $desc}
+c_pass 2 fmt_moddesc   {desc} NOP
+
+c_pass 1 fmt_titledesc {desc} {c_set_title $desc}
+c_pass 2 fmt_titledesc {desc} NOP
+
+c_pass 1 fmt_copyright {desc} {c_set_copyright $desc}
+c_pass 2 fmt_copyright {desc} NOP
+
+c_pass 1 fmt_manpage_end {} NOP
+c_pass 2 fmt_manpage_end {} {
+    # Complete the generation with a copyright
+    # section, if such information is available.
+
+    set wiki ""
+
+    set sa [c_xref_seealso]
+    set kw [c_xref_keywords]
+    set ca [c_xref_category]
+    set ct [c_get_copyright]
+
+    if {[llength $sa] > 0} {
+	append wiki [fmt_section {SEE ALSO}] \n
+	append wiki [join [lsort $sa] ", "] \n
+    }
+    if {[llength $kw] > 0} {
+	append wiki [fmt_section KEYWORDS] \n
+	append wiki [join [lsort $kw] ", "] \n
+    }
+    if {$ca ne ""} {
+	append wiki [fmt_section CATEGORY] \n
+	append wiki $ca \n
+    }
+    if {$ct != {}} {
+	append wiki [fmt_section COPYRIGHT]
+	append wiki ". " [join [split $ct \n] "\n. "] \n
+    }
+    return $wiki
+}
+
+proc fmt_section    {name {id {}}} {return "\n\n**$name**\n\n"}
+proc fmt_subsection {name {id {}}} {return "\n\n***$name***\n\n"}
+
+proc fmt_para    {}     {return \n}
+
+c_pass 2 fmt_require {pkg {version {}}} NOP
+c_pass 1 fmt_require {pkg {version {}}} {
+    if {$version != {}} {set version " $version"}
+    # @mdgen NODEP: '''
+    c_hold synopsis "package require '''$pkg$version'''\n"
+}
+
+c_pass 2 fmt_usage {cmd args} NOP
+c_pass 1 fmt_usage {cmd args} {c_hold synopsis "   * $cmd [join $args " "]\n"}
+
+c_pass 2 fmt_call {cmd args} {return "[fmt_lst_item "$cmd [join $args " "]"]"}
+c_pass 1 fmt_call {cmd args} {c_hold synopsis "   * $cmd [join $args " "]\n"}
+
+c_pass 1 fmt_description {id} NOP
+c_pass 2 fmt_description {id} {
+    set result ""
+    if {[set syn [c_held synopsis]] != {}} {
+	append result [fmt_section SYNOPSIS] \n
+	append result $syn \n\n
+    }
+    append result [fmt_section DESCRIPTION]
+    return $result
+}
+
+################################################################
+global arglist
+set ::arglist 0
+proc fmt_list_begin {what {hint {}}} {
+    switch -exact -- $what {
+	"arguments" {
+	    set ::arglist 1
+	    return "\n\n+++"
+	}
+	default {
+	    return {}
+	}
+    }
+}
+proc fmt_list_end {} {
+    if {$::arglist} {
+	set ::arglist 0
+	return "\n+++\n\n"
+    }
+    return {}
+}
+
+proc fmt_bullet   {}        {return "\n\n   * "}
+proc fmt_enum     {}        {return "\n\n   1. "}
+proc fmt_lst_item {text}    {return "\n\n   $text:   "}
+proc fmt_cmd_def  {command} {return "\n\n   [fmt_cmd $command]:  "}
+
+proc fmt_arg_def {type name {mode {}}} {
+    set text "\n"
+    append text [fmt_arg $name]
+    append text " $type"
+    if {$mode != {}} {append text " ($mode)"}
+    return "${text}   "
+}
+proc fmt_opt_def {name {arg {}}} {
+#    if {[string match -* $name]} {set    name \\-$name}
+    set name [fmt_option $name]
+    if {$arg != {}}              {append name " $arg"}
+    return "\n\n   ${name}:   "
+}
+proc fmt_tkoption_def {name dbname dbclass} {
+    set    text "\n\n"
+    append text "   Command-Line Switch:\t'''$name'''\n"
+    append text "   Database Name:\t'''$dbname'''\n"
+    append text "   Database Class:\t'''$dbclass'''\n"
+    append text "   * "
+    return $text
+}
+
+################################################################
+
+global textmode
+set    textmode ""
+
+proc fmt_example_begin {} {
+    global  mode_save textmode
+    lappend mode_save $textmode
+    set     textmode example
+    return "\n======\n"
+}
+proc fmt_example_end   {} {
+    global  mode_save textmode
+    set textmode  [lindex $mode_save end]
+    set mode_save [lrange $mode_save 0 end-1]
+    return "\n======\n"
+}
+proc fmt_example {code} {
+    return "$code"
+}
+
+proc emph    {text} {return ''$text''}
+proc strong  {text} {return '''$text'''}
+
+proc fmt_nl      {}     {return ""}
+proc fmt_arg     {text} {return ''$text''}
+proc fmt_cmd     {text} {return '''$text'''}
+proc fmt_emph    {text} {return ''$text''}
+proc fmt_opt     {text} {return ?$text?}
+proc fmt_comment {text} {return {}}
+proc fmt_sectref {text {label {}}} {
+    if {![string length $label]} {set label $text}
+    strong $text
+}
+proc fmt_syscmd  {text} {strong $text}
+proc fmt_method  {text} {strong $text}
+proc fmt_option  {text} {strong $text}
+proc fmt_widget  {text} {strong $text}
+proc fmt_fun     {text} {strong $text}
+proc fmt_type    {text} {strong $text}
+proc fmt_package {text} {strong $text}
+proc fmt_class   {text} {strong $text}
+proc fmt_var     {text} {strong $text}
+proc fmt_file    {text} {return "\"[emph $text]\""}
+proc fmt_namespace     {text} {strong $text}
+proc fmt_uri     {text {label {}}} {
+    if {$label == {}} {
+	# No label is an inlined emphasized link.
+	return $text
+    } else {
+	# Label in the text, link for it is hidden in an annotation.
+	return "$text%|%$label%|%"
+    }
+}
+proc fmt_image {text {label {}}} {
+    # text = symbolic name of the image.
+
+    # Alt: png, jpg, gif, which are then used during HTML
+    # conversion. But unclear what the link is, to use for this. So,
+    # keeping as text for the moment.
+
+    set img [dt_imgdata $text {txt}]
+    if {$img eq {}} {
+	if {$label eq {}} {
+	    return "IMAGE: $text"
+	} else {
+	    return "IMAGE: $text $label"
+	}
+    }
+
+    return \n======\n$img\n======\n
+}
+proc fmt_term    {text} {emph $text}
+proc fmt_const   {text} {strong $text}
+proc fmt_mdash {} { return " --- " }
+proc fmt_ndash {} { return " -- " }
+
+################################################################
+# wiki specific commands
+
+proc fmt_plain_text {text} {
+    # For the wiki we have to force certain text into a single line.
+    # We also have to make sure that the text is on the same line as
+    # the initiator (i.e. list bullet).
+
+    global textmode
+
+    if {"$textmode" == "example"} {
+	return "$text"
+    }
+
+    regsub -all "\[ \t\n\]+" $text { } text
+    return $text
+}
+
+################################################################

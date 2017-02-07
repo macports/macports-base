@@ -1,0 +1,44 @@
+2013-02-22  Andreas Kupries  <andreask@activestate.com>
+
+	* gpx.man: Fixed outdated doctools markup.
+
+2013-02-08  Andreas Kupries  <andreask@activestate.com>
+
+	* gpx.man: Fixed categorization.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-07-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* gpx.test: Extended testsuite, provided by Keith.
+
+2010-07-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* gpx.man: Added documentation, written by Keith.
+
+2010-07-09  Andreas Kupries  <andreask@activestate.com>
+
+	* gpx.tcl (::gpx::GetTrackPoints, ::gpx::GetRoutePoints): Fixed
+	  bugs reported by Keith through mail, using his code.
+
+2010-07-08  Andreas Kupries  <andreask@activestate.com>
+
+	* gpx.tcl: New module and package for the parsing of GPS eXChange
+	* pkgIndex.tcl: files, by Keith Vetter.
+	* gpx.test: Beginnings of a testsuite.

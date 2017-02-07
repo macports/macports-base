@@ -1,0 +1,75 @@
+# -*- tcl -*-
+# Graph tests - revers assignment (-->)
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: rassign.test,v 1.2 2007/04/12 03:01:55 andreas_kupries Exp $
+
+# Syntax: graph --> GRAPH
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-revers-assign-1.0 {revers assign, wrong#args, missing} {
+    SETUP
+    catch {mygraph -->} result
+    mygraph destroy
+    set result
+} [tmWrong --> dest 0]
+
+test graph-${impl}-${setimpl}-revers-assign-1.1 {revers assign, wrong#args, too many} {
+    SETUP
+    catch {mygraph --> foo bar} result
+    mygraph destroy
+    set result
+} [tmTooMany --> dest]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-revers-assign-2.0 {revers assign, bad src command} {
+    SETUP
+    catch {mygraph --> foo} result
+    mygraph destroy
+    set result
+} {invalid command name "foo"}
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-revers-assign-3.0 {revers assign, direct} {
+    set serial {%3 {} {{f 6 {}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+
+    SETUP
+    SETUP bgraph
+
+    mygraph deserialize $serial
+
+    set result [validate_serial bgraph $serial]
+    mygraph --> bgraph
+    lappend result [validate_serial bgraph $serial]
+
+    mygraph destroy
+    bgraph  destroy
+    set result
+} {attr/graph/data-mismatch ok}
+
+test graph-${impl}-${setimpl}-revers-assign-3.1 {revers assign, deserial/serial} {
+    set serial {%3 {} {{f 6 {}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+
+    SETUP
+    SETUP bgraph
+    proc bwrap {args} {uplevel #0 [linsert $args 0 bgraph]}
+
+    mygraph deserialize $serial
+
+    set result [validate_serial bgraph $serial]
+    mygraph --> bwrap
+    lappend result [validate_serial bgraph $serial]
+
+    mygraph destroy
+    bgraph  destroy
+    rename bwrap {}
+    set result
+} {attr/graph/data-mismatch ok}
+
+# -------------------------------------------------------------------------

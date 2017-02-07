@@ -1,0 +1,116 @@
+# -*- tcl -*-
+# Test procedures for the disjoint set structure implementation
+# Author: Alejandro Eduardo Cruz Paz
+# 5 August 2008
+
+package require tcltest
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+support {
+    useAccel [useTcllibC] struct/sets.tcl struct::set
+    TestAccelInit                         struct::set
+}
+testing {
+    useLocal disjointset.tcl struct::disjointset
+}
+
+############################################################
+# Helper functions
+# - Create a disjoint set of many partitions.
+# - Sort a set of partitions into a canonical order for comparison.
+
+proc testset {} {
+    ::struct::disjointset DS
+    DS add-partition {1 2 3 4}
+    DS add-partition {5 6}
+    DS add-partition 0
+    DS add-partition {9 8}
+    DS add-partition {10 7}
+    return
+}
+
+proc canonset {partitions} {
+    set res {}
+    foreach x $partitions {
+	lappend res [lsort -dict $x]
+    }
+    return [lsort -dict $res]
+}
+
+proc djstate {ds} {
+    list [canonset [$ds partitions]] [$ds num-partitions]
+}
+
+############################################################
+## Iterate over all loaded implementations, activate
+## them in turn, and run the tests for the active
+## implementation.
+
+TestAccelDo struct::set impl {
+    # The global variable 'impl' is part of the public
+    # API the testsuite (in set.testsuite) can expect
+    # from the environment.
+
+    switch -exact -- $impl {
+	critcl {
+	    if {[package vsatisfies [package present Tcl] 8.5]} {
+		proc tmWrong {m loarg n} {
+		    return [tcltest::wrongNumArgs "struct::disjointset $m" $loarg $n]
+		}
+
+		proc tmTooMany {m loarg} {
+		    return [tcltest::tooManyArgs "struct::disjointset $m" $loarg]
+		}
+
+		proc Nothing {} {
+		    return [tcltest::wrongNumArgs {struct::disjointset} {cmd ?arg ...?} 0]
+		}
+	    } else {
+		proc tmWrong {m loarg n} {
+		    return [tcltest::wrongNumArgs "::struct::disjointset $m" $loarg $n]
+		}
+
+		proc tmTooMany {m loarg} {
+		    return [tcltest::tooManyArgs "::struct::disjointset $m" $loarg]
+		}
+
+		proc Nothing {} {
+		    return [tcltest::wrongNumArgs {::struct::disjointset} {cmd ?arg ...?} 0]
+		}
+	    }
+	}
+	tcl {
+	    if {[package vsatisfies [package present Tcl] 8.5]} {
+		# In 8.5 head the alias itself is reported, not what it
+		# resolved to.
+		proc Nothing {} {
+		    return [tcltest::wrongNumArgs struct::disjointset {cmd args} 0]
+		}
+	    } else {
+		proc Nothing {} {
+		    return [tcltest::wrongNumArgs {::struct::disjointset} {cmd args} 0]
+		}
+	    }
+
+	    proc tmWrong {m loarg n} {
+		return [tcltest::wrongNumArgs "::struct::disjointset::S_$m" $loarg $n]
+	    }
+
+	    proc tmTooMany {m loarg} {
+		return [tcltest::tooManyArgs "::struct::disjointset::S_$m" $loarg]
+	    }
+	}
+    }
+
+    source [localPath disjointset.testsuite]
+}
+
+############################################################
+TestAccelExit struct::set
+
+testsuiteCleanup

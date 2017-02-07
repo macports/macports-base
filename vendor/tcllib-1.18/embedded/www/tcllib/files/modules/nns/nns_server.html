@@ -1,0 +1,244 @@
+<div class='fossil-doc' data-title='nameserv::server - Name service facility'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">nameserv::server(n) 0.3.2 tcllib &quot;Name service facility&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>nameserv::server - Name service facility, Server</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">OPTIONS</a></li>
+<li class="doctools_section"><a href="#section4">HISTORY</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">nameserv::server <span class="opt">?0.3.2?</span></b></li>
+<li>package require <b class="pkgname">comm</b></li>
+<li>package require <b class="pkgname">interp</b></li>
+<li>package require <b class="pkgname">logger</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::nameserv::server::start</b></a></li>
+<li><a href="#2"><b class="cmd">::nameserv::server::stop</b></a></li>
+<li><a href="#3"><b class="cmd">::nameserv::server::active?</b></a></li>
+<li><a href="#4"><b class="cmd">::nameserv::server::cget</b> <b class="option">-option</b></a></li>
+<li><a href="#5"><b class="cmd">::nameserv::server::configure</b></a></li>
+<li><a href="#6"><b class="cmd">::nameserv::server::configure</b> <b class="option">-option</b></a></li>
+<li><a href="#7"><b class="cmd">::nameserv::server::configure</b> <b class="option">-option</b> <i class="arg">value</i>...</a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Please read <i class="term"><a href="nns_intro.html">Name service facility, introduction</a></i> first.</p>
+<p>This package provides an implementation of the serviver side of the
+name service facility queried by the client provided by the package
+<b class="package"><a href="nns_client.html">nameserv</a></b>. All information required by the server will be
+held in memory. There is no persistent state.</p>
+<p>This service is built in top of and for the package <b class="package"><a href="../comm/comm.html">comm</a></b>.
+It has nothing to do with the Internet's Domain Name System. If the
+reader is looking for a package dealing with that please see Tcllib's
+packages <b class="package"><a href="../dns/tcllib_dns.html">dns</a></b> and <b class="package">resolv</b>.</p>
+<p>This server supports the <i class="term">Core</i> protocol feature, and since
+version 0.3 the <i class="term">Search/Continuous</i> feature as well.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<p>The package exports five commands, as specified below:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::nameserv::server::start</b></a></dt>
+<dd><p>This command starts the server and causes it to listen on the
+configured port. From now on clients are able to connect and make
+requests. The result of the command is the empty string.</p>
+<p>Note that any incoming requests will only be handled if the
+application the server is part of does enter an event loop after this
+command has been run.</p></dd>
+<dt><a name="2"><b class="cmd">::nameserv::server::stop</b></a></dt>
+<dd><p>Invoking this command stops the server and releases all information it
+had. Existing connections are shut down, and no new connections will
+be accepted any longer. The result of the command is the empty string.</p></dd>
+<dt><a name="3"><b class="cmd">::nameserv::server::active?</b></a></dt>
+<dd><p>This command returns a boolean value indicating the state of the
+server. The result will be <b class="const">true</b> if the server is active,
+i.e. has been started, and <b class="const">false</b> otherwise.</p></dd>
+<dt><a name="4"><b class="cmd">::nameserv::server::cget</b> <b class="option">-option</b></a></dt>
+<dd><p>This command returns the currently configured value for the specified
+<b class="option">-option</b>. The list of supported options and their meaning can
+be found in section <span class="sectref"><a href="#section3">OPTIONS</a></span>.</p></dd>
+<dt><a name="5"><b class="cmd">::nameserv::server::configure</b></a></dt>
+<dd><p>In this form the command returns a dictionary of all supported
+options, and their current values. The list of supported options and
+their meaning can be found in section <span class="sectref"><a href="#section3">OPTIONS</a></span>.</p></dd>
+<dt><a name="6"><b class="cmd">::nameserv::server::configure</b> <b class="option">-option</b></a></dt>
+<dd><p>In this form the command is an alias for
+&quot;<b class="cmd">::nameserv::server::cget</b> <b class="option">-option</b>]&quot;.
+The list of supported options and their meaning can be found in
+section <span class="sectref"><a href="#section3">OPTIONS</a></span>.</p></dd>
+<dt><a name="7"><b class="cmd">::nameserv::server::configure</b> <b class="option">-option</b> <i class="arg">value</i>...</a></dt>
+<dd><p>In this form the command is used to configure one or more of the
+supported options. At least one option has to be specified, and each
+option is followed by its new value.
+The list of supported options and their meaning can be found in
+section <span class="sectref"><a href="#section3">OPTIONS</a></span>.</p>
+<p>This form can be used only if the server is not active, i.e. has not
+been started yet, or has been stopped. While the server is active it
+cannot be reconfigured.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">OPTIONS</a></h2>
+<p>The options supported by the server are for the specification of the
+TCP port to listen on, and whether to accept non-local connections or
+not.
+They are:</p>
+<dl class="doctools_options">
+<dt><b class="option">-localonly</b> <i class="arg">bool</i></dt>
+<dd><p>This option specifies whether to accept only local connections
+(-localonly 1) or remote connections as well (-localonly 0). The
+default is to accept only local connections.</p></dd>
+<dt><b class="option">-port</b> <i class="arg">number</i></dt>
+<dd><p>This option specifies the port the name service will listen on after
+it has been started. It has to be a positive integer number (&gt; 0) not
+greater than 65536 (unsigned short). The initial default is the number
+returned by the command <b class="cmd">::nameserv::server::common::port</b>, as
+provided by the package <b class="package">::nameserv::server::common</b>.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">HISTORY</a></h2>
+<dl class="doctools_definitions">
+<dt>0.3</dt>
+<dd><p>Extended the server with the ability to perform asynchronous and
+continuous searches.</p></dd>
+<dt>0.2</dt>
+<dd><p>Changed name of -local switch to -localonly.</p></dd>
+<dt>0.1</dt>
+<dd><p>Initial implementation of the server.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>nameserv</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p>nameserv::client(n), <a href="nns_common.html">nameserv::common(n)</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key29">name service</a>, <a href="../../../../index.html#key65">server</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2007-2008 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

@@ -1,0 +1,57 @@
+# -*- tcl -*- htmlparse.pcx
+# Syntax of the commands provided by package htmlparse.
+
+# For use by TclDevKit's static syntax checker.
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the documentation describing the format of the code contained in this file
+#
+
+package require pcx
+pcx::register htmlparse
+pcx::tcldep   1.1.2 needs tcl 8.2
+
+namespace eval ::htmlparse {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 1.1.2 std ::htmlparse::2tree \
+    {checkSimpleArgs 2 2 {
+	checkWord
+	checkWord
+    }}
+pcx::check 1.1.2 std ::htmlparse::debugCallback \
+    {checkSimpleArgs 4 5 {
+	checkWord
+	checkWord
+	checkWord
+	checkWord
+	checkWord
+    }}
+pcx::check 1.1.2 std ::htmlparse::mapEscapes \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 1.1.2 std ::htmlparse::parse \
+    {checkSimpleArgs 1 -1 {
+	{checkSwitches 1 {
+	    {-cmd    checkList}
+	    {-vroot  checkWord}
+	    {-split  checkNatNum}
+	    {-incvar checkVarNameWrite}
+	    {-queue  checkWord}
+	} {checkSimpleArgs 1 1 {checkWord}}}
+    }}
+pcx::check 1.1.2 std ::htmlparse::removeFormDefs \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 1.1.2 std ::htmlparse::removeVisualFluff \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+
+# Initialization via pcx::init.
+# Use a ::htmlparse::init procedure for non-standard initialization.
+pcx::complete

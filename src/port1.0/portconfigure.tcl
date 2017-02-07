@@ -1,7 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
-# $Id$
 #
-# Copyright (c) 2007 - 2014 The MacPorts Project
+# Copyright (c) 2007 - 2015 The MacPorts Project
 # Copyright (c) 2007 Markus W. Weissmann <mww@macports.org>
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
@@ -513,17 +512,14 @@ proc portconfigure::get_compiler_fallback {} {
     }
 
     # Determine which versions of clang we prefer
-    if {${os.major} >= 16} {
-        lappend compilers macports-clang-3.8 macports-clang-3.7
-    } elseif {${configure.cxx_stdlib} eq "libc++"} { # clang-3.5+ require libc++
-        lappend compilers macports-clang-3.8 macports-clang-3.7 macports-clang-3.6 macports-clang-3.5 macports-clang-3.4
-    } else {
-        lappend compilers macports-clang-3.4 macports-clang-3.3
+    if {${configure.cxx_stdlib} eq "libc++"} {
+        # clang-3.5+ require libc++
+        lappend compilers macports-clang-3.9 macports-clang-3.8 macports-clang-3.7
     }
 
-    # Determine if we have MacPorts-provided legacy gcc fallbacks
     if {${os.major} < 16} {
-        lappend compilers macports-llvm-gcc-4.2 apple-gcc-4.2
+        # We dropped support for these compilers on Sierra
+        lappend compilers macports-clang-3.4 macports-llvm-gcc-4.2 apple-gcc-4.2
     }
 
     return $compilers

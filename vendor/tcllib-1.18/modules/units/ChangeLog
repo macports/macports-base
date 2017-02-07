@@ -1,0 +1,163 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2011-01-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* units.tcl: Bumped version to 2.1.1 for the bugfix below.
+	* pkgIndex.tcl:
+
+2010-12-22  Bob Techentin <techentin@users.sourceforge.net>
+
+	* units.tcl, units.test:
+	Fixed bug converting integer 0 values (such as 0cm).
+	See patches tracker item 3141584.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-06-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* units.pcx: New file. Syntax definitions for the public commands
+	  of the units package.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* units.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-27  Andreas Kupries <andreask@activestate.com>
+
+	* units.test: [SF Tcllib Bug 1566437]. Using 'format' to get
+	  results with a deterministic precision.
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* units.test: Fixed use of duplicate test names.
+
+2006-01-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* units.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* units.test: Hooked into the new common test support code.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-09-28  Andreas Kupries <andreask@activestate.com>
+
+	* units.tcl: Fixed version discrepancy between index/docs and
+	  implementation.
+
+2005-08-18  Bob Techentin <techentin@users.sourceforge.net>
+
+	Removed units.mdl, the Rational Rose UML model for
+	the library behavior, which doesn't belong in the
+	distributed library.
+
+2005-08-17  Bob Techentin <techentin@users.sourceforge.net>
+
+	Released units version 1.2
+	Moved sources to tcllib.
+	units.tcl, units.test fixed for bugs 760980
+	and 758702, octal values and signs in conversions.
+
+2002-06-02
+
+	Released units version 1.1.1
+
+	* units.tcl, pkgIndex.tcl, units.i, units_wrap.c:
+	Updated the Tcl package revision level to 1.1.
+
+
+2002-05-29
+
+	* units.xml, units.html, units.n:  Corrected 
+	spelling of "becquerel." (It was correct in the code.) 
+
+
+2002-05-23
+
+	Released units version 1.1
+
+
+2002-05-22
+
+	* Makefile.in:  Added test target so 'make test' works.
+	Modified install to go to correct pkg directory with
+	pre-fabricated pkgIndex.tcl.  Corrected binary library 
+	install so that executable bits are set.
+
+	* units.c:
+	Bug 528313:  Corrected incompatible units check.
+	Bug 528316:  Corrected null exception pointer problem.
+
+	* units.i:  Corrected convertTypedWrapperValue which was 
+	returning a local variable.
+
+	* units.n:  Added this file, generated from units.xml
+
+	* units.xml:  De-tabified tables so they look better in 
+	man format.
+
+	* units.test: 
+	Added tests to illustrate behavior reported in bug 528687.
+	Converting a null value returns 1.0, which is consistent 
+	with the default value assinged to unit strings without a 
+	scale factor.  Added tests 6.2 and 6.3 to catch extra units 
+	conversion errors.
+
+	* units_wrap.c:  Regenerated from units.i.
+
+==========================================================================
+ ----------------------- units-1.0 --------------------------
+==========================================================================
+
+First release, January 5, 2001.
+

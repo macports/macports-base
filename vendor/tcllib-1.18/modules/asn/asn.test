@@ -1,0 +1,956 @@
+# -*- tcl -*-
+# asn.test:  tests for the asn BER encoding/decoding module.
+#
+# Copyright (c) 2004 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# Copyright (c) 2004-2007 by Michael Schlenker <mic42@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: asn.test,v 1.19 2011/01/05 22:33:33 mic42 Exp $
+
+# -------------------------------------------------------------------------
+
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+	
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+testing {
+    useLocal asn.tcl asn
+}
+
+# Converts binary encoded structure into hexadecimal dump
+# which is more readable in test results
+# Allows cut'n'paste both encoded and parsed OID from dumpasn1.cfg
+#
+proc bytes2hex {string} {
+	foreach b [split $string ""] {
+		lappend l [format %02X [scan $b %c]]
+	}
+	return [join $l " "]
+}	
+
+# -------------------------------------------------------------------------
+
+test asn-1.0 {integer} {
+    catch {asn::asnInteger} result
+    set result
+} [tcltest::wrongNumArgs {asn::asnInteger} {number} 0]
+
+test asn-1.1 {integer} {
+    catch {asn::asnInteger a b} result
+    set result
+} [tcltest::tooManyArgs {asn::asnInteger} {number}]
+
+test asn-1.2 {integer} {
+    catch {asn::asnInteger a} result
+    set result
+} {expected integer but got "a"}
+
+
+test asn-3.0 {enum} {
+    catch {asn::asnEnumeration} result
+    set result
+} [tcltest::wrongNumArgs {asn::asnEnumeration} {number} 0]
+
+test asn-3.1 {enum} {
+    catch {asn::asnEnumeration a b} result
+    set result
+} [tcltest::tooManyArgs {asn::asnEnumeration} {number}]
+
+test asn-3.2 {enum} {
+    catch {asn::asnEnumeration a} result
+    set result
+} {expected integer but got "a"}
+
+
+
+
+foreach {n i len hex} {
+     0  0        01 00
+     1 -1        01 FF
+     2  1        01 01
+     3  127      01 7F
+     4  128      02 0080
+     5  129      02 0081
+     6  256      02 0100
+     7 -127      01 81
+     8 -128      01 80
+     9 -129      02 FF7F
+    10  32766    02 7FFE
+    11  32767    02 7FFF
+    12  32768    03 008000
+    13  32769    03 008001
+    14 -32767    02 8001
+    15 -32768    02 8000
+    16 -32769    03 FF7FFF
+    17  65536    03 010000
+    18  8388607  03 7FFFFF
+    19  8388608  04 00800000
+    20  8388609  04 00800001
+    21  16777216 04 01000000
+    22 -8388607  03 800001
+    23 -8388608  03 800000
+    24 -8388609  04 FF7FFFFF
+    25 -65536    03 FF0000
+    26 -2147483648              04 80000000 
+    27 2147483647               04 7FFFFFFF
+    28 -549755813888            05 8000000000
+    29 549755813887             05 7FFFFFFFFF
+    30 -140737488355328         06 800000000000
+    31 140737488355327          06 7FFFFFFFFFFF
+    32 -36028797018963968       07 80000000000000
+    33 36028797018963967        07 7FFFFFFFFFFFFF
+    34 36028797018963968        08 0080000000000000
+    35 -9223372036854775808     08 8000000000000000
+    36 9223372036854775807      08 7FFFFFFFFFFFFFFF
+} {
+    test asn-2.$n {integer} {
+    binary scan [asn::asnInteger $i] H* result
+    list $i [string toupper $result]
+    } [list $i 02$len$hex] ; # {}
+
+    test asn-4.$n {enum} {
+    binary scan [asn::asnEnumeration $i] H* result
+    list $i [string toupper $result]
+    } [list $i 0A$len$hex] ; # {}
+}
+
+test asn-5.0 {boolean} {
+    catch {asn::asnBoolean} result
+    set result
+} [tcltest::wrongNumArgs {asn::asnBoolean} {bool} 0]
+
+test asn-5.1 {boolean} {
+    catch {asn::asnBoolean a b} result
+    set result
+} [tcltest::tooManyArgs {asn::asnBoolean} {bool}]
+
+test asn-5.2 {boolean} {
+    catch {asn::asnBoolean a} result
+    set result
+} {expected boolean value but got "a"}
+
+test asn-5.3 {boolean - true} {
+    binary scan [asn::asnBoolean 1] H* result
+    string toupper $result
+} {0101FF}
+
+test asn-5.4 {boolean - false} {
+    binary scan [asn::asnBoolean 0] H* result
+    string toupper $result
+} {010100}
+
+test asn-6.0 {parse boolean} {
+    catch {asn::asnGetBoolean} result
+    set result
+} [tcltest::wrongNumArgs {asn::asnGetBoolean} {data_var bool_var} 0]
+
+test asn-6.1 {parse boolean} {
+    catch {asn::asnGetBoolean a} result
+    set result
+} [tcltest::wrongNumArgs {asn::asnGetBoolean} {data_var bool_var} 1]
+
+test asn-6.2 {parse boolean} {
+    catch {asn::asnGetBoolean a b c} result
+    set result
+} [tcltest::tooManyArgs {asn::asnGetBoolean} {data_var bool_var}]
+
+test asn-6.3 {parse boolean} {
+    catch {asn::asnGetBoolean a b} result
+    set result
+} {can't read "data": no such variable}
+
+test asn-6.4 {parse boolean - wrong tag} {
+    set a \x02\x01\x00
+    catch {asn::asnGetBoolean a b} result
+    set result
+} {Expected Boolean (0x01), but got 02}
+
+test asn-6.5 {parse boolean - wrong length} {
+    set a \x01\x02\x00
+    catch {asn::asnGetBoolean a b} result
+    list $result $b
+} [list "" 0]
+
+test asn-6.6 {parse boolean - true} {
+    set a \x01\x01\xFF
+    asn::asnGetBoolean a b
+    set b
+} 1
+
+test asn-6.7 {parse boolean - true} {
+    set a \x01\x01\x01
+    asn::asnGetBoolean a b
+    set b
+} 1
+
+test asn-6.8 {parse boolean - false} {
+    set a \x01\x01\x00
+    asn::asnGetBoolean a b
+    set b
+} 0
+
+test asn-7.0 {null} {
+    catch {asn::asnNull foo} result
+    set result
+} [tcltest::tooManyArgs {asn::asnNull} {}]
+
+test asn-7.1 {null} {
+    binary scan [asn::asnNull] H* result
+    set result 
+} {0500}
+
+test asn-8.0 {parse null} {
+    catch {asn::asnGetNull} result
+    set result
+} [tcltest::wrongNumArgs asn::asnGetNull {data_var} 0]
+
+test asn-8.1 {parse null} {
+    catch {asn::asnGetNull foo bar} result
+    set result
+} [tcltest::tooManyArgs {asn::asnGetNull} {data_var}]
+
+test asn-8.2 {parse null} {
+    set wrongtag \x01\x01
+    catch {asn::asnGetNull wrongtag} result
+    set result
+} {Expected NULL (0x05), but got 01}
+
+test asn-8.3 {parse null} {
+    set wronglength \x05\x01
+    catch {asn::asnGetNull wronglength} result
+    set result
+} {}
+
+test asn-8.4 {parse null} {
+    set null \x05\x00
+    asn::asnGetNull null
+} {}
+
+package require math::bignum
+foreach {n i len hex} {
+     0  0        01 00
+     1 -1        01 FF
+     2  1        01 01
+     3  127      01 7F
+     4  128      02 0080
+     5  129      02 0081
+     6  256      02 0100
+     7 -127      01 81
+     8 -128      01 80
+     9 -129      02 FF7F
+    10  32766    02 7FFE
+    11  32767    02 7FFF
+    12  32768    03 008000
+    13  32769    03 008001
+    14 -32767    02 8001
+    15 -32768    02 8000
+    16 -32769    03 FF7FFF
+    17  65536    03 010000
+    18  8388607  03 7FFFFF
+    19  8388608  04 00800000
+    20  8388609  04 00800001
+    21  16777216 04 01000000
+    22 -8388607  03 800001
+    23 -8388608  03 800000
+    24 -8388609  04 FF7FFFFF
+    25 -65536    03 FF0000
+} {
+    test asn-9.$n {big integer} {
+    binary scan [asn::asnBigInteger [math::bignum::fromstr $i]] H* result
+    list $i [string toupper $result]
+    } [list $i 02$len$hex] ; # {}
+
+}
+
+foreach {n len hex} {
+    0   0                   00
+    1   1                   01
+    2   127                 7F
+    3   128                 8180
+    4   129                 8181
+    5   255                 81FF
+    6   256                 820100
+    7   32767               827FFF
+    8   32768               828000
+    9   32769               828001
+    10  65535               82FFFF
+    11  65536               83010000
+    12  8388607             837FFFFF
+    13  8388608             83800000
+    14  8388609             83800001
+    15  16777215            83FFFFFF
+    16  16777216            8401000000
+    17  4294967295          84FFFFFFFF
+    18  4294967296          850100000000
+    19  1099511627775       85FFFFFFFFFF
+    20  1099511627776       86010000000000
+    21  281474976710655     86FFFFFFFFFFFF
+    22  281474976710656     8701000000000000
+    23  72057594037927935   87FFFFFFFFFFFFFF
+    24  72057594037927936   880100000000000000
+    25  9223372036854775807 887FFFFFFFFFFFFFFF
+    } {
+    test asn-10.$n {asnLength encoding} {
+    binary scan [asn::asnLength $len] H* result
+    string toupper $result
+    } $hex
+}
+
+foreach {n len hex} {
+    0   0                   00
+    1   1                   01
+    2   127                 7F
+    3   128                 8180
+    4   129                 8181
+    5   255                 81FF
+    6   256                 820100
+    7   32767               827FFF
+    8   32768               828000
+    9   32769               828001
+    10  65535               82FFFF
+    11  65536               83010000
+    12  8388607             837FFFFF
+    13  8388608             83800000
+    14  8388609             83800001
+    15  16777215            83FFFFFF
+    16  16777216            8401000000
+    17  4294967295          84FFFFFFFF
+    18  4294967296          850100000000
+    19  1099511627775       85FFFFFFFFFF
+    20  1099511627776       86010000000000
+    21  281474976710655     86FFFFFFFFFFFF
+    22  281474976710656     8701000000000000
+    23  72057594037927935   87FFFFFFFFFFFFFF
+    24  72057594037927936   880100000000000000
+    25  9223372036854775807 887FFFFFFFFFFFFFFF
+    } {
+    test asn-11.$n {asnGetLength decoding} {
+    set data [binary format H* $hex ]
+    asn::asnGetLength data length
+    set length
+    } $len
+}
+
+foreach {n i len hex} {
+     0  0               01 00
+     1 -1               01 FF
+     2  1               01 01
+     3  127             01 7F
+     4  128             02 0080
+     5  129             02 0081
+     6  256             02 0100
+     7 -127             01 81
+     8 -128             01 80
+     9 -129             02 FF7F
+    10  32766           02 7FFE
+    11  32767           02 7FFF
+    12  32768           03 008000
+    13  32769           03 008001
+    14 -32767           02 8001
+    15 -32768           02 8000
+    16 -32769           03 FF7FFF
+    17  65536           03 010000
+    18  8388607         03 7FFFFF
+    19  8388608         04 00800000
+    20  8388609         04 00800001
+    21  16777216        04 01000000
+    22 -8388607         03 800001
+    23 -8388608         03 800000
+    24 -8388609         04 FF7FFFFF
+    25 -65536           03 FF0000
+    26 -2147483648      04 80000000 
+    27 2147483647       04 7FFFFFFF
+    28 -549755813888    05 8000000000
+    29 549755813887     05 7FFFFFFFFF
+    30 -140737488355328 06 800000000000
+    31 140737488355327  06 7FFFFFFFFFFF
+    32 -36028797018963968 07 80000000000000
+    33 36028797018963967 07  7FFFFFFFFFFFFF
+    34 36028797018963968 08  0080000000000000
+    35 -9223372036854775808 08 8000000000000000
+    36 9223372036854775807 08 7FFFFFFFFFFFFFFF
+    37 65537            03 010001
+    38 -8323071         03 810001 
+} {
+    test asn-12.$n {getInteger} {
+    set data [binary format H2H2H* 02 $len $hex]
+    asn::asnGetInteger data int
+    set int
+    }  $i  ; # {}
+}
+
+foreach {n i len hex} {
+     0  0               01 00
+     1 -1               01 FF
+     2  1               01 01
+     3  127             01 7F
+     4  128             02 0080
+     5  129             02 0081
+     6  256             02 0100
+     7 -127             01 81
+     8 -128             01 80
+     9 -129             02 FF7F
+    10  32766           02 7FFE
+    11  32767           02 7FFF
+    12  32768           03 008000
+    13  32769           03 008001
+    14 -32767           02 8001
+    15 -32768           02 8000
+    16 -32769           03 FF7FFF
+    17  65536           03 010000
+    18  8388607         03 7FFFFF
+    19  8388608         04 00800000
+    20  8388609         04 00800001
+    21  16777216        04 01000000
+    22 -8388607         03 800001
+    23 -8388608         03 800000
+    24 -8388609         04 FF7FFFFF
+    25 -65536           03 FF0000
+    26 -2147483648      04 80000000 
+    27 2147483647       04 7FFFFFFF
+    28 -549755813888    05 8000000000
+    29 549755813887     05 7FFFFFFFFF
+    30 -140737488355328 06 800000000000
+    31 140737488355327  06 7FFFFFFFFFFF
+    32 -36028797018963968 07 80000000000000
+    33 36028797018963967 07  7FFFFFFFFFFFFF
+    34 36028797018963968 08  0080000000000000
+    35 -9223372036854775808 08 8000000000000000
+    36 9223372036854775807 08 7FFFFFFFFFFFFFFF
+    37 65537            03 010001
+    38 -8323071         03 810001 
+} {
+    test asn-12.[expr {$n+39}] {getBigInteger} {
+    set data [binary format H2H2H* 02 $len $hex]
+    asn::asnGetBigInteger data int
+    math::bignum::tostr $int
+    }  $i  ; # {}
+}
+
+test asn-13.0 {peekByte} {
+    set data \x0d\x0a
+    asn::asnPeekByte data byte
+    list $byte [string length $data]
+} {13 2}
+
+test asn-14.0 {getByte} {
+    set data \x0d\x0a
+    asn::asnGetByte data byte
+    list $byte [string length $data]
+} {13 1}
+
+test asn-15.0 {getBytes} {
+    set data \x0d\x0d\x0d\x0d\x0a
+    asn::asnGetBytes data 4 bytes
+    list [string length $data] [string length $bytes]
+} [list 1 4]
+
+test asn-15.1 {getBytes} {
+    set data \x0d\x0d\x0d\x0d\x0a
+    asn::asnGetBytes data 4 bytes
+    set expectedbytes \x0d\x0d\x0d\x0d
+    set expecteddata \x0a
+    list [expr {$data == $expecteddata}] [expr {$bytes == $expectedbytes}]
+} [list 1 1]
+
+# 16 ----------- string encoder/decoder invalid arguments
+array set stringtag {
+    NumericString   0x12
+    PrintableString 0x13
+    IA5String       0x16
+    BMPString       0x1e
+    UTF8String      0x0c
+}
+set i 0
+foreach strtype {NumericString PrintableString IA5String BMPString UTF8String} {
+	incr i
+	test asn-16.$i $strtype {
+	    catch {asn::asn$strtype} result
+	    set result
+	} [tcltest::wrongNumArgs asn::asn$strtype string 0]
+	incr i
+	test asn-16.$i $strtype {
+		catch "asn::asn$strtype a b" result
+		set result
+	} [tcltest::tooManyArgs "asn::asn$strtype" string]
+	incr i
+	test asn-16.$i get$strtype {
+		catch "asn::asnGet$strtype foo" result
+		set result
+	} [tcltest::wrongNumArgs "asn::asnGet$strtype" "data_var print_var" 0]	
+	incr i
+	test asn-16.$i get$strtype {
+		catch "asn::asnGet$strtype foo bar baz" result
+		set result
+	} [tcltest::tooManyArgs "asn::asnGet$strtype" "data_var print_var"]	
+	incr i
+	test asn-16.$i "get$strtype parse sequence" {
+		set data "\x30\x03abc"
+		catch "asn::asnGet$strtype data print" result
+		set result
+	} "Expected [regsub String $strtype " String"] ($stringtag($strtype)), but got 30"	
+}
+incr i
+# 17 ------------------- invalid string values
+
+
+test asn-17.1 {numeric string with non-numbers} {
+	catch {asn::asnNumericString this-is-not-a-number} result
+	set result
+} "Illegal character in Numeric String."
+
+test asn-17.2 {numeric string with hexadecimals} {
+	catch {asn::asnNumericString 09AB} result
+	set result
+} "Illegal character in Numeric String."
+
+test asn-17.3 {numeric string with spaces - spaces are legal} {
+	catch {asn::asnNumericString " 093"}
+} 0 ;# TCL_OK
+
+test asn-17.4 {numeric string with minus sign} {
+	catch {asn::asnNumericString "-15"}  result
+	set result
+} "Illegal character in Numeric String."
+	
+test asn-17.5 {numeric string with tab (illegal)} {
+	catch {asn::asnNumericString "\t093"} result
+	set result
+} "Illegal character in Numeric String."
+
+#According to ITU-T X.680 37.4
+set printablechars {[-A-Za-z0-9 '()+,./=?:]}
+
+set i 6
+
+for {set j 1} {$j<128} {incr j;incr i} {
+    set data [format %c $j]
+    if {[regexp "^$printablechars+\$" $data]} {
+	test asn-17.$i "printable string valid char [format %02x $j]" {
+	    catch {asn::asnPrintableString $data}
+	} 0 ; # {}
+    } else {
+	test asn-17.$i "printable string invalid char [format %02x $j]" {
+	    catch {asn::asnPrintableString $data} result
+	    set result
+	} "Illegal character in PrintableString." ; # {}
+    }
+}
+
+test asn-17.134 {IA5String with Latin-1 char} {
+	catch {asn::asnIA5String "\xD0"} result
+	set result
+} "Illegal character in IA5String"
+
+test asn-17.135 {IA5String with Cyrillic chars} {
+	catch {asn::asnIA5String "\u0420\u0443\u0441\u0441\u043a\u0438\u0439"} result
+	set result
+} "Illegal character in IA5String"
+
+# 18 - correct encoding of string values
+
+test asn-18.1 {encode numeric string} {
+	catch {asn::asnNumericString 123} result
+	set result
+} "\x12\003123"
+
+test asn-18.2 {encode numeric strin with space} {
+	catch {asn::asnNumericString "1 2 3"} result
+	set result
+} "\x12\0051 2 3"	
+
+test asn-18.3 {encode printable string} {
+	catch {asn::asnPrintableString "printable string"} result
+	set result
+} "\x13\x10printable string"
+
+test asn-18.4 {encode IA5 string} {
+	catch {asn::asnIA5String "vitus@45.free.net"} result
+	set result
+} "\x16\x11vitus@45.free.net"	
+
+test asn-18.5 {encode bmp string US-ASCII} {
+	catch {asn::asnBMPString "US-ASCII"} result
+	set result
+} "\x1e\x10\0U\0S\0-\0A\0S\0C\0I\0I"	
+
+test asn-18.6 {encode UTF8 string US-ASCII} {
+	catch {asn::asnUTF8String "US-ASCII"} result
+	set result
+} "\x0c\x08US-ASCII"	
+
+test asn-18.7 {encode bmp string latin-1} {
+	catch {asn::asnBMPString "gar\xC7on"} result
+	set result
+} "\x1e\x0c\0g\0a\0r\0\xc7\0o\0n"
+
+test asn-18.8 {encode utf-8 string latin-1} {
+	catch {asn::asnUTF8String "gar\xC7on"} result
+	set result
+} "\x0c\x07gar\xc3\x87on"
+
+test asn-18.9 {encode bmp string cyrillic} {
+	catch {asn::asnBMPString "\u0440\u0443\u0441\u0441\u043a\u0438\u0439"} result
+	set result
+} "\x1e\x0e\x04\x40\x04\x43\x04\x41\x04\x41\x04\x3a\x04\x38\x04\x39"
+
+test asn-18.10 {encode UTF8 string cyrillic} {
+	catch {asn::asnUTF8String "\u0440\u0443\u0441\u0441\u043a\u0438\u0439"} result
+	set result
+} "\x0c\x0e\xd1\x80\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9"
+
+test asn-18.11 {decode numeric string} {
+	set data "\x12\003123"
+	asn::asnGetNumericString data print
+	set print
+} 123
+
+test asn-18.12 {decode printable string} {
+	set data "\x13\x10printable string"
+	asn::asnGetPrintableString data print
+	set print
+} "printable string"
+
+test asn-18.13 {decode IA5 string} {
+	set data "\x16\x11vitus@45.free.net"
+	asn::asnGetIA5String data print
+	set print
+} "vitus@45.free.net"
+
+test asn-18.14 {decode BMP string US-ASCII} {
+	set data "\x1e\x10\0U\0S\0-\0A\0S\0C\0I\0I"
+	asn::asnGetBMPString data print
+	set print
+} "US-ASCII"
+
+test asn-18.15 {decode UTF8 string US-ASCII} {
+	set data "\x0c\x08US-ASCII"
+	asn::asnGetUTF8String data print
+	set print
+} "US-ASCII"
+
+test asn-18.16 {decode BMP string latin-1} {
+	set data "\x1e\x0c\0g\0a\0r\0\xc7\0o\0n"
+	asn::asnGetBMPString data print
+	set print
+} "gar\xC7on"
+
+test asn-18.17 {decode UTF8 string latin-1} {
+	set data "\x0c\x07gar\xc3\x87on"
+	asn::asnGetUTF8String data print
+	set print
+} "gar\xC7on"
+
+test asn-18.18 {decode BMP string cyrillic} {
+	set data "\x1e\x0e\x04\x40\x04\x43\x04\x41\x04\x41\x04\x3a\x04\x38\x04\x39"
+	asn::asnGetBMPString data print
+	set print
+} "\u0440\u0443\u0441\u0441\u043a\u0438\u0439"
+
+test asn-18.19 {decode UTF8 string cyrillic} {
+	set data "\x0c\x0e\xd1\x80\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9"
+	asn::asnGetUTF8String data print
+	set print
+} "\u0440\u0443\u0441\u0441\u043a\u0438\u0439"	
+
+# 19 ------- multitype getString
+set i 0
+foreach {type encoded str} {
+
+NumericString "\x12\003123" 123
+PrintableString  "\x13\x10printable string" "printable string"
+IA5String "\x16\x11vitus@45.free.net" "vitus@45.free.net"
+BMPString "\x1e\x10\0U\0S\0-\0A\0S\0C\0I\0I" US-ASCII
+UTF8String "\x0c\x08US-ASCII" US-ASCII
+BMPString "\x1e\x0c\0g\0a\0r\0\xc7\0o\0n" "gar\xc7on"
+UTF8String "\x0c\x07gar\xc3\x87on" "gar\xc7on"
+BMPString "\x1e\x0e\x04\x40\x04\x43\x04\x41\x04\x41\x04\x3a\x04\x38\x04\x39"
+"\u0440\u0443\u0441\u0441\u043a\u0438\u0439"
+UTF8String "\x0c\x0e\xd1\x80\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9"
+"\u0440\u0443\u0441\u0441\u043a\u0438\u0439"} {
+incr i
+	test asn-19.$i "getString - decode $type" {
+		set data $encoded
+		asn::asnGetString data print
+		set print
+	} $str
+	incr i
+	test asn-19.$i "getString - decode $type and get its type" {
+		set data $encoded
+		asn::asnGetString data print gotType
+		list $data $print $gotType
+	} [list {} $str $type]
+}
+
+# 20 ----- multitype String encoding
+
+test asn-20.1 {Set default type to something wrong} {
+	catch {asn::defaultStringType foo} result
+	set result
+} "Invalid default string type. Should be one of BMP, UTF8"	
+
+test asn-20.2 {Set default value to string type which cannot hold any char} {
+	catch {asn::defaultStringType IA5} result
+	set result
+} "Invalid default string type. Should be one of BMP, UTF8"	
+
+
+test asn-20.3 {Set default type to UTF8} {
+	asn::defaultStringType UTF8
+} ""
+
+test asn-20.4 {Get default string type} {
+	asn::defaultStringType 
+} UTF8	
+
+test asn-20.5 {String - encode numeric value} {
+	asn::asnString 123
+} "\x12\003123"
+
+test asn-20.6 {String - encode printable value} {
+	asn::asnString "printable string"
+} "\x13\x10printable string"
+
+test asn-20.7 {String - encode ASCII value} {
+	asn::asnString vitus@45.free.net
+} "\x16\x11vitus@45.free.net" 
+
+test asn-20.8 {String - encode Latin-1 value} {
+	asn::asnString "gar\xc7on"
+} "\x0c\x07gar\xc3\x87on"
+
+test asn-20.9 {String - encode Cyrillic value} {
+	asn::asnString "\u0440\u0443\u0441\u0441\u043a\u0438\u0439"
+} "\x0c\x0e\xd1\x80\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9"
+
+test asn-20.10 {Set default string type to BMP} {
+	asn::defaultStringType BMP
+	asn::defaultStringType
+} BMP
+
+test asn-20.11 {String - encode numeric value} {
+	asn::asnString 123
+} "\x12\003123"
+
+test asn-20.12 {String - encode printable value} {
+	asn::asnString "printable string"
+} "\x13\x10printable string"
+
+test asn-20.13 {String - encode ASCII value} {
+	asn::asnString vitus@45.free.net
+} "\x16\x11vitus@45.free.net" 
+
+
+test asn-20.14 {String - encode Latin-1 value} {
+	asn::asnString "gar\xc7on"
+} "\x1e\x0c\0g\0a\0r\0\xc7\0o\0n" 
+
+test asn-20.15 {String - encode Cyrillic value} {
+	asn::asnString "\u0440\u0443\u0441\u0441\u043a\u0438\u0439"
+} "\x1e\x0e\x04\x40\x04\x43\x04\x41\x04\x41\x04\x3a\x04\x38\x04\x39" 
+
+# 21 --------- Object identifier
+#
+
+test asn-21.1 {ObjectIdentifier start with 0} {
+	bytes2hex [asn::asnObjectIdentifier {0 2 262 1 10}]	
+} "06 05 02 82 06 01 0A"
+
+
+test asn-21.2 {ObjectIdentifier start with 1} {
+	bytes2hex [asn::asnObjectIdentifier {1 2 840 10045 2 1}]
+} "06 07 2A 86 48 CE 3D 02 01"
+
+test asn-21.3 {ObjectIdentifer field > 65536} {
+	bytes2hex [asn::asnObjectIdentifier {1 2 840 113533 7 66 3}]
+} "06 09 2A 86 48 86 F6 7D 07 42 03"	
+
+test asn-21.4 {ObjectIdentifer 2.23.42.9.37} {
+	bytes2hex [asn::asnObjectIdentifier {2 23 42 9 37}]
+} "06 04 67 2A 09 25"	
+
+test asn-21.5 {GetObjectIdentifier 0.2.262.1.10} {
+	set data "\x06\x05\x02\x82\x06\x01\x0A"
+	asn::asnGetObjectIdentifier data print
+	set print
+} {0 2 262 1 10}
+
+test asn-21.6 {GetObjectIdentifier 1 2 840 10045 2 1} {
+	set data "\x06\x07\x2A\x86\x48\xCE\x3D\x02\x01"
+	asn::asnGetObjectIdentifier data print
+	set print
+} {1 2 840 10045 2 1}
+
+test asn-21.7 {GetObjectIdentifier 1 2 840 113533 7 66 3} {
+	set data "\x06\x09\x2A\x86\x48\x86\xF6\x7D\x07\x42\x03"
+	asn::asnGetObjectIdentifier data print
+	set print
+} {1 2 840 113533 7 66 3}
+
+# 22 --- Octet String
+
+# smoke tests to check that we can at least call the commands
+test asn-23.0 {asnContext smoke test} {
+	set data "\x00"
+	bytes2hex [asn::asnContext 1 $data]
+} {81 01 00}
+
+test asn-24.0 {asnSequence smoke test} {
+	set data [asn::asnNull]
+	bytes2hex [asn::asnSequence 1 $data]
+} {30 03 31 05 00}
+
+test asn-25.0 {asnSet smoke test} {
+	set data [asn::asnNull]
+	bytes2hex [asn::asnSet 1 $data]
+} {31 03 31 05 00}
+
+test asn-26.0 {asnApplicationConstr smoke test} {
+	set data [asn::asnNull]
+	bytes2hex [asn::asnApplicationConstr 1 $data]
+} {61 02 05 00}
+
+test asn-27.0 {asnApplication smoke test} {
+	set data [asn::asnNull]
+	bytes2hex [asn::asnApplication 1 $data]
+} {41 02 05 00}
+
+test asn-28.0 {asnContextConstr smoke test} {
+	set data [asn::asnNull]
+	bytes2hex [asn::asnContextConstr 1 $data]
+} {A1 02 05 00}
+
+test asn-29.0 {asnChoice smoke test} {
+	set data [asn::asnNull]
+	bytes2hex [asn::asnChoice 1 $data]
+} {81 02 05 00}
+
+test asn-30.0 {asnChoiceConstr smoke test} {
+	set data [asn::asnNull]
+	bytes2hex [asn::asnChoiceConstr 1 $data]
+} {A1 02 05 00}
+
+test asn-31.0 {asnPeekTag smoke test} {
+	set data [asn::asnNull]
+	asn::asnPeekTag data tag tagtype constr
+	list $tag $tagtype $constr
+} {5 UNIVERSAL 0}
+
+foreach {n hex tag type constr} {
+    1	05	    5	    UNIVERSAL	0
+    2	1E	    30	    UNIVERSAL	0
+    3	1F1F	    31	    UNIVERSAL	0
+    4	5F1F	    31	    APPLICATION	0
+    5   1F818000    16384   UNIVERSAL   0
+    6	45	    5	    APPLICATION 0
+    7	65	    5	    APPLICATION 1
+    8	85	    5	    CONTEXT	0
+    9	a5	    5	    CONTEXT	1
+    10	c5	    5	    PRIVATE	0
+    11	e5	    5	    PRIVATE	1
+    12	25	    5	    UNIVERSAL	1
+} {
+    test asn-31.$n "asnPeekTag $tag $type $constr" \
+	"set data \[binary format H* $hex\]
+	 asn::asnPeekTag data tag tagtype constr
+	 list \$tag \$tagtype \$constr" \
+    [list $tag $type $constr]	 
+}
+
+test asn-32.0 {asnTag smoke test} {
+	bytes2hex [asn::asnTag 5 UNIVERSAL P]
+} {05}
+
+test asn-32.1 {asnTag short tag} {
+	bytes2hex [asn::asnTag 30 UNIVERSAL P]
+} {1E} 
+
+test asn-32.2 {asnTag long tag} {
+	bytes2hex [asn::asnTag 31 UNIVERSAL P]
+} {1F 1F}
+
+test asn-32.3 {asnTag long tag} {
+	bytes2hex [asn::asnTag 31 APPLICATION P]
+} {5F 1F}
+
+test asn-32.4 {asnTag long tag} {
+	bytes2hex [asn::asnTag 127 UNIVERSAL P]
+} {1F 7F}
+
+test asn-32.5 {asnTag long tag} {
+	bytes2hex [asn::asnTag 128 UNIVERSAL P]
+} {1F 81 00}
+
+test asn-32.6 {asnTag long tag} {
+	bytes2hex [asn::asnTag 16384 UNIVERSAL P]
+} {1F 81 80 00}
+
+test asn-32.7 {asnTag long tag} {
+	bytes2hex [asn::asnTag 16385 UNIVERSAL P]
+} {1F 81 80 01}
+
+test asn-32.8 {asnTag tag APPLICATION, PRIMITIVE} {
+	bytes2hex [asn::asnTag 5 APPLICATION P]
+} {45}
+
+test asn-32.9 {asnTag tag APPLICATION, CONSTRUCTED} {
+	bytes2hex [asn::asnTag 5 APPLICATION C]
+} {65}
+
+test asn-32.10 {asnTag tag CONTEXT, PRIMITIVE} {
+	bytes2hex [asn::asnTag 5 CONTEXT P]
+} {85}
+
+test asn-32.11 {asnTag tag CONTEXT, CONSTRUCTED} {
+	bytes2hex [asn::asnTag 5 CONTEXT C]
+} {A5}
+
+test asn-32.12 {asnTag tag PRIVATE,PRIMITIVE} {
+	bytes2hex [asn::asnTag 5 PRIVATE P]
+} {C5}
+
+test asn-32.13 {asnTag tag PRIVATE,CONSTRUCTED} {
+	bytes2hex [asn::asnTag 5 PRIVATE C]
+} {E5}
+
+test asn-32.14 {asnTag tag UNIVERSAL, CONSTRUCTED} {
+	bytes2hex [asn::asnTag 5 UNIVERSAL C]
+} {25}
+
+foreach {n hex bin} {
+    1	03020780    1
+    2   030206c0    11
+    3   03020680    10
+    4   030200ff    11111111
+    5   03020000    00000000
+    6   0303078000  100000000
+} {
+    test asn-33.$n "asnBitstring $bin" \
+	"binary scan \[asn::asnBitString $bin\] H* val
+	 set val" \
+	$hex
+}
+
+foreach {n hex bin} {
+    1	03020780    1
+    2   030206c0    11
+    3   03020680    10
+    4   030200ff    11111111
+    5   03020000    00000000
+    6   0303078000  100000000
+} {
+    test asn-34.$n "asnGetBitstring $bin" \
+	"set data \[binary format H* $hex\] 
+	 asn::asnGetBitString data bits 
+	 set bits " \
+	 $bin
+}
+
+
+testsuiteCleanup
+

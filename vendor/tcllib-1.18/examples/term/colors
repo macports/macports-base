@@ -1,0 +1,52 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+
+lappend auto_path [file join [file dirname [file dirname [file dirname [info script]]]] modules]
+package require term::ansi::send
+term::ansi::send::import vt
+
+array set cs {
+    {}      {Default}
+    red     {Red    }
+    green   {Green  }
+    yellow  {Yellow }
+    blue    {Blue   }
+    magenta {Magenta}
+    cyan    {Cyan   }
+    white   {White  }
+}
+
+vt::init
+vt::clear
+vt::wr \n
+vt::wr {    }
+vt::sda_bgcyan
+vt::wr {[ Colorization ]}
+vt::sda_reset
+vt::wr \n\n
+
+vt::wr "   \016lqqqqqqqqqk  lqqqqqqqqqk\017\n"
+
+foreach c {{} red green yellow blue magenta cyan white} {
+
+    vt::sda_fgdefault
+    vt::wr {   }
+    vt::wr "\016x\017"
+    if {$c != {}} vt::sda_bg$c
+    vt::wr " $cs($c) "
+    vt::sda_reset
+    vt::wr "\016x\017"
+
+    vt::wr {  }
+
+    vt::wr "\016x\017"
+    vt::sda_bold
+    if {$c != {}} vt::sda_fg$c
+    vt::wr " $cs($c) "
+    vt::sda_reset
+    vt::wr "\016x\017\n"
+}
+
+vt::wr "   \016mqqqqqqqqqj  mqqqqqqqqqj\017\n\n"
+
+exit

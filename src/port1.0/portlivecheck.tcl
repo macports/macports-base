@@ -1,9 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portlivecheck.tcl
 #
-# $Id$
-#
-# Copyright (c) 2007-2011 The MacPorts Project
+# Copyright (c) 2007-2011, 2014, 2016 The MacPorts Project
 # Copyright (c) 2005-2007 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
 #
@@ -133,8 +131,7 @@ proc portlivecheck::livecheck_main {args} {
         set defaults_file "$types_dir/${livecheck.type}.tcl"
         ui_debug "Loading the defaults from '$defaults_file'"
         if {[catch {source $defaults_file} result]} {
-            global errorInfo
-            ui_debug "$errorInfo: result"
+            ui_debug "$::errorInfo: result"
             return -code 1 "The defaults could not be loaded from '$defaults_file'."
         }
     }
@@ -175,7 +172,7 @@ proc portlivecheck::livecheck_main {args} {
                     set updated_version 0
                     while {[gets $chan line] >= 0} {
                         set lastoff 0
-                        while {[regexp -start $lastoff -indices $the_re $line offsets]} {
+                        while {$lastoff >= 0 && [regexp -start $lastoff -indices $the_re $line offsets]} {
                             regexp -start $lastoff $the_re $line matched upver
                             set foundmatch 1
                             if {$updated_version == 0 || [vercmp $upver $updated_version] > 0} {

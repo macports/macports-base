@@ -1,0 +1,1230 @@
+[vset COMM_VERSION 4.6.3]
+[manpage_begin comm n [vset COMM_VERSION]]
+[see_also send(n)]
+[keywords comm]
+[keywords communication]
+[keywords ipc]
+[keywords message]
+[keywords {remote communication}]
+[keywords {remote execution}]
+[keywords rpc]
+[keywords secure]
+[keywords send]
+[keywords socket]
+[keywords ssl]
+[keywords tls]
+[copyright {1995-1998 The Open Group. All Rights Reserved.}]
+[copyright {2003-2004 ActiveState Corporation.}]
+[copyright {2006-2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Remote communication}]
+[titledesc {A remote communication facility for Tcl (8.3 and later)}]
+[category  {Programming tools}]
+[require Tcl 8.3]
+[require comm [opt [vset COMM_VERSION]]]
+[description]
+
+[para]
+
+The [package comm] command provides an inter-interpreter remote
+execution facility much like Tk's [cmd send(n)], except that it uses
+sockets rather than the X server for the communication path.  As a
+result, [package comm] works with multiple interpreters, works on
+Windows and Macintosh systems, and provides control over the remote
+execution path.
+
+[para]
+
+These commands work just like [cmd send] and [cmd {winfo interps}] :
+
+[para]
+[example {
+    ::comm::comm send ?-async? id cmd ?arg arg ...?
+    ::comm::comm interps
+}]
+[para]
+
+This is all that is really needed to know in order to use
+[package comm]
+
+[subsection Commands]
+
+The package initializes [cmd ::comm::comm] as the default [emph chan].
+
+[para]
+[package comm] names communication endpoints with an [emph id] unique
+to each machine.  Before sending commands, the [emph id] of another
+interpreter is needed.  Unlike Tk's send, [package comm] doesn't
+implicitly know the [emph id]'s of all the interpreters on the system.
+
+The following four methods make up the basic [package comm] interface.
+
+[list_begin definitions]
+
+[call [cmd {::comm::comm send}] [opt -async] \
+	[opt "-command [arg callback]"] \
+	[arg id] [arg cmd] [opt [arg {arg arg ...}]]]
+
+This invokes the given command in the interpreter named by [arg id].  The
+command waits for the result and remote errors are returned unless the
+[option -async] or [option -command] option is given.  If [option -async]
+is given, send returns immediately and there is no further notification of
+result.  If [option -command] is used, [emph callback] specifies a command
+to invoke when the result is received.  These options are mutually
+exclusive.  The callback will receive arguments in the form
+[emph {-option value}], suitable for [cmd {array set}].
+
+The options are: [emph -id], the comm id of the interpreter that received
+the command; [emph -serial], a unique serial for each command sent to a
+particular comm interpreter; [emph -chan], the comm channel name;
+[emph -code], the result code of the command; [emph -errorcode], the
+errorcode, if any, of the command; [emph -errorinfo], the errorinfo, if
+any, of the command; and [emph -result], the return value of the command.
+If connection is lost before a reply is received, the callback will be
+invoked with a connection lost message with -code equal to -1.  When
+[option -command] is used, the command returns the unique serial for the
+command.
+
+[call [cmd {::comm::comm self}]]
+
+Returns the [emph id] for this channel.
+
+[call [cmd {::comm::comm interps}]]
+
+Returns a list of all the remote [emph id]'s to which this channel is
+connected.  [package comm] learns a new remote [emph id] when a command
+is first issued it, or when a remote [emph id] first issues a command
+to this comm channel.  [cmd {::comm::comm ids}] is an alias for this
+method.
+
+[call [cmd {::comm::comm connect}] [opt [arg id]]]
+
+Whereas [cmd {::comm::comm send}] will automatically connect to the
+given [arg id], this forces a connection to a remote [emph id] without
+sending a command.  After this, the remote [emph id] will appear in
+[cmd {::comm::comm interps}].
+
+[list_end]
+
+[subsection {Eval Semantics}]
+[para]
+
+The evaluation semantics of [cmd {::comm::comm send}] are intended to
+match Tk's [cmd send] [emph exactly]. This means that [package comm]
+evaluates arguments on the remote side.
+
+[para]
+
+If you find that [cmd {::comm::comm send}] doesn't work for a
+particular command, try the same thing with Tk's send and see if the
+result is different.  If there is a problem, please report it.  For
+instance, there was had one report that this command produced an
+error.  Note that the equivalent [cmd send] command also produces the
+same error.
+
+[para]
+[example {
+    % ::comm::comm send id llength {a b c}
+    wrong # args: should be "llength list"
+    % send name llength {a b c}
+    wrong # args: should be "llength list"
+}]
+[para]
+
+The [cmd eval] hook (described below) can be used to change from
+[cmd send]'s double eval semantics to single eval semantics.
+
+[subsection {Multiple Channels}]
+[para]
+
+More than one [cmd comm] channel (or [emph listener]) can be created
+in each Tcl interpreter.  This allows flexibility to create full and
+restricted channels.  For instance, [term hook] scripts are specific
+to the channel they are defined against.
+
+[list_begin definitions]
+
+[call [cmd {::comm::comm new}] [arg chan] [opt [arg {name value ...}]]]
+
+This creates a new channel and Tcl command with the given channel
+name.  This new command controls the new channel and takes all the
+same arguments as [cmd ::comm::comm].  Any remaining arguments are
+passed to the [cmd config] method.  The fully qualified channel
+name is returned.
+
+[call [cmd {::comm::comm channels}]]
+
+This lists all the channels allocated in this Tcl interpreter.
+
+[list_end]
+[para]
+
+The default configuration parameters for a new channel are:
+
+[para]
+[example {
+    "-port 0 -local 1 -listen 0 -silent 0"
+}]
+[para]
+
+The default channel [cmd ::comm::comm] is created with:
+
+[para]
+[example {
+    "::comm::comm new ::comm::comm -port 0 -local 1 -listen 1 -silent 0"
+}]
+
+[subsection {Channel Configuration}]
+[para]
+
+The [cmd config] method acts similar to [cmd fconfigure] in that it
+sets or queries configuration variables associated with a channel.
+
+[list_begin definitions]
+[call [cmd {::comm::comm config}]]
+[call [cmd {::comm::comm config}] [arg name]]
+[call [cmd {::comm::comm config}] [opt "[arg name] [arg value] [arg ...]"]]
+
+When given no arguments, [cmd config] returns a list of all variables
+and their value With one argument, [cmd config] returns the value of
+just that argument.  With an even number of arguments, the given
+variables are set to the given values.
+
+[list_end]
+
+[para]
+
+These configuration variables can be changed (descriptions of them are
+elsewhere in this manual page):
+
+[list_begin definitions]
+[def "[option -listen] [opt [arg 0|1]]"]
+[def "[option -local]  [opt [arg 0|1]]"]
+[def "[option -port]   [opt [arg port]]"]
+[def "[option -silent] [opt [arg 0|1]]"]
+[def "[option -socketcmd] [opt [arg commandname]]"]
+
+[def "[option -interp] [opt [arg interpreter]]"]
+[def "[option -events] [opt [arg eventlist]]"]
+[list_end]
+
+[para]
+These configuration variables are read only:
+
+[list_begin definitions]
+[def "[option -chan]    [arg chan]"]
+[def "[option -serial]  [arg n]"]
+[def "[option -socket]  sock[arg In]"]
+[list_end]
+
+[para]
+
+When [cmd config] changes the parameters of an existing channel (with
+the exception of [option -interp] and [option -events]), it closes and
+reopens the listening socket.
+
+An automatically assigned channel [emph id] will change when this
+happens.
+
+Recycling the socket is done by invoking [cmd {::comm::comm abort}],
+which causes all active sends to terminate.
+
+[subsection {Id/port Assignments}]
+[para]
+
+[package comm] uses a TCP port for endpoint [emph id].  The
+
+[method interps] (or [method ids]) method merely lists all the TCP ports
+to which the channel is connected.  By default, each channel's
+
+[emph id] is randomly assigned by the operating system (but usually
+starts at a low value around 1024 and increases each time a new socket
+is opened).  This behavior is accomplished by giving the
+
+[option -port] config option a value of 0.  Alternately, a specific
+TCP port number may be provided for a given channel.  As a special
+case, comm contains code to allocate a a high-numbered TCP port
+(>10000) by using [option {-port {}}].  Note that a channel won't be
+created and initialized unless the specific port can be allocated.
+
+[para]
+
+As a special case, if the channel is configured with
+
+[option {-listen 0}], then it will not create a listening socket and
+will use an id of [const 0] for itself.  Such a channel is only good
+for outgoing connections (although once a connection is established,
+it can carry send traffic in both directions).
+
+As another special case, if the channel is configured with
+
+[option {-silent 0}], then the listening side will ignore connection
+attempts where the protocol negotiation phase failed, instead of
+throwing an error.
+
+[subsection {Execution Environment}]
+
+A communication channel in its default configuration will use the
+current interpreter for the execution of all received scripts, and of
+the event scripts associated with the various hooks.
+
+[para]
+
+This insecure setup can be changed by the user via the two options
+[option -interp], and [option -events].
+
+[para]
+
+When [option -interp] is set all received scripts are executed in the
+slave interpreter specified as the value of the option. This
+interpreter is expected to exist before configuration. I.e. it is the
+responsibility of the user to create it. However afterward the
+communication channel takes ownership of this interpreter, and will
+destroy it when the communication channel is destroyed.
+
+Note that reconfiguration of the communication channel to either a
+different interpreter or the empty string will release the ownership
+[emph without] destroying the previously configured interpreter.  The
+empty string has a special meaning, it restores the default behaviour
+of executing received scripts in the current interpreter.
+
+[para]
+
+[emph {Also of note}] is that replies and callbacks (a special form of
+reply) are [emph not] considered as received scripts. They are
+trusted, part of the internal machinery of comm, and therefore always
+executed in the current interpreter.
+
+[para]
+
+Even if an interpreter has been configured as the execution
+environment for received scripts the event scripts associated with the
+various hooks will by default still be executed in the current
+interpreter. To change this use the option [option -events] to declare
+a list of the events whose scripts should be executed in the declared
+interpreter as well. The contents of this option are ignored if the
+communication channel is configured to execute received scripts in the
+current interpreter.
+
+[subsection {Remote Interpreters}]
+[para]
+
+By default, each channel is restricted to accepting connections from
+the local system.  This can be overridden by using the
+
+[option {-local 0}] configuration option For such channels, the
+
+[emph id] parameter takes the form [emph "\{ id host \}"].
+
+[para]
+
+[emph WARNING]: The [emph host] must always be specified in the same
+form (e.g., as either a fully qualified domain name, plain hostname or
+an IP address).
+
+[subsection {Closing Connections}]
+[para]
+
+These methods give control over closing connections:
+
+[list_begin definitions]
+
+[call [cmd {::comm::comm shutdown}] [arg id]]
+
+This closes the connection to [arg id], aborting all outstanding
+commands in progress.  Note that nothing prevents the connection from
+being immediately reopened by another incoming or outgoing command.
+
+[call [cmd {::comm::comm abort}]]
+
+This invokes shutdown on all open connections in this comm channel.
+
+[call [cmd {::comm::comm destroy}]]
+
+This aborts all connections and then destroys the this comm channel
+itself, including closing the listening socket.  Special code allows
+the default [cmd ::comm::comm] channel to be closed such that the
+
+[cmd ::comm::comm] command it is not destroyed.  Doing so closes the
+listening socket, preventing both incoming and outgoing commands on
+the channel.  This sequence reinitializes the default channel:
+
+[para]
+[example {
+    "::comm::comm destroy; ::comm::comm new ::comm::comm"
+}]
+
+[list_end]
+
+[para]
+
+When a remote connection is lost (because the remote exited or called
+[cmd shutdown]), [package comm] can invoke an application callback.
+This can be used to cleanup or restart an ancillary process, for
+instance.  See the [term lost] callback below.
+
+[subsection Callbacks]
+[para]
+This is a mechanism for setting hooks for particular events:
+
+[list_begin definitions]
+
+[call [cmd {::comm::comm hook}] [arg event] [opt [const +]] [opt [arg script]]]
+
+This uses a syntax similar to Tk's [cmd bind] command.  Prefixing
+
+[arg script] with a [const +] causes the new script to be appended.
+Without this, a new [arg script] replaces any existing script.  When
+invoked without a script, no change is made.  In all cases, the new
+hook script is returned by the command.
+
+[para]
+
+When an [arg event] occurs, the [arg script] associated with it is
+evaluated with the listed variables in scope and available.  The
+return code ([emph not] the return value) of the script is commonly
+used decide how to further process after the hook.
+
+[para]
+Common variables include:
+
+[list_begin definitions]
+
+[def [var chan]]
+the name of the comm channel (and command)
+
+[def [var id]]
+the id of the remote in question
+
+[def [var fid]]
+the file id for the socket of the connection
+
+[list_end]
+[list_end]
+
+[para]
+These are the defined [emph events]:
+
+[list_begin definitions]
+
+[def [const connecting]]
+
+Variables:
+[var chan], [var id]
+[comment {[var host], and [var port] are NOT defined when this is called}]
+[para]
+
+This hook is invoked before making a connection to the remote named in
+[arg id].  An error return (via [cmd error]) will abort the connection
+attempt with the error.  Example:
+
+[para]
+[example {
+    % ::comm::comm hook connecting {
+        if {[string match {*[02468]} $id]} {
+            error "Can't connect to even ids"
+        }
+    }
+    % ::comm::comm send 10000 puts ok
+    Connect to remote failed: Can't connect to even ids
+    %
+}]
+
+[def [const connected]]
+
+Variables:
+[var chan], [var fid], [var id], [var host], and [var port].
+[para]
+
+This hook is invoked immediately after making a remote connection to
+[arg id], allowing arbitrary authentication over the socket named by
+[arg fid].  An error return (via [cmd error] ) will close the
+connection with the error.  [arg host] and [arg port] are merely
+extracted from the [arg id]; changing any of these will have no effect
+on the connection, however.  It is also possible to substitute and
+replace [arg fid].
+
+[def [const incoming]]
+
+Variables:
+[var chan], [var fid], [var addr], and [var remport].
+[para]
+
+Hook invoked when receiving an incoming connection, allowing arbitrary
+authentication over socket named by [arg fid].  An error return (via
+[cmd error]) will close the connection with the error.  Note that the
+peer is named by [arg remport] and [arg addr] but that the remote
+[emph id] is still unknown.  Example:
+
+[para]
+[example {
+    ::comm::comm hook incoming {
+        if {[string match 127.0.0.1 $addr]} {
+            error "I don't talk to myself"
+        }
+    }
+}]
+
+[def [const eval]]
+
+Variables:
+[var chan], [var id], [var cmd], and [var buffer].
+[para]
+
+This hook is invoked after collecting a complete script from a remote
+but [emph before] evaluating it.  This allows complete control over
+the processing of incoming commands.  [arg cmd] contains either
+[const send] or [const async].  [arg buffer] holds the script to
+evaluate.  At the time the hook is called, [arg {$chan remoteid}] is
+identical in value to [arg id].
+
+[para]
+
+By changing [arg buffer], the hook can change the script to be
+evaluated.  The hook can short circuit evaluation and cause a value to
+be immediately returned by using [cmd return] [arg result] (or, from
+within a procedure, [cmd {return -code return}] [arg result]).  An
+error return (via [cmd error]) will return an error result, as is if
+the script caused the error.  Any other return will evaluate the
+script in [arg buffer] as normal.  For compatibility with 3.2,
+
+[cmd break] and [cmd {return -code break}] [arg result] is supported,
+acting similarly to [cmd {return {}}] and [cmd {return -code return}]
+[arg result].
+
+[para]
+
+Examples:
+
+[list_begin enumerated]
+
+[enum]
+augmenting a command
+[para]
+[example {
+    % ::comm::comm send [::comm::comm self] pid
+    5013
+    % ::comm::comm hook eval {puts "going to execute $buffer"}
+    % ::comm::comm send [::comm::comm self] pid
+    going to execute pid
+    5013
+}]
+
+[enum]
+short circuiting a command
+[para]
+[example {
+    % ::comm::comm hook eval {puts "would have executed $buffer"; return 0}
+    % ::comm::comm send [::comm::comm self] pid
+    would have executed pid
+    0
+}]
+
+[enum]
+Replacing double eval semantics
+[para]
+[example {
+    % ::comm::comm send [::comm::comm self] llength {a b c}
+    wrong # args: should be "llength list"
+    % ::comm::comm hook eval {return [uplevel #0 $buffer]}
+    return [uplevel #0 $buffer]
+    % ::comm::comm send [::comm::comm self] llength {a b c}
+    3
+}]
+
+[enum]
+Using a slave interpreter
+[para]
+[example {
+    % interp create foo
+    % ::comm::comm hook eval {return [foo eval $buffer]}
+    % ::comm::comm send [::comm::comm self] set myvar 123
+    123
+    % set myvar
+    can't read "myvar": no such variable
+    % foo eval set myvar
+    123
+}]
+
+[enum]
+Using a slave interpreter (double eval)
+[para]
+[example {
+    % ::comm::comm hook eval {return [eval foo eval $buffer]}
+}]
+
+[enum]
+Subverting the script to execute
+[para]
+[example {
+    % ::comm::comm hook eval {
+        switch -- $buffer {
+            a {return A-OK}
+            b {return B-OK}
+            default {error "$buffer is a no-no"}
+        }
+    }
+    % ::comm::comm send [::comm::comm self] pid
+    pid is a no-no
+    % ::comm::comm send [::comm::comm self] a
+    A-OK
+}]
+
+[list_end]
+
+[def [const reply]]
+
+Variables:
+[var chan], [var id], [var buffer], [var ret], and [var return()].
+[para]
+
+This hook is invoked after collecting a complete reply script from a
+remote but [emph before] evaluating it.  This allows complete
+control over the processing of replies to sent commands.  The reply
+[arg buffer] is in one of the following forms
+
+[list_begin itemized]
+[item]
+return result
+[item]
+return -code code result
+[item]
+return -code code -errorinfo info -errorcode ecode msg
+[list_end]
+[para]
+
+For safety reasons, this is decomposed.  The return result is in
+[arg ret], and the return switches are in the return array:
+
+[list_begin itemized]
+[item]
+[emph return(-code)]
+[item]
+[emph return(-errorinfo)]
+[item]
+[emph return(-errorcode)]
+[list_end]
+[para]
+
+Any of these may be the empty string.  Modifying these four variables
+can change the return value, whereas modifying [arg buffer] has no
+effect.
+
+[def [const callback]]
+
+Variables:
+[var chan], [var id], [var buffer], [var ret], and [var return()].
+[para]
+
+Similar to [emph reply], but used for callbacks.
+
+[def [const lost]]
+
+Variables:
+[var chan], [var id], and [var reason].
+[para]
+
+This hook is invoked when the connection to [var id] is lost.  Return
+value (or thrown error) is ignored.  [arg reason] is an explanatory
+string indicating why the connection was lost.  Example:
+
+[para]
+
+[example {
+    ::comm::comm hook lost {
+        global myvar
+        if {$myvar(id) == $id} {
+            myfunc
+            return
+        }
+    }
+}]
+
+[list_end]
+
+[subsection Unsupported]
+[para]
+These interfaces may change or go away in subsequence releases.
+
+[list_begin definitions]
+[call [cmd {::comm::comm remoteid}]]
+
+Returns the [arg id] of the sender of the last remote command
+executed on this channel.  If used by a proc being invoked remotely,
+it must be called before any events are processed.  Otherwise, another
+command may get invoked and change the value.
+
+[call [cmd ::comm::comm_send]]
+
+Invoking this procedure will substitute the Tk [cmd send] and
+[cmd {winfo interps}] commands with these equivalents that use
+[cmd ::comm::comm].
+
+[para]
+
+[example {
+    proc send {args} {
+        eval ::comm::comm send $args
+    }
+    rename winfo tk_winfo
+    proc winfo {cmd args} {
+        if {![string match in* $cmd]} {
+            return [eval [list tk_winfo $cmd] $args]
+        }
+        return [::comm::comm interps]
+    }
+}]
+
+[list_end]
+
+[subsection Security]
+
+Starting with version 4.6 of the package an option [option -socketcmd]
+is supported, allowing the user of a comm channel to specify which
+command to use when opening a socket. Anything which is API-compatible
+with the builtin [cmd ::socket] (the default) can be used.
+
+[para]
+
+The envisioned main use is the specification of the [cmd tls::socket]
+command, see package [package tls], to secure the communication.
+
+[para]
+[example {
+	# Load and initialize tls
+	package require tls
+	tls::init  -cafile /path/to/ca/cert -keyfile ...
+
+	# Create secured comm channel
+	::comm::comm new SECURE -socketcmd tls::socket -listen 1
+	...
+}]
+
+[para]
+
+The sections [sectref {Execution Environment}] and [sectref Callbacks]
+are also relevant to the security of the system, providing means to
+restrict the execution to a specific environment, perform additional
+authentication, and the like.
+
+[subsection {Blocking Semantics}]
+
+[para]
+
+There is one outstanding difference between [package comm] and
+
+[cmd send].  When blocking in a synchronous remote command, [cmd send]
+uses an internal C hook (Tk_RestrictEvents) to the event loop to look
+ahead for send-related events and only process those without
+processing any other events.  In contrast, [package comm] uses the
+
+[cmd vwait] command as a semaphore to indicate the return message has
+arrived.  The difference is that a synchronous [cmd send] will block
+the application and prevent all events (including window related ones)
+from being processed, while a synchronous [cmd {::comm::comm send}]
+will block the application but still allow other events to get
+processed.  In particular, [cmd {after idle}] handlers will fire
+immediately when comm blocks.
+
+[para]
+
+What can be done about this?  First, note that this behavior will come
+from any code using [cmd vwait] to block and wait for an event to
+occur.  At the cost of multiple channel support, [package comm] could
+be changed to do blocking I/O on the socket, giving send-like blocking
+semantics.  However, multiple channel support is a very useful feature
+of comm that it is deemed too important to lose.  The remaining
+approaches involve a new loadable module written in C (which is
+somewhat against the philosophy of [cmd comm ]) One way would be to
+create a modified version of the [cmd vwait] command that allow the
+event flags passed to Tcl_DoOneEvent to be specified.  For [cmd comm],
+just the TCL_FILE_EVENTS would be processed.  Another way would be to
+implement a mechanism like Tk_RestrictEvents, but apply it to the Tcl
+event loop (since [package comm] doesn't require Tk).  One of these
+approaches will be available in a future [package comm] release as an
+optional component.
+
+[subsection {Asynchronous Result Generation}]
+
+By default the result returned by a remotely invoked command is the
+result sent back to the invoker. This means that the result is
+generated synchronously, and the server handling the call is blocked
+for the duration of the command.
+
+[para]
+
+While this is tolerable as long as only short-running commands are
+invoked on the server long-running commands, like database queries
+make this a problem. One command can prevent the processing requests
+of all other clients for an arbitrary period of time.
+
+[para]
+
+Before version 4.5 of comm the only solution was to rewrite the server
+command to use the Tcl builtin command [cmd vwait], or one of its
+relatives like [cmd tkwait], to open a new event loop which processes
+requests while the long-running operation is executed. This however
+has its own perils, as this makes it possible to both overflow the Tcl
+stack with a large number of event loop, and to have a newer requests
+block the return of older ones, as the eventloop have to be unwound in
+the order of their creation.
+
+[para]
+
+The proper solution is to have the invoked command indicate to
+[package comm] that it cannot or will not deliver an immediate,
+synchronous result, but will do so later. At that point the framework
+can put sending the actual result on hold and continue processing
+requests using the main event loop. No blocking, no nesting of event
+loops. At some future date the long running operation delivers the
+result to comm, via the future object, which is then forwarded to the
+invoker as usual.
+
+[para]
+
+The necessary support for this solution has been added to comm since
+version 4.5, in the form of the new method [method return_async].
+
+[list_begin definitions]
+[call [cmd {::comm::comm return_async}]]
+
+This command is used by a remotely invoked script to notify the comm
+channel which invoked it that the result to send back to the invoker
+is not generated synchronously. If this command is not called the
+default/standard behaviour of comm is to send the synchronously
+generated result of the script itself to the invoker.
+
+[para]
+
+The result of [cmd return_async] is an object. This object, called a
+[term future] is where the result of the script has to be delivered to
+when it becomes ready. When that happens it will take all the
+necessary actions to deliver the result to the invoker of the script,
+and then destroy itself. Should comm have lost the connection to the
+invoker while the result is being computed the future will not try to
+deliver the result it got, but just destroy itself. The future can be
+configured with a command to call when the invoker is lost. This
+enables the user to implement an early abort of the long-running
+operation, should this be supported by it.
+
+[para]
+An example:
+
+[example {
+# Procedure invoked by remote clients to run database operations.
+proc select {sql} {
+    # Signal the async generation of the result
+
+    set future [::comm::comm return_async]
+
+    # Generate an async db operation and tell it where to deliver the result.
+
+    set query [db query -command [list $future return] $sql]
+
+    # Tell the database system which query to cancel if the connection
+    # goes away while it is running.
+
+    $future configure -command [list db cancel $query]
+
+    # Note: The above will work without problem only if the async
+    # query will nover run its completion callback immediately, but
+    # only from the eventloop. Because otherwise the future we wish to
+    # configure may already be gone. If that is possible use 'catch'
+    # to prevent the error from propagating.
+    return
+}
+}]
+[para]
+
+The API of a future object is:
+
+[list_begin definitions]
+[call [cmd \$future] [method return] [opt "[option -code] [arg code]"] [opt [arg value]]]
+
+Use this method to tell the future that long-running operation has
+completed. Arguments are an optional return value (defaults to the
+empty string), and the Tcl return code (defaults to OK).
+
+[para]
+
+The future will deliver this information to invoker, if the connection
+was not lost in the meantime, and then destroy itself. If the
+connection was lost it will do nothing but destroy itself.
+
+[call [cmd \$future] [method configure] [opt "[option -command] [opt [arg cmdprefix]]"]]
+[call [cmd \$future] [method cget] [option -command]]
+
+These methods allow the user to retrieve and set a command to be
+called if the connection the future belongs to has been lost.
+
+[list_end]
+
+[list_end]
+
+[subsection Compatibility]
+[para]
+
+[package comm] exports itself as a package.  The package version number
+is in the form [emph "major . minor"], where the major version will
+only change when a non-compatible change happens to the API or
+protocol.  Minor bug fixes and changes will only affect the minor
+version.  To load [package comm] this command is usually used:
+
+[para]
+[example {
+    package require comm 3
+}]
+
+[para]
+Note that requiring no version (or a specific version) can also be done.
+
+[para]
+The revision history of [package comm] includes these releases:
+
+[list_begin definitions]
+
+[def 4.6.3]
+
+Fixed ticket [lb]ced0d60fc9[rb]. Added proper detection of eof on a
+socket, properly closing it.
+
+[def 4.6.2]
+
+Fixed bugs 2972571 and 3066872, the first a misdetection of quoted
+brace after double backslash, the other a blocking gets making for an
+obvious (hinsight) DoS attack on comm channels.
+
+[def 4.6.1]
+
+Changed the implementation of [cmd comm::commCollect] to emulate
+lindex's pre-Tcl 8 behaviour, i.e. it was given the ability to parse
+out the first word of a list, even if the whole buffer is not a
+well-formed list. Without this change the first word could only be
+extracted if the whole buffer was a well-formed list (ever since Tcl
+8), and in a ver-high-load situation, i.e. a server sending lots
+and/or large commands very fast, this may never happen, eventually
+crashing the receiver when it runs out of memory. With the change the
+receiver is always able to process the first word when it becomes
+well-formed, regardless of the structure of the remainder of the
+buffer.
+
+[def 4.6]
+
+Added the option [option -socketcmd] enabling users to override how a
+socket is opened. The envisioned main use is the specification of the
+[cmd tls::socket] command, see package [package tls], to secure the
+communication.
+
+[def 4.5.7]
+
+Changed handling of ports already in use to provide a proper error
+message.
+
+[def 4.5.6]
+
+Bugfix in the replacement for [cmd vwait], made robust against of
+variable names containing spaces.
+
+[def 4.5.5]
+
+Bugfix in the handling of hooks, typo in variable name.
+
+[def 4.5.4]
+
+Bugfix in the handling of the result received by the [method send]
+method. Replaced an [emph {after idle unset result}] with an immediate
+[cmd unset], with the information saved to a local variable.
+
+[para]
+
+The [cmd {after idle}] can spill into a forked child process if there
+is no event loop between its setup and the fork. This may bork the
+child if the next event loop is the [cmd vwait] of [package comm]'s
+[method send] a few lines above the [cmd {after idle}], and the child
+used the same serial number for its next request. In that case the
+parent's [cmd {after idle unset}] will delete the very array element
+the child is waiting for, unlocking the [cmd vwait], causing it to
+access a now missing array element, instead of the expected result.
+
+[def 4.5.3]
+
+Bugfixes in the wrappers for the builtin [cmd update] and [cmd vwait]
+commands.
+
+[def 4.5.2]
+
+Bugfix in the wrapper for the builtin [cmd update] command.
+
+[def 4.5.1]
+
+Bugfixes in the handling of -interp for regular scripts. The handling
+of the buffer was wrong for scripts which are a single statement as
+list. Fixed missing argument to new command [cmd commSendReply],
+introduced by version 4.5. Affected debugging.
+
+[def 4.5]
+
+New server-side feature. The command invoked on the server can now
+switch comm from the standard synchronous return of its result to an
+asynchronous (defered) return. Due to the use of snit to implement the
+[term future] objects used by this feature from this version on comm
+requires at least Tcl 8.3 to run. Please read the section
+[sectref {Asynchronous Result Generation}] for more details.
+
+[def 4.4.1]
+
+Bugfix in the execution of hooks.
+
+[def 4.4]
+
+Bugfixes in the handling of -interp for regular and hook
+scripts. Bugfixes in channel cleanup.
+
+[def 4.3.1]
+
+Introduced -interp and -events to enable easy use of a slave interp
+for execution of received scripts, and of event scripts.
+
+[def 4.3]
+
+Bugfixes, and introduces -silent to allow the user to force the
+server/listening side to silently ignore connection attempts where the
+protocol negotiation failed.
+
+[def 4.2]
+
+Bugfixes, and most important, switched to utf-8 as default encoding
+for full i18n without any problems.
+
+[def 4.1]
+
+Rewrite of internal code to remove old pseudo-object model.  Addition
+of send -command asynchronous callback option.
+
+[def 4.0]
+
+Per request by John LoVerso. Improved handling of error for async
+invoked commands.
+
+[def 3.7]
+
+Moved into tcllib and placed in a proper namespace.
+
+[def 3.6]
+
+A bug in the looking up of the remoteid for a executed command could
+be triggered when the connection was closed while several asynchronous
+sends were queued to be executed.
+
+[def 3.5]
+
+Internal change to how reply messages from a [cmd send] are handled.
+Reply messages are now decoded into the [arg value] to pass to
+
+[cmd return]; a new return statement is then cons'd up to with this
+value.  Previously, the return code was passed in from the remote as a
+command to evaluate.  Since the wire protocol has not changed, this is
+still the case.  Instead, the reply handling code decodes the
+
+[const reply] message.
+
+[def 3.4]
+
+Added more source commentary, as well as documenting config variables
+in this man page.  Fixed bug were loss of connection would give error
+about a variable named [var pending] rather than the message about
+the lost connection.  [cmd {comm ids}] is now an alias for
+
+[cmd {comm interps}] (previously, it an alias for [cmd {comm chans}]).
+Since the method invocation change of 3.0, break and other exceptional
+conditions were not being returned correctly from [cmd {comm send}].
+This has been fixed by removing the extra level of indirection into
+the internal procedure [cmd commSend].  Also added propagation of
+the [arg errorCode] variable.  This means that these commands return
+exactly as they would with [cmd send]:
+
+[para]
+[example {
+    comm send id break
+    catch {comm send id break}
+    comm send id expr 1 / 0
+}]
+[para]
+
+Added a new hook for reply messages.  Reworked method invocation to
+avoid the use of comm:* procedures; this also cut the invocation time
+down by 40%.  Documented [cmd {comm config}] (as this manual page
+still listed the defunct [cmd {comm init}]!)
+
+[def 3.3]
+
+Some minor bugs were corrected and the documentation was cleaned up.
+Added some examples for hooks.  The return semantics of the [cmd eval]
+hook were changed.
+
+[def 3.2]
+
+A new wire protocol, version 3, was added.  This is backwards
+compatible with version 2 but adds an exchange of supported protocol
+versions to allow protocol negotiation in the future.  Several bugs
+with the hook implementation were fixed.  A new section of the man
+page on blocking semantics was added.
+
+[def 3.1]
+
+All the documented hooks were implemented.  [cmd commLostHook] was
+removed.  A bug in [cmd {comm new}] was fixed.
+
+[def 3.0]
+
+This is a new version of [package comm] with several major changes.
+There is a new way of creating the methods available under the
+
+[cmd comm] command.  The [cmd {comm init}] method has been retired
+and is replaced by [cmd {comm configure}] which allows access to many
+of the well-defined internal variables.  This also generalizes the
+options available to [cmd {comm new}].  Finally, there is now a
+protocol version exchanged when a connection is established.  This
+will allow for future on-wire protocol changes.  Currently, the
+protocol version is set to 2.
+
+[def 2.3]
+
+[cmd {comm ids}] was renamed to [cmd {comm channels}].  General
+support for [cmd {comm hook}] was fully implemented, but only the
+[term lost] hook exists, and it was changed to follow the general
+hook API.  [cmd commLostHook] was unsupported (replaced by
+
+[cmd {comm hook lost}]) and [cmd commLost] was removed.
+
+[def 2.2]
+
+The [term died] hook was renamed [term lost], to be accessed by
+[cmd commLostHook] and an early implementation of
+[cmd {comm lost hook}].  As such, [cmd commDied] is now
+[cmd commLost].
+
+[def 2.1]
+Unsupported method [cmd {comm remoteid}] was added.
+
+[def 2.0]
+[package comm] has been rewritten from scratch (but is fully compatible
+with Comm 1.0, without the requirement to use obTcl).
+
+[list_end]
+
+[include ../common-text/tls-security-notes.inc]
+
+[section Author]
+
+John LoVerso, John@LoVerso.Southborough.MA.US
+
+[para]
+
+[emph http://www.opengroup.org/~loverso/tcl-tk/#comm]
+
+[section License]
+
+Please see the file [emph comm.LICENSE] that accompanied this source,
+or
+[uri http://www.opengroup.org/www/dist_client/caubweb/COPYRIGHT.free.html].
+
+[para]
+
+This license for [package comm], new as of version 3.2, allows it to be
+used for free, without any licensing fee or royalty.
+
+[section Bugs]
+[list_begin itemized]
+[item]
+
+If there is a failure initializing a channel created with
+[cmd {::comm::comm new}], then the channel should be destroyed.
+Currently, it is left in an inconsistent state.
+
+[item]
+
+There should be a way to force a channel to quiesce when changing the
+configuration.
+
+[list_end]
+
+[para]
+The following items can be implemented with the existing hooks and are
+listed here as a reminder to provide a sample hook in a future
+version.
+
+[list_begin itemized]
+[item]
+
+Allow easier use of a slave interp for actual command execution
+(especially when operating in "not local" mode).
+
+[item]
+
+Add host list (xhost-like) or "magic cookie" (xauth-like)
+authentication to initial handshake.
+
+[list_end]
+
+[para]
+The following are outstanding todo items.
+
+[list_begin itemized]
+[item]
+
+Add an interp discovery and name->port mapping.  This is likely to be
+in a separate, optional nameserver.  (See also the related work,
+below.)
+
+[item]
+
+Fix the [emph {{id host}}] form so as not to be dependent upon
+canonical hostnames.  This requires fixes to Tcl to resolve hostnames!
+
+[list_end]
+
+[para]
+This man page is bigger than the source file.
+
+[section {On Using Old Versions Of Tcl}]
+
+[para]
+Tcl7.5 under Windows contains a bug that causes the interpreter to
+hang when EOF is reached on non-blocking sockets.  This can be
+triggered with a command such as this:
+
+[para]
+[example {
+    "comm send $other exit"
+}]
+
+[para]
+Always make sure the channel is quiescent before closing/exiting or
+use at least Tcl7.6 under Windows.
+
+[para]
+Tcl7.6 on the Mac contains several bugs.  It is recommended you use
+at least Tcl7.6p2.
+
+[para]
+Tcl8.0 on UNIX contains a socket bug that can crash Tcl.  It is recommended
+you use Tcl8.0p1 (or Tcl7.6p2).
+
+[section {Related Work}]
+[para]
+Tcl-DP provides an RPC-based remote execution interface, but is a
+compiled Tcl extension.  See
+[uri http://www.cs.cornell.edu/Info/Projects/zeno/Projects/Tcl-DP.html].
+
+[para]
+Michael Doyle <miked@eolas.com> has code that implements the Tcl-DP
+RPC interface using standard Tcl sockets, much like [package comm].
+
+[para]
+Andreas Kupries <andreas_kupries@users.sourceforge.net> uses
+[package comm] and has built a simple nameserver as part of his Pool
+library.  See [uri http://www.purl.org/net/akupries/soft/pool/index.htm].
+
+[vset CATEGORY comm]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

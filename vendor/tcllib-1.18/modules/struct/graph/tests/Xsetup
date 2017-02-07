@@ -1,0 +1,100 @@
+# -*- tcl -*-
+# graph.testsuite.setup:  Setting up implementation specific definitions.
+#
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: Xsetup,v 1.4 2009/11/03 17:38:30 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+# tmWrong   - wrong#args generation, missing arguments
+# tmTooMany - wrong#args generation, too many arguments
+# MY        - variable holding the name of the graph instance found in
+#             error messages.
+
+# -------------------------------------------------------------------------
+
+::tcltest::testConstraint graph_critcl [string equal $impl critcl]
+
+switch -exact -- $setimpl {
+    critcl {
+	proc tmSE {tcl critcl} {return $critcl}
+    }
+    tcl {
+	proc tmSE {tcl critcl} {return $tcl}
+    }
+}
+
+switch -exact -- $impl {
+    critcl {
+	set MY mygraph
+
+	proc tmWrong {m loarg n {xarg {}}} {
+	    return [tcltest::wrongNumArgs "mygraph $m" $loarg $n]
+	}
+
+	proc tmTooMany {m loarg {xarg {}}} {
+	    return [tcltest::tooManyArgs "mygraph $m" $loarg]
+	}
+
+	proc tmE {tcl critcl} {return $critcl}
+
+	if {[package vsatisfies [package present Tcl] 8.5]} {
+	    proc tmWrongA {m loarg n {xarg {}}} {
+		if {[llength $m] > 1} {set m [lindex $m 1]}
+		return [tcltest::wrongNumArgs "CMD $m" $loarg $n]
+	    }
+
+	    proc tmTooManyA {m loarg {xarg {}}} {
+		if {[llength $m] > 1} {set m [lindex $m 1]}
+		return [tcltest::tooManyArgs "CMD $m" $loarg]
+	    }
+	} else {
+	    proc tmWrongA {m loarg n {xarg {}}} {
+		return [tcltest::wrongNumArgs "mygraph $m" $loarg $n]
+	    }
+
+	    proc tmTooManyA {m loarg {xarg {}}} {
+		return [tcltest::tooManyArgs "mygraph $m" $loarg]
+	    }
+	}
+    }
+    tcl {
+	set MY ::mygraph
+
+	proc tmWrong {m loarg n {xarg {}}} {
+	    if {$xarg == {}} {set xarg $loarg}
+	    if {$xarg != {}} {set xarg " $xarg"}
+	    if {[llength $m] > 1} {set m _[join $m _]}
+	    incr n
+	    return [tcltest::wrongNumArgs "::struct::graph::_$m" "name$xarg" $n]
+	}
+
+	proc tmTooMany {m loarg {xarg {}}} {
+	    if {$xarg == {}} {set xarg $loarg}
+	    if {$xarg != {}} {set xarg " $xarg"}
+	    if {[llength $m] > 1} {set m _[join $m _]}
+	    return [tcltest::tooManyArgs "::struct::graph::_$m" "name$xarg"]
+	}
+
+	proc tmWrongA {m loarg n {xarg {}}} {
+	    if {$xarg == {}} {set xarg $loarg}
+	    if {$xarg != {}} {set xarg " $xarg"}
+	    if {[llength $m] > 1} {set m _[join $m _]}
+	    incr n
+	    return [tcltest::wrongNumArgs "::struct::graph::_$m" "name$xarg" $n]
+	}
+
+	proc tmTooManyA {m loarg {xarg {}}} {
+	    if {$xarg == {}} {set xarg $loarg}
+	    if {$xarg != {}} {set xarg " $xarg"}
+	    if {[llength $m] > 1} {set m _[join $m _]}
+	    return [tcltest::tooManyArgs "::struct::graph::_$m" "name$xarg"]
+	}
+
+	proc tmE {tcl critcl} {return $tcl}
+    }
+}
+
+# -------------------------------------------------------------------------

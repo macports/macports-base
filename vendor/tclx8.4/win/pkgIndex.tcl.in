@@ -1,0 +1,5 @@
+# Package index for TclX @TCLX_FULL_VERSION@.
+#
+if {![package vsatisfies [package provide Tcl] 8.4]} { return }
+package ifneeded Tclx @PACKAGE_VERSION@ \
+    [list load [file join $dir @PKG_LIB_FILE@] Tclx]

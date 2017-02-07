@@ -1,0 +1,117 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-03-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pluginmgr.tcl: Hook into the log system of the SafeBase to get
+	* pkgIndex.tcl: more detailed error information when a plugin
+	* pluginmgr.man: could not be loaded. Bumped to version 0.3
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-19  Andreas Kupries  <akupries@shaw.ca>
+
+	* pluginmgr.tcl (AddPaths): Fixed typo in the code converting the
+	* pluginmgr.man: package pattern into a regular expression. A
+	* pkgIndex.tcl: bogus space char separated * from its quoting
+	  backslash, end result was a RE pattern without capturing
+	  parentheses, so the plugin name was never properly extracted
+	  from the package name. This fixes [SF Tcllib Bug 1798210].
+	  Thanks to Jeremy Cowgar for the report. Additionally added
+	  support for directory 'plugins' in the dot-directories
+	  (pluginmgr::path). Package version bumped to 0.2.
+
+2007-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* pluginmgr.man: Fixed typo in the example, used the wrong
+	  dot-path (.../plugins, should be .../plugin). Thanks to Jeremy
+	  Cowgar for finding this.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-06-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pluginmgr.tcl: Replaced deprecated {expand} syntax in comments
+	  with {*}.
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pluginmgr.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-07-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pluginmgr.tcl: Added and documented option -setup,
+	* pluginmgr.man: and clone method.
+
+2005-06-17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pluginmgr.tcl: Validation now reports missing API commands. Set
+	  plugin name before external check, so that the callback can use
+	  'do' when inspecting the plugin. Command setup has no need for
+	  alias deletion, interpreters are always new and clean.
+
+	* plugin.tcl: Changed completely to a package based approach,
+	* plugin.man: using the safe base for proper package
+	  handling. Plugins are packages. Framework has to perform only
+	  validation and initialization, not search.
+
+2005-04-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* plugin.tcl: Updated to changed method names in path, added
+	* plugin.man: method 'interpreter', and fixed bug in alias
+	  creation.
+
+2005-04-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* plugin.man: New module for the management of plugins.
+	* plugin.tcl:
+	* pkgIndex.tcl:
+

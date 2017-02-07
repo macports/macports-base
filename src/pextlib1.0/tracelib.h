@@ -2,7 +2,6 @@
  */
 /*
  * tracelib.h
- * $Id$
  *
  * Copyright (c) 2007 Eugene Pimenov (GSoC), The MacPorts Project.
  * All rights reserved.

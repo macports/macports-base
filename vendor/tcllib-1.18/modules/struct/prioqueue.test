@@ -1,0 +1,511 @@
+# -*- tcl -*-
+# prioqueue.test:  tests for the prioqueue package.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# Copyright (c) 2002 Michael Schlenker
+# All rights reserved.
+#
+# RCS: @(#) $Id: prioqueue.test,v 1.10 2008/09/04 04:35:02 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal prioqueue.tcl struct::prioqueue
+}
+
+# -------------------------------------------------------------------------
+
+namespace import -force struct::prioqueue
+
+#----------------------------------------------------------------------
+
+test prioqueue-0.1 {prioqueue errors} {
+    prioqueue -integer myprioqueue
+    catch {prioqueue myprioqueue} msg
+    myprioqueue destroy
+    set msg
+} "command \"myprioqueue\" already exists, unable to create prioqueue"
+test prioqueue-0.2 {prioqueue errors} {
+    prioqueue myprioqueue
+    catch {myprioqueue} msg
+    myprioqueue destroy
+    set msg
+} "wrong # args: should be \"myprioqueue option ?arg arg ...?\""
+test prioqueue-0.3 {prioqueue errors} {
+    prioqueue myprioqueue
+    catch {myprioqueue foo} msg
+    myprioqueue destroy
+    set msg
+} "bad option \"foo\": must be clear, destroy, get, peek, put, remove, size, or peekpriority"
+test prioqueue-0.4 {prioqueue errors} {
+    catch {prioqueue set} msg
+    set msg
+} "command \"set\" already exists, unable to create prioqueue"
+
+test prioqueue-0.5 {prioqueue errors} {
+    catch {prioqueue -foo myprioqueue} msg
+    set msg
+} "unknown sort option \"-foo\""
+
+test prioqueue-0.6 {prioqueue errors} {
+    catch {prioqueue -foo} msg
+    set msg
+} "unknown sort option \"-foo\""
+
+test prioqueue-0.7 {prioqueue errors} {
+    catch {prioqueue -integer myprioqueue foo} msg
+    set msg
+} "wrong # args: should be \"prioqueue ?-ascii|-dictionary|-integer|-real? ?name?\""
+
+test prioqueue-0.8 {prioqueue errors} {
+    catch {prioqueue myprioqueue -integer} msg
+    set msg
+} "wrong argument position: should be \"prioqueue ?-ascii|-dictionary|-integer|-real? ?name?\""
+
+test prioqueue-1.1 {prioqueue creation} {
+    set foo [prioqueue myprioqueue]
+    set cmd [info commands ::myprioqueue]
+    set size [myprioqueue size]
+    myprioqueue destroy
+    list $foo $cmd $size
+} {myprioqueue ::myprioqueue 0}
+
+test prioqueue-1.2 {prioqueue creation} {
+    set foo [prioqueue]
+    set cmd [info commands ::$foo]
+    set size [$foo size]
+    $foo destroy
+    list $foo $cmd $size
+} {prioqueue1 ::prioqueue1 0}
+
+test prioqueue-1.3 {prioqueue creation} {
+    set foo [prioqueue -ascii]
+    set cmd [info commands ::$foo]
+    set size [$foo size]
+    $foo destroy
+    list $foo $cmd $size
+} {prioqueue2 ::prioqueue2 0}
+
+test prioqueue-1.5 {prioqueue creation} {
+    set foo [prioqueue -dictionary]
+    set cmd [info commands ::$foo]
+    set size [$foo size]
+    $foo destroy
+    list $foo $cmd $size
+} {prioqueue3 ::prioqueue3 0}
+
+test prioqueue-1.6 {prioqueue creation} {
+    set foo [prioqueue -integer]
+    set cmd [info commands ::$foo]
+    set size [$foo size]
+    $foo destroy
+    list $foo $cmd $size
+} {prioqueue4 ::prioqueue4 0}
+
+test prioqueue-1.7 {prioqueue creation} {
+    set foo [prioqueue -real]
+    set cmd [info commands ::$foo]
+    set size [$foo size]
+    $foo destroy
+    list $foo $cmd $size
+} {prioqueue5 ::prioqueue5 0}
+
+
+test prioqueue-2.1 {prioqueue destroy} {
+    prioqueue myprioqueue
+    myprioqueue destroy
+    info commands ::myprioqueue
+} {}
+
+test prioqueue-3.2 {size operation} {
+    prioqueue myprioqueue
+    myprioqueue put a 1 b 1 c 1 d 1 e 1 f 1 g 1
+    set size [myprioqueue size]
+    myprioqueue destroy
+    set size
+} 7
+test prioqueue-3.3 {size operation} {
+    prioqueue myprioqueue
+    myprioqueue put a 1 b 1 c 1 d 1 e 1 f 1 g 1
+    myprioqueue get 3
+    set size [myprioqueue size]
+    myprioqueue destroy
+    set size
+} 4
+test prioqueue-3.4 {size operation} {
+    prioqueue myprioqueue
+    myprioqueue put a 1 b 1 c 1 d 1 e 1 f 1 g 1 
+    myprioqueue get 3
+    myprioqueue peek 3
+    set size [myprioqueue size]
+    myprioqueue destroy
+    set size
+} 4
+    
+test prioqueue-4.1 {put operation} {
+    prioqueue myprioqueue
+    catch {myprioqueue put} msg
+    myprioqueue destroy
+    set msg
+} "wrong # args: should be \"myprioqueue put item prio ?item prio ...?\""
+
+test prioqueue-4.1a {put operation} {
+    prioqueue myprioqueue
+    catch {myprioqueue put a} msg
+    myprioqueue destroy
+    set msg
+} "wrong # args: should be \"myprioqueue put item prio ?item prio ...?\""
+
+test prioqueue-4.2 {put operation, singleton items} {
+    prioqueue myprioqueue
+    myprioqueue put a 1
+    myprioqueue put b 1
+    myprioqueue put c 1
+    set result [list [myprioqueue get] [myprioqueue get] [myprioqueue get]]
+    myprioqueue destroy
+    set result
+} "a b c"
+
+test prioqueue-4.3 {put operation, singleton items} {
+    prioqueue myprioqueue
+    myprioqueue put a 1
+    myprioqueue put b 2
+    myprioqueue put c 3
+    set result [list [myprioqueue get] [myprioqueue get] [myprioqueue get]]
+    myprioqueue destroy
+    set result
+} "c b a"
+
+test prioqueue-4.4 {put operation, singleton items} {
+    prioqueue myprioqueue
+    myprioqueue put a 3
+    myprioqueue put b 2
+    myprioqueue put c 1
+    set result [list [myprioqueue get] [myprioqueue get] [myprioqueue get]]
+    myprioqueue destroy
+    set result
+} "a b c"
+
+test prioqueue-4.5 {put operation, singleton items} {
+    prioqueue myprioqueue
+    myprioqueue put a 3
+    myprioqueue put b 1
+    myprioqueue put c 2
+    set result [list [myprioqueue get] [myprioqueue get] [myprioqueue get]]
+    myprioqueue destroy
+    set result
+} "a c b"
+
+test prioqueue-4.6 {put operation, singleton items} {
+    prioqueue -ascii myprioqueue 
+    myprioqueue put a a
+    myprioqueue put b b
+    myprioqueue put c c
+    set result [list [myprioqueue get] [myprioqueue get] [myprioqueue get]]
+    myprioqueue destroy
+    set result
+} "a b c"
+
+test prioqueue-4.7 {put operation, singleton items} {
+    prioqueue -dictionary myprioqueue
+    myprioqueue put a a
+    myprioqueue put b b
+    myprioqueue put c c
+    set result [list [myprioqueue get] [myprioqueue get] [myprioqueue get]]
+    myprioqueue destroy
+    set result
+} "a b c"
+
+test prioqueue-4.8 {put operation, singleton items} {
+    prioqueue -real myprioqueue
+    myprioqueue put a 1.0
+    myprioqueue put b 2.0
+    myprioqueue put c 3.0
+    set result [list [myprioqueue get] [myprioqueue get] [myprioqueue get]]
+    myprioqueue destroy
+    set result
+} "c b a"
+
+test prioqueue-4.9 {put operation, multiple items} {
+    prioqueue myprioqueue
+    myprioqueue put a 1 b 1 c 1
+    set result [list [myprioqueue get] [myprioqueue get] [myprioqueue get]]
+    myprioqueue destroy
+    set result
+} "a b c"
+
+test prioqueue-4.10 {put operation, spaces in items} {
+    prioqueue myprioqueue
+    myprioqueue put a 1 b 1 "foo bar" 1
+    set result [list [myprioqueue get] [myprioqueue get] [myprioqueue get]]
+    myprioqueue destroy
+    set result
+} [list a b "foo bar"]
+
+test prioqueue-4.11 {put operation, bad chars in items} {
+    prioqueue myprioqueue
+    myprioqueue put a 1 b 1 \{ 1
+    set result [list [myprioqueue get] [myprioqueue get] [myprioqueue get]]
+    myprioqueue destroy
+    set result
+} [list a b \{]
+
+test prioqueue-4.12 {put operation, bad priorities} {
+    prioqueue myprioqueue
+    catch {myprioqueue put a a} msg
+    myprioqueue destroy
+    set msg
+} {priority "a" is not an integer type value}
+
+test prioqueue-4.13 {put operation, bad priorities} {
+    prioqueue myprioqueue
+    catch {myprioqueue put a 1.01} msg
+    myprioqueue destroy
+    set msg
+} {priority "1.01" is not an integer type value}
+
+test prioqueue-4.14 {put operation, bad priorities} {
+    prioqueue -real myprioqueue 
+    catch {myprioqueue put a 1a} msg
+    myprioqueue destroy
+    set msg
+} {priority "1a" is not a real type value}
+
+test prioqueue-4.15 {put operation, bad priorities} {
+    prioqueue -real myprioqueue 
+    catch {myprioqueue put a a} msg
+    myprioqueue destroy
+    set msg
+} {priority "a" is not a real type value}
+
+test prioqueue-4.16 {put operation, checking priorities} {
+    prioqueue -ascii myprioqueue 
+    catch {myprioqueue put a 1.0} msg
+    myprioqueue destroy
+    set msg
+} {}
+
+test prioqueue-4.17 {put operation, checking priorities} {
+    prioqueue -dictionary myprioqueue 
+    catch {myprioqueue put a "1.0 +1"} msg
+    myprioqueue destroy
+    set msg
+} {}
+
+
+test prioqueue-5.1 {get operation} {
+    prioqueue myprioqueue
+    myprioqueue put a 1
+    myprioqueue put b 1
+    myprioqueue put c 1
+    set result [list [myprioqueue get] [myprioqueue get] [myprioqueue get]]
+    myprioqueue destroy
+    set result
+} [list a b c]
+
+test prioqueue-5.2 {get operation, multiple items} {
+    prioqueue myprioqueue
+    myprioqueue put a 1
+    myprioqueue put b 1
+    myprioqueue put c 1
+    set result [myprioqueue get 3]
+    myprioqueue destroy
+    set result
+} [list a b c]
+
+test prioqueue-6.1 {peek operation} {
+    prioqueue myprioqueue
+    myprioqueue put a 1
+    myprioqueue put b 1
+    myprioqueue put c 1
+    set result [list [myprioqueue peek] [myprioqueue peek] [myprioqueue peek]]
+    myprioqueue destroy
+    set result
+} [list a a a]
+
+test prioqueue-6.2 {peek operation} {
+    prioqueue myprioqueue
+    catch {myprioqueue peek 0} msg
+    myprioqueue destroy
+    set msg
+} {invalid item count 0}
+
+test prioqueue-6.3 {peek operation} {
+    prioqueue myprioqueue
+    catch {myprioqueue peek -1} msg
+    myprioqueue destroy
+    set msg
+} {invalid item count -1}
+
+test prioqueue-6.4 {peek operation} {
+    prioqueue myprioqueue
+    catch {myprioqueue peek} msg
+    myprioqueue destroy
+    set msg
+} {insufficient items in prioqueue to fill request}
+
+test prioqueue-6.5 {peek operation} {
+    prioqueue myprioqueue
+    myprioqueue put a 1
+    catch {myprioqueue peek 2} msg
+    myprioqueue destroy
+    set msg
+} {insufficient items in prioqueue to fill request}
+
+test prioqueue-6.6 {get operation, multiple items} {
+    prioqueue myprioqueue
+    myprioqueue put a 1
+    myprioqueue put b 1
+    myprioqueue put c 1
+    set result [list [myprioqueue peek 3] [myprioqueue get 3]]
+    myprioqueue destroy
+    set result
+} [list [list a b c] [list a b c]]
+
+test prioqueue-6.7 {get operation} {
+    prioqueue myprioqueue
+    catch {myprioqueue get 0} msg
+    myprioqueue destroy
+    set msg
+} {invalid item count 0}
+
+test prioqueue-6.8 {get operation} {
+    prioqueue myprioqueue
+    catch {myprioqueue get -1} msg
+    myprioqueue destroy
+    set msg
+} {invalid item count -1}
+
+test prioqueue-6.9 {get operation} {
+    prioqueue myprioqueue
+    catch {myprioqueue get} msg
+    myprioqueue destroy
+    set msg
+} {insufficient items in prioqueue to fill request}
+
+test prioqueue-6.10 {get operation} {
+    prioqueue myprioqueue
+    myprioqueue put a 1
+    catch {myprioqueue get 2} msg
+    myprioqueue destroy
+    set msg
+} {insufficient items in prioqueue to fill request}
+
+test prioqueue-7.1 {clear operation} {
+    prioqueue myprioqueue
+    myprioqueue put a 1
+    myprioqueue put b 1
+    myprioqueue put c 1
+    set result [list [myprioqueue peek 3]]
+    myprioqueue clear
+    lappend result [myprioqueue size]
+    myprioqueue destroy
+    set result
+} [list [list a b c] 0]
+
+test prioqueue-8.1 {peekpriority operation} {
+    prioqueue myprioqueue
+    myprioqueue put a 1
+    myprioqueue put b 2
+    myprioqueue put c 3
+    set result [list [myprioqueue peekpriority] [myprioqueue peekpriority] [myprioqueue peekpriority]]
+    myprioqueue destroy
+    set result
+} [list 3 3 3]
+
+test prioqueue-8.2 {peekpriority operation, multiple items} {
+    prioqueue myprioqueue
+    myprioqueue put a 1
+    myprioqueue put b 2
+    myprioqueue put c 3
+    set result [myprioqueue peekpriority 3]
+    myprioqueue destroy
+    set result
+} [list 3 2 1]
+
+
+test prioqueue-9.1 {stable ordering if inserting} {
+    prioqueue myprioqueue
+    myprioqueue put a 1
+    myprioqueue put b 2
+    myprioqueue put c 1
+    set result [myprioqueue peek 3]
+    myprioqueue destroy
+    set result
+} [list b a c ]
+
+test prioqueue-9.2 {stable ordering if inserting} {
+    prioqueue -real myprioqueue 
+    myprioqueue put a 1.0
+    myprioqueue put b 2.0
+    myprioqueue put c 1.0
+    set result [myprioqueue peek 3]
+    myprioqueue destroy
+    set result
+} [list b a c ]
+
+test prioqueue-9.3 {stable ordering if inserting} {
+    prioqueue -dictionary myprioqueue 
+    myprioqueue put a a
+    myprioqueue put b b
+    myprioqueue put c a
+    set result [myprioqueue peek 3]
+    myprioqueue destroy
+    set result
+} [list a c b]
+
+test prioqueue-9.4 {stable ordering if inserting} {
+    prioqueue -ascii myprioqueue 
+    myprioqueue put a a
+    myprioqueue put b b
+    myprioqueue put c a
+    set result [myprioqueue peek 3]
+    myprioqueue destroy
+    set result
+} [list a c b]
+
+test prioqueue-10.1 {test inserting} {
+    prioqueue -integer myprioqueue
+    myprioqueue put 1 1
+    myprioqueue put 2 5
+    myprioqueue put 3 7
+    myprioqueue put 4 6
+    myprioqueue put 5 0
+    set result [myprioqueue get 5]
+    myprioqueue destroy
+    set result
+} [list 3 4 2 1 5]
+
+test prioqueue-10.2 {test deleting} {
+    prioqueue -integer myprioqueue
+    myprioqueue put 1 1
+    myprioqueue put 2 2
+    myprioqueue put 3 3
+    myprioqueue put 4 4
+    set sizep [myprioqueue size]
+    myprioqueue remove 2
+    set sizen [myprioqueue size]
+    set result1 [expr {$sizep > $sizen}]
+    set result2 0
+    while {[myprioqueue size] > 0} {
+	set last [myprioqueue get]
+	if {$last == 2} {
+	    set result2 1
+	}
+    }
+    myprioqueue destroy
+    set result "$result1 $result2"
+} {1 0}
+
+testsuiteCleanup

@@ -1,0 +1,289 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin grammar::me::cpu n 0.2]
+[keywords grammar]
+[keywords parsing]
+[keywords {virtual machine}]
+[copyright {2005-2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Grammar operations and usage}]
+[titledesc {Virtual machine implementation II for parsing token streams}]
+[category  {Grammars and finite automata}]
+[require Tcl 8.4]
+[require grammar::me::cpu [opt 0.2]]
+[description]
+[para]
+
+This package provides an implementation of the ME virtual machine.
+
+Please go and read the document [syscmd grammar::me_intro] first if
+you do not know what a ME virtual machine is.
+
+[para]
+
+This implementation provides an object-based API and the machines are
+not truly tied to Tcl. A C implementation of the same API is quite
+possible.
+
+[para]
+
+Internally the package actually uses the value-based machine
+manipulation commands as provided by the package
+
+[package grammar::me::cpu::core] to perform its duties.
+
+[section API]
+[subsection {CLASS API}]
+
+The package directly provides only a single command for the
+construction of ME virtual machines.
+
+[list_begin definitions]
+
+[call [cmd ::grammar::me::cpu] [arg meName] [arg matchcode]]
+
+The command creates a new ME machine object with an associated global
+Tcl command whose name is [arg meName]. This command may be used to
+invoke various operations on the machine.
+
+It has the following general form:
+
+[list_begin definitions]
+[call [cmd meName] [method option] [opt [arg "arg arg ..."]]]
+
+[arg Option] and the [arg arg]s determine the exact behavior of the
+command.
+
+[list_end]
+[para]
+
+The argument [arg matchcode] contains the match instructions the
+machine has to execute while parsing the input stream. Please read
+section [sectref-external {MATCH CODE REPRESENTATION}] of the
+documentation for the package [package grammar::me::cpu::core] for
+the specification of the structure of this value.
+
+[para]
+
+The [arg tokmap] argument taken by the implementation provided by the
+package [package grammar::me::tcl] is here hidden inside of the match
+instructions and therefore not needed.
+
+[list_end]
+[para]
+
+[subsection {OBJECT API}]
+
+All ME virtual machine objects created by the class command specified
+in section [sectref {CLASS API}] support the methods listed below.
+
+[para]
+
+The machines provided by this package provide methods for operation in
+both push- and pull-styles. Push-style means that tokens are pushed
+into the machine state when they arrive, triggering further execution
+until they are consumed. In other words, this allows the machine to be
+suspended and resumed at will and an arbitrary number of times, the
+quasi-parallel operation of several machines, and the operation as
+part of the event loop.
+
+[list_begin definitions]
+[call [arg meName] [method lc] [arg location]]
+
+This method converts the location of a token given as offset in the
+input stream into the associated line number and column index. The
+result of the command is a 2-element list containing the two values,
+in the order mentioned in the previous sentence.
+
+This allows higher levels to convert the location information found in
+the error status and the generated AST into more human readable data.
+
+[para]
+
+[emph Note] that the command is not able to convert locations which
+have not been reached by the machine yet. In other words, if the
+machine has read 7 tokens the command is able to convert the offsets
+[const 0] to [const 6], but nothing beyond that. This also shows that
+it is not possible to convert offsets which refer to locations before
+the beginning of the stream.
+
+[call [arg meName] [method tok] [opt "[arg from] [opt [arg to]]"]]
+
+This method returns a Tcl list containing the part of the input stream
+between the locations [arg from] and [arg to] (both inclusive). If
+[arg to] is not specified it will default to the value of [arg from].
+If [arg from] is not specified either the whole input stream is returned.
+
+[para]
+
+Each element of the returned list is a list of four elements, the
+token, its associated lexeme, line number, and column index, in this
+order.
+
+This command places the same restrictions on its location arguments as
+the method [method lc].
+
+[call [arg meName] [method pc] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the current value of the stored program counter.
+
+[call [arg meName] [method iseof] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the current value of the stored eof flag.
+
+[call [arg meName] [method at] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the current location in the input stream.
+
+[call [arg meName] [method cc] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the current token.
+
+[call [arg meName] [method sv]]
+
+This command returns the current semantic value [term SV] stored in
+the machine. This is an abstract syntax tree as specified in the
+document [syscmd grammar::me_ast], section [sectref-external {AST VALUES}].
+
+[call [arg meName] [method ok]]
+
+This method returns the current match status [term OK].
+
+[call [arg meName] [method error]]
+
+This method returns the current error status [term ER].
+
+[call [arg meName] [method lstk] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the location stack.
+
+[call [arg meName] [method astk] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the AST stack.
+
+[call [arg meName] [method mstk] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the AST marker stack.
+
+[call [arg meName] [method estk] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the error stack.
+
+[call [arg meName] [method rstk] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the subroutine return stack.
+
+[call [arg meName] [method nc] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the nonterminal match cache as a dictionary.
+
+[call [arg meName] [method ast]]
+
+This method returns the current top entry of the AST stack [term AS].
+
+This is an abstract syntax tree as specified in the document
+[syscmd grammar::me_ast], section [sectref-external {AST VALUES}].
+
+[call [arg meName] [method halted]]
+
+This method returns a boolean value telling the caller whether the
+engine has halted execution or not. Halt means that no further
+matching is possible, and the information retrieved via the other
+method is final. Attempts to [method run] the engine will be ignored,
+until a [method reset] is made.
+
+[call [arg meName] [method code]]
+
+This method returns the [arg code] information used to construct the
+object. In other words, the match program executed by the machine.
+
+[call [arg meName] [method eof]]
+
+This method adds an end of file marker to the end of the input stream.
+This signals the machine that the current contents of the input queue
+are the final parts of the input and nothing will come after. Attempts
+to put more characters into the queue will fail.
+
+[call [arg meName] [method put] [arg tok] [arg lex] [arg line] [arg col]]
+
+This method adds the token [arg tok] to the end of the input stream,
+with associated lexeme data [arg lex] and [arg line]/[arg col]umn
+information.
+
+[call [arg meName] [method putstring] [arg string] [arg lvar] [arg cvar]]
+
+This method adds each individual character in the [arg string] as a
+token to the end of the input stream, from first to last. The lexemes
+will be empty and the line/col information is computed based on the
+characters encountered and the data in the variables [arg lvar] and
+[arg cvar].
+
+[call [arg meName] [method run] [opt [arg n]]]
+
+This methods causes the engine to execute match instructions until
+either
+
+[list_begin itemized]
+[item] [arg n] instructions have been executed, or
+[item] a halt instruction was executed, or
+[item]
+the input queue is empty and the code is asking for more tokens to
+process.
+[list_end]
+[para]
+
+If no limit [arg n] was set only the last two conditions are checked
+for.
+
+[call [arg meName] [method pull] [arg nextcmd]]
+
+This method implements pull-style operation of the machine. It causes
+it to execute match instructions until either a halt instruction is
+reached, or the command prefix
+
+[arg nextcmd] ceases to deliver more tokens.
+
+[para]
+
+The command prefix [arg nextcmd] represents the input stream of
+characters and is invoked by the machine whenever the a new character
+from the stream is required. The instruction for handling this is
+[term ict_advance].
+
+The callback has to return either the empty list, or a list of 4
+elements containing the token, its lexeme attribute, and its location
+as line number and column index, in this order.
+
+The empty list is the signal that the end of the input stream has been
+reached. The lexeme attribute is stored in the terminal cache, but
+otherwise not used by the machine.
+
+[para]
+
+The end of the input stream for this method does not imply that method
+[method eof] is called for the machine as a whole. By avoiding this
+and still asking for an explicit call of the method it is possible to
+mix push- and pull-style operation during the lifetime of the machine.
+
+[call [arg meName] [method reset]]
+
+This method resets the machine to its initial state, discarding any
+state it may have.
+
+[call [arg meName] [method destroy]]
+
+This method deletes the object and releases all resurces it claimed.
+
+[list_end]
+
+[vset CATEGORY grammar_me]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

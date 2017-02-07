@@ -1,0 +1,41 @@
+This directory contains examples making use of the nntp module
+provided by tcllib.
+
+The file 'nntp.examples' provides a number of very small examples on
+how to use the nntp module.
+
+Beyond that there is currently only one application is available,
+'postnews'. This application is a drop-in replacement of the 'postit'
+application which came with my [1] Debian/Linux system. I wrote it
+because 'postit' was unable to post articles to the host 'news' aka
+'shawnews', i.e. the NNTP system provided by my new ISP here in
+Vancouver. I had no big desire to look into the C code of 'postit' to
+find out why it was unable to post, wrote a hack version of 'postnews'
+in 15 minutes and when that worked my desire to debug 'postit' went
+below zero. Another half an hour was spent the next evening with
+'postnews' to polish it and make it a nice example for 'tcllib'.
+
+Synopsis:
+
+	postit articlelist newsserver
+
+articlelist is a file in <newspsool>/outgoing containing a list of all
+articles to push to the newsserver. It contains one line per article
+to push. Each line consists of two fields, the path to the file
+containing the article itself and the message id of the article. The
+fields are separated by whitespace. The aformentioned path is relative
+to <newsspool>.
+
+The knowledge that articlelist = <newspsool>/outgoing/<somefile> holds
+is essential to allow 'postnews' to compute the location of the
+<newsspool> without a third argument.
+
+The application carefully checks that the articlelist exists, is a
+file and is readable. It also checks each articlefile in the same
+manner. Only articles which are not known to the server are
+posted. This check uses the message id in the articlelist, i.e. it
+does not have to read the articlefile to determine this information.
+
+
+-------------------------------------------------------------
+[1] Andreas Kupries <andreas_kupries@users.sourceforge.net>

@@ -1,0 +1,405 @@
+<div class='fossil-doc' data-title='tepam::doc_gen - Tcl's Enhanced Procedure and Argument Manager'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">tepam::doc_gen(n) 0.5.0 tcllib &quot;Tcl's Enhanced Procedure and Argument Manager&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>tepam::doc_gen - TEPAM DOC Generation, reference manual</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">ARGUMENTS</a></li>
+<li class="doctools_section"><a href="#section3">PREDEFINED DOCUMENT FORMATS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">TXT - Text format</a></li>
+<li class="doctools_subsection"><a href="#subsection2">HTML - HTML format</a></li>
+<li class="doctools_subsection"><a href="#subsection3">POD - Perl document format</a></li>
+<li class="doctools_subsection"><a href="#subsection4">DT - TclLib DocTools format</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">ADDING SUPPORT FOR NEW DOCUMENT FORMATS</a></li>
+<li class="doctools_section"><a href="#section5">EXAMPLES</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection5">tepam::doc_gen::generate</a></li>
+<li class="doctools_subsection"><a href="#subsection6">tepam::doc_gen::patch</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.3</b></li>
+<li>package require <b class="pkgname">tepam 0.5</b></li>
+<li>package require <b class="pkgname">tepam::doc_gen <span class="opt">?0.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">tepam::doc_gen::generate</b> <span class="opt">?-format <i class="arg">format</i>?</span> <span class="opt">?-style <i class="arg">style</i>?</span> <span class="opt">?-header_footer?</span> <span class="opt">?-dest_file <i class="arg">dest_file</i>?</span> <i class="arg">name</i></a></li>
+<li><a href="#2"><b class="cmd">tepam::doc_gen::patch</b> <span class="opt">?-format <i class="arg">format</i>?</span> <span class="opt">?-style <i class="arg">style</i>?</span> <span class="opt">?-search_pattern <i class="arg">search_pattern</i>?</span> <span class="opt">?-src_string <i class="arg">src_string</i> | -src_file <i class="arg">src_file</i>?</span> <span class="opt">?-dest_file <i class="arg">dest_file</i>?</span> <span class="opt">?name?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package generates documentations of TEPAM procedures (procedures that have been declared with <b class="cmd"><a href="tepam_procedure.html">tepam::procedure</a></b>). The documents are generated in the classic UNIX document style using the following document sections: Name, Synopsis, Description, Arguments and Example. <b class="package">TEPAM Doc Gen</b> provides support for various document formats. Support for additional formats can be added if necessary.</p>
+<p>The <b class="package">TEPAM Doc Gen</b> package provides the following commands:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">tepam::doc_gen::generate</b> <span class="opt">?-format <i class="arg">format</i>?</span> <span class="opt">?-style <i class="arg">style</i>?</span> <span class="opt">?-header_footer?</span> <span class="opt">?-dest_file <i class="arg">dest_file</i>?</span> <i class="arg">name</i></a></dt>
+<dd><p>This command generates the documentation for a specified procedure (<i class="arg">name</i>) in one of the supported formats (TXT, HTML, POD (Perl Doc), DT (TclLib DocTool), or in a custom specific format. The format is specified via <span class="opt">?format?</span>. The flag <span class="opt">?-header_footer?</span> adds to the documentation file header and footer. If <span class="opt">?dest_file?</span> is specified the documentation is stored in a file (the file header and footer are added automatically in this case) and the file name is returned. Otherwise the documentation string is returned by <b class="cmd">generate</b>.</p></dd>
+<dt><a name="2"><b class="cmd">tepam::doc_gen::patch</b> <span class="opt">?-format <i class="arg">format</i>?</span> <span class="opt">?-style <i class="arg">style</i>?</span> <span class="opt">?-search_pattern <i class="arg">search_pattern</i>?</span> <span class="opt">?-src_string <i class="arg">src_string</i> | -src_file <i class="arg">src_file</i>?</span> <span class="opt">?-dest_file <i class="arg">dest_file</i>?</span> <span class="opt">?name?</span></a></dt>
+<dd><p>This command inserts procedure documentations into an existing master document at the locations indicated by insertion placeholders which are matching the pattern of <span class="opt">?search_pattern?</span>. The existing master document is either provided as data to the argument (<span class="opt">?src_string?</span>) or via a file (<span class="opt">?src_file?</span>). The final document is returned by <b class="cmd"><a href="../../../../index.html#key661">patch</a></b> if no destination file is defined (<span class="opt">?dest_file?</span>). Otherwise, the document is stored in the specified file, and the number of insertion placeholders that could be handled successfully is returned.</p>
+<p>Any insertion placeholders of the master document are handled by default. By defining the argument <span class="opt">?name?</span> the documentation insertion will be restricted to a particular procedure.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">ARGUMENTS</a></h2>
+<dl class="doctools_definitions">
+<dt><span class="opt">?-format <i class="arg">format</i>?</span></dt>
+<dd><p>Specifies the documentation format. <b class="package">TEPAM Doc Gen</b> provides support for the following formats:</p>
+<ul class="doctools_itemized">
+<li><p>TXT - Text format (default)</p></li>
+<li><p>HTML</p></li>
+<li><p>POD - Perl Plain Old Documentation format (PerlPOD)</p></li>
+<li><p>DT - TclLib DocTool format</p></li>
+</ul>
+<p>Section <span class="sectref"><a href="#section4">ADDING SUPPORT FOR NEW DOCUMENT FORMATS</a></span> shows how support for additional formats can be added.</p></dd>
+<dt><span class="opt">?-style <i class="arg">style</i>?</span></dt>
+<dd><p>The documentation is by default generated in Tcl style (e.g. <b class="cmd">command arg1 arg2 ...</b>). C-style documentation can be generated by setting this argument to 'C' (e.g. <b class="cmd">command(arg1,arg2,...)</b>).</p></dd>
+<dt><span class="opt">?-dest_file <i class="arg">dest_file</i>?</span></dt>
+<dd><p>If <span class="opt">?dest_file?</span> is defined the documentation is written into the specified destination file. Otherwise the documentation string is returned by the commands <b class="cmd">generate</b> and <b class="cmd"><a href="../../../../index.html#key661">patch</a></b>.</p></dd>
+<dt><i class="arg">name</i> / <span class="opt">?name?</span></dt>
+<dd><p>This is the name of the procedure for which the documentation has to be generated. This is a mandatory argument for <b class="cmd">generate</b>, but an optional argument for <b class="cmd"><a href="../../../../index.html#key661">patch</a></b>.</p></dd>
+<dt><span class="opt">?-header_footer?</span></dt>
+<dd><p><b class="cmd">Generate</b> adds to the generated procedure documentation the file header and footer only if a file is generated. By selecting the flag <span class="opt">?-header_footer?</span> the header and footer are also generated if the documentation is returned as string by <b class="cmd">generate</b>.</p></dd>
+<dt><span class="opt">?-src_string <i class="arg">src_string</i> | -src_file <i class="arg">src_file</i>?</span></dt>
+<dd><p><b class="cmd"><a href="../../../../index.html#key661">Patch</a></b> inserts procedure documentations into an existing document that is either provided as string to the argument (<span class="opt">?src_string?</span>) or as a file (<span class="opt">?src_file?</span>). One of these two arguments need to be specified.</p></dd>
+<dt><span class="opt">?-search_pattern <i class="arg">search_pattern</i>?</span></dt>
+<dd><p>The argument <span class="opt">?search_pattern?</span> defines the documentation insertion placeholder used in a document. It is a regular expression accepted by <b class="cmd">regexp</b> and needs to contain a parenthesized sub-expression that contains the procedure name for which the documentation needs to be inserted.</p>
+<p>The default insertion placeholder pattern is <em>\{!(.*?)!\}</em>, which means that the procedure name will be embedded between <em>{!</em> and <em>!}</em>. The section <span class="sectref"><a href="#section5">EXAMPLES</a></span> contains a custom insertion placeholder pattern example.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">PREDEFINED DOCUMENT FORMATS</a></h2>
+<p><b class="package">TEPAM Doc Gen</b> pre-defines the following document formats:</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">TXT - Text format</a></h3>
+<p>The documentation will be generated in a simple text format if this format is selected. The format can be customized via the following variable:</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">tepam::doc_gen::Option(TXT,MaxLineLength)</b></dt>
+<dd><p>Default: 80</p>
+<p>This variable defines the line wrapping limit (character position).</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">HTML - HTML format</a></h3>
+<p><b class="package">TEPAM Doc Gen</b> generates CSS styled HTML files. The HTML documentation can be customized via the following variable:</p>
+<dl class="doctools_definitions">
+<dt><b class="variable">tepam::doc_gen::Option(HTML,CssFile)</b></dt>
+<dd><p>Default: &quot;<b class="file">tepam_doc_stylesheet.css</b>&quot;</p>
+<p>This variable specifies the CSS stylesheet file that is referred by the generated HTML files.</p></dd>
+</dl>
+<p>The CSS stylesheet can be customized to change the documentation formatting. A good starting point to create a customized CSS stylesheet is to use the CSS file provided by the <b class="package">TEPAM Doc Gen</b> example/demo. The HTML documentation uses the following CSS class styles:</p>
+<ul class="doctools_itemized">
+   
+<li><p><em>h1.tepam_page_title</em> - Document page title. Only used by <b class="cmd">generate</b> if a file is created or if the header and footer are built (flag <span class="opt">?-header_footer?</span> selected).</p></li>
+<li><p><em>div.tepam_command_help</em> - Documentation container. The entire procedure documentation is placed inside this container.</p></li>
+<li><p><em>p.tepam_section_title</em> - Section title (e.g. <em>Name</em>, <em>Synopsis</em>, <em>Description</em>, ...)</p></li>
+<li><p><em>p.tepam_sub_section_title</em> - Sub-section title (used to separate the documentation of multiple sub-procedures)</p></li>
+<li><p><em>p.tepam_name</em> - Name section</p></li>
+<li><p><em>p.tepam_synopsis</em> - Synopsis section</p></li>
+<li><p><em>p.tepam_description</em> - Single description paragraph</p></li>
+<li><p><em>ul.tepam_description_list</em> - Item of a HTML bulleted/unordered list inside the description section</p></li>
+<li><p><em>dt.tepam_argument</em> - Item of a HTML description list used to list the procedure arguments</p></li>
+<li><p><em>p.tepam_argument_description</em> - Argument description paragraph</p></li>
+<li><p><em>p.tepam_argument_attribute</em> - Argument attribute line</p></li>
+<li><p><em>pre.tepam_example</em> - Example section</p></li>
+</ul>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">POD - Perl document format</a></h3>
+<p>The documentation is generated in the Perl Plain Old Documentation format (PerlPOD) if this format is selected.</p>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">DT - TclLib DocTools format</a></h3>
+<p>The documentation is generated in the Tcllib DocTools format if this format is selected.</p>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">ADDING SUPPORT FOR NEW DOCUMENT FORMATS</a></h2>
+<p>Support for a new document format can be added by defining in the <b class="namespace">tepam::doc_gen</b> namespace a set of procedures that generate the different document components.</p>
+<p>The following documentation listing contains tokens that refer to the different document generation procedures:</p>
+<pre class="doctools_example"> <em>     &lt;01&gt;</em>
+ <em>&lt;03&gt; &lt;20s&gt;</em>   NAME<em>&lt;20e&gt;</em>
+ <em>     &lt;30s&gt;</em>       message_box - Displays text in a message box<em>&lt;30e&gt;</em>
+ <em>     &lt;20s&gt;</em>   SYNOPSYS<em>&lt;20e&gt;</em>
+ <em>     &lt;40s&gt;</em>       message_box [-mtype &lt;mtype&gt;] &lt;text&gt;<em>&lt;40e&gt;</em>
+ <em>     &lt;20s&gt;</em>   DESCRIPTION<em>&lt;20e&gt;</em>
+ <em>     &lt;21s&gt;     message_box&lt;21e&gt;</em>
+ <em>     &lt;54s&gt;       message_box [-mtype &lt;mtype&gt;] &lt;text&gt;&lt;54e&gt;</em>
+ <em>     &lt;50s&gt;</em>       This procedure allows displaying a text in an message box. The following
+ <em>          </em>       message types are supported:<em>&lt;50e&gt;</em>
+ <em>&lt;51&gt; &lt;53s&gt;</em>       * Info<em>&lt;53e&gt;</em>
+ <em>     &lt;53s&gt;</em>       * Warning<em>&lt;53e&gt;</em>
+ <em>     &lt;53s&gt;</em>       * Error<em>&lt;53e&gt;</em>                                           <em>&lt;52&gt;</em>
+ <em>     &lt;50s&gt;</em>       If the text parameter is use multiple times the different texts are
+ <em>          </em>       concatenated to create the message text.<em>&lt;50e&gt;</em>
+ <em>     &lt;20s&gt;</em>   ARGUMENTS<em>&lt;20e&gt;</em>
+ <em>&lt;60&gt; &lt;62s&gt;</em>       [-mtype &lt;mtype&gt;]<em>&lt;62e&gt;</em>
+ <em>&lt;63&gt; &lt;65s&gt;</em>          Message type<em>&lt;65e&gt;</em>
+ <em>     &lt;66s&gt;</em>          Default: &quot;Warning&quot;<em>&lt;66e&gt;</em>
+ <em>     &lt;66s&gt;</em>          Multiple: yes<em>&lt;66e&gt;</em>
+ <em>     &lt;66s&gt;</em>          Choices: Info, Warning, Error<em>&lt;66e&gt;</em>                  <em>&lt;64&gt;</em>
+ <em>     &lt;62s&gt;</em>       &lt;text&gt;<em>&lt;62e&gt;</em>
+ <em>&lt;63&gt; &lt;65s&gt;</em>          One or multiple text lines to display<em>&lt;65e&gt;</em>
+ <em>     &lt;66s&gt;</em>          Type: string<em>&lt;66e&gt;</em>
+ <em>     &lt;66s&gt;</em>          Multiple: yes<em>&lt;66e&gt;</em>                                  <em>&lt;64&gt;&lt;61&gt;</em>
+ <em>     &lt;20s&gt;</em>   EXAMPLE<em>&lt;20e&gt;</em>
+ <em>&lt;70&gt; &lt;72s&gt;</em>       message_box &quot;Please save first the document&quot;<em>&lt;72e&gt;</em>
+ <em>     &lt;73s&gt;</em>       -&gt; 1<em>&lt;73e&gt;</em>                                              <em>&lt;71&gt;&lt;04&gt;</em>
+ <em>     &lt;02&gt;</em></pre>
+<p>There are 2 types of document generation procedures:</p>
+<dl class="doctools_definitions">
+   
+<dt>Content generation procedures (e.g. &lt;40s&gt;...&lt;40e&gt;)</dt>
+<dd><p>These procedures generate some document content based on the text that is provided as procedure argument. The listing above shows two tokens for these procedures to indicate the beginning and the end of the generated content.</p></dd>
+<dt>Control generation procedures (e.g. &lt;03&gt;)</dt>
+<dd><p>These procedures generate control constructs, for example to generate the prolog code and epilog code for lists, sections, etc. These procedures have no argument.</p></dd>
+</dl>
+<p>The following set of procedures needs to be defined to provide support for a new document format:</p>
+<dl class="doctools_definitions">
+<dt><em>01</em> - <b class="cmd">gen($Format,Header)</b> {<i class="arg">Text</i>}</dt>
+<dd><p>Only called if <b class="cmd">doc_gen</b> generates a file or if it is called with the flag <span class="opt">?-header_footer?</span>. The procedure creates the file header. The provided parameter is the procedure name for which the documentation has to be generated.</p></dd>
+<dt><em>02</em> - <b class="cmd">gen($Format,Footer)</b> {<i class="arg">Text</i>}</dt>
+<dd><p>Only called if <b class="cmd">doc_gen</b> generates a file or if it is called with the flag <span class="opt">?-header_footer?</span>. The procedure creates the file footer.</p></dd>
+<dt><em>03</em> - <b class="cmd">gen($Format,Begin)</b> {}</dt>
+<dd><p>Generates the documentation prolog (preamble)</p></dd>
+<dt><em>04</em> - <b class="cmd">gen($Format,End)</b> {}</dt>
+<dd><p>Generates the documentation epilog</p></dd>
+<dt><em>20</em> - <b class="cmd">gen($Format,SectionTitle)</b> {<i class="arg">Text</i>}</dt>
+<dd><p>Generates a section title (e.g. <em>Name</em>, <em>Synopsis</em>, <em>Description</em>, ...). The raw title text is provided as parameter</p></dd>
+<dt><em>21</em> - <b class="cmd">gen($Format,SubSectionTitle)</b> {<i class="arg">Text</i>}</dt>
+<dd><p>Generates a sub-section title. Sub-sections are used if a single documentation is generated for multiple sub-commands to make a separation between them. The raw title text is provided as parameter</p></dd>
+<dt><em>30</em> - <b class="cmd">gen($Format,Name)</b> {<i class="arg">Text</i>}</dt>
+<dd><p>Generates the name section (without title). The raw section text is provided as parameter.</p></dd>
+<dt><em>40</em> - <b class="cmd">gen($Format,Synopsis)</b> {<i class="arg">Text</i>}</dt>
+<dd><p>Generates the synopsis section (without title). The section text provided as parameter is pre-formatted (the argument strings are generated by <b class="cmd">gen($Format,ArgumentString)</b>).</p></dd>
+<dt><em>50</em> - <b class="cmd">gen($Format,Description)</b> {<i class="arg">Text</i>}</dt>
+<dd><p>Generates a description paragraph. The raw paragraph text is provided as parameter.</p></dd>
+<dt><em>51</em> - <b class="cmd">gen($Format,DescriptionListBegin)</b> {}</dt>
+<dd><p>Generates the prolog of a bulleted/unordered list inside the description section. This prolog is usually the start code of a list structure.</p></dd>
+<dt><em>52</em> - <b class="cmd">gen($Format,DescriptionListEnd)</b> {}</dt>
+<dd><p>Generates the epilog of a bulleted/unordered list inside the description section. This epilog is usually the end code of a list structure.</p></dd>
+<dt><em>53</em> - <b class="cmd">gen($Format,DescriptionListItem)</b> {<i class="arg">Text</i>}</dt>
+<dd><p>Generates a text item in a bulleted/unordered description list. The raw item text is provided as parameter.</p></dd>
+<dt><em>54</em> - <b class="cmd">gen($Format,DescriptionSynopsis)</b> {<i class="arg">Text</i>}</dt>
+<dd><p>Generates the synopsis line on the beginning of the description section. The command can return an empty string if no synopsys line is required at this place.</p>
+<p>Some formats (e.g. Tcl DocTools) require that the synopsis line is defined in the description section, to build then automatically the synopsis section. The section text provided as parameter is pre-formatted (the argument strings are generated by <b class="cmd">gen($Format,ArgumentString)</b>).</p></dd>
+<dt><em>60</em> - <b class="cmd">gen($Format,ArgumentListBegin)</b> {}</dt>
+<dd><p>Generates the prolog of argument list (definition/non-bulleted list). This prolog is usually the start code of a definition list.</p></dd>
+<dt><em>61</em> - <b class="cmd">gen($Format,ArgumentListEnd)</b> {}</dt>
+<dd><p>Generates the epilog of the argument list. This epilog is usually the end string of a list structure.</p></dd>
+<dt><em>62</em> - <b class="cmd">gen($Format,ArgumentListItem)</b> {Name IsOptional IsNamed Type}</dt>
+<dd><p>Generates an argument item line inside the argument list. This command can rely on <b class="cmd">gen($Format,ArgumentDetailBegin)</b> since the parameters are identical.</p></dd>
+<dt><em>63</em> - <b class="cmd">gen($Format,ArgumentDetailBegin)</b> {}</dt>
+<dd><p>Generates the argument details prolog (preamble).</p></dd>
+<dt><em>64</em> - <b class="cmd">gen($Format,ArgumentDetailEnd)</b> {}</dt>
+<dd><p>Generates the argument details epilog</p></dd>
+<dt><em>65</em> - <b class="cmd">gen($Format,ArgumentDescription)</b> {<i class="arg">Text</i>}</dt>
+<dd><p>Generates the argument description (single paragraph).</p></dd>
+<dt><em>66</em> - <b class="cmd">gen($Format,ArgumentAttribute)</b> {<i class="arg">Text</i>}</dt>
+<dd><p>Generates a single argument attribute string. The command is called individually for each attribute.</p></dd>
+<dt><em>70</em> - <b class="cmd">gen($Format,ExampleBegin)</b> {}</dt>
+<dd><p>Generates the example section prolog (preamble)</p></dd>
+<dt><em>71</em> - <b class="cmd">gen($Format,ExampleEnd)</b> {}</dt>
+<dd><p>Generates the example section epilog</p></dd>
+<dt><em>72</em> - <b class="cmd">gen($Format,ExampleCommandLine)</b> {<i class="arg">Text</i>}</dt>
+<dd><p>Generates a single command line in the example section. The command is called for each individual command line.</p></dd>
+<dt><em>73</em> - <b class="cmd">gen($Format,ExampleResultLine)</b> {<i class="arg">Text</i>}</dt>
+<dd><p>Generates a command result line</p></dd>
+<dt><em>80</em> - <b class="cmd">gen($Format,ArgumentString)</b> {Name IsOptional IsNamed Type}</dt>
+<dd><p>Generates the part of the command line or the synopsis that is specific to an argument. The generated string has to indicate if an argument is optional, named and if it is a flag.</p>
+<p>The following parameters are provided to this procedure:</p>
+<dl class="doctools_definitions">
+   
+<dt><i class="arg">Name</i></dt>
+<dd><p>Name of the argument</p></dd>
+<dt><i class="arg">IsOptional</i></dt>
+<dd><p>If true (=<b class="const">1</b>) the argument is optional which should be indicated by the generated string (for example by putting the argument into brackets {} or into question marks '?'):</p>
+<pre class="doctools_example">gen(TXT,ArgumentString) mtype 1 0 string -&gt; <em>&quot;[mtype]&quot;</em></pre>
+</dd>
+<dt><i class="arg">IsNamed</i></dt>
+<dd><p>If true (=<b class="const">1</b>) an argument is a named argument (option). The generated string should in this case contain the argument/option name, followed by the argument itself:</p>
+<pre class="doctools_example">gen(TXT,ArgumentString) mtype 0 1 string -&gt; <em>&quot;-mtype &lt;mtype&gt;&quot;</em></pre>
+<p>Named arguments can also be optional:</p>
+<pre class="doctools_example">gen(TXT,ArgumentString) mtype 1 1 string -&gt; <em>&quot;[-mtype &lt;mtype&gt;]&quot;</em></pre>
+</dd>
+<dt><i class="arg">Type</i></dt>
+<dd><p>Indicates the type of the argument. If the type is set to <b class="const">none</b> the argument is a flag, which needs to be indicated by the generated string. Example:</p>
+<pre class="doctools_example">gen(TXT,ArgumentString) close 1 1 none -&gt; <em>&quot;[-close]&quot;</em></pre>
+</dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">EXAMPLES</a></h2>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">tepam::doc_gen::generate</a></h3>
+<p>The <b class="package">TEPAM Doc Gen</b> package can be explored by generating the documentation of the command <b class="cmd">tepam::doc_gen::generate</b>. The following example generates the document in text format (default format):</p>
+<pre class="doctools_example"><b class="cmd">tepam::doc_gen::generate</b> tepam::doc_gen::generate</pre>
+<p>The next example generates the documentation in HTML format:</p>
+<pre class="doctools_example"><b class="cmd">tepam::doc_gen::generate</b> -format HTML tepam::doc_gen::generate</pre>
+<p>The flag <span class="opt">?header_footer?</span> adds also the file header and footer:</p>
+<pre class="doctools_example"><b class="cmd">tepam::doc_gen::generate</b> -format HTML -header_footer tepam::doc_gen::generate</pre>
+<p>The documentation can directly be stored in a file. The file header and footer are automatically generated in this way:</p>
+<pre class="doctools_example"><b class="cmd">tepam::doc_gen::generate</b> -format HTML -dest_file doc_gen.html tepam::doc_gen::generate</pre>
+<p>The generated HTML file refers a CSS stylesheet file (default: tepam_doc_stylesheet.css). To display the HTML file correctly this CSS stylesheet file needs to be copied into the directory of the generated HTML file.</p>
+<p>The Tcl DOC Tools format can be used as intermediate format to generate other formats, for example HTML:</p>
+<pre class="doctools_example">
+<em># Generate the documentation in Tcl Doc Tool format</em>
+set dt [<b class="cmd">tepam::doc_gen::generate</b> -format DT -header_footer tepam::doc_gen::generate]
+<em></em>
+<em># Create a new doc tools object (HTML format)</em>
+package require doctools
+::doctools::new myDoc -format html
+<em></em>
+<em># Open the HTML file, and write the HTML formatted documentation</em>
+set fHtml [open doc_gen.dt.html w]
+puts $fHtml [myDoc format $dt]
+close $fHtml
+</pre>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">tepam::doc_gen::patch</a></h3>
+<p>While <b class="cmd">generate</b> provides a limited number of possibilities to vary the document structure, <b class="cmd"><a href="../../../../index.html#key661">patch</a></b> offers more flexibility. Multiple documentations for different procedures and meta information can for example be added.</p>
+<p>The following listing shows how the <b class="cmd"><a href="../../../../index.html#key661">patch</a></b> command works. It defines first a HTML master document string that contains 2 procedure documentation placeholders (<em>{*&lt;ProcedureName&gt;*}</em>). There placeholders are replaced by <b class="cmd"><a href="../../../../index.html#key661">patch</a></b> with the generated documentation of the referred procedures. Since nonstandard placeholders are used, <b class="cmd"><a href="../../../../index.html#key661">patch</a></b> is called with an explicit placeholder pattern definition (argument <i class="arg">search_pattern</i>).</p>
+<pre class="doctools_example">
+<em># Define the HTML master document</em>
+set HtmlMasterDoc {\
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;tepam::doc_gen&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;tepam_doc_stylesheet.css&quot;&gt;
+    &lt;meta content=&quot;documentation&quot; name=&quot;keywords&quot;&gt;&lt;/meta&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;tepam::doc_gen&lt;/h1&gt;
+      &lt;h2&gt;Generate&lt;/h2&gt;
+<b class="cmd">{*tepam::doc_gen::generate*}</b>
+      &lt;h2&gt;Patch&lt;/h2&gt;
+<b class="cmd">{*tepam::doc_gen::patch*}</b>
+  &lt;/body&gt;
+&lt;html&gt;\
+}
+<em></em>
+<em># Patch the master document: This will replace the placeholders by the 
+# procedure documentation divisions:</em>
+<b class="cmd">tepam::doc_gen::patch</b> -format HTML -search_pattern {\{\*(.*?)\*\}} \
+                      -src_string $HtmlMasterDoc -dest_file tepam_doc_gen.html
+</pre>
+</div>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="tepam_introduction.html">tepam(n)</a>, <a href="tepam_procedure.html">tepam::procedure(n)</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key830">automatic documentation</a>, <a href="../../../../index.html#key185">documentation</a>, <a href="../../../../index.html#key831">procedure documentation</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Documentation tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2013, Andreas Drollinger</p>
+</div>
+</div>

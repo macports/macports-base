@@ -1,0 +1,374 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin grammar::me::cpu::core n 0.2]
+[keywords grammar]
+[keywords parsing]
+[keywords {virtual machine}]
+[copyright {2005-2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Grammar operations and usage}]
+[titledesc {ME virtual machine state manipulation}]
+[category  {Grammars and finite automata}]
+[require Tcl 8.4]
+[require grammar::me::cpu::core [opt 0.2]]
+[description]
+[para]
+
+This package provides an implementation of the ME virtual machine.
+
+Please go and read the document [syscmd grammar::me_intro] first if
+you do not know what a ME virtual machine is.
+
+[para]
+
+This implementation represents each ME virtual machine as a Tcl value
+and provides commands to manipulate and query such values to show the
+effects of executing instructions, adding tokens, retrieving state,
+etc.
+
+[para]
+
+The values fully follow the paradigm of Tcl that every value is a
+string and while also allowing C implementations for a proper
+Tcl_ObjType to keep all the important data in native data structures.
+
+Because of the latter it is recommended to access the state values
+[emph only] through the commands of this package to ensure that
+internal representation is not shimmered away.
+
+[para]
+
+The actual structure used by all state values is described in section
+[sectref {CPU STATE}].
+
+[section API]
+
+The package directly provides only a single command, and all the
+functionality is made available through its methods.
+
+[list_begin definitions]
+
+[call [cmd ::grammar::me::cpu::core] [method disasm] [arg asm]]
+
+This method returns a list containing a disassembly of the match
+instructions in [arg asm]. The format of [arg asm] is specified in the
+section [sectref {MATCH PROGRAM REPRESENTATION}].
+
+[para]
+
+Each element of the result contains instruction label, instruction
+name, and the instruction arguments, in this order. The label can be
+the empty string. Jump destinations are shown as labels, strings and
+tokens unencoded. Token names are prefixed with their numeric id, if,
+and only if a tokmap is defined. The two components are separated by a
+colon.
+
+[call [cmd ::grammar::me::cpu::core] [method asm] [arg asm]]
+
+This method returns code in the format as specified in section
+[sectref {MATCH PROGRAM REPRESENTATION}] generated from ME assembly
+code [arg asm], which is in the format as returned by the method
+[method disasm].
+
+[call [cmd ::grammar::me::cpu::core] [method new] [arg asm]]
+
+This method creates state value for a ME virtual machine in its
+initial state and returns it as its result.
+
+[para]
+
+The argument [arg matchcode] contains a Tcl representation of the
+match instructions the machine has to execute while parsing the input
+stream. Its format is specified in the section
+[sectref {MATCH PROGRAM REPRESENTATION}].
+
+[para]
+
+The [arg tokmap] argument taken by the implementation provided by the
+package [package grammar::me::tcl] is here hidden inside of the match
+instructions and therefore not needed.
+
+[call [cmd ::grammar::me::cpu::core] [method lc] [arg state] [arg location]]
+
+This method takes the state value of a ME virtual machine and uses it
+to convert a location in the input stream (as offset) into a line
+number and column index. The result of the method is a 2-element list
+containing the two pieces in the order mentioned in the previous
+sentence.
+
+[para]
+
+[emph Note] that the method cannot convert locations which the machine
+has not yet read from the input stream. In other words, if the machine
+has read 7 characters so far it is possible to convert the offsets
+[const 0] to [const 6], but nothing beyond that. This also shows that
+it is not possible to convert offsets which refer to locations before
+the beginning of the stream.
+
+[para]
+
+This utility allows higher levels to convert the location offsets
+found in the error status and the AST into more human readable data.
+
+[call [cmd ::grammar::me::cpu::core] [method tok] [arg state] [opt "[arg from] [opt [arg to]]"]]
+
+This method takes the state value of a ME virtual machine and returns
+a Tcl list containing the part of the input stream between the
+locations [arg from] and [arg to] (both inclusive). If [arg to] is not
+specified it will default to the value of [arg from]. If [arg from] is
+not specified either the whole input stream is returned.
+
+[para]
+
+This method places the same restrictions on its location arguments as
+the method [method lc].
+
+[call [cmd ::grammar::me::cpu::core] [method pc] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the current value of the stored program counter.
+
+[call [cmd ::grammar::me::cpu::core] [method iseof] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the current value of the stored eof flag.
+
+[call [cmd ::grammar::me::cpu::core] [method at] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the current location in the input stream.
+
+[call [cmd ::grammar::me::cpu::core] [method cc] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the current token.
+
+[call [cmd ::grammar::me::cpu::core] [method sv] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the current semantic value stored in it.
+
+This is an abstract syntax tree as specified in the document
+[syscmd grammar::me_ast], section [sectref-external {AST VALUES}].
+
+[call [cmd ::grammar::me::cpu::core] [method ok] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the match status stored in it.
+
+[call [cmd ::grammar::me::cpu::core] [method error] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the current error status stored in it.
+
+[call [cmd ::grammar::me::cpu::core] [method lstk] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the location stack.
+
+[call [cmd ::grammar::me::cpu::core] [method astk] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the AST stack.
+
+[call [cmd ::grammar::me::cpu::core] [method mstk] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the AST marker stack.
+
+[call [cmd ::grammar::me::cpu::core] [method estk] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the error stack.
+
+[call [cmd ::grammar::me::cpu::core] [method rstk] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the subroutine return stack.
+
+[call [cmd ::grammar::me::cpu::core] [method nc] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the nonterminal match cache as a dictionary.
+
+[call [cmd ::grammar::me::cpu::core] [method ast] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the abstract syntax tree currently at the top of the AST stack stored
+in it.
+
+This is an abstract syntax tree as specified in the document
+[syscmd grammar::me_ast], section [sectref-external {AST VALUES}].
+
+[call [cmd ::grammar::me::cpu::core] [method halted] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the current halt status stored in it, i.e. if the machine has stopped
+or not.
+
+[call [cmd ::grammar::me::cpu::core] [method code] [arg state]]
+
+This method takes the state value of a ME virtual machine and returns
+the code stored in it, i.e. the instructions executed by the machine.
+
+[call [cmd ::grammar::me::cpu::core] [method eof] [arg statevar]]
+
+This method takes the state value of a ME virtual machine as stored in
+the variable named by [arg statevar] and modifies it so that the eof
+flag inside is set. This signals to the machine that whatever token
+are in the input queue are the last to be processed. There will be no
+more.
+
+[call [cmd ::grammar::me::cpu::core] [method put] [arg statevar] [arg tok] [arg lex] [arg line] [arg col]]
+
+This method takes the state value of a ME virtual machine as stored in
+the variable named by [arg statevar] and modifies it so that the token
+[arg tok] is added to the end of the input queue, with associated
+lexeme data [arg lex] and [arg line]/[arg col]umn information.
+
+[para]
+
+The operation will fail with an error if the eof flag of the machine
+has been set through the method [method eof].
+
+[call [cmd ::grammar::me::cpu::core] [method run] [arg statevar] [opt [arg n]]]
+
+This method takes the state value of a ME virtual machine as stored in
+the variable named by [arg statevar], executes a number of
+instructions and stores the state resulting from their modifications
+back into the variable.
+
+[para]
+
+The execution loop will run until either
+
+[list_begin itemized]
+[item] [arg n] instructions have been executed, or
+[item] a halt instruction was executed, or
+[item]
+the input queue is empty and the code is asking for more tokens to
+process.
+[list_end]
+[para]
+
+If no limit [arg n] was set only the last two conditions are checked
+for.
+
+[list_end]
+
+[subsection {MATCH PROGRAM REPRESENTATION}]
+
+A match program is represented by nested Tcl list. The first element,
+[term asm], is a list of integer numbers, the instructions to execute,
+and their arguments. The second element, [term pool], is a list of
+strings, referenced by the instructions, for error messages, token
+names, etc. The third element, [term tokmap], provides ordering
+information for the tokens, mapping their names to their numerical
+rank. This element can be empty, forcing lexicographic comparison when
+matching ranges.
+
+[para]
+
+All ME instructions are encoded as integer numbers, with the mapping
+given below. A number of the instructions, those which handle error
+messages, have been given an additional argument to supply that
+message explicitly instead of having it constructed from token names,
+etc. This allows the machine state to store only the message ids
+instead of the full strings.
+
+[para]
+
+Jump destination arguments are absolute indices into the [term asm]
+element, refering to the instruction to jump to. Any string arguments
+are absolute indices into the [term pool] element. Tokens, characters,
+messages, and token (actually character) classes to match are coded as
+references into the [term pool] as well.
+
+[para]
+[list_begin enumerated]
+
+[enum] "[cmd ict_advance] [arg message]"
+[enum] "[cmd ict_match_token] [arg tok] [arg message]"
+[enum] "[cmd ict_match_tokrange] [arg tokbegin] [arg tokend] [arg message]"
+[enum] "[cmd ict_match_tokclass] [arg code] [arg message]"
+[enum] "[cmd inc_restore] [arg branchlabel] [arg nt]"
+[enum] "[cmd inc_save] [arg nt]"
+[enum] "[cmd icf_ntcall] [arg branchlabel]"
+[enum] "[cmd icf_ntreturn]"
+[enum] "[cmd iok_ok]"
+[enum] "[cmd iok_fail]"
+[enum] "[cmd iok_negate]"
+[enum] "[cmd icf_jalways] [arg branchlabel]"
+[enum] "[cmd icf_jok] [arg branchlabel]"
+[enum] "[cmd icf_jfail] [arg branchlabel]"
+[enum] "[cmd icf_halt]"
+[enum] "[cmd icl_push]"
+[enum] "[cmd icl_rewind]"
+[enum] "[cmd icl_pop]"
+[enum] "[cmd ier_push]"
+[enum] "[cmd ier_clear]"
+[enum] "[cmd ier_nonterminal] [arg message]"
+[enum] "[cmd ier_merge]"
+[enum] "[cmd isv_clear]"
+[enum] "[cmd isv_terminal]"
+[enum] "[cmd isv_nonterminal_leaf] [arg nt]"
+[enum] "[cmd isv_nonterminal_range] [arg nt]"
+[enum] "[cmd isv_nonterminal_reduce] [arg nt]"
+[enum] "[cmd ias_push]"
+[enum] "[cmd ias_mark]"
+[enum] "[cmd ias_mrewind]"
+[enum] "[cmd ias_mpop]"
+[list_end]
+
+[section {CPU STATE}]
+
+A state value is a list containing the following elements, in the order listed below:
+
+[list_begin enumerated]
+[enum] [term code]: Match instructions, see [sectref {MATCH PROGRAM REPRESENTATION}].
+[enum] [term pc]:   Program counter, [term int].
+[enum] [term halt]: Halt flag, [term boolean].
+[enum] [term eof]:  Eof flag, [term boolean]
+[enum] [term tc]:   Terminal cache, and input queue. Structure see below.
+[enum] [term cl]:   Current location, [term int].
+[enum] [term ct]:   Current token, [term string].
+[enum] [term ok]:   Match status, [term boolean].
+[enum] [term sv]:   Semantic value, [term list].
+[enum] [term er]:   Error status, [term list].
+[enum] [term ls]:   Location stack, [term list].
+[enum] [term as]:   AST stack, [term list].
+[enum] [term ms]:   AST marker stack, [term list].
+[enum] [term es]:   Error stack, [term list].
+[enum] [term rs]:   Return stack, [term list].
+[enum] [term nc]:   Nonterminal cache, [term dictionary].
+[list_end]
+[para]
+
+[term tc], the input queue of tokens waiting for processing and the
+terminal cache containing the tokens already processing are one
+unified data structure simply holding all tokens and their
+information, with the current location separating that which has been
+processed from that which is waiting.
+
+Each element of the queue/cache is a list containing the token, its
+lexeme information, line number, and column index, in this order.
+
+[para]
+
+All stacks have their top element aat the end, i.e. pushing an item is
+equivalent to appending to the list representing the stack, and
+popping it removes the last element.
+
+[para]
+
+[term er], the error status is either empty or a list of two elements,
+a location in the input, and a list of messages, encoded as references
+into the [term pool] element of the [term code].
+
+[para]
+
+[term nc], the nonterminal cache is keyed by nonterminal name and
+location, each value a four-element list containing current location,
+match status, semantic value, and error status, in this order.
+
+[vset CATEGORY grammar_me]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

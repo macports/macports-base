@@ -40,8 +40,6 @@ test patch_main {
     set subport gcc_select
     set filespath $pwd/files
     set distpath $pwd/dist
-    set usealtworkpath yes
-    set altprefix prefix
 
     set workpath $pwd/work
     set worksrcpath $workpath/src

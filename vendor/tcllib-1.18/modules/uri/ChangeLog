@@ -1,0 +1,413 @@
+2013-12-06  Andreas Kupries  <andreask@activestate.com>
+
+	* uri.tcl (::uri::split, ::uri::resolve): [Ticket cfb76ff94]:
+	* uri.test: Modified split so that a missing scheme for http(s),
+	* uri.man: ftp urls treats remainder as having a leading host
+	* pkgIndex.tcl: part. Extended testsuite. Updated 'resolve' to run
+	  the relative url through split with a proper scheme prefix to
+	  prevent misintepretation of the path as host-part. Bumped
+	  version number to 1.2.4
+
+2013-11-07  Andreas Kupries  <andreask@activestate.com>
+
+	* uri.tcl: [Ticket dc50cc65ea]: Accept schema names
+	* uri.test: case-insensitively. Report and patch by Harald
+	* pkgIndex.tcl: Oehlmann. Version bumped to 1.2.3. Extended
+	  testsuite (uri-11.0).
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-03-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pkgIndex.tcl: [Bug #3235340]: Provide empty string as default
+	* uri.man: value for the fragment in an http url. Ensure that
+	* uri.tcl: a fragment after a query is properly split off, and
+	* uri.test: joined. Extended testsuite. Bumped to version 1.2.2.
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-03-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* urn-scheme.man: Added documentation for package uri::urn.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uri.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2007-01-11  Andreas Kupries  <andreask@activestate.com>
+
+	* uri.tcl (::uri::SplitHttp): [SF Tcllib Bug 1610655]. Modified to
+	* uri.man: slash of queries after the first question mark, not the
+	* uri.test: last. We have queries with subqueries in the wild,
+	* pkgIndex.tcl: bogus per the spec, but in use. Version has been
+	  bumped to 1.2.1.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* uri.man: Bumped version to 1.2
+	* uri.tcl
+	* pkgIndex.tcl:
+
+2006-08-11  Andreas Kupries  <andreask@activestate.com>
+
+	* uri.man: Fixed a typo I left in the manpage :(
+
+2006-08-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uri.tcl: Added ldap to list of supported uri's, per the
+	* uri.man: patch by Pierre DAVID <Pierre.David@crc.u-strasbg.fr>,
+	* uri.test: with small modifications by myself. Extended code,
+	  documentation, and testsuite.
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uri.test: Fixed use of duplicate test names. Also fixed creation
+	  and cleanup of temp. files by the testsuite.
+
+2006-01-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uri-rfc2396.test: More boilerplate simplified via use of test support.
+	* uri.test:
+	* urn.test:
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uri-rfc2396.test: Hooked into the new common test support code.
+	* uri.test:
+	* urn.test:
+
+2006-01-10  Andreas Kupries <andreask@activestate.com>
+
+	* uri.man: Added information about url constituents to the
+	  documentation of uri::split. For the schemes we know them
+	  for. This fixes [SF Tcllib Bug 1335320] by Kristoffer Lawson
+	  <setok@users.sourceforge.net>.
+
+2005-10-21  Andreas Kupries <andreask@activestate.com>
+
+	* urn.test: Fixed typo.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-07-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uri.tcl: Fixed bug 1243171, reported by Jean-Luc Fontaine. The
+	  list variable in a foreach had no $-prefix. D'oh.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-09-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* urn-scheme.tcl (urn::unquote): The latest unquote used features
+	  specific to 8.3 (regexp -start), and the package claims
+	  useability with 8.2. Added a check for the version of Tcl, and
+	  for 8.2 we now provide a variant implementation of unquote for
+	  8.2 which does not use 'regexp -start', but simulates it.
+
+2004-08-03  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* urn-scheme.tcl: Fixed the unquote function which was broken.
+	* urn.test:       Added some tests from RFC 2324 to check the
+	                  quote and unquote procedures.
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uri.tcl: Updated version number to sync with 1.6.1
+	* uri.man: release.
+	* pkgIndex.tcl:
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uri.tcl: Rel. engineering. Updated version number 
+	* uri.man: of uri to reflect its changes, to 1.1.4.
+	* pkgIndex.tcl:
+
+2004-05-03  Andreas Kupries  <andreask@pliers.activestate.com>
+
+	* uri.test:
+	* uri.tcl (SplitHttp): Fixed [SF Tcllib Bug 936064]. Now
+	  extracting user/password information from the Http URI as
+	  well. Simple change from 'GetHostPort' to 'GetUPHP'. Updated the
+	  test suite as well (One new test, and update of 4 existing
+	  tests).
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2004-02-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* urn.test: Added dict sorting for reliable comparisons.
+
+2003-08-27  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* uri.tcl: Applied a fix for bug #795032: damage to global vars.
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-29  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* urn-scheme.tcl (::uri::urn::quote): Fix this to work properly
+	with tcl 8.2.
+
+2003-04-14  Andreas Kupries  <andreask@activestate.com>
+
+	* uri.man:
+	* uri.tcl (split): Accepted the FR [#545368] by Mark G. Saye
+	  <markgsaye@users.sourceforge.net>, with a slight difference. To
+	  keep API compatibibility the http stays the default scheme if
+	  none was specified.
+
+2003-04-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uri-rfc2396.test: Added constraint 'knownBug' to these
+	  tests. And reference to [#581781].
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* uri.test:
+	* uri.tcl (::uri::split): Fixed bug #676976 reported by Jason
+	  Mills <jasonmills@users.sourceforge.net>. An incorrect regular
+	  expression (typo in character class) accepted more character
+	  than it should have.
+
+2003-04-10  Andreas Kupries  <andreask@activestate.com>
+
+	* pkgIndex.tcl:
+	* uri.man:
+	* uri.tcl: Fixed bug #614591. Set version
+	  of the package to to 1.1.2.
+
+	* urn-scheme.tcl: Fixed bug #614591. Set version
+	  of the package to to 1.0.1
+
+2003-03-28  Andreas Kupries  <andreask@activestate.com>
+
+	* uri.man:
+	* uri-rfc2396.test: New file. First step towards conformance with
+	  RFC 2396, a testsuite for checking conformant behaviour. Thanks
+	  to Rolf Ade <pointsman@users.sourceforge.net>. Bug
+	  #581781. Noted non-conformance in documentation, inviting help.
+
+2003-02-07  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* uri.test (uri-4.1): Fixed bad test.
+
+2003-02-06  David N. Welton  <davidw@dedasys.com>
+
+	* uri.tcl (uri::SplitMailto): Use 'string match' instead of
+	  regexp.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uri.man: More semantic markup, less visual one.
+
+2003-01-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+	
+	* pkgIndex.tcl: Bump ifneeded patchlevel to match the provide in
+	  uri.tcl. See last change.
+
+2002-11-15  David N. Welton  <davidw@dedasys.com>
+
+	* uri.tcl (uri::canonicalize): Take care of trailing .., as in
+	"http://foobar.com/foo/bar/..".
+
+	* uri.test: Test for the above condition.
+
+	* uri.tcl: Bump patchlevel in 'package provide'.
+
+	* uri.test: Added tests for 'news' splitting and joining.
+
+	* uri.man: Added 'news' to list of supported uri's.
+
+	* uri.tcl (uri::SplitNews) (uri::JoinNews): Join and split 'news'
+	URI's.  Fixes 636977.
+
+	* uri.test: Added test to make sure that a URI can be split and
+	then joined. to make sure the change below works.
+
+	* uri.tcl (uri::JoinHttpInner): Make this proc deal with
+	'fragments' - i.e. the #foo part of a URI.  Fixes 638075.
+
+	* uri.test: Added tests relevant to the fix below.
+
+	* uri.tcl (uri::resolve): Fix handling of queries so that the
+	'new' query overrides the 'old' one.  This is how browsers do it.
+	Fixes 639036.
+
+2002-06-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* urn-scheme.tcl: Moved provide up to the front to prevent
+	  problems with [pkg_mkIndex]. Added namespace creation commands
+	  to the top for the same reason.
+
+2002-03-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uri.man: Fixed formatting errors in the doctools manpage.
+
+2002-02-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uri.tcl: Fixed "::uri::canonicalize" to pass the extended
+	  testsuite. The change to testsuite and command implementation
+	  here was triggered through work on a spider and real life urls,
+	  some of which where handled incorrectly.
+
+	* uri.test: Extended the testsuite for "::uri::canonicalize" a
+	  lot. Handling of uris with a path, without a path, unknown uri
+	  schemes, path components which contain a ".", but are neither
+	  "."  nor "..".
+
+2002-02-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* urn-scheme.tcl: Frink run.
+
+	* Version is now 1.1.1 to distinguish from the code in tcllib
+	  release 1.2
+
+2002-01-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version to 1.1
+
+2001-11-16  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* uri.n: Updated documentation to cover the change below.
+
+	* uri.tcl: Changed geturl dispatcher to load a scheme::geturl
+	  first and the scheme package only if that fails. See the ftp and
+	  ftp::geturl packages. FR #476804.
+
+2001-10-31  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* uri.tcl: Fixed the ftptype regexp so that the type identifier
+	  can be extracted. Fixed the ftp join code to follow the specs
+	  for the type identifier. Added tests.
+
+2001-10-31  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* uri.tcl: Fixes for SF bug 474846 concerning bugs with ftp
+	  userinfo and path construction.
+
+	* uri.test: New tests to chec the above fixes.
+
+2001-10-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* The changes below are made as part of accepting SF patch #470211
+	  provided by Pat Thoyts <patthoyts@users.sourceforge.net>
+
+	* uri.n: Documented "uri::register".
+
+	* urn-scheme.tcl: Changed to use the new registration
+	  command. Added declaration of "schemepart" as that variable is
+	  required for the registration.
+
+	* uri.tcl (uri::register): New command to register url
+	  schemes. Rewrote the module to make use of this command when
+	  declaring the standard schemes like ftp, http, ... Fixed a bug
+	  in the url declarations (access to namespace basic was
+	  incorrect). The command takes care to update the overall
+	  variables tracking scheme information.
+
+	* pkgIndex.tcl: Added the new sub-package to our package index.
+
+	* urn.test: 
+	* urn-scheme.tcl: New files, new sub-packages, provide the URN
+	  schema for uri's and associated testsuite.
+
+2001-08-21  Don Porter <dgp@users.sourceforge.net>
+
+	* uri.n: Corrected title.  The 'uri' package does not
+	provide "Tcl Built-In Commands."
+
+2001-07-10  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* uri.tcl: Frink 2.2 run, fixed dubious code.
+
+2001-06-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* uri.tcl: Fixed dubious code reported by frink.
+
+2000-09-06  Brent Welch  <welch@ajubasolutions.com>
+
+	* uri.tcl:
+	* uri.test:
+	Added https support
+
+2000-07-20  Eric Melski  <ericm@ajubasolutions.com>
+
+	* uri.test:
+	* uri.tcl: Applied patch from Andreas Kupries, to correct infinite loop
+	condition in uri::canonicalize.
+
+2000-06-16  Eric Melski  <ericm@ajubasolutions.com>
+
+	* uri.test: Fixed bad test, added tcltest::cleanupTests call.
+
+2000-06-13  Eric Melski  <ericm@scriptics.com>
+
+	* uri: initial import of uri package.
+

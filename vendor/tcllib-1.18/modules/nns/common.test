@@ -1,0 +1,34 @@
+# -*- tcl -*-
+# common.test:  Tests for the common code of the name service
+#
+# Sourcing this file into Tcl runs the tests and generates output for
+# errors.  No output means no errors were found.
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8
+testsNeedTcltest 1.0
+
+testing {
+    useLocal common.tcl nameserv::common
+}
+
+# -------------------------------------------------------------------------
+
+test names-common-1.0 {get IP port number, wrong#args, too many} {
+    catch {nameserv::common::port a} msg
+    set msg
+} [tcltest::tooManyArgs nameserv::common::port {}]
+
+test names-common-2.0 {get IP port number} {
+    nameserv::common::port
+} 38573
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return

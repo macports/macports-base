@@ -1,0 +1,102 @@
+# documentation: http://code.google.com/apis/calendar/docs/2.0/developers_guide_protocol.html
+
+package require rest
+package require tls
+::http::register https 443 [list ::tls::socket]
+
+set gcal(auth) {
+   url https://www.google.com/accounts/ClientLogin
+   method post
+   req_args { Email: Passwd: }
+   opt_args { source:tclrest }
+   static_args { service cl }
+   post_transform {
+       regexp {Auth=(.*)\n} $result -> result
+       return $result
+   }
+}
+
+set gcal(all_calendars) {
+    url http://www.google.com/calendar/feeds/default/allcalendars/%projection:full%
+    headers { Authorization {GoogleLogin auth=%token%} }
+    opt_args { gsessionid: }
+    body required
+}
+
+set gcal(own_calendars) {
+    url http://www.google.com/calendar/feeds/default/owncalendars/%projection:full%
+    headers { Authorization {GoogleLogin auth=%token%} }
+    opt_args { gsessionid: }
+}
+
+set gcal(new_calendar) {
+    url http://www.google.com/calendar/feeds/default/owncalendars/full
+    method post
+    content-type application/atom+xml
+    headers { Authorization {GoogleLogin auth=%token%} }
+    opt_args { gsessionid: }
+}
+
+set gcal(edit_calendar) {
+    url http://www.google.com/calendar/feeds/default/owncalendars/full/%calendar%
+    method put
+    content-type application/atom+xml
+    headers { Authorization {GoogleLogin auth=%token%} }
+    opt_args { gsessionid: }
+}
+
+set gcal(delete_calendar) {
+    url http://www.google.com/calendar/feeds/default/owncalendars/full/%calendar%
+    method delete
+    headers { Authorization {GoogleLogin auth=%token%} }
+    opt_args { gsessionid: }
+}
+
+set gcal(all_events) {
+    url http://www.google.com/calendar/feeds/%user:default%/%visibility:private%/%projection:full%
+    headers { Authorization {GoogleLogin auth=%token%} }
+    opt_args { gsessionid: }
+}
+
+set gcal(new_event) {
+    url http://www.google.com/calendar/feeds/default/private/full
+    method post
+    content-type application/atom+xml
+    headers { Authorization {GoogleLogin auth=%token%} }
+    opt_args { gsessionid: }
+}
+
+rest::create_interface gcal
+
+proc ::gcal::handle_redir {args} {
+    if {[catch {eval $args} out]} {
+        #puts "catch $out"
+        if {[lindex $out 1] == "302"} {
+            eval [linsert $args 1 -gsessionid [rest::parameters [lindex $out 2] gsessionid]]
+        } else {
+            return -code error $out
+        }
+    }
+}
+
+proc ::gcal::create_single_event_object {args} {
+    set defaults [dict create \
+        text ""               \
+        status confirmed      \
+        where ""              \
+    ]
+    set args [lindex [::rest::parse_opts {} {title: start: end:} {text: status: where:} $args] 0]
+    set args [dict merge $defaults $args]
+
+    set event {}
+    lappend event "<entry xmlns='http://www.w3.org/2005/Atom' xmlns:gd='http://schemas.google.com/g/2005'>"
+    lappend event "<category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/g/2005#event'></category>"
+    lappend event "<title type='text'>[dict get $args title]</title>"
+    lappend event "<content type='text'>[dict get $args text]</content>"
+    lappend event "<gd:when startTime='[clock format [clock scan [dict get $args start]] -format "%Y-%m-%dT%TZ"]' endTime='[clock format [clock scan [dict get $args end]] -format "%Y-%m-%dT%TZ"]'></gd:when>"
+    lappend event "<gd:eventStatus value='http://schemas.google.com/g/2005#event.[dict get $args status]'> </gd:eventStatus>"
+    lappend event "<gd:where valueString='[dict get $args where]'></gd:where>"
+    lappend event "</entry>"
+    return [join $event \n]
+}
+

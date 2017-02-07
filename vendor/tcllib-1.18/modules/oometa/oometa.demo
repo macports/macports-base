@@ -1,0 +1,27 @@
+source ../dicttool/dicttool.tcl
+source oometa.tcl
+
+oo::class create animal {
+  meta set biodata animal: 1
+}
+oo::class create mammal {
+  superclass animal
+  meta set biodata mammal: 1
+}
+oo::class create cat {
+  superclass mammal
+  meta set biodata diet: carnivore
+}
+
+cat create felix
+puts [felix meta get biodata]
+
+felix meta set biodata likes: {birds mice}
+puts [felix meta get biodata]
+
+mammal meta set biodata metabolism: warm-blooded
+puts [felix meta get biodata]
+
+# Overwrite class info
+felix meta set biodata mammal: yes
+puts [felix meta get biodata]

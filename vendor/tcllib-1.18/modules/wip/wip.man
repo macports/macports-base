@@ -1,0 +1,384 @@
+[comment {-*- text -*-}]
+[manpage_begin wip n 2.2]
+[keywords interpreter]
+[keywords list]
+[keywords word]
+[copyright {2007-2010 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Word Interpreter}]
+[titledesc {Word Interpreter}]
+[category  {Programming tools}]
+[require Tcl 8.4]
+[require wip [opt 2.2]]
+[require snit [opt 1.3]]
+[require struct::set]
+[description]
+[para]
+
+This package provides a micro interpreter for lists of words. Domain
+specific languages based on this will have a bit of a Forth feel, with
+the input stream segmented into words and any other structuring left
+to whatever the language desired. Note that we have here in essence
+only the core dispatch loop, and no actual commands whatsoever, making
+this definitely only a Forth feel and not an actual Forth.
+
+[para]
+
+The idea is derived from Colin McCormack's [package treeql] processor,
+modified to require less boiler plate within the command
+implementations, at the expense of, likely, execution speed. In
+addition the interface between processor core and commands is more
+complex too.
+
+[section {GENERAL BEHAVIOUR}]
+
+Word interpreters have a mappping from the names of the language
+commands they shall recognize to the methods in the engine to invoke
+for them, and possibly fixed arguments for these methods. This mapping
+is largely static, however it is possible to change it during the
+execution of a word list (= program).
+
+[para]
+
+At the time a language command is defined the word interpreter will
+use [package snit]'s introspection capabilities to determine the
+number of arguments expected by the method of the egnine, and together
+with the number of fixed arguments supplied in the method prefix of
+the mapping it then knows how many arguments the language command is
+expecting. This is the command's [term arity]. Variable-argument
+methods (i.e. with the last argument named [arg args]) are [emph not]
+allowed and will cause the word interpreter to throw an error at
+definition time.
+
+[para]
+
+Note that while I said [package snit]'s abilities the engine object
+can be written in any way, as long as it understands the method
+[method {info args}], which takes a method name and returns the list
+of arguments for that method.
+
+[para]
+
+When executing a list of words (aka program) the first word is always
+taken as the name of a language command, and the next words as its
+arguments, per the [term arity] of the command. Command and argument
+words are removed from the list and then associated method of the
+engine is executed with the argument words. The process then repeats
+using the then-first word of the list.
+
+[para]
+
+Note that the methods implementing the language commands may have full
+access to the list of words and are allowed to manipulate as they see
+fit.
+
+[list_begin enum]
+
+[enum]
+This means, for example, that while we cannot specify
+variable-argument methods directly they can consume words after their
+fixed arguments before returning to the execution loop. This may be
+under the control of their fixed arguments.
+
+[enum]
+Another possibility is the use of method [method run_next] and its
+variants to execute commands coming after the current command,
+changing the order of execution.
+
+[enum]
+Execution can be further changed by use of the program accessor
+methods which allow a command implementation to modify the remaining
+list of words (insert, replace, prepend, append words) without
+executing them immediately.
+
+[enum]
+At last the basic [method run] methods save and restore an existing
+list of words when used, enabling recursive use from within command
+implementations.
+
+[list_end]
+
+[section {CLASS API}]
+
+The main command of the package is:
+
+[list_begin definitions]
+
+[call [cmd ::wip] [arg wipName] [arg engine] [arg arg]...]
+
+The command creates a new word interpreter object with an associated
+global Tcl command whose name is [arg wipName]. If however the string
+[const %AUTO%] was used as object name the package will generate its
+own unique name for the object.
+
+[para]
+
+The [arg engine] is the object the word interpreter will dispatch all
+recognized commands to, and the [arg arg]uments are a word list which
+defines an initial mapping from language words to engine methods.
+
+[para]
+
+The recognized language of this word list is
+
+[list_begin definitions]
+[call [cmd def] [arg name]]
+
+Defines [arg name] as command of the language, to be mapped to a
+method of the [arg engine] having the same name.
+
+[call [cmd def] [arg name] [arg method_prefix]]
+
+Defines [arg name] as command of the language, to be mapped to the
+method of the [arg engine] named in the [arg method_prefix].
+
+[list_end]
+
+[para]
+
+The returned command may be used to invoke various operations on the
+object.  It has the following general form:
+
+[list_begin definitions]
+[call [cmd wipName] [arg option] [opt [arg "arg arg ..."]]]
+
+[arg Option] and the [arg arg]s determine the exact behavior of the
+command.
+
+[list_end]
+[list_end]
+
+The package additionally exports the command:
+
+[list_begin definitions]
+
+[call [cmd wip::dsl] [opt [arg suffix]]]
+
+This command is for use within snit types which wish to use one or
+more wip interpreters as a component. Use within the type definition
+installs most of the boilerplate needed to setup and use a word
+interpreter.
+
+[para]
+
+It installs a component named [emph wip], and a method
+[method wip_setup] for initializing it. This method has to be called
+from within the constructor of the type using the word interpreter.
+
+If further installs a series of procedures which make the object API
+of the word interpreter directly available to the type's methods,
+without having to specify the component.
+
+[para]
+
+[emph Note] that this does and cannot install the language to
+interpret, i.e. the mapping from words to engine methods.
+
+[para]
+
+It is possible to instantiate multiple word interpreter components
+within a type by using different suffices as arguments to the command.
+
+In that case the name of the component changes to
+'wip_[var \$suffix]', the setup command becomes
+'wip_[var \$suffix]_setup' and all the procedures also get the suffix
+'_[var \$suffix]'.
+
+[list_end]
+
+[section {OBJECT API}]
+
+The following commands are possible for word interpreter objects:
+
+[list_begin definitions]
+
+[call [arg wipName] [method def] [arg name] [opt [arg method_prefix]]]
+
+Defines a language command [arg name] and maps it to the method named
+in the engine's [arg method_prefix]. If the [arg method_prefix] name
+is not specified it is simply the name of the language command.
+
+[call [arg wipName] [method defl] [arg names]]
+
+Defines a series of language commands, specified through the list of
+[arg names], all of which are mapped to engine methods of the same
+name.
+
+[call [arg wipName] [method defd] [arg dict]]
+
+Defines a series of language commands, specified through the
+dictionary [arg dict] of names and method prefixes.
+
+[call [arg wipName] [method deflva] [arg name]...]
+
+As method [method defl], however the list of names is specified
+through multiple arguments.
+
+[call [arg wipName] [method defdva] ([arg name] [arg method_prefix])...]
+
+As method [method defd], however the dictionary of names and method
+prefixes is specified through multiple arguments.
+
+[call [arg wipName] [method undefl] [arg names]]
+
+Removes the named series of language commands from the mapping.
+
+[call [arg wipName] [method undefva] [arg name]...]
+
+As method [method undefl], however the list of names is specified
+through multiple arguments.
+
+[call [arg wipName] [method unknown] [arg cmdprefix]]
+
+Sets the handler for unknown words to [arg cmdprefix]. This command
+prefix takes one argument, the current word, and either throws some
+error, or returns the result of executing the word, as defined by the
+handler. The default handler simply throws an error.
+
+[call [arg wipName] [method runl] [arg wordlist]]
+
+Treats the list of words in [arg wordlist] as a program and executes
+the contained command one by one. The result of the command executed
+last is returned as the result of this command.
+
+[para]
+
+The [arg wordlist] is stored in the object for access by the other
+[term run]-methods, and the general program accessor methods (see
+below). A previously stored wordlist is saved during the execution of
+this method and restored before it returns. This enables the recursive
+execution of word lists within word lists.
+
+[call [arg wipName] [method run]  [arg word]...]
+
+As method [method runl], however the list of words to execute is
+specified through multiple arguments.
+
+[call [arg wipName] [method run_next]]
+
+Low-level method. Determines the next word in the list of words, and
+its arguments, and then executes it. The result of the executed word
+is the result of this method.
+
+[para]
+
+Exposed for use within command implementations.
+
+The methods [method run] and [method runl] use it to execute words
+until their word list is exhausted.
+
+[call [arg wipName] [method run_next_while] [arg acceptable]]
+
+Low-level method. Invokes the method [method run_next] as long as the
+next word is in the set of [arg acceptable] words, and the program is
+not empty. The result of the command executed last is returned as the
+result of this command.
+
+[para]
+
+Exposed for use within command implementations to change the order of
+execution.
+
+[call [arg wipName] [method run_next_until] [arg rejected]]
+
+Low-level method. Invokes the method [method run_next] until the next
+word is in the set of [arg rejected] words, and the program is not
+empty. The result of the command executed last is returned as the
+result of this command.
+
+[para]
+
+Exposed for use within command implementations to change the order of
+execution.
+
+[call [arg wipName] [method run_next_if] [arg acceptable]]
+
+Low-level method. Invokes the method [method run_next] if the next
+word is in the set of [arg acceptable] words, and the program is not
+empty. The result of the command executed last is returned as the
+result of this command.
+
+[para]
+
+Exposed for use within command implementations to change the order of
+execution.
+
+[call [arg wipName] [method run_next_ifnot] [arg rejected]]
+
+Low-level method. Invokes the method [method run_next] if the next
+word is not in the set of [arg rejected] words, and the program is not
+empty. The result of the command executed last is returned as the
+result of this command.
+
+[para]
+
+Exposed for use within command implementations to change the order of
+execution.
+
+[call [arg wipName] [method next]]
+
+Returns the next word in the programm. The word is also removed.
+
+[call [arg wipName] [method peek]]
+
+Returns the next word in the programm without removing it
+
+[call [arg wipName] [method peekall]]
+
+Returns the remaining programm in toto.
+
+[call [arg wipName] [method insertl] [arg at] [arg wordlist]]
+
+Basic programm accessor method. Inserts the specified [arg wordlist]
+into the program, just before the word at position [arg at]. Positions
+are counted from [const zero].
+
+[call [arg wipName] [method replacel] [arg wordlist]]
+
+Basic programm accessor method. Replaces the whole stored program with
+the specified [arg wordlist].
+
+[call [arg wipName] [method pushl] [arg wordlist]]
+
+Program accessor method. The specified [arg wordlist] is added to the
+front of the remaining program. Equivalent to
+
+[para]
+[example {$wip insertl 0 $wordlist}]
+
+[call [arg wipName] [method addl] [arg wordlist]]
+
+Program accessor method. The specified [arg wordlist] is appended at
+the end of the remaining program. Equivalent to
+
+[para]
+[example {$wip insertl end $wordlist}]
+
+[call [arg wipName] [method insert]  [arg at] [arg word]...]
+
+Like method [method insertl], except the words are specified through
+multiple arguments.
+
+[call [arg wipName] [method replace] [arg word]...]
+
+Like method [method setl], except the words are specified through
+multiple arguments.
+
+[call [arg wipName] [method push] [arg word]...]
+
+Like method [method pushl], except the words are specified through
+multiple arguments.
+
+[call [arg wipName] [method add] [arg word]...]
+
+Like method [method addl], except the words are specified through
+multiple arguments.
+
+[list_end]
+
+[section EXAMPLES]
+
+No examples yet.
+
+[vset CATEGORY wip]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

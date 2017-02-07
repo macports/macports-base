@@ -1,0 +1,47 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin clock_iso8601 n 0.1]
+[moddesc   {Date/Time Utilities}]
+[titledesc {Parsing ISO 8601 dates/times}]
+[category  {Text processing}]
+[require Tcl 8.5]
+[require clock::iso8601 [opt 0.1]]
+[description]
+
+This package provides functionality to parse dates and times in
+ISO 8601 format.
+
+[para]
+
+[list_begin definitions]
+
+[call [cmd {::clock::iso8601 parse_date}] \
+     [arg date] [arg options...]]
+
+This command parses an ISO8601 date string in an unknown variant and
+returns the given date/time in seconds since epoch.
+
+[para] The acceptable options are
+[option -base],
+[option -gmt],
+[option -locale], and
+[option -timezone]
+of the builtin command [cmd {clock scan}].
+
+[call [cmd {::clock::iso8601 parse_time}] \
+     [arg time] [arg options...]]
+
+This command parses a full ISO8601 timestamp string (date and time) in
+an unknown variant and returns the given time in seconds since epoch.
+
+[para] The acceptable options are
+[option -base],
+[option -gmt],
+[option -locale], and
+[option -timezone]
+of the builtin command [cmd {clock scan}].
+
+[list_end]
+
+[vset CATEGORY clock::iso8601]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

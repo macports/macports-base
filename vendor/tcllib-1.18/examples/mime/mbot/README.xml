@@ -1,0 +1,720 @@
+<?xml version="1.0"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd">
+
+<?rfc compact="no"?>
+<?rfc toc="yes"?>
+<?rfc private="The README file"?>
+<?rfc header="README"?>
+
+<rfc>
+<front>
+<title>The personal.tcl Mailbot</title>
+
+<author initials="M.T." surname="Rose" fullname="Marshall T. Rose">
+<organization>Dover Beach Consulting, Inc.</organization>
+<address>
+<postal>
+<street>POB 255268</street>
+<city>Sacramento</city> <region>CA</region> <code>95865-5268</code>
+<country>US</country>
+</postal>
+<phone>+1 916 483 8878</phone>
+<facsimile>+1 916 483 8848</facsimile>
+<email>mrose@dbc.mtview.ca.us</email>
+</address>
+</author>
+
+<date month="February" year="2002" />
+
+<abstract><t>The personal.tcl mailbot implements a highly-specialized
+filter for personal messages.
+It MUST not be used by people who receive mailing list traffic in
+their personal mailboxes.</t></abstract>
+</front>
+
+<middle>
+<section title="SYNOPSIS">
+<figure>
+<preamble>Create a <xref target="configFile">configuration file</xref>
+and add this line to your ".forward" file:</preamble>
+<artwork><![CDATA[
+    "| LIB/mbot-1.1/personal.tcl -config FILE -user USER"
+]]></artwork>
+<postamble>where "LIB" is where the Tcl library lives,
+"FILE" is the name of your configuration file,
+and "USER" is your username.</postamble>
+</figure>
+
+<section title="Requirements">
+<t>This package requires:
+<list style="symbols">
+<t><eref target="http://core.tcl.tk/tcl/">Tcl version 8.3</eref>
+or later</t>
+
+<t><eref target="http://core.tcl.tk/tcllib/">tcl lib</eref></t>
+
+<t><eref target="http://sourceforge.net/projects/tclx/">TclX version 8.0</eref>
+or later</t>
+</list></t>
+</section>
+
+<section title="Copyrights">
+<t>(c) 1999-2002 Marshall T. Rose</t>
+
+<t>Hold harmless the author, and any lawful use is allowed.</t>
+</section>
+</section>
+
+<section title="PHILOSOPHY">
+<t>The mailbot's philosophy is simple:
+<list style="symbols">
+<t>The mailbot receives all of your incoming personal mail.</t>
+
+<t>You ALWAYS copy yourself on every message you send,
+so that the mailbot receives all of your outgoing personal mail.</t>
+
+<t>The mailbot performs six tasks, all optional:
+<list>
+<t>makes audit copies of your incoming and outgoing mail;</t>
+
+<t>performs duplicate supression;</t>
+
+<t>performs originator supression by rejecting messages from people
+who aren't your friends or on a guest list;</t>
+
+<t>performs content supression by rejecting messages that contain
+attachments with extensions on your prohibited list;</t>
+
+<t>sends a textual synopsis to your PDA; and,</t>
+
+<t>sends a copy to your remote mailbox.</t>
+</list></t>
+</list></t>
+
+<t>Do NOT use the personal.tcl mailbot if you receive mailing list
+traffic in your personal mailbox.
+When sending mail to a mailing list,
+either:
+<list style="symbols">
+<t>use a "From" address that the personal.tcl mailbot will process as
+"impersonal" mail,
+(e.g., "hewes+ietf.general@example.com"); or,</t>
+
+<t>set the "Reply-To" for the message to the mailing list.</t>
+</list>
+Consult <xref target="impersonal" /> for information on how
+"impersonal" mail is identified and processed.</t>
+
+<vspace blankLines="10000" />
+
+<section title="Guest Lists">
+<t>Guest lists are an effective mechanism for cutting back on
+excessive mail.
+<list style="symbols">
+<t>when the mailbot receives a message from you,
+it adds any recipients it finds to a permanent-guest list;</t>
+
+<t>when the mailbot receives a message from someone on a guest list,
+it adds any recipients it finds to a temporary-guest list; but,</t>
+
+<t>when the mailbot receives a message from someone not on any guest
+list,
+they get a rejection notice.</t>
+</list>
+Note that in order to promote someone to the permanent-guest list,
+you must send them a message (with a copy to yourself).
+In most cases,
+simply replying to the original message accomplishes this.
+Of course,
+if you don't want to promote someone to the permanent-guest list,
+simply remove that address (or your address) from the list of
+recipients in your reply.</t>
+
+<t>Here are the fine points:
+<list style="symbols">
+<t>rejection notices contain a passphrase that may be used at most
+once to bypass the guest list mechanism
+(notices also contain the original message to minimize type-in
+by the uninvited);</t>
+
+<t>a flip-flop is used to avoid mail loops; and,</t>
+
+<t>messages originated by an administrative address (e.g.,
+"Postmaster") bypass the guest list mechanism
+(unless the message refers to a previously-rejected message,
+in which case it is supressed).</t>
+</list></t>
+
+<t>The rejection notice should be written carefully to minimize an
+extreme negative reaction on the part of the uninvited.
+Of course,
+by allowing a passphrase,
+this provides something of a CQ test for the uninvited --
+if someone can't pass the test...</t>
+</section>
+</section>
+
+<section title="BEHAVIOR">
+<section title="Arguments">
+<t>The mailbot supports the following command line arguments:
+<list style="hanging">
+<t hangText="   -config configFile:">
+specifies the name of the configuration file to use;</t>
+
+<t hangText="   -debug boolean:">
+enables debug output;</t>
+
+<t hangText="   -file messageFile:">
+specifies the name of the file containing the message;</t>
+
+<t hangText="   -originator orginatorAddress:">
+specifies the email-address of the originator of the message; and,</t>
+
+<t hangText="   -user userName:">
+specifies the user-identity of the recipient.</t>
+</list>
+Note that if "-user" is given,
+then the working directory is set to userName's home directory before
+configFile is sourced,
+and the umask is set defensively.</t>
+
+<figure>
+<preamble>The default values are:</preamble>
+<artwork><![CDATA[
+    personal.tcl -config     .personal-config.tcl   \
+                 -debug      0                      \
+                 -file       -                      \
+                 -originator "derived from message"
+]]></artwork>
+<postamble>Given the default values,
+only "-user" need be specified.
+The reason is that if a message is being delivered to multiple local
+recipients,
+and if any of the ".forward" files are identical in content,
+then sendmail may not deliver the message to all of the local
+recipients.</postamble>
+</figure>
+
+<t>A few other (sendmail related) tips:
+<list style="symbols">
+<t>If sendmail is configured with smrsh,
+you'll need to symlink personal.tcl into the
+/usr/libexec/sm.bin/ directory.</t>
+
+<t>Make sure that tclsh8.0 is in the path specified on the third-line
+of personal.tcl.</t>
+
+<t>You should chmod your ".forward" file to 0600.</t>
+</list></t>
+</section>
+
+<vspace blankLines="10000" />
+
+<section anchor="actions" title="Actions">
+<t>The mailbot begins by parsing its arguments,
+sourcing configFile,
+and then examining the incoming message:
+<list style="numbers">
+<t>If <xref target="options.auditInFile">auditInFile</xref> is set,
+a copy of the message is 
+<xref target="procs.saveMessage">saved</xref> there.</t>
+
+<t>If the message contains a previously-encountered "Message-ID",
+processing terminates.</t>
+
+<t>If the message's originator can not be determined,
+a copy of the message is
+<xref target="procs.saveMessage">saved</xref> in the
+<xref target="options.defaultMaildrop">defaultMaildrop</xref> and
+processing terminates.</t>
+
+<t>The originator's email-address is examined:
+<list>
+<t>If the originator appears to be an
+<xref target="procs.adminP">automated administrative process</xref>,
+and if a previously rejected email-address is found in the message,
+processing terminates.</t>
+
+<t>Otherwise,
+if the originator isn't <xref target="procs.ownerP">the user</xref>,
+or <xref target="procs.friendP">a friend</xref>,
+or a permanent-access guest,
+or a temporary-access guest,
+and if <xref target="options.noticeFile">noticeFile</xref> is set,
+then the message is rejected.</t>
+
+<t>Otherwise,
+each recipient email-address in the message's header is added to a guest
+list.
+(If the originator is <xref target="procs.ownerP">the user</xref>,
+the permanent-guest list is used instead of the temporary-guest
+list.)</t>
+</list></t>
+
+<t>If the originator is the <xref target="procs.ownerP">the user</xref>,
+then:
+<list>
+<t>If <xref target="options.auditOutFile">auditOutFile</xref> is set,
+<xref target="procs.saveMessage">saved</xref> there.</t>
+
+<t>Regardless, processing terminates.</t>
+</list></t>
+
+<t>If <xref target="options.pdaMailboxes">pdaMailboxes</xref> is set,
+and if any plaintext is contained in the message,
+then the plaintext is sent to those email-addresses.</t>
+
+<t>If <xref target="options.remoteMailboxes">remoteMailboxes</xref> is set,
+and if the message is successful resent to those email-addresses,
+then processing terminates.</t>
+
+<t>A copy of the message is
+<xref target="procs.saveMessage">saved</xref> in the
+<xref target="options.defaultMaildrop">defaultMaildrop</xref> and
+processing terminates.</t>
+</list></t>
+</section>
+
+<section anchor="configFile" title="The Configuration File">
+<t>There are two kinds of information that may be defined in configFile:
+<xref target="options">configuration options</xref> and
+<xref target="procs">configurable procedures</xref>.</t>
+
+<figure>
+<preamble>Here's a simple example of a configFile for a user named
+"example":</preamble>
+<artwork><![CDATA[
+    set options(dataDirectory)   .personal
+    set options(defaultMaildrop) /var/mail/example
+    set options(logFile)         [file join .personal personal.log]
+    set options(noticeFile)      [file join .personal notice.txt]
+]]></artwork>
+</figure>
+
+<section anchor="options" title="Configuration Options">
+<t>configFile must define 
+<xref target="options.dataDirectory">dataDirectory</xref>
+and
+<xref target="options.defaultMaildrop">defaultMaildrop</xref>.
+All other configuration options are optional.</t>
+
+<section anchor="options.dataDirectory" title="dataDirectory">
+<t>The directory where the mailbot keeps its databases.
+The subdirectories are:
+<list style="hanging">
+<t hangText="   badaddrs:">the directory of rejected email-addresses</t>
+
+<t hangText="   inaddrs:">the directory of originator email-addresses</t>
+
+<t hangText="   msgids:">the directory of Message-IDs</t>
+
+<t hangText="   outaddrs:">the permanent-guest list</t>
+
+<t hangText="   phrases:">the directory of at-most-once passphrases</t>
+
+<t hangText="   tmpaddrs:">the temporary-guest list</t>
+</list>
+If you want to remove someone from a guest list,
+simply go to that directory and delete the corresponding file.</t>
+</section>
+
+<section anchor="options.defaultMaildrop" title="defaultMaildrop">
+<t>The filename where messages are 
+<xref target="procs.saveMessage">saved</xref> for later viewing by
+your user agent.</t>
+</section>
+
+<section anchor="options.auditInFile" title="auditInFile">
+<t>The filename where messages are
+<xref target="procs.saveMessage">saved</xref> for audit purposes.</t>
+</section>
+
+<section anchor="options.auditOutFile" title="auditOutFile">
+<t>The filename where your outgoing messages are
+<xref target="procs.saveMessage">saved</xref> for audit purposes.</t>
+</section>
+
+<section anchor="options.dropNames" title="dropNames">
+<t>A list of filename extensions for attachments that automatically
+cause the message to be rejected.</t>
+</section>
+
+<section anchor="options.friendlyDomains" title="friendlyDomains">
+<t>A list used by <xref target="procs.friendP">friendP</xref> giving
+the domain names where your friends live.</t>
+</section>
+
+<section anchor="options.friendlyfire" title="friendlyfire">
+<t>If present and true,
+then someone sending a message both to you and someone you've
+previously sent mail to,
+is considered a friend.</t>
+</section>
+
+<section anchor="options.logFile" title="logFile">
+<t>The filename where the mailbot
+<xref target="procs.tclLog">logs</xref> its actions.</t>
+</section>
+
+<section anchor="options.myMailbox" title="myMailbox">
+<figure>
+<preamble>Your preferred email-address with commentary text, e.g.,</preamble>
+<artwork><![CDATA[
+    Arlington Hewes <hewes@example.com>
+]]></artwork>
+</figure>
+</section>
+
+<section anchor="options.noticeFile" title="noticeFile">
+<t>The filename containing the textual notice sent when a message is
+rejected.
+Note that all occurrances of "%passPhrase%" within this file are
+replaced with an at-most-once passphrase allowing the originator to
+bypass the mailbot's filtering.
+Similarly,
+any occurrences of "%subject%" are replaced by the "Subject" of the
+incoming message.</t>
+</section>
+
+<section anchor="options.pdaMailboxes" title="pdaMailboxes">
+<t>The email-addresses where a textual synopsis of the incoming message is
+sent.</t> 
+</section>
+
+<section anchor="options.remoteMailboxes" title="remoteMailboxes">
+<t>The email-addresses where a copy of the incoming message is resent.</t> 
+</section>
+</section>
+
+<vspace blankLines="10000" />
+
+<section anchor="procs" title="Configurable Procedures">
+<t>All of these procedures are defined in personal.tcl.
+You may override any of them in configFile.</t>
+
+<section anchor="procs.adminP" title="adminP">
+<figure>
+<artwork><![CDATA[
+    proc adminP {local domain}
+]]></artwork>
+</figure>
+
+<t>Returns "1" if the email-address is an automated administrative
+process.</t>
+</section>
+
+<section anchor="procs.friendP" title="friendP">
+<figure>
+<artwork><![CDATA[
+    proc friendP {local domain}
+]]></artwork>
+</figure>
+
+<t>Returns "1" if the email-address is from a
+<xref target="options.friendlyDomains">friendly domain</xref> or
+sub-domain.</t>
+</section>
+
+<section anchor="procs.ownerP" title="ownerP">
+<figure>
+<artwork><![CDATA[
+    proc ownerP {local domain}
+]]></artwork>
+</figure>
+
+<t>Returns "1" if the email-address refers to the user
+(as determined by looking at
+<xref target="options.myMailbox">myMailbox</xref>,
+<xref target="options.pdaMailboxes">pdaMailboxes</xref>, and
+<xref target="options.remoteMailboxes">remoteMailboxes</xref>.</t>
+</section>
+
+<section anchor="procs.saveMessage" title="saveMessage">
+<figure>
+<artwork><![CDATA[
+    proc saveMessage {inF {outF ""}}
+]]></artwork>
+</figure>
+
+<t>Saves a copy of the message contained in the file inF.
+If the destination file,
+outF,
+isn't specified,
+it defaults to the
+<xref target="options.defaultMaildrop">defaultMaildrop</xref>.</t> 
+</section>
+
+<section anchor="procs.findPhrase" title="findPhrase">
+<figure>
+<artwork><![CDATA[
+    proc findPhrase {subject}
+]]></artwork>
+</figure>
+
+<t>Returns "1" if a previously-allocated passphrase is present in the
+subject.
+If so,
+the passphrase is forgotten.</t>
+</section>
+
+<section anchor="procs.makePhrase" title="makePhrase">
+<figure>
+<artwork><![CDATA[
+    proc makePhrase {}
+]]></artwork>
+</figure>
+
+<t>Returns an at-most-once passphrase for use with a rejection notice.</t>
+</section>
+
+<section anchor="procs.pruneDir" title="pruneDir">
+<figure>
+<artwork><![CDATA[
+    proc pruneDir {dir type}
+]]></artwork>
+</figure>
+
+<t>Removes old entries from one of the mailbot's 
+<xref target="options.dataDirectory">databases</xref>.
+The second parameter is one of "addr", "msgid", or "phrase".</t>
+</section>
+
+<section anchor="procs.tclLog" title="tclLog">
+<figure>
+<artwork><![CDATA[
+    proc tclLog {message}
+]]></artwork>
+</figure>
+
+<t>Writes a message to the <xref target="options.logFile">logFile</xref>.</t>
+</section>
+</section>
+</section>
+
+</section>
+
+</middle>
+
+<back>
+<references />
+
+<section anchor="impersonal" title="Impersonal Mail">
+<t>If <xref target="procs.impersonalMail">impersonalMail</xref>
+returns a non-empty string
+then the message is processed differently than the algorithm given in
+<xref target="actions" />.
+Specifically:
+<list style="numbers">
+<t>If the message contains a previously-encountered "Message-ID",
+processing terminates.</t>
+
+<t>If the message's originator can not be determined,
+processing terminates.</t>
+
+<t>The value returned by
+<xref target="procs.impersonalMail">impersonalMail</xref>
+is the folder's name and is broken into one or more components
+seperated by dots (".").
+If there aren't at least two components,
+or if any of the components are empty
+(e.g., the folder is named "sys..announce"),
+then the message is bounced.</t>
+
+<t>If <xref target="options.mappingFile">mappingFile</xref> exists,
+that file is examined to see if an entry is present for the folder.
+If so,
+the message is processed according to the value present,
+one of:
+<list style="hanging">
+<t hangText='     "ignore":'>the message is silently ignored;</t>
+
+<t hangText='     "bounce":'>the message is noisily bounced; or,</t>
+
+<t hangText="    otherwise:">the message is resent to the address.</t>
+</list>
+Regardless,
+if an entry was present for the folder,
+then processing terminates.</t>
+
+<t>The message is <xref target="procs.saveMessage">saved</xref> 
+in a file whose name is constructed by replacing each dot (".") in the
+folder name with a directory seperator
+(e.g., if the folder is named "sys.announce",
+then the file is called "announce" underneath the directory "sys"
+underneath the directory identified by
+<xref target="options.foldersDirectory">foldersDirectory</xref>.</t>
+
+<t>Finally,
+the file identified by <xref target="options.foldersFile">foldersFile</xref>
+is updated as necessary.</t>
+</list></t>
+
+<vspace blankLines="10000" />
+
+<section anchor="impersonal.options" title="Configuration Options">
+<t>If "impersonal" mail is received,
+then <xref target="options.foldersFile">foldersFile</xref> and
+<xref target="options.foldersDirectory">foldersDirectory</xref> 
+must exist.</t>
+
+<section anchor="options.foldersDirectory" title="foldersDirectory">
+<t>The directory where the mailbot keeps private folders.</t>
+</section>
+
+<section anchor="options.foldersFile" title="foldersFile">
+<t>This file contains one line for each private folder.</t>
+</section>
+
+<section anchor="options.announceMailboxes" title="announceMailboxes">
+<t>The email-addresses where an announcement is sent when a new
+private folder is created.</t>
+</section>
+
+<section anchor="options.mappingFile" title="mappingFile">
+<t>The file consulted by the mailbot to determine how to process
+"impersonal" messages.
+Each line of the file consists of a folder name and value,
+seperated by a colon (":").
+There are three reserved values: "bounce", "ignore", and "store".</t>
+</section>
+</section>
+
+<vspace blankLines="10000" />
+
+<section anchor="impersonal.procs" title="Configurable Procedures">
+<t>All of these procedures are defined in personal.tcl.
+You may override any of them in configFile.</t>
+
+<section anchor="procs.impersonalMail" title="impersonalMail">
+<figure>
+<artwork><![CDATA[
+    proc impersonalMail {}
+]]></artwork>
+</figure>
+
+<t>If the message is deemed "impersonal",
+return the name of a corresponding private folder;
+otherwise,
+return the empty-string.</t>
+
+<t>Many mail systems have a mechanism of passing additional
+information when performing final delivery using a program.
+With modern versions of sendmail,
+for example,
+if mail is sent to a local user named "user+detail",
+then,
+in the absense of an alias for either "user+detail" or "user+*",
+then the message is delivered to "user".
+The trick is to get sendmail to pass the "detail" part to the mailbot.</t>
+
+<figure>
+<preamble>At present,
+sendmail passes this information only if procmail is your local
+mailer.
+Here's how I do it:</preamble>
+<artwork><![CDATA[
+    *** _alias.c    Tue Dec 29 10:42:25 1998
+    --- alias.c     Sat Sep 18 21:51:35 1999
+    ***************
+    *** 813,818 ****
+    --- 813,821 ----
+            define('z', user->q_home, e);
+            define('u', user->q_user, e);
+            define('h', user->q_host, e);
+    + 
+    +       setuserenv("SUFFIX", user->q_host);
+    + 
+            if (ForwardPath == NULL)
+                    ForwardPath = newstr("\201z/.forward");
+]]></artwork>
+<postamble>This makes available an environment variable called
+"SUFFIX" which has the "details" part.
+The drawback in this approach is that this information is lost if the
+message is re-queued for delivery
+(what's really needed is an addition to the .forward syntax to allow
+macros such as $h to be passed).</postamble>
+</figure>
+
+<figure>
+<preamble>The corresponding impersonalMail procedure is defined as:</preamble>
+<artwork><![CDATA[
+    proc impersonalMail {} {
+        global env
+
+        return $env(SUFFIX)
+    }
+]]></artwork>
+</figure>
+</section>
+
+<section anchor="procs.processFolder" title="processFolder">
+<figure>
+<artwork><![CDATA[
+    proc processFolder {folderName mimeT} { return $string }
+]]></artwork>
+</figure>
+
+<t>If an entry for the folder exists in the
+<xref target="options.mappingFile">mappingFile</xref>,
+and if the value for that entry is "process",
+then this procedure is invoked to return a string indicating what
+action to take
+(cf., <xref target="impersonal" />).</t>
+</section>
+</section>
+</section>
+
+<section title="An Example configFile">
+<figure>
+<preamble>Here is the ".forward" file for the user "hewes":</preamble>
+<artwork><![CDATA[
+    "|/usr/pkg/lib/mbot-1.1/personal.tcl 
+         -config .personal/config.tcl -user hewes"
+]]></artwork>
+<postamble>(Of course, it's all on one line.)</postamble>
+</figure>
+
+<figure>
+<preamble>Here is the user's ".personal/config.tcl" file:</preamble>
+<artwork><![CDATA[
+    array set options [list                                          \
+        dataDirectory     .personal                                  \
+        defaultMaildrop   /var/mail/hewes                            \
+        auditInFile       [file join .personal INCOMING]             \
+        auditOutFile      [file join .personal OUTGOING]             \
+        friendlyDomains   [list tcp.int example.com]                 \
+        logFile           [file join .personal personal.log]         \
+        myMailbox         "Arlington Hewes <hewes@example.com>"      \
+        pdaMailboxes      hewes.pager@example.com                    \
+        noticeFile        [file join .personal notice.txt]           \
+        foldersDirectory  [file join .personal folders]              \
+        foldersFile       [file join .personal .mailboxlist]         \
+        announceMailboxes hewes+sys.announce@example.com             \
+        mappingFile       [file join .personal mapping]              \
+        friendlyFire      1                                          \
+        dropNames         [list *.bat *.exe *.src *.pif *.wav *.vbs] \
+    ]
+
+    proc impersonalMail {} {
+        global env
+
+        return $env(SUFFIX)
+    }
+]]></artwork>
+<postamble>Note that because
+<xref target="options.remoteMailboxes">remoteMailboxes</xref> isn't
+defined,
+personal messages are ultimately stored in the user's
+<xref target="options.defaultMaildrop">defaultMaildrop</xref>.</postamble>
+</figure>
+</section>
+
+<section title="Acknowledgements">
+<t>The original version of this mailbot was written by the author in 1994,
+implemented using  the safe-tcl package
+(Borenstein and Rose, circa 1993).</t>
+</section>
+
+</back>
+
+</rfc>

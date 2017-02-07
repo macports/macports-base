@@ -1,0 +1,79 @@
+## -*- tcl -*-
+##
+## Snit-based Tcl/PARAM implementation of the parsing
+## expression grammar
+##
+##	TEMPLATE
+##
+## Generated from file	TEST
+##            for user  unknown
+##
+# # ## ### ##### ######## ############# #####################
+## Requirements
+
+package require Tcl 8.5
+package require snit
+package require pt::rde ; # Implementation of the PARAM
+			  # virtual machine underlying the
+			  # Tcl/PARAM code used below.
+
+# # ## ### ##### ######## ############# #####################
+##
+
+snit::type ::PARSER {
+    # # ## ### ##### ######## #############
+    ## Public API
+
+    constructor {} {
+	# Create the runtime supporting the parsing process.
+	set myparser [pt::rde ${selfns}::ENGINE]
+	return
+    }
+
+    method parse {channel} {
+	$myparser reset $channel
+	MAIN ; # Entrypoint for the generated code.
+	return [$myparser complete]
+    }
+
+    method parset {text} {
+	$myparser reset
+	$myparser data $text
+	MAIN ; # Entrypoint for the generated code.
+	return [$myparser complete]
+    }
+
+    # # ## ### ###### ######## #############
+    ## Configuration
+
+    pragma -hastypeinfo    0
+    pragma -hastypemethods 0
+    pragma -hasinfo        0
+    pragma -simpledispatch 1
+
+    # # ## ### ###### ######## #############
+    ## Data structures.
+
+    variable myparser {} ; # Our instantiation of the PARAM.
+
+    # # ## ### ###### ######## #############
+    ## BEGIN of GENERATED CODE. DO NOT EDIT.
+
+    #
+    # Grammar Start Expression
+    #
+    
+    proc MAIN {} { upvar 1 myparser myparser
+        $myparser si:next_str abc
+        return
+    }
+    
+    ## END of GENERATED CODE. DO NOT EDIT.
+    # # ## ### ###### ######## #############
+}
+
+# # ## ### ##### ######## ############# #####################
+## Ready
+
+package provide SNIT_PACKAGE 1
+return

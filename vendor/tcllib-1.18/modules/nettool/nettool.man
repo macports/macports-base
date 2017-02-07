@@ -1,0 +1,143 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset PACKAGE_VERSION 0.5.1]
+[manpage_begin nettool n [vset PACKAGE_VERSION]]
+[keywords {nettool}]
+[keywords {odie}]
+[copyright {2015 Sean Woods <yoda@etoyoc.com>}]
+[moddesc   {nettool}]
+[titledesc {Tools for networked applications}]
+[category  System]
+[require Tcl 8.5]
+[require nettool [opt [vset PACKAGE_VERSION]]]
+[require twapi 3.1]
+[require ip 0.1]
+[require platform 0.1]
+[description]
+[para]
+
+The [package nettool] package consists of a Pure-tcl set of tools
+to perform common network functions that would normally require
+different packages or calls to exec, in a standard Tcl interface.
+
+At present nettool has reference implementations for the following operating
+systems: Windows, MacOSX, and Linux (debian).
+
+[section Commands]
+[list_begin definitions]
+
+[call [cmd ::cat] [arg filename]]
+
+Dump the contents of a file as a result.
+
+[call [cmd ::nettool::allocate_port] [arg startingport]]
+
+Attempt to allocate [arg startingport], or, if busy, advance the port
+number sequentially until a free port is found, and claim that port.
+
+This command uses a built-in database of known ports to avoid returning a
+port which is in common use. (For example: http (80))
+
+[call [cmd ::nettool::arp_table]]
+
+Dump the contents of this computer's Address Resolution Protocol (ARP) table.
+The result will be a Tcl formatted list: [arg macid] [arg ipaddrlist] ...
+
+[call [cmd ::nettool::broadcast_list]]
+
+Returns a list of broadcast addresses (suitable for UDP multicast)
+that this computer is associated with.
+
+[call [cmd ::nettool::claim_port] [arg port] [opt [arg protocol]]]
+
+Mark [arg port] as busy, optionally as either [const tcp] (default) or [const udp].
+
+[call [cmd ::nettool::cpuinfo] [arg args]]
+
+If no arguments are given, return a key/value list describing the
+CPU of the present machine. Included in the matrix is info on the number
+of cores/processors that are available for parallel tasking, installed physical
+RAM, and processor family.
+[para]
+The exact contents are platform specific.
+[para]
+For Linux, information is drawn from /proc/cpuinfo and /proc/meminfo.
+[para]
+For MacOSX, information is drawn from sysctl
+[para]
+For Windows, information is draw from TWAPI.
+[para]
+If arguments are given, the result with be a key/value list limited to the
+fields requested.
+[para]
+Canonical fields for all platforms:
+[list_begin definitions][comment {-- cpuinfofields}]
+[def cpus]   Count of CPUs/cores/execution units
+[def speed]  Clock speed of processor(s) in Mhz
+[def memory] Installed RAM (in MB)
+[def vendor] Manufacturer
+[list_end]
+
+[call [cmd ::nettool::find_port] [arg startingport]]
+
+Return [arg startingport] if it is available, or the next free port after
+[arg startingport]. Note: Unlike [cmd ::nettool::allocate_port], this
+command does not claim the port.
+[para]
+This command uses a built-in database of known ports to avoid returning a
+port which is in common use. (For example: http (80))
+
+[call [cmd  ::nettool::hwid_list]]
+
+Return a list of hardware specific identifiers from this computer. The source
+and content will vary by platform.
+[para]
+For MacOSX, the motherboard serial number and macids for all network devices is returned.
+[para]
+For Windows, the volume serial number of C and macids for all network devices is returned.
+[para]
+For Linux, macids for all network devices is returned.
+
+[call [cmd  ::nettool::ip_list]]
+
+Return a list of IP addresses associated with this computer.
+
+[call [cmd  ::nettool::mac_list]]
+
+Return a list of MACIDs for the network cards attached to this machine. The MACID of the
+primary network card is returned first.
+
+[call [cmd ::nettool::network_list]]
+
+Return a list of networks associated with this computer. Networks are formated with
+[cmd ip::nativeToPrefix].
+
+[call [cmd  ::nettool::port_busy] [arg port]]
+
+Return true if [arg port] is claimed, false otherwise.
+
+[call [cmd ::nettool::release_port] [arg port] [opt [arg protocol]]]
+
+Mark [arg port] as not busy, optionally as either [const tcp] (default) or [const udp].
+
+[call [cmd ::nettool::status]]
+
+Return a key/value list describing the status of the computer. The output
+is designed to be comparable to the output of [cmd top] for all platforms.
+[para]
+Common fields include:
+[list_begin definitions][comment {-- statusfields}]
+[def load]         Processes per processing unit
+[def memory_total] Total physical RAM (MB)
+[def memory_free]  Total physical RAM unused (MB)
+[list_end]
+ 
+[call [cmd ::nettool::user_data_root] [arg appname]]
+
+Return a fully qualified path to a folder where [arg appname] should store it's data.
+The path is not created, only computed, by this command.
+
+[list_end]
+[para]
+[vset CATEGORY odie]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

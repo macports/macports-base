@@ -1,0 +1,24 @@
+root ()
+....node1 (col 0 line 4 range {0 5} text {a
+b
+c
+} type Text)
+....node2 (col 4 line 4 range {7 9} text foo type Command)
+........node6 (col 8 line 4 range {11 13} text bar type Text)
+........node8 (col 13 line 4 range {16 18} text {a b} type Text)
+........node10 (col 17 line 4 range {21 22} text {
+} type Text)
+....node11 (col 0 line 5 range {24 24} text {
+} type Text)
+....node12 (col 4 line 5 range {26 28} text fox type Command)
+........node16 (col 9 line 5 range {31 33} text bar type Command)
+....node19 (col 0 line 6 range {36 36} text {
+} type Text)
+....node20 (col 4 line 6 range {38 40} text dog type Command)
+........node24 (col 9 line 6 range {45 48} text wags type Text)
+........node26 (col 3 line 7 range {51 61} text {tail	 .} type Text)
+....node30 (col 0 line 11 range {64 70} text {
+e
+f
+g
+} type Text)

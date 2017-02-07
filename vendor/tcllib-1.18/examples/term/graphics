@@ -1,0 +1,81 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+
+lappend auto_path [file join [file dirname [file dirname [file dirname [info script]]]] modules]
+package require term::ansi::send
+term::ansi::send::import vt
+
+vt::init
+vt::clear
+vt::wr \n
+vt::wr {    }
+vt::sda_bgcyan
+vt::wr {[ Table of graphics characters ]}
+vt::sda_reset
+vt::wr \n\n
+
+# Header
+vt::wr {      }
+foreach col {0 1 2 3 4 5 6 7} {
+    vt::sda_bgyellow
+    vt::wr $col
+    vt::sda_reset
+}       
+vt::wr {   }
+foreach col {0 1 2 3 4 5 6 7} {
+    vt::sda_bgyellow
+    vt::wr $col
+    vt::sda_reset
+}
+vt::wr \n
+
+vt::wr "     \016lqqqqqqqqk lqqqqqqqqk\017\n"
+
+foreach row {0 1 2 3 4 5 6 7 8 9 10 11} {
+
+    vt::wr { }
+    vt::sda_bgyellow
+    vt::wr [format %3o [expr {32+8*$row}]]
+    vt::sda_reset
+    vt::wr " \016x\017"
+
+    foreach col {0 1 2 3 4 5 6 7} {
+	set card [expr {32+8*$row+$col}]
+	if {$card > 126} {vt::wr { } ; continue}
+	set c [format %c $card]
+	vt::sda_bgwhite
+	vt::wr \016
+	vt::wr $c
+	vt::wr \017
+	vt::sda_reset
+    }
+
+    vt::wr "\016x x\017"
+
+    foreach col {0 1 2 3 4 5 6 7} {
+	set card [expr {32+8*$row+$col}]
+	if {$card > 126} {vt::wr { } ; continue}
+	set c [format %c $card]
+	vt::sda_bgwhite
+	vt::wr $c
+	vt::sda_reset
+    }
+    vt::wr "\016x\017\n"
+}
+
+vt::wr "     \016mqqqqqqqqj mqqqqqqqqj\017\n"
+vt::sda_reset
+vt::wr \n
+exit
+
+
+set n 0
+for {set i 32} {$i < 127} {incr i} {
+    set c [format %c $i]
+    vt::sda_reset
+    vt::wr " [format %3o $i] \["
+    vt::wr \]
+    incr n
+    if {$n >= 8} {set n 0 ; puts ""}
+}
+if {$n > 0} {puts ""}

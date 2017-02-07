@@ -1,0 +1,87 @@
+# -*- tcl -*-
+# Graph tests - node degree
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: degree.test,v 1.2 2007/04/12 03:01:56 andreas_kupries Exp $
+
+# Syntax: graph node degree ?-in|-out? NODE
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-node-degree-1.0 {node degree, wrong#args, missing} {
+    SETUP
+    catch {mygraph node degree} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"$MY node degree ?-in|-out? node\""
+
+test graph-${impl}-${setimpl}-node-degree-1.1 {node degree, wrong#args, too many} {
+    SETUP
+    catch {mygraph node degree foo bar baz} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"$MY node degree ?-in|-out? node\""
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-node-degree-2.0 {node degree, missing node} {
+    SETUP
+    catch {mygraph node degree node0} msg
+    mygraph destroy
+    set msg
+} [MissingNode $MY node0]
+
+test graph-${impl}-${setimpl}-node-degree-2.1 {node degree, bad switch} {
+    SETUP
+    catch {mygraph node degree -foo node0} msg
+    mygraph destroy
+    set msg
+} "bad option \"-foo\": must be -in or -out"
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-node-degree-3.0 {node degree} {
+    SETUP
+    mygraph node insert node0 node1 node2 node3 node4 node5
+
+    mygraph arc insert node1 node2 arc0
+    mygraph arc insert node3 node3 arc1
+    mygraph arc insert node4 node5 arc2
+    mygraph arc insert node4 node5 arc3
+    mygraph arc insert node4 node5 arc4
+    mygraph arc insert node5 node2 arc5
+
+    set result {}
+    lappend result node0 -
+    lappend result [mygraph node degree      node0]
+    lappend result [mygraph node degree -in  node0]
+    lappend result [mygraph node degree -out node0]
+    lappend result node1 -
+    lappend result [mygraph node degree      node1]
+    lappend result [mygraph node degree -in  node1]
+    lappend result [mygraph node degree -out node1]
+    lappend result node2 -
+    lappend result [mygraph node degree      node2]
+    lappend result [mygraph node degree -in  node2]
+    lappend result [mygraph node degree -out node2]
+    lappend result node3 -
+    lappend result [mygraph node degree      node3]
+    lappend result [mygraph node degree -in  node3]
+    lappend result [mygraph node degree -out node3]
+    lappend result node4 -
+    lappend result [mygraph node degree      node4]
+    lappend result [mygraph node degree -in  node4]
+    lappend result [mygraph node degree -out node4]
+    lappend result node5 -
+    lappend result [mygraph node degree      node5]
+    lappend result [mygraph node degree -in  node5]
+    lappend result [mygraph node degree -out node5]
+
+    mygraph destroy
+    set result
+} {node0 - 0 0 0 node1 - 1 0 1 node2 - 2 2 0 node3 - 2 1 1 node4 - 3 0 3 node5 - 4 3 1}
+
+# -------------------------------------------------------------------------

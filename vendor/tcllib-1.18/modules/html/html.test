@@ -1,0 +1,958 @@
+# -*- tcl -*- Tests for the html module.
+#
+# This file contains a collection of tests for a module in the
+# Standard Tcl Library. Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# Copyright (c) 2006 Michael Schlenker <mic42@users.sourceforge.net>
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# RCS: @(#) $Id: html.test,v 1.23 2006/10/09 21:41:40 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+testing {
+    useLocal html.tcl html
+}
+
+# -------------------------------------------------------------------------
+
+test html-1.1 {html::init} -body {
+    html::init
+    list \
+	[array exists html::defaults] \
+	[array size   html::defaults] \
+	[info exists  html::page]
+} -result {1 0 0}
+
+test html-1.2 {html::init} -body {
+    html::init {
+	font.face	arial
+	body.bgcolor	white
+	body.text	black
+    }
+    lsort [array names html::defaults]
+} -result {body.bgcolor body.text font.face}
+
+test html-1.3 {html::init, too many args} -body {
+    html::init wrong num args
+} -returnCodes error -result {wrong # args: should be "html::init ?nvlist?"}
+
+test html-1.4 {html::init, bad arg, odd-length list} -body {
+    html::init {wrong num args}
+} -returnCodes error -result {list must have an even number of elements}
+
+test html-2.1 {html::head, not enough args} -body {
+    html::head
+} -returnCodes error -result {wrong # args: should be "html::head title"}
+
+test html-2.2 {html::head} -body {
+    html::head "The Title"
+} -result "<html><head>\n\t<title>The Title</title>\n</head>\n"
+
+test html-2.3 {html::head} -body {
+    html::description "The Description"
+    html::keywords key word
+    html::author "Cathy Coder"
+    html::meta metakey metavalue
+    html::head "The Title"
+} -result {<html><head>
+	<title>The Title</title>
+	<!-- Cathy Coder -->
+	<meta name="description" content="The Description">
+	<meta name="keywords" content="key, word">
+	<meta name="metakey" content="metavalue">
+</head>
+}
+
+test html-3.1 {html::title, not enough args} -body {
+    html::title
+} -returnCodes error -result {wrong # args: should be "html::title title"}
+
+test html-3.2 {html::title} -body {
+    html::title "blah blah"
+} -result "<title>blah blah</title>\n"
+
+test html-4.1 {html::getTitle} -body {
+    html::init
+    html::getTitle
+} -result ""
+
+test html-4.2 {html::getTitle} -body {
+    html::init
+    html::title "blah blah"
+    html::getTitle
+} -result {blah blah}
+
+test html-5.1 {html::meta} {
+    html::init
+    html::meta one two
+} {}
+
+test html-5.2 {html::meta} {
+    html::init
+    html::meta one two
+    lindex $html::page(meta) 0
+} {<meta name="one" content="two">}
+
+test html-5.3 {html::meta} {
+    html::init
+    html::meta one {"one val"}
+    lindex $html::page(meta) 0
+} {<meta name="one" content="&#34;one val&#34;">}
+
+test html-6.1 {html::keywords} {
+    html::init
+    html::keywords one two
+} {}
+
+test html-6.2 {html::keywords} {
+    html::init
+    html::keywords one two
+    lindex $html::page(meta) 0
+} {<meta name="keywords" content="one, two">}
+
+test html-6.3 {html::keywords} {
+    html::init
+    html::keywords one {"one val"} &
+    lindex $html::page(meta) 0
+} {<meta name="keywords" content="one, &#34;one val&#34;, &amp;">}
+
+test html-7.1 {html::description} {
+    html::init
+    html::description "This is the description."
+} {}
+
+test html-7.2 {html::description} {
+    html::init
+    html::description "This is the description."
+    lindex $html::page(meta) 0
+} {<meta name="description" content="This is the description.">}
+
+test html-7.3 {html::description} {
+    html::init
+    html::description {one "one val" &}
+    lindex $html::page(meta) 0
+} {<meta name="description" content="one &#34;one val&#34; &amp;">}
+
+test html-8.1 {html::author} {
+    html::init
+    html::author "This is the author."
+} {}
+
+test html-8.2 {html::author} {
+    html::init
+    html::author "This is the author."
+    set html::page(author)
+} {<!-- This is the author. -->
+}
+
+test html-8.3 {html::author} {
+    html::init
+    html::author {one "one val" &}
+    set html::page(author)
+} {<!-- one "one val" & -->
+}
+
+test html-9.0 {html::tagParams} {
+    html::init {
+	body.bgcolor	red
+	font.face	times
+    }
+    html::tagParam font color="red"
+} {color="red" face="times"}
+
+test html-9.1 {html::default} {
+    html::init {
+	body.bgcolor	red
+	font.face	times
+    }
+    html::default xyzzy
+} {}
+
+test html-9.2 {html::default} {
+    html::init {
+	body.bgcolor	red
+	font.face	times
+    }
+    html::default body.bgcolor
+} { bgcolor="red"}
+
+test html-9.3 {html::default} {
+    html::init {
+	body.bgcolor	red
+	font.face	times
+    }
+    html::default font.face "face=arial"
+} {}
+
+test html-9.4 {html::default} {
+    html::init {
+	body.bgcolor	red
+	font.face	times
+    }
+    html::default font.face "color=blue size=1"
+} { face="times"}
+
+test html-10.1 {html::bodyTag} {
+    html::init
+    html::bodyTag
+} {<body>
+}
+
+test html-10.2 {html::bodyTag} {
+    html::init {
+	body.bgcolor	white
+	body.text	black
+    }
+    html::bodyTag
+} {<body bgcolor="white" text="black">
+}
+
+test html-10.3 {html::bodyTag} {
+    html::init {
+	body.bgcolor	white
+	body.text	black
+    }
+    html::bodyTag "text=red"
+} {<body text=red bgcolor="white">
+}
+
+test html-11.1 {html::formValue} {
+    ncgi::reset name=value
+    ncgi::parse
+    html::formValue name
+} {name="name" value="value"}
+
+test html-11.2 {html::formValue} {
+    ncgi::reset name=value
+    ncgi::parse
+    html::formValue name2
+} {name="name2" value=""}
+
+test html-11.3 {html::formValue} {
+    ncgi::reset "name=one+value&name2=%7e"
+    ncgi::parse
+    html::formValue name2
+} {name="name2" value="~"}
+
+test html-12.1 {html::quoteFormValue} {
+    html::quoteFormValue name2
+} {name2}
+
+test html-12.2 {html::quoteFormValue} {
+    html::quoteFormValue {"name2"}
+} {&#34;name2&#34;}
+
+test html-12.3 {html::quoteFormValue} {
+    html::quoteFormValue {"'><&} ;# need a " for balance
+} {&#34;&#39;&gt;&lt;&amp;}
+
+test html-12.4 {html::quoteFormValue} {
+    html::quoteFormValue "This is the value."
+} {This is the value.}
+
+test html-13.1 {html::textInput} {
+    html::init
+    ncgi::reset
+    ncgi::parse
+    html::textInput email
+} {<input type="text" name="email" value="">
+}
+
+test html-13.2 {html::textInput} {
+    html::init
+    ncgi::reset email=welch@scriptics.com
+    ncgi::parse
+    html::textInput email
+} {<input type="text" name="email" value="welch@scriptics.com">
+}
+
+test html-13.3 {html::textInput} {
+    html::init {
+	input.size	30
+    }
+    ncgi::reset
+    ncgi::parse
+    html::textInput email
+} {<input type="text" name="email" value="" size="30">
+}
+
+test html-13.4 {html::textInput} {
+    html::init {
+	input.size	30
+    }
+    ncgi::reset
+    ncgi::parse
+    html::textInput email default@foo.com
+} {<input type="text" name="email" value="default@foo.com" size="30">
+}
+
+test html-13.5 {html::textInput} {
+    html::init
+    ncgi::reset email=welch@scriptics.com
+    ncgi::parse
+    html::textInput email value=default@foo.com
+} {<input type="text" name="email" value="welch@scriptics.com">
+}
+
+test html-13.6 {html::textInput} {
+    html::init
+    ncgi::reset 
+    ncgi::parse
+    html::textInput email default@foo.com size="80"
+} {<input type="text" name="email" value="default@foo.com" size="80">
+}
+
+test html-13.7 {html::textInput} {
+    html::init {
+	input.size	30
+    }
+    ncgi::reset
+    ncgi::parse
+    html::textInput email default@foo.com size="80"
+} {<input type="text" name="email" value="default@foo.com" size="80">
+}
+
+test html-14.1 {html::textInputRow} {
+    html::init
+    ncgi::reset email=welch@scriptics.com
+    ncgi::parse
+    html::textInputRow Email email
+} {<tr>
+	<td>Email</td>
+	<td><input type="text" name="email" value="welch@scriptics.com">
+</td>
+</tr>
+}
+
+test html-15.1 {html::passwordInput} {
+    html::passwordInput
+} {<input type="password" name="password">
+}
+
+test html-15.2 {html::passwordInput} {
+    html::passwordInput form_pass
+} {<input type="password" name="form_pass">
+}
+
+test html-16.1 {html::checkbox} {
+    ncgi::reset email=welch@scriptics.com
+    ncgi::parse
+    html::checkbox item value
+} {<input type="checkbox" name="item" value="value">
+}
+
+test html-16.2 {html::checkbox} {
+    ncgi::reset email=welch@scriptics.com
+    ncgi::parse
+    html::checkbox email value
+} {<input type="checkbox" name="email" value="value">
+}
+
+test html-17.1 {html::checkValue} {
+    ncgi::reset item=xyz
+    ncgi::parse
+    html::checkbox item xyz
+} {<input type="checkbox" name="item" value="xyz" checked>
+}
+
+test html-18.1 {html::radioValue} {
+    ncgi::reset item=xyz
+    ncgi::parse
+    html::radioValue item xyz
+} {name="item" value="xyz" checked}
+
+test html-19.1 {html::radioSet} {
+    ncgi::reset item=2
+    ncgi::parse
+    html::radioSet item " |\n" {
+	One	1
+	Two	2
+	Three	3
+    }
+} {<input type="radio" name="item" value="1"> One |
+<input type="radio" name="item" value="2" checked> Two |
+<input type="radio" name="item" value="3"> Three}
+
+test html-20.1 {html::checkSet} {
+    ncgi::reset item=2&item=3+4&x=y
+    ncgi::parse
+    html::checkSet item " |\n" {
+	One	1
+	Two	2
+	Three	{3 4}
+    }
+} {<input type="checkbox" name="item" value="1"> One |
+<input type="checkbox" name="item" value="2" checked> Two |
+<input type="checkbox" name="item" value="3 4" checked> Three}
+
+test html-21.1 {html::select} {
+    ncgi::reset item=2&x=y
+    ncgi::parse
+    html::select item "multiple" {
+	One	1
+	Two	2
+	Three	{3 4}
+    }
+} {<select name="item" multiple>
+<option value="1">One
+<option value="2" selected>Two
+<option value="3 4">Three
+</select>
+}
+
+test html-22.1 {html::selectPlain} {
+    ncgi::reset item=Three
+    ncgi::parse
+    html::selectPlain item "" {
+	One	Two	Three
+    }
+} {<select name="item">
+<option value="One">One
+<option value="Two">Two
+<option value="Three" selected>Three
+</select>
+}
+
+test html-22.2 {html::selectPlain} {
+    ncgi::reset item=Three
+    ncgi::parse
+    html::selectPlain another "" {
+	One	Two	Three
+    } One
+} {<select name="another">
+<option value="One" selected>One
+<option value="Two">Two
+<option value="Three">Three
+</select>
+}
+
+test html-23.1 {html::textarea} {
+    ncgi::reset item=Three
+    ncgi::parse
+    html::textarea info
+} {<textarea name="info"></textarea>
+}
+test html-23.2 {html::textarea} {
+    html::init {
+	textarea.cols 50
+	textarea.rows 8
+    }
+    ncgi::reset info=[ncgi::encode "The textarea value."]
+    ncgi::parse
+    html::textarea info
+} {<textarea name="info" cols="50" rows="8">The textarea value.</textarea>
+}
+
+test html-23.3 {html::textarea, dangerous input} {
+    html::init {
+	textarea.cols 50
+	textarea.rows 8
+    }
+    ncgi::reset info=[ncgi::encode "</textarea><script>alert(1)</script>"]
+    ncgi::parse
+    html::textarea info
+} {<textarea name="info" cols="50" rows="8">&lt;/textarea&gt;&lt;script&gt;alert(1)&lt;/script&gt;</textarea>
+}
+
+
+test html-24.1 {html::submit} {
+    catch {html::submit}
+} {1}
+
+test html-24.2 {html::submit} {
+    catch {html::submit wrong num args}
+} {1}
+
+test html-24.3 {html::submit} {
+    html::submit "Push Me"
+} {<input type="submit" name="submit" value="Push Me">
+}
+
+test html-24.4 {html::submit} {
+    html::submit "Push Me" push
+} {<input type="submit" name="push" value="Push Me">
+}
+
+test html-25.1 {html::varEmpty} {
+    catch {html::varEmpty}
+} 1
+test html-25.2 {html::varEmpty} {
+    catch {html::varEmpty wrong num args}
+} 1
+
+test html-25.3 {html::varEmpty} {
+    if {[info exist x]} {
+	unset x
+    }
+    html::varEmpty x
+} 1
+test html-25.4 {html::varEmpty} {
+    if {[info exist x]} {
+	unset x
+    }
+    set x ""
+    html::varEmpty x
+} 1
+
+test html-25.5 {html::varEmpty} {
+    if {[info exist x]} {
+	unset x
+    }
+    set x "foo"
+    html::varEmpty x
+} 0
+
+test html-26.1 {html::refresh} {
+    catch {html::refresh}
+} 1
+test html-26.2 {html::refresh} {
+    catch {html::refresh wrong num args}
+} 1
+test html-26.3 {html::refresh} {
+    html::refresh 4
+} {}
+test html-26.4 {html::refresh} {
+    html::init
+    html::refresh 4
+    html::head title
+} {<html><head>
+	<title>title</title>
+	<meta http-equiv="Refresh" content="4">
+</head>
+}
+test html-26.5 {html::refresh} {
+    html::init
+    html::refresh 9 http://www.scriptics.com
+    html::head title
+} {<html><head>
+	<title>title</title>
+	<meta http-equiv="Refresh" content="9; url=http://www.scriptics.com">
+</head>
+}
+
+test html-27.1 {html::foreach--1 var, 1 iteration} {
+    html::foreach x {a} {<td>$x</td>}
+} {<td>a</td>}
+
+test html-27.2 {html::foreach--1 var, multiple iterations} {
+    html::foreach x {a b} {<td>$x</td>}
+} {<td>a</td><td>b</td>}
+
+test html-27.3 {html::foreach--1 var, 0 iterations} {
+    html::foreach x {} {<td>$x</td>}
+} {}
+
+test html-27.4 {html::foreach--multiple vars, 1 iteration} {
+    html::foreach {x y} {a b} {<td>$x</td><td>$y</td>}
+} {<td>a</td><td>b</td>}
+
+test html-27.5 {html::foreach--multiple vars, multiple iterations} {
+    html::foreach {x y} {a b c d} {<td>$x</td><td>$y</td>}
+} {<td>a</td><td>b</td><td>c</td><td>d</td>}
+
+test html-27.6 {html::foreach--multiple varlists and vallists} {
+    html::foreach {a b} {1 2 3 4} {c d} {5 6 7 8} {e f} {9 10 11 12} {
+        $a$b$c$d$e$f}
+} {
+        1256910
+        34781112}
+
+test html-27.7 {html::foreach--subst body w/ vars and procs} {
+    html::foreach x {2 8} {<td>$x</td><td>[incr x]</td>}
+} {<td>2</td><td>3</td><td>8</td><td>9</td>}
+
+test html-27.8 {html::foreach--subst body w/ nested foreach} {
+    html::foreach x {a b} {
+        [html::foreach y {c d} {$x$y}]
+    }
+} {
+        acad
+    
+        bcbd
+    }
+
+test html-27.9 {html::foreach--subst body w/ multiple nested foreach's} {
+    html::foreach x {a b} {
+        [html::foreach y {c d} {$x$y
+            [html::foreach z {e f} {$z}]
+        }]}
+} {
+        ac
+            ef
+        ad
+            ef
+        
+        bc
+            ef
+        bd
+            ef
+        }
+
+test html-28.1 {html::for--1 iteration} {
+    html::for {set i 0} {$i < 1} {incr i} {<td>$i</td>}
+} {<td>0</td>}
+
+test html-28.2 {html::for--multiple iterations} {
+    html::for {set i 0} {$i < 3} {incr i} {<td>$i</td>}
+} {<td>0</td><td>1</td><td>2</td>}
+
+test html-28.3 {html::for--0 iterations} {
+    html::for {set i 0} {$i < 0} {incr i} {<td>$i</td>}
+} {}
+
+test html-28.4 {html::for--complex start, text, and next} {
+    html::for {set i 0; set j 10} {$i < 1 && $j < 11} {incr i; incr j} {$i $j}
+} {0 10}
+
+test html-28.5 {html::for--subst body w/ vars and procs} {
+    html::for {set i 0} {$i < 3} {incr i} {$i [expr {$i + 5}] }
+} {0 5 1 6 2 7 }
+
+test html-28.6 {html::for--subst body w/ nested for} {
+    set result [html::for {set i 0} {$i < 3} {incr i} {
+        [html::for {set j $i} {$j < 3} {incr j} {${i}__${j} }]
+    }]
+    regsub -all "\n" $result " " result
+    regsub -all " +" $result " " result
+    set result
+} { 0__0 0__1 0__2 1__1 1__2 2__2 }
+
+test html-28.7 {html::for--subst body w/ multiple nested for's} {
+    set result [html::for {set i 0} {$i < 3} {incr i} {
+        [html::for {set j $i} {$j < 3} {incr j} {
+            [html::for {set k $j} {$k < 3} {incr k} {${i}__${j}__${k} }]
+        }]
+    }]
+    regsub -all "\n" $result " " result
+    regsub -all " +" $result " " result
+    set result
+} { 0__0__0 0__0__1 0__0__2 0__1__1 0__1__2 0__2__2 1__1__1 1__1__2 1__2__2 2__2__2 }
+
+test html-29.1 {html::while--1 iteration} {
+    set i 0
+    html::while {$i < 1} {<td>$i, [incr i]</td>}
+} {<td>0, 1</td>}
+
+test html-29.2 {html::while--multiple iterations} {
+    set i 0
+    html::while {$i < 3} {<td>$i, [incr i]</td>}
+} {<td>0, 1</td><td>1, 2</td><td>2, 3</td>}
+
+test html-29.3 {html::while--0 iterations} {
+    set i 0
+    html::while {$i < 0} {<td>$i</td>}
+} {}
+
+test html-29.4 {html::while--complex start, text, and next} {
+    set i 0
+    set j 10
+    html::while {$i < 1 && $j < 11} {$i $j, [incr i] [incr j]}
+} {0 10, 1 11}
+
+test html-29.5 {html::while--subst body w/ nested while} {
+    set i 0
+    set result [html::while {$i < 3} {
+        [set j $i]
+        [html::while {$j < 3} {
+            ${i}__${j}
+            [incr j]
+        }]
+        [incr i]
+    }]
+    regsub -all "\n" $result " " result
+    regsub -all " +" $result " " result
+    set result
+} { 0 0__0 1 0__1 2 0__2 3 1 1 1__1 2 1__2 3 2 2 2__2 3 3 }
+
+test html-29.7 {html::while--subst body w/ multiple nested while's} {
+    set i 0
+    set result [html::while {$i < 3} {
+        [set j $i]
+        [html::while {$j != 3} {
+            [set k $j]
+            [html::while {$k != 3} {
+                ${i}__${j}__${k}
+                [incr k]
+            }]
+            [incr j]
+        }]
+        [incr i]
+    }]
+    regsub -all "\n" $result " " result
+    regsub -all " +" $result " " result
+    set result
+} { 0 0 0__0__0 1 0__0__1 2 0__0__2 3 1 1 0__1__1 2 0__1__2 3 2 2 0__2__2 3 3 1 1 1 1__1__1 2 1__1__2 3 2 2 1__2__2 3 3 2 2 2 2__2__2 3 3 3 }
+
+test html-30.1 {html::if--eval then clause} {
+    set i 0
+    html::if {$i < 1} {$i, [incr i]}
+} {0, 1}
+
+test html-30.2 {html::if--don't eval then clause} {
+    set i 0
+    html::if {$i == 1} {$i, [incr i]}
+} {}
+
+test html-30.3 {html::if--eval else clause} {
+    set i 0
+    html::if {$i == 1} {then clause} else {$i, [incr i]}
+} {0, 1}
+
+test html-30.4 {html::if--1 elseif clause, eval else cause} {
+    set i 0
+    html::if {$i < 0} {
+        then clause
+    } elseif {$i == 1} {
+        elseif clause
+    } else {$i, [incr i]}
+} {0, 1}
+
+test html-30.5 {html::if--1 elseif clause, eval elseif cause} {
+    set i 0
+    html::if {$i < 0} {
+        then clause
+    } elseif {$i == 0} {$i, [incr i]}
+} {0, 1}
+
+test html-30.6 {html::if--1 elseif clause, eval elseif cause} {
+    set i 0
+    html::if {$i < 0} {
+        then clause
+    } elseif {$i == 1} {
+        $i, [incr i]
+    }
+} {}
+
+test html-30.7 {html::if--1 elseif clause, eval elseif cause} {
+    set i 0
+    html::if {$i < 0} {
+        then clause
+    } elseif {$i == 0} {$i, [incr i]} else {
+        else clause
+    }
+} {0, 1}
+
+test html-30.8 {html::if--1 elseif clause, eval elseif cause} {
+    set i 0
+    html::if {$i < 0} {
+        then clause
+    } elseif {$i == 1} {
+        elseif1 clause
+    } elseif {$i == 0} {$i, [incr i]} elseif {$i == 2} {
+        elseif3 clause
+    } else {
+        else clause
+    }
+} {0, 1}
+
+test html-30.9 {html::if--1 elseif clause, eval elseif cause} {
+    set i 0
+    html::if {$i < 0} {
+        then clause
+    } elseif {$i == 1} {
+        elseif3 clause
+    } elseif {$i == 2} {
+        elseif1 clause
+    } elseif {$i == 0} {$i, [incr i]} else {
+        else clause
+    }
+} {0, 1}
+
+test html-30.10 {html::if--multiple nested} {
+    set i 0
+    set result [html::if {$i < 1} {
+        begin1
+        [html::if {$i > -1} {
+            begin2
+            [html::if {$i == 0} {
+                begin3
+                [html::if {$i} {4}]
+                end3
+            }]
+            end2
+        }]
+        end1
+    }]
+    regsub -all "\n" $result " " result
+    regsub -all " +" $result " " result
+    set result
+} { begin1 begin2 begin3 end3 end2 end1 }
+
+test html-31.1 {html::set--set a new variable} {
+  set result [html::set x 1]
+  list $result $x
+} {{} 1}
+
+test html-31.2 {html::set--set an existing variable} {
+  set x 0
+  set result [html::set x 1]
+  list $result $x
+} {{} 1}
+
+test html-32.1 {single argument} {
+    set x 0
+    set result [html::eval {set x [format 22]}]
+    list $result $x
+} {{} 22}
+
+test html-32.2 {multiple arguments} {
+    set a {$b}
+    set b xyzzy
+    set x 0
+    set result [html::eval {set x [eval format $a]}]
+    list $result $x
+} {{} xyzzy}
+
+test html-32.3 {single argument} {
+    set x [list]
+    set y 1
+    set result [html::eval lappend x a b c d {$y} e f g]
+    list $result $x
+} {{} {a b c d 1 e f g}}
+
+test html-32.4 {error: not enough arguments} -body {
+    html::eval
+} -returnCodes error -result {wrong # args: should be "uplevel ?level? command ?arg ...?"}
+
+test html-32.6 {error in eval'ed command} -body {
+    html::eval {error "test error"}
+} -returnCodes error -result {test error}
+
+test html-33.0 {html::font} -body {
+    html::font
+} -result {}
+
+test html-33.1 {html::font} -body {
+    html::font size=18
+} -result {<font size=18>}
+
+test html-34.0 {html::nl2br} -body {
+    html::nl2br "a\n\rb\nc\rd"
+} -result {a<br>b<br>c<br>d}
+
+test html-34.1 {html::nl2br, ticket 1742078} -body {
+    html::nl2br "a\r\nb"
+} -result {a<br>b}
+
+# -------------------------------------------------------------------------
+
+test html-tkt3439702-35.0 {html::css, not enough arguments} -body {
+    html::css
+} -returnCodes error -result {wrong # args: should be "html::css href"}
+
+test html-tkt3439702-35.1 {html::css, too many arguments} -body {
+    html::css REF X
+} -returnCodes error -result {wrong # args: should be "html::css href"}
+
+test html-tkt3439702-35.2 {html::css, single ref} -setup {
+    html::css-clear
+} -body {
+    html::css "http://test.css"
+    string trim [html::head T]
+} -cleanup {
+    html::css-clear
+} -result "<html><head>\n\t<title>T</title>\n\t<meta http-equiv=\"Refresh\" content=\"9; url=http://www.scriptics.com\">\n\t<link rel=\"stylesheet\" type=\"text/css\" href=\"http://test.css\">\n</head>"
+
+test html-tkt3439702-35.3 {html::css, multiple ref} -setup {
+    html::css-clear
+} -body {
+    html::css "http://test1.css"
+    html::css "http://test2.css"
+    string trim [html::head T]
+} -cleanup {
+    html::css-clear
+} -result {<html><head>
+	<title>T</title>
+	<meta http-equiv="Refresh" content="9; url=http://www.scriptics.com">
+	<link rel="stylesheet" type="text/css" href="http://test1.css">
+	<link rel="stylesheet" type="text/css" href="http://test2.css">
+</head>}
+
+# -------------------------------------------------------------------------
+
+test html-tkt3439702-36.0 {html::js, not enough arguments} -body {
+    html::js
+} -returnCodes error -result {wrong # args: should be "html::js href"}
+
+test html-tkt3439702-36.1 {html::js, too many arguments} -body {
+    html::js REF X
+} -returnCodes error -result {wrong # args: should be "html::js href"}
+
+test html-tkt3439702-36.2 {html::js, single ref} -setup {
+    html::js-clear
+} -body {
+    html::js "http://test.js"
+    string trim [html::head T]
+} -cleanup {
+    html::js-clear
+} -result {<html><head>
+	<title>T</title>
+	<meta http-equiv="Refresh" content="9; url=http://www.scriptics.com">
+	<script language="javascript" type="text/javascript" src="http://test.js"></script>
+</head>}
+
+test html-tkt3439702-36.3 {html::js, multiple ref} -setup {
+    html::js-clear
+} -body {
+    html::js "http://test1.js"
+    html::js "http://test2.js"
+    string trim [html::head T]
+} -cleanup {
+    html::js-clear
+} -result {<html><head>
+	<title>T</title>
+	<meta http-equiv="Refresh" content="9; url=http://www.scriptics.com">
+	<script language="javascript" type="text/javascript" src="http://test1.js"></script>
+	<script language="javascript" type="text/javascript" src="http://test2.js"></script>
+</head>}
+
+test html-tkt3439702-37.0 {html::js, html::css, mixed} -setup {
+    html::css-clear
+    html::js-clear
+} -body {
+    html::css "http://test.css"
+    html::js  "http://test.js"
+    string trim [html::head T]
+} -cleanup {
+    html::js-clear
+    html::css-clear
+} -result {<html><head>
+	<title>T</title>
+	<meta http-equiv="Refresh" content="9; url=http://www.scriptics.com">
+	<link rel="stylesheet" type="text/css" href="http://test.css">
+	<script language="javascript" type="text/javascript" src="http://test.js"></script>
+</head>}
+
+# -------------------------------------------------------------------------
+# TODO: html::css-clear, html::js-clear
+
+
+test html-tktafe4366e2e-38.0 {html::doctype, not enough args} -body {
+    html::doctype
+} -returnCodes error -result {wrong # args: should be "html::doctype arg"}
+
+test html-tktafe4366e2e-38.1 {html::doctype, too many args} -body {
+    html::doctype HTML401T X
+} -returnCodes error -result {wrong # args: should be "html::doctype arg"}
+
+test html-tktafe4366e2e-38.2 {html::doctype, unknown type} -body {
+    html::doctype HTML401TXXX
+} -returnCodes error -result {Unknown doctype "HTML401TXXX"}
+
+test html-tktafe4366e2e-38.3 {html::doctype} -body {
+    html::doctype HTML401T
+} -result {<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup

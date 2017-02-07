@@ -1,0 +1,3 @@
+Doctools Error in macro at line 4, column 0:
+[option .o.]
+--> (FmtError) Manpage error (nodonecmd), "option .o." : Command not allowed after [manpage_end].

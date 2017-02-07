@@ -1,0 +1,67 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctools::msgcat n 0.1]
+[keywords {catalog package}]
+[keywords docidx]
+[keywords doctoc]
+[keywords doctools]
+[keywords i18n]
+[keywords internationalization]
+[keywords l10n]
+[keywords localization]
+[keywords {message catalog}]
+[keywords {message package}]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {Message catalog management for the various document parsers}]
+[category  {Documentation tools}]
+[require Tcl 8.4]
+[require msgcat]
+[require doctools::msgcat [opt 0.1]]
+[description]
+
+The package [package doctools::msgcat] is a support module handling
+the selection of message catalogs for the various document processing
+packages in the doctools system version 2. As such it is an internal
+package a regular user (developer) should not be in direct contact
+with.
+
+[para]
+
+If you are such please go the documentation of either
+
+[list_begin enumerated]
+[enum] [package doctools::doc],
+[enum] [package doctools::toc], or
+[enum] [package doctools::idx]
+[list_end]
+
+[para]
+
+Within the system architecture this package resides under the various
+parser packages, and is shared by them. Underneath it, but not
+explicit dependencies, are the packages providing the message catalogs
+for the various languages.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::doctools::msgcat::init] [arg prefix]]
+
+The command locates and loads the message catalogs for all the
+languages returned by [cmd msgcat::mcpreferences], provided that they
+could be found. It returns an integer number describing how many
+packages were found and loaded.
+
+[para]
+
+The names of the packages the command will look for have the form
+"doctools::msgcat::[arg prefix]::[var langcode]", with [arg prefix]
+the argument to the command, and the [var langcode] supplied by the
+result of [cmd msgcat::mcpreferences].
+
+[list_end]
+
+[vset CATEGORY doctools]
+[include include/feedback.inc]
+[manpage_end]

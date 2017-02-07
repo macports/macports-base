@@ -1,0 +1,45 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin soundex n 1.0]
+[keywords knuth]
+[keywords soundex]
+[keywords {text comparison}]
+[keywords {text likeness}]
+[copyright {????, Algorithm: Donald E. Knuth}]
+[copyright {2003, Documentation: Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[copyright {1998, Tcl port: Evan Rempel <erempel@uvic.ca>}]
+[moddesc   {Soundex}]
+[titledesc {Soundex}]
+[category  {Hashes, checksums, and encryption}]
+[require Tcl 8.2]
+[require soundex [opt 1.0]]
+[description]
+[para]
+
+This package provides soundex algorithms which allow the
+comparison of words based on their phonetic likeness.
+
+[para]
+
+Currently only an algorithm by Knuth is provided, which
+is tuned to english names and words.
+
+[list_begin definitions]
+
+[call [cmd ::soundex::knuth] [arg string]]
+
+Computes the soundex code of the input [arg string] using
+Knuth's algorithm and returns it as the result of the
+command.
+
+[list_end]
+
+[section EXAMPLES]
+
+[example {
+    % ::soundex::knuth Knuth
+    K530
+}]
+
+[vset CATEGORY soundex]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,121 @@
+# -*- tcl -*-
+# Graph tests - swap
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: swap.test,v 1.2 2007/04/12 03:01:55 andreas_kupries Exp $
+
+# Syntax: graph swap NODE-1 NODE-2
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-swap-1.0 {swap, wrong#args, missing} {
+    SETUP
+    catch {mygraph swap} msg
+    mygraph destroy
+    set msg
+} [tmWrong swap {node1 node2} 0]
+
+test graph-${impl}-${setimpl}-swap-1.1 {swap, wrong#args, missing} {
+    SETUP
+    catch {mygraph swap a} msg
+    mygraph destroy
+    set msg
+} [tmWrong swap {node1 node2} 1]
+
+test graph-${impl}-${setimpl}-swap-1.2 {swap, wrong#args, too many} {
+    SETUP
+    catch {mygraph swap a b c} msg
+    mygraph destroy
+    set msg
+} [tmTooMany swap {node1 node2}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-swap-2.0 {swap, missing node} {
+    SETUP
+    mygraph node insert       node1
+    catch {mygraph swap node0 node1} msg
+    mygraph destroy
+    set msg
+} [MissingNode $MY node0]
+
+test graph-${impl}-${setimpl}-swap-2.1 {swap, missing node} {
+    SETUP
+    mygraph node insert node0
+    catch {mygraph swap node0 node1} msg
+    mygraph destroy
+    set msg
+} [MissingNode $MY node1]
+
+test graph-${impl}-${setimpl}-swap-2.2 {swap, self} {
+    SETUP
+    mygraph node insert node0
+    catch {mygraph swap node0 node0} msg
+    mygraph destroy
+    set msg
+} "cannot swap node \"node0\" with itself"
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+proc SETUP_2 {} {
+
+    #             +--/a4/-> n4
+    #             |
+    # n0 -/a1/-> n1 -/a3/-> n3
+    #  |
+    #  +--/a2/-> n2
+
+    mygraph node insert n0 n1 n2 n3 n4
+    mygraph arc  insert n0 n1 a1
+    mygraph arc  insert n0 n2 a2
+    mygraph arc  insert n1 n3 a3
+    mygraph arc  insert n1 n4 a4
+    return
+}
+
+test graph-${impl}-${setimpl}-swap-3.0 {swap, node relationships} {
+    SETUP
+    SETUP_2
+
+    mygraph swap n0 n1
+
+    set     result {}
+    lappend result [lsort [mygraph nodes -out n0]]
+    lappend result [lsort [mygraph nodes -out n1]]
+
+    mygraph destroy
+    set result
+} {{n3 n4} {n0 n2}}
+
+test graph-${impl}-${setimpl}-swap-3.1 {swap, node relationships} {
+    SETUP
+    SETUP_2
+
+    mygraph swap n0 n3
+
+    set     result {}
+    lappend result [lsort [mygraph nodes -out n0]]
+    lappend result [lsort [mygraph nodes -out n3]]
+
+    mygraph destroy
+    set result
+} {{} {n1 n2}}
+
+test graph-${impl}-${setimpl}-swap-3.2 {swap, node relationships} {
+    SETUP
+    SETUP_2
+
+    mygraph swap n1 n0
+
+    set     result {}
+    lappend result [lsort [mygraph nodes -out n0]]
+    lappend result [lsort [mygraph nodes -out n1]]
+
+    mygraph destroy
+    set result
+} {{n3 n4} {n0 n2}}
+
+# -------------------------------------------------------------------------

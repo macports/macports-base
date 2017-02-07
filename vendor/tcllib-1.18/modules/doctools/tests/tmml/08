@@ -1,0 +1,207 @@
+
+<!-- Generated from file '.FILE.' by tcllib/doctools with format 'tmml' -->
+<manpage id='.FILE' cat='cmd' title='ALL' version='5' package='.MODULE.'>
+<head>
+<info key='copyright' value='Copyright (c) **Copyright**'/>
+</head>
+<namesection>
+<name>ALL</name>
+<desc>..THE_TITLE..</desc>
+
+</namesection>
+
+
+
+
+
+
+
+<synopsis>
+<syntax>
+package require <package>AAA</package> 
+package require <package>BBB</package> VVV
+package require <package>CCC</package> <o>VVV</o>
+CMDNAME ...
+CMDNAME ...
+CMDNAME ...
+</syntax>
+</synopsis>
+<section id='section1'>
+<title>DESCRIPTION</title>
+
+<commandlist>
+
+<commanddef>
+<command>NAME</command>
+<desc> DESCRIPTION ::<cmd>Command</cmd>::
+</desc>
+</commanddef>
+<commanddef>
+<command>NAME</command>
+<desc> DESCRIPTION ::::
+</desc>
+</commanddef>
+<commanddef>
+<command>NAME</command>
+<desc> DESCRIPTION ::<l>Constant</l>::
+</desc>
+</commanddef>
+
+</commandlist>
+</section>
+<section id='section2'>
+<title>API</title>
+
+<dl>
+
+<dle>
+<dt>TERM</dt>
+<dd> DESCRIPTION ::<emph>Emphasis</emph>::
+</dd>
+</dle>
+<dle>
+<dt>TERM</dt>
+<dd> DESCRIPTION ::<file>File/Path</file>::
+
+<optionlist>
+
+<optiondef>
+<name>NAME</name>
+<dbname>DBNAME</dbname>
+<dbclass>CLASS</dbclass>
+<desc> DESCRIPTION <ref refid='subsection1'>NARGLE</ref>
+</desc>
+</optiondef>
+<optiondef>
+<name>NAME</name>
+<dbname>DBNAME</dbname>
+<dbclass>CLASS</dbclass>
+<desc> DESCRIPTION ::<fun>Function</fun>::
+</desc>
+</optiondef>
+<optiondef>
+<name>NAME</name>
+<dbname>DBNAME</dbname>
+<dbclass>CLASS</dbclass>
+<desc> DESCRIPTION ::<method>Method</method>::
+</desc>
+</optiondef>
+
+</optionlist>
+</dd>
+</dle>
+<dle>
+<dt>TERM</dt>
+<dd> DESCRIPTION
+</dd>
+</dle>
+<dle>
+<dt>CMDNAME ...</dt>
+<dd> DESCRIPTION ::<term>Namespace</term>::
+
+<arglist>
+
+<argdef>
+<argtype>TYPE</argtype>
+<name>NAME</name>
+
+<desc> DESCRIPTION ::<m>Argument</m>::
+</desc>
+</argdef>
+<argdef>
+<argtype>TYPE</argtype>
+<name>NAME</name>
+
+<desc> DESCRIPTION ::<option>Option</option>::
+</desc>
+</argdef>
+<argdef>
+<argtype>TYPE</argtype>
+<name>NAME</name>
+<argmode>MODE</argmode>
+<desc> DESCRIPTION ::<o>Optional</o>::
+
+<example>
+    THE ARGUMENT IS USED IN THIS
+    AND/OR THAT MANNER
+
+</example>
+</desc>
+</argdef>
+
+</arglist>
+</dd>
+</dle>
+<dle>
+<dt>CMDNAME ...</dt>
+<dd> DESCRIPTION ::<package>Package</package>::
+</dd>
+</dle>
+<dle>
+<dt>CMDNAME ...</dt>
+<dd> DESCRIPTION ::<syscmd>SystemCommand</syscmd>::
+
+<optlist>
+
+<optdef>
+<optname>NAME</optname>
+
+<desc> DESCRIPTION ::<term>Term</term>::
+</desc>
+</optdef>
+<optdef>
+<optname>NAME</optname>
+
+<desc> DESCRIPTION ::<type>Type</type>::
+</desc>
+</optdef>
+<optdef>
+<optname>NAME</optname>
+<optarg>ARGUMENT</optarg>
+<desc> DESCRIPTION ::<url>Uri</url>::
+</desc>
+</optdef>
+
+</optlist>
+</dd>
+</dle>
+
+</dl>
+
+<subsection id='subsection1'>
+<title>NARGLE</title>
+</subsection>
+<ol>
+
+<li> PARAGRAPH ::<url>Uri</url>::
+</li>
+<li> PARAGRAPH ::<variable>Variable</variable>::
+</li>
+<li> PARAGRAPH ::<widget>Widget</widget>::
+
+<ul>
+
+<li> PARAGRAPH ::<class>Class</class>::
+</li>
+<li> PARAGRAPH
+</li>
+<li> PARAGRAPH
+</li>
+
+</ul>
+</li>
+
+</ol>
+
+
+</section>
+<seealso>
+<ref>OTHER</ref>
+<ref>ELSE</ref>
+</seealso>
+<keywords>
+<keyword>KEYA</keyword>
+<keyword>KEYZ</keyword>
+</keywords>
+
+</manpage>

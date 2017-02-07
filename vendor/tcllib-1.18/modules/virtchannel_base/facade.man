@@ -1,0 +1,73 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcl::chan::facade n 1]
+[keywords {concatenation channel}]
+[keywords {reflected channel}]
+[keywords {tip 219}]
+[keywords {virtual channel}]
+[copyright {2011 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Reflected/virtual channel support}]
+[category  Channels]
+[titledesc {Facade channel}]
+[require Tcl 8.5]
+[require TclOO]
+[require logger]
+[require tcl::chan::core [opt 1]]
+[require tcl::chan::facade [opt 1]]
+[description]
+[para]
+
+The [package tcl::chan::facade] package provides a command creating
+facades to other channels. These are channels which own a single
+subordinate channel and delegate all operations to.
+
+[para] The main use for facades is the debugging of actions on a
+channel. While most of the information could be tracked by a virtual
+channel transformation it does not have access to the event-related
+operation, and furthermore they are only available in Tcl 8.6.
+
+[para] Therefore this channel, usable with Tcl 8.5, and having access
+to everything going on for a channel.
+
+[para] The intercepted actions on channel are logged through package
+[package logger].
+
+[para] Beyond that facades provide the following additional channel
+configuration options:
+
+[list_begin options]
+[opt_def -self]
+The TclOO object handling the facade.
+
+[opt_def -fd]
+The handle of the subordinate, i.e. wrapped channel.
+
+[opt_def -used]
+The last time the wrapped channel was read from or written to by
+the facade, as per [cmd {clock milliseconds}]. A value of [const 0]
+indicates that the subordinate channel was not accessed at all, yet.
+
+[opt_def -created]
+The time the facade was created, as per [cmd {clock milliseconds}].
+
+[opt_def -user]
+A free-form value identifying the user of the facade and its
+wrapped channel.
+
+[list_end]
+
+Of these only option [option -user] is writable.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::tcl::chan::facade] [arg chan]]
+
+This command creates the facade channel around the provided
+channel [arg chan], and returns its handle.
+
+[list_end]
+
+[vset CATEGORY virtchannel]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

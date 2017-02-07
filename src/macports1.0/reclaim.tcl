@@ -1,6 +1,5 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # reclaim.tcl
-# $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -58,16 +57,51 @@ package require macports
 
 namespace eval reclaim {
 
-    proc main {args} {
+    proc main {opts} {
         # The main function. Calls each individual function that needs to be run.
         # Args: 
-        #           None
+        #           opts - options array
         # Returns:
         #           None
 
+        array set options $opts
+        if {[info exists options(ports_reclaim_enable-reminders)]} {
+            ui_info "Enabling port reclaim reminders."
+            update_last_run
+            return
+        }
+        if {[info exists options(ports_reclaim_disable-reminders)]} {
+            ui_info "Disabling port reclaim reminders."
+            write_last_run_file disabled
+            return
+        }
+
         uninstall_inactive
         remove_distfiles
-        update_last_run
+
+        set last_run_contents [read_last_run_file]
+        if {$last_run_contents eq ""} {
+            set msg "This appears to be the first time you have run 'port reclaim'."
+
+            if {[info exists macports::ui_options(questions_yesno)]} {
+                set retval [$macports::ui_options(questions_yesno) $msg "ReclaimPrompt" "" {y} 0 "Would you like to be reminded to run it every two weeks?"]
+                if {$retval != 0} {
+                    # User said no, store disabled flag
+                    set last_run_contents disabled
+                    write_last_run_file $last_run_contents
+                    ui_msg "Reminders disabled. Run 'port reclaim --enable-reminders' to enable."
+                } else {
+                    # the last run file will be updated below
+                    ui_msg "Reminders enabled. Run 'port reclaim --disable-reminders' to disable."
+                }
+            } else {
+                # couldn't ask the question, leave disabled for now
+                set last_run_contents disabled
+            }
+        }
+        if {$last_run_contents ne "disabled"} {
+            update_last_run
+        }
     }
 
     proc walk_files {dir files_in_use unused_name} {
@@ -88,6 +122,12 @@ namespace eval reclaim {
                     walk_files $currentPath $files_in_use unused
                 }
                 file {
+                    if {$item eq ".turd_MacPorts"} {
+                        # .turd_MacPorts files are created by MacPorts when creating the MacPorts
+                        # installer packages from the MacPorts port so that empty directories are
+                        # not deleted after destroot. Treat those files as if they were not there.
+                        continue
+                    }
                     if {[lsearch -exact -sorted $files_in_use $currentPath] == -1} {
                         ui_info "Found unused distfile $currentPath"
                         lappend unused $currentPath
@@ -111,7 +151,6 @@ namespace eval reclaim {
         set root_dist       [file join ${macports::portdbpath} distfiles]
         set home_dist       ${macports::user_home}/.macports$root_dist
 
-        set port_info    [get_info]
         set files_in_use [list]
 
         set fancyOutput [expr {   ![macports::ui_isset ports_debug] \
@@ -125,23 +164,19 @@ namespace eval reclaim {
             set progress noop
         }
 
-        ui_msg "$macports::ui_prefix Building list of files still in use"
-        set port_count [llength $port_info]
+        ui_msg "$macports::ui_prefix Building list of distfiles still in use"
+        set installed_ports [registry::entry imaged]
+        set port_count [llength $installed_ports]
         set i 1
         $progress start
 
-        foreach port $port_info {
-            set name     [lindex $port 0]
-            set version  [lindex $port 1]
-            set revision [lindex $port 2]
-            set variants [lindex $port 3]
-
+        foreach port $installed_ports {
             # Get mport reference
             try -pass_signal {
-                set mport [mportopen_installed $name $version $revision $variants {}]
+                set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] {}]
             } catch {{*} eCode eMessage} {
                 $progress intermission
-                ui_warn [msgcat::mc "Failed to open port %s from registry: %s" $name $eMessage]
+                ui_warn [msgcat::mc "Failed to open port %s from registry: %s" [$port name] $eMessage]
                 continue
             }
 
@@ -176,7 +211,7 @@ namespace eval reclaim {
 
         $progress finish
 
-        ui_msg "$macports::ui_prefix Searching for unused files"
+        ui_msg "$macports::ui_prefix Searching for unused distfiles"
 
         # sort so we can use binary search in walk_files
         set files_in_use [lsort -unique $files_in_use]
@@ -261,44 +296,42 @@ namespace eval reclaim {
         return 0
     }
 
-    proc is_inactive {port} {
+    proc read_last_run_file {} {
+        set path [file join ${macports::portdbpath} last_reclaim]
 
-        # Determines whether a port is inactive or not.
-        # Args: 
-        #           port - An array where the fourth item in it is the activity of the port.
-        # Returns:
-        #           1 if inactive, 0 if active.
-
-        if {[lindex $port 4] == 0} {
-            ui_debug "Port [lindex $port 0] is inactive."
-            return 1
+        set fd -1
+        set contents ""
+        try -pass_signal {
+            set fd [open $path r]
+            set contents [gets $fd]
+        } catch {*} {
+            # Ignore error silently; the file might not have been created yet
+        } finally {
+            if {$fd != -1} {
+                close $fd
+            }
         }
-        ui_debug "Port [lindex $port 0] is not inactive."
-        return 0
+        return $contents
     }
 
-    proc get_info {} {
-
-        # Gets the information of all installed ports (those returned by registry::installed), and returns it in a
-        # multidimensional list.
-        #
-        # Args:
-        #           None
-        # Returns:
-        #           A multidimensional list where each port is a sublist, i.e., [{first port info} {second port info} {...}]
-        #           Indexes of each sublist are: 0 = name, 1 = version, 2 = revision, 3 = variants, 4 = activity, and 5 = epoch.
-        
+    proc write_last_run_file {contents} {
+        set path [file join ${macports::portdbpath} last_reclaim]
+        set fd -1
         try -pass_signal {
-            return [registry::installed]
+            set fd [open $path w]
+            puts $fd $contents
         } catch {*} {
-            ui_error "no installed ports found."
-            return {}
+            # Ignore error silently
+        } finally {
+            if {$fd != -1} {
+                close $fd
+            }
         }
     }
 
     proc update_last_run {} {
-        
-        # Updates the last_reclaim textfile with the newest time the code has been ran. 
+
+        # Updates the last_reclaim textfile with the newest time the code has been run.
         #
         # Args:
         #           None
@@ -307,18 +340,7 @@ namespace eval reclaim {
 
         ui_debug "Updating last run information."
 
-        set path [file join ${macports::portdbpath} last_reclaim]
-        set fd -1
-        try -pass_signal {
-            set fd [open $path w]
-            puts $fd [clock seconds]
-        } catch {*} {
-            # Ignore error silently
-        } finally {
-            if {$fd != -1} {
-                close $fd
-            }
-        }
+        write_last_run_file [clock seconds]
     }
 
     proc check_last_run {} {
@@ -330,40 +352,72 @@ namespace eval reclaim {
         # Returns: 
         #           None
 
+        set time [read_last_run_file]
+
+        if {![string is integer -strict $time]} {
+            return
+        }
+
         ui_debug "Checking time since last reclaim run"
+        if {[clock seconds] - $time > 1209600} {
+            set msg "You haven't run 'sudo port reclaim' in two weeks. It's recommended you run this regularly to reclaim disk space."
 
-        set path [file join ${macports::portdbpath} last_reclaim]
-
-        set fd -1
-        set time ""
-        try -pass_signal {
-            set fd [open $path r]
-            set time [gets $fd]
-        } catch {*} {
-            # Ignore error silently; the file might not have been created yet
-        } finally {
-            if {$fd != -1} {
-                close $fd
+            if {[file writable $macports::portdbpath] && [info exists macports::ui_options(questions_yesno)]} {
+                set retval [$macports::ui_options(questions_yesno) $msg "ReclaimPrompt" "" {y} 0 "Would you like to run it now?"]
+                if {$retval == 0} {
+                    # User said yes, run port reclaim
+                    macports::reclaim_main
+                } else {
+                    # User said no, ask again in two weeks
+                    # Change this time frame if a consensus is agreed upon
+                    update_last_run
+                }
+            } else {
+                ui_warn $msg
             }
         }
-        if {$time ne ""} {
-            if {[clock seconds] - $time > 1209600} {
-                set msg "You haven't run 'sudo port reclaim' in two weeks. It's recommended you run this regularly to reclaim disk space."
+    }
 
-                if {[file writable $macports::portdbpath] && [info exists macports::ui_options(questions_yesno)]} {
-                    set retval [$macports::ui_options(questions_yesno) $msg "ReclaimPrompt" "" {y} 0 "Would you like to run it now?"]
-                    if {$retval == 0} {
-                        # User said yes, run port reclaim
-                        macports::reclaim_main
-                    } else {
-                        # User said no, ask again in two weeks
-                        # Change this time frame if a consensus is agreed upon
-                        update_last_run
-                    }
-                } else {
-                    ui_warn $msg
+    proc sort_portlist_by_dependendents {portlist} {
+        # Sorts a list of port references such that dependents appear before
+        # the ports they depend on.
+        #
+        # Args:
+        #       portlist - the list of port references
+        #
+        # Returns:
+        #       the list in dependency-sorted order
+
+        foreach port $portlist {
+            set portname [$port name]
+            lappend ports_for_name($portname) $port
+            if {![info exists dependents($portname)]} {
+                set dependents($portname) {}
+                foreach result [$port dependents] {
+                    lappend dependents($portname) [$result name]
                 }
             }
+        }
+        set ret {}
+        foreach port $portlist {
+            sortdependents_helper $port ports_for_name dependents seen ret
+        }
+        return $ret
+    }
+
+    proc sortdependents_helper {port up_ports_for_name up_dependents up_seen up_retlist} {
+        upvar 1 $up_seen seen
+        if {![info exists seen($port)]} {
+            set seen($port) 1
+            upvar 1 $up_ports_for_name ports_for_name $up_dependents dependents $up_retlist retlist
+            foreach dependent $dependents([$port name]) {
+                if {[info exists ports_for_name($dependent)]} {
+                    foreach entry $ports_for_name($dependent) {
+                        sortdependents_helper $entry ports_for_name dependents seen retlist
+                    }
+                }
+            }
+            lappend retlist $port
         }
     }
 
@@ -371,25 +425,27 @@ namespace eval reclaim {
 
         # Attempts to uninstall all inactive ports. (Performance is now O(N)!)
         #
-        # Args: 
+        # Args:
         #           None
-        # Returns: 
-        #           0 if execution was successful. Errors (for now) if execution wasn't. 
+        # Returns:
+        #           0 if execution was successful. Errors (for now) if execution wasn't.
 
-        set ports           [get_info]
         set inactive_ports  [list]
         set inactive_names  [list]
         set inactive_count  0
 
-        ui_debug "Iterating through all inactive ports."
+        ui_msg "$macports::ui_prefix Checking for inactive ports"
 
-        foreach port $ports {
-
-            if { [is_inactive $port] } {
+        foreach port [registry::entry imaged] {
+            if {[$port state] eq "imaged"} {
                 lappend inactive_ports $port
-                lappend inactive_names [lindex $port 0]
                 incr inactive_count
             }
+        }
+
+        set inactive_ports [sort_portlist_by_dependendents $inactive_ports]
+        foreach port $inactive_ports {
+            lappend inactive_names "[$port name] @[$port version]_[$port revision][$port variants]"
         }
 
         if { $inactive_count == 0 } {
@@ -397,20 +453,20 @@ namespace eval reclaim {
 
         } else {
 
-            ui_msg "Found inactive ports: $inactive_names."
+            ui_msg "Found inactive ports: [join $inactive_names {, }]."
             if {[info exists macports::ui_options(questions_multichoice)]} {
                 set retstring [$macports::ui_options(questions_multichoice) "Would you like to uninstall these ports?" "" $inactive_names]
 
                 if {[llength $retstring] > 0} {
                     foreach i $retstring {
                         set port [lindex $inactive_ports $i]
-                        set name [lindex $port 0]
+                        set name [lindex $inactive_names $i]
 
                         ui_msg "Uninstalling: $name"
 
                         # Note: 'uninstall' takes a name, version, revision, variants and an options list. 
                         try -pass_signal {
-                            registry_uninstall::uninstall $name [lindex $port 1] [lindex $port 2] [lindex $port 3] {}
+                            registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] {}
                         } catch {{*} eCode eMessage} {
                             ui_error "Error uninstalling $name: $eMessage"
                         }

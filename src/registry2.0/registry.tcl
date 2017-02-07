@@ -46,9 +46,8 @@ namespace eval registry {
 # Begin creating a new registry entry for the port version_revision+variant
 # This process assembles the directory name and creates a receipt dlist
 proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
-	global macports::registry.path macports::registry.format macports::prefix
+	global macports::registry.format
 
-	
 	# Make sure we don't already have an entry in the Registry for this
 	# port version_revision+variants
 	if {![entry_exists $name $version $revision $variants] } {
@@ -137,7 +136,7 @@ proc property_retrieve {ref property} {
 proc installed {{name ""} {version ""}} {
 	global macports::registry.format
 
-    if {${macports::registry.format} == "receipt_flat"} {
+    if {${macports::registry.format} eq "receipt_flat"} {
         set ilist [${macports::registry.format}::installed $name $version]
         set rlist [list]
     
@@ -175,7 +174,7 @@ proc installed {{name ""} {version ""}} {
 proc active {{name ""}} {
 	global macports::registry.format
     
-    if {${macports::registry.format} == "receipt_flat"} {
+    if {${macports::registry.format} eq "receipt_flat"} {
         set rlist [list]
         set ilist [${macports::registry.format}::installed $name]
     
@@ -457,7 +456,7 @@ proc convert_to_sqlite {} {
         foreach f $contents {
             set fullpath [lindex $f 0]
             # strip image dir from start
-            if {[string range $fullpath 0 [expr {$idlen - 1}]] == $location} {
+            if {[string range $fullpath 0 [expr {$idlen - 1}]] eq $location} {
                 set path [string range $fullpath $idlen [string length $fullpath]]
             } else {
                 set path $fullpath

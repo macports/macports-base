@@ -1,0 +1,237 @@
+<html><head>
+<title>nmea - NMEA protocol implementation</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'nmea.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2006-2009, Aaron Faupell &lt;afaupell@users.sourceforge.net&gt;
+   -->
+<! -- nmea.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">nmea(n) 1.0.0 tcllib &quot;NMEA protocol implementation&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>nmea - Process NMEA data</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">nmea <span class="opt">?1.0.0?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::nmea::input</b> <i class="arg">sentence</i></a></li>
+<li><a href="#2"><b class="cmd">::nmea::open_port</b> <i class="arg">port</i> <span class="opt">?speed?</span></a></li>
+<li><a href="#3"><b class="cmd">::nmea::close_port</b></a></li>
+<li><a href="#4"><b class="cmd">::nmea::configure_port</b> <i class="arg">settings</i></a></li>
+<li><a href="#5"><b class="cmd">::nmea::open_file</b> <i class="arg">file</i> <span class="opt">?rate?</span></a></li>
+<li><a href="#6"><b class="cmd">::nmea::close_file</b></a></li>
+<li><a href="#7"><b class="cmd">::nmea::do_line</b></a></li>
+<li><a href="#8"><b class="cmd">::nmea::rate</b></a></li>
+<li><a href="#9"><b class="cmd">::nmea::log</b> <span class="opt">?file?</span></a></li>
+<li><a href="#10"><b class="cmd">::nmea::checksum</b> <i class="arg">data</i></a></li>
+<li><a href="#11"><b class="cmd">::nmea::write</b> <i class="arg">sentence</i> <i class="arg">data</i></a></li>
+<li><a href="#12"><b class="cmd">::nmea::event</b> <i class="arg">setence</i> <span class="opt">?command?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a standard interface for writing software which recieves
+NMEA standard input data. It allows for reading data from COM ports, files,
+or programmatic input. It also supports the checksumming and logging of incoming data.
+After parsing, input is dispatched to user defined handler commands for processing.
+To define a handler, see the <b class="cmd"><a href="../../../../index.html#key541">event</a></b> command. There are no GPS specific functions
+in this package. NMEA data consists of a sentence type, followed by a list of data.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::nmea::input</b> <i class="arg">sentence</i></a></dt>
+<dd><p>Processes and dispatches the supplied sentence. If <i class="arg">sentence</i> contains no commas it is treated as a Tcl list, otherwise it must be standard comma delimited NMEA data, with an optional checksum and leading <b class="const">$</b>.</p>
+<pre class="doctools_example">
+nmea::input {$GPGSA,A,3,04,05,,09,12,,,24,,,,,2.5,1.3,2.1*39}
+nmea::input [list GPGSA A 3 04 05  09 12 &quot;&quot; &quot;&quot; 24 &quot;&quot; &quot;&quot; &quot;&quot;  2.5 1.3 2.1]
+</pre>
+</dd>
+<dt><a name="2"><b class="cmd">::nmea::open_port</b> <i class="arg">port</i> <span class="opt">?speed?</span></a></dt>
+<dd><p>Open the specified COM port and read NMEA sentences when available. Port speed is set to
+4800bps by default or to <i class="arg">speed</i>.</p></dd>
+<dt><a name="3"><b class="cmd">::nmea::close_port</b></a></dt>
+<dd><p>Close the com port connection if one is open.</p></dd>
+<dt><a name="4"><b class="cmd">::nmea::configure_port</b> <i class="arg">settings</i></a></dt>
+<dd><p>Changes the current port settings. <i class="arg">settings</i> has the same format as fconfigure -mode.</p></dd>
+<dt><a name="5"><b class="cmd">::nmea::open_file</b> <i class="arg">file</i> <span class="opt">?rate?</span></a></dt>
+<dd><p>Open file <i class="arg">file</i> and read NMEA sentences, one per line, at the rate specified by <span class="opt">?rate?</span> in milliseconds.
+The file format may omit the leading <b class="const">$</b> and/or the checksum. If rate is &lt;= 0 (the default) then lines
+will only be processed when a call to <b class="cmd">do_line</b> is made.</p></dd>
+<dt><a name="6"><b class="cmd">::nmea::close_file</b></a></dt>
+<dd><p>Close the open file if one exists.</p></dd>
+<dt><a name="7"><b class="cmd">::nmea::do_line</b></a></dt>
+<dd><p>If there is a currently open file, this command will read and process a single line from it.
+Returns the number of lines read.</p></dd>
+<dt><a name="8"><b class="cmd">::nmea::rate</b></a></dt>
+<dd><p>Sets the rate at which lines are processed from the open file, in milliseconds. The rate remains
+consistant across files, there does not need to be a file currently open to use this command.
+Set to 0 to disable automatic line processing.</p></dd>
+<dt><a name="9"><b class="cmd">::nmea::log</b> <span class="opt">?file?</span></a></dt>
+<dd><p>Starts or stops input logging. If a file name is specified then all NMEA data recieved on
+the open port will be logged to the <span class="opt">?file?</span> in append mode. If file is an empty string then
+any logging will be stopped. If no file is specified then returns a boolean value indicating
+if logging is currently enabled. Data written to the port by <b class="cmd">write</b>,
+ data read from files, or input made using <b class="cmd">input</b>, is not logged.</p></dd>
+<dt><a name="10"><b class="cmd">::nmea::checksum</b> <i class="arg">data</i></a></dt>
+<dd><p>Returns the checksum of the supplied data.</p></dd>
+<dt><a name="11"><b class="cmd">::nmea::write</b> <i class="arg">sentence</i> <i class="arg">data</i></a></dt>
+<dd><p>If there is a currently open port, this command will write the specified sentence and data to the port
+in proper NMEA checksummed format.</p></dd>
+<dt><a name="12"><b class="cmd">::nmea::event</b> <i class="arg">setence</i> <span class="opt">?command?</span></a></dt>
+<dd><p>Registers a handler proc for a given NMEA <i class="arg">sentence</i>. There may be at most one handler per
+sentence, any existing handler is replaced.
+If no command is specified, returns the name of the current handler for the given <i class="arg">setence</i>
+or an empty string if none exists. In addition to the incoming sentences there are 2 builtin types,
+EOF and DEFAULT. The handler for the DEFAULT setence is invoked if there is not a specific handler
+for that sentence. The EOF handler is invoked when End Of File is reached on the open file or port.</p>
+<p>The handler procedures, with the exception of the builtin types,must take exactly one argument,
+which is a list of the data values.
+The DEFAULT handler should have two arguments, the sentence type and the data values.
+The EOF handler has no arguments.</p>
+<pre class="doctools_example">
+nmea::event gpgsa parse_sat_detail
+nmea::event default handle_unknown
+proc parse_sat_detail {data} {
+    puts [lindex $data 1]
+}
+proc handle_unknown {name data} {
+    puts &quot;unknown data type $name&quot;
+}
+</pre>
+</dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>nmea</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key407">gps</a>, <a href="../../../../index.html#key406">nmea</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2006-2009, Aaron Faupell &lt;afaupell@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

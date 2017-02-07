@@ -1,0 +1,158 @@
+# -*- tcl -*-
+#Adjacency List - Tests
+
+# Sort input into canonical form.
+proc adjsort {dict} {
+    set res {}
+    foreach {k v} [dictsort $dict] {
+	lappend res $k [lsort -dict $v]
+    }
+    return $res
+}
+
+#Test 1.0 - undirected but weighted graph containing some special cases
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-1.0 { AdjacencyList, undirected, unweighted, graph simulation } {
+    SETUP_ADJACENCYLIST_K4
+    set result [struct::graph::op::toAdjacencyList mygraph]
+    mygraph destroy
+    set result
+} "node1 {node2 node3 node4} node2 {node1 node3} node3 {node1 node2 node4} node4 {node1 node3}"
+
+#Test 1.1 - undirected but weighted graph containing some special cases
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-1.1 { AdjacencyList, undirected, weighted, graph simulation } {
+    SETUP_ADJACENCYLIST_K4_WEIGHTED
+    set result [struct::graph::op::toAdjacencyList mygraph -weights]
+    mygraph destroy
+    set result
+} "node1 {{node2 1} {node3 1} {node4 1}} node2 {{node1 1} {node3 1}} node3 {{node1 1} {node2 1} {node4 1}} node4 {{node1 1} {node3 1}}"
+
+#Test 1.2 - directed, weighted graph with different wages at crucial edges ( e.g. edges between same nodes )
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-1.2 { AdjacencyList, directed, weighted, graph simulation } {
+    SETUP_ADJACENCYLIST_K4_WEIGHTED_DIRECTED
+    set result [adjsort [struct::graph::op::toAdjacencyList mygraph -directed -weights]]
+    mygraph destroy
+    set result
+} {node1 {{node2 1} {node3 1} {node4 2}} node2 {{node3 1}} node3 {{node4 1}} node4 {{node1 3}}}
+
+#Test 1.3 - directed weighted graph, same us upper but changed order of options
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-1.3 { AdjacencyList, directed, weighted, graph simulation } {
+    SETUP_ADJACENCYLIST_K4_WEIGHTED_DIRECTED
+    set result [adjsort [struct::graph::op::toAdjacencyList mygraph -weights -directed]]
+    mygraph destroy
+    set result
+} {node1 {{node2 1} {node3 1} {node4 2}} node2 {{node3 1}} node3 {{node4 1}} node4 {{node1 3}}}
+
+#Test 1.4 - directed but unweighted graph containing some special cases
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-1.4 { AdjacencyList, directed, unweighted, graph simulation } {
+    SETUP_ADJACENCYLIST_K4
+    set result [adjsort [struct::graph::op::toAdjacencyList mygraph -directed]]
+    mygraph destroy
+    set result
+} {node1 {node2 node3 node4} node2 node3 node3 node4 node4 node1}
+
+#Test 1.5 - case where graph has no edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-1.5 { AdjacencyList, no edges } {
+    SETUP_NOEDGES_1
+    set result [struct::graph::op::toAdjacencyList mygraph]
+    mygraph destroy
+    set result
+} "node1 {} node2 {} node3 {} node4 {}"
+
+#Test 1.6 - case where graph has no edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-1.6 { AdjacencyList, no edges } {
+    SETUP_NOEDGES_1
+    set result [struct::graph::op::toAdjacencyList mygraph -directed -weights]
+    mygraph destroy
+    set result
+} "node1 {} node2 {} node3 {} node4 {}"
+
+#Test 1.7 - another graph simulation for checking proper return value 
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-1.7 { AdjacencyList, undirected, unweighted, graph simulation } {
+    SETUP_ADJACENCYLIST_1
+    set result [struct::graph::op::toAdjacencyList mygraph]
+    mygraph destroy
+    set result
+} "node1 {node2 node6} node2 {node1 node3} node3 {node2 node6} node4 {node5 node6} node5 node4 node6 {node1 node3 node4}"
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-2.0 { AdjacencyList, wrong args, missing } {
+    catch {struct::graph::op::toAdjacencyList} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::toAdjacencyList {G args} 0]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+#Test 3.0 - case when given undirected graph doesn't have weights at all edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-3.0 {AdjacencyList, undirected, lack of weights at edges } {
+    SETUP_UNWEIGHTED_K4
+    catch {struct::graph::op::toAdjacencyList mygraph -weights} result
+    mygraph destroy
+    set result
+} [UnweightedArcOccurance]
+
+#Test 3.1 - case when given directed graph doesn't have weights at all edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-3.1 {AdjacencyList, directed, lack of weights at edges } {
+    SETUP_UNWEIGHTED_K4
+    catch {struct::graph::op::toAdjacencyList mygraph -directed -weights} result
+    mygraph destroy
+    set result
+} [UnweightedArcOccurance]
+
+#Test 3.2 - case when given undirected graph doesn't have weights at some edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-3.2 {AdjacencyList, undirected, partial lack of weights at edges } {
+    SETUP_PARTIALLYWEIGHTED_K4
+    catch {struct::graph::op::toAdjacencyList mygraph -weights} result
+    mygraph destroy
+    set result
+} [UnweightedArcOccurance]
+
+#Test 3.3 - case when given directed graph doesn't have weights at some edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-3.3 {AdjacencyList, directed, partial lack of weights at edges } {
+    SETUP_PARTIALLYWEIGHTED_K4
+    catch {struct::graph::op::toAdjacencyList mygraph -directed -weights} result
+    mygraph destroy
+    set result
+} [UnweightedArcOccurance]
+
+#Test 3.4 - case when user sets wrong option to the procedure
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-3.4 {AdjacencyList, bad option used } {
+    SETUP
+    catch {struct::graph::op::toAdjacencyList mygraph -badoption} result
+    mygraph destroy
+    set result
+} {Bad option "-badoption". Expected -directed or -weights}
+
+#Test 3.5 - case when user sets wrong option to the procedure
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-3.5 {AdjacencyList, bad options used } {
+    SETUP
+    catch {struct::graph::op::toAdjacencyList mygraph -directed -badoption} result
+    mygraph destroy
+    set result
+} {Bad option "-badoption". Expected -directed or -weights}
+
+#Test 3.6 - case when user sets wrong option to the procedure
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-3.6 {AdjacencyList, bad options used } {
+    SETUP
+    catch {struct::graph::op::toAdjacencyList mygraph -weights -badoption} result
+    mygraph destroy
+    set result
+} {Bad option "-badoption". Expected -directed or -weights}
+
+#Test 3.7 - case when user sets wrong option to the procedure
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-3.7 {AdjacencyList, bad options used } {
+    SETUP
+    catch {struct::graph::op::toAdjacencyList mygraph -badoption -directed} result
+    mygraph destroy
+    set result
+} {Bad option "-badoption". Expected -directed or -weights}
+
+#Test 3.8 - case when user sets wrong option to the procedure
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-AdjacencyList-3.8 {AdjacencyList, bad options used } {
+    SETUP
+    catch {struct::graph::op::toAdjacencyList mygraph -badoption -weights} result
+    mygraph destroy
+    set result
+} {Bad option "-badoption". Expected -directed or -weights}

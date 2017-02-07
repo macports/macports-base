@@ -1,0 +1,375 @@
+# -*- tcl -*-
+# ldapx.test:  tests for the ldapx module.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 2006 by Pierre David <pdav@users.sourceforge.net>
+# All rights reserved.
+#
+# $Id: ldapx.test,v 1.6 2007/08/19 20:20:43 pdav Exp $
+
+# -------------------------------------------------------------------------
+
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+testing {
+    useLocal ldapx.tcl ldapx
+}
+
+# -------------------------------------------------------------------------
+
+set rdn1 "uid=test"
+set rdn2 "uid=test2"
+set sup1 "ou=mydept,o=myorg"
+set sup2 "ou=x,$sup1"
+
+set entry {a1 {v11 v12} a2 {v21} a3 {v31 v32 v33}}
+
+# -------------------------------------------------------------------------
+
+test ldapx-1.0 {ldapx::entry - creation} {
+    ::ldapx::entry create t1
+} {::t1}
+
+test ldapx-1.1 {ldapx::entry - reset} {
+    t1 reset
+    t1 format
+} {uninitialized}
+
+test ldapx-1.2 {ldapx::entry - dn} {
+    t1 dn "$rdn1,$sup1"
+    t1 dn
+} "$rdn1,$sup1"
+
+test ldapx-1.3 {ldapx::entry - superior} {
+    t1 dn "$rdn1,$sup1"
+    t1 superior
+} $sup1
+
+test ldapx-1.4 {ldapx::entry - rdn} {
+    t1 rdn
+} $rdn1
+
+test ldapx-1.5 {ldapx::entry - print uninitialized} {
+    t1 print
+} "dn: $rdn1,$sup1"
+
+test ldapx-2.1 {ldapx::entry - standard} {
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t1 setall $entry
+    lsort [t1 getall]
+} [lsort $entry]
+
+test ldapx-2.2 {ldapx::entry - isempty} {
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t1 setall $entry
+    set e1 [t1 isempty]
+    ::ldapx::entry create t2
+    set e2 [t2 isempty]
+    t2 destroy
+    list $e1 $e2
+} {0 1}
+
+test ldapx-2.3 {ldapx::entry - set1/get1} {
+    t1 set1 A4 v41
+    t1 get1 A4
+} {v41}
+
+test ldapx-2.4 {ldapx::entry - add1} {
+    t1 add1 a4 {v 42}
+    t1 get A4
+} {v41 {v 42}}
+
+test ldapx-2.5 {ldapx::entry - set/add/get} {
+    t1 set a5 {v51}
+    t1 add a5 {{v 52} {v 53}}
+    t1 get a5
+} {v51 {v 52} {v 53}}
+
+test ldapx-2.6 {ldapx::entry - del1/del} {
+    t1 del1 A5 {v 52}
+    t1 del a5 {{v 53}}
+    t1 get a5
+} {v51}
+
+test ldapx-2.7 {ldapx::entry - del} {
+    t1 del A5
+    t1 get a5
+} {}
+
+test ldapx-2.8 {ldapx::entry - getattr} {
+    lsort [t1 getattr]
+} {a1 a2 a3 a4}
+
+
+test ldapx-3.1 {ldapx::entry - backup toanother} {
+    ::ldapx::entry create t2
+    ::ldapx::entry create t3
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t1 setall $entry
+    t1 backup t2
+    t3 diff t1 t2
+    t3 change
+} {}
+
+test ldapx-3.2 {ldapx::entry - diff toanother modrdn uid deleteoldrdn} {
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t1 setall $entry
+    t1 set1 "uid" "test"
+    t1 backup t2
+    t1 dn "$rdn2,$sup1"
+    t1 set1 "uid" "test2"
+    t3 diff t1 t2
+    t3 change
+} [list [list modrdn $rdn2 1]]
+
+test ldapx-3.3 {ldapx::entry - diff toanother modrdn uid keepoldrdn} {
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t1 setall $entry
+    t1 set1 "uid" "test"
+    t1 backup t2
+    t1 dn "$rdn2,$sup1"
+    t1 add1 "uid" "test2"
+    t3 diff t1 t2
+    t3 change
+} [list [list modrdn $rdn2 0]]
+
+test ldapx-3.4 {ldapx::entry - diff toanother modrdn superior} {
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t1 setall $entry
+    t1 backup t2
+    t1 dn "$rdn1,$sup2"
+    t3 diff t1 t2
+    t3 change
+} [list [list modrdn $rdn1 0 $sup2]]
+
+test ldapx-3.5 {ldapx::entry - diff toanother add attr} {
+    t1 reset
+    t1 setall $entry
+    t1 backup t2
+    t1 set anotherAttribute {v1 v2}
+    t3 diff t1 t2
+    t3 change
+} {{mod {{modadd anotherattribute {v1 v2}}}}}
+
+test ldapx-3.6 {ldapx::entry - diff toanother repl attr} {
+    t1 reset
+    t1 setall $entry
+    t1 backup t2
+    t1 del1 a3 v32
+    t3 diff t1 t2
+    t3 change
+} {{mod {{modrepl a3 {v31 v33}}}}}
+
+test ldapx-3.7 {ldapx::entry - diff toanother add value} {
+    t1 reset
+    t1 setall $entry
+    t1 backup t2
+    t1 add1 a3 v34
+    t3 diff t1 t2
+    t3 change
+} {{mod {{modrepl a3 {v31 v32 v33 v34}}}}}
+
+test ldapx-3.8 {ldapx::entry - diff toanother del attr} {
+    t1 reset
+    t1 setall $entry
+    t1 backup t2
+    t1 del A3
+    t3 diff t1 t2
+    t3 change
+} {{mod {{moddel a3}}}}
+
+test ldapx-3.9 {ldapx::entry - diff toanother del entry 1} {
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t1 setall $entry
+    t1 backup t2
+    t1 setall {}
+    t3 diff t1 t2
+    list [t3 dn] [lindex [t3 change] 0 0]
+} [list "$rdn1,$sup1" del]
+
+test ldapx-3.10 {ldapx::entry - diff toanother del entry 2} {
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t1 setall $entry
+    t1 backup t2
+    t1 dn ""
+    t1 setall {}
+    t3 diff t1 t2
+    list [t3 dn] [lindex [t3 change] 0 0]
+} [list "$rdn1,$sup1" del]
+
+test ldapx-3.11 {ldapx::entry - diff toanother add entry} {
+    t1 reset
+    t1 setall {}
+    t1 backup t2
+    t1 setall $entry
+    t3 diff t1 t2
+    lsort [list [lindex [t3 change] 0 0] \
+		[lsort [lindex [t3 change] 0 1]]]
+} [lsort [list add [lsort [string tolower $entry]]]]
+
+test ldapx-3.12 {ldapx::entry - diff toanother add entry dn 1} {
+    t1 reset
+    t1 backup t2
+    t1 dn "$rdn1,$sup1"
+    t1 setall $entry
+    t3 diff t1 t2
+    list [t3 dn] [lindex [t3 change] 0 0]
+} [list "$rdn1,$sup1" add]
+
+test ldapx-3.13 {ldapx::entry - diff toanother add entry dn 2} {
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t1 backup t2
+    t1 setall $entry
+    t3 diff t1 t2
+    list [t3 dn] [lindex [t3 change] 0 0]
+} [list "$rdn1,$sup1" add]
+
+
+test ldapx-3.14 {ldapx::entry - diff tothesame} {
+    t1 reset
+    t1 setall $entry
+    t1 backup
+    t1 set1 A3 v34
+    t3 diff t1
+    t3 change
+} {{mod {{modrepl a3 v34}}}}
+
+test ldapx-3.15 {ldapx::entry - restore toanother} {
+    t1 reset
+    t1 setall {a v}
+    t1 backup
+    t1 restore t2
+    t2 getall
+} {a v}
+
+test ldapx-3.16 {ldapx::entry - restore tothesame} {
+    t1 reset
+    t1 setall {a v}
+    t1 backup
+    t1 setall $entry
+    t1 restore
+    t1 getall
+} {a v}
+
+test ldapx-3.17 {ldapx::entry - swap} {
+    t1 reset
+    t1 setall {a v}
+    t1 dn d1
+    t1 backup
+    t1 setall {b w}
+    t1 dn d2
+    t1 swap
+    set l1 [list [t1 dn] [t1 getall]]
+    t1 swap
+    set l2 [list [t1 dn] [t1 getall]]
+    list $l1 $l2
+} {{d1 {a v}} {d2 {b w}}}
+
+test ldapx-3.18 {ldapx::entry - apply modrdn rdn} {
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t2 reset
+    t2 dn "$rdn1,$sup1"
+    t2 change [list [list modrdn $rdn2 0]]
+    t1 apply t2
+    t1 dn
+} "$rdn2,$sup1"
+
+test ldapx-3.19 {ldapx::entry - apply modrdn superior} {
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t2 reset
+    t2 dn "$rdn1,$sup1"
+    t2 change [list [list modrdn $rdn1 0 $sup2]]
+    t1 apply t2
+    t1 dn
+} "$rdn1,$sup2"
+
+test ldapx-3.20 {ldapx::entry - apply modrdn rdn+superior} {
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t2 reset
+    t2 dn "$rdn1,$sup1"
+    t2 change [list [list modrdn $rdn2 0 $sup2]]
+    t1 apply t2
+    t1 dn
+} "$rdn2,$sup2"
+
+test ldapx-3.21 {ldapx::entry - apply add} {
+    t1 reset
+    t2 reset
+    t2 dn "$rdn1,$sup1"
+    t2 change [list [list add $entry]]
+    t1 apply t2
+    lsort [t1 getall]
+} [lsort $entry]
+
+test ldapx-3.22 {ldapx::entry - apply del} {
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t1 setall $entry
+    t2 reset
+    t2 dn "$rdn1,$sup1"
+    t2 change {{del}}
+    t1 apply t2
+    lsort [t1 getall]
+} {}
+
+test ldapx-3.23 {ldapx::entry - apply mod add} {
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t1 setall $entry
+    t2 reset
+    t2 dn "$rdn1,$sup1"
+    t2 change {{mod {{modadd A4 {v41 v42}}}}}
+    t1 apply t2
+    t1 get a4
+} {v41 v42}
+
+test ldapx-3.24 {ldapx::entry - apply mod del} {
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t1 setall $entry
+    t2 reset
+    t2 dn "$rdn1,$sup1"
+    t2 change {{mod {{moddel A3}}}}
+    t1 apply t2
+    t1 get a3
+} {}
+
+test ldapx-3.25 {ldapx::entry - apply mod repl} {
+    t1 reset
+    t1 dn "$rdn1,$sup1"
+    t1 setall $entry
+    t2 reset
+    t2 dn "$rdn1,$sup1"
+    t2 change {{mod {{modrepl A3 {v34 v35}}}}}
+    t1 apply t2
+    t1 get a3
+} {v34 v35}
+
+test ldapx-4.1 {ldapx::entry - deletion} {
+    t1 destroy
+    t2 destroy
+    t3 destroy
+} {}
+
+
+testsuiteCleanup

@@ -1,6 +1,5 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portdestroot.tcl
-# $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Inc.
 # Copyright (c) 2004 - 2005 Robert Shaw <rshaw@opendarwin.org>
@@ -131,12 +130,12 @@ proc portdestroot::destroot_start {args} {
     set oldmask [umask ${destroot.umask}]
     set mtree [findBinary mtree ${portutil::autoconf::mtree_path}]
 
-    if { ${destroot.clean} == "yes" } {
+    if { ${destroot.clean} eq "yes" } {
         delete "${destroot}"
     }
 
     file mkdir "${destroot}"
-    if { ${os.platform} == "darwin" } {
+    if { ${os.platform} eq "darwin" } {
         system "cd \"${destroot}\" && ${mtree} -e -U -f [file join ${portsharepath} install macosx.mtree]"
         file mkdir "${destroot}${applications_dir}"
         file mkdir "${destroot}${frameworks_dir}"
@@ -316,7 +315,7 @@ proc portdestroot::destroot_finish {args} {
     }
 
     # test for violations of mtree
-    if { ${destroot.violate_mtree} != "yes" } {
+    if { ${destroot.violate_mtree} ne "yes" } {
         ui_debug "checking for mtree violations"
         set mtree_violation "no"
 
@@ -379,7 +378,7 @@ proc portdestroot::destroot_finish {args} {
         }
 
         # abort here only so all violations can be observed
-        if { ${mtree_violation} != "no" } {
+        if { ${mtree_violation} ne "no" } {
             ui_warn "[format [msgcat::mc "%s violates the layout of the ports-filesystems!"] [option subport]]"
             ui_warn "Please fix or indicate this misbehavior (if it is intended), it will be an error in future releases!"
             # error "mtree violation!"

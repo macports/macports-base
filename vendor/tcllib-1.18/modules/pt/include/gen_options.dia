@@ -1,0 +1,7 @@
+# -*- tcl -*- tcl.tk//DSL diagram//EN//1.0
+set boxwidth [4 cm]
+line ;group {
+    arc cw ; arc ; arrow ; box "interpreted (Tcl)" ; arrow ; box container
+} ; arc ; line ; arc cw ; arrow ; box "specialized" ; group {
+    arc ; arc cw ; arrow ; box "C" ; arrow ; box "critcl / C"
+} ; arc cw ; arc ; arrow ; box "Tcl" ; arrow ; box "snit / oo"

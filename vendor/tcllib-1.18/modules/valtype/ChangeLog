@@ -1,0 +1,79 @@
+2014-01-21  Andreas Kupries  <andreask@activestate.com>
+
+	* iban.tcl: Ticket [9318a6687f]: Applied patch by Max
+	* iban.test: Jarek to update the code to the IBAN Registry
+	* iban.man: version 47. Bumped package version to 1.4.
+	* pkgIndex.tcl:
+
+2013-10-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* iban.tcl: Ticket [a3dd326ec8]: Applied patch by Max
+	* iban.test: Jarek to update the code to the IBAN Registry
+	* iban.man: version 46. Bumped package version to 1.3.
+	* pkgIndex.tcl:
+
+2013-02-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* cc_amex.man: Fixed type markers so that dtplite
+	* cc_discover.man: (sak localdoc) will recognize
+	* cc_mastercard.man: and process the manpages.
+	* cc_visa.man:
+	* ean13.man:
+	* iban.man:
+	* imei.man:
+	* isbn.man:
+	* luhn5.man:
+	* luhn.man:
+	* usnpi.man:
+	* valtype_common.man:
+	* verhoeff.man:
+
+2013-02-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* iban.tcl: [Patch 3606105]: Applied patch by Max Jarek to
+	* iban.test: update the code to the IBAN Registry version 43.
+	* iban.man: Bumped package version to 1.2.
+	* pkgIndex.tcl:
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	*
+
+2012-06-06  Andreas Kupries  <andreask@activestate.com>
+
+	* iban.tcl: [Patch 3532308]: Applied patch by Max Jarek to
+	* iban.test: update the code to the IBAN Registry version 35.
+	* iban.man: Bumped package version to 1.1.
+	* pkgIndex.tcl:
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	*
+
+2011-11-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* iban.tcl: Extended checks to be country specific, added
+	* iban.test: reference @ wikipedia, added testsuite.
+
+2011-11-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* iban.man: New package, validation type for International Bank
+	* iban.tcl: Account Numbers (IBAN). Provided by Max Jarek
+	* include/k_iban.inc: <maxjarek@users.sourceforge.net>.
+	* pkgIndex.tcl:
+
+	* include/k_amex.inc: Extended keywords.
+	* include/k_discover.inc:
+	* include/k_mastercard.inc:
+	* include/k_visa.inc:
+
+2011-04-06  Andreas Kupries  <andreask@activestate.com>
+
+	* New module: Validation types. snit validation types for various
+	  classes of numbers (ISBN, EAN, ...) and general check-digit
+	  algorithms (luhn(5), verhoeff, ...).
+

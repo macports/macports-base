@@ -1,6 +1,5 @@
 /*
  * vercomp.h
- * $Id$
  * Author: Landon Fuller <landonf@macports.org>
  *
  * Copyright (c) 2002 - 2003 Apple Inc.

@@ -1,0 +1,36 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin SASL::NTLM n 1.1.2]
+[keywords authentication]
+[keywords SASL NTLM]
+[copyright {2005-2006, Pat Thoyts <patthoyts@users.sourceforge.net>}]
+[moddesc {Simple Authentication and Security Layer (SASL)}]
+[titledesc {Implementation of SASL NTLM mechanism for Tcl}]
+[category  Networking]
+[require Tcl 8.2]
+[require SASL::NTLM [opt 1.1.2]]
+[description]
+[para]
+
+This package provides the NTLM authentication mechanism for
+the Simple Authentication and Security Layer (SASL).
+
+[para] Please read the documentation for package [package sasl]
+for details.
+
+[section "REFERENCES"]
+
+[list_begin enumerated]
+
+[enum]
+    No official specification is available. However,
+    [uri http://davenport.sourceforge.net/ntlm.html] provides a good
+    description.
+
+[list_end]
+
+[section AUTHORS]
+Pat Thoyts
+
+[vset CATEGORY sasl]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

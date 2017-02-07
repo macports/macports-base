@@ -1,0 +1,396 @@
+
+<div class='fossil-doc' data-title='grammar::me::tcl - Grammar operations and usage'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">grammar::me::tcl(n) 0.1 tcllib &quot;Grammar operations and usage&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>grammar::me::tcl - Virtual machine implementation I for parsing token streams</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">MACHINE STATE</a></li>
+<li class="doctools_section"><a href="#section4">MACHINE INSTRUCTIONS</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">grammar::me::tcl <span class="opt">?0.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::grammar::me::tcl</b> <b class="method">cmd</b> <i class="arg">...</i></a></li>
+<li><a href="#2"><b class="cmd">::grammar::me::tcl</b> <b class="method">init</b> <i class="arg">nextcmd</i> <span class="opt">?<i class="arg">tokmap</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">::grammar::me::tcl</b> <b class="method">lc</b> <i class="arg">location</i></a></li>
+<li><a href="#4"><b class="cmd">::grammar::me::tcl</b> <b class="method">tok</b> <i class="arg">from</i> <span class="opt">?<i class="arg">to</i>?</span></a></li>
+<li><a href="#5"><b class="cmd">::grammar::me::tcl</b> <b class="method">tokens</b></a></li>
+<li><a href="#6"><b class="cmd">::grammar::me::tcl</b> <b class="method">sv</b></a></li>
+<li><a href="#7"><b class="cmd">::grammar::me::tcl</b> <b class="method">ast</b></a></li>
+<li><a href="#8"><b class="cmd">::grammar::me::tcl</b> <b class="method">astall</b></a></li>
+<li><a href="#9"><b class="cmd">::grammar::me::tcl</b> <b class="method">ctok</b></a></li>
+<li><a href="#10"><b class="cmd">::grammar::me::tcl</b> <b class="method">nc</b></a></li>
+<li><a href="#11"><b class="cmd">::grammar::me::tcl</b> <b class="method">next</b></a></li>
+<li><a href="#12"><b class="cmd">::grammar::me::tcl</b> <b class="method">ord</b></a></li>
+<li><a href="#13"><b class="cmd">::grammar::me::tcl::ict_advance</b> <i class="arg">message</i></a></li>
+<li><a href="#14"><b class="cmd">::grammar::me::tcl::ict_match_token</b> <i class="arg">tok</i> <i class="arg">message</i></a></li>
+<li><a href="#15"><b class="cmd">::grammar::me::tcl::ict_match_tokrange</b> <i class="arg">tokbegin</i> <i class="arg">tokend</i> <i class="arg">message</i></a></li>
+<li><a href="#16"><b class="cmd">::grammar::me::tcl::ict_match_tokclass</b> <i class="arg">code</i> <i class="arg">message</i></a></li>
+<li><a href="#17"><b class="cmd">::grammar::me::tcl::inc_restore</b> <i class="arg">nt</i></a></li>
+<li><a href="#18"><b class="cmd">::grammar::me::tcl::inc_save</b> <i class="arg">nt</i> <i class="arg">startlocation</i></a></li>
+<li><a href="#19"><b class="cmd">::grammar::me::tcl::iok_ok</b></a></li>
+<li><a href="#20"><b class="cmd">::grammar::me::tcl::iok_fail</b></a></li>
+<li><a href="#21"><b class="cmd">::grammar::me::tcl::iok_negate</b></a></li>
+<li><a href="#22"><b class="cmd">::grammar::me::tcl::icl_get</b></a></li>
+<li><a href="#23"><b class="cmd">::grammar::me::tcl::icl_rewind</b> <i class="arg">oldlocation</i></a></li>
+<li><a href="#24"><b class="cmd">::grammar::me::tcl::ier_get</b></a></li>
+<li><a href="#25"><b class="cmd">::grammar::me::tcl::ier_clear</b></a></li>
+<li><a href="#26"><b class="cmd">::grammar::me::tcl::ier_nonterminal</b> <i class="arg">message</i> <i class="arg">location</i></a></li>
+<li><a href="#27"><b class="cmd">::grammar::me::tcl::ier_merge</b> <i class="arg">olderror</i></a></li>
+<li><a href="#28"><b class="cmd">::grammar::me::tcl::isv_clear</b></a></li>
+<li><a href="#29"><b class="cmd">::grammar::me::tcl::isv_terminal</b></a></li>
+<li><a href="#30"><b class="cmd">::grammar::me::tcl::isv_nonterminal_leaf</b> <i class="arg">nt</i> <i class="arg">startlocation</i></a></li>
+<li><a href="#31"><b class="cmd">::grammar::me::tcl::isv_nonterminal_range</b> <i class="arg">nt</i> <i class="arg">startlocation</i></a></li>
+<li><a href="#32"><b class="cmd">::grammar::me::tcl::isv_nonterminal_reduce</b> <i class="arg">nt</i> <i class="arg">startlocation</i> <span class="opt">?<i class="arg">marker</i>?</span></a></li>
+<li><a href="#33"><b class="cmd">::grammar::me::tcl::ias_push</b></a></li>
+<li><a href="#34"><b class="cmd">::grammar::me::tcl::ias_mark</b></a></li>
+<li><a href="#35"><b class="cmd">::grammar::me::tcl::ias_pop2mark</b> <i class="arg">marker</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides an implementation of the ME virtual machine.
+Please go and read the document <b class="syscmd"><a href="me_intro.html">grammar::me_intro</a></b> first if
+you do not know what a ME virtual machine is.</p>
+<p>This implementation is tied very strongly to Tcl. All the stacks in
+the machine state are handled through the Tcl stack, all control flow
+is handled by Tcl commands, and the remaining machine instructions are
+directly mapped to Tcl commands. Especially the matching of
+nonterminal symbols is handled by Tcl procedures as well, essentially
+extending the machine implementation with custom instructions.</p>
+<p>Further on the implementation handles only a single machine which is
+uninteruptible during execution and hardwired for pull operation. I.e.
+it explicitly requests each new token through a callback, pulling them
+into its state.</p>
+<p>A related package is <b class="package"><a href="../grammar_peg/peg_interp.html">grammar::peg::interp</a></b> which provides a
+generic interpreter / parser for parsing expression grammars (PEGs),
+implemented on top of this implementation of the ME virtual machine.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<p>The commands documented in this section do not implement any of the
+instructions of the ME virtual machine. They provide the facilities
+for the initialization of the machine and the retrieval of important
+information.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::grammar::me::tcl</b> <b class="method">cmd</b> <i class="arg">...</i></a></dt>
+<dd><p>This is an ensemble command providing access to the commands listed in
+this section. See the methods themselves for detailed specifications.</p></dd>
+<dt><a name="2"><b class="cmd">::grammar::me::tcl</b> <b class="method">init</b> <i class="arg">nextcmd</i> <span class="opt">?<i class="arg">tokmap</i>?</span></a></dt>
+<dd><p>This command (re)initializes the machine. It returns the empty
+string. This command has to be invoked before any other command of
+this package.</p>
+<p>The command prefix <i class="arg">nextcmd</i> represents the input stream of
+characters and is invoked by the machine whenever the a new character
+from the stream is required. The instruction for handling this is
+<i class="term">ict_advance</i>.
+The callback has to return either the empty list, or a list of 4
+elements containing the token, its lexeme attribute, and its location
+as line number and column index, in this order.
+The empty list is the signal that the end of the input stream has been
+reached. The lexeme attribute is stored in the terminal cache, but
+otherwise not used by the machine.</p>
+<p>The optional dictionary <i class="arg">tokmap</i> maps from tokens to integer
+numbers. If present the numbers impose an order on the tokens, which
+is subsequently used by <i class="term">ict_match_tokrange</i> to determine if a
+token is in the specified range or not. If no token map is specified
+the lexicographic order of th token names will be used instead. This
+choice is especially asensible when using characters as tokens.</p></dd>
+<dt><a name="3"><b class="cmd">::grammar::me::tcl</b> <b class="method">lc</b> <i class="arg">location</i></a></dt>
+<dd><p>This command converts the location of a token given as offset in the
+input stream into the associated line number and column index. The
+result of the command is a 2-element list containing the two values,
+in the order mentioned in the previous sentence.
+This allows higher levels to convert the location information found in
+the error status and the generated AST into more human readable data.</p>
+<p><em>Note</em> that the command is not able to convert locations which
+have not been reached by the machine yet. In other words, if the
+machine has read 7 tokens the command is able to convert the offsets
+<b class="const">0</b> to <b class="const">6</b>, but nothing beyond that. This also shows that
+it is not possible to convert offsets which refer to locations before
+the beginning of the stream.</p>
+<p>After a call of <b class="method">init</b> the state used for the conversion is
+cleared, making further conversions impossible until the machine has
+read tokens again.</p></dd>
+<dt><a name="4"><b class="cmd">::grammar::me::tcl</b> <b class="method">tok</b> <i class="arg">from</i> <span class="opt">?<i class="arg">to</i>?</span></a></dt>
+<dd><p>This command returns a Tcl list containing the part of the input
+stream between the locations <i class="arg">from</i> and <i class="arg">to</i> (both
+inclusive). If <i class="arg">to</i> is not specified it will default to the value
+of <i class="arg">from</i>.</p>
+<p>Each element of the returned list is a list of four elements, the
+token, its associated lexeme, line number, and column index, in this
+order.
+In other words, each element has the same structure as the result of
+the <i class="arg">nextcmd</i> callback given to <b class="cmd">::grammar::me::tcl::init</b></p>
+<p>This command places the same restrictions on its location arguments as
+<b class="cmd">::grammar::me::tcl::lc</b>.</p></dd>
+<dt><a name="5"><b class="cmd">::grammar::me::tcl</b> <b class="method">tokens</b></a></dt>
+<dd><p>This command returns the number of tokens currently known to the ME
+virtual machine.</p></dd>
+<dt><a name="6"><b class="cmd">::grammar::me::tcl</b> <b class="method">sv</b></a></dt>
+<dd><p>This command returns the current semantic value <i class="term">SV</i> stored in
+the machine. This is an abstract syntax tree as specified in the
+document <b class="syscmd"><a href="me_ast.html">grammar::me_ast</a></b>, section <b class="sectref">AST VALUES</b>.</p></dd>
+<dt><a name="7"><b class="cmd">::grammar::me::tcl</b> <b class="method">ast</b></a></dt>
+<dd><p>This method returns the abstract syntax tree currently at the top of
+the AST stack of the ME virtual machine. This is an abstract syntax
+tree as specified in the document <b class="syscmd"><a href="me_ast.html">grammar::me_ast</a></b>, section
+<b class="sectref">AST VALUES</b>.</p></dd>
+<dt><a name="8"><b class="cmd">::grammar::me::tcl</b> <b class="method">astall</b></a></dt>
+<dd><p>This method returns the whole stack of abstract syntax trees currently
+known to the ME virtual machine. Each element of the returned list is
+an abstract syntax tree as specified in the document
+<b class="syscmd"><a href="me_ast.html">grammar::me_ast</a></b>, section <b class="sectref">AST VALUES</b>.
+The top of the stack resides at the end of the list.</p></dd>
+<dt><a name="9"><b class="cmd">::grammar::me::tcl</b> <b class="method">ctok</b></a></dt>
+<dd><p>This method returns the current token considered by the ME virtual
+machine.</p></dd>
+<dt><a name="10"><b class="cmd">::grammar::me::tcl</b> <b class="method">nc</b></a></dt>
+<dd><p>This method returns the contents of the nonterminal cache as a
+dictionary mapping from &quot;<b class="variable">symbol</b>,<b class="variable">location</b>&quot; to match
+information.</p></dd>
+<dt><a name="11"><b class="cmd">::grammar::me::tcl</b> <b class="method">next</b></a></dt>
+<dd><p>This method returns the next token callback as specified during
+initialization of the ME virtual machine.</p></dd>
+<dt><a name="12"><b class="cmd">::grammar::me::tcl</b> <b class="method">ord</b></a></dt>
+<dd><p>This method returns a dictionary containing the <i class="arg">tokmap</i> specified
+during initialization of the ME virtual machine.
+<b class="variable"><b class="cmd">::grammar::me::tcl::ok</b></b>
+This variable contains the current match status <i class="term">OK</i>. It is
+provided as variable instead of a command because that makes access to
+this information faster, and the speed of access is considered very
+important here as this information is used constantly to determine the
+control flow.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">MACHINE STATE</a></h2>
+<p>Please go and read the document <b class="syscmd"><a href="me_vm.html">grammar::me_vm</a></b> first for a
+specification of the basic ME virtual machine and its state.</p>
+<p>This implementation manages the state described in that document,
+except for the stacks minus the AST stack. In other words, location
+stack, error stack, return stack, and ast marker stack are implicitly
+managed through standard Tcl scoping, i.e. Tcl variables in
+procedures, outside of this implementation.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">MACHINE INSTRUCTIONS</a></h2>
+<p>Please go and read the document <b class="syscmd"><a href="me_vm.html">grammar::me_vm</a></b> first for a
+specification of the basic ME virtual machine and its instruction set.</p>
+<p>This implementation maps all instructions to Tcl commands in the
+namespace &quot;::grammar::me::tcl&quot;, except for the stack related commands,
+nonterminal symbols and control flow.
+Here we simply list the commands and explain the differences to the
+specified instructions, if there are any. For their semantics see the
+aforementioned specification. The machine commands are <em>not</em>
+reachable through the ensemble command <b class="cmd">::grammar::me::tcl</b>.</p>
+<dl class="doctools_definitions">
+<dt><a name="13"><b class="cmd">::grammar::me::tcl::ict_advance</b> <i class="arg">message</i></a></dt>
+<dd><p>No changes.</p></dd>
+<dt><a name="14"><b class="cmd">::grammar::me::tcl::ict_match_token</b> <i class="arg">tok</i> <i class="arg">message</i></a></dt>
+<dd><p>No changes.</p></dd>
+<dt><a name="15"><b class="cmd">::grammar::me::tcl::ict_match_tokrange</b> <i class="arg">tokbegin</i> <i class="arg">tokend</i> <i class="arg">message</i></a></dt>
+<dd><p>If, and only if a token map was specified during initialization then
+the arguments are the numeric representations of the smallest and
+largest tokens in the range. Otherwise they are the relevant tokens
+themselves and lexicographic comparison is used.</p></dd>
+<dt><a name="16"><b class="cmd">::grammar::me::tcl::ict_match_tokclass</b> <i class="arg">code</i> <i class="arg">message</i></a></dt>
+<dd><p>No changes.</p></dd>
+<dt><a name="17"><b class="cmd">::grammar::me::tcl::inc_restore</b> <i class="arg">nt</i></a></dt>
+<dd><p>Instead of taking a branchlabel the command returns a boolean value.
+The result will be <b class="const">true</b> if and only if cached information was
+found. The caller has to perform the appropriate branching.</p></dd>
+<dt><a name="18"><b class="cmd">::grammar::me::tcl::inc_save</b> <i class="arg">nt</i> <i class="arg">startlocation</i></a></dt>
+<dd><p>The command takes the start location as additional argument, as it is
+managed on the Tcl stack, and not in the machine state.</p></dd>
+<dt><b class="cmd">icf_ntcall</b> <i class="arg">branchlabel</i></dt>
+<dd></dd>
+<dt><b class="cmd">icf_ntreturn</b></dt>
+<dd><p>These two instructions are not mapped to commands. They are control
+flow instructions and handled in Tcl.</p></dd>
+<dt><a name="19"><b class="cmd">::grammar::me::tcl::iok_ok</b></a></dt>
+<dd><p>No changes.</p></dd>
+<dt><a name="20"><b class="cmd">::grammar::me::tcl::iok_fail</b></a></dt>
+<dd><p>No changes.</p></dd>
+<dt><a name="21"><b class="cmd">::grammar::me::tcl::iok_negate</b></a></dt>
+<dd><p>No changes.</p></dd>
+<dt><b class="cmd">icf_jalways</b> <i class="arg">branchlabel</i></dt>
+<dd></dd>
+<dt><b class="cmd">icf_jok</b> <i class="arg">branchlabel</i></dt>
+<dd></dd>
+<dt><b class="cmd">icf_jfail</b> <i class="arg">branchlabel</i></dt>
+<dd></dd>
+<dt><b class="cmd">icf_halt</b></dt>
+<dd><p>These four instructions are not mapped to commands. They are control
+flow instructions and handled in Tcl.</p></dd>
+<dt><a name="22"><b class="cmd">::grammar::me::tcl::icl_get</b></a></dt>
+<dd><p>This command returns the current location <i class="term">CL</i> in the input.
+It replaces <i class="term">icl_push</i>.</p></dd>
+<dt><a name="23"><b class="cmd">::grammar::me::tcl::icl_rewind</b> <i class="arg">oldlocation</i></a></dt>
+<dd><p>The command takes the location as argument as it comes from the
+Tcl stack, not the machine state.</p></dd>
+<dt><b class="cmd">icl_pop</b></dt>
+<dd><p>Not mapped, the stacks are not managed by the package.</p></dd>
+<dt><a name="24"><b class="cmd">::grammar::me::tcl::ier_get</b></a></dt>
+<dd><p>This command returns the current error state <i class="term">ER</i>.
+It replaces <i class="term">ier_push</i>.</p></dd>
+<dt><a name="25"><b class="cmd">::grammar::me::tcl::ier_clear</b></a></dt>
+<dd><p>No changes.</p></dd>
+<dt><a name="26"><b class="cmd">::grammar::me::tcl::ier_nonterminal</b> <i class="arg">message</i> <i class="arg">location</i></a></dt>
+<dd><p>The command takes the location as argument as it comes from the
+Tcl stack, not the machine state.</p></dd>
+<dt><a name="27"><b class="cmd">::grammar::me::tcl::ier_merge</b> <i class="arg">olderror</i></a></dt>
+<dd><p>The command takes the second error state to merge as argument as it
+comes from the Tcl stack, not the machine state.</p></dd>
+<dt><a name="28"><b class="cmd">::grammar::me::tcl::isv_clear</b></a></dt>
+<dd><p>No changes.</p></dd>
+<dt><a name="29"><b class="cmd">::grammar::me::tcl::isv_terminal</b></a></dt>
+<dd><p>No changes.</p></dd>
+<dt><a name="30"><b class="cmd">::grammar::me::tcl::isv_nonterminal_leaf</b> <i class="arg">nt</i> <i class="arg">startlocation</i></a></dt>
+<dd><p>The command takes the start location as argument as it comes from the
+Tcl stack, not the machine state.</p></dd>
+<dt><a name="31"><b class="cmd">::grammar::me::tcl::isv_nonterminal_range</b> <i class="arg">nt</i> <i class="arg">startlocation</i></a></dt>
+<dd><p>The command takes the start location as argument as it comes from the
+Tcl stack, not the machine state.</p></dd>
+<dt><a name="32"><b class="cmd">::grammar::me::tcl::isv_nonterminal_reduce</b> <i class="arg">nt</i> <i class="arg">startlocation</i> <span class="opt">?<i class="arg">marker</i>?</span></a></dt>
+<dd><p>The command takes start location and marker as argument as it comes
+from the Tcl stack, not the machine state.</p></dd>
+<dt><a name="33"><b class="cmd">::grammar::me::tcl::ias_push</b></a></dt>
+<dd><p>No changes.</p></dd>
+<dt><a name="34"><b class="cmd">::grammar::me::tcl::ias_mark</b></a></dt>
+<dd><p>This command returns a marker for the current state of the AST stack
+<i class="term">AS</i>. The marker stack is not managed by the machine.</p></dd>
+<dt><a name="35"><b class="cmd">::grammar::me::tcl::ias_pop2mark</b> <i class="arg">marker</i></a></dt>
+<dd><p>The command takes the marker as argument as it comes from the
+Tcl stack, not the machine state. It replaces <i class="term">ias_mpop</i>.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>grammar_me</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key11">grammar</a>, <a href="../../../../index.html#key26">parsing</a>, <a href="../../../../index.html#key24">virtual machine</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Grammars and finite automata</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

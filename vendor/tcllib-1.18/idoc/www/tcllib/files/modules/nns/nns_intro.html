@@ -1,0 +1,216 @@
+
+<html><head>
+<title>nns_intro - Name service facility</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'nns_intro.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2008 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- nns_intro.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">nns_intro(n) 1.0 tcllib &quot;Name service facility&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>nns_intro - Name service facility, introduction</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Applications</a></li>
+<li class="doctools_section"><a href="#section3">Packages</a></li>
+<li class="doctools_section"><a href="#section4">Internals</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p><i class="term"><a href="../../apps/nns.html">nns</a></i> (short for <em>nano nameservice</em>) is a facility built
+for the package <b class="package"><a href="../comm/comm.html">comm</a></b>, adding a simple name service to it.
+It is also built on top of <b class="package"><a href="../comm/comm.html">comm</a></b>, using it for the exchange
+of messages between the client and server parts.</p>
+<p>This name service facility has nothing to do with the Internet's
+<i class="term">Domain Name System</i>, otherwise known as <i class="term"><a href="../../../../index.html#key598">DNS</a></i>. If the
+reader is looking for a package dealing with that please see either of
+the packages <b class="package"><a href="../dns/tcllib_dns.html">dns</a></b> and <b class="package">resolv</b>, both found in Tcllib
+too.</p>
+<p>Tcllib provides 2 applications and 4 packages which are working
+together and provide access to the facility at different levels.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Applications</a></h2>
+<p>The application <b class="syscmd"><a href="../../apps/nnsd.html">nnsd</a></b> provides a simple name server which can
+be run by anybody anywhere on their system, as they see fit.
+It is also an example on the use of the server-side package
+<b class="package"><a href="nns_server.html">nameserv::server</a></b>.</p>
+<p>Complementing this server is the <b class="syscmd"><a href="../../apps/nns.html">nns</a></b> client application.
+A possible, but no very sensible use would be to enter name/port
+bindings into a server from a shell script. Not sensible, as shell
+scripts normally do not provide a <b class="package"><a href="../comm/comm.html">comm</a></b>-based service.</p>
+<p>The only case for this to make some sense would be in a shell script
+wrapped around a Tcl script FOO which is using comm, to register the
+listening port used by FOO.
+However even there it would much more sensible to extend FOO to use
+the nameservice directly. And in regard on how to that <b class="syscmd"><a href="../../apps/nns.html">nns</a></b>
+can be used as both example and template.
+Beyond that it may also be useful to perform nameservice queries from
+shell scripts.</p>
+<p>The third application, <b class="syscmd"><a href="../../apps/nnslog.html">nnslog</a></b> is a stripped down form of the
+<b class="syscmd"><a href="../../apps/nns.html">nns</a></b> client application. It is reduced to perform a continuous
+search for all changes and logs all received events to stdout.</p>
+<p>Both clients use the <b class="package"><a href="nns_auto.html">nameserv::auto</a></b> package to automatically
+hande the loss and restoration of the connection to the server.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Packages</a></h2>
+<p>The two main packages implementing the service are <b class="package"><a href="nns_client.html">nameserv</a></b>
+and <b class="package"><a href="nns_server.html">nameserv::server</a></b>, i.e. client and server. The latter has
+not much of an API, just enough to start, stop, and configure it. See
+the application <b class="syscmd"><a href="../../apps/nnsd.html">nnsd</a></b> on how to use it.</p>
+<p>The basic client, in package <b class="package"><a href="nns_client.html">nameserv</a></b>, provides the main API
+to manipulate and query the service. An example of its use is the
+application <b class="syscmd"><a href="../../apps/nns.html">nns</a></b>.</p>
+<p>The second client package, <b class="package"><a href="nns_auto.html">nameserv::auto</a></b> is API compatible
+to the basic client, but provides the additional functionality that it
+will automatically restore data like bound names when the connection
+to the name service was lost and then reestablished. I.e. it
+automatically detects the loss of the server and re-enters the data
+when the server comes back.</p>
+<p>The package <b class="package"><a href="nns_common.html">nameserv::common</a></b> is of no interest to users. It
+is an internal package containing code and definitions common to the
+packages <b class="package"><a href="nns_client.html">nameserv</a></b> and <b class="package"><a href="nns_server.html">nameserv::server</a></b>.</p>
+<p>All packages use the <b class="package"><a href="../uev/uevent.html">uevent</a></b> package for the reporting of
+special circumstances via events, and reserve the uevent-tag
+<i class="term"><a href="nns_client.html">nameserv</a></i> for their exclusive use. All their events will be
+posted to that tag.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Internals</a></h2>
+<p>The document <i class="term"><a href="nns_protocol.html">Name service facility, client/server protocol</a></i>
+specifies the protocol used by the packages <b class="package"><a href="nns_client.html">nameserv</a></b> and
+<b class="package"><a href="nns_server.html">nameserv::server</a></b> to talk to each other. It is of no interest
+to users of either the packages or applications.</p>
+<p>Developers wishing to modify and/or extend or to just understand the
+internals of the nameservice facility however are strongly advised to
+read it.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>nameserv</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="nns_client.html">nameserv(n)</a>, <a href="nns_auto.html">nameserv::auto(n)</a>, <a href="nns_common.html">nameserv::common(n)</a>, <a href="nns_protocol.html">nameserv::protocol(n)</a>, <a href="nns_server.html">nameserv::server(n)</a>, <a href="../../apps/nnsd.html">nnsd(n)</a>, nss(n)</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key30">client</a>, <a href="../../../../index.html#key29">name service</a>, <a href="../../../../index.html#key65">server</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2008 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

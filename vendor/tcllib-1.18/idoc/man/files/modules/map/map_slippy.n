@@ -1,0 +1,452 @@
+'\"
+'\" Generated from file 'map_slippy\&.man' by tcllib/doctools with format 'nroff'
+'\"
+.TH "map::slippy" n 0\&.5 tcllib "Mapping utilities"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+map::slippy \- Common code for slippy based map packages
+.SH SYNOPSIS
+package require \fBTcl  8\&.4\fR
+.sp
+package require \fBTk  8\&.4\fR
+.sp
+package require \fBmap::slippy  ?0\&.5?\fR
+.sp
+\fB::map::slippy\fR \fBlength\fR \fIlevel\fR
+.sp
+\fB::map::slippy\fR \fBtiles\fR \fIlevel\fR
+.sp
+\fB::map::slippy\fR \fBtile size\fR
+.sp
+\fB::map::slippy\fR \fBtile valid\fR \fItile\fR \fIlevels\fR ?\fImsgvar\fR?
+.sp
+\fB::map::slippy\fR \fBgeo 2tile\fR \fIgeo\fR
+.sp
+\fB::map::slippy\fR \fBgeo 2tile\&.float\fR \fIgeo\fR
+.sp
+\fB::map::slippy\fR \fBgeo 2point\fR \fIgeo\fR
+.sp
+\fB::map::slippy\fR \fBtile 2geo\fR \fItile\fR
+.sp
+\fB::map::slippy\fR \fBtile 2point\fR \fItile\fR
+.sp
+\fB::map::slippy\fR \fBpoint 2geo\fR \fIpoint\fR
+.sp
+\fB::map::slippy\fR \fBpoint 2tile\fR \fIpoint\fR
+.sp
+\fB::map::slippy\fR \fBfit geobox\fR \fIcanvdim\fR \fIgeobox\fR \fIzmin\fR \fIzmax\fR
+.sp
+.BE
+.SH DESCRIPTION
+This package provides a number of methods doing things needed by all
+types of slippy-based map packages\&.
+.SH API
+.TP
+\fB::map::slippy\fR \fBlength\fR \fIlevel\fR
+This method returns the width/height of a slippy-based map at the
+specified zoom \fIlevel\fR, in pixels\&. This is, in essence, the result
+of
+.CS
+
+
+	expr { [tiles $level] * [tile size] }
+
+.CE
+.TP
+\fB::map::slippy\fR \fBtiles\fR \fIlevel\fR
+This method returns the width/height of a slippy-based map at the
+specified zoom \fIlevel\fR, in \fItiles\fR\&.
+.TP
+\fB::map::slippy\fR \fBtile size\fR
+This method returns the width/height of a tile in a slippy-based map,
+in pixels\&.
+.TP
+\fB::map::slippy\fR \fBtile valid\fR \fItile\fR \fIlevels\fR ?\fImsgvar\fR?
+This method checks whether \fItile\fR described a valid tile in a
+slippy-based map containing that many zoom \fIlevels\fR\&. The result is
+a boolean value, \fBtrue\fR if the tile is valid, and \fBfalse\fR
+otherwise\&. For the latter a message is left in the variable named by
+\fImsgvar\fR, should it be specified\&.
+.sp
+A tile identifier as stored in \fItile\fR is a list containing zoom
+level, tile row, and tile column, in this order\&. The command
+essentially checks this, i\&.e\&. the syntax, that the zoom level is
+between 0 and "\fIlevels\fR-1", and that the row/col information is
+within the boundaries for the zoom level, i\&.e\&. 0 \&.\&.\&.
+"[tiles $zoom]-1"\&.
+.TP
+\fB::map::slippy\fR \fBgeo 2tile\fR \fIgeo\fR
+Converts a geographical location at a zoom level (\fIgeo\fR, a list
+containing zoom level, latitude, and longitude, in this order) to a
+tile identifier (list containing zoom level, row, and column) at that
+level\&. The tile identifier uses pure integer numbers for the tile
+coordinates, for all geographic coordinates mapping to that tile\&.
+.TP
+\fB::map::slippy\fR \fBgeo 2tile\&.float\fR \fIgeo\fR
+Converts a geographical location at a zoom level (\fIgeo\fR, a list
+containing zoom level, latitude, and longitude, in this order) to a
+tile identifier (list containing zoom level, row, and column) at that
+level\&. The tile identifier uses floating point numbers for the tile
+coordinates, representing not only the tile the geographic coordinates
+map to, but also the fractional location inside of that tile\&.
+.TP
+\fB::map::slippy\fR \fBgeo 2point\fR \fIgeo\fR
+Converts a geographical location at a zoom level (\fIgeo\fR, a list
+containing zoom level, latitude, and longitude, in this order) to a
+pixel position (list containing zoom level, y, and x) at that level\&.
+.TP
+\fB::map::slippy\fR \fBtile 2geo\fR \fItile\fR
+Converts a tile identifier at a zoom level (\fItile\fR, list
+containing zoom level, row, and column) to a geographical location
+(list containing zoom level, latitude, and longitude, in this order)
+at that level\&.
+.TP
+\fB::map::slippy\fR \fBtile 2point\fR \fItile\fR
+Converts a tile identifier at a zoom level (\fItile\fR, a list
+containing zoom level, row, and column, in this order) to a pixel
+position (list containing zoom level, y, and x) at that level\&.
+.TP
+\fB::map::slippy\fR \fBpoint 2geo\fR \fIpoint\fR
+Converts a pixel position at a zoom level (\fIpoint\fR, list
+containing zoom level, y, and x) to a geographical location (list
+containing zoom level, latitude, and longitude, in this order) at that
+level\&.
+.TP
+\fB::map::slippy\fR \fBpoint 2tile\fR \fIpoint\fR
+Converts a pixel position at a zoom level (\fIpoint\fR, a list
+containing zoom level, y, and x, in this order) to a tile identifier
+(list containing zoom level, row, and column) at that level\&.
+.TP
+\fB::map::slippy\fR \fBfit geobox\fR \fIcanvdim\fR \fIgeobox\fR \fIzmin\fR \fIzmax\fR
+Calculates the zoom level (whithin the bounds \fIzmin\fR and
+\fIzmax\fR) such that \fIgeobox\fR (a 4-element list containing the
+latitudes and longitudes lat0, lat1, lon0 and lon1 of a geo box,
+in this order) fits into a viewport given by \fIcanvdim\fR, a
+2-element list containing the width and height of the viewport, in
+this order\&.
+.PP
+.SH "COORDINATE SYSTEMS"
+The commands of this package operate on three distinct coordinate
+systems, which are explained below\&.
+.SS GEOGRAPHIC
+\fIGeographic\fRal coordinates are represented by \fILatitude\fR and
+\fILongitude\fR, each of which is measured in degrees, as they are
+essentially angles\&.
+.PP
+\fBZero\fR longitude is the \fIGreenwich meridian\fR, with
+positive values going \fIeast\fR, and negative values going
+\fIwest\fR, for a total range of +/- 180 degrees\&. Note that +180 and
+-180 longitude are the same \fImeridian\fR, opposite to greenwich\&.
+.PP
+\fBzero\fR latitude the \fIEquator\fR, with positive values
+going \fInorth\fR and negative values going \fIsouth\fR\&. While the
+true range is +/- 90 degrees the projection used by the package
+requires us to cap the range at +/- 85\&.05112877983284 degrees\&. This
+means that north and south pole are not representable and not part of
+any map\&.
+.SS TILES
+While \fBGeographic\fRal coordinates of the previous section are
+independent of zoom level the \fItile coordinates\fR are not\&.
+.PP
+Generally the integer part of tile coordinates represent the
+row and column number of the tile in question, wheras the fractional
+parts signal how far inside the tile the location in question is, with
+pure integer coordinates (no fractional part) representing the upper
+left corner of the tile\&.
+.PP
+The zero point of the map is at the upper left corner,
+regardless of zoom level, with larger coordinates going right (east)
+and down (south), and smaller coordinates going left (west) and up
+(north)\&. Again regardless of zxoom level\&.
+.PP
+Negative tile coordinates are not allowed\&.
+.PP
+At zoom level 0 the whole map is represented by a single,
+putting the geographic zero at 1/2, 1/2 of tile coordinates, and the
+range of tile coordinates as [0\&.\&.\&.1]\&.
+.PP
+To go from a zoom level N to the next deeper level N+1 each
+tile of level N is split into its four quadrants, which then are the
+tiles of level N+1\&.
+.PP
+This means that at zoom level N the map is sliced (horizontally
+and vertically) into 2^N stripes, for a total of 4^N tiles, with tile
+coordinates ranging from 0 to 2^N+1\&.
+.SS PIXELS/POINTS
+\fIpixel coordinates\fR, also called \fIpoint coordinates\fR are
+in essence \fBtile coordinates\fR scaled by the size of
+the image representing a tile\&. This tile size currently has a fixed
+value, \fB256\fR\&.
+.SH REFERENCES
+.IP [1]
+\fIhttp://wiki\&.openstreetmap\&.org/wiki/Main_Page\fR
+.PP
+.SH KEYWORDS
+geodesy, geography, latitute, location, longitude, map, slippy, zoom

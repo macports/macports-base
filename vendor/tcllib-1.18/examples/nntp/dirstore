@@ -1,0 +1,89 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+
+package require Tcl 8.5
+package require fileutil
+package require sha1
+
+# This application stores received nntp messages into a named directory.
+# That name is specified on the command line.
+# The article is read from stdin.
+#
+# The application supports the API expected by 'pullnews' for saving
+# and id handling.
+
+# Signature (syntax) of the storage command:
+#
+# (1) <cmd> last      => Returns last id processed.
+# (2) <cmd> save <id> => Take message through stdin, and save, mark <id> as last.
+
+
+
+proc main {} {
+    if {![cmdline]} usage
+    $::method
+}
+
+proc cmdline {} {
+    global argv directory method saveid
+
+    if {[llength $argv] < 2} {return 0}
+
+    # Retrieve arguments
+    lassign $argv directory method
+
+    if {$method eq "save"} {
+	if {[llength $argv] != 3} {return 0}
+	set saveid [lindex $argv 2]
+    } else {
+	if {[llength $argv] != 2} {return 0}
+    }
+
+    validatedir store $directory
+    return 1
+}
+
+proc validatedir {which path} {
+    if {![file exists      $path]} { stop "$which does not exist: $path" }
+    if {![file isdirectory $path]} { stop "$which not a file: $path" }
+    if {![file readable    $path]} { stop "$which not readable: $path" }
+    if {![file writable    $path]} { stop "$which not writable: $path" }
+}
+
+proc usage {} {
+    global argv0
+    puts stderr "$argv0: wrong # args, should be \"$argv0 last|(save <id>)\""
+    exit 1
+}
+
+proc stop {text} {
+    global argv0
+    puts stderr "$argv0: $text"
+    exit 1
+}
+
+proc last {} {
+    global directory
+    if {![file exists $directory/last]} {
+	set id {}
+    } else {
+	set id [string trim [fileutil::cat $directory/last]]
+    }
+    puts $id
+    return
+}
+
+proc save {} {
+    global directory saveid
+
+    set dst [open $directory/current w]
+    fcopy stdin $dst
+    close $dst
+    file rename -force $directory/current $directory/q$saveid
+
+    fileutil::writeFile $directory/last $saveid
+    return
+}
+
+main
+exit

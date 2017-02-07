@@ -1,0 +1,192 @@
+# -*- tcl -*-
+# interp.test:  tests for the interp alias and creation utilities
+#
+# Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 1.0
+
+support {
+    use snit/snit.tcl   snit
+    testsNeed           snit 1.3.1 ; # method introspection arguments/body
+}
+testing {
+    useLocal deleg_method.tcl interp::delegate::method
+}
+
+# -------------------------------------------------------------------------
+
+test dmethod-1.0 {wrong#args} {
+    catch {snit::type foo {interp::delegate::method}} msg
+    set msg
+} {wrong # args}
+
+test dmethod-1.1 {wrong#args} {
+    catch {snit::type foo {interp::delegate::method a}} msg
+    set msg
+} {wrong # args}
+
+test dmethod-1.2 {wrong#args} {
+    catch {snit::type foo {interp::delegate::method a b}} msg
+    set msg
+} {wrong # args}
+
+test dmethod-1.3 {wrong#args} {
+    catch {snit::type foo {interp::delegate::method a b c}} msg
+    set msg
+} {wrong # args}
+
+test dmethod-1.4 {wrong#args} {
+    catch {snit::type foo {interp::delegate::method a b c d e}} msg
+    set msg
+} {wrong # args}
+
+# -------------------------------------------------------------------------
+
+test dmethod-2.0 {bad switch} {
+    catch {snit::type foo {interp::delegate::method -bogus}} msg
+    set msg
+} {unknown option "-bogus", expected -async}
+
+# -------------------------------------------------------------------------
+
+test dmethod-3.0 {delegation result} {
+    snit::type foo {
+	interp::delegate::method request {} COMM ID
+    }
+    res!
+    foo bar
+    res+ [info commands foo::Snit_methodrequest]
+    res+ [lsort [bar info methods]]
+    bar destroy
+    foo destroy
+    res?
+} {::foo::Snit_methodrequest {{destroy info request}}}
+
+# -------------------------------------------------------------------------
+
+test dmethod-4.0 {signature} {
+    snit::type foo {
+	interp::delegate::method request {} COMM ID
+    }
+    foo X
+    res!
+    res+ \
+	    [X info args request] \
+	    [string trimleft [X info body request]]
+    X   destroy
+    foo destroy
+    res?
+} {{{} {COMM send ID request}}}
+
+test dmethod-4.1 {signature} {
+    snit::type foo {
+	interp::delegate::method request {a b} COMM ID
+    }
+    foo X
+    res!
+    res+ \
+	    [X info args request] \
+	    [string trimleft [X info body request]]
+    X   destroy
+    foo destroy
+    res?
+} {{{a b} {COMM send ID [list request $a $b]}}}
+
+test dmethod-4.2 {signature} {
+    snit::type foo {
+	interp::delegate::method request {a b args} COMM ID
+    }
+    foo X
+    res!
+    res+ \
+	    [X info args request] \
+	    [string trimleft [X info body request]]
+    X   destroy
+    foo destroy
+    res?
+} {{{a b args} {COMM send ID [linsert $args 0 request $a $b]}}}
+
+test dmethod-4.3 {signature} {
+    snit::type foo {
+	interp::delegate::method request {args} COMM ID
+    }
+    foo X
+    res!
+    res+ \
+	    [X info args request] \
+	    [string trimleft [X info body request]]
+    X   destroy
+    foo destroy
+    res?
+} {{args {COMM send ID [linsert $args 0 request]}}}
+
+# -------------------------------------------------------------------------
+
+test dmethod-5.0 {signature} {
+    snit::type foo {
+	interp::delegate::method -async request {} COMM ID
+    }
+    foo X
+    res!
+    res+ \
+	    [X info args request] \
+	    [string trimleft [X info body request]]
+    X   destroy
+    foo destroy
+    res?
+} {{{} {COMM send -async ID request}}}
+
+test dmethod-5.1 {signature} {
+    snit::type foo {
+	interp::delegate::method -async request {a b} COMM ID
+    }
+    foo X
+    res!
+    res+ \
+	    [X info args request] \
+	    [string trimleft [X info body request]]
+    X   destroy
+    foo destroy
+    res?
+} {{{a b} {COMM send -async ID [list request $a $b]}}}
+
+test dmethod-5.2 {signature} {
+    snit::type foo {
+	interp::delegate::method -async request {a b args} COMM ID
+    }
+    foo X
+    res!
+    res+ \
+	    [X info args request] \
+	    [string trimleft [X info body request]]
+    X   destroy
+    foo destroy
+    res?
+} {{{a b args} {COMM send -async ID [linsert $args 0 request $a $b]}}}
+
+test dmethod-5.3 {signature} {
+    snit::type foo {
+	interp::delegate::method -async request {args} COMM ID
+    }
+    foo X
+    res!
+    res+ \
+	    [X info args request] \
+	    [string trimleft [X info body request]]
+    X   destroy
+    foo destroy
+    res?
+} {{args {COMM send -async ID [linsert $args 0 request]}}}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return

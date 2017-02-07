@@ -1,0 +1,116 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin docidx_lang_cmdref n 1.0]
+[see_also docidx_intro]
+[see_also docidx_lang_faq]
+[see_also docidx_lang_intro]
+[see_also docidx_lang_syntax]
+[keywords {docidx commands}]
+[keywords {docidx language}]
+[keywords {docidx markup}]
+[keywords markup]
+[keywords {semantic markup}]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {docidx language command reference}]
+[category  {Documentation tools}]
+[description]
+[para]
+
+This document specifies both names and syntax of all the commands
+which together are the docidx markup language, version 1.
+
+As this document is intended to be a reference the commands are listed
+in alphabetical order, and the descriptions are relatively short.
+
+A beginner should read the much more informally written
+[term {docidx language introduction}] first.
+
+[section Commands]
+[list_begin definitions]
+
+[call [cmd comment] [arg plaintext]]
+
+Index markup. The argument text is marked up as a comment standing
+outside of the actual text of the document. Main use is in free-form
+text.
+
+[call [cmd include] [arg filename]]
+
+Templating. The contents of the named file are interpreted as text
+written in the docidx markup and processed in the place of the
+include command. The markup in the file has to be self-contained. It
+is not possible for a markup command to cross the file boundaries.
+
+[call [cmd index_begin] [arg text] [arg title]]
+
+Document structure. The command to start an index. The arguments are a
+label for the whole group of documents the index refers to
+([arg text]) and the overall title text for the index ([arg title]),
+without markup.
+
+[para]
+
+The label often is the name of the package (or extension) the
+documents belong to.
+
+[call [cmd index_end]]
+
+Document structure. Command to end an index. Anything in the document
+coming after this command is in error.
+
+[call [cmd key] [arg text]]
+
+Index structure. This command adds the keyword [arg text] to the
+index.
+
+[call [cmd lb]]
+
+Text. The command is replaced with a left bracket. Use in free-form
+text. Required to avoid interpretation of a left bracket as the start
+of a markup command. Its usage is restricted to the arguments of other
+markup commands.
+
+[call [cmd manpage] [arg file] [arg text]]
+
+Index structure. This command adds an element to the index which
+refers to a document. The document is specified through the symbolic
+name [arg file]. The [arg text] argument is used to label the
+reference.
+
+[para]
+
+Symbolic names are used to preserve the convertibility of this format
+to any output format. The actual name of the file will be inserted by
+the chosen formatting engine when converting the input. This will be
+based on a mapping from symbolic to actual names given to the engine.
+
+[call [cmd rb]]
+
+Text. The command is replaced with a right bracket. Use in free-form
+text. Required to avoid interpretation of a right bracket as the end
+of a markup command. Its usage is restricted to the arguments of other
+commands.
+
+[call [cmd url] [arg url] [arg label]]
+
+Index structure. This is the second command to add an element to the
+index. To refer to a document it is not using a symbolic name however,
+but a (possibly format-specific) url describing the exact location of
+the document indexed here.
+
+[call [cmd vset] [arg varname] [arg value] ]
+
+Templating. In this form the command sets the named document variable
+to the specified [arg value]. It does not generate output. I.e. the
+command is replaced by the empty string.
+
+[call [cmd vset] [arg varname]]
+
+Templating. In this form the command is replaced by the value of the
+named document variable
+
+[list_end]
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

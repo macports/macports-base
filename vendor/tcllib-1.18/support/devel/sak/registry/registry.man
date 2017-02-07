@@ -1,0 +1,171 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin pregistry n 0.1]
+[copyright {2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Registry like data store}]
+[titledesc {Registry like data store}]
+[require Tcl 8.3]
+[require pregistry [opt 0.1]]
+[description]
+[para]
+
+This package provides a class for the creation of registry-like data
+storage objects. The contents of each storage are organized in a tree,
+with each node managing a set of children and attributes, each
+possibly empty. Stores are not persistent by default, but can be made
+so through configuring them with a tie backend to talk to.
+
+
+[section {Class API}]
+
+The package exports a single command, the class command, enabling the
+creation of registry instances. Its API is:
+
+[list_begin definitions]
+
+[call [cmd ::pregistry] [arg object] [arg options]...]
+
+This command creates a new registry object with the name [arg object],
+initializes it, and returns the fully qualified name of the object
+command as its result.
+
+[para]
+
+The recognized options are explained in section [sectref OPTIONS].
+
+[list_end]
+
+[section {Object API}]
+
+The objects created by the class command provide the methods listed below:
+
+[list_begin definitions]
+[call [arg object] [method delete] [arg key] [opt [arg attr]]]
+
+If the optional [arg attr] argument is present, the specified
+attribute under [arg key] will be deleted from the object.
+
+If the optional [arg attr] is omitted, the specified [arg key] and any
+subkeys or attributes beneath it in the hierarchy will be deleted. If
+the key could not be deleted then an error is generated. If the key
+did not exist, the command has no effect.
+
+The command returns the empty string as its result.
+
+
+[call [arg object] [method mtime] [arg key] [opt [arg attr]]]
+
+If the optional [arg attr] argument is present, the time of the last
+modification of the specified attribute under [arg key] will be
+returned, in seconds since the epoch.
+
+If the optional [arg attr] is omitted, the time of the last
+modification of the specified [arg key] will be returned.
+
+If the key did not exist, the command will generate an error.
+
+
+[call [arg object] [method exists] [arg key] [opt [arg attr]]]
+
+If the optional [arg attr] argument is present, the method checks
+whether the specified attribute under [arg key] is present or not.
+
+If the optional [arg attr] is omitted, the method checks whether the
+specified [arg key] is present or not.
+
+In both cases the result returned is boolean value, [const True] if
+the checked entity exists, and [const False] otherwise.
+
+
+[call [arg object] [method get] [arg key] [arg attr]]
+
+Returns the data associated with the attribute [arg attr] under the
+[arg key]. If either the key or the attribute does not exist, then an
+error is generated.
+
+
+[call [arg object] [method get||default] [arg key] [arg attr] [arg default]]
+
+Like method [method get], except that the [arg default] is returned if
+either the key or the attribute does not exist, instead of generating
+an error.
+
+
+[call [arg object] [method keys] [arg key] [opt [arg pattern]]]
+
+If [arg pattern] isn't specified, the command returns a list of names
+of all the subkeys of [arg key]. If [arg pattern] is specified, only
+those names matching the pattern are returned. Matching is determined
+using the same rules as for [cmd {string match}]. If the specified
+[arg key] does not exist, then an error is generated.
+
+
+[call [arg object] [method set] [arg key] [opt "[arg attr] [arg value]"]]
+
+If [arg attr] isn't specified, creates the [arg key] if it doesn't
+already exist. If [arg attr] is specified, creates the [arg key]
+keyName and attribute [arg attr] if necessary.
+
+The contents of [arg attr] are set to [arg value]. The command returns
+the [arg value] as its result.
+
+
+[call [arg object] [method attrs] [arg key] [opt [arg pattern]]]
+
+If [arg pattern] isn't specified, returns a list of names of all the
+attributes of [arg key]. If [arg pattern] is specified, only those
+names matching the pattern are returned. Matching is determined using
+the same rules as for [cmd {string match}].
+
+
+
+[call [arg object] [method configure]]
+
+Returns a dictionary mapping the option of the object to their
+currently configured values.
+
+[call [arg object] [method configure] [arg option] [arg newvalue]...]
+
+This invokation sets the configured value of option [arg option] to
+[arg newvalue]. Nothing will be done if current and new value are
+identical. Returns the empty string.
+
+[call [arg object] [method configure] [arg option]]
+[call [arg object] [method cget] [arg option]]
+
+Returns the value configured for the specified option [arg option].
+
+[list_end]
+
+
+[section KEYS]
+
+All elements in the registry are identified by a unique key, which is
+a list of strings. This identifies the path from the root of the tree
+to the requested element. The root itself is identified by the empty
+list. Each child C of an element E have to have unique name, which
+will be the last element of the key identifying this child. The head
+of the key will be the key of E.
+
+
+[section OPTIONS]
+
+The registry object recognize a single option,
+
+[list_begin options]
+[opt_def -tie tiedefinition]
+
+See the documentation of command [cmd ::tie::tie], in the package
+[package tie]. The value of the option is a list of words equivalent
+to the arguments "[arg dstype] [arg dsname]..." of [cmd ::tie::tie].
+I.e. the identity of the tie backend to use, followed by the
+specification of the location to use, per the chosen backend.
+
+Example:
+[example {
+    set r [pregistry %AUTO% -tie [list file $path]]
+}]
+
+[list_end]
+
+[keywords registry {data store} tree]
+[manpage_end]

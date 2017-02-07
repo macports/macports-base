@@ -1,0 +1,16 @@
+2013-03-12  Andreas Kupries <andreask@activestate.com>
+
+	* token_shell.man: Extended the string::token::shell parser with
+	* token_shell.tcl: options to accept partial words at the end of
+	* token_shell.test: command line, and to return type/index
+	  information into the input instead of just the extracted words.
+	  Updated documentation and testsuite. Bumped version to 1.1.
+
+2013-02-15  Andreas Kupries  <andreask@activestate.com>
+
+	* New module 'string'. String/text utilities, 8.5+.
+	  First packages:
+	  - string::token        - regex based lexing.
+	  - string::token::shell - parsing basic shell command line syntax.
+
+

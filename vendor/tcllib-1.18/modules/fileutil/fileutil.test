@@ -1,0 +1,499 @@
+# -*- tcl -*-
+# Tests for the find function.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# Copyright (c) 2001 by ActiveState Tool Corp.
+# Copyright (c) 2005-2013 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: fileutil.test,v 1.56 2009/10/06 20:07:18 andreas_kupries Exp $
+
+# TODO: Bug [8b317b4a63]: Create test cases for this bug. This
+# requires the use of a custom VFS as the native filesystem does not
+# contain the bug we are guarding ourselves against.
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+support {
+    useTcllibFile fumagic/fumagic.testsupport
+    use           cmdline/cmdline.tcl cmdline
+}
+testing {
+    useLocal fileutil.tcl fileutil
+}
+
+# -------------------------------------------------------------------------
+
+proc gt_setup {} {
+    global tcl_platform gt gtfa gtfb
+
+    set gt   [makeDirectory grepTest]
+    set gtfa [makeFile "zoop" [file join $gt {file [1]}]]
+    set gtfb {}
+
+    if {[string equal $::tcl_platform(platform) windows]} return
+
+    set gtfb [makeFile "zoo\nbart" [file join $gt {file* 2}]]
+    return
+}
+
+proc gt_cleanup {} {
+    removeDirectory grepTest
+
+
+    rename gt_setup   {}
+    rename gt_cleanup {}
+    unset  ::gt ::gtfa ::gtfb
+    return
+}
+
+# -------------------------------------------------------------------------
+
+gt_setup
+
+test grep-1.1 {normal grep} {macOrUnix} {
+    lsort [fileutil::grep "zoo" [glob [file join $gt *]]]
+} [list "$gtfa:1:zoop" "$gtfb:1:zoo"]
+
+test grep-1.2 {more restrictive grep} {
+    lsort [fileutil::grep "zoo." [glob [file join $gt *]]]
+} [list "$gtfa:1:zoop"]
+
+test grep-1.3 {more restrictive grep} {macOrUnix} {
+    lsort [fileutil::grep "bar" [glob [file join $gt *]]]
+} [list "$gtfb:2:bart"]
+
+gt_cleanup
+
+# -------------------------------------------------------------------------
+
+test foreachline-1.0 {foreachLine} {
+    set path [makeFile "foo\nbar\nbaz\n" {cat [1]}]
+
+    set res ""
+    ::fileutil::foreachLine line $path {
+	append res /$line
+    }
+
+    removeFile {cat [1]}
+    set res
+} {/foo/bar/baz}
+
+# -------------------------------------------------------------------------
+
+proc t_setup {} {
+    global tt
+
+    set tt [makeDirectory touchTest]
+    makeFile "blah" [file join touchTest {file [1]}]
+}
+
+proc t_cleanup {} {
+    removeDirectory touchTest
+    rename t_setup   {}
+    rename t_cleanup {}
+    unset ::tt
+    catch { unset ::a1 }
+    catch { unset ::m1}
+    catch { unset ::a2}
+    catch { unset ::m2}
+    catch { unset ::f}
+    catch { unset ::r}
+    return
+}
+
+# -------------------------------------------------------------------------
+
+t_setup
+
+test touch-1.1 {create file} tcl8.3plus {
+    set f [file join $tt here]
+    fileutil::touch $f
+    file exists $f
+} 1
+
+test touch-1.2 {'-c' prevents file creation} tcl8.3plus {
+    set f [file join $tt nothere]
+    fileutil::touch -c $f
+    file exists $f
+} 0
+
+test touch-1.3 {'-c' has no effect on existing files} tcl8.3plus {
+    set f [file join $tt {file [1]}]
+    fileutil::touch -c $f
+    file exists $f
+} 1
+
+test touch-1.4 {test relative times} tcl8.3plus {
+    set f [file join $tt {file [1]}]
+    fileutil::touch $f
+    set a1 [file atime $f]
+    set m1 [file mtime $f]
+    after 1001
+    fileutil::touch $f
+    set a2 [file atime $f]
+    set m2 [file mtime $f]
+    list [expr {$a1 == $m1}] [expr {$a2 == $m2}] [expr {$a1 < $a2}] [expr {$m1 < $m2}]
+} {1 1 1 1}
+
+test touch-1.5 {test relative times using -a} tcl8.3plus {
+    set f [file join $tt {file [1]}]
+    fileutil::touch $f
+    set a1 [file atime $f]
+    set m1 [file mtime $f]
+    after 1001
+    fileutil::touch -a $f
+    set a2 [file atime $f]
+    set m2 [file mtime $f]
+    list [expr {$a1 == $m1}] [expr {$a2 == $m2}] [expr {$a1 < $a2}] [expr {$m1 < $m2}]
+} {1 0 1 0}
+
+test touch-1.6 {test relative times using -m} tcl8.3plus {
+    set f [file join $tt {file [1]}]
+    fileutil::touch $f
+    set a1 [file atime $f]
+    set m1 [file mtime $f]
+    after 1001
+    fileutil::touch -m $f
+    set a2 [file atime $f]
+    set m2 [file mtime $f]
+    list [expr {$a1 == $m1}] [expr {$a2 == $m2}] [expr {$a1 < $a2}] [expr {$m1 < $m2}]
+} {1 0 0 1}
+
+test touch-1.7 {test relative times using -a and -m} tcl8.3plus {
+    set f [file join $tt {file [1]}]
+    fileutil::touch $f
+    set a1 [file atime $f]
+    set m1 [file mtime $f]
+    after 1001
+    fileutil::touch -a -m $f
+    set a2 [file atime $f]
+    set m2 [file mtime $f]
+    list [expr {$a1 == $m1}] [expr {$a2 == $m2}] [expr {$a1 < $a2}] [expr {$m1 < $m2}]
+} {1 1 1 1}
+
+test touch-1.8 {test -t} tcl8.3plus {
+    set f [file join $tt {file [1]}]
+    fileutil::touch $f
+    after 1001
+    fileutil::touch -t 42 $f
+    set a1 [file atime $f]
+    set m1 [file mtime $f]
+    list [expr {$a1 == 42}] [expr {$m1 == 42}]
+} {1 1}
+
+test touch-1.9 {test -t with -a} tcl8.3plus {
+    set f [file join $tt {file [1]}]
+    fileutil::touch $f
+    after 1001
+    fileutil::touch -t 42 -a $f
+    set a1 [file atime $f]
+    set m1 [file mtime $f]
+    list [expr {$a1 == 42}] [expr {$m1 == 42}]
+} [list 1 0]
+
+test touch-1.10 {test -t with -m} tcl8.3plus {
+    set f [file join $tt {file [1]}]
+    fileutil::touch $f
+    after 1001
+    fileutil::touch -t 42 -m $f
+    set a1 [file atime $f]
+    set m1 [file mtime $f]
+    list [expr {$a1 == 42}] [expr {$m1 == 42}]
+} [list 0 1]
+
+test touch-1.11 {test -t with -a and -m} tcl8.3plus {
+    set f [file join $tt {file [1]}]
+    fileutil::touch $f
+    after 1001
+    fileutil::touch -t 42 -a -m $f
+    set a1 [file atime $f]
+    set m1 [file mtime $f]
+    list [expr {$a1 == 42}] [expr {$m1 == 42}]
+} {1 1}
+
+test touch-1.12 {test -r} tcl8.3plus {
+    set r [info script]
+    set f [file join $tt {file [1]}]
+    fileutil::touch $f
+    after 1001
+    fileutil::touch -r $r $f
+    set a1 [file atime $f]
+    set m1 [file mtime $f]
+    list [expr {$a1 == [file atime $r]}] [expr {$m1 == [file mtime $r]}]
+} {1 1}
+
+test touch-1.13 {test -r with -a} tcl8.3plus {
+    set r [info script]
+    set f [file join $tt {file [1]}]
+    fileutil::touch $f
+    after 1001
+    fileutil::touch -r $r -a $f
+    set a1 [file atime $f]
+    set m1 [file mtime $f]
+    list [expr {$a1 == [file atime $r]}] [expr {$m1 == [file mtime $r]}]
+} {1 0}
+
+test touch-1.14 {test -r with -m} tcl8.3plus {
+    set r [info script]
+    set f [file join $tt {file [1]}]
+    fileutil::touch $f
+    after 1001
+    fileutil::touch -r $r -m $f
+    set a1 [file atime $f]
+    set m1 [file mtime $f]
+    list [expr {$a1 == [file atime $r]}] [expr {$m1 == [file mtime $r]}]
+} {0 1}
+
+test touch-1.15 {test -r with -a and -m} tcl8.3plus {
+    set r [info script]
+    set f [file join $tt {file [1]}]
+    fileutil::touch $f
+    after 1001
+    fileutil::touch -r $r -m -a $f
+    set a1 [file atime $f]
+    set m1 [file mtime $f]
+    list [expr {$a1 == [file atime $r]}] [expr {$m1 == [file mtime $r]}]
+} {1 1}
+
+t_cleanup
+
+# ----------------------------------------------------------------
+
+proc i_setup {} {
+    global tcl_platform
+    makeDirectory installDst
+    makeDirectory installSrc
+
+    makeDirectory   [file join installSrc subdir]
+    makeFile "blah" [file join installSrc {file [1]}]
+
+    # Make a second subdirectory to install, unix-only
+    if {$tcl_platform(platform) != "unix" } return
+
+    makeDirectory   [file join installSrc subdir2]
+    makeFile "blah" [file join installSrc subdir subfile1]
+    makeFile "blah" [file join installSrc subdir subfile2]
+    makeFile "blah" [file join installSrc subdir subfile3]
+
+    foreach fl {1 2 3} {
+	set fn [file join installSrc subdir2 subfile$fl]
+	makeFile "blah" $fn
+	    
+	# Give it some "bad" permissions.
+	file attributes $fn -permissions 0600
+    }
+    return
+}
+
+proc i_cleanup {} {
+    removeDirectory installDst
+    removeDirectory installSrc
+
+    rename i_setup   {}
+    rename i_cleanup {}
+    return
+}
+
+# ----------------------------------------------------------------
+
+i_setup
+
+test install-1.1 {install a file} {
+    fileutil::install [file join installSrc {file [1]}] installDst
+    file exists       [file join installDst {file [1]}]
+} {1}
+
+makeDirectory installDst
+
+test install-2.1 {install a directory} {tcl8.4plus} {
+    list [catch {
+        fileutil::install                         [file join installSrc subdir] installDst
+        set result [lsort [glob -tails -directory [file join installDst subdir] [file join . / *]]]
+        file delete -force installDst
+        set result
+    } err] $err
+} {0 {subfile1 subfile2 subfile3}}
+
+makeDirectory installDst
+
+test install-2.2 {install a directory} {tcl8.3plus} {
+    list [catch {
+        fileutil::install                  [file join installSrc subdir] installDst
+        set result [lsort [glob -directory [file join installDst subdir] [file join . / *]]]
+        file delete -force installDst
+        set result
+    } err] $err
+} {0 {installDst/subdir/subfile1 installDst/subdir/subfile2 installDst/subdir/subfile3}}
+
+makeDirectory installDst
+
+test install-3.1 {install a directory, set permissions} {unix tcl8.3plus} {
+    set res {}
+    fileutil::install -m go+rw [file join installSrc subdir2] installDst
+    foreach fl [glob [file join installDst subdir2 *]] {
+	append res [file attributes $fl -permissions]
+    }
+    set res
+} {006660066600666}
+
+i_cleanup
+
+# -------------------------------------------------------------------------
+
+proc tmp_setup {} {
+    global xpath res
+
+    # Set up an exclusive directory to search. This cannot be unset,
+    # hence the location of these tests after the regular
+    # tempdir/tempfile tests.
+
+    removeDirectory x
+    set xpath [makeDirectory x]
+    set res {}
+    removeDirectory x
+    return
+}
+
+proc tmp_cleanup {} {
+    rename tmp_setup {}
+    rename tmp_cleanup {}
+    removeDirectory x
+    unset ::xpath
+    unset ::res
+    return
+}
+
+# -------------------------------------------------------------------------
+
+tmp_setup
+
+test tempdir-1.1 {return the correct directorary for temporary files} {unix} {
+    set ::env(TMPDIR) [pwd] ;# Most high-priority source, and existing directory!
+    set res [::fileutil::tempdir]
+    unset ::env(TMPDIR)
+    set res
+} [pwd]
+
+test tempdir-1.2 {return the correct directorary for temporary files} {unix} {
+    catch {unset ::env(TMPDIR)}
+    catch {unset ::env(TEMPDIR)}
+    catch {unset ::env(TMP)}
+    catch {unset ::env(TEMP)}
+    ::fileutil::tempdir
+} {/tmp}
+
+test tempfile-1.1 {generate temporary file name and file} {
+    set filename [::fileutil::tempfile]
+    set res [file exists $filename]
+    file delete $filename
+    unset filename
+    set res
+} {1}
+
+test tempfile-1.2 {generate writable temporary file name} {
+    set filename [::fileutil::tempfile]
+    set res [file writable $filename]
+    file delete $filename
+    unset filename
+    set res
+} {1}
+
+test tempfile-1.3 {generate 100 unique temporary filenames} {
+    set filenames [list]
+    for {set i 0} {$i<100} {incr i} {
+	lappend filenames [::fileutil::tempfile]
+    }
+    foreach f $filenames {
+	file delete $f
+    }
+    set i
+} {100}
+
+test tempdir-1.3 {tempdir, user-specified, bad} {
+    catch {::fileutil::tempdir x y} msg
+    set msg
+} {wrong#args: should be "::fileutil::tempdir ?path?"}
+
+test tempdir-1.4 {tempdir, user-specified, bad} {
+    ::fileutil::tempdir [makeDirectory x]
+    removeDirectory x
+
+    catch {::fileutil::tempdir} msg
+    removeDirectory x
+
+    lindex [split $msg \n] 0 ; # First line only.
+} {Unable to determine a proper directory for temporary files}
+
+test tempdir-1.5 {tempdir, user-specified, ok} {
+    ::fileutil::tempdir [makeDirectory x]
+
+    set res [::fileutil::tempdir]
+    removeDirectory x
+    set res
+} $xpath
+
+test tempfile-1.4 {temp file in user specified directory} {
+    ::fileutil::tempdir [makeDirectory x]
+
+    set          filename [::fileutil::tempfile TEST]
+    file delete $filename
+    ::fileutil::tempdirReset
+
+    removeDirectory x
+    string match $xpath/TEST* $filename
+} 1
+
+# -------------------------------------------------------------------------
+
+test maketempdir-1.1 {generate temporary directory} {
+    set filename [::fileutil::maketempdir]
+    set res [file exists $filename]
+    file delete $filename
+    unset filename
+    set res
+} {1}
+
+test maketempdir-1.2 {generate writable temporary directory} {
+    set filename [::fileutil::maketempdir]
+    set res [file writable $filename]
+    file delete $filename
+    unset filename
+    set res
+} {1}
+
+test maketempdir-1.3 {generate 100 unique temporary directories} {
+    set filenames [list]
+    for {set i 0} {$i<100} {incr i} {
+	lappend filenames [::fileutil::maketempdir]
+    }
+    foreach f $filenames {
+	file delete $f
+    }
+    set i
+} {100}
+
+test maketempdir-1.4 {temp directory in user specified directory} {
+    set          filename [::fileutil::maketempdir -dir $xpath -prefix TEST]
+    file delete $filename
+    string match $xpath/TEST* $filename
+} 1
+
+# -------------------------------------------------------------------------
+
+tmp_cleanup
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return

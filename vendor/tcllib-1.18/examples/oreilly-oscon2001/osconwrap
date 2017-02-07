@@ -1,0 +1,6 @@
+#!/bin/sh
+rm -f [1-4]*
+./oscon 1wed sessions_wednesday.html
+./oscon 2tue sessions_thursday.html
+./oscon 3fri sessions_friday.html
+./oscon 4all sessions_wednesday.html sessions_thursday.html sessions_friday.html

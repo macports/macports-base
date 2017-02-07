@@ -1,0 +1,3 @@
+Doctools Error in macro at line 5, column 0:
+[subsection foo]
+--> (FmtError) Manpage error (nolistcmd), "subsection foo" : Command not allowed inside of a list.

@@ -1,0 +1,69 @@
+# documentation: http://apiwiki.twitter.com/REST+API+Documentation
+
+package require rest
+
+set twitter(public_timeline) {
+   url http://twitter.com/statuses/public_timeline.json
+}
+
+set twitter(friends_timeline) {
+   url http://twitter.com/statuses/friends_timeline.json
+   auth basic
+   opt_args { since: since_id: count: page: }
+}
+
+set twitter(user_timeline) {
+   url http://twitter.com/statuses/user_timeline.json
+   auth basic
+   opt_args { id: since: since_id: count: page: }
+}
+
+set twitter(show_status) {
+   url http://twitter.com/statuses/show/%id%.json
+   auth basic
+}
+
+set twitter(update) {
+   url http://twitter.com/statuses/update.json
+   auth basic
+   method post
+   req_args { status: }
+   opt_args { in_reply_to_status_id: }
+}
+
+set twitter(replies) {
+   url http://twitter.com/statuses/replies.json
+   auth basic
+   opt_args { since: since_id: page: }
+}
+
+set twitter(destroy) {
+   url http://twitter.com/statuses/destroy/%id%.json
+   auth basic
+   method post
+}
+
+set twitter(friends) {
+   url http://twitter.com/statuses/friends.json
+   auth basic
+   opt_args { id: page: lite: since: }
+}
+
+set twitter(followers) {
+   url http://twitter.com/statuses/followers.json
+   auth basic
+   opt_args { id: page: lite: }
+}
+
+set twitter(featured) {
+   url http://twitter.com/statuses/featured.json
+   auth basic
+}
+
+set twitter(show_user) {
+   url http://twitter.com/users/show/%id%.json
+   auth basic
+   opt_args { email: }
+}
+
+rest::create_interface twitter

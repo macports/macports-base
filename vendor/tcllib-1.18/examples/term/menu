@@ -1,0 +1,19 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+
+lappend auto_path [file join [file dirname [file dirname [file dirname [info script]]]] modules]
+package require term::ansi::send
+package require term::ansi::code::macros
+term::ansi::send::import         vt
+term::ansi::code::macros::import mt
+
+vt::init
+vt::clear
+
+puts \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+
+vt::showat  3  5 [mt::menu {Exit E Up U Down D}]
+vt::showat 10 10 [mt::menu {Exit E Up < Down > Previous P Next N}]
+
+puts ""
+exit

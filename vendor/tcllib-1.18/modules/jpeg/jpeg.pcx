@@ -1,0 +1,83 @@
+# -*- tcl -*- jpeg.pcx
+# Syntax of the commands provided by package jpeg.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register jpeg
+pcx::tcldep   0.3.2 needs tcl 8.2
+
+namespace eval ::jpeg {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 0.3.2 std ::jpeg::addComment \
+    {checkSimpleArgs 2 -1 {
+	checkFileName
+	checkWord
+    }}
+pcx::check 0.3.2 std ::jpeg::debug \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.3.2 std ::jpeg::dimensions \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.3.2 std ::jpeg::exifKeys \
+    {checkSimpleArgs 0 0 {}}
+pcx::check 0.3.2 std ::jpeg::formatExif \
+    {checkSimpleArgs 1 1 {
+	checkDict
+    }}
+pcx::check 0.3.2 std ::jpeg::getComments \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.3.2 std ::jpeg::getExif \
+    {checkSimpleArgs 1 2 {
+	checkFileName
+	{checkKeyword 1 {main thumbnail}}
+    }}
+pcx::check 0.3.2 std ::jpeg::getThumbnail \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.3.2 std ::jpeg::imageInfo \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.3.2 std ::jpeg::isJPEG \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.3.2 std ::jpeg::markers \
+    {checkSimpleArgs 1 1 {
+	checkChannelID
+    }}
+pcx::check 0.3.2 std ::jpeg::removeComments \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.3.2 std ::jpeg::removeExif \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.3.2 std ::jpeg::replaceComment \
+    {checkSimpleArgs 2 2 {
+	checkFileName
+	checkWord
+    }}
+pcx::check 0.3.2 std ::jpeg::stripJPEG \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+
+# Initialization via pcx::init.
+# Use a ::jpeg::init procedure for non-standard initialization.
+pcx::complete

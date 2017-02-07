@@ -1,0 +1,142 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctools_lang_syntax n 1.0]
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_intro]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {doctools language syntax}]
+[category  {Documentation tools}]
+[description]
+[para]
+
+This document contains the formal specification of the syntax of the
+doctools markup language, version 1 in Backus-Naur-Form. This document
+is intended to be a reference, complementing the
+[term {doctools language command reference}].
+
+A beginner should read the much more informally written
+[term {doctools language introduction}] first before trying to
+understand either this document or the command reference.
+
+[section Fundamentals]
+
+In the broadest terms possible the [term {doctools markup language}]
+is LaTeX-like, instead of like SGML and similar languages. A document
+written in this language consists primarily of text, with markup
+commands embedded into it.
+
+[para]
+
+Each markup command is a just Tcl command surrounded by a matching
+pair of [const [lb]] and [const [rb]]. Which commands are available,
+and their arguments, i.e. syntax is specified in the
+[term {doctools language command reference}].
+
+[para]
+
+In this document we specify first the lexeme, and then the syntax,
+i.e. how we can mix text and markup commands with each other.
+
+[section {Lexical definitions}]
+
+In the syntax rules listed in the next section
+
+[list_begin enumerated]
+[enum]
+<TEXT> stands for all text except markup commands.
+
+[enum]
+Any XXX stands for the markup command [lb]xxx[rb] including its
+arguments. Each markup command is a Tcl command surrounded by a
+matching pair of [const [lb]] and [const [rb]]. Inside of these
+delimiters the usual rules for a Tcl command apply with regard to word
+quotation, nested commands, continuation lines, etc.
+
+[enum]
+<WHITE> stands for all text consisting only of spaces, newlines,
+tabulators and the [cmd comment] markup command.
+[list_end]
+
+[section Syntax]
+
+The rules listed here specify only the syntax of doctools
+documents. The lexical level of the language was covered in the
+previous section.
+
+[para]
+
+Regarding the syntax of the (E)BNF itself
+
+[list_begin enumerated]
+[enum]
+The construct { X } stands for zero or more occurrences of X.
+[enum]
+The construct [lb] X [rb] stands for zero or one occurrence of X.
+[enum]
+The construct LIST_BEGIN<X> stands for the markup command
+[cmd list_begin] with [const X] as its type argument.
+[list_end]
+
+The syntax:
+
+[example {
+manpage = defs
+          MANPAGE_BEGIN
+          header
+          DESCRIPTION
+          body
+          MANPAGE_END
+          { <WHITE> }
+
+defs    = { INCLUDE | VSET | <WHITE> }
+
+header  = { TITLEDESC | MODDESC | COPYRIGHT | REQUIRE | defs | xref }
+
+xref    = KEYWORDS | SEE_ALSO | CATEGORY
+
+body    = paras { SECTION    sbody  }
+sbody   = paras { SUBSECTION ssbody }
+ssbody  = paras
+
+paras   = tblock { (PARA | NL) tblock }
+
+tblock  = { <TEXT> | defs | markup | xref | an_example | a_list }
+
+markup  = ARG     | CLASS | CMD     | CONST     | EMPH   | FILE
+        | FUN     | LB    | METHOD  | NAMESPACE | OPT    | OPTION
+        | PACKAGE | RB    | SECTREF | STRONG    | SYSCMD | TERM
+        | TYPE    | URI   | USAGE   | VAR       | WIDGET
+
+example = EXAMPLE
+        | EXAMPLE_BEGIN extext EXAMPLE_END
+
+extext  = { <TEXT> | defs | markup }
+
+a_list  = LIST_BEGIN<arguments>   argd_list   LIST_END
+        | LIST_BEGIN<commands>    cmdd_list   LIST_END
+        | LIST_BEGIN<definitions> def_list    LIST_END
+        | LIST_BEGIN<enumerated>  enum_list   LIST_END
+        | LIST_BEGIN<itemized>    item_list   LIST_END
+        | LIST_BEGIN<options>     optd_list   LIST_END
+        | LIST_BEGIN<tkoptions>   tkoptd_list LIST_END
+
+argd_list   = [ <WHITE> ] { ARG_DEF      paras }
+cmdd_list   = [ <WHITE> ] { CMD_DEF      paras }
+def_list    = [ <WHITE> ] { (DEF|CALL)   paras }
+enum_list   = [ <WHITE> ] { ENUM         paras }
+item_list   = [ <WHITE> ] { ITEM         paras }
+optd_list   = [ <WHITE> ] { OPT_DEF      paras }
+tkoptd_list = [ <WHITE> ] { TKOPTION_DEF paras }
+}]
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,52 @@
+# -*- tcl -*-
+# General set of error cases regarding the number of arguments.
+
+test pt-tclparam-config-snit-1.0 {convert, wrong#args} -body {
+    pt::tclparam::configuration::snit def
+} -returnCodes error -result {wrong # args: should be "pt::tclparam::configuration::snit def class pkg version cmd"}
+
+test pt-tclparam-config-snit-1.1 {convert, wrong#args} -body {
+    pt::tclparam::configuration::snit def C
+} -returnCodes error -result {wrong # args: should be "pt::tclparam::configuration::snit def class pkg version cmd"}
+
+test pt-tclparam-config-snit-1.2 {convert, wrong#args} -body {
+    pt::tclparam::configuration::snit def C P
+} -returnCodes error -result {wrong # args: should be "pt::tclparam::configuration::snit def class pkg version cmd"}
+
+test pt-tclparam-config-snit-1.3 {convert, wrong#args} -body {
+    pt::tclparam::configuration::snit def C P V
+} -returnCodes error -result {wrong # args: should be "pt::tclparam::configuration::snit def class pkg version cmd"}
+
+test pt-tclparam-config-snit-2.0 {reset, wrong#args} -body {
+    pt::tclparam::configuration::snit def C P V C XXX
+} -returnCodes error -result {wrong # args: should be "pt::tclparam::configuration::snit def class pkg version cmd"}
+
+# -------------------------------------------------------------------------
+
+# TODO :: Tests missing for: configure/cget, reset
+
+# -------------------------------------------------------------------------
+
+# Testing the generation of tcl/param output configured for snit.
+
+TestFilesProcess $mytestdir ok peg_serial-canonical peg_tclparam-snit -> n label input data expected {
+    test pt-tclparam-config-snit-3.$n "pt::tclparam::configuration::snit, $label, ok :- $input" -setup {
+
+	pt::peg::to::tclparam reset
+	pt::peg::to::tclparam configure -name     TEMPLATE
+	pt::peg::to::tclparam configure -file     TEST
+
+	pt::tclparam::configuration::snit def \
+	    PARSER SNIT_PACKAGE 1 \
+	    {pt::peg::to::tclparam configure}
+
+    } -body {
+	pt::peg::to::tclparam convert $data
+    } -cleanup {
+	pt::peg::to::tclparam reset
+    } -result $expected
+}
+
+
+#----------------------------------------------------------------------
+unset n label input data expected

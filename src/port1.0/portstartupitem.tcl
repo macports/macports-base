@@ -1,8 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portstartupitem.tcl
 #
-# $Id$
-#
 # Copyright (c) 2004-2012 The MacPorts Project
 # Copyright (c) 2006-2007 James D. Berry
 # Copyright (c) 2004,2005 Markus W. Weissman <mww@macports.org>
@@ -615,7 +613,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     close ${plist}
 
     if { [getuid] == 0 && 
-      ${startupitem.install} != "no" } {
+      ${startupitem.install} ne "no" } {
         file mkdir "${destroot}/Library/${daemondest}"
         ln -sf "${itemdir}/${plistname}" "${destroot}/Library/${daemondest}"
     }
@@ -659,7 +657,7 @@ proc portstartupitem::startupitem_create {args} {
     set startupitem.type [string tolower ${startupitem.type}]
     
     # Calculate a default value for startupitem.type
-    if {${startupitem.type} == "default" || ${startupitem.type} == ""} {
+    if {${startupitem.type} eq "default" || ${startupitem.type} eq ""} {
         switch -exact ${os.platform} {
             darwin {
                 set haveLaunchd ${portutil::autoconf::have_launchd}
@@ -675,7 +673,7 @@ proc portstartupitem::startupitem_create {args} {
         }
     }
 
-    if { ${startupitem.type} == "none" } {
+    if { ${startupitem.type} eq "none" } {
         ui_notice "$UI_PREFIX [msgcat::mc "Skipping creation of control script"]"
     } else {
         ui_notice "$UI_PREFIX [msgcat::mc "Creating ${startupitem.type} control script"]"

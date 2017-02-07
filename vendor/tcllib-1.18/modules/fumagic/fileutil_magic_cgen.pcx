@@ -1,0 +1,35 @@
+# -*- tcl -*- fileutil::magic::cgen.pcx
+# Syntax of the commands provided by package fileutil::magic::cgen.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register fileutil::magic::cgen
+pcx::tcldep   1.0 needs tcl 8.4
+
+namespace eval ::fileutil::magic::cgen {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 1.0 std ::fileutil::magic::cgen::2tree \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 1.0 std ::fileutil::magic::cgen::treedump \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 1.0 std ::fileutil::magic::cgen::treegen \
+    {checkSimpleArgs 2 2 {
+	checkWord
+	checkWord
+    }}
+
+# Initialization via pcx::init.
+# Use a ::fileutil::magic::cgen::init procedure for non-standard initialization.
+pcx::complete

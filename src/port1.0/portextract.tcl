@@ -1,6 +1,5 @@
 # et:ts=4
 # portextract.tcl
-# $Id$
 #
 # Copyright (c) 2005, 2007-2011, 2013 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
@@ -65,7 +64,7 @@ set_ui_prefix
 # Helper function for portextract.tcl that strips all tag names from a list
 # Used to clean ${distfiles} for setting the ${extract.only} default
 proc portextract::disttagclean {list} {
-    if {"$list" == ""} {
+    if {$list eq ""} {
         return $list
     }
     foreach name $list {
@@ -121,7 +120,7 @@ proc portextract::extract_start {args} {
 }
 
 proc portextract::extract_main {args} {
-    global UI_PREFIX filespath worksrcpath extract.dir usealtworkpath altprefix use_dmg
+    global UI_PREFIX filespath worksrcpath extract.dir use_dmg
 
     if {![exists distfiles] && ![exists extract.only]} {
         # nothing to do
@@ -132,8 +131,6 @@ proc portextract::extract_main {args} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile]"
         if {[file exists $filespath/$distfile]} {
             option extract.args "'$filespath/$distfile'"
-        } elseif {![file exists "[option distpath]/$distfile"] && !$usealtworkpath && [file exists "${altprefix}[option distpath]/$distfile"]} {
-            option extract.args "'${altprefix}[option distpath]/$distfile'"
         } else {
             option extract.args "'[option distpath]/$distfile'"
         }
@@ -153,9 +150,7 @@ proc portextract::extract_main {args} {
             return -code error "$result"
         }
 
-        # start gsoc08-privileges
         chownAsRoot ${extract.dir}
-        # end gsoc08-privileges
     }
     return 0
 }

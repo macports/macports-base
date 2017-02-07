@@ -1,8 +1,8 @@
 /*
  * curl.c
- * $Id$
  *
- * Copyright (c) 2005 Paul Guyot, The MacPorts Project.
+ * Copyright (c) 2005 Paul Guyot
+ * Copyright 2006-2011, 2013-2014 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -696,7 +696,6 @@ int
 CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int theResult = TCL_OK;
-	CURL* theHandle = NULL;
 	FILE* theFile = NULL;
 
 	do {
@@ -933,7 +932,6 @@ int
 CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int theResult = TCL_OK;
-	CURL* theHandle = NULL;
 	FILE* theFile = NULL;
 
 	do {
@@ -1142,7 +1140,6 @@ int
 CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int theResult = TCL_OK;
-	CURL* theHandle = NULL;
 	FILE* theFile = NULL;
 
 	do {

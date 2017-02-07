@@ -1,0 +1,1905 @@
+# -*- tcl -*-
+# graph.test:  tests for the graph structure.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# All rights reserved.
+#
+# RCS: @(#) $Id: graph1.test,v 1.10 2009/11/03 17:38:30 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal graph1.tcl struct::graph
+}
+
+# ---------------------------------------------------
+
+test graph1-0.1 {graph errors} {
+    struct::graph mygraph
+    catch {struct::graph mygraph} msg
+    mygraph destroy
+    set msg
+} "command \"mygraph\" already exists, unable to create graph"
+
+test graph1-0.2 {graph errors} {
+    struct::graph mygraph
+    catch {mygraph} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"mygraph option ?arg arg ...?\""
+
+test graph1-0.3 {graph errors} {
+    struct::graph mygraph
+    catch {mygraph foo} msg
+    mygraph destroy
+    set msg
+} "bad option \"foo\": must be arc, arcs, destroy, get, getall, keys, keyexists, node, nodes, set, swap, unset, or walk"
+
+test graph1-0.4 {graph errors} {
+    catch {struct::graph set} msg
+    set msg
+} "command \"set\" already exists, unable to create graph"
+
+test graph1-0.5 {graph errors} {
+    struct::graph mygraph
+    catch {mygraph arc foo} msg
+    mygraph destroy
+    set msg
+} "bad option \"foo\": must be append, delete, exists, get, getall, insert, keys, keyexists, lappend, set, source, target, or unset"
+
+test graph1-0.6 {graph errors} {
+    struct::graph mygraph
+    catch {mygraph node foo} msg
+    mygraph destroy
+    set msg
+} "bad option \"foo\": must be append, degree, delete, exists, get, getall, insert, keys, keyexists, lappend, opposite, set, or unset"
+
+# ---------------------------------------------------
+
+test graph1-1.1 {create} {
+    struct::graph mygraph
+    set result [string equal [info commands ::mygraph] "::mygraph"]
+    mygraph destroy
+    set result
+} 1
+
+test graph1-1.2 {create} {
+    set name [struct::graph]
+    set result [list $name [string equal [info commands ::$name] "::$name"]]
+    $name destroy
+    set result
+} [list graph1 1]
+
+test graph1-1.3 {destroy} {
+    struct::graph mygraph
+    mygraph destroy
+    string equal [info commands ::mygraph] ""
+} 1
+
+# ---------------------------------------------------
+
+test graph1-2.1 {arc delete} {
+    struct::graph mygraph
+    catch {mygraph arc delete arc0} msg
+    mygraph destroy
+    set msg
+} "arc \"arc0\" does not exist in graph \"mygraph\""
+
+test graph1-2.2 {arc delete} {
+    struct::graph mygraph
+
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc  insert node0 node1 arc0
+    mygraph arc  delete arc0
+
+    set result [mygraph arc exists arc0]
+    mygraph destroy
+    set result
+} {0}
+
+# ---------------------------------------------------
+
+test graph1-3.1 {arc exists} {
+    struct::graph mygraph
+    set     result [list]
+    lappend result [mygraph arc exists arc1]
+    mygraph node insert node1
+    mygraph node insert node2
+    mygraph arc  insert node1 node2 arc1
+    lappend result [mygraph arc exists arc1]
+    mygraph arc  delete arc1
+    lappend result [mygraph arc exists arc1]
+    mygraph destroy
+    set     result
+} {0 1 0}
+
+# ---------------------------------------------------
+
+test graph1-4.1 {arc get gives error on bogus arc} {
+    struct::graph mygraph
+    catch {mygraph arc get arc0} msg
+    mygraph destroy
+    set msg
+} "arc \"arc0\" does not exist in graph \"mygraph\""
+
+test graph1-4.2 {arc get gives error on bogus key} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    catch {mygraph arc get arc0 -key bogus} msg
+    mygraph destroy
+    set msg
+} "invalid key \"bogus\" for arc \"arc0\""
+
+test graph1-4.3 {arc get uses data as default key} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    mygraph arc set arc0 foobar
+    set result [mygraph arc get arc0]
+    mygraph destroy
+    set result
+} "foobar"
+
+test graph1-4.4 {arc get respects -key flag} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    mygraph arc set arc0 -key boom foobar
+    set result [mygraph arc get arc0 -key boom]
+    mygraph destroy
+    set result
+} "foobar"
+
+# ---------------------------------------------------
+
+test graph1-5.1 {arc insert gives error on duplicate arc name} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    catch {mygraph arc insert node0 node1 arc0} msg
+    mygraph destroy
+    set msg
+} "arc \"arc0\" already exists in graph \"mygraph\""
+
+test graph1-5.2 {arc insert creates and initializes arc} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc  insert node0 node1 arc0
+    set result [list ]
+    lappend result [mygraph arc exists arc0]
+    lappend result [mygraph arc source arc0]
+    lappend result [mygraph arc target arc0]
+    lappend result [mygraph arc set arc0]
+    mygraph destroy
+    set result
+} {1 node0 node1 {}}
+
+test graph1-5.3 {arc insert arcs in correct location} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+
+    mygraph arc insert node0 node1 arc0
+    mygraph arc insert node0 node1 arc1
+    mygraph arc insert node0 node1 arc2
+    set result [lsort [mygraph arcs -out node0]]
+    mygraph destroy
+    set result
+} {arc0 arc1 arc2}
+
+test graph1-5.4 {arc insert gives error when trying to insert to a fake node} {
+    struct::graph mygraph
+    catch {mygraph arc insert node0 node1 arc0} msg
+    mygraph destroy
+    set msg
+} "source node \"node0\" does not exist in graph \"mygraph\""
+
+test graph1-5.5 {arc insert gives error when trying to insert to a fake node} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch {mygraph arc insert node0 node1 arc0} msg
+    mygraph destroy
+    set msg
+} "target node \"node1\" does not exist in graph \"mygraph\""
+
+test graph1-5.6 {arc insert generates arc name when none is given} {
+    struct::graph mygraph
+    mygraph node insert n0
+
+    set     result [list [mygraph arc insert n0 n0]]
+    lappend result       [mygraph arc insert n0 n0]
+    mygraph                       arc insert n0 n0 arc3
+    lappend result       [mygraph arc insert n0 n0]
+    mygraph destroy
+    set result
+} [list arc1 arc2 arc4]
+
+if {0} {
+    # if feature used, fix this test...
+    test graph1-5.6 {arc insert generates arc name when none is given} {
+	struct::graph mygraph
+	set result [list [mygraph insert root end]]
+	lappend result [mygraph insert root end]
+	mygraph insert root end arc3
+	lappend result [mygraph insert root end]
+	mygraph destroy
+	set result
+    } [list arc1 arc2 arc4] ; # {}
+}
+
+# ---------------------------------------------------
+
+test graph1-6.1 {arc set gives error on bogus arc} {
+    struct::graph mygraph
+    catch {mygraph arc set arc0} msg
+    mygraph destroy
+    set msg
+} "arc \"arc0\" does not exist in graph \"mygraph\""
+
+test graph1-6.2 {arc set with arc name gets/sets "data" value} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    mygraph arc set arc0 foobar
+    set result [mygraph arc set arc0]
+    mygraph destroy
+    set result
+} "foobar"
+
+test graph1-6.3 {arc set with arc name and key gets/sets key value} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    mygraph arc set arc0 -key baz foobar
+    set result [list [mygraph arc set arc0] [mygraph arc set arc0 -key baz]]
+    mygraph destroy
+    set result
+} [list "" "foobar"]
+
+test graph1-6.4 {arc set with too many args gives error} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    catch {mygraph arc set arc0 foo bar baz boo} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"mygraph arc set arc0 ?-key key? ?value?\""
+
+test graph1-6.5 {arc set with bad args} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    catch {mygraph arc set arc0 foo bar} msg
+    mygraph destroy
+    set msg
+} "invalid option \"foo\": should be key"
+
+test graph1-6.6 {arc set with bad args} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    catch {mygraph arc set arc0 foo bar baz} msg
+    mygraph destroy
+    set msg
+} "invalid option \"foo\": should be key"
+
+test graph1-6.7 {arc set with bad key gives error} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    catch {mygraph arc set arc0 -key foo} msg
+    mygraph destroy
+    set msg
+} "invalid key \"foo\" for arc \"arc0\""
+
+# ---------------------------------------------------
+
+test graph1-7.1 {arc source gives error on bogus arc} {
+    struct::graph mygraph
+    catch {mygraph arc source arc0} msg
+    mygraph destroy
+    set msg
+} "arc \"arc0\" does not exist in graph \"mygraph\""
+
+test graph1-7.2 {arc source} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc  insert node0 node1 arc0
+    set result [mygraph arc source arc0]
+    mygraph destroy
+    set result
+} node0
+
+# ---------------------------------------------------
+
+test graph1-8.1 {arc target gives error on bogus arc} {
+    struct::graph mygraph
+    catch {mygraph arc target arc0} msg
+    mygraph destroy
+    set msg
+} "arc \"arc0\" does not exist in graph \"mygraph\""
+
+test graph1-8.2 {arc target} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc  insert node0 node1 arc0
+    set result [mygraph arc target arc0]
+    mygraph destroy
+    set result
+} node1
+
+# ---------------------------------------------------
+
+test graph1-9.1 {arc unset gives error on bogus arc} {
+    struct::graph mygraph
+    catch {mygraph arc unset arc0} msg
+    mygraph destroy
+    set msg
+} "arc \"arc0\" does not exist in graph \"mygraph\""
+
+test graph1-9.2 {arc unset does not give error on bogus key} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc  insert node0 node1 arc0
+    set result [catch {mygraph arc unset arc0 -key bogus}]
+    mygraph destroy
+    set result
+} 0
+
+test graph1-9.3 {arc unset removes a keyed value from a arc} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc  insert node0 node1 arc0
+    mygraph arc        set arc0 -key foobar foobar
+    mygraph arc      unset arc0 -key foobar
+    catch {mygraph arc get arc0 -key foobar} msg
+    mygraph destroy
+    set msg
+} "invalid key \"foobar\" for arc \"arc0\""
+
+test graph1-9.4 {arc unset requires -key} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc  insert node0 node1 arc0
+    mygraph arc        set arc0 -key foobar foobar
+    catch {mygraph arc unset arc0 flaboozle foobar} msg
+    mygraph destroy
+    set msg
+} "invalid option \"flaboozle\": should be \"mygraph arc unset arc0 ?-key key?\""
+
+# ---------------------------------------------------
+
+test graph1-10.1 {arcs} {
+    struct::graph mygraph
+    set result [mygraph arcs]
+    mygraph destroy
+    set result
+} {}
+
+test graph1-10.2 {arcs} {
+    struct::graph mygraph
+    catch {mygraph arcs -foo} msg
+    mygraph destroy
+    set msg
+} {invalid restriction "-foo": should be -in, -out, -adj, -inner, -embedding, -key or -value}
+
+test graph1-10.3 {arcs} {
+    struct::graph mygraph
+    catch {mygraph arcs -in} msg
+    mygraph destroy
+    set msg
+} {no nodes specified: should be "mygraph arcs ?-key key? ?-value value? ?-in|-out|-adj|-inner|-embedding node node...?"}
+
+test graph1-10.4 {arcs} {
+    struct::graph mygraph
+    catch {mygraph arcs -in node0} msg
+    mygraph destroy
+    set msg
+} {node "node0" does not exist in graph "mygraph"}
+
+test graph1-10.5 {arcs} {
+    struct::graph mygraph
+    mygraph node insert node1
+    mygraph node insert node2
+    mygraph node insert node3
+    mygraph node insert node4
+    mygraph node insert node5
+    mygraph node insert node6
+
+    mygraph arc insert node4 node1 arcA
+    mygraph arc insert node5 node2 arcB
+    mygraph arc insert node6 node3 arcC
+    mygraph arc insert node3 node1 arcD
+    mygraph arc insert node1 node2 arcE
+    mygraph arc insert node2 node3 arcF
+
+    set result [list \
+	    [lsort [mygraph arcs            ]] \
+	    \
+	    [lsort [mygraph arcs -in        node1 node2 node3]] \
+	    [lsort [mygraph arcs -out       node1 node2 node3]] \
+	    [lsort [mygraph arcs -adj       node1 node2 node3]] \
+	    [lsort [mygraph arcs -inner     node1 node2 node3]] \
+	    [lsort [mygraph arcs -embedding node1 node2 node3]] \
+	    \
+	    [lsort [mygraph arcs -in        node4 node5 node6]] \
+	    [lsort [mygraph arcs -out       node4 node5 node6]] \
+	    [lsort [mygraph arcs -adj       node4 node5 node6]] \
+	    [lsort [mygraph arcs -inner     node4 node5 node6]] \
+	    [lsort [mygraph arcs -embedding node4 node5 node6]] \
+    ]
+    mygraph destroy
+    set result
+} [list \
+	{arcA arcB arcC arcD arcE arcF}	\
+	\
+	{arcA arcB arcC arcD arcE arcF}	\
+	{arcD arcE arcF}		\
+	{arcA arcB arcC arcD arcE arcF}	\
+	{arcD arcE arcF}		\
+	{arcA arcB arcC}		\
+	\
+	{}			\
+	{arcA arcB arcC}	\
+	{arcA arcB arcC}	\
+	{}			\
+	{arcA arcB arcC}	\
+	]
+
+test graph1-10.6 {arcs} {
+    struct::graph mygraph
+    mygraph node insert node1
+    mygraph node insert node2
+    mygraph arc insert node1 node2 arcE
+    mygraph arc insert node2 node1 arcF
+    set result [lsort [mygraph arcs -adj node1 node2]]
+    mygraph destroy
+    set result
+} {arcE arcF}
+
+test graph1-10.7 {arcs} {
+    struct::graph mygraph
+    mygraph node insert n0
+    mygraph node insert n1
+    mygraph arc insert n0 n1 a1
+    mygraph arc insert n0 n1 a2
+    mygraph arc set a1 -key foobar 1
+    mygraph arc set a2 -key blubber 2
+    catch {mygraph arcs -key foobar} msg
+    mygraph destroy
+    set msg
+} {a1}
+
+test graph1-10.8 {arcs} {
+    struct::graph mygraph
+    mygraph node insert n0
+    mygraph node insert n1
+    mygraph arc insert n0 n1 a1
+    mygraph arc insert n0 n1 a2
+    mygraph arc set a1 -key foobar 1
+    mygraph arc set a2 -key foobar 2
+    catch {mygraph arcs -key foobar -value 1} msg
+    mygraph destroy
+    set msg
+} {a1}
+
+test graph1-10.9 {arcs, multiple -key, illegal} {
+    struct::graph mygraph
+    catch {mygraph arcs -key foobar -value 1 -key foo} msg
+    mygraph destroy
+    set msg
+} {invalid restriction: illegal multiple use of "-key"}
+
+test graph1-10.10 {arcs, multiple -value, illegal} {
+    struct::graph mygraph
+    catch {mygraph arcs -key foobar -value 1 -value foo} msg
+    mygraph destroy
+    set msg
+} {invalid restriction: illegal multiple use of "-value"}
+
+test graph1-10.11 {arcs, multiple -in, illegal} {
+    struct::graph mygraph
+    catch {mygraph arcs -key foobar -in -value foo -in} msg
+    mygraph destroy
+    set msg
+} {invalid restriction: illegal multiple use of "-in"|"-out"|"-adj"|"-inner"|"-embedding"}
+
+test graph1-10.12 {arcs, -in / -out exclusion, illegal} {
+    struct::graph mygraph
+    catch {mygraph arcs -key foobar -out -value foo -in} msg
+    mygraph destroy
+    set msg
+} {invalid restriction: illegal multiple use of "-in"|"-out"|"-adj"|"-inner"|"-embedding"}
+
+# ---------------------------------------------------
+
+test graph1-11.1 {node degree} {
+    struct::graph mygraph
+    catch {mygraph node degree} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"mygraph node degree ?-in|-out? node\""
+
+test graph1-11.2 {node degree} {
+    struct::graph mygraph
+    catch {mygraph node degree foo bar baz} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"mygraph node degree ?-in|-out? node\""
+
+test graph1-11.3 {node degree} {
+    struct::graph mygraph
+    catch {mygraph node degree node0} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" does not exist in graph \"mygraph\""
+
+test graph1-11.4 {node degree} {
+    struct::graph mygraph
+    catch {mygraph node degree -foo node0} msg
+    mygraph destroy
+    set msg
+} "invalid option \"-foo\": should be -in or -out"
+
+test graph1-11.5 {node degree} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph node insert node2
+    mygraph node insert node3
+    mygraph node insert node4
+    mygraph node insert node5
+
+    mygraph arc insert node1 node2 arc0
+    mygraph arc insert node3 node3 arc1
+    mygraph arc insert node4 node5 arc2
+    mygraph arc insert node4 node5 arc3
+    mygraph arc insert node4 node5 arc4
+    mygraph arc insert node5 node2 arc5
+
+    set result [list	\
+	    [mygraph node degree      node0]	\
+	    [mygraph node degree -in  node0]	\
+	    [mygraph node degree -out node0]	\
+	    [mygraph node degree      node1]	\
+	    [mygraph node degree -in  node1]	\
+	    [mygraph node degree -out node1]	\
+	    [mygraph node degree      node2]	\
+	    [mygraph node degree -in  node2]	\
+	    [mygraph node degree -out node2]	\
+	    [mygraph node degree      node3]	\
+	    [mygraph node degree -in  node3]	\
+	    [mygraph node degree -out node3]	\
+	    [mygraph node degree      node4]	\
+	    [mygraph node degree -in  node4]	\
+	    [mygraph node degree -out node4]	\
+	    [mygraph node degree      node5]	\
+	    [mygraph node degree -in  node5]	\
+	    [mygraph node degree -out node5]	\
+	    ]
+
+    mygraph destroy
+    set result
+} [list	0 0 0 \
+	1 0 1 \
+	2 2 0 \
+	2 1 1 \
+	3 0 3 \
+	4 3 1
+	]
+
+# ---------------------------------------------------
+
+test graph1-12.1 {node delete} {
+    struct::graph mygraph
+    catch {mygraph node delete node0} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" does not exist in graph \"mygraph\""
+
+test graph1-12.2 {node delete} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node delete node0
+    set result [mygraph node exists node0]
+    mygraph destroy
+    set result
+} {0}
+
+test graph1-12.3 {node delete} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc  insert node0 node1 arc0
+    mygraph node delete node0
+
+    set result [list \
+	    [mygraph node exists node0] \
+	    [mygraph node exists node1] \
+	    [mygraph arc exists arc0]	\
+	    ]
+    mygraph destroy
+    set result
+} {0 1 0}
+
+test graph1-12.4 {node delete} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc  insert node0 node1 arc0
+    mygraph node delete node1
+
+    set result [list \
+	    [mygraph node exists node0] \
+	    [mygraph node exists node1] \
+	    [mygraph arc exists arc0]	\
+	    ]
+    mygraph destroy
+    set result
+} {1 0 0}
+
+# ---------------------------------------------------
+
+test graph1-13.1 {node exists} {
+    struct::graph mygraph
+    set     result [list]
+    lappend result [mygraph node exists node1]
+    mygraph node insert node1
+    lappend result [mygraph node exists node1]
+    mygraph node delete node1
+    lappend result [mygraph node exists node1]
+    mygraph destroy
+    set     result
+} {0 1 0}
+
+# ---------------------------------------------------
+
+test graph1-14.1 {node get gives error on bogus node} {
+    struct::graph mygraph
+    catch {mygraph node get node0} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" does not exist in graph \"mygraph\""
+
+test graph1-14.2 {node get gives error on bogus key} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch {mygraph node get node0 -key bogus} msg
+    mygraph destroy
+    set msg
+} "invalid key \"bogus\" for node \"node0\""
+
+test graph1-14.3 {node get uses data as default key} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node set node0 foobar
+    set result [mygraph node get node0]
+    mygraph destroy
+    set result
+} "foobar"
+
+test graph1-14.4 {node get respects -key flag} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node set node0 -key boom foobar
+    set result [mygraph node get node0 -key boom]
+    mygraph destroy
+    set result
+} "foobar"
+
+# ---------------------------------------------------
+
+test graph1-15.1 {node insert gives error on duplicate node name} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch {mygraph node insert node0} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" already exists in graph \"mygraph\""
+
+test graph1-15.2 {node insert creates and initializes node} {
+    struct::graph mygraph
+    mygraph node insert node0
+    set result [list ]
+    lappend result [mygraph node exists node0]
+    lappend result [mygraph node set    node0]
+    mygraph destroy
+    set result
+} {1 {}}
+
+test graph1-15.3 {node insert generates node name when none is given} {
+    struct::graph mygraph
+    set result [list [mygraph node insert]]
+
+    lappend result [mygraph node insert]
+    mygraph node insert node3
+    lappend result [mygraph node insert]
+    mygraph destroy
+    set result
+} [list node1 node2 node4]
+
+if {0} {
+    # fix if this feature is used ...
+    test graph1-15.x {node insert generates node name when none is given} {
+	struct::graph mygraph
+	set result [list [mygraph node insert root end]]
+	lappend result [mygraph node insert root end]
+	mygraph node insert root end node3
+	lappend result [mygraph node insert root end]
+	mygraph destroy
+	set result
+    } [list node1 node2 node4] ; # {}
+}
+
+# ---------------------------------------------------
+
+test graph1-16.1 {node opposite gives error on bogus node} {
+    struct::graph mygraph
+    catch {mygraph node opposite node0 arc0} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" does not exist in graph \"mygraph\""
+
+test graph1-16.2 {node opposite gives error on bogus arc} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch {mygraph node opposite node0 arc0} msg
+    mygraph destroy
+    set msg
+} "arc \"arc0\" does not exist in graph \"mygraph\""
+
+test graph1-16.3 {node opposite gives error on bogus node/arc combination} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph node insert node2
+    mygraph arc  insert node1 node2 arc0
+
+    catch {mygraph node opposite node0 arc0} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" and arc \"arc0\" are not connected in graph \"mygraph\""
+
+test graph1-16.4 {node opposite} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc  insert node0 node1 arc0
+
+    set result [list	\
+	    [mygraph node opposite node0 arc0]	\
+	    [mygraph node opposite node1 arc0]	\
+	    ]
+    mygraph destroy
+    set result
+} {node1 node0}
+
+test graph1-16.5 {node opposite} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph arc  insert node0 node0 arc0
+    set result [mygraph node opposite node0 arc0]
+    mygraph destroy
+    set result
+} {node0}
+
+# ---------------------------------------------------
+
+test graph1-17.1 {node set gives error on bogus node} {
+    struct::graph mygraph
+    catch {mygraph node set node0} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" does not exist in graph \"mygraph\""
+
+test graph1-17.2 {node set with node name gets/sets "data" value} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node set node0 foobar
+    set result [mygraph node set node0]
+    mygraph destroy
+    set result
+} "foobar"
+
+test graph1-17.3 {node set with node name and key gets/sets key value} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node set node0 -key baz foobar
+    set result [list [mygraph node set node0] [mygraph node set node0 -key baz]]
+    mygraph destroy
+    set result
+} [list "" "foobar"]
+
+test graph1-17.4 {node set with too many args gives error} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch {mygraph node set node0 foo bar baz boo} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"mygraph node set node0 ?-key key? ?value?\""
+
+test graph1-17.5 {node set with bad args} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch {mygraph node set node0 foo bar} msg
+    mygraph destroy
+    set msg
+} "invalid option \"foo\": should be key"
+
+test graph1-17.6 {node set with bad args} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch {mygraph node set node0 foo bar baz} msg
+    mygraph destroy
+    set msg
+} "invalid option \"foo\": should be key"
+
+test graph1-17.7 {node set with bad key gives error} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch {mygraph node set node0 -key foo} msg
+    mygraph destroy
+    set msg
+} "invalid key \"foo\" for node \"node0\""
+
+# ---------------------------------------------------
+
+test graph1-18.1 {node unset gives error on bogus node} {
+    struct::graph mygraph
+    catch {mygraph node unset node0} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" does not exist in graph \"mygraph\""
+
+test graph1-18.2 {node unset does not give error on bogus key} {
+    struct::graph mygraph
+    mygraph node insert node0
+    set result [catch {mygraph node unset node0 -key bogus}]
+    mygraph destroy
+    set result
+} 0
+
+test graph1-18.3 {node unset removes a keyed value from a node} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node set node0 -key foobar foobar
+    mygraph node unset node0 -key foobar
+    catch {mygraph node get node0 -key foobar} msg
+    mygraph destroy
+    set msg
+} "invalid key \"foobar\" for node \"node0\""
+
+test graph1-18.4 {unset requires -key} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node set node0 -key foobar foobar
+    catch {mygraph node unset node0 flaboozle foobar} msg
+    mygraph destroy
+    set msg
+} "invalid option \"flaboozle\": should be \"mygraph node unset node0 ?-key key?\""
+
+# ---------------------------------------------------
+
+test graph1-19.1 {nodes} {
+    struct::graph mygraph
+    set result [mygraph nodes]
+    mygraph destroy
+    set result
+} {}
+
+test graph1-19.2 {nodes} {
+    struct::graph mygraph
+    catch {mygraph nodes -foo} msg
+    mygraph destroy
+    set msg
+} {invalid restriction "-foo": should be -in, -out, -adj, -inner, -embedding, -key or -value}
+
+test graph1-19.3 {nodes} {
+    struct::graph mygraph
+    catch {mygraph nodes -in} msg
+    mygraph destroy
+    set msg
+} {no nodes specified: should be "mygraph nodes ?-key key? ?-value value? ?-in|-out|-adj|-inner|-embedding node node...?"}
+
+test graph1-19.4 {nodes} {
+    struct::graph mygraph
+    catch {mygraph nodes -in node0} msg
+    mygraph destroy
+    set msg
+} {node "node0" does not exist in graph "mygraph"}
+
+test graph1-19.5 {nodes} {
+    struct::graph mygraph
+    mygraph node insert node1
+    mygraph node insert node2
+    mygraph node insert node3
+    mygraph node insert node4
+    mygraph node insert node5
+    mygraph node insert node6
+
+    mygraph arc insert node4 node1 arcA
+    mygraph arc insert node5 node2 arcB
+    mygraph arc insert node6 node3 arcC
+    mygraph arc insert node3 node1 arcD
+    mygraph arc insert node1 node2 arcE
+    mygraph arc insert node2 node3 arcF
+
+    set result [list \
+	    [lsort [mygraph nodes            ]] \
+	    \
+	    [lsort [mygraph nodes -in        node1 node2 node3]] \
+	    [lsort [mygraph nodes -out       node1 node2 node3]] \
+	    [lsort [mygraph nodes -adj       node1 node2 node3]] \
+	    [lsort [mygraph nodes -inner     node1 node2 node3]] \
+	    [lsort [mygraph nodes -embedding node1 node2 node3]] \
+	    \
+	    [lsort [mygraph nodes -in        node4 node5 node6]] \
+	    [lsort [mygraph nodes -out       node4 node5 node6]] \
+	    [lsort [mygraph nodes -adj       node4 node5 node6]] \
+	    [lsort [mygraph nodes -inner     node4 node5 node6]] \
+	    [lsort [mygraph nodes -embedding node4 node5 node6]] \
+    ]
+    mygraph destroy
+    set result
+} [list \
+	{node1 node2 node3 node4 node5 node6} \
+	\
+	{node1 node2 node3 node4 node5 node6} \
+	{node1 node2 node3} \
+	{node1 node2 node3 node4 node5 node6} \
+	{node1 node2 node3} \
+	{node4 node5 node6} \
+	\
+	{} \
+	{node1 node2 node3} \
+	{node1 node2 node3} \
+	{} \
+	{node1 node2 node3} \
+	]
+
+test graph1-19.6 {nodes} {
+    struct::graph mygraph
+    mygraph node insert node1
+    mygraph node insert node2
+    mygraph node insert node3
+
+    mygraph arc insert node1 node2 arcE
+    mygraph arc insert node1 node2 arcD
+    mygraph arc insert node2 node3 arcF
+    mygraph arc insert node2 node3 arcG
+
+    set result [lsort [mygraph nodes -embedding node1 node3]]
+    mygraph destroy
+    set result
+} {node2}
+
+
+test graph1-19.7 {nodes} {
+    struct::graph mygraph
+    mygraph node insert n0
+    mygraph node insert n1
+    mygraph node set n0 -key foobar 1
+    mygraph node set n1 -key blubber 2
+    catch {mygraph nodes -key foobar} msg
+    mygraph destroy
+    set msg
+} {n0}
+
+test graph1-19.8 {nodes} {
+    struct::graph mygraph
+    mygraph node insert n0
+    mygraph node insert n1
+    mygraph node set n0 -key foobar 1
+    mygraph node set n1 -key foobar 2
+    catch {mygraph nodes -key foobar -value 1} msg
+    mygraph destroy
+    set msg
+} {n0}
+
+test graph1-19.9 {nodes, multiple -keys, illegal} {
+    struct::graph mygraph
+    catch {mygraph nodes -key foobar -key 1} msg
+    mygraph destroy
+    set msg
+} {invalid restriction: illegal multiple use of "-key"}
+
+test graph1-19.10 {nodes, multiple -value, illegal} {
+    struct::graph mygraph
+    catch {mygraph nodes -key foobar -value 1 -value foo} msg
+    mygraph destroy
+    set msg
+} {invalid restriction: illegal multiple use of "-value"}
+
+test graph1-19.11 {nodes, multiple -in, illegal} {
+    struct::graph mygraph
+    catch {mygraph nodes -key foobar -in -value foo -in} msg
+    mygraph destroy
+    set msg
+} {invalid restriction: illegal multiple use of "-in"|"-out"|"-adj"|"-inner"|"-embedding"}
+
+test graph1-19.12 {nodes, -in / -out exclusion, illegal} {
+    struct::graph mygraph
+    catch {mygraph nodes -key foobar -out -value foo -in} msg
+    mygraph destroy
+    set msg
+} {invalid restriction: illegal multiple use of "-in"|"-out"|"-adj"|"-inner"|"-embedding"}
+
+# ---------------------------------------------------
+
+test graph1-20.1 {swap gives error when trying to swap non existant node} {
+    struct::graph mygraph
+    catch {mygraph swap node0 node1} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" does not exist in graph \"mygraph\""
+
+test graph1-20.2 {swap gives error when trying to swap non existant node} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch {mygraph swap node0 node1} msg
+    mygraph destroy
+    set msg
+} "node \"node1\" does not exist in graph \"mygraph\""
+
+test graph1-20.3 {swap gives error when trying to swap node with self} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch {mygraph swap node0 node0} msg
+    mygraph destroy
+    set msg
+} "cannot swap node \"node0\" with itself"
+
+test graph1-20.4 {swap swaps node relationships correctly} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node0.1
+    mygraph node insert node0.2
+    mygraph node insert node0.1.1
+    mygraph node insert node0.1.2
+
+    mygraph arc insert node0 node0.1     a1
+    mygraph arc insert node0 node0.2     a2
+    mygraph arc insert node0.1 node0.1.1 a3
+    mygraph arc insert node0.1 node0.1.2 a4
+
+    mygraph swap node0 node0.1
+
+    set result [list \
+	    [lsort [mygraph nodes -out node0]]   \
+	    [lsort [mygraph nodes -out node0.1]] \
+	    ]
+    mygraph destroy
+    set result
+} {{node0.1.1 node0.1.2} {node0 node0.2}}
+
+test graph1-20.5 {swap swaps node relationships correctly} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node0.1
+    mygraph node insert node0.2
+    mygraph node insert node0.1.1
+    mygraph node insert node0.1.2
+
+    mygraph arc insert node0   node0.1   a1
+    mygraph arc insert node0   node0.2   a2
+    mygraph arc insert node0.1 node0.1.1 a3
+    mygraph arc insert node0.1 node0.1.2 a4
+
+    mygraph swap node0 node0.1.1
+
+    set result [list \
+	    [lsort [mygraph nodes -out node0]]   \
+	    [lsort [mygraph nodes -out node0.1.1]] \
+	    ]
+    mygraph destroy
+    set result
+} {{} {node0.1 node0.2}}
+
+test graph1-20.6 {swap swaps node relationships correctly} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node0.1
+    mygraph node insert node0.2
+    mygraph node insert node0.1.1
+    mygraph node insert node0.1.2
+
+    mygraph arc insert node0 node0.1     a1
+    mygraph arc insert node0 node0.2     a2
+    mygraph arc insert node0.1 node0.1.1 a3
+    mygraph arc insert node0.1 node0.1.2 a4
+
+    mygraph swap node0.1 node0
+
+    set result [list \
+	    [lsort [mygraph nodes -out node0]]   \
+	    [lsort [mygraph nodes -out node0.1]] \
+	    ]
+    mygraph destroy
+    set result
+} {{node0.1.1 node0.1.2} {node0 node0.2}}
+
+test graph1-22.1 {arc getall gives error on bogus arc} {
+    struct::graph mygraph
+    catch {mygraph arc getall arc0} msg
+    mygraph destroy
+    set msg
+} "arc \"arc0\" does not exist in graph \"mygraph\""
+test graph1-22.2 {arc getall gives error when key specified} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    catch {mygraph arc getall arc0 -key data} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be none"
+test graph1-22.3 {arc getall with node name returns list of key/value pairs} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    mygraph arc set arc0 foobar
+    mygraph arc set arc0 -key other thing
+    set results [mygraph arc getall arc0]
+    mygraph destroy
+    lsort $results
+} "data foobar other thing"   
+
+test graph1-23.1 {node getall gives error on bogus node} {
+    struct::graph mygraph
+    catch {mygraph node getall node0} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" does not exist in graph \"mygraph\""
+test graph1-23.2 {node getall gives error when key specified} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch {mygraph node getall node0 -key data} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be none"
+test graph1-23.3 {node getall with node name returns list of key/value pairs} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node set node0 foobar
+    mygraph node set node0 -key other thing
+    set results [mygraph node getall node0]
+    mygraph destroy
+    lsort $results
+} "data foobar other thing"   
+
+test graph1-24.1 {arc keys gives error on bogus arc} {
+    struct::graph mygraph
+    catch {mygraph arc keys arc0} msg
+    mygraph destroy
+    set msg
+} "arc \"arc0\" does not exist in graph \"mygraph\""
+test graph1-24.2 {arc keys gives error when key specified} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    catch { mygraph arc keys arc0 -key bogus } msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be none"
+test graph1-24.3 {arc keys with arc name returns list of keys} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    mygraph arc set arc0 -key other things
+    set results [mygraph arc keys arc0]
+    mygraph destroy
+    lsort $results
+} "data other"
+  
+test graph1-25.1 {node keys gives error on bogus node} {
+    struct::graph mygraph
+    catch {mygraph node keys node0} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" does not exist in graph \"mygraph\""
+test graph1-25.2 {node keys gives error when key specified} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch { mygraph node keys node0 -key bogus } msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be none"
+test graph1-25.3 {node keys with node name returns list of keys} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node set node0 -key other things
+    set results [mygraph node keys node0]
+    mygraph destroy
+    lsort $results
+} "data other"
+
+test graph1-26.1 {arc keyexists gives error on bogus arc} {
+    struct::graph mygraph
+    catch {mygraph arc keyexists arc0} msg
+    mygraph destroy
+    set msg
+} "arc \"arc0\" does not exist in graph \"mygraph\""
+test graph1-26.2 {arc keyexists returns false on non-existant key} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    set result [mygraph arc keyexists arc0 -key bogus]
+    mygraph destroy
+    set result
+} "0"
+test graph1-26.3 {arc keyexists uses data as default key} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    set result [mygraph arc keyexists arc0]
+    mygraph destroy
+    set result
+} "1"
+test graph1-26.4 {arc keyexists respects -key flag} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    mygraph arc set arc0 -key boom foobar
+    set result [mygraph arc keyexists arc0 -key boom]
+    mygraph destroy
+    set result
+} "1"
+
+test graph1-27.1 {node keyexists gives error on bogus node} {
+    struct::graph mygraph
+    catch {mygraph node keyexists node0} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" does not exist in graph \"mygraph\""
+test graph1-27.2 {node keyexists returns false on non-existant key} {
+    struct::graph mygraph
+    mygraph node insert node0
+    set result [mygraph node keyexists node0 -key bogus]
+    mygraph destroy
+    set result
+} "0"
+test graph1-27.3 {node keyexists uses data as default key} {
+    struct::graph mygraph
+    mygraph node insert node0
+    set result [mygraph node keyexists node0]
+    mygraph destroy
+    set result
+} "1"
+test graph1-27.4 {node keyexists respects -key flag} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node set node0 -key boom foobar
+    set result [mygraph node keyexists node0 -key boom]
+    mygraph destroy
+    set result
+} "1"
+
+test graph1-28.1 {arc append gives error on bogus arc} {
+    struct::graph mygraph
+    catch {mygraph arc append arc0} msg
+    mygraph destroy
+    set msg
+} "arc \"arc0\" does not exist in graph \"mygraph\""
+test graph1-28.2 {arc append with arc name appends to "data" value} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    mygraph arc set arc0 foo
+    set result [mygraph arc append arc0 bar]
+    mygraph destroy
+    set result
+} "foobar"
+test graph1-28.3 {arc append with arc name and key appends key value} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    mygraph arc set arc0 -key baz foo
+    set result [mygraph arc append arc0 -key baz bar]
+    mygraph destroy
+    set result
+} "foobar"
+test graph1-28.4 {arc append with too many args gives error} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    catch {mygraph arc append arc0 foo bar baz boo} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"mygraph arc append arc0 ?-key key? value\""
+test graph1-28.5 {arc append with bad args} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    catch {mygraph arc append arc0 -foo bar baz} msg
+    mygraph destroy
+    set msg
+} "invalid option \"-foo\": should be -key"
+test graph1-28.6 {arc append respects -key flag} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    mygraph arc set arc0 -key baz foo
+    set result [mygraph arc append arc0 -key baz bar]
+    mygraph destroy
+    set result
+} "foobar"
+
+test graph1-29.1 {arc lappend gives error on bogus arc} {
+    struct::graph mygraph
+    catch {mygraph arc lappend arc0} msg
+    mygraph destroy
+    set msg
+} "arc \"arc0\" does not exist in graph \"mygraph\""
+test graph1-29.2 {arc lappend with node arc lappends to "data" value} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    mygraph arc set arc0 foo
+    set result [mygraph arc lappend arc0 bar]
+    mygraph destroy
+    set result
+} "foo bar"
+test graph1-29.3 {arc lappend with arc name and key lappends key value} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    mygraph arc set arc0 -key baz foo
+    set result [mygraph arc lappend arc0 -key baz bar]
+    mygraph destroy
+    set result
+} "foo bar"
+test graph1-29.4 {arc lappend with too many args gives error} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    catch {mygraph arc lappend arc0 foo bar baz boo} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"mygraph arc lappend arc0 ?-key key? value\""
+test graph1-29.5 {arc lappend with bad args} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    catch {mygraph arc lappend arc0 -foo bar baz} msg
+    mygraph destroy
+    set msg
+} "invalid option \"-foo\": should be -key"
+test graph1-29.6 {arc lappend respects -key flag} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node insert node1
+    mygraph arc insert node0 node1 arc0
+    mygraph arc set arc0 -key baz foo
+    set result [mygraph arc lappend arc0 -key baz bar]
+    mygraph destroy
+    set result
+} "foo bar"
+
+test graph1-30.1 {node append gives error on bogus node} {
+    struct::graph mygraph
+    catch {mygraph node append node0} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" does not exist in graph \"mygraph\""
+test graph1-30.2 {node append with node name appends to "data" value} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node set node0 foo
+    set result [mygraph node append node0 bar]
+    mygraph destroy
+    set result
+} "foobar"
+test graph1-30.3 {node append with node name and key appends key value} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node set node0 -key baz foo
+    set result [mygraph node append node0 -key baz bar]
+    mygraph destroy
+    set result
+} "foobar"
+test graph1-30.4 {node append with too many args gives error} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch {mygraph node append node0 foo bar baz boo} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"mygraph node append node0 ?-key key? value\""
+test graph1-30.5 {node append with bad args} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch {mygraph node append node0 -foo bar baz} msg
+    mygraph destroy
+    set msg
+} "invalid option \"-foo\": should be -key"
+test graph1-30.6 {node append respects -key flag} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node set node0 -key baz foo
+    set result [mygraph node append node0 -key baz bar]
+    mygraph destroy
+    set result
+} "foobar"
+
+test graph1-31.1 {node lappend gives error on bogus node} {
+    struct::graph mygraph
+    catch {mygraph node lappend node0} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" does not exist in graph \"mygraph\""
+test graph1-32.2 {node lappend with node name lappends to "data" value} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node set node0 foo
+    set result [mygraph node lappend node0 bar]
+    mygraph destroy
+    set result
+} "foo bar"
+test graph1-32.3 {node lappend with node name and key lappends key value} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node set node0 -key baz foo
+    set result [mygraph node lappend node0 -key baz bar]
+    mygraph destroy
+    set result
+} "foo bar"
+test graph1-32.4 {node lappend with too many args gives error} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch {mygraph node lappend node0 foo bar baz boo} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"mygraph node lappend node0 ?-key key? value\""
+test graph1-32.5 {node lappend with bad args} {
+    struct::graph mygraph
+    mygraph node insert node0
+    catch {mygraph node lappend node0 -foo bar baz} msg
+    mygraph destroy
+    set msg
+} "invalid option \"-foo\": should be -key"
+test graph1-32.6 {node lappend respects -key flag} {
+    struct::graph mygraph
+    mygraph node insert node0
+    mygraph node set node0 -key baz foo
+    set result [mygraph node lappend node0 -key baz bar]
+    mygraph destroy
+    set result
+} "foo bar"
+
+
+# ---------------------------------------------------
+
+proc makegraph {} {
+    struct::graph mygraph
+
+    mygraph node insert i
+    mygraph node insert ii
+    mygraph node insert iii
+    mygraph node insert iv
+    mygraph node insert v
+    mygraph node insert vi
+    mygraph node insert vii
+    mygraph node insert viii
+    mygraph node insert ix
+
+    mygraph arc insert   i    ii  1
+    mygraph arc insert   ii  iii  2
+    mygraph arc insert   ii  iii  3
+    mygraph arc insert   ii  iii  4
+    mygraph arc insert  iii   iv  5
+    mygraph arc insert  iii   iv  6
+    mygraph arc insert   iv    v  7
+    mygraph arc insert    v   vi  8
+    mygraph arc insert   vi viii  9
+    mygraph arc insert viii    i 10
+    mygraph arc insert    i   ix 11
+    mygraph arc insert   ix   ix 12
+    mygraph arc insert    i  vii 13
+    mygraph arc insert  vii   vi 14
+}
+
+
+test graph1-21.1 {walk with too few args} {badTest} {
+    struct::graph mygraph
+    catch {mygraph walk} msg
+    mygraph destroy
+    set msg
+} "no value given for parameter \"node\" to \"::struct::graph::_walk\""
+
+test graph1-21.2 {walk with too few args} {
+    struct::graph mygraph
+    catch {mygraph walk node0} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"mygraph walk node0 ?-dir forward|backward? ?-order pre|post|both? ?-type {bfs|dfs}? -command cmd\""
+
+test graph1-21.3 {walk with too many args} {
+    struct::graph mygraph
+    catch {mygraph walk node0 -foo bar -baz boo -foo2 boo -foo3 baz -foo4 baz} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"mygraph walk node0 ?-dir forward|backward? ?-order pre|post|both? ?-type {bfs|dfs}? -command cmd\""
+
+test graph1-21.4 {walk with fake node} {
+    struct::graph mygraph
+    catch {mygraph walk node0 -command {}} msg
+    mygraph destroy
+    set msg
+} "node \"node0\" does not exist in graph \"mygraph\""
+
+test graph1-21.5 {walk using unknown option} {
+    makegraph
+    catch {mygraph walk i -foo x -command {}} msg
+    mygraph destroy
+    set msg
+} "unknown option \"-foo\": should be \"mygraph walk i ?-dir forward|backward? ?-order pre|post|both? ?-type {bfs|dfs}? -command cmd\""
+
+test graph1-21.6 {walk with empty command} {
+    makegraph
+    catch {mygraph walk i -command {}} msg
+    mygraph destroy
+    set msg
+} "no command specified: should be \"mygraph walk i ?-dir forward|backward? ?-order pre|post|both? ?-type {bfs|dfs}? -command cmd\""
+
+test graph1-21.7 {walk with illegal specifications} {
+    makegraph
+    catch {mygraph walk i -command foo -type foo} msg
+    mygraph destroy
+    set msg
+} "invalid search type \"foo\": should be dfs, or bfs"
+
+test graph1-21.8 {walk with illegal specifications} {
+    makegraph
+    catch {mygraph walk i -command foo -type dfs -dir oneway} msg
+    mygraph destroy
+    set msg
+} "invalid search direction \"oneway\": should be forward or backward"
+
+test graph1-21.9 {walk with illegal specifications} {
+    makegraph
+    catch {mygraph walk i -command foo -type dfs -dir forward -order none} msg
+    mygraph destroy
+    set msg
+} "invalid search order \"none\": should be both, pre or post"
+
+
+test graph1-21.10 {forward pre-order dfs is default walk} {
+    makegraph
+    set t [list ]
+    mygraph walk i -command {lappend t}
+    mygraph destroy
+    set t
+} [list \
+	enter mygraph    i enter mygraph ii enter mygraph iii	\
+	enter mygraph   iv enter mygraph  v enter mygraph  vi	\
+	enter mygraph viii enter mygraph ix enter mygraph vii	\
+	]
+
+test graph1-21.11 {forward post-order dfs walk} {
+    makegraph
+    set t [list ]
+    mygraph walk i -order post -command {lappend t}
+    mygraph destroy
+    set t
+} [list \
+	leave mygraph viii leave mygraph  vi leave mygraph  v	\
+	leave mygraph   iv leave mygraph iii leave mygraph ii	\
+	leave mygraph   ix leave mygraph vii leave mygraph  i	\
+	]
+
+test graph1-21.12 {forward both-order dfs walk} {
+    makegraph
+    set t [list ]
+    mygraph walk i -order both -command {lappend t}
+    mygraph destroy
+    set t
+} [list \
+	enter mygraph    i enter mygraph   ii enter mygraph iii	\
+	enter mygraph   iv enter mygraph    v enter mygraph  vi	\
+	enter mygraph viii leave mygraph viii leave mygraph  vi \
+	leave mygraph    v leave mygraph   iv leave mygraph iii	\
+	leave mygraph   ii enter mygraph   ix leave mygraph  ix	\
+	enter mygraph  vii leave mygraph  vii leave mygraph   i	\
+	]
+
+test graph1-21.13 {forward pre-order bfs walk} {
+    makegraph
+    set t [list ]
+    mygraph walk i -type bfs -command {lappend t}
+    mygraph destroy
+    set t
+} [list \
+	enter mygraph   i enter mygraph   ii enter mygraph ix	\
+	enter mygraph vii enter mygraph  iii enter mygraph vi	\
+	enter mygraph  iv enter mygraph viii enter mygraph  v	\
+	]
+
+test graph1-21.14 {backward pre-order bfs walk} {
+    makegraph
+    set t [list ]
+    mygraph walk ix -type bfs -dir backward -command {lappend t}
+    mygraph destroy
+    set t
+} [list \
+	enter mygraph ix enter mygraph   i enter mygraph viii	\
+	enter mygraph vi enter mygraph   v enter mygraph  vii	\
+	enter mygraph iv enter mygraph iii enter mygraph   ii	\
+	]
+
+test graph1-21.15 {backward pre-order dfs walk} {
+    makegraph
+    set t [list ]
+    mygraph walk ix -dir backward -command {lappend t}
+    mygraph destroy
+    set t
+} [list \
+	enter mygraph  ix enter mygraph  i enter mygraph viii	\
+	enter mygraph  vi enter mygraph  v enter mygraph   iv	\
+	enter mygraph iii enter mygraph ii enter mygraph  vii	\
+	]
+
+test graph1-21.16 {backward post-order dfs walk} {
+    makegraph
+    set t [list ]
+    mygraph walk ix -dir backward -order post -command {lappend t}
+    mygraph destroy
+    set t
+} [list \
+	leave mygraph   ii leave mygraph iii leave mygraph   iv	\
+	leave mygraph    v leave mygraph vii leave mygraph   vi	\
+	leave mygraph viii leave mygraph   i leave mygraph   ix	\
+	]
+
+test graph1-21.17 {backward both-order dfs walk} {
+    makegraph
+    set t [list ]
+    mygraph walk ix -dir backward -order both -command {lappend t}
+    mygraph destroy
+    set t
+} [list \
+	enter mygraph   ix enter mygraph   i enter mygraph viii	\
+	enter mygraph   vi enter mygraph   v enter mygraph   iv	\
+	enter mygraph  iii enter mygraph  ii leave mygraph   ii	\
+	leave mygraph  iii leave mygraph  iv leave mygraph    v	\
+	enter mygraph  vii leave mygraph vii leave mygraph   vi	\
+	leave mygraph viii leave mygraph   i leave mygraph   ix	\
+	]
+
+test graph1-21.18 {walk, option without value} {
+    makegraph
+    catch {mygraph walk ix -type dfs -order} msg
+    mygraph destroy
+    set msg
+} "value for \"-order\" missing: should be \"mygraph walk ix ?-dir forward|backward? ?-order pre|post|both? ?-type {bfs|dfs}? -command cmd\""
+
+test graph1-21.19 {forward post-order bfs walk not implemented} {
+    makegraph
+    catch {mygraph walk i -order post -type bfs -command {lappend t}} msg
+    mygraph destroy
+    set msg
+} {unable to do a post-order breadth first walk}
+
+test graph1-21.20 {forward both-order bfs walk not implemented} {
+    makegraph
+    catch {mygraph walk i -order both -type bfs -command {lappend t}} msg
+    mygraph destroy
+    set msg
+} {unable to do a both-order breadth first walk}
+
+test graph1-21.21 {backward post-order bfs walk not implemented} {
+    makegraph
+    catch {mygraph walk i -dir backward -order post -type bfs -command {lappend t}} msg
+    mygraph destroy
+    set msg
+} {unable to do a post-order breadth first walk}
+
+test graph1-21.22 {backward both-order bfs walk not implemented} {
+    makegraph
+    catch {mygraph walk i -dir backward -order both -type bfs -command {lappend t}} msg
+    mygraph destroy
+    set msg
+} {unable to do a both-order breadth first walk}
+
+
+# ---------------------------------------------------
+
+test graph1-33.1 {get gives error on bogus key} {
+    struct::graph mygraph
+    catch {mygraph get -key bogus} msg
+    mygraph destroy
+    set msg
+} "invalid key \"bogus\" for graph \"mygraph\""
+
+test graph1-33.2 {get uses data as default key} {
+    struct::graph mygraph
+    mygraph set foobar
+    set result [mygraph get]
+    mygraph destroy
+    set result
+} "foobar"
+
+test graph1-33.3 {get respects -key flag} {
+    struct::graph mygraph
+    mygraph set -key boom foobar
+    set result [mygraph get -key boom]
+    mygraph destroy
+    set result
+} "foobar"
+
+# ---------------------------------------------------
+
+test graph1-34.1 {set alone gets/sets "data" value} {
+    struct::graph mygraph
+    mygraph set foobar
+    set result [mygraph set]
+    mygraph destroy
+    set result
+} "foobar"
+
+test graph1-34.2 {set with key gets/sets key value} {
+    struct::graph mygraph
+    mygraph set -key baz foobar
+    set result [list [mygraph set] [mygraph set -key baz]]
+    mygraph destroy
+    set result
+} [list "" "foobar"]
+
+test graph1-34.3 {set with too many args gives error} {
+    struct::graph mygraph
+    catch {mygraph set foo bar baz boo} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"mygraph set ?-key key? ?value?\""
+
+test graph1-34.4 {set with bad args} {
+    struct::graph mygraph
+    catch {mygraph set foo bar} msg
+    mygraph destroy
+    set msg
+} "invalid option \"foo\": should be key"
+
+test graph1-34.5 {set with bad args} {
+    struct::graph mygraph
+    catch {mygraph set foo bar baz} msg
+    mygraph destroy
+    set msg
+} "invalid option \"foo\": should be key"
+
+test graph1-34.6 {set with bad key gives error} {
+    struct::graph mygraph
+    catch {mygraph set -key foo} msg
+    mygraph destroy
+    set msg
+} "invalid key \"foo\" for graph \"mygraph\""
+
+# ---------------------------------------------------
+
+test graph1-35.1 {unset does not give error on bogus key} {
+    struct::graph mygraph
+    set result [catch {mygraph unset -key bogus}]
+    mygraph destroy
+    set result
+} 0
+
+test graph1-35.2 {unset removes a keyed value} {
+    struct::graph mygraph
+    mygraph set -key foobar foobar
+    mygraph unset -key foobar
+    catch {mygraph get -key foobar} msg
+    mygraph destroy
+    set msg
+} "invalid key \"foobar\" for graph \"mygraph\""
+
+test graph1-35.3 {unset requires -key} {
+    struct::graph mygraph
+    mygraph set -key foobar foobar
+    catch {mygraph unset flaboozle foobar} msg
+    mygraph destroy
+    set msg
+} "invalid option \"flaboozle\": should be \"mygraph unset ?-key key?\""
+
+# ---------------------------------------------------
+
+test graph1-36.1 {getall gives error when key specified} {
+    struct::graph mygraph
+    catch {mygraph getall -key data} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be none"
+test graph1-36.2 {getall returns list of key/value pairs} {
+    struct::graph mygraph
+    mygraph set foobar
+    mygraph set -key other thing
+    set results [mygraph getall]
+    mygraph destroy
+    lsort $results
+} "data foobar other thing"
+
+test graph1-37.1 {keys gives error when key specified} {
+    struct::graph mygraph
+    catch { mygraph keys -key bogus } msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be none"
+test graph1-37.2 {keys returns list of keys} {
+    struct::graph mygraph
+    mygraph set -key other things
+    set results [mygraph keys]
+    mygraph destroy
+    lsort $results
+} "data other"
+  
+test graph1-38.1 {keyexists returns false on non-existant key} {
+    struct::graph mygraph
+    set result [mygraph keyexists -key bogus]
+    mygraph destroy
+    set result
+} "0"
+test graph1-38.2 {keyexists uses data as default key} {
+    struct::graph mygraph
+    set result [mygraph keyexists]
+    mygraph destroy
+    set result
+} "1"
+test graph1-38.3 {keyexists respects -key flag} {
+    struct::graph mygraph
+    mygraph set -key boom foobar
+    set result [mygraph keyexists -key boom]
+    mygraph destroy
+    set result
+} "1"
+
+# ---------------------------------------------------
+# Big cleanup, get out of the way of graph v2.
+#
+# Currently the order of test files is graph, graph1, graphops, and
+# the first and last use graph v2. Leaving the class command of graph
+# v1 in place will mess up the handling of accelerated operations.
+
+rename struct::graph {}
+
+# ---------------------------------------------------  
+testsuiteCleanup

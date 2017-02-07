@@ -1,0 +1,12 @@
+PEG a_pe_grammar (Expression)
+
+ AddOp      <- [-+] ;
+ Digit      <- [0123456789] ;
+ Expression <- '(' Expression ')' / Factor (MulOp Factor)* ;
+ Factor     <- Term (AddOp Term)* ;
+ MulOp      <- [*/] ;
+ Number     <- Sign? Digit+ ;
+ Sign       <- [-+] ;
+ Term       <- Number ;
+
+END;

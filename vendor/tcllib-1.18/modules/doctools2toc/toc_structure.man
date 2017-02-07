@@ -1,0 +1,151 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctools::toc::structure n 0.1]
+[keywords deserialization]
+[keywords doctoc]
+[keywords doctools]
+[keywords serialization]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {Doctoc serialization utilities}]
+[category  {Documentation tools}]
+[require doctools::toc::structure [opt 0.1]]
+[require Tcl 8.4]
+[require logger]
+[require snit]
+[description]
+
+This package provides commands to work with the serializations of
+tables of contents as managed by the doctools system v2, and specified
+in section [sectref {ToC serialization format}].
+
+[para]
+
+This is an internal package of doctools, for use by the higher level
+packages handling tables of contents and their conversion into and out
+of various other formats, like documents written using [term doctoc]
+markup.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::doctools::toc::structure] [method verify] \
+	[arg serial] [opt [arg canonvar]]]
+
+This command verifies that the content of [arg serial] is a valid
+[term regular] serialization of a table of contents and will throw an
+error if that is not the case. The result of the command is the empty
+string.
+
+[para]
+
+If the argument [arg canonvar] is specified it is interpreted as the
+name of a variable in the calling context. This variable will be
+written to if and only if [arg serial] is a valid regular
+serialization. Its value will be a boolean, with [const True]
+indicating that the serialization is not only valid, but also
+[term canonical]. [const False] will be written for a valid, but
+non-canonical serialization.
+
+[para]
+
+For the specification of regular and canonical serializations see the
+section [sectref {ToC serialization format}].
+
+[call [cmd ::doctools::toc::structure] [method verify-as-canonical] \
+	[arg serial]]
+
+This command verifies that the content of [arg serial] is a valid
+[term canonical] serialization of a table of contents and will throw
+an error if that is not the case. The result of the command is the
+empty string.
+
+[para]
+
+For the specification of canonical serializations see the section
+[sectref {ToC serialization format}].
+
+[call [cmd ::doctools::toc::structure] [method canonicalize] [arg serial]]
+
+This command assumes that the content of [arg serial] is a valid
+[term regular] serialization of a table of contents and will throw an
+error if that is not the case.
+
+[para]
+
+It will then convert the input into the [term canonical] serialization
+of the contained table of contents and return it as its result. If the
+input is already canonical it will be returned unchanged.
+
+[para]
+
+For the specification of regular and canonical serializations see the
+section [sectref {ToC serialization format}].
+
+[call [cmd ::doctools::toc::structure] [method print] [arg serial]]
+
+This command assumes that the argument [arg serial] contains a valid
+regular serialization of a table of contents and returns a string
+containing that table in a human readable form.
+
+[para]
+
+The exact format of this form is not specified and cannot be relied on
+for parsing or other machine-based activities.
+
+[para]
+
+For the specification of regular serializations see the section
+[sectref {ToC serialization format}].
+
+[call [cmd ::doctools::toc::structure] [method merge] \
+	[arg seriala] [arg serialb]]
+
+This command accepts the regular serializations of two tables of
+contents and uses them to create their union.  The result of the
+command is the canonical serialization of this unified table of
+contents.
+
+[para]
+Title and label of the resulting table are taken from the table
+contained in [arg serialb].
+
+[para]
+The whole table and its divisions are merged recursively in the same
+manner:
+
+[list_begin enumerated]
+
+[enum]
+All reference elements which occur in both divisions (identified by
+their label) are unified with document id's and descriptions taken
+from the second table.
+
+[enum]
+All division elements which occur in both divisions (identified by
+their label) are unified with the optional document id taken from the
+second table, if any, or from the first if none is in the second. The
+elements in the division are merged recursively using the same
+algorithm as described in this list.
+
+[enum]
+Type conflicts between elements, i.e. finding two elements with the
+same label but different types result in a merge error.
+
+[enum]
+All elements found in the second division but not in the first are
+added to the end of the list of elements in the merge result.
+[list_end]
+
+[para]
+
+For the specification of regular and canonical serializations see the
+section [sectref {ToC serialization format}].
+
+[list_end]
+
+[include include/serialization.inc]
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

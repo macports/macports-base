@@ -1,0 +1,7 @@
+[comment {--- doctools ---}]
+[vset PACKAGE tclparam]
+[vset NAME    TCLPARAM]
+[vset REQUIRE tclparam]
+[vset CONFIG  tclparam]
+[vset VERSION 1.0.3]
+[include include/export/to.inc]

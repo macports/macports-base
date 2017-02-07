@@ -1,0 +1,117 @@
+'''ALL 5''' '''.MODULE.''' ''..THE_MODULE..''
+
+..THE_TITLE..
+
+
+**SYNOPSIS**
+
+
+package require '''AAA'''
+
+package require '''BBB VVV'''
+
+package require '''CCC ?VVV?'''
+
+   * CMDNAME ...
+
+   * CMDNAME ...
+
+   * CMDNAME ...
+
+
+
+
+**DESCRIPTION**
+
+
+
+   '''NAME''':   DESCRIPTION ::'''Command''':: 
+
+   '''NAME''':   DESCRIPTION :::: 
+
+   '''NAME''':   DESCRIPTION ::'''Constant'''::  
+
+**API**
+
+
+
+   TERM:    DESCRIPTION ::''Emphasis'':: 
+
+   TERM:    DESCRIPTION ::"''File/Path''"::  
+
+Command-Line Switch:	'''NAME'''
+Database Name:	'''DBNAME'''
+Database Class:	'''CLASS'''
+   *  DESCRIPTION '''NARGLE'''
+
+Command-Line Switch:	'''NAME'''
+Database Name:	'''DBNAME'''
+Database Class:	'''CLASS'''
+   *  DESCRIPTION ::'''Function'''::
+
+Command-Line Switch:	'''NAME'''
+Database Name:	'''DBNAME'''
+Database Class:	'''CLASS'''
+   *  DESCRIPTION ::'''Method'''::
+
+   TERM:    DESCRIPTION 
+
+   CMDNAME ...:    DESCRIPTION ::'''Namespace''':: 
+
++++
+''NAME'' TYPE    DESCRIPTION ::''Argument''::
+''NAME'' TYPE    DESCRIPTION ::'''Option'''::
+''NAME'' TYPE (MODE)    DESCRIPTION ::?Optional?::
+======
+
+    THE ARGUMENT IS USED IN THIS
+    AND/OR THAT MANNER
+
+======
+
++++
+
+
+
+   CMDNAME ...:    DESCRIPTION ::'''Package''':: 
+
+   CMDNAME ...:    DESCRIPTION ::'''SystemCommand'''::  
+
+   '''NAME''':    DESCRIPTION ::''Term'':: 
+
+   '''NAME''':    DESCRIPTION ::'''Type''':: 
+
+   '''NAME''' ARGUMENT:    DESCRIPTION ::Uri::   
+
+***NARGLE***
+
+
+
+   1.  PARAGRAPH ::Uri%|%UriLabel%|%::
+
+   1.  PARAGRAPH ::'''Variable'''::
+
+   1.  PARAGRAPH ::'''Widget'''::
+
+   *  PARAGRAPH ::'''Class'''::
+
+   *  PARAGRAPH
+
+   *  PARAGRAPH
+
+**SEE ALSO**
+
+
+ELSE, OTHER
+
+
+**KEYWORDS**
+
+
+KEYA, KEYZ
+
+
+**COPYRIGHT**
+
+ Copyright (c) **Copyright**
+

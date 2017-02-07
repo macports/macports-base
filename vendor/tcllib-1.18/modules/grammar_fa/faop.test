@@ -1,0 +1,45 @@
+# -*- tcl -*-
+# faop.test:  tests for complex operations on the grammar::fa container.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: faop.test,v 1.11 2007/04/12 03:43:14 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+support {
+    useAccel [useTcllibC] struct/sets.tcl struct::set
+    TestAccelInit                         struct::set
+
+    use snit/snit.tcl   snit ; # 1.1 always, even when Tcl 8.5 runs the testsuite.
+    use struct/list.tcl struct::list
+
+    useLocalFile tests/Xsupport
+}
+testing {
+    useLocal     faop.tcl grammar::fa::op
+}
+support {
+    useLocalKeep fa.tcl   grammar::fa
+}
+
+# -------------------------------------------------------------------------
+
+set class ::grammar::fa::op
+
+# -------------------------------------------------------------------------
+
+TestAccelDo struct::set setimpl {
+    TestFiles tests/faop_*.test
+}
+
+# -------------------------------------------------------------------------
+TestAccelExit struct::set
+testsuiteCleanup

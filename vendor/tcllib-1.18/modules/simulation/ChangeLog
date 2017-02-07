@@ -1,0 +1,84 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2012-08-15  Arjen Markus  <arjenmarkus@users.sourceforge.net>
+	* random.tcl: Correct the normal random number generator (missing factor 2 - reported by Jochem Snuverink)
+	* pkgIndex.tcl: bumped version to 0.3.1 for "random"
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	*
+
+2011-06-17  Arjen Markus  <arjenmarkus@users.sourceforge.net>
+	* random.tcl: [Bug 3316478]: solve a few more bugs in the PRNG procedures
+	* random.test: added to get at least (very) basic confidence in the PRNG procedures
+	* pkgIndex.tcl: bumped version to 0.3 for "random"
+
+2011-06-16  Arjen Markus  <arjenmarkus@users.sourceforge.net>
+
+	* random.tcl: [Bug 3316478]: prng_Block was renamed to prng_Blocke - typo fixed; superfluous parenthesis removed
+	* pkgIndex.tcl: bumped version to 0.2 for "random"
+
+
+2011-06-15  Arjen Markus  <arjenmarkus@users.sourceforge.net>
+
+	* simulation_random.man: [Bug 3316476]: Documentation of prng_Block was wrong wrt the result
+	* random.tcl: [Bug 3316478]: prng_Rectangle was overwritten by implementation of prng_Block
+	                             because the name was wrong
+	* random.tcl: [Bug 3316505]: fix in prng_chSquared
+	                             (all three reported by Andreas Kupries)
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	*
+
+2009-12-11  Andreas Kupries  <andreask@activestate.com>
+
+	* random.man: [Bug 2912295]: Renamed to simulation_random.man, to
+	  prevent conflict with Memchan's random.n manpage.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	*
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	*
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	*
+
+2008-03-14  Andreas Kupries <andreask@activestate.com>
+
+	* annealing.man: Cleaned up a bit, replaced deprecated [nl] usage
+	* montecarlo.man: with [para].
+	* random.man:
+
+2008-02-22  Arjen Markus <arjenmarkus@users.sourceforge.net>
+
+	* annealing.tcl: Added function for combinatorial problems
+	* annealing.man: Described new function
+
+2008-01-11  Arjen Markus <arjenmarkus@users.sourceforge.net>
+
+	* annealing.tcl: Package for simulated annealing added
+	* annealing.man: Description of simulated annealing added
+	* montecarlo.tcl: Package for Monte Carlo simulation added
+	* montecarlo.man: Description of Monte Carlo simulation added
+	* random.tcl: Package for random number generators added
+	* random.man: Description of random number generators added
+

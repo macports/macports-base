@@ -1,0 +1,20 @@
+dist_id: tcllib
+version: @PACKAGE_VERSION@
+language: tcl
+description: |
+   This package is intended to be a collection of Tcl packages that provide
+   utility functions useful to a large collection of Tcl programmers.
+
+   The home web site for this code is http://core.tcl.tk/tcllib/.
+   At this web site, you will find mailing lists, web forums, databases
+   for bug reports and feature requests, the CVS repository (browsable
+   on the web, or read-only accessible via CVS ), and more.
+
+categories: 
+  - Library/Utility
+  - Library/Mail
+  - Library/Cryptography
+  - Library/Math
+license: BSD
+owner_id: AndreasKupries
+wrapped_content: @PACKAGE_NAME@-@PACKAGE_VERSION@/

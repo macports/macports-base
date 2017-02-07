@@ -1,0 +1,99 @@
+# yencode.test - Copyright (C) 2002 Pat Thoyts <patthoyts@users.sourceforge.net>
+#
+# Tests for the Tcllib yencode package
+#
+# -------------------------------------------------------------------------
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# -------------------------------------------------------------------------
+# RCS: @(#) $Id: yencode.test,v 1.11 2008/12/12 04:57:46 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    # FUTURE: Switch tcl/critcl implementations
+    useTcllibC
+    useLocalKeep yencode.tcl yencode
+}
+
+# -------------------------------------------------------------------------
+
+if {[llength [info commands ::yencode::CEncode]]} {
+    puts "> critcl based"
+} else {
+    puts "> pure tcl"
+}
+
+proc ::yencode::loaddata {filename {translation auto}} {
+    set f [open $filename r]
+    fconfigure $f -translation $translation
+    set data [read $f]
+    close $f
+    return $data
+}
+
+# -------------------------------------------------------------------------
+
+set datafile [localPath yencode.test.data]
+
+test yencode-1.0 {yencode yEnc test file} {
+    set enc [::yencode::yencode -file $datafile]
+    set dec [::yencode::ydecode $enc]
+    set chk [::yencode::loaddata $datafile]
+    string equal $dec $chk
+} {0}
+    
+
+# -------------------------------------------------------------------------
+
+foreach {n in out} {
+    0 A        {k}
+    1 ABC      {klm}
+    2 \0\1\2   {*+,}
+    3 "\r\n\t" {743}
+    4 "\xd6\xe0\xe3" {=@=J=M}
+} {
+    test yencode-2.$n.a {check the pure tcl encode} {
+        list [catch {::yencode::Encode $in} r] $r
+    } [list 0 $out]
+    test yencode-2.$n.b {check the pure tcl decode} {
+        list [catch {::yencode::Decode $out} r] $r
+    } [list 0 $in]
+}
+
+if {[llength [info commands ::yencode::CEncode]]} {
+    foreach {n in out} {
+        0 A        {k}
+        1 ABC      {klm}
+        2 \0\1\2   {*+,}
+        3 "\r\n\t" {743}
+        4 "\xd6\xe0\xe3" {=@=J=M}
+    } {
+        test yencode-3.$n.a {check the critcl encode} {
+            list [catch {::yencode::Encode $in} r] $r
+        } [list 0 $out]
+        test yencode-3.$n.b {check the critcl decode} {
+            list [catch {::yencode::Decode $out} r] $r
+        } [list 0 $in]
+    }
+}
+
+# -------------------------------------------------------------------------
+
+catch {
+    unset datafile
+    rename ::yencode::loaddata {}
+}
+testsuiteCleanup
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

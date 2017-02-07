@@ -1,0 +1,86 @@
+# calculus.test --
+#    Test cases for the Calculus package
+#
+source calculus.tcl
+
+#
+# Simple test functions - exact result predictable!
+#
+proc const_func { x } {
+   return 1
+}
+proc linear_func { x } {
+   return $x
+}
+proc downward_linear { x } {
+   return [expr {100.0-$x}]
+}
+proc downward_linear { x } {
+   return [expr {100.0-$x}]
+}
+
+#
+# Test the Integral proc
+#
+puts "[::Calculus::Integral 0 100 100 const_func] - expected: 100"
+puts "[::Calculus::Integral 0 100 100 linear_func] - expected: 5000"
+puts "[::Calculus::Integral 0 100 100 downward_linear] - expected: 5000"
+puts "[::Calculus::Integral 0 100 100 downward_linear] - expected: 5000"
+puts "[::Calculus::IntegralExpr 0 100 100 {100.0-$x}] - expected: 5000"
+
+proc const_func2d { x y } {
+   return 1
+}
+proc linear_func2d { x y } {
+   return $x
+}
+puts "[::Calculus::Integral2D { 0 100 10 } { 0 50 1 } const_func2d] - \
+ expected 5000"
+puts "[::Calculus::Integral2D { 0 100 1  } { 0 50 1 } const_func2d] - \
+ expected 5000"
+puts "[::Calculus::Integral2D { 0 100 10 } { 0 50 1 } linear_func2d] - \
+ expected 250000"
+
+# xvec should one long!
+proc const_func { t xvec } { return 1.0 }
+
+# xvec should be two long!
+proc dampened_oscillator { t xvec } {
+   set x  [lindex $xvec 0]
+   set x1 [lindex $xvec 1]
+   return [list $x1 [expr {-$x1-$x}]]
+}
+
+foreach method {EulerStep HeunStep} {
+   puts "Method: $method"
+
+   set xvec   0.0
+   set t      0.0
+   set tstep  1.0
+   for { set i 0 } { $i < 10 } { incr i } {
+      set result [::Calculus::$method $t $tstep $xvec const_func]
+      puts "Result ($t): $result"
+      set t      [expr {$t+$tstep}]
+      set xvec   $result
+   }
+
+   set xvec   { 1.0 0.0 }
+   set t      0.0
+   set tstep  0.1
+   for { set i 0 } { $i < 20 } { incr i } {
+      set result [::Calculus::$method $t $tstep $xvec dampened_oscillator]
+      puts "Result ($t): $result"
+      set t      [expr {$t+$tstep}]
+      set xvec   $result
+   }
+}
+
+#
+# Boundary value problems:
+# use simple functions
+#
+proc coeffs { x } { return {1.0 0.0 0.0} }
+proc forces { x } { return 0.0 }
+
+puts [::Calculus::BoundaryValueSecondOrder coeffs forces {0.0 1.0} {100.0 0.0} 10]
+puts [::Calculus::BoundaryValueSecondOrder coeffs forces {0.0 0.0} {100.0 1.0} 10]

@@ -1,0 +1,14 @@
+fubar
+    while executing
+"error fubar"
+    invoked from within
+"mytree walk root {a n} {
+	    if {[string equal $n "b"]} {
+		lappend t .
+		error fubar
+	    }
+	    lappend t $a $n
+	}"
+    (procedure "foo" line 7)
+    invoked from within
+"foo"

@@ -1,0 +1,308 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin mapproj n 0.1]
+[keywords geodesy]
+[keywords map]
+[keywords projection]
+[copyright {2007 Kevin B. Kenny <kennykb@acm.org>}]
+[moddesc {Tcl Library}]
+[titledesc {Map projection routines}]
+[require Tcl [opt 8.4]]
+[require math::interpolate [opt 1.0]]
+[require math::special [opt 0.2.1]]
+[require mapproj [opt 1.0]]
+[description]
+The [package mapproj] package provides a set of procedures for
+converting between world co-ordinates (latitude and longitude) and map
+co-ordinates on a number of different map projections.
+
+[section Commands]
+
+The following commands convert between world co-ordinates and
+map co-ordinates:
+
+[list_begin definitions]
+
+[call [cmd ::mapproj::toPlateCarree] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the [emph "plate carr\u00e9e"] (cylindrical equidistant)
+projection.
+[call [cmd ::mapproj::fromPlateCarree] [arg lambda_0] [arg phi_0] [arg x] [arg y]]
+Converts from the [emph "plate carr\u00e9e"] (cylindrical equidistant)
+projection.
+[call [cmd ::mapproj::toCylindricalEqualArea] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the cylindrical equal-area projection.
+[call [cmd ::mapproj::fromCylindricalEqualArea] [arg lambda_0] [arg phi_0] [arg x] [arg y]]
+Converts from the cylindrical equal-area projection.
+[call [cmd ::mapproj::toMercator] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the Mercator (cylindrical conformal) projection.
+[call [cmd ::mapproj::fromMercator] [arg lambda_0] [arg phi_0]  [arg x] [arg y]]
+Converts from the Mercator (cylindrical conformal) projection.
+[call [cmd ::mapproj::toMillerCylindrical] [arg lambda_0] [arg lambda] [arg phi]]
+Converts to the Miller Cylindrical projection.
+[call [cmd ::mapproj::fromMillerCylindrical] [arg lambda_0] [arg x] [arg y]]
+Converts from the Miller Cylindrical projection.
+[call [cmd ::mapproj::toSinusoidal] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the sinusoidal (Sanson-Flamsteed) projection.
+projection.
+[call [cmd ::mapproj::fromSinusoidal] [arg lambda_0] [arg phi_0] [arg x] [arg y]]
+Converts from the sinusoidal (Sanson-Flamsteed) projection.
+projection.
+[call [cmd ::mapproj::toMollweide] [arg lambda_0] [arg lambda] [arg phi]]
+Converts to the Mollweide projection.
+[call [cmd ::mapproj::fromMollweide] [arg lambda_0] [arg x] [arg y]]
+Converts from the Mollweide projection.
+[call [cmd ::mapproj::toEckertIV] [arg lambda_0] [arg lambda] [arg phi]]
+Converts to the Eckert IV projection.
+[call [cmd ::mapproj::fromEckertIV] [arg lambda_0] [arg x] [arg y]]
+Converts from the Eckert IV projection.
+[call [cmd ::mapproj::toEckertVI] [arg lambda_0] [arg lambda] [arg phi]]
+Converts to the Eckert VI projection.
+[call [cmd ::mapproj::fromEckertVI] [arg lambda_0] [arg x] [arg y]]
+Converts from the Eckert VI projection.
+[call [cmd ::mapproj::toRobinson] [arg lambda_0] [arg lambda] [arg phi]]
+Converts to the Robinson projection.
+[call [cmd ::mapproj::fromRobinson] [arg lambda_0] [arg x] [arg y]]
+Converts from the Robinson projection.
+[call [cmd ::mapproj::toCassini] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the Cassini (transverse cylindrical equidistant)
+projection.
+[call [cmd ::mapproj::fromCassini] [arg lambda_0] [arg phi_0] [arg x] [arg y]]
+Converts from the Cassini (transverse cylindrical equidistant)
+projection.
+[call [cmd ::mapproj::toPeirceQuincuncial] [arg lambda_0] [arg lambda] [arg phi]]
+Converts to the Peirce Quincuncial Projection.
+[call [cmd ::mapproj::fromPeirceQuincuncial] [arg lambda_0] [arg x] [arg y]]
+Converts from the Peirce Quincuncial Projection.
+[call [cmd ::mapproj::toOrthographic] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the orthographic projection.
+[call [cmd ::mapproj::fromOrthographic] [arg lambda_0] [arg phi_0] [arg x] [arg y]]
+Converts from the orthographic projection.
+[call [cmd ::mapproj::toStereographic] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the stereographic (azimuthal conformal) projection.
+[call [cmd ::mapproj::fromStereographic] [arg lambda_0] [arg phi_0] [arg x] [arg y]]
+Converts from the stereographic (azimuthal conformal) projection.
+[call [cmd ::mapproj::toGnomonic] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the gnomonic projection.
+[call [cmd ::mapproj::fromGnomonic] [arg lambda_0] [arg phi_0] [arg x] [arg y]]
+Converts from the gnomonic projection.
+[call [cmd ::mapproj::toAzimuthalEquidistant] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the azimuthal equidistant projection.
+[call [cmd ::mapproj::fromAzimuthalEquidistant] [arg lambda_0] [arg phi_0] [arg x] [arg y]]
+Converts from the azimuthal equidistant projection.
+[call [cmd ::mapproj::toLambertAzimuthalEqualArea] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the Lambert azimuthal equal-area projection.
+[call [cmd ::mapproj::fromLambertAzimuthalEqualArea] [arg lambda_0] [arg phi_0] [arg x] [arg y]]
+Converts from the Lambert azimuthal equal-area projection.
+[call [cmd ::mapproj::toHammer] [arg lambda_0] [arg lambda] [arg phi]]
+Converts to the Hammer projection.
+[call [cmd ::mapproj::fromHammer] [arg lambda_0] [arg x] [arg y]]
+Converts from the Hammer projection.
+[call [cmd ::mapproj::toConicEquidistant] [arg lambda_0] [arg phi_0] [arg phi_1] [arg phi_2] [arg lambda] [arg phi]]
+Converts to the conic equidistant projection.
+[call [cmd ::mapproj::fromConicEquidistant] [arg lambda_0] [arg phi_0] [arg phi_1] [arg phi_2] [arg x] [arg y]]
+Converts from the conic equidistant projection.
+[call [cmd ::mapproj::toAlbersEqualAreaConic] [arg lambda_0] [arg phi_0] [arg phi_1] [arg phi_2] [arg lambda] [arg phi]]
+Converts to the Albers equal-area conic projection.
+[call [cmd ::mapproj::fromAlbersEqualAreaConic] [arg lambda_0] [arg phi_0] [arg phi_1] [arg phi_2] [arg x] [arg y]]
+Converts from the Albers equal-area conic projection.
+[call [cmd ::mapproj::toLambertConformalConic] [arg lambda_0] [arg phi_0] [arg phi_1] [arg phi_2] [arg lambda] [arg phi]]
+Converts to the Lambert conformal conic projection.
+[call [cmd ::mapproj::fromLambertConformalConic] [arg lambda_0] [arg phi_0] [arg phi_1] [arg phi_2] [arg x] [arg y]]
+Converts from the Lambert conformal conic projection.
+
+[list_end]
+
+Among the cylindrical equal-area projections, there are a number of
+choices of standard parallels that have names:
+
+[list_begin definitions]
+[call [cmd ::mapproj::toLambertCylindricalEqualArea] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the Lambert cylindrical equal area projection. (standard parallel
+is the Equator.)
+[call [cmd ::mapproj::fromLambertCylindricalEqualArea] [arg lambda_0] [arg phi_0] [arg x] [arg y]]
+Converts from the Lambert cylindrical equal area projection. (standard parallel
+is the Equator.)
+[call [cmd ::mapproj::toBehrmann] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the Behrmann cylindrical equal area projection. (standard parallels
+are 30 degrees North and South)
+[call [cmd ::mapproj::fromBehrmann] [arg lambda_0] [arg phi_0] [arg x] [arg y]]
+Converts from the Behrmann cylindrical equal area projection. (standard parallels
+are 30 degrees North and South.)
+[call [cmd ::mapproj::toTrystanEdwards] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the Trystan Edwards cylindrical equal area projection. (standard parallels
+are 37.4 degrees North and South)
+[call [cmd ::mapproj::fromTrystanEdwards] [arg lambda_0] [arg phi_0] [arg x] [arg y]]
+Converts from the Trystan Edwards cylindrical equal area projection. (standard parallels
+are 37.4 degrees North and South.)
+[call [cmd ::mapproj::toHoboDyer] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the Hobo-Dyer cylindrical equal area projection. (standard parallels
+are 37.5 degrees North and South)
+[call [cmd ::mapproj::fromHoboDyer] [arg lambda_0] [arg phi_0] [arg x] [arg y]]
+Converts from the Hobo-Dyer cylindrical equal area projection. (standard parallels
+are 37.5 degrees North and South.)
+[call [cmd ::mapproj::toGallPeters] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the Gall-Peters cylindrical equal area projection. (standard parallels
+are 45 degrees North and South)
+[call [cmd ::mapproj::fromGallPeters] [arg lambda_0] [arg phi_0] [arg x] [arg y]]
+Converts from the Gall-Peters cylindrical equal area projection. (standard parallels
+are 45 degrees North and South.)
+[call [cmd ::mapproj::toBalthasart] [arg lambda_0] [arg phi_0] [arg lambda] [arg phi]]
+Converts to the Balthasart cylindrical equal area projection. (standard parallels
+are 50 degrees North and South)
+[call [cmd ::mapproj::fromBalthasart] [arg lambda_0] [arg phi_0] [arg x] [arg y]]
+Converts from the Balthasart cylindrical equal area projection. (standard parallels
+are 50 degrees North and South.)
+
+[list_end]
+
+[section Arguments]
+
+The following arguments are accepted by the projection commands:
+
+[list_begin definitions]
+
+[def [arg lambda]]
+
+Longitude of the point to be projected, in degrees.
+
+[def [arg phi]]
+
+Latitude of the point to be projected, in degrees.
+
+[def [arg lambda_0]]
+
+Longitude of the center of the sheet, in degrees.  For many projections,
+this figure is also the reference meridian of the projection.
+
+[def [arg phi_0]]
+
+Latitude of the center of the sheet, in degrees.  For the azimuthal
+projections, this figure is also the latitude of the center of the projection.
+
+[def [arg phi_1]]
+
+Latitude of the first reference parallel, for projections that use reference
+parallels.
+
+[def [arg phi_2]]
+
+Latitude of the second reference parallel, for projections that use reference
+parallels.
+
+[def [arg x]]
+
+X co-ordinate of a point on the map, in units of Earth radii.
+
+[def [arg y]]
+
+Y co-ordinate of a point on the map, in units of Earth radii.
+
+[list_end]
+
+[section Results]
+
+For all of the procedures whose names begin with 'to', the return value
+is a list comprising an [emph x] co-ordinate and a [emph y] co-ordinate.
+The co-ordinates are relative to the center of the map sheet to be drawn,
+measured in Earth radii at the reference location on the map.
+
+For all of the functions whose names begin with 'from', the return value
+is a list comprising the longitude and latitude, in degrees.
+
+[section {Choosing a projection}]
+
+This package offers a great many projections, because no single projection
+is appropriate to all maps.  This section attempts to provide guidance
+on how to choose a projection.
+[para]
+First, consider the type of data that you intend to display on the map.
+If the data are [emph directional] ([emph e.g.,] winds, ocean currents, or
+magnetic fields) then you need to use a projection that preserves
+angles; these are known as [emph conformal] projections.  Conformal
+projections include the Mercator, the Albers azimuthal equal-area,
+the stereographic, and the Peirce Quincuncial projection.  If the
+data are [emph thematic], describing properties of land or water, such
+as temperature, population density, land use, or demographics; then
+you need a projection that will show these data with the areas on the map
+proportional to the areas in real life.  These so-called [emph {equal area}]
+projections include the various cylindrical equal area projections,
+the sinusoidal projection, the Lambert azimuthal equal-area projection,
+the Albers equal-area conic projection, and several of the world-map
+projections (Miller Cylindrical, Mollweide, Eckert IV, Eckert VI, Robinson,
+and Hammer). If the significant factor in your data is distance from a
+central point or line (such as air routes), then you will do best with
+an [emph equidistant] projection such as [emph "plate carr\u00e9e"],
+Cassini, azimuthal equidistant, or conic equidistant.  If direction from
+a central point is a critical factor in your data (for instance,
+air routes, radio antenna pointing), then you will almost surely want to
+use one of the azimuthal projections. Appropriate choices are azimuthal
+equidistant, azimuthal equal-area, stereographic, and perhaps orthographic.
+[para]
+Next, consider how much of the Earth your map will cover, and the general
+shape of the area of interest.  For maps of the entire Earth,
+the cylindrical equal area, Eckert IV and VI, Mollweide, Robinson, and Hammer
+projections are good overall choices.  The Mercator projection is traditional,
+but the extreme distortions of area at high latitudes make it
+a poor choice unless a conformal projection is required. The Peirce
+projection is a better choice of conformal projection, having less distortion
+of landforms.  The Miller Cylindrical is a compromise designed to give
+shapes similar to the traditional Mercator, but with less polar stretching.
+The Peirce Quincuncial projection shows all the continents with acceptable
+distortion if a reference meridian close to +20 degrees is chosen.
+The Robinson projection yields attractive maps for things like political
+divisions, but should be avoided in presenting scientific data, since other
+projections have moe useful geometric properties.
+[para]
+If the map will cover a hemisphere, then choose stereographic,
+azimuthal-equidistant, Hammer, or Mollweide projections; these all project
+the hemisphere into a circle.
+[para]
+If the map will cover a large area (at least a few hundred km on a side),
+but less than
+a hemisphere, then you have several choices.  Azimuthal projections
+are usually good (choose stereographic, azimuthal equidistant, or
+Lambert azimuthal equal-area according to whether shapes, distances from
+a central point, or areas are important).  Azimuthal projections (and possibly
+the Cassini projection) are the only
+really good choices for mapping the polar regions.
+[para]
+If the large area is in one of the temperate zones and is round or has
+a primarily east-west extent, then the conic projections are good choices.
+Choose the Lambert conformal conic, the conic equidistant, or the Albers
+equal-area conic according to whether shape, distance, or area are the
+most important parameters.  For any of these, the reference parallels
+should be chosen at approximately 1/6 and 5/6 of the range of latitudes
+to be displayed.  For instance, maps of the 48 coterminous United States
+are attractive with reference parallels of 28.5 and 45.5 degrees.
+[para]
+If the large area is equatorial and is round or has a primarily east-west
+extent, then the Mercator projection is a good choice for a conformal
+projection; Lambert cylindrical equal-area and sinusoidal projections are
+good equal-area projections; and the [emph "plate carr\u00e9e"] is a
+good equidistant projection.
+[para]
+Large areas having a primarily North-South aspect, particularly those
+spanning the Equator, need some other choices.  The Cassini projection
+is a good choice for an equidistant projection (for instance, a Cassini
+projection with a central meridian of 80 degrees West produces an
+attractive map of the Americas). The cylindrical equal-area, Albers
+equal-area conic, sinusoidal, Mollweide and Hammer
+projections are possible choices for equal-area projections.
+A good conformal projection in this situation is the Transverse
+Mercator, which alas, is not yet implemented.
+[para]
+Small areas begin to get into a realm where the ellipticity of the
+Earth affects the map scale.  This package does not attempt to
+handle accurate mapping for large-scale topographic maps.  If
+slight scale errors are acceptable in your application, then any
+of the projections appropriate to large areas should work for
+small ones as well.
+[para]
+There are a few projections that are included for their special
+properties.  The orthographic projection produces views of the
+Earth as seen from space.  The gnomonic projection produces a
+map on which all great circles (the shortest distance between
+two points on the Earth's surface) are rendered as straight lines.
+While this projection is useful for navigational planning, it
+has extreme distortions of shape and area, and can display
+only a limited area of the Earth (substantially less than a hemisphere).
+[manpage_end]

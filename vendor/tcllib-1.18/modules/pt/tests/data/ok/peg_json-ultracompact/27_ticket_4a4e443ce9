@@ -1,0 +1,1 @@
+{"pt::grammar::peg":{"rules":{"eos":{"is":"x {n ex} {* {x {+ space} {n ex}}}","mode":"value"},"ex":{"is":"x {+ {x {! {n X}} {/ {t x} {t z}}}} {? {n X}}","mode":"value"},"X":{"is":"t x","mode":"value"}},"start":"n eos"}}

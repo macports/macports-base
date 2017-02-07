@@ -2,7 +2,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # Traverse through all ports, creating an index and archiving port directories
 # if requested
-# $Id$
 
 package require macports
 package require Pextlib
@@ -82,10 +81,19 @@ proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}
     upvar $portinfo_name portinfo
     upvar $port_options_name port_options
 
-    if {$subport eq {}} {
-        set interp [mportopen file://$absportdir $port_options]
-    } else {
-        set interp [mportopen file://$absportdir [concat $port_options subport $subport]]
+    # Make sure $prefix expands to '${prefix}' so that the PortIndex is
+    # portable across prefixes, see https://trac.macports.org/ticket/53169 and
+    # https://trac.macports.org/ticket/17182.
+    try -pass_signal {
+        set macports::prefix {${prefix}}
+        if {$subport eq {}} {
+            set interp [mportopen file://$absportdir $port_options]
+        } else {
+            set interp [mportopen file://$absportdir [concat $port_options subport $subport]]
+        }
+    } finally {
+        # Restore prefix to the previous value
+        set macports::prefix $save_prefix
     }
 
     if {[array exists portinfo]} {
@@ -98,8 +106,8 @@ proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}
 }
 
 proc pindex {portdir} {
-    global target oldfd oldmtime newest qindex fd directory outdir stats full_reindex \
-           ui_options port_options save_prefix keepkeys
+    global oldmtime newest qindex directory stats full_reindex \
+           ui_options port_options
 
     set qname [string tolower [file tail $portdir]]
     set absportdir [file join $directory $portdir]

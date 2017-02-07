@@ -1,0 +1,132 @@
+# -*- tcl -*-
+# pt_pgen.test:  Testing the parser generator, and the generated parsers.
+#                Mainly for testing generated parsers for good and bad inputs.
+#
+# Copyright (c) 2014 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: pt_parse_peg.test,v 1.1 2010/03/26 05:07:24 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2
+
+# Check if we have critcl available.
+tcltest::testConstraint critcl [expr {![catch {package require critcl}]}]
+
+# Check if we have TclOO available.
+tcltest::testConstraint tcloo [expr {![catch {package require TclOO}]}]
+
+support {
+    useAccel [useTcllibC] struct/stack.tcl struct::stack ; # User: pt::rde
+    TestAccelInit                          struct::stack ; # (tcl)
+
+    useAccel [useTcllibC] struct/sets.tcl struct::set
+    TestAccelInit                         struct::set
+
+    if {![package vsatisfies [package present Tcl] 8.6]} {
+	# Pull in try emulation for 8.5. Tcl 8.6 has it builtin.
+	use try/try.tcl try
+    }
+    use      snit/snit.tcl          snit
+    use      fileutil/fileutil.tcl  fileutil      ;# tests/common
+    use      textutil/adjust.tcl    textutil::adjust
+
+    useLocal pt_util.tcl                  pt::util
+    useLocal pt_astree.tcl                pt::ast
+    useLocal pt_pexpression.tcl           pt::pe
+    useLocal pt_pexpr_op.tcl              pt::pe::op
+    useLocal pt_pegrammar.tcl             pt::peg
+    useLocal pt_peg_container.tcl         pt::peg::container
+
+    useAccel [useTcllibC] pt/pt_rdengine.tcl  pt::rde ; # User: pt::parse::peg
+    TestAccelInit                             pt::rde ; # and:  pt:peg::interp
+
+    if {[tcltest::testConstraint tcloo]} {
+	useLocal pt_rdengine_oo.tcl           pt::rde::oo
+    }
+    useLocal pt_peg_interp.tcl            pt::peg::interp
+
+    useAccel [useTcllibC] pt/pt_parse_peg.tcl pt::parse::peg ; # User: pt::peg::from::peg
+    TestAccelInit                             pt::parse::peg
+
+    useLocal pt_peg_from_json.tcl         pt::peg::from::json                ; # Frontends: json, and PEG text form
+    useLocal pt_peg_from_peg.tcl          pt::peg::from::peg                 ; #
+    useLocal pt_peg_to_container.tcl      pt::peg::to::container             ; # Backends: json, peg, container code,
+    useLocal pt_peg_to_json.tcl           pt::peg::to::json                  ; #           param assembler, 
+    useLocal pt_peg_to_peg.tcl            pt::peg::to::peg                   ; #
+    useLocal pt_peg_to_param.tcl          pt::peg::to::param                 ; # PARAM assembly, raw
+    useLocal pt_peg_to_tclparam.tcl       pt::peg::to::tclparam              ; # PARAM assembly, embedded into Tcl
+    useLocal pt_peg_to_cparam.tcl         pt::peg::to::cparam                ; # PARAM assembly, embedded into C
+    useLocal pt_tclparam_config_snit.tcl  pt::tclparam::configuration::snit  ; # PARAM/Tcl, snit::type
+    useLocal pt_tclparam_config_tcloo.tcl pt::tclparam::configuration::tcloo ; # PARAM/Tcl, TclOO class
+    useLocal pt_cparam_config_critcl.tcl  pt::cparam::configuration::critcl  ; # PARAM/C, in critcl
+
+    # Get the parser used by the converter, either the grammar
+    # interpreter, or snit-based and spcialized to PEG.
+    #useLocal pt_peg_container_peg.tcl  pt::peg::container::peg
+    #useLocal pt_peg_interp.tcl         pt::peg::interp
+
+    source [localPath tests/common]
+}
+testing {
+    useLocal pt_pgen.tcl pt::pgen ;# Generator
+}
+
+set mytestdir tests/data
+
+# Table of test cases ...
+#             Id PEG     InText Error detail    Readable char
+set     chars  {}
+lappend chars  0 \{      \{     [list t \{]     \{
+lappend chars  1 \[      \[     [list t \[]     \[
+lappend chars  2 \"      \"     [list t \"]     \"
+lappend chars  3 \\033   \033   [list t \33]    <ESC>
+lappend chars  4 \\n     \n     [list t \n]     <LF>
+lappend chars  5 \\r     \r     [list t \r]     <CR>
+lappend chars  6 \\t     \t     [list t \t]     <TAB>
+# \b, \f, \v - Extend PEG grammar to recognize. Also \e = \33
+lappend chars  7 \\010   \b     [list t \b]     <BS>
+lappend chars  8 \\014   \f     [list t \f]     <FF>
+lappend chars  9 \\013   \v     [list t \v]     <VTAB>
+lappend chars 10 \\007   \a     [list t \a]     <BEL>
+lappend chars 11 { }     { }    [list t { }]    <SPACE>
+lappend chars 12 \\\\    \\     [list t \\]     \\
+    # math symbol, circled asterix
+lappend chars 13 \\u229b \u229b [list t \u229b] \u229b
+# test all control characters ... (and DEL)
+# more characters: above ascii = unicode BMP.
+
+# Grammar for all test cases below, with the actual character mapped
+# in (replacing @).
+set gtemplate "PEG a_pe_grammar ('@') END;"
+set etemplate "Parse error at position 0 (Line 0, column 0).\n... X ...\n    ^\nExpected one of\n* The character '@'\n"
+
+# -------------------------------------------------------------------------
+# While some of the C pieces are usually not required at runtime (like
+# C stack when RDE is also C), we are calling on the parser generator
+# here, which still may use a different implementation. So, no
+# shurtcuts, and full 16x expansion (2^4).
+
+TestAccelDo struct::set setimpl {
+    TestAccelDo pt::parse::peg parseimpl {
+	TestAccelDo pt::rde rdeimpl {
+	    TestAccelDo struct::stack stackimpl {
+		source [localPath tests/pt_pgen.tests]
+	    }
+	}
+    }
+}
+
+# -------------------------------------------------------------------------
+TestAccelExit struct::stack
+TestAccelExit pt::rde
+TestAccelExit pt::parse::peg
+TestAccelExit struct::set
+testsuiteCleanup
+return

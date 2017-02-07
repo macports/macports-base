@@ -1,0 +1,99 @@
+# -*- tcl -*-
+# Graph ops tests - Strongly connected components per Tarjan's algorithm
+# Copyright (c) 2008-2010 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: tarjan.test,v 1.4 2010/09/09 21:48:27 andreas_kupries Exp $
+
+# Syntax: struct::graph::op::tarjan G
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-tarjan-1.0 {tarjan, wrong args, missing} -body {
+    struct::graph::op::tarjan
+} -returnCodes error -result [tcltest::wrongNumArgs struct::graph::op::tarjan {g} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-tarjan-1.1 {tarjan, wrong args, too many} -body {
+    struct::graph::op::tarjan g x
+} -returnCodes error -result [tcltest::tooManyArgs struct::graph::op::tarjan {g}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-tarjan-3.0 {tarjan, empty graph} -setup {
+    SETUP
+} -body {
+    struct::graph::op::tarjan mygraph
+} -cleanup {
+    mygraph destroy
+} -result {}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-tarjan-3.1 {tarjan, nodes, no arcs} -setup {
+    SETUP
+    mygraph node insert 0 1 2 3 4 5
+} -body {
+    setsetcanon [struct::graph::op::tarjan mygraph]
+} -cleanup {
+    mygraph destroy
+} -result {0 1 2 3 4 5}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-tarjan-3.2 {tarjan, nodes, arcs} -setup {
+    SETUP_A
+} -body {
+    setsetcanon [struct::graph::op::tarjan mygraph]
+} -cleanup {
+    mygraph destroy
+} -result {{'node0' 'node1' 'node2' 'node3'} 'node4' 'node5' 'node6'}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-tarjan-3.3 {tarjan, nodes, arcs} -setup {
+    SETUP_B
+} -body {
+    setsetcanon [struct::graph::op::tarjan mygraph]
+} -cleanup {
+    mygraph destroy
+} -result {A B C D E S}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-tarjan-3.4 {tarjan, nodes, arcs} -setup {
+    SETUP_C
+} -body {
+    setsetcanon [struct::graph::op::tarjan mygraph]
+} -cleanup {
+    mygraph destroy
+} -result {{A B C D} E F}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-tarjan-3.5 {tarjan, nodes, arcs} -setup {
+    SETUP_D
+} -body {
+    setsetcanon [struct::graph::op::tarjan mygraph]
+} -cleanup {
+    mygraph destroy
+} -result {{a b c d} {f g h} i j}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-tarjan-3.6 {tarjan, nodes, arcs} -setup {
+    SETUP_E
+} -body {
+    setsetcanon [struct::graph::op::tarjan mygraph]
+} -cleanup {
+    mygraph destroy
+} -result {1b 1w 2b 2w 3b {3w 4b} 4w 5b 5w 6b 6w {7b 7w 8b 8w}}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-tarjan-3.7 {tarjan, nodes, arcs} -setup {
+    SETUP_F
+} -body {
+    setsetcanon [struct::graph::op::tarjan mygraph]
+} -cleanup {
+    mygraph destroy
+} -result {1b 1w 2b 2w 3b 3w 4b 4w}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-tarjan-3.8 {tarjan, nodes, arcs} -setup {
+    SETUP_G
+} -body {
+    setsetcanon [struct::graph::op::tarjan mygraph]
+} -cleanup {
+    mygraph destroy
+} -result {1b 1w 2b 2w 3b 3w 4b 4w 5b 5w}
+
+# ---------------------------------------------------

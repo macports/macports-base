@@ -1,0 +1,100 @@
+# tie___TEMPLATE__.tcl --
+#
+#	Tie arrays to persistence engines.
+#	Replace __TEMPLATE__ with correct name of package.
+#
+# Copyright (c) ??? FILL IN !!
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# 
+# RCS: @(#) $Id: tie_template.txt,v 1.3 2005/09/28 04:51:24 andreas_kupries Exp $
+
+# ### ### ### ######### ######### #########
+## Requisites
+
+package require snit
+package require tie
+
+# ### ### ### ######### ######### #########
+## Implementation
+
+snit::type __TEMPLATE__ {
+
+    # ### ### ### ######### ######### #########
+    ## Specials
+
+    pragma -hastypemethods no
+    pragma -hasinfo        no
+    pragma -simpledispatch yes
+
+    # ### ### ### ######### ######### #########
+    ## API : Construction & Destruction
+
+    constructor {args} {
+	# Set up data source
+	return
+    }
+
+    destructor {
+	# Release resources
+	return
+    }
+
+    # ### ### ### ######### ######### #########
+    ## API : Data source methods
+
+    method get {} {
+	# Retrieve data source contents and return them
+	return {}
+    }
+
+    method set {dict} {
+	# Merge data to data source contents
+	return {}
+    }
+
+    method unset {{pattern *}} {
+	# Unset data source elements by glob pattern
+	return {}
+    }
+
+    method names {} {
+	# Return list of keys in data source.
+	return {}
+    }
+
+    method size {} {
+	# Return number of keys in data source.
+	return 0
+    }
+
+    method getv {index} {
+	# Return value at key
+	return {}
+    }
+
+    method setv {index value} {
+	# Set key to new value
+	return
+    }
+
+    method unsetv {index} {
+	# Unset a key
+	return
+    }
+
+    # ### ### ### ######### ######### #########
+    ## Internal : Instance data
+
+    # ### ### ### ######### ######### #########
+    ## Internal: ...
+
+    # ### ### ### ######### ######### #########
+}
+
+# ### ### ### ######### ######### #########
+## Ready to go
+
+::tie::register __TEMPLATE__ as __TEMPLATE__/shortform
+package provide __TEMPLATE__ 1.0

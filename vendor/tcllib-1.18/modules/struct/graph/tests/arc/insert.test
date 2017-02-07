@@ -1,0 +1,113 @@
+# -*- tcl -*-
+# Graph tests - arc insertion
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: insert.test,v 1.2 2007/04/12 03:01:55 andreas_kupries Exp $
+
+# Syntax: graph arc insert START END ?ARC?
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-arc-insert-1.0 {arc insert, wrong#args, missing} {
+    SETUP
+    catch {mygraph arc insert} msg
+    mygraph destroy
+    set msg
+} [tmWrong {arc insert} {source target ?arc?} 0 {source target args}]
+
+test graph-${impl}-${setimpl}-arc-insert-1.1 {arc insert, wrong#args, missing} {
+    SETUP
+    catch {mygraph arc insert 0} msg
+    mygraph destroy
+    set msg
+} [tmWrong {arc insert} {source target ?arc?} 1 {source target args}]
+
+test graph-${impl}-${setimpl}-arc-insert-1.2 {arc insert, wrong#args, too many} {
+    SETUP
+    catch {mygraph arc insert 0 1 2 3} msg
+    mygraph destroy
+    set msg
+} [tmE  {wrong # args: should be "::struct::graph::__arc_insert name source target ?arc?"} \
+	{wrong # args: should be "mygraph arc insert source target ?arc?"}]
+
+# Cannot use tmTooMany, will be incorrect for the Tcl implementation
+# run by a pre-8.4 core.
+# [tmTooMany {arc insert} {source target ?arc?}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-arc-insert-2.0 {arc insert, missing start} {
+    SETUP
+    mygraph node insert node1
+    catch {mygraph arc insert node0 node1 arc0} msg
+    mygraph destroy
+    set msg
+} "source [MissingNode $MY node0]"
+
+test graph-${impl}-${setimpl}-arc-insert-2.1 {arc insert, missing end} {
+    SETUP
+    mygraph node insert node0
+    catch {mygraph arc insert node0 node1 arc0} msg
+    mygraph destroy
+    set msg
+} "target [MissingNode $MY node1]"
+
+test graph-${impl}-${setimpl}-arc-insert-2.2 {arc insert, existing arc} {
+    SETUP
+    mygraph node insert node0 node1
+    mygraph arc  insert node0 node1 arc0
+    catch {mygraph arc insert node0 node1 arc0} msg
+    mygraph destroy
+    set msg
+} [ExistingArc $MY arc0]
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-arc-insert-3.0 {arc insert, node/arc linkage} {
+    SETUP
+    mygraph node insert node0 node1
+    mygraph arc  insert node0 node1 arc0
+
+    set     result {}
+    lappend result [mygraph arc exists arc0]
+    lappend result [mygraph arc source arc0]
+    lappend result [mygraph arc target arc0]
+    lappend result [mygraph arcs -out node0]
+    lappend result [mygraph arcs -in  node1]
+
+    mygraph destroy
+    set result
+} {1 node0 node1 arc0 arc0}
+
+test graph-${impl}-${setimpl}-arc-insert-3.1 {arc insert, attribute defaults} {
+    SETUP
+    mygraph node insert node0 node1
+    mygraph arc  insert node0 node1 arc0
+
+    set result [mygraph arc getall arc0]
+
+    mygraph destroy
+    set result
+} {}
+
+test graph-${impl}-${setimpl}-arc-insert-3.2 {arc insert, auto-generated name} {
+    SETUP
+    mygraph node insert n0
+
+    # Note: The use of 'arc3' for the explicit name tests that the
+    # name-generator will skip over existing names when it tries to
+    # come up with a new one.
+
+    set     result {}
+    lappend result [mygraph arc insert n0 n0]
+    lappend result [mygraph arc insert n0 n0]
+    mygraph                 arc insert n0 n0 arc3
+    lappend result [mygraph arc insert n0 n0]
+    mygraph destroy
+    set result
+} {arc1 arc2 arc4}
+
+# ---------------------------------------------------

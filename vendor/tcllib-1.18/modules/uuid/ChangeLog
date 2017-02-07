@@ -1,0 +1,110 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2012-11-19  Andreas Kupries  <andreask@activestate.com>
+
+	* uuid.tcl (::uuid::generate_tcl): Accepted patch by Sean Woods
+	* uuid.man: caching the host information part of the uuid. Avoids
+	* pkgIndex.tcl: hammering the network stack for hostname and
+	  related information. Bumped version to 1.0.2.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uuid.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-01-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uuid.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* uuid.test: Hooked into the new common test support code.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-10-05  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* uuid.test:  Ensure we test all implementations.
+	* uuid.tcl:   Updated critcl code to work with msvc.
+
+2005-09-05  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* uuid.tcl: Bug #1150714 - opening a server socket may raise a
+	warning message box on WinXP firewall. Instead call the ipconfig
+	utility and use the result on windows.
+
+2005-02-10  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* uuid.tcl: Fixed missing include in the critcl code.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-07-12  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* uuid.tcl:   Added a critcl version for generating uuids on Win32.
+
+2004-07-08  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* uuid.tcl:   Changed uuid compare to uuid equal (bug #987305)
+	* uuid.man:
+	* uuid.test:
+	
+	* uuid.tcl:   Package for UUID generation and comparison.
+	* uuid.test:
+	* uuid.man:
+	
+

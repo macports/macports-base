@@ -1,0 +1,76 @@
+# -*- tcl -*-
+# toc_export_html.test:  tests for the doctools::toc::export::html package/plugin.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: export_html.test,v 1.2 2009/11/15 05:50:03 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+support {
+    use      fileutil/fileutil.tcl  fileutil      ;# tests/common
+    useLocal structure.tcl      doctools::toc::structure
+    use doctools2base/text.tcl               doctools::text
+    use doctools2base/html.tcl               doctools::html
+    use doctools2base/html_cssdefaults.tcl   doctools::html::cssdefaults
+}
+testing {
+    package provide doctools::toc::export::plugin 1
+    # The above fakes the export plugin environment.
+
+    useLocal export_html.tcl doctools::toc::export::html
+}
+
+source [tcllibPath doctools2base/tests/common]
+set mytestdir tests/data
+
+# -------------------------------------------------------------------------
+
+# General set of error cases regarding the number of arguments.
+
+test doctools-toc-export-html-1.0 {export, wrong#args} -body {
+    export
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+test doctools-toc-export-html-1.1 {export, wrong#args} -body {
+    export S
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+test doctools-toc-export-html-1.2 {export, wrong#args} -body {
+    export S C XXX
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+# -------------------------------------------------------------------------
+
+# Testing the generation of html output, from toc serialization,
+# for all possible plugin configurations.
+
+foreach {k nl in section} {
+    0 0 0 -ultracompact
+    1 0 1 -indented
+    2 1 0 -compact
+    3 1 1 -indented
+} {
+    TestFilesProcess $mytestdir ok serial html$section -> n label input data expected {
+	test doctools-toc-export-html-2.$k.$n "doctools::toc::export::html, $label$section, ok" -setup {
+	    set configuration [list newlines $nl indented $in user _dummy_]
+	} -body {
+	    striphtmlcomments [export $data $configuration] 3
+	} -cleanup {
+	    unset configuration
+	} -result $expected
+    }
+}
+
+#----------------------------------------------------------------------
+unset n label input data expected
+testsuiteCleanup
+return

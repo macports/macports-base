@@ -1,0 +1,49 @@
+# -*- tcl -*-
+# Support code for the tests of the find command (and incremental find).
+#
+# Copyright (c) 2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: multiop.setup,v 1.1 2007/08/16 04:11:49 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+proc mo_setup {} {
+    makeDirectory origin
+    makeFile   {} origin/anneliese
+    makeFile   {} origin/bertram
+    makeFile   {} origin/connie
+    makeFile   {} origin/detlev
+    makeDirectory origin/egon
+    makeFile   {} origin/egon/suse
+    makeFile   {} origin/egon/bettina
+    makeDirectory destination
+    return
+}
+
+proc mo_cleanup {} {
+    removeDirectory origin
+    removeDirectory destination
+    return
+}
+
+proc mo_scan {d} {
+    set base [tempPath $d]
+    return [lsort -dict \
+		[struct::list map [fileutil::find $base] \
+		     [list fileutil::stripPath $base]]]
+}
+
+proc mo_cleanup_all {} {
+    rename mo_setup       {}
+    rename mo_cleanup     {}
+    rename mo_scan        {}
+    rename mo_cleanup_all {}
+    unset ::src ::dst
+    return
+}
+
+set src [tempPath origin]
+set dst [tempPath destination]
+
+# -------------------------------------------------------------------------

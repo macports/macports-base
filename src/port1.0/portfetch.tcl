@@ -1,7 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
-# $Id$
 #
-# Copyright (c) 2004 - 2014 The MacPorts Project
+# Copyright (c) 2004 - 2014, 2016 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
@@ -69,7 +68,7 @@ default fetch.type standard
 default bzr.cmd {[findBinary bzr $portutil::autoconf::bzr_path]}
 default bzr.dir {${workpath}}
 default bzr.revision {-1}
-default bzr.pre_args {"--builtin --no-aliases checkout --lightweight"}
+default bzr.pre_args {"--builtin --no-aliases checkout --lightweight --verbose"}
 default bzr.args ""
 default bzr.post_args {"-r ${bzr.revision} ${bzr.url} ${worksrcdir}"}
 
@@ -311,10 +310,10 @@ proc portfetch::bzrfetch {args} {
             return -code error [msgcat::mc "Bazaar checkout failed"]
         }
     } finally {
-        if ([info exists orig_http_proxy]) {
+        if {[info exists orig_http_proxy]} {
             set env(http_proxy) ${orig_http_proxy}
         }
-        if ([info exists orig_https_proxy]) {
+        if {[info exists orig_https_proxy]} {
             set env(HTTPS_PROXY) ${orig_https_proxy}
         }
     }
@@ -334,7 +333,7 @@ proc portfetch::cvsfetch {args} {
            patch_sites patchfiles filespath
 
     set cvs.args "${cvs.method} ${cvs.args}"
-    if {${cvs.method} == "export" && ![string length ${cvs.tag}] && ![string length ${cvs.date}]} {
+    if {${cvs.method} eq "export" && ![string length ${cvs.tag}] && ![string length ${cvs.date}]} {
         set cvs.tag "HEAD"
     }
     if {[string length ${cvs.tag}]} {
@@ -429,10 +428,10 @@ proc portfetch::gitfetch {args} {
     global worksrcpath patchfiles \
            git.url git.branch git.sha1 git.cmd
 
-    set options "-q"
+    set options "--progress"
     if {${git.branch} eq ""} {
         # if we're just using HEAD, we can make a shallow repo
-        set options "$options --depth=1"
+        append options " --depth=1"
     }
     set cmdstring "${git.cmd} clone $options ${git.url} ${worksrcpath} 2>&1"
     ui_debug "Executing: $cmdstring"
@@ -484,7 +483,7 @@ proc portfetch::hgfetch {args} {
 proc portfetch::fetchfiles {args} {
     global distpath all_dist_files UI_PREFIX \
            fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time \
-           portverbose usealtworkpath altprefix
+           portverbose
     variable fetch_urls
     variable urlmap
 
@@ -493,13 +492,13 @@ proc portfetch::fetchfiles {args} {
         lappend fetch_options -u
         lappend fetch_options "${fetch.user}:${fetch.password}"
     }
-    if {${fetch.use_epsv} != "yes"} {
+    if {${fetch.use_epsv} ne "yes"} {
         lappend fetch_options "--disable-epsv"
     }
-    if {${fetch.ignore_sslcert} != "no"} {
+    if {${fetch.ignore_sslcert} ne "no"} {
         lappend fetch_options "--ignore-ssl-cert"
     }
-    if {${fetch.remote_time} != "no"} {
+    if {${fetch.remote_time} ne "no"} {
         lappend fetch_options "--remote-time"
     }
     if {$portverbose eq "yes"} {
@@ -516,14 +515,6 @@ proc portfetch::fetchfiles {args} {
             ui_info "$UI_PREFIX [format [msgcat::mc "%s does not exist in %s"] $distfile $distpath]"
             if {![file writable $distpath]} {
                 return -code error [format [msgcat::mc "%s must be writable"] $distpath]
-            }
-            if {!$usealtworkpath && [file isfile ${altprefix}${distpath}/${distfile}]} {
-                if {[catch {file link -hard "${distpath}/${distfile}" "${altprefix}${distpath}/${distfile}"}]} {
-                    ui_debug "failed to hardlink ${distfile} into distpath, copying instead"
-                    file copy "${altprefix}${distpath}/${distfile}" "${distpath}/${distfile}"
-                }
-                ui_info "Found $distfile in ${altprefix}${distpath}"
-                continue
             }
             if {!$sorted} {
                 sortsites fetch_urls master_sites
@@ -628,7 +619,7 @@ proc portfetch::fetch_main {args} {
     global all_dist_files fetch.type
 
     # Check for files, download if necessary
-    if {![info exists all_dist_files] && "${fetch.type}" == "standard"} {
+    if {![info exists all_dist_files] && "${fetch.type}" eq "standard"} {
         return 0
     }
 

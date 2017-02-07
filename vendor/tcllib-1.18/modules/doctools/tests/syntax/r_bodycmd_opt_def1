@@ -1,0 +1,3 @@
+Doctools Error in macro at line 1, column 0:
+[opt_def .option.]
+--> (FmtError) Manpage error (bodycmd), "opt_def .option." : Command not allowed outside of the body of the manpage.

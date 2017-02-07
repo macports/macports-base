@@ -1,0 +1,51 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin math::roman "" 1.0]
+[keywords conversion]
+[keywords integer]
+[keywords {roman numeral}]
+[copyright {2005 Kenneth Green <kenneth.green@gmail.com>}]
+[moddesc   {Tcl Math Library}]
+[titledesc {Tools for creating and manipulating roman numerals}]
+[category  Mathematics]
+[require Tcl 8.3]
+[require math::roman [opt 1.0]]
+[description]
+  [para]
+    [cmd ::math::roman] is a pure-Tcl library for converting between integers
+    and roman numerals. It also provides utility functions for sorting and performing
+    arithmetic on roman numerals.
+  [para]
+    This code was originally harvested from the Tcler's wiki at
+    http://wiki.tcl.tk/1823 and as such is free for any use for
+    any purpose. Many thanks to the ingeneous folk who devised
+    these clever routines and generously contributed them to the
+    Tcl community.
+  [para]
+    While written and tested under Tcl 8.3, I expect this library
+    will work under all 8.x versions of Tcl.
+
+[section {COMMANDS}]
+  [list_begin definitions]
+
+    [call [cmd ::math::roman::toroman] [arg i]]
+      Convert an integer to roman numerals. The result is always in
+      upper case. The value zero is converted to an empty string.
+
+    [call [cmd ::math::roman::tointeger] [arg r]]
+      Convert a roman numeral into an integer.
+
+    [call [cmd ::math::roman::sort] [arg list]]
+      Sort a list of roman numerals from smallest to largest.
+
+    [call [cmd ::math::roman::expr] [arg args]]
+      Evaluate an expression where the operands are all roman numerals.
+
+  [list_end]
+
+Of these commands both [emph toroman] and [emph tointeger] are exported
+for easier use. The other two are not, as they could interfer or be
+confused with existing Tcl commands.
+
+[vset CATEGORY {math :: roman}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

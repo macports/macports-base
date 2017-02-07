@@ -1,0 +1,105 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin page_util_norm_peg n 1.0]
+[keywords {graph walking}]
+[keywords normalization]
+[keywords page]
+[keywords {parser generator}]
+[keywords PEG]
+[keywords {text processing}]
+[keywords {tree walking}]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Parser generator tools}]
+[titledesc {page AST normalization, PEG}]
+[category  {Page Parser Generator}]
+[require page::util::norm_peg [opt 0.1]]
+[require snit]
+[description]
+[para]
+
+This package provides a single utility command which takes an AST for a
+parsing expression grammar and normalizes it in various ways. The result
+is called a [term {Normalized PE Grammar Tree}].
+
+[para]
+
+[emph Note] that this package can only be used from within a plugin
+managed by the package [package page::pluginmgr].
+
+[comment {
+    TODO: Document the structure of a PEG AST,
+          and then of a Normalized PEG Tree. Which
+          is not a true AST any longer.
+}]
+
+[section API]
+
+[list_begin definitions]
+[call [cmd ::page::util::norm::peg] [arg tree]]
+
+This command assumes the [arg tree] object contains for a
+parsing expression grammar. It normalizes this tree in place.
+The result is called a  [term {Normalized PE Grammar Tree}].
+
+[para]
+
+The following operations are performd
+
+[list_begin enum]
+[enum]
+The data for all terminals is stored in their grandparental
+nodes. The terminal nodes and their parents are removed. Type
+information is dropped.
+
+[enum]
+All nodes which have exactly one child are irrelevant and are
+removed, with the exception of the root node. The immediate
+child of the root is irrelevant as well, and removed as well.
+
+[enum]
+The name of the grammar is moved from the tree node it is stored
+in to an attribute of the root node, and the tree node removed.
+[para]
+The node keeping the start expression separate is removed as
+irrelevant and the root node of the start expression tagged with
+a marker attribute, and its handle saved in an attribute of the
+root node for quick access.
+
+[enum]
+Nonterminal hint information is moved from nodes into attributes,
+and the now irrelevant nodes are deleted.
+[para]
+[emph Note:] This transformation is dependent on the removal of all
+nodes with exactly one child, as it removes the all 'Attribute'
+nodes already. Otherwise this transformation would have to put
+the information into the grandparental node.
+[para]
+The default mode given to the nonterminals is [const value].
+[para]
+Like with the global metadata definition specific information
+is moved out out of nodes into attributes, the now irrelevant
+nodes are deleted, and the root nodes of all definitions are
+tagged with marker attributes. This provides us with a mapping
+from nonterminal names to their defining nodes as well, which
+is saved in an attribute of the root node for quick reference.
+[para]
+At last the range in the input covered by a definition is
+computed. The left extent comes from the terminal for the
+nonterminal symbol it defines. The right extent comes from
+the rightmost child under the definition. While this not an
+expression tree yet the location data is sound already.
+
+[enum]
+The remaining nodes under all definitions are transformed
+into proper expression trees. First character ranges, followed
+by unary operations, characters, and nonterminals. At last the
+tree is flattened by the removal of superfluous inner nodes.
+[para]
+The order matters, to shed as much nodes as possible early, and
+to avoid unnecessary work later.
+
+[list_end]
+[list_end]
+
+[vset CATEGORY page]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

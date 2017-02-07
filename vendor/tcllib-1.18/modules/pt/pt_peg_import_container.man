@@ -1,0 +1,21 @@
+[comment {-*- tcl -*- --- doctools ---}]
+[manpage_begin pt::peg::import::container n 0]
+[include include/module.inc]
+[include include/keywords.inc]
+[titledesc "PEG Import Plugin. From CONTAINER format"]
+[description]
+[include include/ref_intro.inc]
+
+This package does not exist.
+
+There is no need for it.
+
+The CONTAINER format for parsing expression grammars is a piece of Tcl
+code which, then sourced, provides a class whose instances have the
+grammar we wish to import loaded.
+
+Another way of looking at this is, the CONTAINER output is its own
+import package.
+
+[include include/feedback.inc]
+[manpage_end]

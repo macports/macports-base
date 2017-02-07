@@ -1,0 +1,26 @@
+# -*- tcl -*- fileutil::magic::mimetype.pcx
+# Syntax of the commands provided by package fileutil::magic::mimetype.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register fileutil::magic::mimetype
+pcx::tcldep   1.0.2 needs tcl 8.4
+
+namespace eval ::fileutil::magic::mimetype {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 1.0.2 std ::fileutil::magic::mimetype \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+
+# Initialization via pcx::init.
+# Use a ::fileutil::magic::mimetype::init procedure for non-standard initialization.
+pcx::complete

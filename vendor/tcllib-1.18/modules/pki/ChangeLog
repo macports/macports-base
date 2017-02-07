@@ -1,0 +1,30 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-11-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* MD5SUMS: Updated to version 0.2, by Roy Keene.
+	* pkgIndex.tcl:
+	* pki.man:
+	* pki.tcl:
+	* pki.test:
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-10-08  Andreas Kupries  <andreask@activestate.com>
+
+	* New module: PKI, Public Key Infrastructure. By Roy Keene.
+

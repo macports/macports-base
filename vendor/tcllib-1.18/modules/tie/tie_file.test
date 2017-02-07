@@ -1,0 +1,392 @@
+# Tests for the tie module.                              -*- tcl -*- 
+#
+# Copyright (c) 2004 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: tie_file.test,v 1.10 2006/10/12 04:45:57 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+support {
+    use      snit/snit.tcl snit
+    useLocal tie.tcl       tie
+}
+testing {
+    useLocal tie_file.tcl tie::std::file
+}
+
+# -------------------------------------------------------------------------
+# Creation of array data sources
+# Errors: Undefined variable, scalar, local variable
+
+test tie-file-1.0 {file creation, wrong#args} {
+    catch {tie::std::file} msg
+    set msg
+} {Error in constructor: wrong # args: should be "::tie::std::file::Snit_constructor type selfns win self thepath"}
+
+test tie-file-1.1 {file creation, wrong#args} {
+    catch {tie::std::file x} msg
+    set msg
+} {Error in constructor: wrong # args: should be "::tie::std::file::Snit_constructor type selfns win self thepath"}
+
+test tie-file-1.2 {file creation, wrong#args} {
+    catch {tie::std::file x y z} msg
+    set msg
+} {Error in constructor: wrong # args: should be "::tie::std::file::Snit_constructor type selfns win self thepath"}
+
+test tie-file-1.3 {file creation, ok args, unwritable file} {unixOnly notRoot} {
+    set f [makeFile {} journal]
+    file attributes $f -permissions ugo-w
+    catch {tie::std::file x $f} msg
+    removeFile journal
+    string map [list $f @] $msg
+} {Error in constructor: couldn't open "@": permission denied}
+
+test tie-file-1.4 {file creation, ok args, unwritable file} {winOnly} {
+    set f [makeFile {} journal]
+    file attributes $f -readonly 1
+    catch {tie::std::file x $f} msg
+    file attributes $f -readonly 0
+    removeFile journal
+    string map [list $f @] $msg
+} {Error in constructor: couldn't open "@": permission denied}
+
+test tie-file-1.5 {file creation, ok args, unreadable file} {unixOnly notRoot} {
+    set f [makeFile {} journal]
+    file attributes $f -permissions ugo-r
+    catch {tie::std::file x $f} msg
+    removeFile journal
+     string map [list $f @] $msg
+} {Error in constructor: couldn't open "@": permission denied}
+
+test tie-file-1.6 {file creation, ok args, uncreateable file} {unixOnly notRoot} {
+    set d [makeDirectory jtest]
+    set f [makeFile {}   jtest/journal]
+
+    # Delete the created file, we want the tie code to try to generate
+    # it (and expect it to fail).
+    file delete $f
+
+    file attributes $d -permissions ugo-w
+
+    catch {tie::std::file x $f} msg
+
+    removeDirectory jtest
+    string map [list $f @] $msg
+} {Error in constructor: couldn't open "@": permission denied}
+
+test tie-file-1.7 {file creation, ok args, uncreateable file} {knownBug winOnly notRoot} {
+    set d [makeDirectory jtest]
+    set f [makeFile {}   jtest/journal]
+    removeFile jtest/journal
+    file attributes $d -readonly 1
+
+    catch {tie::std::file x $f} msg
+
+    removeFile      jtest/journal
+    removeDirectory jtest
+    string map [list $f @] $msg
+} {Error in constructor: couldn't open "@": permission denied}
+
+test tie-file-1.8 {file creation, fixed name, array} {
+    set f [makeFile {} journal]
+    set msg [tie::std::file x $f]
+    x destroy
+    removeFile journal
+    set msg
+} {::x}
+
+test tie-file-1.9 {file creation, %AUTO%} {
+    set f [makeFile {} journal]
+    set msg [tie::std::file %AUTO% $f]
+    $msg destroy
+    removeFile journal
+    string match ::file\[679] $msg
+} 1
+
+# -------------------------------------------------------------------------
+## Methods
+
+test tie-file-2.0 {file get, wrong#args} {
+    set f [makeFile {array set {b 2 a 1}} journal]
+    tie::std::file x $f
+    catch {x get a} msg
+    x destroy
+    removeFile journal
+    set msg
+} {wrong # args: should be "::tie::std::file::Snit_methodget type selfns win self"}
+
+test tie-file-2.1 {file get} {
+    set f [makeFile {array set {b 2 a 1}} journal]
+    tie::std::file x $f
+    set res [dictsort [x get]]
+    x destroy
+    removeFile journal
+    set res
+} {a 1 b 2}
+
+
+test tie-file-3.0 {file set, wrong#args} {
+    set f [makeFile {} journal]
+    tie::std::file x $f
+    set     res {}
+    catch {x set} msg
+    x destroy
+    removeFile journal
+    set msg
+} {wrong # args: should be "::tie::std::file::Snit_methodset type selfns win self dict"}
+
+test tie-file-3.1 {file set, wrong#args} {
+    set f [makeFile {} journal]
+    tie::std::file x $f
+    set     res {}
+    catch {x set a b} msg
+    x destroy
+    removeFile journal
+    set msg
+} {wrong # args: should be "::tie::std::file::Snit_methodset type selfns win self dict"}
+
+test tie-file-3.2 {file set} {
+    set f [makeFile {} journal]
+    tie::std::file x $f
+    set     res {}
+    lappend res [x set {c 3 b 2 a 1}]
+    lappend res [viewFile journal]
+    x destroy
+    removeFile journal
+    set res
+} {{} {
+array set {c 3 b 2 a 1}}}
+
+
+test tie-file-4.0 {file names, wrong#args} {
+    set f [makeFile {array set {b 2 a 1}} journal]
+    tie::std::file x $f
+    catch {x names a} msg
+    x destroy
+    removeFile journal
+    set msg
+} {wrong # args: should be "::tie::std::file::Snit_methodnames type selfns win self"}
+
+test tie-file-4.1 {file names} {
+    set f [makeFile {array set {b 2 a 1}} journal]
+    tie::std::file x $f
+    set res [lsort [x names]]
+    x destroy
+    removeFile journal
+    set res
+} {a b}
+
+
+test tie-file-5.0 {file size, wrong#args} {
+    set f [makeFile {array set {b 2 a 1}} journal]
+    tie::std::file x $f
+    catch {x size a} msg
+    x destroy
+    removeFile journal
+    set msg
+} {wrong # args: should be "::tie::std::file::Snit_methodsize type selfns win self"}
+
+test tie-file-5.1 {file size} {
+    set f [makeFile {array set {b 2 a 1}} journal]
+    tie::std::file x $f
+    set res [x size]
+    x destroy
+    removeFile journal
+    set res
+} 2
+
+
+test tie-file-6.0 {file unset, wrong#args} {
+    set f [makeFile {array set {foo bar fox snarf a 3}} journal]
+    tie::std::file x $f
+    set     res {}
+    catch {x unset a b} msg
+    x destroy
+    removeFile journal
+    set msg
+} {wrong # args: should be "::tie::std::file::Snit_methodunset type selfns win self ?pattern?"}
+
+test tie-file-6.1 {file unset, default pattern} {
+    set f [makeFile {array set {foo bar fox snarf a 3}} journal]
+    tie::std::file x $f
+    set     res {}
+    lappend res [x unset]
+    lappend res [viewFile journal]
+    x destroy
+    removeFile journal
+    set res
+} {{} {array set {foo bar fox snarf a 3}
+array unset *}}
+
+test tie-file-6.2 {file unset, by pattern} {
+    set f [makeFile {array set {foo bar fox snarf a 3}} journal]
+    tie::std::file x $f
+    set     res {}
+    lappend res [x unset f*]
+    lappend res [viewFile journal]
+    x destroy
+    removeFile journal
+    set res
+} {{} {array set {foo bar fox snarf a 3}
+array unset f*}}
+
+
+test tie-file-7.0 {file getv, wrong#args} {
+    set f [makeFile {} journal]
+    tie::std::file x $f
+    set     res {}
+    catch {x getv} msg
+    x destroy
+    removeFile journal
+    set msg
+} {wrong # args: should be "::tie::std::file::Snit_methodgetv type selfns win self index"}
+
+test tie-file-7.1 {file getv, wrong#args} {
+    set f [makeFile {} journal]
+    tie::std::file x $f
+    set     res {}
+    catch {x getv a b} msg
+    x destroy
+    removeFile journal
+    set msg
+} {wrong # args: should be "::tie::std::file::Snit_methodgetv type selfns win self index"}
+
+test tie-file-7.2 {file getv} {
+    set f [makeFile {array set {a 3 b 4}} journal]
+    tie::std::file x $f
+    set     res {}
+    lappend res [x getv a]
+    x destroy
+    removeFile journal
+    set res
+} 3
+
+
+test tie-file-8.0 {file setv, wrong#args} {
+    set f [makeFile {} journal]
+    tie::std::file x $f
+    set     res {}
+    catch {x setv} msg
+    x destroy
+    removeFile journal
+    set msg
+} {wrong # args: should be "::tie::std::file::Snit_methodsetv type selfns win self index value"}
+
+test tie-file-8.1 {file setv, wrong#args} {
+    set f [makeFile {} journal]
+    tie::std::file x $f
+    set     res {}
+    catch {x setv a} msg
+    x destroy
+    removeFile journal
+    set msg
+} {wrong # args: should be "::tie::std::file::Snit_methodsetv type selfns win self index value"}
+
+test tie-file-8.2 {file setv, wrong#args} {
+    set f [makeFile {} journal]
+    tie::std::file x $f
+    set     res {}
+    catch {x setv a b c} msg
+    x destroy
+    removeFile journal
+    set msg
+} {wrong # args: should be "::tie::std::file::Snit_methodsetv type selfns win self index value"}
+
+test tie-file-8.3 {file setv} {
+    set f [makeFile {} journal]
+    tie::std::file x $f
+    set     res {}
+    lappend res [x setv fox snarf]
+    lappend res [viewFile journal]
+    x destroy
+    removeFile journal
+    set res
+} {{} {
+set fox snarf}}
+
+
+test tie-file-9.0 {file unsetv, wrong#args} {
+    set f [makeFile {} journal]
+    tie::std::file x $f
+    set     res {}
+    catch {x unsetv} msg
+    x destroy
+    removeFile journal
+    set msg
+} {wrong # args: should be "::tie::std::file::Snit_methodunsetv type selfns win self index"}
+
+test tie-file-9.1 {file unsetv, wrong#args} {
+    set f [makeFile {} journal]
+    tie::std::file x $f
+    set     res {}
+    catch {x unsetv a b} msg
+    x destroy
+    removeFile journal
+    set msg
+} {wrong # args: should be "::tie::std::file::Snit_methodunsetv type selfns win self index"}
+
+test tie-file-9.2 {file unsetv} {
+    set f [makeFile {array set {a 3 b 4}} journal]
+    tie::std::file x $f
+    set     res {}
+    lappend res [x unsetv a]
+    lappend res [viewFile journal]
+    x destroy
+    removeFile journal
+    set res
+} {{} {array set {a 3 b 4}
+unset a}}
+
+# -------------------------------------------------------------------------
+## File compaction
+
+test tie-file-10.0 {file compaction} {
+    set f [makeFile {
+	set aa 3
+	set ab 4
+	set ac 5
+	set ad 6
+	set ae 7
+	set f 8
+	array unset a*
+    } journal] ; # {}
+    tie::std::file x $f
+    x names ; # This loads the journal and causes compaction
+    x destroy
+    set res [viewFile journal]
+    removeFile journal
+    set res
+} {array set {f 8}}
+
+test tie-file-10.1 {file compaction, not} {
+    set f [makeFile {
+	set aa 3
+	set ab 4
+	set ac 5
+	set ad 6
+	set ae 7
+    } journal] ; # {}
+    tie::std::file x $f
+    x names ; # This loads the journal and causes compaction
+    x destroy
+    set res [viewFile journal]
+    removeFile journal
+    set res
+} {
+	set aa 3
+	set ab 4
+	set ac 5
+	set ad 6
+	set ae 7
+    }
+
+testsuiteCleanup
+return

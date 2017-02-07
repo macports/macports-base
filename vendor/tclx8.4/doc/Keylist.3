@@ -1,0 +1,179 @@
+.\"
+.\" Keylist.man
+.\"
+.\" Extended Tcl keyed lists commands.
+.\"----------------------------------------------------------------------------
+.\" Copyright 1992-1999 Karl Lehenbauer and Mark Diekhans.
+.\"
+.\" Permission to use, copy, modify, and distribute this software and its
+.\" documentation for any purpose and without fee is hereby granted, provided
+.\" that the above copyright notice appear in all copies.  Karl Lehenbauer and
+.\" Mark Diekhans make no representations about the suitability of this
+.\" software for any purpose.  It is provided "as is" without express or
+.\" implied warranty.
+.\"----------------------------------------------------------------------------
+.\" $Id: Keylist.3,v 8.3 1999/03/31 06:37:41 markd Exp $
+.\"----------------------------------------------------------------------------
+.\"
+.TH "Tcl_GetKeyedListKeys" TCL "" "Tcl"
+.ad b
+.SH NAME
+TclX_NewKeyedListObj, TclX_KeyedListGet, TclX_KeyedListSet, TclX_KeyedListDelete, TclX_KeyedListGetKeys - Keyed list management routines.
+.SH SYNOPSIS
+.PP
+.nf
+.ft CW
+#include <tclExtend.h>
+
+Tcl_Obj *
+TclX_NewKeyedListObj (void);
+
+int
+TclX_KeyedListGet (Tcl_Interp *interp,
+                   Tcl_Obj    *keylPtr,
+                   char       *key,
+                   Tcl_Obj   **valuePtrPtr);
+
+int
+TclX_KeyedListSet (Tcl_Interp *interp,
+                   Tcl_Obj    *keylPtr,
+                   char       *key,
+                   Tcl_Obj    *valuePtr);
+
+int
+TclX_KeyedListDelete (Tcl_Interp *interp,
+                      Tcl_Obj    *keylPtr,
+                      char       *key);
+
+int
+TclX_KeyedListGetKeys (Tcl_Interp *interp,
+                       Tcl_Obj    *keylPtr,
+                       char       *key,
+                       Tcl_Obj   **listObjPtrPtr);
+
+
+.ft R
+.fi
+'
+.SH DESCRIPTION
+.PP
+These routines perform operations on keyed lists.  See the \fIExtended Tcl\fR 
+man page for a description of keyed lists.
+.SS TclX_NewKeyedListObj
+.PP
+Create and initialize a new keyed list object.
+.PP
+Returns:
+.RS 2
+A pointer to the object.
+.RE
+'
+.SS TclX_KeyedListGet
+.PP
+  Retrieve a key value from a keyed list.
+.PP
+Parameters:
+.RS 2
+\fBo \fIinterp\fR - Error message will be return in result if there is an
+error.
+.br
+\fBo \fIkeylPtr\fR - Keyed list object to get key from.
+.br
+\fBo \fIkey\fR - The name of the key to extract.  Will recusively process
+sub-keys seperated by `.'.
+.br
+\fBo \fIvalueObjPtrPtr\fR - If the key is found, a pointer to the key object
+    is returned here.  NULL is returned if the key is not present.
+.br
+.RE
+.PP
+Returns:
+.RS 2
+\fBo \fBTCL_OK\fR - If the key value was returned.
+.br
+\fBo \fBTCL_BREAK\fR - If the key was not found.
+.br
+\fBo \fBTCL_ERROR\fR - If an error occured.
+.br
+.RE
+'
+.SS TclX_KeyedListSet
+.PP
+  Set a key value in keyed list object.
+.PP
+
+Parameters:
+.RS 2
+\fBo \fIinterp\fR - Error message will be return in result object.
+.br
+\fBo \fIkeylPtr\fR - Keyed list object to update.
+.br
+\fBo \fIkey\fR - The name of the key to extract.  Will recusively process
+sub-key seperated by `.'.
+.br
+\fBo \fIvalueObjPtr\fR - The value to set for the key.
+.br
+.RE
+.PP
+Returns:
+.RS 2
+  TCL_OK or TCL_ERROR.
+.RE
+'
+.SS TclX_KeyedListDelete
+.PP
+  Delete a key value from keyed list.
+.PP
+
+Parameters:
+.RS 2
+\fBo \fIinterp\fR - Error message will be return in result if there is an
+error.
+.br
+\fBo \fIkeylPtr\fR - Keyed list object to update.
+.br
+\fBo \fIkey\fR - The name of the key to extract.  Will recusively process
+sub-key seperated by `.'.
+.br
+.RE
+.PP
+Returns:
+.RS 2
+\fBo \fBTCL_OK\fR - If the key was deleted.
+.br
+\fBo \fBTCL_BREAK\fR - If the key was not found.
+.br
+\fBo \fBTCL_ERROR\fR - If an error occured.
+.br
+.RE
+'
+.SS TclX_KeyedListGetKeys
+.PP
+  Retrieve a list of keyed list keys.
+.PP
+
+Parameters:
+.RS 2
+\fBo \fIinterp\fR - Error message will be return in result if there is an
+error.
+.br
+\fBo \fIkeylPtr\fR - Keyed list object to get key from.
+.br
+\fBo \fIkey\fR - The name of the key to get the sub keys for.  NULL or empty
+to retrieve all top level keys.
+.br
+\fBo \fIlistObjPtrPtr\fR - List object is returned here with key as values.
+.RE
+.PP
+Returns:
+.RS 2
+\fBo \fBTCL_OK\fR - If the zero or more key where returned.
+.br
+\fBo \fBTCL_BREAK\fR - If the key was not found.
+.br
+\fBo \fBTCL_ERROR\fR - If an error occured.
+.br
+.RE
+'
+
+

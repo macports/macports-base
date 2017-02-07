@@ -1,0 +1,74 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset PACKAGE_VERSION 0.1]
+[manpage_begin processman n [vset PACKAGE_VERSION]]
+[keywords {processman}]
+[keywords {odie}]
+[copyright {2015 Sean Woods <yoda@etoyoc.com>}]
+[moddesc   {processman}]
+[titledesc {Tool for automating the period callback of commands}]
+[category  System]
+[require Tcl 8.5]
+[require twapi 3.1]
+[require cron 1.1]
+[require processman [opt [vset PACKAGE_VERSION]]]
+[description]
+[para]
+
+The [package processman] package provides a Pure-tcl set of utilities
+to manage child processes in a platform-generic nature.
+
+[section Commands]
+[list_begin definitions]
+
+[call [cmd ::processman::find_exe] [arg name]]
+
+Locate an executable by the name of [arg name] in the system path. On windows,
+also add the .exe extention if not given.
+
+[call [cmd ::processman::kill] [arg id]]
+
+Kill a child process [arg id].
+
+[call [cmd ::processman::kill_all]]
+
+Kill all processes spawned by this program
+
+[call [cmd ::processman::killexe] [arg name]]
+
+Kill a process identified by the executable. On Unix, this triggers a killall.
+On windows, [cmd twapi::get_process_ids] is used to map a name one or more IDs,
+which are then killed.
+
+[call [cmd ::processman::onexit] [arg id] [arg cmd]]
+
+Arrange to execute the script [arg cmd] when this programe detects that
+process [arg id] as terminated.
+
+[call [cmd ::processman::priority] [arg id] [arg level]]
+
+Mark process [arg id] with the priorty [arg level]. Valid levels: low, high, default.
+[para]
+On Unix, the process is tagged using the [cmd nice] command.
+[para]
+On Windows, the process is modifed via the [cmd twapi::set_priority_class]
+
+[call [cmd ::processman::process_list]]
+
+Return a list of processes that have been triggered by this program, as
+well as a boolean flag to indicate if the process is still running.
+
+
+[call [cmd ::processman::process_list] [arg id]]
+
+Return true if process [arg id] is still running, false otherwise.
+
+[call [cmd ::processman::spawn] [arg id] [arg cmd] [arg args]]
+
+Start a child process, identified by [arg id]. [arg cmd] is the name
+of the command to execute. [arg args] are arguments to pass to that command.
+
+[list_end]
+[para]
+[vset CATEGORY odie]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

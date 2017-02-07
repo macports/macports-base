@@ -2,6 +2,7 @@
 
 package require tcltest 2
 package require reclaim 1.0
+package require msgcat
 namespace import tcltest::*
 
 set pwd [file dirname [file normalize $argv0]]
@@ -20,108 +21,96 @@ array set ui_options {}
 set ui_options(ports_noninteractive) yes
 mportinit ui_options
 
-# reclaim nees to be fixed to honor the noninteractive flag
+set setup_testdir {
+    set saved_portdbpath ${macports::portdbpath}
+    set macports::portdbpath [makeDirectory "reclaim_test_tmpdir"]
+    set lastreclaimfile [makeFile "0" "last_reclaim" ${macports::portdbpath}]
+    set distfiles_path [makeDirectory "distfiles" ${macports::portdbpath}]
+    set turdfile [makeFile "should be kept" ".turd_MacPorts" ${distfiles_path}]
+    set testfile [makeFile "should be deleted" "test.txt" ${distfiles_path}]
+
+    # mock UI questions mechanism
+    proc returnD {args} {
+        return "d"
+    }
+    set saved_questions_alternative {}
+    if {[info exists macports::ui_options(questions_alternative)]} {
+        set saved_questions_alternative ${macports::ui_options(questions_alternative)}
+    }
+    set macports::ui_options(questions_alternative) "returnD"
+}
+
+set cleanup_testdir {
+    set macports::portdbpath ${saved_portdbpath}
+    if {$saved_questions_alternative ne {}} {
+        set macports::ui_options(questions_alternative) $saved_questions_alternative
+    }
+}
+
 test remove_distfiles {
     Test for distfiles being successfully removed.
-} -constraints {
-    root
-    userInteraction
-} -body {
-    set path [file join ${macports::portdbpath} distfiles]
-    set file [file join $path "test.txt"]
-
-    set fd   [open $file w]
-    close $fd
-    
+} -setup $setup_testdir -body {
     reclaim::remove_distfiles
+    return [file exists $testfile]
+} -result 0 -cleanup $cleanup_testdir
 
-    if {[file exists $file]} {
-        return "FAIL: Did not remove distfile."
-    }
-
-    return "Successfully removed distfile."
-} -cleanup {
-    file delete -force $file
-} -result "Successfully removed distfile."
+test remove_distfiles_keeps_turd_file {
+    Test for .turd_MacPorts files being kept by distfile removal.
+} -setup $setup_testdir -body {
+    reclaim::remove_distfiles
+    return [file exists $turdfile]
+} -result 1 -cleanup $cleanup_testdir
 
 test update_last_run {
     Tests for last_reclaim file being updated.
-} -constraints {
-    root
-} -body {
-    set path     [file join ${macports::portdbpath} last_reclaim]
+} -setup $setup_testdir -body {
+    proc _get_last_reclaim_time {fname} {
+        set fd [open $fname r]
+        set timestamp [gets $fd]
+        close $fd
 
-    set fd          [open $path w]
-    close $fd
-
-    set fd          [open $path r]
-    set old_time    [gets $fd]
-    close $fd
-
+        return $timestamp
+    }
+    set old_time [_get_last_reclaim_time $lastreclaimfile]
     reclaim::update_last_run
-
-    set fd          [open $path r]
-    set new_time    [gets $fd]
-    close $fd
+    set new_time [_get_last_reclaim_time $lastreclaimfile]
 
     if {$new_time == $old_time} {
-        return "FAIL: Did not update to the current time."
+        return "$new_time == $old_time"
     }
 
-    return "Successfully updated to the correct time."
-
-} -cleanup {
-    set fd  [open $path w]
-    puts $fd $old_time
-    close $fd
-} -result "Successfully updated to the correct time."
+    return "pass"
+} -result "pass" -cleanup $cleanup_testdir
 
 
 test walk_files {
     Tests if walking through the files, and deleting distfiles, ignoring normal files, and removing directory trees works.
-} -constraints {
-    root
+} -setup {
+    set dir [makeDirectory "reclaim_test_walk_files_tmpdir"]
+    set subdir [makeDirectory "subdir" $dir]
+
+    set bad_dist [list \
+        [makeFile "to be deleted" "bad_distfile.txt" $subdir] \
+        [makeFile "to be deleted" "bad_distfile2.txt" $dir]]
+    set good_dist [list \
+        [makeFile "to be kept" "good_distfile.txt" $dir]]
 } -body {
-    set path        [file join ${macports::portdbpath} distfiles]
-    set dir         [file join $path tmp_dir]
-    set subdir      [file join $dir other_tmp_dir]
-    set bad_dist    [file join $subdir bad_distfile.txt]
-    set bad_dist2   [file join $dir bad_distfile2.txt]
-    set good_dist   [file join $dir good_distfile.txt]
-    set dist_list   [list]
+    set errors [list]
     set unused_list [list]
+    reclaim::walk_files $dir $good_dist unused_list 
 
-    lappend dist_list $good_dist
-
-    file mkdir $subdir
-
-    set $fd         [open $bad_dist w] 
-    close $fd
-
-    set $fd         [open $bad_dist2 w] 
-    close $fd
-
-    set $fd         [open $good_dist w] 
-    close $fd
-
-    reclaim::walk_files $dir $dist_list unused_list 
-
-    if {[lsearch -exact $unused_list $bad_dist] == -1} {
-        return "FAIL: bad_dist should be deleted"
+    foreach badfile $bad_dist {
+        if {[lsearch -exact $unused_list $badfile] == -1} {
+            lappend error "$badfile should be deleted"
+        }
     }
-    if {[lsearch -exact $unused_list $bad_dist2] == -1} {
-        return "FAIL: bad_dist2 should be deleted"
-    }
-    if {[lsearch -exact $unused_list $good_dist] != -1} {
-        return "FAIL: good_dist should NOT be deleted"
-    }
-    if {[lsearch -exact $unused_list $dir] != -1} {
-        return "FAIL: good_dist should NOT be deleted"
+    foreach goodfile [concat $good_dist [list $dir]] {
+        if {[lsearch -exact $unused_list $goodfile] != -1} {
+            lappend error "$goodfile should be kept"
+        }
     }
 
-    return "Successfully deleted all files that needed to be deleted."
-} -cleanup {
-    file delete -force $dir  
-} -result "Successfully deleted all files that needed to be deleted."
+    return $errors
+} -result {}
 
 cleanupTests

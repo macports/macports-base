@@ -1,6 +1,5 @@
 /*
  * sha1cmd.h
- * $Id$
  * Copied from md5cmd.h 20040903 EH
  *
  * Copyright (c) 2002 - 2003 Apple Inc.

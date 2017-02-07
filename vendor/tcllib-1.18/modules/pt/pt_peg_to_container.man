@@ -1,0 +1,7 @@
+[comment {--- doctools ---}]
+[vset PACKAGE container]
+[vset NAME    CONTAINER]
+[vset REQUIRE container]
+[vset CONFIG  container]
+[vset VERSION 1]
+[include include/export/to.inc]

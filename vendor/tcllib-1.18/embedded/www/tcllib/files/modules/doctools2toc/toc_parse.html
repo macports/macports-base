@@ -1,0 +1,365 @@
+
+<div class='fossil-doc' data-title='doctools::toc::parse - Documentation tools'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">doctools::toc::parse(n) 1 tcllib &quot;Documentation tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>doctools::toc::parse - Parsing text in doctoc format</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Parse errors</a></li>
+<li class="doctools_section"><a href="#section4">[doctoc] notation of tables of contents</a></li>
+<li class="doctools_section"><a href="#section5">ToC serialization format</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">doctools::toc::parse <span class="opt">?0.1?</span></b></li>
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">doctools::toc::structure</b></li>
+<li>package require <b class="pkgname">doctools::msgcat</b></li>
+<li>package require <b class="pkgname">doctools::tcl::parse</b></li>
+<li>package require <b class="pkgname">fileutil</b></li>
+<li>package require <b class="pkgname">logger</b></li>
+<li>package require <b class="pkgname">snit</b></li>
+<li>package require <b class="pkgname">struct::list</b></li>
+<li>package require <b class="pkgname">struct::stack</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::doctools::toc::parse</b> <b class="method">text</b> <i class="arg">text</i></a></li>
+<li><a href="#2"><b class="cmd">::doctools::toc::parse</b> <b class="method">file</b> <i class="arg">path</i></a></li>
+<li><a href="#3"><b class="cmd">::doctools::toc::parse</b> <b class="method">includes</b></a></li>
+<li><a href="#4"><b class="cmd">::doctools::toc::parse</b> <b class="method">include add</b> <i class="arg">path</i></a></li>
+<li><a href="#5"><b class="cmd">::doctools::toc::parse</b> <b class="method">include remove</b> <i class="arg">path</i></a></li>
+<li><a href="#6"><b class="cmd">::doctools::toc::parse</b> <b class="method">include clear</b></a></li>
+<li><a href="#7"><b class="cmd">::doctools::toc::parse</b> <b class="method">vars</b></a></li>
+<li><a href="#8"><b class="cmd">::doctools::toc::parse</b> <b class="method">var set</b> <i class="arg">name</i> <i class="arg">value</i></a></li>
+<li><a href="#9"><b class="cmd">::doctools::toc::parse</b> <b class="method">var unset</b> <i class="arg">name</i></a></li>
+<li><a href="#10"><b class="cmd">::doctools::toc::parse</b> <b class="method">var clear</b> <span class="opt">?<i class="arg">pattern</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides commands to parse text written in the
+<i class="term"><a href="../../../../index.html#key258">doctoc</a></i> markup language and convert it into the canonical
+serialization of the table of contents encoded in the text.
+See the section <span class="sectref"><a href="#section5">ToC serialization format</a></span> for specification
+of their format.</p>
+<p>This is an internal package of doctools, for use by the higher level
+packages handling <i class="term"><a href="../../../../index.html#key258">doctoc</a></i> documents.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::doctools::toc::parse</b> <b class="method">text</b> <i class="arg">text</i></a></dt>
+<dd><p>The command takes the string contained in <i class="arg">text</i> and parses it
+under the assumption that it contains a document written using the
+<i class="term"><a href="../../../../index.html#key258">doctoc</a></i> markup language. An error is thrown if this assumption
+is found to be false. The format of these errors is described in
+section <span class="sectref"><a href="#section3">Parse errors</a></span>.</p>
+<p>When successful the command returns the canonical serialization of the
+table of contents which was encoded in the text.
+See the section <span class="sectref"><a href="#section5">ToC serialization format</a></span> for specification
+of that format.</p></dd>
+<dt><a name="2"><b class="cmd">::doctools::toc::parse</b> <b class="method">file</b> <i class="arg">path</i></a></dt>
+<dd><p>The same as <b class="method">text</b>, except that the text to parse is read from
+the file specified by <i class="arg">path</i>.</p></dd>
+<dt><a name="3"><b class="cmd">::doctools::toc::parse</b> <b class="method">includes</b></a></dt>
+<dd><p>This method returns the current list of search paths used when looking
+for include files.</p></dd>
+<dt><a name="4"><b class="cmd">::doctools::toc::parse</b> <b class="method">include add</b> <i class="arg">path</i></a></dt>
+<dd><p>This method adds the <i class="arg">path</i> to the list of paths searched when
+looking for an include file. The call is ignored if the path is
+already in the list of paths. The method returns the empty string as
+its result.</p></dd>
+<dt><a name="5"><b class="cmd">::doctools::toc::parse</b> <b class="method">include remove</b> <i class="arg">path</i></a></dt>
+<dd><p>This method removes the <i class="arg">path</i> from the list of paths searched
+when looking for an include file. The call is ignored if the path is
+not contained in the list of paths. The method returns the empty
+string as its result.</p></dd>
+<dt><a name="6"><b class="cmd">::doctools::toc::parse</b> <b class="method">include clear</b></a></dt>
+<dd><p>This method clears the list of search paths for include files.</p></dd>
+<dt><a name="7"><b class="cmd">::doctools::toc::parse</b> <b class="method">vars</b></a></dt>
+<dd><p>This method returns a dictionary containing the current set of
+predefined variables known to the <b class="cmd">vset</b> markup command during
+processing.</p></dd>
+<dt><a name="8"><b class="cmd">::doctools::toc::parse</b> <b class="method">var set</b> <i class="arg">name</i> <i class="arg">value</i></a></dt>
+<dd><p>This method adds the variable <i class="arg">name</i> to the set of predefined
+variables known to the <b class="cmd">vset</b> markup command during processing,
+and gives it the specified <i class="arg">value</i>. The method returns the empty
+string as its result.</p></dd>
+<dt><a name="9"><b class="cmd">::doctools::toc::parse</b> <b class="method">var unset</b> <i class="arg">name</i></a></dt>
+<dd><p>This method removes the variable <i class="arg">name</i> from the set of predefined
+variables known to the <b class="cmd">vset</b> markup command during
+processing. The method returns the empty string as its result.</p></dd>
+<dt><a name="10"><b class="cmd">::doctools::toc::parse</b> <b class="method">var clear</b> <span class="opt">?<i class="arg">pattern</i>?</span></a></dt>
+<dd><p>This method removes all variables matching the <i class="arg">pattern</i> from the
+set of predefined variables known to the <b class="cmd">vset</b> markup command
+during processing. The method returns the empty string as its result.</p>
+<p>The pattern matching is done with <b class="cmd">string match</b>, and the
+default pattern used when none is specified, is <b class="const">*</b>.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Parse errors</a></h2>
+<p>The format of the parse error messages thrown when encountering
+violations of the <i class="term"><a href="../../../../index.html#key258">doctoc</a></i> markup syntax is human readable and
+not intended for processing by machines. As such it is not documented.</p>
+<p><em>However</em>, the errorCode attached to the message is
+machine-readable and has the following format:</p>
+<ol class="doctools_enumerated">
+<li><p>The error code will be a list, each element describing a single error
+found in the input. The list has at least one element, possibly more.</p></li>
+<li><p>Each error element will be a list containing six strings describing an
+error in detail. The strings will be</p>
+<ol class="doctools_enumerated">
+<li><p>The path of the file the error occured in. This may be empty.</p></li>
+<li><p>The range of the token the error was found at. This range is a
+two-element list containing the offset of the first and last character
+in the range, counted from the beginning of the input (file). Offsets
+are counted from zero.</p></li>
+<li><p>The line the first character after the error is on.
+Lines are counted from one.</p></li>
+<li><p>The column the first character after the error is at.
+Columns are counted from zero.</p></li>
+<li><p>The message code of the error. This value can be used as argument to
+<b class="cmd">msgcat::mc</b> to obtain a localized error message, assuming that
+the application had a suitable call of <b class="cmd">doctools::msgcat::init</b> to
+initialize the necessary message catalogs (See package
+<b class="package"><a href="../doctools2base/tcllib_msgcat.html">doctools::msgcat</a></b>).</p></li>
+<li><p>A list of details for the error, like the markup command involved. In
+the case of message code <b class="const">doctoc/include/syntax</b> this value is
+the set of errors found in the included file, using the format
+described here.</p></li>
+</ol>
+</li>
+</ol>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">[doctoc] notation of tables of contents</a></h2>
+<p>The doctoc format for tables of contents, also called the
+<i class="term">doctoc markup language</i>, is too large to be covered in single
+section.
+The interested reader should start with the document</p>
+<ol class="doctools_enumerated">
+<li><p><i class="term"><a href="../doctools/doctoc_lang_intro.html">doctoc language introduction</a></i></p></li>
+</ol>
+<p>and then proceed from there to the formal specifications, i.e. the
+documents</p>
+<ol class="doctools_enumerated">
+<li><p><i class="term"><a href="../doctools/doctoc_lang_syntax.html">doctoc language syntax</a></i> and</p></li>
+<li><p><i class="term"><a href="../doctools/doctoc_lang_cmdref.html">doctoc language command reference</a></i>.</p></li>
+</ol>
+<p>to get a thorough understanding of the language.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">ToC serialization format</a></h2>
+<p>Here we specify the format used by the doctools v2 packages to
+serialize tables of contents as immutable values for transport,
+comparison, etc.</p>
+<p>We distinguish between <i class="term">regular</i> and <i class="term">canonical</i>
+serializations.
+While a table of contents may have more than one regular serialization
+only exactly one of them will be <i class="term">canonical</i>.</p>
+<dl class="doctools_definitions">
+<dt>regular serialization</dt>
+<dd><ol class="doctools_enumerated">
+<li><p>The serialization of any table of contents is a nested Tcl dictionary.</p></li>
+<li><p>This dictionary holds a single key, <b class="const">doctools::toc</b>, and its
+value. This value holds the contents of the table of contents.</p></li>
+<li><p>The contents of the table of contents are a Tcl dictionary holding the
+title of the table of contents, a label, and its elements. The
+relevant keys and their values are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">title</b></dt>
+<dd><p>The value is a string containing the title of the table of contents.</p></dd>
+<dt><b class="const">label</b></dt>
+<dd><p>The value is a string containing a label for the table of contents.</p></dd>
+<dt><b class="const">items</b></dt>
+<dd><p>The value is a Tcl list holding the elements of the table, in the
+order they are to be shown.</p>
+<p>Each element is a Tcl list holding the type of the item, and its
+description, in this order. An alternative description would be that
+it is a Tcl dictionary holding a single key, the item type, mapped to
+the item description.</p>
+<p>The two legal item types and their descriptions are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">reference</b></dt>
+<dd><p>This item describes a single entry in the table of contents,
+referencing a single document.
+To this end its value is a Tcl dictionary containing an id for the
+referenced document, a label, and a longer textual description which
+can be associated with the entry.
+The relevant keys and their values are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">id</b></dt>
+<dd><p>The value is a string containing the id of the document associated
+with the entry.</p></dd>
+<dt><b class="const">label</b></dt>
+<dd><p>The value is a string containing a label for this entry. This string
+also identifies the entry, and no two entries (references and
+divisions) in the containing list are allowed to have the same label.</p></dd>
+<dt><b class="const">desc</b></dt>
+<dd><p>The value is a string containing a longer description for this entry.</p></dd>
+</dl></dd>
+<dt><b class="const">division</b></dt>
+<dd><p>This item describes a group of entries in the table of contents,
+inducing a hierarchy of entries.
+To this end its value is a Tcl dictionary containing a label for the
+group, an optional id to a document for the whole group, and the list
+of entries in the group.
+The relevant keys and their values are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">id</b></dt>
+<dd><p>The value is a string containing the id of the document associated
+with the whole group. This key is optional.</p></dd>
+<dt><b class="const">label</b></dt>
+<dd><p>The value is a string containing a label for the group. This string
+also identifies the entry, and no two entries (references and
+divisions) in the containing list are allowed to have the same label.</p></dd>
+<dt><b class="const">items</b></dt>
+<dd><p>The value is a Tcl list holding the elements of the group, in the
+order they are to be shown.
+This list has the same structure as the value for the keyword
+<b class="const">items</b> used to describe the whole table of contents, see
+above. This closes the recusrive definition of the structure, with
+divisions holding the same type of elements as the whole table of
+contents, including other divisions.</p></dd>
+</dl></dd>
+</dl></dd>
+</dl>
+</li>
+</ol></dd>
+<dt>canonical serialization</dt>
+<dd><p>The canonical serialization of a table of contents has the format as
+specified in the previous item, and then additionally satisfies the
+constraints below, which make it unique among all the possible
+serializations of this table of contents.</p>
+<ol class="doctools_enumerated">
+<li><p>The keys found in all the nested Tcl dictionaries are sorted in
+ascending dictionary order, as generated by Tcl's builtin command
+<b class="cmd">lsort -increasing -dict</b>.</p></li>
+</ol></dd>
+</dl>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>doctools</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key258">doctoc</a>, <a href="../../../../index.html#key179">doctools</a>, <a href="../../../../index.html#key257">lexer</a>, <a href="../../../../index.html#key9">parser</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Documentation tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

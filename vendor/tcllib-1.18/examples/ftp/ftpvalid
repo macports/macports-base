@@ -1,0 +1,77 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+# Author: [Larry W. Virden] [LV], modified Andreas Kupries [AK]
+# Version: 3
+# Validate the ftp: urls given on the command line.
+
+package require uri
+package require ftp
+
+# Should eventually add a command line argument to toggle verbose
+#set ftp::VERBOSE 1
+
+if {0} {
+    proc ftp::DisplayMsg {s msg {state ""}} {
+	upvar ::ftp::ftp$s ftp
+	variable VERBOSE
+
+	switch -exact -- $state {
+	    data {
+		if { $VERBOSE } { puts $msg }
+	    }
+	    control {
+		if { $VERBOSE } { puts $msg }
+	    }
+	    error {
+		if { $VERBOSE } { puts "E: $msg" }
+		#error "ERROR: $msg"
+	    }
+	    default {
+		if { $VERBOSE } { puts $msg }
+	    }
+	}
+	return
+    }
+}
+
+foreach arg $argv {
+    array set current [uri::split $arg]
+
+    # parray current
+
+    if {[catch {
+	set fdc [ftp::Open $current(host) anonymous enteryourname@here.com]
+    } returncode]} {
+	puts stderr [format "error 1: unable to open %s\n" $current(host)]
+	continue
+    }
+    set ftp_dir  [file dirname $current(path)]
+    set ftp_file [file tail    $current(path)]
+
+    if {[catch {
+	set result [ftp::Cd $fdc $ftp_dir] } returncode]
+    } {
+	puts stderr [format "error 2: unable to enter directory %s:%s\n" $current(host) $ftp_dir]
+	continue
+    }
+
+    if { $result == 0 } {
+	puts stderr [format "error 3: failure to enter %s:%s\n" $current(host) $ftp_dir]
+	continue
+    }
+
+    if {[catch {
+	set result [ftp::List $fdc "${ftp_file}*"] } returncode]
+    } {
+	puts stderr [format "error 4: no match for ${ftp_file}*\n" $current(host) $ftp_dir]
+	continue
+    }
+    if { $result == {} } {
+	puts stderr [format "error 5: no match for ${ftp_file}*\n" $current(host) $ftp_dir]
+	continue
+    }
+
+    ftp::Close $fdc
+}
+
+exit

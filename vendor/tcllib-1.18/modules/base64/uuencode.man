@@ -1,0 +1,97 @@
+[manpage_begin uuencode n 1.1.4]
+[keywords encoding]
+[keywords uuencode]
+[copyright {2002, Pat Thoyts}]
+[moddesc   {Text encoding & decoding binary data}]
+[titledesc {UU-encode/decode binary data}]
+[category  {Text processing}]
+[require Tcl 8]
+[require uuencode [opt 1.1.4]]
+[description]
+[para]
+
+This package provides a Tcl-only implementation of the
+[syscmd uuencode(1)] and [syscmd uudecode(1)] commands. This encoding
+packs binary data into printable ASCII characters.
+
+[list_begin definitions]
+
+[call [cmd ::uuencode::encode] [arg string]]
+
+returns the uuencoded data. This will encode all the data passed in
+even if this is longer than the uuencode maximum line length. If the
+number of input bytes is not a multiple of 3 then additional 0 bytes
+are added to pad the string.
+
+[call [cmd ::uuencode::decode] [arg string]]
+
+Decodes the given encoded data. This will return any padding
+characters as well and it is the callers responsibility to deal with
+handling the actual length of the encoded data. (see uuencode).
+
+[call [cmd ::uuencode::uuencode] [opt "[option -name] [arg string]"] [opt "[option -mode] [arg octal]"] "([option -file] [arg filename] | [opt [option --]] [arg string])"]
+
+[call [cmd ::uuencode::uudecode] "([option -file] [arg filename] | [opt [option --]] [arg string])"]
+
+UUDecode a file or block of data. A file may contain more than one
+embedded file so the result is a list where each element is a three
+element list of filename, mode value and data.
+
+[list_end]
+
+[section OPTIONS]
+
+[list_begin definitions]
+
+[def "-filename name"]
+
+Cause the uuencode or uudecode commands to read their data from the
+named file rather that taking a string parameter.
+
+[def "-name string"]
+
+The uuencoded data header line contains the suggested file name to be
+used when unpacking the data. Use this option to change this from the
+default of "data.dat".
+
+[def "-mode octal"]
+
+The uuencoded data header line contains a suggested permissions bit
+pattern expressed as an octal string. To change the default of 0644
+you can set this option. For instance, 0755 would be suitable for an
+executable. See [syscmd chmod(1)].
+
+[list_end]
+
+[section EXAMPLES]
+
+[para]
+[example {
+% set d [uuencode::encode "Hello World!"]
+2&5L;&\\@5V]R;&0A
+}]
+
+[para]
+[example {
+% uuencode::uudecode $d
+Hello World!
+}]
+
+[para]
+[example {
+% set d [uuencode::uuencode -name hello.txt "Hello World"]
+begin 644 hello.txt
++2&5L;&\@5V]R;&0`
+`
+end
+}]
+
+[para]
+[example {
+% uuencode::uudecode $d
+{hello.txt 644 {Hello World}}
+}]
+
+[vset CATEGORY base64]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

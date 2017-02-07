@@ -1,0 +1,3 @@
+Doctools Error in macro at line 4, column 0:
+[namespace .n.]
+--> (FmtError) Manpage error (nodonecmd), "_namespace .n." : Command not allowed after [manpage_end].

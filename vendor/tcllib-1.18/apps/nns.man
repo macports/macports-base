@@ -1,0 +1,143 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin nns n 1.1]
+[see_also nameserv(n)]
+[see_also nameserv::common(n)]
+[keywords application]
+[keywords client]
+[keywords {name service}]
+[copyright {2007-2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Name service facility}]
+[titledesc {Name service facility, Commandline Client Application}]
+[category  Networking]
+[description]
+[para]
+
+Please read [term {Name service facility, introduction}] first.
+
+[para]
+
+The application described by this document, [syscmd nns], is a simple
+command line client for the nano name service facility provided by the
+Tcllib packages [package nameserv], and [package nameserv::server].
+
+Beyond that the application's sources also serve as an example of how
+to use the client package [package nameserv]. All abilities of a
+client are covered, from configuration to registration of names to
+searching.
+
+[para]
+
+This name service facility has nothing to do with the Internet's
+[term {Domain Name System}], otherwise known as [term DNS]. If the
+reader is looking for a package dealing with that please see either of
+the packages [package dns] and [package resolv], both found in Tcllib
+too.
+
+[subsection {USE CASES}]
+
+[syscmd nns] was written with the following two main use cases in
+mind.
+
+[para]
+[list_begin enumerated]
+[enum]
+Registration of a name/data pair in the name service.
+
+[enum]
+Searching the name service for entries matching a glob pattern.
+
+[list_end]
+
+[para]
+
+Beyond the above we also want to be able to identify the client, and
+get information about the name service.
+
+[subsection {COMMAND LINE}]
+
+[list_begin definitions]
+
+[call [cmd nns] [method bind] \
+	[opt "[option -host] [arg host]"] \
+	[opt "[option -port] [arg port]"] \
+	[arg name] [arg data]]
+
+This form registers the [arg name]/[arg data] pair in the specified
+name service. In this form the command will [emph not] exit to keep
+the registration alive. The user has to kill it explicitly, either by
+sending a signal, or through the job-control facilities of the shell
+in use. It will especially survive the loss of the connection to the
+name service and reestablish the [arg name]/[arg data] pair when the
+connection is restored.
+
+[para]
+The options to specify the name service will be explained later, in
+section [sectref OPTIONS].
+
+[call [cmd nns] [method search] \
+	[opt "[option -host] [arg host]"] \
+	[opt "[option -port] [arg port]"] \
+	[opt [option -continuous]] \
+	[opt [arg pattern]]]
+
+This form searches the specified name service for entries matching the
+glob-[arg pattern] and prints them to stdout, with each entry on its
+own line. If no pattern is specified it defaults to [const *],
+matching everything.
+
+[para]
+The options to specify the name service will be explained later, in
+section [sectref OPTIONS].
+
+[para]
+
+If the option [option -continuous] is specified the client will not
+exit after performing the search, but start to continuously monitor
+the service for changes to the set of matching entries, appropriately
+updating the display as changes arrive. In that form it will
+especially also survive the loss of the connection to the name service
+and reestablish the search when the connection is restored.
+
+[call [cmd nns] [method ident] \
+	[opt "[option -host] [arg host]"] \
+	[opt "[option -port] [arg port]"]]
+
+This form asks the specified name service for the version and features
+of the name service protocol it supports and prints the results to
+stdout.
+
+[para]
+The options to specify the name service will be explained later, in
+section [sectref OPTIONS].
+
+[call [cmd nns] [method who]]
+
+This form prints name, version, and protocol version of the
+application to stdout.
+
+[list_end]
+
+[subsection OPTIONS]
+
+This section describes all the options available to the user of the
+application
+
+[para]
+[list_begin options]
+[opt_def -host name|ipaddress]
+
+If this option is not specified it defaults to [const localhost]. It
+specifies the name or ip-address of the host the name service to talk
+to is running on.
+
+[opt_def -port number]
+
+If this option is not specified it defaults to [const 38573]. It
+specifies the TCP port the name service to talk to is listening on for
+requests.
+
+[list_end]
+
+[vset CATEGORY nameserv]
+[include ../modules/doctools2base/include/feedback.inc]
+[manpage_end]

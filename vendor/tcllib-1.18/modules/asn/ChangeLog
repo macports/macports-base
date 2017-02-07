@@ -1,0 +1,272 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2011-01-05  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * asn.tcl  : Fixed wrong asnGetBigInteger code 
+          asn.man  : Tcllib SF [3039090], added tests.
+          asn.test : Patchlevel now 0.8.4.
+          asn.bench: Thank to Roy Keene for the patch.
+	  asn.pcx  :
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-11-22  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* asn.bench: Added a new bench for OID decoding
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-06-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* asn.pcx: New file. Syntax definitions for the public commands of
+	  the asn package.
+
+2008-03-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* asn.man: Added documentation for a number of public yet not
+	  documented.
+
+2008-03-09  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* asn.tcl  : Added (optional ) support for Tcl 8.5 unsigned binary 
+	  asn.man  : scan to speed up byte extraction.
+	  pkgIndex.tcl:
+
+2007-09-18  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * asn.tcl  : Fixed missing padding in bitstring encoder 
+          asn.man  : Tcllib SF [1797428], added some tests for
+          asn.test :  Bitstrings. Patchlevel now 0.8.2.
+	  
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-04-20  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* asn.tcl   : Fixed misspelt PRIVATE name in docs and code,
+	  asn.man   : Tcllib SF [1704626].
+	  asn.test  : Fixed various glitches in the new commands and
+	  added more tests for asnPeekTag and asnTag.
+	  Version raised to 0.8.1.
+
+2007-04-20  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* asn.tcl   : Fixed documentation bug Tcllib [1703408].
+	  asn.man   : Fixed parts of [1558351] by adding handling
+	  asn.bench : for tag numbers > 31 and some new commands
+	  asn.test  : for changing tags.
+	  Fixed Bug [1645333]. Some new benchmarks.
+	  Raised Version to 0.8 because of new commands.
+
+2007-03-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* asn.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-01  Michael Schlenker <mic42@users.sourceforge.net>
+	* asn.tcl :     Added asnRetag, asnPeekByte and asnGetLength
+          asn.man :     to the public api, because those are needed by
+          pkgIndex.tcl: the ldap package.
+
+2006-08-16  Michael Schlenker <mic42@users.sourceforge.net>
+	* asn.tcl : Fixed stupid typos in asnGetApplication.
+	            Fixes bug Tcllib [1541436].
+		    
+2006-08-15  Michael Schlenker <mic42@users.sourceforge.net>
+	* asn.tcl : added two convenience functions,
+	  asn.man : asnSequenceFromList and asnSetFromList for
+	  pkgIndex.tcl: use by the ldap module. Raised version
+	            to 0.6
+	  
+2006-08-15  Michael Schlenker <mic42@users.sourceforge.net>
+	* asn.test: Added more tests. Fixed wrong version
+	  asn.man : reference in man page.
+	  
+2006-08-13  Michael Schlenker <mic42@users.sourceforge.net>
+	
+	* asn.tcl : Fixed Tcllib Bug [1539479]. Package version 
+	  asn.test: raised to 0.5.2. Added smoketest for the bug.
+	  Thanks to Pierre David for finding this.
+
+2006-03-22  Michael Schlenker <mic42@users.sourceforge.net>
+	
+	* asn.tcl:	Removed dependency on the log package to fix
+	  Tcllib Bug [1408807]. Package version raised to 0.5.1.
+
+2006-01-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* asn.test: Fixed use of duplicate test names.
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* asn.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* asn.test: Hooked into the new common test support code.
+
+2006-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* asn.man: Reworked the documentation of the new commands a bit,
+	  and fixed some typos in words and use of the doctools commands.
+
+2006-01-16  Michael Schlenker <mic42@users.sourceforge.net>
+	
+	* asn.tcl:	Added new decoders for BMPString
+	  asn.man:	and UTF8String. New convenience
+	  asn.test:     function asnGetString. Added tests
+	  pkgIndex.tcl: for OIDs and the new string functions.           
+			Bugfix for wrong tag in asnNumericString.
+			Version increased to 0.5.
+			Big thanks to Victor Wagner <vitus@45.free.net)
+			for the patches.
+			
+2006-01-05  Michael Schlenker <mic42@users.sourceforge.net>
+	
+	* asn.tcl: 	Fixed Tcllib Bug #1393804. Stupid typo.
+	  asn.test:	Added some tests for asnPeekByte, 
+	                asnGetByte, asnGetBytes.
+	  pkgIndex.tcl: Version increased to 0.4.2           
+
+2005-12-30  Michael Schlenker <mic42@users.sourceforge.net>
+	
+	* asn.tcl: 	Applied patch from Tcllib Bug #1391776 to 
+			create better (shorter) encodings for OIDs.
+	  pkgIndex.tcl: Version number increased to 0.4.1
+	
+2005-10-21  Andreas Kupries <andreask@activestate.com>
+
+	* asn.test: Fixed typos, new and old.
+
+2005-10-18  Andreas Kupries <andreask@activestate.com>
+
+	* asn.test:     Package requires 8.4, this was not caught
+	* pkgIndex.tcl: properly in index, nor in testsuite.
+
+	* asn.bench: New file, benchmarks, only basics for now.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-04-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* asn.man:      Synchronized indexed/provided versions.
+	* pkgIndex.tcl:
+
+2005-02-09  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* asn.tcl:
+	* asn.man:
+	* asn.test: Fixed incorrect length encoding and decoding .
+	  Added 64-bit support for length encoding/decoding,
+	  Added 64-bit support for integers. 
+	  Added tests for length encoding/decoding (10.x-11.x).
+	  Added tests for 64-bit integers.
+	  Bumped version number to 0.4
+	  The package now needs Tcl 8.4 for wide() support.
+	  
+2004-12-29  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* asn.tcl: 
+	* asn.man:  
+	* asn.test: Added more encoder functions
+	  to the module. 
+	* Added math::bignum support for encoding
+	  and decoding large integers. Interface not
+	  final, so no docs yet.
+	* Fixed bug with negative 3-byte integers in 
+	  asn::asnInteger, those were padded with 0x00 instead 
+	  of 0xff and added test for this (2.25).
+	* Added tests for null, boolean encoding and decoding
+	  and for bignum integer encoding (5.x-9.x).
+	* Removed second signed-unsigned conversion for the tags
+	  in error messages, asnGetByte returns unsigned tags.
+	* bumped version number to 0.3
+	
+2004-10-05  Michael Schlenker <mic42@users.sourceforge.net>
+        
+        * asn.tcl: Added more decoder functions to the module.
+        * asn.man: New primitve Types supported:
+          OBJECT IDENTIFIER,BIT STRING,UTCTIME,BOOLEAN,
+          PRINTABLE STRING, IA5 STRING, NULL
+          New structure element: Context tagging 
+        
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-08-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* asn.tcl: Typo police.
+	* asn.man:
+	* ChangeLog:
+
+2004-08-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* asn.test:
+	* asn.tcl: Enhanced encoder for enumerations: fixed buglet for
+	  2-byte integers (not minimal in border case 127), added the
+	  handling of 3-byte integers. Extended testsuite to cover
+	  enumerations as well.
+
+2004-08-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* asn.test: New file, first test cases for asn package.
+
+	* asn.tcl: Enhanced integer encoder: fixed buglet for 2-byte
+	  integers (not minimal in bordercase 127), added the handling of
+	  3-byte integers.
+
+2004-05-27  Andreas Kupries  <andreask@activestate.com>
+
+	* New module: ASN.1 de- and encoding. This was provided to us
+	  indirectly by Jochen Loewer <loewerj@web.de>, through the LDAP
+	  module. It contains the same functionality internally.
+
+	* Added doctools documentation. Referenced the "Layman's Guide to
+	  a Subset of ASN.1, BER, and DER" and added text version to the
+	  sources, to guide future work.

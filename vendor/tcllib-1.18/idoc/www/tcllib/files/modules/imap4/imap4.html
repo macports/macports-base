@@ -1,0 +1,488 @@
+<html><head>
+<title>imap4 - imap client</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'imap4.man' by tcllib/doctools with format 'html'
+   -->
+<! -- imap4.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">imap4(n) 0.5.3 tcllib &quot;imap client&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>imap4 - imap client-side tcl implementation of imap protocol</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PROCEDURES</a></li>
+<li class="doctools_section"><a href="#section3">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section4">TLS Security Considerations</a></li>
+<li class="doctools_section"><a href="#section5">REFERENCES</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">imap4 <span class="opt">?0.5.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::imap4::open</b> <i class="arg">hostname</i> <span class="opt">?<i class="arg">port</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::imap4::starttls</b> <i class="arg">chan</i></a></li>
+<li><a href="#3"><b class="cmd">::imap4::login</b> <i class="arg">chan</i> <i class="arg">user</i> <i class="arg">pass</i></a></li>
+<li><a href="#4"><b class="cmd">::imap4::folders</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">-inline</i>?</span> <span class="opt">?<i class="arg">mboxref</i>?</span> <span class="opt">?<i class="arg">mboxname</i>?</span></a></li>
+<li><a href="#5"><b class="cmd">::imap4::select</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">mailbox</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">::imap4::examine</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">mailbox</i>?</span></a></li>
+<li><a href="#7"><b class="cmd">::imap4::fetch</b> <i class="arg">chan</i> <i class="arg">range</i> <span class="opt">?<i class="arg">-inline</i>?</span> <span class="opt">?<i class="arg">attr ...</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">::imap4::noop</b> <i class="arg">chan</i></a></li>
+<li><a href="#9"><b class="cmd">::imap4::check</b> <i class="arg">chan</i></a></li>
+<li><a href="#10"><b class="cmd">::imap4::folderinfo</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">info</i>?</span></a></li>
+<li><a href="#11"><b class="cmd">::imap4::msginfo</b> <i class="arg">chan</i> <i class="arg">msgid</i> <span class="opt">?<i class="arg">info</i>?</span> <span class="opt">?<i class="arg">defval</i>?</span></a></li>
+<li><a href="#12"><b class="cmd">::imap4::mboxinfo</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">info</i>?</span></a></li>
+<li><a href="#13"><b class="cmd">::imap4::isableto</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">capability</i>?</span></a></li>
+<li><a href="#14"><b class="cmd">::imap4::create</b> <i class="arg">chan</i> <i class="arg">mailbox</i></a></li>
+<li><a href="#15"><b class="cmd">::imap4::delete</b> <i class="arg">chan</i> <i class="arg">mailbox</i></a></li>
+<li><a href="#16"><b class="cmd">::imap4::rename</b> <i class="arg">chan</i> <i class="arg">oldname</i> <i class="arg">newname</i></a></li>
+<li><a href="#17"><b class="cmd">::imap4::subscribe</b> <i class="arg">chan</i> <i class="arg">mailbox</i></a></li>
+<li><a href="#18"><b class="cmd">::imap4::unsubscribe</b> <i class="arg">chan</i> <i class="arg">mailbox</i></a></li>
+<li><a href="#19"><b class="cmd">::imap4::search</b> <i class="arg">chan</i> <i class="arg">expr</i> <span class="opt">?<i class="arg">...</i>?</span></a></li>
+<li><a href="#20"><b class="cmd">::imap4::close</b> <i class="arg">chan</i></a></li>
+<li><a href="#21"><b class="cmd">::imap4::cleanup</b> <i class="arg">chan</i></a></li>
+<li><a href="#22"><b class="cmd">::imap4::debugmode</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">errormsg</i>?</span></a></li>
+<li><a href="#23"><b class="cmd">::imap4::store</b> <i class="arg">chan</i> <i class="arg">range</i> <i class="arg">data</i> <i class="arg">flaglist</i></a></li>
+<li><a href="#24"><b class="cmd">::imap4::expunge</b> <i class="arg">chan</i></a></li>
+<li><a href="#25"><b class="cmd">::imap4::copy</b> <i class="arg">chan</i> <i class="arg">msgid</i> <i class="arg">mailbox</i></a></li>
+<li><a href="#26"><b class="cmd">::imap4::logout</b> <i class="arg">chan</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">imap4</b> library package provides the client side of the
+<em>Internet Message Access Protocol</em> (IMAP) using standard
+sockets or secure connection via TLS/SSL.
+The package is fully implemented in Tcl.</p>
+<p>This document describes the procedures and explains their usage.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PROCEDURES</a></h2>
+<p>This package defines the following public procedures:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::imap4::open</b> <i class="arg">hostname</i> <span class="opt">?<i class="arg">port</i>?</span></a></dt>
+<dd><p>Open a new IMAP connection and initalize the handler,
+the imap communication channel (handler) is returned.</p>
+<p><i class="arg">hostname</i> - mail server</p>
+<p><i class="arg">port</i> - connection port, defaults to 143</p>
+<p>The namespace variable <b class="option">::imap4::use_ssl</b>
+can be used to establish to a secure connection
+via TSL/SSL if set to true. In this case default connection port
+defaults to 993.</p>
+<p><em>Note:</em>
+For connecting via SSL the Tcl module <em>tls</em> must be already
+loaded otherwise an error is raised.</p>
+<pre class="doctools_example">
+    package require tls              ; # must be loaded for TLS/SSL
+    set ::imap4::use_ssl 1           ; # request a secure connection
+    set chan [::imap4::open $server] ; # default port is now 993 </pre>
+</dd>
+<dt><a name="2"><b class="cmd">::imap4::starttls</b> <i class="arg">chan</i></a></dt>
+<dd><p>Use this when tasked with connecting to an unsecure port which must be
+changed to a secure port prior to user login.  This feature is known
+as <i class="term">STARTTLS</i>.</p></dd>
+<dt><a name="3"><b class="cmd">::imap4::login</b> <i class="arg">chan</i> <i class="arg">user</i> <i class="arg">pass</i></a></dt>
+<dd><p>Login using the IMAP LOGIN command, 0 is returned on successful login.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">user</i> - username</p>
+<p><i class="arg">pass</i> - password</p></dd>
+<dt><a name="4"><b class="cmd">::imap4::folders</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">-inline</i>?</span> <span class="opt">?<i class="arg">mboxref</i>?</span> <span class="opt">?<i class="arg">mboxname</i>?</span></a></dt>
+<dd><p>Get list of matching folders, 0 is returned on success.</p>
+<p>Wildcards '*' as '%' are allowed for <i class="arg">mboxref</i> and <i class="arg">mboxname</i>,
+command <b class="cmd">::imap4::folderinfo</b> can be used to retrieve folder information.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">mboxref</i> - mailbox reference, defaults to &quot;&quot;</p>
+<p><i class="arg">mboxname</i> - mailbox name, defaults to &quot;*&quot;</p>
+<p>If <b class="option">-inline</b> is specified a compact folderlist is
+returned instead of the result code. All flags are converted to
+lowercase and leading special characters are removed.</p>
+<pre class="doctools_example">{{Arc08 noselect} {Arc08/Private {noinferiors unmarked}} {INBOX noinferiors}}</pre>
+</dd>
+<dt><a name="5"><b class="cmd">::imap4::select</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">mailbox</i>?</span></a></dt>
+<dd><p>Select a mailbox, 0 is returned on success.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">mailbox</i> - Path of the mailbox,  defaults to <em>INBOX</em></p>
+<p>Prior to examine/select an open mailbox must be closed - see: <b class="cmd">::imap4::close</b>.</p></dd>
+<dt><a name="6"><b class="cmd">::imap4::examine</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">mailbox</i>?</span></a></dt>
+<dd><p>&quot;Examines&quot; a mailbox, read-only equivalent of <b class="cmd">::imap4::select</b>.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">mailbox</i> - mailbox name or path to mailbox,
+defaults to <em>INBOX</em></p>
+<p>Prior to examine/select an open mailbox must be closed - see: <b class="cmd">::imap4::close</b>.</p></dd>
+<dt><a name="7"><b class="cmd">::imap4::fetch</b> <i class="arg">chan</i> <i class="arg">range</i> <span class="opt">?<i class="arg">-inline</i>?</span> <span class="opt">?<i class="arg">attr ...</i>?</span></a></dt>
+<dd><p>Fetch attributes from messages.</p>
+<p>The attributes are fetched and stored in the internal state
+which can be retrieved with command <b class="cmd">::imap4::msginfo</b>, 0 is returned
+on success.
+If <b class="option">-inline</b> is specified, alle records are returned as list
+in order as defined in the <i class="arg">attr</i> argument.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">range</i> - message index in format <em>FROM</em>:<em>TO</em></p>
+<p><i class="arg">attr</i> - imap attributes to fetch</p>
+<p><em>Note:</em>
+If <em>FROM</em> is omitted, the 1st message is assumed,
+if <em>TO</em> is ommitted the last message is assumed.
+All message index ranges are 1-based.</p></dd>
+<dt><a name="8"><b class="cmd">::imap4::noop</b> <i class="arg">chan</i></a></dt>
+<dd><p>Send NOOP command to server. May get information as untagged data.</p>
+<p><i class="arg">chan</i> - imap channel</p></dd>
+<dt><a name="9"><b class="cmd">::imap4::check</b> <i class="arg">chan</i></a></dt>
+<dd><p>Send CHECK command to server. Flush to disk.</p>
+<p><i class="arg">chan</i> - imap channel</p></dd>
+<dt><a name="10"><b class="cmd">::imap4::folderinfo</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">info</i>?</span></a></dt>
+<dd><p>Get information on the recently selected folderlist.
+If the <i class="arg">info</i> argument is omitted or a null string, the full list
+of information available for the mailbox is returned.</p>
+<p>If the required information name is suffixed with a ? character,
+the command returns true if the information is available, or
+false if it is not.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">info</i> - folderlist options to retrieve</p>
+<p>Currently supported options:
+<em>delim</em> - hierarchy delimiter only,
+<em>match</em> - ref and mbox search patterns (see <b class="cmd">::imap4::folders</b>),
+<em>names</em> - list of folder names only,
+<em>flags</em> - list of folder names with flags in format
+<em>{ {name {flags}} ... }</em> (see also compact format in function
+<b class="cmd">::imap4::folders</b>).</p>
+<pre class="doctools_example">
+{{Arc08 {{\NoSelect}}} {Arc08/Private {{\NoInferiors} {\UnMarked}}} {INBOX {\NoInferiors}}}
+</pre>
+</dd>
+<dt><a name="11"><b class="cmd">::imap4::msginfo</b> <i class="arg">chan</i> <i class="arg">msgid</i> <span class="opt">?<i class="arg">info</i>?</span> <span class="opt">?<i class="arg">defval</i>?</span></a></dt>
+<dd><p>Get information (from previously collected using fetch) from a given
+<em>msgid</em>. If the 'info' argument is omitted or a null string,
+the list of available information options for the given message is
+returned.</p>
+<p>If the required information name is suffixed with a ? character,
+the command returns true if the information is available, or
+false if it is not.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">msgid</i> - message number</p>
+<p><i class="arg">info</i> - imap keyword to retrieve</p>
+<p><i class="arg">defval</i> - default value, returned if info is empty</p>
+<p><em>Note:</em>
+All message index ranges are 1-based.</p></dd>
+<dt><a name="12"><b class="cmd">::imap4::mboxinfo</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">info</i>?</span></a></dt>
+<dd><p>Get information on the currently selected mailbox.
+If the <i class="arg">info</i> argument is omitted or a null string, the list
+of available information options for the mailbox is returned.</p>
+<p>If the required information name is suffixed with a ? character,
+the command returns true if the information is available, or
+false if it is not.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">opt</i> - mailbox option to retrieve</p>
+<p>Currently supported options:
+<em>EXISTS</em> (noof msgs),
+<em>RECENT</em> (noof 'recent' flagged msgs),
+<em>FLAGS</em></p>
+<p>In conjunction with OK:
+<em>PERMFLAGS</em>, <em>UIDNEXT</em>, <em>UIDVAL</em>, <em>UNSEEN</em></p>
+<p>Div. states:
+<em>CURRENT</em>, <em>FOUND</em>, <em>PERM</em>.</p>
+<pre class="doctools_example">
+    ::imap4::select $chan INBOX
+    puts &quot;[::imap4::mboxinfo $chan exists] mails in INBOX&quot;</pre>
+</dd>
+<dt><a name="13"><b class="cmd">::imap4::isableto</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">capability</i>?</span></a></dt>
+<dd><p>Test for capability.
+It returns 1 if requested capability is supported, 0 otherwise.
+If <i class="arg">capability</i> is omitted all capability imap
+codes are retured as list.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">info</i> - imap keyword to retrieve</p>
+<p><em>Note:</em>
+Use the capability command to ask the server if not
+already done by the user.</p></dd>
+<dt><a name="14"><b class="cmd">::imap4::create</b> <i class="arg">chan</i> <i class="arg">mailbox</i></a></dt>
+<dd><p>Create a new mailbox.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">mailbox</i> - mailbox name</p></dd>
+<dt><a name="15"><b class="cmd">::imap4::delete</b> <i class="arg">chan</i> <i class="arg">mailbox</i></a></dt>
+<dd><p>Delete a new mailbox.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">mailbox</i> - mailbox name</p></dd>
+<dt><a name="16"><b class="cmd">::imap4::rename</b> <i class="arg">chan</i> <i class="arg">oldname</i> <i class="arg">newname</i></a></dt>
+<dd><p>Rename a new mailbox.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">mailbox</i> - old mailbox name</p>
+<p><i class="arg">mailbox</i> - new mailbox name</p></dd>
+<dt><a name="17"><b class="cmd">::imap4::subscribe</b> <i class="arg">chan</i> <i class="arg">mailbox</i></a></dt>
+<dd><p>Subscribe a new mailbox.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">mailbox</i> - mailbox name</p></dd>
+<dt><a name="18"><b class="cmd">::imap4::unsubscribe</b> <i class="arg">chan</i> <i class="arg">mailbox</i></a></dt>
+<dd><p>Unsubscribe a new mailbox.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">mailbox</i> - mailbox name</p></dd>
+<dt><a name="19"><b class="cmd">::imap4::search</b> <i class="arg">chan</i> <i class="arg">expr</i> <span class="opt">?<i class="arg">...</i>?</span></a></dt>
+<dd><p>Search for mails matching search criterions, 0 is returned on success.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">expr</i> - imap search expression</p>
+<p><em>Notes:</em>
+Currently the following search expressions are handled:</p>
+<p><em>Mail header flags:</em>
+all mail header entries (ending with a colon &quot;:&quot;), like &quot;From:&quot;, &quot;Bcc:&quot;, ...</p>
+<p><em>Imap message search flags:</em>
+ANSWERED, DELETED, DRAFT, FLAGGED, RECENT,
+SEEN, NEW, OLD, UNANSWERED, UNDELETED,
+UNDRAFT, UNFLAGGED, UNSEEN, ALL</p>
+<p><em>Imap header search flags:</em>
+BODY, CC, FROM, SUBJECT, TEXT, KEYWORD, BCC</p>
+<p><em>Imap conditional search flags:</em>
+SMALLER, LARGER, ON, SENTBEFORE, SENTON, SENTSINCE, SINCE,
+BEFORE (not implemented),
+UID (not implemented)</p>
+<p><em>Logical search conditions:</em>
+OR, NOT</p>
+<pre class="doctools_example">::imap4::search $chan larger 4000 seen
+puts &quot;Found messages: [::imap4::mboxinfo $chan found]&quot;
+Found messages: 1 3 6 7 8 9 13 14 15 19 20</pre>
+</dd>
+<dt><a name="20"><b class="cmd">::imap4::close</b> <i class="arg">chan</i></a></dt>
+<dd><p>Close the mailbox. Permanently removes \Deleted messages and
+return to the AUTH state.</p>
+<p><i class="arg">chan</i> - imap channel</p></dd>
+<dt><a name="21"><b class="cmd">::imap4::cleanup</b> <i class="arg">chan</i></a></dt>
+<dd><p>Destroy an IMAP connection and free the used space.
+Close the mailbox. Permanently removes \Deleted messages
+and return to the AUTH state.</p>
+<p><i class="arg">chan</i> - imap channel</p></dd>
+<dt><a name="22"><b class="cmd">::imap4::debugmode</b> <i class="arg">chan</i> <span class="opt">?<i class="arg">errormsg</i>?</span></a></dt>
+<dd><p>Switch client into command line debug mode.</p>
+<p>This is a developers mode only that pass the control to the
+programmer. Every line entered is sent verbatim to the
+server (after the addition of the request identifier).
+The ::imap4::debug variable is automatically set to '1' on enter.</p>
+<p>It's possible to execute Tcl commands starting the line
+with a slash.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">errormsg</i> - optional error message to display</p></dd>
+<dt><a name="23"><b class="cmd">::imap4::store</b> <i class="arg">chan</i> <i class="arg">range</i> <i class="arg">data</i> <i class="arg">flaglist</i></a></dt>
+<dd><p>Alters data associated with a message in the selected
+mailbox.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">range</i> - message index in format <em>FROM</em>:<em>TO</em></p>
+<p><i class="arg">flaglist</i> - Flags the <i class="arg">data</i> operates on.</p>
+<p><i class="arg">data</i> - The currently defined <i class="arg">data</i> items that can be
+stored are shown below. <em>Note</em> that all of these data types may
+also be suffixed with &quot;.SILENT&quot; to suppress the untagged FETCH
+response.</p>
+<dl class="doctools_definitions">
+<dt>FLAGS</dt>
+<dd><p>Replace the flags for the message (other than \Recent) with the
+<i class="arg">flaglist</i>.</p></dd>
+<dt>+FLAGS</dt>
+<dd><p>Add the flags in <i class="arg">flaglist</i> to the existing flags for the message.</p></dd>
+<dt>-FLAGS</dt>
+<dd><p>Remove the flags in <i class="arg">flaglist</i> to the existing flags for the
+message.</p></dd>
+</dl>
+<p>For example:</p>
+<pre class="doctools_example">
+	::imap4::store $chan $start_msgid:$end_msgid +FLAGS &quot;Deleted&quot;
+</pre>
+</dd>
+<dt><a name="24"><b class="cmd">::imap4::expunge</b> <i class="arg">chan</i></a></dt>
+<dd><p>Permanently removes all messages that have the \Deleted flag
+set from the currently selected mailbox, without the need to close the
+connection.</p>
+<p><i class="arg">chan</i> - imap channel</p></dd>
+<dt><a name="25"><b class="cmd">::imap4::copy</b> <i class="arg">chan</i> <i class="arg">msgid</i> <i class="arg">mailbox</i></a></dt>
+<dd><p>Copies the specified message (identified by its message number)
+to the named mailbox, i.e. imap folder.</p>
+<p><i class="arg">chan</i> - imap channel</p>
+<p><i class="arg">msgid</i> - message number</p>
+<p><i class="arg">mailbox</i> - mailbox name</p></dd>
+<dt><a name="26"><b class="cmd">::imap4::logout</b> <i class="arg">chan</i></a></dt>
+<dd><p>Informs the server that the client is done with the connection
+and closes the network connection. Permanently removes \Deleted
+messages.</p>
+<p>A new connection will need to be established to login once
+more.</p>
+<p><i class="arg">chan</i> - imap channel</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">EXAMPLES</a></h2>
+<pre class="doctools_example">
+    set user myusername
+    set pass xtremescrt
+    set server imap.test.tld
+    set FOLDER INBOX
+    # Connect to server
+    set imap [::imap4::open $server]
+    ::imap4::login $imap $user $pass
+    ::imap4::select $imap $FOLDER
+    # Output all the information about that mailbox
+    foreach info [::imap4::mboxinfo $imap] {
+        puts &quot;$info -&gt; [::imap4::mboxinfo $imap $info]&quot;
+    }
+    # fetch 3 records inline
+    set fields {from: to: subject: size}
+    foreach rec [::imap4::fetch $imap :3 -inline {*}$fields] {
+        puts -nonewline &quot;#[incr idx])&quot;
+        for {set j 0} {$j&lt;[llength $fields]} {incr j} {
+            puts &quot;\t[lindex $fields $j] [lindex $rec $j]&quot;
+        }
+    }
+    # Show all the information available about the message ID 1
+    puts &quot;Available info about message 1: [::imap4::msginfo $imap 1]&quot;
+    # Use the capability stuff
+    puts &quot;Capabilities: [::imap4::isableto $imap]&quot;
+    puts &quot;Is able to imap4rev1? [::imap4::isableto $imap imap4rev1]&quot;
+    # Cleanup
+    ::imap4::cleanup $imap
+</pre>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">TLS Security Considerations</a></h2>
+<p>This package uses the <b class="package"><a href="../../../../index.html#key331">TLS</a></b> package to handle the security
+for <b class="const">https</b> urls and other socket connections.</p>
+<p>Policy decisions like the set of protocols to support and what
+ciphers to use are not the responsibility of <b class="package"><a href="../../../../index.html#key331">TLS</a></b>, nor of
+this package itself however.
+Such decisions are the responsibility of whichever application is
+using the package, and are likely influenced by the set of servers
+the application will talk to as well.</p>
+<p>For example, in light of the recent
+<a href="http://googleonlinesecurity.blogspot.co.uk/2014/10/this-poodle-bites-exploiting-ssl-30.html">POODLE attack</a> discovered by Google many servers will disable support
+for the SSLv3 protocol.
+To handle this change the applications using <b class="package"><a href="../../../../index.html#key331">TLS</a></b> must be
+patched, and not this package, nor <b class="package"><a href="../../../../index.html#key331">TLS</a></b> itself.
+Such a patch may be as simple as generally activating <b class="const">tls1</b>
+support, as shown in the example below.</p>
+<pre class="doctools_example">
+    package require tls
+    tls::init -tls1 1 ;# forcibly activate support for the TLS1 protocol
+    ... your own application code ...
+</pre>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">REFERENCES</a></h2>
+<p>Mark R. Crispin, &quot;INTERNET MESSAGE ACCESS PROTOCOL - VERSION 4rev1&quot;,
+RFC 3501, March 2003, <a href="http://www.rfc-editor.org/rfc/rfc3501.txt">http://www.rfc-editor.org/rfc/rfc3501.txt</a></p>
+<p>OpenSSL, <a href="http://www.openssl.org/">http://www.openssl.org/</a></p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>imap4</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.
+Only a small part of rfc3501 implemented.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../ftp/ftp.html">ftp</a>, <a href="../../../../index.html#key445">http</a>, <a href="../../../../index.html#key804">imap</a>, <a href="../mime/mime.html">mime</a>, <a href="../pop3/pop3.html">pop3</a>, <a href="../../../../index.html#key331">tls</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key335">email</a>, <a href="../../../../index.html#key804">imap</a>, <a href="../../../../index.html#key131">internet</a>, <a href="../../../../index.html#key330">mail</a>, <a href="../../../../index.html#key295">net</a>, <a href="../../../../index.html#key803">rfc3501</a>, <a href="../../../../index.html#key359">ssl</a>, <a href="../../../../index.html#key331">tls</a></p>
+</div>
+</div></body></html>

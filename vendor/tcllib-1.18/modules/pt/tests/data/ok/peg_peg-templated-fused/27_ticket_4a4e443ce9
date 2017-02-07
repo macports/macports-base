@@ -1,0 +1,14 @@
+# -*- text -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+PEG TEMPLATE (eos)
+
+ eos <- ex (<space>+ ex)* ;
+ ex  <- (!X [xz])+ X? ;
+ X   <- 'x' ;
+
+END;
+
+#
+#

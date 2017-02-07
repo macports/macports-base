@@ -1,0 +1,102 @@
+[manpage_begin nmea n 1.0.0]
+[keywords gps]
+[keywords nmea]
+[copyright {2006-2009, Aaron Faupell <afaupell@users.sourceforge.net>}]
+[moddesc   {NMEA protocol implementation}]
+[titledesc {Process NMEA data}]
+[category Networking]
+[require Tcl 8.4]
+[require nmea [opt 1.0.0]]
+[description]
+[para]
+
+This package provides a standard interface for writing software which recieves
+NMEA standard input data. It allows for reading data from COM ports, files,
+or programmatic input. It also supports the checksumming and logging of incoming data.
+After parsing, input is dispatched to user defined handler commands for processing.
+To define a handler, see the [cmd event] command. There are no GPS specific functions
+in this package. NMEA data consists of a sentence type, followed by a list of data.
+
+[section COMMANDS]
+[list_begin definitions]
+
+[call [cmd ::nmea::input] [arg sentence]]
+Processes and dispatches the supplied sentence. If [arg sentence] contains no commas it is treated as a Tcl list, otherwise it must be standard comma delimited NMEA data, with an optional checksum and leading [const \$].
+
+[example {
+nmea::input {$GPGSA,A,3,04,05,,09,12,,,24,,,,,2.5,1.3,2.1*39}
+nmea::input [list GPGSA A 3 04 05  09 12 "" "" 24 "" "" ""  2.5 1.3 2.1]
+}]
+
+[call [cmd ::nmea::open_port] [arg port] [opt speed]]
+Open the specified COM port and read NMEA sentences when available. Port speed is set to
+4800bps by default or to [arg speed].
+
+[call [cmd ::nmea::close_port]]
+Close the com port connection if one is open.
+
+[call [cmd ::nmea::configure_port] [arg settings]]
+Changes the current port settings. [arg settings] has the same format as fconfigure -mode.
+
+[call [cmd ::nmea::open_file] [arg file] [opt rate]]
+Open file [arg file] and read NMEA sentences, one per line, at the rate specified by [opt rate] in milliseconds.
+The file format may omit the leading [const \$] and/or the checksum. If rate is <= 0 (the default) then lines
+will only be processed when a call to [cmd do_line] is made.
+
+[call [cmd ::nmea::close_file]]
+Close the open file if one exists.
+
+[call [cmd ::nmea::do_line]]
+If there is a currently open file, this command will read and process a single line from it.
+Returns the number of lines read.
+
+[call [cmd ::nmea::rate]]
+Sets the rate at which lines are processed from the open file, in milliseconds. The rate remains
+consistant across files, there does not need to be a file currently open to use this command.
+Set to 0 to disable automatic line processing.
+
+[call [cmd ::nmea::log] [opt file]]
+Starts or stops input logging. If a file name is specified then all NMEA data recieved on
+the open port will be logged to the [opt file] in append mode. If file is an empty string then
+any logging will be stopped. If no file is specified then returns a boolean value indicating
+if logging is currently enabled. Data written to the port by [cmd write],
+ data read from files, or input made using [cmd input], is not logged.
+
+[call [cmd ::nmea::checksum] [arg data]]
+Returns the checksum of the supplied data.
+
+[call [cmd ::nmea::write] [arg sentence] [arg data]]
+If there is a currently open port, this command will write the specified sentence and data to the port
+in proper NMEA checksummed format.
+
+[call [cmd ::nmea::event] [arg setence] [opt command]]
+Registers a handler proc for a given NMEA [arg sentence]. There may be at most one handler per
+sentence, any existing handler is replaced.
+If no command is specified, returns the name of the current handler for the given [arg setence]
+or an empty string if none exists. In addition to the incoming sentences there are 2 builtin types,
+EOF and DEFAULT. The handler for the DEFAULT setence is invoked if there is not a specific handler
+for that sentence. The EOF handler is invoked when End Of File is reached on the open file or port.
+[para]
+The handler procedures, with the exception of the builtin types,must take exactly one argument,
+which is a list of the data values.
+The DEFAULT handler should have two arguments, the sentence type and the data values.
+The EOF handler has no arguments.
+
+[example {
+nmea::event gpgsa parse_sat_detail
+nmea::event default handle_unknown
+
+proc parse_sat_detail {data} {
+    puts [lindex $data 1]
+}
+
+proc handle_unknown {name data} {
+    puts "unknown data type $name"
+}
+}]
+
+[list_end]
+
+[vset CATEGORY nmea]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

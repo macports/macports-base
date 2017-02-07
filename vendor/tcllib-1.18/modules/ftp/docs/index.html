@@ -1,0 +1,107 @@
+<html>
+<head>
+<title>ftp Library Package 2.2 for Tcl/Tk help file</title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<body>
+
+<p>
+<dl>
+  <dd>
+    <p><font face="Arial,Helvetica" color="#526e9c" size="+2"><b>ftp Library Package 2.1 for Tcl/Tk Manual Pages</b></font></p>
+  </dd>
+
+  <dd><font face="Arial,Helvetica" size="+1"><b>NAME</b></font></dd>
+  <dd><dl>  
+    <dd><b>ftp - Client-side tcl implementation of the ftp protocol</b></dd>
+  </dl></dd>
+  <dd>&nbsp;</dd>
+  
+  <dd><font face="Arial,Helvetica" size="+1"><b>SYNOPSIS</b></font></dd>
+  <dd><dl>
+    <dd><b>package require ftp ?2.2?</b></dd> 
+    <dd>&nbsp;</dd>
+    <dd><b>ftp::<a href="fhelp1.html">Open</b><em>&nbsp; server&nbsp; user&nbsp; passwd&nbsp; ?options?</em></a></dd>
+    <dd><b>ftp::<a href="fhelp2.html">Close</b><em>&nbsp; handle</em></a></dd>
+    <dd><b>ftp::<a href="fhelp3.html">Cd</b><em>&nbsp; handle&nbsp; directory</em></a></dd>
+    <dd><b>ftp::<a href="fhelp4.html">Pwd</b><em>&nbsp; handle</em></a></dd>
+    <dd><b>ftp::<a href="fhelp5.html">Type</b><em>&nbsp; handle&nbsp; ?ascii|binary|tenex?</em></a></dd>	
+    <dd><b>ftp::<a href="fhelp6.html">List</b><em>&nbsp; handle&nbsp; ?directory?</em></a></dd>
+    <dd><b>ftp::<a href="fhelp7.html">NList</b><em>&nbsp; handle&nbsp; ?directory?</em></a></dd>
+    <dd><b>ftp::<a href="fhelp8.html">FileSize</b><em>&nbsp; handle&nbsp; file</em></a></dd>
+    <dd><b>ftp::<a href="fhelp9.html">ModTime</b><em>&nbsp; handle&nbsp; from&nbsp; to</em></a></dd>
+    <dd><b>ftp::<a href="fhelp10.html">Delete</b><em>&nbsp; handle&nbsp; file</em></a></dd>
+    <dd><b>ftp::<a href="fhelp11.html">Rename</b><em>&nbsp; handle&nbsp; from&nbsp; to</em></a></dd>
+    <dd><b>ftp::<a href="fhelp12.html">Put</b><em>&nbsp; handle&nbsp; (local | -data "data")&nbsp; ?remote?</em></a></dd>
+    <dd><b>ftp::<a href="fhelp125.html">Append</b><em>&nbsp; handle&nbsp; (local | -data "data")&nbsp; ?remote?</em></a></dd>
+    <dd><b>ftp::<a href="fhelp13.html">Get</b><em>&nbsp; handle&nbsp; remote&nbsp; ?(local | -variable varname)?</em></a></dd>
+    <dd><b>ftp::<a href="fhelp14.html">Reget</b><em>&nbsp; handle&nbsp; remote&nbsp; ?local?</em></a></dd>
+    <dd><b>ftp::<a href="fhelp15.html">Newer</b><em>&nbsp; handle&nbsp; remote&nbsp; ?local?</em></a></dd>
+    <dd><b>ftp::<a href="fhelp16.html">MkDir</b><em>&nbsp; handle&nbsp; directory</em></a></dd>
+    <dd><b>ftp::<a href="fhelp17.html">RmDir</b><em>&nbsp; handle&nbsp; directory</em></a></dd>
+    <dd><b>ftp::<a href="fhelp18.html">Quote</b><em>&nbsp; handle&nbsp; arg1&nbsp; arg2&nbsp; ...</em></a></dd>
+    <dd><b>ftp::DisplayMsg</b><em>&nbsp; handle&nbsp; msg&nbsp; ?state? </em></dd>
+    <dd>&nbsp;</dd>
+    <dd>variable <b>ftp::VERBOSE</b></dd>
+    <dd>variable <b>ftp::DEBUG</b></dd>
+  </dl></dd>
+  <dd>&nbsp;</dd>
+
+  <dd><font face="Arial,Helvetica" size="+1"><b>DESCRIPTION</b></font></dd>
+  <dd><dl>
+    <dd>
+    	The ftp library package provides the client side of the	ftp protocol.
+	The package implements active (default) and passive ftp sessions.
+		
+	<p>A new ftp session is started with the Open</b> command. Quitting an
+	existing ftp session is done by Close</b>. All other commands can
+	only be used in an opened ftp session else an error will occured.
+	The ftp package includes file and directory manipulating commands for
+	remote sites. To do the same stuff to the local site the built-in tcl
+	commands like "cd" or "file <em>command</em>" are the best choice.</p>
+	
+	Two state variables controls the output of ftp. Setting VERBOSE</b>
+	to "1" forces to show all responses from the remote server. The default value is "0".
+	Setting DEBUG</b> to "1" enables debugging to show all the return code, states 
+	and "real" ftp commands. The default value is "0".
+	
+	<p>The procedure <b>DisplayMsg</b> is used to show the different messages from 
+	the ftp session. It is simple declared in ftp and must be overwritten
+	by the programmer to make it more comfortable. A state variable for different
+	states assigned to different colors is recommended by the author. For
+	example:</p>
+
+	<pre>.msg.text tag configure error -foreground red
+.msg.text tag configure data -foreground brown
+.msg.text tag configure control -foreground blue
+
+namespace ftp {
+    proc DisplayMsg {s msg {state ""}} {
+        switch $state {
+            data	{.msg.text insert end "$msg\n" data}
+            control	{.msg.text insert end "$msg\n" control}
+	    error	{.msg.f.text insert end "$msg\n" error}
+        }	   
+    }
+}</pre>
+    </dd> 
+  </dl></dd> 
+  
+  <dd><font face="Arial,Helvetica" size="+1" color="##ff0000"><b>BUGS</b></font></dd>
+  <dd><dl>  
+    <dd>
+	Correct execution of many commands depends upon proper behavior by the remote server, network
+	and router configuration.<p>
+	
+	An update command placed in the procedure DisplayMsg run into persistent errors or infinite loops.
+	The solution to this problem is to use "update idletasks", rather than a single update.
+      </dd>
+  </dl></dd>
+
+</dl>
+</p>
+<p align="left"><hr noshade size="1"><font face="Arial,Helvetica" size="-1">&copy; 1999 <a href="mailto:Steffen.Traeger@t-online.de">Steffen Traeger</a></font></p>
+</body>
+</html>
+
+

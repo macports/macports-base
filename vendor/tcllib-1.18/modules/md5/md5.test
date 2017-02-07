@@ -1,0 +1,90 @@
+# -*- tcl -*-
+# md5.test:  tests for the md5 commands
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2001 by ActiveState Tool Corp.
+# All rights reserved.
+#
+# RCS: @(#) $Id: md5.test,v 1.11 2006/10/09 21:41:41 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal md5.tcl md5
+}
+
+# -------------------------------------------------------------------------
+
+if {[catch {package present Trf}] || [catch {::md5 -- test}]} {
+    puts "> pure Tcl"
+} else {
+    puts "> Trf based"
+}
+
+# -------------------------------------------------------------------------
+
+test md5-1.0 {md5} {
+    catch {::md5::md5} result
+    set result
+} [tcltest::wrongNumArgs "::md5::md5" "msg" 0]
+
+test md5-1.1 {md5} {
+    catch {::md5::hmac} result
+    set result
+} [tcltest::wrongNumArgs "::md5::hmac" "key text" 0]
+
+test md5-1.2 {md5} {
+    catch {::md5::hmac key} result
+    set result
+} [tcltest::wrongNumArgs "::md5::hmac" "key text" 1]
+
+
+foreach {n msg expected} {
+    1    ""
+    "d41d8cd98f00b204e9800998ecf8427e"
+    2    "a"
+    "0cc175b9c0f1b6a831c399e269772661"
+    3    "abc"
+    "900150983cd24fb0d6963f7d28e17f72"
+    4    "message digest"
+    "f96b697d7cb7938d525a2f31aaf161d0"
+    5    "abcdefghijklmnopqrstuvwxyz"
+    "c3fcd3d76192e4007dfb496cca67e13b"
+    6    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    "d174ab98d277d9f5a5611c2c9f419d9f"
+    7    "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "57edf4a22be3c955ac49da2e2107b67a"
+} {
+    test md5-2.$n {md5} {
+	::md5::md5 $msg
+    } $expected ; # {}
+}
+
+foreach {n key text expected} {
+    1 ""     ""      "74e6f7298a9c2d168935f58c001bad88"
+    2 "foo"  "hello" "ef2ac8901530db30aa56929adfe5e13b"
+    3 "bar"  "world" "dfc05594b019ed51535922a1295446e8"
+    4 "key"  "text"  "d0ca6177c61c975fd2f8c07d8c6528c6"
+    5 "md5"  "hmac"  "d189f362daf86a5c8e14ba4aba91b260"
+    6 "hmac" "md5"   "480343cf0f2d5931ec4923e81059fb84"
+    7 "md5"  "md5"   "92c5fb986e345f21f181047ab939ec77"
+    8 "hmac" "hmac"  "08abbe58a55219789e3eede153808a56"
+    9 "01234567abcdefgh01234567abcdefgh01234567abcdefgh01234567abcdefgh==" "hello world"
+    "cf0237466f9b3c773858a1892b474c9e"
+} {
+    test md5-3.$n {hmac} {
+	::md5::hmac $key $text
+    } $expected ; # {}
+}
+
+testsuiteCleanup

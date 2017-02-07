@@ -1,0 +1,173 @@
+# -*- tcl -*-
+
+test pt-peg-export-set:${setimpl}-1.0 {export object, wrong#args} -setup {
+    pt::peg::export E
+} -body {
+    E export object
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::pt::peg::export::Snit_hmethodexport_object type selfns win self obj ?format?"}
+
+test pt-peg-export-set:${setimpl}-1.1 {export object, wrong#args} -setup {
+    pt::peg::export E
+} -body {
+    E export object O F XXX
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::pt::peg::export::Snit_hmethodexport_object type selfns win self obj ?format?"}
+
+test pt-peg-export-set:${setimpl}-2.0 {export serial, wrong#args} -setup {
+    pt::peg::export E
+} -body {
+    E export serial
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::pt::peg::export::Snit_hmethodexport_serial type selfns win self serial ?format?"}
+
+test pt-peg-export-set:${setimpl}-2.1 {export serial, wrong#args} -setup {
+    pt::peg::export E
+} -body {
+    E export serial S F XXX
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::pt::peg::export::Snit_hmethodexport_serial type selfns win self serial ?format?"}
+
+test pt-peg-export-set:${setimpl}-5.0 {configuration names, wrong#args} -setup {
+    pt::peg::export E
+} -body {
+    E configuration names X
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::configuration::Snit_methodnames type selfns win self"}
+
+test pt-peg-export-set:${setimpl}-6.0 {configuration get, wrong#args} -setup {
+    pt::peg::export E
+} -body {
+    E configuration get X
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::configuration::Snit_methodget type selfns win self"}
+
+test pt-peg-export-set:${setimpl}-7.0 {configuration set, wrong#args} -setup {
+    pt::peg::export E
+} -body {
+    E configuration set
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::configuration::Snit_methodset type selfns win self name ?value?"}
+
+test pt-peg-export-set:${setimpl}-7.1 {configuration set, wrong#args} -setup {
+    pt::peg::export E
+} -body {
+    E configuration set N V X
+} -cleanup {
+    E destroy
+} -returnCodes error -result {wrong # args: should be "::configuration::Snit_methodset type selfns win self name ?value?"}
+
+# -------------------------------------------------------------------------
+
+test pt-peg-export-set:${setimpl}-12.0 {configuration set, define single var} -setup {
+    pt::peg::export E
+} -body {
+    E configuration set N V
+    E configuration get
+} -cleanup {
+    E destroy
+} -result {N V}
+
+test pt-peg-export-set:${setimpl}-12.1 {configuration set, define multiple vars} -setup {
+    pt::peg::export E
+} -body {
+    E configuration set N V
+    E configuration set A B
+    dictsort [E configuration get]
+} -cleanup {
+    E destroy
+} -result {A B N V}
+
+test pt-peg-export-set:${setimpl}-12.2 {configuration set, as query} -setup {
+    pt::peg::export E
+    E configuration set N V
+} -body {
+    E configuration set N
+} -cleanup {
+    E destroy
+} -result V
+
+test pt-peg-export-set:${setimpl}-13.0 {configuration unset, all} -setup {
+    pt::peg::export E
+    E configuration set N V
+} -body {
+    E configuration unset
+    E configuration get
+} -cleanup {
+    E destroy
+} -result {}
+
+test pt-peg-export-set:${setimpl}-13.1 {configuration unset, by exact name} -setup {
+    pt::peg::export E
+    E configuration set N V
+    E configuration set A B
+} -body {
+    E configuration unset N
+    E configuration get
+} -cleanup {
+    E destroy
+} -result {A B}
+
+test pt-peg-export-set:${setimpl}-13.2 {configuration unset, by glob pattern} -setup {
+    pt::peg::export E
+    E configuration set N V
+    E configuration set N' V'
+    E configuration set A B
+} -body {
+    E configuration unset N*
+    E configuration get
+} -cleanup {
+    E destroy
+} -result {A B}
+
+test pt-peg-export-set:${setimpl}-14.0 {configuration names, empty} -setup {
+    pt::peg::export E
+} -body {
+    E configuration names
+} -cleanup {
+    E destroy
+} -result {}
+
+test pt-peg-export-set:${setimpl}-14.1 {configuration names, with variables} -setup {
+    pt::peg::export E
+    E configuration set N V
+    E configuration set A B
+} -body {
+    lsort -dict [E configuration names]
+} -cleanup {
+    E destroy
+} -result {A N}
+
+test pt-peg-export-set:${setimpl}-15.0 {configuration get, empty} -setup {
+    pt::peg::export E
+} -body {
+    E configuration get
+} -cleanup {
+    E destroy
+} -result {}
+
+test pt-peg-export-set:${setimpl}-15.1 {configuration get, with variables} -setup {
+    pt::peg::export E
+    E configuration set N V
+    E configuration set A B
+} -body {
+    dictsort [E configuration get]
+} -cleanup {
+    E destroy
+} -result {A B N V}
+
+# Tests for the various export plugins, i.e. for their use from the
+# export manager. Numbering starts at 20.
+# -------------------------------------------------------------------------
+
+source [localPath tests/pt_peg_export_plugins.tests]
+
+# -------------------------------------------------------------------------
+return

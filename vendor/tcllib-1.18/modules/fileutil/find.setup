@@ -1,0 +1,432 @@
+# -*- tcl -*-
+# Support code for the tests of the find command (and incremental find).
+#
+# Copyright (c) 2007-2015 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: find.setup,v 1.3 2012/08/29 20:42:19 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+# Build a sample tree to search
+# Structure
+#
+#	dir
+#	+--{find 1}
+#          +--{find 2}
+#          |  +--{file* 2}  (This file is unix only)
+#          +--{file 1}
+#
+#       dir2
+#       +-- dotfiles
+#           +-- .foo
+#           +-- foo
+
+proc f_setup {} {
+    makeDirectory            {find 1}
+    makeDirectory [file join {find 1} {find 2}]
+    makeFile ""   [file join {find 1} {file [1]}]
+
+    if {[string equal $::tcl_platform(platform) windows]} return
+
+    makeFile "test" [file join {find 1} {find 2} {file* 2}]
+    return
+}
+
+proc f_cleanup {} {
+    # Remove sym link first. Not doing this causes the file delete for
+    # the directory to fail (on Windows, Unix would have been fine).
+    catch {removeFile [file join {find 1} {find 2} {file 3}]}
+    removeDirectory {find 1}
+    return
+}
+
+# Extend the previous sample tree with circular symbolic
+# links. Unix-only.
+#
+#	dir
+#	+--{find 1}
+#          +--{find 2}          <----------+
+#          |  +--{file* 2}		   |
+#          |  +--{file 3} --> ../{find 2} -+
+#          +--{file [1]}
+
+proc f_setupcircle {} {
+    f_setup
+
+    set fthree [file join {find 1} {find 2} {file 3}]
+    set path   [makeFile "" $fthree]
+    removeFile $fthree
+
+    # Added use of 'file link' for Tcl 8.4+, on windows, to have a
+    # modicum of x-platform testing regarding the handling of symbolic
+    # links.
+
+    set target [file join .. {find 2}]
+
+    if {
+	[string equal $::tcl_platform(platform) windows] &&
+	[package vsatisfies [package require Tcl] 8.4]
+    } {
+	if {[string equal $::tcl_platform(platform) windows]} {
+	    # Windows doesn't like the .. in the target, it needs an
+	    # absolute path.
+
+	    # NOTE/BUG Even so the 'fullnormalize' in the traverser
+	    # returns bogus results for the link, whereas use of file
+	    # normalize and fullnormalize in a simple tclsh,
+	    # i.e. outside of the testing is ok.
+
+	    # It seems if the 'file join' in fullnormalize is replaced
+	    # by a plain / then the results are ok again => The
+	    # handling of paths on Windows by the Tcl core is bogus in
+	    # some way which breaks the core 'normalize'.
+
+	    set here [pwd]
+	    cd [file dirname [tempPath $fthree]]
+	    file link [file tail $fthree] [file normalize $target]
+	    cd $here
+	} else {
+	    file link [tempPath $fthree] $target
+	}
+	return
+    }
+
+    exec ln -s $target [tempPath $fthree]
+    return
+}
+
+# Change previous sample tree so that its circular symbolic
+# link points to the base directory. Unix-only.
+#
+#	dir                    
+#	+--{find 1}             <----------+
+#          +--{find 2}                     |
+#          |  +--{file* 2}		   |
+#          |  +--{file 3} --> ../../find 1 +
+#          +--{file [1]}
+
+proc f_setupcircle2 {} {
+    f_setup
+
+    set fthree [file join {find 1} {find 2} {file 3}]
+    set path   [makeFile "" $fthree]
+    removeFile $fthree
+
+    # Added use of 'file link' for Tcl 8.4+, on windows, to have a
+    # modicum of x-platform testing regarding the handling of symbolic
+    # links.
+
+    set target [file join .. .. {find 1}]
+
+    if {
+	[string equal $::tcl_platform(platform) windows] &&
+	[package vsatisfies [package require Tcl] 8.4]
+    } {
+	if {[string equal $::tcl_platform(platform) windows]} {
+	    # Windows doesn't like the .. in the target, it needs an
+	    # absolute path.
+
+	    # NOTE/BUG Even so the 'fullnormalize' in the traverser
+	    # returns bogus results for the link, whereas use of file
+	    # normalize and fullnormalize in a simple tclsh,
+	    # i.e. outside of the testing is ok.
+
+	    # It seems if the 'file join' in fullnormalize is replaced
+	    # by a plain / then the results are ok again => The
+	    # handling of paths on Windows by the Tcl core is bogus in
+	    # some way which breaks the core 'normalize'.
+
+	    set here [pwd]
+	    cd [file dirname [tempPath $fthree]]
+	    file link [file tail $fthree] [file normalize $target]
+	    cd $here
+	} else {
+	    file link [tempPath $fthree] $target
+	}
+	return
+    }
+
+    exec ln -s $target [tempPath $fthree]
+    return
+}
+
+# Extend the regular sample tree with a broken symbolic link. Unix-only.
+#
+#	dir
+#	+--{find 1}
+#          +--{find 2}
+#          |  +--{file* 2}
+#          |  +--{file 3} --> BROKEN
+#          +--{file [1]}
+
+
+proc f_setupbroken {} {
+    f_setup
+
+    set fthree [file join {find 1} {find 2} {file 3}]
+    set path   [makeFile "" $fthree]
+    removeFile $fthree
+
+    # Added use of 'file link' for Tcl 8.4+, on windows, to have a
+    # modicum of x-platform testing regarding the handling of symbolic
+    # links.
+
+    set target BROKEN
+
+    if {
+	[string equal $::tcl_platform(platform) windows] &&
+	[package vsatisfies [package require Tcl] 8.4]
+    } {
+	makeFile {} [file dirname $fthree]/BROKEN
+
+	if {[string equal $::tcl_platform(platform) windows]} {
+	    # Windows doesn't like the .. in the target, it needs an
+	    # absolute path.
+
+	    # NOTE/BUG Even so the 'fullnormalize' in the traverser
+	    # returns bogus results for the link, whereas use of file
+	    # normalize and fullnormalize in a simple tclsh,
+	    # i.e. outside of the testing is ok.
+
+	    # It seems if the 'file join' in fullnormalize is replaced
+	    # by a plain / then the results are ok again => The
+	    # handling of paths on Windows by the Tcl core is bogus in
+	    # some way which breaks the core 'normalize'.
+
+	    set here [pwd]
+	    cd [file dirname [tempPath $fthree]]
+	    file link [file tail $fthree] [file normalize $target]
+	    cd $here
+	} else {
+	    file link [tempPath $fthree] $target
+	}
+	removeFile [file dirname $fthree]/BROKEN
+	return
+    }
+
+    exec ln -s $target [tempPath $fthree]
+    return
+}
+
+proc f_setupdot {} {
+    makeDirectory          dotfiles
+    makeFile "" [file join dotfiles foo]
+    makeFile "" [file join dotfiles .foo]
+    return
+}
+
+
+
+# Complex directory tree with DAG-links and circular links. We want to
+# break the latter, but not the former. I.e. DAG-links allow us to
+# find a file by multiple paths, and we wish to see these all.
+#
+#  Paths    Links              Seen		Broken		Why
+#  dir/a                     | a
+#  dir/b                     | a/c
+#  dir/a/c                   |			a/c/g		== a
+#  dir/a/d                   | a/c/h
+#  dir/a/c/g --> ..          |                  a/c/h/e         == c
+#  dir/a/c/h --> ../../b     | a/c/h/f					
+#  dir/a/c/i                 | a/c/i					
+#  dir/b/e   --> ../a/c	     | a/d					
+#  dir/b/f                   | b					
+#                            | b/e					
+#                            | b/e/g					
+#                            | b/e/g/c					
+#                            | 			b/e/g/c/g	== b/e/g
+#                            |			b/e/g/c/h	== b
+#                            | b/e/g/d
+#                            |			b/e/h		== b
+#                            | b/e/i
+#                            | b/f
+
+proc pathmap {args} {
+    set res {}
+    foreach p $args {
+	lappend res [tempPath $p]
+    }
+    return $res
+}
+
+proc f_setupcircle3 {} {
+
+    makeDirectory z/a
+    makeDirectory z/a/c
+    makeDirectory z/b
+    makeFile ""   z/a/d
+    makeFile ""   z/a/c/i
+    makeFile ""   z/b/f
+
+    f_link        z/a/c/g ../../a
+    f_link        z/a/c/h ../../b
+    f_link        z/b/e   ../a/c
+    return
+}
+
+proc f_cleanup3 {} {
+    # Remove sym links first. Not doing this causes the file delete for
+    # the directory to fail (on Windows, Unix would have been fine).
+    catch { removeFile z/a/c/g }
+    catch { removeFile z/a/c/h }
+    catch { removeFile z/b/e }
+    removeDirectory z
+    return
+}
+
+proc f_link {src target} {
+    # Added use of 'file link' for Tcl 8.4+, on windows, to have a
+    # modicum of x-platform testing regarding the handling of symbolic
+    # links.
+
+    if {
+	[string equal $::tcl_platform(platform) windows] &&
+	[package vsatisfies [package require Tcl] 8.4]
+    } {
+	if {[string equal $::tcl_platform(platform) windows]} {
+	    # Windows doesn't like the .. in the target, it needs an
+	    # absolute path.
+
+	    # NOTE/BUG Even so the 'fullnormalize' in the traverser
+	    # returns bogus results for the link, whereas use of file
+	    # normalize and fullnormalize in a simple tclsh,
+	    # i.e. outside of the testing is ok.
+
+	    # It seems if the 'file join' in fullnormalize is replaced
+	    # by a plain / then the results are ok again => The
+	    # handling of paths on Windows by the Tcl core is bogus in
+	    # some way which breaks the core 'normalize'.
+
+	    set here [pwd]
+	    cd [file dirname [tempPath $src]]
+	    file link [file tail $src] [file normalize $target]
+	    cd $here
+	} else {
+	    file link [tempPath $src] $target
+	}
+	return
+    }
+
+    exec ln -s $target [tempPath $src]
+    return
+}
+
+
+proc f_cleanupdot {} {
+    removeDirectory dotfiles
+    return
+}
+
+proc f_setupnostat {} {
+    # Finding inaccessible directories. Unix only, as I do not know
+    # how to make the directory inaccessible on Windows, and then
+    # reaccessible again.
+
+    makeDirectory find3
+    makeDirectory find3/find4
+    makeFile {}   find3/find4/file5
+
+    if {[string equal $::tcl_platform(platform) windows]} return
+    exec chmod -x [tempPath find3/find4]
+    return
+}
+
+proc f_cleanupnostat {} {
+    if {![string equal $::tcl_platform(platform) windows]} {
+	exec chmod +x [tempPath find3/find4]
+    }
+    removeDirectory find3
+    return
+}
+
+proc f_setupnoread {} {
+    # Finding unreadable directories.
+
+    makeDirectory find3
+    makeDirectory find3/find4
+    makeFile {}   find3/find4/file5
+
+    if {[string equal $::tcl_platform(platform) windows]} {
+	file attributes -readonly 1 [tempPath find3/find4]
+    } else {
+	exec chmod -r [tempPath find3/find4]
+    }
+    return
+}
+
+proc f_cleanupnoread {} {
+    if {[string equal $::tcl_platform(platform) windows]} {
+	file attributes -readonly 0 [tempPath find3/find4]
+    } else {
+	exec chmod +r [tempPath find3/find4]
+    }
+    removeDirectory find3
+    return
+}
+
+
+proc f_setup_crossindex {} {
+    makeDirectory s
+    makeDirectory s/c
+    makeDirectory s/c/t
+
+    makeDirectory s/d
+    makeDirectory s/d/t0
+    makeDirectory s/d/t1
+    makeDirectory s/d/t2
+
+    makeFile "" s/d/t0/b
+    makeFile "" s/d/t1/b
+    makeFile "" s/d/t2/b
+
+    f_link s/c/t/t0 ../../d/t0
+    f_link s/c/t/t1 ../../d/t1
+    f_link s/c/t/t2 ../../d/t2
+
+    f_link s/d/t0/s ../../c/t
+    f_link s/d/t1/s ../../c/t
+    f_link s/d/t2/s ../../c/t
+    return
+}
+
+proc f_cleanup_crossindex {} {
+    removeFile s/d/t0/b
+    removeFile s/d/t1/b
+    removeFile s/d/t2/b
+    removeDirectory s
+    return
+}
+
+proc f_cleanall {} {
+    rename f_link           {}
+    rename f_setup          {}
+    rename f_cleanup        {}
+    rename f_cleanup3       {}
+    rename f_setupcircle    {}
+    rename f_setupcircle2   {}
+    rename f_setupcircle3   {}
+    rename f_setupdot       {}
+    rename f_cleanupdot     {}
+    rename f_setupnostat    {}
+    rename f_cleanupnostat  {}
+    rename f_setupnoread    {}
+    rename f_cleanupnoread  {}
+    rename f_setup_crossindex   {}
+    rename f_cleanup_crossindex {}
+    rename f_cleanall       {}
+    rename fileIsBiggerThan {}
+    catch {unset ::res}
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc fileIsBiggerThan {s f} {
+    expr {
+	  ![file isdirectory $f] &&
+	  ([file size $f] > $s)
+    }
+}
+
+# -------------------------------------------------------------------------

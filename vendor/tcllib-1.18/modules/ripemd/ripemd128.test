@@ -1,0 +1,225 @@
+# ripemd128.test - Copyright (C) 2003 Pat Thoyts <patthoyts@users.sf.net>
+#
+# $Id: ripemd128.test,v 1.11 2006/10/09 21:41:41 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal ripemd128.tcl ripemd128 ::ripemd::ripemd128
+}
+
+# -------------------------------------------------------------------------
+# Now the package specific tests....
+# -------------------------------------------------------------------------
+
+if {[::ripemd::ripemd128::LoadAccelerator trf]} {
+    puts "> Trf based"
+}
+puts "> pure Tcl"
+
+# -------------------------------------------------------------------------
+# Handle multiple implementation testing
+#
+
+array set preserve [array get ::ripemd::ripemd128::accel]
+
+proc implementations {} {
+    variable ::ripemd::ripemd128::accel
+    foreach {a v} [array get accel] {if {$v} {lappend r $a}}
+    lappend r tcl; set r
+}
+
+proc select_implementation {impl} {
+    variable ::ripemd::ripemd128::accel
+    foreach e [array names accel] { set accel($e) 0 }
+    if {[string compare "tcl" $impl] != 0} {
+        set accel($impl) 1
+    }
+}
+
+proc reset_implementation {} {
+    variable ::ripemd::ripemd128::accel
+    array set accel [array get ::preserve]
+}
+
+# -------------------------------------------------------------------------
+
+# Test vectors
+#
+set vectors {
+    1 {}    {cdf26213a150dc3ecb610f18f6b38b46}
+    2 {a}   {86be7afa339d0fc7cfc785e72f578d33}
+    3 {abc} {c14a12199c66e4ba84636b0f69144c77}
+    4 {message digest} {9e327b3d6e523062afc1132d7df9d1b8}
+    5 {abcdefghijklmnopqrstuvwxyz} {fd2aa607f71dc8f510714922b371834e}
+    6 {abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq}
+      {a1aa0689d0fafa2ddc22e88b49133a06}
+    7 {ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789}
+      {d1e959eb179c911faea4624c60c5c702}
+    8 {-} {cce66016f96d83cbc625ad3970b9706e}
+}
+lappend vectors \
+    9 [string repeat 1234567890 8] {3f45ef194732c2dbb2c4a2c769795fa3}
+
+lappend vectors \
+    20 [binary format H* 3627140572635041beaf9c8dfaebd8c9363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636] {4eb9e2f034b961f464647021b99291ef} \
+    21 [binary format H* 3627140572635041beaf9c8dfaebd8c93636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636] {aaabc4b1b3479d49f0ad1c69f19c1405} \
+    22 [binary format H* 3627140572635041beaf9c8dfaebd8c936363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636] {c36ba14a9db833269732dda3edb63e27} \
+
+
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n msg hash} $vectors {
+        test ripemd128-$impl-1.$n "RIPEMD-128 test strings ($impl impl)" {
+            ::ripemd::ripemd128 -hex -- $msg
+        } $hash
+    }
+    reset_implementation
+}
+
+# -------------------------------------------------------------------------
+# HMAC test vectors
+
+set key [binary format H* 00112233445566778899aabbccddeeff]
+
+set vectors {
+    1 {}    {ad9db2c1e22af9ab5ca9dbe5a86f67dc}
+    2 {a}   {3bf448c762de00bcfa0310b11c0bde4c}
+    3 {abc} {f34ec0945f02b70b8603f89e1ce4c78c}
+    4 {message digest} {e8503a8aec2289d82aa0d8d445a06bdd}
+    5 {abcdefghijklmnopqrstuvwxyz} {ee880b735ce3126065de1699cc136199}
+    6 {abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq}
+      {794daf2e3bdeea2538638a5ced154434}
+    7 {ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789}
+      {3a06eef165b23625247800be23e232b6}
+}
+lappend vectors \
+    8 [string repeat 1234567890 8] {9a4f0159c0952da43a8d466d46b0af58}
+
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n msg hash} $vectors {
+        test ripemd128-$impl-2.$n "HMAC RIPEMD-128 test vectors ($impl impl)" {
+            ::ripemd::hmac128 -hex -key $key -- $msg
+        } $hash
+    }
+    reset_implementation
+}
+
+# -------------------------------------------------------------------------
+# HMAC test vectors - key 2
+
+set key [binary format H* 0123456789abcdeffedcba9876543210]
+
+set vectors {
+    1 {}    {8931eeee56a6b257fd1ab5418183d826}
+    2 {a}   {dbbcf169ea7419d5ba7bd8eb3673ff2d}
+    3 {abc} {2c4cd07d3162d6a0e338004d6b6fbc9a}
+    4 {message digest} {75bfb25888f4bb77c77ae83ad0817447}
+    5 {abcdefghijklmnopqrstuvwxyz} {b1b5dc0fcb7258758855dd1840fcdce4}
+    6 {abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq}
+      {670d0f7a697b18f1a8ab7d2a2a00dbc1}
+    7 {ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789}
+      {54e315fdb34a61c0475392e5c7852998}
+}
+lappend vectors \
+    8 [string repeat 1234567890 8] {ad04354d8aa2a623e72e3594ee3535c0}
+
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n msg hash} $vectors {
+        test ripemd128-$impl-3.$n "HMAC RIPEMD-128 test vectors ($impl)" {
+            ::ripemd::hmac128 -hex -key $key -- $msg
+        } $hash
+    }
+    reset_implementation
+}
+
+# -------------------------------------------------------------------------
+# RFC 2286 has a set of test vectors for HMAC-RIPEMD168 and 128.
+# This is those test vectors...
+# -------------------------------------------------------------------------
+
+set vectors \
+    [list \
+         1 [string repeat \x0b 16] "Hi There" \
+         fbf61f9492aa4bbf81c172e84e0734db \
+         2 "Jefe" "what do ya want for nothing?" \
+         875f828862b6b334b427c55f9f7ff09b \
+         3 [string repeat \xaa 16] [string repeat \xdd 50] \
+         09f0b2846d2f543da363cbec8d62a38d \
+         4 \
+         [binary format H* 0102030405060708090a0b0c0d0e0f10111213141516171819]\
+         [string repeat \xcd 50] \
+         bdbbd7cf03e44b5aa60af815be4d2294 \
+         5 [string repeat \x0c 16] "Test With Truncation" \
+         e79808f24b25fd031c155f0d551d9a3a \
+         6 [string repeat \xaa 80] \
+         "Test Using Larger Than Block-Size Key - Hash Key First" \
+         dc732928de98104a1f59d373c150acbb \
+         7 [string repeat \xaa 80] \
+         "Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data" \
+         5c6bec96793e16d40690c237635f30c5 \
+        ]
+
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n key msg hash} $vectors {
+        test ripemd128-$impl-4.$n {RFC2286 test vectors for HMAC-RIPEMD128} {
+            ::ripemd::hmac128 -hex -key $key -- $msg
+        } $hash
+    }
+    reset_implementation
+}
+
+# -------------------------------------------------------------------------
+
+test ripemd128-5.1 {Check hashing data that begins with hyphen} {
+    list [catch {::ripemd::ripemd128 -hex -hello} msg] $msg
+} {0 4fa192692a0fbb0c5e3092f8266a4014}
+
+test ripemd128-5.2 {Check hashing data that begins with hyphen} {
+    list [catch {::ripemd::ripemd128 -hex -- -hello} msg] $msg
+} {0 4fa192692a0fbb0c5e3092f8266a4014}
+
+test ripemd128-5.3 {Check hashing data that begins with hyphen} {
+    list [catch {::ripemd::ripemd128 -hex --} msg] $msg
+} {0 49d7d0e80b035c0ec8ffb81d07185b69}
+
+test ripemd128-5.4 {Check hashing data that begins with hyphen} {
+    list [catch {::ripemd::ripemd128 -hex -- --} msg] $msg
+} {0 49d7d0e80b035c0ec8ffb81d07185b69}
+
+test ripemd128-6.1 {Check hmac data that begins with hyphen} {
+    list [catch {::ripemd::hmac128 -hex -key "" -hello} msg] $msg
+} {0 d34fadebbdac6991c4cfb6d9c490ac1d}
+
+test ripemd128-6.2 {Check hmac data that begins with hyphen} {
+    list [catch {::ripemd::hmac128 -hex -key "" -- -hello} msg] $msg
+} {0 d34fadebbdac6991c4cfb6d9c490ac1d}
+
+test ripemd128-6.3 {Check hmac data that begins with hyphen} {
+    list [catch {::ripemd::hmac128 -hex -key "" --} msg] $msg
+} {0 3ea28051102f1f44af3850fad0efca13}
+
+test ripemd128-6.4 {Check hmac data that begins with hyphen} {
+    list [catch {::ripemd::hmac128 -hex -key "" -- --} msg] $msg
+} {0 3ea28051102f1f44af3850fad0efca13}
+
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# -------------------------------------------------------------------------
+# Local Variables:
+#   mode: tcl
+#   indent-tabs-mode: nil
+# End:

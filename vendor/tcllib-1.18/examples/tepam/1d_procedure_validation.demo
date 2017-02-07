@@ -1,0 +1,99 @@
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# 1d_procedure_validation.demo: This file is part of the TEPAM demo
+#
+# Copyright (C) 2009, 2010 Andreas Drollinger
+# 
+# Id: 1d_procedure_validation.demo
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+#### Initialization ####
+
+DemoControl(Initialization) 1
+DemoControl(IsExecutable) {0}
+
+# This demo shows how custom argument checks can be implemented using 
+# the -validatecommand attribute.
+
+   package require Tk
+   package require tepam
+   namespace import -force tepam::*; # Import tepam::procedure and tepam::argument_dialogbox
+
+####  Custom validation with standard error text ####
+
+DemoControl(IsExecutable) {[info commands div_entire1]=={}}
+
+# The following procedure performs integer divisions and is refusing 
+# the dividend/divisor pair if the integer division has a reminder.
+# It is checked that each argument is an integer using the 
+# -validatecommand argument attribute (specifying the argument types
+# as integer would do the same thing).
+# Furthermore, an additional procedure attribute -validatecommand
+# checks that the division is not leading to a reminder.
+
+  procedure div_entire1 {
+      -short_description "Integer division"
+      -description "This procedure performs divisions of integer values."
+      -args {
+         {a -validatecommand {string is integer %P}}
+         {b -validatecommand {string is integer %P}}
+      }
+      -validatecommand {expr {($a % $b)==0}}
+   } {
+      expr {$a/$b}
+   }
+
+# The following lines show two procedure calls that are failing as well
+# as a 3rd one that is successful. The default error messages are created
+# in these examples:
+
+   div_entire1 10.0 5
+
+   div_entire1 10 3
+
+   div_entire1 10 5
+
+
+####  Custom validation with custom error text ####
+
+DemoControl(IsExecutable) {[info commands div_entire2]=={}}
+
+# The standard error messages that are generated if a custom
+# validation fails may not be very meaningful, as the last example has
+# shown.
+# The following example defines custom error texts via the attribute
+# -validatecommand_error_text:
+
+  procedure div_entire2 {
+      -short_description "Integer division"
+      -description "This procedure performs divisions of integer values."
+      -args {
+         {a -validatecommand {string is integer %P} -validatecommand_error_text "Integer required for 'a'"}
+         {b -validatecommand {string is integer %P} -validatecommand_error_text "Integer required for 'b'"}
+      }
+      -validatecommand {expr {($a % $b)==0}} -validatecommand_error_text "'a' divided by 'b' has a reminder"
+   } {
+      expr {$a/$b}
+   }
+
+# The next line show that the error messages may be much more meaningful
+# with the text defined with -validatecommand_error_text:
+
+   div_entire2 10.0 5
+
+   div_entire2 10 3
+
+   div_entire2 10 5
+
+##########################################################################
+# Id: 1d_procedure_validation.demo,v $
+# Modifications:
+#
+# Revision 1.1  2013/10/14 droll
+# * Initial checkin of this file
+##########################################################################

@@ -14,6 +14,7 @@ array set ui_options {}
 mportinit ui_options
 
 package require portdmg 1.0
+package require portpkg 1.0
 source ./library.tcl
 macports_worker_init
 
@@ -36,16 +37,16 @@ test package_dmg {
     set UI_PREFIX >
 
     file mkdir $pwd/pkg
-    close [open $pwd/pkg/fondu-060102.pkg w+]
+    close [open $pwd/pkg/fondu-${version}_${revision}.pkg w+]
 
 } -body {
     if {[portdmg::dmg_main] != 0} {
         return "FAIL: cannot create dmg"
     }
-    if {![file exists $pwd/pkg/fondu-060102-1.dmg]} {
+    if {![file exists $pwd/pkg/fondu-060102_1.dmg]} {
         return "FAIL: missing .dmg file"
     }
-    if {![file exists $pwd/pkg/fondu-060102-1/fondu-060102.pkg]} {
+    if {![file exists $pwd/pkg/fondu-060102_1/fondu-060102_1.pkg]} {
         return "FAIL: invalid package.destpath"
     }
     return "Package dmg successful."

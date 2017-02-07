@@ -1,0 +1,165 @@
+[manpage_begin control n 0.1.3]
+[see_also break]
+[see_also continue]
+[see_also expr]
+[see_also if]
+[see_also join]
+[see_also namespace]
+[see_also return]
+[see_also string]
+[see_also while]
+[keywords assert]
+[keywords control]
+[keywords do]
+[keywords flow]
+[keywords no-op]
+[keywords structure]
+[moddesc   {Tcl Control Flow Commands}]
+[titledesc {Procedures for control flow structures.}]
+[category  {Programming tools}]
+[require Tcl 8.2]
+[require control [opt 0.1.3]]
+[description]
+[para]
+
+The [cmd control] package provides a variety of commands that provide
+additional flow of control structures beyond the built-in ones
+provided by Tcl.  These are commands that in many programming
+languages might be considered [emph keywords], or a part of the
+language itself.  In Tcl, control flow structures are just commands
+like everything else.
+
+[section COMMANDS]
+[list_begin definitions]
+
+[call [cmd control::control] [arg command] [arg option] [opt [arg "arg arg ..."]]]
+
+The [cmd control] command is used as a configuration command for
+customizing the other public commands of the control package.  The
+[arg command] argument names the command to be customized.  The set of
+valid [arg option] and subsequent arguments are determined by the
+command being customized, and are documented with the command.
+
+[call [cmd control::assert] [arg expr] [opt [arg "arg arg ..."]]]
+
+When disabled, the [cmd assert] command behaves exactly like the
+[cmd no-op] command.
+
+[para]
+
+When enabled, the [cmd assert] command evaluates [arg expr] as an
+expression (in the same way that [cmd expr] evaluates its argument).
+If evaluation reveals that [arg expr] is not a valid boolean
+expression (according to [lb][cmd "string is boolean -strict"][rb]),
+an error is raised.  If [arg expr] evaluates to a true boolean value
+(as recognized by [cmd if]), then [cmd assert] returns an empty
+string.  Otherwise, the remaining arguments to [cmd assert] are used
+to construct a message string.  If there are no arguments, the message
+string is "assertion failed: $expr".  If there are arguments, they are
+joined by [cmd join] to form the message string.  The message string
+is then appended as an argument to a callback command, and the
+completed callback command is evaluated in the global namespace.
+
+[para]
+
+The [cmd assert] command can be customized by the [cmd control]
+command in two ways:
+
+[para]
+
+[lb][cmd "control::control assert enabled"] [opt [arg boolean]][rb]
+queries or sets whether [cmd control::assert] is enabled.  When called
+without a [arg boolean] argument, a boolean value is returned
+indicating whether the [cmd control::assert] command is enabled.  When
+called with a valid boolean value as the [arg boolean] argument, the
+[cmd control::assert] command is enabled or disabled to match the
+argument, and an empty string is returned.
+
+[para]
+
+[lb][cmd "control::control assert callback"] [opt [arg command]][rb]
+queries or sets the callback command that will be called by an enabled
+[cmd assert] on assertion failure.  When called without a
+[arg command] argument, the current callback command is returned.
+When called with a [arg command] argument, that argument becomes the
+new assertion failure callback command.  Note that an assertion
+failure callback command is always defined, even when [cmd assert]
+is disabled.  The default callback command is
+
+[lb][cmd "return -code error"][rb].
+
+[para]
+
+Note that [cmd control::assert] has been written so that in
+combination with [lb][cmd "namespace import"][rb], it is possible to
+use enabled [cmd assert] commands in some namespaces and disabled
+
+[cmd assert] commands in other namespaces at the same time.  This
+capability is useful so that debugging efforts can be independently
+controlled module by module.
+
+[para]
+
+[example {
+% package require control
+% control::control assert enabled 1
+% namespace eval one namespace import ::control::assert
+% control::control assert enabled 0
+% namespace eval two namespace import ::control::assert
+% one::assert {1 == 0}
+assertion failed: 1 == 0
+% two::assert {1 == 0}
+}]
+
+[call [cmd control::do] [arg body] [opt [arg "option test"]]]
+
+The [cmd do] command evaluates the script [arg body] repeatedly
+[emph until] the expression [arg test] becomes true or as long as
+([emph while]) [arg test] is true, depending on the value of
+
+[arg option] being [const until] or [const while]. If
+
+[arg option] and [arg test] are omitted the body is evaluated exactly
+once. After normal completion, [cmd do] returns an empty string.
+Exceptional return codes ([cmd break], [cmd continue], [cmd error],
+etc.) during the evaluation of [arg body] are handled in the same way
+the [cmd while] command handles them, except as noted in
+
+[sectref LIMITATIONS], below.
+
+[call [cmd control::no-op] [opt [arg "arg arg ..."]]]
+
+The [cmd no-op] command takes any number of arguments and does
+nothing.  It returns an empty string.
+
+[list_end]
+
+[section LIMITATIONS]
+
+Several of the commands provided by the [cmd control] package accept
+arguments that are scripts to be evaluated.  Due to fundamental
+limitations of Tcl's [cmd catch] and [cmd return] commands, it is not
+possible for these commands to properly evaluate the command
+
+[lb][cmd "return -code \$code"][rb] within one of those script
+arguments for any value of [arg \$code] other than [arg ok].  In this
+way, the commands of the [cmd control] package are limited as compared
+to Tcl's built-in control flow commands (such as [cmd if],
+
+[cmd while], etc.) and those control flow commands that can be
+provided by packages coded in C.  An example of this difference:
+
+[para]
+[example {
+% package require control
+% proc a {} {while 1 {return -code error a}}
+% proc b {} {control::do {return -code error b} while 1}
+% catch a
+1
+% catch b
+0
+}]
+
+[vset CATEGORY control]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

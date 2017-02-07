@@ -1,10 +1,9 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
-# $Id$
 #
 # Copyright (c) 2002-2003 Apple Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2006-2007 Markus W. Weissmann <mww@macports.org>
-# Copyright (c) 2004-2014 The MacPorts Project
+# Copyright (c) 2004-2016 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -38,8 +37,6 @@ package require macports_dlist 1.0
 package require macports_util 1.0
 package require msgcat
 package require porttrace 1.0
-
-global targets target_uniqid all_variants
 
 set targets [list]
 set target_uniqid 0
@@ -89,7 +86,7 @@ proc exists {option} {
 # @param option name of the option
 # @param args arguments
 proc handle_option {option args} {
-    global $option user_options option_procs
+    global $option user_options
 
     if {![info exists user_options($option)]} {
         set $option $args
@@ -102,7 +99,7 @@ proc handle_option {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-append {option args} {
-    global $option user_options option_procs
+    global $option user_options
 
     if {![info exists user_options($option)]} {
         if {[info exists $option]} {
@@ -119,7 +116,7 @@ proc handle_option-append {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-prepend {option args} {
-    global $option user_options option_procs
+    global $option user_options
 
     if {![info exists user_options($option)]} {
         if {[info exists $option]} {
@@ -136,7 +133,7 @@ proc handle_option-prepend {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-delete {option args} {
-    global $option user_options option_procs
+    global $option user_options
 
     if {![info exists user_options($option)] && [info exists $option]} {
         set temp [set $option]
@@ -153,7 +150,7 @@ proc handle_option-delete {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-strsed {option args} {
-    global $option user_options option_procs
+    global $option user_options
 
     if {![info exists user_options($option)] && [info exists $option]} {
         set temp [set $option]
@@ -170,7 +167,7 @@ proc handle_option-strsed {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-replace {option args} {
-    global $option user_options option_procs deprecated_options
+    global $option user_options deprecated_options
 
     # Deprecate -replace with only one argument, for backwards compatibility call -strsed
     # XXX: Remove this in 2.2.0
@@ -407,7 +404,7 @@ proc command_exec {command args} {
         file mkdir ${dir}
     }
 
-    global ${varprefix}.env ${varprefix}.env_array ${varprefix}.nice env macosx_version
+    global ${varprefix}.env_array ${varprefix}.nice env
 
     # Set the environment.
     # If the array doesn't exist, we create it with the value
@@ -683,7 +680,7 @@ proc variant_remove_ditem {name} {
     set item_index 0
     foreach variant_item $all_variants {
         set item_provides [ditem_key $variant_item provides]
-        if {$item_provides == $name} {
+        if {$item_provides eq $name} {
             set all_variants [lreplace $all_variants $item_index $item_index]
             break
         }
@@ -787,11 +784,11 @@ proc platform {args} {
 
     set match 0
     # 'os' could be a platform or an arch when it's alone
-    if {$len == 2 && ($os == ${os.platform} || $os == ${os.subplatform} || $os == ${os.arch})} {
+    if {$len == 2 && ($os eq ${os.platform} || $os eq ${os.subplatform} || $os eq ${os.arch})} {
         set match 1
-    } elseif {($os == ${os.platform} || $os == ${os.subplatform})
+    } elseif {($os eq ${os.platform} || $os eq ${os.subplatform})
               && (![info exists release] || ${os.major} == $release)
-              && (![info exists arch] || ${os.arch} == $arch)} {
+              && (![info exists arch] || ${os.arch} eq $arch)} {
         set match 1
     }
 
@@ -908,7 +905,7 @@ proc ldelete {list value} {
 # reinplace
 # Provides "sed in place" functionality
 proc reinplace {args}  {
-    global env workpath worksrcpath macosx_version
+    global env workpath worksrcpath
     set extended 0
     set suppress 0
     # once a macports version has been released, add the rest of the
@@ -975,8 +972,7 @@ proc reinplace {args}  {
         set file [file join $dir $file]
 
         if {[catch {set tmpfile [mkstemp "${tempdir}/[file tail $file].sed.XXXXXXXX"]} error]} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             ui_error "reinplace: $error"
             return -code error "reinplace failed"
         } else {
@@ -1005,8 +1001,7 @@ proc reinplace {args}  {
         ui_info "$UI_PREFIX [format [msgcat::mc "Patching %s: %s"] [file tail $file] $pattern]"
         ui_debug "Executing reinplace: $cmdline"
         if {[catch {exec -ignorestderr -- {*}$cmdline} error]} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             ui_error "reinplace: $error"
             file delete "$tmpfile"
             if {$locale ne ""} {
@@ -1030,22 +1025,18 @@ proc reinplace {args}  {
         close $tmpfd
 
         set attributes [file attributes $file]
-        # start gsoc08-privileges
         chownAsRoot $file
-        # end gsoc08-privileges
 
         # We need to overwrite this file
         if {[catch {file attributes $file -permissions u+w} error]} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             ui_error "reinplace: $error"
             file delete "$tmpfile"
             return -code error "reinplace permissions failed"
         }
 
         if {[catch {file copy -force $tmpfile $file} error]} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             ui_error "reinplace: $error"
             file delete "$tmpfile"
             return -code error "reinplace copy failed"
@@ -1309,12 +1300,11 @@ proc lipo {} {
 }
 
 ########### Internal Dependency Manipulation Procedures ###########
-global ports_dry_last_skipped
 set ports_dry_last_skipped ""
 
 proc target_run {ditem} {
     global target_state_fd workpath portpath ports_trace PortInfo ports_dryrun \
-           ports_dry_last_skipped worksrcpath prefix subport env portdbpath \
+           ports_dry_last_skipped worksrcpath subport env portdbpath \
            macosx_version
     set portname $subport
     set result 0
@@ -1358,7 +1348,7 @@ proc target_run {ditem} {
             # Of course, if this is a dry run, don't do the task:
             if {[tbool ports_dryrun] && $targetname ni $dryrun_allow_targets} {
                 # only one message per portname
-                if {$portname != $ports_dry_last_skipped} {
+                if {$portname ne $ports_dry_last_skipped} {
                     ui_notice "For $portname: skipping $targetname (dry run)"
                     set ports_dry_last_skipped $portname
                 } else {
@@ -1387,7 +1377,7 @@ proc target_run {ditem} {
 
                 #start tracelib
                 set tracing no
-                if {($result ==0
+                if {($result == 0
                   && [tbool ports_trace]
                   && $target ne "clean"
                   && $target ne "uninstall")} {
@@ -1601,7 +1591,7 @@ proc recursive_collect_deps {portname {depsfound {}}} \
 
 
 proc eval_targets {target} {
-    global targets target_state_fd subport version revision portvariants epoch ports_dryrun user_options
+    global targets subport version revision portvariants
     set dlist $targets
 
     # the statefile will likely be autocleaned away after install,
@@ -1668,30 +1658,7 @@ proc eval_targets {target} {
 # open file to store name of completed targets
 proc open_statefile {args} {
     global workpath worksymlink place_worksymlink subport portpath ports_ignore_different ports_dryrun \
-           usealtworkpath altprefix env applications_dir subbuildpath
-
-    if {$usealtworkpath} {
-         ui_warn_once "privileges" "MacPorts running without privileges.\
-                You may be unable to complete certain actions (e.g. install)."
-
-        set newsourcepath "${altprefix}${portpath}"
-    
-        # copy Portfile (and patch files) if not there already
-        # note to maintainers/devs: the original portfile in /opt/local is ALWAYS the one that will be
-        #    read by macports. The copying of the portfile is done to preserve the symlink provided
-        #    historically by macports from the portfile directory to the work directory.
-        #    It is NOT read by MacPorts.
-        if {![file exists ${newsourcepath}/Portfile] && ![tbool ports_dryrun]} {
-            file mkdir $newsourcepath
-            ui_debug "$newsourcepath created"
-            ui_debug "Going to copy: ${portpath}/Portfile"
-            file copy ${portpath}/Portfile $newsourcepath
-            if {[file exists ${portpath}/files] } {
-                ui_debug "Going to copy: ${portpath}/files"
-                file copy ${portpath}/files $newsourcepath
-            }
-        }
-    }
+           subbuildpath
 
     if {![tbool ports_dryrun]} {
         set need_chown 0
@@ -1763,7 +1730,7 @@ proc open_statefile {args} {
                         ui_warn "Statefile has version 2 but didn't contain a checksum"
                         set portfile_changed yes
                     } else {
-                        if {$checksum_portfile != $checksum_statefile} {
+                        if {$checksum_portfile ne $checksum_statefile} {
                             ui_debug "Checksum recorded in statefile '$checksum_statefile' differs from Portfile checksum '$checksum_portfile'"
                             set portfile_changed yes
                         }
@@ -1794,10 +1761,10 @@ proc open_statefile {args} {
     set fd [open $statefile a+]
     if {![tbool ports_dryrun]} {
         if {[catch {adv-flock $fd -exclusive -noblock} result]} {
-            if {"$result" == "EAGAIN"} {
+            if {$result eq "EAGAIN"} {
                 ui_notice "Waiting for lock on $statefile"
                 adv-flock $fd -exclusive
-            } elseif {"$result" == "EOPNOTSUPP"} {
+            } elseif {$result eq "EOPNOTSUPP"} {
                 # Locking not supported, just return
                 return $fd
             } else {
@@ -1832,7 +1799,7 @@ proc get_statefile_value {class fd result} {
 proc check_statefile {class name fd} {
     seek $fd 0
     while {[gets $fd line] >= 0} {
-        if {$line == "$class: $name"} {
+        if {$line eq "$class: $name"} {
             return 1
         }
     }
@@ -1855,7 +1822,7 @@ proc write_statefile {class name fd} {
 proc update_statefile {class name path} {
     set fd [open $path r]
     while {[gets $fd line] >= 0} {
-        if {[lindex $line 0] != "${class}:"} {
+        if {[lindex $line 0] ne "${class}:"} {
             lappend lines $line
         }
     }
@@ -1905,7 +1872,7 @@ proc check_statefile_variants {variations oldvariations fd} {
         set mismatch 1
     } else {
         foreach key [array names upvariations *] {
-            if {![info exists upoldvariations($key)] || $upvariations($key) != $upoldvariations($key)} {
+            if {![info exists upoldvariations($key)] || $upvariations($key) ne $upoldvariations($key)} {
                 set mismatch 1
                 break
             }
@@ -1966,8 +1933,7 @@ proc variant_run {ditem} {
 
     # execute proc with same name as variant.
     if {[catch "variant-${name}" result]} {
-        global errorInfo
-        ui_debug "$errorInfo"
+        ui_debug $::errorInfo
         ui_error "[option name]: Error executing $name: $result"
         return 1
     }
@@ -1986,7 +1952,7 @@ proc canonicalize_variants {variants {sign "+"}} {
     set result ""
     set vlist [lsort -ascii [array names vara]]
     foreach v $vlist {
-        if {$vara($v) == $sign} {
+        if {$vara($v) eq $sign} {
             append result "${sign}${v}"
         }
     }
@@ -1994,7 +1960,7 @@ proc canonicalize_variants {variants {sign "+"}} {
 }
 
 proc eval_variants {variations} {
-    global all_variants ports_force PortInfo requested_variations portvariants negated_variants
+    global all_variants PortInfo requested_variations portvariants negated_variants
     set dlist $all_variants
     upvar $variations upvariations
     set chosen [choose_variants $dlist upvariations]
@@ -2152,7 +2118,6 @@ proc target_new {name procedure} {
 }
 
 proc target_provides {ditem args} {
-    global targets
     # Register the pre-/post- hooks for use in Portfile.
     # Portfile syntax: pre-fetch { puts "hello world" }
     # User-code exceptions are caught and returned as a result of the target.
@@ -2518,7 +2483,7 @@ proc addgroup {name args} {
 proc dirSize {dir} {
     set size    0;
     foreach file [readdir $dir] {
-        if {[file type [file join $dir $file]] == "link" } {
+        if {[file type [file join $dir $file]] eq "link" } {
             continue
         }
         if {[file isdirectory [file join $dir $file]]} {
@@ -2569,11 +2534,11 @@ proc PortGroup {group version} {
 
 # return filename of the archive for this port
 proc get_portimage_name {} {
-    global portdbpath subport version revision portvariants os.platform os.major portarchivetype
+    global subport version revision portvariants os.platform os.major portarchivetype
     set ret "${subport}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"
     # should really look up NAME_MAX here, but it's 255 for all OS X so far
     # (leave 10 chars for an extension like .rmd160 on the sig file)
-    if {[string length $ret] > 245 && ${portvariants} != ""} {
+    if {[string length $ret] > 245 && ${portvariants} ne ""} {
         # try hashing the variants
         set ret "${subport}-${version}_${revision}+[rmd160 string ${portvariants}].${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"
     }
@@ -2628,7 +2593,6 @@ proc find_portarchive_path {} {
 # check if archive type is supported by current system
 # returns an error code if it is not
 proc archiveTypeIsSupported {type} {
-    global os.platform os.version
     set errmsg ""
     switch -regex $type {
         cp(io|gz) {
@@ -2756,16 +2720,16 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
                 set ignore 0
                 continue
             }
-            if {[string index $line 0] != "@"} {
+            if {[string index $line 0] ne "@"} {
                 lappend contents "${sep}${line}"
-            } elseif {$line == "@ignore"} {
+            } elseif {$line eq "@ignore"} {
                 set ignore 1
             }
         }
         return $contents
     } elseif {$metadata_type eq "portname"} {
         foreach line [split $raw_contents \n] {
-            if {[lindex $line 0] == "@portname"} {
+            if {[lindex $line 0] eq "@portname"} {
                 return [lindex $line 1]
             }
         }
@@ -2833,7 +2797,7 @@ proc merge {base} {
             set base_arch ${arch}
         }
     }
-    if {"" == ${base_arch}} {
+    if {"" eq ${base_arch}} {
         return -code error [format [msgcat::mc "Cannot merge because directory '%s' contains no architecture directories."] ${base}]
     }
     ui_debug "merging architectures ${archs}, base_arch is ${base_arch}"
@@ -2842,7 +2806,7 @@ proc merge {base} {
     set basepath "${base}/${base_arch}"
     fs-traverse file "${basepath}" {
         set fpath [string range "${file}" [string length "${basepath}"] [string length "${file}"]]
-        if {${fpath} != ""} {
+        if {${fpath} ne ""} {
             # determine the type (dir/file/link)
             switch [file type ${basepath}${fpath}] {
                 directory {
@@ -2962,7 +2926,7 @@ proc fileAttrsAsRoot {file attributes} {
 #
 # @param action the action for which privileges are being elevated
 proc elevateToRoot {action} {
-    global euid egid macportsuser
+    global euid egid
 
     if { [getuid] == 0 && [geteuid] != 0 } {
     # if started with sudo but have dropped the privileges
@@ -2978,7 +2942,8 @@ proc elevateToRoot {action} {
 # de-escalate privileges from root to those of $macportsuser.
 #
 proc dropPrivileges {} {
-    global euid egid macportsuser workpath
+    global macportsuser
+    # workpath
     if { [geteuid] == 0 } {
         if { [catch {
                 if {[name_to_uid "$macportsuser"] != 0} {
@@ -3045,7 +3010,7 @@ proc _libtest {depspec {return_match 0}} {
     set depname [string range $depline 0 [expr {$i - 1}]]
     set depversion [string range $depline $i end]
     regsub {\.} $depversion {\.} depversion
-    if {${os.platform} == "darwin"} {
+    if {${os.platform} eq "darwin"} {
         set depregex \^${depname}${depversion}\\.dylib\$
     } else {
         set depregex \^${depname}\\.so${depversion}\$
@@ -3057,7 +3022,7 @@ proc _libtest {depspec {return_match 0}} {
 ### _bintest is private; subject to change without notice
 
 proc _bintest {depspec {return_match 0}} {
-    global env prefix
+    global env
     set depregex [lindex [split $depspec :] 1]
 
     set search_path [split $env(PATH) :]
@@ -3070,7 +3035,7 @@ proc _bintest {depspec {return_match 0}} {
 ### _pathtest is private; subject to change without notice
 
 proc _pathtest {depspec {return_match 0}} {
-    global env prefix
+    global prefix
     set depregex [lindex [split $depspec :] 1]
 
     # separate directory from regex
@@ -3128,7 +3093,7 @@ proc get_canonical_archs {} {
         return "noarch"
     } elseif {[variant_exists universal] && [variant_isset universal]} {
         return [lsort -ascii ${configure.universal_archs}]
-    } elseif {${configure.build_arch} != ""} {
+    } elseif {${configure.build_arch} ne ""} {
         return ${configure.build_arch}
     } else {
         return ${os.arch}
@@ -3158,13 +3123,13 @@ proc check_supported_archs {} {
     if {$supported_archs eq "noarch"} {
         return 0
     } elseif {[variant_exists universal] && [variant_isset universal]} {
-        if {[llength ${configure.universal_archs}] > 1 || $universal_archs == ${configure.universal_archs}} {
+        if {[llength ${configure.universal_archs}] > 1 || $universal_archs eq ${configure.universal_archs}} {
             return 0
         } else {
             ui_error "$subport cannot be installed for the configured universal_archs '$universal_archs' because it only supports the arch(s) '$supported_archs'."
             return 1
         }
-    } elseif {$build_arch eq "" || ${configure.build_arch} != ""} {
+    } elseif {$build_arch eq "" || ${configure.build_arch} ne ""} {
         return 0
     }
     ui_error "$subport cannot be installed for the configured build_arch '$build_arch' because it only supports the arch(s) '$supported_archs'."
@@ -3200,32 +3165,32 @@ proc _check_xcode_version {} {
             10.8 {
                 set min 4.4
                 set ok 4.4
-                set rec 4.6.3
+                set rec 5.1.1
             }
             10.9 {
                 set min 5.0.1
                 set ok 5.0.1
-                set rec 6.0.1
+                set rec 6.2
             }
             10.10 {
                 set min 6.1
                 set ok 6.1
-                set rec 7.2
+                set rec 7.2.1
             }
             10.11 {
                 set min 7.0
                 set ok 7.0
-                set rec 7.3
+                set rec 8.2.1
             }
             10.12 {
                 set min 8.0
                 set ok 8.0
-                set rec 8.0
+                set rec 8.2.1
             }
             default {
                 set min 8.0
                 set ok 8.0
-                set rec 8.0
+                set rec 8.2.1
             }
         }
         if {$xcodeversion eq "none"} {
@@ -3306,7 +3271,7 @@ proc _archive_available {} {
     if {[lsearch $archive_sites macports_archives::*] == -1} {
         set mirrors [lindex [split [lindex $archive_sites 0] :] 0]
     }
-    if {$mirrors == {}} {
+    if {$mirrors eq {}} {
         set archive_available_result 0
         return 0
     }

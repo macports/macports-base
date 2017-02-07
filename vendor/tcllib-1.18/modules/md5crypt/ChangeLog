@@ -1,0 +1,130 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-05-07  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5cryptc.tcl: Fixed poor idiom setting interp result.
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-01-26  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5crypt.tcl: Implemented FR #1824212 from Aaron Faupell to
+	* md5crypt.man: provide a salt command for use when generating
+	* pkgIndex.tcl: passwords.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5crypt.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5crypt.test: The critcl implementation of md5crypt generates
+	  different error messages when called with the wrong number of
+	  arguments. Updated the tests to take this into account.
+
+2006-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5crypt.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5crypt.test: Hooked into the new common test support code.
+
+2005-10-24  Andreas Kupries <andreask@activestate.com>
+
+	* md5crypt.bench: New file. Basic benchmarks for MD5 password
+	  hashes.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-10-05  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5cryptc.tcl: Fix for building with msvc.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2004-02-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* md5crypt.test: Testsuite fixed. Had to account that error
+	  messages can dependent on the version of the Tcl core.
+
+2003-07-26  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5crypt.tcl:   Provided implementation of the Apache
+	* md5cryptc.tcl:  variation of md5crypt - as used in the
+	* md5crypt.test:  Apache2 htpasswd program.
+
+	* md5crypt.man:   Added a manual page.
+	
+2003-07-26  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* md5crypt.tcl:   Initial version of a pure-Tcl and
+	* md5crypt.test:  critcl-enhanced implementation of
+	* md5cryptc.tcl:  the BSD MD5-crypt algorithm.
+	* pkgIndex.tcl:   
+	* ChangeLog:      

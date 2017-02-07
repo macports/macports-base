@@ -1,0 +1,256 @@
+# -*- tcl -*-
+# fa_operations.test:  tests for the FA operations.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: faop_regex.test,v 1.7 2007/12/03 21:46:25 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+test faop-regex-${setimpl}-1.0 {fromRegex, error} {
+    catch {grammar::fa::op::fromRegex} res
+    set res
+} {wrong # args: should be "grammar::fa::op::fromRegex fa regex ?over?"}
+
+
+test faop-regex-${setimpl}-1.1 {fromRegex, error} {
+    catch {grammar::fa::op::fromRegex a b c d} res
+    set res
+} {wrong # args: should be "grammar::fa::op::fromRegex fa regex ?over?"}
+
+
+test faop-regex-${setimpl}-1.2 {fromRegex, error} {
+    catch {grammar::fa::op::fromRegex a b} res
+    set res
+} {Expected . ! ? * | &, or S, got "b"}
+
+
+test faop-regex-${setimpl}-1.3 {fromRegex, error} {
+    catch {grammar::fa::op::fromRegex a {S b}} res
+    set res
+} {invalid command name "a"}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+foreach {n over re fres} {
+    00 {} {}
+    {grammar::fa {} {}}
+
+    01 {} {S x}
+    {grammar::fa x {0 {1 0 {x 1}} 1 {0 1 {}}}}
+
+    02 {} {. {S x} {S y}}
+    {grammar::fa {x y} {0 {1 0 {x 1}} 1 {0 0 {{} 2}} 2 {0 0 {y 3}} 3 {0 1 {}}}}
+
+    03 {} {| {S x} {S y}}
+    {grammar::fa {x y} {0 {1 0 {{} {2 4}}} 1 {0 1 {}} 2 {0 0 {x 3}} 3 {0 0 {{} 1}} 4 {0 0 {y 5}} 5 {0 0 {{} 1}}}}
+
+    04 {} {? {S x}}
+    {grammar::fa x {0 {1 0 {{} {2 1}}} 1 {0 1 {}} 2 {0 0 {x 3}} 3 {0 0 {{} 1}}}}
+
+    05 {} {* {S x}}
+    {grammar::fa x {0 {1 1 {{} 1}} 1 {0 0 {x 2}} 2 {0 0 {{} 0}}}}
+
+    06 {} {+ {S x}}
+    {grammar::fa x {0 {1 0 {{} 2}} 1 {0 1 {{} 0}} 2 {0 0 {x 3}} 3 {0 0 {{} 1}}}}
+
+    07 {} {! {S x}}
+    {grammar::fa x {0 {1 0 {{} 2}} 1 {0 1 {}} 2 {0 0 {x 3 {} 1}} 3 {0 0 {x 6}} 6 {0 0 {x 6 {} 1}}}}
+
+    08 {/ * { } a} {. {S /} {S *} {+ {! {. {S *} {S /}}}} {S *} {S /}}
+    {grammar::fa {{ } a * /} {0 {1 0 {/ 1}} 1 {0 0 {{} 2}} 2 {0 0 {* 3}} 3 {0 0 {{} 4}} 4 {0 0 {{} 6}} 5 {0 0 {{} {4 16}}} 6 {0 0 {{} 12}} 7 {0 0 {{} 5}} 12 {0 0 {{ } 15 {} 7 a 15 * 13 / 15}} 13 {0 0 {{ } 15 {} 7 a 15 * 15 / 14}} 14 {0 0 {{ } 15 a 15 * 15 / 15}} 15 {0 0 {{ } 15 {} 7 a 15 * 15 / 15}} 16 {0 0 {* 17}} 17 {0 0 {{} 18}} 18 {0 0 {/ 19}} 19 {0 1 {}}}}
+
+    09 {} {. {S x}}
+    {grammar::fa x {0 {1 0 {x 1}} 1 {0 1 {}}}}
+
+    10 {} {| {S x}}
+    {grammar::fa x {0 {1 0 {x 1}} 1 {0 1 {}}}}
+
+    11 {} {& {S x}}
+    {grammar::fa x {0 {1 0 {x 1}} 1 {0 1 {}}}}
+
+    12 {} {& {. {S a} {* {S d}} {S c}} {. {S a} {* {S b}} {S c}}}
+    {grammar::fa {a b c d} {0 {1 0 {{} 2}} 1 {0 1 {}} 2 {0 0 {a 3}} 3 {0 0 {c 4}} 4 {0 0 {{} 1}}}}
+} {
+    set key ${n}
+
+    test faop-regex-${setimpl}-2.$key {fromRegex} {
+	grammar::fa a
+	grammar::fa::op::fromRegex a $re $over
+	set res [validate_serial $fres a]
+	a destroy
+	set res
+
+    } ok
+
+    test faop-regex-${setimpl}-3.$key {fromRegex, as method} {
+	grammar::fa a
+	a fromRegex $re $over
+	set res [validate_serial $fres a]
+	a destroy
+	set res
+    } ok
+}
+
+# -------------------------------------------------------------------------
+
+test faop-regex-${setimpl}-4.0 {toRegexp, error} {
+    catch {grammar::fa::op::toRegexp} res
+    set res
+} {wrong # args: should be "grammar::fa::op::toRegexp fa"}
+
+test faop-regex-${setimpl}-4.1 {toRegexp, error} {
+    catch {grammar::fa::op::toRegexp a b} res
+    set res
+} {wrong # args: should be "grammar::fa::op::toRegexp fa"}
+
+test faop-regex-${setimpl}-4.2 {toRegexp, error} {
+    catch {grammar::fa::op::toRegexp a} res
+    set res
+} {invalid command name "a"}
+
+test faop-regex-${setimpl}-4.3 {toRegexp} {
+    grammar::fa a
+    a state add 0 1 2
+    a symbol add a
+    a symbol add b
+    a next 0 a --> 1
+    a next 0 b --> 2
+    a next 1 b --> 0
+    a next 2 b --> 0
+    a start add 0
+    a final add 0
+
+    set res [grammar::fa::op::toRegexp a]
+    a destroy
+    set res
+} {* {| {. {S a} {S b}} {. {S b} {S b}}}}
+
+
+test faop-regex-${setimpl}-5.0 {toRegexp2, error} {
+    catch {grammar::fa::op::toRegexp2} res
+    set res
+} {wrong # args: should be "grammar::fa::op::toRegexp2 fa"}
+
+test faop-regex-${setimpl}-5.1 {toRegexp2, error} {
+    catch {grammar::fa::op::toRegexp2 a b} res
+    set res
+} {wrong # args: should be "grammar::fa::op::toRegexp2 fa"}
+
+test faop-regex-${setimpl}-5.2 {toRegexp2, error} {
+    catch {grammar::fa::op::toRegexp2 a} res
+    set res
+} {invalid command name "a"}
+
+test faop-regex-${setimpl}-5.3 {toRegexp2} {
+    grammar::fa a
+    a state add 0 1 2
+    a symbol add a
+    a symbol add b
+    a next 0 a --> 1
+    a next 0 b --> 2
+    a next 1 b --> 0
+    a next 2 b --> 0
+    a start add 0
+    a final add 0
+
+    set res [grammar::fa::op::toRegexp2 a]
+    a destroy
+    set res
+} {* {| {. {S a} {S b}} {. {S b} {S b}}}}
+
+# -------------------------------------------------------------------------
+
+test faop-regex-${setimpl}-6.0 {toTclRegexp, error} {
+    catch {grammar::fa::op::toTclRegexp} res
+    set res
+} {wrong # args: should be "grammar::fa::op::toTclRegexp re symdict"}
+
+test faop-regex-${setimpl}-6.1 {toTclRegexp, error} {
+    catch {grammar::fa::op::toTclRegexp a b c} res
+    set res
+} {wrong # args: should be "grammar::fa::op::toTclRegexp re symdict"}
+
+test faop-regex-${setimpl}-6.2 {toTclRegexp, error} {
+    catch {grammar::fa::op::toTclRegexp a {}} res
+    set res
+} {invalid command name "a"}
+
+test faop-regex-${setimpl}-6.3 {toTclRegexp} {
+    grammar::fa::op::toTclRegexp {* {| {. {S a} {S b}} {. {S b} {S b}}}} {}
+} {(ab|bb)*}
+
+# -------------------------------------------------------------------------
+
+test faop-regex-${setimpl}-7.0 {simplifyRegexp, error} {
+    catch {grammar::fa::op::simplifyRegexp} res
+    set res
+} {wrong # args: should be "grammar::fa::op::simplifyRegexp RE0"}
+
+test faop-regex-${setimpl}-7.1 {simplifyRegexp, error} {
+    catch {grammar::fa::op::simplifyRegexp a b} res
+    set res
+} {wrong # args: should be "grammar::fa::op::simplifyRegexp RE0"}
+
+test faop-regex-${setimpl}-7.2 {simplifyRegexp} {
+    set re {* {. {| {S a} {S b}} {S b}}}
+    grammar::fa::op::simplifyRegexp $re
+} {* {. {| {S a} {S b}} {S b}}}
+
+test faop-regex-${setimpl}-7.3 {simplifyRegexp} {
+    set re {* {| {. {S a} {S b}} {. {S b} {S b}}}}
+    grammar::fa::op::simplifyRegexp $re
+} {* {. {| {S a} {S b}} {S b}}}
+
+# -------------------------------------------------------------------------
+## Two larger examples
+
+test faop-regex-${setimpl}-8.0 {to(Tcl)Regexp, match 2 mod 3, decimal} {
+    set fa [grammar::fa decimal_2_mod_3]
+    $fa state  add 0 1 2
+    $fa symbol add 0 1 2 3 4 5 6 7 8 9
+    foreach state [$fa states] {
+	foreach digit [$fa symbols] {
+	    $fa next $state $digit --> [expr {(10*$state + $digit) % 3}]
+	}
+    }
+    $fa start add 0
+    $fa final add 2
+    set RE ^([grammar::fa::op::toTclRegexp [grammar::fa::op::toRegexp $fa] {}])\$
+    # Check the generated regex for correctness. Should match all ints 2 mod 3.
+    set res {}
+    for {set n 0} {$n<1000} {incr n} {
+	if {[regexp $RE $n] != ($n % 3 == 2)} {
+	    lappend res $n
+	}
+    }
+    $fa destroy
+    set res
+} {}
+
+test faop-regex-${setimpl}-8.1 {to(Tcl)Regexp, match 1 mod 8, octal} {
+
+    set fa [grammar::fa octal_1_mod_3]
+    $fa state  add 0 1 2
+    $fa symbol add 0 1 2 3 4 5 6 7
+    foreach state [$fa states] {
+	foreach digit [$fa symbols] {
+	    $fa next $state $digit --> [expr {(8*$state + $digit) % 3}]
+	}
+    }
+    $fa start add 0
+    $fa final add 1
+    set RE ^([grammar::fa::op::toTclRegexp [grammar::fa::op::toRegexp $fa] {}])\$
+    set res {}
+    for {set n 0} {$n<4096} {incr n} {
+	if {[regexp $RE [format %o $n]] != ($n % 3 == 1)} {
+	    lappend res $n
+	}
+    }
+    $fa destroy
+    set res
+} {}
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

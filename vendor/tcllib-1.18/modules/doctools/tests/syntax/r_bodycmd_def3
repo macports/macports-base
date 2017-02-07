@@ -1,0 +1,3 @@
+Doctools Error in macro at line 5, column 0:
+[def]
+--> (FmtError) Manpage error (bodycmd), "def" : Command not allowed outside of the body of the manpage.

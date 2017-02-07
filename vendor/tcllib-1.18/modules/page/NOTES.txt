@@ -1,0 +1,64 @@
+Transforms
+==========
+
+Consider: character sequence to string fusing in PEG writer.
+Consider: expression enumeration, to determine if there are common
+	  expressions in the grammar which could be factored into
+	  their own match procedures (*).
+
+Consider: Transformations which expand the number of common
+	  expressions. Example would be strings, i.e. macthing of
+	  character sequences. Instead of matching all in one use a
+	  nested sequence of matching ever-growing prefixes. This
+	  ensures that common prefixes in terminal strings are
+	  factored into one matcher. And if we use nonterminal
+	  procedures (See * below) this also enhances the caching,
+	  especially if common prefixes occur in different branches of
+	  a choice.
+
+(*) This could simple procedures, i.e. _not_ nonterminals. This would
+be without caching. Could also be nonterminal procedures, with mode
+expand (for value, discard would stay), to make its presence invisible
+to the AS tree structure.
+
+
+Removal of nonterminal chains
+
+	A <- B
+	B <- C
+	C <- ...
+
+Static match results !!
+
+mewriter has to be able to work with and
+without static match. Basic expr modes are
+something mewriter should do on its own
+as well.
+
+
+Compile *, + with helper nonterminals which are not shown as such
+(mode: expand).
+
+static match result - sequence - ability to remove checks after an
+always ok call, and abort sequence upon always fail.
+
+static match result - choice - ability to abort choice after ok, or
+skip always fail branches.
+
+
+Main parse routine can be simplified if start expression is a single
+nonterminal, and not a real complex expression.
+
+
+Need encoder for printable tcl char string.
+
+- The basic encoder generates a string acceptable to tcl parser for
+  use in a script, as part of the code.
+
+- The new encoder has to generate a string acceptable to the tcl
+  parser, for use in a script, which then written (puts) generates a
+  human readable representation of the character.
+
+I.e. LF in basic encode is \n, when printed it is an invislble
+character, i.e. a linefeed. In string/human encode it is \\n, which
+prints as \n, making it a readable representation of the character

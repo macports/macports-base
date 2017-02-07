@@ -1,0 +1,3 @@
+Doctools Error in macro at line 1, column 0:
+[item]
+--> (FmtError) Manpage error (bodycmd), "item" : Command not allowed outside of the body of the manpage.

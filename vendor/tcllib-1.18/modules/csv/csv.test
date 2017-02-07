@@ -1,0 +1,998 @@
+# -*- tcl -*-
+# Tests for the find function.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 2001-2011 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: csv.test,v 1.23 2011/11/23 02:22:10 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 1.0
+
+support {
+    use struct/queue.tcl  struct::queue
+    use struct/matrix.tcl struct::matrix
+}
+testing {
+    useLocal csv.tcl csv
+}
+
+# -------------------------------------------------------------------------
+
+set str1 {"123","""a""",,hello}
+set str2 {1," o, ""a"" ,b ", 3}
+set str3 {"1"," o, "","" ,b ", 3}
+set str4 {1," foo,bar,baz", 3}
+set str5 {1,"""""a""""",b}
+set str6 {123,"123,521.2","Mary says ""Hello, I am Mary"""}
+
+set str1a {123,"""a""",,hello}
+set str3a {1," o, "","" ,b ", 3}
+
+# Custom delimiter, =
+
+set str1_ {=123=,===a===,,hello}
+set str2_ {1,= o, ==a== ,b =, 3}
+set str3_ {=1=,= o, ==,== ,b =, 3}
+set str4_ {1,= foo,bar,baz=, 3}
+set str5_ {1,=====a=====,b}
+set str6_ {123,=123,521.2=,=Mary says "Hello, I am Mary"=}
+
+set str1a_ {123,===a===,,hello}
+set str3a_ {1,= o, ==,== ,b =, 3}
+
+set str7 {=1=,=====a=====,=b=}
+
+# -------------------------------------------------------------------------
+
+test csv-1.1 {split} {
+    csv::split $str1
+} {123 {"a"} {} hello}
+
+test csv-1.2 {split} {
+    csv::split $str2
+} {1 { o, "a" ,b } { 3}}
+
+test csv-1.3 {split} {
+    csv::split $str3
+} {1 { o, "," ,b } { 3}}
+
+test csv-1.4 {split} {
+    csv::split $str4
+} {1 { foo,bar,baz} { 3}}
+
+test csv-1.5 {split} {
+    csv::split $str5
+} {1 {""a""} b}
+
+test csv-1.6 {split} {
+    csv::split $str6
+} {123 123,521.2 {Mary says "Hello, I am Mary"}}
+
+test csv-1.7 {split on join} {
+    # csv 0.1 was exposed to the RE \A matching problem with regsub -all
+    set x [list "\"hello, you\"" a b c]
+    ::csv::split [::csv::join $x]
+} [list "\"hello, you\"" a b c]
+
+test csv-1.8-1 {split empty fields} {
+    csv::split {1 2 "" ""} { }
+} {1 2 {"} {"}}
+
+test csv-1.9-1 {split empty fields} {
+    csv::split {1 2 3 ""} { }
+} {1 2 3 {"}}
+
+test csv-1.10-1 {split empty fields} {
+    csv::split {"" "" 1 2} { }
+} {{"} {"} 1 2}
+
+test csv-1.11-1 {split empty fields} {
+    csv::split {"" 0 1 2} { }
+} {{"} 0 1 2}
+
+test csv-1.12-1 {split empty fields} {
+    csv::split {"" ""} { }
+} {{"} {"}}
+
+test csv-1.13-1 {split empty fields} {
+    csv::split {"" "" ""} { }
+} {{"} {"} {"}}
+
+test csv-1.14-1 {split empty fields} {
+    csv::split {"" 0 "" 2} { }
+} {{"} 0 {"} 2}
+
+test csv-1.15-1 {split empty fields} {
+    csv::split {1 "" 3 ""} { }
+} {1 {"} 3 {"}}
+
+test csv-1.8-2 {split empty fields} {
+    csv::split "1,2,,"
+} {1 2 {} {}}
+
+test csv-1.9-2 {split empty fields} {
+    csv::split "1,2,3,"
+} {1 2 3 {}}
+
+test csv-1.10-2 {split empty fields} {
+    csv::split ",,1,2"
+} {{} {} 1 2}
+
+test csv-1.11-2 {split empty fields} {
+    csv::split ",0,1,2"
+} {{} 0 1 2}
+
+test csv-1.12-2 {split empty fields} {
+    csv::split ","
+} {{} {}}
+
+test csv-1.13-2 {split empty fields} {
+    csv::split ",,"
+} {{} {} {}}
+
+test csv-1.14-2 {split empty fields} {
+    csv::split ",0,,2"
+} {{} 0 {} 2}
+
+test csv-1.15-2 {split empty fields} {
+    csv::split "1,,3,"
+} {1 {} 3 {}}
+
+test csv-1.8-3 {split empty fields} {
+    csv::split {1 2  } { }
+} {1 2 {} {}}
+
+test csv-1.9-3 {split empty fields} {
+    csv::split {1 2 3 } { }
+} {1 2 3 {}}
+
+test csv-1.10-3 {split empty fields} {
+    csv::split {  1 2} { }
+} {{} {} 1 2}
+
+test csv-1.11-3 {split empty fields} {
+    csv::split { 0 1 2} { }
+} {{} 0 1 2}
+
+test csv-1.12-3 {split empty fields} {
+    csv::split { } { }
+} {{} {}}
+
+test csv-1.13-3 {split empty fields} {
+    csv::split {  } { }
+} {{} {} {}}
+
+test csv-1.14-3 {split empty fields} {
+    csv::split { 0  2} { }
+} {{} 0 {} 2}
+
+test csv-1.15-3 {split empty fields} {
+    csv::split {1  3 } { }
+} {1 {} 3 {}}
+
+
+test csv-1.8-4 {split empty fields} {
+    csv::split {1,2,"",""}
+} {1 2 {"} {"}}
+
+test csv-1.9-4 {split empty fields} {
+    csv::split {1,2,3,""}
+} {1 2 3 {"}}
+
+test csv-1.10-4 {split empty fields} {
+    csv::split {"","",1,2}
+} {{"} {"} 1 2}
+
+test csv-1.11-4 {split empty fields} {
+    csv::split {"",0,1,2}
+} {{"} 0 1 2}
+
+test csv-1.12-4 {split empty fields} {
+    csv::split {"",""}
+} {{"} {"}}
+
+test csv-1.13-4 {split empty fields} {
+    csv::split {"","",""}
+} {{"} {"} {"}}
+
+test csv-1.14-4 {split empty fields} {
+    csv::split {"",0,"",2}
+} {{"} 0 {"} 2}
+
+test csv-1.15-4 {split empty fields} {
+    csv::split {1,"",3,""}
+} {1 {"} 3 {"}}
+
+# Try various separator characters
+
+foreach {n sep} {
+    0  |    1  +    2  *
+    3  /    4  \    5  [
+    6  ]    7  (    8  )
+    9  ?    10 ,    11 ;
+    12 .    13 -    14 =
+    15 :    16 x    17 9
+} {
+    test csv-1.16-$n "split on $sep" {
+	::csv::split [join [list REC DPI AD1 AD2 AD3] $sep] $sep
+    } {REC DPI AD1 AD2 AD3}
+}
+
+test csv-2.1 {join} {
+    csv::join {123 {"a"} {} hello}
+} $str1a
+
+test csv-2.2 {join} {
+    csv::join {1 { o, "a" ,b } { 3}}
+} $str2
+
+test csv-2.3 {join} {
+    csv::join {1 { o, "," ,b } { 3}}
+} $str3a
+
+test csv-2.4 {join} {
+    csv::join {1 { foo,bar,baz} { 3}}
+} $str4
+
+test csv-2.5 {join} {
+    csv::join {1 {""a""} b}
+} $str5
+
+test csv-2.6 {join} {
+    csv::join {123 123,521.2 {Mary says "Hello, I am Mary"}}
+} $str6
+
+test csv-2.7 {join, custom delimiter} {
+    csv::join {123 =a= {} hello} , =
+} $str1a_
+
+test csv-2.8 {join, custom delimiter} {
+    csv::join {1 { o, =a= ,b } { 3}} , =
+} $str2_
+
+test csv-2.9 {join, custom delimiter} {
+    csv::join {1 { o, =,= ,b } { 3}} , =
+} $str3a_
+
+test csv-2.10 {join, custom delimiter} {
+    csv::join {1 { foo,bar,baz} { 3}} , =
+} $str4_
+
+test csv-2.11 {join, custom delimiter} {
+    csv::join {1 ==a== b} , =
+} $str5_
+
+test csv-2.12 {join, custom delimiter} {
+    csv::join {123 123,521.2 {Mary says "Hello, I am Mary"}} , =
+} $str6_
+
+test csv-2.13-sf-1724818 {join, newlines in string, sf bug 1724818} {
+    csv::join {123 {John Doe} "123 Main St.\nSmalltown, OH 44444"}
+} "123,John Doe,\"123 Main St.\nSmalltown, OH 44444\""
+
+test csv-2.14 {join, custom delimiter, always} {
+    csv::join {1 ==a== b} , = always
+} $str7
+
+# Malformed inputs
+
+test csv-3.1 {split} {
+    csv::split {abcd,abc",abc} ; # "
+} {abcd abc abc}
+
+test csv-3.2 {split} {
+    csv::split {abcd,abc"",abc}
+} {abcd abc\" abc}
+
+
+test csv-4.1 {joinlist} {
+    csv::joinlist [list \
+	    {123 {"a"} {} hello} 	\
+	    {1 { o, "a" ,b } { 3}}	\
+	    {1 { o, "," ,b } { 3}}	\
+	    {1 { foo,bar,baz} { 3}}	\
+	    {1 {""a""} b}		\
+	    {123 123,521.2 {Mary says "Hello, I am Mary"}}]
+} "$str1a\n$str2\n$str3a\n$str4\n$str5\n$str6\n"
+
+test csv-4.2 {joinlist, sepChar} {
+    csv::joinlist [list [list a b c] [list d e f]] @
+} "a@b@c\nd@e@f\n"
+
+test csv-4.3 {joinlist, custom delimiter} {
+    csv::joinlist [list \
+	    {123 =a= {} hello} 	\
+	    {1 { o, =a= ,b } { 3}}	\
+	    {1 { o, =,= ,b } { 3}}	\
+	    {1 { foo,bar,baz} { 3}}	\
+	    {1 ==a== b}		\
+	    {123 123,521.2 {Mary says "Hello, I am Mary"}}] , =
+} "$str1a_\n$str2_\n$str3a_\n$str4_\n$str5_\n$str6_\n"
+
+test csv-4.4 {joinlist, sepChar, custom delimiter} {
+    csv::joinlist [list [list a b c] [list d e f]] @ =
+} "a@b@c\nd@e@f\n"
+
+
+test csv-5.0.0 {reading csv files, bad separator, empty} {
+    ::struct::queue q
+    catch {::csv::read2queue dummy q {}} result
+    q destroy
+    set result
+} {illegal separator character "", is empty}
+
+test csv-5.0.1 {reading csv files, bad separator, string} {
+    ::struct::queue q
+    catch {::csv::read2queue dummy q foo} result
+    q destroy
+    set result
+} {illegal separator character "foo", is a string}
+
+test csv-5.0.2 {reading csv files, bad separator, empty} {
+    ::struct::matrix m
+    catch {::csv::read2matrix dummy m {}} result
+    m destroy
+    set result
+} {illegal separator character "", is empty}
+
+test csv-5.0.3 {reading csv files, bad separator, string} {
+    ::struct::matrix m
+    catch {::csv::read2matrix dummy m foo} result
+    m destroy
+    set result
+} {illegal separator character "foo", is a string}
+
+test csv-5.1 {reading csv files} {
+    set f [open [file join $::tcltest::testsDirectory mem_debug_bench.csv] r]
+    ::struct::queue q
+    ::csv::read2queue $f q
+    close $f
+    set result [list [q size] [q get 2]]
+    q destroy
+    set result
+} {251 {{000 VERSIONS: 2:8.4a3 1:8.4a3 1:8.4a3%} {001 {CATCH return ok} 7 13 53.85}}}
+
+test csv-5.2 {reading csv files} {
+    set f [open [file join $::tcltest::testsDirectory mem_debug_bench_a.csv] r]
+    ::struct::queue q
+    ::csv::read2queue $f q
+    close $f
+    set result [list [q size] [q get 2]]
+    q destroy
+    set result
+} {251 {{000 VERSIONS: 2:8.4a3 1:8.4a3 1:8.4a3%} {001 {CATCH return ok} 7 13 53.85}}}
+
+test csv-5.3 {reading csv files} {
+    set f [open [file join $::tcltest::testsDirectory mem_debug_bench.csv] r]
+    ::struct::matrix m
+    m add columns 5
+    ::csv::read2matrix $f m
+    close $f
+    set result [m get rect 0 227 end 231]
+    m destroy
+    set result
+} {{227 {STR append (1MB + 1MB * 3)} 125505 327765 38.29} {228 {STR append (1MB + 1MB * 5)} 158507 855295 18.53} {229 {STR append (1MB + (1b + 1K + 1b) * 100)} 33101 174031 19.02} {230 {STR info locals match} 946 1521 62.20} {231 {TRACE no trace set} 34 121 28.10}}
+
+test csv-5.4 {reading csv files} {
+    set f [open [file join $::tcltest::testsDirectory mem_debug_bench_a.csv] r]
+    ::struct::matrix m
+    m add columns 5
+    ::csv::read2matrix $f m
+    close $f
+    set result [m get rect 0 227 end 231]
+    m destroy
+    set result
+} {{227 {STR append (1MB + 1MB * 3)} 125505 327765 38.29} {228 {STR append (1MB + 1MB * 5)} 158507 855295 18.53} {229 {STR append (1MB + (1b + 1K + 1b) * 100)} 33101 174031 19.02} {230 {STR info locals match} 946 1521 62.20} {231 {TRACE no trace set} 34 121 28.10}}
+
+test csv-5.5 {reading csv files} {
+    set f [open [file join $::tcltest::testsDirectory mem_debug_bench.csv] r]
+    ::struct::matrix m
+    m add columns 5
+    ::csv::read2matrix $f m
+    close $f
+
+    set result [list]
+    foreach c {0 1 2 3 4} {
+	lappend result [m columnwidth $c]
+    }
+    m destroy
+    set result
+} {3 39 7 7 8}
+
+test csv-5.6 {reading csv files, linking} {
+    set f [open [file join $::tcltest::testsDirectory mem_debug_bench.csv] r]
+    ::struct::matrix m
+    m add columns 5
+    ::csv::read2matrix $f m
+    close $f
+    m link a
+    set result [array size a]
+    m destroy
+    set result
+} {1255}
+
+
+test csv-5.7 {reading csv files, empty expansion mode} {
+    set f [open [file join $::tcltest::testsDirectory mem_debug_bench.csv] r]
+    ::struct::matrix m
+    ::csv::read2matrix $f m , empty
+    close $f
+    set result [m get rect 0 227 end 231]
+    m destroy
+    set result
+} {{227 {STR append (1MB + 1MB * 3)} 125505 327765 38.29} {228 {STR append (1MB + 1MB * 5)} 158507 855295 18.53} {229 {STR append (1MB + (1b + 1K + 1b) * 100)} 33101 174031 19.02} {230 {STR info locals match} 946 1521 62.20} {231 {TRACE no trace set} 34 121 28.10}}
+
+test csv-5.8 {reading csv files, auto expansion mode} {
+    set f [open [file join $::tcltest::testsDirectory mem_debug_bench.csv] r]
+    ::struct::matrix m
+    m add columns 1
+    ::csv::read2matrix $f m , auto
+    close $f
+    set result [m get rect 0 227 end 231]
+    m destroy
+    set result
+} {{227 {STR append (1MB + 1MB * 3)} 125505 327765 38.29} {228 {STR append (1MB + 1MB * 5)} 158507 855295 18.53} {229 {STR append (1MB + (1b + 1K + 1b) * 100)} 33101 174031 19.02} {230 {STR info locals match} 946 1521 62.20} {231 {TRACE no trace set} 34 121 28.10}}
+
+# =========================================================================
+# Bug 2926387
+
+test csv-5.9.0 {reading csv files, inner field newline processing, bug 2926387} {
+    set m [struct::matrix]
+    set f [open [file join $::tcltest::testsDirectory 2926387.csv] r]
+    csv::read2matrix $f $m , auto
+    close $f
+    set result [$m serialize]
+    $m destroy
+    set result
+} {2 3 {{a b c} {d {e,
+e} f}}}
+
+test csv-5.9.1 {reading csv files, inner field newline processing, bug 2926387} {
+    set q [struct::queue]
+    set f [open [file join $::tcltest::testsDirectory 2926387.csv] r]
+    csv::read2queue $f $q
+    close $f
+    set result [$q get [$q size]]
+    $q destroy
+    set result
+} {{a b c} {d {e,
+e} f}}
+
+# =========================================================================
+
+test csv-6.1 {writing csv files} {
+    set f [open [localPath eval.csv] r]
+    ::struct::matrix m
+    m add columns 5
+    ::csv::read2matrix $f m
+    close $f
+
+    set f [open [makeFile {} eval-out1.csv] w]
+    ::csv::writematrix m $f
+    close $f
+
+    set result [viewFile eval-out1.csv]
+    m destroy
+    removeFile eval-out1.csv
+    set result
+} {023,EVAL cmd eval in list obj var,26,45,57.78
+024,EVAL cmd eval as list,23,42,54.76
+025,EVAL cmd eval as string,53,92,57.61
+026,EVAL cmd and mixed lists,3805,11276,33.74
+027,EVAL list cmd and mixed lists,3812,11325,33.66
+028,EVAL list cmd and pure lists,592,1598,37.05}
+
+test csv-6.2 {writing csv files} {
+    set f [open [localPath eval.csv] r]
+    ::struct::queue q
+    ::csv::read2queue $f q
+    close $f
+
+    set f [open [makeFile {} eval-out2.csv] w]
+    ::csv::writequeue q $f
+    close $f
+
+    set result [viewFile eval-out2.csv]
+    q destroy
+    removeFile eval-out2.csv
+    set result
+} {023,EVAL cmd eval in list obj var,26,45,57.78
+024,EVAL cmd eval as list,23,42,54.76
+025,EVAL cmd eval as string,53,92,57.61
+026,EVAL cmd and mixed lists,3805,11276,33.74
+027,EVAL list cmd and mixed lists,3812,11325,33.66
+028,EVAL list cmd and pure lists,592,1598,37.05}
+
+
+test csv-7.1 {reporting} {
+    set f [open [localPath eval.csv] r]
+    ::struct::matrix m
+    m add columns 5
+    ::csv::read2matrix $f m
+    close $f
+
+    set result [m format 2string csv::report]
+    m destroy
+    set result
+} {023,EVAL cmd eval in list obj var,26,45,57.78
+024,EVAL cmd eval as list,23,42,54.76
+025,EVAL cmd eval as string,53,92,57.61
+026,EVAL cmd and mixed lists,3805,11276,33.74
+027,EVAL list cmd and mixed lists,3812,11325,33.66
+028,EVAL list cmd and pure lists,592,1598,37.05
+}
+
+test csv-7.2 {reporting} {
+    set f [open [localPath eval.csv] r]
+    ::struct::matrix m
+    m add columns 5
+    ::csv::read2matrix $f m
+    close $f
+
+    set f [open [makeFile {} eval-out3.csv] w]
+    m format 2chan csv::report $f
+    close $f
+
+    set result [viewFile eval-out3.csv]
+    m destroy
+    removeFile eval-out3.csv
+    set result
+} {023,EVAL cmd eval in list obj var,26,45,57.78
+024,EVAL cmd eval as list,23,42,54.76
+025,EVAL cmd eval as string,53,92,57.61
+026,EVAL cmd and mixed lists,3805,11276,33.74
+027,EVAL list cmd and mixed lists,3812,11325,33.66
+028,EVAL list cmd and pure lists,592,1598,37.05}
+
+
+test csv-7.3 {report error} {
+    catch {::csv::report printmatrix foomatrix blarg} msg
+    set msg
+} {wrong # args: ::csv::report printmatrix matrix}
+
+test csv-7.4 {report error} {
+    catch {::csv::report printmatrix2channel foomatrix} msg
+    set msg
+} {wrong # args: ::csv::report printmatrix2channel matrix chan}
+
+test csv-7.5 {report error} {
+    catch {::csv::report printmatrix2channel foomatrix foo bar} msg
+    set msg
+} {wrong # args: ::csv::report printmatrix2channel matrix chan}
+
+test csv-7.6 {report error} {
+    catch {::csv::report foocmd foomatrix} msg
+    set msg
+} {Unknown method foocmd}
+
+
+## ============================================================
+## Test new restrictions on argument syntax of split.
+
+test csv-8.0 {csv argument error} {
+    catch {::csv::split} msg
+    set msg
+} {wrong#args: Should be ?-alternate? line ?separator? ?delimiter?}
+
+test csv-8.1 {csv argument error} {
+    catch {::csv::split a b c d e} msg
+    set msg
+} {wrong#args: Should be ?-alternate? line ?separator? ?delimiter?}
+
+test csv-8.2 {csv argument error} {
+    catch {::csv::split -alternate b {}} msg
+    set msg
+} {illegal separator character "", is empty}
+
+test csv-8.3 {csv argument error} {
+    catch {::csv::split -alternate b foo} msg
+    set msg
+} {illegal separator character "foo", is a string}
+
+test csv-8.4 {csv argument error} {
+    catch {::csv::split b {}} msg
+    set msg
+} {illegal separator character "", is empty}
+
+test csv-8.5 {csv argument error} {
+    catch {::csv::split b foo} msg
+    set msg
+} {illegal separator character "foo", is a string}
+
+## ============================================================
+## Tests for alternate syntax.
+
+
+test csv-91.1 {split} {
+    csv::split -alternate $str1
+} {123 {"a"} {} hello}
+
+test csv-91.2 {split} {
+    csv::split -alternate $str2
+} {1 { o, "a" ,b } { 3}}
+
+test csv-91.3 {split} {
+    csv::split -alternate $str3
+} {1 { o, "," ,b } { 3}}
+
+test csv-91.4 {split} {
+    csv::split -alternate $str4
+} {1 { foo,bar,baz} { 3}}
+
+test csv-91.5 {split} {
+    csv::split -alternate $str5
+} {1 {""a""} b}
+
+test csv-91.6 {split} {
+    csv::split -alternate $str6
+} {123 123,521.2 {Mary says "Hello, I am Mary"}}
+
+test csv-91.7 {split on join} {
+    # csv 0.1 was exposed to the RE \A matching problem with regsub -all
+    set x [list "\"hello, you\"" a b c]
+    ::csv::split -alternate [::csv::join $x]
+} [list "\"hello, you\"" a b c]
+
+test csv-91.8-1 {split empty fields} {
+    csv::split -alternate {1 2 "" ""} { }
+} {1 2 {} {}}
+
+test csv-91.9-1 {split empty fields} {
+    csv::split -alternate {1 2 3 ""} { }
+} {1 2 3 {}}
+
+test csv-91.10-1 {split empty fields} {
+    csv::split -alternate {"" "" 1 2} { }
+} {{} {} 1 2}
+
+test csv-91.11-1 {split empty fields} {
+    csv::split -alternate {"" 0 1 2} { }
+} {{} 0 1 2}
+
+test csv-91.12-1 {split empty fields} {
+    csv::split -alternate {"" ""} { }
+} {{} {}}
+
+test csv-91.13-1 {split empty fields} {
+    csv::split -alternate {"" "" ""} { }
+} {{} {} {}}
+
+test csv-91.14-1 {split empty fields} {
+    csv::split -alternate {"" 0 "" 2} { }
+} {{} 0 {} 2}
+
+test csv-91.15-1 {split empty fields} {
+    csv::split -alternate {1 "" 3 ""} { }
+} {1 {} 3 {}}
+
+test csv-91.8-2 {split empty fields} {
+    csv::split -alternate "1,2,,"
+} {1 2 {} {}}
+
+test csv-91.9-2 {split empty fields} {
+    csv::split -alternate "1,2,3,"
+} {1 2 3 {}}
+
+test csv-91.10-2 {split empty fields} {
+    csv::split -alternate ",,1,2"
+} {{} {} 1 2}
+
+test csv-91.11-2 {split empty fields} {
+    csv::split -alternate ",0,1,2"
+} {{} 0 1 2}
+
+test csv-91.12-2 {split empty fields} {
+    csv::split -alternate ","
+} {{} {}}
+
+test csv-91.13-2 {split empty fields} {
+    csv::split -alternate ",,"
+} {{} {} {}}
+
+test csv-91.14-2 {split empty fields} {
+    csv::split -alternate ",0,,2"
+} {{} 0 {} 2}
+
+test csv-91.15-2 {split empty fields} {
+    csv::split -alternate "1,,3,"
+} {1 {} 3 {}}
+
+test csv-91.8-3 {split empty fields} {
+    csv::split -alternate {1 2  } { }
+} {1 2 {} {}}
+
+test csv-91.9-3 {split empty fields} {
+    csv::split -alternate {1 2 3 } { }
+} {1 2 3 {}}
+
+test csv-91.10-3 {split empty fields} {
+    csv::split -alternate {  1 2} { }
+} {{} {} 1 2}
+
+test csv-91.11-3 {split empty fields} {
+    csv::split -alternate { 0 1 2} { }
+} {{} 0 1 2}
+
+test csv-91.12-3 {split empty fields} {
+    csv::split -alternate { } { }
+} {{} {}}
+
+test csv-91.13-3 {split empty fields} {
+    csv::split -alternate {  } { }
+} {{} {} {}}
+
+test csv-91.14-3 {split empty fields} {
+    csv::split -alternate { 0  2} { }
+} {{} 0 {} 2}
+
+test csv-91.15-3 {split empty fields} {
+    csv::split -alternate {1  3 } { }
+} {1 {} 3 {}}
+
+
+test csv-91.8-4 {split empty fields} {
+    csv::split -alternate {1,2,"",""}
+} {1 2 {} {}}
+
+test csv-91.9-4 {split empty fields} {
+    csv::split -alternate {1,2,3,""}
+} {1 2 3 {}}
+
+test csv-91.10-4 {split empty fields} {
+    csv::split -alternate {"","",1,2}
+} {{} {} 1 2}
+
+test csv-91.11-4 {split empty fields} {
+    csv::split -alternate {"",0,1,2}
+} {{} 0 1 2}
+
+test csv-91.12-4 {split empty fields} {
+    csv::split -alternate {"",""}
+} {{} {}}
+
+test csv-91.13-4 {split empty fields} {
+    csv::split -alternate {"","",""}
+} {{} {} {}}
+
+test csv-91.14-4 {split empty fields} {
+    csv::split -alternate {"",0,"",2}
+} {{} 0 {} 2}
+
+test csv-91.15-4 {split empty fields} {
+    csv::split -alternate {1,"",3,""}
+} {1 {} 3 {}}
+
+
+test csv-92.0.1 {split} {
+    csv::split {"xxx",yyy}
+} {xxx yyy}
+
+test csv-92.0.2 {split} {
+    csv::split -alternate {"xxx",yyy}
+} {xxx yyy}
+
+test csv-92.1.1 {split} {
+    csv::split {"xx""x",yyy}
+} {xx\"x yyy}
+
+test csv-92.1.2 {split} {
+    csv::split -alternate {"xx""x",yyy}
+} {xx\"x yyy}
+
+# -------------------------------------------------------------------------
+
+
+test csv-100.1 {custom delimiter, split} {
+    csv::split $str1_ , =
+} {123 =a= {} hello}
+
+test csv-100.2 {custom delimiter, split} {
+    csv::split $str2_ , =
+} {1 { o, =a= ,b } { 3}}
+
+test csv-100.3 {custom delimiter, split} {
+    csv::split $str3_ , =
+} {1 { o, =,= ,b } { 3}}
+
+test csv-100.4 {custom delimiter, split} {
+    csv::split $str4_ , =
+} {1 { foo,bar,baz} { 3}}
+
+test csv-100.5 {custom delimiter, split} {
+    csv::split $str5_ , =
+} {1 ==a== b}
+
+test csv-100.6 {custom delimiter, split} {
+    csv::split $str6_ , =
+} {123 123,521.2 {Mary says "Hello, I am Mary"}}
+
+test csv-100.7 {custom delimiter, split on join} {
+    # csv 0.1 was exposed to the RE \A matching problem with regsub -all
+    set x [list "\"hello, you\"" a b c]
+    ::csv::split [::csv::join $x , =] , =
+} [list "\"hello, you\"" a b c]
+
+test csv-100.8-1 {custom delimiter, split empty fields} {
+    csv::split {1 2 == ==} { } =
+} {1 2 = =}
+
+test csv-100.9-1 {custom delimiter, split empty fields} {
+    csv::split {1 2 3 ==} { } =
+} {1 2 3 =}
+
+test csv-100.10-1 {custom delimiter, split empty fields} {
+    csv::split {== == 1 2} { } =
+} {= = 1 2}
+
+test csv-100.11-1 {custom delimiter, split empty fields} {
+    csv::split {== 0 1 2} { } =
+} {= 0 1 2}
+
+test csv-100.12-1 {custom delimiter, split empty fields} {
+    csv::split {== ==} { } =
+} {= =}
+
+test csv-100.13-1 {custom delimiter, split empty fields} {
+    csv::split {== == ==} { } =
+} {= = =}
+
+test csv-100.14-1 {custom delimiter, split empty fields} {
+    csv::split {== 0 == 2} { } =
+} {= 0 = 2}
+
+test csv-100.15-1 {custom delimiter, split empty fields} {
+    csv::split {1 == 3 ==} { } =
+} {1 = 3 =}
+
+test csv-100.8-2 {custom delimiter, split empty fields} {
+    csv::split "1,2,,"
+} {1 2 {} {}}
+
+test csv-100.9-2 {custom delimiter, split empty fields} {
+    csv::split "1,2,3,"
+} {1 2 3 {}}
+
+test csv-100.10-2 {custom delimiter, split empty fields} {
+    csv::split ",,1,2"
+} {{} {} 1 2}
+
+test csv-100.11-2 {custom delimiter, split empty fields} {
+    csv::split ",0,1,2"
+} {{} 0 1 2}
+
+test csv-100.12-2 {custom delimiter, split empty fields} {
+    csv::split ","
+} {{} {}}
+
+test csv-100.13-2 {custom delimiter, split empty fields} {
+    csv::split ",,"
+} {{} {} {}}
+
+test csv-100.14-2 {custom delimiter, split empty fields} {
+    csv::split ",0,,2"
+} {{} 0 {} 2}
+
+test csv-100.15-2 {custom delimiter, split empty fields} {
+    csv::split "1,,3,"
+} {1 {} 3 {}}
+
+test csv-100.8-3 {custom delimiter, split empty fields} {
+    csv::split {1 2  } { } =
+} {1 2 {} {}}
+
+test csv-100.9-3 {custom delimiter, split empty fields} {
+    csv::split {1 2 3 } { } =
+} {1 2 3 {}}
+
+test csv-100.10-3 {custom delimiter, split empty fields} {
+    csv::split {  1 2} { } =
+} {{} {} 1 2}
+
+test csv-100.11-3 {custom delimiter, split empty fields} {
+    csv::split { 0 1 2} { } =
+} {{} 0 1 2}
+
+test csv-100.12-3 {custom delimiter, split empty fields} {
+    csv::split { } { } =
+} {{} {}}
+
+test csv-100.13-3 {custom delimiter, split empty fields} {
+    csv::split {  } { } =
+} {{} {} {}}
+
+test csv-100.14-3 {custom delimiter, split empty fields} {
+    csv::split { 0  2} { } =
+} {{} 0 {} 2}
+
+test csv-100.15-3 {custom delimiter, split empty fields} {
+    csv::split {1  3 } { } =
+} {1 {} 3 {}}
+
+test csv-100.8-4 {custom delimiter, split empty fields} {
+    csv::split {1,2,==,==} , =
+} {1 2 = =}
+
+test csv-100.9-4 {custom delimiter, split empty fields} {
+    csv::split {1,2,3,==} , =
+} {1 2 3 =}
+
+test csv-100.10-4 {custom delimiter, split empty fields} {
+    csv::split {==,==,1,2} , =
+} {= = 1 2}
+
+test csv-100.11-4 {custom delimiter, split empty fields} {
+    csv::split {==,0,1,2} , =
+} {= 0 1 2}
+
+test csv-100.12-4 {custom delimiter, split empty fields} {
+    csv::split {==,==} , =
+} {= =}
+
+test csv-100.13-4 {custom delimiter, split empty fields} {
+    csv::split {==,==,==} , =
+} {= = =}
+
+test csv-100.14-4 {custom delimiter, split empty fields} {
+    csv::split {==,0,==,2} , =
+} {= 0 = 2}
+
+test csv-100.15-4 {custom delimiter, split empty fields} {
+    csv::split {1,==,3,==} , =
+} {1 = 3 =}
+
+# Try various separator characters
+
+foreach {n sep} {
+    0  |    1  +    2  *
+    3  /    4  \    5  [
+    6  ]    7  (    8  )
+    9  ?    10 ,    11 ;
+    12 .    13 -    14 @
+    15 :
+} {
+    test csv-100.16-$n "split on $sep" {
+	::csv::split [join [list REC DPI AD1 AD2 AD3] $sep] $sep =
+    } {REC DPI AD1 AD2 AD3}
+}
+
+test csv-200.0 {splitting to queue, bad separator, empty} {
+    ::struct::queue q
+    catch {::csv::split2queue q dummy-line {}} result
+    q destroy
+    set result
+} {illegal separator character "", is empty}
+
+test csv-200.1 {splitting to queue, bad separator, string} {
+    ::struct::queue q
+    catch {::csv::split2queue q dummy-line foo} result
+    q destroy
+    set result
+} {illegal separator character "foo", is a string}
+
+test csv-200.2 {splitting to matrix, bad separator, empty} {
+    ::struct::matrix m
+    catch {::csv::split2matrix m dummy-line {}} result
+    m destroy
+    set result
+} {illegal separator character "", is empty}
+
+test csv-200.3 {splitting to matrix, bad separator, string} {
+    ::struct::matrix m
+    catch {::csv::split2matrix m dummy-line foo} result
+    m destroy
+    set result
+} {illegal separator character "foo", is a string}
+
+
+testsuiteCleanup
+return

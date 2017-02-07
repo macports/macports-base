@@ -1,0 +1,7 @@
+[comment {--- doctools ---}]
+[vset PACKAGE peg]
+[vset NAME    PEG]
+[vset REQUIRE peg]
+[vset CONFIG  peg]
+[vset VERSION 1.0.2]
+[include include/export/to.inc]

@@ -1,0 +1,190 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin smtp n 1.4.5]
+[see_also ftp]
+[see_also http]
+[see_also mime]
+[see_also pop3]
+[copyright {1999-2000 Marshall T. Rose and others}]
+[moddesc   {smtp client}]
+[titledesc {Client-side tcl implementation of the smtp protocol}]
+[category  Networking]
+[require Tcl]
+[require mime [opt 1.5.4]]
+[require smtp [opt 1.4.5]]
+[description]
+[para]
+
+The [package smtp] library package provides the client side of the
+Simple Mail Transfer Protocol (SMTP) (1) (2).
+
+[list_begin definitions]
+
+[call [cmd ::smtp::sendmessage] [arg token] [arg option]...]
+
+This command sends the MIME part (see package [package mime])
+represented by [arg token] to an SMTP server. [arg options] is a list
+of options and their associated values.  The recognized options are:
+
+[list_begin definitions]
+
+[def [option -servers]]
+
+A list of SMTP servers. The default is [const localhost].
+
+[def [option -ports]]
+
+A list of SMTP ports. The default is [const 25].
+
+[def [option -client]]
+
+The name to use as our hostname when connecting to the server. By
+default this is either localhost if one of the servers is localhost,
+or is set to the string returned by [cmd "info hostname"].
+
+[def [option -queue]]
+
+Indicates that the SMTP server should be asked to queue the message
+for later processing. A boolean value.
+
+[def [option -atleastone]]
+
+Indicates that the SMTP server must find at least one recipient
+acceptable for the message to be sent. A boolean value.
+
+[def [option -originator]]
+
+A string containing an 822-style address specification. If present the
+header isn't examined for an originator address.
+
+[def [option -recipients]]
+
+A string containing one or more 822-style address specifications. If
+present the header isn't examined for recipient addresses). If the
+string contains more than one address they will be separated by
+commas.
+
+[def [option -header]]
+
+A list containing two elements, an smtp header and its associated
+value (the -header option may occur zero or more times).
+
+[def [option -usetls]]
+
+This package supports the RFC 3207 TLS extension (3) by default provided the
+tls package is available. You can turn this off with this boolean option.
+
+[def [option -tlspolicy]]
+
+This option lets you specify a command to be called if an error occurs
+during TLS setup. The command is called with the SMTP code and diagnostic
+message appended. The command should return 'secure' or 'insecure' where
+insecure will cause the package to continue on the unencrypted channel.
+Returning 'secure' will cause the socket to be closed and the next server
+in the [option -servers] list to be tried.
+
+[def [option -username]]
+[def [option -password]]
+
+If your SMTP server requires authentication (RFC 2554 (4)) before
+accepting mail you can use [option -username] and [option -password]
+to provide your authentication details to the server. Currently this
+package supports DIGEST-MD5, CRAM-MD5, LOGIN and PLAIN authentication
+methods. The most secure method will be tried first and each method
+tried in turn until we are either authorized or we run out of
+methods. Note that if the server permits a TLS connection, then the
+authorization will occur after we begin using the secure channel.
+
+[para]
+Please also read the section on [sectref Authentication], it details
+the necessary prequisites, i.e. packages needed to support these
+options and authentication.
+
+[list_end]
+[para]
+
+If the [option -originator] option is not present, the originator
+address is taken from [const From] (or [const Resent-From]);
+similarly, if the [option -recipients] option is not present,
+recipient addresses are taken from [const To], [const cc], and
+[const Bcc] (or [const Resent-To], and so on). Note that the header
+key/values supplied by the [option -header] option (not those present
+in the MIME part) are consulted. Regardless, header key/values are
+added to the outgoing message as necessary to ensure that a valid
+822-style message is sent.
+
+[para]
+
+The command returns a list indicating which recipients were
+unacceptable to the SMTP server. Each element of the list is another
+list, containing the address, an SMTP error code, and a textual
+diagnostic. Depending on the [option -atleastone] option and the
+intended recipients, a non-empty list may still indicate that the
+message was accepted by the server.
+
+[list_end]
+
+[section Authentication]
+
+Beware. SMTP authentication uses [package SASL]. I.e. if the user
+has to authenticate a connection, i.e. use the options [option -user]
+and [option -password] (see above) it is necessary to have the
+[package sasl] package available so that [package smtp] can load it.
+
+[para]
+
+This is a soft dependency because not everybody requires authentication,
+and [package sasl] depends on a lot of the cryptographic (secure) hashes,
+i.e. all of [package md5], [package otp], [package md4], [package sha1],
+and [package ripemd160].
+
+[section EXAMPLE]
+
+[example {
+proc send_simple_message {recipient email_server subject body} {
+    package require smtp
+    package require mime
+
+    set token [mime::initialize -canonical text/plain \\
+	-string $body]
+    mime::setheader $token Subject $subject
+    smtp::sendmessage $token \\
+	-recipients $recipient -servers $email_server
+    mime::finalize $token
+}
+
+send_simple_message someone@somewhere.com localhost \\
+    "This is the subject." "This is the message."
+}]
+
+[include ../common-text/tls-security-notes.inc]
+
+[section {REFERENCES}]
+
+[list_begin enumerated]
+
+[enum]
+    Jonathan B. Postel, "SIMPLE MAIL TRANSFER PROTOCOL", RFC 821, August 1982.
+    ([uri http://www.rfc-editor.org/rfc/rfc821.txt])
+
+[enum]
+    J. Klensin, "Simple Mail Transfer Protocol", RFC 2821, April 2001.
+    ([uri http://www.rfc-editor.org/rfc/rfc2821.txt])
+
+[enum]
+    P. Hoffman, "SMTP Service Extension for Secure SMTP over Transport
+    Layer Security", RFC 3207, February 2002.
+    ([uri http://www.rfc-editor.org/rfc/rfc3207.txt])
+
+[enum]
+    J. Myers, "SMTP Service Extension for Authentication",
+    RFC 2554, March 1999.
+    ([uri http://www.rfc-editor.org/rfc/rfc2554.txt])
+
+[list_end]
+
+[vset CATEGORY smtp]
+[include ../doctools2base/include/feedback.inc]
+
+[keywords mail mail email smtp mime tls \
+     {rfc 821} {rfc 822} {rfc 2821} {rfc 3207} {rfc 2554} internet net]
+[manpage_end]

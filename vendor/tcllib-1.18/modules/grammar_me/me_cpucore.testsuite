@@ -1,0 +1,419 @@
+# -*- tcl -*- me_cpucore.test
+# ### ### ### ######### ######### #########
+
+# ### ### ### ######### ######### #########
+## Assembler
+
+test me-cpucore-asm-${impl}-1.0 {asm, wrong args} -body {
+    grammar::me::cpu::core::asm
+} -result {wrong # args: should be "grammar::me::cpu::core::asm code"} \
+  -returnCodes error
+
+test me-cpucore-asm-${impl}-1.1 {asm, wrong args} -body {
+    grammar::me::cpu::core::asm a b
+} -result {wrong # args: should be "grammar::me::cpu::core::asm code"} \
+  -returnCodes error
+
+test me-cpucore-asm-${impl}-2.0 {asm, empty} -body {
+    grammar::me::cpu::core::asm {}
+    # No instructions, empty string pool, no token map
+} -result {{} {} {}}
+
+set n -1
+foreach {cmd cargs expected} $asm_table {
+    set asm [list [linsert $cargs 0 branchlabel $cmd]]
+    incr n
+
+    test me-cpucore-asm-${impl}-3.$n "asm, $cmd" -body {
+	canon_code [grammar::me::cpu::core::asm $asm]
+    } -result $expected
+}
+
+set n -1
+foreach {cmd cargs expected} $badasm_table {
+    set asm [list [linsert $cargs 0 branchlabel $cmd]]
+    incr n
+
+    test me-cpucore-asm-${impl}-4.$n "asm, bad $cmd" -body {
+	grammar::me::cpu::core::asm $asm
+    } -result $expected -returnCodes error
+}
+
+# ### ### ### ######### ######### #########
+## Disassembler
+
+test me-cpucore-disasm-${impl}-1.0 {disasm, wrong args} -body {
+    grammar::me::cpu::core::disasm
+} -result {wrong # args: should be "grammar::me::cpu::core::disasm code"} \
+  -returnCodes error
+
+test me-cpucore-disasm-${impl}-1.1 {disasm, wrong args} -body {
+    grammar::me::cpu::core::disasm a b
+} -result {wrong # args: should be "grammar::me::cpu::core::disasm code"} \
+  -returnCodes error
+
+test me-cpucore-disasm-${impl}-2.0 {disasm, empty} -body {
+    # No instructions, empty string pool, no token map
+    grammar::me::cpu::core::disasm {{} {} {}}
+} -result {}
+
+set n -1
+foreach {cmd cargs code} $asm_table {
+    set asm [list [linsert $cargs 0 branchlabel $cmd]]
+    incr n
+
+    # We have to distinguish between regular instructions and
+    # instruction jumping somewhere. For the latter we have to perform
+    # a bit of fixup to get our expections of the branch labeling
+    # right.
+
+    set pos [lsearch -exact $cargs branchlabel]
+    if {$pos >= 0} {
+	set expected [list [linsert [lreplace $cargs $pos $pos bra0] 0 bra0 $cmd]]
+    } else {
+	set expected [list [linsert $cargs 0 {} $cmd]]
+    }
+
+    test me-cpucore-disasm-${impl}-3.$n "disasm, $cmd" -body {
+	grammar::me::cpu::core::disasm $code
+    } -result $expected
+}
+
+set n -1
+foreach {insns expected} $badmach_table {
+    incr n
+
+    test me-cpucore-disasm-${impl}-4.$n "disasm, error" -body {
+	grammar::me::cpu::core::disasm $insns
+    } -result $expected  -returnCodes error
+}
+
+# ### ### ### ######### ######### #########
+## State creation.
+
+test me-cpucore-new-${impl}-1.0 {new, wrong args} -body {
+    grammar::me::cpu::core::new
+} -result {wrong # args: should be "grammar::me::cpu::core::new code"} \
+  -returnCodes error
+
+test me-cpucore-new-${impl}-1.1 {new, wrong args} -body {
+    grammar::me::cpu::core::new a b
+} -result {wrong # args: should be "grammar::me::cpu::core::new code"} \
+  -returnCodes error
+
+test me-cpucore-run-${impl}-2.0 run -setup {
+    set state [grammar::me::cpu::core::new {{} {} {}}]
+} -returnCodes error -body {
+    grammar::me::cpu::core::run state
+} -result {No instructions to execute}
+
+set n -1
+foreach {cmd cargs expected} $asm_table {
+    set asm [list [linsert $cargs 0 branchlabel $cmd]]
+    incr n
+
+    test me-cpucore-new-${impl}-3.$n "new, $cmd, code" -body {
+	grammar::me::cpu::core::code \
+	    [grammar::me::cpu::core::new \
+		 [canon_code [grammar::me::cpu::core::asm $asm]]]
+    } -result $expected
+
+    test me-cpucore-new-${impl}-4.$n "new, $cmd, state" -body {
+	cpusubst [cpustate \
+		      [grammar::me::cpu::core::new \
+			   [canon_code [grammar::me::cpu::core::asm $asm]]]] \
+	    cd {}
+    } -result {cd {} pc 0 ht 0 eo 0 tc {} at -1 cc {} ok 0 sv {} er {} ls {} as {} ms {} es {} rs {} nc {}}
+}
+
+set n -1
+foreach {insns expected} $badmach_table {
+    incr n
+
+    test me-cpucore-new-${impl}-5.$n "new error" -body {
+	grammar::me::cpu::core::new $insns
+    } -result $expected -returnCodes error
+}
+
+# ### ### ### ######### ######### #########
+## State manipulation - Add tokens
+
+test me-cpucore-put-${impl}-1.0 {put, wrong args} -body {
+    grammar::me::cpu::core::put
+} -result {wrong # args: should be "grammar::me::cpu::core::put statevar tok lex line col"} \
+  -returnCodes error
+
+test me-cpucore-put-${impl}-1.1 {put, wrong args} -body {
+    grammar::me::cpu::core::put a
+} -result {wrong # args: should be "grammar::me::cpu::core::put statevar tok lex line col"} \
+  -returnCodes error
+
+test me-cpucore-put-${impl}-1.2 {put, wrong args} -body {
+    grammar::me::cpu::core::put a b
+} -result {wrong # args: should be "grammar::me::cpu::core::put statevar tok lex line col"} \
+  -returnCodes error
+
+test me-cpucore-put-${impl}-1.3 {put, wrong args} -body {
+    grammar::me::cpu::core::put a b c
+} -result {wrong # args: should be "grammar::me::cpu::core::put statevar tok lex line col"} \
+  -returnCodes error
+
+test me-cpucore-put-${impl}-1.4 {put, wrong args} -body {
+    grammar::me::cpu::core::put a b c d
+} -result {wrong # args: should be "grammar::me::cpu::core::put statevar tok lex line col"} \
+  -returnCodes error
+
+test me-cpucore-put-${impl}-1.5 {put, wrong args} -body {
+    grammar::me::cpu::core::put a b c d e f
+} -result {wrong # args: should be "grammar::me::cpu::core::put statevar tok lex line col"} \
+  -returnCodes error
+
+test me-cpucore-put-${impl}-2.0 put -setup {
+    set base [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    set next $base
+} -body {
+    grammar::me::cpu::core::put next ID ident 1 0
+    grammar::me::cpu::core::put next NUM 12345 1 5
+
+    cpudelta $base $next
+} -result {tc {{ID ident 1 0} {NUM 12345 1 5}}}
+
+test me-cpucore-put-${impl}-3.0 {put after eof} -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::eof state
+} -returnCodes error -body {
+    grammar::me::cpu::core::put state ID ident 1 0
+} -result {Cannot add input data after eof}
+
+# ### ### ### ######### ######### #########
+## State manipulation - Set eof
+
+test me-cpucore-eof-${impl}-1.0 {eof, wrong args} -body {
+    grammar::me::cpu::core::eof
+} -result {wrong # args: should be "grammar::me::cpu::core::eof statevar"} \
+  -returnCodes error
+
+test me-cpucore-eof-${impl}-1.1 {eof, wrong args} -body {
+    grammar::me::cpu::core::eof a b
+} -result {wrong # args: should be "grammar::me::cpu::core::eof statevar"} \
+  -returnCodes error
+
+test me-cpucore-eof-${impl}-2.0 eof -setup {
+    set base [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    set next $base
+} -body {
+    grammar::me::cpu::core::eof next
+    cpudelta $base $next
+} -result {eo 1}
+
+# ### ### ### ######### ######### #########
+## State accessors - line/col retrieval
+
+test me-cpucore-lc-${impl}-1.0 {lc, wrong args} -body {
+    grammar::me::cpu::core::lc
+} -result {wrong # args: should be "grammar::me::cpu::core::lc state loc"} \
+  -returnCodes error
+
+test me-cpucore-lc-${impl}-1.1 {lc, wrong args} -body {
+    grammar::me::cpu::core::lc a
+} -result {wrong # args: should be "grammar::me::cpu::core::lc state loc"} \
+  -returnCodes error
+
+test me-cpucore-lc-${impl}-1.2 {lc, wrong args} -body {
+    grammar::me::cpu::core::lc a b c
+} -result {wrong # args: should be "grammar::me::cpu::core::lc state loc"} \
+  -returnCodes error
+
+test me-cpucore-lc-${impl}-2.0 lc -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state NUM 12345 1 5
+} -body {
+    grammar::me::cpu::core::lc $state 0
+} -result {1 5}
+
+test me-cpucore-lc-${impl}-3.0 {lc, bad index} -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state NUM 12345 1 5
+} -body {
+    grammar::me::cpu::core::lc $state -1
+} -result {Illegal location -1} -returnCodes error
+
+test me-cpucore-lc-${impl}-3.1 {lc, bad index} -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state NUM 12345 1 5
+} -body {
+    grammar::me::cpu::core::lc $state 1
+} -result {Illegal location 1} -returnCodes error
+
+test me-cpucore-lc-${impl}-3.2 {lc, bad index} -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+} -body {
+    grammar::me::cpu::core::lc $state 0
+} -result {Illegal location 0} -returnCodes error
+
+# ### ### ### ######### ######### #########
+## State accessors - Token retrieval
+
+test me-cpucore-tok-${impl}-1.0 {tok, wrong args} -body {
+    grammar::me::cpu::core::tok
+} -result [tcltest::wrongNumArgs grammar::me::cpu::core::tok {state args} 0] \
+  -returnCodes error
+
+test me-cpucore-tok-${impl}-1.1 {tok, wrong args} -body {
+    grammar::me::cpu::core::tok a b c d
+} -result {wrong # args: should be "grammar::me::cpu::core::tok state ?from ?to??"} \
+  -returnCodes error
+
+test me-cpucore-tok-${impl}-2.0 tok -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+} -body {
+    grammar::me::cpu::core::tok $state
+} -result {}
+
+test me-cpucore-tok-${impl}-2.1 tok -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state NUM 12345 1 5
+} -body {
+    grammar::me::cpu::core::tok $state
+} -result {{NUM 12345 1 5}}
+
+test me-cpucore-tok-${impl}-2.2 tok -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state ID  lalal 0 0
+    grammar::me::cpu::core::put state NUM 12345 1 5
+} -body {
+    grammar::me::cpu::core::tok $state
+} -result {{ID lalal 0 0} {NUM 12345 1 5}}
+
+test me-cpucore-tok-${impl}-3.0 tok -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+} -body {
+    grammar::me::cpu::core::tok $state 0
+} -result {Illegal location 0} -returnCodes error
+
+test me-cpucore-tok-${impl}-3.1 tok -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state NUM 12345 1 5
+} -body {
+    grammar::me::cpu::core::tok $state -1
+} -result {Illegal location -1} -returnCodes error
+
+test me-cpucore-tok-${impl}-3.2 tok -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state NUM 12345 1 5
+} -body {
+    grammar::me::cpu::core::tok $state 1
+} -result {Illegal location 1} -returnCodes error
+
+test me-cpucore-tok-${impl}-3.3 tok -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state NUM 12345 1 5
+} -body {
+    grammar::me::cpu::core::tok $state 0
+} -result {{NUM 12345 1 5}}
+
+test me-cpucore-tok-${impl}-3.4 tok -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state ID  lalal 0 0
+    grammar::me::cpu::core::put state NUM 12345 1 5
+} -body {
+    grammar::me::cpu::core::tok $state 0
+} -result {{ID lalal 0 0}}
+
+test me-cpucore-tok-${impl}-4.0 tok -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state NUM 12345 1 5
+} -body {
+    grammar::me::cpu::core::tok $state -1 0
+} -result {Illegal start location -1} -returnCodes error
+
+test me-cpucore-tok-${impl}-4.1 tok -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state NUM 12345 1 5
+} -body {
+    grammar::me::cpu::core::tok $state 1 0
+} -result {Illegal start location 1} -returnCodes error
+
+test me-cpucore-tok-${impl}-4.2 tok -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state NUM 12345 1 5
+} -body {
+    grammar::me::cpu::core::tok $state 0 -1
+} -result {Illegal end location -1} -returnCodes error
+
+test me-cpucore-tok-${impl}-4.3 tok -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state NUM 12345 1 5
+} -body {
+    grammar::me::cpu::core::tok $state 0 1
+} -result {Illegal end location 1} -returnCodes error
+
+test me-cpucore-tok-${impl}-4.4 tok -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state ID  lalal 0 0
+    grammar::me::cpu::core::put state NUM 12345 1 5
+} -body {
+    grammar::me::cpu::core::tok $state 1 0
+} -result {Illegal empty location range 1 .. 0} -returnCodes error
+
+test me-cpucore-tok-${impl}-4.5 tok -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state ID  lalal 0 0
+    grammar::me::cpu::core::put state NUM 12345 1 5
+} -body {
+    grammar::me::cpu::core::tok $state 0 1
+} -result {{ID lalal 0 0} {NUM 12345 1 5}}
+
+test me-cpucore-tok-${impl}-4.6 tok -setup {
+    set state [grammar::me::cpu::core::new [canon_code [grammar::me::cpu::core::asm {}]]]
+    grammar::me::cpu::core::put state ID  lalal 0 0
+    grammar::me::cpu::core::put state ID  lalal 0 0
+} -body {
+    grammar::me::cpu::core::tok $state 0 0
+} -result {{ID lalal 0 0}}
+
+# ### ### ### ######### ######### #########
+## Checking the instruction semantics
+
+test me-cpucore-run-${impl}-1.0 {run, wrong args} -body {
+    grammar::me::cpu::core::run
+} -result {wrong # args: should be "grammar::me::cpu::core::run statevar ?steps?"} \
+  -returnCodes error
+
+test me-cpucore-run-${impl}-1.1 {run, wrong args} -body {
+    grammar::me::cpu::core::run a b c
+} -result {wrong # args: should be "grammar::me::cpu::core::run statevar ?steps?"} \
+  -returnCodes error
+
+set n -1
+foreach {description input eof stepsSetup steps code expectedDelta} $semantics {
+    incr n
+
+    if 0 {
+	puts ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	puts $description
+	puts "INPUT $input"
+	puts "EOF   $eof"
+	puts "CODE  $stepsSetup $steps $code"
+	puts $expectedDelta
+    }
+
+    test me-cpucore-run-${impl}-2.$n "run $description" -setup {
+	set state [grammar::me::cpu::core::new $code]
+	foreach token $input {
+	    eval [linsert $token 0 grammar::me::cpu::core::put state]
+	}
+	if {$eof} {
+	    grammar::me::cpu::core::eof state
+	}
+	if {$stepsSetup} {
+	    grammar::me::cpu::core::run state $stepsSetup
+	}
+	set save $state
+    } -body {
+	grammar::me::cpu::core::run state $steps
+	cpudelta $save $state
+    } -result $expectedDelta
+}
+
+return

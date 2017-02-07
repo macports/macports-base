@@ -1,0 +1,193 @@
+# uuencode.test - Copyright (C) 2002 Pat Thoyts <patthoyts@users.sourceforge.net>
+#
+# Tests for the Tcllib uuencode package
+#
+# -------------------------------------------------------------------------
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# -------------------------------------------------------------------------
+# RCS: @(#) $Id: uuencode.test,v 1.15 2008/12/12 04:57:46 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useTcllibC
+    useLocalKeep uuencode.tcl uuencode
+}
+
+# -------------------------------------------------------------------------
+
+set trf 0
+if {[llength [info commands ::uuencode::CEncode]]} {
+    puts "> critcl based"
+} elseif {[package provide Trf] != {}} {
+    puts "> Trf based"
+    set trf 1
+} else {
+    puts "> pure tcl"
+}
+
+package require log
+log::lvSuppress notice
+
+# -------------------------------------------------------------------------
+
+test uuencode-1.0 {encode string} {
+    catch {::uuencode::encode ABC} result
+    set result
+} "04)#"
+
+test uuencode-1.1 {decode string} {
+    catch {::uuencode::decode "04)#"} result
+    set result
+} "ABC"
+
+test uuencode-1.2 {encode longer string} {
+    catch {::uuencode::encode [string repeat x 102]} result
+    set result
+} [string repeat ">'AX" 34]
+
+test uuencode-1.3 {decode longer string} {
+    catch {::uuencode::decode [string repeat ">'AX" 34]} result
+    set result
+} [string repeat x 102]
+
+# Trf uses a different padding character.
+if {!$trf} {
+    # critcl / pure tcl based
+    set testdata {begin 644 data.dat
+75&AE(&-A="!S870@;VX@=&AE(&UA="X`
+`
+end}
+} else {
+    set testdata {begin 644 data.dat
+75&AE(&-A="!S870@;VX@=&AE(&UA="X~
+`
+end}
+}
+
+test uuencode-1.4 {uuencode string} {
+    catch {::uuencode::uuencode "The cat sat on the mat."} result
+    set result
+} $testdata
+
+test uuencode-1.5 {uudecode string} {
+    catch {::uuencode::uudecode $testdata} result
+    set result
+} [list [list data.dat 644 "The cat sat on the mat."]]
+
+test uuencode-1.6 {encode dash-string} {
+    catch {::uuencode::encode -BC} result
+    set result
+} "+4)#"
+
+test uuencode-1.7 {decode dash-string} {
+    catch {::uuencode::decode "-4)#"} result
+    set result
+} "5BC"
+
+# -------------------------------------------------------------------------
+
+set testdata [list \
+        "begin 644 data.dat" \
+        "75&AE(&-A=\"!S870@;VX@=&AE(&UA=\"X" \
+        "`" \
+        "end" ]
+
+test uuencode-2.1 {uudecode unpadded lines} {
+    catch {::uuencode::uudecode [join $testdata "\n"]} result
+    set result
+} [list [list data.dat 644 "The cat sat on the mat."]]
+
+test uuencode-2.2 {uudecode DOS line endings} {
+    set f [open uuencode.test.data w]
+    fconfigure $f -translation binary
+    puts -nonewline $f [join $testdata "\r\n"]
+    close $f
+    catch {::uuencode::uudecode -file uuencode.test.data} result
+    set result
+} [list [list data.dat 644 "The cat sat on the mat."]]
+
+foreach {n in out} {
+    0 a   {80``}
+    1 abc {86)C}
+    2 \0  {````}
+    3 "\r\n\t" {#0H)}
+    4 "hello world" {:&5L;&\@=V]R;&0`}
+} {
+    test uuencode-3.$n {check the pure tcl encoder} {
+        list [catch {::uuencode::Encode $in} r] $r
+    } [list 0 $out]
+}
+
+# -------------------------------------------------------------------------
+
+test uuencode-4.0 {encode bad args} {
+    catch {::uuencode::uuencode -bogus} result
+    set result
+} {bad option -bogus: must be -file, -mode, or -name}
+
+test uuencode-4.1 {encode wrong#args} {
+    catch {::uuencode::uuencode -file} result
+    set result
+} {wrong # args: should be "uuencode ?-name string? ?-mode octal? (-file filename | ?--? string)"}
+
+test uuencode-4.2 {encode wrong#args} {
+    catch {::uuencode::uuencode -name} result
+    set result
+} {wrong # args: should be "uuencode ?-name string? ?-mode octal? (-file filename | ?--? string)"}
+
+test uuencode-4.3 {encode wrong#args} {
+    catch {::uuencode::uuencode -mode} result
+    set result
+} {wrong # args: should be "uuencode ?-name string? ?-mode octal? (-file filename | ?--? string)"}
+
+test uuencode-4.4 {encode wrong#args} {
+    catch {::uuencode::uuencode -mode 1} result
+    set result
+} {wrong # args: should be "uuencode ?-name string? ?-mode octal? (-file filename | ?--? string)"}
+
+test uuencode-4.5 {encode wrong#args} {
+    catch {::uuencode::uuencode -name foo} result
+    set result
+} {wrong # args: should be "uuencode ?-name string? ?-mode octal? (-file filename | ?--? string)"}
+
+test uuencode-4.6 {encode wrong#args} {
+    catch {::uuencode::uuencode --} result
+    set result
+} {wrong # args: should be "uuencode ?-name string? ?-mode octal? (-file filename | ?--? string)"}
+
+
+
+test uuencode-5.0 {decode bad args} {
+    catch {::uuencode::uudecode -bogus} result
+    set result
+} {bad option -bogus: must be -file}
+
+test uuencode-5.1 {decode wrong#args} {
+    catch {::uuencode::uudecode -file} result
+    set result
+} {wrong # args: should be "uudecode (-file filename | ?--? string)"}
+
+test uuencode-5.2 {decode wrong#args} {
+    catch {::uuencode::uudecode --} result
+    set result
+} {wrong # args: should be "uudecode (-file filename | ?--? string)"}
+
+
+# -------------------------------------------------------------------------
+
+file delete -force uuencode.test.data    
+testsuiteCleanup
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

@@ -1,0 +1,42 @@
+# -*- tcl -*-
+# Script to boot a child running an open comm server
+
+set spawncode [makeFile {
+    catch {wm withdraw .}
+    ##puts [set fh [open ~/foo w]] $argv ; close $fh
+
+    source [lindex $argv 0]     ; # load 'snit'
+    source [lindex $argv 1].tcl ; # load 'comm'
+    # and wait for commands. But first send our
+    # own server socket to the initiator
+    ::comm::comm send [lindex $argv 2] [list slaveat [::comm::comm self]]
+    vwait forever
+} spawn]
+
+proc slaveat {id} {
+    #puts "Slave @ $id"
+    proc slave {} [list return $id]
+    set ::go .
+}
+
+#puts "self @ [::comm::comm self]"
+
+exec \
+    [info nameofexecutable] $spawncode \
+    [tcllibPath snit/snit.tcl] \
+    [file rootname [info script]] \
+    [::comm::comm self] &
+
+#puts "Waiting for spawned comm system to boot"
+# Wait for the slave to initialize itself.
+vwait ::go
+
+#puts "Running tests"
+#::comm::comm debug 1
+
+proc slavestop {} {
+    ::comm::comm send -async [slave] {{exit}}
+    ::comm::comm abort
+    removeFile spawn
+    return
+}

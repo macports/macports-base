@@ -1,0 +1,15 @@
+pt::grammar::peg
+    start := (Expression)
+    rules
+        Expression :: <value> :=
+            (Function)
+        Function :: <value> :=
+            (Sinus)
+        Sinus :: <value> :=
+            x
+                's'
+                'i'
+                'n'
+                '\('
+                (Expression)
+                '\)'

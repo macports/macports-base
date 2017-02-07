@@ -1,0 +1,306 @@
+
+<html><head>
+<title>simulation::random - Tcl Simulation Tools</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'simulation_random.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2004 Arjen Markus &lt;arjenmarkus@users.sourceforge.net&gt;
+   -->
+<! -- simulation::random.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">simulation::random(n) 0.1 tcllib &quot;Tcl Simulation Tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>simulation::random - Pseudo-random number generators</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PROCEDURES</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl <span class="opt">?8.4?</span></b></li>
+<li>package require <b class="pkgname">simulation::random 0.1</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::simulation::random::prng_Bernoulli</b> <i class="arg">p</i></a></li>
+<li><a href="#2"><b class="cmd">::simulation::random::prng_Discrete</b> <i class="arg">n</i></a></li>
+<li><a href="#3"><b class="cmd">::simulation::random::prng_Poisson</b> <i class="arg">lambda</i></a></li>
+<li><a href="#4"><b class="cmd">::simulation::random::prng_Uniform</b> <i class="arg">min</i> <i class="arg">max</i></a></li>
+<li><a href="#5"><b class="cmd">::simulation::random::prng_Exponential</b> <i class="arg">min</i> <i class="arg">mean</i></a></li>
+<li><a href="#6"><b class="cmd">::simulation::random::prng_Normal</b> <i class="arg">mean</i> <i class="arg">stdev</i></a></li>
+<li><a href="#7"><b class="cmd">::simulation::random::prng_Pareto</b> <i class="arg">min</i> <i class="arg">steep</i></a></li>
+<li><a href="#8"><b class="cmd">::simulation::random::prng_Gumbel</b> <i class="arg">min</i> <i class="arg">f</i></a></li>
+<li><a href="#9"><b class="cmd">::simulation::random::prng_chiSquared</b> <i class="arg">df</i></a></li>
+<li><a href="#10"><b class="cmd">::simulation::random::prng_Disk</b> <i class="arg">rad</i></a></li>
+<li><a href="#11"><b class="cmd">::simulation::random::prng_Sphere</b> <i class="arg">rad</i></a></li>
+<li><a href="#12"><b class="cmd">::simulation::random::prng_Ball</b> <i class="arg">rad</i></a></li>
+<li><a href="#13"><b class="cmd">::simulation::random::prng_Rectangle</b> <i class="arg">length</i> <i class="arg">width</i></a></li>
+<li><a href="#14"><b class="cmd">::simulation::random::prng_Block</b> <i class="arg">length</i> <i class="arg">width</i> <i class="arg">depth</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package consists of commands to generate pseudo-random number
+generators. These new commands deliver</p>
+<ul class="doctools_itemized">
+<li><p>numbers that are distributed normally, uniformly, according to a
+Pareto or Gumbel distribution and so on</p></li>
+<li><p>coordinates of points uniformly spread inside a sphere or a rectangle</p></li>
+</ul>
+<p>For example:</p>
+<pre class="doctools_example">
+    set p [::simulation::random::prng_Normal -1.0 10.0]
+</pre>
+<p>produces a new command (whose name is stored in the variable &quot;p&quot;) that
+generates normally distributed numbers with a mean of -1.0 and a
+standard deviation of 10.0.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PROCEDURES</a></h2>
+<p>The package defines the following public procedures for <em>discrete</em>
+distributions:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::simulation::random::prng_Bernoulli</b> <i class="arg">p</i></a></dt>
+<dd><p>Create a command (PRNG) that generates numbers with a Bernoulli
+distribution: the value is either 1 or 0, with a chance p to be 1</p>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">p</i></dt>
+<dd><p>Chance the outcome is 1</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">::simulation::random::prng_Discrete</b> <i class="arg">n</i></a></dt>
+<dd><p>Create a command (PRNG) that generates numbers 0 to n-1 with equal
+probability.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Number of different values (ranging from 0 to n-1)</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">::simulation::random::prng_Poisson</b> <i class="arg">lambda</i></a></dt>
+<dd><p>Create a command (PRNG) that generates numbers according to the Poisson
+distribution.</p>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">lambda</i></dt>
+<dd><p>Mean number per time interval</p></dd>
+</dl></dd>
+</dl>
+<p>The package defines the following public procedures for <em>continuous</em> distributions:</p>
+<dl class="doctools_definitions">
+<dt><a name="4"><b class="cmd">::simulation::random::prng_Uniform</b> <i class="arg">min</i> <i class="arg">max</i></a></dt>
+<dd><p>Create a command (PRNG) that generates uniformly distributed numbers
+between &quot;min&quot; and &quot;max&quot;.</p>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">min</i></dt>
+<dd><p>Minimum number that will be generated</p></dd>
+<dt>float <i class="arg">max</i></dt>
+<dd><p>Maximum number that will be generated</p></dd>
+</dl></dd>
+<dt><a name="5"><b class="cmd">::simulation::random::prng_Exponential</b> <i class="arg">min</i> <i class="arg">mean</i></a></dt>
+<dd><p>Create a command (PRNG) that generates exponentially distributed numbers
+with a given minimum value and a given mean value.</p>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">min</i></dt>
+<dd><p>Minimum number that will be generated</p></dd>
+<dt>float <i class="arg">mean</i></dt>
+<dd><p>Mean value for the numbers</p></dd>
+</dl></dd>
+<dt><a name="6"><b class="cmd">::simulation::random::prng_Normal</b> <i class="arg">mean</i> <i class="arg">stdev</i></a></dt>
+<dd><p>Create a command (PRNG) that generates normally distributed numbers
+with a given mean value and a given standard deviation.</p>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">mean</i></dt>
+<dd><p>Mean value for the numbers</p></dd>
+<dt>float <i class="arg">stdev</i></dt>
+<dd><p>Standard deviation</p></dd>
+</dl></dd>
+<dt><a name="7"><b class="cmd">::simulation::random::prng_Pareto</b> <i class="arg">min</i> <i class="arg">steep</i></a></dt>
+<dd><p>Create a command (PRNG) that generates numbers distributed according to
+Pareto with a given minimum value and a given distribution steepness.</p>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">min</i></dt>
+<dd><p>Minimum number that will be generated</p></dd>
+<dt>float <i class="arg">steep</i></dt>
+<dd><p>Steepness of the distribution</p></dd>
+</dl></dd>
+<dt><a name="8"><b class="cmd">::simulation::random::prng_Gumbel</b> <i class="arg">min</i> <i class="arg">f</i></a></dt>
+<dd><p>Create a command (PRNG) that generates numbers distributed according to
+Gumbel with a given minimum value and a given scale factor. The
+probability density function is:</p>
+<pre class="doctools_example">
+     P(v) = exp( -exp(f*(v-min)))
+</pre>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">min</i></dt>
+<dd><p>Minimum number that will be generated</p></dd>
+<dt>float <i class="arg">f</i></dt>
+<dd><p>Scale factor for the values</p></dd>
+</dl></dd>
+<dt><a name="9"><b class="cmd">::simulation::random::prng_chiSquared</b> <i class="arg">df</i></a></dt>
+<dd><p>Create a command (PRNG) that generates numbers distributed according to
+the chi-squared distribution with df degrees of freedom. The mean is 0
+and the standard deviation is 1.</p>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">df</i></dt>
+<dd><p>Degrees of freedom</p></dd>
+</dl></dd>
+</dl>
+<p>The package defines the following public procedures for random point sets:</p>
+<dl class="doctools_definitions">
+<dt><a name="10"><b class="cmd">::simulation::random::prng_Disk</b> <i class="arg">rad</i></a></dt>
+<dd><p>Create a command (PRNG) that generates (x,y)-coordinates for points
+uniformly spread over a disk of given radius.</p>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">rad</i></dt>
+<dd><p>Radius of the disk</p></dd>
+</dl></dd>
+<dt><a name="11"><b class="cmd">::simulation::random::prng_Sphere</b> <i class="arg">rad</i></a></dt>
+<dd><p>Create a command (PRNG) that generates (x,y,z)-coordinates for points
+uniformly spread over the surface of a sphere of given radius.</p>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">rad</i></dt>
+<dd><p>Radius of the disk</p></dd>
+</dl></dd>
+<dt><a name="12"><b class="cmd">::simulation::random::prng_Ball</b> <i class="arg">rad</i></a></dt>
+<dd><p>Create a command (PRNG) that generates (x,y,z)-coordinates for points
+uniformly spread within a ball of given radius.</p>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">rad</i></dt>
+<dd><p>Radius of the ball</p></dd>
+</dl></dd>
+<dt><a name="13"><b class="cmd">::simulation::random::prng_Rectangle</b> <i class="arg">length</i> <i class="arg">width</i></a></dt>
+<dd><p>Create a command (PRNG) that generates (x,y)-coordinates for points
+uniformly spread over a rectangle.</p>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">length</i></dt>
+<dd><p>Length of the rectangle (x-direction)</p></dd>
+<dt>float <i class="arg">width</i></dt>
+<dd><p>Width of the rectangle (y-direction)</p></dd>
+</dl></dd>
+<dt><a name="14"><b class="cmd">::simulation::random::prng_Block</b> <i class="arg">length</i> <i class="arg">width</i> <i class="arg">depth</i></a></dt>
+<dd><p>Create a command (PRNG) that generates (x,y,z)-coordinates for points
+uniformly spread over a block</p>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">length</i></dt>
+<dd><p>Length of the block (x-direction)</p></dd>
+<dt>float <i class="arg">width</i></dt>
+<dd><p>Width of the block (y-direction)</p></dd>
+<dt>float <i class="arg">depth</i></dt>
+<dd><p>Depth of the block (z-direction)</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key71">math</a>, <a href="../../../../index.html#key641">random numbers</a>, <a href="../../../../index.html#key640">simulation</a>, <a href="../../../../index.html#key639">statistical distribution</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2004 Arjen Markus &lt;arjenmarkus@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

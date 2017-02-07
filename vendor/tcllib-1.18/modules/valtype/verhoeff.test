@@ -1,0 +1,92 @@
+# -------------------------------------------------------------------------
+# verhoeff.test -*- tcl -*-
+# (C) 2011 Andreas Kupries. BSD licensed.
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    use      snit/snit2.tcl snit            ;# snit v2 fixed, due Tcl 8.5
+    useLocal valtype.tcl    valtype::common
+}
+testing {
+    useLocal verhoeff.tcl valtype::verhoeff
+}
+
+# -------------------------------------------------------------------------
+
+test valtype-verhoeff-1.0 {verhoeff validation wrong\#args} -body {
+    valtype::verhoeff validate
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::verhoeff validate value ?code?"}
+
+test valtype-verhoeff-1.1 {verhoeff validation wrong\#args} -body {
+    valtype::verhoeff validate A B C
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::verhoeff validate value ?code?"}
+
+# -------------------------------------------------------------------------
+
+test valtype-verhoeff-2.0 {verhoeff validation failure, bad char} -body {
+    valtype::verhoeff validate A
+} -returnCodes error \
+    -result {Not a VERHOEFF number, expected only digits}
+
+foreach {n in} {
+    1  49999999
+    2  37
+    3  49927398717 
+    4  1234567812345678
+} {
+    test valtype-verhoeff-2.1 {verhoeff validation failure, bad check} -body {
+	valtype::verhoeff validate $in
+    } -returnCodes error \
+	-result {Not a VERHOEFF number, the check digit is incorrect}
+}
+
+test valtype-verhoeff-3.0 {verhoeff checkdigit wrong\#args} -body {
+    valtype::verhoeff checkdigit
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::verhoeff checkdigit value ?code?"}
+
+test valtype-verhoeff-3.1 {verhoeff checkdigit wrong\#args} -body {
+    valtype::verhoeff checkdigit A B C
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::verhoeff checkdigit value ?code?"}
+
+# -------------------------------------------------------------------------
+
+test valtype-verhoeff-5.0 {verhoeff checkdigit calculation failure, bad char} -body {
+    valtype::verhoeff checkdigit A
+} -returnCodes error \
+    -result {Not a VERHOEFF number, expected only digits}
+
+foreach {n in check} {
+    1          4999999 6
+    2                3 6
+    3               35 5
+    4       4992739871 3
+    5  123456781234567 5
+} {
+    test valtype-verhoeff-4.$n {verhoeff validation} -body {
+	valtype::verhoeff validate $in$check
+    } -result $in$check
+
+    test valtype-verhoeff-6.$n {verhoeff checkdigit} -body {
+	valtype::verhoeff checkdigit $in
+    } -result $check
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

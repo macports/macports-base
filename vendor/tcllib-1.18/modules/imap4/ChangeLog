@@ -1,0 +1,73 @@
+2013-10-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* imap4.tcl: Ticket [a761133422]. cleanup called imap close, not
+	* imap4.man: channel close. Fixed. isableto failed to initialize
+	* pkgIndex.tcl:	the result variable. Fixed. Bumped version to 0.5.2.
+
+2013-02-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* imap4.tcl: [Bug 3604129] Accepted patch by Gerhard Reithofer.
+	* imap4.man: Missing chan parameter added to all imaptotcl*
+	* pkgIndex.tcl: procs. Bumped version to 0.5.1.
+
+2013-02-11  Andreas Kupries  <andreask@activestate.com>
+
+	* imap4.tcl: [Bug 3604129] Applied contribution
+	* imap4.man: by Magnatune. Additional command (copy).
+	* pkgIndex.tcl: Bumped version to 0.5.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2013-01-25  Andreas Kupries  <andreask@activestate.com>
+
+	* imap4.man: Updated documentation with text contributed by Nicola
+	  Hall, explaining the new commands.
+
+2013-01-22  Andreas Kupries  <andreask@activestate.com>
+
+	* imap4.tcl: Applied contribution by Nicola Hall.
+	* imap4.man: Additional commands. Bumped version
+	* pkgIndex.tcl: to 0.4.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-07-16  Andreas Kupries  <andreask@activestate.com>
+
+	* pkgIndex.tcl: Fixed a very stupid typo of mine in the package
+	  index.
+
+2010-07-16 Gerhard Reithofer <gerhard.rithofer@tech-edv.co.at>
+
+	* imap4.tcl: Bug in parsing FLAGS in FETCH command repaired.
+        * imap4.man: Updated man pages for package version 0.3
+          removed section "KNOWN BUGS".
+
+2010-07-09  Andreas Kupries  <andreask@activestate.com>
+
+	* pkgIndex.tcl: Added the missing package index. Oops.
+	* imap4.man: Added feedback section, moved openssl uri to
+	  references.
+
+2010-07-09 Gerhard Reithofer <gerhard.rithofer@tech-edv.co.at>
+
+	* imap4.tcl: Addining support for TLS/SSL, small cleanups.
+        * imap4.man: Updated man pages for package version 0.2
+
+2010-07-06  Andreas Kupries  <andreask@activestate.com>
+
+	* imap4.tcl: Updated to Gerhard Reithofer's re-implementation.
+	* imap4.man: Added Gerhard Reithofer's package documentation.

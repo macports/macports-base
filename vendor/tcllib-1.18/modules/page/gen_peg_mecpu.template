@@ -1,0 +1,48 @@
+# -*- tcl -*-
+## Parsing Expression Grammar '@NAME@'.
+## Recursive Descent Packrat parser generated
+## by the PAGE writer plugin 'mecpu'.
+@COPY@
+# ### ### ### ######### ######### #########
+## Package description
+
+# The commands provided here match an input provided through a buffer
+# command to the PE grammar '@NAME@'. The parser is based on the ME
+# virtual machine (recursive-descent, packrat, pulling chars,
+# pushing the generated AST, suspendable).
+
+# ### ### ### ######### ######### #########
+## Requisites
+
+# Import the virtual machine for matching.
+package require grammar::me::cpu
+
+# ### ### ### ######### ######### #########
+## Implementation
+
+snit::type ::@PKG@ {
+    constructor {} {
+	set cpu [grammar::me::cpu ${selfns}::cpu $mecode]
+	return
+    }
+    variable cpu
+    delegate method * to cpu
+
+    typevariable mecode {
+	{
+@FNSN@	}
+	{
+@FPOL@	}
+	{@TMAP@}
+    }
+}
+
+# ### ### ### ######### ######### #########
+## Documentation. Readable form of 'mecode' above.
+
+@ASMP@
+
+# ### ### ### ######### ######### #########
+## Package Management
+
+package provide @PKG@ 0.1

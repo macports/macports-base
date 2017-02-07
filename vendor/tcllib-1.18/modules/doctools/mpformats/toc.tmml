@@ -1,0 +1,37 @@
+# -*- tcl -*-
+#
+# $Id: toc.tmml,v 1.6 2005/09/28 04:51:19 andreas_kupries Exp $
+#
+# Engine to convert a doctoc document into TMML.
+#
+# Copyright (c) 2003 Andreas Kupries <andreas_kupries@sourceforge.net>
+# Freely redistributable.
+#
+# See also <URL: http://tmml.sourceforge.net>
+#
+######################################################################
+
+dt_source _toc_common.tcl
+dt_source _xml.tcl
+
+######################################################################
+# Conversion specification.
+#
+# One-pass processing.
+
+rename toc_postprocess {}
+rename fmt_postprocess toc_postprocess
+
+proc fmt_plain_text {text} {if {$text != {}} {return \n} else {return {}}}
+
+################################################################
+## Backend for TMML markup
+
+proc fmt_toc_begin      {label title}     {sequence [start manual package $label] [wrap $title title]}
+proc fmt_toc_end        {}                {end manual}
+proc fmt_division_start {title symfile}   {sequence [start division] [wrap $text title]}
+proc fmt_division_end   {}                {end   division}
+proc fmt_item           {file label desc} {emptyElement subdoc href [dt_fmap $file]}
+proc fmt_comment        {text}            {xmlComment $text}
+
+################################################################

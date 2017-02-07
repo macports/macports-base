@@ -1,6 +1,5 @@
 # et:ts=4
 # portload.tcl
-# $Id$
 #
 # Copyright (c) 2007, 2009, 2011 The MacPorts Project
 # Copyright (c) 2007 James D. Berry

@@ -1,0 +1,131 @@
+# -*- tcl -*-
+#Tests for Spanning Tree Problems
+#1) Minimum Degree Spanning Tree
+#2) Minimum Diameter Spanning Tree
+#
+# ------------------------------------------------------------------------------------
+# Tests concerning returning right values by algorithm
+
+# ------------------------------------------------------------------------------------
+#Minimum Diameter Spanning Tree Tests
+#Test 1.0 
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MinimumDiameterSpanningTree-1.0 { graph simulation } {
+    SETUP_MDST_1
+    set solution [struct::graph::op::MinimumDiameterSpanningTree mygraph]
+    set result [list \
+		    [lsort -dict [$solution nodes]] \
+		    [lsort -dict [undirected [$solution arcs]]]]
+    $solution destroy
+    mygraph destroy
+    set result
+} {{a b c d e f g h i j} {{a b} {b c} {c d} {c g} {d e} {d h} {e f} {g i} {h j}}}
+
+#Test 1.1 - case when given graph is a spanning tree already
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MinimumDiameterSpanningTree-1.1 { graph simulation } {
+    SETUP_MDST_3
+    set solution [struct::graph::op::MinimumDiameterSpanningTree mygraph]
+    set result [list \
+		    [lsort -dict [$solution nodes]] \
+		    [lsort -dict [undirected [$solution arcs]]]]
+    $solution destroy
+    mygraph destroy
+    set result
+} {{a b c d e} {{a b} {b c} {c d} {d e}}}
+
+#Test 1.2 
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MinimumDiameterSpanningTree-1.2 { graph simulation } {
+    SETUP_MDST_4
+    set solution [struct::graph::op::MinimumDiameterSpanningTree mygraph]
+    set result [list \
+		    [lsort -dict [$solution nodes]] \
+		    [lsort -dict [undirected [$solution arcs]]]]
+    $solution destroy
+    mygraph destroy
+    set result
+} [tmE \
+       {{a b c d e f g} {{a b} {b c} {c d} {d e} {d g} {e f}}} \
+       {{a b c d e f g} {{a b} {b c} {c d} {d e} {d g} {f g}}}]
+
+#Test 1.3
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MinimumDiameterSpanningTree-1.3 { graph simulation } {
+    SETUP_MDST_5
+    set solution [struct::graph::op::MinimumDiameterSpanningTree mygraph]
+    set result [list \
+		    [lsort -dict [$solution nodes]] \
+		    [lsort -dict [undirected [$solution arcs]]]]
+    $solution destroy
+    mygraph destroy
+    set result
+} {{a b c d e} {{a c} {b c} {c d} {c e}}}
+
+#Minimum Degree Spanning Tree Tests
+
+#Test 1.4
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MinimumDegreeSpanningTree-1.4 { graph simulation } {
+    SETUP_MDST_2
+    set solution [struct::graph::op::MinimumDegreeSpanningTree mygraph]
+    set result [list \
+		    [lsort -dict [$solution nodes]] \
+		    [lsort -dict [undirected [$solution arcs]]]]
+    $solution destroy
+    mygraph destroy
+    set result
+} {{v1 v2 v3 v4 v5 v6 v7 v8} {{v1 v2} {v1 v3} {v2 v4} {v4 v5} {v5 v7} {v6 v8} {v7 v8}}}
+
+#Test 1.5 - case when graph is "wheel structured" (one central node and the rest of nodes around central one)
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MinimumDegreeSpanningTree-1.5 { graph simulation } {
+    SETUP_MDST_6
+    set solution [struct::graph::op::MinimumDegreeSpanningTree mygraph]
+    set result [list \
+		    [lsort -dict [$solution nodes]] \
+		    [lsort -dict [undirected [$solution arcs]]]]
+    $solution destroy
+    mygraph destroy
+    set result
+} [tmE [tmSE \
+	    {{a b c d e f g} {{a f} {a g} {b c} {c g} {d e} {e f}}} \
+	    {{a b c d e f g} {{a b} {a f} {b c} {c g} {d g} {e f}}}] \
+       {{a b c d e f g} {{a f} {b c} {b g} {d e} {d g} {f g}}}]
+
+#Test 1.6 - case when graph is "wheel structured" (one central node and the rest of nodes around central one)
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MinimumDegreeSpanningTree-1.6 { graph simulation } {
+    SETUP_MDST_7
+    set solution [struct::graph::op::MinimumDegreeSpanningTree mygraph]
+    set result [list \
+		    [lsort -dict [$solution nodes]] \
+		    [lsort -dict [undirected [$solution arcs]]]]
+    $solution destroy
+    mygraph destroy
+    set result
+} [tmE \
+       {{a b c d e f} {{a f} {b c} {b d} {c e} {e f}}} \
+       {{a b c d e f} {{a f} {b c} {c d} {d e} {e f}}}]
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+# Minimum Diameter Spanning Tree Tests
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MinimumDiameterSpanningTree-2.0 { MinimumDiameterSpanningTree, wrong args, missing } {
+    catch {struct::graph::op::MinimumDiameterSpanningTree} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::MinimumDiameterSpanningTree {G} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MinimumDiameterSpanningTree-2.1 { MinimumDiameterSpanningTree, wrong args, too many} {
+    catch {struct::graph::op::MinimumDiameterSpanningTree G s} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::MinimumDiameterSpanningTree {G}]
+
+#Minimum Degree Spanning Tree Tests
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MinimumDegreeSpanningTree-2.2 { MinimumDegreeSpanningTree, wrong args, missing } {
+    catch {struct::graph::op::MinimumDegreeSpanningTree} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::MinimumDegreeSpanningTree {G} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MinimumDegreeSpanningTree-2.3 { MinimumDegreeSpanningTree, wrong args, too many} {
+    catch {struct::graph::op::MinimumDegreeSpanningTree G s} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::MinimumDegreeSpanningTree {G}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures

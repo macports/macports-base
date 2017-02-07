@@ -1,0 +1,365 @@
+## -*- tcl -*-
+##
+## Snit-based Tcl/PARAM implementation of the parsing
+## expression grammar
+##
+##	TEMPLATE
+##
+## Generated from file	TEST
+##            for user  unknown
+##
+# # ## ### ##### ######## ############# #####################
+## Requirements
+
+package require Tcl 8.5
+package require snit
+package require pt::rde ; # Implementation of the PARAM
+			  # virtual machine underlying the
+			  # Tcl/PARAM code used below.
+
+# # ## ### ##### ######## ############# #####################
+##
+
+snit::type ::PARSER {
+    # # ## ### ##### ######## #############
+    ## Public API
+
+    constructor {} {
+	# Create the runtime supporting the parsing process.
+	set myparser [pt::rde ${selfns}::ENGINE]
+	return
+    }
+
+    method parse {channel} {
+	$myparser reset $channel
+	MAIN ; # Entrypoint for the generated code.
+	return [$myparser complete]
+    }
+
+    method parset {text} {
+	$myparser reset
+	$myparser data $text
+	MAIN ; # Entrypoint for the generated code.
+	return [$myparser complete]
+    }
+
+    # # ## ### ###### ######## #############
+    ## Configuration
+
+    pragma -hastypeinfo    0
+    pragma -hastypemethods 0
+    pragma -hasinfo        0
+    pragma -simpledispatch 1
+
+    # # ## ### ###### ######## #############
+    ## Data structures.
+
+    variable myparser {} ; # Our instantiation of the PARAM.
+
+    # # ## ### ###### ######## #############
+    ## BEGIN of GENERATED CODE. DO NOT EDIT.
+
+    #
+    # Grammar Start Expression
+    #
+    
+    proc MAIN {} { upvar 1 myparser myparser
+        sym_Expression
+        return
+    }
+    
+    #
+    # value Symbol 'AddOp'
+    #
+    
+    proc sym_AddOp {} { upvar 1 myparser myparser
+        # [-+]
+    
+        $myparser si:void_symbol_start AddOp
+        $myparser si:next_class -+
+        $myparser si:void_leaf_symbol_end AddOp
+        return
+    }
+    
+    #
+    # value Symbol 'Digit'
+    #
+    
+    proc sym_Digit {} { upvar 1 myparser myparser
+        # [0123456789]
+    
+        $myparser si:void_symbol_start Digit
+        $myparser si:next_class 0123456789
+        $myparser si:void_leaf_symbol_end Digit
+        return
+    }
+    
+    #
+    # value Symbol 'Expression'
+    #
+    
+    proc sym_Expression {} { upvar 1 myparser myparser
+        # /
+        #     x
+        #         '\('
+        #         (Expression)
+        #         '\)'
+        #     x
+        #         (Factor)
+        #         *
+        #             x
+        #                 (MulOp)
+        #                 (Factor)
+    
+        $myparser si:value_symbol_start Expression
+        choice_20
+        $myparser si:reduce_symbol_end Expression
+        return
+    }
+    
+    proc choice_20 {} { upvar 1 myparser myparser
+        # /
+        #     x
+        #         '\('
+        #         (Expression)
+        #         '\)'
+        #     x
+        #         (Factor)
+        #         *
+        #             x
+        #                 (MulOp)
+        #                 (Factor)
+    
+        $myparser si:value_state_push
+        sequence_9
+        $myparser si:valuevalue_branch
+        sequence_18
+        $myparser si:value_state_merge
+        return
+    }
+    
+    proc sequence_9 {} { upvar 1 myparser myparser
+        # x
+        #     '\('
+        #     (Expression)
+        #     '\)'
+    
+        $myparser si:void_state_push
+        $myparser si:next_char \50
+        $myparser si:voidvalue_part
+        sym_Expression
+        $myparser si:valuevalue_part
+        $myparser si:next_char \51
+        $myparser si:value_state_merge
+        return
+    }
+    
+    proc sequence_18 {} { upvar 1 myparser myparser
+        # x
+        #     (Factor)
+        #     *
+        #         x
+        #             (MulOp)
+        #             (Factor)
+    
+        $myparser si:value_state_push
+        sym_Factor
+        $myparser si:valuevalue_part
+        kleene_16
+        $myparser si:value_state_merge
+        return
+    }
+    
+    proc kleene_16 {} { upvar 1 myparser myparser
+        # *
+        #     x
+        #         (MulOp)
+        #         (Factor)
+    
+        while {1} {
+            $myparser si:void2_state_push
+        sequence_14
+            $myparser si:kleene_close
+        }
+        return
+    }
+    
+    proc sequence_14 {} { upvar 1 myparser myparser
+        # x
+        #     (MulOp)
+        #     (Factor)
+    
+        $myparser si:value_state_push
+        sym_MulOp
+        $myparser si:valuevalue_part
+        sym_Factor
+        $myparser si:value_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Factor'
+    #
+    
+    proc sym_Factor {} { upvar 1 myparser myparser
+        # x
+        #     (Term)
+        #     *
+        #         x
+        #             (AddOp)
+        #             (Term)
+    
+        $myparser si:value_symbol_start Factor
+        sequence_30
+        $myparser si:reduce_symbol_end Factor
+        return
+    }
+    
+    proc sequence_30 {} { upvar 1 myparser myparser
+        # x
+        #     (Term)
+        #     *
+        #         x
+        #             (AddOp)
+        #             (Term)
+    
+        $myparser si:value_state_push
+        sym_Term
+        $myparser si:valuevalue_part
+        kleene_28
+        $myparser si:value_state_merge
+        return
+    }
+    
+    proc kleene_28 {} { upvar 1 myparser myparser
+        # *
+        #     x
+        #         (AddOp)
+        #         (Term)
+    
+        while {1} {
+            $myparser si:void2_state_push
+        sequence_26
+            $myparser si:kleene_close
+        }
+        return
+    }
+    
+    proc sequence_26 {} { upvar 1 myparser myparser
+        # x
+        #     (AddOp)
+        #     (Term)
+    
+        $myparser si:value_state_push
+        sym_AddOp
+        $myparser si:valuevalue_part
+        sym_Term
+        $myparser si:value_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'MulOp'
+    #
+    
+    proc sym_MulOp {} { upvar 1 myparser myparser
+        # [*/]
+    
+        $myparser si:void_symbol_start MulOp
+        $myparser si:next_class */
+        $myparser si:void_leaf_symbol_end MulOp
+        return
+    }
+    
+    #
+    # value Symbol 'Number'
+    #
+    
+    proc sym_Number {} { upvar 1 myparser myparser
+        # x
+        #     ?
+        #         (Sign)
+        #     +
+        #         (Digit)
+    
+        $myparser si:value_symbol_start Number
+        sequence_41
+        $myparser si:reduce_symbol_end Number
+        return
+    }
+    
+    proc sequence_41 {} { upvar 1 myparser myparser
+        # x
+        #     ?
+        #         (Sign)
+        #     +
+        #         (Digit)
+    
+        $myparser si:value_state_push
+        optional_36
+        $myparser si:valuevalue_part
+        poskleene_39
+        $myparser si:value_state_merge
+        return
+    }
+    
+    proc optional_36 {} { upvar 1 myparser myparser
+        # ?
+        #     (Sign)
+    
+        $myparser si:void2_state_push
+        sym_Sign
+        $myparser si:void_state_merge_ok
+        return
+    }
+    
+    proc poskleene_39 {} { upvar 1 myparser myparser
+        # +
+        #     (Digit)
+    
+        $myparser i_loc_push
+        sym_Digit
+        $myparser si:kleene_abort
+        while {1} {
+            $myparser si:void2_state_push
+        sym_Digit
+            $myparser si:kleene_close
+        }
+        return
+    }
+    
+    #
+    # value Symbol 'Sign'
+    #
+    
+    proc sym_Sign {} { upvar 1 myparser myparser
+        # [-+]
+    
+        $myparser si:void_symbol_start Sign
+        $myparser si:next_class -+
+        $myparser si:void_leaf_symbol_end Sign
+        return
+    }
+    
+    #
+    # value Symbol 'Term'
+    #
+    
+    proc sym_Term {} { upvar 1 myparser myparser
+        # (Number)
+    
+        $myparser si:value_symbol_start Term
+        sym_Number
+        $myparser si:reduce_symbol_end Term
+        return
+    }
+    
+    ## END of GENERATED CODE. DO NOT EDIT.
+    # # ## ### ###### ######## #############
+}
+
+# # ## ### ##### ######## ############# #####################
+## Ready
+
+package provide SNIT_PACKAGE 1
+return

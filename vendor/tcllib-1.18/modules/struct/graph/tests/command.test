@@ -1,0 +1,161 @@
+# -*- tcl -*-
+# Graph tests - graph command basics
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: command.test,v 1.7 2009/11/26 04:42:16 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+# Graph class command has no missing arguments, will auto-generate
+# instance name. As for too many arguments, this will be checked as
+# part of testing the de-serialization.
+
+test graph-${impl}-${setimpl}-create-1.1 {graph create, copy, wrong#args, missing} {
+    catch {mygraph destroy}
+    catch {struct::graph mygraph =} result
+    set result
+} {wrong # args: should be "struct::graph ?name ?=|:=|as|deserialize source??"}
+
+test graph-${impl}-${setimpl}-create-1.2 {graph create, copy, wrong#args, too many} {
+    catch {mygraph destroy}
+    catch {struct::graph mygraph = a b} result
+    set result
+} {wrong # args: should be "struct::graph ?name ?=|:=|as|deserialize source??"}
+
+test graph-${impl}-${setimpl}-create-1.3 {graph create, copy, unknown operator} {
+    catch {mygraph destroy}
+    catch {struct::graph mygraph foo a} result
+    set result
+} {wrong # args: should be "struct::graph ?name ?=|:=|as|deserialize source??"}
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-create-2.0 {graph create, duplicate, graph} {
+    SETUP
+    catch {struct::graph mygraph} msg
+    mygraph destroy
+    set msg
+} "command \"::mygraph\" already exists, unable to create graph"
+
+test graph-${impl}-${setimpl}-create-2.1 {graph create, duplicate, non-graph} {
+    catch {struct::graph set} msg
+    set msg
+} "command \"::set\" already exists, unable to create graph"
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-create-3.0 {graph create, object command is created} {
+    SETUP
+    set result [string equal [info commands ::mygraph] "::mygraph"]
+    mygraph destroy
+    set result
+} 1
+
+test graph-${impl}-${setimpl}-create-3.1 {graph create, auto-generation of name} {
+    set name [struct::graph]
+    set result [list \
+	    [string match ::graph* $name] \
+	    [string equal [info commands $name] "$name"]]
+    $name destroy
+    set result
+} {1 1}
+
+test graph-${impl}-${setimpl}-create-3.2 {graph create, destroy removes object command} {
+    SETUP
+    mygraph destroy
+    string equal [info commands ::mygraph] ""
+} 1
+
+test graph-${impl}-${setimpl}-create-3.3 {graph create, copy, value} {
+    catch {mygraph destroy}
+    set serial {%3 {} {{f 6 {}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+
+    struct::graph mygraph deserialize $serial
+    set result [validate_serial mygraph $serial]
+    mygraph destroy
+
+    set result
+} ok
+
+test graph-${impl}-${setimpl}-create-3.4 {graph create, copy, graph} {
+    catch {mygraph destroy}
+    set serial {%3 {} {{f 6 {}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {}}} %1 {} {{d 9 {}}} %2 {} {{e 0 {}}} {data foo}}
+
+    struct::graph mygraph deserialize $serial
+    struct::graph bgraph = mygraph
+
+    set result [validate_serial bgraph $serial]
+    mygraph destroy
+    bgraph  destroy
+
+    set result
+} ok
+
+test graph-${impl}-${setimpl}-create-3.5 {graph create, copy, graph with weights} {
+    catch {mygraph destroy}
+    set serial {%3 {} {{f 6 {}}} %0 {foo bar} {{a 6 {}} {b 9 {bar snarf}} {c 0 {} 222}} %1 {} {{d 9 {}}} %2 {} {{e 0 {} 444}} {data foo}}
+
+    struct::graph mygraph deserialize $serial
+    struct::graph bgraph = mygraph
+
+    set result [validate_serial bgraph $serial]
+    mygraph destroy
+    bgraph  destroy
+
+    set result
+} ok
+
+test graph-${impl}-${setimpl}-create-3.6 {graph create, copy, empty graph} {
+    catch {mygraph destroy}
+    set serial {{}}
+
+    struct::graph mygraph deserialize $serial
+    struct::graph bgraph = mygraph
+
+    set result [validate_serial bgraph $serial]
+    mygraph destroy
+    bgraph  destroy
+
+    set result
+} ok
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-instance-1.0 {graph command, wrong#args, missing} {
+    SETUP
+    catch {mygraph} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"$MY option ?arg arg ...?\""
+
+# Too many arguments dependent on method, not testable here.
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-instance-2.0 {graph command, bad method} {
+    SETUP
+    catch {mygraph foo} msg
+    mygraph destroy
+    set msg
+} {bad option "foo": must be -->, =, append, arc, arcs, deserialize, destroy, get, getall, keyexists, keys, lappend, node, nodes, serialize, set, swap, unset, or walk}
+
+test graph-${impl}-${setimpl}-instance-2.1 {graph arc command, bad method} {
+    SETUP
+    catch {mygraph arc foo} msg
+    mygraph destroy
+    set msg
+} {bad option "foo": must be append, attr, delete, exists, flip, get, getall, getunweighted, getweight, hasweight, insert, keyexists, keys, lappend, move, move-source, move-target, nodes, rename, set, setunweighted, setweight, source, target, unset, unsetweight, or weights}
+
+test graph-${impl}-${setimpl}-instance-2.2 {graph node command, bad method} {
+    SETUP
+    catch {mygraph node foo} msg
+    mygraph destroy
+    set msg
+} {bad option "foo": must be append, attr, degree, delete, exists, get, getall, insert, keyexists, keys, lappend, opposite, rename, set, or unset}
+
+# -------------------------------------------------------------------------

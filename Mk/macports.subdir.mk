@@ -1,4 +1,3 @@
-# $Id$
 
 .PHONY : all
 .PHONY : clean distclean

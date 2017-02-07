@@ -1,6 +1,5 @@
 /*
  * Strsed.c
- * $Id$
  *
  *     ed(1)/tr(1)-like search, replace, transliterate. See the
  *     manpage for details. See the README for copyright information.

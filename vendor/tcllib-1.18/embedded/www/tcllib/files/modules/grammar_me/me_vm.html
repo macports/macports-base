@@ -1,0 +1,543 @@
+
+<div class='fossil-doc' data-title='grammar::me_vm - Grammar operations and usage'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">grammar::me_vm(n) 0.1 tcllib &quot;Grammar operations and usage&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>grammar::me_vm - Virtual machine for parsing token streams</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">MACHINE STATE</a></li>
+<li class="doctools_section"><a href="#section3">MACHINE INSTRUCTIONS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">TERMINAL MATCHING</a></li>
+<li class="doctools_subsection"><a href="#subsection2">NONTERMINAL MATCHING</a></li>
+<li class="doctools_subsection"><a href="#subsection3">UNCONDITIONAL MATCHING</a></li>
+<li class="doctools_subsection"><a href="#subsection4">CONTROL FLOW</a></li>
+<li class="doctools_subsection"><a href="#subsection5">INPUT LOCATION HANDLING</a></li>
+<li class="doctools_subsection"><a href="#subsection6">ERROR HANDLING</a></li>
+<li class="doctools_subsection"><a href="#subsection7">SEMANTIC VALUES</a></li>
+<li class="doctools_subsection"><a href="#subsection8">AST STACK HANDLING</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Please go and read the document <b class="syscmd"><a href="me_intro.html">grammar::me_intro</a></b> first for
+an overview of the various documents and their relations.</p>
+<p>This document specifies a virtual machine for the controlled matching
+and parsing of token streams, creating an
+<i class="term"><a href="../../../../index.html#key745">abstract syntax tree</a></i> (short <i class="term"><a href="../../../../index.html#key814">AST</a></i>) reflecting the
+structure of the input. Special machine features are the caching and
+reuse of partial results, caching of the encountered input, and the
+ability to backtrack in both input and AST creation.</p>
+<p>These features make the specified virtual machine especially useful to
+packrat parsers based on parsing expression grammars. It is however
+not restricted to this type of parser. Normal LL and LR parsers can be
+implemented with it as well.</p>
+<p>The following sections will discuss first the abstract state kept by
+ME virtual machines, and then their instruction set.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">MACHINE STATE</a></h2>
+<p>A ME virtual machine manages the following state:</p>
+<dl class="doctools_definitions">
+<dt><i class="term">Current token</i> CT</dt>
+<dd><p>The token from the input under consideration by the machine.</p>
+<p>This information is used and modified by the instructions defined in
+the section
+<span class="sectref"><a href="#subsection1">TERMINAL MATCHING</a></span>.</p></dd>
+<dt><i class="term">Current location</i> CL</dt>
+<dd><p>The location of the <i class="term">current token</i> in the input stream, as
+offset relative to the beginning of the stream. The first token is
+considered to be at offset <b class="const">0</b>.</p>
+<p>This information is implicitly used and modified by the instructions
+defined in the sections
+<span class="sectref"><a href="#subsection1">TERMINAL MATCHING</a></span> and
+<span class="sectref"><a href="#subsection2">NONTERMINAL MATCHING</a></span>,
+and can be directly queried and modified by the instructions defined
+in section
+<span class="sectref"><a href="#subsection5">INPUT LOCATION HANDLING</a></span>.</p></dd>
+<dt><i class="term">Location stack</i> LS</dt>
+<dd><p>In addition to the above a stack of locations, for backtracking.
+Locations can put on the stack, removed from it, and removed with
+setting the current location.</p>
+<p>This information is implicitly used and modified by the instructions
+defined in the sections
+<span class="sectref"><a href="#subsection1">TERMINAL MATCHING</a></span> and
+<span class="sectref"><a href="#subsection2">NONTERMINAL MATCHING</a></span>,
+and can be directly queried and modified by the instructions defined
+in section
+<span class="sectref"><a href="#subsection5">INPUT LOCATION HANDLING</a></span>.</p></dd>
+<dt><i class="term">Match status</i> OK</dt>
+<dd><p>A boolean value, the result of the last attempt at matching input.
+It is set to <b class="const">true</b> if that attempt was successful, and
+<b class="const">false</b> otherwise.</p>
+<p>This information is influenced by the instructions defined in the
+sections
+<span class="sectref"><a href="#subsection1">TERMINAL MATCHING</a></span>,
+<span class="sectref"><a href="#subsection2">NONTERMINAL MATCHING</a></span>, and
+<span class="sectref"><a href="#subsection3">UNCONDITIONAL MATCHING</a></span>.
+It is queried by the instructions defined in the section
+<span class="sectref"><a href="#subsection4">CONTROL FLOW</a></span>.</p></dd>
+<dt><i class="term">Semantic value</i> SV</dt>
+<dd><p>The semantic value associated with (generated by) the last attempt at
+matching input. Contains either the empty string or a node for the
+abstract syntax tree constructed from the input.</p>
+<p>This information is influenced by the instructions defined in the
+sections
+<span class="sectref"><a href="#subsection7">SEMANTIC VALUES</a></span>, and
+<span class="sectref"><a href="#subsection8">AST STACK HANDLING</a></span>.</p></dd>
+<dt><i class="term">AST stack</i> AS</dt>
+<dd><p>A stack of partial abstract syntax trees constructed by the machine
+during matching.</p>
+<p>This information is influenced by the instructions defined in the
+sections
+<span class="sectref"><a href="#subsection7">SEMANTIC VALUES</a></span>, and
+<span class="sectref"><a href="#subsection8">AST STACK HANDLING</a></span>.</p></dd>
+<dt><i class="term">AST Marker stack</i> MS</dt>
+<dd><p>In addition to the above a stack of stacks, for backtracking. This is
+actually a stack of markers into the AST stack, thus implicitly
+snapshooting the state of the AST stack at some point in time. Markers
+can be put on the stack, dropped from it, and used to roll back the
+AST stack to an earlier state.</p>
+<p>This information is influenced by the instructions defined in the
+sections
+<span class="sectref"><a href="#subsection7">SEMANTIC VALUES</a></span>, and
+<span class="sectref"><a href="#subsection8">AST STACK HANDLING</a></span>.</p></dd>
+<dt><i class="term">Error status</i> ER</dt>
+<dd><p>Error information associated with the last attempt at matching
+input. Contains either the empty string or a list of 2 elements, a
+location in the input and a list of error messages associated with
+it, in this order.</p>
+<p><em>Note</em> that error information can be set even if the last attempt
+at matching input was successful. For example the *-operator (matching
+a sub-expression zero or more times) in a parsing expression grammar
+is always successful, even if it encounters a problem further in the
+input and has to backtrack. Such problems must not be forgotten when
+continuing to match.</p>
+<p>This information is queried and influenced by the instructions defined
+in the sections
+<span class="sectref"><a href="#subsection1">TERMINAL MATCHING</a></span>,
+<span class="sectref"><a href="#subsection2">NONTERMINAL MATCHING</a></span>, and
+<span class="sectref"><a href="#subsection6">ERROR HANDLING</a></span>.</p></dd>
+<dt><i class="term">Error stack</i> ES</dt>
+<dd><p>In addition to the above a stack of error information, to allow the
+merging of current and older error information when performing
+backtracking in choices after an unsucessful match.</p>
+<p>This information is queried and influenced by the instructions defined
+in the sections
+<span class="sectref"><a href="#subsection1">TERMINAL MATCHING</a></span>,
+<span class="sectref"><a href="#subsection2">NONTERMINAL MATCHING</a></span>, and
+<span class="sectref"><a href="#subsection6">ERROR HANDLING</a></span>.</p></dd>
+<dt><i class="term">Return stack</i> RS</dt>
+<dd><p>A stack of program counter values, i.e. locations in the code
+controlling the virtual machine, for the management of subroutine
+calls, i.e. the matching of nonterminal symbols.</p>
+<p>This information is queried and influenced by the instructions defined
+in the section
+<span class="sectref"><a href="#subsection2">NONTERMINAL MATCHING</a></span>.</p></dd>
+<dt><i class="term">Nonterminal cache</i> NC</dt>
+<dd><p>A cache of machine states (A 4-tuple containing a location in the
+input, match status <i class="term">OK</i>, semantic value <i class="term">SV</i>, and error
+status <i class="term">ER</i>) keyed by name of nonterminal symbol and location in
+the input stream.</p>
+<p>The key location is where machine started the attempt to match the
+named nonterminal symbol, and the location in the value is where
+machine ended up after the attempt completed, independent of the
+success of the attempt.</p>
+<p>This status is queried and influenced by the instructions defined in
+the section
+<span class="sectref"><a href="#subsection2">NONTERMINAL MATCHING</a></span>.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">MACHINE INSTRUCTIONS</a></h2>
+<p>With the machine state specified it is now possible to explain the
+instruction set of ME virtual machines. They are grouped roughly by
+the machine state they influence and/or query.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">TERMINAL MATCHING</a></h3>
+<p>First the instructions to match tokens from the input stream, and
+by extension all terminal symbols.</p>
+<p>These instructions are the only ones which may retrieve a new token
+from the input stream. This is a <em>may</em> and not a <em>will</em>
+because the instructions will a retrieve new token if, and only if the
+current location <i class="term">CL</i> is at the head of the stream.
+If the machine has backtracked (see <b class="cmd">icl_rewind</b>) the instructions
+will retrieve the token to compare against from the internal cache.</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">ict_advance</b> <i class="arg">message</i></dt>
+<dd><p>This instruction tries to advance to the next token in the input
+stream, i.e. the one after the current location <i class="term">CL</i>. The
+instruction will fail if, and only if the end of the input stream is
+reached, i.e. if there is no next token.</p>
+<p>The sucess/failure of the instruction is remembered in the match
+status <i class="term">OK</i>. In the case of failure the error status <i class="term">ER</i> is
+set to the current location and the message <i class="arg">message</i>.
+In the case of success the error status <i class="term">ER</i> is cleared, the new
+token is made the current token <i class="term">CT</i>, and the new location is
+made the current location <i class="term">CL</i>.</p>
+<p>The argument <i class="arg">message</i> is a reference to the string to put into
+the error status <i class="term">ER</i>, if such is needed.</p></dd>
+<dt><b class="cmd">ict_match_token</b> <i class="arg">tok</i> <i class="arg">message</i></dt>
+<dd><p>This instruction tests the current token <i class="term">CT</i> for equality
+with the argument <i class="arg">tok</i> and records the result in the match
+status <i class="term">OK</i>. The instruction fails if the current token is
+not equal to <i class="arg">tok</i>.</p>
+<p>In case of failure the error status <i class="term">ER</i> is set to the current
+location <i class="term">CL</i> and the message <i class="arg">message</i>, and the
+current location <i class="term">CL</i> is moved one token backwards.
+Otherwise, i.e. upon success, the error status <i class="term">ER</i> is cleared
+and the current location <i class="term">CL</i> is not touched.</p></dd>
+<dt><b class="cmd">ict_match_tokrange</b> <i class="arg">tokbegin</i> <i class="arg">tokend</i> <i class="arg">message</i></dt>
+<dd><p>This instruction tests the current token <i class="term">CT</i> for being in
+the range of tokens from <i class="arg">tokbegin</i> to <i class="arg">tokend</i>
+(inclusive) and records the result in the match status <i class="term">OK</i>. The
+instruction fails if the current token is not inside the range.</p>
+<p>In case of failure the error status <i class="term">ER</i> is set to the current
+location <i class="term">CL</i> and the message <i class="arg">message</i>, and the current location
+<i class="term">CL</i> is moved one token backwards.
+Otherwise, i.e. upon success, the error status <i class="term">ER</i> is cleared
+and the current location <i class="term">CL</i> is not touched.</p></dd>
+<dt><b class="cmd">ict_match_tokclass</b> <i class="arg">code</i> <i class="arg">message</i></dt>
+<dd><p>This instruction tests the current token <i class="term">CT</i> for being a member
+of the token class <i class="arg">code</i> and records the result in the match
+status <i class="term">OK</i>. The instruction fails if the current token is not a
+member of the specified class.</p>
+<p>In case of failure the error status <i class="term">ER</i> is set to the current
+location <i class="term">CL</i> and the message <i class="arg">message</i>, and the
+current location <i class="term">CL</i> is moved one token backwards.
+Otherwise, i.e. upon success, the error status <i class="term">ER</i> is cleared
+and the current location <i class="term">CL</i> is not touched.</p>
+<p>Currently the following classes are legal:</p>
+<dl class="doctools_definitions">
+<dt>alnum</dt>
+<dd><p>A token is accepted if it is a unicode alphabetical character, or a digit.</p></dd>
+<dt>alpha</dt>
+<dd><p>A token is accepted if it is a unicode alphabetical character.</p></dd>
+<dt>digit</dt>
+<dd><p>A token is accepted if it is a unicode digit character.</p></dd>
+<dt>xdigit</dt>
+<dd><p>A token is accepted if it is a hexadecimal digit character.</p></dd>
+<dt>punct</dt>
+<dd><p>A token is accepted if it is a unicode punctuation character.</p></dd>
+<dt>space</dt>
+<dd><p>A token is accepted if it is a unicode space character.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">NONTERMINAL MATCHING</a></h3>
+<p>The instructions in this section handle the matching of nonterminal
+symbols. They query the nonterminal cache <i class="term">NC</i> for saved
+information, and put such information into the cache.</p>
+<p>The usage of the cache is a performance aid for backtracking parsers,
+allowing them to avoid an expensive rematch of complex nonterminal
+symbols if they have been encountered before.</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">inc_restore</b> <i class="arg">branchlabel</i> <i class="arg">nt</i></dt>
+<dd><p>This instruction checks if the nonterminal cache <i class="term">NC</i> contains
+information about the nonterminal symbol <i class="arg">nt</i>, at the current
+location <i class="term">CL</i>. If that is the case the instruction will update
+the machine state (current location <i class="term">CL</i>, match status <i class="term">OK</i>,
+semantic value <i class="term">SV</i>, and error status <i class="term">ER</i>) with the found
+information and continue execution at the instruction refered to by
+the <i class="arg">branchlabel</i>. The new current location <i class="term">CL</i> will be the
+last token matched by the nonterminal symbol, i.e. belonging to it.</p>
+<p>If no information was found the instruction will continue execution at
+the next instruction.</p>
+<p>Together with <b class="cmd">icf_ntcall</b> it is possible to generate code for
+memoized and non-memoized matching of nonterminal symbols, either as
+subroutine calls, or inlined in the caller.</p></dd>
+<dt><b class="cmd">inc_save</b> <i class="arg">nt</i></dt>
+<dd><p>This instruction saves the current state of the machine (current
+location <i class="term">CL</i>, match status <i class="term">OK</i>, semantic value <i class="term">SV</i>,
+and error status <i class="term">ER</i>), to the nonterminal cache <i class="term">NC</i>. It
+will also pop an entry from the location stack <i class="term">LS</i> and save it
+as the start location of the match.</p>
+<p>It is expected to be called at the end of matching a nonterminal
+symbol, with <i class="arg">nt</i> the name of the nonterminal symbol the code was
+working on. This allows the instruction <b class="cmd">inc_restore</b> to check for
+and retrieve the data, should we have to match this nonterminal symbol
+at the same location again, during backtracking.</p></dd>
+<dt><b class="cmd">icf_ntcall</b> <i class="arg">branchlabel</i></dt>
+<dd><p>This instruction invokes the code for matching the nonterminal symbol
+<i class="arg">nt</i> as a subroutine. To this end it stores the current program
+counter <i class="term">PC</i> on the return stack <i class="term">RS</i>, the current location
+<i class="term">CL</i> on the location stack <i class="term">LS</i>, and then continues
+execution at the address <i class="arg">branchlabel</i>.</p>
+<p>The next matching <b class="cmd">icf_ntreturn</b> will cause the execution to
+continue at the instruction coming after the call.</p></dd>
+<dt><b class="cmd">icf_ntreturn</b></dt>
+<dd><p>This instruction will pop an entry from the return stack <i class="term">RS</i>,
+assign it to the program counter <i class="term">PC</i>, and then continue
+execution at the new address.</p></dd>
+</dl>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">UNCONDITIONAL MATCHING</a></h3>
+<p>The instructions in this section are the remaining match
+operators. They change the match status <i class="term">OK</i> directly and
+unconditionally.</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">iok_ok</b></dt>
+<dd><p>This instruction sets the match status <i class="term">OK</i> to <b class="const">true</b>,
+indicating a successful match.</p></dd>
+<dt><b class="cmd">iok_fail</b></dt>
+<dd><p>This instruction sets the match status <i class="term">OK</i> to <b class="const">false</b>,
+indicating a failed match.</p></dd>
+<dt><b class="cmd">iok_negate</b></dt>
+<dd><p>This instruction negates the match status <i class="term">OK</i>, turning a failure
+into a success and vice versa.</p></dd>
+</dl>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">CONTROL FLOW</a></h3>
+<p>The instructions in this section implement both conditional and
+unconditional control flow. The conditional jumps query the match
+status <i class="term">OK</i>.</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">icf_jalways</b> <i class="arg">branchlabel</i></dt>
+<dd><p>This instruction sets the program counter <i class="term">PC</i> to the address
+specified by <i class="arg">branchlabel</i> and then continues execution from
+there. This is an unconditional jump.</p></dd>
+<dt><b class="cmd">icf_jok</b> <i class="arg">branchlabel</i></dt>
+<dd><p>This instruction sets the program counter <i class="term">PC</i> to the address
+specified by <i class="arg">branchlabel</i>. This happens if, and only if the match
+status <i class="term">OK</i> indicates a success. Otherwise it simply continues
+execution at the next instruction. This is a conditional jump.</p></dd>
+<dt><b class="cmd">icf_jfail</b> <i class="arg">branchlabel</i></dt>
+<dd><p>This instruction sets the program counter <i class="term">PC</i> to the address
+specified by <i class="arg">branchlabel</i>. This happens if, and only if the match
+status <i class="term">OK</i> indicates a failure. Otherwise it simply continues
+execution at the next instruction. This is a conditional jump.</p></dd>
+<dt><b class="cmd">icf_halt</b></dt>
+<dd><p>This instruction halts the machine and blocks any further execution.</p></dd>
+</dl>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">INPUT LOCATION HANDLING</a></h3>
+<p>The instructions in this section are for backtracking, they manipulate
+the current location <i class="term">CL</i> of the machine state.
+They allow a user of the machine to query and save locations in the
+input, and to rewind the current location <i class="term">CL</i> to saved
+locations, making them one of the components enabling the
+implementation of backtracking parsers.</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">icl_push</b></dt>
+<dd><p>This instruction pushes a copy of the current location <i class="term">CL</i> on
+the location stack <i class="term">LS</i>.</p></dd>
+<dt><b class="cmd">icl_rewind</b></dt>
+<dd><p>This instruction pops an entry from the location stack <i class="term">LS</i> and
+then moves the current location <i class="term">CL</i> back to this point in the
+input.</p></dd>
+<dt><b class="cmd">icl_pop</b></dt>
+<dd><p>This instruction pops an entry from the location stack <i class="term">LS</i> and
+discards it.</p></dd>
+</dl>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">ERROR HANDLING</a></h3>
+<p>The instructions in this section provide read and write access to the
+error status <i class="term">ER</i> of the machine.</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">ier_push</b></dt>
+<dd><p>This instruction pushes a copy of the current error status <i class="term">ER</i>
+on the error stack <i class="term">ES</i>.</p></dd>
+<dt><b class="cmd">ier_clear</b></dt>
+<dd><p>This instruction clears the error status <i class="term">ER</i>.</p></dd>
+<dt><b class="cmd">ier_nonterminal</b> <i class="arg">message</i></dt>
+<dd><p>This instruction checks if the error status <i class="term">ER</i> contains an
+error whose location is just past the location found in the top entry
+of the location stack <i class="term">LS</i>.
+Nothing happens if no such error is found.
+Otherwise the found error is replaced by an error at the location
+found on the stack, having the message <i class="arg">message</i>.</p></dd>
+<dt><b class="cmd">ier_merge</b></dt>
+<dd><p>This instruction pops an entry from the error stack <i class="term">ES</i>, merges
+it with the current error status <i class="term">ER</i> and stores the result of
+the merge as the new error status <i class="term">ER</i>.</p>
+<p>The merge is performed as described below:</p>
+<p>If one of the two error states is empty the other is chosen. If
+neither error state is empty, and refering to different locations,
+then the error state with the location further in the input is
+chosen. If both error states refer to the same location their messages
+are merged (with removing duplicates).</p></dd>
+</dl>
+</div>
+<div id="subsection7" class="doctools_subsection"><h3><a name="subsection7">SEMANTIC VALUES</a></h3>
+<p>The instructions in this section manipulate the semantic value
+<i class="term">SV</i>.</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">isv_clear</b></dt>
+<dd><p>This instruction clears the semantic value <i class="term">SV</i>.</p></dd>
+<dt><b class="cmd">isv_terminal</b></dt>
+<dd><p>This instruction creates a terminal AST node for the current token
+<i class="term">CT</i>, makes it the semantic value <i class="term">SV</i>, and also pushes the
+node on the AST stack <i class="term">AS</i>.</p></dd>
+<dt><b class="cmd">isv_nonterminal_leaf</b> <i class="arg">nt</i></dt>
+<dd><p>This instruction creates a nonterminal AST node without any children
+for the nonterminal <i class="arg">nt</i>, and makes it the semantic value
+<i class="term">SV</i>.</p>
+<p>This instruction should be executed if, and only if the match status
+<i class="term">OK</i> indicates a success.
+In the case of a failure <b class="cmd">isv_clear</b> should be called.</p></dd>
+<dt><b class="cmd">isv_nonterminal_range</b> <i class="arg">nt</i></dt>
+<dd><p>This instruction creates a nonterminal AST node for the nonterminal
+<i class="arg">nt</i>, with a single terminal node as its child, and makes this AST
+the semantic value <i class="term">SV</i>. The terminal node refers to the input
+string from the location found on top of the location stack <i class="term">LS</i>
+to the current location <i class="term">CL</i> (both inclusive).</p>
+<p>This instruction should be executed if, and only if the match status
+<i class="term">OK</i> indicates a success.
+In the case of a failure <b class="cmd">isv_clear</b> should be called.</p></dd>
+<dt><b class="cmd">isv_nonterminal_reduce</b> <i class="arg">nt</i></dt>
+<dd><p>This instruction creates a nonterminal AST node for the nonterminal
+<i class="arg">nt</i> and makes it the semantic value <i class="term">SV</i>.</p>
+<p>All entries on the AST stack <i class="term">AS</i> above the marker found in the
+top entry of the AST Marker stack <i class="term">MS</i> become children of the new
+node, with the entry at the stack top becoming the rightmost child. If
+the AST Marker stack <i class="term">MS</i> is empty the whole stack is used. The
+AST marker stack <i class="term">MS</i> is left unchanged.</p>
+<p>This instruction should be executed if, and only if the match status
+<i class="term">OK</i> indicates a success.
+In the case of a failure <b class="cmd">isv_clear</b> should be called.</p></dd>
+</dl>
+</div>
+<div id="subsection8" class="doctools_subsection"><h3><a name="subsection8">AST STACK HANDLING</a></h3>
+<p>The instructions in this section manipulate the AST stack <i class="term">AS</i>,
+and the AST Marker stack <i class="term">MS</i>.</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">ias_push</b></dt>
+<dd><p>This instruction pushes the semantic value <i class="term">SV</i> on the AST stack
+<i class="term">AS</i>.</p></dd>
+<dt><b class="cmd">ias_mark</b></dt>
+<dd><p>This instruction pushes a marker for the current state of the AST
+stack <i class="term">AS</i> on the AST Marker stack <i class="term">MS</i>.</p></dd>
+<dt><b class="cmd">ias_mrewind</b></dt>
+<dd><p>This instruction pops an entry from the AST Marker stack <i class="term">MS</i> and
+then proceeds to pop entries from the AST stack <i class="term">AS</i> until the
+state represented by the popped marker has been reached again.
+Nothing is done if the AST stack <i class="term">AS</i> is already smaller than
+indicated by the popped marker.</p></dd>
+<dt><b class="cmd">ias_mpop</b></dt>
+<dd><p>This instruction pops an entry from the AST Marker stack <i class="term">MS</i> and
+discards it.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>grammar_me</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key11">grammar</a>, <a href="../../../../index.html#key26">parsing</a>, <a href="../../../../index.html#key24">virtual machine</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Grammars and finite automata</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

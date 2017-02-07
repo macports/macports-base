@@ -1,0 +1,36 @@
+<!-- Generated from file '.FILE.' by tcllib/doctools with format 'tmml' -->
+<manpage id='.FILE' cat='cmd' title='TEST' version='3.14.15.926' package='.MODULE.'>
+<head>
+<info key='copyright' value='Copyright (c) .COPYRIGHT.'/>
+</head>
+<namesection>
+<name>TEST</name>
+<desc>..THE_TITLE..</desc>
+
+</namesection>
+
+
+
+
+
+
+
+<synopsis>
+<syntax>
+package require <package>AAA</package> 
+package require <package>BBB</package> VVV
+</syntax>
+</synopsis>
+<section id='section1'>
+<title>DESCRIPTION</title>
+</section>
+<seealso>
+<ref>OTHER</ref>
+<ref>ELSE</ref>
+</seealso>
+<keywords>
+<keyword>KEYA</keyword>
+<keyword>KEYZ</keyword>
+</keywords>
+
+</manpage>

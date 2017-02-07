@@ -1,0 +1,5 @@
+# -*- tcl -*-
+# This file is not required as the .test file already does all the
+# tests without the need for an additional sourced control file.
+# We have it here just as a reminder.
+return

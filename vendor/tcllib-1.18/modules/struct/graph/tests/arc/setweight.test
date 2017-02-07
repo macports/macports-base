@@ -1,0 +1,71 @@
+# -*- tcl -*-
+# Graph tests - arc setweight
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: setweight.test,v 1.1 2008/10/11 23:23:48 andreas_kupries Exp $
+
+# Syntax: graph arc setweight
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-arc-setweight-1.0 {arc setweight, wrong#args, missing} {
+    SETUP
+    catch {mygraph arc setweight} res
+    mygraph destroy
+    set res
+} [tmWrong {arc setweight} {arc weight} 0]
+
+test graph-${impl}-${setimpl}-arc-setweight-1.1 {arc setweight, wrong#args, missing} {
+    SETUP
+    catch {mygraph arc setweight a} res
+    mygraph destroy
+    set res
+} [tmWrong {arc setweight} {arc weight} 0]
+
+test graph-${impl}-${setimpl}-arc-setweight-1.2 {arc setweight, wrong#args, too many} {
+    SETUP
+    catch {mygraph arc setweight a b c} res
+    mygraph destroy
+    set res
+} [tmTooMany {arc setweight} {arc weight}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-arc-setweight-2.0 {arc setweight, missing arc} {
+    SETUP
+    catch {mygraph arc setweight a 1} res
+    mygraph destroy
+    set res
+} [MissingArc $MY a]
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-arc-setweight-3.0 {arc setweight, arc, set new weight} {
+    SETUP
+    mygraph node insert 0
+    mygraph arc  insert 0 0 a
+    set res [mygraph arc hasweight a]
+    mygraph arc  setweight a 2
+    lappend res [mygraph arc hasweight a]
+    lappend res [mygraph arc getweight a]
+    mygraph destroy
+    set res
+} {0 1 2}
+
+test graph-${impl}-${setimpl}-arc-setweight-3.1 {arc setweight, arc, replace existing weight} {
+    SETUP
+    mygraph node insert 0
+    mygraph arc  insert 0 0 a
+    mygraph arc  setweight a 2
+    set res [mygraph arc hasweight a]
+    mygraph arc  setweight a 3
+    lappend res [mygraph arc hasweight a]
+    lappend res [mygraph arc getweight a]
+    mygraph destroy
+    set res
+} {1 1 3}
+
+# -------------------------------------------------------------------------

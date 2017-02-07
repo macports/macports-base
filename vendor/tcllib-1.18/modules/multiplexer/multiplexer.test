@@ -1,0 +1,218 @@
+# -*- tcl -*-
+# Tests for the multiplexer facility.
+#
+# Sourcing this file into Tcl runs the tests and generates output for
+# errors.
+# No output means no errors were found.
+#
+# Copyright (c) 2003 by David N. Welton <davidw@dedasys.com>.
+#
+# $Id: multiplexer.test,v 1.11 2011/11/14 18:49:27 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal multiplexer.tcl multiplexer
+}
+
+# -------------------------------------------------------------------------
+
+test multiplexer-1.0 {create multiplexer} {
+    set mp [multiplexer::create]
+    set ns [namespace children ::multiplexer]
+    ${mp}::destroy
+    set ns
+} {::multiplexer::mp0}
+
+test multiplexer-1.1 {destroy multiplexer} {
+    set mp [multiplexer::create]
+    ${mp}::destroy
+    namespace children multiplexer
+} {}
+
+test multiplexer-2.1 {start multiplexer} {
+    set mp [multiplexer::create]
+    ${mp}::Init 37465
+    set res ""
+    if { [catch {
+	set sk [socket localhost 37465]
+    } err] } { set res $err }
+    ${mp}::destroy
+    set res
+} {}
+
+test multiplexer-2.2 {start & destroy multiplexer} {tcl8.3plus} {
+    set mp [multiplexer::create]
+    set startchans [lsort [file channels]]
+    ${mp}::Init 37465
+
+    set sk [socket localhost 37465]
+    catch { close $sk }
+
+    ${mp}::destroy
+    set chans [lsort [file channels]]
+    string compare $chans $startchans
+} {0}
+
+
+
+proc Get {chan} {
+    gets $chan line
+    if { [info exists ::forever] } {
+	incr ::forever
+    } else {
+	set ::forever 1
+    }
+}
+
+test multiplexer-3.1 {send multiplexer - line buffered} {
+    set ::forever 0
+    set mp [multiplexer::create]
+    ${mp}::Init 37465
+    set sk1 [socket localhost 37465]
+    set sk2 [socket localhost 37465]
+    set sk3 [socket localhost 37465]
+    fileevent $sk2 readable [list Get $sk2]
+    fileevent $sk3 readable [list Get $sk3]
+
+    fconfigure $sk1 -buffering line
+    fconfigure $sk2 -buffering line
+    fconfigure $sk3 -buffering line
+
+    update
+    puts $sk1 "Multiplexer test message 3.1"
+    # Each socket should receive a copy of the above message, so we
+    # have to vwait's.
+    vwait ::forever
+    vwait ::forever
+    ${mp}::destroy
+    set ::forever
+} {2}
+
+proc Get2 {chan} {
+    set line [read -nonewline $chan]
+    if { [info exists ::forever] } {
+	incr ::forever
+    } else {
+	set ::forever 1
+    }
+}
+
+test multiplexer-3.2 {send multiplexer - not buffered} {
+    set ::forever 0
+    set mp [multiplexer::create]
+    ${mp}::Init 37465
+    set sk1 [socket localhost 37465]
+    set sk2 [socket localhost 37465]
+    set sk3 [socket localhost 37465]
+    fileevent $sk2 readable [list Get2 $sk2]
+    fileevent $sk3 readable [list Get2 $sk3]
+
+    fconfigure $sk1 -buffering none
+    fconfigure $sk2 -buffering none -blocking 0
+    fconfigure $sk3 -buffering none -blocking 0
+
+    update
+    puts -nonewline $sk1 "Multiplexer test message 3.2"
+    # Each socket should receive a copy of the above message, so we
+    # have to vwait's.
+    vwait ::forever
+    vwait ::forever
+    ${mp}::destroy
+    set ::forever
+} {2}
+
+
+proc TestFilter {data chan clientaddress clientport} {
+    #puts "$data $chan $clientaddress $clientport"
+    return "Filtered data: $data"
+}
+
+proc Get3 {chan} {
+    gets $chan line
+    set ::forever $line
+}
+
+test multiplexer-4.1 {add filter} {
+    set ::forever 0
+    set mp [multiplexer::create]
+    ${mp}::Init 37465
+    ${mp}::AddFilter TestFilter
+    set sk1 [socket localhost 37465]
+    set sk2 [socket localhost 37465]
+    fileevent $sk2 readable [list Get3 $sk2]
+
+    fconfigure $sk1 -buffering line
+    fconfigure $sk2 -buffering line
+
+    update
+    puts $sk1 "Multiplexer test message 4.1"
+    # Each socket should receive a copy of the above message, so we
+    # have to vwait's.
+    vwait ::forever
+    ${mp}::destroy
+    set ::forever
+} {Filtered data: Multiplexer test message 4.1}
+
+proc TestAccessFilter {chan clientaddress clientport} {
+    lappend ::forever $clientaddress
+    return 0
+}
+
+test multiplexer-5.1 {add access filter} {
+    set ::forever {}
+    set mp [multiplexer::create]
+    ${mp}::Init 37465
+    ${mp}::AddAccessFilter TestAccessFilter
+    update
+    set sk1 [socket localhost 37465]
+    set sk2 [socket localhost 37465]
+
+    vwait ::forever
+    vwait ::forever
+    ${mp}::destroy
+
+    expr {
+	  [string match {127.*.*.* 127.*.*.*} $::forever] ||
+	  [string equal {::1 ::1}             $::forever]
+      }
+} 1
+
+proc DenyAccessFilter {chan clientaddress clientport} {
+    return -1
+}
+
+test multiplexer-5.2 {add access filter which denies access} {
+    set ::forever {}
+    set mp [multiplexer::create]
+    ${mp}::Init 37465
+    ${mp}::AddAccessFilter DenyAccessFilter
+    set sk1 [socket localhost 37465]
+    after idle {
+	update
+	fconfigure $sk1 -buffering none
+	if { [catch {
+	    puts $sk1 "boom"
+	    after 200	;# delay to overcome nagle - see ticket [ced089d5fe]
+	    puts $sk1 "tish"
+	} err] } {
+	    set ::forever "socket blocked"
+	} else {
+	    set ::forever "socket not blocked"
+	}
+    }
+    vwait ::forever
+    ${mp}::destroy
+    set forever
+} {socket blocked}
+
+
+testsuiteCleanup
+return

@@ -1,0 +1,194 @@
+2014-01-21  Andreas Kupries <andreask@activestate.com>
+
+	* pkgIndex.tcl: Ticket [861f53ff24]. Added proper initialization
+	* sal.tcl: to CreateNonce when falling back to md5 (no
+	* sasl.man: dev/urandom). Bumped version to 1.3.3.
+
+2013-12-07  Andreas Kupries <andreask@activestate.com>
+
+	* gtoken.man: Added mini manpages for the SASL mechanisms
+	* ntlm.man: residing in their own packages. They mainly
+	* scram.man: refer back to the main SASL documentation.
+
+2013-12-06  Andreas Kupries <andreask@activestate.com>
+
+	* ntlm.tcl: [Ticket 5030721806]: Applied the supplied diff,
+	* ntlm.test: removed 'domain' flag from defaults for a Type 1
+	* pkgIndex.tcl: greeting message. Updated testsuite. Bumped
+	  version to 1.1.2
+
+2013-12-06  Andreas Kupries  <andreask@activestate.com>
+
+	* sasl.man: Ticket [b8f35b9883]. Added references for SCRAM mechanism
+	* sasl.test: and package. Fixed missing cleanup of test variable.
+	* scram.tcl: New package SASL::SCRAM and testsuite, provided
+	* scram.test: by <sgolovan@nes.ru>
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-01-29  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sasl.tcl: Added support for the 'charset' parameter in DIGEST-MD5
+	for gsasl servers which are picky about this.
+	* sasl.tcl: digest-md5 noncecount parameter moved into context
+	array so it is only used for maintained connections.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-26  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sasl.tcl: Fix bug #1545306 noncecount mishandled in DIGEST-MD5.
+	Enable support for re-authentication in client via SASL::reset
+	* ntlm.tcl: Applied patch #1653431 to make use of the returned NT
+	domain if present.
+	* gtoken.tcl: Applied patch #1774859 from Sergei Golovan to handle
+	failed authentication.
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sasl.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-10-02  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sasl.tcl (::SASL::CreateNonce): Acquire random data from
+	/dev/urandom to avoid blocking.
+	* pkgIndex.tcl: Increment patchlevel
+	
+2006-09-14  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* ntlm.tcl:     bug 1557494 - added support for OEM-type
+	* ntlm.test:    NTLM packets (provided by Mark Janssen)
+	* pkgIndex.tcl: Increment NTLM version to 1.1.0
+
+2006-09-02  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sasl.tcl:     Incremented package version to 1.3.0, updated
+	* sasl.man:     the manual page to cover the OTP mechanism
+	* sasl.test:    and added a test for OTP client functionality.
+	* pkgIndex.tcl:
+
+2006-09-01  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sasl.tcl:   Support OTP mechanism (depends upon the otp module).
+	              client only, awaiting tests.
+
+2006-04-26  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* all:        Incremented version to 1.2.0
+	* sasl.man:   Updated documentation.
+	* sasl.tcl:   Implemented DIGEST-MD5 server. Enhanced the mechanisms
+	              command so we can obtain either client or server
+	              mechanisms. Added a threshold value to the mechanisms
+		      command to set minimum security. Changed register to
+	              uniquely register mechanisms to permit re-sourcing
+		      the script.
+	
+2006-04-20  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sasl.tcl:   Applied patch for #1412021 from Sergei Golovan to
+	* sasl.test:  make sure the service is set. Added test.
+	
+	* all:        Incremented SASL version to 1.1.0
+	* sasl.tcl:   Fixed the common mechanisms to all do the right
+	* sasl.test:  thing when handed an empty challenge. The client
+	              should always begin with SASL::step $ctx "" to see
+	              if there is anything to send in the initial round.
+	* gtoken.tcl: Support the X-GOOGLE-TOKEN SASL mechanism. Done
+	* sasl.man:   as separate package due to additional dependencies
+	              (http and tls required)
+
+2006-01-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sasl.test: More boilerplate simplified via use of test support.
+	* ntlm.test: (And hooked into the new common test support code).
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sasl.test: Hooked into the new common test support code.
+
+2005-10-11  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* ntlm.tcl: bug #1323295 - NTLM requires little endian unicode
+	strings. Fixed generation on big-endian systems (eg: sparc).
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-10-06  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sasl.man:  Added documentation.
+
+2005-10-05  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* ntlm.tcl:  Use tcllib 1.8 des module. Added NTLM tests. Fix to
+	* ntlm.test: work with tcl 8.2.
+
+2005-09-19  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sasl.tcl: Fixed 8.4isms and specified requirement to Tcl 8.2
+
+2005-04-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* saslclient.tcl: Moved example out of the module into a new
+	  directory 'sasl/' under the examples tree.
+
+2005-02-11  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sasl.test:  Added some tests.
+	* sasl.tcl:   Changed namespace and package to SASL.
+	* ntlm.tcl:   
+
+2005-01-20  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sasl.tcl: Initial version (DIGEST-MD5, CRAM-MD5, PLAIN, LOGIN)
+	* ntlm.tcl: Implementation of Microsoft NTLM as SASL mechanism.
+	* saslclient.tcl: SMTP-SASL test harness.
+	

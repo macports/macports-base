@@ -1,0 +1,5 @@
+pt::grammar::peg
+    start := /
+                 'a'
+                 <epsilon>
+    rules

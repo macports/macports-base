@@ -1,0 +1,344 @@
+
+<div class='fossil-doc' data-title='pt::ast - Parser Tools'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">pt::ast(n) 1.1 tcllib &quot;Parser Tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>pt::ast - Abstract Syntax Tree Serialization</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">AST serialization format</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Example</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">pt::ast <span class="opt">?1.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::pt::ast</b> <b class="method">verify</b> <i class="arg">serial</i> <span class="opt">?<i class="arg">canonvar</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::pt::ast</b> <b class="method">verify-as-canonical</b> <i class="arg">serial</i></a></li>
+<li><a href="#3"><b class="cmd">::pt::ast</b> <b class="method">canonicalize</b> <i class="arg">serial</i></a></li>
+<li><a href="#4"><b class="cmd">::pt::ast</b> <b class="method">print</b> <i class="arg">serial</i></a></li>
+<li><a href="#5"><b class="cmd">::pt::ast</b> <b class="method">bottomup</b> <i class="arg">cmdprefix</i> <i class="arg">ast</i></a></li>
+<li><a href="#6"><b class="cmd">cmdprefix</b> <i class="arg">ast</i></a></li>
+<li><a href="#7"><b class="cmd">::pt::ast</b> <b class="method">topdown</b> <i class="arg">cmdprefix</i> <i class="arg">pe</i></a></li>
+<li><a href="#8"><b class="cmd">::pt::ast</b> <b class="method">equal</b> <i class="arg">seriala</i> <i class="arg">serialb</i></a></li>
+<li><a href="#9"><b class="cmd">::pt::ast</b> <b class="method">new0</b> <i class="arg">s</i> <i class="arg">loc</i> <span class="opt">?<i class="arg">child</i>...?</span></a></li>
+<li><a href="#10"><b class="cmd">::pt::ast</b> <b class="method">new</b> <i class="arg">s</i> <i class="arg">start</i> <i class="arg">end</i> <span class="opt">?<i class="arg">child</i>...?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Are you lost ?
+Do you have trouble understanding this document ?
+In that case please read the overview provided by the
+<i class="term"><a href="pt_introduction.html">Introduction to Parser Tools</a></i>. This document is the
+entrypoint to the whole system the current package is a part of.</p>
+<p>This package provides commands to work with the serializations of
+abstract syntax trees as managed by the Parser Tools, and specified in
+section <span class="sectref"><a href="#section3">AST serialization format</a></span>.</p>
+<p>This is a supporting package in the Core Layer of Parser Tools.</p>
+<p><img alt="arch_core_support" src="../../../../image/arch_core_support.png"></p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::pt::ast</b> <b class="method">verify</b> <i class="arg">serial</i> <span class="opt">?<i class="arg">canonvar</i>?</span></a></dt>
+<dd><p>This command verifies that the content of <i class="arg">serial</i> is a valid
+serialization of an abstract syntax tree and will throw an error if
+that is not the case. The result of the command is the empty string.</p>
+<p>If the argument <i class="arg">canonvar</i> is specified it is interpreted as the
+name of a variable in the calling context. This variable will be
+written to if and only if <i class="arg">serial</i> is a valid regular
+serialization. Its value will be a boolean, with <b class="const">True</b>
+indicating that the serialization is not only valid, but also
+<i class="term">canonical</i>. <b class="const">False</b> will be written for a valid, but
+non-canonical serialization.</p>
+<p>For the specification of serializations see the section
+<span class="sectref"><a href="#section3">AST serialization format</a></span>.</p></dd>
+<dt><a name="2"><b class="cmd">::pt::ast</b> <b class="method">verify-as-canonical</b> <i class="arg">serial</i></a></dt>
+<dd><p>This command verifies that the content of <i class="arg">serial</i> is a valid
+<i class="term">canonical</i> serialization of an abstract syntax tree and will
+throw an error if that is not the case. The result of the command is
+the empty string.</p>
+<p>For the specification of canonical serializations see the section
+<span class="sectref"><a href="#section3">AST serialization format</a></span>.</p></dd>
+<dt><a name="3"><b class="cmd">::pt::ast</b> <b class="method">canonicalize</b> <i class="arg">serial</i></a></dt>
+<dd><p>This command assumes that the content of <i class="arg">serial</i> is a valid
+<i class="term">regular</i> serialization of an abstract syntax and will throw an
+error if that is not the case.</p>
+<p>It will then convert the input into the <i class="term">canonical</i> serialization
+of the contained tree and return it as its result. If the input is
+already canonical it will be returned unchanged.</p>
+<p>For the specification of regular and canonical serializations see the
+section <span class="sectref"><a href="#section3">AST serialization format</a></span>.</p></dd>
+<dt><a name="4"><b class="cmd">::pt::ast</b> <b class="method">print</b> <i class="arg">serial</i></a></dt>
+<dd><p>This command assumes that the argument <i class="arg">serial</i> contains a valid
+serialization of an abstract syntax tree and returns a string
+containing that tree in a human readable form.</p>
+<p>The exact format of this form is not specified and cannot be relied on
+for parsing or other machine-based activities.</p>
+<p>For the specification of serializations see the section
+<span class="sectref"><a href="#section3">AST serialization format</a></span>.</p></dd>
+<dt><a name="5"><b class="cmd">::pt::ast</b> <b class="method">bottomup</b> <i class="arg">cmdprefix</i> <i class="arg">ast</i></a></dt>
+<dd><p>This command walks the abstract syntax tree <i class="arg">ast</i> from the bottom
+up to the root, invoking the command prefix <i class="arg">cmdprefix</i> for each
+node. This implies that the children of a node N are handled before N.</p>
+<p>The command prefix has the signature</p>
+<dl class="doctools_definitions">
+<dt><a name="6"><b class="cmd">cmdprefix</b> <i class="arg">ast</i></a></dt>
+<dd><p>I.e. it is invoked with the ast node the walk is currently at.</p>
+<p>The result returned by the command prefix replaces <i class="arg">ast</i> in the
+node it was a child of, allowing transformations of the tree.</p>
+<p>This also means that for all inner node the contents of the children
+elements are the results of the command prefix invoked for the
+children of this node.</p></dd>
+</dl></dd>
+<dt><a name="7"><b class="cmd">::pt::ast</b> <b class="method">topdown</b> <i class="arg">cmdprefix</i> <i class="arg">pe</i></a></dt>
+<dd><p>This command walks the abstract syntax tree <i class="arg">ast</i> from the root
+down to the leaves, invoking the command prefix <i class="arg">cmdprefix</i> for
+each node. This implies that the children of a node N are handled
+after N.</p>
+<p>The command prefix has the same signature as for <b class="method">bottomup</b>,
+see above.</p>
+<p>The result returned by the command prefix is <em>ignored</em>.</p></dd>
+<dt><a name="8"><b class="cmd">::pt::ast</b> <b class="method">equal</b> <i class="arg">seriala</i> <i class="arg">serialb</i></a></dt>
+<dd><p>This command tests the two sbstract syntax trees <i class="arg">seriala</i> and
+<i class="arg">serialb</i> for structural equality. The result of the command is a
+boolean value. It will be set to <b class="const">true</b> if the trees are
+identical, and <b class="const">false</b> otherwise.</p>
+<p>String equality is usable only if we can assume that the two trees are
+pure Tcl lists.</p></dd>
+<dt><a name="9"><b class="cmd">::pt::ast</b> <b class="method">new0</b> <i class="arg">s</i> <i class="arg">loc</i> <span class="opt">?<i class="arg">child</i>...?</span></a></dt>
+<dd><p>This command command constructs the ast for a nonterminal node
+refering refering to the symbol <i class="arg">s</i> at position <i class="arg">loc</i> in the
+input, and the set of child nodes <i class="arg">child</i> ..., from left
+right. The latter may be empty. The constructed node is returned as
+the result of the command. The end position is <i class="arg">loc</i>-1, i.e. one
+character before the start. This type of node is possible for rules
+containing optional parts.</p></dd>
+<dt><a name="10"><b class="cmd">::pt::ast</b> <b class="method">new</b> <i class="arg">s</i> <i class="arg">start</i> <i class="arg">end</i> <span class="opt">?<i class="arg">child</i>...?</span></a></dt>
+<dd><p>This command command constructs the ast for a nonterminal node
+refering to the symbol <i class="arg">s</i> covering the range of positions
+<i class="arg">start</i> to <i class="arg">end</i> in the input, and the set of child nodes
+<i class="arg">child</i> ..., from left right. The latter may be empty. The
+constructed node is returned as the result of the command.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">AST serialization format</a></h2>
+<p>Here we specify the format used by the Parser Tools to serialize
+Abstract Syntax Trees (ASTs) as immutable values for transport,
+comparison, etc.</p>
+<p>Each node in an AST represents a nonterminal symbol of a grammar, and
+the range of tokens/characters in the input covered by it. ASTs do not
+contain terminal symbols, i.e. tokens/characters. These can be
+recovered from the input given a symbol's location.</p>
+<p>We distinguish between <i class="term">regular</i> and <i class="term">canonical</i>
+serializations.
+While a tree may have more than one regular serialization only exactly
+one of them will be <i class="term">canonical</i>.</p>
+<dl class="doctools_definitions">
+<dt>Regular serialization</dt>
+<dd><ol class="doctools_enumerated">
+<li><p>The serialization of any AST is the serialization of its root node.</p></li>
+<li><p>The serialization of any node is a Tcl list containing at least three
+elements.</p>
+<ol class="doctools_enumerated">
+<li><p>The first element is the name of the nonterminal symbol stored in the
+node.</p></li>
+<li><p>The second and third element are the locations of the first and last
+token in the token stream the node represents (covers).</p>
+<ol class="doctools_enumerated">
+<li><p>Locations are provided as non-negative integer offsets from the
+beginning of the token stream, with the first token found in the
+stream located at offset 0 (zero).</p></li>
+<li><p>The end location has to be equal to or larger than the start location.</p></li>
+</ol>
+</li>
+<li><p>All elements after the first three represent the children of the node,
+which are themselves nodes. This means that the serializations of
+nodes without children, i.e. leaf nodes, have exactly three elements.
+The children are stored in the list with the leftmost child first, and
+the rightmost child last.</p></li>
+</ol>
+</li>
+</ol></dd>
+<dt>Canonical serialization</dt>
+<dd><p>The canonical serialization of an abstract syntax tree has the format
+as specified in the previous item, and then additionally satisfies the
+constraints below, which make it unique among all the possible
+serializations of this tree.</p>
+<ol class="doctools_enumerated">
+<li><p>The string representation of the value is the canonical representation
+of a pure Tcl list. I.e. it does not contain superfluous whitespace.</p></li>
+</ol></dd>
+</dl>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Example</a></h3>
+<p>Assuming the parsing expression grammar below</p>
+<pre class="doctools_example">
+PEG calculator (Expression)
+    Digit      &lt;- '0'/'1'/'2'/'3'/'4'/'5'/'6'/'7'/'8'/'9'       ;
+    Sign       &lt;- '-' / '+'                                     ;
+    Number     &lt;- Sign? Digit+                                  ;
+    Expression &lt;- Term (AddOp Term)*                            ;
+    MulOp      &lt;- '*' / '/'                                     ;
+    Term       &lt;- Factor (MulOp Factor)*                        ;
+    AddOp      &lt;- '+'/'-'                                       ;
+    Factor     &lt;- '(' Expression ')' / Number                   ;
+END;
+</pre>
+<p>and the input string</p>
+<pre class="doctools_example"> 120+5 </pre>
+<p>then a parser should deliver the abstract syntax tree below (except for whitespace)</p>
+<pre class="doctools_example">
+set ast {Expression 0 4
+    {Factor 0 4
+        {Term 0 2
+            {Number 0 2
+                {Digit 0 0}
+                {Digit 1 1}
+                {Digit 2 2}
+            }
+        }
+        {AddOp 3 3}
+        {Term 4 4
+            {Number 4 4
+                {Digit 4 4}
+            }
+        }
+    }
+}
+</pre>
+<p>Or, more graphical</p>
+<p><img alt="expr_ast" src="../../../../image/expr_ast.png"></p>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>pt</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key3">EBNF</a>, <a href="../../../../index.html#key15">LL(k)</a>, <a href="../../../../index.html#key6">PEG</a>, <a href="../../../../index.html#key7">TDPL</a>, <a href="../../../../index.html#key4">context-free languages</a>, <a href="../../../../index.html#key0">expression</a>, <a href="../../../../index.html#key11">grammar</a>, <a href="../../../../index.html#key5">matching</a>, <a href="../../../../index.html#key9">parser</a>, <a href="../../../../index.html#key8">parsing expression</a>, <a href="../../../../index.html#key14">parsing expression grammar</a>, <a href="../../../../index.html#key1">push down automaton</a>, <a href="../../../../index.html#key10">recursive descent</a>, <a href="../../../../index.html#key2">state</a>, <a href="../../../../index.html#key13">top-down parsing languages</a>, <a href="../../../../index.html#key12">transducer</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Parsing and Grammars</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

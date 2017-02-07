@@ -1,0 +1,78 @@
+# -*- tcl -*-
+# Graph tests - Attribute helper commands
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: Xsetup,v 1.1 2006/11/16 06:33:14 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+proc Arc   {} {mygraph node insert 0 1 ; mygraph arc insert 0 1 x}
+proc Node  {} {mygraph node insert x}
+proc Graph {} {}
+
+proc SetRArc   {a} {CMD set x $a}
+proc SetRNode  {a} {CMD set x $a}
+proc SetRGraph {a} {CMD set   $a}
+
+proc SetWArc   {a v} {CMD set x $a $v}
+proc SetWNode  {a v} {CMD set x $a $v}
+proc SetWGraph {a v} {CMD set   $a $v}
+
+proc GetArc   {a} {CMD get x $a}
+proc GetNode  {a} {CMD get x $a}
+proc GetGraph {a} {CMD get   $a}
+
+proc UnsetArc   {a} {CMD unset x $a}
+proc UnsetNode  {a} {CMD unset x $a}
+proc UnsetGraph {a} {CMD unset   $a}
+
+proc AppendArc   {a v} {CMD append x $a $v}
+proc AppendNode  {a v} {CMD append x $a $v}
+proc AppendGraph {a v} {CMD append   $a $v}
+
+proc LappendArc   {a v} {CMD lappend x $a $v}
+proc LappendNode  {a v} {CMD lappend x $a $v}
+proc LappendGraph {a v} {CMD lappend   $a $v}
+
+proc KeyexistsArc   {a} {CMD keyexists x $a}
+proc KeyexistsNode  {a} {CMD keyexists x $a}
+proc KeyexistsGraph {a} {CMD keyexists   $a}
+
+proc GetallArc   {} {CMD getall x}
+proc GetallNode  {} {CMD getall x}
+proc GetallGraph {} {CMD getall  }
+
+proc GetallPArc   {p} {CMD getall x $p}
+proc GetallPNode  {p} {CMD getall x $p}
+proc GetallPGraph {p} {CMD getall   $p}
+
+proc KeysArc   {} {CMD keys x}
+proc KeysNode  {} {CMD keys x}
+proc KeysGraph {} {CMD keys  }
+
+proc KeysPArc   {p} {CMD keys x $p}
+proc KeysPNode  {p} {CMD keys x $p}
+proc KeysPGraph {p} {CMD keys   $p}
+
+# -------------------------------------------------------------------------
+
+proc AttrSetup {} {
+    # CMD is for the testing of wrong#args errors.
+    # XXX$ex are for regular tests, i.e. argument
+    # errors and ok behaviour.
+
+    upvar 1 mk mk stem stem e e MY MY
+
+    if {$mk == {}} {set mk $MY}
+
+    # CMD = stem, remove existing CMD
+    catch {interp alias {} CMD {}}
+    eval [linsert $stem 0 interp alias {} CMD {}]
+
+    # To skip tests which do not apply to graph attributes
+    ::tcltest::testConstraint graph \
+	    [string equal $e graph]
+    return
+}
+
+# -------------------------------------------------------------------------

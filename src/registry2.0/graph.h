@@ -1,6 +1,5 @@
 /*
  * graph.h
- * $Id$
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
  * All rights reserved.

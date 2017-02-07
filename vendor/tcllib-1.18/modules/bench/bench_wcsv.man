@@ -1,0 +1,54 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin bench::out::csv n 0.1.2]
+[see_also bench]
+[see_also bench::out::text]
+[keywords benchmark]
+[keywords csv]
+[keywords formatting]
+[keywords performance]
+[keywords testing]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Benchmarking/Performance tools}]
+[titledesc {bench::out::csv - Formatting benchmark results as CSV}]
+[category  {Benchmark tools}]
+[require Tcl 8.2]
+[require bench::out::csv [opt 0.1.2]]
+[description]
+
+This package provides commands for fomatting of benchmark results into
+a CSV table importable by spread sheets.
+
+[para]
+
+A reader interested in the generation or processing of such results should
+go and read [term {bench - Processing benchmark suites}] instead.
+
+[para]
+
+If the bench language itself is the actual interest please start with
+the [term {bench language introduction}] and then proceed from there
+to the formal [term {bench language specification}].
+
+[para]
+
+[section {PUBLIC API}]
+
+[list_begin definitions]
+
+[call [cmd ::bench::out::csv] [arg bench_result]]
+
+This command formats the specified benchmark result for output to a
+file, socket, etc. This specific command generates CSV data importable
+by spread sheets.
+
+[para]
+
+For other formatting styles see the packages [package bench] and
+[package bench::out::text] which provide commands to format benchmark
+results in raw form, or for human consumption, respectively.
+
+[list_end]
+
+[vset CATEGORY bench]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

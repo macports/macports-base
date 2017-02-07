@@ -1,0 +1,306 @@
+# -*- tcl -*-
+# png.test:  tests for png decoding and manipulation.
+#
+# Copyright (c) 2004 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: png.test,v 1.10 2007/04/30 22:47:14 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+# Trf / tcllibc
+support {
+    use crc/crc32.tcl crc32 ::crc
+}
+testing {
+    useLocal png.tcl png
+}
+
+# -------------------------------------------------------------------------
+# Validation
+
+foreach f [TestFilesGlob testimages/*.png] {
+    set root [file rootname [file tail $f]]
+
+    # All files have a valid signature, except for two.
+
+    test png-ispng-$root {is png} {
+	::png::isPNG $f
+    } [expr {
+	![string equal $root xcrn0g04] &&
+	![string equal $root xlfn0g04]
+    }] ; # {}
+
+    # All files are fully valid, except for all beginning with an 'x'.
+
+    if {[string match x* $root]} continue
+
+    test png-validate-$root {full validation} {
+	::png::validate $f
+    } OK ;# {}
+}
+
+# Validation II, the bad files ...
+
+foreach f [TestFilesGlob testimages/x*.png] {
+    set root [file rootname [file tail $f]]
+
+    test png-validate-$root {full validation} {
+	::png::validate $f
+    } [expr {[string match x00n0g01 $root] ? "NODATA" : "SIG"}] ;# {}
+}
+
+
+# -------------------------------------------------------------------------
+# imageInfo ...
+
+array set expected {
+    basi0g01 {color 0 compression 0 depth 1 filter 0 height 32 interlace 1 width 32}   
+    basi0g02 {color 0 compression 0 depth 2 filter 0 height 32 interlace 1 width 32}   
+    basi0g04 {color 0 compression 0 depth 4 filter 0 height 32 interlace 1 width 32}   
+    basi0g08 {color 0 compression 0 depth 8 filter 0 height 32 interlace 1 width 32}   
+    basi0g16 {color 0 compression 0 depth 16 filter 0 height 32 interlace 1 width 32}  
+    basi2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 1 width 32}   
+    basi2c16 {color 2 compression 0 depth 16 filter 0 height 32 interlace 1 width 32}  
+    basi3p01 {color 3 compression 0 depth 1 filter 0 height 32 interlace 1 width 32}   
+    basi3p02 {color 3 compression 0 depth 2 filter 0 height 32 interlace 1 width 32}   
+    basi3p04 {color 3 compression 0 depth 4 filter 0 height 32 interlace 1 width 32}   
+    basi3p08 {color 3 compression 0 depth 8 filter 0 height 32 interlace 1 width 32}   
+    basi4a08 {color 4 compression 0 depth 8 filter 0 height 32 interlace 1 width 32}   
+    basi4a16 {color 4 compression 0 depth 16 filter 0 height 32 interlace 1 width 32}  
+    basi6a08 {color 6 compression 0 depth 8 filter 0 height 32 interlace 1 width 32}   
+    basi6a16 {color 6 compression 0 depth 16 filter 0 height 32 interlace 1 width 32}  
+    basn0g01 {color 0 compression 0 depth 1 filter 0 height 32 interlace 0 width 32}   
+    basn0g02 {color 0 compression 0 depth 2 filter 0 height 32 interlace 0 width 32}   
+    basn0g04 {color 0 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    basn0g08 {color 0 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    basn0g16 {color 0 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    basn2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    basn2c16 {color 2 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    basn3p01 {color 3 compression 0 depth 1 filter 0 height 32 interlace 0 width 32}   
+    basn3p02 {color 3 compression 0 depth 2 filter 0 height 32 interlace 0 width 32}   
+    basn3p04 {color 3 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    basn3p08 {color 3 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    basn4a08 {color 4 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    basn4a16 {color 4 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    basn6a08 {color 6 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    basn6a16 {color 6 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    bgai4a08 {color 4 compression 0 depth 8 filter 0 height 32 interlace 1 width 32}   
+    bgai4a16 {color 4 compression 0 depth 16 filter 0 height 32 interlace 1 width 32}  
+    bgan6a08 {color 6 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    bgan6a16 {color 6 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    bgbn4a08 {color 4 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    bggn4a16 {color 4 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    bgwn6a08 {color 6 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    bgyn6a16 {color 6 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    ccwn2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    ccwn3p08 {color 3 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    cdfn2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 8}    
+    cdhn2c08 {color 2 compression 0 depth 8 filter 0 height 8 interlace 0 width 32}    
+    cdsn2c08 {color 2 compression 0 depth 8 filter 0 height 8 interlace 0 width 8}     
+    cdun2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    ch1n3p04 {color 3 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    ch2n3p08 {color 3 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    cm0n0g04 {color 0 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    cm7n0g04 {color 0 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    cm9n0g04 {color 0 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    cs3n2c16 {color 2 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    cs3n3p08 {color 3 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    cs5n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    cs5n3p08 {color 3 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    cs8n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    cs8n3p08 {color 3 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    ct0n0g04 {color 0 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    ct1n0g04 {color 0 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    ctzn0g04 {color 0 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    f00n0g08 {color 0 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    f00n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    f01n0g08 {color 0 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    f01n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    f02n0g08 {color 0 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    f02n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    f03n0g08 {color 0 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    f03n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    f04n0g08 {color 0 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    f04n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    g03n0g16 {color 0 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    g03n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    g03n3p04 {color 3 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    g04n0g16 {color 0 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    g04n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    g04n3p04 {color 3 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    g05n0g16 {color 0 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    g05n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    g05n3p04 {color 3 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    g07n0g16 {color 0 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    g07n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    g07n3p04 {color 3 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    g10n0g16 {color 0 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    g10n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    g10n3p04 {color 3 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    g25n0g16 {color 0 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    g25n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    g25n3p04 {color 3 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    oi1n0g16 {color 0 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    oi1n2c16 {color 2 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    oi2n0g16 {color 0 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    oi2n2c16 {color 2 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    oi4n0g16 {color 0 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    oi4n2c16 {color 2 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    oi9n0g16 {color 0 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    oi9n2c16 {color 2 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    pngsuite_logo {color 2 compression 0 depth 8 filter 0 height 256 interlace 0 width 256} 
+    pp0n2c16 {color 2 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    pp0n6a08 {color 6 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    ps1n0g08 {color 0 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    ps1n2c16 {color 2 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    ps2n0g08 {color 0 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}   
+    ps2n2c16 {color 2 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}  
+    s01i3p01 {color 3 compression 0 depth 1 filter 0 height 1 interlace 1 width 1}     
+    s01n3p01 {color 3 compression 0 depth 1 filter 0 height 1 interlace 0 width 1}     
+    s02i3p01 {color 3 compression 0 depth 1 filter 0 height 2 interlace 1 width 2}     
+    s02n3p01 {color 3 compression 0 depth 1 filter 0 height 2 interlace 0 width 2}     
+    s03i3p01 {color 3 compression 0 depth 1 filter 0 height 3 interlace 1 width 3}     
+    s03n3p01 {color 3 compression 0 depth 1 filter 0 height 3 interlace 0 width 3}     
+    s04i3p01 {color 3 compression 0 depth 1 filter 0 height 4 interlace 1 width 4}     
+    s04n3p01 {color 3 compression 0 depth 1 filter 0 height 4 interlace 0 width 4}     
+    s05i3p02 {color 3 compression 0 depth 2 filter 0 height 5 interlace 1 width 5}     
+    s05n3p02 {color 3 compression 0 depth 2 filter 0 height 5 interlace 0 width 5}     
+    s06i3p02 {color 3 compression 0 depth 2 filter 0 height 6 interlace 1 width 6}     
+    s06n3p02 {color 3 compression 0 depth 2 filter 0 height 6 interlace 0 width 6}     
+    s07i3p02 {color 3 compression 0 depth 2 filter 0 height 7 interlace 1 width 7}     
+    s07n3p02 {color 3 compression 0 depth 2 filter 0 height 7 interlace 0 width 7}     
+    s08i3p02 {color 3 compression 0 depth 2 filter 0 height 8 interlace 1 width 8}     
+    s08n3p02 {color 3 compression 0 depth 2 filter 0 height 8 interlace 0 width 8}     
+    s09i3p02 {color 3 compression 0 depth 2 filter 0 height 9 interlace 1 width 9}     
+    s09n3p02 {color 3 compression 0 depth 2 filter 0 height 9 interlace 0 width 9}     
+    s32i3p04 {color 3 compression 0 depth 4 filter 0 height 32 interlace 1 width 32}   
+    s32n3p04 {color 3 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}   
+    s33i3p04 {color 3 compression 0 depth 4 filter 0 height 33 interlace 1 width 33}   
+    s33n3p04 {color 3 compression 0 depth 4 filter 0 height 33 interlace 0 width 33}   
+    s34i3p04 {color 3 compression 0 depth 4 filter 0 height 34 interlace 1 width 34}   
+    s34n3p04 {color 3 compression 0 depth 4 filter 0 height 34 interlace 0 width 34}   
+    s35i3p04 {color 3 compression 0 depth 4 filter 0 height 35 interlace 1 width 35}   
+    s35n3p04 {color 3 compression 0 depth 4 filter 0 height 35 interlace 0 width 35}   
+    s36i3p04 {color 3 compression 0 depth 4 filter 0 height 36 interlace 1 width 36}   
+    s36n3p04 {color 3 compression 0 depth 4 filter 0 height 36 interlace 0 width 36}   
+    s37i3p04 {color 3 compression 0 depth 4 filter 0 height 37 interlace 1 width 37}   
+    s37n3p04 {color 3 compression 0 depth 4 filter 0 height 37 interlace 0 width 37}   
+    s38i3p04 {color 3 compression 0 depth 4 filter 0 height 38 interlace 1 width 38}   
+    s38n3p04 {color 3 compression 0 depth 4 filter 0 height 38 interlace 0 width 38}   
+    s39i3p04 {color 3 compression 0 depth 4 filter 0 height 39 interlace 1 width 39}   
+    s39n3p04 {color 3 compression 0 depth 4 filter 0 height 39 interlace 0 width 39}   
+    s40i3p04 {color 3 compression 0 depth 4 filter 0 height 40 interlace 1 width 40}
+    s40n3p04 {color 3 compression 0 depth 4 filter 0 height 40 interlace 0 width 40}
+    tbbn1g04 {color 0 compression 0 depth 4 filter 0 height 32 interlace 0 width 32}
+    tbbn2c16 {color 2 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}
+    tbbn3p08 {color 3 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}
+    tbgn2c16 {color 2 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}
+    tbgn3p08 {color 3 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}
+    tbrn2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}
+    tbwn1g16 {color 0 compression 0 depth 16 filter 0 height 32 interlace 0 width 32}
+    tbwn3p08 {color 3 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}
+    tbyn3p08 {color 3 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}
+    tp0n1g08 {color 0 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}
+    tp0n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}
+    tp0n3p08 {color 3 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}
+    tp1n3p08 {color 3 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}
+    z00n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}
+    z03n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}
+    z06n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}
+    z09n2c08 {color 2 compression 0 depth 8 filter 0 height 32 interlace 0 width 32}
+}
+
+foreach f [TestFilesGlob testimages/*.png] {
+    set root [file rootname [file tail $f]]
+
+    # Files beginning with x are invalid, and thus not usable in these
+    # tests.
+
+    if {[string match x* $root]} continue
+
+    test png-imageinfo-$root {retrieve image information} {
+	dictsort [::png::imageInfo $f]
+    } $expected($root) ; # {}
+}
+
+# -------------------------------------------------------------------------
+# Timestamps
+
+array set exptime {
+    cm0n0g04 946730096
+    cm7n0g04 0
+    cm9n0g04 946684799
+}
+
+foreach f [TestFilesGlob testimages/cm*.png] {
+    set root [file rootname [file tail $f]]
+
+    #puts [clock format $exptime($root) -gmt 1]
+
+    test png-gettimestamp-$root {retrieve timestamp} {
+	::png::getTimestamp $f
+    } $exptime($root) ; # {}
+}
+
+# -------------------------------------------------------------------------
+# Comments
+
+array set   comex {
+    ct1n0g04 {{Title PngSuite} {Author {Willem A.J. van Schaik
+(willem@schaik.com)}} {Copyright {Copyright Willem van Schaik, Singapore 1995-96}} {Description {A compilation of a set of images created to test the
+various color-types of the PNG format. Included are
+black&white, color, paletted, with alpha channel, with
+transparency formats. All bit-depths allowed according
+to the spec are present.}} {Software {Created on a NeXTstation color using "pnmtopng".}} {Disclaimer Freeware.}}   
+    ctzn0g04 {{Title PngSuite} {Author {Willem A.J. van Schaik
+(willem@schaik.com)}}}
+}
+
+# - Retrieval
+
+foreach f [TestFilesGlob testimages/*.png] {
+    set root [file rootname [file tail $f]]
+
+    # All files have a valid signature, except for two. These we ignore.
+    if {[string equal $root xcrn0g04]} continue
+    if {[string equal $root xlfn0g04]} continue
+    # All files are fully valid, except for all beginning with an
+    # 'x'. We ignore them as well.
+    if {[string match x* $root]} continue
+
+    test png-getcomment-$root {get comments} {
+	::png::getComments $f
+    } [expr {
+	     ![info exists comex($root)] ? "" : $comex($root)
+    }] ; # {}
+}
+
+# - Removal
+
+# Note: For a bad removeComments tests fail only on platforms where
+# the system encoding is not ASCII like, or the EOL is not a plain
+# LF. Windows for example, or asian systems.
+
+foreach root [array names comex] {
+    set f [localPath testimages/${root}.png]
+
+    test png-removecomment-$root {remove comments} {
+	set copy [makeFile {} pngrc.$root]
+	file copy -force $f $copy
+
+	::png::removeComments $copy
+	set res [list [::png::validate $copy] [::png::getComments $copy]]
+	removeFile pngrc.$root
+	set res
+    } {OK {}}
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup

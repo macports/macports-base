@@ -1,6 +1,5 @@
 #!@TCLSH@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
-# $Id$
 #
 # Copyright (c) 2002-2007 The MacPorts Project.
 # All rights reserved.
@@ -12,7 +11,6 @@ package require macports
 package require Pextlib
 
 # Globals
-global distfiles_filemap
 array set ui_options        [list]
 array set global_options    [list]
 array set global_variations [list]

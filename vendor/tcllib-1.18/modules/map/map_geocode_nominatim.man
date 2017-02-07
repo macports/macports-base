@@ -1,0 +1,113 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin map::geocode::nominatim n 0.1]
+[keywords geocoding]
+[keywords http]
+[keywords location]
+[keywords map]
+[keywords nominatim]
+[keywords server]
+[keywords url]
+[moddesc   {Mapping utilities}]
+[titledesc {Resolving geographical names with a Nominatim service}]
+[require Tcl 8.5]
+[require http]
+[require json]
+[require uri]
+[require snit]
+[require map::geocode::nominatim [opt 0.1]]
+[description]
+
+This package provides a class for accessing geocoding services which implement
+the [term Nominatim] interface (see [sectref {References}])
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::map::geocode::nominatim] [arg requestor] \
+     [opt "[option -baseurl] [arg url]"] \
+     [opt "[option -callback] [arg callback]"] \
+     [opt "[option -error] [arg {error callback}]"]]
+
+Creates a geocoding request object [arg requestor], which will send its requests to
+the [term Nominatim] server.
+
+[para]
+
+The result of the command is [arg name].
+
+[list_end]
+
+[subsection Options]
+
+[list_begin options]
+
+[opt_def -baseurl [arg url]]
+
+The base URL of the [term Nominatim] service. Default value is [term OpenStreetMap's] service at
+[uri  http://nominatim.openstreetmap.org/search] A possible free alternative is at
+[uri http://open.mapquestapi.com//nominatim/v1/search]
+
+[opt_def -callback [arg cmdprefix]]
+
+A command prefix to be invoked when search result become available.
+
+The default setting, active when nothing was specified on object creation, is to print
+the [arg result] (see below) to [term stdout]. The result of the command prefix is
+ignored. Errors thrown by the command prefix are caught and cause the invokation of
+the error callback (see option [option -error] below), with the error message as argument.
+
+[para] The signature of the command prefix is:
+
+[list_begin definitions]
+[call [cmd \$cmdprefix] [arg result]]
+The [arg result] is a list of dictionaries, containing one item per hit.
+Each dictionary will have the following entries:
+
+[list_begin definitions]
+[def place_id] The place ID (FIXME: what's this?)
+[def licence] The data licence string
+[def osm_type] The OSM type of the location
+[def osm_id] FIXME
+[def boundingbox] The coordinates of the bounding box (min and max latitude, min and max longitude)
+[def lat] The location's latitude
+[def lon] The location's longitude
+[def display_name] the location's human readable name
+[def class] FIXME
+[def type] FIXME
+[def icon] FIXME
+[list_end]
+
+[list_end]
+
+[opt_def -error [arg cmdprefix]]
+
+A command prefix to be invoked when encountering errors. Typically these are HTTP errors.
+The default setting, active when nothing was specified on object creation, is to print
+the [arg errorstring] (see below) to [term stderr]. The result of the command prefix is
+ignored. Errors thrown by the command prefix are passed to higher levels.
+
+[para] The signature of the command prefix is:
+
+[list_begin definitions]
+[call [cmd \$cmdprefix] [arg errorstring]]
+[list_end]
+[list_end]
+
+[subsection Methods]
+
+[list_begin definitions]
+
+[call [arg requestor] [method search] [arg query]]
+
+This method returns a list of dictionaries, one item per hit for the specified [arg query].
+
+[list_end]
+
+[section References]
+
+[list_begin enum]
+[enum] [uri http://wiki.openstreetmap.org/wiki/Nominatim]
+[enum] [uri http://open.mapquestapi.com/nominatim/]
+[list_end]
+[manpage_end]

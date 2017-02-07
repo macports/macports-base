@@ -1,0 +1,421 @@
+# -*- tcl -*-
+# finite_automaton.test:  tests for the grammar::fa container.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: fa_next.test,v 1.5 2007/04/12 03:43:14 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+test fa-next-${setimpl}-1.0 {next} {
+    grammar::fa a
+    catch {a next} res
+    a destroy
+    set res
+} [tcltest::wrongNumArgs ::grammar::fa::Snit_methodnext {type selfns win self s sym args} 5]
+
+
+test fa-next-${setimpl}-1.1 {next} {
+    grammar::fa a
+    catch {a next a} res
+    a destroy
+    set res
+} [tcltest::wrongNumArgs ::grammar::fa::Snit_methodnext {type selfns win self s sym args} 5]
+
+
+test fa-next-${setimpl}-1.2 {next} {
+    grammar::fa a
+    catch {a next a b c} res
+    a destroy
+    set res
+} {wrong#args: ::a next s sym ?--> s'?}
+
+
+test fa-next-${setimpl}-1.3 {next} {
+    grammar::fa a
+    catch {a next a b c d e} res
+    a destroy
+    set res
+} {wrong#args: ::a next s sym ?--> s'?}
+
+
+test fa-next-${setimpl}-1.4 {next} {
+    grammar::fa a
+    catch {a next a b} res
+    a destroy
+    set res
+} {Illegal state "a"}
+
+
+test fa-next-${setimpl}-1.5 {next} {
+    grammar::fa a
+    a state add a
+    catch {a next a b} res
+    a destroy
+    set res
+} {Illegal symbol "b"}
+
+
+test fa-next-${setimpl}-1.6 {next} {
+    grammar::fa a
+    a state add a
+    a symbol add b
+    catch {a next a b --> c} res
+    a destroy
+    set res
+} {Illegal state "c"}
+
+
+test fa-next-${setimpl}-1.7 {next} {
+    grammar::fa a
+    a state add a
+    a state add c
+    a symbol add b
+    catch {a next a b x c} res
+    a destroy
+    set res
+} {Expected -->, got "x"}
+
+
+test fa-next-${setimpl}-1.8 {next} {
+    grammar::fa a
+    a state add a c
+    a symbol add b
+    a next a b --> c
+    catch {a next a b --> c} res
+    a destroy
+    set res
+} {Transition "(a, (b)) --> c" is already known}
+
+
+test fa-next-${setimpl}-1.9 {!next} {
+    grammar::fa a
+    catch {a !next} res
+    a destroy
+    set res
+} [tcltest::wrongNumArgs ::grammar::fa::Snit_method!next {type selfns win self s sym args} 5]
+
+
+test fa-next-${setimpl}-1.10 {!next} {
+    grammar::fa a
+    catch {a !next a} res
+    a destroy
+    set res
+} [tcltest::wrongNumArgs ::grammar::fa::Snit_method!next {type selfns win self s sym args} 5]
+
+
+test fa-next-${setimpl}-1.11 {!next} {
+    grammar::fa a
+    catch {a !next a b c} res
+    a destroy
+    set res
+} {wrong#args: ::a !next s sym ?--> s'?}
+
+
+test fa-next-${setimpl}-1.12 {!next} {
+    grammar::fa a
+    catch {a !next a b c d e} res
+    a destroy
+    set res
+} {wrong#args: ::a !next s sym ?--> s'?}
+
+
+test fa-next-${setimpl}-1.13 {!next} {
+    grammar::fa a
+    catch {a !next a b} res
+    a destroy
+    set res
+} {Illegal state "a"}
+
+
+test fa-next-${setimpl}-1.14 {!next} {
+    grammar::fa a
+    a state add a
+    catch {a !next a b} res
+    a destroy
+    set res
+} {Illegal symbol "b"}
+
+
+test fa-next-${setimpl}-1.15 {!next} {
+    grammar::fa a
+    a state add a
+    a symbol add b
+    catch {a !next a b --> c} res
+    a destroy
+    set res
+} {Illegal state "c"}
+
+
+test fa-next-${setimpl}-1.16 {!next} {
+    grammar::fa a
+    a state add a
+    a state add c
+    a symbol add b
+    catch {a !next a b x c} res
+    a destroy
+    set res
+} {Expected -->, got "x"}
+
+
+test fa-next-${setimpl}-1.17 {nextset} {
+    grammar::fa a
+    catch {a nextset} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodnextset type selfns win self states sym"}
+
+
+test fa-next-${setimpl}-1.18 {nextset} {
+    grammar::fa a
+    catch {a nextset a} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodnextset type selfns win self states sym"}
+
+
+test fa-next-${setimpl}-1.19 {nextset} {
+    grammar::fa a
+    catch {a nextset a b c} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodnextset type selfns win self states sym"}
+
+
+test fa-next-${setimpl}-1.20 {nextset} {
+    grammar::fa a
+    catch {a nextset a b} res
+    a destroy
+    set res
+} {Illegal symbol "b"}
+
+
+test fa-next-${setimpl}-1.21 {nextset} {
+    grammar::fa a
+    a symbol add b
+    catch {a nextset a b} res
+    a destroy
+    set res
+} {Illegal state "a"}
+
+
+test fa-next-${setimpl}-1.22 {nextset} {
+    grammar::fa a
+    a symbol add b
+    a state add a
+    catch {a nextset {a c} b} res
+    a destroy
+    set res
+} {Illegal state "c"}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-next-${setimpl}-2.0 {next} {
+    grammar::fa a
+    a state add a
+    a symbol add b
+    set res [a next a b]
+    a destroy
+    set res
+} {}
+
+
+test fa-next-${setimpl}-2.1 {next} {
+    grammar::fa a
+    a state add a
+    a state add c
+    a symbol add b
+    a next a b --> c
+    set res [a next a b]
+    a destroy
+    set res
+} c
+
+
+test fa-next-${setimpl}-2.2 {next} {
+    grammar::fa a
+    a state add a c d
+    a symbol add b
+    a next a b --> c
+    a next a b --> d
+    set res [lsort [a next a b]]
+    a destroy
+    set res
+} {c d}
+
+
+test fa-next-${setimpl}-2.3 {next, loop} {
+    grammar::fa a
+    a state add a
+    a symbol add @
+    a next a @ --> a
+    set res [a next a @]
+    a destroy
+    set res
+} a
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-next-${setimpl}-3.0 {!next} {
+    set res {}
+    grammar::fa a
+    a state add a
+    a symbol add b
+    a next a b --> a
+    lappend res [a next a b]
+    a !next a b --> a
+    lappend res [a next a b]
+    a destroy
+    set res
+} {a {}}
+
+
+test fa-next-${setimpl}-3.1 {!next} {
+    set res {}
+    grammar::fa a
+    a state add a
+    a symbol add b
+    a next a b --> a
+    lappend res [a next a b]
+    a !next a b
+    lappend res [a next a b]
+    a destroy
+    set res
+} {a {}}
+
+
+test fa-next-${setimpl}-3.2 {!next} {
+    set res {}
+    grammar::fa a
+    a state add a
+    a state add b
+    a symbol add b
+    a next a b --> a
+    a next a b --> b
+    lappend res [lsort [a next a b]]
+    a !next a b --> a
+    lappend res [a next a b]
+    a destroy
+    set res
+} {{a b} b}
+
+
+test fa-next-${setimpl}-3.3 {!next} {
+    set res {}
+    grammar::fa a
+    a state add a
+    a state add b
+    a symbol add b
+    a next a b --> a
+    a next a b --> b
+    lappend res [lsort [a next a b]]
+    a !next a b
+    lappend res [a next a b]
+    a destroy
+    set res
+} {{a b} {}}
+
+
+test fa-next-${setimpl}-3.4 {!next} {
+    set res {}
+    grammar::fa a
+    a state add a
+    a symbol add b
+    a !next a b
+    a destroy
+    set res
+} {}
+
+
+test fa-next-${setimpl}-3.5 {!next} {
+    set res {}
+    grammar::fa a
+    a state add a
+    a symbol add b
+    a !next a b --> a
+    a destroy
+    set res
+} {}
+
+
+test fa-next-${setimpl}-3.6 {!next, loop} {
+    grammar::fa a
+    a state add a
+    a symbol add @
+    a next a @ --> a
+    set res [a next a @]
+    a !next a @ --> a
+    a destroy
+    set res
+} a
+
+
+test fa-next-${setimpl}-3.7 {!next, loop} {
+    grammar::fa a
+    a state add a
+    a symbol add @
+    a next a @ --> a
+    set res [a next a @]
+    a !next a @
+    a destroy
+    set res
+} a
+
+
+test fa-next-${setimpl}-3.8 {!next, loop} {
+    grammar::fa a
+    a state add a
+    a symbol add @ =
+    a next a @ --> a
+    a next a = --> a
+    a !next a @ --> a
+    a !next a = --> a
+    a destroy
+} {}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-next-${setimpl}-4.0 {nextset} {
+    grammar::fa a
+    a symbol add b
+    a state add a
+    a state add c
+    set res [a nextset {a c} b]
+    a destroy
+    set res
+} {}
+
+
+test fa-next-${setimpl}-4.1 {nextset} {
+    grammar::fa a
+    a symbol add b
+    a state add a
+    a state add c
+    a next a b --> c
+    set res [a nextset {a c} b]
+    a destroy
+    set res
+} c
+
+
+test fa-next-${setimpl}-4.2 {nextset} {
+    grammar::fa a
+    a symbol add b
+    a state add a
+    a state add c
+    a next a b --> c
+    a next c b --> a
+    set res [lsort [a nextset {a c} b]]
+    a destroy
+    set res
+} {a c}
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

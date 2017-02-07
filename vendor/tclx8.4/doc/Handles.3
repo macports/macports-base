@@ -1,0 +1,210 @@
+.\"
+.\" Handles.man
+.\"
+.\" Extended Tcl handle facility.
+.\"----------------------------------------------------------------------------
+.\" Copyright 1992-1999 Karl Lehenbauer and Mark Diekhans.
+.\"
+.\" Permission to use, copy, modify, and distribute this software and its
+.\" documentation for any purpose and without fee is hereby granted, provided
+.\" that the above copyright notice appear in all copies.  Karl Lehenbauer and
+.\" Mark Diekhans make no representations about the suitability of this
+.\" software for any purpose.  It is provided "as is" without express or
+.\" implied warranty.
+.\"----------------------------------------------------------------------------
+.\" $Id: Handles.3,v 8.3 2003/02/09 08:27:59 hobbs Exp $
+.\"----------------------------------------------------------------------------
+.\"
+.TH Handles TCL "" "Tcl"
+.ad b
+.BS
+.SH NAME
+Tcl_HandleAlloc, Tcl_HandleFree, Tcl_HandleTblInit, Tcl_HandleTblRelease, Tcl_HandleTblUseCount, Tcl_HandleWalk, Tcl_HandleXlate \- Dynamic, handle addressable tables.
+
+.SH SYNOPSIS
+.PP
+.nf
+.ft CW
+#include <tclExtend.h>
+
+void_pt
+Tcl_HandleTblInit (const char *handleBase,
+                   int         entrySize,
+                   int         initEntries);
+
+int
+Tcl_HandleTblUseCount (void_pt  headerPtr,
+                       int      amount);
+
+void
+Tcl_HandleTblRelease (void_pt headerPtr);
+
+void_pt
+Tcl_HandleAlloc (void_pt   headerPtr,
+                 char     *handlePtr);
+
+void_pt
+Tcl_HandleXlate (Tcl_Interp *interp,
+                 void_pt     headerPtr,
+                 const char *handle);
+
+void_pt
+Tcl_HandleWalk (void_pt   headerPtr,
+                int      *walkKeyPtr);
+
+void
+Tcl_WalkKeyToHandle (void_pt   headerPtr,
+                     int       walkKey,
+                     char     *handlePtr);
+
+void
+Tcl_HandleFree (void_pt headerPtr,
+                void_pt entryPtr);
+.ft R
+.fi
+'
+.SH DESCRIPTION
+.PP
+The Tcl handle facility provides a way to manage table entries that may be
+referenced by a textual handle from Tcl code.  This is provided for 
+applications that need to create data structures in one command, return a
+reference (i.e. pointer) to that particular data structure and then access
+that data structure in other commands. An example application is file handles.
+.PP
+A handle consists of a base name, which is some unique, meaningful name, such
+as `\fBfile\fR' and a numeric value appended to the base name (e.g. `file3').
+The handle facility is designed to provide a standard mechanism for building
+Tcl commands that allocate and access table entries based on an entry index.
+The tables are expanded when needed, consequently pointers to entries should
+not be kept, as they will become invalid when the table is expanded.  If the
+table entries are large or pointers must be kept to the entries, then the
+the entries should be allocated separately and pointers kept in the handle 
+table.  A use count is kept on the table.  This use count is intended to
+determine when a table shared by multiple commands is to be release.
+'
+.SS Tcl_HandleTblInit
+Create and initialize a Tcl dynamic handle table.  The use count on the
+table is set to one.
+.PP
+Parameters:
+.RS 2
+\fBo \fIhandleBase\fR - The base name of the handle, the handle will be
+returned in the form "baseNN", where NN is the table entry number.
+.br
+\fBo \fIentrySize\fR - The size of an entry, in bytes.
+.br
+\fBo \fIinitEntries\fR - Initial size of the table, in entries.
+.RE
+.PP
+Returns:
+.RS 2
+A pointer to the table header.  
+.RE
+'
+.SS Tcl_HandleTblUseCount
+.PP
+Alter the handle table use count by the specified amount, which can be
+positive or negative.  Amount may be zero to retrieve the use count.
+.PP
+Parameters:
+.RS 2
+\fBo \fIheaderPtr\fR - Pointer to the table header.
+.br
+\fBo \fIamount\fR - The amount to alter the use count by.
+.RE
+.PP
+Returns:
+.RS 2
+The resulting use count.
+.RE
+'
+.SS Tcl_HandleTblRelease
+.PP
+Decrement the use count on a Tcl dynamic handle table.  If the count
+goes to zero or negative, then release the table.
+.PP
+Parameters:
+.RS 2
+\fBo \fIheaderPtr\fR - Pointer to the table header.
+.RE
+'
+.SS Tcl_HandleAlloc
+.PP
+Allocate an entry and associate a handle with it.
+.PP
+Parameters:
+.RS 2
+\fBo \fIheaderPtr\fR - A pointer to the table header.
+.br
+\fBo \fIhandlePtr\fR - Buffer to return handle in. It must be big enough to
+hold the name.
+.RE
+.PP
+Returns:
+.RS 2
+A pointer to the allocated entry (user part).
+.RE
+'
+.SS Tcl_HandleXlate
+.PP
+Translate a handle to a entry pointer.
+.PP
+Parameters:
+.RS 2
+\fBo \fIinterp\fR - A error message may be returned in result.
+.br
+\fBo \fIheaderPtr\fR - A pointer to the table header.
+.sp
+o \fIhandle\fR - The handle assigned to the entry.
+.RE
+.PP
+Returns:
+.RS 2
+A pointer to the entry, or NULL if an error occurred.
+.RE
+'
+.SS Tcl_HandleWalk
+.PP
+Walk through and find every allocated entry in a table.  Entries may
+be deallocated during a walk, but should not be allocated.
+.PP
+Parameters:
+.RS 2
+\fBo \fIheaderPtr\fR - A pointer to the table header.
+.br
+\fBo \fIwalkKeyPtr\fR - Pointer to a variable to use to keep track of the
+place in the table.  The variable should be initialized to -1 before
+the first call.
+.RE
+Returns:
+.RS 2
+A pointer to the next allocated entry, or NULL if there are not more.
+.RE
+'
+.SS Tcl_WalkKeyToHandle
+.PP
+Convert a walk key, as returned from a call to Tcl_HandleWalk into a
+handle.  The Tcl_HandleWalk must have succeeded.
+.PP
+Parameters:
+.RS 2
+\fBo \fIheaderPtr\fR - A pointer to the table header.
+.br
+\fBo \fIwalkKey\fR - The walk key.
+.br
+\fBo \fIhandlePtr\fR - Buffer to return handle in. It must be big enough to
+hold the name.
+.RE
+'
+.SS Tcl_HandleFree
+.PP
+Frees a handle table entry.
+.PP
+Parameters:
+.RS 2
+\fBo \fIheaderPtr\fR - A pointer to the table header.
+.br
+\fBo \fIentryPtr\fR - Entry to free.
+.RE
+
+

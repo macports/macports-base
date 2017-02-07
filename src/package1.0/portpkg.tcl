@@ -1,8 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portpkg.tcl
-# $Id$
 #
-# Copyright (c) 2005, 2007 - 2013 The MacPorts Project
+# Copyright (c) 2005, 2007 - 2013, 2016 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
@@ -58,23 +57,29 @@ default pkg.asroot no
 set_ui_prefix
 
 proc portpkg::pkg_start {args} {
-    global packagemaker_path portpkg::packagemaker \
+    global packagemaker_path portpkg::packagemaker portpkg::pkgbuild \
            portpkg::language xcodeversion portpath porturl \
            package.resources package.scripts package.flat \
-           subport epoch version revision description long_description \
+           subport version revision description long_description \
            homepage workpath os.major
 
-    if {![info exists packagemaker_path]} {
-        if {[vercmp $xcodeversion 4.3] >= 0} {
-            set packagemaker_path /Applications/PackageMaker.app
-            if {![file exists $packagemaker_path]} {
-                ui_warn "PackageMaker.app not found; you may need to install it or set packagemaker_path in macports.conf"
-            }
-        } else {
-            set packagemaker_path "[option developer_dir]/Applications/Utilities/PackageMaker.app"
-        }
+    if {[catch {findBinary pkgbuild /usr/bin/pkgbuild} pkgbuild]} {
+        set pkgbuild ""
     }
-    set packagemaker "${packagemaker_path}/Contents/MacOS/PackageMaker"
+    if {$pkgbuild eq "" || !${package.flat}} {
+        # can't use pkgbuild, so fall back to PackageMaker
+        if {![info exists packagemaker_path]} {
+            if {[vercmp $xcodeversion 4.3] >= 0} {
+                set packagemaker_path /Applications/PackageMaker.app
+                if {![file exists $packagemaker_path]} {
+                    ui_warn "PackageMaker.app not found; you may need to install it or set packagemaker_path in macports.conf"
+                }
+            } else {
+                set packagemaker_path "[option developer_dir]/Applications/Utilities/PackageMaker.app"
+            }
+        }
+        set packagemaker "${packagemaker_path}/Contents/MacOS/PackageMaker"
+    }
 
     set language "English"
     file mkdir "${package.resources}/${language}.lproj"
@@ -90,11 +95,11 @@ proc portpkg::pkg_start {args} {
             set pkg_$variable [set $variable]
         }
     }
-    write_welcome_html ${package.resources}/${language}.lproj/Welcome.html $subport $epoch $version $revision $pkg_long_description $pkg_description $pkg_homepage
+    write_welcome_html ${package.resources}/${language}.lproj/Welcome.html $subport $version $revision $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${package.resources}/${language}.lproj/background.tiff
 
     if {${package.flat} && ${os.major} >= 9} {
-        write_distribution "${workpath}/Distribution" $subport $epoch $version $revision
+        write_distribution "${workpath}/Distribution" $subport $version $revision
     }
 }
 
@@ -112,18 +117,9 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
     global UI_PREFIX portdbpath destpath workpath prefix description \
     package.flat package.destpath portpath os.version os.major \
     package.resources package.scripts portpkg::packagemaker \
-    pkg_post_unarchive_deletions portpkg::language
+    pkg_post_unarchive_deletions portpkg::language portpkg::pkgbuild
 
-    set portepoch_namestr ""
-    if {${portepoch} != 0} {
-        set portepoch_namestr "${portepoch}_"
-    }
-    set portrevision_namestr ""
-    if {${portrevision} != 0} {
-        set portrevision_namestr "_${portrevision}"
-    }
-
-    set pkgpath "${package.destpath}/${portname}-${portepoch_namestr}${portversion}${portrevision_namestr}.pkg"
+    set pkgpath "${package.destpath}/[image_name $portname $portversion $portrevision].pkg"
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s version %s_%s_%s at %s"] ${portname} ${portepoch} ${portversion} ${portrevision} ${pkgpath}]"
 
@@ -133,7 +129,7 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
     }
 
     foreach dir {etc var tmp} {
-        if ([file exists "${destpath}/$dir"]) {
+        if {[file exists "${destpath}/$dir"]} {
             # certain toplevel directories really are symlinks. leaving them as directories make pax lose the symlinks. that's bad.
             file mkdir "${destpath}/private/${dir}"
             file rename {*}[glob ${destpath}/${dir}/*] "${destpath}/private/${dir}"
@@ -150,9 +146,8 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
         }
     }
 
-    if ([file exists "$packagemaker"]) {
-
-        ui_debug "Calling $packagemaker for $portname pkg"
+    set using_pkgbuild [expr {$pkgbuild ne "" && ${package.flat}}]
+    if {$using_pkgbuild || [file exists "$packagemaker"]} {
         if {${os.major} >= 9} {
             if {${package.flat}} {
                 set pkgtarget "10.5"
@@ -165,11 +160,19 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
                 set infofile "${workpath}/Info.plist"
                 write_info_plist $infofile $portname $portversion $portrevision
             }
-            set cmdline "PMResourceLocale=${language} $packagemaker --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
+            if {$using_pkgbuild} {
+                set cmdline "$pkgbuild --root ${destpath} ${pkgresources} --info $infofile --install-location / --identifier org.macports.$portname"
+            } else {
+                set cmdline "PMResourceLocale=${language} $packagemaker --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
+            }
             if {${os.major} >= 10} {
                 set v [mp_version_to_apple_version $portepoch $portversion $portrevision]
                 append cmdline " --version $v"
-                append cmdline " --no-relocate"
+                if {!$using_pkgbuild} {
+                    append cmdline " --no-relocate"
+                } else {
+                    append cmdline " ${pkgpath}"
+                }
             } else {
                 # 10.5 Leopard does not use current language, manually specify
                 append cmdline " -AppleLanguages \"(${language})\""
@@ -219,7 +222,7 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
     }
 
     foreach dir {etc var tmp} {
-        if ([file exists "${destpath}/private/$dir"]) {
+        if {[file exists "${destpath}/private/$dir"]} {
             # restore any directories that were moved, to avoid confusing the rest of the ports system.
             file rename ${destpath}/private/$dir ${destpath}/$dir
         }
@@ -227,6 +230,14 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
     catch {file delete ${destpath}/private}
 
     return 0
+}
+
+proc portpkg::image_name {portname portversion portrevision} {
+    set ret "${portname}-${portversion}"
+    if {${portrevision} != 0} {
+        append ret "_${portrevision}"
+    }
+    return $ret
 }
 
 proc portpkg::write_PkgInfo {infofile} {
@@ -314,20 +325,13 @@ proc portpkg::write_description_plist {infofile portname portversion description
     close $infofd
 }
 
-proc portpkg::write_welcome_html {filename portname portepoch portversion portrevision long_description description homepage} {
+proc portpkg::write_welcome_html {filename portname portversion portrevision long_description description homepage} {
     set fd [open ${filename} w+]
     if {$long_description eq ""} {
         set long_description $description
     }
 
     set portname [xml_escape $portname]
-    if {$portepoch != 0} {
-        set portepoch [xml_escape $portepoch]
-        set portepoch_str "${portepoch}_"
-    } else {
-        set portepoch ""
-        set portepoch_str ""
-    }
     set portversion [xml_escape $portversion]
     if {$portrevision != 0} {
         set portrevision [xml_escape $portrevision]
@@ -356,7 +360,7 @@ proc portpkg::write_welcome_html {filename portname portepoch portversion portre
         puts $fd "<font face=\"Helvetica\"><a href=\"${homepage}\">${homepage}</a></font><p>"
     }
 
-    puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portepoch_str}${portversion}${portrevision_str} for Mac OS X. To get started, click Continue.</font>
+    puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portversion}${portrevision_str} for Mac OS X. To get started, click Continue.</font>
 </body>
 </html>"
 
@@ -398,42 +402,27 @@ proc portpkg::write_package_info {infofile} {
     close $infofd
 }
 
-proc portpkg::write_distribution {dfile portname portepoch portversion portrevision} {
+proc portpkg::write_distribution {dfile portname portversion portrevision} {
     global macosx_deployment_target
-    set portname [xml_escape $portname]
-    if {$portepoch != 0} {
-        set portepoch [xml_escape $portepoch]
-        set portepoch_str "${portepoch}_"
-    } else {
-        set portepoch ""
-        set portepoch_str ""
-    }
-    set portversion [xml_escape $portversion]
-    if {$portrevision != 0} {
-        set portrevision [xml_escape $portrevision]
-        set portrevision_str "_${portrevision}"
-    } else {
-        set portrevision ""
-        set portrevision_str ""
-    }
+    set portname_e [xml_escape $portname]
     set dfd [open $dfile w+]
     puts $dfd "<?xml version=\"1.0\" encoding=\"utf-8\"?>
 <installer-gui-script minSpecVersion=\"1\">
-    <title>${portname}</title>
+    <title>${portname_e}</title>
     <options customize=\"never\"/>
     <allowed-os-versions><os-version min=\"${macosx_deployment_target}\"/></allowed-os-versions>
     <background file=\"background.tiff\" mime-type=\"image/tiff\" alignment=\"bottomleft\" scaling=\"none\"/>
     <welcome mime-type=\"text/html\" file=\"Welcome.html\"/>
     <choices-outline>
         <line choice=\"default\">
-            <line choice=\"org.macports.${portname}\"/>
+            <line choice=\"org.macports.${portname_e}\"/>
         </line>
     </choices-outline>
     <choice id=\"default\"/>
-    <choice id=\"org.macports.${portname}\" visible=\"false\">
-        <pkg-ref id=\"org.macports.${portname}\"/>
+    <choice id=\"org.macports.${portname_e}\" visible=\"false\">
+        <pkg-ref id=\"org.macports.${portname_e}\"/>
     </choice>
-    <pkg-ref id=\"org.macports.${portname}\">${portname}-${portepoch_str}${portversion}${portrevision_str}-component.pkg</pkg-ref>
+    <pkg-ref id=\"org.macports.${portname_e}\">[xml_escape [image_name ${portname} ${portversion} ${portrevision}]]-component.pkg</pkg-ref>
 </installer-gui-script>
 "
     close $dfd

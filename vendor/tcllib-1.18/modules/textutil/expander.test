@@ -1,0 +1,368 @@
+# -*-Tcl-*-
+#---------------------------------------------------------------------
+# TITLE:
+#	expander.test
+#
+# AUTHOR:
+#	Will Duquette
+#
+# DESCRIPTION:
+#	Test cases for expander.tcl.  Uses the ::tcltest:: harness.
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal expander.tcl textutil::expander
+}
+
+#---------------------------------------------------------------------
+# Test cases 1.x: Expander Accessors
+
+test expander-1.1 {initial expander settings} {} {
+    catch {::textutil::expander exp}
+    set result "[exp lb] [exp rb] [exp errmode]"
+} {[ ] fail}
+
+test expander-1.2 {setting/retrieving lbrack} {} {
+    catch {::textutil::expander exp}
+    set result "[exp lb FOO] [exp lb] [exp lb {[}]"
+} {FOO FOO [}
+
+test expander-1.3 {setting/retrieving rbrack} {} {
+    catch {::textutil::expander exp}
+    set result "[exp rb FOO] [exp rb] [exp rb {]}]"
+} {FOO FOO ]}
+
+test expander-1.4 {setting/retrieving errmode fail} {} {
+    catch {::textutil::expander exp}
+    list [exp errmode fail] [exp errmode]
+} {fail fail}
+
+test expander-1.5 {setting/retrieving errmode nothing} {} {
+    catch {::textutil::expander exp}
+    list [exp errmode nothing] [exp errmode]
+} {nothing nothing}
+
+test expander-1.6 {setting/retrieving errmode macro} {} {
+    catch {::textutil::expander exp}
+    list [exp errmode macro] [exp errmode]
+} {macro macro}
+
+test expander-1.7 {setting/retrieving errmode error} {} {
+    catch {::textutil::expander exp}
+    list [exp errmode error] [exp errmode]
+} {error error}
+
+test expander-1.8 {setting/retrieving errmode incorrectly} {} {
+    catch {::textutil::expander exp}
+    exp errmode nothing
+    catch {exp errmode FOO} result
+    list $result [exp errmode]
+} {{::exp errmode: Invalid error mode: FOO} nothing}
+
+test expander-1.9 {resetting the object} {} {
+    catch {::textutil::expander exp}
+    exp errmode macro
+    exp lb FOO
+    exp rb BAR
+    exp reset
+    set result "[exp lb] [exp rb] [exp errmode]"
+} {[ ] fail}
+
+#---------------------------------------------------------------------
+# Test cases 2.x: The Context Stack
+
+test expander-2.1 {initial context stack settings} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    list [exp cname] [exp cis [exp cname]]
+} {:0 1}
+
+test expander-2.2 {context stack underflow} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    catch {exp cpop FOO} result
+    set result
+} {::exp cpop underflow on 'FOO'}
+
+test expander-2.3 {context push} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp cpush FOO
+    list [exp cname] [exp cis [exp cname]]
+} {FOO 1}
+
+test expander-2.4 {cvar error} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp cpush FOO
+    catch {exp cvar BAR} result
+    set result
+} {::exp cvar: BAR doesn't exist in this context}
+
+test expander-2.5 {cget error} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp cpush FOO
+    catch {exp cget BAR} result
+    set result
+} {::exp cget: BAR doesn't exist in this context (1)}
+
+test expander-2.6 {cpop mismatch} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp cpush FOO
+    catch {exp cpop BAR} result
+    set result
+} {::exp cpop context mismatch: expected FOO, got BAR}
+
+test expander-2.7 {cpush, cappend, cpop} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp cpush FOO
+    exp cappend "Hello, "
+    exp cappend "World!"
+    set result [exp cpop FOO]
+    list $result [exp cname]
+} {{Hello, World!} :0}
+
+test expander-2.8 {two-stage cpush, cappend, cpop} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp cpush FOO
+    exp cappend "Goodbye "
+    exp cpush BAR
+    exp where
+    exp cappend "Cruel "
+    exp cappend [exp cpop BAR]
+    exp cappend "World!"
+    set result [exp cpop FOO]
+    list $result [exp cname]
+} {{Goodbye Cruel World!} :0}
+
+test expander-2.9 {cset, cvar, cget} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp cpush FOO
+    exp cset BAR QUUX
+    list [exp cget BAR] [set [exp cvar BAR]]
+} {QUUX QUUX}
+
+test expander-2.10 {two-stage cset, cvar, cget} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp cpush ONE
+    exp cset FOO BAR
+    exp cpush TWO
+    exp cset FOO QUUX
+    set v2 [exp cget FOO]
+    exp cpop TWO
+    set v1 [exp cget FOO]
+    list $v1 $v2
+} {BAR QUUX}
+
+#---------------------------------------------------------------------
+# Test cases 3.x: Successful Macro Expansion
+
+proc howdy {} {return "Howdy"}
+
+test expander-3.1 {expand the empty string} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp expand ""
+} {}
+
+test expander-3.2 {expand a string with no macros} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp expand {Hello, world!}
+} {Hello, world!}
+
+test expander-3.3 {expand a string consisting of a macro} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp expand {[howdy]}
+} {Howdy}
+
+test expander-3.4 {expand a string beginning with a macro} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp expand {[howdy], world!}
+} {Howdy, world!}
+
+test expander-3.5 {expand a string ending with a macro} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp expand {Well, [howdy]}
+} {Well, Howdy}
+
+test expander-3.6 {expand a string with macro in middle} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp expand {Well, [howdy]!}
+} {Well, Howdy!}
+
+test expander-3.7 {expand macro with changed default brackets} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp lb "<<<"
+    exp rb ">>>"
+    exp expand {Well, <<<howdy>>>!}
+} {Well, Howdy!}
+
+test expander-3.8 {expand macro with changed user brackets} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp expand {Well, <<<howdy>>>!} {<<< >>>}
+} {Well, Howdy!}
+
+test expander-3.9 {expand macro with changed user brackets} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    set a [exp expand {[howdy]}]
+    set b [exp expand {Well, <<<howdy>>>!} {<<< >>>}]
+    list $a $b
+} {Howdy {Well, Howdy!}}
+
+test expander-3.10 {macros change brackets} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    string trim [exp expand {
+        Well, [howdy]!
+        [exp setbrackets <<< >>>]
+        Well, <<<howdy>>>!
+        <<<exp setbrackets "\[" "\]">>>
+        Well, [howdy]!
+    }]
+} {Well, Howdy!
+        
+        Well, Howdy!
+        
+        Well, Howdy!}
+
+test expander-3.11 {brackets are restored correctly} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    list [exp expand {<howdy>} "< >"] [exp expand {[howdy]}]
+} {Howdy Howdy}
+
+test expander-3.12 {nested expansion: one expander} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp expand {[howdy] [exp expand {*[howdy]*}] [howdy]}
+} {Howdy *Howdy* Howdy}
+
+test expander-3.13 {nested expansion: two expanders} {} {
+    catch {::textutil::expander exp}
+    catch {::textutil::expander exp2}
+    exp reset
+    exp2 reset
+    exp expand {[howdy] [exp2 expand {*[howdy]*}] [howdy]}
+} {Howdy *Howdy* Howdy}
+
+#---------------------------------------------------------------------
+# Test cases 4.x: Failed Macro Expansion
+
+test expander-4.1 {error mode fail} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp errmode fail
+    catch {exp expand {+++[nop]+++}} result
+    set result
+} {Error in macro at line 1, column 3:
+[nop]
+--> invalid command name "nop"}
+
+test expander-4.2 {error mode error} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp errmode error
+    catch {exp expand {+++[nop]+++}} result
+    set result
+} {+++
+=================================
+*** Error in macro at line 1, column 3:
+*** [nop]
+--> invalid command name "nop"
+=================================
++++}
+
+test expander-4.3 {error mode macro} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp errmode macro
+    catch {exp expand {+++[nop]+++}} result
+    set result
+} {+++[nop]+++}
+
+test expander-4.4 {error mode nothing} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp errmode nothing
+    catch {exp expand {+++[nop]+++}} result
+    set result
+} {++++++}
+
+test expander-4.5 {counting lines} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    exp errmode error
+    catch {exp expand {+++
+
+
+  [nop]+++}} result
+    set result
+} {+++
+
+
+  
+=================================
+*** Error in macro at line 4, column 2:
+*** [nop]
+--> invalid command name "nop"
+=================================
++++}
+
+#---------------------------------------------------------------------
+# Test cases 5.x: Replacing the evalcmd.
+
+proc identity {macro} {
+    return $macro
+}
+
+test expander-5.1 {new evalcmd} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    set oldcmd [exp evalcmd]
+    exp evalcmd identity
+    list $oldcmd [exp evalcmd] [exp expand {+++[Bogus Macro]+++}]
+} {{uplevel #0} identity {+++Bogus Macro+++}}
+
+#---------------------------------------------------------------------
+# Test cases 6.x: Replacing the textcmd.
+
+proc count {text} {
+    return [string length $text]
+}
+
+test expander-6.1 {new evalcmd} {} {
+    catch {::textutil::expander exp}
+    exp reset
+    set oldcmd [exp textcmd]
+    exp textcmd count
+    list $oldcmd [exp textcmd] [exp expand {++++++}]
+} {{} count 6}
+
+#---------------------------------------------------------------------
+# Clean up
+
+testsuiteCleanup
+return
+

@@ -1,0 +1,400 @@
+## -*- tcl -*-
+##
+## OO-based Tcl/PARAM implementation of the parsing
+## expression grammar
+##
+##	TEMPLATE
+##
+## Generated from file	TEST
+##            for user  unknown
+##
+# # ## ### ##### ######## ############# #####################
+## Requirements
+
+package require Tcl 8.5
+package require TclOO
+package require pt::rde::oo ; # OO-based implementation of the
+			      # PARAM virtual machine
+			      # underlying the Tcl/PARAM code
+			      # used below.
+
+# # ## ### ##### ######## ############# #####################
+##
+
+oo::class create PARSER {
+    # # ## ### ##### ######## #############
+    ## Public API
+
+    superclass pt::rde::oo ; # TODO - Define this class.
+                             # Or can we inherit from a snit
+                             # class too ?
+
+    method parse {channel} {
+	my reset $channel
+	my MAIN ; # Entrypoint for the generated code.
+	return [my complete]
+    }
+
+    method parset {text} {
+	my reset {}
+	my data $text
+	my MAIN ; # Entrypoint for the generated code.
+	return [my complete]
+    }
+
+    # # ## ### ###### ######## #############
+    ## BEGIN of GENERATED CODE. DO NOT EDIT.
+
+    #
+    # Grammar Start Expression
+    #
+    
+    method MAIN {} {
+        my sym_Expression
+        return
+    }
+    
+    #
+    # value Symbol 'AddOp'
+    #
+    
+    method sym_AddOp {} {
+        # [-+]
+    
+        my si:void_symbol_start AddOp
+        my si:next_class -+
+        my si:void_leaf_symbol_end AddOp
+        return
+    }
+    
+    #
+    # value Symbol 'Digit'
+    #
+    
+    method sym_Digit {} {
+        # [0123456789]
+    
+        my si:void_symbol_start Digit
+        my si:next_class 0123456789
+        my si:void_leaf_symbol_end Digit
+        return
+    }
+    
+    #
+    # value Symbol 'Expression'
+    #
+    
+    method sym_Expression {} {
+        # /
+        #     (Function)
+        #     x
+        #         '\('
+        #         (Expression)
+        #         '\)'
+        #     x
+        #         (Factor)
+        #         *
+        #             x
+        #                 (MulOp)
+        #                 (Factor)
+    
+        my si:value_symbol_start Expression
+        my choice_21
+        my si:reduce_symbol_end Expression
+        return
+    }
+    
+    method choice_21 {} {
+        # /
+        #     (Function)
+        #     x
+        #         '\('
+        #         (Expression)
+        #         '\)'
+        #     x
+        #         (Factor)
+        #         *
+        #             x
+        #                 (MulOp)
+        #                 (Factor)
+    
+        my si:value_state_push
+        my sym_Function
+        my si:valuevalue_branch
+        my sequence_10
+        my si:valuevalue_branch
+        my sequence_19
+        my si:value_state_merge
+        return
+    }
+    
+    method sequence_10 {} {
+        # x
+        #     '\('
+        #     (Expression)
+        #     '\)'
+    
+        my si:void_state_push
+        my si:next_char \50
+        my si:voidvalue_part
+        my sym_Expression
+        my si:valuevalue_part
+        my si:next_char \51
+        my si:value_state_merge
+        return
+    }
+    
+    method sequence_19 {} {
+        # x
+        #     (Factor)
+        #     *
+        #         x
+        #             (MulOp)
+        #             (Factor)
+    
+        my si:value_state_push
+        my sym_Factor
+        my si:valuevalue_part
+        my kleene_17
+        my si:value_state_merge
+        return
+    }
+    
+    method kleene_17 {} {
+        # *
+        #     x
+        #         (MulOp)
+        #         (Factor)
+    
+        while {1} {
+            my si:void2_state_push
+        my sequence_15
+            my si:kleene_close
+        }
+        return
+    }
+    
+    method sequence_15 {} {
+        # x
+        #     (MulOp)
+        #     (Factor)
+    
+        my si:value_state_push
+        my sym_MulOp
+        my si:valuevalue_part
+        my sym_Factor
+        my si:value_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Factor'
+    #
+    
+    method sym_Factor {} {
+        # x
+        #     (Term)
+        #     *
+        #         x
+        #             (AddOp)
+        #             (Term)
+    
+        my si:value_symbol_start Factor
+        my sequence_31
+        my si:reduce_symbol_end Factor
+        return
+    }
+    
+    method sequence_31 {} {
+        # x
+        #     (Term)
+        #     *
+        #         x
+        #             (AddOp)
+        #             (Term)
+    
+        my si:value_state_push
+        my sym_Term
+        my si:valuevalue_part
+        my kleene_29
+        my si:value_state_merge
+        return
+    }
+    
+    method kleene_29 {} {
+        # *
+        #     x
+        #         (AddOp)
+        #         (Term)
+    
+        while {1} {
+            my si:void2_state_push
+        my sequence_27
+            my si:kleene_close
+        }
+        return
+    }
+    
+    method sequence_27 {} {
+        # x
+        #     (AddOp)
+        #     (Term)
+    
+        my si:value_state_push
+        my sym_AddOp
+        my si:valuevalue_part
+        my sym_Term
+        my si:value_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Function'
+    #
+    
+    method sym_Function {} {
+        # (Sinus)
+    
+        my si:value_symbol_start Function
+        my sym_Sinus
+        my si:reduce_symbol_end Function
+        return
+    }
+    
+    #
+    # value Symbol 'MulOp'
+    #
+    
+    method sym_MulOp {} {
+        # [*/]
+    
+        my si:void_symbol_start MulOp
+        my si:next_class */
+        my si:void_leaf_symbol_end MulOp
+        return
+    }
+    
+    #
+    # value Symbol 'Number'
+    #
+    
+    method sym_Number {} {
+        # x
+        #     ?
+        #         (Sign)
+        #     +
+        #         (Digit)
+    
+        my si:value_symbol_start Number
+        my sequence_44
+        my si:reduce_symbol_end Number
+        return
+    }
+    
+    method sequence_44 {} {
+        # x
+        #     ?
+        #         (Sign)
+        #     +
+        #         (Digit)
+    
+        my si:value_state_push
+        my optional_39
+        my si:valuevalue_part
+        my poskleene_42
+        my si:value_state_merge
+        return
+    }
+    
+    method optional_39 {} {
+        # ?
+        #     (Sign)
+    
+        my si:void2_state_push
+        my sym_Sign
+        my si:void_state_merge_ok
+        return
+    }
+    
+    method poskleene_42 {} {
+        # +
+        #     (Digit)
+    
+        my i_loc_push
+        my sym_Digit
+        my si:kleene_abort
+        while {1} {
+            my si:void2_state_push
+        my sym_Digit
+            my si:kleene_close
+        }
+        return
+    }
+    
+    #
+    # value Symbol 'Sign'
+    #
+    
+    method sym_Sign {} {
+        # [-+]
+    
+        my si:void_symbol_start Sign
+        my si:next_class -+
+        my si:void_leaf_symbol_end Sign
+        return
+    }
+    
+    #
+    # value Symbol 'Sinus'
+    #
+    
+    method sym_Sinus {} {
+        # x
+        #     "sin\("
+        #     (Expression)
+        #     '\)'
+    
+        my si:value_symbol_start Sinus
+        my sequence_52
+        my si:reduce_symbol_end Sinus
+        return
+    }
+    
+    method sequence_52 {} {
+        # x
+        #     "sin\("
+        #     (Expression)
+        #     '\)'
+    
+        my si:void_state_push
+        my si:next_str sin\50
+        my si:voidvalue_part
+        my sym_Expression
+        my si:valuevalue_part
+        my si:next_char \51
+        my si:value_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Term'
+    #
+    
+    method sym_Term {} {
+        # (Number)
+    
+        my si:value_symbol_start Term
+        my sym_Number
+        my si:reduce_symbol_end Term
+        return
+    }
+    
+    ## END of GENERATED CODE. DO NOT EDIT.
+    # # ## ### ###### ######## #############
+}
+
+# # ## ### ##### ######## ############# #####################
+## Ready
+
+package provide OO_PACKAGE 1
+return

@@ -1,0 +1,46 @@
+# -*- tcl -*-
+# Graph tests - node existence
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: exists.test,v 1.2 2007/04/12 03:01:56 andreas_kupries Exp $
+
+# Syntax: graph node exists NODE
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-node-exists-1.0 {node exists, wrong#args, missing} {
+    SETUP
+    catch {mygraph node exists} msg
+    mygraph destroy
+    set msg
+} [tmWrong {node exists} node 0]
+
+test graph-${impl}-${setimpl}-node-exists-1.1 {node exists, wrong#args, too many} {
+    SETUP
+    catch {mygraph node exists 0 1} msg
+    mygraph destroy
+    set msg
+} [tmTooMany {node exists} node]
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-node-exists-2.0 {node exists} {
+    SETUP
+    set     res {}
+    lappend res [mygraph node exists node1]
+
+    mygraph node insert node1
+
+    lappend res [mygraph node exists node1]
+
+    mygraph node delete node1
+
+    lappend res [mygraph node exists node1]
+
+    mygraph destroy
+    set res
+} {0 1 0}
+
+# ---------------------------------------------------

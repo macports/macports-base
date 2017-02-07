@@ -1,0 +1,131 @@
+# documentation: http://delicious.com/help/api
+
+package require rest
+
+set delicious(updated) {
+    url https://api.del.icio.us/v1/posts/update
+    auth basic
+    result raw
+    post_transform {
+        regexp {<update time=\"(.*?)\"} $result -> update
+        return [clock scan [string map {T " " Z " UTC"} $update]]
+    }
+}
+
+set delicious(add_post) {
+    url https://api.del.icio.us/v1/posts/add
+    auth basic
+    req_args { url: description: }
+    opt_args { extended: tags: dt: replace: shared: }
+    check_result { {[regexp {<result code=\"done} $result]} {} }
+}
+
+set delicious(delete_post) {
+    url https://api.del.icio.us/v1/posts/delete
+    auth basic
+    req_args { url: }
+    check_result { {[regexp {<result code=\"done} $result]} {} }
+}
+
+set delicious(get_posts) {
+    url https://api.del.icio.us/v1/posts/get
+    auth basic
+    opt_args { url: tag: dt: hashes: meta: }
+}
+
+set delicious(recent_posts) {
+    url https://api.del.icio.us/v1/posts/recent
+    auth basic
+    opt_args { tag: }
+}
+
+set delicious(post_dates) {
+    url https://api.del.icio.us/v1/posts/dates
+    auth basic
+    opt_args { tag: count: }
+}
+
+set delicious(get_all_posts) {
+    url https://api.del.icio.us/v1/posts/all
+    auth basic
+    opt_args { tag: start: results: fromdt: todt: meta: }
+}
+
+set delicious(get_hashes) {
+    url https://api.del.icio.us/v1/posts/all
+    auth basic
+    static_args { hashes {} }
+}
+
+set delicious(get_tags) {
+    url https://api.del.icio.us/v1/tags/get
+    auth basic
+}
+
+set delicious(delete_tag) {
+    url https://api.del.icio.us/v1/tags/delete
+    auth basic
+    req_args { tag: }
+    check_result { {[regexp {<result>done} $result]} {} }
+}
+
+set delicious(rename_tag) {
+    url https://api.del.icio.us/v1/tags/rename
+    auth basic
+    req_args { old: new: }
+    check_result { {[regexp {<result>done} $result]} {} }
+}
+
+set delicious(get_bundles) {
+    url https://api.del.icio.us/v1/bundles/all
+    auth basic
+    opt_args { bundle: }
+}
+
+set delicious(set_bundle) {
+    url https://api.del.icio.us/v1/bundles/set
+    auth basic
+    req_args { bundle: tags: }
+    check_result { {[regexp {<result>ok} $result]} {} }
+}
+
+set delicious(delete_bundle) {
+    url https://api.del.icio.us/v1/bundles/delete
+    auth basic
+    req_args { bundle: }
+    check_result { {[regexp {<result>done} $result]} {} }
+}
+
+set delicious(public_posts) {
+    url http://feeds.delicious.com/v2/json/%user%/%tags:%
+    opt_args { count: }
+}
+
+set delicious(modify_post) {
+    url https://api.del.icio.us/v1/posts/add
+    auth basic
+    req_args { post: }
+    opt_args { description: extended: tags: dt: shared: }
+    check_result { {[regexp {<result code=\"done} $result]} {} }
+    result raw
+    input_transform {
+        set new [dict remove [dict get $query post] hash others meta]
+        foreach {from to} {href url tag tags time dt} {
+             set v [dict get $new $from]
+             set new [dict remove $new $from]
+             dict set new $to $v
+        }
+        dict for {k v} [dict remove $query post] {
+            if {$v == ""} {
+                set new [dict remove $new $k]
+                continue
+            }
+            if {$k == "dt"} { set v [string trimright $v Z] }
+
+            set new [dict replace $new $k $v]
+        }
+        return $new
+    }
+}
+
+rest::create_interface delicious

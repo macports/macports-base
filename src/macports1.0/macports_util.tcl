@@ -1,8 +1,8 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # macports_util.tcl
-# $Id$
 #
 # Copyright (c) 2007 Kevin Ballard <eridius@macports.org>
+# Copyright (c) 2016 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -186,8 +186,8 @@ proc lunshift {varName args} {
 
 # bytesize filesize ?unit? ?format?
 # Format an integer representing bytes using given units
-proc bytesize {siz {unit {}} {format {%.3f}}} {
-    if {$unit == {}} {
+proc bytesize {siz {unit {}} {format {%.2f}}} {
+    if {$unit eq {}} {
         if {$siz > 0x40000000} {
             set unit "GiB"
         } elseif {$siz > 0x100000} {

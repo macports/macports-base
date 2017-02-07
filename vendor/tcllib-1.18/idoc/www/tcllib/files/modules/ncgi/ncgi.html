@@ -1,0 +1,378 @@
+
+<html><head>
+<title>ncgi - CGI Support</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'ncgi.man' by tcllib/doctools with format 'html'
+   -->
+<! -- ncgi.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">ncgi(n) 1.4.3 tcllib &quot;CGI Support&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>ncgi - Procedures to manipulate CGI values.</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">ncgi <span class="opt">?1.4.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::ncgi::cookie</b> <i class="arg">cookie</i></a></li>
+<li><a href="#2"><b class="cmd">::ncgi::decode</b> <i class="arg">str</i></a></li>
+<li><a href="#3"><b class="cmd">::ncgi::empty</b> <i class="arg">name</i></a></li>
+<li><a href="#4"><b class="cmd">::ncgi::exists</b> <i class="arg">name</i></a></li>
+<li><a href="#5"><b class="cmd">::ncgi::encode</b> <i class="arg">string</i></a></li>
+<li><a href="#6"><b class="cmd">::ncgi::header</b> <span class="opt">?<i class="arg">type</i>?</span> <i class="arg">args</i></a></li>
+<li><a href="#7"><b class="cmd">::ncgi::import</b> <i class="arg">cginame</i> <span class="opt">?<i class="arg">tclname</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">::ncgi::importAll</b> <i class="arg">args</i></a></li>
+<li><a href="#9"><b class="cmd">::ncgi::importFile</b> <i class="arg">cmd</i> <i class="arg">cginame</i> <span class="opt">?<i class="arg">filename</i>?</span></a></li>
+<li><a href="#10"><b class="cmd">::ncgi::input</b> <span class="opt">?<i class="arg">fakeinput</i>?</span> <span class="opt">?<i class="arg">fakecookie</i>?</span></a></li>
+<li><a href="#11"><b class="cmd">::ncgi::multipart</b> <i class="arg">type query</i></a></li>
+<li><a href="#12"><b class="cmd">::ncgi::nvlist</b></a></li>
+<li><a href="#13"><b class="cmd">::ncgi::names</b></a></li>
+<li><a href="#14"><b class="cmd">::ncgi::parse</b></a></li>
+<li><a href="#15"><b class="cmd">::ncgi::parseMimeValue</b> <i class="arg">value</i></a></li>
+<li><a href="#16"><b class="cmd">::ncgi::query</b></a></li>
+<li><a href="#17"><b class="cmd">::ncgi::redirect</b> <i class="arg">url</i></a></li>
+<li><a href="#18"><b class="cmd">::ncgi::reset</b> <i class="arg">query type</i></a></li>
+<li><a href="#19"><b class="cmd">::ncgi::setCookie</b> <i class="arg">args</i></a></li>
+<li><a href="#20"><b class="cmd">::ncgi::setDefaultValue</b> <i class="arg">key defvalue</i></a></li>
+<li><a href="#21"><b class="cmd">::ncgi::setDefaultValueList</b> <i class="arg">key defvaluelist</i></a></li>
+<li><a href="#22"><b class="cmd">::ncgi::setValue</b> <i class="arg">key value</i></a></li>
+<li><a href="#23"><b class="cmd">::ncgi::setValueList</b> <i class="arg">key valuelist</i></a></li>
+<li><a href="#24"><b class="cmd">::ncgi::type</b></a></li>
+<li><a href="#25"><b class="cmd">::ncgi::urlStub</b> <span class="opt">?<i class="arg">url</i>?</span></a></li>
+<li><a href="#26"><b class="cmd">::ncgi::value</b> <i class="arg">key</i> <span class="opt">?<i class="arg">default</i>?</span></a></li>
+<li><a href="#27"><b class="cmd">::ncgi::valueList</b> <i class="arg">key</i> <span class="opt">?<i class="arg">default</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">ncgi</b> package provides commands that manipulate CGI
+values.  These are values that come from Web forms and are processed
+either by CGI scripts or web pages with embedded Tcl code.  Use the
+<b class="package">ncgi</b> package to query these values, set and get cookies, and
+encode and decode www-url-encoded values.</p>
+<p>In the simplest case, a CGI script first calls <b class="cmd">::ncgi::parse</b> and
+then calls <b class="cmd">::ncgi::value</b> to get different form values.  If a CGI
+value is repeated, you should use <b class="cmd">::ncgi::valueList</b> to get back
+the complete list of values.</p>
+<p>An alternative to <b class="cmd">::ncgi::parse</b> is <b class="cmd">::ncgi::input</b>, which
+has semantics similar to Don Libes' <b class="cmd">cgi_input</b> procedure.
+<b class="cmd">::ncgi::input</b> restricts repeated CGI values to have names that
+end with &quot;List&quot;.  In this case, <b class="cmd">::ncgi::value</b> will return the
+complete list of values, and <b class="cmd">::ncgi::input</b> will raise errors if
+it find repeated form elements without the right name.</p>
+<p>The <b class="cmd">::ncgi::reset</b> procedure can be used in test suites and Web
+servers to initialize the source of the CGI values.  Otherwise the
+values are read in from the CGI environment.</p>
+<p>The complete set of procedures is described below.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::ncgi::cookie</b> <i class="arg">cookie</i></a></dt>
+<dd><p>Return a list of values for <i class="arg">cookie</i>, if any.  It is possible that
+more than one cookie with the same name can be present, so this
+procedure returns a list.</p></dd>
+<dt><a name="2"><b class="cmd">::ncgi::decode</b> <i class="arg">str</i></a></dt>
+<dd><p>Decode strings in www-url-encoding, which represents special
+characters with a %xx sequence, where xx is the character code in hex.</p></dd>
+<dt><a name="3"><b class="cmd">::ncgi::empty</b> <i class="arg">name</i></a></dt>
+<dd><p>Returns 1 if the CGI variable <i class="arg">name</i> is not present or has the
+empty string as its value.</p></dd>
+<dt><a name="4"><b class="cmd">::ncgi::exists</b> <i class="arg">name</i></a></dt>
+<dd><p>The return value is a boolean. It returns <b class="const">0</b> if the CGI
+variable <i class="arg">name</i> is not present, and <b class="const">1</b> otherwise.</p></dd>
+<dt><a name="5"><b class="cmd">::ncgi::encode</b> <i class="arg">string</i></a></dt>
+<dd><p>Encode <i class="arg">string</i> into www-url-encoded format.</p></dd>
+<dt><a name="6"><b class="cmd">::ncgi::header</b> <span class="opt">?<i class="arg">type</i>?</span> <i class="arg">args</i></a></dt>
+<dd><p>Output the CGI header to standard output.  This emits a Content-Type:
+header and additional headers based on <i class="arg">args</i>, which is a list of
+header names and header values. The <i class="arg">type</i> defaults to
+&quot;text/html&quot;.</p></dd>
+<dt><a name="7"><b class="cmd">::ncgi::import</b> <i class="arg">cginame</i> <span class="opt">?<i class="arg">tclname</i>?</span></a></dt>
+<dd><p>This creates a variable in the current scope with the value of the CGI
+variable <i class="arg">cginame</i>.  The name of the variable is <i class="arg">tclname</i>, or
+<i class="arg">cginame</i> if <i class="arg">tclname</i> is empty (default).</p></dd>
+<dt><a name="8"><b class="cmd">::ncgi::importAll</b> <i class="arg">args</i></a></dt>
+<dd><p>This imports several CGI variables as Tcl variables.  If <i class="arg">args</i> is
+empty, then every CGI value is imported.  Otherwise each CGI variable
+listed in <i class="arg">args</i> is imported.</p></dd>
+<dt><a name="9"><b class="cmd">::ncgi::importFile</b> <i class="arg">cmd</i> <i class="arg">cginame</i> <span class="opt">?<i class="arg">filename</i>?</span></a></dt>
+<dd><p>This provides information about an uploaded file from a form input
+field of type <b class="const">file</b> with name <i class="arg">cginame</i>.  <i class="arg">cmd</i> can be
+one of <b class="option">-server</b> <b class="option">-client</b>, <b class="option">-type</b> or
+<b class="option">-data</b>.</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-client</b> <i class="arg">cginame</i></dt>
+<dd><p>returns the filename as sent by the client.</p></dd>
+<dt><b class="option">-type</b> <i class="arg">cginame</i></dt>
+<dd><p>returns the mime type of the uploaded file.</p></dd>
+<dt><b class="option">-data</b> <i class="arg">cginame</i></dt>
+<dd><p>returns the contents of the file.</p></dd>
+<dt><b class="option">-server</b> <i class="arg">cginame</i> <i class="arg">filename</i></dt>
+<dd><p>writes the file contents to a local temporary file (or <i class="arg">filename</i>
+if supplied) and returns the name of the file. The caller is
+responsible for deleting this file after use.</p></dd>
+</dl></dd>
+<dt><a name="10"><b class="cmd">::ncgi::input</b> <span class="opt">?<i class="arg">fakeinput</i>?</span> <span class="opt">?<i class="arg">fakecookie</i>?</span></a></dt>
+<dd><p>This reads and decodes the CGI values from the environment.  It
+restricts repeated form values to have a trailing &quot;List&quot; in their
+name.  The CGI values are obtained later with the <b class="cmd">::ncgi::value</b>
+procedure.</p></dd>
+<dt><a name="11"><b class="cmd">::ncgi::multipart</b> <i class="arg">type query</i></a></dt>
+<dd><p>This procedure parses a multipart/form-data <i class="arg">query</i>.  This is used
+by <b class="cmd">::ncgi::nvlist</b> and not normally called directly.  It returns
+an alternating list of names and structured values.  Each structure
+value is in turn a list of two elements.  The first element is
+meta-data from the multipart/form-data structure.  The second element
+is the form value.  If you use <b class="cmd">::ncgi::value</b> you just get the
+form value.  If you use <b class="cmd">::ncgi::valueList</b> you get the structured
+value with meta data and the value.</p>
+<p>The <i class="arg">type</i> is the whole Content-Type, including the parameters
+like <i class="arg">boundary</i>.  This returns a list of names and values that
+describe the multipart data.  The values are a nested list structure
+that has some descriptive information first, and the actual form value
+second.  The descriptive information is list of header names and
+values that describe the content.</p></dd>
+<dt><a name="12"><b class="cmd">::ncgi::nvlist</b></a></dt>
+<dd><p>This returns all the query data as a name, value list.  In the case of
+multipart/form-data, the values are structured as described in
+<b class="cmd">::ncgi::multipart</b>.</p></dd>
+<dt><a name="13"><b class="cmd">::ncgi::names</b></a></dt>
+<dd><p>This returns all names found in the query data, as a list.
+<b class="cmd">::ncgi::multipart</b>.</p></dd>
+<dt><a name="14"><b class="cmd">::ncgi::parse</b></a></dt>
+<dd><p>This reads and decodes the CGI values from the environment.  The CGI
+values are obtained later with the <b class="cmd">::ncgi::value</b> procedure.  IF
+a CGI value is repeated, then you should use <b class="cmd">::ncgi::valueList</b>
+to get the complete list of values.</p></dd>
+<dt><a name="15"><b class="cmd">::ncgi::parseMimeValue</b> <i class="arg">value</i></a></dt>
+<dd><p>This decodes the Content-Type and other MIME headers that have the
+form of &quot;primary value; param=val; p2=v2&quot; It returns a list, where the
+first element is the primary value, and the second element is a list
+of parameter names and values.</p></dd>
+<dt><a name="16"><b class="cmd">::ncgi::query</b></a></dt>
+<dd><p>This returns the raw query data.</p></dd>
+<dt><a name="17"><b class="cmd">::ncgi::redirect</b> <i class="arg">url</i></a></dt>
+<dd><p>Generate a response that causes a 302 redirect by the Web server.  The
+<i class="arg">url</i> is the new URL that is the target of the redirect.  The URL
+will be qualified with the current server and current directory, if
+necessary, to convert it into a full URL.</p></dd>
+<dt><a name="18"><b class="cmd">::ncgi::reset</b> <i class="arg">query type</i></a></dt>
+<dd><p>Set the query data and Content-Type for the current CGI session.  This
+is used by the test suite and by Web servers to initialize the ncgi
+module so it does not try to read standard input or use environment
+variables to get its data.  If neither <i class="arg">query</i> or <i class="arg">type</i> are
+specified, then the <b class="package">ncgi</b> module will look in the standard
+CGI environment for its data.</p></dd>
+<dt><a name="19"><b class="cmd">::ncgi::setCookie</b> <i class="arg">args</i></a></dt>
+<dd><p>Set a cookie value that will be returned as part of the reply.  This
+must be done before <b class="cmd">::ncgi::header</b> or <b class="cmd">::ncgi::redirect</b> is
+called in order for the cookie to be returned properly.  The
+<i class="arg">args</i> are a set of flags and values:</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-name</b> <i class="arg">name</i></dt>
+<dd></dd>
+<dt><b class="option">-value</b> <i class="arg">value</i></dt>
+<dd></dd>
+<dt><b class="option">-expires</b> <i class="arg">date</i></dt>
+<dd></dd>
+<dt><b class="option">-path</b> <i class="arg">path restriction</i></dt>
+<dd></dd>
+<dt><b class="option">-domain</b> <i class="arg">domain restriction</i></dt>
+<dd></dd>
+</dl></dd>
+<dt><a name="20"><b class="cmd">::ncgi::setDefaultValue</b> <i class="arg">key defvalue</i></a></dt>
+<dd><p>Set a CGI value if it does not already exists.  This affects future
+calls to <b class="cmd">::ncgi::value</b> (but not future calls to
+<b class="cmd">::ncgi::nvlist</b>).  If the CGI value already is present, then this
+procedure has no side effects.</p></dd>
+<dt><a name="21"><b class="cmd">::ncgi::setDefaultValueList</b> <i class="arg">key defvaluelist</i></a></dt>
+<dd><p>Like <b class="cmd">::ncgi::setDefaultValue</b> except that the value already has
+list structure to represent multiple checkboxes or a multi-selection.</p></dd>
+<dt><a name="22"><b class="cmd">::ncgi::setValue</b> <i class="arg">key value</i></a></dt>
+<dd><p>Set a CGI value, overriding whatever was present in the CGI
+environment already.  This affects future calls to <b class="cmd">::ncgi::value</b>
+(but not future calls to <b class="cmd">::ncgi::nvlist</b>).</p></dd>
+<dt><a name="23"><b class="cmd">::ncgi::setValueList</b> <i class="arg">key valuelist</i></a></dt>
+<dd><p>Like <b class="cmd">::ncgi::setValue</b> except that the value already has list
+structure to represent multiple checkboxes or a multi-selection.</p></dd>
+<dt><a name="24"><b class="cmd">::ncgi::type</b></a></dt>
+<dd><p>Returns the Content-Type of the current CGI values.</p></dd>
+<dt><a name="25"><b class="cmd">::ncgi::urlStub</b> <span class="opt">?<i class="arg">url</i>?</span></a></dt>
+<dd><p>Returns the current URL, but without the protocol, server, and port.
+If <i class="arg">url</i> is specified, then it defines the URL for the current
+session.  That value will be returned by future calls to
+<b class="cmd">::ncgi::urlStub</b></p></dd>
+<dt><a name="26"><b class="cmd">::ncgi::value</b> <i class="arg">key</i> <span class="opt">?<i class="arg">default</i>?</span></a></dt>
+<dd><p>Return the CGI value identified by <i class="arg">key</i>.  If the CGI value is not
+present, then the <i class="arg">default</i> value is returned instead. This value
+defaults to the empty string.</p>
+<p>If the form value <i class="arg">key</i> is repeated, then there are two cases: if
+<b class="cmd">::ncgi::parse</b> was called, then <b class="cmd">::ncgi::value</b> only returns
+the first value associated with <i class="arg">key</i>.  If <b class="cmd">::ncgi::input</b> was
+called, then <b class="cmd">::ncgi::value</b> returns a Tcl list value and
+<i class="arg">key</i> must end in &quot;List&quot; (e.g., &quot;skuList&quot;).  In the case of
+multipart/form-data, this procedure just returns the value of the form
+element.  If you want the meta-data associated with each form value,
+then use <b class="cmd">::ncgi::valueList</b>.</p></dd>
+<dt><a name="27"><b class="cmd">::ncgi::valueList</b> <i class="arg">key</i> <span class="opt">?<i class="arg">default</i>?</span></a></dt>
+<dd><p>Like <b class="cmd">::ncgi::value</b>, but this always returns a list of values
+(even if there is only one value).  In the case of
+multipart/form-data, this procedure returns a list of two elements.
+The first element is meta-data in the form of a parameter, value list.
+The second element is the form value.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">EXAMPLES</a></h2>
+<p>Uploading a file</p>
+<pre class="doctools_example">
+HTML:
+&lt;html&gt;
+&lt;form action=&quot;/cgi-bin/upload.cgi&quot; method=&quot;POST&quot; enctype=&quot;multipart/form-data&quot;&gt;
+Path: &lt;input type=&quot;file&quot; name=&quot;filedata&quot;&gt;&lt;br&gt;
+Name: &lt;input type=&quot;text&quot; name=&quot;filedesc&quot;&gt;&lt;br&gt;
+&lt;input type=&quot;submit&quot;&gt;
+&lt;/form&gt;
+&lt;/html&gt;
+TCL: upload.cgi
+#!/usr/local/bin/tclsh
+::ncgi::parse
+set filedata [::ncgi::value filedata]
+set filedesc [::ncgi::value filedesc]
+puts &quot;&lt;html&gt; File uploaded at &lt;a href=\&quot;/images/$filedesc\&quot;&gt;$filedesc&lt;/a&gt; &lt;/html&gt;&quot;
+set filename /www/images/$filedesc
+set fh [open $filename w]
+puts -nonewline $fh $filedata
+close $fh
+</pre>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>ncgi</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../html/html.html">html</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key675">CGI</a>, <a href="../../../../index.html#key674">cookie</a>, <a href="../../../../index.html#key615">form</a>, <a href="../../../../index.html#key616">html</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>CGI programming</p>
+</div>
+</div></body></html>

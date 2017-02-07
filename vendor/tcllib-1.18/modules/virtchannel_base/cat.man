@@ -1,0 +1,47 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcl::chan::cat n 1]
+[keywords {concatenation channel}]
+[keywords {reflected channel}]
+[keywords {tip 219}]
+[keywords {virtual channel}]
+[copyright {2011 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Reflected/virtual channel support}]
+[category  Channels]
+[titledesc {Concatenation channel}]
+[require Tcl 8.5]
+[require TclOO]
+[require tcl::chan::core [opt 1]]
+[require tcl::chan::cat [opt 1]]
+[description]
+[para]
+
+The [package tcl::chan::cat] package provides a command creating
+concatenation channels. These are non-seekable channels owning a list
+of subordinate channels whose contents they return in order, until all
+are exhausted. In this manner the channel is the concatentation of the
+contents of all the sub-ordinate channels.
+
+[para] Note that the created channels take ownership of the channels
+they were constructed with. Whenever they have exhausted one of their
+channel it will be closed. Similarly, closing the cat channel will
+close all the sub-ordinates it still has.
+
+[para] The internal [package TclOO] class implementing the channel
+handler is a sub-class of the [package tcl::chan::core] framework.
+
+[para] Event handling is delegated to the currently active sub-channel.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::tcl::chan::cat] [arg chan]...]
+
+This command creates the concatenation channel using all the provided
+channels, and returns its handle.
+
+[list_end]
+
+[vset CATEGORY virtchannel]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

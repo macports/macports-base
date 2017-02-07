@@ -1,0 +1,2 @@
+readme		Generate a README listing the changes to modules and packages
+				since the last release.

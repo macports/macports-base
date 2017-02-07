@@ -1,0 +1,145 @@
+[manpage_begin nameserv::server n 0.3.2]
+[see_also nameserv::client(n)]
+[see_also nameserv::common(n)]
+[keywords {name service}]
+[keywords server]
+[copyright {2007-2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Name service facility}]
+[titledesc {Name service facility, Server}]
+[category  Networking]
+[require Tcl 8.4]
+[require nameserv::server [opt 0.3.2]]
+[require comm]
+[require interp]
+[require logger]
+[description]
+
+Please read [term {Name service facility, introduction}] first.
+
+[para]
+
+This package provides an implementation of the serviver side of the
+name service facility queried by the client provided by the package
+[package nameserv]. All information required by the server will be
+held in memory. There is no persistent state.
+
+[para]
+
+This service is built in top of and for the package [package comm].
+It has nothing to do with the Internet's Domain Name System. If the
+reader is looking for a package dealing with that please see Tcllib's
+packages [package dns] and [package resolv].
+
+[para]
+
+This server supports the [term Core] protocol feature, and since
+version 0.3 the [term Search/Continuous] feature as well.
+
+[section API]
+
+The package exports five commands, as specified below:
+
+[list_begin definitions]
+
+[call [cmd ::nameserv::server::start]]
+
+This command starts the server and causes it to listen on the
+configured port. From now on clients are able to connect and make
+requests. The result of the command is the empty string.
+
+[para]
+
+Note that any incoming requests will only be handled if the
+application the server is part of does enter an event loop after this
+command has been run.
+
+[call [cmd ::nameserv::server::stop]]
+
+Invoking this command stops the server and releases all information it
+had. Existing connections are shut down, and no new connections will
+be accepted any longer. The result of the command is the empty string.
+
+[call [cmd ::nameserv::server::active?]]
+
+This command returns a boolean value indicating the state of the
+server. The result will be [const true] if the server is active,
+i.e. has been started, and [const false] otherwise.
+
+[call [cmd ::nameserv::server::cget] [option -option]]
+
+This command returns the currently configured value for the specified
+[option -option]. The list of supported options and their meaning can
+be found in section [sectref OPTIONS].
+
+[call [cmd ::nameserv::server::configure]]
+
+In this form the command returns a dictionary of all supported
+options, and their current values. The list of supported options and
+their meaning can be found in section [sectref OPTIONS].
+
+[call [cmd ::nameserv::server::configure] [option -option]]
+
+In this form the command is an alias for
+"[cmd ::nameserv::server::cget] [option -option]]".
+
+The list of supported options and their meaning can be found in
+section [sectref OPTIONS].
+
+[call [cmd ::nameserv::server::configure] "[option -option] [arg value]..."]
+
+In this form the command is used to configure one or more of the
+supported options. At least one option has to be specified, and each
+option is followed by its new value.
+
+The list of supported options and their meaning can be found in
+section [sectref OPTIONS].
+
+[para]
+
+This form can be used only if the server is not active, i.e. has not
+been started yet, or has been stopped. While the server is active it
+cannot be reconfigured.
+
+[list_end]
+
+[section OPTIONS]
+
+The options supported by the server are for the specification of the
+TCP port to listen on, and whether to accept non-local connections or
+not.
+
+They are:
+
+[list_begin options]
+[opt_def -localonly [arg bool]]
+
+This option specifies whether to accept only local connections
+(-localonly 1) or remote connections as well (-localonly 0). The
+default is to accept only local connections.
+
+[opt_def -port [arg number]]
+
+This option specifies the port the name service will listen on after
+it has been started. It has to be a positive integer number (> 0) not
+greater than 65536 (unsigned short). The initial default is the number
+returned by the command [cmd ::nameserv::server::common::port], as
+provided by the package [package ::nameserv::server::common].
+
+[list_end]
+
+[section HISTORY]
+[list_begin definitions]
+[def 0.3]
+Extended the server with the ability to perform asynchronous and
+continuous searches.
+
+[def 0.2]
+Changed name of -local switch to -localonly.
+
+[def 0.1]
+Initial implementation of the server.
+[list_end]
+
+[vset CATEGORY nameserv]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,145 @@
+# -*- tcl -*-
+# peg_export.testsuite: Tests for the management of grammar export plugins.
+#
+# Copyright (c) 2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: pt_peg_export_plugins.tests,v 1.1 2010/03/26 05:07:24 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+# Tests are run for all formats we have an export plugin for.
+
+# -------------------------------------------------------------------------
+
+set mytestdir      tests/data
+set mytestconfig   {fox dog lazy jump}
+set mytestincludes [TestFilesGlob $mytestdir]
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# PEG markup (standard text representation).
+# TODO :: templating
+
+foreach {k fused section} {
+    0 0 {}
+    1 1 -fused
+} {
+    TestFilesProcess $mytestdir ok peg_serial-canonical peg_peg$section -> n label input data expected {
+	test pt-peg-export-plugin-peg-set:${setimpl}-21.$k.$n "pt::peg::export /peg, $label$section, ok :- $input" -setup {
+	    pt::peg::export OUT
+	    OUT configuration set -fused $fused
+	} -body {
+	    OUT export serial $data peg
+	} -cleanup {
+	    OUT destroy
+	} -result $expected
+    }
+}
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# json markup
+
+foreach {k in al section} {
+    0 0 0 -ultracompact
+    1 1 0 -indented
+    2 0 1 -indalign
+    3 1 1 -indalign
+} {
+    TestFilesProcess $mytestdir ok peg_serial-canonical peg_json$section -> n label input data expected {
+	test pt-peg-export-plugin-json-set:${setimpl}-22.$k.$n "pt::peg::export /json, $label$section, ok :- $input" -setup {
+	    pt::peg::export OUT
+	    OUT configuration set -indented $in
+	    OUT configuration set -aligned  $al
+	} -body {
+	    OUT export serial $data json
+	} -cleanup {
+	    OUT destroy
+	} -result $expected
+    }
+}
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# container markup
+# TODO :: templating
+
+foreach {k mode section} {
+    0 incremental -incremental
+    1 bulk        -bulk
+} {
+    TestFilesProcess $mytestdir ok peg_serial-canonical peg_container$section -> n label input data expected {
+	test pt-peg-export-plugin-container-set:${setimpl}-23.$k.$n "pt::peg::export /container, $label$section, ok :- $input" -setup {
+	    pt::peg::export OUT
+	    OUT configuration set -mode $mode
+	} -body {
+	    OUT export serial $data container
+	} -cleanup {
+	    OUT destroy
+	} -result $expected
+    }
+}
+
+if 0 {
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# html markup
+
+foreach {k nl in section} {
+    0 0 0 -ultracompact
+    1 0 1 -indented
+    2 1 0 -compact
+    3 1 1 -indented
+} {
+    TestFilesProcess $mytestdir ok serial html$section -> n label input data expected {
+	test pt-peg-export-plugin-html-set:${setimpl}-24.$k.$n "pt::peg::export /html, $label$section, ok :- $input" -setup {
+	    pt::peg::export OUT
+	    OUT configuration set -newlines $nl
+	    OUT configuration set -indented $in
+	    OUT configuration set -user _dummy_
+	} -body {
+	    striphtmlcomments [OUT export serial $data html] 3
+	} -cleanup {
+	    OUT destroy
+	} -result $expected
+    }
+}
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# wiki markup
+
+TestFilesProcess $mytestdir ok serial wiki -> n label input data expected {
+    test pt-peg-export-plugin-wiki-set:${setimpl}-25.$n "pt::peg::export /wiki, $label, ok :- $input" -setup {
+	pt::peg::export OUT
+    } -body {
+	OUT export serial $data wiki
+    } -cleanup {
+	OUT destroy
+    } -result $expected
+}
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# nroff markup
+
+foreach {k inline section} {
+    0 0 -external
+    1 1 -inlined
+} {
+    TestFilesProcess $mytestdir ok serial nroff$section -> n label input data expected {
+	test pt-peg-export-plugin-nroff-set:${setimpl}-25.$k.$n "pt::peg::export /nroff, $label$section, ok :- $input" -setup {
+	    pt::peg::export OUT
+	    OUT configuration set -inline $inline
+	} -body {
+	    stripnroffcomments [stripmanmacros [OUT export serial $data nroff]]
+	} -cleanup {
+	    OUT destroy
+	} -result $expected
+    }
+}}
+
+# -------------------------------------------------------------------------
+unset mytestdir n label input data expected
+return

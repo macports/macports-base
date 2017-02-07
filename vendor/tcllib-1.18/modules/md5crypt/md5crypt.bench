@@ -1,0 +1,46 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'md5' module.
+# This allow developers to monitor/gauge/track package performance.
+#
+# (c) 2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+# We need at least version 8.2 for the package and thus the
+# benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.2]} {
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+set moddir [file dirname [file dirname [info script]]]
+lappend auto_path $moddir
+
+package forget md5
+catch {namespace delete ::md5}
+source [file join [file dirname [file dirname [info script]]] md5 md5x.tcl]
+
+package forget md5crypt
+catch {namespace delete ::md5crypt}
+source [file join [file dirname [info script]] md5crypt.tcl]
+
+set key aaaaaaaaa
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+foreach n {1 10 100 1000 10000} {
+    # Extremely expensive. Limit #iterations to keep total runtime acceptable.
+
+    bench -desc "MD5Crypt $n" -pre {
+	set str [string repeat " " $n]
+    } -body {
+	md5crypt::md5crypt $key $str
+    } -iters 10
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete

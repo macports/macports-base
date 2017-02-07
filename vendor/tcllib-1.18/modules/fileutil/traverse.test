@@ -1,0 +1,499 @@
+# -*- tcl -*-
+# Tests for the find function.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 2007-2015 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: traverse.test,v 1.3 2012/08/29 20:42:19 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 2.1
+
+support {
+    use      control/control.tcl control
+    use      snit/snit.tcl       snit
+
+    useLocalFile find.setup
+}
+testing {
+    useLocal traverse.tcl        fileutil::traverse
+}
+
+# -------------------------------------------------------------------------
+# Filters commands to record which callbacks were run.
+
+proc rec {x} {
+    lappend ::rec $x
+    return 1
+}
+
+proc recx {args} {
+    lappend ::rec $args
+    return 1
+}
+
+# -------------------------------------------------------------------------
+
+test traverse-1.0.0 {Traverse result, circular links, unix} -setup {
+    f_setupcircle
+    set t [fileutil::traverse %AUTO% [tempPath {find 1}]]
+} -constraints unix -body {
+    lsort [$t files]
+} -cleanup {
+    $t destroy
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/file [1]}] \
+	       [tempPath {find 1/find 2}] \
+	       [tempPath {find 1/find 2/file 3}] \
+	       [tempPath {find 1/find 2/file* 2}]]
+
+test traverse-1.0.1 {Traverse result, circular links, windows, 8.4+} -setup {
+    f_setupcircle
+    set t [fileutil::traverse %AUTO% [tempPath {find 1}]]
+} -constraints {win tcl8.4plus} -body {
+    lsort [$t files]
+} -cleanup {
+    $t destroy
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/file [1]}] \
+	       [tempPath {find 1/find 2}] \
+	       [tempPath {find 1/find 2/file 3}]]
+
+test traverse-1.0.2 {Traverse result, unix} -setup {
+    f_setup
+    set t [fileutil::traverse %AUTO% [tempPath {find 1}]]
+} -constraints unix -body {
+    lsort [$t files]
+} -cleanup {
+    $t destroy
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/file [1]}] \
+	       [tempPath {find 1/find 2}] \
+	       [tempPath {find 1/find 2/file* 2}]]
+
+test traverse-1.0.3 {Traverse result, windows} -setup {
+    f_setup
+    set t [fileutil::traverse %AUTO% [tempPath {find 1}]]
+} -constraints win -body {
+    lsort [$t files]
+} -cleanup {
+    $t destroy
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/file [1]}] \
+	       [tempPath {find 1/find 2}]]
+
+# Find has to skip '{file 3}', in the sense that the path should be in
+# the output, but it cannot be expanded further, being a broken
+# link. Two tests, one for all versions of Tcl (8.2+), but only unix,
+# and one for windows, restricted to Tcl 8.4+.
+
+test traverse-1.0.4 {Traverse result, broken links, unix} -setup {
+    f_setupbroken
+    set t [fileutil::traverse %AUTO% [tempPath {find 1}]]
+} -constraints unix -body {
+    lsort [$t files]
+} -cleanup {
+    $t destroy
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/file [1]}] \
+	       [tempPath {find 1/find 2}] \
+	       [tempPath {find 1/find 2/file 3}] \
+	       [tempPath {find 1/find 2/file* 2}]]
+
+test traverse-1.0.5 {Traverse result, broken links, windows, 8.4+} -setup {
+    f_setupbroken
+    set t [fileutil::traverse %AUTO% [tempPath {find 1}]]
+} -constraints {win tcl8.4plus} -body {
+    lsort [$t files]
+} -cleanup {
+    $t destroy
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/file [1]}] \
+	       [tempPath {find 1/find 2}] \
+	       [tempPath {find 1/find 2/file 3}]]
+
+
+test traverse-1.0.6 {Traverse result, circular links to base, unix} -setup {
+    f_setupcircle2
+    set t [fileutil::traverse %AUTO% [tempPath {find 1}]]
+} -constraints unix -body {
+    lsort [$t files]
+} -cleanup {
+    $t destroy
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/file [1]}] \
+	       [tempPath {find 1/find 2}] \
+	       [tempPath {find 1/find 2/file 3}] \
+	       [tempPath {find 1/find 2/file* 2}]]
+
+# -------------------------------------------------------------------------
+
+test traverse-1.1.0 {Traverse filter execution, circular links, unix} -setup {
+    f_setupcircle
+    set rec {}
+    set t [fileutil::traverse %AUTO% [tempPath {find 1}] -filter ::rec]
+} -constraints unix -body {
+    $t files
+    lsort $rec
+} -cleanup {
+    $t destroy
+    unset rec
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/file [1]}] \
+	       [tempPath {find 1/find 2}] \
+	       [tempPath {find 1/find 2/file 3}] \
+	       [tempPath {find 1/find 2/file* 2}]]
+
+test traverse-1.1.1 {Traverse filter execution, circular links, windows, 8.4+} -setup {
+    f_setupcircle
+    set rec {}
+    set t [fileutil::traverse %AUTO% [tempPath {find 1}] -filter ::rec]
+} -constraints {win tcl8.4plus} -body {
+    $t files
+    lsort $rec
+} -cleanup {
+    $t destroy
+    unset rec
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/file [1]}] \
+	       [tempPath {find 1/find 2}] \
+	       [tempPath {find 1/find 2/file 3}]]
+
+test traverse-1.1.2 {Traverse filter execution, unix} -setup {
+    f_setup
+    set rec {}
+    set t [fileutil::traverse %AUTO% [tempPath {find 1}] -filter ::rec]
+} -constraints unix -body {
+    $t files
+    lsort $rec
+} -cleanup {
+    $t destroy
+    unset rec
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/file [1]}] \
+	       [tempPath {find 1/find 2}] \
+	       [tempPath {find 1/find 2/file* 2}]]
+
+test traverse-1.1.3 {Traverse filter execution, windows} -setup {
+    f_setup
+    set rec {}
+    set t [fileutil::traverse %AUTO% [tempPath {find 1}] -filter ::rec]
+} -constraints win -body {
+    $t files
+    lsort $rec
+} -cleanup {
+    $t destroy
+    unset rec
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/file [1]}] \
+	       [tempPath {find 1/find 2}]]
+
+# -------------------------------------------------------------------------
+
+test traverse-1.2.0 {Traverse prefilter execution, unix} -setup {
+    f_setupcircle
+    set rec {}
+    set t [fileutil::traverse %AUTO% [tempPath {find 1}] -prefilter ::rec]
+} -constraints unix -body {
+    $t files
+    lsort $rec
+    # Note: The link 'file 3' is _not_ run through the pre-filter,
+    # because it is filtered out as already seen before it comes to
+    # the pre-filter stage.
+} -cleanup {
+    $t destroy
+    unset rec
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/find 2}]]
+
+test traverse-1.2.1 {Traverse prefilter execution, windows, 8.4+} -setup {
+    f_setupcircle
+    set rec {}
+    set t [fileutil::traverse %AUTO% [tempPath {find 1}] -prefilter ::rec]
+} -constraints {win tcl8.4plus} -body {
+    $t files
+    lsort $rec
+    # Note: The link 'file 3' is _not_ run through the pre-filter,
+    # because it is filtered out as already seen before it comes to
+    # the pre-filter stage.
+} -cleanup {
+    $t destroy
+    unset rec
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/find 2}]]
+
+test traverse-1.2.2 {Traverse prefilter execution, all platforms} -setup {
+    f_setup
+    set rec {}
+    set t [fileutil::traverse %AUTO% [tempPath {find 1}] -prefilter ::rec]
+} -body {
+    $t files
+    lsort $rec
+} -cleanup {
+    $t destroy
+    unset rec
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/find 2}]]
+
+# -------------------------------------------------------------------------
+
+test traverse-1.3.0 {Traverse error execution, unix, 8.4+} -setup {
+    f_setupnostat
+    set rec {}
+    set t [fileutil::traverse %AUTO% [tempPath find3] -errorcmd ::recx]
+} -constraints {unix tcl8.4plus} -body {
+    $t files
+    lsort $rec
+} -cleanup {
+    $t destroy
+    unset rec
+    f_cleanupnostat
+} -result {}
+
+test traverse-1.3.1 {Traverse error execution, unix, 8.3} -setup {
+    f_setupnostat
+    set rec {}
+    set t [fileutil::traverse %AUTO% [tempPath find3] -errorcmd ::recx]
+} -constraints {unix tcl8.3only} -body {
+    $t files
+    lsort $rec
+} -cleanup {
+    $t destroy
+    unset rec
+    f_cleanupnostat
+} -result [list [list [tempPath find3/find4] {Inacessible directory}]]
+
+# traverse 1.3.x - error callback, all platforms - Not possible. We have
+# no win32 setup code for non-readable/non-accessible directories.
+
+# -------------------------------------------------------------------------
+
+test traverse-1.4.0 {Traverse result, circular links, unix} -setup {
+    f_setupcircle3
+    set t [fileutil::traverse %AUTO% [tempPath z]]
+} -constraints unix -body {
+    join [lsort [$t files]] \n
+} -cleanup {
+    $t destroy
+    f_cleanup3
+} -result [join [pathmap \
+		     z z/a z/a/c z/a/c/g z/a/c/h z/a/c/h/e z/a/c/h/f \
+		     z/a/c/i z/a/d z/b z/b/e z/b/e/g z/b/e/g/c z/b/e/g/d \
+		     z/b/e/h z/b/e/i z/b/f] \n]
+
+test traverse-1.4.1 {Traverse result, circular links, windows, 8.4+} -setup {
+    f_setupcircle3
+    set t [fileutil::traverse %AUTO% [tempPath z]]
+} -constraints {win tcl8.4plus} -body {
+    join [lsort [$t files]] \n
+} -cleanup {
+    $t destroy
+    f_cleanup3
+} -result [join [pathmap \
+		     z z/a z/a/c z/a/c/g z/a/c/h z/a/c/h/e z/a/c/h/f \
+		     z/a/c/i z/a/d z/b z/b/e z/b/e/g z/b/e/g/c z/b/e/g/d \
+		     z/b/e/h z/b/e/i z/b/f] \n]
+
+# -------------------------------------------------------------------------
+
+test traverse-1.5 {Traverse, relative base path, callback API} -setup {
+    f_setupcircle
+    set rec {}
+
+    set base [tempPath {find 1}]
+    set bdir [file dirname $base]
+    set base [file tail $base]
+    set here [pwd]
+    cd $bdir
+    set t [fileutil::traverse %AUTO% $base -filter ::rec]
+} -constraints unix -body {
+    $t files
+    lsort $rec
+} -cleanup {
+    $t destroy
+    cd $here
+    unset rec bdir base here
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/file [1]}] \
+	       [tempPath {find 1/find 2}] \
+	       [tempPath {find 1/find 2/file 3}] \
+	       [tempPath {find 1/find 2/file* 2}]]
+
+test traverse-1.6 {Traverse, relative base path, callback API} -setup {
+    f_setupcircle
+    set rec {}
+
+    set base [tempPath {find 1}]
+    set bdir [file dirname $base]
+    set base [file tail $base]
+    set here [pwd]
+    cd $bdir
+    set t [fileutil::traverse %AUTO% $base -prefilter ::rec]
+} -constraints unix -body {
+    $t files
+    lsort $rec
+} -cleanup {
+    $t destroy
+    cd $here
+    unset rec bdir base here
+    f_cleanup
+} -result [list \
+	       [tempPath {find 1}] \
+	       [tempPath {find 1/find 2}]]
+
+# TODO: checking -error callback with ingoing relative basepath.
+
+# -------------------------------------------------------------------------
+
+test traverse-2.0 {Traverse pathological circularity, unix} -setup {
+    f_setup_crossindex
+    set t [fileutil::traverse %AUTO% [tempPath s]]
+} -constraints unix -body {
+    join [lsort -dict [$t files]] \n
+} -cleanup {
+    $t destroy
+    f_cleanup_crossindex
+} -result [join [pathmap       \
+		     s          \
+		     s/c         \
+		     s/c/t        \
+		     s/c/t/t0      \
+		     s/c/t/t0/b     \
+		     s/c/t/t0/s     \
+		     s/c/t/t1       \
+		     s/c/t/t1/b     \
+		     s/c/t/t1/s     \
+		     s/c/t/t2       \
+		     s/c/t/t2/b     \
+		     s/c/t/t2/s     \
+		     s/d            \
+		     s/d/t0         \
+		     s/d/t0/b       \
+		     s/d/t0/s       \
+		     s/d/t0/s/t0    \
+		     s/d/t0/s/t1    \
+		     s/d/t0/s/t1/b  \
+		     s/d/t0/s/t1/s  \
+		     s/d/t0/s/t2    \
+		     s/d/t0/s/t2/b  \
+		     s/d/t0/s/t2/s  \
+		     s/d/t1         \
+		     s/d/t1/b       \
+		     s/d/t1/s       \
+		     s/d/t1/s/t0    \
+		     s/d/t1/s/t0/b  \
+		     s/d/t1/s/t0/s  \
+		     s/d/t1/s/t1    \
+		     s/d/t1/s/t2    \
+		     s/d/t1/s/t2/b  \
+		     s/d/t1/s/t2/s  \
+		     s/d/t2         \
+		     s/d/t2/b       \
+		     s/d/t2/s       \
+		     s/d/t2/s/t0    \
+		     s/d/t2/s/t0/b  \
+		     s/d/t2/s/t0/s  \
+		     s/d/t2/s/t1    \
+		     s/d/t2/s/t1/b  \
+		     s/d/t2/s/t1/s  \
+		     s/d/t2/s/t2    \
+		    ] \n]
+
+test traverse-2.1 {Traverse pathological circularity, windows, 8.4+} -setup {
+    f_setup_crossindex
+    set t [fileutil::traverse %AUTO% [tempPath s]]
+} -constraints {win tcl8.4plus} -body {
+    join [lsort -dict [$t files]] \n
+} -cleanup {
+    $t destroy
+    f_cleanup_crossindex
+} -result [join [pathmap       \
+		     s          \
+		     s/c         \
+		     s/c/t        \
+		     s/c/t/t0      \
+		     s/c/t/t0/b     \
+		     s/c/t/t0/s     \
+		     s/c/t/t1       \
+		     s/c/t/t1/b     \
+		     s/c/t/t1/s     \
+		     s/c/t/t2       \
+		     s/c/t/t2/b     \
+		     s/c/t/t2/s     \
+		     s/d            \
+		     s/d/t0         \
+		     s/d/t0/b       \
+		     s/d/t0/s       \
+		     s/d/t0/s/t0    \
+		     s/d/t0/s/t1    \
+		     s/d/t0/s/t1/b  \
+		     s/d/t0/s/t1/s  \
+		     s/d/t0/s/t2    \
+		     s/d/t0/s/t2/b  \
+		     s/d/t0/s/t2/s  \
+		     s/d/t1         \
+		     s/d/t1/b       \
+		     s/d/t1/s       \
+		     s/d/t1/s/t0    \
+		     s/d/t1/s/t0/b  \
+		     s/d/t1/s/t0/s  \
+		     s/d/t1/s/t1    \
+		     s/d/t1/s/t2    \
+		     s/d/t1/s/t2/b  \
+		     s/d/t1/s/t2/s  \
+		     s/d/t2         \
+		     s/d/t2/b       \
+		     s/d/t2/s       \
+		     s/d/t2/s/t0    \
+		     s/d/t2/s/t0/b  \
+		     s/d/t2/s/t0/s  \
+		     s/d/t2/s/t1    \
+		     s/d/t2/s/t1/b  \
+		     s/d/t2/s/t1/s  \
+		     s/d/t2/s/t2    \
+		    ] \n]
+
+# -------------------------------------------------------------------------
+
+f_cleanall
+testsuiteCleanup
+return

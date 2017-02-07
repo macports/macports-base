@@ -1,0 +1,416 @@
+<div class='fossil-doc' data-title='textutil - Text and string utilities, macro processing'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">textutil(n) 0.8 tcllib &quot;Text and string utilities, macro processing&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>textutil - Procedures to manipulate texts and strings.</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">textutil <span class="opt">?0.8?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::textutil::adjust</b> <i class="arg">string args</i></a></li>
+<li><a href="#2"><b class="cmd">::textutil::adjust::readPatterns</b> <i class="arg">filename</i></a></li>
+<li><a href="#3"><b class="cmd">::textutil::adjust::listPredefined</b></a></li>
+<li><a href="#4"><b class="cmd">::textutil::adjust::getPredefined</b> <i class="arg">filename</i></a></li>
+<li><a href="#5"><b class="cmd">::textutil::indent</b> <i class="arg">string</i> <i class="arg">prefix</i> <span class="opt">?<i class="arg">skip</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">::textutil::undent</b> <i class="arg">string</i></a></li>
+<li><a href="#7"><b class="cmd">::textutil::splitn</b> <i class="arg">string</i> <span class="opt">?<i class="arg">len</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">::textutil::splitx</b> <i class="arg">string</i> <span class="opt">?<i class="arg">regexp</i>?</span></a></li>
+<li><a href="#9"><b class="cmd">::textutil::tabify</b> <i class="arg">string</i> <span class="opt">?<i class="arg">num</i>?</span></a></li>
+<li><a href="#10"><b class="cmd">::textutil::tabify2</b> <i class="arg">string</i> <span class="opt">?<i class="arg">num</i>?</span></a></li>
+<li><a href="#11"><b class="cmd">::textutil::trim</b> <i class="arg">string</i> <span class="opt">?<i class="arg">regexp</i>?</span></a></li>
+<li><a href="#12"><b class="cmd">::textutil::trimleft</b> <i class="arg">string</i> <span class="opt">?<i class="arg">regexp</i>?</span></a></li>
+<li><a href="#13"><b class="cmd">::textutil::trimright</b> <i class="arg">string</i> <span class="opt">?<i class="arg">regexp</i>?</span></a></li>
+<li><a href="#14"><b class="cmd">::textutil::trimPrefix</b> <i class="arg">string</i> <i class="arg">prefix</i></a></li>
+<li><a href="#15"><b class="cmd">::textutil::trimEmptyHeading</b> <i class="arg">string</i></a></li>
+<li><a href="#16"><b class="cmd">::textutil::untabify</b> <i class="arg">string</i> <span class="opt">?<i class="arg">num</i>?</span></a></li>
+<li><a href="#17"><b class="cmd">::textutil::untabify2</b> <i class="arg">string</i> <span class="opt">?<i class="arg">num</i>?</span></a></li>
+<li><a href="#18"><b class="cmd">::textutil::strRepeat</b> <i class="arg">text num</i></a></li>
+<li><a href="#19"><b class="cmd">::textutil::blank</b> <i class="arg">num</i></a></li>
+<li><a href="#20"><b class="cmd">::textutil::chop</b> <i class="arg">string</i></a></li>
+<li><a href="#21"><b class="cmd">::textutil::tail</b> <i class="arg">string</i></a></li>
+<li><a href="#22"><b class="cmd">::textutil::cap</b> <i class="arg">string</i></a></li>
+<li><a href="#23"><b class="cmd">::textutil::uncap</b> <i class="arg">string</i></a></li>
+<li><a href="#24"><b class="cmd">::textutil::longestCommonPrefixList</b> <i class="arg">list</i></a></li>
+<li><a href="#25"><b class="cmd">::textutil::longestCommonPrefix</b> <span class="opt">?<i class="arg">string</i>...?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The package <b class="package">textutil</b> provides commands that manipulate
+strings or texts (a.k.a. long strings or string with embedded newlines
+or paragraphs).
+It is actually a bundle providing the commands of the six packages</p>
+<dl class="doctools_definitions">
+<dt><b class="package"><a href="adjust.html">textutil::adjust</a></b></dt>
+<dd></dd>
+<dt><b class="package"><a href="repeat.html">textutil::repeat</a></b></dt>
+<dd></dd>
+<dt><b class="package"><a href="textutil_split.html">textutil::split</a></b></dt>
+<dd></dd>
+<dt><b class="package"><a href="textutil_string.html">textutil::string</a></b></dt>
+<dd></dd>
+<dt><b class="package"><a href="tabify.html">textutil::tabify</a></b></dt>
+<dd></dd>
+<dt><b class="package"><a href="trim.html">textutil::trim</a></b></dt>
+<dd></dd>
+</dl>
+<p>in the namespace <b class="namespace">textutil</b>.</p>
+<p>The bundle is <em>deprecated</em>, and it will be removed in a future
+release of Tcllib, after the next release. It is recommended to use the
+relevant sub packages instead for whatever functionality is needed by
+the using package or application.</p>
+<p>The complete set of procedures is described below.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::textutil::adjust</b> <i class="arg">string args</i></a></dt>
+<dd><p>Do a justification on the <i class="arg">string</i> according to <i class="arg">args</i>.  The
+string is taken as one big paragraph, ignoring any newlines.  Then the
+line is formatted according to the options used, and the command
+return a new string with enough lines to contain all the printable
+chars in the input string. A line is a set of chars between the
+beginning of the string and a newline, or between 2 newlines, or
+between a newline and the end of the string. If the input string is
+small enough, the returned string won't contain any newlines.</p>
+<p>Together with <b class="cmd">::textutil::indent</b> it is possible to create
+properly wrapped paragraphs with arbitrary indentations.</p>
+<p>By default, any occurrence of spaces characters or tabulation are
+replaced by a single space so each word in a line is separated from
+the next one by exactly one space char, and this forms a <em>real</em>
+line. Each <em>real</em> line is placed in a <em>logical</em> line, which
+have exactly a given length (see <b class="option">-length</b> option below). The
+<em>real</em> line may have a lesser length. Again by default, any
+trailing spaces are ignored before returning the string (see
+<b class="option">-full</b> option below). The following options may be used after the
+<i class="arg">string</i> parameter, and change the way the command place a
+<em>real</em> line in a <em>logical</em> line.</p>
+<dl class="doctools_definitions">
+<dt>-full <i class="arg">boolean</i></dt>
+<dd><p>If set to <b class="const">false</b>, any trailing space chars are deleted before
+returning the string. If set to <b class="const">true</b>, any trailing space
+chars are left in the string. Default to <b class="const">false</b>.</p></dd>
+<dt><b class="option">-hyphenate</b> <i class="arg">boolean</i></dt>
+<dd><p>if set to <b class="const">false</b>, no hyphenation will be done. If set to
+<b class="const">true</b>, the last word of a line is tried to be hyphenated.
+Defaults to <b class="const">false</b>. Note: hyphenation patterns must be loaded
+prior, using the command <b class="cmd">::textutil::adjust::readPatterns</b>.</p></dd>
+<dt><b class="option">-justify</b> <b class="const">center|left|plain|right</b></dt>
+<dd><p>Set the justification of the returned string to <b class="const">center</b>,
+<b class="const">left</b>, <b class="const">plain</b> or <b class="const">right</b>. By default, it is set to
+<b class="const">left</b>.  The justification means that any line in the returned
+string but the last one is build according to the value. If the
+justification is set to <b class="const">plain</b> and the number of printable
+chars in the last line is less than 90% of the length of a line (see
+<b class="option">-length</b>), then this line is justified with the <b class="const">left</b>
+value, avoiding the expansion of this line when it is too small. The
+meaning of each value is:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">center</b></dt>
+<dd><p>The real line is centered in the logical line. If needed, a set of
+space characters are added at the beginning (half of the needed set)
+and at the end (half of the needed set) of the line if required (see
+the option <b class="option">-full</b>).</p></dd>
+<dt><b class="const">left</b></dt>
+<dd><p>The real line is set on the left of the logical line. It means that
+there are no space chars at the beginning of this line. If required,
+all needed space chars are added at the end of the line (see the
+option <b class="option">-full</b>).</p></dd>
+<dt><b class="const">plain</b></dt>
+<dd><p>The real line is exactly set in the logical line. It means that there
+are no leading or trailing space chars. All the needed space chars are
+added in the <em>real</em> line, between 2 (or more) words.</p></dd>
+<dt><b class="const">right</b></dt>
+<dd><p>The real line is set on the right of the logical line. It means that
+there are no space chars at the end of this line, and there may be
+some space chars at the beginning, despite of the <b class="option">-full</b> option.</p></dd>
+</dl></dd>
+<dt><b class="option">-length</b> <i class="arg">integer</i></dt>
+<dd><p>Set the length of the <em>logical</em> line in the string to
+<i class="arg">integer</i>.  <i class="arg">integer</i> must be a positive integer
+value. Defaults to <b class="const">72</b>.</p></dd>
+<dt><b class="option">-strictlength</b> <i class="arg">boolean</i></dt>
+<dd><p>If set to <b class="const">false</b>, a line can exceed the specified
+<b class="option">-length</b> if a single word is longer than <b class="option">-length</b>. If
+set to <b class="const">true</b>, words that are longer than <b class="option">-length</b> are
+split so that no line exceeds the specified <b class="option">-length</b>. Defaults
+to <b class="const">false</b>.</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">::textutil::adjust::readPatterns</b> <i class="arg">filename</i></a></dt>
+<dd><p>Loads the internal storage for hyphenation patterns with the contents
+of the file <i class="arg">filename</i>. This has to be done prior to calling
+command <b class="cmd">::textutil::adjust</b> with
+&quot;<b class="option">-hyphenate</b> <b class="const">true</b>&quot;, or the hyphenation process will
+not work correctly.</p>
+<p>The package comes with a number of predefined pattern files, and the
+command <b class="cmd">::textutil::adjust::listPredefined</b> can be used to find
+out their names.</p></dd>
+<dt><a name="3"><b class="cmd">::textutil::adjust::listPredefined</b></a></dt>
+<dd><p>This command returns a list containing the names of the hyphenation
+files coming with this package.</p></dd>
+<dt><a name="4"><b class="cmd">::textutil::adjust::getPredefined</b> <i class="arg">filename</i></a></dt>
+<dd><p>Use this command to query the package for the full path name of the
+hyphenation file <i class="arg">filename</i> coming with the package. Only the
+filenames found in the list returned by
+<b class="cmd">::textutil::adjust::listPredefined</b> are legal arguments for this
+command.</p></dd>
+<dt><a name="5"><b class="cmd">::textutil::indent</b> <i class="arg">string</i> <i class="arg">prefix</i> <span class="opt">?<i class="arg">skip</i>?</span></a></dt>
+<dd><p>Each line in the <i class="arg">string</i> indented by adding the string
+<i class="arg">prefix</i> at its beginning. The modified string is returned
+as the result of the command.</p>
+<p>If <i class="arg">skip</i> is specified the first <i class="arg">skip</i> lines are left
+untouched. The default for <i class="arg">skip</i> is <b class="const">0</b>, causing the
+modification of all lines. Negative values for <i class="arg">skip</i> are treated
+like <b class="const">0</b>. In other words, <i class="arg">skip</i> &gt; <b class="const">0</b> creates a
+hanging indentation.</p>
+<p>Together with <b class="cmd">::textutil::adjust</b> it is possible to create
+properly wrapped paragraphs with arbitrary indentations.</p></dd>
+<dt><a name="6"><b class="cmd">::textutil::undent</b> <i class="arg">string</i></a></dt>
+<dd><p>The command computes the common prefix for all
+lines in <i class="arg">string</i> consisting solely out of whitespace,
+removes this from each line and returns the modified string.</p>
+<p>Lines containing only whitespace are always reduced to completely
+empty lines. They and empty lines are also ignored when computing the
+prefix to remove.</p>
+<p>Together with <b class="cmd">::textutil::adjust</b> it is possible to create
+properly wrapped paragraphs with arbitrary indentations.</p></dd>
+<dt><a name="7"><b class="cmd">::textutil::splitn</b> <i class="arg">string</i> <span class="opt">?<i class="arg">len</i>?</span></a></dt>
+<dd><p>This command splits the given <i class="arg">string</i> into chunks of <i class="arg">len</i>
+characters and returns a list containing these chunks. The argument
+<i class="arg">len</i> defaults to <b class="const">1</b> if none is specified. A negative
+length is not allowed and will cause the command to throw an
+error. Providing an empty string as input is allowed, the command will
+then return an empty list. If the length of the <i class="arg">string</i> is not an
+entire multiple of the chunk length, then the last chunk in the
+generated list will be shorter than <i class="arg">len</i>.</p></dd>
+<dt><a name="8"><b class="cmd">::textutil::splitx</b> <i class="arg">string</i> <span class="opt">?<i class="arg">regexp</i>?</span></a></dt>
+<dd><p>Split the <i class="arg">string</i> and return a list. The string is split
+according to the regular expression <i class="arg">regexp</i> instead of a simple
+list of chars. Note that if you add parenthesis into the <i class="arg">regexp</i>,
+the parentheses part of separator would be added into list as
+additional element. If the <i class="arg">string</i> is empty the result is the
+empty list, like for <b class="cmd"><a href="../../../../index.html#key439">split</a></b>. If <i class="arg">regexp</i> is empty the
+<i class="arg">string</i> is split at every character, like <b class="cmd"><a href="../../../../index.html#key439">split</a></b> does.
+The regular expression <i class="arg">regexp</i> defaults to &quot;[\\t \\r\\n]+&quot;.</p></dd>
+<dt><a name="9"><b class="cmd">::textutil::tabify</b> <i class="arg">string</i> <span class="opt">?<i class="arg">num</i>?</span></a></dt>
+<dd><p>Tabify the <i class="arg">string</i> by replacing any substring of <i class="arg">num</i> space
+chars by a tabulation and return the result as a new string. <i class="arg">num</i>
+defaults to 8.</p></dd>
+<dt><a name="10"><b class="cmd">::textutil::tabify2</b> <i class="arg">string</i> <span class="opt">?<i class="arg">num</i>?</span></a></dt>
+<dd><p>Similar to <b class="cmd">::textutil::tabify</b> this command tabifies the
+<i class="arg">string</i> and returns the result as a new string. A different
+algorithm is used however. Instead of replacing any substring of
+<i class="arg">num</i> spaces this command works more like an editor. <i class="arg">num</i>
+defaults to 8.</p>
+<p>Each line of the text in <i class="arg">string</i> is treated as if there are
+tabstops every <i class="arg">num</i> columns. Only sequences of space characters
+containing more than one space character and found immediately before
+a tabstop are replaced with tabs.</p></dd>
+<dt><a name="11"><b class="cmd">::textutil::trim</b> <i class="arg">string</i> <span class="opt">?<i class="arg">regexp</i>?</span></a></dt>
+<dd><p>Remove in <i class="arg">string</i> any leading and trailing substring according to
+the regular expression <i class="arg">regexp</i> and return the result as a new
+string.  This apply on any <em>line</em> in the string, that is any
+substring between 2 newline chars, or between the beginning of the
+string and a newline, or between a newline and the end of the string,
+or, if the string contain no newline, between the beginning and the
+end of the string.
+The regular expression <i class="arg">regexp</i> defaults to &quot;[ \\t]+&quot;.</p></dd>
+<dt><a name="12"><b class="cmd">::textutil::trimleft</b> <i class="arg">string</i> <span class="opt">?<i class="arg">regexp</i>?</span></a></dt>
+<dd><p>Remove in <i class="arg">string</i> any leading substring according to the regular
+expression <i class="arg">regexp</i> and return the result as a new string. This
+apply on any <em>line</em> in the string, that is any substring between
+2 newline chars, or between the beginning of the string and a newline,
+or between a newline and the end of the string, or, if the string
+contain no newline, between the beginning and the end of the string.
+The regular expression <i class="arg">regexp</i> defaults to &quot;[ \\t]+&quot;.</p></dd>
+<dt><a name="13"><b class="cmd">::textutil::trimright</b> <i class="arg">string</i> <span class="opt">?<i class="arg">regexp</i>?</span></a></dt>
+<dd><p>Remove in <i class="arg">string</i> any trailing substring according to the regular
+expression <i class="arg">regexp</i> and return the result as a new string. This
+apply on any <em>line</em> in the string, that is any substring between
+2 newline chars, or between the beginning of the string and a newline,
+or between a newline and the end of the string, or, if the string
+contain no newline, between the beginning and the end of the string.
+The regular expression <i class="arg">regexp</i> defaults to &quot;[ \\t]+&quot;.</p></dd>
+<dt><a name="14"><b class="cmd">::textutil::trimPrefix</b> <i class="arg">string</i> <i class="arg">prefix</i></a></dt>
+<dd><p>Removes the <i class="arg">prefix</i> from the beginning of <i class="arg">string</i> and
+returns the result. The <i class="arg">string</i> is left unchanged if it doesn't
+have <i class="arg">prefix</i> at its beginning.</p></dd>
+<dt><a name="15"><b class="cmd">::textutil::trimEmptyHeading</b> <i class="arg">string</i></a></dt>
+<dd><p>Looks for empty lines (including lines consisting of only whitespace)
+at the beginning of the <i class="arg">string</i> and removes it. The modified
+string is returned as the result of the command.</p></dd>
+<dt><a name="16"><b class="cmd">::textutil::untabify</b> <i class="arg">string</i> <span class="opt">?<i class="arg">num</i>?</span></a></dt>
+<dd><p>Untabify the <i class="arg">string</i> by replacing any tabulation char by a
+substring of <i class="arg">num</i> space chars and return the result as a new
+string. <i class="arg">num</i> defaults to 8.</p></dd>
+<dt><a name="17"><b class="cmd">::textutil::untabify2</b> <i class="arg">string</i> <span class="opt">?<i class="arg">num</i>?</span></a></dt>
+<dd><p>Untabify the <i class="arg">string</i> by replacing any tabulation char by a
+substring of at most <i class="arg">num</i> space chars and return the result as a
+new string. Unlike <b class="cmd">textutil::untabify</b> each tab is not replaced
+by a fixed number of space characters.  The command overlays each line
+in the <i class="arg">string</i> with tabstops every <i class="arg">num</i> columns instead and
+replaces tabs with just enough space characters to reach the next
+tabstop. This is the complement of the actions taken by
+<b class="cmd">::textutil::tabify2</b>. <i class="arg">num</i> defaults to 8.</p>
+<p>There is one asymmetry though: A tab can be replaced with a single
+space, but not the other way around.</p></dd>
+<dt><a name="18"><b class="cmd">::textutil::strRepeat</b> <i class="arg">text num</i></a></dt>
+<dd><p>The implementation depends on the core executing the package. Used
+<b class="cmd">string repeat</b> if it is present, or a fast tcl implementation
+if it is not. Returns a string containing the <i class="arg">text</i> repeated
+<i class="arg">num</i> times. The repetitions are joined without characters between
+them. A value of <i class="arg">num</i> &lt;= 0 causes the command to return an empty
+string.</p></dd>
+<dt><a name="19"><b class="cmd">::textutil::blank</b> <i class="arg">num</i></a></dt>
+<dd><p>A convenience command. Returns a string of <i class="arg">num</i> spaces.</p></dd>
+<dt><a name="20"><b class="cmd">::textutil::chop</b> <i class="arg">string</i></a></dt>
+<dd><p>A convenience command. Removes the last character of <i class="arg">string</i> and
+returns the shortened string.</p></dd>
+<dt><a name="21"><b class="cmd">::textutil::tail</b> <i class="arg">string</i></a></dt>
+<dd><p>A convenience command. Removes the first character of <i class="arg">string</i> and
+returns the shortened string.</p></dd>
+<dt><a name="22"><b class="cmd">::textutil::cap</b> <i class="arg">string</i></a></dt>
+<dd><p>Capitalizes the first character of <i class="arg">string</i> and returns the modified string.</p></dd>
+<dt><a name="23"><b class="cmd">::textutil::uncap</b> <i class="arg">string</i></a></dt>
+<dd><p>The complementary operation to <b class="cmd">::textutil::cap</b>. Forces the first
+character of <i class="arg">string</i> to lower case and returns the modified
+string.</p></dd>
+<dt><a name="24"><b class="cmd">::textutil::longestCommonPrefixList</b> <i class="arg">list</i></a></dt>
+<dd></dd>
+<dt><a name="25"><b class="cmd">::textutil::longestCommonPrefix</b> <span class="opt">?<i class="arg">string</i>...?</span></a></dt>
+<dd><p>Computes the longest common prefix for either the <i class="arg">string</i>s given
+to the command, or the strings specified in the single <i class="arg">list</i>, and
+returns it as the result of the command.</p>
+<p>If no strings were specified the result is the empty string.  If only
+one string was specified, the string itself is returned, as it is its
+own longest common prefix.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>textutil</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p>regexp(n), split(n), string(n)</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key345">TeX</a>, <a href="../../../../index.html#key247">formatting</a>, <a href="../../../../index.html#key348">hyphenation</a>, <a href="../../../../index.html#key344">indenting</a>, <a href="../../../../index.html#key347">paragraph</a>, <a href="../../../../index.html#key324">regular expression</a>, <a href="../../../../index.html#key280">string</a>, <a href="../../../../index.html#key428">trimming</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Text processing</p>
+</div>
+</div>

@@ -1,0 +1,327 @@
+
+<html><head>
+<title>simulation::annealing - Tcl Simulation Tools</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'annealing.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2008 Arjen Markus &lt;arjenmarkus@users.sourceforge.net&gt;
+   -->
+<! -- simulation::annealing.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">simulation::annealing(n) 0.2 tcllib &quot;Tcl Simulation Tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>simulation::annealing - Simulated annealing</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PROCEDURES</a></li>
+<li class="doctools_section"><a href="#section3">TIPS</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl <span class="opt">?8.4?</span></b></li>
+<li>package require <b class="pkgname">simulation::annealing 0.2</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::simulation::annealing::getOption</b> <i class="arg">keyword</i></a></li>
+<li><a href="#2"><b class="cmd">::simulation::annealing::hasOption</b> <i class="arg">keyword</i></a></li>
+<li><a href="#3"><b class="cmd">::simulation::annealing::setOption</b> <i class="arg">keyword</i> <i class="arg">value</i></a></li>
+<li><a href="#4"><b class="cmd">::simulation::annealing::findMinimum</b> <i class="arg">args</i></a></li>
+<li><a href="#5"><b class="cmd">::simulation::annealing::findCombinatorialMinimum</b> <i class="arg">args</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The technique of <em>simulated annealing</em> provides methods to
+estimate the global optimum of a function. It is described in some
+detail on the Wiki <a href="http://wiki.tcl.tk/...">http://wiki.tcl.tk/...</a>. The idea is simple:</p>
+<ul class="doctools_itemized">
+<li><p>randomly select points within a given search space</p></li>
+<li><p>evaluate the function to be optimised for each of these
+points and select the point that has the lowest (or highest)
+function value or - sometimes - accept a point that has a less optimal
+value. The chance by which such a non-optimal point is accepted diminishes over
+time.</p></li>
+<li><p>Accepting less optimal points means the method does not necessarily get
+stuck in a local optimum and theoretically it is capable of finding the
+global optimum within the search space.</p></li>
+</ul>
+<p>The method resembles the cooling of material, hence the name.</p>
+<p>The package <i class="term">simulation::annealing</i> offers the command <i class="term">findMinimum</i>:</p>
+<pre class="doctools_example">
+    puts [::simulation::annealing::findMinimum  -trials 300  -parameters {x -5.0 5.0 y -5.0 5.0}  -function {$x*$x+$y*$y+sin(10.0*$x)+4.0*cos(20.0*$y)}]
+</pre>
+<p>prints the estimated minimum value of the function f(x,y) =
+<em>x**2+y**2+sin(10*x)+4*cos(20*y)</em> and the values of x and y where
+the minimum was attained:</p>
+<pre class="doctools_example">
+result -4.9112922923 x -0.181647676593 y 0.155743646974
+</pre>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PROCEDURES</a></h2>
+<p>The package defines the following auxiliary procedures:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::simulation::annealing::getOption</b> <i class="arg">keyword</i></a></dt>
+<dd><p>Get the value of an option given as part of the <i class="term">findMinimum</i>
+command.</p>
+<dl class="doctools_arguments">
+<dt>string <i class="arg">keyword</i></dt>
+<dd><p>Given keyword (without leading minus)</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">::simulation::annealing::hasOption</b> <i class="arg">keyword</i></a></dt>
+<dd><p>Returns 1 if the option is available, 0 if not.</p>
+<dl class="doctools_arguments">
+<dt>string <i class="arg">keyword</i></dt>
+<dd><p>Given keyword (without leading minus)</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">::simulation::annealing::setOption</b> <i class="arg">keyword</i> <i class="arg">value</i></a></dt>
+<dd><p>Set the value of the given option.</p>
+<dl class="doctools_arguments">
+<dt>string <i class="arg">keyword</i></dt>
+<dd><p>Given keyword (without leading minus)</p></dd>
+<dt>string <i class="arg">value</i></dt>
+<dd><p>(New) value for the option</p></dd>
+</dl></dd>
+</dl>
+<p>The main procedures are <i class="term">findMinimum</i> and <i class="term">findCombinatorialMinimum</i>:</p>
+<dl class="doctools_definitions">
+<dt><a name="4"><b class="cmd">::simulation::annealing::findMinimum</b> <i class="arg">args</i></a></dt>
+<dd><p>Find the minimum of a function using simulated annealing. The function
+and the method's parameters is given via a list of
+keyword-value pairs.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>List of keyword-value pairs, all of which are available
+during the execution via the <i class="term">getOption</i> command.</p></dd>
+</dl></dd>
+<dt><a name="5"><b class="cmd">::simulation::annealing::findCombinatorialMinimum</b> <i class="arg">args</i></a></dt>
+<dd><p>Find the minimum of a function of discrete variables using simulated
+annealing. The function and the method's parameters is given via a list of
+keyword-value pairs.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>List of keyword-value pairs, all of which are available
+during the execution via the <i class="term">getOption</i> command.</p></dd>
+</dl></dd>
+</dl>
+<p>The <i class="term">findMinimum</i> command predefines the following options:</p>
+<ul class="doctools_itemized">
+<li><p><i class="term">-parameters list</i>: triples defining parameters and ranges</p></li>
+<li><p><i class="term">-function expr</i>: expression defining the function</p></li>
+<li><p><i class="term">-code body</i>: body of code to define the function (takes
+precedence over <i class="term">-function</i>). The code should set the variable
+&quot;result&quot;</p></li>
+<li><p><i class="term">-init code</i>: code to be run at start up
+<i class="term">-final code</i>: code to be run at the end
+<i class="term">-trials n</i>: number of trials before reducing the temperature
+<i class="term">-reduce factor</i>: reduce the temperature by this factor (between 0 and 1)
+<i class="term">-initial-temp t</i>: initial temperature
+<i class="term">-scale s</i>: scale of the function (order of magnitude of the values)
+<i class="term">-estimate-scale y/n</i>: estimate the scale (only if <i class="term">-scale</i>
+is not present)
+<i class="term">-verbose y/n</i>: print detailed information on progress to the
+report file (1) or not (0)
+<i class="term">-reportfile file</i>: opened file to print to (defaults to stdout)</p></li>
+</ul>
+<p>Any other options can be used via the getOption procedure
+in the body.
+The <i class="term">findCombinatorialMinimum</i> command predefines the following
+options:</p>
+<ul class="doctools_itemized">
+<li><p><i class="term">-number-params n</i>: number of binary parameters (the solution
+space consists of lists of 1s and 0s). This is a required option.</p></li>
+<li><p><i class="term">-initial-values</i>: list of 1s and 0s constituting the start of
+the search.</p></li>
+</ul>
+<p>The other predefined options are identical to those of <i class="term">findMinimum</i>.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">TIPS</a></h2>
+<p>The procedure <i class="term">findMinimum</i> works by constructing a temporary
+procedure that does the actual work. It loops until the point
+representing the estimated optimum does not change anymore within the
+given number of trials. As the temperature gets lower and lower the
+chance of accepting a point with a higher value becomes lower too, so
+the procedure will in practice terminate.</p>
+<p>It is possible to optimise over a non-rectangular region, but some care
+must be taken:</p>
+<ul class="doctools_itemized">
+<li><p>If the point is outside the region of interest, you can specify a very
+high value.</p></li>
+<li><p>This does mean that the automatic determination of a scale factor is
+out of the question - the high function values that force the point
+inside the region would distort the estimation.</p></li>
+</ul>
+<p>Here is an example of finding an optimum inside a circle:</p>
+<pre class="doctools_example">
+    puts [::simulation::annealing::findMinimum  -trials 3000  -reduce 0.98  -parameters {x -5.0 5.0 y -5.0 5.0}  -code {
+            if { hypot($x-5.0,$y-5.0) &lt; 4.0 } {
+                set result [expr {$x*$x+$y*$y+sin(10.0*$x)+4.0*cos(20.0*$y)}]
+            } else {
+                set result 1.0e100
+            }
+        }]
+</pre>
+<p>The method is theoretically capable of determining the global optimum,
+but often you need to use a large number of trials and a slow reduction
+of temperature to get reliable and repeatable estimates.</p>
+<p>You can use the <i class="term">-final</i> option to use a deterministic optimization
+method, once you are sure you are near the required optimum.</p>
+<p>The <i class="term">findCombinatorialMinimum</i> procedure is suited for situations
+where the parameters have the values 0 or 1 (and there can be many of
+them). Here is an example:</p>
+<ul class="doctools_itemized">
+<li><p>We have a function that attains an absolute minimum if the first ten
+numbers are 1 and the rest is 0:</p>
+<pre class="doctools_example">
+proc cost {params} {
+    set cost 0
+    foreach p [lrange $params 0 9] {
+        if { $p == 0 } {
+            incr cost
+        }
+    }
+    foreach p [lrange $params 10 end] {
+        if { $p == 1 } {
+            incr cost
+        }
+    }
+    return $cost
+}
+</pre>
+</li>
+<li><p>We want to find the solution that gives this minimum for various lengths
+of the solution vector <i class="term">params</i>:</p>
+<pre class="doctools_example">
+foreach n {100 1000 10000} {
+    break
+    puts &quot;Problem size: $n&quot;
+    puts [::simulation::annealing::findCombinatorialMinimum  -trials 300  -verbose 0  -number-params $n  -code {set result [cost $params]}]
+}
+</pre>
+</li>
+<li><p>As the vector grows, the computation time increases, but the procedure
+will stop if some kind of equilibrium is reached. To achieve a useful
+solution you may want to try different values of the trials parameter
+for instance. Also ensure that the function to be minimized depends on
+all or most parameters - see the source code for a counter example and
+run that.</p></li>
+</ul>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key71">math</a>, <a href="../../../../index.html#key311">optimization</a>, <a href="../../../../index.html#key319">simulated annealing</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2008 Arjen Markus &lt;arjenmarkus@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

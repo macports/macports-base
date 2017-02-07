@@ -1,0 +1,1189 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-06-07  Andreas Kupries  <andreask@activestate.com>
+
+	* validate.tcl (snit::double, validate): Applied patch by Will
+	* pkgIndex.tcl: fixing the error message for max-limited
+	* snit.man: double types. Bumped versions to 2.3.2 and 1.4.2.
+	* snit.tcl: Extended testsuite.
+	* snit2.tcl:
+	* snit.test:
+
+2010-04-30  Andreas Kupries  <andreask@activestate.com>
+
+	* snitfaq.man: Fixed typo in 'package require' commands, reported
+	  by sigzero@gmail.com.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-11-16  Andreas Kupries  <andreask@activestate.com>
+
+	* main2.tcl (::snit::RT.typemethod.destroy) 
+	(::snit::RT.typemethod.info.instances): 
+	* main1.tcl (::snit::RT.typemethod.info.instances) 
+	(::snit::RT.typemethod.destroy): [Bug 2898640]. Fixed handling of
+	* snit.tcl: unrelated namespaces by restricting the set of
+	* snit2.tcl: children to look at. Bumped versions of v1 and v2 to
+	* pkgIndex.tcl: 1.4.1 and 2.3.1 respectively.
+	* snit.man:
+
+2009-11-02  Andreas Kupries  <andreask@activestate.com>
+
+	* snit.tcl: Bumped versions of v1 and v2 to 1.4 and 2.3
+	* snit2.tcl: respectively, taking the backward compatible
+	* snit.man: API changes to validation types into account.
+	* pkgIndex.tcl:
+
+2009-10-31  Will Duquette  <will@wjduquette.com>
+
+        * validate.tcl: Updated all Snit validation types to return the
+	* snit.tcl: validated value, and to throw -errorcode INVALID
+	            on error.
+	* snit.man: Relevant changes.
+
+2009-09-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* snit.test: Updated to handle changes in command error messages
+	  done in Tcl 8.6+.
+
+2009-09-28  Andreas Kupries  <andreask@activestate.com>
+
+	* snit.man: Committed a long-standing fix to a bug in the
+	* snit.tcl: last entry. Wrap the close commands into catch
+	* snit2.tcl: to handle the possibility of the std channels
+	* pkgIndex.tcl: not existing. Bumped versions to 1.3.4 and
+	* main1_83.tcl 2.2.4.
+	* main1.tcl:
+	* main2.tcl:
+
+2009-06-22  Andreas Kupries  <andreask@activestate.com>
+
+	* main1.tcl: Fix handling of hierarchical typemethods for missing
+	* main1_83.tcl: subcommands. If a toplevel hmethod is not found
+	* main2.tcl: we can assume it to be an instance name and do an
+	* pkgIndex.tcl: implicit 'create' of it. If the toplevel hmethod
+	* snit.tcl: has already been accepted however a missing submethod
+	* snit2.tcl: has to error out, an implicit create is not possible
+	* snit.test: any longer. Extended the testsuite to cover this
+	  case. Bumped the package versions to 2.2.3, and 1.3.3.
+
+2009-04-21  Andreas Kupries  <andreask@activestate.com>
+
+	* main1.tcl (::snit::Comp.Init): Close unused standard channels
+	* main1_83.tcl (::snit::Comp.Init): to prevent the internal compile
+	* main2.tcl (::snit::Comp.Init): interp from blocking a close/open
+	* snit.tcl: dance to replace them in the main interp. Bumped the
+	* snit2.tcl: packages to versions 1.3.2 and 2.2.2 respectively.
+	* pkgIndex.tcl:
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-08-20  Will Duquette  <will@wjduquette.com>
+
+	* snitfaq.man: Finished up [SF Tcllib Bug 1658089].
+	
+2008-05-16  Andreas Kupries  <andreask@activestate.com>
+
+	* snitfaq.man: Fixed the sectref argument order issues.
+
+2008-05-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* snitfaq.man: Updated to changes in doctools (sub)section
+	  reference handling.
+
+2007-12-04  Andreas Kupries  <andreask@activestate.com>
+
+	* snit.test: Updated some results to changes in the Tcl 8.5
+	  head. This fixes [SF Tcllib Bug 1844106], reported by Larry
+	  Virden <lvirden@users.sourceforg.net>. Thanks.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-20  Andreas Kupries  <andreask@activestate.com>
+
+	* snit.test: Fixed bad indices in tests causing the generation of
+	  bogus expected error messages.
+
+2007-07-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* main1_83.tcl (::snit::Comp.statement.oncget): Fixed double
+	* main1.tcl (::snit::Comp.statement.oncget): import of instance
+	* main2.tcl (::snit::Comp.statement.oncget): and type variables.
+	* snit.man: Bumped versions to 1.3.1 and 2.2.1 respectively.
+	* pkgIndex.tcl:
+	* snit.tcl:
+	* snit2.tcl:
+
+2007-07-02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* snit.test: Snit versions bumped to 1.3 and 2.2. Extended
+	* snit.man: 'info' method and typemethod with sub-methods
+	* snitfaq.man: 'args', 'body' and 'default' to query method
+	* main1.tcl: arguments, argument defaults, and bodies.
+	* main1_83.tcl:
+	* main2.tcl:
+	* pkgIndex.tcl:
+
+2007-06-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* snitfaq.man: Replaced deprecated {expand} with {*}.
+
+2007-05-01  Andreas Kupries  <andreask@activestate.com>
+
+	* main2.tcl: [Bug 1710640]. Replaced deprecated {expand} with {*}.
+
+	* snit.test: Updated to changes in 8.5a6.
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* snit.man: Fixed all warnings due to use of now deprecated
+	* snitfaq.man: commands. Added a section about how to give
+	  feedback.
+
+2007-02-12  Andreas Kupries  <andreask@activestate.com>
+
+	* snitfaq.man: Fixed typos, etc. reported in [Bug 1658089].
+
+2006-10-19  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* snit.man, main1.tcl, main1_83.tcl, main2.tcl: Allow -class to be
+	passed to snit::widget. [Patch 1580120]
+	* pkgIndex.tcl, snit.tcl, snit2.tcl: Bumped versions to 1.2.1 / 2.1.1.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-20  Will Duquette <will@wjduquette.com>
+	* pkgIndex.tcl, snit2.tcl, snit.man, snitfaq.man, README.txt: 
+	Bumped the version number from 2.0 to 2.1, per Andreas' request.
+	Also, added details about the implications of 2.1's use of
+	[namespace path] to README.txt and the Snit FAQ.
+	
+2006-09-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* snit_tcl83_utils.tcl: Made the initialization of the
+	  compatibility system a bit more robust against loading it
+	  multiple times.
+
+2006-09-11  Will Duquette <will@wjduquette.com>
+	* main2.tcl: Comp.statement.typevariable now places the type name
+	directly in the "tvprocdec" rather than waiting to substitute it
+	in later.
+
+2006-08-19  Will Duquette <will@wjduquette.com>
+	* main2.tcl, snit.test: Fixed Bug 1483168: "Namespaced snit objs
+	are not commands in their ns".  In particular, Snit 2.x types and
+	widgets now use [namespace path] to give themselves access to
+	their parent namespace.
+	* snit.man,snitfaq.man: Updated accordingly; also, fixed a couple
+	of typos in snitfaq.man.
+
+	* main2.tcl: Snit 2.x now uses [namespace upvar] where appropriate
+	throughout the Snit run-time and also for implicit declaration of
+	instance variables; I still need to use it for implicit
+	declaration of type variables.  On my machine, dispatch of a
+	method with 10 instance variables is over twice as fast
+	when the variables are declared using [namespace upvar] rather
+	than [::variable ${selfns}::varname].
+
+	* main2.tcl: Snit 2.x now uses [namespace upvar] for implicit
+	declaration of type variables as well.  It develops that
+	[namespace upvar] is a lot faster than [::variable] even when 
+	using the default namespace (e.g., "::variable varname").
+	
+2006-08-15  Will Duquette <will@wjduquette.com>
+	* main2.tcl, snit.test: Fixed Bug 1532791: "snit2, 
+	snit::widget problem".
+
+2006-08-12  Will Duquette <will@wjduquette.com>
+	* main1.tcl, main1_83.tcl, main2.tcl: Replaced as many [string equal] calls
+	in main1_83.tcl with {"" ==/!= $a} expressions, so that the
+	differences between the two files are minimized.  Also removed the
+	"-glob" from calls to "array names" in main1.tcl.  There are now
+	only a few remaining differences between the two files.
+
+	Also, I added a "return" to the end of RT.DestroyObject in all
+	three "main" modules, to prevent a confusing return value from
+	"$object destroy" that Andreas noticed a while back.
+
+	* snit.test: Two tests, iinfo-6.4 and iinfo-6.5, failed on Tcl
+	8.3.  The -result in both cases was a list of Tk widget options
+	that included some new options defined in Tcl 8.4.  I added two
+	new constraints, tcl83 and tcl84, and duplicated the two tests,
+	one for each.
+	
+2006-08-10  Will Duquette <will@wjduquette.com>
+	* snit.man: Added documentation for how to define new
+	validation types.
+
+2006-08-09  Will Duquette <will@wjduquette.com>
+	* snit.man: Added documentation for the "-type" option-definition
+	option, and for the validation types.  I still need to fill in a
+	section on defining new validation types.
+	* validate.tcl: Cleaned up the header comment.
+
+2006-08-08  Will Duquette <will@wjduquette.com>
+	* main1.tcl: Removed all "eq" and "ne" expressions, to reduce
+	the differences between main1.tcl and main1_83.tcl.  Unlike
+	main1_83.tcl, though, I used the forms {"" == $a} and 
+	{"" != $a} in preferences to [string equal], as they are
+	both shorter and more efficient.  I used [string equal]
+	only when comparing two variables.  The next step is
+	to update main1_83.tcl to use the {"" ==/!= $a} form 
+	where possible, in preference to [string equal]; then,
+	most of the code can be shared between the two modules,
+	which will simplify maintenance.
+
+2006-08-07  Will Duquette <will@wjduquette.com>
+	* Implemented "-type" option-definition option in main2.tcl,
+	for Snit 2.x, and main1_83.tcl for Snit 1.2 on Tcl 8.3.
+
+2006-08-06  Will Duquette <will@wjduquette.com>
+	* Major reorganization of the code modules.  snit.tcl and
+	snit2.tcl are now just short loader scripts.  The Snit 1.x
+	compiler and run-time library are implemented in main1.tcl and
+	main1_83.tcl, respectively; the Snit 2.x compiler and run-time
+	are in main2.tcl.  Both loaders load validate.tcl, which contains
+	the new validation types.  This scheme is documented in
+	modules.txt.
+
+	* Bumped the Snit 1.x version number to Snit 1.2, since 
+	Snit 1.1 has been a robust, stable release.
+
+	* snit83.tcl: Removed; obsolete
+	* snit84.tcl: Removed; obsolete
+
+	* snit.tcl, main1_83.tcl: snit_tcl83_utils.tcl is now sourced in
+	snit.tcl rather than main1_83.tcl.  I don't believe this should
+	cause a problem....but it needs to be tested.
+
+	* snit.test: Added tests for Snit validation types.  These tests 
+	pass for Snit 2.x and for Snit 1.2 with Tcl 8.4.  They *should*
+	pass for Snit 1.2 with Tcl 8.3, but I've been unable to test that.
+
+	* README.txt: Updated
+
+	* main1.tcl, snit.test: Implemented the "-type" option-definition
+	option for Snit 1.2 and Tcl 8.4, and added related tests.
+
+	* Still to do: 
+	   1. Implement the "-type" option-definition option in
+	      main1_83.tcl and main2.tcl.
+	   2. Write documentation for "-type" and for the Snit 
+	      validation types.
+	   3. Consider refactoring main1.tcl, main1_83.tcl for
+	      maximum commonality, to simplify future changes of
+	      this kind.
+
+2006-08-05  Will Duquette <will@wjduquette.com>
+	* validate.tcl: New module; defines a number of "validation
+	types".  These will be used with the forthcoming "-type"
+	option-definition option to add robust validation for snit::type
+	and snit::widget options.
+	
+2006-07-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* snitfaq.man: Finally fixed the two ambigous section titles.
+
+2006-01-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* snit.tcl: Fixed [SF Tcllib Bug 1414589], prevent the package
+	  activation code from stomping on the global variable 'dir'.
+
+2006-01-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* snit.test: Fixed use of duplicate test names. Whitespace police
+	  as well.
+
+2006-01-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* snit.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* snit.test: Hooked into the new common test support
+	  code. Reactivated the tests based on the commands wrongNumArgs
+	  and tooManyArgs. Coming out of the new test support code.
+
+2006-01-14  Will Duquette  <will@wjduquette.com>
+
+	* snit2.tcl (::snit::RT.UnknownMethod):  When creating a new
+	  submethod ensemble, creates it in the ${selfns} namespace
+	  instead of in the ${type} namespace (fix courtesy of
+	  Anton Kovalenko).  Previously, multiple objects of a type that
+	  defines a submethod ensemble would share a single ensemble,
+	  with confusing results.
+	* snit.test: Added test hmethod-1.6, to test for the above error.
+	  As expected, there was no error in snit 1.1, but the test failed
+	  in snit 2.0 until the above change was made.
+	* snit.test: "if 0"'d out some tests that make use of
+	  tcltest::tooManyArgs and tcltest::wrongNumArgs, two commands 
+	  that aren't available to me.
+
+	* snitfaq.man: Fixed a typo and added a suggestion from 
+	  Andreas Kupries on how to name component commands.
+
+	* snit.man: Added Kenneth Green and Anton Kovalenko to the list 
+	  of names in the "Credits".
+
+2005-12-05  Andreas Kupries <andreask@activestate.com>
+
+	* snit83.tcl: Replaced the direct use of / path separator with a
+	  proper file join.
+
+2005-11-07  Andreas Kupries <andreask@activestate.com>
+
+	* pkgIndex.tcl: Moved the selection of the implementation out of
+	  the package declaration into the runtime.
+
+	* snit.tcl: Renamed to snit84.tcl. Also a new file containing
+	  the selection of the implementation, basic dependency, and
+	  common provide command.
+
+	* snit84.tcl: New file. Was originally named 'snit.tcl'. Contains
+	  the Tcl 8.4 specific implementation of the package.
+
+	* snit.test: Updated to new entrypoint for snit 1.1.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-09-26  Andreas Kupries <andreask@activestate.com>
+
+	* snit.test: Adapted the testsuite to handle the 8.3 backport.
+
+	* snit83.tcl:           Integrated Kenneth Green's backport of
+	* snit_tcl83_utils.tcl: Snit to Tcl 8.3 into the code base.
+	
+	* snit.tcl: Checking the list result of [info commands ] now using
+	  [llength] instead of string comparisons.
+
+	* snit2.tcl: Checking the list result of [info commands ] now using
+	  [llength] instead of string comparisons.
+
+2005-09-05  Will Duquette  <will@wjduquette.com>
+
+	* snitfaq.man: Updated for Snit 2.0/1.1.
+
+2005-08-27  Will Duquette  <will@wjduquette.com>
+
+	* snit.man: Updated for Snit 2.0/1.1
+	* snit.tcl: Added the new hulltypes to snit.tcl (somehow they 
+        didn't get in).
+	* snit.test: Added a test that verifies the list of valid 
+	hulltypes.
+
+2005-08-22  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* snit.tcl, snit2.tcl: allow labelframe and ttk::labelframe as
+	hulltypes, and tk::(label)frame (planning ahead ...)
+
+2005-08-20  Will Duquette <will@wjduquette.com>
+
+	* snit.tcl: It's now an error to call an object's "destroy" method
+	in the object's constructor.
+	* snit2.tcl: Snit 2.0, implemented with "namespace ensemble".
+	* snit.test: Now uses the "-body" style of Tcltests throughout.
+	Also, tests Snit 1.x (snit.tcl) when run with Tcl/Tk 8.4, and
+	tests Snit 2.x when run with Tcl/Tk 8.5.
+
+2005-08-10  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* snit.tcl (::snit::Comp.statement.hulltype): make hulltype one of
+	$::snit::hulltypes, allow ttk::frame
+
+2005-06-07  Will Duquette  <will@wjduquette.com>
+
+	* snit.test (bug-2.1, bug-2.2): Added the "tk" constraint, so that
+	they'll be excluded when snit.test is run with tclsh.
+
+2005-06-04  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl, snit.man, snitfaq.man: Updated the copyright
+	information to 2005.
+	* snit.html, faq.html: Removed these files, as they are obsolete.
+	snit.man and snitfaq.man contain the up-to-date documentation.
+
+2005-06-04  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl: Bumped the version number to 1.0
+	* pkgIndex.tcl: Bumped the version number to 1.0.
+	* dictionary.txt: Bumped the version number to 1.0.
+	* snit.man: Bumped the version number to 1.0.
+	* snitfaq.man: Bumped the version number to 1.0.
+	
+2005-06-04  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl (::snit::RT.DestroyObject)
+	* snit.test (test bug-2.1, bug-2.2): 
+	  Fixed [SF Tcllib Bug 1106375].
+
+2005-06-04  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl (::snit::Comp.statement.destructor):
+	* snit.test (test bug-1.1)
+	  Fixed [SF Tcllib Bug 1161779].
+
+2005-06-04  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl: Checked a number of small optimizations Jeff Hobbs
+	sent me. Bumped the version number to 0.98.
+	* pkgIndex.tcl: Bumped the version number to 0.98.
+	* dictionary.txt: Bumped the version number to 0.98.
+	* snit.man: Bumped the version number to 0.98.
+	* snitfaq.man: Bumped the version number to 0.98.
+
+2005-04-11  Marty Backe <marty@lucidway.org>
+
+        * snit.man: Fixed typo in the -configuremethod example.
+
+2005-02-14  Andreas Kupries <andreask@activestate.com>
+
+	* snitfaq.man: Fixed a number of typos reported by Bob Techentin,
+	  see [SF Tcllib Bug 1050674].
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-09-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* snit.test: Fixed the tests which were dependent on the exact
+	  order of results returned by [array names]. Which failed for Tcl
+	  8.5. Added lsort and updated expected results, for canonical
+	  comparison.
+
+2004-09-18  Will Duquette  <will@wjduquette.com>
+
+	* snit.man: 	Documented hierarchical methods and typemethods.
+
+	* Everything:   Updated version to 0.97.
+
+2004-09-16  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl	In "component foo -public name", the "-public
+        		name" part is now implemented as "delegate method
+			{name *} to foo".
+	* snit.test     Added tests for "$type info typemethods", "$self
+			info typemethods" and "$self info methods" for the
+			case of hierarchical methods/typemethods, and
+			fixed related bugs in snit.tcl.
+
+2004-09-14  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl	Modified the implementation of hierarchical methods;
+	* snit.test	this involved extending the syntax of method
+			"using" patterns to better support the 
+			hiearchical case.
+
+	* snit.tcl      Extended the "delegate method *" and
+	* snit.test     "delegate typemethod *" syntax to work better with
+	                hierarchical methods.  
+	                E.g., "delegate method {tail *} to tail" now maps
+			"$self tail wag" to "$tail wag"
+
+2004-09-12  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl	Added support for hierarchical type methods,
+	* snit.test	analogously to the support for regular methods.
+	* README.txt
+
+	* snit.tcl	Refactored the compilation of hierarchical
+	* snit.test	methods and typemethods to remove duplicated code.
+
+2004-09-10  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl      Added support for hierarchical methods: methods
+	* snit.test     with submethods.  The documentation has not yet
+	* README.txt    been updated.
+
+	* snit.tcl      Bug fix: "delegate method {a b} to comp" now produces
+	* snit.test     the call "$comp a b" instead of "$comp a_b".
+
+2004-09-04  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl      Bug fix: read-only options were read-only only
+	* snit.test     if they weren't set at creation time; the 
+	* README.txt    configure cache wasn't being cleared properly
+	                after creation.
+
+2004-08-28  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl:     Minor tweaks to instance creation to improve
+	* dictionary    speed.  No major gain.  Also, -simpledispatch yes
+	* snit.man	now supports instance renaming again.
+	* snitfaq.man
+	
+
+2004-08-22  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl	Defined the -simpledispatch pragma.  Updated
+	* snit.test     the test suite and the relevant documentation.
+	* snit.man
+	* README.txt
+	* snitfaq.man
+	* dictionary
+
+2004-08-14  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl      Defined the -hastypemethods pragma, and added
+	* snit.test     relevant tests and documentation.
+	* snit.man      
+	* README.txt
+	* snitfaq.man
+
+2004-08-12  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl      Under appropriate conditions, calling a
+	* snit.test     snit::type command with no arguments will create
+	* snit.man      an instance with an automatically generated name.
+	* README.txt
+
+2004-08-11  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl      Added the -hasinfo pragma, along with the
+	* snit.test     appropriate tests.  Updated documentation.
+	* snit.man
+	* README.txt
+
+	* snit.tcl      The "configure", "configurelist" and "cget"
+	* snit.test     instance methods, along with the "options"
+	* snit.man      instance variable, are defined only if the
+	* README.txt    type defines at least one option (either
+	                locally or by delegation).
+
+2004-08-07  Will Duquette  <will@wjduquette.com>
+
+	* All files     Updated to Snit V0.96 for post-0.95 development.
+	                Fixed bug: methods called via [mymethod] can now
+	                return exotic return codes, e.g.,
+			"return -code break"
+
+2004-08-04  Will Duquette  <will@wjduquette.com>
+
+	* snitfaq.man   Updated the Snit FAQ document.
+
+	* snit.man      Finalized Snit V0.95, and updated the version number
+	* snit.tcl      throughout.
+	* pkgIndex.tcl
+	* README.txt
+
+2004-07-27  Will Duquette  <will@wjduquette.com>
+
+	* snit.man      Updated the manpage to describe the new "pragma"
+	                statement.  Also, changed the SNIT acronym in the
+	                title to "Simple Now In Tcl", i.e., objects are
+	                now simple.
+
+	* snit.tcl	Added another pragma, -canreplace.  If false
+	* snit.test     (the default) snit::types can no longer create
+	* README.txt    instances which replace existing Tcl commands.
+	* snit.man      Setting "pragma -canreplace yes" restores the
+	* dictionary    previous behavior.
+
+	* snit.tcl	The type definition statements "variable" and
+	* snit.test     "typevariable" now take a "-array" option that
+	* README.txt    allows them to initialize array variables with
+	* snit.man      an "array set" list.
+
+	* snit.test     Fixed Snit bug 899207 (snit test failures)
+
+	* snit.tcl	Added new instance introspection methods 
+	* snit.test   	"info typemethods" and "info methods", and a new
+	* README.txt    type introspection typemethod "info typemethods".
+	* snit.man      
+	* roadmap.txt
+
+	* snit.man      Reviewed the entire man page, and made copious
+	                changes and fixes.
+
+	* snit.tcl	Revised many of the error messages to be more 
+	* snit.test     Tcl/Tk-like.  Double-quotes are used instead of
+			single quotes, and terminal periods are omitted.
+	
+	* snit.tcl	Added some code to method and typemethod dispatch
+	* snit.test	so that the return code (e.g., return -code break)
+			returned by the method/typemethod code is passed
+			along unchanged.  This is mostly so that methods
+			and typemethods can conditionally break in event 
+			bindings.
+	
+2004-07-26  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl	Implemented -configuremethod and configure command
+	* snit.test     caching; added tests to ensure that the cache is
+	* roadmap.txt   cleared when necessary.  Implemented -validatemethod
+	* dictionary    and added tests.  Implemented -readonly and added
+	* README.txt    tests.
+
+	* snit.man      Updated the man page with the new option
+			definition syntax.
+
+	* snit.tcl      Added the "pragma" statement, and three pragma
+	* snit.test     options, -hastypeinfo, -hastypedestroy, and
+	* roadmap.txt   -hasinstances, plus related tests.  It still
+	* dictionary    needs to be documented.
+
+2004-07-25  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl 	Renamed some procs for clarity, and repaired some
+	* roadmap.txt   omissions in roadmap.txt.  Added "cget" command
+	* snit.test     caching for additional speed-up.
+	* dictionary.txt
+
+2004-07-24  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl      (::snit::RT.MethodCacheLookup): The cached command
+	        	is now generated as a list, not a string; this
+			improves the speed of method invocation by quite a 
+			bit.
+
+2004-07-24  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl	Consolidated the option typevariables into a
+	* dictionary	single array, Snit_optionInfo.  Implemented
+	* roadmap.txt	parsing of the new option definition syntax;
+	* snit.test	the -validatemethod, -configuremethod, and
+			-cgetmethod options as yet have no effect.
+			Added tests to ensure that the 'option' and
+			'delegate option' statements populate
+			Snit_optionInfo properly.
+
+			Added "starcomp" to the Snit_optionInfo array.
+			When "delegate option *" is used, "*" no longer 
+			has a "target-$opt" entry, nor does it appear
+			in "delegated-$comp".  Instead, "starcomp" is the
+			name of the component to which option "*" is
+			delegated, or "".
+
+			Reimplemented user-defined "cget" handlers using
+			the "-cgetmethod" option definition option.  
+			The "oncget" statement now defines a method, and
+			sets the option.
+
+2004-07-21  Will Duquette  <will@wjduquette.com>
+
+	* README.txt 	Updated to reflect recent changes.
+	* snit.man
+
+2004-07-20  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl	Finished the refactoring job.  All extraneous
+	* roadmap.txt	code has been moved from the type templates to the
+			::snit:: runtime.
+
+2004-07-19  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl	Refactored %TYPE%::Snit_optionget to 
+	* roadmap.txt	::snit::RT.OptionDbGet. Refactored 
+			%TYPE%::Snit_cleanup to ::snit::RT.DestroyObject,
+			%TYPE%::Snit_tracer to ::snit::RT.InstanceTrace,
+			and %TYPE%::Snit_removetrace to
+			::snit::RT.RemoveInstanceTrace.
+
+2004-07-17  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl	  Added "delegate typemethod ..." in all its glory,
+	* snit.test	  including "delegate typemethod *".  Made it 
+	* dictionary.txt  Possible to delegate an instance method to a
+	* roadmap.txt	  typecomponent.  Added tests to ensure that
+			  variable/typevariable and component/typecomponent 
+			  names do not collide.  Updated a number of 
+			  compilation error messages for consistency.
+			  Moved the remaining typemethod definitions from the 
+			  template code and replaced them delegations to
+			  the Snit runtime library.  Added/modified
+			  relevant tests, and updated the roadmap and 
+			  dictionary files.  
+
+2004-07-15  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl 	Replaced the old typemethod definition and
+			cacheLookup code with new pattern-based code, just
+			like the method definition and lookup.  The
+			cache lookup routine doesn't yet understand 
+			typemethod "*".  The next step is to implement
+			typecomponents and "delegate typemethod".
+
+	* dictionary.txt  Documented the changes related to the above
+			change. 
+
+2004-07-14  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl      Replaced %TYPE%::Snit_comptrace with
+                        snit::RT.ComponentTrace.
+
+			Replaced %TYPE%::Snit_cacheLookup with
+			snit::RT.MethodCacheLookup
+
+			Replaced %TYPE%::Snit_typeCacheLookup with
+			snit::RT.TypemethodCacheLookup
+
+	* snit.test	Added a test to verify that a widget's hull
+			component cannot be altered once it is set.
+	
+	* roadmap.txt   Documents the internal structure of snit.tcl.
+	
+2004-07-11  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl	Renamed a number of internal commands, for
+	                clarity.  
+
+			Refactored the standard method bodies
+			out of the type definition and into the Snit
+	                runtime using delegation.
+
+			Defined snit::compile which compiles a 
+			type definition into the Tcl script which
+			actually defines the type.
+
+	* snit.test     Added and modified appropriate tests.
+
+	* README.txt    Added a bullet about snit::compile.
+
+2004-07-05  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl      Replaced the old method cacheLookup code with new
+	                code based on command patterns.  All tests pass;
+	                no test changes were needed.  All is now ready to
+	                add the new "delegate method" "using" keyword.
+	* dictionary.txt
+	                This file documents Snit's private variables.
+	                It's up-to-date, and checked in for the first
+	                time.
+
+	* snit.tcl      Implemented the new "using <pattern>" clause to
+	* snit.test    	"delegate method", and added relevant tests.
+
+	* snit.man      Documented the new "delegate method" syntax.
+	* README.txt
+
+2004-07-04  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl      Re-implemented the option and method delegation 
+	* snit.test     syntax so that the order of clauses is no longer
+	                important.  Along the way, I made the relevant
+			error messages more specific.
+
+2004-06-26  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl	Added the "component" statement, with two options, 
+	* snit.test     -public and -inherit.  Added all relevant tests.
+	* snit.man      Updated the man page to describe it.
+
+2004-05-30  Will Duquette  <will@wjduquette.com>
+
+	* snit.man      Updated per 0.94 changes to date; also I made a
+                	sweep through the whole document and cleaned
+	        	things up here and there for readability.
+
+2004-05-29  Will Duquette  <will@wjduqette.com>
+
+	* snit.tcl      Moved Snit_component to snit::Component.
+	                
+	                Removed the "type" argument from all of the
+			"Type.*" procs.  Instead, the compilation type
+			is available as $compile(type).  Consequently,
+			the Type.* procs can now be aliased into the
+			compiler just once, instead of with every type
+			definition.  (Did that.)
+
+			Defined snit::macro.
+
+	* snit.test     Added tests for snit::macro.
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-05-15  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl:     Updated version to 0.94
+	* pkgIndex.tcl: 
+
+	* snit.tcl:     Modified the Snit_dispatcher function to
+	                use a method command cache.  Method commands
+			are assembled in Snit_cacheLookup only if
+			they aren't found in the cache.  The 
+			new Snit_dispatcher was much shorter,
+			so its code was moved into the object's
+			instance command, and Snit_dispatcher
+			was deleted altogether.  These changes 
+			speed up method calls considerably.
+
+			Snit_tracer was then modified to clear the
+			method cache when the instance command is 
+			renamed--the cached commands contained the
+			old instance command name.
+
+	* snit.test:    Components can be changed dynamically; the
+	                method cache breaks this, because the 
+			previous component's command is still
+			cached.  Added a test that checks whether
+			the method cache is cleared properly when
+			a component is changed.
+
+	* snit.tcl:	Snit_comptrace now clears the method cache
+	                when a component is redefined.
+
+	* snit.tcl:     Added a type method cache.  Type methods 
+	                (with the exception of implicit "create") are
+			now as fast as instance methods.  This is a
+			naive implementation, though--for typemethods,
+			the cache could be populated at definition
+			time, since there's no delegation.  Of course,
+			if I added typemethod delegation then what I'm
+			doing is appropriate.
+
+	* snit.tcl:     Reorganized some things, in preparation to move
+	                shared code from the type definition to the 
+			snit:: namespace.
+
+	* snit.tcl:	Made %TYPE%::mymethod an alias to snit::MyMethod.
+
+	* snit.tcl:	Added %TYPE%::myproc, as an alias to 
+	* snit.test:    snit::MyProc.  "codename" is now deprecated.
+			Added tests for myproc.
+
+	* snit.tcl:     %TYPE%::codename is now an alias to
+	                snit::CodeName.
+
+	* snit.tcl:     Added %TYPE%::myvar and %TYPE%::mytypevar; these
+	                replace %TYPE%::varname and %TYPE%::typevarname,
+			which are now deprecated.  All are now implemented
+			as aliases to calls in snit::.
+
+	* snit.tcl:     %TYPE%::variable is now an alias to
+	                snit::variable.
+
+	* snit.tcl:     %TYPE%::from is now an alias to snit::From.
+
+2004-02-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* snit.test:    Codified the requirement of Tcl 8.4 into
+	* pkgIndex.tcl: package index and test suite.
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2004-02-07  Will Duquette  <will@wjduquette.com>
+
+	* README.txt:  Added 0.93 information to README.txt.
+
+	* snit.tcl:    Fixed bug: "$obj info vars" used to leave out "options"
+	* snit.test:   if no options were defined.  It's clearer if the 
+	               behavior is always the same.
+
+		       Fixed tcllib bugs item #852945: variable.  The
+		       statement "variable ::my::qualified::name" in an
+		       instance method now makes "name" available, just
+		       as the standard "variable" command does.
+
+		       Fixed bug: in some cases the type command was
+		       created even if there was an error defining the
+		       type.  The type command is now cleaned up in these
+		       cases.  (Credit Andy Goth)
+
+	* snit.tcl:    Implemented RFE 844766: need ability to split class
+	* snit.test:   defs across files.  Added the snit::typemethod and
+	* snit.html:   snit::method commands; these allow typemethods and
+		       methods to be defined after the class already exists.
+
+2004-02-07  Will Duquette  <will@wjduquette.com>
+
+	* All:         Updated version to 0.93.
+	* snit.tcl:    The %AUTO% name counter wraps around to 0 when it
+	               reaches 2^31 - 1, to prevent integer overflow
+		       errors.
+	* snit.html:   Minor corrections and updates.
+	* faq.html
+
+2003-12-06  Will Duquette  <will@wjduquette.com>
+
+	* All:         Updated version to 0.92.
+
+	* snit.tcl     Snit now propagates errorCode properly when 
+	* snit.test    propagating errors.
+
+2003-12-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* snit.man:    Updated to changes in the .html files.
+	* snitfaq.man: 
+
+2003-11-21  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl:      Updated version to 0.91.
+	* pkgIndex.tcl: 
+
+	* snit.tcl:      Added the "expose" statement to type and widget
+	                 definitions.
+	* snit.test:     Added appropriate tests.
+	* snit.html:     Added documentation for "expose".
+	* faq.html:      Updated the FAQ entries.
+
+	* snit.tcl:      Added "string match" patterns to the Snit info
+	                 methods.
+	* snit.test:     Added appropriate tests.
+	* snit.html:     Updated documentation.
+
+
+2003-10-28  Andreas Kupries  <andreask@activestate.com>
+
+	* snit.man:    Fixed typos in documentation.
+	* snitfaq.man: 
+
+2003-10-27  Will Duquette  <will@wjduquette.com>
+
+	* snit.html: Fixed typos in documentation.
+	* faq.html:
+
+2003-10-27  Andreas Kupries  <andreask@activestate.com>
+
+	* snit.man:    Updated to changes in the .html files.
+	* snitfaq.man: 
+
+2003-10-25  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl:  Added the "except" clause for "delegate method *" and
+	* snit.test: "delegate option *".  This allows the user to
+	  	     explicitly exclude certain methods and options.
+		     Added appropriate tests.
+
+	* snit.html: Gave the Snit FAQ a bit of an overhaul, and added 
+	* faq.html:  information corresponding to the recent code
+	  	     changes, including a great deal of material on Snit
+		     and the Tk option database.  Updated the Snit man
+		     page to be consistent with the recent code changes.
+
+2003-10-23  Andreas Kupries  <andreask@activestate.com>
+
+	* snit.man: Updated from Will's html doc's.
+
+2003-10-23  Will Duquette  <will@wjduquette.com>
+
+	* snit.html: Added documentation for the new "hulltype",
+	  	     "widgetclass", and "install" commands.  Updated the
+	  	     documentation for "installhull" to show the new
+	  	     "installhull using" syntax.  Updated the
+	  	     documentation for "option" and "delegate option" to
+	  	     show how to specify the resource and class names for
+	  	     options.  Added a section on the interaction between
+	  	     Snit and the Tk option database.
+
+2003-10-21  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl:  Add the "hulltype" command.  This allows the snit::widget 
+	* snit.test: author to choose whether the hull should be a frame
+	  	     or a toplevel.  Tests have been updated as usual.
+
+2003-10-20  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl:  The new "install" command can now be used to install
+	* snit.test: components for snit::types as well.  It doesn't add
+		     any value, since there's no option database, but at
+	             least the syntax will be the same.
+
+		     "install" now initializes the component properly
+		     from the option database when "option *" has been
+		     delegated to it.
+
+		     Tests have been updated as usual.
+
+2003-10-19  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl:  During normal widget creation, the default values
+	* snit.test: for a widget's local options are overridden by
+	  	     values from the option database.
+
+		     Array %TYPE%::Snit_compoptions now lists delegated 
+		     option names for each component.
+
+		     Added a new command, "install", for use in widget
+		     and widgetadaptor constructors.  Install creates a
+		     widget, assigning it to a component; it also queries
+		     the option database for any option values that are
+		     delegated to this component.
+
+		     Modified installhull, adding a new form that queries
+		     the option database as appropriate for options
+		     delegated to the hull widget.
+
+		     At this point, the only options whose default values
+		     do not come from the option database in the proper
+		     way are those implicitly delegated by "delegate
+		     option *" to a non-hull widget.  I need to think
+		     about those.
+
+		     Of course, new tests have been added for all of this.
+
+		     The version number in snit.tcl has been updated to 0.84.
+
+2003-10-18  Will Duquette  <will@wjduquette.com>
+
+	* snit.tcl:  Added the "widgetclass" statement; this allows
+	* snit.test: snit::widgets (and nothing else) to explicitly set
+	             the widget class name passed to the hull as "-class".
+	             In addition, the hull's -class is set automatically, 
+		     to the explicit widgetclass, if any, or to the 
+		     widget type name with an initial capital letter.
+
+                     Next, an object's options now have real resource
+                     and class names, which are reported correctly by 
+                     "$obj configure".  By default, the resource name
+                     is just the option name minus the hyphen, and
+                     the class name is just the resource name with an
+                     initial capital.
+
+                     In both the "option" and "delegate option"
+                     statements, the option name may be specified as
+                     a pair or a triple, e.g.,
+
+                       option {-name name Name}
+
+                     Thus, the resource name and class name can be
+                     specified explicitly.
+
+                     In previous versions, the resource name and
+                     class name returned by configure for delegated
+                     options was the resource name and class name
+                     returned by the component.  This is no longer
+                     true; configure now returns the resource and
+                     class name defined in the type definition.
+
+2003-10-17  Will Duquette  <will@wjduquette.com>
+
+	* snit.html: Added typeconstructor documentation.
+	* faq.html:  
+
+	* snit.tcl: Implemented typeconstructors.  A typeconstructor's
+                    body is executed as part of the compiled type
+	            definition; it has access to all of the typevariables
+	            and typemethods.  Its job is to initialize arrays,
+	            set option database values, and like that.
+	
+	* snit.test: Added tests for typeconstructors.
+
+2003-10-16  Will Duquette  <will@wjduquette.com>
+
+	* README.txt: Updated to reflect snit's presence in tcllib, and
+	  to point to this ChangeLog file.
+
+2003-09-30  Andreas Kupries  <andreask@activestate.com>
+
+	* snit.tcl: A number of changes to the code generation part.
+	  - Usage of [subst]'s was superfluous, removed, simple string
+	    interpolation now.
+
+	  - Now 'namespace eval type' enclosing the generated code
+	    anymore. Such an eval is now done only at the top of the
+	    generated code to define the namespace, and to
+	    define/initialize the typevariables. All procedure definitions
+	    are now outside of 'namespace eval' and use fully qualified
+	    command names instead.
+
+	  - Moved the code in [snit::Define] which instantiated the class
+	    using the generated code into it own helper command,
+	    [snit::DefineDo]. Overiding this command allows users of the
+	    snit package perform other actions on the newly defined
+	    class. One example is that of a snit-compiler which goes
+	    through a file containing tcl code and replaces all snit::*
+	    definitions with the generated code.
+
+	  Motivation for the change: When applying procomp to procedure
+	  definitions inside of a 'namespace eval' they are not
+	  byte-compiled, but kept as encoded literal. This is a direct
+	  consequence of 'namespace eval' not having a compile
+	  function. It also means that introspection, i.e. [info body]
+	  does recover the actual procedure definition. By using procedure
+	  definitions outside of namespace eval, but fully qualified names
+	  this limitation of procomp is avoided. The aforementioned snit
+	  compiler application is another part for this, ensuring that
+	  instead of keeping the whole class definition as one literal for
+	  the snit::* call we actually have tcl code to compile and hide.
+
+	* snit.tcl:     Updated the version number to 0.83
+	* pkgIndex.tcl:
+	* snit.man:
+	* snitfaq.man:
+
+2003-07-18  Andreas Kupries  <andreask@activestate.com>
+
+	* snit.test: Fixed SF tcllib bug #772535. Instead of using a
+	* snit.tcl:  variable reference in the callback a regular command
+	             is called, with the unchanging 'selfns' as argument.
+		     From there things go through the regular dispatching
+		     mechanism after the actual instance name was obtained.
+		     Updated all affected tests.
+
+		     Updated dmethod-1.5 also, 'string' delivers a
+		     different error message.
+
+2003-07-16  Andreas Kupries  <andreask@activestate.com>
+
+	* snit.man:    Added references to bug trackers, as part of
+	* snitfaq.man: caveats. Also added note about bwidget/snit
+	               interaction.
+
+	* snit.tcl: Integrated latest (small) change to original code base
+	  (was not released yet). Removes bad trial to fix up error stack.
+	  We are now at version 0.82. Added note to developers explaining
+	  the catch in Snit_tracer.
+
+2003-07-15  Andreas Kupries  <andreask@activestate.com>
+
+	* snit.tcl:    Imported new module into tcllib.
+	* snit.test:   snit = Snit Is Not IncrTcl
+	* snit.html:   Author: William Duquette
+	* faq.html:    OO package + megawidget framework.
+	* README.txt:
+	* license.txt:
+	* pkgIndex.tcl:
+	* snit.man:
+	* snitfaq.man:

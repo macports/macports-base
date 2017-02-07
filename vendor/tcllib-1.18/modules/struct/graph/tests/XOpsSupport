@@ -1,0 +1,128 @@
+# -*- tcl -*-
+# graphops.testsupport:  Helper commands for the graph ops testsuite.
+#
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# All rights reserved.
+#
+# RCS: @(#) $Id: XOpsSupport,v 1.6 2009/09/24 19:30:11 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+# Code to generate various graphs to operate on.
+
+#----------------------------------------------------------------------
+
+proc bicanon {bi} {
+    return [lsort -dict [list [lsort -dict [lindex $bi 0]] [lsort -dict [lindex $bi 1]]]]
+}
+
+proc setsetcanon {s} {
+    set r {}
+    foreach item $s {
+	lappend r [lsort -dict $item]
+    }
+    return [lsort -dict $r]
+}
+
+#----------------------------------------------------------------------
+
+proc EulerTour {g arcs} {
+    Euler 1 $g $arcs
+}
+
+proc EulerPath {g arcs} {
+    Euler 0 $g $arcs
+}
+
+proc Euler {tour g arcs} {
+    if {[llength [lsort -unique $arcs]] < [llength $arcs]} {
+	#puts [lsort $arcs]
+	return dup-arcs
+    } elseif {![struct::set equal $arcs [$g arcs]]} {
+	#puts [lsort $arcs]
+	#puts [lsort [$g arcs]
+	return missing-arcs
+    }
+    set a [lindex $arcs 0]
+    set first [list [$g arc source $a] [$g arc target $a]]
+    set last  $first
+
+    #puts T=($arcs)
+    #puts "$a == ($first)"
+    foreach a [lrange $arcs 1 end] {
+	set now  [list [$g arc source $a] [$g arc target $a]]
+	set nail [struct::set intersect $last $now]
+
+	#puts -nonewline "$a == ($now) * ($last) = ($nail)"
+
+	if {[struct::set size $nail] < 1} {
+	    return gap
+	} elseif {[struct::set size $nail] > 1} {
+	    return same
+	}
+
+	if {[struct::set size $now] > 1} {
+	    set last [struct::set difference $now $nail]
+	} ; # else: a loop arc has no effect on last.
+
+	#puts " --> ($last)"
+    }
+    if {$tour} {
+	set nail [struct::set intersect $last $first]
+	if {[struct::set size $nail] < 1} {
+	    return gap
+	} elseif {[struct::set size $nail] > 1} {
+	    return same
+	}
+    }
+    return ok
+}
+
+#----------------------------------------------------------------------
+
+# custom match code.
+proc ismaxindependentset {g nodes} {
+
+    # i. all nodes in the set are pair-wise independent (no arcs
+    # between them).
+    foreach u $nodes {
+	set ua [$g arcs -adj $u]
+	foreach v $nodes {
+	    # ignore u == v
+	    if {$u eq $v} continue
+	    set va [$g arcs -adj $v]
+	    if {![struct::set empty [struct::set intersect $ua $va]]} {
+		# u, v have arc between them, are not independent.
+		return 0
+	    }
+	}
+    }
+
+    # ii. all nodes outside of the set in the gaph are dependent on at
+    # least one node in the set.
+    foreach v [$g nodes] {
+	# ignore nodes in the set
+	if {$v in $nodes} continue
+	set va [$g arcs -adj $v]
+
+	# node outside the set must have edge to at least one node in
+	# the set, or it would independent of it and the set would not
+	# be maximal.
+	set ok 0
+	foreach u $nodes {
+	    set ua [$g arcs -adj $u]
+	    if {![struct::set empty [struct::set intersect $ua $va]]} {
+		# u, v have an arc between them, are not independent,
+		# good.
+		set ok 1
+		break
+	    }
+	}
+	if {!$ok} { return 0 }
+    }
+    return 1
+}
+
+#----------------------------------------------------------------------
+#----------------------------------------------------------------------

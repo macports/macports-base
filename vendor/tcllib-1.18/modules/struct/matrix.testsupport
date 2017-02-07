@@ -1,0 +1,116 @@
+# -*- tcl -*-
+# Testsuite utilities specific to struct::matrix, v1 and v2.
+# ### ### ### ######### ######### #########
+
+# ### ### ### ######### ######### #########
+## "report object" to test the format methods.
+## v1/v2
+
+proc tclformat {cmd matrix {chan stdout}} {
+    switch -exact -- $cmd {
+	printmatrix {
+	    set r [$matrix rows]
+	    set c [$matrix rows]
+	    set     out [list "# $matrix $c x $r"]
+	    lappend out "matrix $matrix"
+	    lappend out "$matrix add rows    $r"
+	    lappend out "$matrix add columns $c"
+	    lappend out "$matrix set rect 0 0 [list [$matrix get rect 0 0 end end]]"
+	    return [join $out \n]
+	}
+	printmatrix2channel {
+	    set r [$matrix rows]
+	    set c [$matrix rows]
+	    puts $chan "# $matrix $c x $r"
+	    puts $chan "matrix $matrix"
+	    puts $chan "$matrix add rows    $r"
+	    puts $chan "$matrix add columns $c"
+	    puts $chan "$matrix set rect 0 0 [list [$matrix get rect 0 0 end end]]"
+	    return ""
+	}
+	default {
+	    return -code error "Unknown method $cmd"
+	}
+    }
+}
+
+# ### ### ### ######### ######### #########
+## Validation of the serialization of a matrix object against the
+## object.
+## v2 only.
+
+proc validate_serial {m serial {rect {}}} {
+    # Need a list with length 3.
+
+    if {[llength $serial] != 3} {
+	return serial/wrong#elements
+    }
+
+    foreach {r c d} $serial break
+
+    # Check dimensions against source
+
+    if {$rect == {}} {
+	set ro [$m rows]
+	set co [$m columns]
+
+	set ctl 0 ; set cbr $co ; incr cbr -1
+	set rtl 0 ; set rbr $ro ; incr rbr -1
+    } else {
+	foreach {ctl rtl cbr rbr} $rect break
+	set ro [expr {$rbr - $rtl + 1}]
+	set co [expr {$cbr - $ctl + 1}]
+    }
+    if {$r != $ro} {
+	return dim/row-mismatch
+    }
+    if {$c != $co} {
+	return dim/column-mismatch
+    }
+
+    # Check cell data size against dimensions.
+
+    if {[llength $d] > $r} {
+	return data/rows/to-many
+    }
+    foreach rv $d {
+	if {[llength $rv] > $c} {
+	    return data/columns/to-many
+	}
+    }
+
+    # Check cell data against matrix itself,
+    # possibly offset to the chosen rectangle.
+
+    set r $rtl
+    foreach rv $d {
+	set c $ctl
+	foreach cv $rv {
+	    if {![string equal [$m get cell $c $r] $cv]} {
+		return data/cell/$c/$r/content-mismatch
+	    }
+	    incr c
+	}
+	while {$c < $cbr} {
+	    # Empty cell to the right, check that they are truly empty
+	    if {[$m get cell $c $r] != {}} {
+		return data/cell/$c/$r/not-empty/missing-from-serial
+	    }
+	    incr c
+	}
+	incr r
+    }
+    while {$r < $rbr} {
+	# Empty row at the bottom, check that they are truly empty
+	for {set c $ctl} {$c < $cbr} {incr c} {
+	    if {[$m get cell $c $r] != {}} {
+		return data/cell/$c/$r/not-empty/missing-from-serial
+	    }
+	}
+	incr r
+    }
+
+    return ok
+}
+
+# ### ### ### ######### ######### #########

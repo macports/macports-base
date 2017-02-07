@@ -1,0 +1,89 @@
+[vset VERSION 1.0.1]
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt::pe::op n [vset VERSION]]
+[include include/module.inc]
+[titledesc {Parsing Expression Utilities}]
+[require pt::pe::op [opt [vset VERSION]]]
+[require pt::pe     [opt 1]]
+[require struct::set]
+[description]
+[include include/ref_intro.inc]
+
+This package provides additional commands to work with the
+serializations of parsing expressions as managed by the PEG and
+related packages, and specified in section
+[sectref {PE serialization format}].
+
+[para]
+
+This is an internal package, for use by the higher level packages
+handling PEGs, their conversion into and out of various other formats,
+or other uses.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::pt::pe::op] [method drop] \
+      [arg dropset] [arg pe]]
+
+This command removes all occurences of any of the nonterminals symbols
+in the set [arg dropset] from the parsing expression [arg pe], and
+simplifies it. This may result in the expression becoming "epsilon",
+i.e. matching nothing.
+
+[call [cmd ::pt::pe::op] [method rename] \
+      [arg nt] [arg ntnew] [arg pe]]
+
+This command renames all occurences of the nonterminal [arg nt] in the
+parsing expression [arg pe] into [arg ntnew].
+
+[call [cmd ::pt::pe::op] [method called] [arg pe]]
+
+This command extracts the set of all nonterminal symbols used,
+i.e. 'called', in the parsing expression [arg pe].
+
+[call [cmd ::pt::pe::op] [method flatten] [arg pe]]
+
+This command transforms the parsing expression by eliminating
+sequences nested in sequences, and choices in choices, lifting the
+children of the nested expression into the parent. It further
+eliminates all sequences and choices with only one child, as these are
+redundant.
+
+[para]
+
+The resulting parsing expression is returned as the result of the
+command.
+
+[call [cmd ::pt::pe::op] [method fusechars] [arg pe]]
+
+This command transforms the parsing expression by fusing adjacent
+terminals in sequences and adjacent terminals and ranges in choices,
+it (re)constructs highlevel [term strings] and
+[term {character classes}].
+
+[para]
+
+The resulting pseudo-parsing expression is returned as the result of
+the command and may contain the pseudo-operators [const str] for
+character sequences, aka strings, and [const cl] for character
+choices, aka character classes.
+
+[para]
+
+The result is called a [term {pseudo-parsing expression}] because it
+is not a true parsing expression anymore, and will fail a check with
+[cmd {::pt::peg verify}] if the new pseudo-operators
+are present in the result, but is otherwise of sound structure for a
+parsing expression.
+
+Notably, the commands [cmd {::pt::peg bottomup}] and
+[cmd {::pt::peg topdown}] will process them without
+trouble.
+
+[list_end]
+
+[include include/serial/pexpression.inc]
+[include include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,54 @@
+[vset VERSION 1.1]
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt::util n [vset VERSION]]
+[include include/module.inc]
+[titledesc {General utilities}]
+[require pt::ast [opt [vset VERSION]]]
+[description]
+[include include/ref_intro.inc]
+
+This package provides general utility commands.
+
+[para]
+
+This is a supporting package in the Core Layer of Parser Tools.
+[para][image arch_core_support][para]
+
+[section API]
+
+[list_begin definitions]
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd ::pt::util] [method error2readable] \
+	[arg error] [arg text]]
+
+This command takes the structured form of a syntax [arg error] as
+thrown by parser runtimes and the input [arg text] to the parser which
+caused that error and returns a string describing the error in a
+human-readable form.
+
+[para] The input [arg text] is required to convert the character
+position of the error into a more readable line/column format, and to
+provide excerpts of the input around the error position.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd ::pt::util] [method error2position] \
+	[arg error] [arg text]]
+
+This command takes the structured form of a syntax [arg error] as
+thrown by parser runtimes and the input [arg text] to the parser which
+caused that error and returns a 2-element list containing the line
+number and column index for the error's character position in the
+input, in this order.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd ::pt::util] [method error2text] [arg error]]
+
+This command takes the structured form of a syntax [arg error] as
+thrown by parser runtimes and returns a list of strings, each
+describing a possible expected input in a human-readable form.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[list_end]
+
+[include include/feedback.inc]
+[manpage_end]

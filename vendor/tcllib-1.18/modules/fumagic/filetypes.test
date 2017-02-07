@@ -1,0 +1,186 @@
+# -*- tcl -*-
+#
+# Testing "fumagic" (FileUtil Magic). Filetype recognizer.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 2005-2006 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: filetypes.test,v 1.9 2006/10/09 21:41:40 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+catch {namespace delete ::fileutil::magic}
+support {
+    useLocalFile fumagic.testsupport
+    useLocal     rtcore.tcl fileutil::magic::rt
+}
+testing {
+    useLocal filetypes.tcl fileutil::magic::filetype
+}
+
+# -------------------------------------------------------------------------
+# Now the package specific tests....
+
+set path [makeFile {} bogus]
+removeFile bogus
+
+test fumagic.filetype-1.1 {test file non-existance} {
+    set res [catch {fileutil::magic::filetype $path} msg]
+    list $res $msg
+} [list 1 "file not found: \"$path\""]
+
+test fumagic.filetype-1.2 {test file directory} {
+    set f [makeDirectory fileTypeTest]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    regsub {file[0-9]+} $msg {fileXXX} msg
+    removeDirectory fileTypeTest
+    list $res $msg
+} {0 directory}
+
+test fumagic.filetype-1.3 {test file empty} {
+    set f [makeEmptyFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeEmptyFile
+    list $res $msg
+} {0 {}}
+
+test fumagic.filetype-1.4 {test simple binary} {
+    set f [makeBinFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeBinFile
+    list $res $msg
+} {0 {}}
+
+test fumagic.filetype-1.5 {test elf executable} {
+    set f [makeElfFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeElfFile
+    list $res $msg
+} {0 {ELF 32-bit LSB AT&T WE32100 - invalid byte order, relocatable, \(\) \(SYSV\)}}
+
+test fumagic.filetype-1.6 {test simple text} {
+    set f [makeTextFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeTextFile
+    list $res $msg
+} {0 {}}
+
+test fumagic.filetype-1.7 {test script file} {
+    set f [makeScriptFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeScriptFile
+    list $res $msg
+} {0 {a /bin/tclsh script text executable}}
+
+test fumagic.filetype-1.8 {test html text} {
+    set f [makeHtmlFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeHtmlFile
+    list $res $msg
+} {0 {HTML document text}}
+
+# 1.9/.10 possibly broken output.
+test fumagic.filetype-1.9 {test xml text} {
+    set f [makeXmlFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeXmlFile
+    list $res $msg
+} {0 {XML document text \"	XML XML %.3s document text broken XML document text}}
+
+test fumagic.filetype-1.10 {test xml with dtd text} {
+    set f [makeXmlDTDFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeXmlDTDFile
+    list $res $msg
+} {0 {XML document text \"	XML XML %.3s document text broken XML document text}}
+
+test fumagic.filetype-1.11 {test PGP message} {
+    set f [makePGPFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removePGPFile
+    list $res $msg
+} {0 {PGP armored data message}}
+
+test fumagic.filetype-1.12 {test binary graphic jpeg} {
+    set f [makeJpegFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeJpegFile
+    list $res $msg
+} {0 {JPEG image data , JFIF standard  1. %02d , thumbnail 2x 2}}
+
+test fumagic.filetype-1.13 {test binary graphic gif} {
+    set f [makeGifFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeGifFile
+    list $res $msg
+} {0 {GIF image data , version 89a,}}
+
+test fumagic.filetype-1.14 {test binary graphic png} {
+    set f [makePngFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removePngFile
+    list $res $msg
+} {0 {PNG image data, CORRUPTED, PNG image data, CORRUPTED}}
+
+test fumagic.filetype-1.15 {test binary graphic tiff} {
+    set f [makeTiffFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeTiffFile
+    list $res $msg
+} {0 {TIFF image data, big-endian}}
+
+# 1.16 output possibly broken, missing substs.
+test fumagic.filetype-1.16 {test binary pdf} {
+    set f [makePdfFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removePdfFile
+    list $res $msg
+} {0 {PDF document , version %c .%c}}
+
+test fumagic.filetype-1.17 {test text ps} {
+    set f [makePSFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removePSFile
+    list $res $msg
+} {0 {PostScript document text}}
+
+test fumagic.filetype-1.18 {test text eps} {
+    set f [makeEPSFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeEPSFile
+    list $res $msg
+} {0 {PostScript document text}}
+
+test fumagic.filetype-1.19 {test binary gravity_wave_data_frame} {
+    set f [makeIgwdFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeIgwdFile
+    list $res $msg
+} {0 {}}
+
+test fumagic.filetype-1.20 {test binary compressed bzip} {
+    set f [makeBzipFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeBzipFile
+    list $res $msg
+} {0 {bzip2 compressed data bzip compressed data , version: %c , compression block size 900k}}
+
+test fumagic.filetype-1.21 {test binary compressed gzip} {
+    set f [makeGzipFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeGzipFile
+    list $res $msg
+} {0 {gzip compressed data , unknown method , ASCII , from MS-DOS}}
+
+testsuiteCleanup
+return

@@ -1,0 +1,208 @@
+# -*- tcl -*-
+#Metric Travelling Salesman Algorithm - Tests
+#
+#Finding Hamilton Cycle in graph satisfying triangle inequality.
+#Set of tests covers also subprocedures used by MTSP algorithm.
+
+#------------------------------------------------------------------------------------
+#Tests concerning returning right values by algorithm
+
+#Test 1.0 - graph which can cause reaching maximum approximation factor
+# - The Tcl implementation yields a near-optimal route (having a
+#   length of 7, over 6).
+# - The C implementation with different node ordering yields route off
+#   by two (8 over 6), this is still within 2x approximation factor,
+#   and also demonstrates how this algorithm is a heuristic and easy
+#   to disturb by even small things.
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-1.0 { MetricTravellingSalesman, graph simulation } -setup {
+    SETUP_TSP_1
+} -body {
+    toursort [struct::graph::op::MetricTravellingSalesman mygraph]
+} -cleanup {
+    mygraph destroy
+} -result [tmE \
+       {node1 node4 node3 node2 node6 node5 node1} \
+       {node1 node3 node2 node6 node5 node4 node1}]
+
+#Test 1.1 - case with double edges and different edge weights at them
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-1.1 { MetricTravellingSalesman, graph simulation } -setup {
+    SETUP_TSP_3
+} -body {
+    toursorta [struct::graph::op::MetricTravellingSalesman mygraph]
+} -cleanup {
+    mygraph destroy
+} -result {node1 node2 node3 node4 node1}
+
+#Test 1.2 - graph which can cause reaching maximum approximation factor.
+# We have slightly different tours based on the chosen implementation
+# (Not only of struct::graph, but also of struct::set).
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-1.2 { MetricTravellingSalesman, graph simulation } -setup {
+    SETUP_TSP_2
+} -body {
+    toursort [struct::graph::op::MetricTravellingSalesman mygraph]
+} -cleanup {
+    mygraph destroy
+} -result [tmE [tmSE \
+		    {node1 node2 node3 node4 node5 node1} \
+		    {node1 node4 node3 node2 node5 node1}] \
+	       {node1 node3 node2 node5 node4 node1}]
+
+#Test 1.3 - testing subprocedure createTGraph used by Metric Travelling Salesman procedure
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-1.3 { createTGraph, option 0 } -setup {
+    SETUP_CREATETGRAPH_1 E
+} -body {
+    set tg [struct::graph::op::createTGraph mygraph $E 0]
+    list \
+	[lsort [$tg arcs]] \
+	[lsort [$tg nodes]]
+} -cleanup {
+    $tg destroy
+    mygraph destroy
+} -result {{{node1 node2} {node1 node4} {node2 node1} {node4 node1}} {node1 node2 node3 node4}}
+
+#Test 1.4 - testing subprocedure createTGraph used by Metric Travelling Salesman procedure
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-1.4 { createTGraph, option 1 } -setup {
+    SETUP_CREATETGRAPH_1 E
+} -body {
+    set tg [struct::graph::op::createTGraph mygraph $E 1]
+    list \
+	[lsort [$tg arcs]] \
+	[lsort [$tg nodes]]
+} -cleanup {
+    $tg destroy
+    mygraph destroy
+} -result {{{node2 node1} {node4 node1}} {node1 node2 node3 node4}}
+
+#Test 1.5 - testing subprocedure createTGraph used by Metric Travelling Salesman procedure
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-1.5 { createTGraph, no edges exception } -setup {
+    SETUP_CREATETGRAPH_2 E
+} -body {
+    struct::graph::op::createTGraph mygraph $E 0
+} -returnCodes 1 -cleanup {
+    mygraph destroy
+} -result [LackOfEdgesOccurance {mygraph} {edge1}]
+
+#Test 1.6 - testing subprocedure createTGraph used by Metric Travelling Salesman procedure
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-1.6 { createTGraph, no edges exception } -setup {
+    SETUP_CREATETGRAPH_2 E
+} -body {
+     struct::graph::op::createTGraph mygraph $E 1
+} -returnCodes 1 -cleanup {
+    mygraph destroy
+} -result [LackOfEdgesOccurance {mygraph} {edge1}]
+
+#Test 1.7 - testing subprocedure createTGraph used by Metric Travelling Salesman procedure
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-1.7 { createTGraph, option 1 } -setup {
+    SETUP_CREATETGRAPH_3 E
+} -body {
+    set tg [struct::graph::op::createTGraph mygraph $E 1]
+    list \
+	[lsort [$tg arcs]] \
+	[lsort [$tg nodes]]
+} -cleanup {
+    $tg destroy
+    mygraph destroy
+} -result {{{node1 node4} {node3 node1} {node4 node1}} {node1 node2 node3 node4}}
+
+#Test 1.8 - testing subprocedure createTGraph used by Metric Travelling Salesman procedure
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-1.8 { createTGraph, option 0 } -setup {
+    SETUP_CREATETGRAPH_3 E
+} -body {
+    set tg [struct::graph::op::createTGraph mygraph $E 0]
+    list \
+	[lsort [$tg arcs]] \
+	[lsort [$tg nodes]]
+} -cleanup {
+    $tg destroy
+    mygraph destroy
+} -result {{{node1 node3} {node1 node4} {node3 node1} {node4 node1}} {node1 node2 node3 node4}}
+
+#Test 1.9 - testing subprocedure createCompleteGraph used by Metric Travelling Salesman procedure
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-1.9 { createCompleteGraph, no edges } -setup {
+    SETUP_NOEDGES_1
+} -body {
+    struct::graph::op::createCompleteGraph mygraph originalEdges
+    list \
+	[lsort [undirected [mygraph arcs]]] \
+	[lsort [mygraph nodes]] \
+	[lsort $originalEdges]
+} -cleanup {
+    mygraph destroy
+} -result {{{node1 node2} {node1 node3} {node1 node4} {node2 node3} {node2 node4} {node3 node4}} {node1 node2 node3 node4} {}}
+
+#Test 1.10 - testing subprocedure createCompleteGraph used by Metric Travelling Salesman procedure
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-1.10 { createCompleteGraph, complete graph } -setup {
+    SETUP_UNDIRECTED_K4
+} -body {
+    struct::graph::op::createCompleteGraph mygraph originalEdges
+    list \
+	[lsort [mygraph arcs]]  \
+	[lsort [mygraph nodes]] \
+	[lsort $originalEdges]
+} -cleanup {
+    mygraph destroy
+} -result {{edge12 edge13 edge14 edge23 edge24 edge34} {node1 node2 node3 node4} {{node1 node2} {node1 node3} {node1 node4} {node2 node3} {node2 node4} {node3 node4}}}
+
+#Test 1.11 - testing subprocedure createCompleteGraph used by Metric Travelling Salesman procedure
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-1.11 { createCompleteGraph, partially connected graph } -setup {
+    SETUP_PARTIALLYCONNECTED_1
+} -body {
+    struct::graph::op::createCompleteGraph mygraph originalEdges
+    list \
+	[lsort [undirected [mygraph arcs]]] \
+	[lsort [mygraph nodes]] \
+	[lsort $originalEdges]
+} -cleanup {
+    mygraph destroy
+} -result {{arc1 arc2 arc3 arc4 {node1 node2} {node1 node3} {node1 node4} {node2 node3} {node2 node4} {node3 node4}} {node1 node2 node3 node4 node5} {{node1 node5} {node2 node5} {node3 node5} {node4 node5}}}
+
+#Test 1.12 - graph which can cause reaching maximum approximation factor
+# this also has considerable freedom in the order it can choose the nodes
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-1.12 { MetricTravellingSalesman, graph simulation } -setup {
+    SETUP_PARTIALLYCONNECTED_1
+} -body {
+    toursort [struct::graph::op::MetricTravellingSalesman mygraph]
+} -cleanup {
+    mygraph destroy
+} -result {node1 node5 node4 node5 node3 node5 node2 node5 node1}
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-2.0 { MetricTravellingSalesman, wrong args, missing } {
+    catch {struct::graph::op::MetricTravellingSalesman} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::MetricTravellingSalesman {G} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-2.1 { MetricTravellingSalesman, wrong args, too many} {
+    catch {struct::graph::op::MetricTravellingSalesman G y x} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::MetricTravellingSalesman {G}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+#Test 3.0 - case when given graph doesn't have weights at all edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-3.0 {MetricTravellingSalesman, lack of weights at edges } {
+    SETUP_UNWEIGHTED_K4
+    catch {struct::graph::op::MetricTravellingSalesman mygraph} result
+    mygraph destroy
+    set result
+} [UnweightedArcOccurance]
+
+#Test 3.1 - case when given graph doesn't have weights at all edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-3.1 {MetricTravellingSalesman, lack of weights at edges } {
+    SETUP_UNWEIGHTED_K4
+    catch {struct::graph::op::MetricTravellingSalesman mygraph} result
+    mygraph destroy
+    set result
+} [UnweightedArcOccurance]
+
+#Test 3.2 - case when given graph is not a connected graph
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-MetricTravellingSalesman-3.2 { MetricTravellingSalesman, unconnected graph } {
+    SETUP_NOEDGES_1
+    catch { struct::graph::op::MetricTravellingSalesman mygraph } result
+    mygraph destroy
+    set result
+} [UnconnectedGraphOccurance {mygraph}]

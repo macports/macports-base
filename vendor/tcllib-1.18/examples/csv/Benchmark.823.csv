@@ -1,0 +1,254 @@
+000,VERSIONS:,1:8.2.3
+001,CATCH return ok,7
+002,CATCH return error,275
+003,CATCH no catch used,7
+004,IF if true numeric,13
+005,IF elseif true numeric,16
+006,IF else true numeric,16
+007,IF if true num/num,281
+008,IF if false num/num,13
+009,IF if false al/num,20
+010,IF if true al/al,26
+011,IF if false al/al,25
+012,IF if true al,25
+013,IF elseif true al,338
+014,IF else true al,42
+015,SWITCH first true,103
+016,SWITCH second true,153
+017,SWITCH ninth true,238
+018,SWITCH default true,46
+019,DATA create in a list,15014
+020,DATA create in an array,19172
+021,DATA access in a list,15346
+022,DATA access in an array,14156
+023,EVAL cmd eval in list obj var,52
+024,EVAL cmd eval as list,49
+025,EVAL cmd eval as string,54
+026,EVAL cmd and mixed lists,32485
+027,EVAL list cmd and mixed lists,40366
+028,EVAL list cmd and pure lists,40115
+029,EXPR unbraced,502
+030,EXPR braced,29
+031,EXPR inline,40
+032,EXPR one operand,158
+033,EXPR ten operands,97
+034,EXPR fifty operands,45
+035,EXPR incr with incr,10
+036,EXPR incr with expr,9
+037,FCOPY std:      160010 bytes,46300
+038,FCOPY binary:   160010 bytes,41776
+039,FCOPY encoding: 160010 bytes,44598
+040,KLIST shuffle0 llength 1,554
+041,KLIST shuffle0 llength 10,1592
+042,KLIST shuffle0 llength 100,13565
+043,KLIST shuffle0 llength 1000,164223
+044,KLIST shuffle0 llength 10000,2073612
+045,KLIST shuffle1 llength 1,367
+046,KLIST shuffle1 llength 10,1371
+047,KLIST shuffle1 llength 100,12737
+048,KLIST shuffle1 llength 1000,1770024
+049,KLIST shuffle1a llength 1,94
+050,KLIST shuffle1a llength 10,404
+051,KLIST shuffle1a llength 100,3833
+052,KLIST shuffle1a llength 1000,39248
+053,KLIST shuffle1a llength 10000,408005
+054,KLIST shuffle2 llength 1,108
+055,KLIST shuffle2 llength 10,481
+056,KLIST shuffle2 llength 100,4250
+057,KLIST shuffle2 llength 1000,45651
+058,KLIST shuffle2 llength 10000,527055
+059,KLIST shuffle3 llength 1,102
+060,KLIST shuffle3 llength 10,376
+061,KLIST shuffle3 llength 100,3413
+062,KLIST shuffle3 llength 1000,37667
+063,KLIST shuffle3 llength 10000,844383
+064,KLIST shuffle4 llength 1,100
+065,KLIST shuffle4 llength 10,416
+066,KLIST shuffle4 llength 100,3758
+067,KLIST shuffle4 llength 1000,38186
+068,KLIST shuffle4 llength 10000,398724
+069,"STR/LIST length, obj shimmer",2333
+070,"LIST length, pure list",13
+071,STR length of a LIST,12
+072,"LIST exact search, first item",14
+073,"LIST exact search, middle item",27
+074,"LIST exact search, last item",50
+075,"LIST exact search, non-item",121
+076,"LIST sorted search, first item",12
+077,"LIST sorted search, middle item",26
+078,"LIST sorted search, last item",49
+079,"LIST sorted search, non-item",122
+080,"LIST exact search, untyped item",51
+081,"LIST exact search, typed item",49
+082,"LIST sorted search, typed item",50
+083,LIST sort,3293
+084,LIST typed sort,2660
+085,LIST remove first element,363
+086,LIST remove middle element,358
+087,LIST remove last element,360
+088,LIST replace first element,346
+089,LIST replace middle element,353
+090,LIST replace last element,346
+091,LIST replace first el with multiple,372
+092,LIST replace middle el with multiple,351
+093,LIST replace last el with multiple,347
+094,LIST replace range,343
+095,LIST remove in mixed list,2195
+096,LIST replace in mixed list,2184
+097,LIST index first element,13
+098,LIST index middle element,13
+099,LIST index last element,13
+100,LIST insert an item at start,366
+101,LIST insert an item at middle,370
+102,"LIST insert an item at ""end""",349
+103,"LIST small, early range",16
+104,"LIST small, late range",16
+105,"LIST large, early range",24
+106,"LIST large, late range",21
+107,LIST append to list,396
+108,LIST join list,1066
+109,"LOOP for, iterate list",5372
+110,"LOOP foreach, iterate list",1952
+111,LOOP for (to 1000),3065
+112,LOOP while (to 1000),3065
+113,"LOOP for, iterate string",9637
+114,"LOOP foreach, iterate string",3955
+115,MAP string 1 val,6028
+116,MAP string 2 val,6877
+117,MAP string 3 val,7832
+118,MAP string 4 val,8622
+119,MAP string 1 val -nocase,10381
+120,MAP string 2 val -nocase,15024
+121,MAP string 3 val -nocase,18973
+122,MAP string 4 val -nocase,22132
+123,MAP regsub 1 val,4303
+124,MAP regsub 2 val,18176
+125,MAP regsub 3 val,24817
+126,MAP regsub 4 val,31350
+127,MAP regsub 1 val -nocase,4332
+128,MAP regsub 2 val -nocase,18134
+129,MAP regsub 3 val -nocase,24747
+130,MAP regsub 4 val -nocase,31314
+131,"MAP string, no match",8028
+132,"MAP string -nocase, no match",18933
+133,"MAP regsub, no match",2830
+134,"MAP regsub -nocase, no match",2890
+135,MAP string short,39
+136,MAP regsub short,193
+137,MTHD direct ns proc call,8
+138,MTHD imported ns proc call,7
+139,MTHD interp alias proc call,18
+140,MTHD indirect proc eval,61
+141,MTHD indirect proc eval #2,57
+142,MTHD array stored proc call,10
+143,MTHD switch method call,83
+144,MTHD ns lookup call,216
+145,MTHD inline call,3
+146,PROC explicit return,8
+147,PROC implicit return,7
+148,PROC explicit return (2),8
+149,PROC implicit return (2),7
+150,PROC explicit return (3),7
+151,PROC implicit return (3),7
+152,PROC heavily commented,6
+153,"PROC do-nothing, no args",28
+154,"PROC do-nothing, one arg",6
+155,PROC local links with global,1626
+156,PROC local links with upvar,1387
+157,PROC local links with variable,1334
+158,"READ 595K, gets",306109
+159,"READ 595K, read",97019
+160,"READ 595K, read & size",97074
+161,"READ 3050b, gets",2052
+162,"READ 3050b, read",494
+163,"READ 3050b, read & size",530
+164,"BREAD 595K, gets",304961
+165,"BREAD 595K, read",50018
+166,"BREAD 595K, read & size",50140
+167,"BREAD 3050b, gets",1774
+168,"BREAD 3050b, read",334
+169,"BREAD 3050b, read & size",369
+170,REGEXP literal regexp,38
+171,REGEXP var-based regexp,40
+172,REGEXP count all matches,530
+173,REGEXP extract all matches,616
+174,STARTUP time to launch tclsh,18293
+175,STR str [string compare],24
+176,STR str [string equal],23
+177,"STR str $a equal """"",24
+178,"STR str num == """"",24
+179,STR str $a eq $b,31
+180,STR str $a ne $b,30
+181,STR str $a eq $b (same obj),36
+182,STR str $a ne $b (same obj),30
+183,STR length (==4010),13
+184,STR index 0,19
+185,STR index 100,19
+186,STR index 500,19
+187,STR index2 0,19
+188,STR index2 100,19
+189,STR index2 500,19
+190,STR first (success),15
+191,STR first (failure),50
+192,STR first (total failure),28
+193,STR last (success),224
+194,STR last (failure),91
+195,STR last (total failure),83
+196,"STR match, simple (success early)",13
+197,"STR match, simple (success late)",13
+198,"STR match, simple (failure)",13
+199,"STR match, simple (total failure)",13
+200,"STR match, complex (success early)",22
+201,"STR match, complex (success late)",1040
+202,"STR match, complex (failure)",1010
+203,"STR match, complex (total failure)",994
+204,"STR range, index 100..200 of 4010",21
+205,"STR replace, no replacement",264
+206,"STR replace, equal replacement",257
+207,"STR replace, longer replacement",265
+208,"STR repeat, abcdefghij * 10",22
+209,"STR repeat, abcdefghij * 100",74
+210,"STR repeat, abcdefghij * 1000",557
+211,"STR repeat, 4010 chars * 10",671
+212,"STR repeat, 4010 chars * 100",18194
+213,"STR reverse iter1, 100 chars",1425
+214,"STR reverse iter1, 100 uchars",1436
+215,"STR reverse iter2, 100 chars",1168
+216,"STR reverse iter2, 100 uchars",1096
+217,"STR reverse recur1, 100 chars",3998
+218,"STR reverse recur1, 100 uchars",4767
+219,"STR split, 4010 chars",8847
+220,"STR split, 12000 uchars",27293
+221,"STR split iter, 4010 chars",16664
+222,"STR split iter, 12000 uchars",52115
+223,STR append,71
+224,STR append (1KB + 1KB),49
+225,STR append (10KB + 1KB),196
+226,STR append (1MB + 2b * 1000),74635
+227,STR append (1MB + 1KB),61479
+228,STR append (1MB + 1KB * 20),61865
+229,STR append (1MB + 1KB * 1000),101998
+230,STR append (1MB + 1MB * 3),157370
+231,STR append (1MB + 1MB * 5),315407
+232,STR append (1MB + (1b + 1K + 1b) * 100),69167
+233,STR info locals match,993
+234,TRACE no trace set,26
+235,TRACE read,26
+236,TRACE write,26
+237,TRACE unset,26
+238,TRACE all set (rwu),25
+239,UNSET var exists,9
+240,UNSET catch var exists,10
+241,UNSET catch var !exist,59
+242,UNSET info check var exists,13
+243,UNSET info check var !exist,11
+244,UNSET nocomplain var exists,10
+245,UNSET nocomplain var !exist,59
+246,VAR access locally set,10
+247,VAR access local proc arg,10
+248,VAR access global,26
+249,VAR access upvar,30
+250,VAR set scalar,7
+251,VAR set array element,14
+252,VAR 100 'set's in array,160
+253,VAR 'array set' of 100 elems,264

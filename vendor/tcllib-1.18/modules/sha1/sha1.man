@@ -1,0 +1,182 @@
+[manpage_begin sha1 n 2.0.3]
+[see_also md4]
+[see_also md5]
+[see_also ripemd128]
+[see_also ripemd160]
+[keywords {FIPS 180-1}]
+[keywords hashing]
+[keywords message-digest]
+[keywords {rfc 2104}]
+[keywords security]
+[keywords sha1]
+[moddesc   {SHA-x Message-Digest Algorithm}]
+[copyright {2005, Pat Thoyts <patthoyts@users.sourceforge.net>}]
+[titledesc {SHA1 Message-Digest Algorithm}]
+[category  {Hashes, checksums, and encryption}]
+[require Tcl 8.2]
+[require sha1 [opt 2.0.3]]
+[description]
+[para]
+
+This package provides an implementation in Tcl of the SHA1
+message-digest algorithm as specified by FIPS PUB 180-1 (1). This
+algorithm takes a message and generates a 160-bit digest from the
+input. The SHA1 algorithm is related to the MD4 algorithm (2) but has
+been strengthend against certain types of cryptographic attack. SHA1
+should be used in preference to MD4 or MD5 in new applications.
+
+[para]
+
+This package also includes support for creating keyed message-digests
+using the HMAC algorithm from RFC 2104 (3) with SHA1 as the
+message-digest.
+
+[section {COMMANDS}]
+
+[list_begin definitions]
+
+[call [cmd ::sha1::sha1] \
+        [opt "[option -hex|-bin]"] \
+        [lb] [option "-channel channel"] | \
+        [option "-file filename"] | [opt [option --]] [arg "string"] [rb]]
+
+The command takes a message and returns the SHA1 digest of this message
+as a hexadecimal string. You may request the result as binary data by
+giving [arg "-bin"].
+
+[para]
+
+The data to be hashed can be specified either as a string argument to
+the [cmd "sha1"] command, or as a filename or a pre-opened channel. If the
+[arg "-filename"] argument is given then the file is opened, the data read
+and hashed and the file is closed. If the [arg "-channel"] argument is
+given then data is read from the channel until the end of file. The
+channel is not closed. [emph NOTE] use of the channel or filename
+options results in the internal use of [cmd vwait]. To avoid nested
+event loops in Tk or tclhttpd applications you should use the
+incremental programming API (see below).
+
+[para]
+
+Only one of [arg "-file"], [arg "-channel"] or [arg "string"] should be given.
+
+[para] If the [arg string] to hash can be mistaken for an option
+(leading dash "-"), use the option [option --] before it to terminate
+option processing and force interpretation as a string.
+
+[call [cmd "::sha1::hmac"] [arg "key"] [arg "string"]]
+[call [cmd "::sha1::hmac"] \
+        [opt "[option -hex|-bin]"] \
+        [option "-key key"] \
+        [lb] [option "-channel channel"] | \
+        [option "-file filename"] | [opt [option --]] [arg "string"] [rb]]
+
+Calculate an Hashed Message Authentication digest (HMAC) using the SHA1
+digest algorithm. HMACs are described in RFC 2104 (3) and provide an SHA1
+digest that includes a key. All options other than [arg -key] are as
+for the [cmd "::sha1::sha1"] command.
+
+[para] If the [arg string] to hash can be mistaken for an option
+(leading dash "-"), use the option [option --] before it to terminate
+option processing and force interpretation as a string.
+
+[list_end]
+
+[section {PROGRAMMING INTERFACE}]
+
+For the programmer, the SHA1 hash can be viewed as a bucket into which
+one pours data. When you have finished, you extract a value that is
+derived from the data that was poured into the bucket. The programming
+interface to the SHA1 hash operates on a token (equivalent to the
+bucket). You call [cmd "SHA1Init"] to obtain a token and then call
+[cmd "SHA1Update"] as many times as required to add data to the hash. To
+release any resources and obtain the hash value, you then call
+[cmd "SHA1Final"]. An equivalent set of functions gives you a keyed digest
+(HMAC).
+
+[para]
+
+If you have [package critcl] and have built the [package tcllibc] package
+then the implementation of the hashing function will be performed by compiled
+code. Failing that if you have the [package Trf] package then this can
+be used otherwise there is a pure-tcl equivalent. The programming
+interface remains the same in all cases.
+
+[list_begin definitions]
+
+[call [cmd "::sha1::SHA1Init"]]
+
+Begins a new SHA1 hash. Returns a token ID that must be used for the
+remaining functions.
+
+[call [cmd "::sha1::SHA1Update"] [arg "token"] [arg "data"]]
+
+Add data to the hash identified by token. Calling
+[emph {SHA1Update $token "abcd"}] is equivalent to calling
+[emph {SHA1Update $token "ab"}] followed by
+[emph {SHA1Update $token "cb"}]. See [sectref {EXAMPLES}].
+
+[call [cmd "::sha1::SHA1Final"] [arg "token"]]
+
+Returns the hash value and releases any resources held by this
+token. Once this command completes the token will be invalid. The
+result is a binary string of 20 bytes representing the 160 bit SHA1
+digest value.
+
+[call [cmd "::sha1::HMACInit"] [arg "key"]]
+
+This is equivalent to the [cmd "::sha1::SHA1Init"] command except that
+it requires the key that will be included in the HMAC.
+
+[call [cmd "::sha1::HMACUpdate"] [arg "token"] [arg "data"]]
+[call [cmd "::sha1::HMACFinal"] [arg "token"]]
+
+These commands are identical to the SHA1 equivalent commands.
+
+[list_end]
+
+[section {EXAMPLES}]
+
+[example {
+% sha1::sha1 "Tcl does SHA1"
+285a6a91c45a9066bf39fcf24425796ef0b2a8bf
+}]
+
+[example {
+% sha1::hmac Sekret "Tcl does SHA1"
+ae6251fa51b95b18cba2be95eb031d07475ff03c
+}]
+
+[example {
+% set tok [sha1::SHA1Init]
+::sha1::1
+% sha1::SHA1Update $tok "Tcl "
+% sha1::SHA1Update $tok "does "
+% sha1::SHA1Update $tok "SHA1"
+% sha1::Hex [sha1::SHA1Final $tok]
+285a6a91c45a9066bf39fcf24425796ef0b2a8bf
+}]
+
+[section {REFERENCES}]
+
+[list_begin enumerated]
+
+[enum]
+        "Secure Hash Standard", National Institute of Standards
+        and Technology, U.S. Department Of Commerce, April 1995.
+	([uri http://www.itl.nist.gov/fipspubs/fip180-1.htm])
+
+[enum]
+       Rivest, R., "The MD4 Message Digest Algorithm", RFC 1320, MIT,
+       April 1992. ([uri http://www.rfc-editor.org/rfc/rfc1320.txt])
+
+[enum]
+      Krawczyk, H., Bellare, M. and Canetti, R. "HMAC: Keyed-Hashing for
+      Message Authentication", RFC 2104, February 1997.
+	([uri http://www.rfc-editor.org/rfc/rfc2104.txt])
+
+[list_end]
+
+[vset CATEGORY sha1]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

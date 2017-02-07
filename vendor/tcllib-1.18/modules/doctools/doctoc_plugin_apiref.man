@@ -1,0 +1,421 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctoc_plugin_apiref n 1.0]
+[see_also doctoc_intro]
+[see_also doctoc_lang_cmdref]
+[see_also doctoc_lang_faq]
+[see_also doctoc_lang_intro]
+[see_also doctoc_lang_syntax]
+[see_also doctools::toc]
+[keywords {formatting engine}]
+[keywords markup]
+[keywords plugin]
+[keywords {semantic markup}]
+[keywords {table of contents}]
+[keywords toc]
+[keywords {toc formatter}]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {doctoc plugin API reference}]
+[category  {Documentation tools}]
+[description]
+[para]
+
+This document is intended for [term {plugin writers}], i.e. developers
+wishing to write a toc [term {formatting engine}] for some output
+format X.
+
+[para]
+
+It specifies the interaction between the [package doctools::toc]
+package and its plugins, i.e. the interface any toc formatting engine
+has to comply with.
+
+[para]
+
+This document deals with version 1 of the interface.
+
+[para]
+
+A reader who is on the other hand more interested in the markup
+language itself should start with the
+
+[term {doctoc language introduction}] and proceed from there to the
+formal specifications, i.e. the [term {doctoc language syntax}] and
+the [term {doctoc language command reference}].
+
+[section OVERVIEW]
+
+The API for a toc formatting engine consists of two major sections.
+
+[para]
+
+On the one side we have a set of commands through which the plugin is
+able to query the frontend. These commands are provided by the
+frontend and linked into the plugin interpreter. Please see section
+[sectref {FRONTEND COMMANDS}] for their detailed specification.
+
+[para]
+
+And on the other side the plugin has to provide its own set of
+commands which will then be called by the frontend in a specific
+sequence while processing input. They, again, fall into two
+categories, management and formatting.
+
+Please see section [sectref {PLUGIN COMMANDS}] and its subsections for
+their detailed specification.
+
+[section {FRONTEND COMMANDS}]
+
+This section specifies the set of commands through which a plugin,
+also known as a toc formatting engine, is able to query the
+frontend. These commands are provided by the frontend and linked into
+the plugin interpreter.
+
+[para]
+
+I.e. a toc formatting engine can assume that all of the following
+commands are present when any of its own commands (as specified in
+section [sectref {PLUGIN COMMANDS}]) are executed.
+
+[para]
+
+Beyond that it can also assume that it has full access to its own safe
+interpreter and thus is not able to damage the other parts of the
+processor, nor can it damage the filesystem.
+
+It is however able to either kill or hang the whole process, by
+exiting, or running an infinite loop.
+
+[para]
+
+Coming back to the imported commands, all the commands with prefix
+[emph dt_] provide limited access to specific parts of the frontend,
+whereas the commands with prefix [emph ex_] provide access to the
+state of the [package textutil::expander] object which does the main
+parsing of the input within the frontend. These commands should not be
+except under very special circumstances.
+
+[para]
+
+[list_begin definitions]
+
+[call [cmd dt_fmap] [arg symfname]]
+
+Query command. It returns the actual pathname to use in the output in
+place of the symbolic filename [arg symfname]. It will return the
+unchanged input if no mapping was established for [arg symfname].
+
+[para]
+
+The required mappings are established with the method [method map] of
+a frontend, as explained in section [sectref-external {OBJECT METHODS}]
+of the documentation for the package [package doctools::toc].
+
+[call [cmd dt_format]]
+
+Query command. It returns the name of the format associated with the
+toc formatting engine.
+
+[call [cmd dt_read] [arg file]]
+
+Controlled filesystem access. Returns contents of [arg file] for
+whatever use desired by the plugin.
+
+Only files which are either in the same directory as the file
+containing the engine, or below it, can be loaded. Trying to load a
+file outside of this directory causes an error.
+
+[call [cmd dt_source] [arg file]]
+
+Controlled filesystem access. This command allows the toc formatting
+engine to load additional Tcl code it may need.
+
+Only files which are either in the same directory as the file
+containing the engine, or below it, can be loaded. Trying to load a
+file outside of this directory causes an error.
+
+[call [cmd ex_cappend] [arg text]]
+Appends a string to the output in the current context.  This command
+should rarely be used by macros or application code.
+
+[call [cmd ex_cget] [arg varname]]
+Retrieves the value of variable [arg varname], defined in the current
+context.
+
+[call [cmd ex_cis] [arg cname]]
+Determines whether or not the name of the current context is
+[arg cname].
+
+[call [cmd ex_cname]]
+Returns the name of the current context.
+
+[call [cmd ex_cpop] [arg cname]]
+Pops a context from the context stack, returning all accumulated
+output in that context.  The context must be named [arg cname], or an
+error results.
+
+[call [cmd ex_cpush] [arg cname]]
+Pushes a context named [arg cname] onto the context stack.  The
+context must be popped by [method cpop] before expansion ends or an
+error results.
+
+[call [cmd ex_cset] [arg varname] [arg value]]
+Sets variable [arg varname] to [arg value] in the current context.
+
+[call [cmd ex_lb] [opt [arg newbracket]]]
+Returns the current value of the left macro expansion bracket; this is
+for use as or within a macro, when the bracket needs to be included in
+the output text.  If [arg newbracket] is specified, it becomes the new
+bracket, and is returned.
+
+[call [cmd ex_rb] [opt [arg newbracket]]]
+Returns the current value of the right macro expansion bracket; this
+is for use as or within a macro, when the bracket needs to be included
+in the output text.  If [arg newbracket] is specified, it becomes the
+new bracket, and is returned.
+
+[list_end]
+
+[section {PLUGIN COMMANDS}]
+
+The plugin has to provide its own set of commands which will then be
+called by the frontend in a specific sequence while processing
+input. They fall into two categories, management and formatting. Their
+expected names, signatures, and responsibilities are specified in the
+following two subsections.
+
+[subsection {Management commands}]
+
+The management commands a plugin has to provide are used by the
+frontend to
+
+[list_begin enumerated]
+[enum] initialize and shutdown the plugin
+[enum] determine the number of passes it has
+       to make over the input
+[enum] initialize and shutdown each pass
+[enum] query and initialize engine parameters
+[list_end]
+[para]
+
+After the plugin has been loaded and the frontend commands are
+established the commands will be called in the following sequence:
+
+[example {
+    toc_numpasses -> n
+    toc_listvariables -> vars
+
+    toc_varset var1 value1
+    toc_varset var2 value2
+    ...
+    toc_varset varK valueK
+    toc_initialize
+    toc_setup 1
+    ...
+    toc_setup 2
+    ...
+    ...
+    toc_setup n
+    ...
+    toc_postprocess
+    toc_shutdown
+    ...
+}]
+
+I.e. first the number of passes and the set of available engine
+parameters is established, followed by calls setting the
+parameters. That second part is optional.
+
+[para]
+
+After that the plugin is initialized, the specified number of passes
+executed, the final result run through a global post processing step
+and at last the plugin is shutdown again. This can be followed by more
+conversions, restarting the sequence at [cmd toc_varset].
+
+[para]
+
+In each of the passes, i.e. after the calls of [cmd toc_setup] the
+frontend will process the input and call the formatting commands as
+markup is encountered. This means that the sequence of formatting
+commands is determined by the grammar of the doctoc markup language,
+as specified in the [term {doctoc language syntax}] specification.
+
+[para]
+
+A different way of looking at the sequence is:
+
+[list_begin itemized]
+[item] First some basic parameters are determined.
+
+[item] Then everything starting at the first [cmd toc_varset] to
+[cmd toc_shutdown] forms a [term run], the formatting of a
+single input. Each run can be followed by more.
+
+[item] Embedded within each run we have one or more [term passes],
+each starting with [cmd toc_setup] and going until either the next
+[cmd toc_setup] or [cmd toc_postprocess] is reached.
+
+[para]
+
+If more than one pass is required to perform the formatting only the
+output of the last pass is relevant. The output of all the previous,
+preparatory passes is ignored.
+
+[list_end]
+[para]
+
+The commands, their names, signatures, and responsibilities are, in
+detail:
+
+[list_begin definitions]
+
+[call [cmd toc_initialize]]
+[emph Initialization/Shutdown].
+
+This command is called at the beginning of every conversion run, as
+the first command of that run. Note that a run is not a pass, but may
+consist of multiple passes.
+
+It has to initialize the general state of the plugin, beyond the
+initialization done during the load. No return value is expected, and
+any returned value is ignored.
+
+[call [cmd toc_listvariables]]
+[emph Initialization/Shutdown] and [emph {Engine parameters}].
+
+Second command is called after the plugin code has been loaded,
+i.e. immediately after [cmd toc_numpasses].
+
+It has to return a list containing the names of the parameters the
+frontend can set to configure the engine. This list can be empty.
+
+[call [cmd toc_numpasses]]
+[emph Initialization/Shutdown] and [emph {Pass management}].
+
+First command called after the plugin code has been loaded. No other
+command of the engine will be called before it.
+
+It has to return the number of passes this engine requires to fully
+process the input document. This value has to be an integer number
+greater or equal to one.
+
+[call [cmd toc_postprocess] [arg text]]
+[emph Initialization/Shutdown].
+
+This command is called immediately after the last pass in a run. Its
+argument is the result of the conversion generated by that pass. It is
+provided to allow the engine to perform any global modifications of
+the generated document. If no post-processing is required for a
+specific format the command has to just return the argument.
+
+[para]
+
+Expected to return a value, the final result of formatting the input.
+
+[call [cmd toc_setup] [arg n]]
+[emph Initialization/Shutdown] and [emph {Pass management}].
+
+This command is called at the beginning of each pass over the input in
+a run. Its argument is the number of the pass which has begun. Passes
+are counted from [const 1] upward.
+
+The command has to set up the internal state of the plugin for this
+particular pass. No return value is expected, and any returned value
+is ignored.
+
+[call [cmd toc_shutdown]]
+[emph Initialization/Shutdown].
+
+This command is called at the end of every conversion run. It is the
+last command called in a run. It has to clean up of all the
+run-specific state in the plugin.
+
+After the call the engine has to be in a state which allows the
+initiation of another run without fear that information from the last
+run is leaked into this new run.
+
+No return value is expected, and any returned value is ignored.
+
+[call [cmd toc_varset] [arg varname] [arg text]]
+[emph {Engine parameters}].
+
+This command is called by the frontend to set an engine parameter to a
+particular value.
+
+The parameter to change is specified by [arg varname], the value to
+set in [arg text].
+
+[para]
+
+The command has to throw an error if an unknown [arg varname] is
+used. Only the names returned by [cmd toc_listvariables] have to be
+considered as known.
+
+[para]
+
+The values of all engine parameters have to persist between passes and
+runs.
+
+[list_end]
+
+[subsection {Formatting commands}]
+
+The formatting commands have to implement the formatting for the
+output format, for all the markup commands of the doctoc markup
+language, except [cmd lb], [cmd rb], [cmd vset], [cmd include], and
+[cmd comment]. These exceptions are processed by the frontend and are
+never seen by the plugin. In return a command for the formatting of
+plain text has to be provided, something which has no markup in the
+input at all.
+
+[para]
+
+This means, that each of the five markup commands specified in the
+[term {doctoc language command reference}] and outside of the set of
+exceptions listed above has an equivalent formatting command which
+takes the same arguments as the markup command and whose name is the
+name of markup command with the prefix [emph fmt_] added to it.
+
+[para]
+
+All commands are expected to format their input in some way per the
+semantics specified in the command reference and to return whatever
+part of this that they deem necessary as their result, which will be
+added to the output.
+
+[para]
+
+To avoid essentially duplicating the command reference we do not list
+any of the command here and simply refer the reader to the
+[term {doctoc language command reference}] for their signature and
+description. The sole exception is the plain text formatter, which has
+no equivalent markup command.
+
+[para]
+
+The calling sequence of formatting commands is not as rigid as for the
+management commands, but determined by the grammar of the doctoc
+markup language, as specified in the [term {doctoc language syntax}]
+specification.
+
+[para]
+
+[list_begin definitions]
+
+[call [cmd fmt_plain_text] [arg text]]
+[emph {No associated markup command}].
+
+[para] Called by the frontend for any plain text encountered in the
+input. It has to perform any and all special processing required for
+plain text.
+
+[para] The formatted text is expected as the result of the command,
+and added to the output. If no special processing is required it has
+to simply return its argument without change.
+
+[list_end]
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

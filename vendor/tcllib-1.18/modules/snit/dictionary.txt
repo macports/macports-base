@@ -1,0 +1,125 @@
+Last updated: Snit V1.0
+
+TYPE VARIABLES
+
+Snit_info               Introspection Array.  Keys and values are as
+                        follows:
+    
+    hasinstances        Boolean. Normally T, but F if pragma -hasinstances no
+    simpledispatch      Uses a very simple method dispatcher.
+    canreplace          Boolean. Normally F, but T if pragma -canreplace yes
+    counter		Integer counter.  Used to generate unique names.
+    widgetclass         Tk widget class name for snit::widgets
+    hulltype            Hull widget type (frame or toplevel) for
+                        snit::widgets.
+    ns			The type namespace, "$type::". UNUSED.
+    exceptmethods       Method names excluded from delegate method *.
+    excepttypemethods   Typemethod names excluded from delegate typemethod *.
+    tvardecs            Type variable declarations--for dynamic
+                        methods.
+    ivardecs            Instance variable declarations--for dynamic
+                        methods.
+    isWidget            Boolean; true if object is a widget or
+                        widgetadaptor.
+    isWidgetAdaptor     Boolean; true if object is a widgetadaptor
+
+Snit_methods            List of method names; defined only when
+                        -simpledispatch yes.
+
+Snit_typemethodInfo     Array(method name) = {<flag> ?<pattern> <compName>?}
+                        where <flag> is 1 if the method has submethods
+                        (in which case the other fields
+                        are missing) and 0 if it doesn't.
+                        <compName> is "" for normal typemethods
+                        and "method name" can be "*".  Used in
+                        typemethod cache lookup to create the command
+                        for the named typemethod.
+
+Snit_typecomponents     Array(typecomponent name) = command_name
+                        Used whenever we need to retrieve the 
+                        typecomponent's command.
+
+Snit_methodInfo         Array(method name) = {<flag> ?<pattern> <compName>?}
+                        where <flag> is 1 if the method has submethods
+                        (in which case the other fields
+                        are missing) and 0 if it doesn't.
+                        <compName> is "" for normal methods and
+                        "method name" can be "*".  Used in 
+                        method cache lookup to create the command for
+                        the named method.
+
+Snit_optionInfo         An array of option data.  The keys are as follows:
+
+  General fields:
+
+    local               List of local option names.
+
+    delegated           List of explicitly delegated option names.
+
+    starcomp		Name of component for "delegate option *" or ""
+
+    except              List of option names explicitly NOT delegated 
+                        by "delegate option *".
+
+  Fields defined for all locally defined and explicitly delegated options:
+
+    islocal-$opt         1 if local, 0 otherwise.  Currently undefined
+                         for "delegate option *" options.
+
+    resource-$opt        The option's resource name.
+                
+    class-$opt           The option's class name.
+
+  Fields defined only for locally defined options
+
+    default-$localOpt    Default value.
+
+    validate-$localOpt   The name of the validate method, or "".
+
+    configure-$localOpt  The name of the configure method, or "".
+
+    cget-$localOpt       The name of the cget method, or "".
+
+    readonly-$localOpt   true or false.  (false is the default).
+
+    typespec-$localOpt   Validation type specification (object name or
+                         construction list)
+
+    typeobj-$localOpt    Validation type object
+
+  Fields defined only for delegated options
+
+    delegated-$comp      List of option names delegated to this component.
+
+    target-$opt         [list component targetOptionName].
+
+
+INSTANCE VARIABLES
+
+Snit_iinfo              Array, instance info.  At some point,
+                        Snit_instance and Snit_components should
+                        probably be consolidated into it.  The fields
+                        are:
+
+    constructed         0 during instance construction, and 1 after.
+
+Snit_instance           Current name of the instance command.
+
+Snit_components         Array(component name) = command_name
+                        Used whenever we need to retrieve the
+                        component's command.
+
+Consider consolidating the following arrays into a single array, since
+they are all cleared at the same time.
+
+Snit_cgetCache          Array(option name) = cached command.
+                        Used by $self cget.
+
+Snit_configureCache     Array(option name) = cached command.
+                        Used by $self configurelist.
+
+Snit_validateCache      Array(option name) = cached command.
+                        Used by $self configurelist.  The entry is ""
+                        if there is no validate command.
+
+

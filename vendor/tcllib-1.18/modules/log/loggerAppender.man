@@ -1,0 +1,65 @@
+[comment {-*- tcl -*- doctools manpage}]
+[comment {$Id: loggerAppender.man,v 1.6 2009/01/29 06:16:19 andreas_kupries Exp $}]
+[manpage_begin logger::appender n 1.2]
+[keywords appender]
+[keywords logger]
+[copyright {2005 Aamer Akhter <aakhter@cisco.com>}]
+[moddesc {Object Oriented logging facility}]
+[titledesc {Collection of predefined appenders for logger}]
+[category  {Programming tools}]
+[require Tcl 8.2]
+[require logger::appender [opt 1.2]]
+[description]
+
+This package provides a predefined set of logger templates.
+
+[list_begin definitions]
+
+[call [cmd ::logger::appender::console] \
+	[option -level] [arg level] \
+	[option -service] [arg service] [opt [arg options]...] \
+]
+
+[list_begin options]
+
+[opt_def -level level]
+
+Name of the level to fill in as "priority" in the log procedure.
+
+[opt_def -service service]
+
+Name of the service to fill in as "category" in the log procedure.
+
+[opt_def -appenderArgs appenderArgs]
+
+Any additional arguments for the log procedure in list form
+
+[opt_def -conversionPattern conversionPattern]
+
+The log pattern to use (see [cmd logger::utils::createLogProc] for the
+allowed substitutions).
+
+[opt_def -procName procName]
+
+Explicitly set the name of the created procedure.
+
+[opt_def -procNameVar procNameVar]
+
+Name of the variable to set in the calling context. This variable will
+contain the name of the procedure.
+
+[list_end]
+
+[call [cmd ::logger::appender::colorConsole] \
+	[option -level] [arg level] \
+	[option -service] [arg service] [opt [arg options]...] \
+]
+
+See [cmd ::logger::appender::colorConsole] for a description of the
+applicable options.
+
+[list_end]
+
+[vset CATEGORY logger]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

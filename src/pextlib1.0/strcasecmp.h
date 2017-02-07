@@ -1,6 +1,5 @@
 /*
  * strcasecmp.h
- * $Id$
  *
  * Copyright (c) 2004 Paul Guyot, The MacPorts Project.
  * All rights reserved.

@@ -1,0 +1,47 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin deleg_proc n 0.2]
+[keywords comm]
+[keywords delegation]
+[keywords interpreter]
+[keywords procedure]
+[copyright {2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Interpreter utilities}]
+[titledesc {Creation of comm delegates (procedures)}]
+[category  {Programming tools}]
+[require Tcl 8.3]
+[require interp::delegate::proc [opt 0.2]]
+[description]
+[para]
+
+This package provides a single command for the convenient creation of
+procedures which delegate the actual work to a remote location via a
+"channel" created by the package [package comm].
+
+[section API]
+[list_begin definitions]
+
+[call [cmd ::interp::delegate::proc] [opt [option -async]] [arg name] [arg arguments] [arg comm] [arg id]]
+
+This commands creates a procedure which is named by [arg name] and
+returns its fully-qualified name. All invokations of this procedure
+will delegate the actual work to the remote location identified by the
+comm channel [arg comm] and the endpoint [arg id].
+
+[para]
+
+The name of the remote procedure invoked by the delegator is
+[lb]namespace tail [arg name][rb]. I.e., namespace information is
+stripped from the call.
+
+[para]
+
+Normally the generated procedure marshalls the [arg arguments], and
+returns the result from the remote procedure as its own result. If
+however the option [option -async] was specified then the generated
+procedure will not wait for a result and return immediately.
+
+[list_end]
+
+[vset CATEGORY interp]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

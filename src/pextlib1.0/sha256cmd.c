@@ -1,6 +1,5 @@
 /*
  * sha256cmd.c
- * $Id$
  *
  * Copyright (c) 2009, 2011 The MacPorts Project
  * All rights reserved.

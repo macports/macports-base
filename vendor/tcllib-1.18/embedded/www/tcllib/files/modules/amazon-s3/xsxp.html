@@ -1,0 +1,238 @@
+<div class='fossil-doc' data-title='xsxp - Amazon S3 Web Service Utilities'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">xsxp(n) 1.0 tcllib &quot;Amazon S3 Web Service Utilities&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>xsxp - eXtremely Simple Xml Parser</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">xsxp 1</b></li>
+<li>package require <b class="pkgname">xml</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">xsxp::parse</b> <i class="arg">xml</i></a></li>
+<li><a href="#2"><b class="cmd">xsxp::fetch</b> <i class="arg">pxml</i> <i class="arg">path</i> <span class="opt">?<i class="arg">part</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">xsxp::fetchall</b> <i class="arg">pxml_list</i> <i class="arg">path</i> <span class="opt">?<i class="arg">part</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">xsxp::only</b> <i class="arg">pxml</i> <i class="arg">tagname</i></a></li>
+<li><a href="#5"><b class="cmd">xsxp::prettyprint</b> <i class="arg">pxml</i> <span class="opt">?<i class="arg">chan</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a simple interface to parse XML into a pure-value list.
+It also provides accessor routines to pull out specific subtags,
+not unlike DOM access.
+This package was written for and is used by Darren New's Amazon S3 access package.</p>
+<p>This is pretty lame, but I needed something like this for S3,
+and at the time, TclDOM would not work with the new 8.5 Tcl
+due to version number problems.</p>
+<p>In addition, this is a pure-value implementation. There is no
+garbage to clean up in the event of a thrown error, for example.
+This simplifies the code for sufficiently small XML documents,
+which is what Amazon's S3 guarantees.</p>
+<p>Copyright 2006 Darren New. All Rights Reserved.
+NO WARRANTIES OF ANY TYPE ARE PROVIDED.
+COPYING OR USE INDEMNIFIES THE AUTHOR IN ALL WAYS.
+This software is licensed under essentially the same
+terms as Tcl. See LICENSE.txt for the terms.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<p>The package implements five rather simple procedures.
+One parses, one is for debugging, and the rest pull various
+parts of the parsed document out for processing.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">xsxp::parse</b> <i class="arg">xml</i></a></dt>
+<dd><p>This parses an XML document (using the standard xml tcllib module in a SAX sort of way) and builds a data structure which it returns if the parsing succeeded. The return value is referred to herein as a &quot;pxml&quot;, or &quot;parsed xml&quot;. The list consists of two or more elements:</p>
+<ul class="doctools_itemized">
+<li><p>The first element is the name of the tag.</p></li>
+<li><p>The second element is an array-get formatted list of key/value pairs. The keys are attribute names and the values are attribute values. This is an empty list if there are no attributes on the tag.</p></li>
+<li><p>The third through end elements are the children of the node, if any. Each child is, recursively, a pxml.</p></li>
+<li><p>Note that if the zero'th element, i.e. the tag name, is &quot;%PCDATA&quot;, then
+the attributes will be empty and the third element will be the text of the element. In addition, if an element's contents consists only of PCDATA, it will have only one child, and all the PCDATA will be concatenated. In other words,
+this parser works poorly for XML with elements that contain both child tags and PCDATA.  Since Amazon S3 does not do this (and for that matter most
+uses of XML where XML is a poor choice don't do this), this is probably
+not a serious limitation.</p></li>
+</ul></dd>
+<dt><a name="2"><b class="cmd">xsxp::fetch</b> <i class="arg">pxml</i> <i class="arg">path</i> <span class="opt">?<i class="arg">part</i>?</span></a></dt>
+<dd><p><i class="arg">pxml</i> is a parsed XML, as returned from xsxp::parse.
+<i class="arg">path</i> is a list of element tag names. Each element is the name
+of a child to look up, optionally followed by a
+hash (&quot;#&quot;) and a string of digits. An empty list or an initial empty element
+selects <i class="arg">pxml</i>. If no hash sign is present, the behavior is as if &quot;#0&quot;
+had been appended to that element. (In addition to a list, slashes can separate subparts where convenient.)</p>
+<p>An element of <i class="arg">path</i> scans the children at the indicated level
+for the n'th instance of a child whose tag matches the part of the
+element before the hash sign. If an element is simply &quot;#&quot;  followed
+by digits, that indexed child is selected, regardless of the tags
+in the children. Hence, an element of &quot;#3&quot; will always select
+the fourth child of the node under consideration.</p>
+<p><i class="arg">part</i> defaults to &quot;%ALL&quot;. It can be one of the following case-sensitive terms:</p>
+<dl class="doctools_definitions">
+<dt>%ALL</dt>
+<dd><p>returns the entire selected element.</p></dd>
+<dt>%TAGNAME</dt>
+<dd><p>returns lindex 0 of the selected element.</p></dd>
+<dt>%ATTRIBUTES</dt>
+<dd><p>returns index 1 of the selected element.</p></dd>
+<dt>%CHILDREN</dt>
+<dd><p>returns lrange 2 through end of the selected element,
+resulting in a list of elements being returned.</p></dd>
+<dt>%PCDATA</dt>
+<dd><p>returns a concatenation of all the bodies of
+direct children of this node whose tag is %PCDATA.
+It throws an error if no such children are found. That
+is, part=%PCDATA means return the textual content found
+in that node but not its children nodes.</p></dd>
+<dt>%PCDATA?</dt>
+<dd><p>is like %PCDATA, but returns an empty string if
+no PCDATA is found.</p></dd>
+</dl>
+<p>For example, to fetch the first bold text from the fifth paragraph of the body of your HTML file,</p>
+<pre class="doctools_example">xsxp::fetch $pxml {body p#4 b} %PCDATA</pre>
+</dd>
+<dt><a name="3"><b class="cmd">xsxp::fetchall</b> <i class="arg">pxml_list</i> <i class="arg">path</i> <span class="opt">?<i class="arg">part</i>?</span></a></dt>
+<dd><p>This iterates over each PXML in <i class="arg">pxml_list</i> (which must be a list
+of pxmls) selecting the indicated path from it, building a new list
+with the selected data, and returning that new list.</p>
+<p>For example, <i class="arg">pxml_list</i> might be
+the %CHILDREN of a particular element, and the <i class="arg">path</i> and <i class="arg">part</i>
+might select from each child a sub-element in which we're interested.</p></dd>
+<dt><a name="4"><b class="cmd">xsxp::only</b> <i class="arg">pxml</i> <i class="arg">tagname</i></a></dt>
+<dd><p>This iterates over the direct children of <i class="arg">pxml</i> and selects only
+those with <i class="arg">tagname</i> as their tag. Returns a list of matching
+elements.</p></dd>
+<dt><a name="5"><b class="cmd">xsxp::prettyprint</b> <i class="arg">pxml</i> <span class="opt">?<i class="arg">chan</i>?</span></a></dt>
+<dd><p>This outputs to <i class="arg">chan</i> (default stdout) a pretty-printed
+version of <i class="arg">pxml</i>.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>amazon-s3</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key753">dom</a>, <a href="../../../../index.html#key9">parser</a>, <a href="../../../../index.html#key754">xml</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Text processing</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>2006 Darren New. All Rights Reserved.</p>
+</div>
+</div>

@@ -1,9 +1,8 @@
 # et:ts=4
 # registry_util.tcl
-# $Id$
 #
 # Copyright (c) 2007 Chris Pickel
-# Copyright (c) 2010-2011 The MacPorts Project
+# Copyright (c) 2010-2011, 2014 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -118,8 +117,7 @@ proc run_target {port target options} {
 
     if {![catch {set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] $options]}]} {
         if {[catch {set result [mportexec $mport $target]} result] || $result != 0} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             catch {mportclose $mport}
             ui_warn "Failed to execute portfile from registry for $portspec"
             switch $target {
@@ -148,8 +146,7 @@ proc run_target {port target options} {
             return 1
         }
     } else {
-        global errorInfo
-        ui_debug "$errorInfo"
+        ui_debug $::errorInfo
         ui_warn "Failed to open Portfile from registry for $portspec"
     }
     return 0

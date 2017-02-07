@@ -1,0 +1,65 @@
+# -*- tcl -*- ascii85.pcx
+# Syntax of the commands provided by package ascii85.
+#
+# For use by TclDevKit's static syntax checker.
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the documentation describing the format of the code contained in this file
+#
+
+package require pcx
+pcx::register ascii85
+pcx::tcldep   1.0 needs tcl 8.4
+
+namespace eval ::ascii85 {}
+
+# Using the indirections below looks to be quite pointless, given that
+# they simply substitute the commands for others. I am doing this for
+# two reasons.
+
+# First, the rules coming after become self-commenting, i.e. a
+# maintainer can immediately see what an argument is supposed to be,
+# instead of having to search elsewhere (like the documentation and
+# implementation). In this manner our definitions here are a type of
+# semantic markup.
+
+# The second reason is that while we have no special checks now we
+# cannot be sure if such will (have to) be added in the future. With
+# all checking routed through our definitions we now already have the
+# basic infrastructure (i.e. hooks) in place in which we can easily
+# add any new checks by simply redefining the relevant command, and
+# all the rules update on their own. Mostly. This should cover 90% of
+# the cases. Sometimes new checks will require to create deeper
+# distinctions between different calls of the same thing. For such we
+# may have to update the rules as well, to provide the necessary
+# information to the checker.
+
+interp alias {} ascii85::checkLineLength  {} checkInt  ; #
+interp alias {} ascii85::checkWrapChar    {} checkWord ; #
+interp alias {} ascii85::checkData        {} checkWord ; #
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 1.0 std ::ascii85::decode \
+    {checkSimpleArgs 1 1 {
+	ascii85::checkData
+    }}
+
+# NOTE: Is '-maxlen' < 0 allowed?
+# Doc doesn't forbid it, code doesn't catch it.
+# May crash it however, i.e be a bug.
+# Check testsuite.
+pcx::check 1.0 std ::ascii85::encode \
+    {checkSimpleArgs 1 -1 {
+	{checkSwitches 1 {
+	    {-maxlen   ascii85::checkLineLength}
+	    {-wrapchar ascii85::checkWrapChar}
+	} {checkSimpleArgs 1 1 {
+	    ascii85::checkData
+	}}}
+    }}
+
+# Initialization via pcx::init.
+# Use a ::ascii85::init procedure for non-standard initialization.
+pcx::complete

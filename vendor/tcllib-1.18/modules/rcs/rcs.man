@@ -1,0 +1,330 @@
+[manpage_begin rcs n 2.0.2]
+[see_also struct]
+[see_also textutil]
+[keywords CVS]
+[keywords {diff -n format}]
+[keywords patching]
+[keywords RCS]
+[keywords {RCS patch}]
+[keywords SCCS]
+[keywords {text conversion}]
+[keywords {text differences}]
+[moddesc {RCS low level utilities}]
+[copyright {2005, Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[copyright {2005, Colin McCormack <coldstore@users.sourceforge.net>}]
+[titledesc {RCS low level utilities}]
+[category  {Text processing}]
+[require Tcl 8.4]
+[require rcs [opt 0.1]]
+[description]
+[para]
+
+The [term {Revision Control System}], short [term RCS], is a set of
+applications and related data formats which allow a system to persist
+the history of changes to a text. It, and its relative SCCS are the
+basis for many other such systems, like [term CVS], etc.
+
+[para]
+
+This package [emph {does not}] implement RCS.
+
+[para]
+
+It only provides a number of low level commands which should be useful
+in the implementation of any revision management system, namely:
+
+[list_begin enumerated]
+[enum]
+
+The conversion of texts into and out of a data structures which allow
+the easy modification of such text by [term patches], i.e. sequences
+of instructions for the transformation of one text into an other.
+
+[enum]
+
+And the conversion of one particular format for patches, the so-called
+[term {RCS patches}], into and out of data structures which allow
+their easy application to texts.
+
+[list_end]
+[comment {
+	In the future we might add the generation and decoding
+	of other patch formats as well. Like regular 'patch'
+	patches, or also context and unified patches.
+}]
+
+[section {COMMANDS}]
+
+[list_begin definitions]
+
+[call [cmd ::rcs::text2dict] [arg text]]
+
+Converts the argument [arg text] into a dictionary containing and
+representing the same text in an indexed form and returns that
+dictionary as its result.
+
+More information about the format of the result can be found in
+section [sectref {TEXT DICT DATA STRUCTURE}]. This command returns the
+[term canonical] representation of the input.
+
+[call [cmd ::rcs::dict2text] [arg dict]]
+
+This command provides the complementary operation to
+
+[cmd ::rcs::text2dict]. It converts a dictionary in the form described
+in section [sectref {TEXT DICT DATA STRUCTURE}] back into a text and
+returns that text as its result. The command does accept non-canonical
+representations of the text as its input.
+
+[call [cmd ::rcs::file2dict] [arg filename]]
+
+This command is identical to [cmd ::rcs::text2dict], except that it
+reads the text to convert from the file with path [arg filename]. The
+file has to exist and must be readable as well.
+
+[call [cmd ::rcs::dict2file] [arg filename] [arg dict]]
+
+This command is identical to [cmd ::rcs::2dict2text], except that it
+stores the resulting text in the file with path [arg filename]. The
+file is created if it did not exist, and must be writable. The result
+of the command is the empty string.
+
+[call [cmd ::rcs::decodeRcsPatch] [arg text]]
+
+Converts the [arg text] argument into a patch command list (PCL) as
+specified in the section [sectref {RCS PATCH COMMAND LIST}] and
+returns this list as its result.
+
+It is assumed that the input text is in [term {diff -n format}], also
+known as [term {RCS patch}] format, as specified in the section
+[sectref rpf].
+
+Please note that the command ignores no-ops in the input, in other
+words the resulting PCL contains only instructions doing something.
+
+[call [cmd ::rcs::encodeRcsPatch] [arg pcmds]]
+
+This command provides the complementary operation to
+
+[cmd ::rcs::decodeRcsPatch]. It convert a patch comand list (PCL) list
+as specified in the section [sectref {RCS PATCH COMMAND LIST}] back
+into a text in [sectref rpf] and returns that text as its result.
+
+[para]
+
+Note that this command and [cmd ::rcs::decodeRcsPatch] are not exactly
+complementary, as the latter strips no-ops from its input, which the
+encoder cannot put back anymore into the generated RCS patch. In other
+words, the result of a decode/encode step may not match the original
+input at the character level, but it will match it at the functional
+level.
+
+[call [cmd ::rcs::applyRcsPatch] [arg text] [arg pcmds]]
+
+This operation applies a patch in the form of a PCL to a text given in
+the form of a dictionary and returns the modified text, again as
+dictionary, as its result.
+
+[para]
+
+To handle actual text use the commands [cmd ::rcs::text2dict] (or
+equivalent) and [cmd ::rcs::decodeRcsPatch] to transform the inputs
+into data structures acceptable to this command. Analogously use the
+command [cmd ::rcs::dict2text] (or equivalent) to transform the
+result of this command into actuall text as required.
+
+[list_end]
+
+[section {TEXT DICT DATA STRUCTURE}]
+
+A text dictionary is a dictionary whose keys are integer numbers and
+text strings as the associated values. The keys represent the line
+numbers of a text and the values the text of that line.  Note that one
+text can have many representations as a dictionary, as the index
+values only have to be properly ordered for reconstruction, their
+exact values do not matter. Similarly the strings may actually span
+multiple physical lines.
+
+[para]
+
+The text
+
+[para]
+[example {Hello World,
+how are you ?
+Fine, and you ?}]
+[para]
+
+for example can be represented by
+
+[para]
+[example {{{1 {Hello World,}} {2 {how are you ?}} {3 {Fine, and you ?}}}}]
+[para]
+
+or
+
+[para]
+[example {{{5 {Hello World,}} {8 {how are you ?}} {9 {Fine, and you ?}}}}]
+[para]
+
+or
+
+[para]
+[example {{{-1 {Hello World,
+how are you ?}} {4 {Fine, and you ?}}}}]
+[para]
+
+The first dictionary is the [term canonical] representation of the
+text, with line numbers starting at [const 1], increasing in steps of
+[const 1] and without gaps, and each value representing exactly one
+physical line.
+
+[para]
+
+All the commands creating dictionaries from text will return the
+canonical representation of their input text. The commands taking a
+dictionary and returning text will generally accept all
+representations, canonical or not.
+
+[para]
+
+The result of applying a patch to a text dictionary will in general
+cause the dictionary to become non-canonical.
+
+[section {RCS PATCH FORMAT} rpf]
+
+A [term patch] is in general a series of instructions how to transform
+an input text T into a different text T', and also encoded in text
+form as well.
+
+[para]
+
+The text format for patches understood by this package is a very
+simple one, known under the names [term {RCS patch}] or
+
+[term {diff -n format}].
+
+[para]
+
+Patches in this format contain only two different commands, for the
+deletion of old text, and addition of new text. The replacement of
+some text by a different text is handled as combination of a deletion
+following by an addition.
+
+[para]
+
+The format is line oriented, with each line containing either a
+command or text data associated with the preceding command.
+
+The first line of a [term {RCS patch}] is always a command line.
+
+[para]
+The commands are:
+
+[list_begin definitions]
+[def "\"\""]
+
+The empty line is a command which does nothing.
+
+[def "\"a[var start] [var n]\""]
+
+A line starting with the character [const a] is a command for the
+addition of text to the output. It is followed by [var n] lines of
+text data. When applying the patch the data is added just between the
+lines [var start] and [var start]+1. The same effect is had by
+appending the data to the existing text on line [var start]. A
+non-existing line [var start] is created.
+
+[def "\"d[var start] [var n]\""]
+
+A line starting with the character [const d] is a command for the
+deletion of text from the output. When applied it deletes [var n]
+lines of text, and the first line deleted is at index [var start].
+
+[list_end]
+
+Note that the line indices [var start] always refer to the text which
+is transformed as it is in its original state, without taking the
+precending changes into account.
+
+[para]
+
+Note also that the instruction have to be applied in the order they
+occur in the patch, or in a manner which produces the same result as
+in-order application.
+
+[para]
+
+This is the format of results returned by the command
+[cmd ::rcs::decodeRcsPatch] and accepted by the commands
+[cmd ::rcs::encodeRcsPatch] and [cmd ::rcs::appplyRcsPatch]
+resp.
+
+Note however that the decoder will strip no-op commands, and the
+encoder will not generate no-ops, making them not fully complementary
+at the textual level, only at the functional level.
+
+[para]
+
+And example of a RCS patch is
+
+[para]
+[example {d1 2
+d4 1
+a4 2
+The named is the mother of all things.
+
+a11 3
+They both may be called deep and profound.
+Deeper and more profound,
+The door of all subtleties!}]
+
+[section {RCS PATCH COMMAND LIST}]
+
+Patch command lists (sort: PCL's) are the data structures generated by
+patch decoder command and accepted by the patch encoder and applicator
+commands. They represent RCS patches in the form of Tcl data
+structures.
+
+[para]
+
+A PCL is a list where each element represents a single patch
+instruction, either an addition, or a deletion. The elements are lists
+themselves, where the first item specifies the command and the
+remainder represent the arguments of the command.
+
+[list_begin definitions]
+[def a]
+
+This is the instruction for the addition of text. It has two
+arguments, the index of the line where to add the text, and the text
+to add, in this order.
+
+[def d]
+
+This is the instruction for the deletion of text. It has two
+arguments, the index of the line where to start deleting text, and the
+number of lines to delete, in this order.
+
+[list_end]
+
+[para]
+
+This is the format returned by the patch decoder command and accepted
+as input by the patch encoder and applicator commands.
+
+[para]
+
+An example for a patch command is shown below, it represents the
+example RCS patch found in section [sectref rpf].
+
+[para]
+[example {{{d 1 2} {d 4 1} {a 4 {The named is the mother of all things.
+
+}} {a 11 {They both may be called deep and profound.
+Deeper and more profound,
+The door of all subtleties!}}}}]
+
+[vset CATEGORY rcs]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

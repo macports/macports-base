@@ -1,0 +1,300 @@
+
+<div class='fossil-doc' data-title='debug - debug narrative'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">debug(n) 1.0.6 tcllib &quot;debug narrative&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>debug - debug narrative - core</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">debug <span class="opt">?1.0.6?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">debug.</b><b class="variable">tag</b> <i class="arg">message</i> <span class="opt">?<i class="arg">level</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">debug</b> <b class="method">2array</b></a></li>
+<li><a href="#3"><b class="cmd">debug</b> <b class="method">define</b> <i class="arg">tag</i></a></li>
+<li><a href="#4"><b class="cmd">debug</b> <b class="method">header</b> <i class="arg">text</i></a></li>
+<li><a href="#5"><b class="cmd">debug</b> <b class="method">level</b> <i class="arg">tag</i> <span class="opt">?<i class="arg">level</i>?</span> <span class="opt">?<i class="arg">fd</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">debug</b> <b class="method">names</b></a></li>
+<li><a href="#7"><b class="cmd">debug</b> <b class="method">off</b> <i class="arg">tag</i></a></li>
+<li><a href="#8"><b class="cmd">debug</b> <b class="method">on</b> <i class="arg">tag</i></a></li>
+<li><a href="#9"><b class="cmd">debug</b> <b class="method">parray</b> <i class="arg">arrayvarname</i></a></li>
+<li><a href="#10"><b class="cmd">debug</b> <b class="method">pdict</b> <i class="arg">dict</i></a></li>
+<li><a href="#11"><b class="cmd">debug</b> <b class="method">hexl</b> <i class="arg">data</i> <span class="opt">?<i class="arg">prefix</i>?</span></a></li>
+<li><a href="#12"><b class="cmd">debug</b> <b class="method">nl</b></a></li>
+<li><a href="#13"><b class="cmd">debug</b> <b class="method">tab</b></a></li>
+<li><a href="#14"><b class="cmd">debug</b> <b class="method">prefix</b> <i class="arg">tag</i> <span class="opt">?<i class="arg">text</i>?</span></a></li>
+<li><a href="#15"><b class="cmd">debug</b> <b class="method">setting</b> (<i class="arg">tag</i> <i class="arg">level</i>) ... <span class="opt">?<i class="arg">fd</i>?</span></a></li>
+<li><a href="#16"><b class="cmd">debug</b> <b class="method">suffix</b> <i class="arg">tag</i> <span class="opt">?<i class="arg">text</i>?</span></a></li>
+<li><a href="#17"><b class="cmd">debug</b> <b class="method">trailer</b> <i class="arg">text</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Debugging areas of interest are represented by 'tags' which have
+independently settable levels of interest (an integer, higher is more
+detailed).</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">debug.</b><b class="variable">tag</b> <i class="arg">message</i> <span class="opt">?<i class="arg">level</i>?</span></a></dt>
+<dd><p>For each known tag the package creates a command with this signature
+the user can then use to provide the debug narrative of the tag.
+The narrative <i class="arg">message</i> is provided as a Tcl script whose value is
+<b class="cmd"><a href="../../../../index.html#key273">subst</a></b>ed in the caller's scope if and only if the current level of
+interest for the <i class="arg">tag</i> matches or exceeds the call's <i class="arg">level</i>
+of detail.  This is useful, as one can place arbitrarily complex
+narrative in code without unnecessarily evaluating it.</p>
+<p>See methods <b class="method">level</b> and <b class="method">setting</b> for querying
+and manipulating the current level of detail for tags.</p>
+<p>The actually printed text consists of not only the
+<i class="arg">message</i>, but also global and tag-specific prefix and suffix,
+should they exist, with each line in the message having the specified
+headers and trailers.</p>
+<p>All these parts are <b class="cmd"><a href="../../../../index.html#key273">subst</a></b>ableTcl scripts, which are
+substituted once per message before assembly.</p></dd>
+<dt><a name="2"><b class="cmd">debug</b> <b class="method">2array</b></a></dt>
+<dd><p>This method returns a dictionary mapping the names of all debug tags
+currently known to the package to their state and log level. The
+latter are encoded in a single numeric value, where a negative number
+indicates an inactive tag at the level given by the absolute value, and
+a positive number is an active tag at that level.</p>
+<p>See also method <b class="method">settings</b> below.</p></dd>
+<dt><a name="3"><b class="cmd">debug</b> <b class="method">define</b> <i class="arg">tag</i></a></dt>
+<dd><p>This method registers the named <i class="arg">tag</i> with the package.  If the
+tag was not known before it is placed in an inactive state. The state
+of an already known tag is left untouched.</p>
+<p>The result of the method is the empty string.</p></dd>
+<dt><a name="4"><b class="cmd">debug</b> <b class="method">header</b> <i class="arg">text</i></a></dt>
+<dd><p>This method defines a global <b class="cmd"><a href="../../../../index.html#key273">subst</a></b>able Tcl script which provides
+a text printed before each line of output.</p>
+<p>Note how this is tag-independent.</p>
+<p>Further note that the header substitution happens only once per
+actual printed message, i.e. all lines of the same message will have
+the same actual heading text.</p>
+<p>The result of the method is the specified text.</p></dd>
+<dt><a name="5"><b class="cmd">debug</b> <b class="method">level</b> <i class="arg">tag</i> <span class="opt">?<i class="arg">level</i>?</span> <span class="opt">?<i class="arg">fd</i>?</span></a></dt>
+<dd><p>This method sets the detail-<i class="arg">level</i> for the <i class="arg">tag</i>, and the
+channel <i class="arg">fd</i> to write the tags narration into.
+The level is an integer value &gt;= 0 defaulting to <b class="const">1</b>.
+The channel defaults to <b class="const">stderr</b>.</p>
+<p>The result of the method is the new detail-level for the tag.</p></dd>
+<dt><a name="6"><b class="cmd">debug</b> <b class="method">names</b></a></dt>
+<dd><p>This method returns a list containing the names of all debug tags
+currently known to the package.</p></dd>
+<dt><a name="7"><b class="cmd">debug</b> <b class="method">off</b> <i class="arg">tag</i></a></dt>
+<dd><p>This method registers the named <i class="arg">tag</i> with the package and sets it
+inactive.</p>
+<p>The result of the method is the empty string.</p></dd>
+<dt><a name="8"><b class="cmd">debug</b> <b class="method">on</b> <i class="arg">tag</i></a></dt>
+<dd><p>This method registers the named <i class="arg">tag</i> with the package, as active.</p>
+<p>The result of the method is the empty string.</p></dd>
+<dt><a name="9"><b class="cmd">debug</b> <b class="method">parray</b> <i class="arg">arrayvarname</i></a></dt>
+<dd><p>This is a convenience method formatting the named array like the
+builtin command <b class="cmd">parray</b>, except it returns the resulting string
+instead of writing it directly to <b class="const">stdout</b>.</p>
+<p>This makes it suitable for use in debug messages.</p></dd>
+<dt><a name="10"><b class="cmd">debug</b> <b class="method">pdict</b> <i class="arg">dict</i></a></dt>
+<dd><p>This is a convenience method formatting the dictionary similarly to
+how the builtin command <b class="cmd">parray</b> does for array, and returns the
+resulting string.</p>
+<p>This makes it suitable for use in debug messages.</p></dd>
+<dt><a name="11"><b class="cmd">debug</b> <b class="method">hexl</b> <i class="arg">data</i> <span class="opt">?<i class="arg">prefix</i>?</span></a></dt>
+<dd><p>This is a convenience method formatting arbitrary data into a hex-dump
+and returns the resulting string.</p>
+<p>This makes it suitable for use in debug messages.</p>
+<p>Each line of the dump is prefixed with <i class="arg">prefix</i>. This prefix
+defaults to the empty string.</p></dd>
+<dt><a name="12"><b class="cmd">debug</b> <b class="method">nl</b></a></dt>
+<dd><p>This is a convenience method to insert a linefeed character (ASCII 0x0a)
+into a debug message.</p></dd>
+<dt><a name="13"><b class="cmd">debug</b> <b class="method">tab</b></a></dt>
+<dd><p>This is a convenience method to insert a TAB character (ASCII 0x09)
+into a debug message.</p></dd>
+<dt><a name="14"><b class="cmd">debug</b> <b class="method">prefix</b> <i class="arg">tag</i> <span class="opt">?<i class="arg">text</i>?</span></a></dt>
+<dd><p>This method is similar to the method <b class="method">header</b> above, in that it
+defines <b class="cmd"><a href="../../../../index.html#key273">subst</a></b>able Tcl script which provides more text for debug
+messages.</p>
+<p>In contrast to <b class="method">header</b> the generated text is added to the
+user's message before it is split into lines, making it a per-message
+extension.</p>
+<p>Furthermore the script is tag-dependent.</p>
+<p>In exception to that, a script for tag <b class="const">::</b> is applied
+to all messages.</p>
+<p>If both global and tag-dependent prefix exist, both are
+applied, with the global prefix coming before the tag-dependent
+prefix.</p>
+<p>Note that the prefix substitution happens only once per
+actual printed message.</p>
+<p>The result of the method is the empty string.</p>
+<p>If the <i class="arg">tag</i> was not known at the time of the call it is
+registered, and set inactive.</p></dd>
+<dt><a name="15"><b class="cmd">debug</b> <b class="method">setting</b> (<i class="arg">tag</i> <i class="arg">level</i>) ... <span class="opt">?<i class="arg">fd</i>?</span></a></dt>
+<dd><p>This method is a multi-tag variant of method <b class="method">level</b> above,
+with the functionality of methods <b class="method">on</b>, and <b class="method">off</b> also
+folded in.</p>
+<p>Each named <i class="arg">tag</i> is set to the detail-<i class="arg">level</i> following
+it, with a negative level deactivating the tag, and a positive level
+activating it.</p>
+<p>If the last argument is not followed by a level it is not
+treated as tag name, but as the channel all the named tags should
+print their messages to.</p>
+<p>The result of the method is the empty string.</p></dd>
+<dt><a name="16"><b class="cmd">debug</b> <b class="method">suffix</b> <i class="arg">tag</i> <span class="opt">?<i class="arg">text</i>?</span></a></dt>
+<dd><p>This method is similar to the method <b class="method">trailer</b> below, in that
+it defines <b class="cmd"><a href="../../../../index.html#key273">subst</a></b>able Tcl script which provides more text for
+debug messages.</p>
+<p>In contrast to <b class="method">trailer</b> the generated text is added to
+the user's message before it is split into lines, making it a
+per-message extension.</p>
+<p>Furthermore the script is tag-dependent.</p>
+<p>In exception to that, a script for tag <b class="const">::</b> is applied
+to all messages.</p>
+<p>If both global and tag-dependent suffix exist, both are
+applied, with the global suffix coming after the tag-dependent suffix.</p>
+<p>Note that the suffix substitution happens only once per actual
+printed message.</p>
+<p>The result of the method is the empty string.</p>
+<p>If the <i class="arg">tag</i> was not known at the time of the call it is
+registered, and set inactive.</p></dd>
+<dt><a name="17"><b class="cmd">debug</b> <b class="method">trailer</b> <i class="arg">text</i></a></dt>
+<dd><p>This method defines a global <b class="cmd"><a href="../../../../index.html#key273">subst</a></b>able Tcl script which provides
+a text printed after each line of output (before the EOL however).</p>
+<p>Note how this is tag-independent.</p>
+<p>Further note that the trailer substitution happens only once
+per actual printed message, i.e. all lines of the same message will
+have the same actual trailing text.</p>
+<p>The result of the method is the specified text.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>debug</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key76">debug</a>, <a href="../../../../index.html#key73">log</a>, <a href="../../../../index.html#key72">narrative</a>, <a href="../../../../index.html#key74">trace</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>debugging, tracing, and logging</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 200?, Colin McCormack, Wub Server Utilities<br>
+Copyright &copy; 2012-2014, Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

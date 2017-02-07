@@ -1,0 +1,235 @@
+# -*- tcl -*-
+# Tests for the counter module.
+#
+# This file contains a collection of tests for a module in the
+# Standard Tcl Library. Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# RCS: @(#) $Id: counter.test,v 1.13 2006/10/09 21:41:40 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal counter.tcl counter
+}
+
+# -------------------------------------------------------------------------
+
+proc Stamp {tag} {
+    puts stderr "[clock format [clock seconds]] [clock clicks -milliseconds] $tag"
+}
+
+# -------------------------------------------------------------------------
+
+test counter-1.1 {counter::init} {
+    catch {counter::init} err
+} {1}
+
+if 0 {
+    set x 0
+    puts "incr scaler [time {incr x} 100]"
+
+    set a(x) 0
+    puts "incr array [time {incr a(x)} 100]"
+
+    set a(x) 0
+    set a(n) 0
+    puts "rawcount [time {
+    set a(x) [expr {$a(x) + 2.4}]
+    incr a(n)
+} 100]"
+}
+
+test counter-simple {counter::count} {
+    counter::init simple
+    counter::count simple
+    counter::count simple
+    counter::count simple
+    counter::get simple
+} {3}
+#puts "simple [time {counter::count simple} 100]"
+
+test counter-avg-1.0 {counter::count} {
+    counter::init avg
+    counter::count avg 2.2
+    counter::count avg 3.3
+    counter::count avg 9.8
+    format %3.1f [counter::get avg -avg]
+} {5.1}
+
+test counter-avg-1.1 {counter::count} {
+    counter::init avg
+    counter::get avg -avg
+} {0}
+
+test counter-lastn-1.0 {averge over lastn} {
+    counter::init lastn -lastn 4
+    counter::count lastn 2.2
+    counter::count lastn 4.6
+    counter::get lastn -avgn
+} {3.4}
+
+test counter-lastn-1.1 {averge over lastn} {
+    counter::init lastn -lastn 4
+    counter::count lastn 2.2
+    counter::count lastn 3.3
+    counter::count lastn 8.6
+    counter::count lastn 4.1
+    counter::count lastn 6.9
+    counter::count lastn 0.4
+    counter::get lastn -avgn
+} {5.0}
+#puts "lastn [time {counter::count lastn 2.4} 100]"
+
+test counter-lastn-1.2 {lifetime average} {
+    counter::init lastn -lastn 4
+    counter::count lastn 2.2
+    counter::count lastn 3.3
+    counter::count lastn 8.6
+    counter::count lastn 4.1
+    counter::count lastn 6.9
+    counter::count lastn 0.4
+    counter::get lastn -avg
+} {4.25}
+#puts "lastn [time {counter::count lastn 2.4} 100]"
+
+test counter-hist-1.0 {basic histogram} {
+    counter::init hist -hist 10
+    counter::count hist 2.2
+    counter::count hist 18.6
+    counter::count hist 14.1
+    counter::count hist 26.9
+    counter::count hist 20.4
+    counter::count hist 23.3
+    counter::count hist 53.3
+    counter::get hist -hist
+} {0 1 1 2 2 3 5 1}
+test counter-hist-1.1 {histogram average} {
+    counter::init hist -hist 10
+    counter::count hist 2.2
+    counter::count hist 18.6
+    counter::count hist 14.1
+    counter::count hist 26.9
+    counter::count hist 20.4
+    counter::count hist 23.3
+    counter::count hist 53.3
+    format %13.10f [counter::get hist -avg]
+} {22.6857142857}
+#puts "hist [time {counter::count hist 2.4} 100]"
+
+test counter-hist2x {counter::count} {
+    counter::init hist -hist2x 10
+    counter::count hist 8
+    counter::count hist 18
+    counter::count hist 28
+    counter::count hist 38
+    counter::count hist 48
+    counter::count hist 58
+    counter::count hist 68
+    counter::count hist 78
+    counter::count hist 178
+    counter::count hist 478
+    counter::get hist -hist
+} {0 1 1 1 2 2 3 4 5 1 6 1}
+#puts "hist2x [time {counter::count hist 50} 100]"
+
+test counter-hist10x {counter::count} {
+    counter::init hist -hist10x 10
+    counter::count hist 8
+    counter::count hist 18
+    counter::count hist 28
+    counter::count hist 38
+    counter::count hist 48
+    counter::count hist 58
+    counter::count hist 68
+    counter::count hist 78
+    counter::count hist 178
+    counter::count hist 478
+    counter::count hist 1478
+    counter::count hist 1478000
+    counter::get hist -hist
+} {0 1 1 7 2 2 3 1 6 1}
+
+test counter-histlog {counter::count} {
+    counter::init histlog -histlog 1
+    counter::count histlog 0.1
+    counter::count histlog 0.5
+    counter::count histlog 0.9
+    counter::count histlog 1.0
+    counter::count histlog 2
+    counter::count histlog 3
+    counter::count histlog 5
+    counter::count histlog 10
+    counter::count histlog 30
+    counter::count histlog 50
+    counter::count histlog 100
+    counter::count histlog 300
+    counter::count histlog 500
+    counter::count histlog 1000
+    counter::get histlog -hist
+} {-2 1 0 4 1 2 2 1 3 2 4 1 5 1 6 2}
+
+test counter-timehist {counter::count} {load-dependent} {
+    counter::init hits -timehist 4
+    catch {#puts stderr "Pausing during timehist tests"}
+    counter::count hits 2
+    # We need to reach in and find out what bucket was used
+    array set info [counter::get hits -all]
+    set min0 $info(lastMinute)
+    after [expr 4000]
+    counter::count hits 4
+    after [expr 4000]
+    counter::count hits 8
+    set result [list]
+    foreach {n v} [counter::get hits -hist] {
+	if {$v > 0} {
+	    lappend result [expr {$n - $min0}] $v
+	}
+    }
+
+    #puts "timehist [time {counter::count hits} 100]"
+
+    set result
+} {0 2 1 4 2 8}
+
+
+test counter-countNames {counter::names} {
+    counter::init simple
+    counter::init avg
+    counter::init lastn -lastn 4
+    counter::init hist -hist 10
+    counter::init histlog -histlog 1
+    counter::init hits -timehist 4
+    lsort [counter::names]
+} {avg hist histlog hits lastn simple}
+
+test counter-countExists {counter::exists} {
+    counter::init simple
+    counter::init lastn -lastn 4
+    unset counter::T-lastn 
+    list [counter::exists simple] [counter::exists lastn]
+} {1 0}
+
+test counter-countReset {counter::reset} {
+    counter::init simple
+    counter::count simple 1
+    counter::count simple 1
+    counter::count simple 1
+    counter::reset simple
+    counter::get simple
+} {0}
+
+
+testsuiteCleanup

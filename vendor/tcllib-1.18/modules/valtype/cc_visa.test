@@ -1,0 +1,130 @@
+# -------------------------------------------------------------------------
+# cc_visa.test -*- tcl -*-
+# (C) 2011 Andreas Kupries. BSD licensed.
+#
+# NOTE: All "creditcard" numbers in this file have been created by
+# randomly hitting the number pad. They are not real.
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    use      snit/snit2.tcl snit            ;# snit v2 fixed, due Tcl 8.5
+    useLocal valtype.tcl    valtype::common
+    useLocal luhn.tcl       valtype::luhn
+}
+testing {
+    useLocal cc_visa.tcl valtype::creditcard::visa
+}
+
+# -------------------------------------------------------------------------
+
+test valtype-creditcard-visa-1.0 {creditcard visa validation wrong\#args} -body {
+    valtype::creditcard::visa validate
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::visa validate value"}
+
+test valtype-creditcard-visa-1.1 {creditcard visa validation wrong\#args} -body {
+    valtype::creditcard::visa validate A B
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::visa validate value"}
+
+# -------------------------------------------------------------------------
+
+test valtype-creditcard-visa-2.0 {creditcard visa validation failure, bad char} -body {
+    valtype::creditcard::visa validate 4A34562749104
+} -returnCodes error \
+    -result {Not a CREDITCARD VISA number, expected only digits}
+
+foreach {n in} {
+    1  030640615
+    2  978030640615
+} {
+    test valtype-creditcard-visa-2.1.$n {creditcard visa validation failure, bad length} -body {
+    valtype::creditcard::visa validate $in
+    } -returnCodes error \
+        -result {Not a CREDITCARD VISA number, incorrect length, expected one of 13, or 16 characters}
+}
+
+foreach {n in} {
+    1  4012345678901
+    2  4109876543210
+    3  4992739871755
+    4  4123456781234
+    5  4012345678901234
+    6  4432109876543210
+    7  4992739871755987
+    8  4123456781234567
+} {
+    test valtype-creditcard-visa-2.2.$n {creditcard visa validation failure, bad check} -body {
+	valtype::creditcard::visa validate $in
+    } -returnCodes error \
+	-result {Not a CREDITCARD VISA number, the check digit is incorrect}
+}
+
+foreach {n in} {
+    1  9772890458925
+    2  8285298475847568
+} {
+    test valtype-creditcard-visa-2.3.$n {creditcard visa validation failure, bad prefix} -body {
+	valtype::creditcard::visa validate $in
+    } -returnCodes error \
+	-result {Not a CREDITCARD VISA number, incorrect prefix, expected 4}
+}
+
+
+test valtype-creditcard-visa-3.0 {creditcard visa checkdigit wrong\#args} -body {
+    valtype::creditcard::visa checkdigit
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::visa checkdigit value"}
+
+test valtype-creditcard-visa-3.1 {creditcard visa checkdigit wrong\#args} -body {
+    valtype::creditcard::visa checkdigit A B
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::visa checkdigit value"}
+
+# -------------------------------------------------------------------------
+
+test valtype-creditcard-visa-5.0 {creditcard visa checkdigit calculation failure, bad char} -body {
+    valtype::creditcard::visa checkdigit 4A0123456789
+} -returnCodes error \
+    -result {Not a CREDITCARD VISA number, expected only digits}
+
+test valtype-creditcad-visa-5.1 {creditcard visa checkdigit calculation failure, bad length} -body {
+    valtype::creditcard::visa checkdigit 401234
+} -returnCodes error \
+    -result {Not a CREDITCARD VISA number without checkdigit, incorrect length, expected one of 12, or 15 characters}
+
+test valtype-creditcad-visa-5.2 {creditcard visa checkdigit calculation failure, bad length} -body {
+    valtype::creditcard::visa checkdigit 012345678901234
+} -returnCodes error \
+    -result {Not a CREDITCARD VISA number without checkdigit, incorrect prefix, expected 4}
+
+foreach {n in check} {
+    1  401234567890 9
+    2  410987654321 1
+    3  499273987175 8
+    4  412345678123 2
+} {
+    test valtype-creditcard-visa-4.$n {creditcard visa validation} -body {
+	valtype::creditcard::visa validate $in$check
+    } -result $in$check
+
+    test valtype-creditcard-visa-6.$n {creditcard visa checkdigit} -body {
+	valtype::creditcard::visa checkdigit $in
+    } -result $check
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

@@ -1,0 +1,186 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin math::rationalfunctions n 1.0.1]
+[keywords math]
+[keywords {rational functions}]
+[copyright {2005 Arjen Markus <arjenmarkus@users.sourceforge.net>}]
+[moddesc   {Math}]
+[titledesc {Polynomial functions}]
+[category  Mathematics]
+[require Tcl [opt 8.4]]
+[require math::rationalfunctions [opt 1.0.1]]
+
+[description]
+[para]
+This package deals with rational functions of one variable:
+
+[list_begin itemized]
+[item]
+the basic arithmetic operations are extended to rational functions
+[item]
+computing the derivatives of these functions
+[item]
+evaluation through a general procedure or via specific procedures)
+[list_end]
+
+[section "PROCEDURES"]
+
+The package defines the following public procedures:
+
+[list_begin definitions]
+
+[call [cmd ::math::rationalfunctions::rationalFunction] [arg num] [arg den]]
+
+Return an (encoded) list that defines the rational function. A
+rational function
+[example {
+             1 + x^3
+   f(x) = ------------
+          1 + 2x + x^2
+}]
+can be defined via:
+[example {
+   set f [::math::rationalfunctions::rationalFunction [list 1 0 0 1] \
+             [list 1 2 1]]
+}]
+
+[list_begin arguments]
+[arg_def list num] Coefficients of the numerator of the rational
+function (in ascending order)
+[para]
+[arg_def list den] Coefficients of the denominator of the rational
+function (in ascending order)
+[list_end]
+
+[para]
+
+[call [cmd ::math::rationalfunctions::ratioCmd] [arg num] [arg den]]
+
+Create a new procedure that evaluates the rational function. The name of the
+function is automatically generated. Useful if you need to evaluate
+the function many times, as the procedure consists of a single
+[lb]expr[rb] command.
+
+[list_begin arguments]
+[arg_def list num] Coefficients of the numerator of the rational
+function (in ascending order)
+[para]
+[arg_def list den] Coefficients of the denominator of the rational
+function (in ascending order)
+[list_end]
+
+[para]
+
+[call [cmd ::math::rationalfunctions::evalRatio] [arg rational] [arg x]]
+
+Evaluate the rational function at x.
+
+[list_begin arguments]
+[arg_def list rational] The rational function's definition (as returned
+by the rationalFunction command).
+order)
+
+[arg_def float x] The coordinate at which to evaluate the function
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::rationalfunctions::addRatio] [arg ratio1] [arg ratio2]]
+
+Return a new rational function which is the sum of the two others.
+
+[list_begin arguments]
+[arg_def list ratio1] The first rational function operand
+
+[arg_def list ratio2] The second rational function operand
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::rationalfunctions::subRatio] [arg ratio1] [arg ratio2]]
+
+Return a new rational function which is the difference of the two
+others.
+
+[list_begin arguments]
+[arg_def list ratio1] The first rational function operand
+
+[arg_def list ratio2] The second rational function operand
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::rationalfunctions::multRatio] [arg ratio1] [arg ratio2]]
+
+Return a new rational function which is the product of the two others.
+If one of the arguments is a scalar value, the other rational function is
+simply scaled.
+
+[list_begin arguments]
+[arg_def list ratio1] The first rational function operand or a scalar
+
+[arg_def list ratio2] The second rational function operand or a scalar
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::rationalfunctions::divRatio] [arg ratio1] [arg ratio2]]
+
+Divide the first rational function by the second rational function and
+return the result. The remainder is dropped
+
+[list_begin arguments]
+[arg_def list ratio1] The first rational function operand
+
+[arg_def list ratio2] The second rational function operand
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::rationalfunctions::derivPolyn] [arg ratio]]
+
+Differentiate the rational function and return the result.
+
+[list_begin arguments]
+[arg_def list ratio] The rational function to be differentiated
+
+[list_end]
+
+[para]
+
+[call [cmd ::math::rationalfunctions::coeffsNumerator] [arg ratio]]
+
+Return the coefficients of the numerator of the rational function.
+
+[list_begin arguments]
+[arg_def list ratio] The rational function to be examined
+[list_end]
+
+[para]
+
+[call [cmd ::math::rationalfunctions::coeffsDenominator] [arg ratio]]
+
+Return the coefficients of the denominator of the rational
+function.
+
+[list_begin arguments]
+[arg_def list ratio] The rational function to be examined
+[list_end]
+
+[para]
+
+[list_end]
+
+[section "REMARKS ON THE IMPLEMENTATION"]
+
+The implementation of the rational functions relies on the
+math::polynomials package. For further remarks see the documentation on
+that package.
+
+[vset CATEGORY {math :: rationalfunctions}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

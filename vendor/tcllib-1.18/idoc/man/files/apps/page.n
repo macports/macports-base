@@ -1,0 +1,679 @@
+'\"
+'\" Generated from file 'page\&.man' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) 2005 Andreas Kupries <andreas_kupries@users\&.sourceforge\&.net>
+'\"
+.TH "page" n 1\&.0 tcllib "Development Tools"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+page \- Parser Generator
+.SH SYNOPSIS
+\fBpage\fR ?\fIoptions\fR\&.\&.\&.? ?\fIinput\fR ?\fIoutput\fR??
+.sp
+.BE
+.SH DESCRIPTION
+.PP
+The application described by this document, \fBpage\fR, is actually
+not just a parser generator, as the name implies, but a generic tool
+for the execution of arbitrary transformations on texts\&.
+.PP
+Its genericity comes through the use of \fIplugins\fR for reading,
+transforming, and writing data, and the predefined set of plugins
+provided by Tcllib is for the generation of memoizing recursive
+descent parsers (aka \fIpackrat parsers\fR) from grammar
+specifications (\fIParsing Expression Grammars\fR)\&.
+.PP
+\fBpage\fR is written on top of the package
+\fBpage::pluginmgr\fR, wrapping its functionality into a command
+line based application\&. All the other \fBpage::*\fR packages are
+plugin and/or supporting packages for the generation of parsers\&. The
+parsers themselves are based on the packages \fBgrammar::peg\fR,
+\fBgrammar::peg::interp\fR, and \fBgrammar::mengine\fR\&.
+.SS "COMMAND LINE"
+.TP
+\fBpage\fR ?\fIoptions\fR\&.\&.\&.? ?\fIinput\fR ?\fIoutput\fR??
+This is general form for calling \fBpage\fR\&. The application will
+read the contents of the file \fIinput\fR, process them under the
+control of the specified \fIoptions\fR, and then write the result to
+the file \fIoutput\fR\&.
+.sp
+If \fIinput\fR is the string \fB-\fR the data to process will be
+read from \fBstdin\fR instead of a file\&. Analogously the result will
+be written to \fBstdout\fR instead of a file if \fIoutput\fR is the
+string \fB-\fR\&. A missing output or input specification causes the
+application to assume \fB-\fR\&.
+.sp
+The detailed specifications of the recognized \fIoptions\fR are
+provided in section \fBOPTIONS\fR\&.
+.RS
+.TP
+path \fIinput\fR (in)
+This argument specifies the path to the file to be processed by the
+application, or \fB-\fR\&. The last value causes the application to
+read the text from \fBstdin\fR\&. Otherwise it has to exist, and be
+readable\&. If the argument is missing \fB-\fR is assumed\&.
+.TP
+path \fIoutput\fR (in)
+This argument specifies where to write the generated text\&. It can be
+the path to a file, or \fB-\fR\&. The last value causes the
+application to write the generated documented to \fBstdout\fR\&.
+.sp
+If the file \fIoutput\fR does not exist then
+[file dirname $output] has to exist and must be a writable
+directory, as the application will create the fileto write to\&.
+.sp
+If the argument is missing \fB-\fR is assumed\&.
+.RE
+.PP
+.SS OPERATION
+\&.\&.\&. reading \&.\&.\&. transforming \&.\&.\&. writing - plugins - pipeline \&.\&.\&.
+.SS OPTIONS
+This section describes all the options available to the user of the
+application\&. Options are always processed in order\&. I\&.e\&. of both
+\fB--help\fR and \fB--version\fR are specified the option
+encountered first has precedence\&.
+.PP
+Unknown options specified before any of the options \fB-rd\fR,
+\fB-wr\fR, or \fB-tr\fR will cause processing to abort with an
+error\&. Unknown options coming in between these options, or after the
+last of them are assumed to always take a single argument and are
+associated with the last plugin option coming before them\&. They will
+be checked after all the relevant plugins, and thus the options they
+understand, are known\&. I\&.e\&. such unknown options cause error if and
+only if the plugin option they are associated with does not understand
+them, and was not superceded by a plugin option coming after\&.
+.PP
+Default options are used if and only if the command line did not
+contain any options at all\&. They will set the application up as a
+PEG-based parser generator\&. The exact list of options is
+.PP
+.CS
+
+-c peg
+.CE
+.PP
+And now the recognized options and their arguments, if they have any:
+.PP
+.TP
+\fB--help\fR
+.TP
+\fB-h\fR
+.TP
+\fB-?\fR
+When one of these options is found on the command line all arguments
+coming before or after are ignored\&. The application will print a short
+description of the recognized options and exit\&.
+.TP
+\fB--version\fR
+.TP
+\fB-V\fR
+When one of these options is found on the command line all arguments
+coming before or after are ignored\&. The application will print its
+own revision and exit\&.
+.TP
+\fB-P\fR
+This option signals the application to activate visual feedback while
+reading the input\&.
+.TP
+\fB-T\fR
+This option signals the application to collect statistics while
+reading the input and to print them after reading has completed,
+before processing started\&.
+.TP
+\fB-D\fR
+This option signals the application to activate logging in the Safe
+base, for the debugging of problems with plugins\&.
+.TP
+\fB-r\fR parser
+.TP
+\fB-rd\fR parser
+.TP
+\fB--reader\fR parser
+These options specify the plugin the application has to use for
+reading the \fIinput\fR\&. If the options are used multiple times the
+last one will be used\&.
+.TP
+\fB-w\fR generator
+.TP
+\fB-wr\fR generator
+.TP
+\fB--writer\fR generator
+These options specify the plugin the application has to use for
+generating and writing the final \fIoutput\fR\&. If the options are used
+multiple times the last one will be used\&.
+.TP
+\fB-t\fR process
+.TP
+\fB-tr\fR process
+.TP
+\fB--transform\fR process
+These options specify a plugin to run on the input\&. In contrast to
+readers and writers each use will \fInot\fR supersede previous
+uses, but add each chosen plugin to a list of transformations, either
+at the front, or the end, per the last seen use of either option
+\fB-p\fR or \fB-a\fR\&. The initial default is to append the new
+transformations\&.
+.TP
+\fB-a\fR
+.TP
+\fB--append\fR
+These options signal the application that all following
+transformations should be added at the end of the list of
+transformations\&.
+.TP
+\fB-p\fR
+.TP
+\fB--prepend\fR
+These options signal the application that all following
+transformations should be added at the beginning of the list of
+transformations\&.
+.TP
+\fB--reset\fR
+This option signals the application to clear the list of
+transformations\&. This is necessary to wipe out the default
+transformations used\&.
+.TP
+\fB-c\fR file
+.TP
+\fB--configuration\fR file
+This option causes the application to load a configuration file and/or
+plugin\&. This is a plugin which in essence provides a pre-defined set
+of commandline options\&. They are processed exactly as if they have
+been specified in place of the option and its arguments\&. This means
+that unknown options found at the beginning of the configuration file
+are associated with the last plugin, even if that plugin was specified
+before the configuration file itself\&. Conversely, unknown options
+coming after the configuration file can be associated with a plugin
+specified in the file\&.
+.sp
+If the argument is a file which cannot be loaded as a plugin the
+application will assume that its contents are a list of options and
+their arguments, separated by space, tabs, and newlines\&. Options and
+argumentes containing spaces can be quoted via double-quotes (") and
+quotes (')\&. The quote character can be specified within in a quoted
+string by doubling it\&. Newlines in a quoted string are accepted as is\&.
+.PP
+.SS PLUGINS
+\fBpage\fR makes use of four different types of plugins, namely:
+readers, writers, transformations, and configurations\&. Here we provide
+only a basic introduction on how to use them from \fBpage\fR\&. The
+exact APIs provided to and expected from the plugins can be found in
+the documentation for \fBpage::pluginmgr\fR, for those who wish to
+write their own plugins\&.
+.PP
+Plugins are specified as arguments to the options \fB-r\fR,
+\fB-w\fR, \fB-t\fR, \fB-c\fR, and their equivalent longer
+forms\&. See the section \fBOPTIONS\fR for reference\&.
+.PP
+Each such argument will be first treated as the name of a file and
+this file is loaded as the plugin\&. If however there is no file with
+that name, then it will be translated into the name of a package, and
+this package is then loaded\&. For each type of plugins the package
+management searches not only the regular paths, but a set application-
+and type-specific paths as well\&. Please see the section
+\fBPLUGIN LOCATIONS\fR for a listing of all paths and their
+sources\&.
+.PP
+.TP
+\fB-c\fR \fIname\fR
+Configurations\&. The name of the package for the plugin \fIname\fR is
+"page::config::\fIname\fR"\&.
+.sp
+We have one predefined plugin:
+.RS
+.TP
+\fIpeg\fR
+It sets the application up as a parser generator accepting parsing
+expression grammars and writing a packrat parser in Tcl\&. The actual
+arguments it specifies are:
+.sp
+.CS
+
+
+	--reset
+	--append
+	--reader    peg
+	--transform reach
+	--transform use
+	--writer    me
+
+.CE
+.sp
+.RE
+.TP
+\fB-r\fR \fIname\fR
+Readers\&. The name of the package for the plugin \fIname\fR is
+"page::reader::\fIname\fR"\&.
+.sp
+We have five predefined plugins:
+.RS
+.TP
+\fIpeg\fR
+Interprets the input as a parsing expression grammar (\fIPEG\fR) and
+generates a tree representation for it\&. Both the syntax of PEGs and
+the structure of the tree representation are explained in their own
+manpages\&.
+.TP
+\fIhb\fR
+Interprets the input as Tcl code as generated by the writer plugin
+\fIhb\fR and generates its tree representation\&.
+.TP
+\fIser\fR
+Interprets the input as the serialization of a PEG, as generated by
+the writer plugin \fIser\fR, using the package
+\fBgrammar::peg\fR\&.
+.TP
+\fIlemon\fR
+Interprets the input as a grammar specification as understood by
+Richard Hipp's \fILEMON\fR parser generator and generates a tree
+representation for it\&. Both the input syntax and the structure of the
+tree representation are explained in their own manpages\&.
+.TP
+\fItreeser\fR
+Interprets the input as the serialization of a
+\fBstruct::tree\fR\&. It is validated as such,
+but nothing else\&. It is \fInot\fR assumed to
+be the tree representation of a grammar\&.
+.RE
+.TP
+\fB-w\fR \fIname\fR
+Writers\&. The name of the package for the plugin \fIname\fR is
+"page::writer::\fIname\fR"\&.
+.sp
+We have eight predefined plugins:
+.RS
+.TP
+\fIidentity\fR
+Simply writes the incoming data as it is, without making any
+changes\&. This is good for inspecting the raw result of a reader or
+transformation\&.
+.TP
+\fInull\fR
+Generates nothing, and ignores the incoming data structure\&.
+.TP
+\fItree\fR
+Assumes that the incoming data structure is a \fBstruct::tree\fR
+and generates an indented textual representation of all nodes, their
+parental relationships, and their attribute information\&.
+.TP
+\fIpeg\fR
+Assumes that the incoming data structure is a tree representation of a
+\fIPEG\fR or other other grammar and writes it out as a PEG\&. The
+result is nicely formatted and partially simplified (strings as
+sequences of characters)\&. A pretty printer in essence, but can also be
+used to obtain a canonical representation of the input grammar\&.
+.TP
+\fItpc\fR
+Assumes that the incoming data structure is a tree representation of a
+\fIPEG\fR or other other grammar and writes out Tcl code defining a
+package which defines a \fBgrammar::peg\fR object containing the
+grammar when it is loaded into an interpreter\&.
+.TP
+\fIhb\fR
+This is like the writer plugin \fItpc\fR, but it writes only the
+statements which define stat expression and grammar rules\&. The code
+making the result a package is left out\&.
+.TP
+\fIser\fR
+Assumes that the incoming data structure is a tree representation of a
+\fIPEG\fR or other other grammar, transforms it internally into a
+\fBgrammar::peg\fR object and writes out its serialization\&.
+.TP
+\fIme\fR
+Assumes that the incoming data structure is a tree representation of a
+\fIPEG\fR or other other grammar and writes out Tcl code defining a
+package which implements a memoizing recursive descent parser based on
+the match engine (ME) provided by the package \fBgrammar::mengine\fR\&.
+.RE
+.TP
+\fB-t\fR \fIname\fR
+Transformers\&. The name of the package for the plugin \fIname\fR is
+"page::transform::\fIname\fR"\&.
+.sp
+We have two predefined plugins:
+.RS
+.TP
+\fIreach\fR
+Assumes that the incoming data structure is a tree representation of a
+\fIPEG\fR or other other grammar\&. It determines which nonterminal
+symbols and rules are reachable from start-symbol/expression\&. All
+nonterminal symbols which were not reached are removed\&.
+.TP
+\fIuse\fR
+Assumes that the incoming data structure is a tree representation of a
+\fIPEG\fR or other other grammar\&. It determines which nonterminal
+symbols and rules are able to generate a \fIfinite\fR sequences of
+terminal symbols (in the sense for a Context Free Grammar)\&. All
+nonterminal symbols which were not deemed useful in this sense are
+removed\&.
+.RE
+.PP
+.SS "PLUGIN LOCATIONS"
+The application-specific paths searched by \fBpage\fR either are,
+or come from:
+.PP
+.IP [1]
+The directory            "\fI~/\&.page/plugin\fR"
+.IP [2]
+The environment variable \fIPAGE_PLUGINS\fR
+.IP [3]
+The registry entry       \fIHKEY_LOCAL_MACHINE\\SOFTWARE\\PAGE\\PLUGINS\fR
+.IP [4]
+The registry entry       \fIHKEY_CURRENT_USER\\SOFTWARE\\PAGE\\PLUGINS\fR
+.PP
+.PP
+The type-specific paths searched by \fBpage\fR either are, or come
+from:
+.PP
+.IP [1]
+The directory            "\fI~/\&.page/plugin/<TYPE>\fR"
+.IP [2]
+The environment variable \fIPAGE_<TYPE>_PLUGINS\fR
+.IP [3]
+The registry entry       \fIHKEY_LOCAL_MACHINE\\SOFTWARE\\PAGE\\<TYPE>\\PLUGINS\fR
+.IP [4]
+The registry entry       \fIHKEY_CURRENT_USER\\SOFTWARE\\PAGE\\<TYPE>\\PLUGINS\fR
+.PP
+.PP
+Where the placeholder \fI<TYPE>\fR is always one of the values below,
+properly capitalized\&.
+.IP [1]
+reader
+.IP [2]
+writer
+.IP [3]
+transform
+.IP [4]
+config
+.PP
+.PP
+The registry entries are specific to the Windows(tm) platform, all
+other platforms will ignore them\&.
+.PP
+The contents of both environment variables and registry entries are
+interpreted as a list of paths, with the elements separated by either
+colon (Unix), or semicolon (Windows)\&.
+.SH "BUGS, IDEAS, FEEDBACK"
+This document, and the package it describes, will undoubtedly contain
+bugs and other problems\&.
+Please report such in the category \fIpage\fR of the
+\fITcllib Trackers\fR [http://core\&.tcl\&.tk/tcllib/reportlist]\&.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation\&.
+.SH "SEE ALSO"
+page::pluginmgr
+.SH KEYWORDS
+parser generator, text processing
+.SH CATEGORY
+Page Parser Generator
+.SH COPYRIGHT
+.nf
+Copyright (c) 2005 Andreas Kupries <andreas_kupries@users\&.sourceforge\&.net>
+
+.fi

@@ -1,0 +1,64 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'rc4' module.
+# This allow developers to monitor/gauge/track package performance.
+#
+# (c) 2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+# We need at least version 8.2 for the package and thus the
+# benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.2]} {
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+set moddir [file dirname [file dirname [info script]]]
+lappend auto_path $moddir
+
+package forget rc4
+catch {namespace delete ::rc4}
+source [file join [file dirname [info script]] rc4.tcl]
+
+set i [binary format H* 0000000000000000]
+set p [binary format H* 0123456789ABCDEF0123456789ABCDEF]]
+
+set k [binary format H* FEDCBA9876543210]
+set c [binary format H* ED39D950FA74BCC4ED39D950FA74BCC4]
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+bench -desc "RC4 encryption" -body {
+    rc4::rc4 -key $k $p
+}
+
+bench -desc "RC4 decryption" -body {
+    rc4::rc4 -key $k $c
+}
+
+bench -desc "RC4 encryption core" -pre {
+    set key [rc4::RC4Init $k]
+} -body {
+    rc4::RC4 $key $p
+} -post {
+    rc4::RC4Final $key
+}
+
+bench -desc "RC4 decryption core" -pre {
+    set key [rc4::RC4Init $k]
+} -body {
+    rc4::RC4 $key $c
+} -post {
+    rc4::RC4Final $key
+}
+
+bench -desc "RC4 keyschedule" -body {
+    rc4::RC4Final [rc4::RC4Init $k]
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete

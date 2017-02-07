@@ -1,6 +1,5 @@
 #!/usr/bin/env tclsh
 # mpkgall.tcl
-# $Id$
 #
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 # Copyright (c) 2002 Apple Inc.

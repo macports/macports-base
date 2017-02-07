@@ -1,0 +1,129 @@
+# -*- tcl -*-
+#
+# $Id: toc.html,v 1.6 2005/09/28 04:51:19 andreas_kupries Exp $
+#
+# Engine to convert a doctoc document into HTML.
+#
+# Copyright (c) 2003 Andreas Kupries <andreas_kupries@sourceforge.net>
+# Freely redistributable.
+#
+######################################################################
+
+dt_source _toc_common.tcl
+dt_source _html.tcl
+
+######################################################################
+# Conversion specification.
+#
+# One-pass processing.
+
+rename toc_postprocess {}
+rename fmt_postprocess toc_postprocess
+
+proc fmt_plain_text {text} {return {}}
+
+################################################################
+## Backend for TMML markup
+
+global firstitem   ; set firstitem   1
+global maintable   ; set maintable   1
+global even        ; set even        1
+
+proc fmt_toc_begin     {label title}      {
+    set hdr ""
+    if {![Get raw]} {
+	append  hdr "[markup <html><head>]\n"
+	append  hdr "[markup <title>] $label [markup </title>]\n"
+
+	# Engine parameter - insert 'meta'
+	if {[set meta [Get meta]] != {}} {append hdr [markup $meta]\n}
+
+	append  hdr "[markup </head>]\n"
+	append  hdr [ht_comment [c_provenance]]\n
+	append  hdr [ht_comment "$label"]\n
+	append  hdr \n
+	append  hdr [markup <body>]\n
+    }
+    
+    # Engine parameter - insert 'header'
+    if {[set header [Get header]] != {}} {
+	lappend map @TITLE@ $label
+	set header [string map $map $header]
+	append hdr [markup $header]\n
+    }
+
+    append  hdr "[markup <h3>] $label [markup </h3>]\n"
+    append  hdr "[markup <hr><dl><dt><h2>] $title [markup </h2><dd>]\n"
+    return $hdr
+}
+proc fmt_toc_end       {}           {
+    global maintable
+    set text "\n"
+    if {$maintable} {append text [tag/ table]\n}
+
+    # Engine parameter - insert 'footer'
+    set footer [Get footer]
+    if {$footer != {}} {set footer \n[markup ${footer}]\n}
+
+    append text [tag /dl][tag hr]${footer}
+
+    if {![Get raw]} {
+	append text [tag/ body][tag/ html]\n
+    }
+    return $text
+}
+proc fmt_division_start {title symfile} {
+    global maintable ; set maintable 0
+
+    if {$symfile == ""} {
+	return \n[markup <dl><dt>]$title[markup <dd>]
+    } else {
+	return \n[markup <dl><dt>][markup "<a href=\"[dt_fmap $symfile]\">"]$title[markup </a><dd>]
+    }
+}
+proc fmt_division_end   {}           {
+    global firstitem ; set firstitem 1
+    global even      ; set even 1
+    return [markup </table></dl>]
+}
+proc fmt_item          {file label desc} {
+    global firstitem even
+    set text ""
+
+    if {$firstitem} {
+	set firstitem 0
+	append text \n[markup "<table class=\"#doctools_toc\">"]\n
+    }
+
+    if {$even} {
+	append text [markup "<tr class=\"#doctools_toceven\" >"]\n
+    } else {
+	append text [markup "<tr class=\"#doctools_tocodd\"  >"]\n
+    }
+    set even [expr {1-$even}]
+    append text [markup "<td class=\"#doctools_tocleft\" >"][markup "<a href=\"[dt_fmap $file]\">"]$label[tag/ a][tag/ td]\n
+    append text [markup "<td class=\"#doctools_tocright\">"]${desc}[tag /td]\n
+    append text [tag/ tr]\n
+    return $text
+}
+proc fmt_comment       {text}       {ht_comment $text}
+
+################################################################
+
+global    __var
+array set __var {
+    meta   {}
+    header {}
+    footer {}
+    raw    0
+}
+proc Get               {varname}      {global __var ; return $__var($varname)}
+proc toc_listvariables {}             {global __var ; return [array names __var]}
+proc toc_varset        {varname text} {
+    global __var
+    if {![info exists __var($varname)]} {return -code error "Unknown engine variable \"$varname\""}
+    set __var($varname) $text
+    return
+}
+
+################################################################

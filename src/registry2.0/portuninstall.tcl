@@ -1,8 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # portuninstall.tcl
-# $Id$
 #
-# Copyright (c) 2004-2005, 2008-2011 The MacPorts Project
+# Copyright (c) 2004-2005, 2008-2011, 2014-2015 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
@@ -110,8 +109,7 @@ proc uninstall_composite {portname {v ""} {optionslist ""}} {
 }
 
 proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""}} {
-    global uninstall.force uninstall.nochecksum UI_PREFIX \
-           macports::portimagefilepath macports::registry.path
+    global uninstall.force UI_PREFIX macports::registry.path
     array set options $optionslist
     if {[info exists options(subport)]} {
         # don't want this set when calling registry::run_target

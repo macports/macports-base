@@ -1,0 +1,190 @@
+[comment {-*- tclrep -*- doctools manpage}]
+[manpage_begin tclrep/machineparameters n 1.0]
+[copyright {2008 Michael Baudin <michael.baudin@sourceforge.net>}]
+[moddesc tclrep]
+[require snit]
+[require math::machineparameters 0.1]
+
+[titledesc {Compute double precision machine parameters.}]
+
+[description]
+
+The [emph math::machineparameters] package
+is the Tcl equivalent of the DLAMCH LAPACK function.
+In floating point systems, a floating point number is represented
+by
+[example {
+x = +/- d1 d2 ... dt basis^e
+}]
+where digits satisfy
+[example {
+0 <= di <= basis - 1, i = 1, t
+}]
+with the convention :
+[list_begin itemized]
+[item] t is the size of the mantissa
+[item] basis is the basis (the "radix")
+[list_end]
+
+[para]
+
+   The [method compute] method computes all machine parameters.
+   Then, the [method get] method can be used to get each
+   parameter.
+   The [method print] method prints a report on standard output.
+
+[section EXAMPLE]
+
+In the following example, one compute the parameters of a desktop
+under Linux with the following Tcl 8.4.19 properties :
+
+[example {
+% parray tcl_platform
+tcl_platform(byteOrder) = littleEndian
+tcl_platform(machine)   = i686
+tcl_platform(os)        = Linux
+tcl_platform(osVersion) = 2.6.24-19-generic
+tcl_platform(platform)  = unix
+tcl_platform(tip,268)   = 1
+tcl_platform(tip,280)   = 1
+tcl_platform(user)      = <username>
+tcl_platform(wordSize)  = 4
+}]
+
+   The following example creates a machineparameters object,
+   computes the properties and displays it.
+
+[example {
+     set pp [machineparameters create %AUTO%]
+     $pp compute
+     $pp print
+     $pp destroy
+}]
+
+   This prints out :
+
+[example {
+     Machine parameters
+     Epsilon : 1.11022302463e-16
+     Beta : 2
+     Rounding : proper
+     Mantissa : 53
+     Maximum exponent : 1024
+     Minimum exponent : -1021
+     Overflow threshold : 8.98846567431e+307
+     Underflow threshold : 2.22507385851e-308
+}]
+
+   That compares well with the results produced by Lapack 3.1.1 :
+
+[example {
+     Epsilon                      =   1.11022302462515654E-016
+     Safe minimum                 =   2.22507385850720138E-308
+     Base                         =    2.0000000000000000
+     Precision                    =   2.22044604925031308E-016
+     Number of digits in mantissa =    53.000000000000000
+     Rounding mode                =   1.00000000000000000
+     Minimum exponent             =   -1021.0000000000000
+     Underflow threshold          =   2.22507385850720138E-308
+     Largest exponent             =    1024.0000000000000
+     Overflow threshold           =   1.79769313486231571E+308
+     Reciprocal of safe minimum   =   4.49423283715578977E+307
+}]
+
+   The following example creates a machineparameters object,
+   computes the properties and gets the epsilon for
+   the machine.
+
+[example {
+     set pp [machineparameters create %AUTO%]
+     $pp compute
+     set eps [$pp get -epsilon]
+     $pp destroy
+}]
+
+[section REFERENCES]
+
+[list_begin itemized]
+[item] "Algorithms to Reveal Properties of Floating-Point Arithmetic", Michael A. Malcolm, Stanford University, Communications of the ACM, Volume 15 ,  Issue 11  (November 1972), Pages: 949 - 951
+[item] "More on Algorithms that Reveal Properties of Floating, Point Arithmetic Units", W. Morven Gentleman, University of Waterloo, Scott B. Marovich, Purdue University, Communications of the ACM, Volume 17 ,  Issue 5  (May 1974), Pages: 276 - 277
+[list_end]
+
+[section {CLASS API}]
+
+[list_begin definitions]
+
+[call [cmd machineparameters] create [arg objectname] [opt [arg options]...]]
+
+The command creates a new machineparameters object and returns the fully
+qualified name of the object command as its result.
+
+[list_begin options]
+
+[opt_def -verbose   [arg verbose]]
+
+Set this option to 1 to enable verbose logging.
+This option is mainly for debug purposes.
+The default value of [arg verbose] is 0.
+
+[list_end]
+
+[list_end]
+
+[section {OBJECT API}]
+
+[list_begin definitions]
+
+[call [arg objectname] [method configure] [opt [arg options]...]]
+
+The command configure the options of the object [arg objectname]. The options
+are the same as the static method [method create].
+
+[call [arg objectname] [method cget] [arg opt]]
+
+Returns the value of the option which name is [arg opt]. The options
+are the same as the method [method create] and [method configure].
+
+[call [arg objectname] [method destroy]]
+
+Destroys the object [arg objectname].
+
+[call [arg objectname] [method compute]]
+
+Computes the machine parameters.
+
+[call [arg objectname] [method get] [arg key]]
+
+Returns the value corresponding with given key.
+The following is the list of available keys.
+[list_begin itemized]
+[item] -epsilon : smallest value so that 1+epsilon>1 is false
+[item] -rounding : The rounding mode used on the machine.
+The rounding occurs when more than t digits would be required to
+represent the number.
+Two modes can be determined with the current system :
+"chop" means than only t digits are kept, no matter the value of the number
+"proper" means that another rounding mode is used, be it "round to nearest",
+"round up", "round down".
+[item] -basis : the basis of the floating-point representation.
+The basis is usually 2, i.e. binary representation (for example IEEE 754 machines),
+but some machines (like HP calculators for example) uses 10, or 16, etc...
+[item] -mantissa : the number of bits in the mantissa
+[item] -exponentmax :  the largest positive exponent before overflow occurs
+[item] -exponentmin : the largest negative exponent before (gradual) underflow occurs
+[item] -vmax : largest positive value before overflow occurs
+[item] -vmin : largest negative value before (gradual) underflow occurs
+[list_end]
+
+[call [arg objectname] [method tostring]]
+
+Return a report for machine parameters.
+
+[call [arg objectname] [method print]]
+
+Print machine parameters on standard output.
+
+[list_end]
+
+[vset CATEGORY math]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,182 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2012-01-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ini.tcl: [Bug 3469006]: Followup to [Bug 3419727]. Fixed
+	* ini.man: the unscoped 'close' command left in the code.
+	* pkgIndex.tcl: Bumped version to 0.2.5
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-12-02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ini.tcl: [Bug 3419727]: Fixed the creative writing issue
+	* ini.man: with what should be local variables of _loadfile
+	* pkgIndex.tcl: and _commit. Generally reworked to use the
+	  'variable' command to bring object state into scope.
+	  Bumped version to 0.2.4
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-06-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* inifile.pcx: New file. Syntax definitions for the public
+	  commands of the inifile package.
+
+2008-05-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ini.tcl: Fixed definition of procedure 'commentchar'. Was
+	* ini.man: defined global instead of in the '::ini' namespace.
+	* pkgIndex.tcl: This fixes [SF Tcllib Bug 1917035]. Bumped version
+	  to 0.2.3.
+
+2008-03-14  Andreas Kupries  <andreask@activestate.com>
+
+	* ini.tcl: Simplified the initialization code. Bumped version to
+	* ini.man: 0.2.2.
+	* pkgIndex.tcl:
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-20  Andreas Kupries  <andreask@activestate.com>
+
+	* ini.man: Bumped package version to 0.2.1, due to bugfix in last
+	* ini.tcl: entry.
+	* pkgIndex.tcl:
+
+2007-08-16 Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* ini.man: clarifications to ini::open and ini::remove
+	* ini.tcl fixed bug in ini::value where default value only
+	worked if the section didnt exist
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ini.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-06-29 Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* ini.tcl: added default value option for value command, and added
+	commentchar command. change in comment behavior
+	* ini.man: clarifications for open, commit, and comment commands; added
+	commentchar command
+
+2006-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* inifile.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* inifile.test: Hooked into the new common test support code.
+
+2005-17-11 Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* ini.tcl: fixed bug causing empty ini files when opening
+	with w modes introduced on 2005-31-03
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-09-05  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* ini.tcl:       Fix for bug #1280529 - collision with global
+	* inifile.test:  variable names. Added tests for these.
+
+2005-31-03 Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* ini.tcl: fixed bug where ini files were corrupted when
+                   saving a shorter version. due to not closing
+                   and truncating file before writing.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-03-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* inifile.test: Fixed [Tcllib SF Bug 899204] by (a) rewriting all
+	  tests to be completely independent of each other and (b)
+	  changing the mode when opening the test file to 'r'. It should
+	  be noted that the write facilities of the module are not covered
+	  by the testsuite. That is unfortunate.
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2004-02-10  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* inifile.test: It was easier to make this package useable for Tcl
+	* ini.tcl:      8.2 than excluding it from test for versions of Tcl
+	* ini.man:      before 8.4. So that was done.
+
+2003-07-15  Andreas Kupries  <andreask@pliers.activestate.com>
+
+	* ini.tcl: Got a rewritten system from Aaron.
+	* ini.man: Updated the documentation.
+
+	* infile.test: New testsuite for module.
+	* test.ini:
+
+2003-07-04  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* ini.tcl: Added a comment header for RCS id, copyright notices,
+	  etc. Slight reformatting of the code. Slight code changes to
+	  make 'procheck' complain less (proper import of variables into
+	  the scope).
+
+	  Documented possible bug.

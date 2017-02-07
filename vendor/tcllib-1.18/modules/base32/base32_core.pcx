@@ -1,0 +1,44 @@
+# -*- tcl -*- base32::core.pcx
+# Syntax of the commands provided by package base32::core.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register base32::core
+pcx::tcldep   0.1 needs tcl 8.4
+
+namespace eval ::base32::core {}
+
+pcx::message invalidStringLength {String is not a multiple of 8 characters long} err
+
+pcx::check 0.1 std ::base32::core::define \
+    {checkSimpleArgs 4 4 {
+	checkDict
+	checkVarNameWrite
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 0.1 std ::base32::core::valid \
+    {checkSimpleArgs 3 3 {
+	base32::core::checkEString
+	checkRegexp
+	checkVarNameWrite
+    }}
+
+proc base32::core::checkEString {t i} {
+    set w [lindex $t $i]
+    if {[getLiteral $w str]} {
+	if {[string length $str] % 8 != 0} {
+	    logError base32::core::invalidStringLength [getTokenRange $w]
+	}
+    }
+    return [checkWord $t $i]
+}
+
+# Initialization via pcx::init.
+# Use a ::base32::core::init procedure for non-standard initialization.
+pcx::complete

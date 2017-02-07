@@ -1,0 +1,117 @@
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# 1a_procedure_subcommand.demo: This file is part of the TEPAM demo
+#
+# Copyright (C) 2009, 2010 Andreas Drollinger
+# 
+# Id: 1a_procedure_subcommand.demo
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+#### Initialization ####
+
+DemoControl(Initialization) 1
+DemoControl(IsExecutable) {0}
+
+# This demo shows how procedure sub commands can be created and called
+# using TEPAM.
+
+   package require Tk
+   package require tepam
+   namespace import -force tepam::*; # Import tepam::procedure and tepam::argument_dialogbox
+
+####  Procedure definition ####
+
+DemoControl(IsExecutable) {[info commands my_procedure]=={}}
+
+# This section declares a main procedure, a sub command for this procedure,
+# as well as a sub command of this latest sub command (== sub sub command 
+# of the main procedure).
+
+   procedure {my_procedure} {
+      -short_description "Main command"
+      -description "The main command has two optional arguments"
+      -args {}
+   } {
+      puts "my_procedure"
+   }
+   
+   procedure {my_procedure sub1} {
+      -short_description "First level sub-command"
+      -description "This subcommand has two mandoratory arguments"
+      -args {arg1 arg2}
+   } {
+      puts "my_procedure sub1 $arg1 $arg2"
+   }
+
+   procedure {my_procedure sub2 sub21} {
+      -short_description "Second level sub-command"
+      -description "This second subcommand has only a flag as argument"
+      -args { {-flag -type none} }
+   } {
+      puts "my_procedure sub2 sub21 $flag"
+   }
+
+#### Procedure help ####
+
+DemoControl(IsExecutable) {[info commands my_procedure]!={} && !$Executed}
+
+# Calling the main procedure with the -help switch displays a help description 
+# for the procedure and for all its sub-commands:
+
+   my_procedure -help
+
+# Calling a sub-command with the -help switch displays a help description 
+# just for the selected sub-command.
+
+   my_procedure sub1 -help
+
+#### Correct procedure calls ####
+
+DemoControl(IsExecutable) {[info commands my_procedure]!={} && !$Executed}
+
+# The specified procedure can be called in many ways.
+# The following line calls the main procedure:
+
+   my_procedure
+
+# The next line calls the sub-command 'sub1' of the procedure:
+
+   my_procedure sub1 MyArg1 MyArg2
+
+# And finally, the next two lines call the sub-sub-command 'sub21' of the 
+# sub-command 'sub2'. The first call doesn't provide an argument, the second call provides one argument.
+
+   my_procedure sub2 sub21
+   my_procedure sub2 sub21 -flag
+
+#### Bad sub procedure calls ####
+
+DemoControl(IsExecutable) {[info commands my_procedure]!={} && !$Executed}
+
+# The next 3 lines contain invalid procedure calls.
+# The first line calls the main procedure, but provides by mistake an argument:
+
+   my_procedure MyArg1
+
+# The next line calls a non existing sub-command: 
+
+   my_procedure sub2
+
+# And finally, the declared sub-sub-command is called with an inexisting named
+# argument:
+
+   my_procedure sub2 sub21 -opt MyArg1
+
+
+##########################################################################
+# Id: 1a_procedure_subcommand.demo
+# Modifications:
+#
+# Revision 1.1  2010/02/11 21:54:38  droll
+# * TEPAM module checkin
+##########################################################################

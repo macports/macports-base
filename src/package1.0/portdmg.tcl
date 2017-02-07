@@ -1,6 +1,5 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # portdmg.tcl
-# $Id$
 #
 # Copyright (c) 2007, 2009-2011  The MacPorts Project
 # Copyright (c) 2003, 2005 Apple Inc.
@@ -47,7 +46,7 @@ set_ui_prefix
 proc portdmg::dmg_main {args} {
     global subport version revision package.destpath UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating disk image for %s-%s"] ${subport} ${version}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating disk image for %s-%s"] ${subport} ${version}_${revision}]"
 
     if {[getuid] == 0 && [geteuid] != 0} {
 		seteuid 0; setegid 0
@@ -60,23 +59,19 @@ proc portdmg::package_dmg {portname portversion portrevision} {
     global UI_PREFIX package.destpath portpath \
            os.platform os.arch os.version os.major
 
-    if {[expr (${portrevision} > 0)]} {
-        set imagename "${portname}-${portversion}-${portrevision}"
-    } else {
-        set imagename "${portname}-${portversion}"
-    }
+    set imagename [portpkg::image_name ${portname} ${portversion} ${portrevision}]
 
     set tmp_image ${package.destpath}/${imagename}.tmp.dmg
     set final_image ${package.destpath}/${imagename}.dmg
-    set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
+    set pkgpath ${package.destpath}/${imagename}.pkg
 
     if {[file readable $final_image] && ([file mtime ${final_image}] >= [file mtime ${portpath}/Portfile])} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Disk Image for %s version %s is up-to-date"] ${portname} ${portversion}]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Disk Image for %s version %s is up-to-date"] ${portname} ${portversion}_${portrevision}]"
         return 0
     }
 
     # partition for .dmg
-    if {${os.major} >= 9 && ${os.arch} == "i386"} {
+    if {${os.major} >= 9 && ${os.arch} eq "i386"} {
         # GUID_partition_scheme
         set subdev 1
     } else {

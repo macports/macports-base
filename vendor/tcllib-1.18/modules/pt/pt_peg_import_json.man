@@ -1,0 +1,6 @@
+[comment {--- doctools ---}]
+[vset PACKAGE json]
+[vset NAME    JSON]
+[vset CONFIG  json]
+[vset VERSION 1]
+[include include/import/plugin.inc]

@@ -1,0 +1,73 @@
+# -*- tcl -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+#
+# Grammar Start Expression
+#
+
+<<def>> <<ns>><<main>> {} {
+    <<self>> sym_Expression
+    return
+}
+
+#
+# value Symbol 'Expression'
+#
+
+<<def>> <<ns>>sym_Expression {} {
+    # (Function)
+
+    <<runtime>> si:value_symbol_start Expression
+    <<self>> sym_Function
+    <<runtime>> si:reduce_symbol_end Expression
+    return
+}
+
+#
+# value Symbol 'Function'
+#
+
+<<def>> <<ns>>sym_Function {} {
+    # (Sinus)
+
+    <<runtime>> si:value_symbol_start Function
+    <<self>> sym_Sinus
+    <<runtime>> si:reduce_symbol_end Function
+    return
+}
+
+#
+# value Symbol 'Sinus'
+#
+
+<<def>> <<ns>>sym_Sinus {} {
+    # x
+    #     "sin\("
+    #     (Expression)
+    #     '\)'
+
+    <<runtime>> si:value_symbol_start Sinus
+    <<self>> sequence_9
+    <<runtime>> si:reduce_symbol_end Sinus
+    return
+}
+
+<<def>> <<ns>>sequence_9 {} {
+    # x
+    #     "sin\("
+    #     (Expression)
+    #     '\)'
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_str sin\50
+    <<runtime>> si:voidvalue_part
+    <<self>> sym_Expression
+    <<runtime>> si:valuevalue_part
+    <<runtime>> si:next_char \51
+    <<runtime>> si:value_state_merge
+    return
+}
+
+#
+#

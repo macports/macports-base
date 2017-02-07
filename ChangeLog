@@ -2,12 +2,29 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.4 (unreleased)
-    - Show date in verbose output of 'port installed'
-      (raimue in r146757, r152685)
+Release 2.4.1 (unreleased)
+    - Avoid an infinite loop when livecheck.regex is empty.
+      (raimue in d33a8a0)
 
-    - Add depends_test to handle the dependencies for the test phase of ports.
-      (khindenburg in r140488, #38208)
+    - Fixed detection of /opt/local/bin already in the user's PATH in the
+      installer postflight script. (barry-scott in dcb0788)
+
+    - Fixed the display of default variants by 'port variants' when the
+      defaults are affected by variants present in variants.conf.
+      (jmr in 9e63a61)
+
+    - Fixed 'port reclaim' deleting a file installed by the MacPorts installer
+      for technical reasons.
+      (cal in b0c0957, #53436)
+
+Release 2.4 (2017-01-27 by jmr)
+    - New action 'port reclaim' to clean inactive ports and unnecessary
+      distfiles to get back disk space, developed during GSoC 2014.
+      (ksammons in branch gsoc14-cleanup)
+
+    - New action 'port diagnose' to check for installation problems and
+      configuration errors, developed during GSoC 2014.
+      (ksammons in branch gsoc14-cleanup)
 
     - Replaced the strings previously printed by "port help" with much more
       detailed and current manpages written using asciidoc that open
@@ -16,13 +33,6 @@ Release 2.4 (unreleased)
       (raimue in branch new-help-system, merge in r123002,
        manpages written by cal, jmr, raimue, ionic, jeremyhu,
        #44530, #15467)
-
-    - Added macports_version to the Portfile execution context, to allow
-      checking the current MacPorts version in Portfiles.
-      (cal in r134511)
-
-    - Added "setunrequested" alias for "unsetrequested" command.
-      (ionic in r130217)
 
     - Added interactive questions for various use cases like 'install',
       'activate', 'uninstall --follow-dependencies'. Also added global
@@ -33,16 +43,46 @@ Release 2.4 (unreleased)
       installation to prevent them from getting lost in the scrolling output.
       (#24507, cal in r118304, patch by snc)
 
+    - Show date in verbose output of 'port installed'
+      (raimue in r146757, r152685)
+
+    - Added "setunrequested" alias for "unsetrequested" command.
+      (ionic in r130217)
+
     - Handle SIGTERM and SIGINT (^C) in MacPorts to prevent inconsistencies in
       the registry database when MacPorts is aborted during a critical
       operation.
       (cal in r118297 and r118298)
+
+    - Added macports_version to the Portfile execution context, to allow
+      checking the current MacPorts version in Portfiles.
+      (cal in r134511)
+
+    - Add depends_test to handle the dependencies for the test phase of ports.
+      (khindenburg in r140488, #38208)
 
     - Remove "support" for rpm and deb packages in MacPorts, leaving pkg/mpkg.
       (afb in r123004)
 
     - Remove deprecated rpm-vercomp function, ports should use vercmp instead.
       (afb in r123005)
+
+    - Use pkgbuild instead of PackageMaker.app in 'port pkg' on newer systems.
+      (#42725, jmr in dd89bb8)
+
+    - Fixed a bug that could cause installation of ports with large numbers of
+      dependencies to fail due to running out of file descriptors.
+      (#50986, jmr in 0fd195f)
+
+    - Fixed variants requested on the command line or in variants.conf not
+      being properly passed down to dependencies when +universal is added
+      by arch checking. (#53322, jmr in 4972592)
+
+    - Fixed building dmgs of ports with a non-zero revision.
+      (#51136, jmr in 62d7125, e0c7f1c, 75584d8)
+
+    - Fix 'port info' output for multi-valued maintainers
+      (#52928, raimue in ba2002c)
 
 Release 2.3.5 (2016-11-16 by raimue)
     - Updated compiler selection for macOS 10.12 Sierra
@@ -54,7 +94,7 @@ Release 2.3.5 (2016-11-16 by raimue)
     - Prune symlinks to deleted libtool archives (.la)
       (#40935, jmr in r119571, r119594, r119595)
 
-    - Return an error livecheck matched a version older than the current
+    - Return an error if livecheck matched a version older than the current
       version.
       (jmr, raimue in r127797, r149299)
 
@@ -89,7 +129,7 @@ Release 2.3.5 (2016-11-16 by raimue)
       (#52757, raimue in fc45aaf)
 
     - Support multi-valued entries in the maintainers field and allow GitHub
-      usernames as mainainers
+      usernames as maintainers
       (cal in 30c27d5)
 
 Release 2.3.4 (2015-10-01 by jmr)

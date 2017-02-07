@@ -1,4 +1,3 @@
-dnl $Id$
 builtin(include,m4/tcl.m4)
 builtin(include,m4/pthread.m4)
 builtin(include,m4/foundation.m4)
@@ -105,55 +104,21 @@ AC_DEFUN([MP_TOOL_PATH], [dnl
 		[])dnl
 ])
 
-dnl Configure a project contained in a .tar.gz, .tgz or .tar.bz2 tarball,
-dnl extracting it previously, if necessary. Different from AC_CONFIG_SUBDIRS
-dnl (on which this macro is based), you can pass parameters to the
-dnl sub-configure script.
+dnl Configure a project contained in a subdirectory. Different from
+dnl AC_CONFIG_SUBDIRS (on which this macro is based), you can pass parameters
+dnl to the sub-configure script.
 dnl
 dnl Parameters:
-dnl  - The relative path to the tarball
-dnl  - The relative path to the directory that will be extracted from the
-dnl    tarball and contains the configure script to be run (can be a sub directory of the extracted directory)
+dnl  - The relative path to the directory that contains the configure script
+dnl    to be run
 dnl  - Parameters to pass to the configure script
 dnl
-dnl MP_CONFIG_TARBALL([path-to-tarball], [dir-extracted-from-tarball-with-configure], [configure-parameters])
-AC_DEFUN([MP_CONFIG_TARBALL], [
-	dnl Warning: Don't use $GZIP and $BZIP2 here, both tools interpret these
-	dnl env variables as additional parameters.
-	AC_PATH_PROG(GZIP_BIN, [gzip], [])
-	AC_PATH_PROG(BZIP2_BIN, [bzip2], [])
+dnl MP_CONFIG_SUBDIR([path-to-directory], [configure-parameters])
+AC_DEFUN([MP_CONFIG_SUBDIR], [
 
-	mp_tarball="$1"
-	ac_dir=$2
+	ac_dir="$1"
 
 	mp_popdir=$(pwd)
-	if ! test -d "$ac_dir"; then
-		mp_tarball_vendordir="$(dirname "$mp_tarball")"
-		AS_MKDIR_P(["$mp_tarball_vendordir"])
-		AC_MSG_NOTICE([=== extracting $mp_tarball])
-		mp_tarball_extract_cmd=
-		case "$mp_tarball" in
-			*.tar.gz | *.tgz)
-				if test "x$GZIP_BIN" = "x"; then
-					AC_MSG_ERROR([gzip not found])
-				fi
-				mp_tarball_extract_cmd="$GZIP_BIN"
-				;;
-			*.tar.bz2 | *.tbz2)
-				if test "x$BZIP2_BIN" = "x"; then
-					AC_MSG_ERROR([bzip2 not found])
-				fi
-				mp_tarball_extract_cmd="$BZIP2_BIN"
-				;;
-			*)
-				AC_MSG_ERROR([Don't know how to extract tarball $mp_tarball])
-				;;
-		esac
-		(cd "$mp_tarball_vendordir"; umask 0022; "$mp_tarball_extract_cmd" -d < "$ac_abs_confdir/$mp_tarball" | tar xf - || AC_MSG_ERROR([failed to extract $mp_tarball]))
-	fi
-	if ! test -d "$ac_dir"; then
-		AC_MSG_ERROR([tarball $mp_tarball did not extract to $ac_dir])
-	fi
 
 	AS_MKDIR_P(["$ac_dir"])
 	_AC_SRCDIRS(["$ac_dir"])
@@ -164,10 +129,10 @@ AC_DEFUN([MP_CONFIG_TARBALL], [
 		if test -f "$ac_srcdir/configure"; then
 			mp_sub_configure_args=
 			mp_sub_configure_keys=
-			# Compile a list of keys that have been given to the MP_CONFIG_TARBALL
+			# Compile a list of keys that have been given to the MP_CONFIG_SUBDIR
 			# macro; we want to skip copying those parameters from the original
 			# configure invocation.
-			for mp_arg in $3; do
+			for mp_arg in $2; do
 				case $mp_arg in
 					--*=* | -*=*)
 						_MP_EXTRACT_KEY([mp_arg_key], ["$mp_arg"])
@@ -179,7 +144,7 @@ AC_DEFUN([MP_CONFIG_TARBALL], [
 			# Walk the list of arguments given to the original configure script;
 			# filter out a few common ones we likely would not want to pass along,
 			# add --disable-option-checking and filter those already given as
-			# argument to MP_CONFIG_TARBALL.
+			# argument to MP_CONFIG_SUBDIR.
 			# Most of this code is adapted from _AC_OUTPUT_SUBDIRS in
 			# $prefix/share/autoconf/autoconf/status.m4.
 			mp_prev=

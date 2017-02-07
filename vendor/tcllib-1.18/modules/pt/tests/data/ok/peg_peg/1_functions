@@ -1,0 +1,7 @@
+PEG a_pe_grammar (Expression)
+
+ Expression <- Function ;
+ Function   <- Sinus ;
+ Sinus      <- 's' 'i' 'n' '(' Expression ')' ;
+
+END;

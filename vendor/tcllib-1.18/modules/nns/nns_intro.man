@@ -1,0 +1,128 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin nns_intro n 1.0]
+[see_also nameserv(n)]
+[see_also nameserv::auto(n)]
+[see_also nameserv::common(n)]
+[see_also nameserv::protocol(n)]
+[see_also nameserv::server(n)]
+[see_also nnsd(n)]
+[see_also nss(n)]
+[keywords client]
+[keywords {name service}]
+[keywords server]
+[copyright {2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Name service facility}]
+[titledesc {Name service facility, introduction}]
+[category  Networking]
+[description]
+[para]
+
+[term nns] (short for [emph {nano nameservice}]) is a facility built
+for the package [package comm], adding a simple name service to it.
+It is also built on top of [package comm], using it for the exchange
+of messages between the client and server parts.
+
+[para]
+
+This name service facility has nothing to do with the Internet's
+[term {Domain Name System}], otherwise known as [term DNS]. If the
+reader is looking for a package dealing with that please see either of
+the packages [package dns] and [package resolv], both found in Tcllib
+too.
+
+[para]
+
+Tcllib provides 2 applications and 4 packages which are working
+together and provide access to the facility at different levels.
+
+[section Applications]
+
+The application [syscmd nnsd] provides a simple name server which can
+be run by anybody anywhere on their system, as they see fit.
+
+It is also an example on the use of the server-side package
+[package nameserv::server].
+
+[para]
+
+Complementing this server is the [syscmd nns] client application.
+
+A possible, but no very sensible use would be to enter name/port
+bindings into a server from a shell script. Not sensible, as shell
+scripts normally do not provide a [package comm]-based service.
+
+[para]
+
+The only case for this to make some sense would be in a shell script
+wrapped around a Tcl script FOO which is using comm, to register the
+listening port used by FOO.
+
+However even there it would much more sensible to extend FOO to use
+the nameservice directly. And in regard on how to that [syscmd nns]
+can be used as both example and template.
+
+Beyond that it may also be useful to perform nameservice queries from
+shell scripts.
+
+[para]
+
+The third application, [syscmd nnslog] is a stripped down form of the
+[syscmd nns] client application. It is reduced to perform a continuous
+search for all changes and logs all received events to stdout.
+
+[para]
+
+Both clients use the [package nameserv::auto] package to automatically
+hande the loss and restoration of the connection to the server.
+
+[section Packages]
+
+The two main packages implementing the service are [package nameserv]
+and [package nameserv::server], i.e. client and server. The latter has
+not much of an API, just enough to start, stop, and configure it. See
+the application [syscmd nnsd] on how to use it.
+
+[para]
+
+The basic client, in package [package nameserv], provides the main API
+to manipulate and query the service. An example of its use is the
+application [syscmd nns].
+
+[para]
+
+The second client package, [package nameserv::auto] is API compatible
+to the basic client, but provides the additional functionality that it
+will automatically restore data like bound names when the connection
+to the name service was lost and then reestablished. I.e. it
+automatically detects the loss of the server and re-enters the data
+when the server comes back.
+
+[para]
+
+The package [package nameserv::common] is of no interest to users. It
+is an internal package containing code and definitions common to the
+packages [package nameserv] and [package nameserv::server].
+
+[para]
+
+All packages use the [package uevent] package for the reporting of
+special circumstances via events, and reserve the uevent-tag
+[term nameserv] for their exclusive use. All their events will be
+posted to that tag.
+
+[section Internals]
+
+The document [term {Name service facility, client/server protocol}]
+specifies the protocol used by the packages [package nameserv] and
+[package nameserv::server] to talk to each other. It is of no interest
+to users of either the packages or applications.
+
+[para]
+
+Developers wishing to modify and/or extend or to just understand the
+internals of the nameservice facility however are strongly advised to
+read it.
+
+[vset CATEGORY nameserv]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

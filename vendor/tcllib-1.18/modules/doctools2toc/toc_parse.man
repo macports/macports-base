@@ -1,0 +1,175 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctools::toc::parse n 1]
+[keywords doctoc]
+[keywords doctools]
+[keywords lexer]
+[keywords parser]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {Parsing text in doctoc format}]
+[category  {Documentation tools}]
+[require doctools::toc::parse [opt 0.1]]
+[require Tcl 8.4]
+[require doctools::toc::structure]
+[require doctools::msgcat]
+[require doctools::tcl::parse]
+[require fileutil]
+[require logger]
+[require snit]
+[require struct::list]
+[require struct::stack]
+
+[description]
+
+This package provides commands to parse text written in the
+[term doctoc] markup language and convert it into the canonical
+serialization of the table of contents encoded in the text.
+
+See the section [sectref {ToC serialization format}] for specification
+of their format.
+
+[para]
+
+This is an internal package of doctools, for use by the higher level
+packages handling [term doctoc] documents.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::doctools::toc::parse] [method text] [arg text]]
+
+The command takes the string contained in [arg text] and parses it
+under the assumption that it contains a document written using the
+[term doctoc] markup language. An error is thrown if this assumption
+is found to be false. The format of these errors is described in
+section [sectref {Parse errors}].
+
+[para]
+
+When successful the command returns the canonical serialization of the
+table of contents which was encoded in the text.
+
+See the section [sectref {ToC serialization format}] for specification
+of that format.
+
+[call [cmd ::doctools::toc::parse] [method file] [arg path]]
+
+The same as [method text], except that the text to parse is read from
+the file specified by [arg path].
+
+[call [cmd ::doctools::toc::parse] [method includes]]
+
+This method returns the current list of search paths used when looking
+for include files.
+
+[call [cmd ::doctools::toc::parse] [method {include add}] [arg path]]
+
+This method adds the [arg path] to the list of paths searched when
+looking for an include file. The call is ignored if the path is
+already in the list of paths. The method returns the empty string as
+its result.
+
+[call [cmd ::doctools::toc::parse] [method {include remove}] [arg path]]
+
+This method removes the [arg path] from the list of paths searched
+when looking for an include file. The call is ignored if the path is
+not contained in the list of paths. The method returns the empty
+string as its result.
+
+[call [cmd ::doctools::toc::parse] [method {include clear}]]
+
+This method clears the list of search paths for include files.
+
+[call [cmd ::doctools::toc::parse] [method vars]]
+
+This method returns a dictionary containing the current set of
+predefined variables known to the [cmd vset] markup command during
+processing.
+
+[call [cmd ::doctools::toc::parse] [method {var set}] [arg name] [arg value]]
+
+This method adds the variable [arg name] to the set of predefined
+variables known to the [cmd vset] markup command during processing,
+and gives it the specified [arg value]. The method returns the empty
+string as its result.
+
+[call [cmd ::doctools::toc::parse] [method {var unset}] [arg name]]
+
+This method removes the variable [arg name] from the set of predefined
+variables known to the [cmd vset] markup command during
+processing. The method returns the empty string as its result.
+
+[call [cmd ::doctools::toc::parse] [method {var clear}] [opt [arg pattern]]]
+
+This method removes all variables matching the [arg pattern] from the
+set of predefined variables known to the [cmd vset] markup command
+during processing. The method returns the empty string as its result.
+
+[para]
+
+The pattern matching is done with [cmd {string match}], and the
+default pattern used when none is specified, is [const *].
+
+[list_end]
+
+[section {Parse errors}]
+
+The format of the parse error messages thrown when encountering
+violations of the [term doctoc] markup syntax is human readable and
+not intended for processing by machines. As such it is not documented.
+
+[para]
+
+[emph However], the errorCode attached to the message is
+machine-readable and has the following format:
+
+[list_begin enumerated]
+[enum]
+The error code will be a list, each element describing a single error
+found in the input. The list has at least one element, possibly more.
+
+[enum]
+Each error element will be a list containing six strings describing an
+error in detail. The strings will be
+
+[list_begin enumerated]
+[enum]
+The path of the file the error occured in. This may be empty.
+
+[enum]
+The range of the token the error was found at. This range is a
+two-element list containing the offset of the first and last character
+in the range, counted from the beginning of the input (file). Offsets
+are counted from zero.
+
+[enum]
+The line the first character after the error is on.
+Lines are counted from one.
+
+[enum]
+The column the first character after the error is at.
+Columns are counted from zero.
+
+[enum]
+The message code of the error. This value can be used as argument to
+[cmd msgcat::mc] to obtain a localized error message, assuming that
+the application had a suitable call of [cmd doctools::msgcat::init] to
+initialize the necessary message catalogs (See package
+[package doctools::msgcat]).
+
+[enum]
+A list of details for the error, like the markup command involved. In
+the case of message code [const doctoc/include/syntax] this value is
+the set of errors found in the included file, using the format
+described here.
+
+[list_end]
+[list_end]
+
+[include include/format/doctoc.inc]
+[include include/serialization.inc]
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

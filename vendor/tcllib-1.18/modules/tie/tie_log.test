@@ -1,0 +1,240 @@
+# Tests for the tie module.                              -*- tcl -*- 
+#
+# Copyright (c) 2004 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: tie_log.test,v 1.7 2006/10/09 21:41:42 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+support {
+    use      snit/snit.tcl snit
+    useLocal tie.tcl       tie
+}
+testing {
+    useLocal tie_log.tcl tie::std::log
+}
+
+# -------------------------------------------------------------------------
+
+proc note {level text} {global res ; lappend res $text ; return}
+log::lvCmdForall note
+log::lvSuppressLE critical 0
+
+# -------------------------------------------------------------------------
+# Creation of array daat sources
+# Errors: Undefined variable, scalar, local variable
+
+test tie-log-1.0 {log creation, wrong#args} {
+    catch {tie::std::log x y z} msg
+    set msg
+} {Error in constructor: wrong # args: should be "::tie::std::log::Snit_constructor type selfns win self"}
+
+test tie-log-1.1 {log creation, %AUTO%} {
+    set res {}
+    lappend res [tie::std::log x]
+    x destroy
+    set res
+} {{::x construction} ::x {::x destruction}}
+
+test tie-log-1.2 {log creation, %AUTO%} {
+    set res {}
+    lappend res [set msg [tie::std::log %AUTO%]]
+    $msg destroy
+    set res
+} {{::log3 construction} ::log3 {::log3 destruction}}
+
+# -------------------------------------------------------------------------
+## Methods
+
+test tie-log-2.0 {log get, wrong#args} {
+    tie::std::log x
+    catch {x get a} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::log::Snit_methodget type selfns win self"}
+
+test tie-log-2.1 {log get} {
+    set res {}
+    tie::std::log x
+    lappend res [x get]
+    x destroy
+    set res
+} {{::x construction} {::x get (nothing)} {} {::x destruction}}
+
+
+test tie-log-3.0 {log set, wrong#args} {
+    tie::std::log x
+    set     res {}
+    catch {x set} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::log::Snit_methodset type selfns win self dict"}
+
+test tie-log-3.1 {log set, wrong#args} {
+    tie::std::log x
+    set     res {}
+    catch {x set a b} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::log::Snit_methodset type selfns win self dict"}
+
+test tie-log-3.2 {log set} {
+    set     res {}
+    tie::std::log x
+    lappend res [x set {c 3 b 2 a 1}]
+    x destroy
+    set res
+} {{::x construction} {::x set {c 3 b 2 a 1}} {} {::x destruction}}
+
+
+test tie-log-4.0 {log names, wrong#args} {
+    tie::std::log x
+    catch {x names a} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::log::Snit_methodnames type selfns win self"}
+
+test tie-log-4.1 {log names} {
+    set res {}
+    tie::std::log x
+    lappend res [x names]
+    x destroy
+    set res
+} {{::x construction} {::x names (nothing)} {} {::x destruction}}
+
+
+test tie-log-5.0 {log size, wrong#args} {
+    tie::std::log x
+    catch {x size a} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::log::Snit_methodsize type selfns win self"}
+
+test tie-log-5.1 {log size} {
+    set res {}
+    tie::std::log x
+    lappend res [x size]
+    x destroy
+    set res
+} {{::x construction} {::x size (0)} 0 {::x destruction}}
+
+
+test tie-log-6.0 {log unset, wrong#args} {
+    tie::std::log x
+    set     res {}
+    catch {x unset a b} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::log::Snit_methodunset type selfns win self ?pattern?"}
+
+test tie-log-6.1 {log unset, default pattern} {
+    set     res {}
+    tie::std::log x
+    lappend res [x unset]
+    x destroy
+    set res
+} {{::x construction} {::x unset *} {} {::x destruction}}
+
+test tie-log-6.2 {log unset, by pattern} {
+    set     res {}
+    tie::std::log x
+    lappend res [x unset f*]
+    x destroy
+    set res
+} {{::x construction} {::x unset f*} {} {::x destruction}}
+
+
+test tie-log-7.0 {log getv, wrong#args} {
+    tie::std::log x
+    set res {}
+    catch {x getv} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::log::Snit_methodgetv type selfns win self index"}
+
+test tie-log-7.1 {log getv, wrong#args} {
+    tie::std::log x
+    set     res {}
+    catch {x getv a b} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::log::Snit_methodgetv type selfns win self index"}
+
+test tie-log-7.2 {log getv} {
+    set     res {}
+    tie::std::log x
+    lappend res [x getv a]
+    x destroy
+    set res
+} {{::x construction} {::x get (a)} {} {::x destruction}}
+
+
+test tie-log-8.0 {log setv, wrong#args} {
+    tie::std::log x
+    set     res {}
+    catch {x setv} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::log::Snit_methodsetv type selfns win self index value"}
+
+test tie-log-8.1 {log setv, wrong#args} {
+    tie::std::log x
+    set     res {}
+    catch {x setv a} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::log::Snit_methodsetv type selfns win self index value"}
+
+test tie-log-8.2 {log setv, wrong#args} {
+    tie::std::log x
+    set     res {}
+    catch {x setv a b c} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::log::Snit_methodsetv type selfns win self index value"}
+
+test tie-log-8.3 {log setv} {
+    set     res {}
+    tie::std::log x
+    lappend res [x setv fox snarf]
+    x destroy
+    set res
+} {{::x construction} {::x set (fox) = [snarf]} {} {::x destruction}}
+
+
+test tie-log-9.0 {log unsetv, wrong#args} {
+    tie::std::log x
+    set     res {}
+    catch {x unsetv} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::log::Snit_methodunsetv type selfns win self index"}
+
+test tie-log-9.1 {log unsetv, wrong#args} {
+    tie::std::log x
+    set     res {}
+    catch {x unsetv a b} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::log::Snit_methodunsetv type selfns win self index"}
+
+test tie-log-9.2 {log unsetv} {
+    set     res {}
+    tie::std::log x
+    lappend res [x unsetv a]
+    x destroy
+    set res
+} {{::x construction} {::x unset (a)} {} {::x destruction}}
+
+# Switch off logging
+log::lvSuppressLE critical 1
+testsuiteCleanup
+return

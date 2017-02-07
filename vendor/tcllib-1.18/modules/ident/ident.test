@@ -1,0 +1,54 @@
+# ident.test --                                                 -*- tcl -*-
+#
+#	Tests for the ident package
+#
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal ident.tcl ident
+}
+
+# -------------------------------------------------------------------------
+# Tests
+# -------------------------------------------------------------------------
+
+# good responses
+test {ident-1.0} {normal response} {
+    ident::parse "8888 , 9999 : USERID : UNIX :max"
+} {resp-type USERID opsys UNIX user-id max}
+
+test {ident-1.1} {response with charset} {
+    ident::parse "8888 , 9999 : USERID : UNIX , utf-8 :max"
+} {resp-type USERID opsys UNIX user-id max}
+
+test {ident-1.2} {response with spaces in the user-id} {
+    ident::parse "8888 , 9999 : USERID : UNIX , utf-8 : foo bar "
+} {resp-type USERID opsys UNIX user-id { foo bar }}
+
+# errors from the server
+test {ident-2.0} {error response} {
+    ident::parse "2222,3333 : ERROR : NO-USER"
+} {resp-type ERROR error NO-USER}
+
+# fatal errors
+test {ident-3.0} {empty response} {
+    ident::parse ""
+} {resp-type FATAL error {Unexpected response:""}}
+
+test {ident-3.1} {nonsense} {
+    ident::parse "sadf liubsv"
+} {resp-type FATAL error {Unexpected response:"sadf liubsv"}}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# -------------------------------------------------------------------------

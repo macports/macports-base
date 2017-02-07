@@ -1,0 +1,44 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcl::chan::nullzero n 1]
+[keywords /dev/null]
+[keywords /dev/zero]
+[keywords null]
+[keywords {reflected channel}]
+[keywords {tip 219}]
+[keywords {virtual channel}]
+[keywords zero]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Reflected/virtual channel support}]
+[category  Channels]
+[titledesc {Null/Zero channel combination}]
+[require Tcl 8.5]
+[require TclOO]
+[require tcl::chan::events [opt 1]]
+[require tcl::chan::nullzero [opt 1]]
+[description]
+[para]
+
+The [package tcl::chan::nullzero] package provides a command creating channels,
+which are a combination of null and zero devices. They immediately forget
+whatever is written to them, and on reading return an infinite stream of null
+characters.
+
+[para] Packages related to this are [package tcl::chan::null] and
+[package tcl::chan::zero].
+
+[para] The internal [package TclOO] class implementing the channel handler
+is a sub-class of the [package tcl::chan::events] framework.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::tcl::chan::nullzero]]
+
+This command creates a new nullzero channel and returns its handle.
+
+[list_end]
+
+[vset CATEGORY virtchannel]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

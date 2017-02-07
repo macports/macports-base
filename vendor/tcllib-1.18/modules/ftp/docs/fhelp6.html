@@ -1,0 +1,74 @@
+<html>
+<head>
+<title>ftp Library Package 2.1 for Tcl/Tk help file</title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<body>
+
+<p>
+<dl>
+  <dd>
+    <p><font face="Arial,Helvetica" color="#526e9c" size="+2"><b>ftp Library Package 2.1 for Tcl/Tk Manual Pages</b></font></p>
+  </dd>
+
+  <dd><font face="Arial,Helvetica" size="+1"><b>COMMAND</b></font></dd>
+  <dd><dl>  
+    <dd><b>ftp::List</b><em>&nbsp; handle&nbsp; ?directory?</em></dd>
+    <dd>&nbsp;</dd>
+    <dd>
+
+	The <b>ftp::List</b> command lists the contents of the current remote
+	directory or if the directory parameter is specified a directory
+	or other group of files. Also wildcard expression, such as 
+	"*.tcl", can be specified. The directory or file name must be
+	fully qualified, otherwise the it takes entries in the current
+	remote directory.
+
+	<p>The listing includes any system-dependent information that the
+	server chooses to include; for example, most UNIX systems 
+	produce output from the command "ls -l". <b>ftp::List</b> returns
+	these information as a <b>tcl list</b> with one line for every entry.
+	Empty lines and UNIX's "total" lines are ignored. So it should
+	offer only usable informations.</p>
+		
+	<p>If the command fails an empty list is returned.</p>
+
+    </dd>
+  </dl></dd>
+
+  <dd><font face="Arial,Helvetica" size="+1"><b>EXAMPLE</b></font></dd>
+  <dd><dl>
+    <dd>
+	<pre># list current directory
+foreach line [ftp::List $conn]
+	puts $line
+}
+
+# list only tcl files
+foreach line [ftp::List $conn *.tcl]
+	puts $line
+}
+
+# list specified directory
+set dir_list [ftp::List $conn /pub/usr/lib]
+
+# list if directory exist
+if {[ftp::Cd $conn /pub/usr/lib]} {
+	set dir_list [ftp::List $conn]
+} else {
+	puts "Directory doesn't exist!"
+}	
+	</pre>
+		
+    </dd> 
+  </dl></dd> 
+</dl>
+</p>
+<p>
+[<a href="index.html">Contents</a>]&nbsp;
+[<b>Previous:</b> <a href="fhelp5.html">ftp::Type</a>]&nbsp;
+[<b>Next:</b> <a href="fhelp7.html">ftp::NList</a>]
+</p>
+<p align="left"><hr noshade size="1"><font face="Arial,Helvetica" size="-1">&copy; 1999 <a href="mailto:Steffen.Traeger@t-online.de">Steffen Traeger</a></font></p>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<html><head>
+<title>cmdline - Command line and option processing</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'cmdline.man' by tcllib/doctools with format 'html'
+   -->
+<! -- cmdline.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">cmdline(n) 1.5 tcllib &quot;Command line and option processing&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>cmdline - Procedures to process command lines and options.</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">::argv handling</a></li>
+<li class="doctools_section"><a href="#section3">API</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Error Codes</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">cmdline <span class="opt">?1.3.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::cmdline::getopt</b> <i class="arg">argvVar</i> <i class="arg">optstring</i> <i class="arg">optVar</i> <i class="arg">valVar</i></a></li>
+<li><a href="#2"><b class="cmd">::cmdline::getKnownOpt</b> <i class="arg">argvVar</i> <i class="arg">optstring</i> <i class="arg">optVar</i> <i class="arg">valVar</i></a></li>
+<li><a href="#3"><b class="cmd">::cmdline::getoptions</b> <i class="arg">arglistVar</i> <i class="arg">optlist</i> <span class="opt">?<i class="arg">usage</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">::cmdline::getKnownOptions</b> <i class="arg">arglistVar</i> <i class="arg">optlist</i> <span class="opt">?<i class="arg">usage</i>?</span></a></li>
+<li><a href="#5"><b class="cmd">::cmdline::usage</b> <i class="arg">optlist</i> <span class="opt">?<i class="arg">usage</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">::cmdline::getfiles</b> <i class="arg">patterns</i> <i class="arg">quiet</i></a></li>
+<li><a href="#7"><b class="cmd">::cmdline::getArgv0</b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides commands to parse command lines and options.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">::argv handling</a></h2>
+<p>One of the most common variables this package will be used with is
+<b class="variable">::argv</b>, which holds the command line of the current
+application. This variable has a companion <b class="variable">::argc</b> which is
+initialized to the number of elements in <b class="variable">::argv</b> at the beginning
+of the application.</p>
+<p>The commands in this package will <em>not</em> modify the <b class="variable">::argc</b>
+companion when called with <b class="variable">::argv</b>. Keeping the value consistent,
+if such is desired or required, is the responsibility of the caller.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::cmdline::getopt</b> <i class="arg">argvVar</i> <i class="arg">optstring</i> <i class="arg">optVar</i> <i class="arg">valVar</i></a></dt>
+<dd><p>This command works in a fashion like the standard C based <b class="cmd">getopt</b>
+function.  Given an option string and a pointer to an array of args
+this command will process the first argument and return info on how to
+proceed. The command returns 1 if an option was found, 0 if no more
+options were found, and -1 if an error occurred.</p>
+<p><i class="arg">argvVar</i> contains the name of the list of arguments to
+process. If options are found the list is modified and the processed
+arguments are removed from the start of the list.</p>
+<p><i class="arg">optstring</i> contains a list of command options that the
+application will accept.  If the option ends in &quot;.arg&quot; the command
+will use the next argument as an argument to the option, or extract it
+from the current argument, if it is of the form &quot;option=value&quot;.
+Otherwise the option is a boolean that is set to 1 if present.</p>
+<p><i class="arg">optVar</i> refers to the variable the command will store the found
+option into (without the leading '-' and without the .arg extension).</p>
+<p><i class="arg">valVar</i> refers to the variable to store either the value for the
+specified option into upon success or an error message in the case of
+failure. The stored value comes from the command line for .arg
+options, otherwise the value is 1.</p></dd>
+<dt><a name="2"><b class="cmd">::cmdline::getKnownOpt</b> <i class="arg">argvVar</i> <i class="arg">optstring</i> <i class="arg">optVar</i> <i class="arg">valVar</i></a></dt>
+<dd><p>Like <b class="cmd">::cmdline::getopt</b>, but ignores any unknown options in the
+input.</p></dd>
+<dt><a name="3"><b class="cmd">::cmdline::getoptions</b> <i class="arg">arglistVar</i> <i class="arg">optlist</i> <span class="opt">?<i class="arg">usage</i>?</span></a></dt>
+<dd><p>Processes the set of command line options found in the list variable
+named by <i class="arg">arglistVar</i> and fills in defaults for those not
+specified.  This also generates an error message that lists the
+allowed flags if an incorrect flag is specified. The optional
+<i class="arg">usage</i>-argument contains a string to include in front of the
+generated message. If not present it defaults to &quot;options:&quot;.</p>
+<p><i class="arg">optlist</i> contains a list of lists where each element specifies an
+option in the form: <i class="arg">flag</i> <i class="arg">default</i> <i class="arg">comment</i>.</p>
+<p>If <i class="arg">flag</i> ends in &quot;.arg&quot; then the value is taken from the command
+line. Otherwise it is a boolean and appears in the result if present
+on the command line. If <i class="arg">flag</i> ends in &quot;.secret&quot;, it will not be
+displayed in the usage.</p>
+<p>The options <b class="option">-?</b>, <b class="option">-help</b>, and <b class="option">--</b> are
+implicitly understood. The first two abort option processing by
+throwing an error and force the generation of the usage message,
+whereas the the last aborts option processing without an error,
+leaving all arguments coming after for regular processing, even if
+starting with a dash.</p>
+<p>The result of the command is a dictionary mapping all options to their
+values, be they user-specified or defaults.</p></dd>
+<dt><a name="4"><b class="cmd">::cmdline::getKnownOptions</b> <i class="arg">arglistVar</i> <i class="arg">optlist</i> <span class="opt">?<i class="arg">usage</i>?</span></a></dt>
+<dd><p>Like <b class="cmd">::cmdline::getoptions</b>, but ignores any unknown options in the
+input.</p></dd>
+<dt><a name="5"><b class="cmd">::cmdline::usage</b> <i class="arg">optlist</i> <span class="opt">?<i class="arg">usage</i>?</span></a></dt>
+<dd><p>Generates and returns an error message that lists the allowed
+flags. <i class="arg">optlist</i> is defined as for
+<b class="cmd">::cmdline::getoptions</b>. The optional <i class="arg">usage</i>-argument
+contains a string to include in front of the generated message. If not
+present it defaults to &quot;options:&quot;.</p></dd>
+<dt><a name="6"><b class="cmd">::cmdline::getfiles</b> <i class="arg">patterns</i> <i class="arg">quiet</i></a></dt>
+<dd><p>Given a list of file <i class="arg">patterns</i> this command computes the set of
+valid files.  On windows, file globbing is performed on each argument.
+On Unix, only file existence is tested.  If a file argument produces
+no valid files, a warning is optionally generated (set <i class="arg">quiet</i> to
+true).</p>
+<p>This code also uses the full path for each file.  If not given it
+prepends the current working directory to the filename. This ensures
+that these files will never conflict with files in a wrapped zip
+file. The last sentence refers to the pro-tools.</p></dd>
+<dt><a name="7"><b class="cmd">::cmdline::getArgv0</b></a></dt>
+<dd><p>This command returns the &quot;sanitized&quot; version of <i class="arg">argv0</i>.  It will
+strip off the leading path and removes the extension &quot;.bin&quot;. The
+latter is used by the pro-apps because they must be wrapped by a shell
+script.</p></dd>
+</dl>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Error Codes</a></h3>
+<p>Starting with version 1.5 all errors thrown by the package have a
+proper <b class="variable">::errorCode</b> for use with Tcl's <b class="cmd"><a href="../try/tcllib_throw.html">try</a></b> command. This
+code always has the word <b class="const">CMDLINE</b> as its first element.</p>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">EXAMPLES</a></h2>
+<pre class="doctools_example">
+        package require Tcl 8.5
+        package require try         ;# Tcllib.
+        package require cmdline 1.5 ;# First version with proper error-codes.
+        # Notes:
+        # - Tcl 8.6+ has 'try' as a builtin command and therefore does not
+        #   need the 'try' package.
+        # - Before Tcl 8.5 we cannot support 'try' and have to use 'catch'.
+        #   This then requires a dedicated test (if) on the contents of
+        #   ::errorCode to separate the CMDLINE USAGE signal from actual errors.
+        set options {
+            {a          &quot;set the atime only&quot;}
+            {m          &quot;set the mtime only&quot;}
+            {c          &quot;do not create non-existent files&quot;}
+            {r.arg  &quot;&quot;  &quot;use time from ref_file&quot;}
+            {t.arg  -1  &quot;use specified time&quot;}
+        }
+        set usage &quot;: MyCommandName \[options] filename ...\noptions:&quot;
+        try {
+            array set params [::cmdline::getoptions argv $options $usage]
+        } trap {CMDLINE USAGE} {msg o} {
+            # Trap the usage signal, print the message, and exit the application.
+            # Note: Other errors are not caught and passed through to higher levels!
+	    puts $msg
+	    exit 1
+        }
+        if {  $params(a) } { set set_atime &quot;true&quot; }
+        set has_t [expr {$params(t) != -1}]
+        set has_r [expr {[string length $params(r)] &gt; 0}]
+        if {$has_t &amp;&amp; $has_r} {
+            return -code error &quot;Cannot specify both -r and -t&quot;
+        } elseif {$has_t} {
+	    ...
+        }
+</pre>
+<p>This example, taken (and slightly modified) from the package
+<b class="package"><a href="../fileutil/fileutil.html">fileutil</a></b>, shows how to use cmdline.  First, a list of
+options is created, then the 'args' list is passed to cmdline for
+processing.  Subsequently, different options are checked to see if
+they have been passed to the script, and what their value is.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>cmdline</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key264">argument processing</a>, <a href="../../../../index.html#key263">argv</a>, <a href="../../../../index.html#key262">argv0</a>, <a href="../../../../index.html#key265">cmdline processing</a>, <a href="../../../../index.html#key261">command line processing</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+</div></body></html>
