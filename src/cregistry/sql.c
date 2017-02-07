@@ -39,6 +39,12 @@
 #include <tcl.h>
 #include <time.h>
 
+/*** Keep all SQL compatible with SQLite 3.1.3 as shipped with Tiger.
+ *** (Conditionally doing things a better way when possible based on
+ *** SQLITE_VERSION_NUMBER is OK.)
+ ***/
+
+
 /**
  * Executes a null-terminated list of queries. Pass it a list of queries, it'll
  * execute them. This is mainly intended for initialization, when you have a
@@ -387,7 +393,11 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             /* Delete the file_binary index, since it's a low-quality index
              * according to https://www.sqlite.org/queryplanner-ng.html#howtofix */
             static char* version_1_201_queries[] = {
+#if SQLITE_VERSION_NUMBER >= 3003000
                 "DROP INDEX IF EXISTS registry.file_binary",
+#else
+                "DROP INDEX registry.file_binary",
+#endif
                 "UPDATE registry.metadata SET value = '1.201' WHERE key = 'version'",
                 "COMMIT",
                 NULL
