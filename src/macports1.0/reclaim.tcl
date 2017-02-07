@@ -354,7 +354,7 @@ namespace eval reclaim {
 
         set time [read_last_run_file]
 
-        if {![string is integer -strict $time]} {
+        if {![string is wideinteger -strict $time]} {
             return
         }
 

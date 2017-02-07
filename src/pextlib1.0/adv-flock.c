@@ -33,10 +33,11 @@
 #include <config.h>
 #endif
 
-/* needed to get struct sigaction on some platforms */
+#ifndef __APPLE__
+/* needed to get struct sigaction on some platforms, but
+  hides flock on OS X */
 #define _XOPEN_SOURCE 500L
-/* the above hides flock on OS X without _DARWIN_C_SOURCE */
-#define _DARWIN_C_SOURCE
+#endif
 
 #if HAVE_SYS_FILE_H
 #include <sys/file.h>

@@ -5502,7 +5502,7 @@ namespace eval portclient::questions {
                 throw
             }
             signal -restart error {TERM INT}
-            if {($input <= [llength $ports] && [string is integer -strict $input])} {
+            if {[string is wideinteger -strict $input] && $input <= [llength $ports] && $input > 0} {
                 return [expr {$input - 1}]
             } else {
                 puts "Please enter an index from the above list."
@@ -5567,7 +5567,7 @@ namespace eval portclient::questions {
 
             set err_flag 1
             foreach num $input {
-                if {[string is integer -strict $num] && $num <= [llength $ports] && $num > 0} {
+                if {[string is wideinteger -strict $num] && $num <= [llength $ports] && $num > 0} {
                     lappend selected_opt [expr {$num -1}]
                 } elseif {[regexp {(\d+)-(\d+)} $input _ start end]
                           && $start <= [llength $ports]
