@@ -453,9 +453,8 @@ namespace eval reclaim {
 
         } else {
 
-            ui_msg "Found inactive ports: [join $inactive_names {, }]."
             if {[info exists macports::ui_options(questions_multichoice)]} {
-                set retstring [$macports::ui_options(questions_multichoice) "Would you like to uninstall these ports?" "" $inactive_names]
+                set retstring [$macports::ui_options(questions_multichoice) "Would you like to uninstall these inactive ports?" "" $inactive_names]
 
                 if {[llength $retstring] > 0} {
                     foreach i $retstring {
