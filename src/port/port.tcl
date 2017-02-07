@@ -5366,8 +5366,7 @@ namespace eval portclient::questions {
         # Print portname or port list suitably
         set i 1
         foreach port $ports {
-            puts -nonewline [format " %*d) " $maxlen $i]
-            puts [string map {@ " @" ( " ("} $port]
+            puts [format " %*d) %s" $maxlen $i $port]
             incr i
         }
     }

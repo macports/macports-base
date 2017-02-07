@@ -157,9 +157,9 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
             # Asking choice to select option in case of ambiguous uninstall
             if {[info exists macports::ui_options(questions_multichoice)]} {
                 if { [$i state] eq "installed" } {
-                    lappend portilist [$i name]@[$i version]_[$i revision][$i variants](active)
-                } else {
-                    lappend portilist [$i name]@[$i version]_[$i revision][$i variants]
+                    lappend portilist "[$i name] @[$i version]_[$i revision][$i variants] (active)"
+            } else {
+                    lappend portilist "[$i name] @[$i version]_[$i revision][$i variants]"
                 }
             } else {
                 if {[$i state] eq "installed"} {

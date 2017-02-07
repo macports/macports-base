@@ -237,9 +237,9 @@ proc _check_registry {name version revision variants} {
             # Asking choice to select option in case of ambiguous activate
             if {[info exists macports::ui_options(questions_singlechoice)]} {
                 if { [$i state] eq "installed" } {
-                    lappend portilist $iname@${iversion}_${irevision}${ivariants}(active)
+                    lappend portilist "$iname @${iversion}_${irevision}${ivariants} (active)"
                 } else {
-                    lappend portilist $iname@${iversion}_${irevision}${ivariants}
+                    lappend portilist "$iname @${iversion}_${irevision}${ivariants}"
                 }
             } else {
                 if { [$i state] eq "installed" } {
