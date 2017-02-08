@@ -113,3 +113,4 @@ distclean: distclean-tcl distclean-tcllib distclean-tclx distclean-tclthread dis
 	rm -f Makefile
 	rm -rf vendor-destroot
 	rm -f tclsh
+	rm -f libsolv/bindings/tcl/solv-0.6.11.tm
