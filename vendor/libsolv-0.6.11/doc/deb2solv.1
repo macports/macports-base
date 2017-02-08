@@ -1,0 +1,59 @@
+'\" t
+.\"     Title: deb2solv
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.78.0 <http://docbook.sf.net/>
+.\"      Date: 09/25/2014
+.\"    Manual: LIBSOLV
+.\"    Source: libsolv
+.\"  Language: English
+.\"
+.TH "DEB2SOLV" "1" "09/25/2014" "libsolv" "LIBSOLV"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+deb2solv \- convert one or more Debian package files into a solv file
+.SH "SYNOPSIS"
+.sp
+\fBdeb2solv\fR [\fIOPTIONS\fR] \fIPKG1\&.deb\fR \&...
+.SH "DESCRIPTION"
+.sp
+The deb2solv tool converts the meta data from one or more Debian packages into the solv file written to standard output\&.
+.PP
+\fB\-m\fR \fIMANIFESTFILE\fR
+.RS 4
+Read the rpm file names from the specified
+\fIMANIFESTFILE\fR\&. You can use
+\fB\-\fR
+to read the manifest from standard input\&.
+.RE
+.PP
+\fB\-0\fR
+.RS 4
+Use a null byte as line terminator for manifest files instead of a newline\&. This is useful if the file names can contain newlines\&. See also the
+\fB\-print0\fR
+option in
+\fBfind\fR\&.
+.RE
+.SH "SEE ALSO"
+.sp
+deb(5), dpkg\-deb(1)
+.SH "AUTHOR"
+.sp
+Michael Schroeder <mls@suse\&.de>

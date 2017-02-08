@@ -1,0 +1,48 @@
+'\" t
+.\"     Title: rpmmd2solv
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.78.0 <http://docbook.sf.net/>
+.\"      Date: 09/24/2014
+.\"    Manual: LIBSOLV
+.\"    Source: libsolv
+.\"  Language: English
+.\"
+.TH "RPMMD2SOLV" "1" "09/24/2014" "libsolv" "LIBSOLV"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+rpmmd2solv \- convert files in rpm\-md format into a solv file
+.SH "SYNOPSIS"
+.sp
+\fBrpmmd2solv\fR [\fIOPTIONS\fR]
+.SH "DESCRIPTION"
+.sp
+The rpmmd2solv tool reads rpm\-md xml data from stdin, and writes it as solv file to standard output\&. It understands the \fBprimary\fR, \fBfilelist\fR, \fBother\fR, and \fBsusedata\fR format\&.
+.PP
+\fB\-X\fR
+.RS 4
+Autoexpand SUSE pattern and product provides into packages\&.
+.RE
+.SH "SEE ALSO"
+.sp
+repomdxml2solv(1), mergesolv(1), createrepo(8)
+.SH "AUTHOR"
+.sp
+Michael Schroeder <mls@suse\&.de>

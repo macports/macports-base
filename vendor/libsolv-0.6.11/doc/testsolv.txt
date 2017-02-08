@@ -1,0 +1,41 @@
+testsolv(1)
+===========
+:man manual: LIBSOLV
+:man source: libsolv
+
+
+Name
+----
+testsolv - run a libsolv testcase through the solver
+
+Synopsis
+--------
+*testsolv* ['OPTIONS'] 'TESTCASE'
+
+Description
+-----------
+The testsolv tools can be used to run a testcase. Testcases can
+either be manually created to test specific features, or they
+can be written by libsolv's testcase_write function. This is useful
+to evaluate bug reports about the solver.
+
+*-v*::
+Increase the debug level of the solver. This option can be specified
+multiple times to further increase the amount of debug data.
+
+*-r*::
+Write the output in testcase format instead of human readable text.
+The output can then be used in the result section of the test case.
+If the *-r* option is given twice, the output is formated for
+verbatim inclusion.
+
+*-l* 'PKGSPEC'::
+Instead of running the solver, list packages in the repositories.
+
+*-s* 'SOLUTIONSPEC'::
+This is used in the solver test suite to test the calculated solutions
+to encountered problems.
+
+Author
+------
+Michael Schroeder <mls@suse.de>

@@ -1,0 +1,680 @@
+Libsolv-Constantids(3)
+======================
+:man manual: LIBSOLV
+:man source: libsolv
+
+
+Name
+----
+libsolv-constantids - fixed Ids for often used strings
+
+
+Description
+-----------
+Constant Ids are Ids of strings that are often needed. They are defined
+to ease programming and reduce the number of pool_str2id calls. The
+constant Ids are part of the binary ABI of libsolv, a minor version 
+update will only add new constants and not change existing Ids to
+maintain compatible. The on-disk solv format works does not use the
+fixed Ids, but instead references the strings, so solv files can still
+be read when the ABI is broken.
+
+
+Special Strings
+---------------
+*ID_EMPTY ""*::
+  The empty string. It will always have Id 1.
+
+*SYSTEM_SYSTEM "system:system"*::
+  The name of the always installed "system" solvable.
+
+
+Solvable Attributes
+-------------------
+These are Ids for keyname of attributes. They can be used in the
+lookup and storage functions to select the correct attribute in the
+solvable. The descriptions below describe the intended semantics
+of the values stored in the attribute with the keyname.
+
+*SOLVABLE_NAME "solvable:name"*::
+  The name of the package.
+
+*SOLVABLE_ARCH "solvable:arch"*::
+  The architecture of the package. See the Solvable Architecture section
+  for predefined architecture Id values.
+
+*SOLVABLE_EVR "solvable:evr"*::
+  The version of the package. It usually consists of some combination of
+  the Epoch, the Version, and the Release of the solvable.
+
+*SOLVABLE_VENDOR "solvable:vendor"*::
+  A vendor string. Usually the company or group that created the binary
+  package.
+
+*SOLVABLE_PROVIDES "solvable:provides"*::
+  Stores an array of dependency Ids that describe the capabilities
+  that the package provides.
+
+*SOLVABLE_OBSOLETES "solvable:obsoletes"*::
+  Stores an array of dependency Ids that describe the packages that this
+  package replaces.
+
+*SOLVABLE_CONFLICTS "solvable:conflicts"*::
+  Stores an array of dependency Ids that describe the capabilities that
+  this package conflicts with, i.e. that can't be installed together with
+  this package.
+
+*SOLVABLE_REQUIRES "solvable:requires"*::
+  Stores an array of dependency Ids that describe the capabilities that
+  also must be installed when this package is installed.
+
+*SOLVABLE_RECOMMENDS "solvable:recommends"*::
+  Stores an array of dependency Ids that describe the capabilities that
+  also should be installed when this package is installed. It's not an
+  error if not all capabilites can be met.
+
+*SOLVABLE_SUGGESTS "solvable:suggests"*::
+  Stores an array of dependency Ids that describe the capabilities that
+  also useful to have installed when this package is installed. This is
+  intended to provide a hint to the user about other packages.
+
+*SOLVABLE_SUPPLEMENTS "solvable:supplements"*::
+  Stores an array of dependency Ids that define that this package should
+  be installed if one of the capabilities is met. This is like the
+  recommends attribute, but works in the reverse way.
+
+*SOLVABLE_ENHANCES "solvable:enhances"*::
+  Stores an array of dependency Ids that define that this package is
+  useful to have installed if one of the capabilities is met. This is like
+  the suggests attribute, but works in the reverse way.
+
+*SOLVABLE_SUMMARY "solvable:summary"*::
+  The summary should be a short string without any newlines that describes
+  what a package does.
+
+*SOLVABLE_DESCRIPTION "solvable:description"*::
+  The description should be a more verbose description about what a
+  package does. It may consist of multiple lines.
+
+*SOLVABLE_DISTRIBUTION "solvable:distribution"*::
+  The distribution is a short string that describes the OS and OS version
+  this package is built for.
+
+*SOLVABLE_AUTHORS "solvable:authors"*::
+  A list of authors of this package. This attribute was used in SUSE
+  packages.
+
+*SOLVABLE_PACKAGER "solvable:packager"*::
+  The person who created the binary package, see also the vendor attribute.
+
+*SOLVABLE_GROUP "solvable:group"*::
+  The package group that this package belongs to. See also the keywords
+  attribute.
+
+*SOLVABLE_URL "solvable:url"*::
+  An URL that points to more information about the package.
+
+*SOLVABLE_KEYWORDS "solvable:keywords"*::
+  list of keyword string IDs used for tagging this package.
+
+*SOLVABLE_LICENSE "solvable:license"*::
+  The license(s) of this package.
+
+*SOLVABLE_BUILDTIME "solvable:buildtime"*::
+  The seconds since the unix epoch when the binary package was created.
+
+*SOLVABLE_BUILDHOST "solvable:buildhost"*::
+  The name of the host on which the binary package was created.
+
+*SOLVABLE_EULA "solvable:eula"*::
+  If this attribute is present the user should be asked to accept the end
+  user license agreement before the package gets installed.
+
+*SOLVABLE_CPEID "solvable:cpeid"*::
+  A Common Platform Enumeration string describes the platform this package
+  is intended for. See also the distribution attribute.
+
+*SOLVABLE_MESSAGEINS "solvable:messageins"*::
+  A message that should be displayed to the user when the package gets
+  installed.
+
+*SOLVABLE_MESSAGEDEL "solvable:messagedel"*::
+  A message that should be displayed to the user when the package gets
+  erased.
+
+*SOLVABLE_INSTALLSIZE "solvable:installsize"*::
+  The disk space in bytes needed when installing the package.
+
+*SOLVABLE_DISKUSAGE "solvable:diskusage"*::
+  A SUSE extension that stores for each directory the needed amount of
+  disk space in kilobytes and inodes.
+
+*SOLVABLE_FILELIST "solvable:filelist"*::
+  A list of files that the package contains.
+
+*SOLVABLE_INSTALLTIME "solvable:installtime"*::
+  The seconds since the unix epoch when the binary package was installed
+  on the system.
+
+*SOLVABLE_MEDIADIR "solvable:mediadir"*::
+  The directory on the repository that contains the package. If this
+  attribute is set to void, the package architecture is used as
+  directory.
+
+*SOLVABLE_MEDIAFILE "solvable:mediafile"*::
+  The filename on the repository that contains the package. If this
+  attribute is set to void, the canonical file name of the package is
+  used (i.e.  a combination of the name, version, architecture).
+
+*SOLVABLE_MEDIANR "solvable:medianr"*::
+  The media number. This is an integer describing on which of a multi-part
+  media set this package is on.
+
+*SOLVABLE_MEDIABASE "solvable:mediabase"*::
+  This attribute can be used to overwrite the repositories base url.
+
+*SOLVABLE_DOWNLOADSIZE "solvable:downloadsize"*::
+  The size of the binary package in bytes.
+
+*SOLVABLE_SOURCEARCH "solvable:sourcearch"*::
+  The architecture of the source package that this package belongs to.
+
+*SOLVABLE_SOURCENAME "solvable:sourcename"*::
+  The name of the source package that this package belongs to. If set
+  to void, the package name attribute is used instead.
+
+*SOLVABLE_SOURCEEVR "solvable:sourceevr"*::
+  The version of the source package that this package belongs to. If set
+  to void, the package version attribute is used instead.
+
+*SOLVABLE_TRIGGERS "solvable:triggers"*::
+  A list of package triggers for this package. Used in the transaction
+  ordering code.
+
+*SOLVABLE_CHECKSUM "solvable:checksum"*::
+  The checksum of the binary package. See the Data Types section for
+  a list of supported algorithms.
+
+*SOLVABLE_PKGID "solvable:pkgid"*::
+  A string identifying a package. For rpm packages, this is the md5sum
+  over the package header and the payload.
+
+*SOLVABLE_HDRID "solvable:hdrid"*::
+  A string identifying a package. For rpm packages, this is the sha1sum
+  over just the package header.
+
+*SOLVABLE_LEADSIGID "solvable:leadsigid"*::
+  A string identifying the signature part of a package. For rpm packages,
+  this is the md5sum from the start of the file up to the package header
+  (i.e. it includes the lead, the signature header, and the padding).
+
+*SOLVABLE_HEADEREND "solvable:headerend"*::
+  The offset of the payload in rpm binary packages. You can use this
+  information to download just the header if you want to display
+  information not included in the repository metadata.
+
+*SOLVABLE_CHANGELOG "solvable:changelog"*::
+  The array containing all the changelog structures.
+
+*SOLVABLE_CHANGELOG_AUTHOR "solvable:changelog:author"*::
+  The author of a changelog entry.
+
+*SOLVABLE_CHANGELOG_TIME "solvable:changelog:time"*::
+  The seconds since the unix epoch when the changelog entry was written.
+
+*SOLVABLE_CHANGELOG_TEXT "solvable:changelog:text"*::
+  The text of a changelog entry.
+
+
+Special Solvable Attributes
+---------------------------
+*RPM_RPMDBID "rpm:dbid"*::
+  The rpm database id of this (installed) package. Usually a small
+  integer number.
+
+*SOLVABLE_PATCHCATEGORY "solvable:patchcategory"*::
+  The category field for patch solvables. Should be named
+  ``update:category'' instead.
+
+*UPDATE_REBOOT "update:reboot"*::
+  If this attribute is present the system should be rebooted after
+  the update is installed.
+
+*UPDATE_RESTART "update:restart"*::
+  If this attribute is present the software manager should be run
+  again after the update is installed.  
+
+*UPDATE_RELOGIN "update:relogin"*::
+  If this attribute is present the user should log off and on again
+  after the update is installed.
+
+*UPDATE_MESSAGE "update:message"*::
+  A message that should be shown to the user to warn him about anything
+  non-standard.
+
+*UPDATE_SEVERITY "update:severity"*::
+  The severity of the update.
+
+*UPDATE_RIGHTS "update:rights"*::
+  Any legal or other rights of the update.
+
+*UPDATE_COLLECTION "update:collection"*::
+  The array containing the package list of the update.
+  
+*UPDATE_COLLECTION_NAME "update:collection:name"*::
+  The name of the updated package.
+
+*UPDATE_COLLECTION_EVR "update:collection:evr"*::
+  The version of the updated package.
+
+*UPDATE_COLLECTION_ARCH "update:collection:arch"*::
+  The architecture of the updated package.
+
+*UPDATE_COLLECTION_FILENAME "update:collection:filename"*::
+  The file name of the updated package.
+
+*UPDATE_REFERENCE "update:reference"*::
+  The array containing the reference list of the update.
+
+*UPDATE_REFERENCE_TYPE "update:reference:type"*::
+  The type of the reference, e.g. bugzilla.
+
+*UPDATE_REFERENCE_HREF "update:reference:href"*::
+  The URL of the reference.
+
+*UPDATE_REFERENCE_ID "update:reference:id"*::
+  The identification string of the reference, e.g. the bug number.
+
+*UPDATE_REFERENCE_TITLE "update:reference:title"*::
+  The title of the reference, e.g. the bug summary.
+
+*PRODUCT_REFERENCEFILE "product:referencefile"*::
+  The basename of the product file in the package.
+
+*PRODUCT_SHORTLABEL "product:shortlabel"*::
+  A identification string of the product.
+
+*PRODUCT_DISTPRODUCT "product:distproduct"*::
+  Obsolete, do not use. Was a SUSE Code-10 product name.
+
+*PRODUCT_DISTVERSION "product:distversion"*::
+  Obsolete, do not use. Was a SUSE Code-10 product version.
+
+*PRODUCT_TYPE "product:type"*::
+  The type of the product, e.g. ``base''.
+
+*PRODUCT_URL "product:url"*::
+  An array of product URLs.
+
+*PRODUCT_URL_TYPE "product:url:type"*::
+  An array of product URL types.
+
+*PRODUCT_FLAGS "product:flags"*::
+  An array of product flags.
+
+*PRODUCT_PRODUCTLINE "product:productline"*::
+  A product line string used for product registering.
+
+*PRODUCT_REGISTER_TARGET "product:regtarget"*::
+  A target for prouduct registering.
+
+*PRODUCT_REGISTER_RELEASE "product:regrelease"*::
+  A release string for proudct registering.
+
+*PUBKEY_KEYID "pubkey:keyid"*::
+  The keyid of a pubkey, consisting of 8 bytes in hex.
+
+*PUBKEY_FINGERPRINT "pubkey:fingerprint"*::
+  The fingerprint of a pubkey, usually a sha1sum in hex. Old V3 RSA keys
+  use a md5sum instead.
+
+*PUBKEY_EXPIRES "pubkey:expires"*::
+  The seconds since the unix epoch when the pubkey expires.
+
+*PUBKEY_SUBKEYOF "pubkey:subkeyof"*::
+  The keyid of the master pubkey for subkeys.
+
+*PUBKEY_DATA "pubkey:data"*::
+  The MPI data of the pubkey.
+
+*SOLVABLE_ISVISIBLE "solvable:isvisible"*::
+  An attribute describing if the package should be listed to the user
+  or not. Used for SUSE patterns.
+
+*SOLVABLE_CATEGORY "solvable:category"*::
+  The category of a pattern.
+
+*SOLVABLE_INCLUDES "solvable:includes"*::
+  A list of other patterns that this pattern includes.
+
+*SOLVABLE_EXTENDS "solvable:extends"*::
+  A list of other patterns that this pattern extends.
+
+*SOLVABLE_ICON "solvable:icon"*::
+  The icon name of a pattern.
+
+*SOLVABLE_ORDER "solvable:order"*::
+  An ordering clue of a pattern.
+
+*SUSETAGS_SHARE_NAME "susetags:share:name"*::
+  Internal attribute to implement susetags shared records. Holds the
+  name of the solvable used for sharing attributes.
+
+*SUSETAGS_SHARE_EVR "susetags:share:evr"*::
+  Internal attribute to implement susetags shared records. Holds the
+  version of the solvable used for sharing attributes.
+
+*SUSETAGS_SHARE_ARCH "susetags:share:arch"*::
+  Internal attribute to implement susetags shared records. Holds the
+  architecture of the solvable used for sharing attributes.
+
+
+Solvable Architectures
+----------------------
+Predefined architecture values for commonly used architectures.
+
+*ARCH_SRC "src"*::
+  Used for binary packages that contain the package sources.
+
+*ARCH_NOSRC "nosrc"*::
+  Used for binary packages that contain some of the package sources,
+  but not all files (because of restrictions).
+
+*ARCH_NOARCH "noarch"*::
+  This package can be installed on any architecture. Used for rpm.
+
+*ARCH_ALL "all"*::
+  This package can be installed on any architecture. Used for Debian.
+
+*ARCH_ANY "any"*::
+  This package can be installed on any architecture. Used for Archlinux
+  and Haiku.
+
+
+Dependency Ids
+--------------
+Namespaces are special modifiers that change the meaning of a dependency.
+Namespace dependencies are created with the REL_NAMESPACE flag. To make
+custom namespaces work you have to implement a namespace callback function.
+
+The dependency markers partition the dependency array in two parts with
+different semantics.
+
+*NAMESPACE_MODALIAS "namespace:modalias"*::
+  The dependency is a special modalias dependency that matches installed
+  hardware.
+
+*NAMESPACE_SPLITPROVIDES "namespace:splitprovides"*::
+  The dependency is a special splitprovides dependency used to implement
+  updates that include a package split. A splitprovoide dependency contains
+  a filename and a package name, it is matched if a package with the
+  provided package name is installed that contains the filename.
+  This namespace is implemented in libsolv, so you do not need a callback.
+
+*NAMESPACE_LANGUAGE "namespace:language"*::
+  The dependency describes a language. The callback should return true
+  if the language was selected by the user.
+
+*NAMESPACE_FILESYSTEM "namespace:filesystem"*::
+  The dependency describes a filesystem. The callback should return true
+  if the filesystem is needed.
+
+*NAMESPACE_OTHERPROVIDERS "namespace:otherproviders"*::
+  This is a hack to allow self-conflicting packages. It is not needed
+  with current rpm version, so do not use this namespace.
+
+*SOLVABLE_PREREQMARKER "solvable:prereqmarker"*::
+  This marker partitions the normal require dependencies from the
+  prerequires. It is not needed for dependency solving, but it is
+  used by the transaction ordering algorithm when a dependency cycle
+  needs to be broken (non-prereq deps get broken first).
+
+*SOLVABLE_FILEMARKER "solvable:filemarker"*::
+  This marker partitions the package provides dependencies from the
+  synthetic file provides dependencies added by pool_addfileprovides().
+
+
+Data Types
+----------
+Each attribute data is stored with a type, so that the lookup functions
+know how to interpret the data. The following types are available:
+ 
+*REPOKEY_TYPE_VOID "repokey:type:void"*::
+  No data is stored with this attribute. Thus you can only test if
+  the attribute exists or not. Useful to store boolean values.
+
+*REPOKEY_TYPE_CONSTANT "repokey:type:constant"*::
+  The data is a constant 32bit number. The number is stored in the key
+  area, so using it does not cost extra storage space (but you need the
+  extra key space).
+
+*REPOKEY_TYPE_CONSTANTID "repokey:type:constantid"*::
+  The data is a constant Id. The Id is stored in the key area,
+  so using it does not cost extra storage space (but you need the
+  extra key space).
+
+*REPOKEY_TYPE_ID "repokey:type:id"*::
+  The data is an Id.
+
+*REPOKEY_TYPE_NUM "repokey:type:num"*::
+  The data is an unsigned 64bit number.
+
+*REPOKEY_TYPE_U32 "repokey:type:num32"*::
+  The data is an unsigned 32bit number. Obsolete, do not use.
+
+*REPOKEY_TYPE_DIR "repokey:type:dir"*::
+  The data is an Id of a directory.
+
+*REPOKEY_TYPE_STR "repokey:type:str"*::
+  The data is a regular string.
+
+*REPOKEY_TYPE_BINARY "repokey:type:binary"*::
+  The data is a binary blob.
+
+*REPOKEY_TYPE_IDARRAY "repokey:type:idarray"*::
+  The data is an array of non-zero Ids.
+
+*REPOKEY_TYPE_REL_IDARRAY "repokey:type:relidarray"*::
+  The data is an array of non-zero Ids ordered so that it needs less
+  space.
+
+*REPOKEY_TYPE_DIRSTRARRAY "repokey:type:dirstrarray"*::
+  The data is an tuple consisting of a directory Id and a basename.
+  Used to store file names.
+
+*REPOKEY_TYPE_DIRNUMNUMARRAY "repokey:type:dirnumnumarray"*::
+  The data is an triple consisting of a directory Id and two 32bit
+  unsigned integers. Used to store disk usage information.
+
+*REPOKEY_TYPE_MD5 "repokey:type:md5"*::
+  The data is a binary md5sum.
+
+*REPOKEY_TYPE_SHA1 "repokey:type:sha1"*::
+  The data is a binary sha1sum.
+
+*REPOKEY_TYPE_SHA256 "repokey:type:sha256"*::
+  The data is a binary sha256sum.
+
+*REPOKEY_TYPE_FIXARRAY "repokey:type:fixarray"*::
+  The data is an array of structures that have all the same layout
+  (i.e. the same keynames and keytypes in the same order).
+
+*REPOKEY_TYPE_FLEXARRAY "repokey:type:flexarray"*::
+  The data is an array of structures that have a different layout.
+
+*REPOKEY_TYPE_DELETED "repokey:type:deleted"*::
+  The data does not exist. Used to mark an attribute that was deleted.
+
+
+Repository Metadata
+-------------------
+This attributes contain meta information about the repository.
+
+*REPOSITORY_SOLVABLES "repository:solvables"*::
+  This attribute holds the array including all of the solvables. It is
+  only used in the on-disk solv files, internally the solvables are
+  stored in the pool's solvable array for fast access.
+
+*REPOSITORY_DELTAINFO "repository:deltainfo"*::
+  This attribute holds the array including all of the delta packages.
+
+*REPOSITORY_EXTERNAL "repository:external"*::
+  This attribute holds the array including all of the data to construct
+  stub repodata areas to support on-demand loading of metadata.
+
+*REPOSITORY_KEYS "repository:keys"*::
+  This should really be named "repository:external:keys", it contains an
+  array if Ids that consists of (keyname, keytype) pairs that describe the
+  keys of the stub.
+
+*REPOSITORY_LOCATION "repository:location"*::
+  This is used to provide a file name in the stub.
+
+*REPOSITORY_ADDEDFILEPROVIDES "repository:addedfileprovides"*::
+  This attribute holds an array of filename Ids, that tell the library,
+  that all of the Ids were already added to the solvable provides.
+
+*REPOSITORY_RPMDBCOOKIE "repository:rpmdbcookie"*::
+  An attribute that stores a sha256sum over the file stats of the
+  Packages database. It's used to detect rebuilds of the database,
+  as in that case the database Ids of every package are newly
+  distributed.
+
+*REPOSITORY_TIMESTAMP "repository:timestamp"*::
+  The seconds since the unix epoch when the repository was created.
+
+*REPOSITORY_EXPIRE "repository:expire"*::
+  The seconds after the timestamp when the repository will expire.
+
+*REPOSITORY_UPDATES "repository:updates"*::
+  An array of structures describing what this repository updates.
+
+*REPOSITORY_DISTROS "repository:distros"*::
+  Also an array of structures describing what this repository updates.
+  Seems to be the newer name of REPOSITORY_UPDATES.
+
+*REPOSITORY_PRODUCT_LABEL "repository:product:label"*::
+  Should really be called "repository:updates:label". What distribution
+  is updated with this repository.
+
+*REPOSITORY_PRODUCT_CPEID "repository:product:cpeid"*::
+  The cpeid of the platform updated by this repository. Is both used
+  in REPOSITORY_UPDATES and REPOSITORY_DISTROS to maximize confusion.
+
+*REPOSITORY_REPOID "repository:repoid"*::
+  An array of Id strings describing keywords/tags about the repository
+  itself.
+
+*REPOSITORY_KEYWORDS "repository:keywords"*::
+  An array of Id strings describing keywords/tags about the content of
+  the repository.
+
+*REPOSITORY_REVISION "repository:revision"*::
+  An arbitrary string describing the revision of the repository.
+
+*REPOSITORY_TOOLVERSION "repository:toolversion"*::
+  Some string describing somewhat the version of libsolv used to create
+  the solv file.
+
+
+Repository Metadata for Susetags Repos
+--------------------------------------
+Attributes describing repository files in a susetags repository.
+*SUSETAGS_DATADIR "susetags:datadir"*::
+  The directory that contains the packages.
+
+*SUSETAGS_DESCRDIR "susetags:descrdir"*::
+  The directory that contains the repository file resources.
+
+*SUSETAGS_DEFAULTVENDOR "susetags:defaultvendor"*::
+  The default vendor used when a package does not specify a vendor.
+
+*SUSETAGS_FILE "susetags:file"*::
+  An array of file resources of the repository.
+
+*SUSETAGS_FILE_NAME "susetags:file:name"*::
+  The filename of the resource.
+
+*SUSETAGS_FILE_TYPE "susetags:file:type"*::
+  The type of the resource, e.g. ``META''.
+
+*SUSETAGS_FILE_CHECKSUM "susetags:file:checksum"*::
+  The file checksum of the resource.
+
+
+Repository Metadata for RpmMD Repos
+-----------------------------------
+*REPOSITORY_REPOMD "repository:repomd"*::
+  An array of file resources of the repository.
+
+*REPOSITORY_REPOMD_TYPE "repository:repomd:type"*::
+  The type of the resource, e.g. ``primary''.
+
+*REPOSITORY_REPOMD_LOCATION "repository:repomd:location"*::
+  The location (aka filename) of the resource
+
+*REPOSITORY_REPOMD_TIMESTAMP "repository:repomd:timestamp"*::
+  The seconds since the unix epoch when the resource was created.
+
+*REPOSITORY_REPOMD_CHECKSUM "repository:repomd:checksum"*::
+  The file checksum of the resource.
+
+*REPOSITORY_REPOMD_OPENCHECKSUM "repository:repomd:openchecksum"*::
+  The checksum over the uncompressed contents of the resource.
+
+*REPOSITORY_REPOMD_SIZE "repository:repomd:size"*::
+  The size of the resource file.
+
+
+Delta Package Attributes
+------------------------
+*DELTA_PACKAGE_NAME "delta:pkgname"*::
+  The target package name for the delta package. Applying the delta
+  will recreate the target package.
+
+*DELTA_PACKAGE_EVR "delta:pkgevr"*::
+  The version of the target package.
+
+*DELTA_PACKAGE_ARCH "delta:pkgarch"*::
+  The architecture of the target package.
+
+*DELTA_LOCATION_DIR "delta:locdir"*::
+  The directory in the repository that contains the delta package.
+
+*DELTA_LOCATION_NAME "delta:locname"*::
+  The first part of the file name of the delta package.
+
+*DELTA_LOCATION_EVR "delta:locevr"*::
+  The version part of the file name of the delta package.
+
+*DELTA_LOCATION_SUFFIX "delta:locsuffix"*::
+  The suffix part of the file name of the delta package.
+
+*DELTA_LOCATION_BASE "delta:locbase"*::
+  This attribute can be used to overwrite the repositories base url for
+  the delta.
+
+*DELTA_DOWNLOADSIZE "delta:downloadsize"*::
+  The size of the delta rpm file.
+
+*DELTA_CHECKSUM "delta:checksum"*::
+  The checksum of the delta rpm file.
+
+*DELTA_BASE_EVR "delta:baseevr"*::
+  The version of the package the delta was build against.
+
+*DELTA_SEQ_NAME "delta:seqname"*::
+  The first part of the delta sequence, the base package name.
+
+*DELTA_SEQ_EVR "delta:seqevr"*::
+  The evr part of the delta sequence, the base package evr. Identical
+  to the DELTA_BASE_EVR attribute.
+
+*DELTA_SEQ_NUM "delta:seqnum"*::
+  The last part of the delta sequence, the content selection string.
+
+
+Author
+------
+Michael Schroeder <mls@suse.de>
+

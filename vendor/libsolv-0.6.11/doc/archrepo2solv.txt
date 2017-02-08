@@ -1,0 +1,31 @@
+archrepo2solv(1)
+================
+:man manual: LIBSOLV
+:man source: libsolv
+
+
+Name
+----
+archrepo2solv - convert files in Arch repository format into a solv file
+
+Synopsis
+--------
+*archrepo2solv* ['OPTIONS']
+
+Description
+-----------
+The archrepo2solv tool reads Arch Linux repository data (*core.db*) from stdin,
+and writes it as solv file to standard output.
+
+*-l* 'DATABASEDIR'::
+Instead of reading from standard input, scan the specified directory for
+package meta files. Set 'DATABASEDIR' to */var/lib/pacman/local* to
+scan the installed packages.
+
+See Also
+--------
+pacman(8)
+
+Author
+------
+Michael Schroeder <mls@suse.de>

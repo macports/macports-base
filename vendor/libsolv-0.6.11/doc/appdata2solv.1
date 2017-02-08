@@ -1,0 +1,58 @@
+'\" t
+.\"     Title: appdata2solv
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.78.0 <http://docbook.sf.net/>
+.\"      Date: 09/25/2014
+.\"    Manual: LIBSOLV
+.\"    Source: libsolv
+.\"  Language: English
+.\"
+.TH "APPDATA2SOLV" "1" "09/25/2014" "libsolv" "LIBSOLV"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+appdata2solv \- convert application meta data into a solv file
+.SH "SYNOPSIS"
+.sp
+\fBappdata2solv\fR [\fIOPTIONS\fR]
+.SH "DESCRIPTION"
+.sp
+The appdata format contains metadata about application\&. It can be available both in repositories (for available applications) and in the installed system (for installed applications)\&. The appdata2solv tool reads the metadata from stdin and writes the parsed data as solv file to standard output\&. The parser will create \fBapplication:\fR pseudo packages for each entry\&.
+.PP
+\fB\-d\fR \fIAPPDATADIR\fR
+.RS 4
+Do not read from standard input, instead scan the specified directory for appdata entries\&.
+\fIAPPDATADIR\fR
+is normally set to
+\fB/usr/share/appdata\fR\&.
+.RE
+.PP
+\fB\-r\fR \fIROOTDIR\fR
+.RS 4
+Use
+\fIROOTDIR\fR
+as root directory\&.
+.RE
+.SH "SEE ALSO"
+.sp
+mergesolv(1)
+.SH "AUTHOR"
+.sp
+Michael Schroeder <mls@suse\&.de>

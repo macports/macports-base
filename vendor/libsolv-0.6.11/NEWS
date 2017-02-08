@@ -1,0 +1,19 @@
+
+This file contains the major changes between
+libsolv versions:
+
+Version 0.6.0:
+- ABI change: cleaned up and reordered knownid.h
+- added support for sha224/sha384/sha512
+- API change in the bindings:
+  * dropped solvid arg from most Dataiterator
+    constructors
+  * changed Datamatch results from methods to
+    attributes
+  * automatically delete the pool if the owner
+    object is freed (use the disown method to
+    get the old behavior).
+- new functions:
+  * pool_add_userinstalled_jobs
+  * solver_get_userinstalled
+

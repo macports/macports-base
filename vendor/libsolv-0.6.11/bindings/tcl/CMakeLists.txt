@@ -1,0 +1,38 @@
+FIND_PACKAGE (TCL)
+
+SET (SWIG_TCL_FLAGS -namespace -pkgversion ${VERSION})
+
+EXECUTE_PROCESS (
+    COMMAND echo "puts -nonewline [lindex [::tcl::tm::list] end]"
+    COMMAND ${TCL_TCLSH}
+    OUTPUT_VARIABLE TCL_INSTALL_DIR
+)
+
+MESSAGE (STATUS "Tclsh executable: ${TCL_TCLSH}")
+MESSAGE (STATUS "Tcl installation dir: ${TCL_INSTALL_DIR}")
+
+ADD_CUSTOM_COMMAND (
+    OUTPUT solv_tcl.c
+    COMMAND ${SWIG_EXECUTABLE} ${SWIG_FLAGS} -tcl ${SWIG_TCL_FLAGS} -I${CMAKE_SOURCE_DIR}/src -o solv_tcl.c ${CMAKE_SOURCE_DIR}/bindings/solv.i
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_SOURCE_DIR}/bindings/solv.i
+)
+
+ADD_DEFINITIONS(-Wno-unused)
+INCLUDE_DIRECTORIES (${TCL_INCLUDE_PATH})
+
+ADD_LIBRARY (bindings_tcl SHARED solv_tcl.c)
+SET_TARGET_PROPERTIES (bindings_tcl PROPERTIES PREFIX "" OUTPUT_NAME "solv-${VERSION}" INSTALL_NAME_DIR "${TCL_INSTALL_DIR}")
+TARGET_LINK_LIBRARIES (bindings_tcl libsolvext libsolv ${TCL_LIBRARY} ${SYSTEM_LIBRARIES})
+INSTALL (TARGETS bindings_tcl LIBRARY DESTINATION ${TCL_INSTALL_DIR})
+
+ADD_CUSTOM_COMMAND (
+    OUTPUT solv.tm
+	COMMAND sed -e "s/__VERSION__/${VERSION}/" ${CMAKE_SOURCE_DIR}/bindings/tcl/solv.tm.in >${CMAKE_CURRENT_BINARY_DIR}/solv.tm
+    DEPENDS ${CMAKE_SOURCE_DIR}/bindings/tcl/solv.tm.in
+    COMMENT "Creating Tcl module to load libsolv"
+)
+ADD_CUSTOM_TARGET (solv_tm ALL DEPENDS solv.tm)
+SET_SOURCE_FILES_PROPERTIES (solv.tm PROPERTIES GENERATED TRUE)
+
+INSTALL (FILES ${CMAKE_CURRENT_BINARY_DIR}/solv.tm DESTINATION ${TCL_INSTALL_DIR} RENAME solv-${VERSION}.tm)

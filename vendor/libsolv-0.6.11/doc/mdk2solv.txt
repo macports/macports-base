@@ -1,0 +1,33 @@
+mdk2solv(1)
+===========
+:man manual: LIBSOLV
+:man source: libsolv
+
+
+Name
+----
+mdk2solv - convert files in Mandriva synthesis format into a solv file
+
+Synopsis
+--------
+*mdk2solv* ['OPTIONS']
+
+Description
+-----------
+The mdk2solv tool reads Mandriva synthesis data (*hdlist*) from stdin, and writes
+it as solv file to standard output.
+
+*-i* 'INFO.xml'::
+Also read the info file containing url, license, and src information from
+the specified xml file.
+
+*-f* 'FILES.xml'::
+Also read filelist information from the specified xml file.
+
+See Also
+--------
+genhdlist2(1)
+
+Author
+------
+Michael Schroeder <mls@suse.de>

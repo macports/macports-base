@@ -1,0 +1,27 @@
+updateinfoxml2solv(1)
+=====================
+:man manual: LIBSOLV
+:man source: libsolv
+
+
+Name
+----
+updateinfoxml2solv - convert rpm-md's updateinfo.xml format into a solv file
+
+Synopsis
+--------
+*updateinfoxml2solv* ['OPTIONS']
+
+Description
+-----------
+The updateinfoxml2solv tool reads rpm-md's updateinfo xml data from stdin,
+and writes it as solv file to standard output. Update elements are converted
+into special *patch:* pseudo packages.
+
+See Also
+--------
+mergesolv(1), createrepo(8)
+
+Author
+------
+Michael Schroeder <mls@suse.de>

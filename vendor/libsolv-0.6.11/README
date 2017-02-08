@@ -1,0 +1,41 @@
+This is libsolv, a free package dependency solver using a satisfiability
+algorithm.
+
+This code is based on two major, but independent, blocks:
+
+ 1. Using a dictionary approach to store and retrieve package
+    and dependency information.
+
+ 2. Using satisfiability, a well known and researched topic, for
+    resolving package dependencies.
+
+The sat-solver code has been written to aim for the newest packages,
+record the decison tree to provide introspection, and also allows to
+provide the user with suggestions on how to deal with unsolvable
+problems. It also takes advantage of the repository storage to
+minimize memory usage.
+
+Supported package formats:
+  - rpm/rpm5
+  - deb
+  - arch linux
+  - haiku
+
+Supported repository formats:
+  - rpmmd (primary, filelists, comps, deltainfo/presto, updateinfo)
+  - susetags, suse product formats
+  - mandriva/mageia (synthesis, info, files)
+  - arch linux
+  - red carpet helix format
+  - haiku
+
+Requires: cmake 2.4.x
+
+mkdir build
+cd build
+cmake ..
+make
+
+To create a package:
+make srcpackage
+see package/

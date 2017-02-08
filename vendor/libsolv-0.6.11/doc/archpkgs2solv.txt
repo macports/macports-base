@@ -1,0 +1,35 @@
+archpkgs2solv(1)
+================
+:man manual: LIBSOLV
+:man source: libsolv
+
+
+Name
+----
+archpkgs2solv - convert one or more Arch package files into a solv file
+
+Synopsis
+--------
+*archpkgs2solv* ['OPTIONS'] 'PKG1.pkg.xz' ...
+
+Description
+-----------
+The archpkgs2solv tool converts the meta data from one or more
+Arch Linux packages into the solv file written to standard output.
+
+*-m* 'MANIFESTFILE'::
+Read the rpm file names from the specified 'MANIFESTFILE'. You can
+use *-* to read the manifest from standard input.
+
+*-0*::
+Use a null byte as line terminator for manifest files instead of
+a newline. This is useful if the file names can contain newlines.
+See also the *-print0* option in *find*.
+
+See Also
+--------
+pacman(8)
+
+Author
+------
+Michael Schroeder <mls@suse.de>

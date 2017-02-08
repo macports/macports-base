@@ -1,0 +1,127 @@
+=Ver: 2.0
+#
+=Pkg: AEQ1 1 1 noarch
+=Prv: B = 1
+=Pkg: AEQ11 1 1 noarch
+=Prv: B = 1-1
+=Pkg: AEQ12 1 1 noarch
+=Prv: B = 1-2
+=Pkg: AEQ13 1 1 noarch
+=Prv: B = 1-3
+=Pkg: AEQ2 1 1 noarch
+=Prv: B = 2
+=Pkg: AEQ21 1 1 noarch
+=Prv: B = 2-1
+=Pkg: AEQ22 1 1 noarch
+=Prv: B = 2-2
+=Pkg: AEQ23 1 1 noarch
+=Prv: B = 2-3
+=Pkg: AEQ3 1 1 noarch
+=Prv: B = 3
+=Pkg: AEQ31 1 1 noarch
+=Prv: B = 3-1
+=Pkg: AEQ32 1 1 noarch
+=Prv: B = 3-2
+=Pkg: AEQ33 1 1 noarch
+=Prv: B = 3-3
+#
+=Pkg: ALT1 1 1 noarch
+=Prv: B < 1
+=Pkg: ALT11 1 1 noarch
+=Prv: B < 1-1
+=Pkg: ALT12 1 1 noarch
+=Prv: B < 1-2
+=Pkg: ALT13 1 1 noarch
+=Prv: B < 1-3
+=Pkg: ALT2 1 1 noarch
+=Prv: B < 2
+=Pkg: ALT21 1 1 noarch
+=Prv: B < 2-1
+=Pkg: ALT22 1 1 noarch
+=Prv: B < 2-2
+=Pkg: ALT23 1 1 noarch
+=Prv: B < 2-3
+=Pkg: ALT3 1 1 noarch
+=Prv: B < 3
+=Pkg: ALT31 1 1 noarch
+=Prv: B < 3-1
+=Pkg: ALT32 1 1 noarch
+=Prv: B < 3-2
+=Pkg: ALT33 1 1 noarch
+=Prv: B < 3-3
+#
+=Pkg: AGT1 1 1 noarch
+=Prv: B > 1
+=Pkg: AGT11 1 1 noarch
+=Prv: B > 1-1
+=Pkg: AGT12 1 1 noarch
+=Prv: B > 1-2
+=Pkg: AGT13 1 1 noarch
+=Prv: B > 1-3
+=Pkg: AGT2 1 1 noarch
+=Prv: B > 2
+=Pkg: AGT21 1 1 noarch
+=Prv: B > 2-1
+=Pkg: AGT22 1 1 noarch
+=Prv: B > 2-2
+=Pkg: AGT23 1 1 noarch
+=Prv: B > 2-3
+=Pkg: AGT3 1 1 noarch
+=Prv: B > 3
+=Pkg: AGT31 1 1 noarch
+=Prv: B > 3-1
+=Pkg: AGT32 1 1 noarch
+=Prv: B > 3-2
+=Pkg: AGT33 1 1 noarch
+=Prv: B > 3-3
+#
+=Pkg: ALE1 1 1 noarch
+=Prv: B <= 1
+=Pkg: ALE11 1 1 noarch
+=Prv: B <= 1-1
+=Pkg: ALE12 1 1 noarch
+=Prv: B <= 1-2
+=Pkg: ALE13 1 1 noarch
+=Prv: B <= 1-3
+=Pkg: ALE2 1 1 noarch
+=Prv: B <= 2
+=Pkg: ALE21 1 1 noarch
+=Prv: B <= 2-1
+=Pkg: ALE22 1 1 noarch
+=Prv: B <= 2-2
+=Pkg: ALE23 1 1 noarch
+=Prv: B <= 2-3
+=Pkg: ALE3 1 1 noarch
+=Prv: B <= 3
+=Pkg: ALE31 1 1 noarch
+=Prv: B <= 3-1
+=Pkg: ALE32 1 1 noarch
+=Prv: B <= 3-2
+=Pkg: ALE33 1 1 noarch
+=Prv: B <= 3-3
+#
+=Pkg: AGE1 1 1 noarch
+=Prv: B >= 1
+=Pkg: AGE11 1 1 noarch
+=Prv: B >= 1-1
+=Pkg: AGE12 1 1 noarch
+=Prv: B >= 1-2
+=Pkg: AGE13 1 1 noarch
+=Prv: B >= 1-3
+=Pkg: AGE2 1 1 noarch
+=Prv: B >= 2
+=Pkg: AGE21 1 1 noarch
+=Prv: B >= 2-1
+=Pkg: AGE22 1 1 noarch
+=Prv: B >= 2-2
+=Pkg: AGE23 1 1 noarch
+=Prv: B >= 2-3
+=Pkg: AGE3 1 1 noarch
+=Prv: B >= 3
+=Pkg: AGE31 1 1 noarch
+=Prv: B >= 3-1
+=Pkg: AGE32 1 1 noarch
+=Prv: B >= 3-2
+=Pkg: AGE33 1 1 noarch
+=Prv: B >= 3-3
+#

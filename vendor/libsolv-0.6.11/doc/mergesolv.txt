@@ -1,0 +1,25 @@
+mergesolv(1)
+============
+:man manual: LIBSOLV
+:man source: libsolv
+
+
+Name
+----
+mergesolv - merge multiple files in solv format into a single one
+
+Synopsis
+--------
+*mergesolv* ['OPTIONS'] 'FILE1.solv' 'FILE2.solv' ...
+
+Description
+-----------
+The mergesolv tool reads all solv files specified on the command line,
+and writes a merged version to standard output.
+
+*-X*::
+Autoexpand SUSE pattern and product provides into packages.
+
+Author
+------
+Michael Schroeder <mls@suse.de>

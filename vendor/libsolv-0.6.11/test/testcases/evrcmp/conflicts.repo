@@ -1,0 +1,26 @@
+=Ver: 2.0
+#
+=Pkg: CEQ2 1 1 noarch
+=Con: B = 2
+=Pkg: CEQ22 1 1 noarch
+=Con: B = 2-2
+#
+=Pkg: CLT2 1 1 noarch
+=Con: B < 2
+=Pkg: CLT22 1 1 noarch
+=Con: B < 2-2
+#
+=Pkg: CGT2 1 1 noarch
+=Con: B > 2
+=Pkg: CGT22 1 1 noarch
+=Con: B > 2-2
+#
+=Pkg: CLE2 1 1 noarch
+=Con: B <= 2
+=Pkg: CLE22 1 1 noarch
+=Con: B <= 2-2
+#
+=Pkg: CGE2 1 1 noarch
+=Con: B >= 2
+=Pkg: CGE22 1 1 noarch
+=Con: B >= 2-2
