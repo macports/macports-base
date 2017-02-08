@@ -2844,7 +2844,6 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
         foreach source $sources {
             set source [lindex $source 0]
             set protocol [macports::getprotocol $source]
-            
             try -pass_signal {
             	set fd [open [macports::getindex $source] r]
                 
@@ -2930,16 +2929,15 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                 } finally {
                     close $fd
                 }
+            }  catch {*} {
+                ui_warn "Can't open index file for source: $source"
             }
-        } catch {*} {
-            ui_warn "Can't open index file for source: $source"
-        }
-    
-        if {!$found} {
-            return -code error "No index(es) found! Have you synced your port definitions? Try running 'port selfupdate'."
-        }
+            if {!$found} {
+                return -code error "No index(es) found! Have you synced your port definitions? Try running 'port selfupdate'."
+            }
 
-        return $matches
+            return $matches
+        }
     }
 }
 
