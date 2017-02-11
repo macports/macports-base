@@ -1,8 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # macports_libsolv.tcl
-# $Id$
 #
-# Copyright (c) 2015 Jackson Isaac <ijackson@macports.org>
+# Copyright (c) 2017 Jackson Isaac <ijackson@macports.org>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -204,7 +203,7 @@ namespace eval macports::libsolv {
                                 set B $portinfo(replaced_by)
                                 ## Check if the replaced_by port actually exists or not.
                                 if {![info exists solvs($B)]} {
-                                    ui_msg "No port with the name $B exists. Skipping adding obsoletes for $A."
+                                    ui_debug "No port with the name $B exists. Skipping adding obsoletes for $A."
                                 } else {
                                     $solvs($B) add_deparray $solv::SOLVABLE_OBSOLETES [$pool str2id $A 1]
                                 }
@@ -361,7 +360,7 @@ namespace eval macports::libsolv {
         while {yes} {
             set jobs_list [list]
             foreach job $jobs { 
-                puts "Jobs = [$job __str__]"
+                ui_debug "Jobs = [$job __str__]"
                 lappend jobs_list [$job cget -how] [$job cget -what]
             }
 
@@ -413,7 +412,7 @@ namespace eval macports::libsolv {
         #  Create list of ports to be installed.
         set trans [$solver transaction]
         if {[$trans isempty]} {
-            puts "Nothing to do"
+            ui_msg "Nothing to do"
             return {}
         }
         ui_msg "Transaction summary:"
@@ -425,28 +424,28 @@ namespace eval macports::libsolv {
         foreach cl [$trans classify $clflag] {
             switch -- [$cl cget -type] \
                 $solv::Transaction_SOLVER_TRANSACTION_ERASE {
-                    puts "[$cl cget -count] Erased packages:"
+                    ui_msg "[$cl cget -count] Erased packages:"
                 } \
                 $solv::Transaction_SOLVER_TRANSACTION_INSTALL {
-                    puts "[$cl cget -count] Installed packages:"
+                    ui_msg "[$cl cget -count] Installed packages:"
                 } \
                 $solv::Transaction_SOLVER_TRANSACTION_REINSTALLED {
-                    puts "[$cl cget -count] Reinstalled packages:"
+                    ui_msg "[$cl cget -count] Reinstalled packages:"
                 } \
                 $solv::Transaction_SOLVER_TRANSACTION_DOWNGRADED {
-                    puts "[$cl cget -count] Downgraded packages:"
+                    ui_msg "[$cl cget -count] Downgraded packages:"
                 } \
                 $solv::Transaction_SOLVER_TRANSACTION_CHANGED {
-                    puts "[$cl cget -count] Changed packages:"
+                    ui_msg "[$cl cget -count] Changed packages:"
                 } \
                 $solv::Transaction_SOLVER_TRANSACTION_UPGRADED {
-                    puts "[$cl cget -count] Upgraded packages:"
+                    ui_msg "[$cl cget -count] Upgraded packages:"
                 } \
                 $solv::Transaction_SOLVER_TRANSACTION_VENDORCHANGE {
-                    puts "[$cl cget -count] Vendor changes from [$cl cget -fromstr] to [$cl cget -tostr]" 
+                    ui_msg "[$cl cget -count] Vendor changes from [$cl cget -fromstr] to [$cl cget -tostr]" 
                 } \
                 $solv::Transaction_SOLVER_TRANSACTION_ARCHCHANGE {
-                    puts "[$cl cget -count] Arch changes from [$cl cget -fromstr] to [$cl cget -tostr]"
+                    ui_msg "[$cl cget -count] Arch changes from [$cl cget -fromstr] to [$cl cget -tostr]"
                 } \
                 default continue
             
@@ -456,19 +455,19 @@ namespace eval macports::libsolv {
                 set downflag $solv::Transaction_SOLVER_TRANSACTION_DOWNGRADED
                 if {$cltype == $upflag || $cltype == $downflag} { 
                         set op [$trans othersolvable $p]
-                        puts "[$p __str__] -> [$op __str__]"
+                        ui_msg "[$p __str__] -> [$op __str__]"
                 } else {
                     lappend dep_list [$p __str__]
                 }
             }
         }
         if {[info exists macports::ui_options(questions_yesno)]} {
-            set retvalue [$macports::ui_options(questions_yesno) "The following dependencies will be installed by libsolv: " "" [lsort $dep_list] {y} 0]
+            set retvalue [$macports::ui_options(questions_yesno) "The following packages will be installed by libsolv: " "" [lsort $dep_list] {y} 0]
             if {$retvalue == 1} {
                 return {}
             }
         } else {
-            set depstring "$macports::ui_prefix Dependencies to be installed by libsolv:"
+            set depstring "$macports::ui_prefix Packages to be installed by libsolv:"
         }
 
         # Commiting Transaction.
