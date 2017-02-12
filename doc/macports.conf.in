@@ -117,7 +117,7 @@ universal_archs     	@UNIVERSAL_ARCHS@
 #rsync_dir           	macports/release/tarballs/base.tar
 
 # Options to pass to rsync when fetching MacPorts base and the ports tree.
-#rsync_options       	-rtzv --delete-after
+#rsync_options       	-rtzvl --delete-after
 
 # Type of generated StartupItems.
 # - launchd: Create StartupItems for use with launchd.
