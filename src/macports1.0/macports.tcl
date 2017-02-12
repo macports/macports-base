@@ -923,7 +923,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     if {![info exists rsync_options]} {
         global macports::rsync_options
-        set rsync_options "-rtzv --delete-after"
+        set rsync_options "-rtzvl --delete-after"
     }
 
     set portsharepath ${prefix}/share/macports

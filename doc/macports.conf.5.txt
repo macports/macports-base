@@ -160,7 +160,7 @@ rsync_dir::
 
 rsync_options::
     Default rsync options to use when connecting to the rsync server.
-    *Default:*;; -rtzv --delete-after
+    *Default:*;; -rtzvl --delete-after
 
 binpath::
     Sets the directory search path for locating system executables used by
