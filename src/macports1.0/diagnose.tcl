@@ -215,7 +215,7 @@ namespace eval diagnose {
         #           None
 
         if {!${diagnose::quiet}} {
-            ui_msg -nonewline "Checking for $string... "
+            ui_info -nonewline "Checking for $string... "
         }
     }
 
@@ -232,11 +232,11 @@ namespace eval diagnose {
 
             if {$result == 1} {
 
-                ui_msg "\[SUCCESS\]"
+                ui_info "\[SUCCESS\]"
                 return
             }
 
-            ui_msg "\[FAILED\]"
+            ui_info "\[FAILED\]"
         }
     }
 
@@ -443,17 +443,11 @@ namespace eval diagnose {
         # Returns:
         #           None
 
-        set apps [registry::entry imaged]
+        set ports [registry::entry imaged]
 
-        foreach app $apps {
-            set name [$app name]
-            output "'${name} @[$app version]_[$app revision][$app variants]'s tarball on disk"
-
-            if {![file exists [$app location]]} {
-                ui_warn "couldn't find the archive for '$name'. Please uninstall and reinstall this port."
-                success_fail 0
-            } else {
-                success_fail 1
+        foreach port $ports {
+            if {![file exists [$port location]]} {
+                ui_warn "couldn't find the archive for '[$port name] @[$port version]_[$port revision][$port variants]'. Please uninstall and reinstall this port."
             }
         }
     }
@@ -504,11 +498,8 @@ namespace eval diagnose {
         # Returns:
         #           None
 
-        output "X11.app on OS X 10.6 systems"
-
-        set mac_version ${macports::macosx_version}
-
-        if {$mac_version eq "10.6"} {
+        if {${macports::macosx_version} eq "10.6"} {
+            output "X11.app on OS X 10.6 systems"
 
             if {[file exists /Applications/X11.app]} {
                 ui_error "it seems you have Mac OS X 10.6 installed, and are using X11 from \"X11.app\". This has been known to cause issues. \
@@ -518,9 +509,8 @@ namespace eval diagnose {
                 success_fail 0
                 return
             }
+            success_fail 1
         }
-
-        success_fail 1
     }
 
     proc check_free_space {} {
