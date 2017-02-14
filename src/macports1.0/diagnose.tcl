@@ -109,7 +109,12 @@ namespace eval diagnose {
             set config_options(profile_path) "${macports::user_home}/.bash_profile"
         }
         if {![info exists config_options(shell_location)]} {
-            set config_options(shell_location) /bin/bash
+            if {[info exists macports::sudo_user]} {
+                set username ${macports::sudo_user}
+            } else {
+                set username [exec id -un]
+            }
+            set config_options(shell_location) [lindex [exec /usr/bin/dscl . -read "/Users/${username}" shell] end]
         }
 
         # Start the checks
@@ -696,6 +701,12 @@ namespace eval diagnose {
         # Returns:
         #           None.
 
+        set known_shells [list bash csh ksh sh tcsh zsh]
+        set shell_name [file tail $shell_loc]
+        if {$shell_name ni $known_shells} {
+            return
+        }
+
         set path ${macports::user_path}
         set split [split $path :]
 
@@ -708,34 +719,33 @@ namespace eval diagnose {
             return
 
         } else {
-            ui_warn "your \$PATH environment variable does not currently include, $port_loc/bin, which is where port is located. \
-                     Would you like to add $port_loc/bin to your \$PATH variable now? \[Y/N\]"
-            set input [gets stdin]
+            ui_warn "your \$PATH environment variable does not currently include $port_loc/bin, which is where port is located."
 
-            if {$input eq "y" || $input eq "Y"} {
-                # XXX: this should use the same paths and comments as the
-                # postflight script of the pkg installer. Maybe they could even
-                # share code?
-                ui_msg "Attempting to add $port_loc/bin to $profile_path"
+            # XXX Only works for bash. Should set default profile_path based on the shell.
+            if {[info exists macports::ui_options(questions_yesno)] && $shell_name eq "bash"} {
+                set retval [$macports::ui_options(questions_yesno) "" "DiagnoseFixPATH" "" n 0 "Would you like to add $port_loc/bin to your \$PATH variable now?"]
+                if {$retval} {
+                    # XXX: this should use the same paths and comments as the
+                    # postflight script of the pkg installer. Maybe they could even
+                    # share code?
+                    ui_msg "Attempting to add $port_loc/bin to $profile_path"
 
-                if {[file exists $profile_path]} {
-                    if {[file writable $profile_path]} {
-                        set fd [open $profile_path a]
-                        puts $fd "export PATH=$port_loc/bin:$port_loc/sbin:\$PATH"
-                        close $fd
+                    if {[file exists $profile_path]} {
+                        if {[file writable $profile_path]} {
+                            set fd [open $profile_path a]
+                            puts $fd "export PATH=$port_loc/bin:$port_loc/sbin:\$PATH"
+                            close $fd
 
-                        ui_msg "Added PATH properly. Please open a new terminal window to load the modified ${profile_path}."
+                            ui_msg "Added PATH properly. Please open a new terminal window to load the modified ${profile_path}."
+                        } else {
+                            ui_error "Can't write to ${profile_path}."
+                        }
                     } else {
-                        ui_error "Can't write to ${profile_path}."
+                        ui_error "$profile_path does not exist."
                     }
                 } else {
-                    ui_error "$profile_path does not exist."
+                    ui_msg "Not fixing your \$PATH variable."
                 }
-            } elseif {$input eq "n" || $input eq "N"} {
-                ui_msg "Not fixing your \$PATH variable."
-
-            } else {
-                ui_msg "Not a valid choice: $input"
             }
        }
    }

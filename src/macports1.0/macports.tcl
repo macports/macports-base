@@ -675,6 +675,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Save the path for future processing
     set macports::user_path $env(PATH)
+    # Likewise any SUDO_USER
+    if {[info exists env(SUDO_USER)]} {
+        set macports::sudo_user $env(SUDO_USER)
+    }
 
     # Save SSH_AUTH_SOCK for ports tree sync
     if {[info exists env(SSH_AUTH_SOCK)]} {
