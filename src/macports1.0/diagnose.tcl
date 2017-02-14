@@ -408,17 +408,13 @@ namespace eval diagnose {
                             success_fail 0
                         }
                         ui_warn "couldn't find file '$file' for port '$name'. Please deactivate and reactivate the port to fix this issue."
-                    } elseif {![file readable $file]} {
-                        if {$fancyOutput} {
-                            $progress intermission
-                        } else {
-                            success_fail 0
-                        }
-
-                        ui_warn "'$file' installed by port '$name' is currently not readable. Please try again. If this problem persists, please contact the mailing list."
                     } elseif {!$fancyOutput} {
                         success_fail 1
                     }
+                    # TODO: check permissions against those in the port image.
+                    # Can't just check for readability because some files
+                    # (and/or their parent directories) should not be readable
+                    # by normal users for various reasons.
 
                     incr currentFile
                 }
