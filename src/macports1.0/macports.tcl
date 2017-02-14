@@ -1561,7 +1561,7 @@ proc macports::fetch_port {url {local 0}} {
     if {$binary} {
         set cmdline [list $tarcmd ${tarflags}${qflag}xOf $filepath ./+PORTFILE > Portfile]
     } else {
-        set cmdline [list $tarcmd ${tarflags}${qflag}xf $filepath]
+        set cmdline [list $tarcmd ${tarflags}xf $filepath]
     }
     ui_debug $cmdline
     if {[catch {exec {*}$cmdline} result]} {
