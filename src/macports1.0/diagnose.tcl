@@ -401,16 +401,13 @@ namespace eval diagnose {
                         output "file '$file' on disk"
                     }
 
-                    if {![file exists $file]} {
+                    if {[catch {file type $file}]} {
                         if {$fancyOutput} {
                             $progress intermission
                         } else {
                             success_fail 0
                         }
-
-                        if {[catch {file lstat $file _}]} {
-                            ui_warn "couldn't find file '$file' for port '$name'. Please deactivate and reactivate the port to fix this issue."
-                        }
+                        ui_warn "couldn't find file '$file' for port '$name'. Please deactivate and reactivate the port to fix this issue."
                     } elseif {![file readable $file]} {
                         if {$fancyOutput} {
                             $progress intermission
