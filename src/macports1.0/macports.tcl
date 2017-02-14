@@ -748,6 +748,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
                         set sources_default [concat [list $url] $flags]
                     }
                 }
+                if {[string match rsync://*rsync.macports.org/release/ports/ $url]} {
+                    ui_warn "MacPorts is configured to use an unsigned source for the ports tree.\
+Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarballs/ports.tar'."
+                }
                 lappend sources [concat [list $url] $flags]
             } else {
                 ui_warn "$sources_conf specifies invalid source '$line', ignored."
@@ -924,6 +928,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {![info exists rsync_dir]} {
         global macports::rsync_dir
         set macports::rsync_dir macports/release/tarballs/base.tar
+    } elseif {[string range $rsync_dir end-3 end] ne ".tar" && [string match *.macports.org ${macports::rsync_server}]} {
+        ui_warn "MacPorts is configured to use an unsigned source for selfupdate.\
+Please edit macports.conf and change the rsync_dir setting to\
+match macports.conf.default."
     }
     if {![info exists rsync_options]} {
         global macports::rsync_options
