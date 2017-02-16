@@ -426,11 +426,11 @@ proc portlint::lint_main {args} {
         }
     }
 
-    if {![string is integer -strict $epoch]} {
-        ui_error "Port epoch is not numeric:  $epoch"
+    if {![string is wideinteger -strict $epoch]} {
+        ui_error "Port epoch is not numeric: $epoch"
         incr errors
     }
-    if {![string is integer -strict $revision]} {
+    if {![string is wideinteger -strict $revision]} {
         ui_error "Port revision is not numeric: $revision"
         incr errors
     }
@@ -635,7 +635,7 @@ proc portlint::lint_main {args} {
                         # if the last character of license name is a number or plus sign
                         # then a hyphen is missing
                         set license_end [string index $subtest end]
-                        if {"+" eq $license_end || [string is integer -strict $license_end]} {
+                        if {"+" eq $license_end || [string is digit -strict $license_end]} {
                             ui_error "invalid license '${test}': missing hyphen before version"
                             incr errors
                         }
