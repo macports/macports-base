@@ -15,7 +15,7 @@ proc svn-patch {} {
         return "No error found."
     } else {
         set ret "Errors found in output file:\n"
-        append ret [exec cat $path/$output_file]
+        append ret [exec -ignorestderr cat $path/$output_file]
         return $ret
     }
 }

@@ -19,17 +19,17 @@ proc univ_test {opt} {
     # Modify Porfile.in for variants.
     if {$opt ne "yes"} {
         # No universal variant
-        exec sed "s/@option@/universal_variant\ no/" $path/Portfile.in > Portfile
+        exec -ignorestderr sed "s/@option@/universal_variant\ no/" $path/Portfile.in > Portfile
     } else {
         # Add universal variant
-        exec sed "s/@option@/default_variants\ +universal/" $path/Portfile.in > Portfile
+        exec -ignorestderr sed "s/@option@/default_variants\ +universal/" $path/Portfile.in > Portfile
     }
     port_clean $path
 
     # Build helping string
     set string "export PORTSRC=${portsrc} ; ${bindir}/port info --variants"
 
-    exec sh -c $string > output 2>@1
+    exec -ignorestderr sh -c $string > output 2>@1
     set var "variants:*"
     set line [get_line $path/$output_file $var]
     return $line

@@ -19,7 +19,7 @@ port_index
 proc test_exists {} {
     global path testfile testport1
 
-    exec sed "s/@name@/$testport1/" $path/Portfile.in > Portfile
+    exec -ignorestderr sed "s/@name@/$testport1/" $path/Portfile.in > Portfile
     port_install
 
     if {[file exists $testfile]} {
@@ -32,7 +32,7 @@ proc test_exists {} {
 proc test_not_exists {} {
     global path testfile testport2
 
-    exec sed "s/@name@/$testport2/" $path/Portfile.in > Portfile
+    exec -ignorestderr sed "s/@name@/$testport2/" $path/Portfile.in > Portfile
     port_uninstall
 
     if {[file exists $testfile]} {
