@@ -908,8 +908,6 @@ proc reinplace {args}  {
     global env workpath worksrcpath
     set extended 0
     set suppress 0
-    # once a macports version has been released, add the rest of the
-    # code from https://trac.macports.org/ticket/15514
     set quiet 0
     set oldlocale_exists 0
     set oldlocale "" 
@@ -1023,6 +1021,12 @@ proc reinplace {args}  {
             }
         }
         close $tmpfd
+
+        if {!$quiet} {
+            if {![catch {exec cmp -s $file $tmpfile}]} {
+                ui_warn "[format [msgcat::mc "reinplace %1\$s didn't change anything in %2\$s"] $pattern $file]"
+            }
+        }
 
         set attributes [file attributes $file]
         chownAsRoot $file
