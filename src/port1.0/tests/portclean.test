@@ -161,7 +161,7 @@ test clean_archive {
     set fd [open $pwd/+CONTENTS w+]
     puts $fd "@portname subport"
     close $fd
-    exec zip $portdbpath/incoming/subport-2_0.0.0.0.zip +CONTENTS
+    exec -ignorestderr zip $portdbpath/incoming/subport-2_0.0.0.0.zip +CONTENTS
 
     portclean::clean_archive
 

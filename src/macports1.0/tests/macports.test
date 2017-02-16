@@ -724,10 +724,10 @@ test GetVCSUpdateCmd-svn {
     hasSvn
 } -setup {
     set repo [makeDirectory macports-test-svn-repo $tempdir]
-    exec $svnadmin create $repo
+    exec -ignorestderr $svnadmin create $repo
     set wc [makeDirectory macports-test-svn-wc $tempdir]
     # This URL should probably be encoded.
-    exec $svn checkout file://$repo $wc
+    exec -ignorestderr $svn checkout file://$repo $wc
 } -body {
     string map [list $svn SVN $wc WC] [macports::GetVCSUpdateCmd $wc]
 } -cleanup {
@@ -739,13 +739,13 @@ test GetVCSUpdateCmd-svn {
 testConstraint hasGit [expr {![catch {macports::findBinary git} git]}]
 set git_vcsupdate_fixture {
     set repo [makeDirectory macports-test-git-repo $tempdir]
-    exec $git init $repo
+    exec -ignorestderr $git init $repo
     rename exec _save_exec
 
     proc exec {cmd args} {
         global gitversion
         if {$cmd ne [macports::findBinary git] || [lindex $args 0] ne "--version"} {
-            return [_save_exec $cmd {*}$args]
+            return [_save_exec -ignorestderr $cmd {*}$args]
         }
         return "git version $gitversion (Apple Git-23)"
     }
@@ -778,7 +778,7 @@ test GetVCSUpdateCmd-git-noautostash {
 
 testConstraint hasGitSvn [expr {
     ![catch {macports::findBinary git} git] &&
-    [file readable [file join [exec $git --exec-path] git-svn]]
+    [file readable [file join [exec -ignorestderr $git --exec-path] git-svn]]
 }]
 
 test GetVCSUpdateCmd-gitsvn {
@@ -787,7 +787,7 @@ test GetVCSUpdateCmd-gitsvn {
     hasGitSvn
 } -setup {
     set repo [makeDirectory macports-test-git-svn-repo $tempdir]
-    exec $git svn init http://localhost $repo
+    exec -ignorestderr $git svn init http://localhost $repo
 } -body {
     string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
 } -cleanup {

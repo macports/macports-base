@@ -6,7 +6,7 @@ proc main {pextlibname} {
     load $pextlibname
 
     # totally lame that file delete won't do it
-	exec rm -f {*}[glob -nocomplain test.db*]
+	exec -ignorestderr rm -f {*}[glob -nocomplain test.db*]
 
     registry::open test.db
 
