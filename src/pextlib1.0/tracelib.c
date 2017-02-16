@@ -4,7 +4,7 @@
  * tracelib.c
  *
  * Copyright (c) 2007-2008 Eugene Pimenov (GSoC)
- * Copyright (c) 2008-2010, 2012-2015 The MacPorts Project
+ * Copyright (c) 2008-2010, 2012-2015, 2017 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -604,6 +604,7 @@ static void sandbox_violation(int sock UNUSED, const char *path, sandbox_violati
 static void dep_check(int sock, char *path) {
     char *port = 0;
     char *t;
+    int fs_cs = -1;
     reg_registry *reg;
     reg_entry entry;
     reg_error error;
@@ -614,10 +615,26 @@ static void dep_check(int sock, char *path) {
         answer(sock, "#");
     }
 
+#ifdef __APPLE__
+    fs_cs = fs_case_sensitive_darwin(path);
+#endif /* __APPLE__ */
+
+    if (-1 == fs_cs) {
+        fs_cs = fs_case_sensitive_fallback(path);
+    }
+
+    if (-1 == fs_cs) {
+        /*
+         * Unable to determine FS case-sensitivity.
+         * Assume the worst case (case-insensitive.)
+         */
+        fs_cs = 0;
+    }
+
     /* find the port id */
     entry.reg = reg;
     entry.proc = NULL;
-    entry.id = reg_entry_owner_id(reg, path);
+    entry.id = reg_entry_owner_id(reg, path, fs_cs);
     if (entry.id == 0) {
         /* file isn't known to MacPorts */
         answer(sock, "?");

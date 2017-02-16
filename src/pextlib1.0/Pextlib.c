@@ -4,7 +4,7 @@
  * Copyright (c) 2002 - 2003 Apple Inc.
  * Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
  * Copyright (c) 2004 Landon Fuller <landonf@macports.org>
- * Copyright (c) 2007 - 2016 The MacPorts Project
+ * Copyright (c) 2007 - 2017 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,7 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/param.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -648,6 +649,201 @@ int SetMaxOpenFilesCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int obj
 	return TCL_OK;
 }
 
+#ifdef __APPLE__
+
+#include <sys/attr.h>
+#include <sys/mount.h>
+
+typedef struct volcaps {
+      u_int32_t size;
+      vol_capabilities_attr_t volcaps;
+} volcaps_t;
+
+/**
+ * Default function for determining the FS case sensitivity on Darwin.
+ * Using getattrlist().
+ */
+int fs_case_sensitive_darwin(const char *path) {
+    /* TODO: cache mount point CS value. */
+    int ret = -1;
+
+    struct statfs f = { 0 };
+    struct attrlist attrlist = { 0 };
+    volcaps_t volcaps = { 0 };
+
+    if (!path) {
+        return ret;
+    }
+
+    if (-1 == statfs(path, &f)) {
+        return ret;
+    }
+
+    attrlist.bitmapcount = ATTR_BIT_MAP_COUNT;
+    attrlist.volattr = ATTR_VOL_CAPABILITIES;
+
+    if (-1 == getattrlist(f.f_mntonname, &attrlist, &volcaps, sizeof(volcaps), 0)) {
+        return ret;
+    }
+
+    if ((attrlist.volattr & ATTR_VOL_CAPABILITIES) == 0) {
+        return ret;
+    }
+
+    if ((volcaps.volcaps.valid[VOL_CAPABILITIES_FORMAT] & VOL_CAP_FMT_CASE_SENSITIVE)) {
+        /* capabilities bit for case-sensitivity valid */
+        ret = (volcaps.volcaps.capabilities[VOL_CAPABILITIES_FORMAT] & VOL_CAP_FMT_CASE_SENSITIVE) != 0;
+    }
+
+    return ret;
+}
+
+#endif /* __APPLE__ */
+
+/**
+ * Fallback function to determine FS case sensitivity.
+ * lstat()'s the given path, its lowercase and uppercase versions.
+ * If all three versions exist and are the same file (as determined
+ * by their inode numbers), then the FS is case-insensitive and
+ * 0 is returned.
+ * Otherwise, the FS is case-sensitive and 1 is returned.
+ * In case of errors (e.g., if the original file does not exist),
+ * -1 is returned.
+ */
+int fs_case_sensitive_fallback(const char *path) {
+    /* TODO: fetch mount point and cache mount point CS value. */
+    int ret = -1;
+
+    if (!path) {
+        return ret;
+    }
+
+    char *lowercase_path = strdup(path);
+    char *uppercase_path = strdup(path);
+
+    if ((!lowercase_path) || (!uppercase_path)) {
+        free(lowercase_path);
+        free(uppercase_path);
+
+        return ret;
+    }
+
+    for (char *tmp_ptr_low = lowercase_path,
+              *tmp_ptr_up  = uppercase_path;
+         *tmp_ptr_low && *tmp_ptr_up; /* Since both are copies of the same string,
+                                         should be the same anyway. */
+         ++tmp_ptr_low, ++tmp_ptr_up) {
+        *tmp_ptr_low = tolower(*tmp_ptr_low);
+        *tmp_ptr_up  = toupper(*tmp_ptr_up);
+    }
+
+    struct stat path_stat = { 0 },
+           lowercase_path_stat = { 0 },
+           uppercase_path_stat = { 0 };
+
+    if (-1 == lstat(path, &path_stat)) {
+        free(lowercase_path);
+        free(uppercase_path);
+
+        return ret;
+    }
+
+    if ((0 == strcmp(path, lowercase_path)) &&
+        (0 == strcmp(path, uppercase_path))) {
+        /*
+         * All three strings are equal. We can't check for
+         * FS case-sensitivity in this case.
+         * And it doesn't matter either way!
+         */
+        ret = 1;
+    }
+    else {
+        if (-1 == lstat(lowercase_path, &lowercase_path_stat)) {
+            /* Lowercased version doesn't exist, CS. */
+            ret = 1;
+        }
+        else if (-1 == lstat(uppercase_path, &uppercase_path_stat)) {
+            /* Uppercased version doesn't exist, CS. */
+            ret = 1;
+        }
+        else {
+            /*
+             * All three files exists, but we must make sure they
+             * are really the same file.
+             */
+            if (path_stat.st_ino == lowercase_path_stat.st_ino) {
+                /*
+                 * Lowercase and original path files are the same,
+                 * but that's not too surprising since most passed
+                 * values will already be in lowercased form.
+                 * Also check the uppercase variant.
+                 *
+                 * The special case that all three versions are
+                 * actually the same (can happen if a path consists
+                 * of case-agnostic Unicode characters only) is
+                 * already handled above.
+                 */
+                if (path_stat.st_ino == uppercase_path_stat.st_ino) {
+                    /* Truly case-insensitive! */
+                    ret = 0;
+                }
+                else {
+                    /*
+                     * Bummer, lowercased version matches the original
+                     * file's inode number, but the uppercased one
+                     * doesn't. CS.
+                     */
+                    ret = 1;
+                }
+            }
+            else {
+                /* Just similar-named, still a case-sensitive FS. */
+                ret = 1;
+            }
+        }
+    }
+
+    free(lowercase_path);
+    free(uppercase_path);
+
+    return ret;
+}
+
+/**
+ * Determines FS case-sensitivity for a specific path.
+ * Returns 1 if the FS is case-sensitive, 0 otherwise.
+ * Errors out if the case-sensitivity could not be determined.
+ */
+int FSCaseSensitiveCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    Tcl_Obj *tcl_result;
+    int ret = -1;
+
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "path");
+        return TCL_ERROR;
+    }
+
+    char *path = Tcl_GetString(objv[1]);
+
+#ifdef __APPLE__
+    ret = fs_case_sensitive_darwin(path);
+#endif /* __APPLE__ */
+
+    if (-1 == ret) {
+        ret = fs_case_sensitive_fallback(path);
+    }
+
+    if (-1 == ret) {
+        Tcl_SetResult(interp, "unable to determine FS case-sensitivity", TCL_STATIC);
+        return TCL_ERROR;
+    }
+    else {
+        tcl_result = Tcl_NewBooleanObj(ret);
+        Tcl_SetObjResult(interp, tcl_result);
+        return TCL_OK;
+    }
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
     if (Tcl_InitStubs(interp, "8.4", 0) == NULL)
@@ -709,6 +905,8 @@ int Pextlib_Init(Tcl_Interp *interp)
 
     Tcl_CreateObjCommand(interp, "check_broken_dns", CheckBrokenDNSCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "set_max_open_files", SetMaxOpenFilesCmd, NULL, NULL);
+
+    Tcl_CreateObjCommand(interp, "fs_case_sensitive", FSCaseSensitiveCmd, NULL, NULL);
 
     if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
         return TCL_ERROR;
