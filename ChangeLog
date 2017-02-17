@@ -7,7 +7,7 @@ Release 2.4.1 (unreleased)
       (raimue in d33a8a0)
 
     - Fixed detection of /opt/local/bin already in the user's PATH in the
-      installer postflight script. (barry-scott in dcb0788)
+      installer postflight script. (barry-scott in dcb0788, b757252)
 
     - Fixed the display of default variants by 'port variants' when the
       defaults are affected by variants present in variants.conf.
@@ -15,10 +15,33 @@ Release 2.4.1 (unreleased)
 
     - Fixed 'port reclaim' deleting a file installed by the MacPorts installer
       for technical reasons.
-      (cal in b0c0957, #53436)
+      (#53436, cal in b0c0957)
 
-    - Display warning if reinplace doesn't change anything
-      (khindenburg in 8460505, #15514)
+    - Display warning if reinplace doesn't change anything.
+      (#15514, khindenburg in 8460505)
+
+    - Fixed 'port select' failure when the currently selected version no
+      longer exists. (#31702, raimue in 9389e83)
+
+    - Fixed 'port lint' complaining that very large epoch values are
+      non-numeric. (#53489, ionic in eb0a577, 0846afb)
+
+    - Fixed fallback to building from source when MacPorts is configured to
+      get packages from an FTP server. (#53530, jmr in 6718cc6)
+
+    - Fixed failure to extract portdir archives. (#53532, jmr in 8c2da16)
+
+    - Fixed 'port diagnose' incorrectly offering to fix the PATH in some
+      shells by skipping the check with shells it doesn't know about.
+      (#53473, jmr in 17c70c9)
+
+    - Reduced the default verbosity of 'port diagnose'. (jmr in 741a77b)
+
+    - Fixed 'port diagnose' incorrectly reporting some symlinks as missing.
+      (#53490, jmr in 103d6f6)
+
+    - Fixed 'port lint' complaining that GitHub handles should be obfuscated.
+      (jmr in 2cadd1b)
 
 Release 2.4 (2017-01-27 by jmr)
     - New action 'port reclaim' to clean inactive ports and unnecessary
@@ -33,9 +56,8 @@ Release 2.4 (2017-01-27 by jmr)
       detailed and current manpages written using asciidoc that open
       automatically. Added documentation for almost all commands currently
       implemented by MacPorts.
-      (raimue in branch new-help-system, merge in r123002,
-       manpages written by cal, jmr, raimue, ionic, jeremyhu,
-       #44530, #15467)
+      (#15467, #44530, raimue in branch new-help-system, merge in r123002,
+       manpages written by cal, jmr, raimue, ionic, jeremyhu)
 
     - Added interactive questions for various use cases like 'install',
       'activate', 'uninstall --follow-dependencies'. Also added global
@@ -62,7 +84,10 @@ Release 2.4 (2017-01-27 by jmr)
       (cal in r134511)
 
     - Add depends_test to handle the dependencies for the test phase of ports.
-      (khindenburg in r140488, #38208)
+      (#38208, khindenburg in r140488)
+
+    - If the lbzip2 (or in limited cases, pbzip2) port is installed, MacPorts
+      will now use it when extracting .bz2 archives. (jmr in r121711)
 
     - Remove "support" for rpm and deb packages in MacPorts, leaving pkg/mpkg.
       (afb in r123004)
