@@ -2789,7 +2789,15 @@ proc action_reclaim { action portlist opts } {
     if {[prefix_unwritable]} {
         return 1
     }
-    return [macports::reclaim_main $opts]
+
+    set status [macports::reclaim_main $opts]
+
+    if {$status == 0 &&
+        ![info exists options(ports_upgrade_no-rev-upgrade)] &&
+        ${macports::revupgrade_autorun}} {
+        return [action_revupgrade $action $portlist $opts]
+    }
+
 }
 
 
