@@ -15,7 +15,7 @@ SYNOPSIS
 DESCRIPTION
 -----------
 *port reclaim* will find files that can be removed to reclaim disk space by uninstalling inactive ports on your
-system, and removing unneeded or unused installation files.  The user is then provided interactive options for files to remove.  No files are removed initially, until the user selects them from the provided list.
+system as well as unnecessary unrequested ports, and removing unneeded or unused installation files.  The user is then provided interactive options for files to remove.  No files are removed initially, until the user selects them from the provided list.
 
 OPTIONS
 -------
