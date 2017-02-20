@@ -136,9 +136,9 @@ proc portbuild::build_getjobs {args} {
         try -pass_signal {
             set jobs [sysctl hw.activecpu]
         } catch {{*} eCode eMessage} {
+            set jobs 2
             ui_warn "failed to determine the number of available CPUs (probably not supported on this platform)"
             ui_warn "defaulting to $jobs jobs, consider setting buildmakejobs to a nonzero value in macports.conf"
-            set jobs 2
         }
 
         try -pass_signal {
