@@ -4368,7 +4368,7 @@ proc macports::reclaim_check_and_run {} {
     }
 
     try {
-        reclaim::check_last_run
+        return [reclaim::check_last_run]
     } catch {{POSIX SIG SIGINT} eCode eMessage} {
         ui_error [msgcat::mc "reclaim aborted: SIGINT received."]
         return 2
@@ -4380,8 +4380,6 @@ proc macports::reclaim_check_and_run {} {
         ui_error [msgcat::mc "reclaim failed: %s" $eMessage]
         return 1
     }
-
-    return 0
 }
 
 proc macports::reclaim_main {opts} {

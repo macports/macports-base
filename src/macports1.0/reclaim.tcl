@@ -355,7 +355,7 @@ namespace eval reclaim {
         set time [read_last_run_file]
 
         if {![string is integer -strict $time]} {
-            return
+            return 0
         }
 
         ui_debug "Checking time since last reclaim run"
@@ -366,7 +366,7 @@ namespace eval reclaim {
                 set retval [$macports::ui_options(questions_yesno) $msg "ReclaimPrompt" "" {y} 0 "Would you like to run it now?"]
                 if {$retval == 0} {
                     # User said yes, run port reclaim
-                    macports::reclaim_main
+                    return [macports::reclaim_main {}]
                 } else {
                     # User said no, ask again in two weeks
                     # Change this time frame if a consensus is agreed upon
@@ -376,6 +376,7 @@ namespace eval reclaim {
                 ui_warn $msg
             }
         }
+        return 0
     }
 
     proc sort_portlist_by_dependendents {portlist} {
