@@ -352,8 +352,7 @@ proc macports::findBinary {prog {autoconf_hint {}}} {
         return $autoconf_hint
     } else {
         try -pass_signal {
-            set cmd_path [macports::binaryInPath $prog]
-            return $cmd_path
+            return [macports::binaryInPath $prog]
         } catch {{*} eCode eMessage} {
             error "$eMessage or at its MacPorts configuration time location, did you move it?"
         }
