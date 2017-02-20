@@ -500,12 +500,15 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 
 			long curl_timeout = -1;
 
+			/* curl_multi_timeout introduced in libcurl 7.15.4 */
+#if LIBCURL_VERSION_NUM >= 0x070f04
 			/* get the next timeout */
 			theCurlMCode = curl_multi_timeout(theMHandle, &curl_timeout);
 			if (theCurlMCode != CURLM_OK) {
 				theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
 				break;
 			}
+#endif
 
 			timeout.tv_sec = 1;
 			timeout.tv_usec = 0;
