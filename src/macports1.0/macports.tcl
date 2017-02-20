@@ -1243,7 +1243,6 @@ match macports.conf.default."
     # convert any flat receipts if we just created a new db
     if {$db_exists == 0 && [file exists ${registry.path}/receipts] && [file writable $db_path]} {
         ui_warn "Converting your registry to sqlite format, this might take a while..."
-        # XXX: catch, leave unfixed, code should go away.
         if {[catch {registry::convert_to_sqlite}]} {
             ui_debug $::errorInfo
             file delete -force $db_path
@@ -2673,7 +2672,6 @@ proc mportsync {{optionslist {}}} {
                 set updated 1
                 if {[file isdirectory $destdir]} {
                     set moddate [file mtime $destdir]
-                    # XXX, catch, don't fix rarely used code
                     if {[catch {set updated [curl isnewer $source $moddate]} error]} {
                         ui_warn "Cannot check if $source was updated, ($error)"
                     }
