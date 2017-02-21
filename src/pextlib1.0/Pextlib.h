@@ -36,8 +36,13 @@ void ui_notice(Tcl_Interp *interp, const char *format, ...) __attribute__((forma
 void ui_info(Tcl_Interp *interp, const char *format, ...) __attribute__((format(printf, 2, 3)));
 void ui_debug(Tcl_Interp *interp, const char *format, ...) __attribute__((format(printf, 2, 3)));
 
+/* Mount point file system case-sensitivity caching infrastructure. */
+typedef struct _mount_cs_cache mount_cs_cache_t;
+mount_cs_cache_t* new_mount_cs_cache();
+void reset_mount_cs_cache(mount_cs_cache_t *cache);
+
 #ifdef __APPLE__
-int fs_case_sensitive_darwin(const char *path);
+int fs_case_sensitive_darwin(Tcl_Interp *interp, const char *path, mount_cs_cache_t *cache);
 #endif /* __APPLE__ */
 
-int fs_case_sensitive_fallback(const char *path);
+int fs_case_sensitive_fallback(Tcl_Interp *interp, const char *path, mount_cs_cache_t *cache);

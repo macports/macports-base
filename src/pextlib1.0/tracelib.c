@@ -110,6 +110,8 @@ static int selfpipe[2];
 static int enable_fence = 0;
 static Tcl_Interp *interp;
 
+static mount_cs_cache_t *mount_cs_cache;
+
 /**
  * Mutex that shall be acquired to exclusively lock checking and acting upon
  * the value of kq, indicating whether the event loop has started. If it has
@@ -616,11 +618,11 @@ static void dep_check(int sock, char *path) {
     }
 
 #ifdef __APPLE__
-    fs_cs = fs_case_sensitive_darwin(path);
+    fs_cs = fs_case_sensitive_darwin(interp, path, mount_cs_cache);
 #endif /* __APPLE__ */
 
     if (-1 == fs_cs) {
-        fs_cs = fs_case_sensitive_fallback(path);
+        fs_cs = fs_case_sensitive_fallback(interp, path, mount_cs_cache);
     }
 
     if (-1 == fs_cs) {
@@ -726,6 +728,14 @@ static int TracelibRunCmd(Tcl_Interp *in) {
     int flags;
     int opensockcount = 0;
     bool break_eventloop = false;
+
+    /* (Re-)initialize mount point FS case-sensitivity cache. */
+    if (mount_cs_cache) {
+        reset_mount_cs_cache(mount_cs_cache);
+    }
+    else {
+        mount_cs_cache = new_mount_cs_cache();
+    }
 
     pthread_mutex_lock(&evloop_mutex);
     /* bring all variables into a defined state so the cleanup code can be
@@ -931,6 +941,14 @@ error_locked:
     pthread_mutex_unlock(&evloop_mutex);
     // wake up any waiting threads in TracelibCloseSocketCmd
     pthread_cond_broadcast(&evloop_signal);
+
+    /* Free mount_cs_cache object. */
+    if (mount_cs_cache) {
+        reset_mount_cs_cache(mount_cs_cache);
+
+        free(mount_cs_cache);
+        mount_cs_cache = NULL;
+    }
 
     return retval;
 }
