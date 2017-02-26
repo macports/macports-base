@@ -87,7 +87,7 @@ namespace eval macports {
 #
 # This proc never fails and always returns the current version in the format
 # major.minor.patch. Note that the value of patch will not be meaningful for
-# trunk releases, but we guarantee that it will compare to be greater than any
+# Git master, but we guarantee that it will compare to be greater than any
 # released versions from the same major.minor.x series. You should use the
 # MacPorts-provided Tcl extension "vercmp" to do version number comparisons on
 # the return value of this function.
