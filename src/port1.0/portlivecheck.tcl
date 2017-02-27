@@ -155,7 +155,7 @@ proc portlivecheck::livecheck_main {args} {
                 ui_debug "The regex is \"$the_re\""
                 if {${livecheck.type} eq "regexm"} {
                     set data [read $chan]
-                    if {[regexp $the_re $data matched updated_version]} {
+                    if {[regexp -nocase $the_re $data matched updated_version]} {
                         set foundmatch 1
                         ui_debug "The regex matched \"$matched\", extracted \"$updated_version\""
                         if {$updated_version ne ${livecheck.version}} {
@@ -172,8 +172,8 @@ proc portlivecheck::livecheck_main {args} {
                     set updated_version 0
                     while {[gets $chan line] >= 0} {
                         set lastoff 0
-                        while {$lastoff >= 0 && [regexp -start $lastoff -indices $the_re $line offsets]} {
-                            regexp -start $lastoff $the_re $line matched upver
+                        while {$lastoff >= 0 && [regexp -nocase -start $lastoff -indices $the_re $line offsets]} {
+                            regexp -nocase -start $lastoff $the_re $line matched upver
                             set foundmatch 1
                             if {$updated_version == 0 || [vercmp $upver $updated_version] > 0} {
                                 set updated_version $upver
