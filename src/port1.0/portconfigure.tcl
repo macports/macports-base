@@ -389,8 +389,8 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         return ${developer_dir}/SDKs//MacOSX10.4u.sdk
     }
 
-    # Use the DevSDK (eg: /usr/include) if the requested SDK version matches the host version
-    if {$sdk_version eq $macosx_version} {
+    # Use the DevSDK (eg: /usr/include) if present and the requested SDK version matches the host version
+    if {$sdk_version eq $macosx_version && [file exists /usr/include]} {
         return {}
     }
 
