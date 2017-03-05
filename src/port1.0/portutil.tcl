@@ -3221,11 +3221,11 @@ proc _check_xcode_version {} {
             # Check whether /usr/include and /usr/bin/make exist and tell users to install the command line tools, if they don't
             if {   ![file isdirectory [file join $cltpath usr include]]
                 || ![file executable  [file join $cltpath usr bin make]]} {
-                ui_warn "The Xcode Command Line Tools don't appear to be installed; most ports will likely fail to build."
+                ui_warn "The system headers do not appear to be installed.  While most ports should build correctly against an SDK, some ports still have a dependency on system headers and will fail to build.  Please file tickets about such failures at https://trac.macports.org."
                 if {[vercmp $macosx_version 10.9] >= 0} {
-                    ui_warn "Install them by running `xcode-select --install'."
+                    ui_warn "You can install them as part of the Xcode Command Line Tools package by running `xcode-select --install'."
                 } else {
-                    ui_warn "You can install them from Xcode's Preferences in the Downloads section."
+                    ui_warn "You can install them as part of the Xcode Command Line Tools package from Xcode's Preferences in the Downloads section."
                     ui_warn "See https://guide.macports.org/chunked/installing.xcode.html#installing.xcode.lion.43 for more information."
                 }
             }
