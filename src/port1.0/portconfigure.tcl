@@ -386,7 +386,7 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
 
     # Special hack for Tiger/ppc, since the system libraries do not contain intel slices
     if {${os.arch} eq "powerpc" && $macosx_version eq "10.4" && [variant_exists universal] && [variant_isset universal]} {
-        return ${developer_dir}/SDKs//MacOSX10.4u.sdk
+        return ${developer_dir}/SDKs/MacOSX10.4u.sdk
     }
 
     # Use the DevSDK (eg: /usr/include) if present and the requested SDK version matches the host version
