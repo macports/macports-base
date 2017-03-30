@@ -84,7 +84,7 @@ Field selection
 *--homepage*::
     Search for the keyword(s) in the homepage property.
 
-*--maintainer*::
+*--maintainer*, *--maintainers*::
     Search for ports maintained by a specific maintainer. Note that there also
     is a pseudo-portname selector available for maintainer addresses. See
     man:port[1] for more information.
