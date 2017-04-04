@@ -2712,8 +2712,10 @@ proc action_select { action portlist opts } {
                 lappend groups [array get groupdesc]
                 array unset groupdesc
             }
-            puts [format $formatStr $w1 "Name" $w2 "Selected" "Options"]
-            puts [format $formatStr $w1 "====" $w2 "========" "======="]
+            if {![macports::ui_isset ports_quiet]} {
+                puts [format $formatStr $w1 "Name" $w2 "Selected" "Options"]
+                puts [format $formatStr $w1 "====" $w2 "========" "======="]
+            }
             foreach groupdesc $groups {
                 array set groupd $groupdesc
                 puts [format $formatStr $w1 $groupd(name) $w2 $groupd(selected) [join $groupd(versions) " "]]
