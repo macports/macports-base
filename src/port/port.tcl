@@ -5334,6 +5334,9 @@ namespace eval portclient::notifications {
                 foreach note $notes {
                     ui_notice [wrap $note 0 "    "]
                 }
+
+                # Clear notes that have been displayed
+                unset notificationsToPrint($name)
             }
         }
     }
