@@ -378,22 +378,49 @@ proc portconfigure::configure_get_ld_archflags {} {
 
 proc portconfigure::configure_get_sdkroot {sdk_version} {
     global developer_dir macosx_version xcodeversion os.arch os.platform
-    if {${os.platform} eq "darwin" && ($sdk_version ne $macosx_version
-        || (${os.arch} eq "powerpc" && $macosx_version eq "10.4" && [variant_exists universal] && [variant_isset universal]))} {
-        if {[vercmp $xcodeversion 4.3] < 0} {
-            set sdks_dir ${developer_dir}/SDKs
-        } else {
-            set sdks_dir ${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs
-        }
-        if {$sdk_version eq "10.4"} {
-            set sdk ${sdks_dir}/MacOSX10.4u.sdk
-        } else {
-            set sdk ${sdks_dir}/MacOSX${sdk_version}.sdk
-        }
-        if {[file exists $sdk]} {
-            return $sdk
-        }
+
+    # This is only relevant for macOS
+    if {${os.platform} ne "darwin"} {
+        return {}
     }
+
+    # Special hack for Tiger/ppc, since the system libraries do not contain intel slices
+    if {${os.arch} eq "powerpc" && $macosx_version eq "10.4" && [variant_exists universal] && [variant_isset universal]} {
+        return ${developer_dir}/SDKs/MacOSX10.4u.sdk
+    }
+
+    # Use the DevSDK (eg: /usr/include) if present and the requested SDK version matches the host version
+    if {$sdk_version eq $macosx_version && [file exists /usr/include]} {
+        return {}
+    }
+
+    if {[vercmp $xcodeversion 4.3] < 0} {
+        set sdks_dir ${developer_dir}/SDKs
+    } else {
+        set sdks_dir ${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs
+    }
+
+    if {$sdk_version eq "10.4"} {
+        set sdk ${sdks_dir}/MacOSX10.4u.sdk
+    } else {
+        set sdk ${sdks_dir}/MacOSX${sdk_version}.sdk
+    }
+
+    if {[file exists $sdk]} {
+        return $sdk
+    }
+
+    if {![catch {set sdk [exec xcrun --sdk macosx${sdk_version} --show-sdk-path 2> /dev/null]}]} {
+        return $sdk
+    }
+
+    if {![catch {set sdk [exec xcrun --sdk macosx --show-sdk-path 2> /dev/null]}]} {
+        ui_warn "Unable to determine location of the macOS ${sdk_version} SDK.  Using the default macOS SDK."
+        return $sdk
+    }
+
+    ui_warn "Unable to determine location of a macOS SDK.  Compilation will likely fail."
+
     return {}
 }
 
@@ -514,7 +541,7 @@ proc portconfigure::get_compiler_fallback {} {
     # Determine which versions of clang we prefer
     if {${configure.cxx_stdlib} eq "libc++"} {
         # clang-3.5+ require libc++
-        lappend compilers macports-clang-3.9 macports-clang-3.8 macports-clang-3.7
+        lappend compilers macports-clang-4.0 macports-clang-3.9 macports-clang-3.8 macports-clang-3.7
     }
 
     if {${os.major} < 16} {

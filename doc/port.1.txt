@@ -52,6 +52,8 @@ available port tree(s). These may be used in the same way as a 'portname'.
     - 'unrequested': installed ports that were installed only to satisfy
       dependencies
     - 'leaves': installed ports that are unrequested and have no dependents
+    - 'rleaves': installed ports that are unrequested and that no
+      requested ports depend on
 
 Sets of ports can also be specified with 'pseudo-portname selectors', which
 expand to the ports in which the value of the 'Portfile' option corresponding

@@ -92,7 +92,7 @@ proc mtree {root spec} {
             link {
                 # file link doesn't let you link to files that don't exist
                 # so lets farm out to /bin/ln
-                exec /bin/ln -sf $link $file
+                exec -ignorestderr /bin/ln -sf $link $file
             }
             default {
                 return -code return "Unknown file map type: $typelist"

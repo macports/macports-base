@@ -500,28 +500,24 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 
 			long curl_timeout = -1;
 
-			/* use at most half a second as timeout */
-			timeout.tv_sec = 0;
-			timeout.tv_usec = 500 * 1000;
-
+			/* curl_multi_timeout introduced in libcurl 7.15.4 */
+#if LIBCURL_VERSION_NUM >= 0x070f04
 			/* get the next timeout */
 			theCurlMCode = curl_multi_timeout(theMHandle, &curl_timeout);
 			if (theCurlMCode != CURLM_OK) {
 				theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
 				break;
 			}
+#endif
 
 			timeout.tv_sec = 1;
 			timeout.tv_usec = 0;
 			/* convert the timeout into a suitable format for select(2) and
-			 * limit the timeout to 500 msecs at most */
-			if (curl_timeout > 0) {
-				timeout.tv_sec = curl_timeout / 1000;
-				if (timeout.tv_sec > 1) {
-					timeout.tv_sec = 1;
-				}
-
-				timeout.tv_usec = (curl_timeout % 1000) * 1000;
+			 * limit the timeout to 1 second at most */
+			if (curl_timeout >= 0 && curl_timeout < 1000) {
+				timeout.tv_sec = 0;
+				/* convert ms to us */
+				timeout.tv_usec = curl_timeout * 1000;
 			}
 
 			/* get the fd sets for select(2) */

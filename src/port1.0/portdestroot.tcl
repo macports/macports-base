@@ -196,7 +196,7 @@ proc portdestroot::destroot_finish {args} {
             file delete -force ${fullpath}
         } elseif {[file type $fullpath] eq "file"} {
             ui_debug "Clearing dependency_libs in [file tail $fullpath]"
-            reinplace "/dependency_libs/ s/'.*'/''/" ${fullpath}
+            reinplace -q "/dependency_libs/ s/'.*'/''/" ${fullpath}
         }
     }
 

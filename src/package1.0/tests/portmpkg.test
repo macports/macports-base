@@ -18,20 +18,26 @@ package require portpkg 1.0
 source ./library.tcl
 macports_worker_init
 
+# mock getportresourcepath, tests should be able to operate without a ports tree
+proc getportresourcepath {url {path {}} {fallback yes}} {
+    global pwd
+    return [file join $pwd $path]
+}
 
 test mpkg_main {
     Port mpkg main unit test.
 } -constraints {
     darwin
 } -setup {
-    global os.platform os.major os.arch destpath package.destpath configure.build_arch
-    global subport version revision package.flat maintainers description categories
-    global supported_archs porturl
+    global os.platform os.major os.arch destpath package.destpath configure.build_arch \
+        subport version revision package.flat maintainers description categories \
+        supported_archs porturl pwd
     env_init
 
     file mkdir $destpath
     close [open $destpath/fondu-060102_1.pkg w+]
-
+    file mkdir ${pwd}/port1.0/package
+    close [open ${pwd}/port1.0/package/background.tiff w+]
 } -body {
     if {[portmpkg::mpkg_main] != 0} {
         return "FAIL: cannot create pkg"
@@ -52,16 +58,17 @@ test mpkg_main {
 
 } -cleanup {
     file delete -force $destpath
-
+    global pwd
+    file delete -force ${pwd}/port1.0
 } -result "Package mpkg successful."
 
 
 test make_dependency_list {
     Make dependency list unit test.
 } -setup {
-    global os.platform os.major os.arch destpath package.destpath configure.build_arch
-    global subport version revision package.flat maintainers description categories
-    global supported_archs porturl
+    global os.platform os.major os.arch destpath package.destpath configure.build_arch \
+        subport version revision package.flat maintainers description categories \
+        supported_archs porturl
     env_init
 
     set destination $pwd/destination

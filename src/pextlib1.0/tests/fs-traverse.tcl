@@ -163,7 +163,7 @@ proc main {pextlibname} {
         fs-traverse file $root {
             if {[string match "*/a" $file]} {
                 # use /bin/rm because on 10.3 file delete doesn't work on directories properly
-                exec /bin/rm -rf $file
+                exec -ignorestderr /bin/rm -rf $file
                 continue
             }
             lappend output $file
@@ -211,7 +211,7 @@ proc make_root {} {
             link {
                 # file link doesn't let you link to files that don't exist
                 # so lets farm out to /bin/ln
-                exec /bin/ln -s $link $entry
+                exec -ignorestderr /bin/ln -s $link $entry
             }
             default {
                 return -code error "Unknown file map type: $typelist"

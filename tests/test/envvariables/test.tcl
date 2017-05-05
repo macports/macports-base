@@ -22,7 +22,7 @@ proc envvar_test {} {
     append string "export PORTSRC=${portsrc}; "
     append string "${bindir}/port test"
 
-    exec sh -c $string > output
+    exec -ignorestderr sh -c $string > output
     set line [get_line $path/$output_file "a"]
     set line2 [get_line $path/$output_file "b"]
     return $line$line2

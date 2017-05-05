@@ -591,20 +591,22 @@ proc portlint::lint_main {args} {
         incr errors
     }
 
-    foreach addr $maintainers {
-        if {$addr eq "nomaintainer@macports.org" ||
-                $addr eq "openmaintainer@macports.org"} {
-            ui_warn "Using full email address for no/open maintainer"
-            incr warnings
-        } elseif {[regexp "^(.+)@macports.org$" $addr -> localpart]} {
-            ui_warn "Maintainer email address for $localpart includes @macports.org"
-            incr warnings
-        } elseif {$addr eq "darwinports@opendarwin.org"} {
-            ui_warn "Using legacy email address for no/open maintainer"
-            incr warnings
-        } elseif {[regexp "^(.+)@(.+)$" $addr -> localpart domain]} {
-            ui_warn "Maintainer email address should be obfuscated as $domain:$localpart"
-            incr warnings
+    foreach maintainer $maintainers {
+        foreach addr $maintainer {
+            if {$addr eq "nomaintainer@macports.org" ||
+                    $addr eq "openmaintainer@macports.org"} {
+                ui_warn "Using full email address for no/open maintainer"
+                incr warnings
+            } elseif {[regexp "^(.+)@macports.org$" $addr -> localpart]} {
+                ui_warn "Maintainer email address for $localpart includes @macports.org"
+                incr warnings
+            } elseif {$addr eq "darwinports@opendarwin.org"} {
+                ui_warn "Using legacy email address for no/open maintainer"
+                incr warnings
+            } elseif {[regexp "^(.+)@(.+)$" $addr -> localpart domain]} {
+                ui_warn "Maintainer email address should be obfuscated as $domain:$localpart"
+                incr warnings
+            }
         }
     }
 

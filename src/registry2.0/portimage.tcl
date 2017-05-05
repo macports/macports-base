@@ -228,25 +228,15 @@ proc _check_registry {name version revision variants} {
             ui_msg "$UI_PREFIX [msgcat::mc $msg]"
         }
         foreach i $ilist {
-            set iname [$i name]
-            set iversion [$i version]
-            set irevision [$i revision]
-            set ivariants [$i variants]
-            ##
-            # User Interaction Question
-            # Asking choice to select option in case of ambiguous activate
+            set portstr [format "%s @%s_%s%s" [$i name] [$i version] [$i revision] [$i variants]]
+            if {[$i state] eq "installed"} {
+                append portstr [msgcat::mc " (active)"]
+            }
+
             if {[info exists macports::ui_options(questions_singlechoice)]} {
-                if { [$i state] eq "installed" } {
-                    lappend portilist $iname@${iversion}_${irevision}${ivariants}(active)
-                } else {
-                    lappend portilist $iname@${iversion}_${irevision}${ivariants}
-                }
+                lappend portilist "$portstr"
             } else {
-                if { [$i state] eq "installed" } {
-                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s_%s%s (active)"] $iname $iversion $irevision $ivariants]"
-                } else {
-                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s_%s%s"] $iname $iversion $irevision $ivariants]"
-                }
+                ui_msg "$UI_PREFIX     $portstr"
             }
         }
         if {[info exists macports::ui_options(questions_singlechoice)]} {

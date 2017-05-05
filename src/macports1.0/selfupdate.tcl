@@ -204,7 +204,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
             }
         }
     } elseif {$comp < 0} {
-        ui_msg "$macports::ui_prefix MacPorts base is probably trunk or a release candidate"
+        ui_msg "$macports::ui_prefix MacPorts base is probably master or a release candidate"
     } else {
         ui_msg "$macports::ui_prefix MacPorts base is already the latest version"
     }

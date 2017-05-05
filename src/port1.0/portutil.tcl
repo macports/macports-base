@@ -908,8 +908,6 @@ proc reinplace {args}  {
     global env workpath worksrcpath
     set extended 0
     set suppress 0
-    # once a macports version has been released, add the rest of the
-    # code from https://trac.macports.org/ticket/15514
     set quiet 0
     set oldlocale_exists 0
     set oldlocale "" 
@@ -1023,6 +1021,10 @@ proc reinplace {args}  {
             }
         }
         close $tmpfd
+
+        if {!$quiet && ![catch {exec -ignorestderr cmp -s $file $tmpfile}]} {
+            ui_warn "[format [msgcat::mc "reinplace %1\$s didn't change anything in %2\$s"] $pattern $file]"
+        }
 
         set attributes [file attributes $file]
         chownAsRoot $file
@@ -3219,11 +3221,11 @@ proc _check_xcode_version {} {
             # Check whether /usr/include and /usr/bin/make exist and tell users to install the command line tools, if they don't
             if {   ![file isdirectory [file join $cltpath usr include]]
                 || ![file executable  [file join $cltpath usr bin make]]} {
-                ui_warn "The Xcode Command Line Tools don't appear to be installed; most ports will likely fail to build."
+                ui_warn "System headers do not appear to be installed. Most ports should build corectly, but if you experience problems due to a port depending on system headers, please file a ticket at https://trac.macports.org."
                 if {[vercmp $macosx_version 10.9] >= 0} {
-                    ui_warn "Install them by running `xcode-select --install'."
+                    ui_warn "You can install them as part of the Xcode Command Line Tools package by running `xcode-select --install'."
                 } else {
-                    ui_warn "You can install them from Xcode's Preferences in the Downloads section."
+                    ui_warn "You can install them as part of the Xcode Command Line Tools package from Xcode's Preferences in the Downloads section."
                     ui_warn "See https://guide.macports.org/chunked/installing.xcode.html#installing.xcode.lion.43 for more information."
                 }
             }
@@ -3296,7 +3298,9 @@ proc _archive_available {} {
         append site [option archive.subdir]
     }
     set url [portfetch::assemble_url $site $archivename]
-    if {![catch {curl getsize $url} result]} {
+    # curl getsize can return -1 instead of throwing an error for
+    # nonexistent files on FTP sites.
+    if {![catch {curl getsize $url} size] && $size > 0} {
         set archive_available_result 1
         return 1
     }

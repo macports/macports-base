@@ -88,7 +88,7 @@ namespace eval macports {
 #
 # This proc never fails and always returns the current version in the format
 # major.minor.patch. Note that the value of patch will not be meaningful for
-# trunk releases, but we guarantee that it will compare to be greater than any
+# Git master, but we guarantee that it will compare to be greater than any
 # released versions from the same major.minor.x series. You should use the
 # MacPorts-provided Tcl extension "vercmp" to do version number comparisons on
 # the return value of this function.
@@ -353,8 +353,7 @@ proc macports::findBinary {prog {autoconf_hint {}}} {
         return $autoconf_hint
     } else {
         try -pass_signal {
-            set cmd_path [macports::binaryInPath $prog]
-            return $cmd_path
+            return [macports::binaryInPath $prog]
         } catch {{*} eCode eMessage} {
             error "$eMessage or at its MacPorts configuration time location, did you move it?"
         }
@@ -676,6 +675,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Save the path for future processing
     set macports::user_path $env(PATH)
+    # Likewise any SUDO_USER
+    if {[info exists env(SUDO_USER)]} {
+        set macports::sudo_user $env(SUDO_USER)
+    }
 
     # Save SSH_AUTH_SOCK for ports tree sync
     if {[info exists env(SSH_AUTH_SOCK)]} {
@@ -744,6 +747,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
                         }
                         set sources_default [concat [list $url] $flags]
                     }
+                }
+                if {[string match rsync://*rsync.macports.org/release/ports/ $url]} {
+                    ui_warn "MacPorts is configured to use an unsigned source for the ports tree.\
+Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarballs/ports.tar'."
                 }
                 lappend sources [concat [list $url] $flags]
             } else {
@@ -921,10 +928,14 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {![info exists rsync_dir]} {
         global macports::rsync_dir
         set macports::rsync_dir macports/release/tarballs/base.tar
+    } elseif {[string range $rsync_dir end-3 end] ne ".tar" && [string match *.macports.org ${macports::rsync_server}]} {
+        ui_warn "MacPorts is configured to use an unsigned source for selfupdate.\
+Please edit macports.conf and change the rsync_dir setting to\
+match macports.conf.default."
     }
     if {![info exists rsync_options]} {
         global macports::rsync_options
-        set rsync_options "-rtzv --delete-after"
+        set rsync_options "-rtzvl --delete-after"
     }
 
     set portsharepath ${prefix}/share/macports
@@ -1232,7 +1243,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # convert any flat receipts if we just created a new db
     if {$db_exists == 0 && [file exists ${registry.path}/receipts] && [file writable $db_path]} {
         ui_warn "Converting your registry to sqlite format, this might take a while..."
-        # XXX: catch, leave unfixed, code should go away.
         if {[catch {registry::convert_to_sqlite}]} {
             ui_debug $::errorInfo
             file delete -force $db_path
@@ -1562,7 +1572,7 @@ proc macports::fetch_port {url {local 0}} {
     if {$binary} {
         set cmdline [list $tarcmd ${tarflags}${qflag}xOf $filepath ./+PORTFILE > Portfile]
     } else {
-        set cmdline [list $tarcmd ${tarflags}${qflag}xf $filepath]
+        set cmdline [list $tarcmd ${tarflags}xf $filepath]
     }
     ui_debug $cmdline
     if {[catch {exec {*}$cmdline} result]} {
@@ -2687,7 +2697,6 @@ proc mportsync {{optionslist {}}} {
                 set updated 1
                 if {[file isdirectory $destdir]} {
                     set moddate [file mtime $destdir]
-                    # XXX, catch, don't fix rarely used code
                     if {[catch {set updated [curl isnewer $source $moddate]} error]} {
                         ui_warn "Cannot check if $source was updated, ($error)"
                     }
@@ -4394,7 +4403,7 @@ proc macports::reclaim_check_and_run {} {
     }
 
     try {
-        reclaim::check_last_run
+        return [reclaim::check_last_run]
     } catch {{POSIX SIG SIGINT} eCode eMessage} {
         ui_error [msgcat::mc "reclaim aborted: SIGINT received."]
         return 2
@@ -4406,8 +4415,6 @@ proc macports::reclaim_check_and_run {} {
         ui_error [msgcat::mc "reclaim failed: %s" $eMessage]
         return 1
     }
-
-    return 0
 }
 
 proc macports::reclaim_main {opts} {

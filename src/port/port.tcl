@@ -934,6 +934,26 @@ proc get_leaves_ports {} {
     return [portlist_sort [opIntersection $results [get_unrequested_ports]]]
 }
 
+proc get_rleaves_ports {} {
+    if { [catch {set ilist [get_unrequested_ports]} result] } {
+        if {$result ne "Registry error: No ports registered as installed."} {
+            ui_debug $::errorInfo
+            fatal "port installed failed: $result"
+        }
+    }
+    registry::open_dep_map
+    set requested [get_requested_ports]
+    set results {}
+    foreach i $ilist {
+        set iname [lindex $i 9]
+        set deplist [get_dependent_ports $iname 1]
+        if {$deplist eq "" || [opIntersection $deplist $requested] eq ""} {
+            add_to_portlist results $i
+        }
+    }
+    return [portlist_sort $results]
+}
+
 proc get_dependent_ports {portname recursive} {
     registry::open_dep_map
     set deplist [registry::list_dependents $portname]
@@ -1295,6 +1315,7 @@ proc element { resname } {
         ^(inactive)(@.*)?$    -
         ^(actinact)(@.*)?$    -
         ^(leaves)(@.*)?$      -
+        ^(rleaves)(@.*)?$      -
         ^(outdated)(@.*)?$    -
         ^(obsolete)(@.*)?$    -
         ^(requested)(@.*)?$   -
@@ -2691,8 +2712,10 @@ proc action_select { action portlist opts } {
                 lappend groups [array get groupdesc]
                 array unset groupdesc
             }
-            puts [format $formatStr $w1 "Name" $w2 "Selected" "Options"]
-            puts [format $formatStr $w1 "====" $w2 "========" "======="]
+            if {![macports::ui_isset ports_quiet]} {
+                puts [format $formatStr $w1 "Name" $w2 "Selected" "Options"]
+                puts [format $formatStr $w1 "====" $w2 "========" "======="]
+            }
             foreach groupdesc $groups {
                 array set groupd $groupdesc
                 puts [format $formatStr $w1 $groupd(name) $w2 $groupd(selected) [join $groupd(versions) " "]]
@@ -2768,7 +2791,15 @@ proc action_reclaim { action portlist opts } {
     if {[prefix_unwritable]} {
         return 1
     }
-    return [macports::reclaim_main $opts]
+
+    set status [macports::reclaim_main $opts]
+
+    if {$status == 0 &&
+        ![info exists options(ports_upgrade_no-rev-upgrade)] &&
+        ${macports::revupgrade_autorun}} {
+        return [action_revupgrade $action $portlist $opts]
+    }
+
 }
 
 
@@ -5325,6 +5356,9 @@ namespace eval portclient::notifications {
                 foreach note $notes {
                     ui_notice [wrap $note 0 "    "]
                 }
+
+                # Clear notes that have been displayed
+                unset notificationsToPrint($name)
             }
         }
     }
@@ -5388,8 +5422,7 @@ namespace eval portclient::questions {
         # Print portname or port list suitably
         set i 1
         foreach port $ports {
-            puts -nonewline [format " %*d) " $maxlen $i]
-            puts [string map {@ " @" ( " ("} $port]
+            puts [format " %*d) %s" $maxlen $i $port]
             incr i
         }
     }

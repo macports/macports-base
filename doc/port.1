@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT" "1" "2017\-01\-08" "MacPorts 2\&.4\&.99" "MacPorts Manual"
+.TH "PORT" "1" "2017\-02\-17" "MacPorts 2\&.4\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -160,6 +160,17 @@ When passing \fIportnames\fR to an \fIaction\fR, \fBport\fR recognizes various \
 .IP \(bu 2.3
 .\}
 \fIleaves\fR: installed ports that are unrequested and have no dependents
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fIrleaves\fR: installed ports that are unrequested and that no requested ports depend on
 .RE
 .sp
 Sets of ports can also be specified with \fIpseudo\-portname selectors\fR, which expand to the ports in which the value of the \fIPortfile\fR option corresponding to the selector\(cqs name (in either singular or plural form where applicable) matches the given regular expression\&. Usage is: selector:regex
