@@ -684,7 +684,7 @@ MPCONFIGDIR
 PORTSDIR
 EXTRA_PROGS
 HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER
-HAVE_FRAMEWORK_IOKIT
+HAVE_FRAMEWORK_IOKITi
 HAVE_FRAMEWORK_SYSTEMCONFIGURATION
 HAVE_FRAMEWORK_COREFOUNDATION
 CFLAGS_WERROR
@@ -6252,8 +6252,6 @@ $as_echo "" >&6; }
 
 
 
-ACX_PTHREAD
-
 
 	FRAMEWORK_LIBS="-framework CoreFoundation"
 
@@ -6312,6 +6310,7 @@ $as_echo "#define HAVE_FRAMEWORK_COREFOUNDATION /**/" >>confdefs.h
 
 	fi
 
+	HAVE_FRAMEWORK_COREFOUNDATION=$mp_cv_have_framework_corefoundation
 
 
 
@@ -6372,6 +6371,7 @@ $as_echo "#define HAVE_FRAMEWORK_SYSTEMCONFIGURATION /**/" >>confdefs.h
 
 	fi
 
+	HAVE_FRAMEWORK_SYSTEMCONFIGURATION=$mp_cv_have_framework_systemconfiguration
 
 
 
@@ -6432,6 +6432,7 @@ $as_echo "#define HAVE_FRAMEWORK_IOKIT /**/" >>confdefs.h
 
 	fi
 
+	HAVE_FRAMEWORK_IOKITi=$mp_cv_have_framework_iokit
 
 
 
