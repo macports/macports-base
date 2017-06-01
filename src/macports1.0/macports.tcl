@@ -56,7 +56,7 @@ namespace eval macports {
         master_site_local patch_site_local archive_site_local buildfromsource \
         revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds \
         host_blacklist preferred_hosts sandbox_enable delete_la_files cxx_stdlib \
-        packagemaker_path default_compilers pkg_post_unarchive_deletions ui_interactive"
+        packagemaker_path default_compilers pkg_post_unarchive_deletions ui_interactive_questions"
     variable user_options {}
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
@@ -901,7 +901,7 @@ Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarbal
     }
 
     # Set noninteractive mode if specified in config
-    if {[info exists ui_interactive] && !$ui_interactive} {
+    if {[info exists ui_interactive_questions] && !$ui_interactive_questions} {
         set macports::ui_options(ports_noninteractive) yes
         unset -nocomplain macports::ui_options(questions_yesno) \
                             macports::ui_options(questions_singlechoice) \

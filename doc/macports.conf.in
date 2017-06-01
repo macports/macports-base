@@ -199,4 +199,4 @@ universal_archs     	@UNIVERSAL_ARCHS@
 #pkg_post_unarchive_deletions	include share/doc share/man
 
 # Whether the user interface should ask interactive questions
-#ui_interactive         yes
+#ui_interactive_questions  yes
