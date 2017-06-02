@@ -505,7 +505,7 @@ AC_DEFUN(MP_CHECK_FRAMEWORK_IOKIT, [
 		AC_DEFINE([HAVE_FRAMEWORK_IOKIT], [], [Define if IOKit framework is available])
 	fi
 
-	AC_SUBST(HAVE_FRAMEWORK_IOKITi, [$mp_cv_have_framework_iokit])
+	AC_SUBST(HAVE_FRAMEWORK_IOKIT, [$mp_cv_have_framework_iokit])
 ])
 
 
