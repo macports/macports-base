@@ -134,7 +134,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
 
         /* metadata table */
         "CREATE TABLE registry.metadata (key UNIQUE, value)",
-        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.204')",
+        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.205')",
         "INSERT INTO registry.metadata (key, value) VALUES ('created', strftime('%s', 'now'))",
 
         /* ports table */
@@ -195,6 +195,27 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
             ", FOREIGN KEY(id) REFERENCES ports(id))",
         "CREATE INDEX registry.portgroup_id ON portgroups(id)",
         "CREATE INDEX registry.portgroup_open ON portgroups(id, name, version, size, sha256)",
+
+        /* snapshots table */
+        "CREATE TABLE registry.snapshots ("
+              "id INTEGER PRIMARY KEY"
+            ", created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL"
+            ", note TEXT"
+            ")",
+
+        /* snapshot ports table */
+        /* a complete copy of all the installed ports for a snapshot */
+        "CREATE TABLE registry.snapshot_ports ("
+              "id INTEGER PRIMARY KEY"
+            ", snapshots_id INTEGER"
+            ", port_name TEXT COLLATE NOCASE"
+            ", requested INTEGER"
+            ", state TEXT COLLATE NOCASE"
+            ", variants TEXT"
+            ", negated_variants TEXT"
+            ", FOREIGN KEY(snapshots_id) REFERENCES snapshots(id)"
+            " ON DELETE CASCADE"
+            ")",
 
         "COMMIT",
         NULL
@@ -692,7 +713,49 @@ int update_db(sqlite3* db, reg_error* errPtr) {
 #endif
 
                 "UPDATE registry.metadata SET value = '1.204' WHERE key = 'version'",
+                "COMMIT",
+                NULL
+            };
 
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+            if (!do_queries(db, version_1_204_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
+        if (sql_version(NULL, -1, version, -1, "1.205") < 0) {
+            /* Add tables required for the snapshot functionality used by 'port
+             * snapshot', 'port migrate' and 'port restore'. */
+
+            static char* version_1_205_queries[] = {
+
+                /* snapshots table */
+                "CREATE TABLE registry.snapshots ("
+                      "id INTEGER PRIMARY KEY"
+                    ", created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL"
+                    ", note TEXT"
+                    ")",
+
+                /* snapshot ports table */
+                "CREATE TABLE registry.snapshot_ports ("
+                      "id INTEGER PRIMARY KEY"
+                    ", snapshots_id INTEGER"
+                    ", port_name TEXT COLLATE NOCASE"
+                    ", requested INTEGER"
+                    ", state TEXT COLLATE NOCASE"
+                    ", variants TEXT"
+                    ", negated_variants TEXT"
+                    ", FOREIGN KEY(snapshots_id) REFERENCES snapshots(id)"
+                    " ON DELETE CASCADE"
+                    ")",
+
+                /* Update version and commit */
+                "UPDATE registry.metadata SET value = '1.205' WHERE key = 'version'",
                 "COMMIT",
                 NULL
             };
@@ -700,7 +763,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             sqlite3_finalize(stmt);
             stmt = NULL;
 
-            if (!do_queries(db, version_1_204_queries, errPtr)) {
+            if (!do_queries(db, version_1_205_queries, errPtr)) {
                 rollback_db(db);
                 return 0;
             }
@@ -718,7 +781,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
          *  - update the current version number below
          */
 
-        if (sql_version(NULL, -1, version, -1, "1.204") > 0) {
+        if (sql_version(NULL, -1, version, -1, "1.205") > 0) {
             /* the registry was already upgraded to a newer version and cannot be used anymore */
             reg_throw(errPtr, REG_INVALID, "Version number in metadata table is newer than expected.");
             sqlite3_finalize(stmt);
