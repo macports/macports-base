@@ -2802,6 +2802,10 @@ proc action_reclaim { action portlist opts } {
 
 }
 
+proc action_snapshot { action portlist opts} {
+	macports::snapshot_main $opts
+	return 0
+}
 
 proc action_upgrade { action portlist opts } {
     if {[require_portlist portlist "yes"] || (![macports::global_option_isset ports_dryrun] && [prefix_unwritable])} {
@@ -4345,6 +4349,8 @@ array set action_array [list \
     mdmg        [list action_target         [ACTION_ARGS_PORTS]] \
     mpkg        [list action_target         [ACTION_ARGS_PORTS]] \
     pkg         [list action_target         [ACTION_ARGS_PORTS]] \
+    \
+    snapshot    [list action_snapshot       [ACTION_ARGS_STRINGS]] \
     \
     quit        [list action_exit           [ACTION_ARGS_NONE]] \
     exit        [list action_exit           [ACTION_ARGS_NONE]] \
