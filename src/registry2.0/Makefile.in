@@ -9,7 +9,8 @@ SRCS = registry.tcl registry_util.tcl receipt_flat.tcl receipt_sqlite.tcl portim
 OBJS = registry.o util.o \
 	entry.o entryobj.o \
 	file.o fileobj.o \
-	portgroup.o portgroupobj.o
+	portgroup.o portgroupobj.o \
+	snapshot.o snapshotobj.o
 
 SHLIB_NAME= registry${SHLIB_SUFFIX}
 INSTALLDIR= ${TCL_PACKAGE_PATH}/registry2.0

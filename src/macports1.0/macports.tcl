@@ -38,6 +38,9 @@ package require macports_util 1.0
 package require diagnose 1.0
 package require reclaim 1.0
 package require selfupdate 1.0
+package require snapshot 1.0
+package require restore 1.0
+package require migrate 1.0
 package require Tclx
 
 # catch wrapper shared with port1.0
@@ -1070,9 +1073,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     set macosx_version $macos_version_major
 
     # Check that the current platform is the one we were configured for, otherwise need to do migration
-    if {($os_platform ne $macports::autoconf::os_platform) || ($os_platform eq "darwin" && $os_major != $macports::autoconf::os_major)} {
+    set skip_migration_check [expr {[info exists macports::global_options(ports_no_migration_check)] && $macports::global_options(ports_no_migration_check)}]
+    if {!$skip_migration_check && [migrate::needs_migration]} {
         ui_error "Current platform \"$os_platform $os_major\" does not match expected platform \"$macports::autoconf::os_platform $macports::autoconf::os_major\""
-        ui_error "If you upgraded your OS, please follow the migration instructions: https://trac.macports.org/wiki/Migration"
+        ui_error "Please run 'sudo port migrate' or follow the migration instructions: https://trac.macports.org/wiki/Migration"
         return -code error "OS platform mismatch"
     }
 
@@ -5244,7 +5248,6 @@ proc macports::arch_runnable {arch} {
 }
 
 proc macports::diagnose_main {opts} {
-    
     # Calls the main function for the 'port diagnose' command.
     #
     # Args: 
@@ -5279,6 +5282,82 @@ proc macports::reclaim_check_and_run {} {
         ui_error [msgcat::mc "reclaim failed: %s" $eMessage]
         return 1
     }
+}
+
+# create a snapshot. A snapshot is basically an inventory of what is installed
+# along with meta data like requested and variants, and stored in the sqlite
+# database.
+proc macports::snapshot_main {opts} {
+
+    # Calls the main function for the 'port snapshot' command.
+    #
+    # Args:
+    #           $opts having a 'note'
+    # Returns:
+    #           0 on successful execution.
+
+    return [snapshot::main $opts]
+}
+
+# restores a snapshot.
+proc macports::restore_main {opts} {
+
+    # Calls the main function for the 'port restore' command.
+    #
+    # Args:
+    #           $opts having a 'snapshot-id' but not compulsorily
+    # Returns:
+    #           0 on successful execution.
+
+    return [restore::main $opts]
+}
+
+##
+# Calls the main function for the 'port migrate' command.
+#
+# @returns 0 on success, -999 when MacPorts base has been upgraded and the
+#          caller should re-run itself and invoke migration with the --continue
+#          flag set.
+proc macports::migrate_main {opts} {
+    return [migrate::main $opts]
+}
+
+# create a snapshot. A snapshot is basically an inventory of what is installed
+# along with meta data like requested and variants, and stored in the sqlite
+# database.
+proc macports::snapshot_main {opts} {
+
+    # Calls the main function for the 'port snapshot' command.
+    #
+    # Args:
+    #           $opts having a 'note'
+    # Returns:
+    #           0 on successful execution.
+
+    return [snapshot::main $opts]
+}
+
+# restores a snapshot.
+proc macports::restore_main {opts} {
+
+    # Calls the main function for the 'port restore' command.
+    #
+    # Args:
+    #           $opts having a 'snapshot-id' but not compulsorily
+    # Returns:
+    #           0 on successful execution.
+
+    return [restore::main $opts]
+}
+
+##
+# Calls the main function for the 'port migrate' command.
+#
+# @returns 0 on success, -999 when MacPorts base has been upgraded and the
+#          caller should re-run itself and invoke migration with the --continue
+#          flag set.
+proc macports::migrate_main {opts} {
+    return [migrate::main $opts]
 }
 
 proc macports::reclaim_main {opts} {
@@ -5358,7 +5437,6 @@ proc macports::get_actual_cxx_stdlib {binaries} {
         return "none"
     }
 }
-
 
 ##
 # Execute the rev-upgrade scan and attempt to rebuild all ports found to be

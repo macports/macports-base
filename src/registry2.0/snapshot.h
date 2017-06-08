@@ -1,7 +1,8 @@
 /*
- * registry.h
+ * snapshot.h
+ * vim:tw=80:expandtab
  *
- * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
+ * Copyright (c) 2017 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,25 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _REGISTRY_H
-#define _REGISTRY_H
+
+#ifndef _SNAPSHOT_H
+#define _SNAPSHOT_H
 
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #include <tcl.h>
-#include <sqlite3.h>
-#include <cregistry/portgroup.h>
-#include <cregistry/entry.h>
-#include <cregistry/snapshot.h>
 
-typedef struct _entry_list {
-    reg_entry* entry;
-    struct _entry_list* next;
-} entry_list;
+void delete_snapshot(ClientData clientData);
 
-reg_registry* registry_for(Tcl_Interp* interp, int status);
-int registry_failed(Tcl_Interp* interp, reg_error* errPtr);
+int snapshot_cmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc,
+        Tcl_Obj* CONST objv[]);
 
-#endif /* _REGISTRY_H */
+#endif /* _SNAPSHOT_H */
