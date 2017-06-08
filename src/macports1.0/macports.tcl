@@ -38,6 +38,7 @@ package require macports_util 1.0
 package require diagnose 1.0
 package require reclaim 1.0
 package require selfupdate 1.0
+package require snapshot 1.0
 package require Tclx
 
 # catch wrapper shared with port1.0
@@ -4411,6 +4412,22 @@ proc macports::reclaim_main {opts} {
         ui_error [msgcat::mc "reclaim failed: %s" $eMessage]
         return 1
     }
+    return 0
+}
+
+# create a snapshot. A snapshot is basically an inventory of what is installed
+# along with meta data like requested and variants, and stored in the sqlite
+# database.
+proc macports::snapshot_main {opts} {
+
+    # Calls the main function for the 'port snapshot' command.
+    #
+    # Args:
+    #           None
+    # Returns:
+    #           0 on successful execution.
+
+    snapshot::main $opts
     return 0
 }
 
