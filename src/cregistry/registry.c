@@ -33,6 +33,7 @@
 
 #include "portgroup.h"
 #include "entry.h"
+#include "snapshot.h"
 #include "file.h"
 #include "sql.h"
 

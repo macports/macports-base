@@ -169,7 +169,10 @@ proc selfupdate::main {{options {}} {updatestatusvar {}}} {
         }
     }
 
-    if {$use_the_force_luke || $comp > 0} {
+    # Check whether we need to re-install base because of a migration
+    set migrating [expr {[dict exists $options ports_selfupdate_migrate] && [dict get $options ports_selfupdate_migrate]}]
+
+    if {$use_the_force_luke || $comp > 0 || ($comp == 0 && $migrating)} {
         if {[dict exists $options ports_dryrun] && [dict get $options ports_dryrun]} {
             ui_msg "$ui_prefix MacPorts base is outdated, selfupdate would install $macports_version_new (dry run)"
         } else {
