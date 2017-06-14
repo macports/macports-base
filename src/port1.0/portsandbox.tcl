@@ -84,6 +84,7 @@ proc portsandbox::set_profile {target} {
 (allow file-write-data (literal \"/dev/null\") (literal \"/dev/zero\") \
 (literal \"/dev/dtracehelper\") (literal \"/dev/tty\") \
 (literal \"/dev/stdin\") (literal \"/dev/stdout\") (literal \"/dev/stderr\") \
+(literal \"/dev/random\") (literal \"/dev/urandom\") \
 (regex #\"^/dev/fd/\")) (allow file-write* \
 (regex #\"^(/private)?(/var)?/tmp/\" #\"^(/private)?/var/folders/\"))"
 
