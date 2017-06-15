@@ -193,6 +193,33 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         "CREATE INDEX registry.portgroup_id ON portgroups(id)",
         "CREATE INDEX registry.portgroup_open ON portgroups(id, name, version, size, sha256)",
 
+        /* snapshots table */
+        "CREATE TABLE registry.snapshots ("
+              "id INTEGER PRIMARY KEY"
+            ", created_at DATETIME"
+            ", note TEXT"
+            ")",
+        "CREATE INDEX registry.snapshot ON snapshots(id)",
+
+        /* snapshot ports table */
+        /* a complete copy of all the installed ports for a snapshot */
+        "CREATE TABLE registry.snapshot_ports ("
+              "id INTEGER"
+            ", port_name TEXT COLLATE NOCASE"
+            ", requested INTEGER"
+            ", FOREIGN KEY(id) REFERENCES snapshots(id))",
+        "CREATE INDEX registry.snapshot_ports ON snapshot_ports"
+            "(id, port_name)",
+
+        /* snapshot port variants table */
+        /* all variants (+, -) of the ports in a snapshot */
+        "CREATE TABLE registry.snapshot_port_variants ("
+              "id INTEGER"
+            ", variant_name TEXT COLLATE NOCASE"
+            ", variant_sign TEXT"
+            ", FOREIGN KEY(id) REFERENCES snapshot_ports(id))",
+        "CREATE INDEX registry.snapshot_port_variants ON snapshot_port_variants(id)",
+
         "COMMIT",
         NULL
     };
