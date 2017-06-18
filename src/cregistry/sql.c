@@ -134,7 +134,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
 
         /* metadata table */
         "CREATE TABLE registry.metadata (key UNIQUE, value)",
-        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.202')",
+        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.203')",
         "INSERT INTO registry.metadata (key, value) VALUES ('created', strftime('%s', 'now'))",
 
         /* ports table */
@@ -614,6 +614,62 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             continue;
         }
 
+        if (sql_version(NULL, -1, version, -1, "1.203") < 0) {
+
+            /*
+             * SQLite doesn't support ALTER TABLE DROP CONSTRAINT or ALTER
+             * TABLE DROP COLUMN, so we're doing the manual way to remove
+             * UNIQUE(url, epoch, version, revision, variants) and the url
+             * column.
+             */
+
+            static char* version_1_203_queries[] = {
+
+                /* snapshots table */
+                "CREATE TABLE registry.snapshots ("
+                      "id INTEGER PRIMARY KEY"
+                    ", created_at DATETIME"
+                    ", note TEXT"
+                    ")",
+
+                "CREATE INDEX registry.snapshot ON snapshots(id)",
+
+                /* snapshot ports table */
+                "CREATE TABLE registry.snapshot_ports ("
+                      "id INTEGER"
+                    ", port_name TEXT COLLATE NOCASE"
+                    ", requested INTEGER"
+                    ", FOREIGN KEY(id) REFERENCES snapshots(id))",
+
+                "CREATE INDEX registry.snapshot_ports ON snapshot_ports"
+                    "(id, port_name)",
+
+                /* snapshot port variants table */
+                "CREATE TABLE registry.snapshot_port_variants ("
+                      "id INTEGER"
+                    ", variant_name TEXT COLLATE NOCASE"
+                    ", variant_sign TEXT"
+                    ", FOREIGN KEY(id) REFERENCES snapshot_ports(id))",
+
+                "CREATE INDEX registry.snapshot_port_variants ON snapshot_port_variants(id)",
+
+                /* Update version and commit */
+                "UPDATE registry.metadata SET value = '1.203' WHERE key = 'version'",
+                "COMMIT",
+                NULL
+            };
+
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+            if (!do_queries(db, version_1_203_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
         /* add new versions here, but remember to:
          *  - finalize the version query statement and set stmt to NULL
          *  - do _not_ use "BEGIN" in your query list, since a transaction has
@@ -623,7 +679,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
          *  - update the current version number below
          */
 
-        if (sql_version(NULL, -1, version, -1, "1.202") > 0) {
+        if (sql_version(NULL, -1, version, -1, "1.203") > 0) {
             /* the registry was already upgraded to a newer version and cannot be used anymore */
             reg_throw(errPtr, REG_INVALID, "Version number in metadata table is newer than expected.");
             sqlite3_finalize(stmt);
