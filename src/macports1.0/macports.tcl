@@ -1131,8 +1131,7 @@ match macports.conf.default."
         }
     }
 
-    if {[getuid] == 0 && $os_major >= 11 && $os_platform eq "darwin" &&
-            [file isfile "${macports::user_home}/Library/Preferences/com.apple.dt.Xcode.plist"]} {
+    if {[getuid] == 0 && $os_major >= 11 && $os_platform eq "darwin"} {
         macports::copy_xcode_plist $env(HOME)
     }
 
