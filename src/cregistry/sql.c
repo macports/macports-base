@@ -204,20 +204,24 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         /* snapshot ports table */
         /* a complete copy of all the installed ports for a snapshot */
         "CREATE TABLE registry.snapshot_ports ("
-              "id INTEGER"
+              "id INTEGER PRIMARY KEY"
+            ", snapshots_id INTEGER"
             ", port_name TEXT COLLATE NOCASE"
             ", requested INTEGER"
-            ", FOREIGN KEY(id) REFERENCES snapshots(id))",
+            ", FOREIGN KEY(snapshots_id) REFERENCES snapshots(id))"
+            " ON DELETE CASCADE",
         "CREATE INDEX registry.snapshot_port ON snapshot_ports"
             "(id, port_name)",
 
         /* snapshot port variants table */
         /* all variants (+, -) of the ports in a snapshot */
         "CREATE TABLE registry.snapshot_port_variants ("
-              "id INTEGER"
+              "id INTEGER PRIMARY KEY"
+            ", snapshot_ports_id INTEGER"
             ", variant_name TEXT COLLATE NOCASE"
             ", variant_sign TEXT"
-            ", FOREIGN KEY(id) REFERENCES snapshot_ports(id))",
+            ", FOREIGN KEY(snapshot_ports_id) REFERENCES snapshot_ports(id))"
+            " ON DELETE CASCADE",
         "CREATE INDEX registry.snapshot_port_variant ON snapshot_port_variants(id)",
 
         "COMMIT",
@@ -628,7 +632,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
                 /* snapshots table */
                 "CREATE TABLE registry.snapshots ("
                       "id INTEGER PRIMARY KEY"
-                    ", created_at DATETIME"
+                    ", created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL"
                     ", note TEXT"
                     ")",
 
@@ -636,20 +640,24 @@ int update_db(sqlite3* db, reg_error* errPtr) {
 
                 /* snapshot ports table */
                 "CREATE TABLE registry.snapshot_ports ("
-                      "id INTEGER"
+                      "id INTEGER PRIMARY KEY"
+                    ", snapshots_id INTEGER"
                     ", port_name TEXT COLLATE NOCASE"
                     ", requested INTEGER"
-                    ", FOREIGN KEY(id) REFERENCES snapshots(id))",
+                    ", FOREIGN KEY(snapshots_id) REFERENCES snapshots(id))"
+                    " ON DELETE CASCADE",
 
                 "CREATE INDEX registry.snapshot_port ON snapshot_ports"
                     "(id, port_name)",
 
                 /* snapshot port variants table */
                 "CREATE TABLE registry.snapshot_port_variants ("
-                      "id INTEGER"
+                      "id INTEGER PRIMARY KEY"
+                    ", snapshot_ports_id INTEGER"
                     ", variant_name TEXT COLLATE NOCASE"
                     ", variant_sign TEXT"
-                    ", FOREIGN KEY(id) REFERENCES snapshot_ports(id))",
+                    ", FOREIGN KEY(snapshot_ports_id) REFERENCES snapshot_ports(id))"
+                    " ON DELETE CASCADE",
 
                 "CREATE INDEX registry.snapshot_port_variant ON snapshot_port_variants(id)",
 

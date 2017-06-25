@@ -1362,7 +1362,7 @@ int snapshot_store_ports(reg_registry* reg, reg_entry* entry, reg_error* errPtr)
             sqlite3_stmt* stmt = NULL;
             if(reg_entry_propget(entries[i], key1, &port_name, &error)
                 && reg_entry_propget(entries[i], key2, &requested, &error)){
-                char* query = "INSERT INTO registry.snapshot_ports (id, port_name, requested) "
+                char* query = "INSERT INTO registry.snapshot_ports (snapshots_id, port_name, requested) "
                     "VALUES (?, ?, ?)";
                 // entry->id is snapshot's id
                 if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
