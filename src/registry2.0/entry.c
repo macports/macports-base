@@ -467,6 +467,39 @@ static int entry_owner(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     }
 }
 
+static int test_call(){
+    printf("inside registry2.0\n");
+    test_call_c();
+    printf("done here\n");
+    return TCL_OK;
+}
+
+static int snapshot_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+
+    printf("inside 2.0 entry\n");
+
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc > 3) {
+        Tcl_WrongNumArgs(interp, 2, objv, "snapshot ?note?");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        char* note = Tcl_GetString(objv[2]);
+        reg_error error;
+        /* may be a new datatype for snapshot */
+        reg_entry* new_snaphot = reg_snapshot_create(reg, note, &error);
+        if (new_snaphot != NULL) {
+            Tcl_Obj* result;
+            if (entry_to_obj(interp, &result, new_snaphot, NULL, &error)) {
+                Tcl_SetObjResult(interp, result);
+                return TCL_OK;
+            }
+        }
+        return registry_failed(interp, &error);
+    }
+}
+
 typedef struct {
     char* name;
     int (*function)(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
@@ -483,6 +516,9 @@ static entry_cmd_type entry_cmds[] = {
     { "imaged", entry_imaged },
     { "installed", entry_installed },
     { "owner", entry_owner },
+    /* test call */
+    { "testcall", test_call },
+    { "snapshot", snapshot_create},
     { NULL, NULL }
 };
 

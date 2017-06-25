@@ -8,6 +8,7 @@
 package provide snapshot 1.0
 
 package require macports 1.0
+package require registry 1.0
 
 namespace eval snapshot {
 
@@ -19,5 +20,15 @@ namespace eval snapshot {
         # Returns:
         #           None
         puts "Still being developed"
+        #registry::entry addsnapshot
+        foreach port [registry::entry imaged] {
+            puts [$port name]
+        }
+
+        registry::entry testcall
+        set a [registry::entry snapshot "testsnapshot"]
+        puts $a
+        puts done
+
 	}
 }

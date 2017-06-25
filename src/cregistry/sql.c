@@ -196,7 +196,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         /* snapshots table */
         "CREATE TABLE registry.snapshots ("
               "id INTEGER PRIMARY KEY"
-            ", created_at DATETIME"
+            ", created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL"
             ", note TEXT"
             ")",
         "CREATE INDEX registry.snapshot ON snapshots(id)",

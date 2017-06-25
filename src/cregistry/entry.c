@@ -1285,6 +1285,70 @@ int reg_entry_depends(reg_entry* entry, char* name, reg_error* errPtr) {
     return result;
 }
 
+void test_call_c() {
+    printf("inside cregsitry\n");
+}
+
+reg_entry* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errPtr) {
+
+    printf("inside cregsitry sn cr\n");
+
+    sqlite3_stmt* stmt = NULL;
+    reg_entry* entry = NULL;
+    char* query = "INSERT INTO registry.snapshots (note) VALUES (?)";
+
+    if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_text(stmt, 1, note, -1, SQLITE_STATIC)
+                == SQLITE_OK)) {
+        int r;
+        Tcl_HashEntry* hash;
+        int is_new;
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_DONE:
+                    entry = malloc(sizeof(reg_entry));
+                    if (entry) {
+                        entry->id = sqlite3_last_insert_rowid(reg->db);
+                        entry->reg = reg;
+                        entry->proc = NULL;
+                        hash = Tcl_CreateHashEntry(&reg->open_entries,
+                                (const char*)&entry->id, &is_new);
+                        Tcl_SetHashValue(hash, entry);
+
+                        printf("%lld\n", entry->id);
+
+                        // TODO: move this functions to a different file
+                        int ports_saved = snapshot_store_ports(reg, entry, errPtr);
+
+                        switch (ports_saved) {
+                            case 1:
+                                // TODO: pass the custom SUCCESS messages
+                                break;
+                            case 0:
+                                reg_sqlite_error(reg->db, errPtr, query);
+                                break;
+                        }
+
+                    }
+                    break;
+                case SQLITE_BUSY:
+                    break;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
+            }
+        } while (r == SQLITE_BUSY);
+    } else {
+        reg_sqlite_error(reg->db, errPtr, query);
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+    printf("done with the snapshot\n");
+    return entry;
+}
+
 /**
  * Fetches a list of all open entries.
  *
