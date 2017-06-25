@@ -25,7 +25,6 @@ namespace eval snapshot {
             puts [$port name]
         }
 
-        registry::entry testcall
         set a [registry::entry snapshot "testsnapshot"]
         puts $a
         puts done

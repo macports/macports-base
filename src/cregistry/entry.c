@@ -1285,10 +1285,6 @@ int reg_entry_depends(reg_entry* entry, char* name, reg_error* errPtr) {
     return result;
 }
 
-void test_call_c() {
-    printf("inside cregsitry\n");
-}
-
 reg_entry* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errPtr) {
 
     printf("inside cregsitry sn cr\n");
@@ -1347,6 +1343,60 @@ reg_entry* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errPtr)
     }
     printf("done with the snapshot\n");
     return entry;
+}
+
+int snapshot_store_ports(reg_registry* reg, reg_entry* entry, reg_error* errPtr){
+    reg_entry** entries;
+    reg_error error;
+    int i, entry_count;
+    int result = 1;
+    entry_count = reg_entry_imaged(reg, NULL, NULL, NULL, NULL,
+            &entries, &error);
+    printf("entry count: %d\n", entry_count);
+    if (entry_count >= 0) {
+        for ( i = 0; i < entry_count; i++){
+            char* key1 = "name";
+            char* key2 = "requested";
+            char* port_name;
+            char* requested;
+            sqlite3_stmt* stmt = NULL;
+            if(reg_entry_propget(entries[i], key1, &port_name, &error)
+                && reg_entry_propget(entries[i], key2, &requested, &error)){
+                char* query = "INSERT INTO registry.snapshot_ports (id, port_name, requested) "
+                    "VALUES (?, ?, ?)";
+                // entry->id is snapshot's id
+                if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+                        && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)
+                        && (sqlite3_bind_text(stmt, 2, port_name, -1, SQLITE_STATIC) == SQLITE_OK)
+                        && (sqlite3_bind_int64(stmt, 3, atoi(requested)) == SQLITE_OK)) {
+                    int r;
+                    do {
+                        r = sqlite3_step(stmt);
+                        switch (r) {
+                            case SQLITE_DONE:
+                                // store variants for entries[i]
+                                printf("done with %s port\n", port_name);
+                                break;
+                            case SQLITE_BUSY:
+                                break;
+                            default:
+                                reg_sqlite_error(reg->db, errPtr, query);
+                                result = 0;
+                                break;
+                        }
+                    } while (r == SQLITE_BUSY);
+                } else {
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    result = 0;
+                }
+                if (stmt) {
+                    sqlite3_finalize(stmt);
+                }
+            }
+        }
+    }
+    printf("stored: %d\n", result);
+    return result;
 }
 
 /**
