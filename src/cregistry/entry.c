@@ -1297,8 +1297,6 @@ reg_entry* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errPtr)
             && (sqlite3_bind_text(stmt, 1, note, -1, SQLITE_STATIC)
                 == SQLITE_OK)) {
         int r;
-        Tcl_HashEntry* hash;
-        int is_new;
         do {
             r = sqlite3_step(stmt);
             switch (r) {
@@ -1308,11 +1306,8 @@ reg_entry* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errPtr)
                         entry->id = sqlite3_last_insert_rowid(reg->db);
                         entry->reg = reg;
                         entry->proc = NULL;
-                        hash = Tcl_CreateHashEntry(&reg->open_entries,
-                                (const char*)&entry->id, &is_new);
-                        Tcl_SetHashValue(hash, entry);
 
-                        printf("%lld\n", entry->id);
+                        printf("snapshot id: %lld\n", entry->id);
 
                         // TODO: move this functions to a different file
                         int ports_saved = snapshot_store_ports(reg, entry, errPtr);
@@ -1345,7 +1340,7 @@ reg_entry* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errPtr)
     return entry;
 }
 
-int snapshot_store_ports(reg_registry* reg, reg_entry* entry, reg_error* errPtr){
+int snapshot_store_ports(reg_registry* reg, reg_entry* snap_entry, reg_error* errPtr){
     reg_entry** entries;
     reg_error error;
     int i, entry_count;
@@ -1353,20 +1348,22 @@ int snapshot_store_ports(reg_registry* reg, reg_entry* entry, reg_error* errPtr)
     entry_count = reg_entry_imaged(reg, NULL, NULL, NULL, NULL,
             &entries, &error);
     printf("entry count: %d\n", entry_count);
+
+    char* key1 = "name";
+    char* key2 = "requested";
+
     if (entry_count >= 0) {
         for ( i = 0; i < entry_count; i++){
-            char* key1 = "name";
-            char* key2 = "requested";
             char* port_name;
             char* requested;
             sqlite3_stmt* stmt = NULL;
+            reg_entry* port_entry = NULL;
             if(reg_entry_propget(entries[i], key1, &port_name, &error)
                 && reg_entry_propget(entries[i], key2, &requested, &error)){
                 char* query = "INSERT INTO registry.snapshot_ports (snapshots_id, port_name, requested) "
                     "VALUES (?, ?, ?)";
-                // entry->id is snapshot's id
                 if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
-                        && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)
+                        && (sqlite3_bind_int64(stmt, 1, snap_entry->id) == SQLITE_OK)
                         && (sqlite3_bind_text(stmt, 2, port_name, -1, SQLITE_STATIC) == SQLITE_OK)
                         && (sqlite3_bind_int64(stmt, 3, atoi(requested)) == SQLITE_OK)) {
                     int r;
@@ -1375,6 +1372,26 @@ int snapshot_store_ports(reg_registry* reg, reg_entry* entry, reg_error* errPtr)
                         switch (r) {
                             case SQLITE_DONE:
                                 // store variants for entries[i]
+                                port_entry = malloc(sizeof(reg_entry));
+                                if (port_entry) {
+                                    port_entry->id = sqlite3_last_insert_rowid(reg->db);
+                                    port_entry->reg = reg;
+                                    port_entry->proc = NULL;
+
+                                    printf("port id: %lld\n", port_entry->id);
+
+                                    // TODO: move this functions to a different file
+                                    int port_variants_saved = snapshot_store_port_variants(reg, port_entry, errPtr);
+
+                                    switch (port_variants_saved) {
+                                        case 1:
+                                            // TODO: pass the custom SUCCESS messages
+                                            break;
+                                        case 0:
+                                            reg_sqlite_error(reg->db, errPtr, query);
+                                            break;
+                                    }
+                                }
                                 printf("done with %s port\n", port_name);
                                 break;
                             case SQLITE_BUSY:
@@ -1399,6 +1416,61 @@ int snapshot_store_ports(reg_registry* reg, reg_entry* entry, reg_error* errPtr)
     return result;
 }
 
+int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry, reg_error* errPtr){
+    reg_entry* entry;
+    reg_error error;
+    int i, result = 0;
+
+    char* key = "variants";
+    char* variants;
+
+    if(reg_entry_propget(port_entry, key, &variants, &error)) {
+
+        printf("%s\n", variants);
+
+        variant** installed_variants;
+        int variant_count = get_parsed_variants(variants, &installed_variants);
+
+        for ( i = 0; i < variant_count; i++){
+            sqlite3_stmt* stmt = NULL;
+            char* query = "INSERT INTO registry.snapshot_port_variants "
+                "(snapshot_ports_id, variant_name, variant_sign) "
+                "VALUES (?, ?, ?)";
+            variant* v = NULL;
+            v = installed_variants[i];
+            if((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+                    && (sqlite3_bind_int64(stmt, 1, port_entry->id) == SQLITE_OK)
+                    && (sqlite3_bind_text(stmt, 2, v->variant_name, -1, SQLITE_STATIC) == SQLITE_OK)
+                    && (sqlite3_bind_text(stmt, 3, v->variant_sign, -1, SQLITE_STATIC) == SQLITE_OK)) {
+                int r;
+                do {
+                    r = sqlite3_step(stmt);
+                    switch (r) {
+                        case SQLITE_DONE:
+                            printf("variant stored: %s with sign: %s\n",
+                                v->variant_name, v->variant_sign);
+                            break;
+                        case SQLITE_BUSY:
+                            break;
+                        default:
+                            reg_sqlite_error(reg->db, errPtr, query);
+                            result = 0;
+                            break;
+                    }
+                } while (r == SQLITE_BUSY);
+            } else {
+                reg_sqlite_error(reg->db, errPtr, query);
+                result = 0;
+            }
+        }
+    }
+    return result;
+}
+
+int get_parsed_variants(char* variants, variant*** installed_variants){
+    int length = 0;
+    return length;
+}
 /**
  * Fetches a list of all open entries.
  *

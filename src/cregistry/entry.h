@@ -42,6 +42,11 @@ typedef struct {
     char* proc; /* name of Tcl proc, if using Tcl */
 } reg_entry;
 
+typedef struct {
+    char* variant_name;
+    char* variant_sign;
+} variant;
+
 reg_entry* reg_entry_create(reg_registry* reg, char* name, char* version,
         char* revision, char* variants, char* epoch, reg_error* errPtr);
 
@@ -98,6 +103,9 @@ reg_entry* reg_snapshot_create(reg_registry* reg, char* note,
         reg_error* errPtr);
 int snapshot_store_ports(reg_registry* reg, reg_entry* entry,
         reg_error* errPtr);
+int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
+        reg_error* errPtr);
+int get_parsed_variants(char* variants, variant*** installed_variants);
 
 int reg_all_open_entries(reg_registry* reg, reg_entry*** entries);
 
