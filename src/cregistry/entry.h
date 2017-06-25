@@ -94,8 +94,10 @@ int reg_entry_dependencies(reg_entry* entry, reg_entry*** dependencies,
         reg_error* errPtr);
 int reg_entry_depends(reg_entry* entry, char* name, reg_error* errPtr);
 
-void test_call_c();
-reg_entry* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errPtr);
+reg_entry* reg_snapshot_create(reg_registry* reg, char* note,
+        reg_error* errPtr);
+int snapshot_store_ports(reg_registry* reg, reg_entry* entry,
+        reg_error* errPtr);
 
 int reg_all_open_entries(reg_registry* reg, reg_entry*** entries);
 

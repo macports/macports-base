@@ -477,13 +477,6 @@ static int entry_owner(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     }
 }
 
-static int test_call(){
-    printf("inside registry2.0\n");
-    test_call_c();
-    printf("done here\n");
-    return TCL_OK;
-}
-
 static int snapshot_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
 
     printf("inside 2.0 entry\n");
@@ -526,8 +519,6 @@ static entry_cmd_type entry_cmds[] = {
     { "imaged", entry_imaged },
     { "installed", entry_installed },
     { "owner", entry_owner },
-    /* test call */
-    { "testcall", test_call },
     { "snapshot", snapshot_create},
     { NULL, NULL }
 };
