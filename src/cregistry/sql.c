@@ -208,8 +208,9 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
             ", snapshots_id INTEGER"
             ", port_name TEXT COLLATE NOCASE"
             ", requested INTEGER"
-            ", FOREIGN KEY(snapshots_id) REFERENCES snapshots(id))"
-            " ON DELETE CASCADE",
+            ", FOREIGN KEY(snapshots_id) REFERENCES snapshots(id)"
+            " ON DELETE CASCADE"
+            ")",
         "CREATE INDEX registry.snapshot_port ON snapshot_ports"
             "(id, port_name)",
 
@@ -220,8 +221,9 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
             ", snapshot_ports_id INTEGER"
             ", variant_name TEXT COLLATE NOCASE"
             ", variant_sign TEXT"
-            ", FOREIGN KEY(snapshot_ports_id) REFERENCES snapshot_ports(id))"
-            " ON DELETE CASCADE",
+            ", FOREIGN KEY(snapshot_ports_id) REFERENCES snapshot_ports(id)"
+            " ON DELETE CASCADE"
+            ")",
         "CREATE INDEX registry.snapshot_port_variant ON snapshot_port_variants(id)",
 
         "COMMIT",
@@ -644,8 +646,9 @@ int update_db(sqlite3* db, reg_error* errPtr) {
                     ", snapshots_id INTEGER"
                     ", port_name TEXT COLLATE NOCASE"
                     ", requested INTEGER"
-                    ", FOREIGN KEY(snapshots_id) REFERENCES snapshots(id))"
-                    " ON DELETE CASCADE",
+                    ", FOREIGN KEY(snapshots_id) REFERENCES snapshots(id)"
+                    " ON DELETE CASCADE"
+                    ")",
 
                 "CREATE INDEX registry.snapshot_port ON snapshot_ports"
                     "(id, port_name)",
@@ -656,8 +659,9 @@ int update_db(sqlite3* db, reg_error* errPtr) {
                     ", snapshot_ports_id INTEGER"
                     ", variant_name TEXT COLLATE NOCASE"
                     ", variant_sign TEXT"
-                    ", FOREIGN KEY(snapshot_ports_id) REFERENCES snapshot_ports(id))"
-                    " ON DELETE CASCADE",
+                    ", FOREIGN KEY(snapshot_ports_id) REFERENCES snapshot_ports(id)"
+                    " ON DELETE CASCADE"
+                    ")",
 
                 "CREATE INDEX registry.snapshot_port_variant ON snapshot_port_variants(id)",
 
