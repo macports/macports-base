@@ -8,6 +8,7 @@
 doc/*.gz
 doc/*.mtree
 doc/*.xml
+doc/*.html
 doc/.dep
 doc/macports.conf
 doc/pubkeys.conf
