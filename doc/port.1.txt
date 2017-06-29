@@ -200,10 +200,10 @@ The port command recognizes several global flags and options.
     multiple times, then multiple files will be read.
 
 
-USER TARGETS
+USER ACTIONS
 ------------
 
-Targets most commonly used by regular MacPorts users are:
+Actions most commonly used by regular MacPorts users are:
 
 search::
     Search for an available port whose name or description matches a regular expression.
@@ -362,7 +362,7 @@ outdated::
     Lists the installed ports which need a 'upgrade'.
 
 upgrade::
-    The upgrade target works on a port and its dependencies. If you want to
+    The upgrade action works on a port and its dependencies. If you want to
     change this behavior, look at the switches for *-n* (no dependencies) and
     *-R* (dependents) above.
 +
@@ -560,10 +560,10 @@ help::
     Displays a summary of all available actions and port command syntax on
     stdout.
 
-DEVELOPER TARGETS
+DEVELOPER ACTIONS
 -----------------
 
-The targets that are often used by Port developers are intended to provide
+The actions that are often used by Port developers are intended to provide
 access to the different phases of a Port's build process:
 
 dir::
@@ -637,10 +637,10 @@ livecheck::
     modified.
 
 
-PACKAGING TARGETS
+PACKAGING ACTIONS
 -----------------
 
-There are also targets for producing installable packages of ports:
+There are also actions for producing installable packages of ports:
 
 pkg::
     Creates an OS X installer package of 'portname'.
@@ -660,7 +660,7 @@ mdmg::
 EXAMPLES
 --------
 
-The following demonstrates invoking port with the extract target on portdir
+The following demonstrates invoking port with the extract action on portdir
 ``textproc/figlet'' and extract.suffix set to ``.tgz'':
 
 --------
