@@ -414,6 +414,11 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         return $sdk
     }
 
+    set sdk /Library/Developer/CommandLineTools/SDKs/MacOSX${sdk_version}.sdk
+    if {[file exists $sdk]} {
+        return $sdk
+    }
+
     if {![catch {set sdk [exec xcrun --sdk macosx --show-sdk-path 2> /dev/null]}]} {
         ui_warn "Unable to determine location of the macOS ${sdk_version} SDK.  Using the default macOS SDK."
         return $sdk
