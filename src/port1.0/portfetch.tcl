@@ -272,12 +272,17 @@ proc portfetch::get_full_mirror_sites_path {} {
 # Perform the full checksites/checkpatchfiles/checkdistfiles sequence.
 # This method is used by distcheck target.
 proc portfetch::checkfiles {urls} {
-    global global_mirror_site
+    global global_mirror_site ports_fetch_no-mirrors
     upvar $urls fetch_urls
 
-    checksites [list patch_sites [list $global_mirror_site PATCH_SITE_LOCAL] \
-                master_sites [list $global_mirror_site MASTER_SITE_LOCAL]] \
-               [get_full_mirror_sites_path]
+    set sites [list patch_sites {} \
+                    master_sites {}]
+    if {![info exists ports_fetch_no-mirrors] || ${ports_fetch_no-mirrors} eq "no"} {
+        set sites [list patch_sites [list $global_mirror_site PATCH_SITE_LOCAL] \
+                        master_sites [list $global_mirror_site MASTER_SITE_LOCAL]]
+    }
+
+    checksites $sites [get_full_mirror_sites_path]
     checkpatchfiles fetch_urls
     checkdistfiles fetch_urls
 }
