@@ -2,6 +2,13 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.5.0 (????-??-?? by ?)
+    - 'port reclaim' will automatically run 'port rev-upgrade' at the end.
+      (danchr in eed6ffce)
+
+    - livecheck.regex is matched case-insensitive.
+      (khindenburg in 0310feb5)
+
 Release 2.4.1 (2017-02-26 by jmr)
     - Avoid an infinite loop when livecheck.regex is empty.
       (raimue in d33a8a0)
