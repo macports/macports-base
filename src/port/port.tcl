@@ -4450,6 +4450,7 @@ array set cmd_opts_array {
     rev-upgrade {id-loadcmd-check}
     diagnose    {quiet}
     reclaim     {enable-reminders disable-reminders}
+    fetch       {no-mirrors}
 }
 
 ##
