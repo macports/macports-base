@@ -2377,6 +2377,8 @@ proc action_location { action portlist opts } {
 
 
 proc action_notes { action portlist opts } {
+    global UI_PREFIX
+
     if {[require_portlist portlist]} {
         return 1
     }
@@ -2441,12 +2443,12 @@ proc action_notes { action portlist opts } {
 
         # Display the notes.
         if {$portnotes ne {}} {
-            ui_notice "$portname has the following notes:"
+            ui_notice "$UI_PREFIX $portname has the following notes:"
             foreach note $portnotes {
                 puts [wrap $note 0 "  " 1]
             }
         } else {
-            puts "$portname has no notes."
+            ui_notice "$UI_PREFIX $portname has no notes."
         }
     }
     return $status
