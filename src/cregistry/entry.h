@@ -106,7 +106,7 @@ int snapshot_store_ports(reg_registry* reg, reg_entry* entry,
 int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
         int snapshot_ports_id, reg_error* errPtr);
 
-void get_parsed_variants(char* variants_str, variant* all_variants,
+int get_parsed_variants(char* variants_str, variant* all_variants,
     char* delim, int* variant_count);
 
 int reg_all_open_entries(reg_registry* reg, reg_entry*** entries);
