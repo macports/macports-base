@@ -1421,6 +1421,7 @@ int snapshot_store_ports(reg_registry* reg, reg_entry* snap_entry, reg_error* er
                                             break;
                                         case 0:
                                             reg_sqlite_error(reg->db, errPtr, query);
+                                            result = 0;
                                             break;
                                     }
                                 }
@@ -1442,6 +1443,7 @@ int snapshot_store_ports(reg_registry* reg, reg_entry* snap_entry, reg_error* er
                     sqlite3_finalize(stmt);
                 }
             }
+            free(entry);
         }
     }
     return result;
@@ -1451,7 +1453,7 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
     int snapshot_ports_id, reg_error* errPtr) {
 
     reg_error error;
-    int i, result = 0;
+    int i, result = 1;
 
     char* key1 = "variants";
     char* key2 = "negated_variants";
@@ -1466,17 +1468,27 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
         
         //return 1;
 
-        variant* all_variants;
-        
-        all_variants = (variant*) malloc(sizeof(variant));
+        int variant_space = 10;
+        variant* all_variants = (variant*) malloc(variant_space * sizeof(variant));
+
+        if (all_variants == NULL) {
+            return 0;
+        }
 
         char* pos_delim = "+";
         char* neg_delim = "-";
 
         int variant_count = 0;
 
-        get_parsed_variants(positive_variants_str, all_variants, pos_delim, &variant_count);
-        get_parsed_variants(negative_variants_str, all_variants, neg_delim, &variant_count);
+        int p = get_parsed_variants(positive_variants_str, all_variants, pos_delim, &variant_count);
+        if (p < 0) {
+            return 0;
+        }
+
+        int n = get_parsed_variants(negative_variants_str, all_variants, neg_delim, &variant_count);
+        if (n < 0) {
+            return 0;
+        }
 
         printf("total var count: %d, ", variant_count);
 
@@ -1485,7 +1497,7 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
             char* query = "INSERT INTO registry.snapshot_port_variants "
                 "(snapshot_ports_id, variant_name, variant_sign) "
                 "VALUES (?, ?, ?)";
-            variant v = all_variants[i];
+            variant v = *(all_variants + i);
             if((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
                     && (sqlite3_bind_int64(stmt, 1, snapshot_ports_id) == SQLITE_OK)
                     && (sqlite3_bind_text(stmt, 2, v.variant_name, -1, SQLITE_STATIC) == SQLITE_OK)
@@ -1497,7 +1509,6 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
                         case SQLITE_DONE:
                             printf("\nvariant stored: %s with sign: %s",
                                 v.variant_name, v.variant_sign);
-                            result = 1;
                             break;
                         case SQLITE_BUSY:
                             break;
@@ -1517,7 +1528,7 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
     return result;
 }
 
-void get_parsed_variants(char* variants_str, variant* all_variants, char* delim, int* variant_count) {
+int get_parsed_variants(char* variants_str, variant* all_variants, char* delim, int* variant_count) {
     
     printf("var count yet %d, ", *variant_count);
     
@@ -1531,12 +1542,18 @@ void get_parsed_variants(char* variants_str, variant* all_variants, char* delim,
         variant v;
         v.variant_name = token;
         v.variant_sign = delim;
-        
-        all_variants[*variant_count] = v;
+
+        *(all_variants + *variant_count) = v;
         *variant_count = *variant_count + 1;
+
+        // all_variants = (variant*) realloc(all_variants, sizeof(variant));
+
+        // if(!all_variants) {
+        //     return -1;
+        // }
     }
 
-    return ;
+    return 0;
 }
 
 /**
