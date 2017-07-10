@@ -1396,7 +1396,7 @@ int snapshot_store_ports(reg_registry* reg, reg_entry* snap_entry, reg_error* er
                                             break;
                                     }
                                 }
-                                printf("done with *%s* port\n\n", port_name);
+                                printf("\ndone with *%s* port\n\n", port_name);
                                 break;
                             case SQLITE_BUSY:
                                 break;
@@ -1416,7 +1416,6 @@ int snapshot_store_ports(reg_registry* reg, reg_entry* snap_entry, reg_error* er
             }
         }
     }
-    printf("stored: %d\n", result);
     return result;
 }
 
@@ -1451,7 +1450,7 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
         get_parsed_variants(positive_variants_str, all_variants, pos_delim, &variant_count);
         get_parsed_variants(negative_variants_str, all_variants, neg_delim, &variant_count);
 
-        printf("total var count: %d\n", variant_count);
+        printf("total var count: %d, ", variant_count);
 
         for ( i = 0; i < variant_count; i++){
             sqlite3_stmt* stmt = NULL;
@@ -1468,7 +1467,7 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
                     r = sqlite3_step(stmt);
                     switch (r) {
                         case SQLITE_DONE:
-                            printf("variant stored: %s with sign: %s\n",
+                            printf("\nvariant stored: %s with sign: %s",
                                 v.variant_name, v.variant_sign);
                             result = 1;
                             break;
@@ -1492,39 +1491,24 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
 
 void get_parsed_variants(char* variants_str, variant* all_variants, char* delim, int* variant_count) {
     
-    printf("var count yet%d\n", *variant_count);
+    printf("var count yet %d, ", *variant_count);
     
-    /*char *token;
+    char *token;
     char *rest = variants_str;
     
     while ((token = strtok_r(rest, delim, &rest))) {
         
         printf("%s\n", token);
-        
-        variant v;
-        v.variant_name = token;
-        v.variant_sign = delim;
-        
-        all_variants[*variant_count] = v;
-        *variant_count = *variant_count + 1;
-    }*/
-    
-    char *token = strtok(variants_str, delim);
-    
-    while (token != NULL) {
-        printf("%s\n", token);
-        
-        variant v;
-        v.variant_name = token;
-        v.variant_sign = delim;
-        
-        all_variants[*variant_count] = v;
-        *variant_count = *variant_count + 1;
 
-        token = strtok(NULL, delim);
+        variant v;
+        v.variant_name = token;
+        v.variant_sign = delim;
+        
+        all_variants[*variant_count] = v;
+        *variant_count = *variant_count + 1;
     }
 
-    return;
+    return ;
 }
 
 /**
