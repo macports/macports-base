@@ -7439,8 +7439,8 @@ done
 
 
 for ac_header in crt_externs.h err.h fcntl.h libkern/OSAtomic.h libproc.h limits.h paths.h pwd.h \
-	readline/history.h readline/readline.h spawn.h sys/cdefs.h sys/event.h sys/fcntl.h sys/file.h \
-	sys/paths.h sys/socket.h sys/sysctl.h utime.h
+	readline/history.h readline/readline.h stdatomic.h spawn.h sys/cdefs.h sys/event.h \
+	sys/fcntl.h sys/file.h sys/paths.h sys/socket.h sys/sysctl.h utime.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -7470,6 +7470,19 @@ _ACEOF
 fi
 done
 
+
+
+ac_fn_c_check_decl "$LINENO" "atomic_compare_exchange_strong_explicit" "ac_cv_have_decl_atomic_compare_exchange_strong_explicit" "#include <stdatomic.h>
+"
+if test "x$ac_cv_have_decl_atomic_compare_exchange_strong_explicit" = xyes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_ATOMIC_COMPARE_EXCHANGE_STRONG_EXPLICIT $ac_have_decl
+_ACEOF
 
 
 

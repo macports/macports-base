@@ -37,6 +37,10 @@
 #include "darwintrace.h"
 #include "sandbox_actions.h"
 
+#ifdef HAVE_STDATOMIC_H
+#include <stdatomic.h>
+#endif
+
 #ifdef HAVE_LIBKERN_OSATOMIC_H
 #include <libkern/OSAtomic.h>
 #endif
@@ -129,7 +133,11 @@ pthread_key_t sock_key;
  *  2: check for a dependency using the socket
  *  3: deny access to the path and stop processing
  */
+#ifdef HAVE_STDATOMIC_H
+static _Atomic(char *) filemap;
+#else
 static char *filemap;
+#endif
 
 static void __darwintrace_sock_destructor(FILE *dtsock) {
 	__darwintrace_close_sock = fileno(dtsock);
@@ -286,17 +294,19 @@ static void __darwintrace_get_filemap() {
 	char *path, command;
 #endif
 
-#if defined(HAVE_OSATOMICCOMPAREANDSWAPPTR)
-#	define CAS(old, new, mem) OSAtomicCompareAndSwapPtr(old, new, (void * volatile *) (mem))
+#if HAVE_DECL_ATOMIC_COMPARE_EXCHANGE_STRONG_EXPLICIT   /* HAVE_DECL_* is always defined and set to 1 or 0 */
+#	define CAS(old, new, mem) atomic_compare_exchange_strong_explicit(mem, old, new, memory_order_relaxed, memory_order_relaxed)
+#elif defined(HAVE_OSATOMICCOMPAREANDSWAPPTR)
+#	define CAS(old, new, mem) OSAtomicCompareAndSwapPtr(*old, new, (void * volatile *) (mem))
 #elif defined(__LP64__)
 #	ifdef HAVE_OSATOMICCOMPAREANDSWAP64
-#		define CAS(old, new, mem) OSAtomicCompareAndSwap64((int64_t) (old), (int64_t) (new), (volatile int64_t *) (mem))
+#		define CAS(old, new, mem) OSAtomicCompareAndSwap64((int64_t) (*old), (int64_t) (new), (volatile int64_t *) (mem))
 #	else
 #		error "No 64-bit compare and swap primitive available on 64-bit OS."
 #	endif
 #else
 #	ifdef HAVE_OSATOMICCOMPAREANDSWAP32
-#		define CAS(old, new, mem) OSAtomicCompareAndSwap32((int32_t) (old), (int32_t) (new), (volatile int32_t *) (mem))
+#		define CAS(old, new, mem) OSAtomicCompareAndSwap32((int32_t) (*old), (int32_t) (new), (volatile int32_t *) (mem))
 #	else
 #		error "No 32-bit compare and swap primitive available."
 #	endif
@@ -311,12 +321,13 @@ static void __darwintrace_get_filemap() {
 	 * code is actually called in an application.
 	 */
 	newfilemap = NULL;
+	char *nullpointer = NULL;
 	do {
 		free(newfilemap);
 		if (filemap != NULL)
 			break;
 		newfilemap = __send("filemap\t", 8, 1);
-	} while (!CAS(NULL, newfilemap, &filemap));
+	} while (!CAS(&nullpointer, newfilemap, &filemap));
 
 #if DARWINTRACE_DEBUG && 0
 	for (__darwintrace_filemap_iterator_init(&it);
