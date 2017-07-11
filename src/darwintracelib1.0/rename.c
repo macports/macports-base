@@ -37,7 +37,6 @@
 
 #include <errno.h>
 #include <stdio.h>
-#include <sys/syscall.h>
 #include <unistd.h>
 
 /**
@@ -45,7 +44,6 @@
  * sandbox.
  */
 static int _dt_rename(const char *from, const char *to) {
-#define rename(x,y) syscall(SYS_rename, (x), (y))
 	__darwintrace_setup();
 
 	int result = 0;
@@ -63,7 +61,6 @@ static int _dt_rename(const char *from, const char *to) {
 	debug_printf("rename(%s, %s) = %d\n", from, to, result);
 
 	return result;
-#undef rename
 }
 
 DARWINTRACE_INTERPOSE(_dt_rename, rename);

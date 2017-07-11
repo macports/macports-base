@@ -38,7 +38,6 @@
 
 #include <fcntl.h>
 #include <stdio.h>
-#include <sys/syscall.h>
 #include <unistd.h>
 
 /**
@@ -47,7 +46,6 @@
  * FDs are numbered in ascending order.
  */
 static int _dt_dup2(int filedes, int filedes2) {
-#define dup2(x, y) syscall(SYS_dup2, (x), (y))
 	__darwintrace_setup();
 
 	FILE *stream = __darwintrace_sock();
@@ -71,7 +69,6 @@ static int _dt_dup2(int filedes, int filedes2) {
 	}
 
 	return dup2(filedes, filedes2);
-#undef dup2
 }
 
 DARWINTRACE_INTERPOSE(_dt_dup2, dup2);

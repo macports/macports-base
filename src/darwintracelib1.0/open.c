@@ -38,7 +38,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
-#include <sys/syscall.h>
 #include <unistd.h>
 
 /**
@@ -47,7 +46,6 @@
  * when attempting to create a file, i.e., when \c O_CREAT is set.
  */
 static int _dt_open(const char *path, int flags, ...) {
-#define open(x,y,z) syscall(SYS_open, (x), (y), (z))
 	__darwintrace_setup();
 	int result = 0;
 
@@ -66,7 +64,6 @@ static int _dt_open(const char *path, int flags, ...) {
 	}
 	debug_printf("open(%s) = %d\n", path, result);
 	return result;
-#undef open
 }
 
 DARWINTRACE_INTERPOSE(_dt_open, open);

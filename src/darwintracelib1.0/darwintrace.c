@@ -50,7 +50,6 @@
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-#include <sys/syscall.h>
 #include <sys/types.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -472,7 +471,6 @@ static inline void __darwintrace_log_op(const char *op, const char *path) {
  *         -1 if MacPorts doesn't know about the file.
  */
 static int dependency_check(const char *path) {
-#define lstat(y, z) syscall(LSTATSYSNUM, (y), (z))
 	char buffer[BUFFER_SIZE], *p;
 	uint32_t len;
 	int result = 0;
@@ -517,7 +515,6 @@ static int dependency_check(const char *path) {
 
 	free(p);
 	return result;
-#undef lstat
 }
 
 /**
@@ -638,7 +635,6 @@ static char *__send(const char *buf, uint32_t len, int answer) {
  *         should be denied
  */
 static inline bool __darwintrace_sandbox_check(const char *path, int flags) {
-#define lstat(x,y) syscall(LSTATSYSNUM, (x), (y))
 	filemap_iterator_t filemap_it;
 
 	char command;
@@ -699,7 +695,6 @@ static inline bool __darwintrace_sandbox_check(const char *path, int flags) {
 		__darwintrace_log_op("sandbox_violation", path);
 	}
 	return false;
-#undef lstat
 }
 
 /**
@@ -720,9 +715,6 @@ static inline bool __darwintrace_sandbox_check(const char *path, int flags) {
  *         should be denied
  */
 bool __darwintrace_is_in_sandbox(const char *path, int flags) {
-#define lstat(x, y) syscall(LSTATSYSNUM, (x), (y))
-#define readlink(x,y,z) syscall(SYS_readlink, (x), (y), (z))
-#define getattrlist(v,w,x,y,z) syscall(SYS_getattrlist, (v), (w), (x), (y), (z))
 	if (!filemap) {
 		return true;
 	}
@@ -1031,7 +1023,4 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 	} while (pathIsSymlink);
 
 	return __darwintrace_sandbox_check(normPath, flags);
-#undef getattrlist
-#undef readlink
-#undef lstat
 }

@@ -44,7 +44,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>
-#include <sys/syscall.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
@@ -203,8 +202,6 @@ static inline char **restore_env(char *const envp[]) {
  *         in \c errno otherwise
  */
 static inline int check_interpreter(const char *restrict path) {
-#define open(x,y,z) syscall(SYS_open, (x), (y), (z))
-#define close(x) syscall(SYS_close, (x))
 	int fd = open(path, O_RDONLY, 0);
 	if (fd <= 0) {
 		return errno;
@@ -244,8 +241,6 @@ static inline int check_interpreter(const char *restrict path) {
 	}
 
 	return 0;
-#undef open
-#undef close
 }
 
 /**
@@ -254,7 +249,6 @@ static inline int check_interpreter(const char *restrict path) {
  * using \c check_interpreter.
  */
 static int _dt_execve(const char *path, char *const argv[], char *const envp[]) {
-#define execve(x,y,z) syscall(SYS_execve, (x), (y), (z))
 	__darwintrace_setup();
 
 	int result = 0;
@@ -285,7 +279,6 @@ static int _dt_execve(const char *path, char *const argv[], char *const envp[]) 
 	debug_printf("execve(%s) = %d\n", path, result);
 
 	return result;
-#undef execve
 }
 
 DARWINTRACE_INTERPOSE(_dt_execve, execve);
@@ -323,14 +316,6 @@ static int _dt_posix_spawn(pid_t *restrict pid, const char *restrict path, const
 				__darwintrace_pid = (pid_t) - 1;
 			}
 
-			/* ATTN: the mac syscall you get from syscall(SYS_posix_spawn) corresponds
-			 * to __posix_spawn from /usr/lib/system/libsystem_kernel.dylib. We can not
-			 * override __posix_spawn directly, because it is called from posix_spawn
-			 * inside the same library (i.e., there is no dyld stub we can override).
-			 *
-			 * We cannot override posix_spawn and call __posix_spawn from it
-			 * either, because that will fail with an invalid argument. Thus,
-			 * we need to call the original posix_spawn from here. */
 			// call the original posix_spawn function, but restore environment
 			char **newenv = restore_env(envp);
 			result = sip_copy_posix_spawn(pid, path, file_actions, attrp, argv, newenv);

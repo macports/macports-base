@@ -37,7 +37,6 @@
 
 #include <errno.h>
 #include <sys/stat.h>
-#include <sys/syscall.h>
 #include <unistd.h>
 
 #if __DARWIN_64_BIT_INO_T
@@ -52,8 +51,6 @@
  * outside the sandbox that already exist.
  */
 static int _dt_mkdir(const char *path, mode_t mode) {
-#define mkdir(x,y) syscall(SYS_mkdir, (x), (y))
-#define lstat(x,y) syscall(LSTATSYSNUM, (x), (y))
 	__darwintrace_setup();
 
 	int result = 0;
@@ -73,8 +70,6 @@ static int _dt_mkdir(const char *path, mode_t mode) {
 	debug_printf("mkdir(%s) = %d\n", path, result);
 
 	return result;
-#undef lstat
-#undef mkdir
 }
 
 DARWINTRACE_INTERPOSE(_dt_mkdir, mkdir);
