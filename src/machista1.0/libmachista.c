@@ -55,7 +55,7 @@
 #include <mach-o/fat.h>
 #include <mach-o/loader.h>
 
-#include <libkern/OSAtomic.h>
+#include <libkern/OSByteOrder.h>
 #endif
 
 #include "libmachista.h"
