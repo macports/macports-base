@@ -109,7 +109,7 @@ static size_t _dt_getdirentries64(int fd, void *buf, size_t bufsize, __darwin_of
 size_t __getdirentries64(int fd, void *buf, size_t bufsize, __darwin_off_t *basep);
 DARWINTRACE_INTERPOSE(_dt_getdirentries64, __getdirentries64);
 
-#endif /* defined(__DARWIN_64_BIT_INO_T) && defined(HAVE___GETDIRENTRIES64) */
+#else
 
 #pragma pack(4)
 struct dirent32 {
@@ -161,3 +161,5 @@ static int _dt_getdirentries(int fd, char *buf, int nbytes, long *basep) {
 
 int getdirentries(int fd, char *buf, int nbytes, long *basep);
 DARWINTRACE_INTERPOSE(_dt_getdirentries, getdirentries);
+
+#endif /* defined(__DARWIN_64_BIT_INO_T) && defined(HAVE___GETDIRENTRIES64) */
