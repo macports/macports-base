@@ -46,9 +46,14 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
+#include <config.h>
+
+#ifdef HAVE_COPYFILE
+#include <copyfile.h>
+#endif
+
 #include "sip_copy_proc.h"
 
-#include <config.h>
 #ifndef DARWINTRACE_SIP_WORKAROUND_PATH
 #warning No value for DARWINTRACE_SIP_WORKAROUND_PATH found in config.h, using default of /tmp/macports-sip, which will fail unless you create it with mode 01777
 #define DARWINTRACE_SIP_WORKAROUND_PATH "/tmp/macports-sip"
@@ -327,6 +332,24 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
         goto lazy_copy_out;
     }
 
+#ifdef HAVE_COPYFILE
+    // as copyfile(3) is not guaranteed to be atomic, copy to a temporary file first
+    if (mktemp(target_path_temp) == NULL) {
+        fprintf(stderr, "sip_copy_proc: mktemp(%s): %s\n", target_path_temp, strerror(errno));
+        goto lazy_copy_out;
+    }
+
+    // copyfile(3)/clonefile(2) will not preserve SF_RESTRICTED,
+    // we can safely clone the source file with all metadata
+    copyfile_flags_t flags = COPYFILE_ALL;
+#ifdef COPYFILE_CLONE
+    flags = COPYFILE_CLONE;
+#endif
+    if (copyfile(path, target_path_temp, NULL, flags) != 0) {
+        fprintf(stderr, "sip_copy_proc: copyfile(%s, %s): %s\n", path, target_path_temp, strerror(errno));
+        goto lazy_copy_out;
+    }
+#else /* !HAVE_COPYFILE */
     // create temporary file to copy into and then later atomically replace
     // target file
     if (-1 == (outfd = mkstemp(target_path_temp))) {
@@ -394,6 +417,7 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
         fprintf(stderr, "sip_copy_proc: futimes(%s): %s\n", target_path_temp, strerror(errno));
         goto lazy_copy_out;
     }
+#endif /* HAVE_COPYFILE */
 
     if (-1 == rename(target_path_temp, target_path)) {
         fprintf(stderr, "sip_copy_proc: rename(%s, %s): %s\n", target_path_temp, target_path, strerror(errno));
