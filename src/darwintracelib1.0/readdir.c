@@ -36,7 +36,6 @@
 #include "darwintrace.h"
 
 #include <errno.h>
-#include <dirent.h>
 #include <sys/dirent.h>
 #include <sys/param.h>
 #include <unistd.h>
@@ -119,6 +118,9 @@ struct dirent32 {
 	char d_name[__DARWIN_MAXNAMLEN + 1]; /* name must be no longer than this */
 };
 #pragma pack()
+
+// do not use dirent.h, as it applies a define to a non-existing symbol
+int getdirentries(int fd, char *buf, int nbytes, long *basep);
 
 static int _dt_getdirentries(int fd, char *buf, int nbytes, long *basep) {
 	__darwintrace_setup();
