@@ -648,7 +648,7 @@ static char *__send(const char *buf, uint32_t len, int answer) {
 static inline bool __darwintrace_sandbox_check(const char *path, int flags) {
 	filemap_iterator_t filemap_it;
 
-	char command;
+	char command = -1;
 	char *t;
 
 	if (path[0] == '/' && path[1] == '\0') {

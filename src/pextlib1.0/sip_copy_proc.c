@@ -486,6 +486,8 @@ int sip_copy_execve(const char *path, char *const argv[], char *const envp[]) {
             }
             break;
     }
+
+    return -1;
 }
 
 /**
@@ -533,4 +535,6 @@ int sip_copy_posix_spawn(
             }
             break;
     }
+
+    return -1;
 }
