@@ -1379,24 +1379,28 @@ int snapshot_store_ports(reg_registry* reg, reg_entry* snap_entry, reg_error* er
 
     char* key1 = "name";
     char* key2 = "requested";
+    char* key3 = "state";
 
     if (entry_count >= 0) {
-        for ( i = 0; i < entry_count; i++){
+        for ( i = 0; i < entry_count; i++) {
             char* port_name;
             char* requested;
+            char* state;
             sqlite3_stmt* stmt = NULL;
             reg_entry* entry = NULL;
-            if(reg_entry_propget(entries[i], key1, &port_name, &error)
-                && reg_entry_propget(entries[i], key2, &requested, &error)){
+            if (reg_entry_propget(entries[i], key1, &port_name, &error)
+                && reg_entry_propget(entries[i], key2, &requested, &error)
+                && reg_entry_propget(entries[i], key3, &state, &error)) {
                 
                 char* query = "INSERT INTO registry.snapshot_ports "
-                    "(snapshots_id, port_name, requested) "
-                    "VALUES (?, ?, ?)";
+                    "(snapshots_id, port_name, requested, state) "
+                    "VALUES (?, ?, ?, ?)";
                 
                 if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
                         && (sqlite3_bind_int64(stmt, 1, snap_entry->id) == SQLITE_OK)
                         && (sqlite3_bind_text(stmt, 2, port_name, -1, SQLITE_STATIC) == SQLITE_OK)
-                        && (sqlite3_bind_int64(stmt, 3, atoi(requested)) == SQLITE_OK)) {
+                        && (sqlite3_bind_int64(stmt, 3, atoi(requested)) == SQLITE_OK)
+                        && (sqlite3_bind_text(stmt, 4, state, -1, SQLITE_STATIC) == SQLITE_OK)) {
                     int r;
                     do {
                         r = sqlite3_step(stmt);
