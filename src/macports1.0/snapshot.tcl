@@ -20,8 +20,9 @@ namespace eval snapshot {
         # Returns:
         #           None
         #
-        # TODO: use registry::write wrapper here itself
-        #
+        # TODO:
+        # use registry::write wrapper here itself
+        # make it return some value
 
         puts "Still being developed"
         #registry::entry addsnapshot
