@@ -36,6 +36,7 @@
 #include "darwintrace.h"
 
 #include <errno.h>
+#include <dirent.h>
 #include <sys/dirent.h>
 #include <sys/param.h>
 #include <unistd.h>
@@ -155,7 +156,6 @@ static int _dt_getdirentries(int fd, char *buf, int nbytes, long *basep) {
 	return sz;
 }
 
-int getdirentries(int fd, char *buf, int nbytes, long *basep);
 DARWINTRACE_INTERPOSE(_dt_getdirentries, getdirentries);
 
 #endif /* defined(__DARWIN_64_BIT_INO_T) && defined(HAVE___GETDIRENTRIES64) */
