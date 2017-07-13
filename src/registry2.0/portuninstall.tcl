@@ -274,7 +274,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         }
 
         set portfile_path [file join ${registry.path} registry portfiles ${portname}-${version}_${revision} $portfile]
-        if {[registry::entry search portfile $portfile] eq {}} {
+        if {[registry::entry search portfile $portfile name $portname version $version revision $revision] eq {}} {
             file delete -force $portfile_path
             catch {file delete [file dirname $portfile_path]}
         }
