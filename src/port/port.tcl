@@ -2228,6 +2228,21 @@ proc action_info { action portlist opts } {
                 }
             }
 
+            # Add "and" and "or"
+            if {$ropt eq "license"} {
+                set infresult {}
+                foreach {e} $inf {
+                    if {[llength $e] > 1} {
+                        if {[llength $infresult] > 0} { lappend infresult " and " }
+                        lappend infresult "([join $e " or "])"
+                    } else {
+                        if {[llength $infresult] > 0} { lappend infresult " and " }
+                        lappend infresult $e
+                    }
+                }
+                set inf [concat {*}$infresult]
+            }
+
             # Format list of maintainers
             if {$ropt eq "maintainers"} {
                 set infresult {}
