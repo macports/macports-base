@@ -139,6 +139,13 @@ namespace eval restore {
             
             set name [string trim [lindex $port 0]]
             set variations [lindex $port 1]
+            set active [lindex $port 2]
+
+            if {$active} {
+                set target install
+            } else {
+                set target activate
+            }
 
             array unset portinfo
             array set portinfo [lindex $res 1]
@@ -149,7 +156,7 @@ namespace eval restore {
             set workername [mportopen $porturl [list subport $portinfo(name)] $variations]
 
             # TODO: instead of mportexec, lookup for some API?
-            if {[catch {set result [mportexec $workername install]} result]} {
+            if {[catch {set result [mportexec $workername $target]} result]} {
                 global errorInfo
                 mportclose $workername
                 ui_msg "$errorInfo"
@@ -158,7 +165,7 @@ namespace eval restore {
                 mportclose $workername
             }
 
-            # port will be active here
+            # TODO: deps active?
         }
 
     }
