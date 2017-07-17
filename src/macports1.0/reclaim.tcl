@@ -406,6 +406,7 @@ namespace eval reclaim {
         foreach port $portlist {
             sortdependents_helper $port ports_for_name dependents seen ret
         }
+        puts $ret
         return $ret
     }
 
