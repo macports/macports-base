@@ -132,4 +132,34 @@ namespace eval restore {
         }
         return 0
     }
+
+    proc install_ports {portList} {
+        
+        foreach port $portList {
+            
+            set name [string trim [lindex $port 0]]
+            set variations [lindex $port 1]
+
+            array unset portinfo
+            array set portinfo [lindex $res 1]
+            set porturl $portinfo(porturl)
+            
+            # TODO: error handling, if any?
+
+            set workername [mportopen $porturl [list subport $portinfo(name)] $variations]
+
+            # TODO: instead of mportexec, lookup for some API?
+            if {[catch {set result [mportexec $workername install]} result]} {
+                global errorInfo
+                mportclose $workername
+                ui_msg "$errorInfo"
+                return -code error "Unable to execute target 'install' for port '$name': $result"
+            } else {
+                mportclose $workername
+            }
+
+            # port will be active here
+        }
+
+    }
 }
