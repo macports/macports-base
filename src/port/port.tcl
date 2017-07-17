@@ -2228,8 +2228,8 @@ proc action_info { action portlist opts } {
                 }
             }
 
-            # Add "and" and "or"
-            if {$ropt eq "license"} {
+            # Add "(" "or" ")" "and" for human-readable output
+            if {$pretty_print && $ropt eq "license"} {
                 set infresult {}
                 foreach {e} $inf {
                     if {[llength $e] > 1} {
