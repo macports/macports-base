@@ -49,6 +49,7 @@ namespace eval migrate {
         # ASSUMING I GET THE FINAL PORTLIST FOR NOW
         # $portlist
         uninstall_installed portlist
+        sort_ports portlist
         recover_ports_state portlist
 
 
@@ -62,6 +63,89 @@ namespace eval migrate {
 
     proc fetch_latest_snapshot {} {
 
+    }
+
+    proc dependenciesForPort {portName variantInfo} {
+
+        set dependencyList [list]
+        set portSearchResult [mportlookup $portName]
+
+        # TODO: error handling, if any?
+
+        array set portInfo [lindex $portSearchResult 1]
+
+        set dependencyTypes { depends_fetch depends_extract depends_build depends_lib depends_run }
+        foreach dependencyType $dependencyTypes {
+            if {[info exists portInfo($dependencyType)] && [string length $portInfo($dependencyType)] > 0} {
+                foreach dependency $portInfo($dependencyType) {
+                    lappend dependencyList [lindex [split $dependency:] end]
+                }
+            }
+        }
+        return $dependencyList
+    }
+
+    proc sort_ports {portlist} {
+
+        array set port_installed {}
+        array set port_deps {}
+        array set port_in_list {}
+
+        set newList [list]
+
+        foreach port $portlist {
+
+            set name [lindex $port 0]
+            set version [lindex $port 1]
+            set variants [lindex $port 2]
+            set active [lindex $port 3]
+
+            if {![info exists port_in_list($name)]} {
+                set port_in_list($name) 1
+                set port_installed($name) 0
+            } else {
+                incr port_in_list($name)
+            }
+
+            if {![info exists port_deps(${name},${variants})]} {
+                set port_deps(${name},${variants}) [dependenciesForPort $name $variants]
+            }
+
+            lappend newList [list $active $name $variants]
+        }
+
+        set operationList [list]
+
+        while {[llength $newList] > 0} {
+
+            set oldLen [llength $newList]
+            foreach port $newList {
+                foreach {active name variants} $port break
+
+                if {$active && $port_installed($name) < ($port_in_list($name) - 1)} {
+                    continue
+                }
+                set installable 1
+                foreach dep $port_deps(${name},${variants}) {
+                    if {[info exists port_installed($dep)] && $port_installed($dep) == 0} {
+                        set installable 0
+                        break
+                    }
+                }
+                if {$installable} {
+                    lappend operationList [list $name $variants $active]
+                    incr port_installed($name)
+                    set index [lsearch $newList [list $name $variants $active]]
+                    set newList [lreplace $newList $index $index]
+                }
+            }
+
+            if {[llength $newList] == $oldLen} {
+                return -code error "stuck in loop"
+            }
+        }
+
+        return $operationList
     }
 
     proc sort_portlist_by_dependendents { portlist } {
