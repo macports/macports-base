@@ -39,6 +39,7 @@ package require diagnose 1.0
 package require reclaim 1.0
 package require selfupdate 1.0
 package require snapshot 1.0
+package require migrate 1.0
 package require Tclx
 
 # catch wrapper shared with port1.0
@@ -4417,6 +4418,19 @@ proc macports::snapshot_main {opts} {
     #           0 on successful execution.
 
     snapshot::main $opts
+    return 0
+}
+
+proc macports::migrate_main {opts} {
+
+    # Calls the main function for the 'port migrate' command.
+    #
+    # Args:
+    #           None
+    # Returns:
+    #           0 on successful execution.
+
+    migrate::main $opts
     return 0
 }
 
