@@ -40,7 +40,7 @@ namespace eval migrate {
 
 
         # create a snapshot
-        set snapshot snapshot::main
+        # set snapshot snapshot::main
 
         # fetch ports and variants for this snapshot
 
@@ -48,9 +48,23 @@ namespace eval migrate {
         
         # ASSUMING I GET THE FINAL PORTLIST FOR NOW
         # $portlist
-        uninstall_installed portlist
-        sort_ports portlist
-        recover_ports_state portlist
+        set portlist [registry::entry imaged]
+
+        set portlist1 [sort_portlist_by_dependendents $portlist]
+
+        set portlist2 [sort_ports $portlist]
+
+        puts $portlist
+        puts
+        puts $portlist1
+        puts
+        puts $portlist2
+        puts
+
+        return 0
+        # uninstall_installed $portlist
+        # sort_ports $portlist
+        # recover_ports_state $portlist
 
 
         # TODO: CLEAN PARTIAL BUILDS STEP HERE
@@ -71,7 +85,6 @@ namespace eval migrate {
         set portSearchResult [mportlookup $portName]
 
         # TODO: error handling, if any?
-
         array set portInfo [lindex $portSearchResult 1]
 
         set dependencyTypes { depends_fetch depends_extract depends_build depends_lib depends_run }
