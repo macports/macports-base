@@ -18,7 +18,7 @@ namespace eval snapshot {
         # Args:
         #           opts - The options passed in. Currently, there is no option available.
         # Returns:
-        #           None
+        #           registry entry
         #
         # TODO:
         # use registry::write wrapper here itself
@@ -42,19 +42,18 @@ namespace eval snapshot {
             puts $port
         }
         puts
-        set a [registry::entry snapshot "test snapshot"]
-        puts $a
-        puts done
+        set snapshot [registry::entry snapshot "test snapshot"]
 
+        return snapshot
 	}
 
-    proc list {opts} {
+    proc all_snapshots {opts} {
         # List the snapshots
         puts "listing"
 
     }
 
-    proc latest {opts} {
+    proc latest_snapshot {opts} {
         # Get the latest snapshot
         puts "latest"
     }

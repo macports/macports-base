@@ -2811,8 +2811,8 @@ proc action_snapshot { action portlist opts} {
 	return 0
 }
 
-proc action_reclaim { action portlist opts} {
-    macports::reclaim_main $opts
+proc action_migrate { action portlist opts} {
+    macports::migrate_main $opts
     return 0
 }
 
@@ -4360,7 +4360,7 @@ array set action_array [list \
     pkg         [list action_target         [ACTION_ARGS_PORTS]] \
     \
     snapshot    [list action_snapshot       [ACTION_ARGS_STRINGS]] \
-    restore     [list action_restore        [ACTION_ARGS_STRINGS]] \
+    migrate     [list action_migrate        [ACTION_ARGS_STRINGS]] \
     \
     quit        [list action_exit           [ACTION_ARGS_NONE]] \
     exit        [list action_exit           [ACTION_ARGS_NONE]] \
@@ -4458,7 +4458,6 @@ array set cmd_opts_array {
     diagnose    {quiet}
     reclaim     {enable-reminders disable-reminders}
     fetch       {no-mirrors}
-    restore     {snapshot-id}
 }
 
 ##

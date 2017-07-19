@@ -5,14 +5,15 @@
 #
 
 
-package provide restore 1.0
+package provide migrate 1.0
 
 package require macports 1.0
 package require registry 1.0
 package require Pextlib 1.0
+package require snapshot 1.0
 package require registry_uninstall 2.0
 
-namespace eval restore {
+namespace eval migrate {
 
     proc main {opts} {
         # The main function. Calls each individual function that needs to be run.
@@ -27,22 +28,29 @@ namespace eval restore {
 
         array set options $opts
 
-        if ([info exists options(ports_restore_snapshot-id)]) {
-            # use that snapshot
-            set snapshot [fetch_snapshot options(ports_restore_snapshot-id)]
-        } else {
-            # TODO: ask if the user is fine with the latest snapshot, if 'yes'
-            # use latest snapshot
-            set snapshot [fetch_latest_snapshot]
-        }
+        # TODO: move this to restore.tcl
+        # if ([info exists options(ports_restore_snapshot-id)]) {
+        #     # use that snapshot
+        #     set snapshot [fetch_snapshot options(ports_restore_snapshot-id)]
+        # } else {
+        #     # TODO: ask if the user is fine with the latest snapshot, if 'yes'
+        #     # use latest snapshot
+        #     set snapshot [fetch_latest_snapshot]
+        # }
 
-        # fetch ports and variants now
+
+        # create a snapshot
+        set snapshot snapshot::main
+
+        # fetch ports and variants for this snapshot
 
         # WILL WRITE FOR FETCHING AFTER DISCUSSING WITH BRAD
+        
         # ASSUMING I GET THE FINAL PORTLIST FOR NOW
-
         # $portlist
         uninstall_installed portlist
+        recover_ports_state portlist
+
 
         # TODO: CLEAN PARTIAL BUILDS STEP HERE
 
@@ -104,8 +112,6 @@ namespace eval restore {
 
     proc uninstall_installed { portlist } {
 
-        set formatted_portlist  [list]
-
         set portlist [sort_portlist_by_dependendents $portlist]
 
         if {[info exists macports::ui_options(questions_yesno)]} {
@@ -133,7 +139,7 @@ namespace eval restore {
         return 0
     }
 
-    proc install_ports {portList} {
+    proc recover_ports_state {portList} {
         
         foreach port $portList {
             
@@ -155,7 +161,7 @@ namespace eval restore {
 
             set workername [mportopen $porturl [list subport $portinfo(name)] $variations]
 
-            # TODO: instead of mportexec, lookup for some API?
+            # TODO: instead of mportexec, look for some API?
             if {[catch {set result [mportexec $workername $target]} result]} {
                 global errorInfo
                 mportclose $workername
