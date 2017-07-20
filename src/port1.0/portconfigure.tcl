@@ -546,7 +546,17 @@ proc portconfigure::get_compiler_fallback {} {
     # Determine which versions of clang we prefer
     if {${configure.cxx_stdlib} eq "libc++"} {
         # clang-3.5+ require libc++
-        lappend compilers macports-clang-4.0 macports-clang-3.9 macports-clang-3.8 macports-clang-3.7
+        lappend compilers macports-clang-4.0
+
+        if {${os.major} < 17} {
+            # The High Sierra SDK requires a toolchain that can apply nullability to uuid_t
+            lappend compilers macports-clang-3.9
+        }
+
+        if {${os.major} < 16} {
+            # The Sierra SDK requires a toolchain that supports class properties
+            lappend compilers macports-clang-3.8 macports-clang-3.7
+        }
     }
 
     if {${os.major} < 16} {
