@@ -1761,6 +1761,29 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
 
     $workername eval {source Portfile}
 
+    set subport [$workername eval {set subport}]
+    set name [$workername eval {set name}]
+
+    ui_debug "name=$name; subport=$subport"
+    # Verify subport is actually a 'subport' of port
+    if {$name ne $subport} {
+        if {[catch {mportlookup $name} result]} {
+            ui_debug "$::errorInfo"
+            error "lookup of portname $name failed: $result"
+        }
+        if {[llength $result] < 2} {
+            error "$name not found"
+        }
+        array set portinfo [lindex $result 1]
+        if {[info exists portinfo(subports)]} {
+            if {[lsearch $portinfo(subports) $subport] < 0} {
+                error "$name does not have a subport $subport"
+            }
+        } else {
+            error "$name does not have any subports"
+        }
+    }
+
     # add the default universal variant if appropriate, and set up flags that
     # are conditional on whether universal is set
     $workername eval {universal_setup}

@@ -4178,12 +4178,6 @@ proc action_target { action portlist opts } {
             } else {
                 set options(subport) $portname
             }
-        } else {
-            set subportname $options(subport)
-            if {![info exists portinfo(subports)] ||
-                 [lsearch $portinfo(subports) $subportname] < 0} {
-                break_softcontinue "Port $portname does not have a subport $subportname" 1 status
-            }
         }
         if {[catch {set workername [mportopen $porturl [array get options] [array get requested_variations]]} result]} {
             ui_debug $::errorInfo
