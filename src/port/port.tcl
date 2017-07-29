@@ -4368,7 +4368,14 @@ array set action_array [list \
 # Expand "action".
 # Returns an action proc, or a list of matching action procs, or the action passed in
 proc find_action { action } {
-    global action_array
+    global action_array ui_options
+
+    # Remove commands that have no use on command line
+    if {![info exists ui_options(ports_commandfiles)]} {
+        array unset action_array cd
+        array unset action_array exit
+        array unset action_array quit
+    }
 
     if { ! [info exists action_array($action)] } {
         set guess [guess_action $action]
