@@ -4366,37 +4366,15 @@ array set action_array [list \
 ]
 
 # Expand "action".
-# Returns an action proc, or a list of matching action procs, or the action passed in
+# Returns a list of matching actions.
 proc find_action { action } {
     global action_array
 
-    if { ! [info exists action_array($action)] } {
-        set guess [guess_action $action]
-        if { [info exists action_array($guess)] } {
-            return $guess
-        }
-        return $guess
+    if {![info exists action_array($action)]} {
+        return [array names action_array [string tolower $action]*]
     }
 
     return $action
-}
-
-# Expand action
-# If there's more than one match, return the next possibility
-proc find_action_proc { action } {
-    global action_array
-
-    set action_proc ""
-    if { [info exists action_array($action)] } {
-        set action_proc [lindex $action_array($action) 0]
-    } else {
-        set action [complete_action $action]
-        if { [info exists action_array($action)] } {
-            set action_proc [lindex $action_array($action) 0]
-        }
-    }
-
-    return $action_proc
 }
 
 proc get_action_proc { action } {
@@ -4828,19 +4806,6 @@ proc complete_action { text state } {
     incr complete_position
 
     return $word
-}
-
-# return all actions beginning with $text
-proc guess_action { text } {
-    global action_array
-
-    return [array names action_array "[string tolower $text]*"]
-
-    if { [llength $complete_choices ] == 1 } {
-        return [lindex $complete_choices 0]
-    }
-
-    return {}
 }
 
 proc attempt_completion { text word start end } {
