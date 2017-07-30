@@ -1773,7 +1773,19 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
 
     $workername eval {port::run_callbacks}
 
-    ditem_key $mport provides [$workername eval {set subport}]
+    set actual_subport [$workername eval {set PortInfo(name)}]
+    if {[$workername eval {info exists user_options(subport)}]} {
+        # The supplied subport may have been set on the command line by the
+        # user, or simply obtained from the PortIndex or registry. Check that
+        # it's valid in case the user made a mistake.
+        set supplied_subport [$workername eval {set user_options(subport)}]
+        if {$supplied_subport ne $actual_subport} {
+            set portname [$workername eval {set name}]
+            mportclose $mport
+            error "$portname does not have a subport '$supplied_subport'"
+        }
+    }
+    ditem_key $mport provides $actual_subport
 
     return $mport
 }
