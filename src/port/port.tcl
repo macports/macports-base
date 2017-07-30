@@ -2497,7 +2497,10 @@ proc action_provides { action portlist opts } {
             if {![file isdirectory $file] || [file type $file] eq "link"} {
                 set port [registry::file_registered $file]
                 if { $port != 0 } {
-                    puts "$file is provided by: $port"
+                    if {![macports::ui_isset ports_quiet]} {
+                        puts -nonewline "$file is provided by: "
+                    }
+                    puts $port
                 } else {
                     puts "$file is not provided by a MacPorts port."
                 }
