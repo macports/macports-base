@@ -2502,13 +2502,19 @@ proc action_provides { action portlist opts } {
                     }
                     puts $port
                 } else {
-                    puts "$file is not provided by a MacPorts port."
+                    if {![macports::ui_isset ports_quiet]} {
+                        puts "$file is not provided by a MacPorts port."
+                    }
                 }
             } else {
-                puts "$file is a directory."
+                if {![macports::ui_isset ports_quiet]} {
+                    puts "$file is a directory."
+                }
             }
         } else {
-            puts "$file does not exist."
+            if {![macports::ui_isset ports_quiet]} {
+                puts "$file does not exist."
+            }
         }
     }
     registry::close_file_map
