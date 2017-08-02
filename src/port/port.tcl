@@ -5727,7 +5727,9 @@ if {[catch {mportinit ui_options global_options global_variations} result]} {
 }
 
 # Set up some global state for our code
-set current_portdir [pwd]
+if {[catch {set current_portdir [pwd]}]} {
+    set current_portdir $macports::user_home
+}
 
 # Freeze global_options into global_options_base; global_options
 # will be reset to global_options_base prior to processing each command.
