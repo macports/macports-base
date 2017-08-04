@@ -50,19 +50,35 @@ namespace eval migrate {
         # $portlist
         set portlist [registry::entry imaged]
 
-        set portlist1 [sort_portlist_by_dependendents $portlist]
+
+        foreach port $portlist {
+            #puts [$port name]
+        }
+
+        puts "here"
+        puts
+
+        #set portlist1 [sort_portlist_by_dependendents $portlist]
+
+        puts "here1"
+        puts ""
 
         set portlist2 [sort_ports $portlist]
 
-        puts $portlist
-        puts
-        puts $portlist1
-        puts
-        puts $portlist2
-        puts
+        puts "here2"
 
+
+        # foreach port $portlist1 {
+        #     puts $port
+        # }
+        # puts
+
+        foreach port $portlist2 {
+            #puts [lindex $port 0]
+        }
+
+        uninstall_installed $portlist
         return 0
-        # uninstall_installed $portlist
         # sort_ports $portlist
         # recover_ports_state $portlist
 
@@ -108,10 +124,19 @@ namespace eval migrate {
 
         foreach port $portlist {
 
-            set name [lindex $port 0]
-            set version [lindex $port 1]
-            set variants [lindex $port 2]
-            set active [lindex $port 3]
+            #puts "in - "
+            #puts $port
+
+            set name [$port name]
+            set version [$port version]
+            set variants [$port variants]
+            set active 0
+
+            if {[$port state] eq "installed"} {
+                set active 1
+            }
+
+            #puts "$name $version $variants $active"
 
             if {![info exists port_in_list($name)]} {
                 set port_in_list($name) 1
@@ -124,16 +149,24 @@ namespace eval migrate {
                 set port_deps(${name},${variants}) [dependenciesForPort $name $variants]
             }
 
-            lappend newList [list $active $name $variants]
+            #puts "$port_deps(${name},$variants)"
+
+            lappend newList [list $name $variants $active]
         }
 
         set operationList [list]
 
+        puts
+
         while {[llength $newList] > 0} {
 
             set oldLen [llength $newList]
+
             foreach port $newList {
-                foreach {active name variants} $port break
+                foreach {name variants active} $port break
+
+                #puts "out - "
+                #puts "$name $variants $active"
 
                 if {$active && $port_installed($name) < ($port_in_list($name) - 1)} {
                     continue
@@ -146,12 +179,15 @@ namespace eval migrate {
                     }
                 }
                 if {$installable} {
+                    #puts "i'm being installed: $name"
                     lappend operationList [list $name $variants $active]
                     incr port_installed($name)
                     set index [lsearch $newList [list $name $variants $active]]
                     set newList [lreplace $newList $index $index]
                 }
             }
+
+            #puts "lengths: $oldLen [llength $newList]"
 
             if {[llength $newList] == $oldLen} {
                 return -code error "stuck in loop"
@@ -161,10 +197,10 @@ namespace eval migrate {
         return $operationList
     }
 
-    proc sort_portlist_by_dependendents { portlist } {
+    proc portlist_sortdependents { portlist } {
 
-        # Sorts a list of port references such that dependents appear before
-        # the ports they depend on.
+        # Sorts a list of port references such that dependents come before
+        # their dependencies.
         #
         # Args:
         #       portlist - the list of port references
@@ -173,33 +209,35 @@ namespace eval migrate {
         #       the list in dependency-sorted order
 
         foreach port $portlist {
-            set portname [$port name]
-            lappend ports_for_name($portname) $port
+            array set pvals $port
+            lappend entries($pvals(name)) $port
 
             # Avoid adding ports in loop
-            if {![info exists dependents($portname)]} {
-                set dependents($portname) {}
+            if {![info exists dependents($pvals(name))]} {
+                set dependents($pvals(name)) {}
                 foreach result [$port dependents] {
-                    lappend dependents($portname) [$result name]
+                    lappend dependents($pvals(name)) [$result name]
                 }
             }
+            array unset pvals
         }
         set ret {}
         foreach port $portlist {
-            sortdependents_helper $port ports_for_name dependents seen ret
+            portlist_sortdependents_helper $port entries dependents seen ret
         }
         return $ret
     }
 
-    proc sortdependents_helper {port up_ports_for_name up_dependents up_seen up_retlist} {
+    proc portlist_sortdependents_helper {port up_entries up_dependents up_seen up_retlist} {
         upvar 1 $up_seen seen
         if {![info exists seen($port)]} {
             set seen($port) 1
-            upvar 1 $up_ports_for_name ports_for_name $up_dependents dependents $up_retlist retlist
-            foreach dependent $dependents([$port name]) {
-                if {[info exists ports_for_name($dependent)]} {
-                    foreach entry $ports_for_name($dependent) {
-                        sortdependents_helper $entry ports_for_name dependents seen retlist
+            upvar 1 $up_entries entries $up_dependents dependents $up_retlist retlist
+            array set pvals $p
+            foreach dependent $dependents($pvals(name)) {
+                if {[info exists entries($dependent)]} {
+                    foreach entry $entries($dependent) {
+                        portlist_sortdependents_helper $entry entries dependents seen retlist
                     }
                 }
             }
@@ -209,7 +247,13 @@ namespace eval migrate {
 
     proc uninstall_installed { portlist } {
 
-        set portlist [sort_portlist_by_dependendents $portlist]
+        set portlist [portlist_sortdependents $portlist]
+
+        foreach port $portlist {
+            puts "[$port name] [$port state]"
+        }
+
+        return 0
 
         if {[info exists macports::ui_options(questions_yesno)]} {
 
