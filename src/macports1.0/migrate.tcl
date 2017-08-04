@@ -77,7 +77,7 @@ namespace eval migrate {
             #puts [lindex $port 0]
         }
 
-        uninstall_installed $portlist
+        #uninstall_installed $portlist
         return 0
         # sort_ports $portlist
         # recover_ports_state $portlist
@@ -114,7 +114,7 @@ namespace eval migrate {
         return $dependencyList
     }
 
-    proc sort_ports {portlist} {
+    proc portlist_sort_dependencies_first {portlist} {
 
         array set port_installed {}
         array set port_deps {}
@@ -128,7 +128,6 @@ namespace eval migrate {
             #puts $port
 
             set name [$port name]
-            set version [$port version]
             set variants [$port variants]
             set active 0
 
@@ -136,7 +135,7 @@ namespace eval migrate {
                 set active 1
             }
 
-            #puts "$name $version $variants $active"
+            #puts "$name $variants $active"
 
             if {![info exists port_in_list($name)]} {
                 set port_in_list($name) 1
@@ -197,7 +196,7 @@ namespace eval migrate {
         return $operationList
     }
 
-    proc portlist_sortdependents { portlist } {
+    proc portlist_sort_dependencies_later { portlist } {
 
         # Sorts a list of port references such that dependents come before
         # their dependencies.
@@ -223,12 +222,12 @@ namespace eval migrate {
         }
         set ret {}
         foreach port $portlist {
-            portlist_sortdependents_helper $port entries dependents seen ret
+            portlist_sort_dependencies_later_helper $port entries dependents seen ret
         }
         return $ret
     }
 
-    proc portlist_sortdependents_helper {port up_entries up_dependents up_seen up_retlist} {
+    proc portlist_sort_dependencies_later_helper {port up_entries up_dependents up_seen up_retlist} {
         upvar 1 $up_seen seen
         if {![info exists seen($port)]} {
             set seen($port) 1
@@ -237,7 +236,7 @@ namespace eval migrate {
             foreach dependent $dependents($pvals(name)) {
                 if {[info exists entries($dependent)]} {
                     foreach entry $entries($dependent) {
-                        portlist_sortdependents_helper $entry entries dependents seen retlist
+                        portlist_sort_dependencies_later_helper $entry entries dependents seen retlist
                     }
                 }
             }
@@ -247,7 +246,7 @@ namespace eval migrate {
 
     proc uninstall_installed { portlist } {
 
-        set portlist [portlist_sortdependents $portlist]
+        set portlist [portlist_sort_dependencies_later $portlist]
 
         foreach port $portlist {
             puts "[$port name] [$port state]"
@@ -281,8 +280,10 @@ namespace eval migrate {
     }
 
     proc recover_ports_state {portList} {
+
+        set sorted_portlist [portlist_sort_dependencies_first $portList]
         
-        foreach port $portList {
+        foreach port $sorted_portlist {
             
             set name [string trim [lindex $port 0]]
             set variations [lindex $port 1]
