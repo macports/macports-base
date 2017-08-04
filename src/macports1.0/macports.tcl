@@ -1787,6 +1787,17 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
     }
     ditem_key $mport provides $actual_subport
 
+    set epoch [$workername eval {set PortInfo(epoch)}]
+    if {![string is wideinteger -strict $epoch]} {
+        mportclose $mport
+        error "$actual_subport epoch is not numeric: $epoch"
+    }
+    set revision [$workername eval {set PortInfo(revision)}]
+    if {![string is wideinteger -strict $revision]} {
+        mportclose $mport
+        error "$actual_subport revision is not numeric: $revision"
+    }
+
     return $mport
 }
 
