@@ -79,7 +79,6 @@ namespace eval migrate {
 
         #uninstall_installed $portlist
         return 0
-        # sort_ports $portlist
         # recover_ports_state $portlist
 
 
@@ -93,9 +92,11 @@ namespace eval migrate {
 
     proc fetch_latest_snapshot {} {
 
+        return
+
     }
 
-    proc dependenciesForPort {portName variantInfo} {
+    proc port_dependencies {portName variantInfo} {
 
         set dependencyList [list]
         set portSearchResult [mportlookup $portName]
@@ -145,7 +146,7 @@ namespace eval migrate {
             }
 
             if {![info exists port_deps(${name},${variants})]} {
-                set port_deps(${name},${variants}) [dependenciesForPort $name $variants]
+                set port_deps(${name},${variants}) [port_dependencies $name $variants]
             }
 
             #puts "$port_deps(${name},$variants)"

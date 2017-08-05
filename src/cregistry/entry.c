@@ -1532,6 +1532,23 @@ int get_parsed_variants(char* variants_str, variant* all_variants, char* delim, 
     return 0;
 }
 
+char* reg_snapshot_get_id(reg_registry* reg, char* id, reg_error* errPtr) {
+
+    printf("inside cregistry get snapshot..\n");
+    sqlite3_stmt* stmt = NULL;
+    reg_entry* entry = NULL;
+    char* query = "SELECT id FROM registry.snapshots ORDER BY id DESC LIMIT 1";
+
+}
+
+snapshot* reg_snapshot_get(reg_registry* reg, char* id, reg_error* errPtr) {
+
+    printf("inside cregistry get snapshot..\n");
+    sqlite3_stmt* stmt = NULL;
+    reg_entry* entry = NULL;
+    char* query = "SELECT id FROM registry.snapshots ORDER BY id DESC LIMIT 1";
+}
+
 /**
  * Fetches a list of all open entries.
  *
