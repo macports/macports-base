@@ -477,13 +477,13 @@ static int entry_owner(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     }
 }
 
-static int snapshot_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int create_snapshot(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
 
     printf("inside 2.0 entry\n");
 
     reg_registry* reg = registry_for(interp, reg_attached);
     if (objc > 3) {
-        Tcl_WrongNumArgs(interp, 2, objv, "snapshot ?note?");
+        Tcl_WrongNumArgs(interp, 2, objv, "create_snapshot ?note?");
         return TCL_ERROR;
     } else if (reg == NULL) {
         return TCL_ERROR;
@@ -495,6 +495,31 @@ static int snapshot_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) 
         if (new_snaphot != NULL) {
             Tcl_Obj* result;
             if (entry_to_obj(interp, &result, new_snaphot, NULL, &error)) {
+                Tcl_SetObjResult(interp, result);
+                return TCL_OK;
+            }
+        }
+        return registry_failed(interp, &error);
+    }
+}
+
+static int get_snapshot(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+
+    printf("getting snapshot\n");
+
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc > 3) {
+        Tcl_WrongNumArgs(interp, 2, objv, "get_snapshot ?snapshot_id?");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        char* id = Tcl_GetString(objv[2]);
+        reg_error error;
+        snapshot* snapshot = reg_snapshot_get(reg, id, &error);
+        if (snapshot != NULL) {
+            Tcl_Obj* result;
+            if (entry_to_obj(interp, &result, snapshot, NULL, &error)) {
                 Tcl_SetObjResult(interp, result);
                 return TCL_OK;
             }
@@ -519,7 +544,8 @@ static entry_cmd_type entry_cmds[] = {
     { "imaged", entry_imaged },
     { "installed", entry_installed },
     { "owner", entry_owner },
-    { "snapshot", snapshot_create},
+    { "create_snapshot", create_snapshot},
+    { "get_snapshot", get_snapshot},
     { NULL, NULL }
 };
 

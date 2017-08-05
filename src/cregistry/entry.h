@@ -109,6 +109,9 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
 int get_parsed_variants(char* variants_str, variant* all_variants,
     char* delim, int* variant_count);
 
+char* reg_snapshot_get_id(reg_registry* reg, reg_error* errPtr);
+snapshot* reg_snapshot_get(reg_registry* reg, char* id, reg_error* errPtr);
+
 int reg_all_open_entries(reg_registry* reg, reg_entry*** entries);
 
 #endif /* _CENTRY_H */

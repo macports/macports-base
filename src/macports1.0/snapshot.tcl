@@ -42,10 +42,14 @@ namespace eval snapshot {
             puts $port
         }
         puts
-        set snapshot [registry::entry snapshot "test snapshot"]
+        set snapshot [registry::entry create_snapshot "test snapshot"]
 
-        return snapshot
-	}
+        puts $snapshot
+        puts [$snapshot name]
+        puts [$snapshot created_at]
+
+        return 0
+    }
 
     proc all_snapshots {opts} {
         # List the snapshots
@@ -55,6 +59,6 @@ namespace eval snapshot {
 
     proc latest_snapshot {opts} {
         # Get the latest snapshot
-        puts "latest"
+        return [registry::entry get_snapshot]
     }
 }
