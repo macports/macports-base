@@ -1569,12 +1569,54 @@ char* reg_snapshot_get_id(reg_registry* reg, char* id, reg_error* errPtr) {
 
 }
 
-snapshot* reg_snapshot_get(reg_registry* reg, char* id, reg_error* errPtr) {
+reg_snapshot* reg_snapshot_get(reg_registry* reg, char* id, reg_error* errPtr) {
 
     printf("inside cregistry get snapshot..\n");
+
     sqlite3_stmt* stmt = NULL;
     reg_entry* entry = NULL;
-    char* query = "SELECT id FROM registry.snapshots ORDER BY id DESC LIMIT 1";
+
+    char* query = "SELECT * FROM registry.snapshots "
+        "INNER JOIN "
+        "registry.snapshot_ports ON "
+        "snapshots.id=snapshot_ports.snapshots_id "
+        "LEFT JOIN "
+        "registry.snapshot_port_variants ON "
+        "snapshot_ports.id=snapshot_port_variants.snapshot_ports_id"
+        "WHERE snapshots.id=?";
+
+    if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+        && sqlite3_bind_int64(stmt, 1, sqlite_int64(id)) == SQLITE_OK ) {
+
+        int r;
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_ROW:
+                    reg_snapshot* snapshot;
+                    // TODO
+                    break;
+                case SQLITE_DONE:
+                    errPtr->code = REG_NOT_FOUND;
+                    errPtr->description = sqlite3_mprintf("no matching snapshot found for id = %s", id);
+                    errPtr->free = (reg_error_destructor*) sqlite3_free;
+                    break;
+                case SQLITE_BUSY:
+                    continue;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
+            }
+        } while (r == SQLITE_BUSY);
+
+    } else {
+        reg_sqlite_error(reg->db, errPtr, query);
+    }
+
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+    return snapshot;
 }
 
 /**
