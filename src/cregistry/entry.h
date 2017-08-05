@@ -47,6 +47,19 @@ typedef struct {
     char* variant_sign;
 } variant;
 
+typedef struct {
+    char* name;
+    int requested;
+    char* state;
+    variant* variants;
+} port;
+
+typedef struct {
+    char* id;
+    char* note;
+    port* ports;
+} reg_snapshot;
+
 reg_entry* reg_entry_create(reg_registry* reg, char* name, char* version,
         char* revision, char* variants, char* epoch, reg_error* errPtr);
 
