@@ -1569,12 +1569,41 @@ char* reg_snapshot_get_id(reg_registry* reg, reg_error* errPtr) {
 
 }
 
+static int reg_stmt_to_snapshot(void* userdata, void** entry, void* stmt,
+        void* calldata UNUSED, reg_error* errPtr UNUSED) {
+    int is_new;
+    reg_registry* reg = (reg_registry*)userdata;
+    Tcl_HashEntry* hash = Tcl_CreateHashEntry(&reg->open_entries,
+            (const char*)&id, &is_new);
+    if (is_new) {
+        reg_snapshot* e = malloc(sizeof(reg_snapshot));
+        if (!e) {
+            return 0;
+        }
+        e->reg = reg;
+        e->id = id;
+        e->proc = NULL;
+        *entry = e;
+        Tcl_SetHashValue(hash, e);
+    } else {
+        *entry = Tcl_GetHashValue(hash);
+    }
+    return 1;
+}
+
+static int reg_all_snapshots(reg_registry* reg, char* query, int query_len,
+        reg_snapshot*** objects, reg_error* errPtr) {
+    int lower_bound = 0;
+    return reg_all_objects(reg, query, query_len, (void***)objects,
+            reg_stmt_to_snapshot, &lower_bound, NULL, errPtr);
+}
+
 reg_snapshot* reg_snapshot_get(reg_registry* reg, char* id, reg_error* errPtr) {
 
     printf("inside cregistry get snapshot..\n");
 
     sqlite3_stmt* stmt = NULL;
-    reg_entry* entry = NULL;
+    reg_snapshot** snapshots;
 
     char* query = "SELECT port_name, requested, variant_name, variant_sign "
         "FROM registry.snapshots "
@@ -1586,38 +1615,11 @@ reg_snapshot* reg_snapshot_get(reg_registry* reg, char* id, reg_error* errPtr) {
         "snapshot_ports.id=snapshot_port_variants.snapshot_ports_id"
         "WHERE snapshots.id=?";
 
-    if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
-        && sqlite3_bind_int64(stmt, 1, (sqlite_int64)id == SQLITE_OK ) {
+    query = sqlite3_mprintf(query, id);
+    result = reg_all_snapshots(reg, query, -1, snapshots, errPtr);
+    sqlite3_free(query);
 
-        int r;
-        do {
-            r = sqlite3_step(stmt);
-            switch (r) {
-                case SQLITE_ROW:
-                    reg_snapshot* snapshot;
-                    // TODO
-                    break;
-                case SQLITE_DONE:
-                    errPtr->code = REG_NOT_FOUND;
-                    errPtr->description = sqlite3_mprintf("no matching snapshot found for id = %s", id);
-                    errPtr->free = (reg_error_destructor*) sqlite3_free;
-                    break;
-                case SQLITE_BUSY:
-                    continue;
-                default:
-                    reg_sqlite_error(reg->db, errPtr, query);
-                    break;
-            }
-        } while (r == SQLITE_BUSY);
-
-    } else {
-        reg_sqlite_error(reg->db, errPtr, query);
-    }
-
-    if (stmt) {
-        sqlite3_finalize(stmt);
-    }
-    return snapshot;
+    return result;
 }
 
 /**
