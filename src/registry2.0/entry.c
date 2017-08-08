@@ -516,11 +516,12 @@ static int get_snapshot(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     } else {
         char* id = Tcl_GetString(objv[2]);
         reg_error error;
-        snapshot* snapshot = reg_snapshot_get(reg, id, &error);
+        reg_snapshot* snapshot;
+        int port_count = reg_snapshot_get(reg, id, &snapshot, &error);
         if (snapshot != NULL) {
-            Tcl_Obj* result;
-            if (entry_to_obj(interp, &result, snapshot, NULL, &error)) {
-                Tcl_SetObjResult(interp, result);
+            Tcl_Obj* resultObj;
+            if (entry_to_obj(interp, &resultObj, snapshot, NULL, &error)) {
+                Tcl_SetObjResult(interp, resultObj);
                 return TCL_OK;
             }
         }

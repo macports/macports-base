@@ -1569,57 +1569,170 @@ char* reg_snapshot_get_id(reg_registry* reg, reg_error* errPtr) {
 
 }
 
-static int reg_stmt_to_snapshot(void* userdata, void** entry, void* stmt,
-        void* calldata UNUSED, reg_error* errPtr UNUSED) {
-    int is_new;
-    reg_registry* reg = (reg_registry*)userdata;
-    Tcl_HashEntry* hash = Tcl_CreateHashEntry(&reg->open_entries,
-            (const char*)&id, &is_new);
-    if (is_new) {
-        reg_snapshot* e = malloc(sizeof(reg_snapshot));
-        if (!e) {
-            return 0;
+int reg_snapshot_port_variants_get(reg_registry* reg, sqlite_int64 snapshot_port_id, variant** variants, reg_error* errPtr) {
+
+    printf("inside getting variants\n");
+    sqlite3_stmt* stmt = NULL;
+
+    char* query = "SELECT * FROM registry.snapshot_port_variants WHERE snapshot_ports_id=?";
+
+    if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+        && (sqlite3_bind_int64(stmt, 1, snapshot_port_id) == SQLITE_OK )) {
+
+        variant* result = malloc(10 * sizeof(variant));
+
+        if (!result) {
+            return -1;
         }
-        e->reg = reg;
-        e->id = id;
-        e->proc = NULL;
-        *entry = e;
-        Tcl_SetHashValue(hash, e);
+
+        int result_count = 0;
+        int result_space = 10;
+        int r;
+
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_ROW:
+
+                    char* variant_name = (const char*)sqlite3_column_text(stmt, 2);
+                    char* variant_sign = (const char*)sqlite3_column_text(stmt, 3);
+
+                    variant element = malloc(10 * sizeof(variant));
+
+                    if (!element) {
+                        return -1;
+                    }
+
+                    element->variant_name = variant_name;
+                    element->variant_sign = variant_sign;
+
+                    if (!reg_listcat((void***)&result, &result_count, &result_space, element)) {
+                        r = SQLITE_ERROR;
+                    }
+                    break;
+                case SQLITE_DONE:
+                case SQLITE_BUSY:
+                    continue;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
+        } while (r == SQLITE_ROW || r == SQLITE_BUSY);
+
+        sqlite3_finalize(stmt);
+        if (r == SQLITE_DONE) {
+            *variants = result;
+            return result_count;
+        } else {
+            int i;
+            for (i = 0; i < result_count; i++) {
+                free(result[i]);
+            }
+            free(result);
+            return -1;
+        }
+
     } else {
-        *entry = Tcl_GetHashValue(hash);
+        reg_sqlite_error(reg->db, errPtr, query);
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
+        return -1;
     }
-    return 1;
 }
 
-static int reg_all_snapshots(reg_registry* reg, char* query, int query_len,
-        reg_snapshot*** objects, reg_error* errPtr) {
-    int lower_bound = 0;
-    return reg_all_objects(reg, query, query_len, (void***)objects,
-            reg_stmt_to_snapshot, &lower_bound, NULL, errPtr);
-}
-
-reg_snapshot* reg_snapshot_get(reg_registry* reg, char* id, reg_error* errPtr) {
+int reg_snapshot_get(reg_registry* reg, char* id, reg_snapshot* snapshot, reg_error* errPtr) {
 
     printf("inside cregistry get snapshot..\n");
 
     sqlite3_stmt* stmt = NULL;
-    reg_snapshot** snapshots;
 
-    char* query = "SELECT port_name, requested, variant_name, variant_sign "
-        "FROM registry.snapshots "
-        "INNER JOIN "
-        "registry.snapshot_ports ON "
-        "snapshots.id=snapshot_ports.snapshots_id "
-        "LEFT JOIN "
-        "registry.snapshot_port_variants ON "
-        "snapshot_ports.id=snapshot_port_variants.snapshot_ports_id"
-        "WHERE snapshots.id=?";
+    char* query = "SELECT * FROM registry.snapshot_ports WHERE snapshots_id=?";
 
-    query = sqlite3_mprintf(query, id);
-    result = reg_all_snapshots(reg, query, -1, snapshots, errPtr);
-    sqlite3_free(query);
+    const char* port_name;
+    const char* state;
 
-    return result;
+    if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+        && (sqlite3_bind_int64(stmt, 1, (sqlite_int64)id) == SQLITE_OK )) {
+
+        port** result = malloc(10 * sizeof(port*));
+
+        if (!result) {
+            return -1;
+        }
+
+        int result_count = 0;
+        int result_space = 10;
+        int r;
+
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_ROW:
+
+                    sqlite_int64 snapshot_port_id = sqlite3_column_int64(stmt, 0);
+                    port_name = (const char*) sqlite3_column_text(stmt, 2);
+                    int requested = (int) sqlite3_column_int64(stmt, 3);
+                    state = (const char*) sqlite3_column_text(stmt, 4);
+
+                    port* current_port;
+                    current_port = (port*) malloc(sizeof(port*));
+                    if (!current_port) {
+                        return -1;
+                    }
+                    current_port->name = port_name;
+                    current_port->requested = requested;
+                    current_port->state = state;
+                    current_port->variants = NULL;
+
+                    // get variants for the current port using its id
+                    variant* variants;
+                    int variant_count = reg_snapshot_port_variants_get(reg, snapshot_port_id, &variants, errPtr);
+                    if (!variants) {
+                        return -1;
+                    }
+
+                    if (variant_count > 0) {
+                        current_port->variants = variants;
+                    }
+
+                    if (!reg_listcat((void***)&result, &result_count, &result_space, current_port)) {
+                            r = SQLITE_ERROR;
+                    }
+                    break;
+                case SQLITE_DONE:
+                    break;
+                case SQLITE_BUSY:
+                    continue;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
+            }
+        } while (r == SQLITE_ROW || r == SQLITE_BUSY);
+
+        sqlite3_finalize(stmt);
+
+        if (r == SQLITE_DONE) {
+
+            (*snapshot)->id = NULL;
+            (*snapshot)->note = NULL;
+            (*snapshot)->ports = result;
+
+            return result_count;
+
+        } else {
+            int i;
+            for (i=0; i<result_count; i++) {
+                free(result[i]);
+            }
+            free(result);
+            return -1;
+        }
+    } else {
+        reg_sqlite_error(reg->db, errPtr, query);
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
+    }
 }
 
 /**
