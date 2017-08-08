@@ -1532,7 +1532,7 @@ int get_parsed_variants(char* variants_str, variant* all_variants, char* delim, 
     return 0;
 }
 
-char* reg_snapshot_get_id(reg_registry* reg, char* id, reg_error* errPtr) {
+char* reg_snapshot_get_id(reg_registry* reg, reg_error* errPtr) {
 
     printf("inside cregistry get snapshot..\n");
     sqlite3_stmt* stmt = NULL;
@@ -1548,7 +1548,8 @@ reg_snapshot* reg_snapshot_get(reg_registry* reg, char* id, reg_error* errPtr) {
     sqlite3_stmt* stmt = NULL;
     reg_entry* entry = NULL;
 
-    char* query = "SELECT * FROM registry.snapshots "
+    char* query = "SELECT port_name, requested, variant_name, variant_sign "
+        "FROM registry.snapshots "
         "INNER JOIN "
         "registry.snapshot_ports ON "
         "snapshots.id=snapshot_ports.snapshots_id "
@@ -1558,7 +1559,7 @@ reg_snapshot* reg_snapshot_get(reg_registry* reg, char* id, reg_error* errPtr) {
         "WHERE snapshots.id=?";
 
     if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
-        && sqlite3_bind_int64(stmt, 1, sqlite_int64(id)) == SQLITE_OK ) {
+        && sqlite3_bind_int64(stmt, 1, (sqlite_int64)id == SQLITE_OK ) {
 
         int r;
         do {
