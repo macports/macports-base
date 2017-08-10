@@ -58,6 +58,8 @@ int set_object(Tcl_Interp* interp, char* name, void* value, char* type,
         Tcl_ObjCmdProc* proc, Tcl_CmdDeleteProc* deleteProc, reg_error* errPtr);
 int set_entry(Tcl_Interp* interp, char* name, reg_entry* entry,
         reg_error* errPtr);
+int set_snapshot(Tcl_Interp* interp, char* name, reg_snapshot* snapshot,
+        reg_error* errPtr);
 int set_file(Tcl_Interp* interp, char* name, reg_file* file,
         reg_error* errPtr);
 int set_portgroup(Tcl_Interp* interp, char* name, reg_portgroup* portgroup,
@@ -75,6 +77,10 @@ int entry_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_entry* entry,
         int* lower_bound, reg_error* errPtr);
 int list_entry_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
         reg_entry** entries, int entry_count, reg_error* errPtr);
+int snapshot_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_snapshot* snapshot,
+        int* lower_bound, reg_error* errPtr);
+int list_snapshot_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
+        reg_snapshot** snapshots, int snapshot_count, reg_error* errPtr);
 int file_to_obj(Tcl_Interp* interp, Tcl_Obj** ibj, reg_file* file,
         int* lower_bound, reg_error* errPtr);
 int list_file_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
