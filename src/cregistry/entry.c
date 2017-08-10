@@ -1713,9 +1713,17 @@ int reg_snapshot_get(reg_registry* reg, char* id, reg_snapshot* snapshot, reg_er
 
         if (r == SQLITE_DONE) {
 
-            (*snapshot)->id = NULL;
-            (*snapshot)->note = NULL;
-            (*snapshot)->ports = result;
+            reg_snapshot* s = malloc(sizeof(reg_snapshot*));
+
+            if (!s) {
+                return -1;
+            }
+
+            s->id = NULL;
+            s->note = NULL;
+            s->proc = NULL;
+            s->ports = result;
+            *snapshot = s;
 
             return result_count;
 

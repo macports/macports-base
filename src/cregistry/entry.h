@@ -58,6 +58,7 @@ typedef struct {
     char* id;
     char* note;
     port* ports;
+    char* proc; /* name of Tcl proc, if using Tcl */
 } reg_snapshot;
 
 reg_entry* reg_entry_create(reg_registry* reg, char* name, char* version,

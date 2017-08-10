@@ -518,7 +518,7 @@ static int get_snapshot(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
         reg_error error;
         reg_snapshot* snapshot;
         int port_count = reg_snapshot_get(reg, id, &snapshot, &error);
-        if (snapshot != NULL) {
+        if (snapshot != NULL && port_count >= 0) {
             Tcl_Obj* resultObj;
             if (entry_to_obj(interp, &resultObj, snapshot, NULL, &error)) {
                 Tcl_SetObjResult(interp, resultObj);
