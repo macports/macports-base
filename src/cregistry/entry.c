@@ -1589,15 +1589,18 @@ int reg_snapshot_port_variants_get(reg_registry* reg, sqlite_int64 snapshot_port
         int result_space = 10;
         int r;
 
+        const char* variant_name;
+        const char* variant_sign;
+
         do {
             r = sqlite3_step(stmt);
             switch (r) {
                 case SQLITE_ROW:
 
-                    char* variant_name = (const char*)sqlite3_column_text(stmt, 2);
-                    char* variant_sign = (const char*)sqlite3_column_text(stmt, 3);
+                    variant_name = sqlite3_column_text(stmt, 2);
+                    variant_sign = sqlite3_column_text(stmt, 3);
 
-                    variant element = malloc(10 * sizeof(variant));
+                    variant* element = malloc(10 * sizeof(variant));
 
                     if (!element) {
                         return -1;
@@ -1616,6 +1619,7 @@ int reg_snapshot_port_variants_get(reg_registry* reg, sqlite_int64 snapshot_port
                 default:
                     reg_sqlite_error(reg->db, errPtr, query);
                     break;
+            }
         } while (r == SQLITE_ROW || r == SQLITE_BUSY);
 
         sqlite3_finalize(stmt);
@@ -1625,7 +1629,8 @@ int reg_snapshot_port_variants_get(reg_registry* reg, sqlite_int64 snapshot_port
         } else {
             int i;
             for (i = 0; i < result_count; i++) {
-                free(result[i]);
+                free(result[i].variant_name);
+                free(result[i].variant_sign);
             }
             free(result);
             return -1;
@@ -1664,14 +1669,17 @@ int reg_snapshot_get(reg_registry* reg, char* id, reg_snapshot* snapshot, reg_er
         int result_space = 10;
         int r;
 
+        sqlite_int64 snapshot_port_id;
+        int requested;
+
         do {
             r = sqlite3_step(stmt);
             switch (r) {
                 case SQLITE_ROW:
 
-                    sqlite_int64 snapshot_port_id = sqlite3_column_int64(stmt, 0);
+                    snapshot_port_id = sqlite3_column_int64(stmt, 0);
                     port_name = (const char*) sqlite3_column_text(stmt, 2);
-                    int requested = (int) sqlite3_column_int64(stmt, 3);
+                    requested = (int) sqlite3_column_int64(stmt, 3);
                     state = (const char*) sqlite3_column_text(stmt, 4);
 
                     port* current_port;
@@ -1723,7 +1731,7 @@ int reg_snapshot_get(reg_registry* reg, char* id, reg_snapshot* snapshot, reg_er
             s->note = NULL;
             s->proc = NULL;
             s->ports = result;
-            *snapshot = s;
+            *snapshot = *s;
 
             return result_count;
 
