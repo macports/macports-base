@@ -333,7 +333,7 @@ int snapshot_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_snapshot* snapshot,
         if (!name) {
             return 0;
         }
-        if (!set_snapshot(interp, name, entry, errPtr)) {
+        if (!set_snapshot(interp, name, snapshot, errPtr)) {
             free(name);
             return 0;
         }
