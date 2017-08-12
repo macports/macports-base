@@ -42,25 +42,6 @@ typedef struct {
     char* proc; /* name of Tcl proc, if using Tcl */
 } reg_entry;
 
-typedef struct {
-    char* variant_name;
-    char* variant_sign;
-} variant;
-
-typedef struct {
-    char* name;
-    int requested;
-    char* state;
-    variant* variants;
-} port;
-
-typedef struct {
-    char* id;
-    char* note;
-    port* ports;
-    char* proc; /* name of Tcl proc, if using Tcl */
-} reg_snapshot;
-
 reg_entry* reg_entry_create(reg_registry* reg, char* name, char* version,
         char* revision, char* variants, char* epoch, reg_error* errPtr);
 
@@ -112,22 +93,6 @@ int reg_entry_dependents(reg_entry* entry, reg_entry*** dependents,
 int reg_entry_dependencies(reg_entry* entry, reg_entry*** dependencies,
         reg_error* errPtr);
 int reg_entry_depends(reg_entry* entry, char* name, reg_error* errPtr);
-
-reg_entry* reg_snapshot_create(reg_registry* reg, char* note,
-        reg_error* errPtr);
-int snapshot_store_ports(reg_registry* reg, reg_entry* entry,
-        reg_error* errPtr);
-int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
-        int snapshot_ports_id, reg_error* errPtr);
-
-int get_parsed_variants(char* variants_str, variant* all_variants,
-    char* delim, int* variant_count);
-
-char* reg_snapshot_get_id(reg_registry* reg, reg_error* errPtr);
-int reg_snapshot_port_variants_get(reg_registry* reg,
-        sqlite_int64 snapshot_port_id, variant** variants, reg_error* errPtr);
-int reg_snapshot_get(reg_registry* reg, char* id,
-        reg_snapshot* snapshot, reg_error* errPtr);
 
 int reg_all_open_entries(reg_registry* reg, reg_entry*** entries);
 
