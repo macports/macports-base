@@ -199,15 +199,16 @@ proc portlint::lint_main {args} {
 
         if {($lineno == $topline_number)} {
             if {$line eq "# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4"} {
-                ui_info "OK: Line $lineno has standard modeline"
+                ui_info "OK: Line $lineno has the standard MacPort's modeline"
+            } elseif {[string match "#\* -\*- coding:*" $line]} {
+                ui_info "OK: Line $lineno has a modeline"
             } else {
-                ui_warn "Line $lineno should have the standard MacPort's modeline"
-                incr warnings
+                ui_info "OK: Line $lineno does not have a modeline; consider adding a modeline, preferability the standard MacPort's modeline"
             }
         } else {
             # Find any modelines not on top line
             if {[string match "#\* -\*- coding:*" $line]} {
-                ui_warn "Line $lineno appears to have a modeline; only top line should have the standard MacPort's modeline"
+                ui_warn "Line $lineno appears to have a modeline; only the first line should have a modeline"
                 incr warnings
             }
         }
