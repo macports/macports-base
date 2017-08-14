@@ -39,6 +39,7 @@
 #include <cregistry/registry.h>
 #include <cregistry/portgroup.h>
 #include <cregistry/entry.h>
+#include <cregistry/snapshot.h>
 #include <cregistry/file.h>
 
 #include "entry.h"
@@ -46,6 +47,7 @@
 #include "file.h"
 #include "graph.h"
 #include "item.h"
+#include "snapshot.h"
 #include "portgroup.h"
 #include "registry.h"
 #include "util.h"

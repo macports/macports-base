@@ -2,7 +2,7 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
-OBJS = registry.o entry.o sql.o vercomp.o util.o file.o portgroup.o
+OBJS = registry.o entry.o sql.o vercomp.o util.o file.o portgroup.o snapshot.o
 STLIB_NAME = cregistry.a
 RANLIB = ranlib
 

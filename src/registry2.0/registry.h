@@ -35,6 +35,7 @@
 #include <sqlite3.h>
 #include <cregistry/portgroup.h>
 #include <cregistry/entry.h>
+#include <cregistry/snapshot.h>
 
 typedef struct _entry_list {
     reg_entry* entry;

@@ -467,58 +467,6 @@ static int entry_owner(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     }
 }
 
-static int create_snapshot(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
-
-    printf("inside 2.0 entry\n");
-
-    reg_registry* reg = registry_for(interp, reg_attached);
-    if (objc > 3) {
-        Tcl_WrongNumArgs(interp, 2, objv, "create_snapshot ?note?");
-        return TCL_ERROR;
-    } else if (reg == NULL) {
-        return TCL_ERROR;
-    } else {
-        char* note = Tcl_GetString(objv[2]);
-        reg_error error;
-        /* may be a new datatype for snapshot */
-        reg_entry* new_snaphot = reg_snapshot_create(reg, note, &error);
-        if (new_snaphot != NULL) {
-            Tcl_Obj* result;
-            if (entry_to_obj(interp, &result, new_snaphot, NULL, &error)) {
-                Tcl_SetObjResult(interp, result);
-                return TCL_OK;
-            }
-        }
-        return registry_failed(interp, &error);
-    }
-}
-
-static int get_snapshot(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
-
-    printf("getting snapshot\n");
-
-    reg_registry* reg = registry_for(interp, reg_attached);
-    if (objc > 3) {
-        Tcl_WrongNumArgs(interp, 2, objv, "get_snapshot ?snapshot_id?");
-        return TCL_ERROR;
-    } else if (reg == NULL) {
-        return TCL_ERROR;
-    } else {
-        char* id = Tcl_GetString(objv[2]);
-        reg_error error;
-        reg_snapshot* snapshot;
-        int port_count = reg_snapshot_get(reg, id, &snapshot, &error);
-        if (snapshot != NULL && port_count >= 0) {
-            Tcl_Obj* resultObj;
-            if (entry_to_obj(interp, &resultObj, snapshot, NULL, &error)) {
-                Tcl_SetObjResult(interp, resultObj);
-                return TCL_OK;
-            }
-        }
-        return registry_failed(interp, &error);
-    }
-}
-
 typedef struct {
     char* name;
     int (*function)(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
@@ -535,8 +483,6 @@ static entry_cmd_type entry_cmds[] = {
     { "imaged", entry_imaged },
     { "installed", entry_installed },
     { "owner", entry_owner },
-    { "create_snapshot", create_snapshot},
-    { "get_snapshot", get_snapshot},
     { NULL, NULL }
 };
 
