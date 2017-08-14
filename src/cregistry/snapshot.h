@@ -42,7 +42,7 @@ typedef struct {
 } variant;
 
 typedef struct {
-    char* name;g
+    char* name;
     int requested;
     char* state;
     variant* variants;

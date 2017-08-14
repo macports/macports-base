@@ -36,6 +36,7 @@
 
 #include "util.h"
 #include "entryobj.h"
+#include "snapshotobj.h"
 #include "fileobj.h"
 #include "portgroupobj.h"
 
