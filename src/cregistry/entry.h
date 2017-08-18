@@ -33,6 +33,7 @@
 #endif
 
 #include "registry.h"
+#include "portgroup.h"
 
 #include <sqlite3.h>
 

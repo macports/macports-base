@@ -81,10 +81,10 @@ static int create_snapshot(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) 
         char* note = Tcl_GetString(objv[2]);
         reg_error error;
         /* may be a new datatype for snapshot */
-        reg_entry* new_snaphot = reg_snapshot_create(reg, note, &error);
+        reg_snapshot* new_snaphot = reg_snapshot_create(reg, note, &error);
         if (new_snaphot != NULL) {
             Tcl_Obj* result;
-            if (entry_to_obj(interp, &result, new_snaphot, NULL, &error)) {
+            if (snapshot_to_obj(interp, &result, new_snaphot, NULL, &error)) {
                 Tcl_SetObjResult(interp, result);
                 return TCL_OK;
             }
@@ -93,24 +93,24 @@ static int create_snapshot(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) 
     }
 }
 
-static int get_snapshot(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int get_snapshot_by_id(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
 
     printf("getting snapshot\n");
 
     reg_registry* reg = registry_for(interp, reg_attached);
     if (objc > 3) {
-        Tcl_WrongNumArgs(interp, 2, objv, "get_snapshot ?snapshot_id?");
+        Tcl_WrongNumArgs(interp, 2, objv, "get_by_id ?snapshot_id?");
         return TCL_ERROR;
     } else if (reg == NULL) {
         return TCL_ERROR;
     } else {
-        char* id = Tcl_GetString(objv[2]);
+        sqlite_int64 id = atoll(Tcl_GetString(objv[2]));
         reg_error error;
-        reg_snapshot* snapshot;
-        int port_count = reg_snapshot_get(reg, id, &snapshot, &error);
+        reg_snapshot* snapshot = NULL;
+        int port_count = reg_snapshot_get(reg, id, snapshot, &error);
         if (snapshot != NULL && port_count >= 0) {
             Tcl_Obj* resultObj;
-            if (entry_to_obj(interp, &resultObj, snapshot, NULL, &error)) {
+            if (snapshot_to_obj(interp, &resultObj, snapshot, NULL, &error)) {
                 Tcl_SetObjResult(interp, resultObj);
                 return TCL_OK;
             }
@@ -127,7 +127,7 @@ typedef struct {
 static snapshot_cmd_type snapshot_cmds[] = {
     /* Global commands */
     { "create", create_snapshot},
-    { "get", get_snapshot},
+    { "get_by_id", get_snapshot_by_id},
     { NULL, NULL }
 };
 
