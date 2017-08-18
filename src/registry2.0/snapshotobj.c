@@ -45,7 +45,7 @@ const char* snapshot_props[] = {
     NULL
 };
 
-/* ${snapshot} prop ?value? */
+/* ${snapshot} prop */
 static int snapshot_obj_prop(Tcl_Interp* interp, reg_snapshot* snapshot, int objc,
         Tcl_Obj* CONST objv[]) {
     int index;
@@ -73,18 +73,42 @@ static int snapshot_obj_prop(Tcl_Interp* interp, reg_snapshot* snapshot, int obj
             return registry_failed(interp, &error);
         }
         return TCL_ERROR;
-    } else {
-        /* ${snapshot} prop name value; set a new value */
+    }
+}
+
+/* ${snapshot} ports */
+static int snapshot_obj_ports(Tcl_Interp* interp, reg_snapshot* snapshot, int objc,
+        Tcl_Obj* CONST objv[]) {
+    int index;
+    if (objc > 3) {
+        Tcl_WrongNumArgs(interp, 2, objv, "?value?");
+        return TCL_ERROR;
+    }
+    if (objc == 2) {
+        /* ${snapshot} prop; return the current value */
         reg_registry* reg = registry_for(interp, reg_attached);
         if (reg == NULL) {
             return TCL_ERROR;
         }
         if (Tcl_GetIndexFromObj(interp, objv[1], snapshot_props, "prop", 0, &index)
                 == TCL_OK) {
-            char* key = Tcl_GetString(objv[1]);
-            char* value = Tcl_GetString(objv[2]);
+            port** ports;
             reg_error error;
-            if (reg_snapshot_propset(snapshot, key, value, &error)) {
+            if (reg_snapshot_ports_get(snapshot, &ports, &error)) {
+
+                // TODO: correct the below for 'ports', added as a prototype for now
+                // Tcl_Obj** objs;
+                // int retval = TCL_ERROR;
+                // if (list_entry_to_obj(interp, &objs, entries, entry_count, &error)){
+                //     Tcl_Obj* result = Tcl_NewListObj(entry_count, objs);
+                //     Tcl_SetObjResult(interp, result);
+                //     free(objs);
+                //     retval = TCL_OK;
+                // } else {
+                //     retval = registry_failed(interp, &error);
+                // }
+
+                free(ports);
                 return TCL_OK;
             }
             return registry_failed(interp, &error);
