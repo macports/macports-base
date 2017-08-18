@@ -18,30 +18,16 @@ namespace eval snapshot {
         # Args:
         #           opts - The options passed in. Currently, there is no option available.
         # Returns:
-        #           registry entry
+        #           registry::snapshot
         #
         # TODO:
         # use registry::write wrapper here itself
         # make it return some value
 
+        puts "here 1-1"
+
         puts "Still being developed"
-        #registry::entry addsnapshot
-        foreach port [registry::entry imaged] {
-            puts [$port name]
-        }
-        puts
-        set ilist [registry::installed]
 
-        # set vimlist [registry::installed vim]
-
-        # foreach port $vimlist {
-        #     puts $port
-        # }
-
-        foreach port $ilist {
-            puts $port
-        }
-        puts
         set snapshot [registry::snapshot create "test snapshot"]
 
         return $snapshot

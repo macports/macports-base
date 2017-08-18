@@ -38,9 +38,12 @@ namespace eval migrate {
         #     set snapshot [fetch_latest_snapshot]
         # }
 
+        puts "here 1"
 
         # create a snapshot
-        set snapshot snapshot::main
+        set snapshot [snapshot::main $opts]
+        puts $snapshot
+        puts "here 2"
         return 0
 
         # fetch ports and variants for this snapshot

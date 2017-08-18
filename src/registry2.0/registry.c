@@ -391,6 +391,7 @@ int Registry_Init(Tcl_Interp* interp) {
     /* Tcl_CreateObjCommand(interp, "registry::graph", GraphCmd, NULL, NULL); */
     /* Tcl_CreateObjCommand(interp, "registry::item", item_cmd, NULL, NULL); */
     Tcl_CreateObjCommand(interp, "registry::entry", entry_cmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "registry::snapshot", snapshot_cmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "registry::file", file_cmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "registry::portgroup", portgroup_cmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "registry::metadata", metadata_cmd, NULL, NULL);
