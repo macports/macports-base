@@ -92,7 +92,6 @@ reg_snapshot* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errP
 
                         printf("snapshot id: %lld\n", snapshot->id);
 
-                        // TODO: move this functions to a different file
                         int ports_saved = snapshot_store_ports(reg, snapshot, errPtr);
 
                         switch (ports_saved) {
@@ -170,7 +169,6 @@ int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot, reg_error* e
 
                                     printf("port id: %lld, ", entry->id);
 
-                                    // TODO: move this function to a different file
                                     int port_variants_saved = snapshot_store_port_variants(
                                         reg, entries[i], entry->id, errPtr);
 
