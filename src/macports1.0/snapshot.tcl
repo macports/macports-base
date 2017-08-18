@@ -42,13 +42,9 @@ namespace eval snapshot {
             puts $port
         }
         puts
-        set snapshot [registry::entry create_snapshot "test snapshot"]
+        set snapshot [registry::snapshot create "test snapshot"]
 
-        puts $snapshot
-        puts [$snapshot name]
-        puts [$snapshot created_at]
-
-        return 0
+        return $snapshot
     }
 
     proc all_snapshots {opts} {

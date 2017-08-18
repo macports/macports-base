@@ -30,6 +30,7 @@
 #include <config.h>
 #endif
 
+#include "entry.h"
 #include "snapshot.h"
 #include "registry.h"
 #include "sql.h"
@@ -67,12 +68,12 @@ int get_parsed_variants(char* variants_str, variant* all_variants, char* delim, 
     return 0;
 }
 
-reg_entry* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errPtr) {
+reg_snapshot* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errPtr) {
 
     printf("inside cregsitry sn cr\n");
 
     sqlite3_stmt* stmt = NULL;
-    reg_entry* entry = NULL;
+    reg_snapshot* snapshot = NULL;
     char* query = "INSERT INTO registry.snapshots (note) VALUES (?)";
 
     if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
@@ -83,16 +84,16 @@ reg_entry* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errPtr)
             r = sqlite3_step(stmt);
             switch (r) {
                 case SQLITE_DONE:
-                    entry = malloc(sizeof(reg_entry));
-                    if (entry) {
-                        entry->id = sqlite3_last_insert_rowid(reg->db);
-                        entry->reg = reg;
-                        entry->proc = NULL;
+                    snapshot = malloc(sizeof(reg_snapshot));
+                    if (snapshot) {
+                        snapshot->id = sqlite3_last_insert_rowid(reg->db);
+                        snapshot->reg = reg;
+                        snapshot->proc = NULL;
 
-                        printf("snapshot id: %lld\n", entry->id);
+                        printf("snapshot id: %lld\n", snapshot->id);
 
                         // TODO: move this functions to a different file
-                        int ports_saved = snapshot_store_ports(reg, entry, errPtr);
+                        int ports_saved = snapshot_store_ports(reg, snapshot, errPtr);
 
                         switch (ports_saved) {
                             case 1:
@@ -119,10 +120,10 @@ reg_entry* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errPtr)
         sqlite3_finalize(stmt);
     }
     printf("done with the snapshot\n");
-    return entry;
+    return snapshot;
 }
 
-int snapshot_store_ports(reg_registry* reg, reg_entry* snap_entry, reg_error* errPtr){
+int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot, reg_error* errPtr){
     reg_entry** entries;
     reg_error error;
     int i, entry_count;
@@ -151,7 +152,7 @@ int snapshot_store_ports(reg_registry* reg, reg_entry* snap_entry, reg_error* er
                     "VALUES (?, ?, ?, ?)";
 
                 if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
-                        && (sqlitse3_bind_int64(stmt, 1, snap_entry->id) == SQLITE_OK)
+                        && (sqlite3_bind_int64(stmt, 1, snapshot->id) == SQLITE_OK)
                         && (sqlite3_bind_text(stmt, 2, port_name, -1, SQLITE_STATIC) == SQLITE_OK)
                         && (sqlite3_bind_int64(stmt, 3, atoi(requested)) == SQLITE_OK)
                         && (sqlite3_bind_text(stmt, 4, state, -1, SQLITE_STATIC) == SQLITE_OK)) {
@@ -286,13 +287,14 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
 
 char* reg_snapshot_get_id(reg_registry* reg, reg_error* errPtr) {
 
-    printf("inside cregistry get snapshot..\n");
-    sqlite3_stmt* stmt = NULL;
-    reg_entry* entry = NULL;
+    //printf("inside cregistry get snapshot..\n");
+    //sqlite3_stmt* stmt = NULL;
+    //reg_entry* entry = NULL;
     char* query = "SELECT id FROM registry.snapshots ORDER BY id DESC LIMIT 1";
+    return query;
 }
 
-int reg_snapshot_get(reg_registry* reg, char* id, reg_snapshot* snapshot, reg_error* errPtr) {
+int reg_snapshot_get(reg_registry* reg, sqlite_int64 id, reg_snapshot* snapshot, reg_error* errPtr) {
 
     printf("inside cregistry get snapshot..\n");
 
@@ -304,7 +306,7 @@ int reg_snapshot_get(reg_registry* reg, char* id, reg_snapshot* snapshot, reg_er
     const char* state;
 
     if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
-        && (sqlite3_bind_int64(stmt, 1, (sqlite_int64)id) == SQLITE_OK )) {
+        && (sqlite3_bind_int64(stmt, 1, id) == SQLITE_OK )) {
 
         port** result = malloc(10 * sizeof(port*));
 
@@ -377,7 +379,7 @@ int reg_snapshot_get(reg_registry* reg, char* id, reg_snapshot* snapshot, reg_er
             s->id = NULL;
             s->note = NULL;
             s->proc = NULL;
-            s->ports = result;
+            s->ports = *result;
             *snapshot = *s;
 
             return result_count;

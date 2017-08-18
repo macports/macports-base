@@ -40,7 +40,8 @@ namespace eval migrate {
 
 
         # create a snapshot
-        # set snapshot snapshot::main
+        set snapshot snapshot::main
+        return 0
 
         # fetch ports and variants for this snapshot
 

@@ -33,6 +33,7 @@
 #endif
 
 #include "registry.h"
+#include "entry.h"
 
 #include <sqlite3.h>
 
@@ -49,7 +50,7 @@ typedef struct {
 } port;
 
 typedef struct {
-    char* id;
+    sqlite_int64 id; /* rowid in database */
     char* note;
     port* ports;
     reg_registry* reg; /* associated registry */
@@ -59,15 +60,15 @@ typedef struct {
 int get_parsed_variants(char* variants_str, variant* all_variants,
     char* delim, int* variant_count);
 
-reg_entry* reg_snapshot_create(reg_registry* reg, char* note,
+reg_snapshot* reg_snapshot_create(reg_registry* reg, char* note,
         reg_error* errPtr);
 char* reg_snapshot_get_id(reg_registry* reg, reg_error* errPtr);
-int reg_snapshot_get(reg_registry* reg, char* id,
+int reg_snapshot_get(reg_registry* reg, sqlite_int64 id,
         reg_snapshot* snapshot, reg_error* errPtr);
 int reg_snapshot_port_variants_get(reg_registry* reg,
         sqlite_int64 snapshot_port_id, variant** variants, reg_error* errPtr);
 
-int snapshot_store_ports(reg_registry* reg, reg_entry* entry,
+int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot,
         reg_error* errPtr);
 int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
         int snapshot_ports_id, reg_error* errPtr);
