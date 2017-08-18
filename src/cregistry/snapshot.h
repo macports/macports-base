@@ -73,4 +73,9 @@ int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot,
 int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
         int snapshot_ports_id, reg_error* errPtr);
 
+int reg_snapshot_propget(reg_snapshot* snapshot, char* key, char** value,
+        reg_error* errPtr);
+int reg_snapshot_ports_get(reg_snapshot* snapshot, port** ports,
+        reg_error* errPtr);
+
 #endif /* _CSNAPSHOT_H */

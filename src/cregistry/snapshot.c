@@ -475,3 +475,84 @@ int reg_snapshot_port_variants_get(reg_registry* reg, sqlite_int64 snapshot_port
         return -1;
     }
 }
+
+/**
+ * Gets a named property of a snapshot. The property named must be one
+ * that exists in the table and must not be one with internal meaning
+ * such as `id` or `state`.
+ *
+ * @param [in] snapshot   snapshot to get property from
+ * @param [in] key        property to get
+ * @param [out] value     the value of the property
+ * @param [out] errPtr    on error, a description of the error that occurred
+ * @return                true if success; false if failure
+ */
+int reg_snapshot_propget(reg_snapshot* snapshot, char* key, char** value,
+        reg_error* errPtr) {
+    reg_registry* reg = snapshot->reg;
+    int result = 0;
+    sqlite3_stmt* stmt = NULL;
+    char* query;
+    const char *text;
+    query = sqlite3_mprintf("SELECT %q FROM registry.snapshots WHERE id=%lld", key,
+            snapshot->id);
+    if (sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
+        int r;
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_ROW:
+                    text = (const char*)sqlite3_column_text(stmt, 0);
+                    if (text) {
+                        *value = strdup(text);
+                        result = 1;
+                    } else {
+                        reg_sqlite_error(reg->db, errPtr, query);
+                    }
+                    break;
+                case SQLITE_DONE:
+                    errPtr->code = REG_INVALID;
+                    errPtr->description = "an invalid snapshot was passed";
+                    errPtr->free = NULL;
+                    break;
+                case SQLITE_BUSY:
+                    continue;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
+            }
+        } while (r == SQLITE_BUSY);
+    } else {
+        reg_sqlite_error(reg->db, errPtr, query);
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+    sqlite3_free(query);
+    return result;
+}
+
+/**
+ * Gets all the 'ports' of a snapshot. The property named must be one
+ * that exists in the table and must not be one with internal meaning
+ * such as `id` or `state`.
+ *
+ * A 'port' here is a row in registry.snapshot_ports table and its
+ * corresponding variants in registry.snapshot_port_variants table
+ *
+ * @param [in] snapshot   snapshot to get property from
+ * @param [in] key        property to get
+ * @param [out] value     the value of the property
+ * @param [out] errPtr    on error, a description of the error that occurred
+ * @return                true if success; false if failure
+ */
+int reg_snapshot_ports_get(reg_snapshot* snapshot, port** ports,
+        reg_error* errPtr) {
+    reg_registry* reg = snapshot->reg;
+    int result = 0;
+    sqlite3_stmt* stmt = NULL;
+    char* query;
+    const char *text;
+    // TODO: get ports and their variants using snapshot->id as Fk
+    return result;
+}
