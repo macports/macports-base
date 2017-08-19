@@ -43,6 +43,9 @@ namespace eval migrate {
         # create a snapshot
         set snapshot [snapshot::main $opts]
         puts $snapshot
+        puts [$snapshot note]
+        puts [$snapshot created_at]
+        puts [$snapshot ports]
         puts "here 2"
         return 0
 
@@ -94,10 +97,9 @@ namespace eval migrate {
 
     }
 
-    proc fetch_latest_snapshot {} {
+    proc fetch_snapshot_details {snapshot} {
 
         return
-
     }
 
     proc port_dependencies {portName variantInfo} {

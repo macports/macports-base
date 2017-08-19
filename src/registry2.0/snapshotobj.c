@@ -94,22 +94,31 @@ static int snapshot_obj_ports(Tcl_Interp* interp, reg_snapshot* snapshot, int ob
                 == TCL_OK) {
             port** ports;
             reg_error error;
-            if (reg_snapshot_ports_get(snapshot, &ports, &error)) {
+            int port_count = reg_snapshot_get(snapshot, &ports, &error);
+            if (port_count >= 0) {
+
+                printf("ports fetched\n");
+                printf("port_count: %d\n", port_count);
+                //printf("size of ' %zu ' 0 \n", sizeof(ports[1]->name));
+                
+                int i;
+                for(i=0; i < port_count; i++){
+                    printf("in it - ");
+                    printf(".. %d ..  \n ", ports[i]->requested);
+                    printf("! %s ! \n", ports[i]->state);
+                }
+
+                return TCL_OK;
 
                 // TODO: correct the below for 'ports', added as a prototype for now
                 // Tcl_Obj** objs;
-                // int retval = TCL_ERROR;
-                // if (list_entry_to_obj(interp, &objs, entries, entry_count, &error)){
-                //     Tcl_Obj* result = Tcl_NewListObj(entry_count, objs);
+
+                // if (list_snapshot_ports_to_obj(interp, &objs, ports, port_count, &error)){
+                //     Tcl_Obj* result = Tcl_NewObj(port_count, objs);
                 //     Tcl_SetObjResult(interp, result);
                 //     free(objs);
-                //     retval = TCL_OK;
-                // } else {
-                //     retval = registry_failed(interp, &error);
-                // }
-
-                free(ports);
-                return TCL_OK;
+                //     return TCL_OK;
+                // } 
             }
             return registry_failed(interp, &error);
         }
