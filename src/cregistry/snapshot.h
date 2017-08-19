@@ -57,15 +57,12 @@ typedef struct {
     char* proc; /* name of Tcl proc, if using Tcl */
 } reg_snapshot;
 
+
 int get_parsed_variants(char* variants_str, variant* all_variants,
     char* delim, int* variant_count);
 
 reg_snapshot* reg_snapshot_create(reg_registry* reg, char* note,
         reg_error* errPtr);
-int reg_snapshot_get(reg_snapshot* snapshot, port*** ports, reg_error* errPtr);
-int reg_snapshot_port_variants_get(reg_registry* reg,
-        sqlite_int64 snapshot_port_id, variant*** variants, reg_error* errPtr);
-
 int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot,
         reg_error* errPtr);
 int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
@@ -73,7 +70,8 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
 
 int reg_snapshot_propget(reg_snapshot* snapshot, char* key, char** value,
         reg_error* errPtr);
-int reg_snapshot_ports_get(reg_snapshot* snapshot, port** ports,
-        reg_error* errPtr);
+int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* errPtr);
+int reg_snapshot_ports_get_helper(reg_registry* reg,
+        sqlite_int64 snapshot_port_id, variant*** variants, reg_error* errPtr);
 
 #endif /* _CSNAPSHOT_H */
