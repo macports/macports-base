@@ -344,6 +344,30 @@ int snapshot_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_snapshot* snapshot,
     return 1;
 }
 
+// int snapshot_port_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, port* port,
+//         int* lower_bound, reg_error* errPtr) {
+//     if (port->proc == NULL) {
+//         char* name = unique_name(interp, "::registry::snapshot_port", lower_bound);
+//         if (!name) {
+//             return 0;
+//         }
+//         if (!set_snapshot_port(interp, name, snapshot, errPtr)) {
+//             free(name);
+//             return 0;
+//         }
+//         free(name);
+//     }
+//     *obj = Tcl_NewStringObj(snapshot->proc, -1);
+//     return 1;
+// }
+
+// int list_snapshot_ports_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, port** snapshot_ports,
+//     int snapshot_port_count, reg_error* errPtr) {
+//     int lower_bound = 0;
+//     return recast(interp, (cast_function*)snapshot_port_to_obj, &lower_bound, NULL,
+//             (void***)objs, (void**)snapshot_ports, snapshot_port_count, errPtr);
+// }
+
 int file_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_file* file,
         int* lower_bound, reg_error* errPtr) {
     if (file->proc == NULL) {

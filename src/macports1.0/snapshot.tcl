@@ -21,14 +21,24 @@ namespace eval snapshot {
         #           registry::snapshot
         #
         # TODO:
-        # use registry::write wrapper here itself
-        # make it return some value
+        # 1. use registry::write wrapper here itself
+
 
         puts "here 1-1"
 
         puts "Still being developed"
 
-        set snapshot [registry::snapshot create "test snapshot"]
+        array set options $opts
+
+        # An option used by user while creating snapshot manually
+        # to identify a snapshot, usually followed by `port restore`
+        if {[info exists options(ports_snapshot_note)]} {
+            set note ports_snapshot_note
+        } else {
+            set note "snapshot created for migration"
+        }
+
+        set snapshot [registry::snapshot create $note]
 
         return $snapshot
     }
