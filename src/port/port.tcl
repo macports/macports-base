@@ -4365,13 +4365,26 @@ array set action_array [list \
     exit        [list action_exit           [ACTION_ARGS_NONE]] \
 ]
 
+# Actions which are only valid in shell mode
+set shellmode_action_list [list cd exit quit]
+
 # Expand "action".
 # Returns a list of matching actions.
 proc find_action { action } {
     global action_array
 
     if {![info exists action_array($action)]} {
-        return [array names action_array [string tolower $action]*]
+        # list of actions that are valid for this mode
+        global action_list
+        if {![info exists action_list]} {
+            global ui_options shellmode_action_list
+            if {![info exists ui_options(ports_commandfiles)]} {
+                set action_list [lsearch -regexp -all -inline -not [array names action_array] ^[join $shellmode_action_list {$|^}]$]
+            } else {
+                set action_list [array names action_array]
+            }
+        }
+        return [lsearch -glob -inline -all $action_list [string tolower $action]*]
     }
 
     return $action
