@@ -40,17 +40,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-int get_parsed_variants(char* variants_str, variant* all_variants, char* delim, int* variant_count) {
-
-    printf("var count yet %d, ", *variant_count);
+int get_parsed_variants(char* variants_str, variant* all_variants,
+    char* delim, int* variant_count) {
 
     char *token;
     char *rest = variants_str;
-
     while ((token = strtok_r(rest, delim, &rest))) {
-
-        printf("%s\n", token);
-
         variant v;
         v.variant_name = token;
         v.variant_sign = delim;
@@ -70,8 +65,6 @@ int get_parsed_variants(char* variants_str, variant* all_variants, char* delim, 
 
 reg_snapshot* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errPtr) {
 
-    printf("inside cregsitry sn cr\n");
-
     sqlite3_stmt* stmt = NULL;
     reg_snapshot* snapshot = NULL;
     char* query = "INSERT INTO registry.snapshots (note) VALUES (?)";
@@ -89,8 +82,6 @@ reg_snapshot* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errP
                         snapshot->id = sqlite3_last_insert_rowid(reg->db);
                         snapshot->reg = reg;
                         snapshot->proc = NULL;
-
-                        printf("snapshot id: %lld\n", snapshot->id);
 
                         int ports_saved = snapshot_store_ports(reg, snapshot, errPtr);
 
@@ -118,7 +109,6 @@ reg_snapshot* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errP
     if (stmt) {
         sqlite3_finalize(stmt);
     }
-    printf("done with the snapshot\n");
     return snapshot;
 }
 
@@ -129,12 +119,9 @@ int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot, reg_error* e
     int result = 1;
     entry_count = reg_entry_imaged(reg, NULL, NULL, NULL, NULL,
             &entries, &error);
-    printf("entry count: %d\n", entry_count);
-
     char* key1 = "name";
     char* key2 = "requested";
     char* key3 = "state";
-
     if (entry_count >= 0) {
         for ( i = 0; i < entry_count; i++) {
             char* port_name;
@@ -167,8 +154,6 @@ int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot, reg_error* e
                                     entry->reg = reg;
                                     entry->proc = NULL;
 
-                                    printf("port id: %lld, ", entry->id);
-
                                     int port_variants_saved = snapshot_store_port_variants(
                                         reg, entries[i], entry->id, errPtr);
 
@@ -182,7 +167,6 @@ int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot, reg_error* e
                                             break;
                                     }
                                 }
-                                printf("\ndone with *%s* port\n\n", port_name);
                                 break;
                             case SQLITE_BUSY:
                                 break;
@@ -220,9 +204,6 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
     if(reg_entry_propget(port_entry, key1, &positive_variants_str, &error)
         && reg_entry_propget(port_entry, key2, &negative_variants_str, &error)) {
 
-        printf("+ve .. %s, ", positive_variants_str);
-        printf("-ve .. %s ", negative_variants_str);
-
         int variant_space = 10;
         variant* all_variants = (variant*) malloc(variant_space * sizeof(variant));
 
@@ -245,8 +226,6 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
             return 0;
         }
 
-        printf("total var count: %d, ", variant_count);
-
         for ( i = 0; i < variant_count; i++){
             sqlite3_stmt* stmt = NULL;
             char* query = "INSERT INTO registry.snapshot_port_variants "
@@ -262,8 +241,6 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
                     r = sqlite3_step(stmt);
                     switch (r) {
                         case SQLITE_DONE:
-                            printf("\nvariant stored: %s with sign: %s",
-                                v.variant_name, v.variant_sign);
                             break;
                         case SQLITE_BUSY:
                             break;
@@ -285,7 +262,6 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
 
 int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* errPtr) {
 
-    printf("inside cregistry get snapshot..\n");
     reg_registry* reg = snapshot->reg;
     sqlite3_stmt* stmt = NULL;
 
