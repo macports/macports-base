@@ -96,30 +96,36 @@ static int snapshot_obj_ports(Tcl_Interp* interp, reg_snapshot* snapshot, int ob
             reg_error error;
             int port_count = reg_snapshot_ports_get(snapshot, &ports, &error);
             if (port_count >= 0) {
-
-                printf("ports fetched\n");
-                printf("port_count: %d\n", port_count);
-                //printf("size of ' %zu ' 0 \n", sizeof(ports[1]->name));
-                
+                char* portstr = NULL;
+                char* portstrs[port_count + 1];
                 int i;
-                for(i=0; i < port_count; i++){
-                    printf("in it - ");
-                    printf("! %s ! ", ports[i]->name);
-                    printf(".. %d ..  ", ports[i]->requested);
-                    printf("! %s ! \n", ports[i]->state);
+                for(i = 0; i < port_count; i++){
+                    port* current_port = ports[i];
+                    portstr = NULL;
+                    if (asprintf(&portstr, "%s %d %s %s",
+                            current_port->name,
+                            current_port->requested,
+                            current_port->state,
+                            current_port->variants) < 0) {
+                        return TCL_ERROR;
+                    }
+                    portstrs[i] = portstr;
+                    free(portstr);
                 }
 
-                return TCL_OK;
-
-                // TODO: correct the below for 'ports', added as a prototype for now
-                // Tcl_Obj** objs;
-
-                // if (list_snapshot_ports_to_obj(interp, &objs, ports, port_count, &error)){
-                //     Tcl_Obj* result = Tcl_NewObj(port_count, objs);
-                //     Tcl_SetObjResult(interp, result);
-                //     free(objs);
-                //     return TCL_OK;
-                // } 
+                Tcl_Obj** objs;
+                if (list_string_to_obj(&objs, portstrs, port_count, &error)){
+                    Tcl_Obj* result = Tcl_NewListObj(port_count, objs);
+                    Tcl_SetObjResult(interp, result);
+                    free(objs);
+                    for (i=0; i < port_count; i++) {
+                        free(ports[i]);
+                    }
+                    free(ports);
+                    return TCL_OK;
+                } else {
+                    return registry_failed(interp, &error);
+                }
             }
             return registry_failed(interp, &error);
         }

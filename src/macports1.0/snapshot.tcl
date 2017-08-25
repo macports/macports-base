@@ -16,7 +16,7 @@ namespace eval snapshot {
 		# The main function. Handles all the calls to the correct functions.
         #
         # Args:
-        #           opts - The options passed in. Currently, there is no option available.
+        #           opts - The options passed in.
         # Returns:
         #           registry::snapshot
         #
