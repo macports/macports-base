@@ -329,21 +329,35 @@ int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* err
                     current_port->name = strdup(port_name);
                     current_port->requested = requested;
                     current_port->state = strdup(state);
-                    current_port->variants = NULL;
-                    
+
                     variants = (variant**) malloc(sizeof(variant*));
                     if (!variants) {
                         return -1;
                     }
                     int variant_count = reg_snapshot_ports_get_helper(reg, snapshot_port_id, &variants, errPtr);
-                    if (variant_count > 0) {
-                        current_port->variants = variants;
+                    current_port->variant_count = variant_count;
+                    char* variantstr = NULL;
+                    if (current_port->variant_count > 0) {
+                        int j;
+                        variantstr = NULL;
+                        for(j = 0; j < current_port->variant_count; j++) {
+                            if (asprintf(&variantstr, "%s%s",
+                                    (*variants)[j].variant_sign,
+                                    (*variants)[j].variant_name) < 0) {
+                                return -1;
+                            }
+                        }
+                        current_port->variants = strdup(variantstr);
+                        free(variantstr);
+                    } else {
+                        current_port->variants = '\0';
                     }
+
                     if (!reg_listcat((void***)&result, &result_count, &result_space, current_port)) {
                             r = SQLITE_ERROR;
                     }
                     int i;
-                    for (i=0; i < variant_count; i++) {
+                    for (i = 0; i < variant_count; i++) {
                         free(variants[i]);
                     }
                     free(variants);
@@ -364,7 +378,6 @@ int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* err
         if (r == SQLITE_DONE) {
             *ports = result;
             return result_count;
-
         } else {
             int i;
             for (i=0; i<result_count; i++) {
@@ -381,7 +394,8 @@ int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* err
     }
 }
 
-int reg_snapshot_ports_get_helper(reg_registry* reg, sqlite_int64 snapshot_port_id, variant*** variants, reg_error* errPtr) {
+int reg_snapshot_ports_get_helper(reg_registry* reg, sqlite_int64 snapshot_port_id,
+    variant*** variants, reg_error* errPtr) {
 
     sqlite3_stmt* stmt = NULL;
 
@@ -419,7 +433,6 @@ int reg_snapshot_ports_get_helper(reg_registry* reg, sqlite_int64 snapshot_port_
                     if (!reg_listcat((void***)&result, &result_count, &result_space, element)) {
                         r = SQLITE_ERROR;
                     }
-                    //free(element);
                     break;
                 case SQLITE_DONE:
                 case SQLITE_BUSY:

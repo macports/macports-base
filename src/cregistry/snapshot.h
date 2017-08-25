@@ -46,7 +46,8 @@ typedef struct {
     char* name;
     int requested;
     char* state;
-    variant* variants;
+    int variant_count;
+    char* variants;
 } port;
 
 typedef struct {
