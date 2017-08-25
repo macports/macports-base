@@ -1,5 +1,6 @@
 /*
  * snapshot.c
+ * vim:tw=80:expandtab
  *
  * Copyright (c) 2017 The MacPorts Project
  * All rights reserved.
@@ -57,7 +58,7 @@ static reg_snapshot* get_snapshot(Tcl_Interp* interp, char* name, reg_error* err
 /**
  * Removes the snapshot from the Tcl interpreter. Doesn't actually delete it since
  * that's the registry's job. This is written to be used as the
- * `Tcl_CmdDeleteProc` for an snapshot object command.
+ * `Tcl_CmdDeleteProc` for a snapshot object command.
  *
  * @param [in] clientData address of a reg_snapshot to remove
  */
@@ -67,9 +68,11 @@ void delete_snapshot(ClientData clientData) {
     snapshot->proc = NULL;
 }
 
-static int create_snapshot(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
-
-    printf("inside 2.0 snapshot\n");
+/*
+ * registry::snaphot create note
+ * note is required
+ */
+static int snapshot_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
 
     reg_registry* reg = registry_for(interp, reg_attached);
     if (objc > 3) {
@@ -80,7 +83,6 @@ static int create_snapshot(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) 
     } else {
         char* note = Tcl_GetString(objv[2]);
         reg_error error;
-        /* may be a new datatype for snapshot */
         reg_snapshot* new_snaphot = reg_snapshot_create(reg, note, &error);
         if (new_snaphot != NULL) {
             Tcl_Obj* result;
@@ -126,17 +128,15 @@ typedef struct {
 
 static snapshot_cmd_type snapshot_cmds[] = {
     /* Global commands */
-    { "create", create_snapshot},
-//    { "get_by_id", get_snapshot_by_id},
+    { "create", snapshot_create},
+    // { "get_by_id", get_snapshot_by_id},
     { NULL, NULL }
 };
 
 /*
  * registry::snapshot cmd ?arg ...?
  *
- * Commands manipulating snapshots in the registry. This could be called
- * `registry::port`, but that could be misleading, because `registry::item`
- * represents ports too, but not those in the registry.
+ * Commands manipulating snapshots in the registry.
  */
 int snapshot_cmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc,
         Tcl_Obj* CONST objv[]) {

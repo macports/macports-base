@@ -40,6 +40,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * helper to parse variants into 'struct variant' form
+ *
+ * @param [in] variants_str     the string to parse the variants from
+ * @param [in] delim            delimiter '+' for +ve variants, else '-'
+ * @param [out] all_variants    list of 'struct variant's
+ * @param [out] variant_count   count of variants parsed till now
+ * @return                      false
+ */
+
 int get_parsed_variants(char* variants_str, variant* all_variants,
     char* delim, int* variant_count) {
 
@@ -52,17 +62,20 @@ int get_parsed_variants(char* variants_str, variant* all_variants,
 
         *(all_variants + *variant_count) = v;
         *variant_count = *variant_count + 1;
-
-        // all_variants = (variant*) realloc(all_variants, sizeof(variant));
-
-        // if(!all_variants) {
-        //     return -1;
-        // }
     }
 
     return 0;
 }
 
+/**
+ * Creates a new snapshot in the snapshots registry.
+ *
+ * @param [in] reg      the registry to create the entry in
+ * @param [in] note     any note/details to identify the snapshot by the user
+                        if not time
+ * @param [out] errPtr  on error, a description of the error that occurred
+ * @return              the snapshot if success; NULL if failure
+ */
 reg_snapshot* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errPtr) {
 
     sqlite3_stmt* stmt = NULL;
@@ -112,6 +125,14 @@ reg_snapshot* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errP
     return snapshot;
 }
 
+/**
+ * helper method for storing ports for this snapshot
+ *
+ * @param [in] reg          associated registry
+ * @param [in] snapshot     reg_snapshot, its id to use for foreignkey'ing the ports
+ * @param [out] errPtr      on error, a description of the error that occurred
+ * @return                  true if success; 0 if failure
+ */
 int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot, reg_error* errPtr){
     reg_entry** entries;
     reg_error error;
@@ -190,6 +211,16 @@ int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot, reg_error* e
     return result;
 }
 
+/**
+ * helper method for storing variants for a port in a snapshot
+ *
+ * @param [in] reg                  associated registry
+ * @param [in] port_entry           registry.ports port to get current variants to store
+                                    and not snapshot_port
+ * @param [in] snapshot_port_id     sqlite_int64 id of the port in snapshot_ports table
+ * @param [out] errPtr              on error, a description of the error that occurred
+ * @return                          true if success; 0 if failure
+ */
 int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
     int snapshot_ports_id, reg_error* errPtr) {
 
@@ -204,7 +235,7 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
     if(reg_entry_propget(port_entry, key1, &positive_variants_str, &error)
         && reg_entry_propget(port_entry, key2, &negative_variants_str, &error)) {
 
-        int variant_space = 10;
+        int variant_space = 100;
         variant* all_variants = (variant*) malloc(variant_space * sizeof(variant));
 
         if (all_variants == NULL) {
@@ -260,6 +291,14 @@ int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
     return result;
 }
 
+/**
+ * reg_snapshot_ports_get: Gets the ports of a snapshot.
+ *
+ * @param [in] snapshot   snapshot to get property from
+ * @param [out] ports     ports in the 'struct port' form defined in snapshot.h
+ * @param [out] errPtr    on error, a description of the error that occurred
+ * @return                port_count if success; -1 if failure
+ */
 int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* errPtr) {
 
     reg_registry* reg = snapshot->reg;
@@ -312,10 +351,12 @@ int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* err
                     }
                     int variant_count = reg_snapshot_ports_get_helper(reg, snapshot_port_id, &variants, errPtr);
                     current_port->variant_count = variant_count;
+
                     char* variantstr = NULL;
                     if (current_port->variant_count > 0) {
                         int j;
                         variantstr = NULL;
+                        // construct the variant string in the form '+var1-var2+var3'
                         for(j = 0; j < current_port->variant_count; j++) {
                             if (asprintf(&variantstr, "%s%s",
                                     (*variants)[j].variant_sign,
@@ -370,6 +411,15 @@ int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* err
     }
 }
 
+/**
+ * reg_snapshot_ports_get_helper: Gets the variants of a port in snapshot.
+ *
+ * @param [in] reg                  associated registry
+ * @param [in] snapshot_port_id     sqlite_int64 id of the port in snapshot_ports table
+ * @param [out] variants            variants in the 'struct variant' form in snapshot.h
+ * @param [out] errPtr              on error, a description of the error that occurred
+ * @return                          variant_count if success; -1 if failure
+ */
 int reg_snapshot_ports_get_helper(reg_registry* reg, sqlite_int64 snapshot_port_id,
     variant*** variants, reg_error* errPtr) {
 
