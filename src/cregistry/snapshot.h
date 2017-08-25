@@ -25,6 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 #ifndef _CSNAPSHOT_H
 #define _CSNAPSHOT_H
 
@@ -37,41 +38,48 @@
 
 #include <sqlite3.h>
 
+// TODO: extend it to support requested variants
+
 typedef struct {
     char* variant_name;
     char* variant_sign;
 } variant;
 
 typedef struct {
-    char* name;
-    int requested;
-    char* state;
-    int variant_count;
-    char* variants;
+    char* name;     /* port name */
+    int requested;  /* 1 if port os requested, else 0 */
+    char* state;    /* 'imaged' or 'installed' */
+    int variant_count;  /* total number of variants */
+    char* variants; /* string of the form: +var1-var2+var3 */
 } port;
 
 typedef struct {
-    sqlite_int64 id; /* rowid in database */
+    sqlite_int64 id; /* rowid of snapshot in 'registry.snapshots' table */
     char* note;
-    port* ports;
+    port* ports;    /* list of ports present while taking this snapshot */
     reg_registry* reg; /* associated registry */
     char* proc; /* name of Tcl proc, if using Tcl */
 } reg_snapshot;
 
-
+// helper to parse variants into 'struct variant' form
 int get_parsed_variants(char* variants_str, variant* all_variants,
     char* delim, int* variant_count);
 
+// create snapshot method
 reg_snapshot* reg_snapshot_create(reg_registry* reg, char* note,
         reg_error* errPtr);
+// helper method for storing ports for this snapshot
 int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot,
         reg_error* errPtr);
+// helper method for storing variants for a port in a snapshot
 int snapshot_store_port_variants(reg_registry* reg, reg_entry* port_entry,
         int snapshot_ports_id, reg_error* errPtr);
 
+// snapshot properties retrieval methods
 int reg_snapshot_propget(reg_snapshot* snapshot, char* key, char** value,
         reg_error* errPtr);
-int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* errPtr);
+int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports,
+        reg_error* errPtr);
 int reg_snapshot_ports_get_helper(reg_registry* reg,
         sqlite_int64 snapshot_port_id, variant*** variants, reg_error* errPtr);
 

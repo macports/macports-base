@@ -1,5 +1,6 @@
 /*
  * snapshotobj.c
+ * vim:tw=80:expandtab
  *
  * Copyright (c) 2017 The MacPorts Project
  * All rights reserved.
