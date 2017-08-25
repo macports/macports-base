@@ -75,6 +75,7 @@ static int snapshot_obj_prop(Tcl_Interp* interp, reg_snapshot* snapshot, int obj
         }
         return TCL_ERROR;
     }
+    return TCL_ERROR;
 }
 
 /* ${snapshot} ports */
@@ -97,21 +98,18 @@ static int snapshot_obj_ports(Tcl_Interp* interp, reg_snapshot* snapshot, int ob
             reg_error error;
             int port_count = reg_snapshot_ports_get(snapshot, &ports, &error);
             if (port_count >= 0) {
-                char* portstr = NULL;
                 char* portstrs[port_count + 1];
                 int i;
                 for(i = 0; i < port_count; i++){
                     port* current_port = ports[i];
-                    portstr = NULL;
-                    if (asprintf(&portstr, "%s %d %s %s",
+                    portstrs[i] = NULL;
+                    if (asprintf(&portstrs[i], "%s %d %s %s",
                             current_port->name,
                             current_port->requested,
                             current_port->state,
                             current_port->variants) < 0) {
                         return TCL_ERROR;
                     }
-                    portstrs[i] = portstr;
-                    free(portstr);
                 }
 
                 Tcl_Obj** objs;
@@ -129,9 +127,11 @@ static int snapshot_obj_ports(Tcl_Interp* interp, reg_snapshot* snapshot, int ob
                 }
             }
             return registry_failed(interp, &error);
+        } else {
+            return TCL_ERROR;
         }
-        return TCL_ERROR;
     }
+    return TCL_ERROR;
 }
 
 typedef struct {

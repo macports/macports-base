@@ -45,48 +45,14 @@ namespace eval migrate {
         puts $snapshot
         puts [$snapshot note]
         puts [$snapshot created_at]
-        puts [$snapshot ports]
-        puts "here 2"
-        return 0
+        set portlist1 [$snapshot ports]
+        puts $portlist1
 
-        # fetch ports and variants for this snapshot
+        puts "\nhere 2\n"
 
-        # WILL WRITE FOR FETCHING AFTER DISCUSSING WITH BRAD
-        
-        # ASSUMING I GET THE FINAL PORTLIST FOR NOW
-        # $portlist
-        set portlist [registry::entry imaged]
+        # uninstall_installed $portlist1
 
-
-        foreach port $portlist {
-            #puts [$port name]
-        }
-
-        puts "here"
-        puts
-
-        #set portlist1 [sort_portlist_by_dependendents $portlist]
-
-        puts "here1"
-        puts ""
-
-        set portlist2 [sort_ports $portlist]
-
-        puts "here2"
-
-
-        # foreach port $portlist1 {
-        #     puts $port
-        # }
-        # puts
-
-        foreach port $portlist2 {
-            #puts [lindex $port 0]
-        }
-
-        #uninstall_installed $portlist
-        return 0
-        # recover_ports_state $portlist
+        recover_ports_state $portlist1
 
 
         # TODO: CLEAN PARTIAL BUILDS STEP HERE
@@ -110,6 +76,15 @@ namespace eval migrate {
         # TODO: error handling, if any?
         array set portInfo [lindex $portSearchResult 1]
 
+        if {[catch {set mport [mportopen $portInfo(porturl) [list subport $portInfo(name)] $variantInfo]} result]} {
+            global errorInfo
+            puts stderr "$errorInfo"
+            return -code error "Unable to open port '$portName': $result"
+        }
+        array unset portInfo
+        array set portInfo [mportinfo $mport]
+        mportclose $mport
+
         set dependencyTypes { depends_fetch depends_extract depends_build depends_lib depends_run }
         foreach dependencyType $dependencyTypes {
             if {[info exists portInfo($dependencyType)] && [string length $portInfo($dependencyType)] > 0} {
@@ -131,19 +106,36 @@ namespace eval migrate {
 
         foreach port $portlist {
 
-            #puts "in - "
-            #puts $port
-
-            set name [$port name]
-            set variants [$port variants]
+            set name [lindex $port 0]
+            set requested [lindex $port 1]
             set active 0
-
-            if {[$port state] eq "installed"} {
+            if {[lindex $port 2] eq "installed"} {
                 set active 1
             }
-
-            #puts "$name $variants $active"
-
+            set variantstr [lindex $port 3]
+            if {$variantstr eq "(null)"} {
+                set variantstr ""
+            }
+            set variants ""
+            if {[info exists variantstr]} {
+                while 1 {
+                    set nextplus [string last + $variantstr]
+                    set nextminus [string last - $variantstr]
+                    if {$nextplus > $nextminus} {
+                        set next $nextplus
+                        set sign +
+                    } else {
+                        set next $nextminus
+                        set sign -
+                    }
+                    if {$next == -1} {
+                        break
+                    }
+                    set v [string range $variantstr [expr $next + 1] end]
+                    lappend variants $v $sign
+                    set variantstr [string range $variantstr 0 [expr $next - 1]]
+                }
+            }
             if {![info exists port_in_list($name)]} {
                 set port_in_list($name) 1
                 set port_installed($name) 0
@@ -154,15 +146,10 @@ namespace eval migrate {
             if {![info exists port_deps(${name},${variants})]} {
                 set port_deps(${name},${variants}) [port_dependencies $name $variants]
             }
-
-            #puts "$port_deps(${name},$variants)"
-
             lappend newList [list $name $variants $active]
         }
 
         set operationList [list]
-
-        puts
 
         while {[llength $newList] > 0} {
 
@@ -170,9 +157,6 @@ namespace eval migrate {
 
             foreach port $newList {
                 foreach {name variants active} $port break
-
-                #puts "out - "
-                #puts "$name $variants $active"
 
                 if {$active && $port_installed($name) < ($port_in_list($name) - 1)} {
                     continue
@@ -185,7 +169,6 @@ namespace eval migrate {
                     }
                 }
                 if {$installable} {
-                    #puts "i'm being installed: $name"
                     lappend operationList [list $name $variants $active]
                     incr port_installed($name)
                     set index [lsearch $newList [list $name $variants $active]]
@@ -193,19 +176,17 @@ namespace eval migrate {
                 }
             }
 
-            #puts "lengths: $oldLen [llength $newList]"
-
             if {[llength $newList] == $oldLen} {
-                return -code error "stuck in loop"
+                return -code error "Stuck in loop"
             }
         }
 
         return $operationList
     }
 
-    proc portlist_sort_dependencies_later { portlist } {
+    proc portlist_sort_dependencies_later {portlist} {
 
-        # Sorts a list of port references such that dependents come before
+        # Sorts a list of port references such that ports come before
         # their dependencies.
         #
         # Args:
@@ -215,17 +196,17 @@ namespace eval migrate {
         #       the list in dependency-sorted order
 
         foreach port $portlist {
-            array set pvals $port
-            lappend entries($pvals(name)) $port
+
+            set portname [$port name]
+            lappend entries($portname) $port
 
             # Avoid adding ports in loop
-            if {![info exists dependents($pvals(name))]} {
-                set dependents($pvals(name)) {}
+            if {![info exists dependents($portname)]} {
+                set dependents($portname) {}
                 foreach result [$port dependents] {
-                    lappend dependents($pvals(name)) [$result name]
+                    lappend dependents($portname) [$result name]
                 }
             }
-            array unset pvals
         }
         set ret {}
         foreach port $portlist {
@@ -239,8 +220,8 @@ namespace eval migrate {
         if {![info exists seen($port)]} {
             set seen($port) 1
             upvar 1 $up_entries entries $up_dependents dependents $up_retlist retlist
-            array set pvals $p
-            foreach dependent $dependents($pvals(name)) {
+            set name [$port name]
+            foreach dependent $dependents($name) {
                 if {[info exists entries($dependent)]} {
                     foreach entry $entries($dependent) {
                         portlist_sort_dependencies_later_helper $entry entries dependents seen retlist
@@ -251,31 +232,25 @@ namespace eval migrate {
         }
     }
 
-    proc uninstall_installed { portlist } {
+    proc uninstall_installed {portlist} {
 
         set portlist [portlist_sort_dependencies_later $portlist]
 
-        foreach port $portlist {
-            puts "[$port name] [$port state]"
-        }
-
-        return 0
-
         if {[info exists macports::ui_options(questions_yesno)]} {
 
-            set retvalue [$macports::ui_options(questions_yesno) "Restoring a snapshot will first uninstall all the installed ports.
-            Would you like to continue?" {n} 0]
+            set msg "Migration will first uninstall all the installed ports first."
+            set retvalue [$macports::ui_options(questions_yesno) $msg "MigrationPrompt" "" {y} 0 "Would you like to continue?"]
 
             if {$retvalue == 0} {
                 foreach port $portlist {
-                    set name [$port name]
-                     ui_msg "Uninstalling: $name"
+                    set portname [$port name]
+                    ui_msg "Uninstalling: $portname"
 
                     try -pass_signal {
                         # 'registry_uninstall' takes name, version, revision, variants and an options list for a port
-                        registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port] variants {}
+                        registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] {}
                     } catch {{*} eCode eMessage} {
-                        ui_error "Error uninstalling $name: $eMessage"
+                        ui_error "Error uninstalling $portname: $eMessage"
                     }
                 }
             } else {
@@ -286,20 +261,38 @@ namespace eval migrate {
         return 0
     }
 
-    proc recover_ports_state {portList} {
+    proc recover_ports_state {portlist} {
 
-        set sorted_portlist [portlist_sort_dependencies_first $portList]
-        
+
+        set sorted_portlist [portlist_sort_dependencies_first $portlist]
+
+        foreach port $sorted_portlist {
+            puts "$port"
+        }
+
+        puts "MacPorts Version: [macports::version]"
         foreach port $sorted_portlist {
             
             set name [string trim [lindex $port 0]]
             set variations [lindex $port 1]
             set active [lindex $port 2]
 
-            if {$active} {
+            if {!$active} {
                 set target install
             } else {
                 set target activate
+            }
+
+            puts "$name $variations $active $target"
+
+            if {[catch {set res [mportlookup $name]} result]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                return -code error "lookup of portname $name failed: $result"
+            }
+            if {[llength $res] < 2} {
+                # not in the index, but we already warned about that earlier
+                continue
             }
 
             array unset portinfo
@@ -309,8 +302,6 @@ namespace eval migrate {
             # TODO: error handling, if any?
 
             set workername [mportopen $porturl [list subport $portinfo(name)] $variations]
-
-            # TODO: instead of mportexec, look for some API?
             if {[catch {set result [mportexec $workername $target]} result]} {
                 global errorInfo
                 mportclose $workername
@@ -319,8 +310,7 @@ namespace eval migrate {
             } else {
                 mportclose $workername
             }
-
-            # TODO: deps active?
+            # TODO: dependencies active?
         }
 
     }
