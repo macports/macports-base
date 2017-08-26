@@ -45,48 +45,26 @@ namespace eval migrate {
         #           opts - options array.
         # Returns:
         #           None
-        #
-        # TODO: 
-        # make it return some value
 
         array set options $opts
 
-        # TODO: move this to restore.tcl
-        # if ([info exists options(ports_restore_snapshot-id)]) {
-        #     # use that snapshot
-        #     set snapshot [fetch_snapshot options(ports_restore_snapshot-id)]
-        # } else {
-        #     # TODO: ask if the user is fine with the latest snapshot, if 'yes'
-        #     # use latest snapshot
-        #     set snapshot [fetch_latest_snapshot]
-        # }
-
         # create a snapshot
-        ui_msg "$macports::ui_prefix  Taking a snapshot of the current state.."
+        ui_msg "$macports::ui_prefix Taking a snapshot of the current state.."
         set snapshot [snapshot::main $opts]
         set note [$snapshot note]
         set datetime [$snapshot created_at]
-        ui_msg "$macports::ui_prefix  Done: snapshot '$note' created at $datetime"
+        ui_msg "$macports::ui_prefix Done: snapshot '$note' created at $datetime"
 
-        ui_msg "$macports::ui_prefix  Fetching ports.."
+        ui_msg "$macports::ui_prefix Fetching ports.."
         set portlist [$snapshot ports]
 
-        ui_msg "$macports::ui_prefix  Uninstalling all ports.."
+        ui_msg "$macports::ui_prefix Uninstalling all ports.."
         uninstall_installed [registry::entry imaged]
 
-        ui_msg "$macports::ui_prefix  Restoring the original state.."
+        ui_msg "$macports::ui_prefix Restoring the original state.."
         recover_ports_state $portlist
 
         # TODO: CLEAN PARTIAL BUILDS STEP HERE
-    }
-
-    proc fetch_snapshot { snapshot_id } {
-
-    }
-
-    proc fetch_snapshot_details {snapshot} {
-
-        return
     }
 
     proc portlist_sort_dependencies_first {portlist} {
