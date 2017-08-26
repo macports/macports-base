@@ -4458,6 +4458,7 @@ array set cmd_opts_array {
     diagnose    {quiet}
     reclaim     {enable-reminders disable-reminders}
     fetch       {no-mirrors}
+    snapshot    {{note 1}}
 }
 
 ##
