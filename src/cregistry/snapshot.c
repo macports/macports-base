@@ -63,8 +63,50 @@ int get_parsed_variants(char* variants_str, variant* all_variants,
         *(all_variants + *variant_count) = v;
         *variant_count = *variant_count + 1;
     }
-
     return 0;
+}
+
+/**
+ * Converts a `sqlite3_stmt` into a `reg_snapshot`. The first column of the stmt's
+ * row must be the id of an snapshot; the second either `SQLITE_NULL` or the
+ * address of the snapshot in memory.
+ *
+ * @param [in] userdata     sqlite3 database
+ * @param [out] snapshot    snapshot described by `stmt`
+ * @param [in] stmt         `sqlite3_stmt` with appropriate columns
+ * @param [out] errPtr      unused
+ * @return                  true if success; false if failure
+ */
+static int reg_stmt_to_snapshot(void* userdata, void** snapshot, void* stmt,
+        void* calldata UNUSED, reg_error* errPtr UNUSED) {
+    reg_registry* reg = (reg_registry*)userdata;
+    sqlite_int64 id = sqlite3_column_int64(stmt, 0);
+    reg_snapshot* s = malloc(sizeof(reg_snapshot));
+    if (!s) {
+        return 0;
+    }
+    s->reg = reg;
+    s->id = id;
+    s->proc = NULL;
+    *snapshot = s;
+    return 1;
+}
+
+/**
+ * Type-safe version of `reg_all_objects` for `reg_snapshot`.
+ *
+ * @param [in] reg       registry to select snapshots from
+ * @param [in] query     the select query to execute
+ * @param [in] query_len length of the query (or -1 for automatic)
+ * @param [out] objects  the snapshots selected
+ * @param [out] errPtr   on error, a description of the error that occurred
+ * @return               the number of snapshots if success; negative if failure
+ */
+static int reg_all_snapshots(reg_registry* reg, char* query, int query_len,
+        reg_snapshot*** objects, reg_error* errPtr) {
+    int lower_bound = 0;
+    return reg_all_objects(reg, query, query_len, (void***)objects,
+            reg_stmt_to_snapshot, &lower_bound, NULL, errPtr);
 }
 
 /**
@@ -80,7 +122,6 @@ int get_parsed_variants(char* variants_str, variant* all_variants,
 reg_snapshot* reg_snapshot_open(reg_registry* reg, sqlite_int64 id, reg_error* errPtr) {
     sqlite3_stmt* stmt = NULL;
     reg_snapshot* snapshot = NULL;
-    int lower_bound = 0;
     char* query = "SELECT id FROM registry.snapshots WHERE id=?";
     if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(stmt, 1, id) == SQLITE_OK)) {
@@ -116,9 +157,30 @@ reg_snapshot* reg_snapshot_open(reg_registry* reg, sqlite_int64 id, reg_error* e
 }
 
 /**
+ * Lists all the existing snapshots in the registry for the user to choose
+ * from, for restore action
+ *
+ * @param [in] reg         registry to search in
+ * @param [out] snapshots  a list of snapshots
+ * @param [out] errPtr     on error, a description of the error that occurred
+ * @return                 the number of snapshots if success; false if failure
+ */
+int reg_snapshot_list(reg_registry* reg, reg_snapshot*** snapshots, reg_error* errPtr) {
+    // Currently limiting to last 10 snapshots in the registry
+    int lower_bound = 10;
+    char* query;
+    int result;
+    query = sqlite3_mprintf("SELECT id FROM registry.snapshots ORDER BY id DESC LIMIT %d",
+            lower_bound);
+    result = reg_all_snapshots(reg, query, -1, snapshots, errPtr);
+    sqlite3_free(query);
+    return result;
+}
+
+/**
  * Creates a new snapshot in the snapshots registry.
  *
- * @param [in] reg      the registry to create the entry in
+ * @param [in] reg      the registry to create the snapshot in
  * @param [in] note     any note/details to identify the snapshot by the user
                         if not time
  * @param [out] errPtr  on error, a description of the error that occurred
@@ -180,7 +242,7 @@ reg_snapshot* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errP
  * @param [out] errPtr      on error, a description of the error that occurred
  * @return                  true if success; 0 if failure
  */
-int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot, reg_error* errPtr){
+int snapshot_store_ports(reg_registry* reg, reg_snapshot* snapshot, reg_error* errPtr) {
     reg_entry** entries;
     reg_error error;
     int i, entry_count;
@@ -456,6 +518,7 @@ int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* err
             sqlite3_finalize(stmt);
         }
     }
+    reg_sqlite_error(reg->db, errPtr, query);
 }
 
 /**

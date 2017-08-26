@@ -67,6 +67,9 @@ int get_parsed_variants(char* variants_str, variant* all_variants,
 // get snapshot using id
 reg_snapshot* reg_snapshot_open(reg_registry* reg, sqlite_int64 id,
         reg_error* errPtr);
+// list all snapshots
+int reg_snapshot_list(reg_registry* reg, reg_snapshot*** snapshots,
+        reg_error* errPtr);
 // create snapshot method
 reg_snapshot* reg_snapshot_create(reg_registry* reg, char* note,
         reg_error* errPtr);

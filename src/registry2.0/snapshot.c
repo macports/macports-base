@@ -73,7 +73,6 @@ void delete_snapshot(ClientData clientData) {
  * note is required
  */
 static int snapshot_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
-
     reg_registry* reg = registry_for(interp, reg_attached);
     if (objc > 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "create_snapshot ?note?");
@@ -100,7 +99,6 @@ static int snapshot_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) 
  * snapshot_id is required
  */
 static int snapshot_get(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
-
     reg_registry* reg = registry_for(interp, reg_attached);
     if (objc > 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "get_by_id ?snapshot_id?");
@@ -122,6 +120,39 @@ static int snapshot_get(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     }
 }
 
+/*
+ * registry::snaphot get_all
+ */
+static int snapshot_get_list(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc > 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "get_all");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        reg_error error;
+        reg_snapshot** snapshots;
+        int snapshot_count = reg_snapshot_list(reg, &snapshots, &error);
+        if (snapshot_count >= 0) {
+            int retval;
+            Tcl_Obj* result;
+            Tcl_Obj** objs;
+            if (list_snapshot_to_obj(interp, &objs, snapshots, snapshot_count, &error)) {
+                result = Tcl_NewListObj(snapshot_count, objs);
+                Tcl_SetObjResult(interp, result);
+                free(objs);
+                retval = TCL_OK;
+            } else {
+                retval = registry_failed(interp, &error);
+            }
+            free(snapshots);
+            return retval;
+        }
+        return registry_failed(interp, &error);
+    }
+}
+
 typedef struct {
     char* name;
     int (*function)(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
@@ -131,6 +162,7 @@ static snapshot_cmd_type snapshot_cmds[] = {
     /* Global commands */
     { "create", snapshot_create},
     { "get_by_id", snapshot_get},
+    { "get_all", snapshot_get_list},
     { NULL, NULL }
 };
 
