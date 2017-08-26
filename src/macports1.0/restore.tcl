@@ -35,9 +35,9 @@ package require registry 1.0
 package require snapshot 1.0
 
 namespace eval restore {
-	proc main {opts} {
+    proc main {opts} {
 
-		array set options $opts
+        array set options $opts
 
         if ([info exists options(ports_restore_snapshot-id)]) {
             # use that snapshot
@@ -47,17 +47,18 @@ namespace eval restore {
             puts [$snapshot created_at]
             puts [$snapshot ports]
         } else {
-            # TODO: fetch the list of snapshots
+            set list [list_snapshots]
+            foreach l $list {
+                puts "[$l note] [$l created_at]"
+            }
         }
-
-	}
-
-	proc fetch_snapshot {snapshot_id} {
-		return [registry::snapshot get_by_id $snapshot_id]
     }
 
-    proc fetch_snapshot_details {snapshot} {
+    proc fetch_snapshot {snapshot_id} {
+        return [registry::snapshot get_by_id $snapshot_id]
+    }
 
-        return
+    proc list_snapshots {} {
+        return [registry::snapshot get_all]
     }
 }

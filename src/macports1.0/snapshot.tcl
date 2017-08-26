@@ -40,14 +40,4 @@ namespace eval snapshot {
 
         return $snapshot
     }
-
-    proc all_snapshots {opts} {
-        # List the snapshots
-        puts "listing"
-    }
-
-    proc fetch_snapshot {opts} {
-        # Get the latest snapshot
-        return [registry::entry get_snapshot]
-    }
 }
