@@ -39,6 +39,7 @@ package require diagnose 1.0
 package require reclaim 1.0
 package require selfupdate 1.0
 package require snapshot 1.0
+package require restore 1.0
 package require migrate 1.0
 package require Tclx
 
@@ -4418,6 +4419,20 @@ proc macports::snapshot_main {opts} {
     #           0 on successful execution.
 
     snapshot::main $opts
+    return 0
+}
+
+# restores a snapshot.
+proc macports::restore_main {opts} {
+
+    # Calls the main function for the 'port restore' command.
+    #
+    # Args:
+    #           $opts having a 'snapshot-id' but not compulsorily
+    # Returns:
+    #           0 on successful execution.
+
+    restore::main $opts
     return 0
 }
 

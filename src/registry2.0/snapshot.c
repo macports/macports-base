@@ -95,31 +95,32 @@ static int snapshot_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) 
     }
 }
 
-// static int get_snapshot_by_id(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+/*
+ * registry::snaphot get snapshot_id
+ * snapshot_id is required
+ */
+static int snapshot_get(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
 
-//     printf("getting snapshot\n");
-
-//     reg_registry* reg = registry_for(interp, reg_attached);
-//     if (objc > 3) {
-//         Tcl_WrongNumArgs(interp, 2, objv, "get_by_id ?snapshot_id?");
-//         return TCL_ERROR;
-//     } else if (reg == NULL) {
-//         return TCL_ERROR;
-//     } else {
-//         sqlite_int64 id = atoll(Tcl_GetString(objv[2]));
-//         reg_error error;
-//         reg_snapshot* snapshot = NULL;
-//         int port_count = reg_snapshot_get(snapshot, id, snapshot, &error);
-//         if (snapshot != NULL && port_count >= 0) {
-//             Tcl_Obj* resultObj;
-//             if (snapshot_to_obj(interp, &resultObj, snapshot, NULL, &error)) {
-//                 Tcl_SetObjResult(interp, resultObj);
-//                 return TCL_OK;
-//             }
-//         }
-//         return registry_failed(interp, &error);
-//     }
-// }
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc > 3) {
+        Tcl_WrongNumArgs(interp, 2, objv, "get_by_id ?snapshot_id?");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        sqlite_int64 id = atoll(Tcl_GetString(objv[2]));
+        reg_error error;
+        reg_snapshot* snapshot = reg_snapshot_open(reg, id, &error);
+        if (snapshot != NULL) {
+            Tcl_Obj* result;
+            if (snapshot_to_obj(interp, &result, snapshot, NULL, &error)) {
+                Tcl_SetObjResult(interp, result);
+                return TCL_OK;
+            }
+        }
+        return registry_failed(interp, &error);
+    }
+}
 
 typedef struct {
     char* name;
@@ -129,7 +130,7 @@ typedef struct {
 static snapshot_cmd_type snapshot_cmds[] = {
     /* Global commands */
     { "create", snapshot_create},
-    // { "get_by_id", get_snapshot_by_id},
+    { "get_by_id", snapshot_get},
     { NULL, NULL }
 };
 
