@@ -68,6 +68,54 @@ int get_parsed_variants(char* variants_str, variant* all_variants,
 }
 
 /**
+ * Opens an existing snapshot in the registry.
+ * NOTE: This function is actually not required but only to make sure that
+ *       the user has input a valid sqlite id for snapshot
+ *
+ * @param [in] reg      registry to open snapshot in
+ * @param [in] id       snapshot id as in registrydb
+ * @param [out] errPtr  on error, a description of the error that occurred
+ * @return              the snapshot if success; NULL if failure
+ */
+reg_snapshot* reg_snapshot_open(reg_registry* reg, sqlite_int64 id, reg_error* errPtr) {
+    sqlite3_stmt* stmt = NULL;
+    reg_snapshot* snapshot = NULL;
+    int lower_bound = 0;
+    char* query = "SELECT id FROM registry.snapshots WHERE id=?";
+    if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_int64(stmt, 1, id) == SQLITE_OK)) {
+        int r;
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_ROW:
+                    snapshot = (reg_snapshot*)malloc(sizeof(reg_snapshot));
+                    snapshot->id = sqlite3_column_int64(stmt, 0);
+                    snapshot->reg = reg;
+                    snapshot->proc = NULL;
+                    break;
+                case SQLITE_DONE:
+                    errPtr->code = REG_NOT_FOUND;
+                    errPtr->description = sqlite3_mprintf("no snapshot found for id=%s", id);
+                    errPtr->free = (reg_error_destructor*) sqlite3_free;
+                    break;
+                case SQLITE_BUSY:
+                    continue;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
+            }
+        } while (r == SQLITE_BUSY);
+    } else {
+        reg_sqlite_error(reg->db, errPtr, query);
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+    return snapshot;
+}
+
+/**
  * Creates a new snapshot in the snapshots registry.
  *
  * @param [in] reg      the registry to create the entry in
@@ -100,13 +148,12 @@ reg_snapshot* reg_snapshot_create(reg_registry* reg, char* note, reg_error* errP
 
                         switch (ports_saved) {
                             case 1:
-                                // TODO: pass the custom SUCCESS messages
+                                // TODO: pass the custom SUCCESS message
                                 break;
                             case 0:
                                 reg_sqlite_error(reg->db, errPtr, query);
                                 break;
                         }
-
                     }
                     break;
                 case SQLITE_BUSY:
