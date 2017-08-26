@@ -61,23 +61,21 @@ namespace eval migrate {
         #     set snapshot [fetch_latest_snapshot]
         # }
 
-        puts "here 1"
-
         # create a snapshot
-        ui_msg "Taking a snapshot of the current state.."
+        ui_msg "$macports::ui_prefix  Taking a snapshot of the current state.."
         set snapshot [snapshot::main $opts]
         set note [$snapshot note]
         set datetime [$snapshot created_at]
-        ui_msg "Done: snapshot '$note' created at $datetime"
+        ui_msg "$macports::ui_prefix  Done: snapshot '$note' created at $datetime"
 
-        ui_msg "Fetching ports.."
-        set portlist1 [$snapshot ports]
+        ui_msg "$macports::ui_prefix  Fetching ports.."
+        set portlist [$snapshot ports]
 
-        ui_msg "Uninstalling all ports.."
-        uninstall_installed $portlist1
+        ui_msg "$macports::ui_prefix  Uninstalling all ports.."
+        uninstall_installed [registry::entry imaged]
 
-        ui_msg "Restoring the original state.."
-        recover_ports_state $portlist1
+        ui_msg "$macports::ui_prefix  Restoring the original state.."
+        recover_ports_state $portlist
 
         # TODO: CLEAN PARTIAL BUILDS STEP HERE
     }
@@ -93,6 +91,15 @@ namespace eval migrate {
 
     proc portlist_sort_dependencies_first {portlist} {
 
+        # Sorts a list of port references such that ports appear after
+        # their dependencies. Ideal for installing a port.
+        #
+        # Args:
+        #       portlist - the list of port references
+        #
+        # Returns:
+        #       the list in dependency-sorted order
+
         array set port_installed {}
         array set port_deps {}
         array set port_in_list {}
@@ -103,6 +110,9 @@ namespace eval migrate {
 
             set name [lindex $port 0]
             set requested [lindex $port 1]
+            if {$requested eq 0} {
+                continue
+            }
             set active 0
             if {[lindex $port 2] eq "installed"} {
                 set active 1
@@ -205,7 +215,7 @@ namespace eval migrate {
     proc portlist_sort_dependencies_later {portlist} {
 
         # Sorts a list of port references such that ports come before
-        # their dependencies.
+        # their dependencies. Ideal for uninstalling a port.
         #
         # Args:
         #       portlist - the list of port references
@@ -214,9 +224,8 @@ namespace eval migrate {
         #       the list in dependency-sorted order
 
         foreach port $portlist {
-            set portname [lindex $port 0]
+            set portname [$port name]
             lappend entries($portname) $port
-
             # Avoid adding ports in loop
             if {![info exists dependents($portname)]} {
                 set dependents($portname) {}
@@ -255,7 +264,7 @@ namespace eval migrate {
 
         if {[info exists macports::ui_options(questions_yesno)]} {
 
-            set msg "Migration will first uninstall all the installed ports first."
+            set msg "Migration will first uninstall all the installed ports."
             set retvalue [$macports::ui_options(questions_yesno) $msg "MigrationPrompt" "" {y} 0 "Would you like to continue?"]
 
             if {$retvalue == 0} {
@@ -281,7 +290,6 @@ namespace eval migrate {
     proc recover_ports_state {portlist} {
 
         set sorted_portlist [portlist_sort_dependencies_first $portlist]
-
         foreach port $sorted_portlist {
             puts "$port"
         }
@@ -314,8 +322,11 @@ namespace eval migrate {
             array unset portinfo
             array set portinfo [lindex $res 1]
             set porturl $portinfo(porturl)
+
+            set options(ports_requested) 1
+            set options(subport) $portinfo(name)
             
-            if {[catch {set workername [mportopen $porturl [list subport $portinfo(name)] $variations]} result]} {
+            if {[catch {set workername [mportopen $porturl [array get options] $variations]} result]} {
                 global errorInfo
                 puts stderr "$errorInfo"
                 return -code error "Unable to open port '$name': $result"
