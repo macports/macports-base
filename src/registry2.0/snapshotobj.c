@@ -40,11 +40,34 @@
 #include "util.h"
 
 const char* snapshot_props[] = {
+    "id",
     "note",
     "ports",
     "created_at",
     NULL
 };
+
+/* ${snapshot} id */
+static int snapshot_obj_id(Tcl_Interp* interp, reg_snapshot* snapshot, int objc,
+        Tcl_Obj* CONST objv[]) {
+    int index;
+    if (objc > 3) {
+        Tcl_WrongNumArgs(interp, 2, objv, "?value?");
+        return TCL_ERROR;
+    }
+    if (objc == 2) {
+        /* ${snapshot} id; return the current value */
+        char value[sizeof(snapshot->id)+1];
+        sprintf(value, "%lld", snapshot->id);
+        if (Tcl_GetIndexFromObj(interp, objv[1], snapshot_props, "prop", 0, &index)
+                == TCL_OK) {
+            Tcl_Obj* result = Tcl_NewStringObj(value, -1);
+            Tcl_SetObjResult(interp, result);
+            return TCL_OK;
+        }
+    }
+    return TCL_ERROR;
+}
 
 /* ${snapshot} prop */
 static int snapshot_obj_prop(Tcl_Interp* interp, reg_snapshot* snapshot, int objc,
@@ -73,7 +96,6 @@ static int snapshot_obj_prop(Tcl_Interp* interp, reg_snapshot* snapshot, int obj
             }
             return registry_failed(interp, &error);
         }
-        return TCL_ERROR;
     }
     return TCL_ERROR;
 }
@@ -127,8 +149,6 @@ static int snapshot_obj_ports(Tcl_Interp* interp, reg_snapshot* snapshot, int ob
                 }
             }
             return registry_failed(interp, &error);
-        } else {
-            return TCL_ERROR;
         }
     }
     return TCL_ERROR;
@@ -142,6 +162,7 @@ typedef struct {
 
 static snapshot_obj_cmd_type snapshot_cmds[] = {
     /* keys */
+    { "id", snapshot_obj_id },
     { "note", snapshot_obj_prop },
     { "created_at", snapshot_obj_prop },
     /* ports */
