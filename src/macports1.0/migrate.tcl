@@ -1,5 +1,5 @@
-#!@TCLSH@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# migrate.tcl
 #
 # Copyright (c) 2017 The MacPorts Project
 # All rights reserved.
@@ -32,13 +32,10 @@ package provide migrate 1.0
 
 package require macports 1.0
 package require registry 1.0
-package require Pextlib 1.0
 package require snapshot 1.0
 package require restore 1.0
-package require registry_uninstall 2.0
 
 namespace eval migrate {
-
     proc main {opts} {
         # The main function. Calls each individual function that needs to be run.
         #
@@ -50,18 +47,18 @@ namespace eval migrate {
         array set options $opts
 
         # create a snapshot
-        ui_msg "$macports::ui_prefix Taking a snapshot of the current state.."
+        ui_msg ":: Taking a snapshot of the current state.."
         set snapshot [snapshot::main $opts]
         set id [$snapshot id]
         set note [$snapshot note]
         set datetime [$snapshot created_at]
-        ui_msg "$macports::ui_prefix Done: snapshot '$id':'$note' created at $datetime"
+        ui_msg ":: Done: snapshot '$id':'$note' created at $datetime"
 
         if {[info exists macports::ui_options(questions_yesno)]} {
             set msg "Migration will first uninstall all the installed ports and then reinstall."
             set retvalue [$macports::ui_options(questions_yesno) $msg "MigrationPrompt" "" {y} 0 "Would you like to continue?"]
             if {$retvalue == 0} {
-                ui_msg "$macports::ui_prefix Uninstalling all ports.."
+                ui_msg ":: Uninstalling all ports.."
                 uninstall_installed [registry::entry imaged]
             } else {
                 ui_msg "Not uninstalling ports."
@@ -69,10 +66,10 @@ namespace eval migrate {
             }
         }
 
-        ui_msg "$macports::ui_prefix Fetching ports to install.."
+        ui_msg ":: Fetching ports to install.."
         set snapshot_portlist [$snapshot ports]
 
-        ui_msg "$macports::ui_prefix Restoring the original state.."
+        ui_msg ":: Restoring the original state.."
         restore::restore_state $snapshot_portlist
 
         # TODO: CLEAN PARTIAL BUILDS STEP HERE
