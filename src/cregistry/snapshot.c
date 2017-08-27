@@ -519,6 +519,7 @@ int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* err
         }
     }
     reg_sqlite_error(reg->db, errPtr, query);
+    return -1;
 }
 
 /**
