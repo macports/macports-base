@@ -1,5 +1,5 @@
-#!@TCLSH@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# restore.tcl
 #
 # Copyright (c) 2017 The MacPorts Project
 # All rights reserved.
@@ -54,10 +54,10 @@ namespace eval restore {
             }
         }
 
-        ui_msg "$macports::ui_prefix Deactivating all ports installed.."
+        ui_msg ":: Deactivating all ports installed.."
         deactivate_all
 
-        ui_msg "$macports::ui_prefix Restoring the selected snapshot.."
+        ui_msg ":: Restoring the selected snapshot.."
         restore_state [$snapshot ports]
     }
 
@@ -119,8 +119,10 @@ namespace eval restore {
         set portlist [portlist_sort_dependencies_later [registry::entry imaged]]
         foreach port $portlist {
             ui_msg "Deactivating: [$port name]"
-            if {[registry::run_target $port deactivate]} {
-                continue
+            if {[$port state] eq "installed"} {
+                if {[registry::run_target $port deactivate {}]} {
+                    continue
+                }
             }
         }
     }
@@ -301,5 +303,4 @@ namespace eval restore {
             # TODO: some ports may get re-activated to fulfil dependencies - recheck?
         }
     }
-    
 }
