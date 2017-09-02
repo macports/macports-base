@@ -37,43 +37,47 @@ package require restore 1.0
 
 namespace eval migrate {
     proc main {opts} {
-        # The main function. Calls each individual function that needs to be run.
+        # The main function. Calls each individual step in order.
         #
         # Args:
         #           opts - options array.
         # Returns:
-        #           None
+        #           0 if success
 
         array set options $opts
 
         # create a snapshot
-        ui_msg ":: Taking a snapshot of the current state.."
+        ui_msg "Taking a snapshot of the current state.."
         set snapshot [snapshot::main $opts]
         set id [$snapshot id]
         set note [$snapshot note]
         set datetime [$snapshot created_at]
-        ui_msg ":: Done: snapshot '$id':'$note' created at $datetime"
+        ui_msg "Done: snapshot '$id':'$note' created at $datetime"
 
         if {[info exists macports::ui_options(questions_yesno)]} {
             set msg "Migration will first uninstall all the installed ports and then reinstall."
             set retvalue [$macports::ui_options(questions_yesno) $msg "MigrationPrompt" "" {y} 0 "Would you like to continue?"]
-            if {$retvalue == 0} {
-                ui_msg ":: Uninstalling all ports.."
-                uninstall_installed [registry::entry imaged]
-            } else {
+            if {$retvalue == 1} {
+                # quit as user answered 'no'
                 ui_msg "Not uninstalling ports."
                 return 0
             }
         }
 
-        ui_msg ":: Fetching ports to install.."
+        ui_msg "Uninstalling all ports.."
+        uninstall_installed [registry::entry imaged]
+
+        ui_msg "Upgrading macports.."
+        upgrade_port_command
+
+        ui_msg "Fetching ports to install.."
         set snapshot_portlist [$snapshot ports]
 
-        ui_msg ":: Restoring the original state.."
+        ui_msg "Restoring the original state.."
         restore::restore_state $snapshot_portlist
 
         # TODO: CLEAN PARTIAL BUILDS STEP HERE
-        return 1
+        return 0
     }
 
     proc uninstall_installed {portlist} {
@@ -86,5 +90,9 @@ namespace eval migrate {
                 ui_error "Error uninstalling [$port name]"
             }
         }
+    }
+
+    proc upgrade_port_command {} {
+
     }
 }

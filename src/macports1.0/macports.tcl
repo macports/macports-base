@@ -4445,8 +4445,7 @@ proc macports::migrate_main {opts} {
     # Returns:
     #           0 on successful execution.
 
-    migrate::main $opts
-    return 0
+    return [migrate::main $opts]
 }
 
 ##
