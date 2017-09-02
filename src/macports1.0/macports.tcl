@@ -4418,8 +4418,7 @@ proc macports::snapshot_main {opts} {
     # Returns:
     #           0 on successful execution.
 
-    snapshot::main $opts
-    return 0
+    return [snapshot::main $opts]
 }
 
 # restores a snapshot.
@@ -4432,8 +4431,7 @@ proc macports::restore_main {opts} {
     # Returns:
     #           0 on successful execution.
 
-    restore::main $opts
-    return 0
+    return [restore::main $opts]
 }
 
 proc macports::migrate_main {opts} {

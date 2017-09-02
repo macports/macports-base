@@ -35,7 +35,7 @@ package require registry 1.0
 
 namespace eval snapshot {
 	proc main {opts} {
-		# The main function. Handles all the calls to the correct functions.
+		# Function to create a snapshot of the current state of ports.
         #
         # Args:
         #           opts - The options passed in.
@@ -52,6 +52,7 @@ namespace eval snapshot {
             } else {
                 set note "snapshot created for migration"
             }
+            # TODO: catch
             set snapshot [registry::snapshot create $note]
         }
         return $snapshot

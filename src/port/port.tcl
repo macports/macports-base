@@ -2802,19 +2802,16 @@ proc action_reclaim { action portlist opts } {
 
 }
 
-proc action_snapshot { action portlist opts} {
-	macports::snapshot_main $opts
-	return 0
+proc action_snapshot { action portlist opts } {
+	return [macports::snapshot_main $opts]
 }
 
-proc action_restore { action portlist opts} {
-    macports::restore_main $opts
-    return 0
+proc action_restore { action portlist opts } {
+    return [macports::restore_main $opts]
 }
 
-proc action_migrate { action portlist opts} {
-    macports::migrate_main $opts
-    return 0
+proc action_migrate { action portlist opts } {
+    return [macports::migrate_main $opts]
 }
 
 proc action_upgrade { action portlist opts } {
