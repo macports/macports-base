@@ -55,7 +55,7 @@ namespace eval migrate {
         ui_msg "Done: snapshot '$id':'$note' created at $datetime"
 
         if {[info exists macports::ui_options(questions_yesno)]} {
-            set msg "Migration will first uninstall all the installed ports and then reinstall."
+            set msg "Migration will first uninstall all the installed ports, upgrade MacPorts and then reinstall them again."
             set retvalue [$macports::ui_options(questions_yesno) $msg "MigrationPrompt" "" {y} 0 "Would you like to continue?"]
             if {$retvalue == 1} {
                 # quit as user answered 'no'
@@ -67,7 +67,7 @@ namespace eval migrate {
         ui_msg "Uninstalling all ports.."
         uninstall_installed [registry::entry imaged]
 
-        ui_msg "Upgrading macports.."
+        ui_msg "Upgrading MacPorts.."
         upgrade_port_command
 
         ui_msg "Fetching ports to install.."
