@@ -34,6 +34,7 @@ package require macports 1.0
 package require registry 1.0
 package require snapshot 1.0
 package require restore 1.0
+package require selfupdate 1.0
 
 namespace eval migrate {
     proc main {opts} {
@@ -93,6 +94,8 @@ namespace eval migrate {
     }
 
     proc upgrade_port_command {} {
-
+        set optionslist {}
+        set updatestatusvar {}
+        return [uplevel [list selfupdate::main $optionslist $updatestatusvar]]
     }
 }
