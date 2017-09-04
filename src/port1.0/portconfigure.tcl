@@ -419,10 +419,14 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         return $sdk
     }
 
-    if {![catch {set sdk [exec xcrun --sdk macosx --show-sdk-path 2> /dev/null]}]} {
-        ui_warn "Unable to determine location of the macOS ${sdk_version} SDK.  Using the default macOS SDK."
-        return $sdk
-    }
+    # TODO: Support falling back to "macosx" if it is present?
+    #       This leads to problems when it is newer than the base OS because many OSS assume that
+    #       the SDK version matches the deployment target, so they unconditionally try to use
+    #       symbols that are only available on newer OS versions..
+    #if {![catch {set sdk [exec xcrun --sdk macosx --show-sdk-path 2> /dev/null]}]} {
+    #    ui_warn "Unable to determine location of the macOS ${sdk_version} SDK.  Using the default macOS SDK."
+    #    return $sdk
+    #}
 
     ui_warn "Unable to determine location of a macOS SDK.  Compilation will likely fail."
 
