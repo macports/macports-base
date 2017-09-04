@@ -428,9 +428,8 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
     #    return $sdk
     #}
 
-    ui_warn "Unable to determine location of a macOS SDK.  Compilation will likely fail."
-
-    return {}
+    ui_error "Unable to determine location of a macOS SDK."
+    return -code error "Unable to determine location of a macOS SDK."
 }
 
 # internal function to determine the "-arch xy" flags for the compiler
