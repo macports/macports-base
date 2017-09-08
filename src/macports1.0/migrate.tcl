@@ -48,12 +48,12 @@ namespace eval migrate {
         array set options $opts
 
         # create a snapshot
-        ui_msg "Taking a snapshot of the current state.."
+        ui_msg "Taking a snapshot of the current state..."
         set snapshot [snapshot::main $opts]
         set id [$snapshot id]
         set note [$snapshot note]
         set datetime [$snapshot created_at]
-        ui_msg "Done: snapshot '$id':'$note' created at $datetime"
+        ui_msg "Done: Snapshot '$id':'$note' created at $datetime"
 
         if {[info exists macports::ui_options(questions_yesno)]} {
             set msg "Migration will first uninstall all the installed ports, upgrade MacPorts and then reinstall them again."
@@ -65,27 +65,28 @@ namespace eval migrate {
             }
         }
 
-        ui_msg "Uninstalling all ports.."
-        uninstall_installed [registry::entry imaged]
+        ui_msg "Uninstalling all ports..."
+        uninstall_installed
 
-        ui_msg "Upgrading MacPorts.."
+        ui_msg "Upgrading MacPorts..."
         upgrade_port_command
 
-        ui_msg "Fetching ports to install.."
+        ui_msg "Fetching ports to install..."
         set snapshot_portlist [$snapshot ports]
 
-        ui_msg "Restoring the original state.."
+        ui_msg "Restoring the original state..."
         restore::restore_state $snapshot_portlist
 
         # TODO: CLEAN PARTIAL BUILDS STEP HERE
         return 0
     }
 
-    proc uninstall_installed {portlist} {
-        set portlist [portlist_sort_dependencies_later [registry::entry imaged]]
+    proc uninstall_installed {} {
+        set options {}
+        set portlist [restore::portlist_sort_dependencies_later [registry::entry imaged]]
         foreach port $portlist {
             ui_msg "Uninstalling: [$port name]"
-            if {[registry::run_target $port uninstall]} {
+            if {[registry::run_target $port uninstall $options]} {
                 continue
             } else {
                 ui_error "Error uninstalling [$port name]"
@@ -94,8 +95,12 @@ namespace eval migrate {
     }
 
     proc upgrade_port_command {} {
-        set optionslist {}
+        array set optionslist {}
+        # forced selfupdate
+        set optionslist(ports_force) 1
+        # shouldn't sync ports tree
+        set optionslist(ports_selfupdate_nosync) 1
         set updatestatusvar {}
-        return [uplevel [list selfupdate::main $optionslist $updatestatusvar]]
+        return [uplevel [list selfupdate::main [array get optionslist] $updatestatusvar]]
     }
 }
