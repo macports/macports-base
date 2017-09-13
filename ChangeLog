@@ -9,6 +9,13 @@ Release 2.5.0 (????-??-?? by ?)
     - livecheck.regex is matched case-insensitive.
       (khindenburg in 0310feb5)
 
+Release 2.4.2 (2017-09-?? by ?)
+    - Use copyfile(3) with COPYFILE_CLONE for SIP workaround in trace mode.
+      (raimue in 3d4c9b34)
+
+    - Fix memory leak in 'port reclaim'
+      (#54156, mojca in c2df3cc9)
+
 Release 2.4.1 (2017-02-26 by jmr)
     - Avoid an infinite loop when livecheck.regex is empty.
       (raimue in d33a8a0)
