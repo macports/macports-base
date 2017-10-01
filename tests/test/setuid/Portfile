@@ -1,0 +1,31 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+PortSystem          1.0
+
+name                setuid
+version             0
+categories          test
+maintainers         nomaintainer
+homepage            https://www.macports.org/
+platforms           darwin
+
+description         Test for the setuid bit
+long_description    ${description}
+
+distfiles
+use_configure       no
+
+extract {
+    file mkdir ${worksrcpath}
+    file copy ${filespath}/test.sh ${worksrcpath}
+}
+
+build.cmd ${worksrcpath}/test.sh
+
+destroot {
+    touch ${destroot}${prefix}/lib/${name}
+}
+
+test {
+    # test is actually running build target
+}

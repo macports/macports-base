@@ -1,0 +1,4 @@
+This test checks for successfully setting setuid bits in the port build phase.
+This was initially broken on macOS 10.13 High Sierra.
+
+https://trac.macports.org/ticket/54963
