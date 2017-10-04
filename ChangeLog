@@ -2,6 +2,19 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.4.2 (2017-09-?? by ?)
+    - Sandbox prevented ports to set suid permission bit on High Sierra.
+      (#54963, raimue in d72ad486)
+
+    - Change compiler and SDK selection rules for Sierra and High Sierra.
+      (#54504, ryandesign, jeremyhu in 7eccb87a, b1b1ea0b)
+
+    - Use copyfile(3) with COPYFILE_CLONE for SIP workaround in trace mode.
+      (raimue in 3d4c9b34)
+
+    - Fix memory leak in 'port reclaim'.
+      (#54156, mojca in c2df3cc9)
+
 Release 2.4.1 (2017-02-26 by jmr)
     - Avoid an infinite loop when livecheck.regex is empty.
       (raimue in d33a8a0)
