@@ -139,7 +139,7 @@ startupitem_type::
     Set the default type of startupitems to be generated, overridable by
     Portfiles that explicitly state a startupitem.type key. If set to "default",
     then a type will be selected that's appropriate to the OS.
-    *Supported types:*;; none, SystemStarter, launchd, default, rcNG.
+    *Supported types:*;; none, launchd, default, rcNG.
     *Default:*;; default
 
 destroot_umask::

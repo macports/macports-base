@@ -121,7 +121,6 @@ universal_archs     	@UNIVERSAL_ARCHS@
 
 # Type of generated StartupItems.
 # - launchd: Create StartupItems for use with launchd.
-# - systemstarter: Create StartupItems for use with SystemStarter.
 # - rcng: Create StartupItems for use with the rc.d system.
 # - default: Create StartupItems for launchd on OS X and for rc.d on
 #   other platforms.

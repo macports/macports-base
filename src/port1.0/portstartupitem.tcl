@@ -55,12 +55,10 @@
 #   startupitem.logfile     logpath
 #       Log to the specified file -- if not specified then output to /dev/null
 #       - for launchd, just set this as the standard out key
-#       - for systemstarter, redirect to this
 #
 #   startupitem.logevents   yes/no
 #       Log events to the log
 #       - for launchd, generate log messages inside daemondo
-#       - for systemstarter, generate log messages in our generated script
 #
 #   startupitem.autostart   yes/no
 #       Automatically load the startupitem after activating. Defaults to no.
@@ -118,291 +116,6 @@ proc portstartupitem::startupitem_create_rcng {args} {
     puts ${fd} ""
     puts ${fd} "run_rc_command \"\$1\""
     close ${fd}
-}
-
-proc portstartupitem::startupitem_create_darwin_systemstarter {args} {
-    global UI_PREFIX prefix destroot destroot.keepdirs subport os.platform \
-           startupitem.name startupitem.requires startupitem.init \
-           startupitem.start startupitem.stop startupitem.restart startupitem.executable \
-           startupitem.pidfile startupitem.logfile startupitem.logevents \
-           startupitem.autostart
-    
-    set scriptdir ${prefix}/etc/startup
-    
-    set itemname            ${startupitem.name}
-    set uppername           [string toupper ${startupitem.name}]
-    if {[getuid] == 0} {
-        set itemdir         /Library/StartupItems/${itemname}
-    } else {
-        set itemdir         ${prefix}/Library/StartupItems/${itemname}
-    }
-    set startupItemDir      ${destroot}${itemdir}
-    set startupItemScript   ${startupItemDir}/${itemname}
-    set startupItemPlist    ${startupItemDir}/StartupParameters.plist
-    
-    # Interpret the pidfile spec
-    #
-    # There are four cases:
-    #   (1) none (or none specified)
-    #   (2) auto [pidfilename]
-    #   (3) clean [pidfilename]
-    #   (4) manual [pidfilename]
-    #
-    set createPidFile false
-    set deletePidFile false
-    set pidFile ""
-    set pidfileArgCnt [llength ${startupitem.pidfile}]
-    if { ${pidfileArgCnt} > 0 } {
-        if { $pidfileArgCnt == 1 } {
-            set pidFile "${prefix}/var/run/${itemname}.pid"
-            lappend destroot.keepdirs "${destroot}${prefix}/var/run"
-        } else {
-            set pidFile [lindex ${startupitem.pidfile} 1]
-        }
-        if { $pidfileArgCnt > 2 } {
-            ui_error "$UI_PREFIX [msgcat::mc "Invalid parameter count to startupitem.pidfile: 2 expected, %d found" ${pidfileArgCnt}]"
-        }
-        
-        set pidStyle [lindex ${startupitem.pidfile} 0]
-        switch ${pidStyle} {
-            none    { set createPidFile false; set deletePidFile false; set pidFile ""  }
-            auto    { set createPidFile false; set deletePidFile false  }
-            clean   { set createPidFile false; set deletePidFile true   }
-            manual  { set createPidFile true;  set deletePidFile true   }
-            default {
-                ui_error "$UI_PREFIX [msgcat::mc "Unknown pidfile style %s presented to startupitem.pidfile" ${pidStyle}]"
-            }
-        }
-    }
-
-    if { [llength ${startupitem.executable}] && 
-      ![llength ${startupitem.init}] &&
-      ![llength ${startupitem.start}] &&
-      ![llength ${startupitem.stop}] &&
-      ![llength ${startupitem.restart}] } {
-        # An executable is specified, and there is no init, start, stop, or restart
-    } else {
-        if { ![llength ${startupitem.start} ] } {
-            set startupitem.start [list "sh ${scriptdir}/${subport}.sh start"]
-        }
-        if { ![llength ${startupitem.stop} ] } {
-            set startupitem.stop [list "sh ${scriptdir}/${subport}.sh stop"]
-        }
-    }
-    if { ![llength ${startupitem.requires} ] } {
-        set startupitem.requires [list Disks NFS]
-    }
-    if { ![llength ${startupitem.logfile} ] } {
-        set startupitem.logfile "/dev/null"
-    }
-    
-    ########################
-    # Create the startup item directory
-    file mkdir ${startupItemDir}
-    if {[getuid] == 0} {
-        file attributes ${startupItemDir} -owner root -group wheel
-    }
-    
-    ########################
-    # Generate the startup item script
-    set item [open "${startupItemScript}" w 0755]
-    if {[getuid] == 0} {
-        file attributes "${startupItemScript}" -owner root -group wheel
-    }
-    
-    # Emit the header
-    puts ${item} {#!/bin/sh
-#
-# MacPorts generated StartupItem
-#
-
-    }
-    puts ${item} "prefix=$prefix"
-    # Source the utilities package and the MacPorts config file
-    puts ${item} {[ -r "/etc/rc.common" ] && . "/etc/rc.common"}
-    puts ${item} {[ -r "${prefix}/etc/rc.conf" ] && . "${prefix}/etc/rc.conf"}
-
-    # Emit the Configuration Section
-    puts ${item} "NAME=${itemname}"
-    puts ${item} "ENABLE_FLAG=\${${uppername}:=-NO-}"
-    puts ${item} "PIDFILE=\"${pidFile}\""
-    puts ${item} "LOGFILE=\"${startupitem.logfile}\""
-    puts ${item} "EXECUTABLE=\"${startupitem.executable}\""
-    puts ${item} ""
-    puts ${item} "HAVE_STARTCMDS=[expr {[llength ${startupitem.start}] ? "true" : "false"}]"
-    puts ${item} "HAVE_STOPCMDS=[expr {[llength ${startupitem.stop}] ? "true" : "false"}]"
-    puts ${item} "HAVE_RESTARTCMDS=[expr {[llength ${startupitem.restart}] ? "true" : "false"}]"
-    puts ${item} "DELETE_PIDFILE=${createPidFile}"
-    puts ${item} "CREATE_PIDFILE=${deletePidFile}"
-    puts ${item} "LOG_EVENTS=[expr {[tbool ${startupitem.logevents}] ? "true" : "false"}]"
-    puts ${item} ""
-
-    # Emit the init lines
-    foreach line ${startupitem.init} { puts ${item} ${line} }
-    puts ${item} ""
-    
-    # Emit the _Cmds
-    foreach kind { start stop restart } {
-        if {[llength [set "startupitem.$kind"]]} {
-            puts ${item} "${kind}Cmds () \{"
-            foreach line [set "startupitem.$kind"] {
-                puts ${item} "\t${line}"
-            }
-            puts ${item} "\}\n"
-        }
-    }
-    
-    # vvvvv START BOILERPLATE vvvvvv
-    # Emit the static boilerplate section
-    puts ${item} {
-IsEnabled () {
-    [ "${ENABLE_FLAG}" = "-YES-" ]
-    return $?
-}
-
-CreatePIDFile () {
-    echo $1 > "$PIDFILE"
-}
-
-DeletePIDFile () {
-    rm -f "$PIDFILE"
-}
-
-ReadPID () {
-    if [ -r "$PIDFILE" ]; then
-        read pid < "$PIDFILE"
-    else
-        pid=0
-    fi
-    echo $pid
-}
-
-CheckPID () {
-    pid=$(ReadPID)
-    if (($pid)); then
-        kill -0 $pid >& /dev/null || pid=0
-    fi
-    echo $pid
-}
-
-NoteEvent () {
-    ConsoleMessage "$1"
-    $LOG_EVENTS && [ -n "$LOGFILE" ] && echo "$(date) $NAME: $1" >> $LOGFILE
-}
-
-StartService () {
-    if IsEnabled; then
-        NoteEvent "Starting $NAME"
-        
-        if $HAVE_STARTCMDS; then
-            startCmds
-        elif [ -n "$EXECUTABLE" ]; then
-            $EXECUTABLE &
-            pid=$!
-            if $CREATE_PIDFILE; then
-                CreatePIDFile $pid
-            fi
-        fi
-        
-    fi
-}
-
-StopService () {
-    NoteEvent "Stopping $NAME"
-    
-    gaveup=false
-    if $HAVE_STOPCMDS; then
-        # If we have stop cmds, use them
-        stopCmds
-    else        
-        # Otherwise, get the pid and try to stop the program
-        echo -n "Stopping $NAME..."
-        
-        pid=$(CheckPID)
-        if (($pid)); then
-            # Try to kill the process with SIGTERM
-            kill $pid
-            
-            # Wait for it to really stop
-            for ((CNT=0; CNT < 15 && $(CheckPID); ++CNT)); do
-                echo -n "."
-                sleep 1
-            done
-            
-            # Report status
-            if (($(CheckPID))); then
-                gaveup=true
-                echo "giving up."
-            else
-                echo "stopped."
-            fi
-        else
-            echo "it's not running."
-        fi
-    fi
-    
-    # Cleanup the pidfile if we've been asked to
-    if ! $gaveup && $DELETE_PIDFILE; then
-        DeletePIDFile
-    fi
-}
-
-RestartService () {
-    if IsEnabled; then
-        NoteEvent "Restarting $NAME"
-        
-        if $HAVE_RESTARTCMDS; then
-            # If we have restart cmds, use them
-            restartCmds
-        else
-            # Otherwise just stop/start it
-            StopService
-            StartService
-        fi
-        
-    fi
-}
-
-RunService "$1"
-    }
-    # ^^^^^^ END BOILERPLATE ^^^^^^
-    
-    close ${item}
-    
-    ########################
-    # Generate the plist
-    set para [open "${startupItemPlist}" w 0644]
-    if {[getuid] == 0} {
-        file attributes "${startupItemPlist}" -owner root -group wheel
-    }
-    
-    puts ${para} "\{"
-    puts ${para} "\tDescription\t= \"${itemname}\";"
-    puts ${para} "\tProvides\t= (\"${itemname}\");"
-    puts -nonewline ${para} "\tRequires\t= ("
-    puts -nonewline ${para} [format {"%s"} [join ${startupitem.requires} {", "}]]
-    puts ${para} ");"
-    puts ${para} "\tOrderPreference\t= \"None\";"
-    puts ${para} "\}"
-    close ${para}
-    
-    # Emit some information for the user
-    if {[tbool startupitem.autostart]} {
-        ui_notice "###########################################################"
-        ui_notice "# A startup item has been generated that will aid in"
-        ui_notice "# starting ${subport} with SystemStarter. It will be"
-        ui_notice "# started automatically on activation."
-        ui_notice "###########################################################"
-    } else {
-        ui_notice "###########################################################"
-        ui_notice "# A startup item has been generated that will aid in"
-        ui_notice "# starting ${subport} with SystemStarter. It is disabled"
-        ui_notice "# by default. Add the following line to /etc/hostconfig"
-        ui_notice "# or ${prefix}/etc/rc.conf to start it at startup:"
-        ui_notice "#"
-        ui_notice "# ${uppername}=-YES-"
-        ui_notice "###########################################################"
-    }
 }
 
 proc portstartupitem::startupitem_create_darwin_launchd {args} {
@@ -660,12 +373,7 @@ proc portstartupitem::startupitem_create {args} {
     if {${startupitem.type} eq "default" || ${startupitem.type} eq ""} {
         switch -exact ${os.platform} {
             darwin {
-                set haveLaunchd ${portutil::autoconf::have_launchd}
-                if { [tbool haveLaunchd] } {
-                    set startupitem.type "launchd"
-                } else {
-                    set startupitem.type "systemstarter"
-                }
+                set startupitem.type "launchd"
             }
             default {
                 set startupitem.type "rcng"
@@ -680,7 +388,6 @@ proc portstartupitem::startupitem_create {args} {
 
         switch -- ${startupitem.type} {
             launchd         { startupitem_create_darwin_launchd }
-            systemstarter   { startupitem_create_darwin_systemstarter }
             rcng            { startupitem_create_rcng }
             default         { ui_error "$UI_PREFIX [msgcat::mc "Unrecognized startupitem type %s" ${startupitem.type}]" }
         }
