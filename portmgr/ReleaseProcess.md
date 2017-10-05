@@ -235,6 +235,20 @@ cron job that makes the code available via rsync. See
 [`jobs/mprsyncup`][mprsyncup] in the macports-infra repository.
 
 
+### Make the Release Available for Pull Request Checks on Travis CI ###
+
+To make the new release available for testing pull requests on
+[Travis CI](https://travis-ci.org/macports), update the travis-ci branch by
+merging the newly tagged release into it.
+
+    $ git checkout travis-ci
+    $ git merge v2.0.0
+    $ git push origin travis-ci
+
+Verify that the new release has been built successfully on
+[Travis CI](https://travis-ci.org/macports/macports-base/branches).
+
+
 ### Notify the Public of the Release ###
 
 Once the release has been posted, notification of the release should be
