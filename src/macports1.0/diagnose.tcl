@@ -693,16 +693,8 @@ namespace eval diagnose {
         set path ${macports::user_path}
         set split [split $path :]
 
-        if {"$port_loc/bin" in $split && "$port_loc/sbin" in $split} {
-
-            if {[lindex $split 0] ne "$port_loc/bin"} {
-                ui_warn "$port_loc/bin is not first in your PATH environment variable.  This may or may not \
-                         cause problems in the future."
-            }
-            return
-
-        } else {
-            ui_warn "your \$PATH environment variable does not currently include $port_loc/bin, which is where port is located."
+        if {"$port_loc/bin" ni $split || "$port_loc/sbin" ni $split} {
+            ui_warn "Your \$PATH environment variable does not currently include $port_loc/bin or $port_loc/sbin"
 
             # XXX Only works for bash. Should set default profile_path based on the shell.
             if {[info exists macports::ui_options(questions_yesno)] && $shell_name eq "bash"} {
