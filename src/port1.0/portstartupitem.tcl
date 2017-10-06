@@ -331,17 +331,6 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
         ln -sf "${itemdir}/${plistname}" "${destroot}/Library/${daemondest}"
     }
 
-    # If launchd is not available, warn the user
-    set haveLaunchd ${portutil::autoconf::have_launchd}
-    if {![tbool haveLaunchd]} {
-        ui_notice "###########################################################"
-        ui_notice "# WARNING:"
-        ui_notice "# We're building a launchd startup item, but launchd wasn't"
-        ui_notice "# found by configure. Are you sure you didn't mess up your"
-        ui_notice "# macports.conf settings?"
-        ui_notice "###########################################################"
-    }
-    
     # Emit some information for the user
     if {[tbool startupitem.autostart]} {
         ui_notice "###########################################################"

@@ -173,8 +173,6 @@ AC_PATH_PROG(XCRUN, [xcrun], [])
 AC_PATH_PROG(XZ, [xz], [])
 AC_PATH_PROG(ZIP, [zip])
 
-AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [], [/sbin])
-
 if test "x$MTREE" = "x"; then
     AC_MSG_ERROR([mtree not found])
 fi
