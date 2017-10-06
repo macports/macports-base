@@ -227,8 +227,8 @@ proc portlint::lint_main {args} {
             set require_blank true
             set require_after "PortSystem"
         }
-        if {[string match "PortGroup*" $line]} {
-            regexp {PortGroup\s+([A-Za-z0-9_]+)\s+([0-9.]+)} $line -> portgroup portgroupversion
+        if {[string match "*PortGroup*" $line]} {
+            regexp {\s*PortGroup\s+([A-Za-z0-9_]+)\s+([0-9.]+)} $line -> portgroup portgroupversion
             if {![info exists portgroup]} {
                 ui_error "Line $lineno has unrecognized PortGroup"
                 incr errors
