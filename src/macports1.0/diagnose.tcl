@@ -696,6 +696,9 @@ namespace eval diagnose {
         if {"$port_loc/bin" ni $split || "$port_loc/sbin" ni $split} {
             ui_warn "Your \$PATH environment variable does not currently include $port_loc/bin or $port_loc/sbin"
 
+            ui_msg "Please refer to the guide on how to configure your shell:"
+            ui_msg "  https://guide.macports.org/#installing.shell"
+
             # XXX Only works for bash. Should set default profile_path based on the shell.
             if {[info exists macports::ui_options(questions_yesno)] && $shell_name eq "bash"} {
                 set retval [$macports::ui_options(questions_yesno) "" "DiagnoseFixPATH" "" n 0 "Would you like to add $port_loc/bin to your \$PATH variable now?"]
