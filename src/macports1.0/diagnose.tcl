@@ -707,7 +707,7 @@ namespace eval diagnose {
             # XXX Only works for bash. Should set default profile_path based on the shell.
             if {[info exists macports::ui_options(questions_yesno)] && $shell_name eq "bash"} {
                 set retval [$macports::ui_options(questions_yesno) "" "DiagnoseFixPATH" "" n 0 "Would you like to add $port_loc/bin to your \$PATH variable now?"]
-                if {$retval} {
+                if {$retval == 0} {
                     # XXX: this should use the same paths and comments as the
                     # postflight script of the pkg installer. Maybe they could even
                     # share code?
