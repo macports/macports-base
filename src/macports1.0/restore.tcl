@@ -36,33 +36,52 @@ package require snapshot 1.0
 
 namespace eval restore {
     proc main {opts} {
+        # The main function. If the action is provided a snapshot id, then it deactivates
+        # all the current ports and restores the specified snapshot.
+        #
+        # If '--last', then it assumes that this is a continution step of migration and
+        # no need of deactivating, since no ports exist. It simply sorts and installs the
+        # last snapshot ports
+        #
+        # If none, then it lists the last k (or all) snapshots with id for the user to
+        # choose from. Deactivates and installs the selected snapshot.
+        #
+        # Args:
+        #           opts - options array.
+        # Returns:
+        #           0 if success
 
         array set options $opts
 
-        if ([info exists options(ports_restore_snapshot-id)]) {
-            # use that snapshot
+        if {[info exists options(ports_restore_snapshot-id)]} {
+            # use the specified snapshot
             set snapshot [fetch_snapshot $options(ports_restore_snapshot-id)]
-            puts $snapshot
-            puts [$snapshot id]
-            puts [$snapshot note]
-            puts [$snapshot created_at]
-            puts [$snapshot ports]
+            ui_msg "Deactivating all ports installed.."
+            deactivate_all
+        } elseif {[info exists options(ports_restore_last)]} {
+            set snapshot [fetch_snapshot_last]
         } else {
             set list [list_snapshots]
-            foreach l $list {
-                puts "[$l id] : [$l note] [$l created_at]"
-            }
+            set retstring [$macports::ui_options(questions_singlechoice) "Select any one snapshot to restore:" "" $list]
+            set snapshot [lindex $list $retstring]
+
+            ui_msg "Deactivating all ports installed.."
+            deactivate_all
         }
 
         if {![check_port_command]} {
             return -code error "OS platform mismatch"
         }
 
-        ui_msg ":: Deactivating all ports installed.."
-        deactivate_all
+        ui_msg "Restoring snapshot '[$snapshot note]' created at [$snapshot created_at]"
 
-        ui_msg ":: Restoring the selected snapshot.."
+        ui_msg "Fetching ports to install..."
+        set snapshot_portlist [$snapshot ports]
+
+        ui_msg "Restoring the selected snapshot.."
         restore_state [$snapshot ports]
+
+        return 0
     }
 
     proc check_port_command {} {
@@ -72,7 +91,7 @@ namespace eval restore {
         set os_major [lindex [split $os_version .] 0]
         set os_platform [string tolower $tcl_platform(os)]
 
-        # Check that the current pla tform is the one we were configured for, otherwise need to do migration
+        # Check that the current platform is the one we were configured for, otherwise need to do migration
         if {($os_platform ne $macports::autoconf::os_platform) || ($os_major != $macports::autoconf::os_major)} {
             ui_error "Current platform \"$os_platform $os_major\" does not match expected platform \"$macports::autoconf::os_platform $macports::autoconf::os_major\""
             ui_error "If you upgraded your OS or changed the hardware architecture, you need to run 'port migrate' instead."
@@ -83,6 +102,10 @@ namespace eval restore {
 
     proc fetch_snapshot {snapshot_id} {
         return [registry::snapshot get_by_id $snapshot_id]
+    }
+
+    proc fetch_snapshot_last {} {
+        return [registry::snapshot get_last]
     }
 
     proc list_snapshots {} {

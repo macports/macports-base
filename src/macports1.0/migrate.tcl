@@ -53,7 +53,7 @@ namespace eval migrate {
         set id [$snapshot id]
         set note [$snapshot note]
         set datetime [$snapshot created_at]
-        ui_msg "Done: Snapshot '$id':'$note' created at $datetime"
+        ui_msg "Done: Snapshot '$id' : '$note' created at $datetime"
 
         if {[info exists macports::ui_options(questions_yesno)]} {
             set msg "Migration will first uninstall all the installed ports, upgrade MacPorts and then reinstall them again."
@@ -69,15 +69,13 @@ namespace eval migrate {
         uninstall_installed
 
         ui_msg "Upgrading MacPorts..."
-        upgrade_port_command
+        if {[catch {upgrade_port_command} result]} {
+            ui_debug $::errorInfo
+            ui_msg "Upgrading port command failed. Try running 'sudo port -v selfupdate' and then, 'sudo port restore --last'"
+            return 1
+        }
 
-        ui_msg "Fetching ports to install..."
-        set snapshot_portlist [$snapshot ports]
-
-        ui_msg "Restoring the original state..."
-        restore::restore_state $snapshot_portlist
-
-        # TODO: CLEAN PARTIAL BUILDS STEP HERE
+        ui_msg "You need to run 'port restore --last' to complete the migration."
         return 0
     }
 
