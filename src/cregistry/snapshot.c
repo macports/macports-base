@@ -157,7 +157,7 @@ reg_snapshot* reg_snapshot_open(reg_registry* reg, sqlite_int64 id, reg_error* e
 }
 
 /**
- * Lists all the existing snapshots in the registry for the user to choose
+ * Lists the existing snapshots in the registry for the user to choose
  * from, for restore action
  *
  * @param [in] reg         registry to search in
@@ -165,9 +165,9 @@ reg_snapshot* reg_snapshot_open(reg_registry* reg, sqlite_int64 id, reg_error* e
  * @param [out] errPtr     on error, a description of the error that occurred
  * @return                 the number of snapshots if success; false if failure
  */
-int reg_snapshot_list(reg_registry* reg, reg_snapshot*** snapshots, reg_error* errPtr) {
+int reg_snapshot_list(reg_registry* reg, reg_snapshot*** snapshots, int limit, reg_error* errPtr) {
     // Currently limiting to last 10 snapshots in the registry
-    int lower_bound = 10;
+    int lower_bound = limit;
     char* query;
     int result;
     query = sqlite3_mprintf("SELECT id FROM registry.snapshots ORDER BY id DESC LIMIT %d",

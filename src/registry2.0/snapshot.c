@@ -121,6 +121,38 @@ static int snapshot_get(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
 }
 
 /*
+ * registry::snaphot get_last
+ */
+static int snapshot_get_last(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc > 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "get_last");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        reg_error error;
+        reg_snapshot** snapshots;
+        int limit = 1;
+        // 1 passed in reg_snapshot_list is to get the last '1' snapshot.
+        int snapshot_count = reg_snapshot_list(reg, &snapshots, limit, &error);
+        if (snapshot_count >= 0) {
+            int retval;
+            Tcl_Obj* result;
+            if (snapshot_to_obj(interp, &result, snapshots[0], NULL, &error)) {
+                Tcl_SetObjResult(interp, result);
+                retval = TCL_OK;
+            } else {
+                retval = registry_failed(interp, &error);
+            }
+            free(snapshots);
+            return retval;
+        }
+        return registry_failed(interp, &error);
+    }
+}
+
+/*
  * registry::snaphot get_all
  */
 static int snapshot_get_list(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
@@ -133,7 +165,9 @@ static int snapshot_get_list(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]
     } else {
         reg_error error;
         reg_snapshot** snapshots;
-        int snapshot_count = reg_snapshot_list(reg, &snapshots, &error);
+        int limit = 10;
+        // limit = k passed in reg_snapshot_list is to get the last 'k' snapshots
+        int snapshot_count = reg_snapshot_list(reg, &snapshots, limit, &error);
         if (snapshot_count >= 0) {
             int retval;
             Tcl_Obj* result;
@@ -162,6 +196,7 @@ static snapshot_cmd_type snapshot_cmds[] = {
     /* Global commands */
     { "create", snapshot_create},
     { "get_by_id", snapshot_get},
+    { "get_last", snapshot_get_last},
     { "get_all", snapshot_get_list},
     { NULL, NULL }
 };
