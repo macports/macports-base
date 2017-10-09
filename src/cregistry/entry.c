@@ -30,6 +30,11 @@
 #include <config.h>
 #endif
 
+/* required for asprintf(3) on OS X */
+#define _DARWIN_C_SOURCE
+/* required for asprintf(3) on Linux */
+#define _GNU_SOURCE
+
 #include "portgroup.h"
 #include "entry.h"
 #include "registry.h"
@@ -529,19 +534,14 @@ int reg_entry_owner(reg_registry* reg, char* path, int cs, reg_entry** entry,
     int result = 0;
     sqlite3_stmt* stmt = NULL;
     int lower_bound = 0;
+    char *query = NULL;
 
-    /* Make sure query_template is as big as the buffer might get. */
-    const char* query_template = "SELECT id FROM registry.files WHERE (actual_path = ? COLLATE NOCASE) AND active";
-    const int query_max_size = strlen(query_template) + 1;
-
-    char* query = malloc(query_max_size);
+    asprintf(&query, "SELECT id FROM registry.files WHERE (actual_path = ? %s) AND active",
+             cs ? "" : "COLLATE NOCASE");
 
     if (!query) {
         return 0;
     }
-
-    snprintf(query, query_max_size, "SELECT id FROM registry.files WHERE (actual_path = ? %s) AND active",
-             cs ? "" : "COLLATE NOCASE");
 
     if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_text(stmt, 1, path, -1, SQLITE_STATIC)
@@ -592,19 +592,14 @@ int reg_entry_owner(reg_registry* reg, char* path, int cs, reg_entry** entry,
 sqlite_int64 reg_entry_owner_id(reg_registry* reg, char* path, int cs) {
     sqlite3_stmt* stmt = NULL;
     sqlite_int64 result = 0;
+    char *query = NULL;
 
-    /* Make sure query_template is as big as the buffer might get. */
-    const char* query_template = "SELECT id FROM registry.files WHERE (actual_path = ? COLLATE NOCASE) AND active";
-    const int query_max_size = strlen(query_template) + 1;
-
-    char* query = malloc(query_max_size);
+    asprintf(&query, "SELECT id FROM registry.files WHERE (actual_path = ? %s) AND active",
+             cs ? "" : "COLLATE NOCASE");
 
     if (!query) {
         return 0;
     }
-
-    snprintf(query, query_max_size, "SELECT id FROM registry.files WHERE (actual_path = ? %s) AND active",
-             cs ? "" : "COLLATE NOCASE");
 
     if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_text(stmt, 1, path, -1, SQLITE_STATIC)
