@@ -72,52 +72,6 @@ namespace eval portstartupitem {
 
 set_ui_prefix
 
-proc portstartupitem::startupitem_create_rcng {args} {
-    global prefix destroot os.platform \
-           startupitem.name startupitem.requires \
-           startupitem.start startupitem.stop startupitem.restart \
-           startupitem.type
-
-    set scriptdir ${destroot}${prefix}/etc/rc.d
-
-    if { ![exists startupitem.requires] } {
-        set startupitem.requires ""
-    }
-
-    # XXX We can't share defaults with startupitem_create_darwin
-    foreach item {startupitem.start startupitem.stop startupitem.restart} {
-        if {![info exists $item]} {
-            return -code error "Missing required option $item"
-        }
-    }
-
-    file mkdir ${destroot} ${scriptdir}
-    set fd [open [file join ${scriptdir} ${startupitem.name}.sh] w 0755]
-
-    puts ${fd} "#!/bin/sh"
-    puts ${fd} "#"
-    puts ${fd} "# MacPorts generated RCng Script"
-    puts ${fd} "#"
-    puts ${fd} ""
-    puts ${fd} "# PROVIDE: ${startupitem.name}"
-    puts ${fd} "# REQUIRE: ${startupitem.requires}"
-    # TODO: Implement BEFORE support
-    puts ${fd} "# BEFORE:"
-    puts ${fd} "# KEYWORD: MacPorts"
-    puts ${fd} ""
-    puts ${fd} ". ${prefix}/etc/rc.subr"
-    puts ${fd} ""
-    puts ${fd} "name=\"${startupitem.name}\""
-    puts ${fd} "start_cmd=\"${startupitem.start}\""
-    puts ${fd} "stop_cmd=\"${startupitem.stop}\""
-    puts ${fd} "restart_cmd=\"${startupitem.restart}\""
-    puts ${fd} ""
-    puts ${fd} "load_rc_config \"${startupitem.name}\""
-    puts ${fd} ""
-    puts ${fd} "run_rc_command \"\$1\""
-    close ${fd}
-}
-
 proc portstartupitem::startupitem_create_darwin_launchd {args} {
     global UI_PREFIX prefix destroot destroot.keepdirs subport macosx_deployment_target \
            startupitem.name startupitem.uniquename startupitem.plist startupitem.location \
@@ -365,7 +319,7 @@ proc portstartupitem::startupitem_create {args} {
                 set startupitem.type "launchd"
             }
             default {
-                set startupitem.type "rcng"
+                set startupitem.type "none"
             }
         }
     }
@@ -377,7 +331,6 @@ proc portstartupitem::startupitem_create {args} {
 
         switch -- ${startupitem.type} {
             launchd         { startupitem_create_darwin_launchd }
-            rcng            { startupitem_create_rcng }
             default         { ui_error "$UI_PREFIX [msgcat::mc "Unrecognized startupitem type %s" ${startupitem.type}]" }
         }
     }
