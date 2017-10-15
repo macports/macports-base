@@ -16,4 +16,8 @@ else
     export LD_LIBRARY_PATH="$LIB_PATH:$LD_LIBRARY_PATH"
 fi
 
-exec "@TCL_BIN_DIR@/tclsh" "$@"
+# Check that tclsh is built; after './configure', 'make clean'
+# will display errors in doc/ while attempting to build .dep
+if [ -x "@TCL_BIN_DIR@/tclsh" ]; then
+    exec "@TCL_BIN_DIR@/tclsh" "$@"
+fi
