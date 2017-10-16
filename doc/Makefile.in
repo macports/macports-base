@@ -119,7 +119,9 @@ all: man
 .dep: $(wildcard *.txt) asciidoc-deps.tcl
 	$(INTREE_TCLSH) ./asciidoc-deps.tcl *.txt > $@
 
+ifneq ($(MAKECMDGOALS),clean)
 -include .dep
+endif
 
 .PHONY: man xml html
 
