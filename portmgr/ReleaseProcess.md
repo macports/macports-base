@@ -249,6 +249,13 @@ Verify that the new release has been built successfully on
 [Travis CI](https://travis-ci.org/macports/macports-base/branches).
 
 
+### Add Release Version to Trac ###
+
+Add the new version to the list of released versions on Trac. Edit the list
+using the [web admin interface](https://trac.macports.org/admin/ticket/versions)
+on our Trac installation.
+
+
 ### Notify the Public of the Release ###
 
 Once the release has been posted, notification of the release should be
