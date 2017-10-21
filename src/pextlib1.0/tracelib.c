@@ -585,6 +585,13 @@ static void sandbox_violation(int sock UNUSED, const char *path, sandbox_violati
 }
 
 /**
+ * Internal helper function to compare two strings.
+ */
+static int pointer_strcmp(const char** a, const char** b) {
+    return strcmp(*a, *b);
+}
+
+/**
  * Check whether a path is in the transitive hull of dependencies of the port
  * currently being installed and send the result of the query back to the
  * socket.
@@ -647,28 +654,15 @@ static void dep_check(int sock, char *path) {
         answer(sock, "#");
     }
 
-    /* check our list of dependencies; use binary search */
-    size_t left = 0;
-    size_t right = dependsLength;
-    while (left < right) {
-        size_t index = left + (right - left) / 2;
-        int result = strcmp(depends[index], port);
-        if (result == 0) {
-            /* found the port */
-            free(port);
-            answer(sock, "+");
-            return;
-        } else if (result < 0) {
-            /* continue search right */
-            left = index + 1;
-        } else {
-            /* continue search left */
-            right = index;
-        }
+    /* check our list of dependencies; use binary search on sorted list */
+    if (NULL != bsearch(&port, depends, dependsLength, sizeof(*depends),
+                        (int (*)(const void*, const void*)) pointer_strcmp)) {
+        free(port);
+        answer(sock, "+");
+    } else {
+        free(port);
+        answer(sock, "!");
     }
-
-    free(port);
-    answer(sock, "!");
 }
 
 static int TracelibOpenSocketCmd(Tcl_Interp *in) {
@@ -1015,11 +1009,6 @@ static int TracelibCloseSocketCmd(Tcl_Interp *interp UNUSED) {
 
     return TCL_OK;
 }
-
-static int pointer_strcmp(const char** a, const char** b) {
-    return strcmp(*a, *b);
-}
-
 
 static int TracelibSetDeps(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
     Tcl_Obj **objects;
