@@ -76,6 +76,18 @@ code:
 *   Update the autoconf [`configure`][configure] script through the provided
     [`autogen.sh`][autogen.sh] script once the version number in `mp_version`
     has been changed, since the former reads the latter.
+*   Regenerate all man pages from scratch to ensure the new version number is
+    used in the output file. AsciiDoc and DocBook either need to be installed
+    in the target prefix or manually pass the correct paths if they are
+    installed elsewhere.
+
+        ./autogen.sh
+        ./standard_configure.sh
+        make -C doc/ clean all \
+            ASCIIDOC=/opt/local/bin/asciidoc \
+            XSLTPROC=/opt/local/bin/xsltproc \
+            DOCBOOK_XSL=/opt/local/share/xsl/docbook-xsl/manpages/docbook.xsl
+
 *   Make sure that these and any other changes or bug fixes are made on and/or
     merged between the release branch and master as needed. For instance, if
     you've made changes to `ChangeLog` only on the release branch, those
