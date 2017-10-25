@@ -916,25 +916,6 @@ proc get_unrequested_ports {} {
 }
 
 proc get_leaves_ports {} {
-    set ilist {}
-    if { [catch {set ilist [registry::installed]} result] } {
-        if {$result ne "Registry error: No ports registered as installed."} {
-            ui_debug $::errorInfo
-            fatal "port installed failed: $result"
-        }
-    }
-    registry::open_dep_map
-    set results {}
-    foreach i $ilist {
-        set iname [lindex $i 0]
-        if {[registry::list_dependents $iname] eq ""} {
-            add_to_portlist results [list name $iname version "[lindex $i 1]_[lindex $i 2]" variants [split_variants [lindex $i 3]]]
-        }
-    }
-    return [portlist_sort [opIntersection $results [get_unrequested_ports]]]
-}
-
-proc get_rleaves_ports {} {
     if { [catch {set ilist [get_unrequested_ports]} result] } {
         if {$result ne "Registry error: No ports registered as installed."} {
             ui_debug $::errorInfo
@@ -1315,7 +1296,6 @@ proc element { resname } {
         ^(inactive)(@.*)?$    -
         ^(actinact)(@.*)?$    -
         ^(leaves)(@.*)?$      -
-        ^(rleaves)(@.*)?$      -
         ^(outdated)(@.*)?$    -
         ^(obsolete)(@.*)?$    -
         ^(requested)(@.*)?$   -
