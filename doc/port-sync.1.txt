@@ -37,7 +37,7 @@ version has not been updated.
 include::global-flags.txt[]
 
 *-q*::
-    Supress status output, be as silent as possible.
+    Suppress status output, be as silent as possible.
 
 SEE ALSO
 --------
