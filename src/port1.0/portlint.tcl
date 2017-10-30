@@ -426,15 +426,6 @@ proc portlint::lint_main {args} {
         }
     }
 
-    if {![string is wideinteger -strict $epoch]} {
-        ui_error "Port epoch is not numeric: $epoch"
-        incr errors
-    }
-    if {![string is wideinteger -strict $revision]} {
-        ui_error "Port revision is not numeric: $revision"
-        incr errors
-    }
-
     set variantnumber 1
     foreach variant $all_variants {
         set variantname [ditem_key $variant name] 
