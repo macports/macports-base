@@ -112,7 +112,7 @@ static int check_sandboxing(Tcl_Interp *interp, char **sandbox_exec_path, char *
     return 1;
 }
 
-static volatile int interrupted_by = 0;
+static volatile sig_atomic_t interrupted_by = 0;
 static void handle_sigint(int s) {
     interrupted_by = s;
 }
