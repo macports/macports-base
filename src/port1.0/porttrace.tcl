@@ -134,7 +134,7 @@ namespace eval porttrace {
 
         # Select a name for the socket to be used to communicate with the
         # processes being traced. Note that Unix sockets are limited to 109
-        # characters and that the the macports user must be able to connect to
+        # characters and that the macports user must be able to connect to
         # the socket (and in case of non-root installations, the current user,
         # too). We're not prefixing the path in /tmp with a separate
         # macports-specific directory, because the might not be writable by all
