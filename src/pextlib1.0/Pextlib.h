@@ -38,7 +38,7 @@ void ui_debug(Tcl_Interp *interp, const char *format, ...) __attribute__((format
 
 /* Mount point file system case-sensitivity caching infrastructure. */
 typedef struct _mount_cs_cache mount_cs_cache_t;
-mount_cs_cache_t* new_mount_cs_cache();
+mount_cs_cache_t* new_mount_cs_cache(void);
 void reset_mount_cs_cache(mount_cs_cache_t *cache);
 
 #ifdef __APPLE__

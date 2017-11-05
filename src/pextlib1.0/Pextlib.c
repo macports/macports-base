@@ -665,7 +665,7 @@ struct _mount_cs_cache {
 /**
  * Returns a new pre-allocated mount_cs_cache_t object.
  */
-mount_cs_cache_t* new_mount_cs_cache() {
+mount_cs_cache_t* new_mount_cs_cache(void) {
     mount_cs_cache_t *ret = malloc(sizeof(mount_cs_cache_t));
 
     if (ret) {
