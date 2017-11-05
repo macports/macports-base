@@ -137,7 +137,7 @@ namespace eval porttrace {
         # characters and that the macports user must be able to connect to
         # the socket (and in case of non-root installations, the current user,
         # too). We're not prefixing the path in /tmp with a separate
-        # macports-specific directory, because the might not be writable by all
+        # macports-specific directory, because this might not be writable by all
         # users.
         set fifo "/tmp/macports-trace-[pid]-[expr {int(rand() * 10000)}]"
 
