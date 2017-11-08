@@ -348,9 +348,18 @@ proc extract_archive_to_tmpdir {location} {
             t(ar|bz|lz|xz|gz) {
                 set tar "tar"
                 if {[catch {set tar [macports::findBinary $tar ${macports::autoconf::tar_path}]} errmsg] == 0} {
-                    ui_debug "Using $tar"
-                    set unarchive.cmd "$tar"
-                    set unarchive.pre_args {-xvpf}
+                    # Opportunistic HFS compression. bsdtar will automatically
+                    # ignore if on non-HFS filesystem.
+                    if {![catch {macports::binaryInPath bsdtar}] &&
+                        ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]} {
+                        ui_debug "Using bsdtar with HFS+ compression (if valid)"
+                        set unarchive.cmd "bsdtar"
+                        set unarchive.pre_args {-xvp --hfsCompression -f}
+                    } else {
+                        ui_debug "Using $tar"
+                        set unarchive.cmd "$tar"
+                        set unarchive.pre_args {-xvpf}
+                    }
                     if {[regexp {z2?$} ${unarchive.type}]} {
                         set unarchive.args {-}
                         if {[regexp {bz2?$} ${unarchive.type}]} {
