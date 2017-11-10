@@ -297,12 +297,6 @@ proc _activate_file {srcfile dstfile} {
     }
 }
 
-# Detect the /dev device containing path
-# returns: path of containing device
-proc _getfs {path} {
-    return [exec df [file normalize ${path}] | awk {{if (NR > 1) print $1}} ]
-}
-
 # extract an archive to a temporary location
 # returns: path to the extracted directory
 proc extract_archive_to_tmpdir {location} {
@@ -357,15 +351,12 @@ proc extract_archive_to_tmpdir {location} {
                     # Opportunistic HFS compression. bsdtar will automatically
                     # ignore if on non-HFS filesystem, or if extraction device
                     # is not the same as prefix / applications_dir
-                    # The comparisons against prefix and applications_dir should be
-                    # revisted if rsync or ditto is eventually used to perform final
-                    # move into destinations.
-                    set extrfs [_getfs ${extractdir}]
-                    if {![catch {macports::binaryInPath bsdtar}] &&
+                    set extrfs [devicenode ${extractdir}]
+                    if {![catch {macports::binaryInPath bsdtar}] && 
                         ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}] &&
-                        ${extrfs} == [_getfs ${macports::prefix}] &&
-                        ${extrfs} == [_getfs ${macports::applications_dir}] &&
-                        [string length [exec mount | egrep "${extrfs} .*(hfs|apfs)"]] > 0 } {
+                        ${extrfs} == [devicenode ${macports::prefix}] &&
+                        ${extrfs} == [devicenode ${macports::applications_dir}] &&
+                        [lsearch -nocase  [list "hfs" "apfs"] [fs_type ${extractdir}]] != -1 } {
                         ui_debug "Using bsdtar with HFS+ compression (if valid)"
                         set unarchive.cmd "bsdtar"
                         set unarchive.pre_args {-xvp --hfsCompression -f}

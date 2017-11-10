@@ -21,6 +21,7 @@ OBJS= \
 	setmode.o \
 	sha1cmd.o \
 	sha256cmd.o \
+	statfs.o \
 	strcasecmp.o \
 	strsed.o \
 	system.o \
