@@ -1,7 +1,0 @@
-[
-    {
-        "command": "cc -c -DUSE_TCL_STUBS -DTCL_NO_DEPRECATED -pipe -Os -march=native -std=c99 -Wextra -Wall -pedantic -DHAVE_CONFIG_H -I/opt/mports/src -I/opt/mports/src -I/opt/mports/src/pextlib1.0 -I/opt/mports/vendor/vendor-destroot/opt/local/libexec/macports/include -fno-common -o statfs.o /opt/mports/src/pextlib1.0/statfs.c", 
-        "directory": "/opt/mports/src/pextlib1.0", 
-        "file": "/opt/mports/src/pextlib1.0/statfs.c"
-    }
-]
