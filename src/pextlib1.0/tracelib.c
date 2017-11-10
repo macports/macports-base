@@ -101,7 +101,8 @@ static void peerpid_list_walk(bool (*callback)(int sock, pid_t pid, const char *
 static char *name;
 static char *sandbox;
 static size_t sandboxLength;
-static char *depends;
+static char **depends = NULL;
+static size_t dependsLength = 0;
 static int sock = -1;
 static int kq = -1;
 /* EVFILT_USER isn't available (< 10.6), use the self-pipe trick to return from
@@ -351,9 +352,6 @@ static int TracelibSetNameCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
         return TCL_ERROR;
     }
 
-    // initialize the depends field, in case we don't actually have any dependencies
-    depends = NULL;
-
     return TCL_OK;
 }
 
@@ -587,6 +585,13 @@ static void sandbox_violation(int sock UNUSED, const char *path, sandbox_violati
 }
 
 /**
+ * Internal helper function to compare two strings.
+ */
+static int pointer_strcmp(const char** a, const char** b) {
+    return strcmp(*a, *b);
+}
+
+/**
  * Check whether a path is in the transitive hull of dependencies of the port
  * currently being installed and send the result of the query back to the
  * socket.
@@ -605,7 +610,6 @@ static void sandbox_violation(int sock UNUSED, const char *path, sandbox_violati
  */
 static void dep_check(int sock, char *path) {
     char *port = 0;
-    char *t;
     int fs_cs = -1;
     reg_registry *reg;
     reg_entry entry;
@@ -650,17 +654,15 @@ static void dep_check(int sock, char *path) {
         answer(sock, "#");
     }
 
-    /* check our list of dependencies */
-    for (t = depends; t && *t; t += strlen(t) + 1) {
-        if (strcmp(t, port) == 0) {
-            free(port);
-            answer(sock, "+");
-            return;
-        }
+    /* check our list of dependencies; use binary search on sorted list */
+    if (NULL != bsearch(&port, depends, dependsLength, sizeof(*depends),
+                        (int (*)(const void*, const void*)) pointer_strcmp)) {
+        free(port);
+        answer(sock, "+");
+    } else {
+        free(port);
+        answer(sock, "!");
     }
-
-    free(port);
-    answer(sock, "!");
 }
 
 static int TracelibOpenSocketCmd(Tcl_Interp *in) {
@@ -969,7 +971,11 @@ static int TracelibCleanCmd(Tcl_Interp *interp UNUSED) {
         safe_free(name);
     }
 
+    for (size_t i = 0; i < dependsLength; ++i) {
+        safe_free(depends[i]);
+    }
     safe_free(depends);
+    dependsLength = 0;
 
     enable_fence = 0;
     return TCL_OK;
@@ -1005,26 +1011,52 @@ static int TracelibCloseSocketCmd(Tcl_Interp *interp UNUSED) {
 }
 
 static int TracelibSetDeps(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    char *t, * d;
-    size_t l;
+    Tcl_Obj **objects;
+    int length;
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "number of arguments should be exactly 3");
         return TCL_ERROR;
     }
 
-    d = Tcl_GetString(objv[2]);
-    l = strlen(d);
-    depends = malloc(l + 2);
-    if (!depends) {
+    if (TCL_OK != Tcl_ListObjGetElements(interp, objv[2], &length, &objects)) {
+        return TCL_ERROR;
+    }
+
+    /* When called twice, do not leak memory */
+    if (depends) {
+        for (size_t i = 0; i < dependsLength; ++i) {
+            free(depends[i]);
+        }
+        free(depends);
+    }
+    depends = NULL;
+    dependsLength = 0;
+
+    /* Allocate memory as needed */
+    if (NULL == (depends = malloc(length * sizeof(*depends)))) {
         Tcl_SetResult(interp, "memory allocation failed", TCL_STATIC);
         return TCL_ERROR;
     }
-    depends[l + 1] = 0;
-    strlcpy(depends, d, l + 2);
-    for (t = depends; *t; ++t)
-        if (*t == ' ') {
-            *t++ = 0;
+    /* Copy all objects over */
+    for (int i = 0; i < length; ++i) {
+        if (NULL == (depends[i] = strdup(Tcl_GetString(objects[i])))) {
+            /* Allocation failed, clean up what we have so far */
+            for (int j = 0; j < i; ++j) {
+                free(depends[j]);
+            }
+            free(depends);
+            depends = NULL;
+            dependsLength = 0;
+            Tcl_SetResult(interp, "memory allocation failed", TCL_STATIC);
+            return TCL_ERROR;
         }
+
+        dependsLength++;
+    }
+
+    /* Sort all dependencies so we can use binary searching */
+    qsort(depends, dependsLength, sizeof(*depends),
+          (int (*)(const void*, const void*)) pointer_strcmp);
 
     return TCL_OK;
 }
