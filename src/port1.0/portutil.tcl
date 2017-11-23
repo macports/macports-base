@@ -2855,7 +2855,7 @@ proc quotemeta {str} {
 }
 
 ##
-# Recusively chown the given file or directory to the specified user.
+# Recursively chown the given file or directory to the specified user.
 #
 # @param path the file/directory to be chowned
 # @param user the user to chown file to
@@ -2871,7 +2871,7 @@ proc chown {path user} {
 }
 
 ##
-# Recusively chown the given file or directory to $macportsuser, using root privileges.
+# Recursively chown the given file or directory to $macportsuser, using root privileges.
 #
 # @param path the file/directory to be chowned
 proc chownAsRoot {path} {
