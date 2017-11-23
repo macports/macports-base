@@ -351,12 +351,12 @@ proc extract_archive_to_tmpdir {location} {
                     # Opportunistic HFS compression. bsdtar will automatically
                     # ignore if on non-HFS filesystem, or if extraction device
                     # is not the same as prefix / applications_dir
-                    set extrfs [devicenode ${extractdir}]
+                    set extrfs [statfs_dev_node ${extractdir}]
                     if {![catch {macports::binaryInPath bsdtar}] && 
                         ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}] &&
-                        ${extrfs} == [devicenode ${macports::prefix}] &&
-                        ${extrfs} == [devicenode ${macports::applications_dir}] &&
-                        [lsearch -nocase  [list "hfs" "apfs"] [fs_type ${extractdir}]] != -1 } {
+                        ${extrfs} == [statfs_dev_node ${macports::prefix}] &&
+                        ${extrfs} == [statfs_dev_node ${macports::applications_dir}] &&
+                        [lsearch -nocase  [list "hfs" "apfs"] [statfs_fstype_name ${extractdir}]] != -1 } {
                         ui_debug "Using bsdtar with HFS+ compression (if valid)"
                         set unarchive.cmd "bsdtar"
                         set unarchive.pre_args {-xvp --hfsCompression -f}

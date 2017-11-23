@@ -31,19 +31,30 @@
 
 #include <tcl.h>
 
-/**
- * A native command to determine the /dev node containing path
- *
- * The syntax is:
- * devicenode path
- */
-int DeviceNodeCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+/* Add new access to statfs members via X-macros; X(MEMBER_NAME, TCL_FCN_NAME)
+ * new members can be added with a new line here, and all necessary (C and TCL
+ * interface) functions are created in Pextlib.c and statfs.c. */
 
-/**
- * A native command to determine the type of the filesystem containing path
- *
- * The syntax is:
- * fs_type path
- */
-int FilesystemTypeCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+/* String members */
+#define STATFS_STRINGS \
+ X(f_fstypename,    statfs_fstype_name) \
+ X(f_mntfromname,   statfs_dev_node) \
+ X(f_mntonname,     statfs_mnt_pt)
 
+/* Int members (all cast to long) members */
+#define STATFS_LONGS \
+ X(f_iosize, statfs_io_size)
+
+/* Useful for X-macros where type is irrelevant. */
+#define STATFS_ALL \
+ STATFS_STRINGS \
+ STATFS_LONGS
+
+/* X-macro to declare accessor functions. */
+#define X(_MEMB_, UNUSED) \
+int _MEMB_##Cmd(ClientData clientData, \
+                Tcl_Interp* interp, \
+                int objc, \
+                Tcl_Obj* CONST objv[]);
+STATFS_ALL
+#undef X

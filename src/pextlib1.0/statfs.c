@@ -1,7 +1,7 @@
 /*
- * realpath.c
+ * statfs.c
  *
- * Copyright (c) 2009 The MacPorts Project.
+ * Copyright (c) 2017 The MacPorts Project.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,17 +35,27 @@
 
 #include <tcl.h>
 
-#include <errno.h>
+#include <sys/errno.h>
 #include <string.h>
 #include <sys/param.h>
 #include <sys/mount.h>
 
-#include "realpath.h"
+#include "statfs.h"
 
-#if defined(__APPLE__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__)
-int _statfs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], struct statfs *s, Tcl_Obj *tcl_result)
+/* Function to actually call and check statfs return. */
+#if defined(__APPLE__)   || \
+    defined(__OpenBSD__) || \
+    defined(__FreeBSD__) || \
+    defined(__NetBSD__)
+static
+int
+_statfs(Tcl_Interp *interp,
+        int objc,
+        Tcl_Obj *CONST objv[],
+        struct statfs *s,
+        Tcl_Obj *tcl_result)
 {
-    const char error_message[] = "devicenode failed: ";
+    const char error_message[] = "statfs call failed: ";
     char *path;
     int res;
 
@@ -54,12 +64,12 @@ int _statfs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], struct statfs *
         return TCL_ERROR;
     }
 
-
     path = Tcl_GetString(objv[1]);
     res = statfs(path, s);
 
     if (res) {
-        tcl_result = Tcl_NewStringObj(error_message, sizeof(error_message) - 1);
+        tcl_result = Tcl_NewStringObj(error_message,
+                                      sizeof(error_message) - 1);
         Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(strerror(errno), -1));
         Tcl_SetObjResult(interp, tcl_result);
         return TCL_ERROR;
@@ -68,62 +78,61 @@ int _statfs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], struct statfs *
     }
 }
 
-/**
- * devicenode command entry point.
- *
- * @param interp		current interpreter
- * @param objc			number of parameters
- * @param objv			parameters
- */
-int DeviceNodeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-    struct statfs s = {0};
-    Tcl_Obj *tcl_result = 0; 
-
-    if (_statfs(interp, objc, objv, &s, tcl_result) == TCL_ERROR) {
-      return TCL_ERROR;
-    } else {
-      tcl_result = Tcl_NewStringObj(s.f_mntfromname, -1);
-
-      Tcl_SetObjResult(interp, tcl_result);
-      return TCL_OK;
-    }
+/* X-Macro defining accessors for string members. */
+#define X(_MEMB_, UNUSED) \
+int _MEMB_##Cmd(ClientData clientData, \
+                Tcl_Interp *interp, \
+                int objc, \
+                Tcl_Obj *CONST objv[]) \
+{ \
+    struct statfs s; \
+    Tcl_Obj *tcl_result = 0; \
+    if (_statfs(interp, objc, objv, &s, tcl_result) == TCL_ERROR) { \
+      return TCL_ERROR; \
+    } else { \
+      tcl_result = Tcl_NewStringObj(s._MEMB_, -1); \
+      Tcl_SetObjResult(interp, tcl_result); \
+      return TCL_OK; \
+    } \
 }
+STATFS_STRINGS
+#undef X
 
-/**
- * fs_type command entry point.
- *
- * @param interp		current interpreter
- * @param objc			number of parameters
- * @param objv			parameters
- */
-int FilesystemTypeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-    struct statfs s = {0};
-    Tcl_Obj *tcl_result = 0;
-
-    if (_statfs(interp, objc, objv, &s, tcl_result) == TCL_ERROR) {
-      return TCL_ERROR;
-    } else {
-      tcl_result = Tcl_NewStringObj(s.f_fstypename, -1);
-
-      Tcl_SetObjResult(interp, tcl_result);
-      return TCL_OK;
-    }
+/* X-Macro defining accessors for int flavors (all cast to long.) */
+#define X(_MEMB_, UNUSED) \
+int _MEMB_##Cmd(ClientData clientData, \
+                Tcl_Interp *interp, \
+                int objc, \
+                Tcl_Obj *CONST objv[]) \
+{ \
+    struct statfs s; \
+    Tcl_Obj *tcl_result = 0; \
+    if (_statfs(interp, objc, objv, &s, tcl_result) == TCL_ERROR) { \
+      return TCL_ERROR; \
+    } else { \
+      tcl_result = Tcl_NewLongObj((long) s._MEMB_); \
+      Tcl_SetObjResult(interp, tcl_result); \
+      return TCL_OK; \
+    } \
 }
+STATFS_LONGS
+#undef X
 
 #else
-int DeviceNodeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-  tcl_result = Tcl_NewStringObj("Unsupported statfs()", -1);
-  Tcl_SetObjResult(interp, tcl_result);
-  return TCL_ERROR;
-}
 
-int FilesystemTypeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-  tcl_result = Tcl_NewStringObj("Unsupported statfs()", -1);
-  Tcl_SetObjResult(interp, tcl_result);
-  return TCL_ERROR;
+/* Return errors on other OSes. */
+#define X(_MEMB_, UNUSED) \
+int _MEMB_##Cmd(ClientData clientData, \
+                Tcl_Interp *interp, \
+                int objc, \
+                Tcl_Obj *CONST objv[]) \
+{ \
+  tcl_result = Tcl_NewStringObj("Unsupported statfs[" #_MEMB_ "]", -1); \
+  Tcl_SetObjResult(interp, tcl_result); \
+  return TCL_ERROR; \ \
 }
+STATFS_ALL
+#undef X
+
 #endif
+
