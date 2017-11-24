@@ -22,10 +22,10 @@ mportinit ui_options global_options global_variations
 # Standard procedures
 proc print_usage args {
     global argv0
-    puts "Usage: $argv0 \[-adf\] \[-p plat_ver_arch\] \[-o output directory\] \[directory\]"
-    puts "-o:\tOutput all files to specified directory"
+    puts "Usage: $argv0 \[-df\] \[-o output directory\] \[-p plat_ver_arch\] \[directory\]"
     puts "-d:\tOutput debugging information"
     puts "-f:\tDo a full re-index instead of updating"
+    puts "-o:\tOutput all files to specified directory"
     puts "-p:\tPretend to be on another platform"
 }
 
