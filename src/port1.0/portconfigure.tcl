@@ -558,7 +558,7 @@ proc portconfigure::get_compiler_fallback {} {
 
         if {${os.major} < 16} {
             # The Sierra SDK requires a toolchain that supports class properties
-            lappend compilers macports-clang-3.8 macports-clang-3.7
+            lappend compilers macports-clang-3.7
         }
     }
 
