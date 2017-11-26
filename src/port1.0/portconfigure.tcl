@@ -549,7 +549,7 @@ proc portconfigure::get_compiler_fallback {} {
     # Determine which versions of clang we prefer
     if {${configure.cxx_stdlib} eq "libc++"} {
         # clang-3.5+ require libc++
-        lappend compilers macports-clang-4.0
+        lappend compilers macports-clang-5.0 macports-clang-4.0
 
         if {${os.major} < 17} {
             # The High Sierra SDK requires a toolchain that can apply nullability to uuid_t
