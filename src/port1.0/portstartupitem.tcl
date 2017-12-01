@@ -308,30 +308,12 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
 }
 
 proc portstartupitem::startupitem_create {args} {
-    global UI_PREFIX startupitem.type os.platform
-    
-    set startupitem.type [string tolower ${startupitem.type}]
-    
-    # Calculate a default value for startupitem.type
-    if {${startupitem.type} eq "default" || ${startupitem.type} eq ""} {
-        switch -exact ${os.platform} {
-            darwin {
-                set startupitem.type "launchd"
-            }
-            default {
-                set startupitem.type "none"
-            }
-        }
-    }
+    global UI_PREFIX os.platform
 
-    if { ${startupitem.type} eq "none" } {
-        ui_notice "$UI_PREFIX [msgcat::mc "Skipping creation of control script"]"
+    if {${os.platform} eq "darwin"} {
+        ui_notice "$UI_PREFIX [msgcat::mc "Creating launchd control script"]"
+        startupitem_create_darwin_launchd
     } else {
-        ui_notice "$UI_PREFIX [msgcat::mc "Creating ${startupitem.type} control script"]"
-
-        switch -- ${startupitem.type} {
-            launchd         { startupitem_create_darwin_launchd }
-            default         { ui_error "$UI_PREFIX [msgcat::mc "Unrecognized startupitem type %s" ${startupitem.type}]" }
-        }
+        ui_notice "$UI_PREFIX [msgcat::mc "Skipping creation of control script"]"
     }
 }
