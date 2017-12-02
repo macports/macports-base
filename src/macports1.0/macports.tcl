@@ -643,7 +643,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
         try -pass_signal {
             set macosx_version [exec /usr/bin/sw_vers -productVersion | cut -f1,2 -d.]
-        } catch {*} {
+        } catch {* ec result} {
             ui_debug "sw_vers exists but running it failed: $result"
         }
     }
