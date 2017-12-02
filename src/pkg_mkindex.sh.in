@@ -38,7 +38,7 @@ fi
 
 for dir in $@; do
     echo "pkg_mkIndex -verbose -- $dir *.tcl *.dylib *.so" \
-		| $TCLSH 2>&1 \
+        | $TCLSH 2>&1 \
         | $GREP "^warning: " && exit 1
 done
 
