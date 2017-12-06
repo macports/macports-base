@@ -1474,56 +1474,55 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-flag-sanitization
-                          Do not sanitize CPPFLAGS, CFLAGS, OBJCFLAGS and
+                          do not sanitize CPPFLAGS, CFLAGS, OBJCFLAGS and
                           LDFLAGS
-  --enable-werror         Add -Werror to CFLAGS. Used for development.
-  --enable-readline       Enable addition of readline support, if readline
-                          present.
+  --enable-werror         add -Werror to CFLAGS (used for development)
+  --enable-readline       enable readline support, if readline present
   --enable-shared         build and link with shared libraries --enable-shared
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-bsdmake=PATH     Path to alternate bsdmake/pmake command
-  --with-bzip2_bin=PATH   Path to alternate bzip2 command
-  --with-cvs=PATH         Path to alternate cvs command
-  --with-gnumake=PATH     Path to alternate gnumake command
-  --with-gnutar=PATH      Path to alternate gnutar command
-  --with-lzma=PATH        Path to alternate lzma command
-  --with-make=PATH        Path to alternate make command
-  --with-mtree=PATH       Path to alternate mtree command
-  --with-open=PATH        Path to alternate open command
-  --with-openssl=PATH     Path to alternate openssl command
-  --with-rsync=PATH       Path to alternate rsync command
-  --with-sed=PATH         Path to alternate sed command
-  --with-svn=PATH         Path to alternate svn command
-  --with-swig=PATH        Path to alternate swig command
-  --with-tar=PATH         Path to alternate tar command
-  --with-xar=PATH         Path to alternate xar command
-  --with-xz=PATH          Path to alternate xz command
+  --with-bsdmake=PATH     path to alternate bsdmake/pmake command
+  --with-bzip2_bin=PATH   path to alternate bzip2 command
+  --with-cvs=PATH         path to alternate cvs command
+  --with-gnumake=PATH     path to alternate gnumake command
+  --with-gnutar=PATH      path to alternate gnutar command
+  --with-lzma=PATH        path to alternate lzma command
+  --with-make=PATH        path to alternate make command
+  --with-mtree=PATH       path to alternate mtree command
+  --with-open=PATH        path to alternate open command
+  --with-openssl=PATH     path to alternate openssl command
+  --with-rsync=PATH       path to alternate rsync command
+  --with-sed=PATH         path to alternate sed command
+  --with-svn=PATH         path to alternate svn command
+  --with-swig=PATH        path to alternate swig command
+  --with-tar=PATH         path to alternate tar command
+  --with-xar=PATH         path to alternate xar command
+  --with-xz=PATH          path to alternate xz command
   --with-unsupported-prefix
-                          Acknowledge that you accept the consequences of
-                          using an unsupported prefix.
-  --with-ports-dir=DIR    Specify alternate ports directory
+                          acknowledge that you accept the consequences of
+                          using an unsupported prefix
+  --with-ports-dir=DIR    specify alternate ports directory
   --with-no-root-privileges
-                          Specify that MacPorts should be installed in your
+                          specify that MacPorts should be installed in your
                           home directory
   --with-install-user=USER
-                          Specify user ownership of installed files
+                          specify user ownership of installed files
   --with-install-group=GROUP
-                          Specify group ownership of installed files
+                          specify group ownership of installed files
   --with-macports-user=USER
-                          Specify user to drop privileges to, if possible,
-                          during compiles etc.
+                          specify user to drop privileges to, if possible,
+                          during compiles, etc.
   --with-directory-mode=MODE
-                          Specify directory mode of installed directories
-  --with-shared-directory Use 0775 permissions for installed directories
-  --with-applications-dir Applications installation directory.
-  --with-frameworks-dir   Frameworks installation directory.
+                          specify directory mode of installed directories
+  --with-shared-directory use 0775 permissions for installed directories
+  --with-applications-dir applications installation directory
+  --with-frameworks-dir   frameworks installation directory
   --with-universal-archs="CPU"
-                          Universal CPU architectures (space separated)
-  --with-curlprefix       base directory for the cURL install '/usr', '/usr/local',...
-  --with-sqlite3prefix       base directory for the sqlite3 install '/usr', '/usr/local',...
+                          universal CPU architectures (space separated)
+  --with-curlprefix       base directory for the cURL install ('/usr', '/usr/local', ...)
+  --with-sqlite3prefix    base directory for the sqlite3 install ('/usr', '/usr/local', ...)
 
 Some influential environment variables:
   CC          C compiler command
@@ -5829,7 +5828,6 @@ else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
-
 
 
 
