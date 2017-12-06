@@ -5085,7 +5085,7 @@ namespace eval portclient::progress {
     ##
     # Progress callback for downloads executed by macports 1.0.
     #
-    # This is essentially a cURL progress callback.
+    # This is essentially a curl progress callback.
     #
     # @param action
     #        One of "start", "update" or "finish", where start will be called

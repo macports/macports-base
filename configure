@@ -1521,7 +1521,7 @@ Optional Packages:
   --with-frameworks-dir   frameworks installation directory
   --with-universal-archs="CPU"
                           universal CPU architectures (space separated)
-  --with-curlprefix       base directory for the cURL install ('/usr', '/usr/local', ...)
+  --with-curlprefix       base directory for the curl install ('/usr', '/usr/local', ...)
   --with-sqlite3prefix    base directory for the sqlite3 install ('/usr', '/usr/local', ...)
 
 Some influential environment variables:

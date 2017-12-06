@@ -875,7 +875,7 @@ AC_DEFUN([MP_PROG_DAEMONDO],[
 #---------------------------------------
 AC_DEFUN([MP_LIBCURL_FLAGS],[
 	AC_ARG_WITH(curlprefix,
-		   [  --with-curlprefix       base directory for the cURL install ('/usr', '/usr/local', ...)],
+		   [  --with-curlprefix       base directory for the curl install ('/usr', '/usr/local', ...)],
 		   [  curlprefix=$withval ])
 
 	if test "x$curlprefix" = "x"; then
