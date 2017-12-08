@@ -74,7 +74,7 @@ proc portextract::disttagclean {list} {
 }
 
 proc portextract::extract_start {args} {
-    global UI_PREFIX extract.dir extract.mkdir use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg
+    global UI_PREFIX extract.dir extract.mkdir use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg use_no_compression
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option subport]]"
 
@@ -82,6 +82,9 @@ proc portextract::extract_start {args} {
     handle_add_users
 
     # should the distfiles be extracted to worksrcpath instead?
+    if {[tbool use_no_compression]} {
+        option extract.mkdir yes
+    }
     if {[tbool extract.mkdir]} {
         global worksrcpath
         ui_debug "Extracting to subdirectory worksrcdir"
@@ -116,6 +119,12 @@ proc portextract::extract_start {args} {
         option extract.cmd [findBinary hdiutil ${portutil::autoconf::hdiutil_path}]
         option extract.pre_args attach
         option extract.post_args "-private -readonly -nobrowse -mountpoint \\\"${dmg_mount}\\\" && cd \\\"${dmg_mount}\\\" && [findBinary find ${portutil::autoconf::find_path}] . -depth -perm -+r -print0 | [findBinary cpio ${portutil::autoconf::cpio_path}] -0 -p -d -m -u \\\"${extract.dir}/${distname}\\\"; status=\$?; cd / && ${extract.cmd} detach \\\"${dmg_mount}\\\" && [findBinary rmdir ${portutil::autoconf::rmdir_path}] \\\"${dmg_mount}\\\"; exit \$status"
+    } elseif {[tbool use_no_compression]} {
+        global worksrcpath
+        option extract.suffix ""
+        option extract.cmd cp
+        option extract.pre_args ""
+        option extract.post_args ${worksrcpath}
     }
 }
 
