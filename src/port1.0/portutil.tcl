@@ -3,7 +3,7 @@
 # Copyright (c) 2002-2003 Apple Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2006-2007 Markus W. Weissmann <mww@macports.org>
-# Copyright (c) 2004-2016 The MacPorts Project
+# Copyright (c) 2004-2017 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -1169,6 +1169,7 @@ proc move {args} {
             default {return -code error "move: illegal option -- $arg"}
         }
     }
+    append options --
     if {[llength $args] == 2} {
         set oldname [lindex $args 0]
         set newname [lindex $args 1]
@@ -1176,8 +1177,8 @@ proc move {args} {
             # case-only rename
             set tempdir [mkdtemp ${oldname}-XXXXXXXX]
             set tempname $tempdir/[file tail $oldname]
-            file rename $options -- $oldname $tempname
-            file rename $options -- $tempname $newname
+            file rename $options $oldname $tempname
+            file rename $options $tempname $newname
             delete $tempdir
             return
         }
