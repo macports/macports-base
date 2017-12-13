@@ -1164,12 +1164,12 @@ proc move {args} {
         set arg [string range [lindex $args 0] 1 end]
         set args [lreplace $args 0 0]
         switch -- $arg {
-            force {append options -$arg}
+            force {lappend options -$arg}
             - break
             default {return -code error "move: illegal option -- $arg"}
         }
     }
-    append options --
+    lappend options --
     if {[llength $args] == 2} {
         set oldname [lindex $args 0]
         set newname [lindex $args 1]
@@ -1177,13 +1177,13 @@ proc move {args} {
             # case-only rename
             set tempdir [mkdtemp ${oldname}-XXXXXXXX]
             set tempname $tempdir/[file tail $oldname]
-            file rename $options $oldname $tempname
-            file rename $options $tempname $newname
+            file rename {*}$options $oldname $tempname
+            file rename {*}$options $tempname $newname
             delete $tempdir
             return
         }
     }
-    file rename $options {*}$args
+    file rename {*}$options {*}$args
 }
 
 # ln
