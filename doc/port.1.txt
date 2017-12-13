@@ -44,7 +44,7 @@ available port tree(s). These may be used in the same way as a 'portname'.
     - 'inactive': set of installed but inactive ports
     - 'installed': set of all installed ports
     - 'uninstalled': ports in the ports tree(s) that are not installed
-    - 'outdated': installed ports that are out of date with respect to their 
+    - 'outdated': installed ports that are out of date with respect to their
       current version/revision in the ports tree(s)
     - 'obsolete': set of ports that are installed but no longer exist in any
       port tree
@@ -131,7 +131,7 @@ The port command recognizes several global flags and options.
     Quiet mode, suppress informational messages to a minimum, implies -N
 
 -N::
-    Non-interactive mode, interactive questions are not asked 
+    Non-interactive mode, interactive questions are not asked
 
 .Installation and upgrade
 -n::
@@ -179,7 +179,7 @@ The port command recognizes several global flags and options.
 -t::
     Enable trace mode debug facilities on platforms that support it, currently
     only Mac OS X.
-    + 
+    +
     This feature is two-folded. It consists in automatically detecting and
     reporting undeclared dependencies based on what files the port reads or what
     programs the port executes. In verbose mode, it will also report unused
