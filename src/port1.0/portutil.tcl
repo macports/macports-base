@@ -1183,7 +1183,7 @@ proc move {args} {
             return
         }
     }
-    file rename {*}$options -- {*}$args
+    file rename $options {*}$args
 }
 
 # ln
