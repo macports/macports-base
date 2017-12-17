@@ -4,9 +4,6 @@
    files before executing */
 #undef DARWINTRACE_SIP_WORKAROUND_PATH
 
-/* Define to 1 if you have the `bzero' function. */
-#undef HAVE_BZERO
-
 /* Define to 1 if you have the `clearenv' function. */
 #undef HAVE_CLEARENV
 
@@ -46,10 +43,6 @@
 /* Define to 1 if you have the declaration of `username_completion_function',
    and to 0 if you don't. */
 #undef HAVE_DECL_USERNAME_COMPLETION_FUNCTION
-
-/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
-   */
-#undef HAVE_DIRENT_H
 
 /* Define to 1 if you have the <err.h> header file. */
 #undef HAVE_ERR_H
@@ -106,20 +99,11 @@
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
-/* Define to 1 if you have the `lockf' function. */
-#undef HAVE_LOCKF
-
 /* Define to 1 if you have the <md5.h> header file. */
 #undef HAVE_MD5_H
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
-
-/* Define to 1 if you have the `memset' function. */
-#undef HAVE_MEMSET
-
-/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
-#undef HAVE_NDIR_H
 
 /* Define to 1 if you have the <openssl/md5.h> header file. */
 #undef HAVE_OPENSSL_MD5_H
@@ -187,9 +171,6 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
-/* Define to 1 if you have the `strcasecmp' function. */
-#undef HAVE_STRCASECMP
-
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 
@@ -202,18 +183,11 @@
 /* Define to 1 if you have the `strlcpy' function. */
 #undef HAVE_STRLCPY
 
-/* Define to 1 if you have the `strncasecmp' function. */
-#undef HAVE_STRNCASECMP
-
 /* Define to 1 if you have the `sysctlbyname' function. */
 #undef HAVE_SYSCTLBYNAME
 
 /* Define to 1 if you have the <sys/cdefs.h> header file. */
 #undef HAVE_SYS_CDEFS_H
-
-/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
-   */
-#undef HAVE_SYS_DIR_H
 
 /* Define to 1 if you have the <sys/event.h> header file. */
 #undef HAVE_SYS_EVENT_H
@@ -223,10 +197,6 @@
 
 /* Define to 1 if you have the <sys/file.h> header file. */
 #undef HAVE_SYS_FILE_H
-
-/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
-   */
-#undef HAVE_SYS_NDIR_H
 
 /* Define to 1 if you have the <sys/paths.h> header file. */
 #undef HAVE_SYS_PATHS_H
@@ -242,9 +212,6 @@
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
-
-/* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
-#undef HAVE_SYS_WAIT_H
 
 /* Platform supports tracemode. */
 #undef HAVE_TRACEMODE_SUPPORT
