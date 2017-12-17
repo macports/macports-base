@@ -132,7 +132,6 @@ AC_PATH_PROG(BZR, [bzr], [])
 AC_PATH_PROG(CHOWN, [chown], [], [$PATH:/usr/sbin])
 AC_PATH_PROG(CP, [cp], [])
 AC_PATH_PROG(CPIO, [cpio], [])
-AC_PATH_PROG(CVS, [cvs], [])
 AC_PATH_PROG(DIFF, [diff], [])
 AC_PATH_PROG(DSCL, [dscl], [])
 AC_PATH_PROG(DSEDITGROUP, [dseditgroup], [], [$PATH:/usr/sbin])
@@ -163,7 +162,6 @@ AC_PATH_PROG(RMDIR, [rmdir], [])
 AC_PATH_PROG(RSYNC, [rsync], [])
 AC_PATH_PROG(SANDBOX_EXEC, [sandbox-exec], [], [/usr/bin])
 AC_PATH_PROG(SED, [sed])
-AC_PATH_PROG(SVN, [svn], [])
 AC_PATH_PROG(SWIG, [swig], [])
 AC_PATH_PROG(TAR, [tar])
 AC_PATH_PROG(UNZIP, [unzip])
@@ -234,9 +232,6 @@ MP_PATH_FRAMEWORKS
 MP_UNIVERSAL_OPTIONS
 
 # Check for standard header files.
-AC_HEADER_STDC
-AC_HEADER_DIRENT
-AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([crt_externs.h err.h fcntl.h libkern/OSAtomic.h libproc.h limits.h paths.h pwd.h \
 	readline/history.h readline/readline.h stdatomic.h spawn.h sys/cdefs.h sys/event.h \
 	sys/fcntl.h sys/file.h sys/paths.h sys/socket.h sys/sysctl.h utime.h])
