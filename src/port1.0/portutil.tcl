@@ -983,11 +983,7 @@ proc reinplace {args}  {
         set cmdline {}
         lappend cmdline $portutil::autoconf::sed_command
         if {$extended} {
-            if {$portutil::autoconf::sed_ext_flag eq "N/A"} {
-                ui_debug "sed extended regexp not available"
-                return -code error "reinplace sed(1) too old"
-            }
-            lappend cmdline $portutil::autoconf::sed_ext_flag
+            lappend cmdline -E
         }
         if {$suppress} {
             lappend cmdline -n

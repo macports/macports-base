@@ -1083,34 +1083,6 @@ AC_DEFUN([MP_PATH_SCAN],[
 	prefix=$oldprefix
 ])
 
-dnl This macro tests for sed support of -E (BSD) or -r (GNU)
-AC_DEFUN([MP_SED_EXTENDED_REGEXP],[
-	AC_PATH_PROG(SED, [sed])
-
-	if test "x$SED" = "x"; then
-		AC_MSG_ERROR([cannot find sed. Is sed installed?])
-	fi
-
-	AC_MSG_CHECKING([which sed flag to use for extended regexp])
-	[any_sed_flag=`echo foo | $SED    -e s/foo+/OK/ 2>&1 | grep OK`]
-	[bsd_sed_flag=`echo foo | $SED -E -e s/foo+/OK/ 2>&1 | grep OK`]
-	[gnu_sed_flag=`echo foo | $SED -r -e s/foo+/OK/ 2>&1 | grep OK`]
-	if test "x$any_sed_flag" = "xOK" ; then
-		AC_MSG_RESULT([none])
-		SED_EXT=
-	elif test "x$bsd_sed_flag" = "xOK" ; then
-		AC_MSG_RESULT([-E (BSD)])
-		SED_EXT=-E
-	elif test "x$gnu_sed_flag" = "xOK" ; then
-		AC_MSG_RESULT([-r (GNU)])
-		SED_EXT=-r
-	else
-		AC_MSG_RESULT([not available])
-		SED_EXT='N/A'
-	fi
-	AC_SUBST(SED_EXT)
-])
-
 dnl This macro tests for tar support of -q (BSD) or not (GNU)
 AC_DEFUN([MP_TAR_FAST_READ],[
 	AC_PATH_PROG(TAR, [tar])
@@ -1160,55 +1132,6 @@ AC_DEFUN([MP_PATCH_GNU_VERSION],[
 		AC_MSG_RESULT([$PATCH_CMD])
 		GNUPATCH="$PATCH_CMD"
 	fi
-])
-
-#------------------------------------------------------------------------
-# MP_CHECK_READLINK_IS_P1003_1A --
-#
-#	Check if readlink conforms to POSIX 1003.1a standard, define
-#	READLINK_IS_NOT_P1003_1A if it doesn't.
-#
-# Arguments:
-#       None.
-#
-# Requires:
-#       None.
-#
-# Depends:
-#		AC_LANG_PROGRAM
-#
-# Results:
-#       Result is cached.
-#
-#	If readlink doesn't conform to POSIX 1003.1a, defines the following variables:
-#		READLINK_IS_NOT_P1003_1A
-#
-#------------------------------------------------------------------------
-AC_DEFUN(MP_CHECK_READLINK_IS_P1003_1A, [
-	AC_MSG_CHECKING([if readlink conforms to POSIX 1003.1a])
-
-	AC_CACHE_VAL(mp_cv_readlink_is_posix_1003_1a, [
-		AC_COMPILE_IFELSE([
-			AC_LANG_PROGRAM([
-					#include <unistd.h>
-					ssize_t readlink(const char *, char *, size_t);
-				], [
-			])
-			], [
-				mp_cv_readlink_is_posix_1003_1a="yes"
-			], [
-				mp_cv_readlink_is_posix_1003_1a="no"
-			]
-		)
-	])
-
-	AC_MSG_RESULT(${mp_cv_readlink_is_posix_1003_1a})
-
-	if test x"${mp_cv_readlink_is_posix_1003_1a}" = "xno"; then
-		AC_DEFINE([READLINK_IS_NOT_P1003_1A], [], [Define to 1 if readlink does not conform with POSIX 1003.1a (where third argument is a size_t and return value is a ssize_t)])
-	fi
-
-	AC_SUBST(READLINK_IS_NOT_P1003_1A)
 ])
 
 #------------------------------------------------------------------------
