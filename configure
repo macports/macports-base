@@ -667,7 +667,6 @@ OS_MAJOR
 OS_PLATFORM
 READLINE_LIBS
 MD5_LIBS
-READLINK_IS_NOT_P1003_1A
 ac_cv_func_strlcat
 EGREP
 GREP
@@ -692,7 +691,6 @@ CFLAGS_PEDANTIC
 CFLAGS_QUICHEEATERS
 TAR_CMD
 TAR_Q
-SED_EXT
 ZIP
 XZ
 XCRUN
@@ -5836,76 +5834,6 @@ if test "x$MTREE" = "x"; then
 fi
 
 
-	# Extract the first word of "sed", so it can be a program name with args.
-set dummy sed; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_SED+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $SED in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_SED="$SED" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_SED="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-SED=$ac_cv_path_SED
-if test -n "$SED"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $SED" >&5
-$as_echo "$SED" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-
-	if test "x$SED" = "x"; then
-		as_fn_error $? "cannot find sed. Is sed installed?" "$LINENO" 5
-	fi
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking which sed flag to use for extended regexp" >&5
-$as_echo_n "checking which sed flag to use for extended regexp... " >&6; }
-	any_sed_flag=`echo foo | $SED    -e s/foo+/OK/ 2>&1 | grep OK`
-	bsd_sed_flag=`echo foo | $SED -E -e s/foo+/OK/ 2>&1 | grep OK`
-	gnu_sed_flag=`echo foo | $SED -r -e s/foo+/OK/ 2>&1 | grep OK`
-	if test "x$any_sed_flag" = "xOK" ; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: none" >&5
-$as_echo "none" >&6; }
-		SED_EXT=
-	elif test "x$bsd_sed_flag" = "xOK" ; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: -E (BSD)" >&5
-$as_echo "-E (BSD)" >&6; }
-		SED_EXT=-E
-	elif test "x$gnu_sed_flag" = "xOK" ; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: -r (GNU)" >&5
-$as_echo "-r (GNU)" >&6; }
-		SED_EXT=-r
-	else
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not available" >&5
-$as_echo "not available" >&6; }
-		SED_EXT='N/A'
-	fi
-
-
-
 	# Extract the first word of "tar", so it can be a program name with args.
 set dummy tar; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -7244,58 +7172,6 @@ fi
 cat >>confdefs.h <<_ACEOF
 #define HAVE_DECL_ATOMIC_COMPARE_EXCHANGE_STRONG_EXPLICIT $ac_have_decl
 _ACEOF
-
-
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if readlink conforms to POSIX 1003.1a" >&5
-$as_echo_n "checking if readlink conforms to POSIX 1003.1a... " >&6; }
-
-	if ${mp_cv_readlink_is_posix_1003_1a+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-					#include <unistd.h>
-					ssize_t readlink(const char *, char *, size_t);
-
-int
-main ()
-{
-
-
-  ;
-  return 0;
-}
-
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-
-				mp_cv_readlink_is_posix_1003_1a="yes"
-
-else
-
-				mp_cv_readlink_is_posix_1003_1a="no"
-
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-fi
-
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ${mp_cv_readlink_is_posix_1003_1a}" >&5
-$as_echo "${mp_cv_readlink_is_posix_1003_1a}" >&6; }
-
-	if test x"${mp_cv_readlink_is_posix_1003_1a}" = "xno"; then
-
-$as_echo "#define READLINK_IS_NOT_P1003_1A /**/" >>confdefs.h
-
-	fi
-
-
 
 
 # Check for md5 implementation

@@ -42,11 +42,7 @@
 /**
  * Deny \c readlink(2) if the file is not within the sandbox bounds.
  */
-#ifdef READLINK_IS_NOT_P1003_1A
-static int _dt_readlink(const char *path, char *buf, int bufsiz) {
-#else
 static ssize_t _dt_readlink(const char *path, char *buf, size_t bufsiz) {
-#endif
 	__darwintrace_setup();
 
 	int result = 0;

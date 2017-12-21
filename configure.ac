@@ -177,7 +177,6 @@ if test "x$MTREE" = "x"; then
     AC_MSG_ERROR([mtree not found])
 fi
 
-MP_SED_EXTENDED_REGEXP
 MP_TAR_FAST_READ
 MP_TAR_NO_SAME_OWNER
 MP_PATCH_GNU_VERSION
@@ -246,8 +245,6 @@ AC_CHECK_FUNCS([OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 \
 AC_SUBST([ac_cv_func_strlcat])
 
 AC_CHECK_DECLS([atomic_compare_exchange_strong_explicit], [], [], [[#include <stdatomic.h>]])
-
-MP_CHECK_READLINK_IS_P1003_1A
 
 # Check for md5 implementation
 AC_CHECK_HEADER([CommonCrypto/CommonDigest.h], [AC_DEFINE([HAVE_COMMONCRYPTO_COMMONDIGEST_H], [1], [Define if CommonCrypto is available.])], [MP_LIB_MD5])

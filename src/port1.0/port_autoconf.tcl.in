@@ -67,7 +67,6 @@ namespace eval portutil::autoconf {
 	variable xcrun_path "@XCRUN@"
 	variable sandbox_exec_path "@SANDBOX_EXEC@"
 	variable sed_command "@SED@"
-	variable sed_ext_flag "@SED_EXT@"
 	variable tar_command "@TAR_CMD@"
 	variable tar_path "@TAR@"
 	variable tar_q "@TAR_Q@"
