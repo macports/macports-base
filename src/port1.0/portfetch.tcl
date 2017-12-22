@@ -46,7 +46,7 @@ namespace eval portfetch {
 }
 
 # define options: distname master_sites
-options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg dist_subdir \
+options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg use_no_compression dist_subdir \
     fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
     master_sites.mirror_subdir patch_sites.mirror_subdir \
     bzr.url bzr.revision \
@@ -120,13 +120,14 @@ default mirror_sites.listfile {"mirror_sites.tcl"}
 default mirror_sites.listpath {"port1.0/fetch"}
 
 # Option-executed procedures
-option_proc use_bzip2 portfetch::set_extract_type
-option_proc use_lzma  portfetch::set_extract_type
-option_proc use_xz    portfetch::set_extract_type
-option_proc use_zip   portfetch::set_extract_type
-option_proc use_7z    portfetch::set_extract_type
-option_proc use_lzip  portfetch::set_extract_type
-option_proc use_dmg   portfetch::set_extract_type
+option_proc use_bzip2          portfetch::set_extract_type
+option_proc use_lzma           portfetch::set_extract_type
+option_proc use_xz             portfetch::set_extract_type
+option_proc use_zip            portfetch::set_extract_type
+option_proc use_7z             portfetch::set_extract_type
+option_proc use_lzip           portfetch::set_extract_type
+option_proc use_dmg            portfetch::set_extract_type
+option_proc use_no_compression portfetch::set_extract_type
 
 option_proc fetch.type portfetch::set_fetch_type
 
@@ -162,6 +163,9 @@ proc portfetch::set_extract_type {option action args} {
             }
             use_dmg {
                 set extract.suffix .dmg
+            }
+            use_no_compression {
+                set extract.suffix ""
             }
         }
     }
