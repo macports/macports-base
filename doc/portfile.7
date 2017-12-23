@@ -1498,9 +1498,9 @@ Choose whether or not to generate a startup item.
 .Dl startupitem.create yes
 .It Ic startupitem.type
 Select the type of startupitem to generate. By default, a startupitem
-will be generated that is of the appropriate type for the OS. For
-instance, launchd is used on system 10.4, while SystemStarter is used
-on prior Mac OS X systems. A global default may be specified with the startupitem_type preference in ports.conf.
+will be generated that is of the appropriate type for the OS.
+For macOS this is always launchd.
+A global default may be specified with the startupitem_type preference in ports.conf.
 .br
 .Sy Type:
 .Em optional
@@ -2084,7 +2084,8 @@ The -E flag does the same thing as in
 .Dl reinplace \*qs|/usr/local|${prefix}|g\*q doc/manpage.1
 .It Ic file
 Standard TCL command to manipulate file names and attributes, recommended if you wish to preserve Mac OS
-resource forks when destrooting ports on Mac OS X 10.3.x and Mac OS X 10.4.x . Use
+resource forks when destrooting ports.
+Use
 .Nm xinstall
 to also preserve Extended Attributes (i.e. Access Control Lists). See
 .Xr file n
@@ -2094,11 +2095,9 @@ Built-in shorthand alternative to "file copy".
 .It Ic move
 Built-in shorthand alternative to "file rename".
 .It Ic delete Ar
-Deletes each of the given files/directories. Behaves similarly to
-.Ic file delete -force
-except that
-.Ic file delete -force
-will fail to delete directories properly on 10.3 systems.
+Deletes each of the given files/directories.
+Behaves identically to
+.Ic file delete -force .
 .It Ic touch
 Built-in command mimicking the BSD touch command.
 .It Ic ln
