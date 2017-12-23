@@ -53,7 +53,7 @@ options destroot.target destroot.destdir destroot.clean destroot.keepdirs destro
         startupitem.logevents startupitem.logfile startupitem.name \
         startupitem.netchange startupitem.pidfile startupitem.plist \
         startupitem.requires startupitem.restart startupitem.start \
-        startupitem.stop startupitem.type startupitem.uniquename
+        startupitem.stop startupitem.uniquename
 commands destroot
 
 # Set defaults
@@ -86,7 +86,6 @@ default startupitem.requires    ""
 default startupitem.restart     ""
 default startupitem.start       ""
 default startupitem.stop        ""
-default startupitem.type        {$system_options(startupitem_type)}
 default startupitem.uniquename  {org.macports.${startupitem.name}}
 
 set_ui_prefix

@@ -135,13 +135,6 @@ universal_archs::
     *Default (10.6):*;; x86_64 i386
     *Default (10.5 and earlier):*;; i386 ppc
 
-startupitem_type::
-    Set the default type of startupitems to be generated, overridable by
-    Portfiles that explicitly state a startupitem.type key. If set to "default",
-    then a type will be selected that's appropriate to the OS.
-    *Supported types:*;; none, launchd, default.
-    *Default:*;; default
-
 destroot_umask::
     Umask value to use during the destrooting of a port.
     *Default:*;; 022
