@@ -38,6 +38,7 @@ package require receipt_sqlite 1.0
 package require portimage 2.0
 package require registry_uninstall 2.0
 package require msgcat
+package require Pextlib 1.0
 
 namespace eval registry {
     variable lockfd
@@ -236,7 +237,14 @@ proc open_file_map {args} {
 
 proc file_registered {file} {
 	global macports::registry.format
-	return [${macports::registry.format}::file_registered $file]
+
+	set cs false
+	if {[catch {fs_case_sensitive $file} cs]} {
+		ui_debug "Unable to get file system case-sensitivity of file $file, assuming worst case (case-insensitive.)"
+		set cs false
+	}
+
+	return [${macports::registry.format}::file_registered $file $cs]
 }
 
 proc port_registered {name} {

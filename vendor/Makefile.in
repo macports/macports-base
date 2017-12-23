@@ -13,6 +13,7 @@ TCLLIB_TARGETS= 	@VENDOR_TCLLIB_INSTALL@
 LIBSOLV_SUBDIR=		@VENDOR_LIBSOLV_SUBDIR@
 LIBSOLV_TARGETS=	@VENDOR_LIBSOLV_INSTALL@
 
+PREFIX=			@prefix@
 DESTROOT=   		@abs_top_builddir@/vendor/vendor-destroot
 
 .PHONY: all clean distclean install destroot test
@@ -69,6 +70,7 @@ destroot-tclx: all-tclx
 destroot-tcllib: all-tcllib
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ DESTDIR=${DESTROOT} TCLSH_PROG=@INTREE_TCLSH@ @VENDOR_TCLLIB_INSTALL@
+	@chmod -R ugo+rX ${DESTROOT}${PREFIX}/libexec/macports/lib/tcllib*
 
 destroot-libsolv: all-libsolv
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_LIBSOLV_SUBDIR@
@@ -99,6 +101,7 @@ install-tcllib:
 	rm -rf $(DESTDIR)$(TCL_PACKAGE_PATH)/tcllib1.1{5,7}
 	@echo ===\> making $(@:%-tcllib=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ @VENDOR_TCLLIB_INSTALL@
+	@chmod -R ugo+rX $(DESTDIR)${PREFIX}/libexec/macports/lib/tcllib*
 
 install-libsolv:
 	@echo ===\> making $(@:%-libsolv=%) in ${DIRPRFX}@VENDOR_LIBSOLV_SUBDIR@

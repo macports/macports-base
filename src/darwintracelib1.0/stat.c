@@ -35,18 +35,21 @@
 
 #include "darwintrace.h"
 
-#include <errno.h>
 #include <sys/syscall.h>
+#include <errno.h>
 #include <unistd.h>
 
 // Do *not* include sys/stat.h, it will rewrite the stat to a stat$INODE64 symbol
+
+// We don't include sys/stat.h because it would rewrite all stat function
+// calls, but we need the declaration of stat here.
+int stat(const char *path, void *sb);
 
 /**
  * Wrapper around \c stat(2) to hide information about files outside the
  * sandbox.
  */
 static int _dt_stat(const char *path, void *sb) {
-#define stat(path, sb) syscall(SYS_stat, path, sb)
 	__darwintrace_setup();
 
 	int result = 0;
@@ -61,18 +64,17 @@ static int _dt_stat(const char *path, void *sb) {
 	debug_printf("stat(%s) = %d\n", path, result);
 
 	return result;
-#undef stat
 }
 
-// We don't include sys/stat.h because it would rewrite all stat function
-// calls, but we need the declaration of stat here.
-int stat(const char *path, void *sb);
 DARWINTRACE_INTERPOSE(_dt_stat, stat);
 
 // Don't provide stat64 on systems that have no stat64 syscall
 #ifdef SYS_stat64
+
+int stat64(const char *path, void *sb);
+int stat$INODE64(const char *path, void *sb);
+
 static int _dt_stat64(const char *path, void *sb) {
-#define stat64(path, sb) syscall(SYS_stat64, path, sb)
 	__darwintrace_setup();
 
 	int result = 0;
@@ -87,18 +89,16 @@ static int _dt_stat64(const char *path, void *sb) {
 	debug_printf("stat64(%s) = %d\n", path, result);
 
 	return result;
-#undef stat64
 }
-int stat64(const char *path, void *sb);
-DARWINTRACE_INTERPOSE(_dt_stat64, stat64);
 
-int stat$INODE64(const char *path, void *sb);
+DARWINTRACE_INTERPOSE(_dt_stat64, stat64);
 DARWINTRACE_INTERPOSE(_dt_stat64, stat$INODE64);
 
 #endif /* defined(SYS_stat64) */
 
+int lstat(const char *path, void *sb);
+
 static int _dt_lstat(const char *path, void *sb) {
-#define lstat(path, sb) syscall(SYS_lstat, path, sb)
 	__darwintrace_setup();
 
 	int result = 0;
@@ -114,16 +114,17 @@ static int _dt_lstat(const char *path, void *sb) {
 	debug_printf("lstat(%s) = %d\n", path, result);
 
 	return result;
-#undef lstat
 }
 
-int lstat(const char *path, void *sb);
 DARWINTRACE_INTERPOSE(_dt_lstat, lstat);
 
 // Don't provide lstat64 on systems that have no lstat64 syscall
 #ifdef SYS_lstat64
+
+int lstat64(const char *path, void *sb);
+int lstat$INODE64(const char *path, void *sb);
+
 static int _dt_lstat64(const char *path, void *sb) {
-#define lstat64(path, sb) syscall(SYS_lstat64, path, sb)
 	__darwintrace_setup();
 
 	int result = 0;
@@ -139,13 +140,9 @@ static int _dt_lstat64(const char *path, void *sb) {
 	debug_printf("lstat64(%s) = %d\n", path, result);
 
 	return result;
-#undef lstat64
 }
 
-int lstat64(const char *path, void *sb);
 DARWINTRACE_INTERPOSE(_dt_lstat64, lstat64);
-
-int lstat$INODE64(const char *path, void *sb);
 DARWINTRACE_INTERPOSE(_dt_lstat64, lstat$INODE64);
 
 #endif /* defined(SYS_lstat64) */

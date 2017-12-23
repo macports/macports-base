@@ -32,7 +32,7 @@ OPTIONS
 include::global-flags.txt[]
 
 *-q*::
-    Supress status output, be as silent as possible.
+    Suppress status output, be as silent as possible.
 
 *-f*::
     Do not check whether the downloaded MacPorts version is newer than the

@@ -247,18 +247,20 @@ int getpwuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
         Tcl_ListObjAppendElement(interp, reslist, Tcl_NewIntObj(pw->pw_uid));
         Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("gid", -1));
         Tcl_ListObjAppendElement(interp, reslist, Tcl_NewIntObj(pw->pw_gid));
-        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("change", -1));
-        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewLongObj(pw->pw_change));
-        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("class", -1));
-        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj(pw->pw_class, -1));
         Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("gecos", -1));
         Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj(pw->pw_gecos, -1));
         Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("dir", -1));
         Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj(pw->pw_dir, -1));
         Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("shell", -1));
         Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj(pw->pw_shell, -1));
+#ifdef __APPLE__
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("change", -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewLongObj(pw->pw_change));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("class", -1));
+        Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj(pw->pw_class, -1));
         Tcl_ListObjAppendElement(interp, reslist, Tcl_NewStringObj("expire", -1));
         Tcl_ListObjAppendElement(interp, reslist, Tcl_NewLongObj(pw->pw_expire));
+#endif
         Tcl_SetObjResult(interp, reslist);
         return TCL_OK;
     }
@@ -275,12 +277,6 @@ int getpwuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
     } else if (strcmp(field, "gid") == 0) {
         Tcl_SetObjResult(interp, Tcl_NewIntObj(pw->pw_gid));
         return TCL_OK;
-    } else if (strcmp(field, "change") == 0) {
-        Tcl_SetObjResult(interp, Tcl_NewLongObj(pw->pw_change));
-        return TCL_OK;
-    } else if (strcmp(field, "class") == 0) {
-        Tcl_SetResult(interp, pw->pw_class, TCL_VOLATILE);
-        return TCL_OK;
     } else if (strcmp(field, "gecos") == 0) {
         Tcl_SetResult(interp, pw->pw_gecos, TCL_VOLATILE);
         return TCL_OK;
@@ -290,9 +286,17 @@ int getpwuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
     } else if (strcmp(field, "shell") == 0) {
         Tcl_SetResult(interp, pw->pw_shell, TCL_VOLATILE);
         return TCL_OK;
+#ifdef __APPLE__
+    } else if (strcmp(field, "change") == 0) {
+        Tcl_SetObjResult(interp, Tcl_NewLongObj(pw->pw_change));
+        return TCL_OK;
+    } else if (strcmp(field, "class") == 0) {
+        Tcl_SetResult(interp, pw->pw_class, TCL_VOLATILE);
+        return TCL_OK;
     } else if (strcmp(field, "expire") == 0) {
         Tcl_SetObjResult(interp, Tcl_NewLongObj(pw->pw_expire));
         return TCL_OK;
+#endif
     }
 
     result = Tcl_NewStringObj("invalid field ", -1);

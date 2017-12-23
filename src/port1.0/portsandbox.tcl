@@ -84,15 +84,23 @@ proc portsandbox::set_profile {target} {
 (allow file-write-data (literal \"/dev/null\") (literal \"/dev/zero\") \
 (literal \"/dev/dtracehelper\") (literal \"/dev/tty\") \
 (literal \"/dev/stdin\") (literal \"/dev/stdout\") (literal \"/dev/stderr\") \
+(literal \"/dev/random\") (literal \"/dev/urandom\") \
 (regex #\"^/dev/fd/\")) (allow file-write* \
-(regex #\"^(/private)?(/var)?/tmp/\" #\"^(/private)?/var/folders/\"))"
+(regex #\"^(/private)?(/var)?/tmp/\" #\"^(/private)?/var/folders/\" #\"^(/private)?/var/db/mds/\"))"
+
+    set perms [list file-write*]
+    if {${os.major} >= 17} {
+        lappend perms file-write-setugid
+    }
 
     foreach dir $allow_dirs {
-        append portsandbox_profile " (allow file-write* ("
-        if {${os.major} > 9} {
-            append portsandbox_profile "subpath \"${dir}\"))"
-        } else {
-            append portsandbox_profile "regex #\"^${dir}/\"))"
+        foreach perm $perms {
+            append portsandbox_profile " (allow $perm ("
+            if {${os.major} > 9} {
+                append portsandbox_profile "subpath \"${dir}\"))"
+            } else {
+                append portsandbox_profile "regex #\"^${dir}/\"))"
+            }
         }
     }
 }

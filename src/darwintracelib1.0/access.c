@@ -36,11 +36,9 @@
 #include "darwintrace.h"
 
 #include <errno.h>
-#include <sys/syscall.h>
 #include <unistd.h>
 
 static int _dt_access(const char *path, int amode) {
-#define access(x, y) syscall(SYS_access, (x), (y))
 	__darwintrace_setup();
 
 	int result = 0;
@@ -55,7 +53,6 @@ static int _dt_access(const char *path, int amode) {
 	debug_printf("access(%s) = %d\n", path, result);
 
 	return result;
-#undef access
 }
 
 DARWINTRACE_INTERPOSE(_dt_access, access);

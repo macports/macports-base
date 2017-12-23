@@ -1,7 +1,7 @@
 /*
  * Pextlib.h
  *
- * Copyright (c) 2009 The MacPorts Project
+ * Copyright (c) 2009, 2017 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,3 +35,14 @@ void ui_msg(Tcl_Interp *interp, const char *format, ...) __attribute__((format(p
 void ui_notice(Tcl_Interp *interp, const char *format, ...) __attribute__((format(printf, 2, 3)));
 void ui_info(Tcl_Interp *interp, const char *format, ...) __attribute__((format(printf, 2, 3)));
 void ui_debug(Tcl_Interp *interp, const char *format, ...) __attribute__((format(printf, 2, 3)));
+
+/* Mount point file system case-sensitivity caching infrastructure. */
+typedef struct _mount_cs_cache mount_cs_cache_t;
+mount_cs_cache_t* new_mount_cs_cache(void);
+void reset_mount_cs_cache(mount_cs_cache_t *cache);
+
+#ifdef __APPLE__
+int fs_case_sensitive_darwin(Tcl_Interp *interp, const char *path, mount_cs_cache_t *cache);
+#endif /* __APPLE__ */
+
+int fs_case_sensitive_fallback(Tcl_Interp *interp, const char *path, mount_cs_cache_t *cache);

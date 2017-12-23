@@ -37,7 +37,6 @@
 #include "darwintrace.h"
 
 #include <stdio.h>
-#include <sys/syscall.h>
 #include <unistd.h>
 
 /**
@@ -49,7 +48,6 @@
  * will be set to the FD to be closed when closing should be allowed.
  */
 static int _dt_close(int fd) {
-#define close(x) syscall(SYS_close, (x))
 	__darwintrace_setup();
 
 	FILE *stream = __darwintrace_sock();
@@ -62,7 +60,6 @@ static int _dt_close(int fd) {
 	}
 
 	return close(fd);
-#undef close
 }
 
 DARWINTRACE_INTERPOSE(_dt_close, close);

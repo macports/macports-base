@@ -76,6 +76,18 @@ code:
 *   Update the autoconf [`configure`][configure] script through the provided
     [`autogen.sh`][autogen.sh] script once the version number in `mp_version`
     has been changed, since the former reads the latter.
+*   Regenerate all man pages from scratch to ensure the new version number is
+    used in the output file. AsciiDoc and DocBook either need to be installed
+    in the target prefix or manually pass the correct paths if they are
+    installed elsewhere.
+
+        ./autogen.sh
+        ./standard_configure.sh
+        make -C doc/ clean all \
+            ASCIIDOC=/opt/local/bin/asciidoc \
+            XSLTPROC=/opt/local/bin/xsltproc \
+            DOCBOOK_XSL=/opt/local/share/xsl/docbook-xsl/manpages/docbook.xsl
+
 *   Make sure that these and any other changes or bug fixes are made on and/or
     merged between the release branch and master as needed. For instance, if
     you've made changes to `ChangeLog` only on the release branch, those
@@ -233,6 +245,27 @@ In order to make the release version available through selfupdate, the
 updated with the tag of the release to distribute. This file is read by the
 cron job that makes the code available via rsync. See
 [`jobs/mprsyncup`][mprsyncup] in the macports-infra repository.
+
+
+### Make the Release Available for Pull Request Checks on Travis CI ###
+
+To make the new release available for testing pull requests on
+[Travis CI](https://travis-ci.org/macports), update the travis-ci branch by
+merging the newly tagged release into it.
+
+    $ git checkout travis-ci
+    $ git merge v2.0.0
+    $ git push origin travis-ci
+
+Verify that the new release has been built successfully on
+[Travis CI](https://travis-ci.org/macports/macports-base/branches).
+
+
+### Add Release Version to Trac ###
+
+Add the new version to the list of released versions on Trac. Edit the list
+using the [web admin interface](https://trac.macports.org/admin/ticket/versions)
+on our Trac installation.
 
 
 ### Notify the Public of the Release ###

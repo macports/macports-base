@@ -644,7 +644,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
         try -pass_signal {
             set macosx_version [exec /usr/bin/sw_vers -productVersion | cut -f1,2 -d.]
-        } catch {*} {
+        } catch {* ec result} {
             ui_debug "sw_vers exists but running it failed: $result"
         }
     }
@@ -1088,7 +1088,7 @@ match macports.conf.default."
     # set the hidden flag on $portdbpath to avoid spotlight indexing, which
     # might slow builds down considerably. You can avoid this by touching
     # $portdbpath/.nohide.
-    if {$os_platform eq "darwin" && [vercmp [info tclversion] 8.5] >= 0 && ![file exists [file join $portdbpath .nohide]] && [file writable $portdbpath] && [file attributes $portdbpath -hidden] == 0} {
+    if {$os_platform eq "darwin" && ![file exists [file join $portdbpath .nohide]] && [file writable $portdbpath] && [file attributes $portdbpath -hidden] == 0} {
         try -pass_signal {
             file attributes $portdbpath -hidden yes
         } catch {{*} eCode eMessage} {
@@ -1132,8 +1132,7 @@ match macports.conf.default."
         }
     }
 
-    if {[getuid] == 0 && $os_major >= 11 && $os_platform eq "darwin" &&
-            [file isfile "${macports::user_home}/Library/Preferences/com.apple.dt.Xcode.plist"]} {
+    if {[getuid] == 0 && $os_major >= 11 && $os_platform eq "darwin"} {
         macports::copy_xcode_plist $env(HOME)
     }
 
@@ -1775,7 +1774,19 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
 
     $workername eval {port::run_callbacks}
 
-    ditem_key $mport provides [$workername eval {set subport}]
+    set actual_subport [$workername eval {set PortInfo(name)}]
+    if {[$workername eval {info exists user_options(subport)}]} {
+        # The supplied subport may have been set on the command line by the
+        # user, or simply obtained from the PortIndex or registry. Check that
+        # it's valid in case the user made a mistake.
+        set supplied_subport [$workername eval {set user_options(subport)}]
+        if {$supplied_subport ne $actual_subport} {
+            set portname [$workername eval {set name}]
+            mportclose $mport
+            error "$portname does not have a subport '$supplied_subport'"
+        }
+    }
+    ditem_key $mport provides $actual_subport
 
     return $mport
 }

@@ -32,11 +32,11 @@ case "$MACOSX_VERSION" in
     AC_MSG_ERROR([This version of Mac OS X is not supported
                   Please upgrade at http://store.apple.com/])
     ;;
-  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-7]]|10.7.[[0-4]]|10.8.[[0-4]]|10.9.[[0-4]]|10.10.[[0-4]]|10.11.[[0-5]]|10.12.[[0-1]])
+  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-7]]|10.7.[[0-4]]|10.8.[[0-4]]|10.9.[[0-4]]|10.10.[[0-4]]|10.11.[[0-5]]|10.12.[[0-5]])
     AC_MSG_WARN([This version of Mac OS X is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;
-  10.4*|10.5*|10.6*|10.7*|10.8*|10.9*|10.10*|10.11*|10.12*)
+  10.4*|10.5*|10.6*|10.7*|10.8*|10.9*|10.10*|10.11*|10.12*|10.13*)
     dnl Supported version
     ;;
   *)
@@ -86,7 +86,7 @@ case "$XCODE_VERSION" in
     AC_MSG_WARN([This version of Xcode Tools is out of date])
     AC_MSG_WARN([Please consider upgrading as some ports fail compiling])
     ;;
-  2.*|3.*|4.*|5.*|6.*|7.*|8.*)
+  2.*|3.*|4.*|5.*|6.*|7.*|8.*|9.*)
     dnl Supported version
     ;;
   *)
@@ -173,13 +173,10 @@ AC_PATH_PROG(XCRUN, [xcrun], [])
 AC_PATH_PROG(XZ, [xz], [])
 AC_PATH_PROG(ZIP, [zip])
 
-AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [], [/sbin])
-
 if test "x$MTREE" = "x"; then
     AC_MSG_ERROR([mtree not found])
 fi
 
-MP_SED_EXTENDED_REGEXP
 MP_TAR_FAST_READ
 MP_TAR_NO_SAME_OWNER
 MP_PATCH_GNU_VERSION
@@ -194,12 +191,6 @@ AC_SUBST(CFLAGS_PEDANTIC)
 MP_WERROR
 
 MP_COMPILER_ATTRIBUTE_UNUSED
-MP_COMPILER_ATTRIBUTE_LF_PRIVATE
-
-# Foundation checks
-ACX_PTHREAD
-MP_OBJC_RUNTIME
-MP_OBJC_FOUNDATION
 
 MP_PROG_DAEMONDO
 
@@ -213,7 +204,7 @@ AC_PREFIX_DEFAULT(/opt/local)
 AC_ARG_WITH(
 		unsupported-prefix,
 		AS_HELP_STRING([--with-unsupported-prefix],
-		[Acknowledge that you accept the consequences of using an unsupported prefix.]),
+		[acknowledge that you accept the consequences of using an unsupported prefix]),
 		[with_unsupported_prefix=$withval],
 		[with_unsupported_prefix=no])
 if test x$prefix = x/usr/local -o x$prefix = x/usr && test x$with_unsupported_prefix != xyes; then
@@ -242,27 +233,24 @@ MP_PATH_FRAMEWORKS
 MP_UNIVERSAL_OPTIONS
 
 # Check for standard header files.
-AC_HEADER_STDC
-AC_HEADER_DIRENT
-AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([crt_externs.h err.h fcntl.h libkern/OSAtomic.h libproc.h limits.h paths.h pwd.h \
-	readline/history.h readline/readline.h spawn.h sys/cdefs.h sys/event.h sys/fcntl.h sys/file.h \
-	sys/paths.h sys/socket.h sys/sysctl.h utime.h])
+	readline/history.h readline/readline.h stdatomic.h spawn.h sys/cdefs.h sys/event.h \
+	sys/fcntl.h sys/file.h sys/paths.h sys/socket.h sys/sysctl.h utime.h])
 
 # Checks for library functions.
 AC_CHECK_FUNCS([OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 \
-	OSAtomicCompareAndSwapPtr __getdirentries64 bzero clearenv copyfile fgetln \
-	flock fls kqueue lockf memset posix_spawn setmode strcasecmp strlcat \
-	strlcpy strncasecmp sysctlbyname])
+	OSAtomicCompareAndSwapPtr __getdirentries64 clearenv copyfile fgetln \
+	flock fls kqueue posix_spawn setmode strlcat \
+	strlcpy sysctlbyname])
 AC_SUBST([ac_cv_func_strlcat])
 
-MP_CHECK_READLINK_IS_P1003_1A
+AC_CHECK_DECLS([atomic_compare_exchange_strong_explicit], [], [], [[#include <stdatomic.h>]])
 
 # Check for md5 implementation
 AC_CHECK_HEADER([CommonCrypto/CommonDigest.h], [AC_DEFINE([HAVE_COMMONCRYPTO_COMMONDIGEST_H], [1], [Define if CommonCrypto is available.])], [MP_LIB_MD5])
 
 # Check for readline
-AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[Enable addition of readline support, if readline present.]),
+AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[enable readline support, if readline present]),
 [
 	AC_CHECK_LIB([readline], [readline], [
 				  READLINE_LIBS=-lreadline

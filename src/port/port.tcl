@@ -916,25 +916,6 @@ proc get_unrequested_ports {} {
 }
 
 proc get_leaves_ports {} {
-    set ilist {}
-    if { [catch {set ilist [registry::installed]} result] } {
-        if {$result ne "Registry error: No ports registered as installed."} {
-            ui_debug $::errorInfo
-            fatal "port installed failed: $result"
-        }
-    }
-    registry::open_dep_map
-    set results {}
-    foreach i $ilist {
-        set iname [lindex $i 0]
-        if {[registry::list_dependents $iname] eq ""} {
-            add_to_portlist results [list name $iname version "[lindex $i 1]_[lindex $i 2]" variants [split_variants [lindex $i 3]]]
-        }
-    }
-    return [portlist_sort [opIntersection $results [get_unrequested_ports]]]
-}
-
-proc get_rleaves_ports {} {
     if { [catch {set ilist [get_unrequested_ports]} result] } {
         if {$result ne "Registry error: No ports registered as installed."} {
             ui_debug $::errorInfo
@@ -1315,7 +1296,6 @@ proc element { resname } {
         ^(inactive)(@.*)?$    -
         ^(actinact)(@.*)?$    -
         ^(leaves)(@.*)?$      -
-        ^(rleaves)(@.*)?$      -
         ^(outdated)(@.*)?$    -
         ^(obsolete)(@.*)?$    -
         ^(requested)(@.*)?$   -
@@ -2228,6 +2208,21 @@ proc action_info { action portlist opts } {
                 }
             }
 
+            # Add "(" "or" ")" "and" for human-readable output
+            if {$pretty_print && $ropt eq "license"} {
+                set infresult {}
+                foreach {e} $inf {
+                    if {[llength $e] > 1} {
+                        if {[llength $infresult] > 0} { lappend infresult " and " }
+                        lappend infresult "([join $e " or "])"
+                    } else {
+                        if {[llength $infresult] > 0} { lappend infresult " and " }
+                        lappend infresult $e
+                    }
+                }
+                set inf [concat {*}$infresult]
+            }
+
             # Format list of maintainers
             if {$ropt eq "maintainers"} {
                 set infresult {}
@@ -2482,15 +2477,24 @@ proc action_provides { action portlist opts } {
             if {![file isdirectory $file] || [file type $file] eq "link"} {
                 set port [registry::file_registered $file]
                 if { $port != 0 } {
-                    puts "$file is provided by: $port"
+                    if {![macports::ui_isset ports_quiet]} {
+                        puts -nonewline "$file is provided by: "
+                    }
+                    puts $port
                 } else {
-                    puts "$file is not provided by a MacPorts port."
+                    if {![macports::ui_isset ports_quiet]} {
+                        puts "$file is not provided by a MacPorts port."
+                    }
                 }
             } else {
-                puts "$file is a directory."
+                if {![macports::ui_isset ports_quiet]} {
+                    puts "$file is a directory."
+                }
             }
         } else {
-            puts "$file does not exist."
+            if {![macports::ui_isset ports_quiet]} {
+                puts "$file does not exist."
+            }
         }
     }
     registry::close_file_map
@@ -4368,38 +4372,29 @@ array set action_array [list \
     exit        [list action_exit           [ACTION_ARGS_NONE]] \
 ]
 
+# Actions which are only valid in shell mode
+set shellmode_action_list [list cd exit quit]
+
 # Expand "action".
-# Returns an action proc, or a list of matching action procs, or the action passed in
+# Returns a list of matching actions.
 proc find_action { action } {
     global action_array
 
-    if { ! [info exists action_array($action)] } {
-        set guess [guess_action $action]
-        if { [info exists action_array($guess)] } {
-            return $guess
+    if {![info exists action_array($action)]} {
+        # list of actions that are valid for this mode
+        global action_list
+        if {![info exists action_list]} {
+            global ui_options shellmode_action_list
+            if {![info exists ui_options(ports_commandfiles)]} {
+                set action_list [lsearch -regexp -all -inline -not [array names action_array] ^[join $shellmode_action_list {$|^}]$]
+            } else {
+                set action_list [array names action_array]
+            }
         }
-        return $guess
+        return [lsearch -glob -inline -all $action_list [string tolower $action]*]
     }
 
     return $action
-}
-
-# Expand action
-# If there's more than one match, return the next possibility
-proc find_action_proc { action } {
-    global action_array
-
-    set action_proc ""
-    if { [info exists action_array($action)] } {
-        set action_proc [lindex $action_array($action) 0]
-    } else {
-        set action [complete_action $action]
-        if { [info exists action_array($action)] } {
-            set action_proc [lindex $action_array($action) 0]
-        }
-    }
-
-    return $action_proc
 }
 
 proc get_action_proc { action } {
@@ -4468,6 +4463,7 @@ array set cmd_opts_array {
     rev-upgrade {id-loadcmd-check}
     diagnose    {quiet}
     reclaim     {enable-reminders disable-reminders}
+    fetch       {no-mirrors}
 }
 
 ##
@@ -4836,19 +4832,6 @@ proc complete_action { text state } {
     return $word
 }
 
-# return all actions beginning with $text
-proc guess_action { text } {
-    global action_array
-
-    return [array names action_array "[string tolower $text]*"]
-
-    if { [llength $complete_choices ] == 1 } {
-        return [lindex $complete_choices 0]
-    }
-
-    return {}
-}
-
 proc attempt_completion { text word start end } {
     # If the word starts with '~', or contains '.' or '/', then use the build-in
     # completion to complete the word
@@ -5124,7 +5107,7 @@ namespace eval portclient::progress {
     ##
     # Progress callback for downloads executed by macports 1.0.
     #
-    # This is essentially a cURL progress callback.
+    # This is essentially a curl progress callback.
     #
     # @param action
     #        One of "start", "update" or "finish", where start will be called

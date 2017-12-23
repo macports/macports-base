@@ -38,7 +38,6 @@
 #include <errno.h>
 #include <sys/dirent.h>
 #include <sys/param.h>
-#include <sys/syscall.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
@@ -64,8 +63,10 @@ struct dirent64  {
 	char      d_name[__DARWIN_MAXPATHLEN]; /* entry name (up to MAXPATHLEN bytes) */
 };
 
+// __getdirentries64(2) is private API. There's no header for it.
+size_t __getdirentries64(int fd, void *buf, size_t bufsize, __darwin_off_t *basep);
+
 static size_t _dt_getdirentries64(int fd, void *buf, size_t bufsize, __darwin_off_t *basep) {
-#define __getdirentries64(w,x,y,z) syscall(SYS_getdirentries64, (w), (x), (y), (z))
 	__darwintrace_setup();
 
 	size_t sz = __getdirentries64(fd, buf, bufsize, basep);
@@ -102,14 +103,11 @@ static size_t _dt_getdirentries64(int fd, void *buf, size_t bufsize, __darwin_of
 	}
 
 	return sz;
-#undef __getdirentries64
 }
 
-// __getdirentries64(2) is private API. There's no header for it.
-size_t __getdirentries64(int fd, void *buf, size_t bufsize, __darwin_off_t *basep);
 DARWINTRACE_INTERPOSE(_dt_getdirentries64, __getdirentries64);
 
-#endif /* defined(__DARWIN_64_BIT_INO_T) && defined(HAVE___GETDIRENTRIES64) */
+#else
 
 #pragma pack(4)
 struct dirent32 {
@@ -121,8 +119,10 @@ struct dirent32 {
 };
 #pragma pack()
 
+// do not use dirent.h, as it applies a define to a non-existing symbol
+int getdirentries(int fd, char *buf, int nbytes, long *basep);
+
 static int _dt_getdirentries(int fd, char *buf, int nbytes, long *basep) {
-#define getdirentries(w,x,y,z) syscall(SYS_getdirentries, (w), (x), (y), (z))
 	__darwintrace_setup();
 
 	size_t sz = getdirentries(fd, buf, nbytes, basep);
@@ -156,8 +156,8 @@ static int _dt_getdirentries(int fd, char *buf, int nbytes, long *basep) {
 	}
 
 	return sz;
-#undef getdirentries
 }
 
-int getdirentries(int fd, char *buf, int nbytes, long *basep);
 DARWINTRACE_INTERPOSE(_dt_getdirentries, getdirentries);
+
+#endif /* defined(__DARWIN_64_BIT_INO_T) && defined(HAVE___GETDIRENTRIES64) */

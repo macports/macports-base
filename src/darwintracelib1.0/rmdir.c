@@ -36,7 +36,6 @@
 #include "darwintrace.h"
 
 #include <errno.h>
-#include <sys/syscall.h>
 #include <unistd.h>
 #include <unistd.h>
 
@@ -45,7 +44,6 @@
  * sandbox.
  */
 static int _dt_rmdir(const char *path) {
-#define rmdir(x) syscall(SYS_rmdir, (x))
 	__darwintrace_setup();
 
 	int result = 0;
@@ -60,7 +58,6 @@ static int _dt_rmdir(const char *path) {
 	debug_printf("rmdir(%s) = %d\n", path, result);
 
 	return result;
-#undef rmdir
 }
 
 DARWINTRACE_INTERPOSE(_dt_rmdir, rmdir);

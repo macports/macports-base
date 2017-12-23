@@ -21,7 +21,6 @@ OBJS= \
 	setmode.o \
 	sha1cmd.o \
 	sha256cmd.o \
-	strcasecmp.o \
 	strsed.o \
 	system.o \
 	tracelib.o \

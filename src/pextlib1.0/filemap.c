@@ -40,12 +40,13 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <string.h>
+#include <strings.h>
 #include <unistd.h>
 
 #include <tcl.h>
 
 #include "filemap.h"
-#include "strcasecmp.h"
 
 /* ========================================================================= **
  * Definitions

@@ -65,7 +65,7 @@ AdvFlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj 
     int operation = 0, fd, i, ret, sigret = TCL_OK;
     int errnoval = 0;
     int oshared = 0, oexclusive = 0, ounlock = 0, onoblock = 0, retry = 0;
-#if defined(HAVE_LOCKF) && !defined(HAVE_FLOCK)
+#if !defined(HAVE_FLOCK)
     off_t curpos;
 #endif
     char *res;
@@ -157,7 +157,6 @@ AdvFlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj 
             errnoval = errno;
         }
 #else
-#if HAVE_LOCKF
         if (ounlock) {
             operation = F_ULOCK;
         }
@@ -188,9 +187,6 @@ AdvFlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj 
             Tcl_SetResult(interp, (void *) "Seek error", TCL_STATIC);
             return TCL_ERROR;
         }
-#else
-#error no available locking implementation
-#endif /* HAVE_LOCKF */
 #endif /* HAVE_FLOCK */
         /* disable the alarm timer */
         alarm(0);

@@ -414,14 +414,22 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         return $sdk
     }
 
-    if {![catch {set sdk [exec xcrun --sdk macosx --show-sdk-path 2> /dev/null]}]} {
-        ui_warn "Unable to determine location of the macOS ${sdk_version} SDK.  Using the default macOS SDK."
+    set sdk /Library/Developer/CommandLineTools/SDKs/MacOSX${sdk_version}.sdk
+    if {[file exists $sdk]} {
         return $sdk
     }
 
-    ui_warn "Unable to determine location of a macOS SDK.  Compilation will likely fail."
+    # TODO: Support falling back to "macosx" if it is present?
+    #       This leads to problems when it is newer than the base OS because many OSS assume that
+    #       the SDK version matches the deployment target, so they unconditionally try to use
+    #       symbols that are only available on newer OS versions..
+    #if {![catch {set sdk [exec xcrun --sdk macosx --show-sdk-path 2> /dev/null]}]} {
+    #    ui_warn "Unable to determine location of the macOS ${sdk_version} SDK.  Using the default macOS SDK."
+    #    return $sdk
+    #}
 
-    return {}
+    ui_error "Unable to determine location of a macOS SDK."
+    return -code error "Unable to determine location of a macOS SDK."
 }
 
 # internal function to determine the "-arch xy" flags for the compiler
@@ -541,7 +549,17 @@ proc portconfigure::get_compiler_fallback {} {
     # Determine which versions of clang we prefer
     if {${configure.cxx_stdlib} eq "libc++"} {
         # clang-3.5+ require libc++
-        lappend compilers macports-clang-4.0 macports-clang-3.9 macports-clang-3.8 macports-clang-3.7
+        lappend compilers macports-clang-5.0 macports-clang-4.0
+
+        if {${os.major} < 17} {
+            # The High Sierra SDK requires a toolchain that can apply nullability to uuid_t
+            lappend compilers macports-clang-3.9
+        }
+
+        if {${os.major} < 16} {
+            # The Sierra SDK requires a toolchain that supports class properties
+            lappend compilers macports-clang-3.7
+        }
     }
 
     if {${os.major} < 16} {
@@ -800,10 +818,17 @@ proc portconfigure::configure_main {args} {
             CC CXX OBJC OBJCXX FC F77 F90 JAVAC \
             CFLAGS CPPFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS \
             FFLAGS F90FLAGS FCFLAGS LDFLAGS LIBS CLASSPATH \
-            PERL PYTHON RUBY INSTALL AWK BISON PKG_CONFIG PKG_CONFIG_PATH \
+            PERL PYTHON RUBY INSTALL AWK BISON PKG_CONFIG \
         } {
             set value [option configure.[string tolower $env_var]]
             append_to_environment_value configure $env_var {*}$value
+        }
+
+        foreach env_var { \
+            PKG_CONFIG_PATH \
+        } {
+            set value [option configure.[string tolower $env_var]]
+            append_to_environment_value configure $env_var [join $value ":"]
         }
 
         # https://trac.macports.org/ticket/34221

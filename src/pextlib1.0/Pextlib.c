@@ -4,7 +4,7 @@
  * Copyright (c) 2002 - 2003 Apple Inc.
  * Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
  * Copyright (c) 2004 Landon Fuller <landonf@macports.org>
- * Copyright (c) 2007 - 2016 The MacPorts Project
+ * Copyright (c) 2007 - 2017 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,8 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/param.h>
+#include <sys/mount.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -66,6 +68,7 @@
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
+#include <assert.h>
 
 #ifdef __MACH__
 #include <mach-o/loader.h>
@@ -648,6 +651,424 @@ int SetMaxOpenFilesCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int obj
 	return TCL_OK;
 }
 
+/* Mount point file system case-sensitivity caching infrastructure. */
+typedef struct _mount_cs_cache_entry {
+    char *mountpoint;
+    int case_sensitive;
+} mount_cs_cache_entry_t, *mount_cs_cache_entry_list_t;
+
+struct _mount_cs_cache {
+    size_t count;
+    mount_cs_cache_entry_t **entries;
+};
+
+/**
+ * Returns a new pre-allocated mount_cs_cache_t object.
+ */
+mount_cs_cache_t* new_mount_cs_cache(void) {
+    mount_cs_cache_t *ret = malloc(sizeof(mount_cs_cache_t));
+
+    if (ret) {
+        ret->count = 0;
+        ret->entries = NULL;
+    }
+
+    return ret;
+}
+
+/**
+ * Resets a mount cache object.
+ */
+void reset_mount_cs_cache(mount_cs_cache_t *cache) {
+    if (cache) {
+        /*
+         * Assume that if the count of cached entries is zero,
+         * the entries handle is set to NULL as well. Likewise,
+         * if the count is non-zero, the entries pointer should
+         * be non-NULL. Any other combination probably means
+         * something is very, very wrong.
+         */
+        assert((!cache->count && !cache->entries) || (cache->count && cache->entries));
+
+        for (size_t i = 0; i < cache->count; ++i) {
+            free(cache->entries[i]->mountpoint);
+            cache->entries[i]->mountpoint = NULL;
+
+            free(cache->entries[i]);
+            cache->entries[i] = NULL;
+        }
+
+        free(cache->entries);
+        cache->entries = NULL;
+    }
+}
+
+/**
+ * Rollback mount cache object.
+ */
+static void rollback_mount_cs_cache(Tcl_Interp *interp, mount_cs_cache_t *cache) {
+    if (cache) {
+        mount_cs_cache_entry_t **rollback_data = realloc(cache->entries, (cache->count) * sizeof(mount_cs_cache_entry_list_t));
+
+        if (!rollback_data) {
+            ui_info(interp, "pextlib: unable to roll changes to FS cache back.");
+            cache->entries[cache->count++] = NULL;
+        }
+        else {
+            cache->entries = rollback_data;
+        }
+    }
+}
+
+/**
+ * Adds a new entry to a mount cache object.
+ * Returns zero on success, -1 on failure.
+ */
+static int add_to_mount_cs_cache(Tcl_Interp *interp, mount_cs_cache_t *cache, const char *mountpoint, int case_sensitive) {
+    int ret = -1;
+
+    if ((cache) && (mountpoint)) {
+        /*
+         * Go the greedy road and resize as needed. Good enough probably, since
+         * systems normally don't have a huge amount of mounts to start with.
+         */
+        mount_cs_cache_entry_t **new_data = realloc(cache->entries, (cache->count + 1) * sizeof(mount_cs_cache_entry_list_t));
+
+        if (!new_data) {
+            ui_info(interp, "pextlib: unable to reallocate FS cache entries list, leaving untouched.");
+            return ret;
+        }
+
+        cache->entries = new_data;
+
+        mount_cs_cache_entry_t *new_entry = malloc(sizeof(mount_cs_cache_entry_t));
+
+        if (!new_entry) {
+            ui_info(interp, "pextlib: unable to create new FS cache entry, leaving untouched and rolling back.");
+
+            rollback_mount_cs_cache(interp, cache);
+
+            return ret;
+        }
+
+        new_entry->mountpoint = strdup(mountpoint);
+
+        if (!new_entry->mountpoint) {
+            ui_info(interp, "pextlib: unable to copy mountpoint value to new FS cache entry, leaving untouched and rolling back.");
+
+            rollback_mount_cs_cache(interp, cache);
+
+            free(new_entry);
+
+            return ret;
+        }
+
+        new_entry->case_sensitive = case_sensitive;
+
+        cache->entries[cache->count++] = new_entry;
+
+        ret = 0;
+    }
+
+    return ret;
+}
+
+/**
+ * Looks up a cached mountpoint case-sensitivity value.
+ *
+ * Returns 1 if the mountpoint's FS is case-sensitive,
+ * 0 if it's case-insensitive and -1 on error or if
+ * no such entry was found.
+ */
+static int lookup_mount_cs_cache(mount_cs_cache_t *cache, const char *mountpoint) {
+    int ret = -1;
+
+    /* No specified mount point doesn't make sense, so assert it. */
+    assert(mountpoint);
+
+    if (cache && mountpoint) {
+        for (size_t i = 0; i < cache->count; ++i) {
+            if ((cache->entries[i]) && (cache->entries[i]->mountpoint)) {
+                if (0 == strcmp(cache->entries[i]->mountpoint, mountpoint)) {
+                    return cache->entries[i]->case_sensitive;
+                }
+            }
+        }
+    }
+
+    return ret;
+}
+
+
+/**
+ * Gets the corresponding mount point for a file.
+ * Returns NULL if looking up the mount point was not possible.
+ */
+static char* get_mntpoint(const char *path) {
+    char *ret = NULL;
+
+#if defined(__APPLE__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__)
+    struct statfs f = { 0 };
+
+    if (-1 != statfs(path, &f)) {
+        if (f.f_mntonname) {
+            ret = strdup(f.f_mntonname);
+        }
+    }
+#else
+    /*
+     * Systems like Solaris, IRIX, True64, AIX and others have no way to get this information easily.
+     *
+     * Neither does Linux. We could go ahead and try to "compute" the mount point
+     * using a series of stat calls and the like, but it doesn't make any sense.
+     * Running our three lstat() calls should be less resource hungry than getting
+     * the mount point on this system, so disable caching there as well.
+     */
+    ret = NULL;
+#endif
+
+    return ret;
+}
+
+#ifdef __APPLE__
+
+#include <sys/attr.h>
+
+typedef struct volcaps {
+      u_int32_t size;
+      vol_capabilities_attr_t volcaps;
+} volcaps_t;
+
+/**
+ * Default function for determining the FS case sensitivity on Darwin.
+ * Using getattrlist().
+ */
+int fs_case_sensitive_darwin(Tcl_Interp *interp, const char *path, mount_cs_cache_t *cache) {
+    int ret = -1;
+
+    if (!path) {
+        return ret;
+    }
+
+    char *mntpoint = get_mntpoint(path);
+
+    if (!mntpoint) {
+        return ret;
+    }
+
+    if (cache) {
+        ret = lookup_mount_cs_cache(cache, mntpoint);
+
+        if (-1 != ret) {
+            free(mntpoint);
+            return ret;
+        }
+    }
+
+    struct attrlist attrlist = { 0 };
+    volcaps_t volcaps = { 0 };
+
+    attrlist.bitmapcount = ATTR_BIT_MAP_COUNT;
+    attrlist.volattr = ATTR_VOL_CAPABILITIES;
+
+    if (-1 == getattrlist(mntpoint, &attrlist, &volcaps, sizeof(volcaps), 0)) {
+        free(mntpoint);
+        return ret;
+    }
+
+    if (-1 == ret) {
+        if ((attrlist.volattr & ATTR_VOL_CAPABILITIES) == 0) {
+            free(mntpoint);
+            return ret;
+        }
+
+        /* In case entry is not cached, fetch value, if possible. */
+        if ((volcaps.volcaps.valid[VOL_CAPABILITIES_FORMAT] & VOL_CAP_FMT_CASE_SENSITIVE)) {
+            /* capabilities bit for case-sensitivity valid */
+            ret = (volcaps.volcaps.capabilities[VOL_CAPABILITIES_FORMAT] & VOL_CAP_FMT_CASE_SENSITIVE) != 0;
+
+            /*
+             * Note that we only add a new entry if the case-sensitivity value could be determined.
+             * In case of errors, let the code try again - the failure might have been temporary.
+             */
+            add_to_mount_cs_cache(interp, cache, mntpoint, ret);
+        }
+    }
+
+    free(mntpoint);
+    return ret;
+}
+
+#endif /* __APPLE__ */
+
+/**
+ * Fallback function to determine FS case sensitivity.
+ * lstat()'s the given path, its lowercase and uppercase versions.
+ * If all three versions exist and are the same file (as determined
+ * by their inode numbers), then the FS is case-insensitive and
+ * 0 is returned.
+ * Otherwise, the FS is case-sensitive and 1 is returned.
+ * In case of errors (e.g., if the original file does not exist),
+ * -1 is returned.
+ */
+int fs_case_sensitive_fallback(Tcl_Interp *interp, const char *path, mount_cs_cache_t *cache) {
+    int ret = -1;
+    char *mntpoint = NULL;
+
+    if (cache) {
+        mntpoint = get_mntpoint(path);
+
+        if (mntpoint) {
+            ret = lookup_mount_cs_cache(cache, mntpoint);
+
+            if (-1 != ret) {
+                free(mntpoint);
+                return ret;
+            }
+        }
+    }
+
+    if (!path) {
+        return ret;
+    }
+
+    char *lowercase_path = strdup(path);
+    char *uppercase_path = strdup(path);
+
+    if ((!lowercase_path) || (!uppercase_path)) {
+        free(lowercase_path);
+        free(uppercase_path);
+
+        free(mntpoint);
+
+        return ret;
+    }
+
+    for (char *tmp_ptr_low = lowercase_path,
+              *tmp_ptr_up  = uppercase_path;
+         *tmp_ptr_low && *tmp_ptr_up; /* Since both are copies of the same string,
+                                         should be the same anyway. */
+         ++tmp_ptr_low, ++tmp_ptr_up) {
+        *tmp_ptr_low = tolower(*tmp_ptr_low);
+        *tmp_ptr_up  = toupper(*tmp_ptr_up);
+    }
+
+    struct stat path_stat = { 0 },
+           lowercase_path_stat = { 0 },
+           uppercase_path_stat = { 0 };
+
+    if (-1 == lstat(path, &path_stat)) {
+        free(lowercase_path);
+        free(uppercase_path);
+
+        free(mntpoint);
+
+        return ret;
+    }
+
+    if ((0 == strcmp(path, lowercase_path)) &&
+        (0 == strcmp(path, uppercase_path))) {
+        /*
+         * All three strings are equal. We can't check for
+         * FS case-sensitivity in this case.
+         * And it doesn't matter either way!
+         */
+        ret = 1;
+    }
+    else {
+        if (-1 == lstat(lowercase_path, &lowercase_path_stat)) {
+            /* Lowercased version doesn't exist, CS. */
+            ret = 1;
+        }
+        else if (-1 == lstat(uppercase_path, &uppercase_path_stat)) {
+            /* Uppercased version doesn't exist, CS. */
+            ret = 1;
+        }
+        else {
+            /*
+             * All three files exists, but we must make sure they
+             * are really the same file.
+             */
+            if (path_stat.st_ino == lowercase_path_stat.st_ino) {
+                /*
+                 * Lowercase and original path files are the same,
+                 * but that's not too surprising since most passed
+                 * values will already be in lowercased form.
+                 * Also check the uppercase variant.
+                 *
+                 * The special case that all three versions are
+                 * actually the same (can happen if a path consists
+                 * of case-agnostic Unicode characters only) is
+                 * already handled above.
+                 */
+                if (path_stat.st_ino == uppercase_path_stat.st_ino) {
+                    /* Truly case-insensitive! */
+                    ret = 0;
+                }
+                else {
+                    /*
+                     * Bummer, lowercased version matches the original
+                     * file's inode number, but the uppercased one
+                     * doesn't. CS.
+                     */
+                    ret = 1;
+                }
+            }
+            else {
+                /* Just similar-named, still a case-sensitive FS. */
+                ret = 1;
+            }
+        }
+    }
+
+    if (-1 != ret) {
+        /* No error if cache or mntpoint are NULL, the called function shall catch that. */
+        add_to_mount_cs_cache(interp, cache, mntpoint, ret);
+    }
+
+    free(lowercase_path);
+    free(uppercase_path);
+
+    free(mntpoint);
+
+    return ret;
+}
+
+/**
+ * Determines FS case-sensitivity for a specific path.
+ * Returns 1 if the FS is case-sensitive, 0 otherwise.
+ * Errors out if the case-sensitivity could not be determined.
+ */
+int FSCaseSensitiveCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    Tcl_Obj *tcl_result;
+    int ret = -1;
+
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "path");
+        return TCL_ERROR;
+    }
+
+    char *path = Tcl_GetString(objv[1]);
+
+#ifdef __APPLE__
+    ret = fs_case_sensitive_darwin(interp, path, NULL);
+#endif /* __APPLE__ */
+
+    if (-1 == ret) {
+        ret = fs_case_sensitive_fallback(interp, path, NULL);
+    }
+
+    if (-1 == ret) {
+        Tcl_SetResult(interp, "unable to determine FS case-sensitivity", TCL_STATIC);
+        return TCL_ERROR;
+    }
+    else {
+        tcl_result = Tcl_NewBooleanObj(ret);
+        Tcl_SetObjResult(interp, tcl_result);
+        return TCL_OK;
+    }
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
     if (Tcl_InitStubs(interp, "8.4", 0) == NULL)
@@ -709,6 +1130,8 @@ int Pextlib_Init(Tcl_Interp *interp)
 
     Tcl_CreateObjCommand(interp, "check_broken_dns", CheckBrokenDNSCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "set_max_open_files", SetMaxOpenFilesCmd, NULL, NULL);
+
+    Tcl_CreateObjCommand(interp, "fs_case_sensitive", FSCaseSensitiveCmd, NULL, NULL);
 
     if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
         return TCL_ERROR;

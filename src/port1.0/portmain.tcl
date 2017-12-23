@@ -58,12 +58,21 @@ options prefix name version revision epoch categories maintainers \
         compiler.cpath compiler.library_path \
         add_users
 
+proc portmain::check_option_integer {option action args} {
+    if {$action eq "set" && ![string is wideinteger -strict $args]} {
+        return -code error "$option must be an integer"
+    }
+}
+
 # Order of option_proc and option_export matters. Filter before exporting.
 
 # Assign option procedure to default_variants
 option_proc default_variants handle_default_variants
 # Handle notes special for better formatting
 option_proc notes handle_option_string
+# Ensure that revision and epoch are integers
+option_proc epoch portmain::check_option_integer
+option_proc revision portmain::check_option_integer
 
 # Export options via PortInfo
 options_export name version revision epoch categories maintainers platforms description long_description notes homepage license provides conflicts replaced_by installs_libs license_noconflict patchfiles

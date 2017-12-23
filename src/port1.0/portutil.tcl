@@ -3,7 +3,7 @@
 # Copyright (c) 2002-2003 Apple Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2006-2007 Markus W. Weissmann <mww@macports.org>
-# Copyright (c) 2004-2016 The MacPorts Project
+# Copyright (c) 2004-2017 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -983,11 +983,7 @@ proc reinplace {args}  {
         set cmdline {}
         lappend cmdline $portutil::autoconf::sed_command
         if {$extended} {
-            if {$portutil::autoconf::sed_ext_flag eq "N/A"} {
-                ui_debug "sed extended regexp not available"
-                return -code error "reinplace sed(1) too old"
-            }
-            lappend cmdline $portutil::autoconf::sed_ext_flag
+            lappend cmdline -E
         }
         if {$suppress} {
             lappend cmdline -n
@@ -1164,11 +1160,12 @@ proc move {args} {
         set arg [string range [lindex $args 0] 1 end]
         set args [lreplace $args 0 0]
         switch -- $arg {
-            force {append options -$arg}
+            force {lappend options -$arg}
             - break
             default {return -code error "move: illegal option -- $arg"}
         }
     }
+    lappend options --
     if {[llength $args] == 2} {
         set oldname [lindex $args 0]
         set newname [lindex $args 1]
@@ -1176,13 +1173,13 @@ proc move {args} {
             # case-only rename
             set tempdir [mkdtemp ${oldname}-XXXXXXXX]
             set tempname $tempdir/[file tail $oldname]
-            file rename $options -- $oldname $tempname
-            file rename $options -- $tempname $newname
+            file rename {*}$options $oldname $tempname
+            file rename {*}$options $tempname $newname
             delete $tempdir
             return
         }
     }
-    file rename {*}$options -- {*}$args
+    file rename {*}$options {*}$args
 }
 
 # ln
@@ -2855,7 +2852,7 @@ proc quotemeta {str} {
 }
 
 ##
-# Recusively chown the given file or directory to the specified user.
+# Recursively chown the given file or directory to the specified user.
 #
 # @param path the file/directory to be chowned
 # @param user the user to chown file to
@@ -2871,7 +2868,7 @@ proc chown {path user} {
 }
 
 ##
-# Recusively chown the given file or directory to $macportsuser, using root privileges.
+# Recursively chown the given file or directory to $macportsuser, using root privileges.
 #
 # @param path the file/directory to be chowned
 proc chownAsRoot {path} {
@@ -3221,7 +3218,7 @@ proc _check_xcode_version {} {
             # Check whether /usr/include and /usr/bin/make exist and tell users to install the command line tools, if they don't
             if {   ![file isdirectory [file join $cltpath usr include]]
                 || ![file executable  [file join $cltpath usr bin make]]} {
-                ui_warn "System headers do not appear to be installed. Most ports should build corectly, but if you experience problems due to a port depending on system headers, please file a ticket at https://trac.macports.org."
+                ui_warn "System headers do not appear to be installed. Most ports should build correctly, but if you experience problems due to a port depending on system headers, please file a ticket at https://trac.macports.org."
                 if {[vercmp $macosx_version 10.9] >= 0} {
                     ui_warn "You can install them as part of the Xcode Command Line Tools package by running `xcode-select --install'."
                 } else {

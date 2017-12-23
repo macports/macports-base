@@ -2,7 +2,7 @@
  * sql.c
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
- * Copyright (c) 2012, 2014 The MacPorts Project
+ * Copyright (c) 2012, 2014, 2017 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -134,7 +134,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
 
         /* metadata table */
         "CREATE TABLE registry.metadata (key UNIQUE, value)",
-        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.202')",
+        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.203')",
         "INSERT INTO registry.metadata (key, value) VALUES ('created', strftime('%s', 'now'))",
 
         /* ports table */
@@ -172,6 +172,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         "CREATE INDEX registry.file_port ON files(id)",
         "CREATE INDEX registry.file_path ON files(path)",
         "CREATE INDEX registry.file_actual ON files(actual_path)",
+        "CREATE INDEX registry.file_actual_nocase ON files(actual_path COLLATE NOCASE)",
 
         /* dependency map */
         "CREATE TABLE registry.dependencies ("
@@ -587,6 +588,34 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             continue;
         }
 
+        if (sql_version(NULL, -1, version, -1, "1.203") < 0) {
+            /*
+             * A new index on files.actual_path with the COLLATE NOCASE attribute
+             * will speed up queries with the equality operator and the COLLATE NOCASE
+             * attribute or the LIKE operator. Needed for file mapping to ports
+             * on case-insensitive file systems. Without it, any search operation
+             * will be very, very, very slow.
+             */
+            static char* version_1_203_queries[] = {
+                "CREATE INDEX registry.file_actual_nocase ON files(actual_path COLLATE NOCASE)",
+
+                /* Update version and commit */
+                "UPDATE registry.metadata SET value = '1.203' WHERE key = 'version'",
+                "COMMIT",
+                NULL
+            };
+
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+            if (!do_queries(db, version_1_203_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
         /* add new versions here, but remember to:
          *  - finalize the version query statement and set stmt to NULL
          *  - do _not_ use "BEGIN" in your query list, since a transaction has
@@ -596,7 +625,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
          *  - update the current version number below
          */
 
-        if (sql_version(NULL, -1, version, -1, "1.202") > 0) {
+        if (sql_version(NULL, -1, version, -1, "1.203") > 0) {
             /* the registry was already upgraded to a newer version and cannot be used anymore */
             reg_throw(errPtr, REG_INVALID, "Version number in metadata table is newer than expected.");
             sqlite3_finalize(stmt);

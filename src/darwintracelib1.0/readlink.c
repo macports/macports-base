@@ -36,19 +36,13 @@
 #include "darwintrace.h"
 
 #include <errno.h>
-#include <sys/syscall.h>
 #include <unistd.h>
 #include <unistd.h>
 
 /**
  * Deny \c readlink(2) if the file is not within the sandbox bounds.
  */
-#ifdef READLINK_IS_NOT_P1003_1A
-static int _dt_readlink(const char *path, char *buf, int bufsiz) {
-#else
 static ssize_t _dt_readlink(const char *path, char *buf, size_t bufsiz) {
-#endif
-#define readlink(x,y,z) syscall(SYS_readlink, (x), (y), (z))
 	__darwintrace_setup();
 
 	int result = 0;
@@ -65,7 +59,6 @@ static ssize_t _dt_readlink(const char *path, char *buf, size_t bufsiz) {
 	debug_printf("readlink(%s) = %d\n", path, result);
 
 	return result;
-#undef readlink
 }
 
 DARWINTRACE_INTERPOSE(_dt_readlink, readlink);

@@ -588,7 +588,7 @@ Location to store downloaded distfiles.
 .Em read-only
 .br
 .Sy Default:
-.Em ${sysportpath}/distfiles/${dist_subdir}/
+.Em ${portdbpath}/distfiles/${dist_subdir}/
 .It Ic os.arch
 Identifies hardware type (e.g. "powerpc").
 .br
@@ -1509,7 +1509,7 @@ on prior Mac OS X systems. A global default may be specified with the startupite
 .Em default
 .br
 .Sy Values:
-.Em SystemStarter launchd default rcNG
+.Em launchd default
 .br
 .Sy Example
 .Dl startupitem.type launchd

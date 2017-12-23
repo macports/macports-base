@@ -437,22 +437,32 @@ static int entry_installed(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]){
 
 
 /*
- * registry::entry owner filename
+ * registry::entry owner filename [cs = true]
  *
  * Returns the port that owns the given filename (empty string if none).
  */
 static int entry_owner(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
-    if (objc != 3) {
-        Tcl_WrongNumArgs(interp, 2, objv, "path");
+    int cs = 1;
+
+    if ((objc < 3) || (objc > 4)) {
+        Tcl_WrongNumArgs(interp, 2, objv, "path ?cs?");
         return TCL_ERROR;
-    } else if (reg == NULL) {
+    }
+
+    if (objc == 4) {
+        if (Tcl_GetBooleanFromObj(interp, objv[3], &cs) != TCL_OK) {
+            return TCL_ERROR;
+        }
+    }
+
+    if (reg == NULL) {
         return TCL_ERROR;
     } else {
         char* path = Tcl_GetString(objv[2]);
         reg_entry* entry;
         reg_error error;
-        if (reg_entry_owner(reg, path, &entry, &error)) {
+        if (reg_entry_owner(reg, path, cs, &entry, &error)) {
             if (entry == NULL) {
                 return TCL_OK;
             } else {

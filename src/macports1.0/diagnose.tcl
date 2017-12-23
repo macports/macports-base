@@ -693,33 +693,34 @@ namespace eval diagnose {
         set path ${macports::user_path}
         set split [split $path :]
 
-        if {"$port_loc/bin" in $split && "$port_loc/sbin" in $split} {
+        if {"$port_loc/bin" ni $split || "$port_loc/sbin" ni $split} {
+            ui_warn "Your \$PATH environment variable does not currently include $port_loc/bin or $port_loc/sbin"
 
-            if {[lindex $split 0] ne "$port_loc/bin"} {
-                ui_warn "$port_loc/bin is not first in your PATH environment variable.  This may or may not \
-                         cause problems in the future."
-            }
-            return
-
-        } else {
-            ui_warn "your \$PATH environment variable does not currently include $port_loc/bin, which is where port is located."
+            ui_msg "Please refer to the guide on how to configure your shell:"
+            ui_msg "  https://guide.macports.org/#installing.shell"
 
             # XXX Only works for bash. Should set default profile_path based on the shell.
             if {[info exists macports::ui_options(questions_yesno)] && $shell_name eq "bash"} {
-                set retval [$macports::ui_options(questions_yesno) "" "DiagnoseFixPATH" "" n 0 "Would you like to add $port_loc/bin to your \$PATH variable now?"]
-                if {$retval} {
+                ui_msg "MacPorts can also write the required configuration to $profile_path for you."
+                set question "Would you like to add $port_loc/bin to your \$PATH variable now?"
+                set retval [$macports::ui_options(questions_yesno) $msg "DiagnoseFixPATH" "" n 0 $question]
+                if {$retval == 0} {
                     # XXX: this should use the same paths and comments as the
                     # postflight script of the pkg installer. Maybe they could even
                     # share code?
-                    ui_msg "Attempting to add $port_loc/bin to $profile_path"
+                    ui_debug "Attempting to add $port_loc/bin to $profile_path"
 
                     if {[file exists $profile_path]} {
                         if {[file writable $profile_path]} {
+                            # XXX: Should keep a backup like postflight script does
                             set fd [open $profile_path a]
+                            puts $fd ""
+                            puts $fd "# MacPorts diagnose addition on [clock format $date -format "%Y-%m-%dT%H:%M:%S%z"]"
                             puts $fd "export PATH=$port_loc/bin:$port_loc/sbin:\$PATH"
+                            puts $fd ""
                             close $fd
 
-                            ui_msg "Added PATH properly. Please open a new terminal window to load the modified ${profile_path}."
+                            ui_msg "Added PATH environment variable to your $shell_name configuration. It is important that you now close this terminal window and then open a new terminal window to load the modified environment from ${profile_path}."
                         } else {
                             ui_error "Can't write to ${profile_path}."
                         }
