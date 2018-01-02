@@ -477,7 +477,7 @@ int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* err
                         current_port->variants = strdup(variantstr);
                         free(variantstr);
                     } else {
-                        current_port->variants = '\0';
+                        current_port->variants = "\0";
                     }
 
                     if (!reg_listcat((void***)&result, &result_count, &result_space, current_port)) {
