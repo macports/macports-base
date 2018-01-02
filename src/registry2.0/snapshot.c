@@ -43,19 +43,6 @@
 #include "util.h"
 
 /**
- * Converts a command name into a `reg_snapshot`.
- *
- * @param [in] interp  Tcl interpreter to check within
- * @param [in] name    name of snapshot to get
- * @param [out] errPtr description of error if the snapshot can't be found
- * @return             an snapshot, or NULL if one couldn't be found
- * @see get_object
- */
-static reg_snapshot* get_snapshot(Tcl_Interp* interp, char* name, reg_error* errPtr) {
-    return (reg_snapshot*)get_object(interp, name, "snapshot", snapshot_obj_cmd, errPtr);
-}
-
-/**
  * Removes the snapshot from the Tcl interpreter. Doesn't actually delete it since
  * that's the registry's job. This is written to be used as the
  * `Tcl_CmdDeleteProc` for a snapshot object command.
