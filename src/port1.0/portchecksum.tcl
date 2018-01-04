@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2002 - 2004 Apple Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
-# Copyright (c) 2006 - 2012, 2014 - 2015 The MacPorts Project
+# Copyright (c) 2006 - 2012, 2014 - 2016, 2018 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ set checksum_types [list md5 sha1 rmd160 sha256 size]
 set checksum_types_count [llength $checksum_types]
 
 # types to recommend if none are specified in the portfile
-set default_checksum_types [list rmd160 sha256]
+set default_checksum_types [list rmd160 sha256 size]
 
 # Using global all_dist_files, parse the checksums and store them into the
 # global array checksums_array.
