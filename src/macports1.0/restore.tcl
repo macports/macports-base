@@ -69,10 +69,6 @@ namespace eval restore {
             deactivate_all
         }
 
-        if {![check_port_command]} {
-            return -code error "OS platform mismatch"
-        }
-
         ui_msg "Restoring snapshot '[$snapshot note]' created at [$snapshot created_at]"
 
         ui_msg "Fetching ports to install..."
@@ -82,22 +78,6 @@ namespace eval restore {
         restore_state [$snapshot ports]
 
         return 0
-    }
-
-    proc check_port_command {} {
-
-        global tcl_platform
-        set os_version $tcl_platform(osVersion)
-        set os_major [lindex [split $os_version .] 0]
-        set os_platform [string tolower $tcl_platform(os)]
-
-        # Check that the current platform is the one we were configured for, otherwise need to do migration
-        if {($os_platform ne $macports::autoconf::os_platform) || ($os_major != $macports::autoconf::os_major)} {
-            ui_error "Current platform \"$os_platform $os_major\" does not match expected platform \"$macports::autoconf::os_platform $macports::autoconf::os_major\""
-            ui_error "If you upgraded your OS or changed the hardware architecture, you need to run 'port migrate' instead."
-            return 0
-        }
-        return 1
     }
 
     proc fetch_snapshot {snapshot_id} {
