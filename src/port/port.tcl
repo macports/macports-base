@@ -2820,6 +2820,13 @@ proc action_restore { action portlist opts } {
 
 proc action_migrate { action portlist opts } {
     return [macports::migrate_main $opts]
+    set result [macports::migrate_main $opts]
+    if {$result = -999} {
+        # MacPorts base was upgraded, re-execute migrate with the --continue flag
+        execl $::argv0 [list {*}$::argv "--continue"]
+        ui_debug "Would have executed $::argv0 $::argv --continue"
+        ui_error "Failed to re-execute MacPorts migration, please run 'sudo port migrate' manually."
+    }
 }
 
 proc action_upgrade { action portlist opts } {
@@ -4467,6 +4474,7 @@ array set cmd_opts_array {
     fetch       {no-mirrors}
     snapshot    {{note 1}}
     restore     {{snapshot-id 1} last}
+    migrate     {continue}
 }
 
 ##

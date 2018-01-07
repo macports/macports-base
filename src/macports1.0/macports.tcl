@@ -4483,15 +4483,13 @@ proc macports::restore_main {opts} {
     return [restore::main $opts]
 }
 
+##
+# Calls the main function for the 'port migrate' command.
+#
+# @returns 0 on success, -999 when MacPorts base has been upgraded and the
+#          caller should re-run itself and invoke migration with the --continue
+#          flag set.
 proc macports::migrate_main {opts} {
-
-    # Calls the main function for the 'port migrate' command.
-    #
-    # Args:
-    #           None
-    # Returns:
-    #           0 on successful execution.
-
     return [migrate::main $opts]
 }
 
