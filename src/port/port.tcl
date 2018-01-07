@@ -5744,7 +5744,11 @@ set remaining_args [lrange $cmd_argv $cmd_argn end]
 # shell mode
 if { [llength $remaining_args] == 0 && ![info exists ui_options(ports_commandfiles)] } {
     lappend ui_options(ports_commandfiles) -
-} elseif {[lookahead] eq "selfupdate" || [lookahead] eq "sync"} {
+} elseif {[lookahead] in {"selfupdate" "migrate"}} {
+    # tell mportinit not to tell the user they should selfupdate and skip the migration check
+    set ui_options(ports_no_old_index_warning) 1
+    set global_options(ports_no_migration_check) 1
+} elseif {[lookahead] eq "sync"} {
     # tell mportinit not to tell the user they should selfupdate
     set ui_options(ports_no_old_index_warning) 1
 }
