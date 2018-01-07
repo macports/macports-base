@@ -548,6 +548,54 @@ proc macports::_is_valid_developer_dir {dir} {
     return 1
 }
 
+##
+# Obtain variables describing the current OS version and return them in a list
+# suitable for lassign(n).
+#
+# A typical use-case for this function is lassign(n)ing its result as follows:
+#
+#   lassign [macports::_get_os_version] \
+#       os_arch \
+#       os_version \
+#       os_major \
+#       os_minor \
+#       os_platform \
+#       os_endian \
+#       macosx_version
+#
+# @return A list containing the OS architecture, complete OS version, OS major
+#         and minor versions, the OS platform, the OS endianess, and the macOS
+#         version (empty on non-macOS systems)
+proc macports::_get_os_version {} {
+    # set up platform info variables
+    set os_arch $tcl_platform(machine)
+    if {$os_arch eq "Power Macintosh"} {
+        set os_arch "powerpc"
+    }
+    if {$os_arch in {"i586" "i686" "x86_64"}} {
+        set os_arch "i386"
+    }
+
+    set os_version $tcl_platform(osVersion)
+    set os_major [lindex [split $os_version .] 0]
+    set os_minor [lindex [split $os_version .] 1]
+    set os_platform [string tolower $tcl_platform(os)]
+
+    # Remove trailing "Endian"
+    set os_endian [string range $tcl_platform(byteOrder) 0 end-6]
+
+    set macosx_version {}
+    if {$os_platform eq "darwin" && [file executable /usr/bin/sw_vers]} {
+        try -pass_signal {
+            set macosx_version [join [lrange [split [exec /usr/bin/sw_vers -productVersion] .] 0 1] .]
+        } catch {* ec result} {
+            ui_debug "sw_vers exists but running it failed: $result"
+        }
+    }
+
+    return [list $os_arch $os_version $os_major $os_minor $os_platform $os_endian $macosx_version]
+}
+
 
 proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {$up_ui_options eq {}} {
@@ -632,24 +680,14 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     set_max_open_files
 
     # set up platform info variables
-    set os_arch $tcl_platform(machine)
-    if {$os_arch eq "Power Macintosh"} {set os_arch "powerpc"}
-    if {$os_arch eq "i586" || $os_arch eq "i686" || $os_arch eq "x86_64"} {set os_arch "i386"}
-    set os_version $tcl_platform(osVersion)
-    set os_major [lindex [split $os_version .] 0]
-    set os_minor [lindex [split $os_version .] 1]
-    set os_platform [string tolower $tcl_platform(os)]
-    # Remove trailing "Endian"
-    set os_endian [string range $tcl_platform(byteOrder) 0 end-6]
-    set macosx_version {}
-    if {$os_platform eq "darwin" && [file executable /usr/bin/sw_vers]} {
-
-        try -pass_signal {
-            set macosx_version [exec /usr/bin/sw_vers -productVersion | cut -f1,2 -d.]
-        } catch {* ec result} {
-            ui_debug "sw_vers exists but running it failed: $result"
-        }
-    }
+    lassign [macports::_get_os_version] \
+        os_arch \
+        os_version \
+        os_major \
+        os_minor \
+        os_platform \
+        os_endian \
+        macosx_version
 
     # Check that the current platform is the one we were configured for, otherwise need to do migration
     if {($os_platform ne $macports::autoconf::os_platform) || ($os_major != $macports::autoconf::os_major)} {
