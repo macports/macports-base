@@ -275,10 +275,11 @@ namespace eval restore {
 
     proc restore_state {snapshot_portlist} {
         set sorted_snapshot_portlist [portlist_sort_dependencies_first $snapshot_portlist]
+        ui_msg "Installing ports:"
         foreach port $sorted_snapshot_portlist {
-            puts "$port"
+            ui_msg "   $port"
         }
-        puts "MacPorts Version: [macports::version]"
+
         foreach port $sorted_snapshot_portlist {
 
             set name [string trim [lindex $port 0]]
