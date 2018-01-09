@@ -9,7 +9,8 @@ SRCS = registry.tcl registry_util.tcl receipt_flat.tcl receipt_sqlite.tcl portim
 OBJS = registry.o util.o \
 	entry.o entryobj.o \
 	file.o fileobj.o \
-	portgroup.o portgroupobj.o
+	portgroup.o portgroupobj.o \
+	snapshot.o snapshotobj.o
 	#graph.o graphobj.o
 
 SHLIB_NAME= registry${SHLIB_SUFFIX}
@@ -17,7 +18,7 @@ INSTALLDIR= ${DESTDIR}${TCL_PACKAGE_PATH}/registry2.0
 
 include $(srcdir)/../../Mk/macports.tea.mk
 
-CPPFLAGS+=-D_XOPEN_SOURCE=600
+CPPFLAGS+=-D_XOPEN_SOURCE=600 -D_DARWIN_C_SOURCE
 
 pkgIndex.tcl: $(SRCS) $(SRCS_AUTOCONF)
 

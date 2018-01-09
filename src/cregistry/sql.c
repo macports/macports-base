@@ -194,6 +194,36 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         "CREATE INDEX registry.portgroup_id ON portgroups(id)",
         "CREATE INDEX registry.portgroup_open ON portgroups(id, name, version, size, sha256)",
 
+        /* snapshots table */
+        "CREATE TABLE registry.snapshots ("
+              "id INTEGER PRIMARY KEY"
+            ", created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL"
+            ", note TEXT"
+            ")",
+
+        /* snapshot ports table */
+        /* a complete copy of all the installed ports for a snapshot */
+        "CREATE TABLE registry.snapshot_ports ("
+              "id INTEGER PRIMARY KEY"
+            ", snapshots_id INTEGER"
+            ", port_name TEXT COLLATE NOCASE"
+            ", requested INTEGER"
+            ", state TEXT COLLATE NOCASE"
+            ", FOREIGN KEY(snapshots_id) REFERENCES snapshots(id)"
+            " ON DELETE CASCADE"
+            ")",
+
+        /* snapshot port variants table */
+        /* all variants (+, -) of the ports in a snapshot */
+        "CREATE TABLE registry.snapshot_port_variants ("
+              "id INTEGER PRIMARY KEY"
+            ", snapshot_ports_id INTEGER"
+            ", variant_name TEXT COLLATE NOCASE"
+            ", variant_sign TEXT"
+            ", FOREIGN KEY(snapshot_ports_id) REFERENCES snapshot_ports(id)"
+            " ON DELETE CASCADE"
+            ")",
+
         "COMMIT",
         NULL
     };
@@ -616,6 +646,61 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             continue;
         }
 
+        if (sql_version(NULL, -1, version, -1, "1.204") < 0) {
+            /*
+             * SQLite doesn't support ALTER TABLE DROP CONSTRAINT or ALTER
+             * TABLE DROP COLUMN, so we're doing the manual way to remove
+             * UNIQUE(url, epoch, version, revision, variants) and the url
+             * column.
+             */
+
+            static char* version_1_204_queries[] = {
+
+                /* snapshots table */
+                "CREATE TABLE registry.snapshots ("
+                      "id INTEGER PRIMARY KEY"
+                    ", created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL"
+                    ", note TEXT"
+                    ")",
+
+                /* snapshot ports table */
+                "CREATE TABLE registry.snapshot_ports ("
+                      "id INTEGER PRIMARY KEY"
+                    ", snapshots_id INTEGER"
+                    ", port_name TEXT COLLATE NOCASE"
+                    ", requested INTEGER"
+                    ", state TEXT COLLATE NOCASE"
+                    ", FOREIGN KEY(snapshots_id) REFERENCES snapshots(id)"
+                    " ON DELETE CASCADE"
+                    ")",
+
+                /* snapshot port variants table */
+                "CREATE TABLE registry.snapshot_port_variants ("
+                      "id INTEGER PRIMARY KEY"
+                    ", snapshot_ports_id INTEGER"
+                    ", variant_name TEXT COLLATE NOCASE"
+                    ", variant_sign TEXT"
+                    ", FOREIGN KEY(snapshot_ports_id) REFERENCES snapshot_ports(id)"
+                    " ON DELETE CASCADE"
+                    ")",
+
+                /* Update version and commit */
+                "UPDATE registry.metadata SET value = '1.204' WHERE key = 'version'",
+                "COMMIT",
+                NULL
+            };
+
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+            if (!do_queries(db, version_1_204_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
         /* add new versions here, but remember to:
          *  - finalize the version query statement and set stmt to NULL
          *  - do _not_ use "BEGIN" in your query list, since a transaction has
@@ -625,7 +710,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
          *  - update the current version number below
          */
 
-        if (sql_version(NULL, -1, version, -1, "1.203") > 0) {
+        if (sql_version(NULL, -1, version, -1, "1.204") > 0) {
             /* the registry was already upgraded to a newer version and cannot be used anymore */
             reg_throw(errPtr, REG_INVALID, "Version number in metadata table is newer than expected.");
             sqlite3_finalize(stmt);

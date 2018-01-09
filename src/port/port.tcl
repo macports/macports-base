@@ -2826,6 +2826,28 @@ proc action_reclaim { action portlist opts } {
 
 }
 
+proc action_snapshot { action portlist opts } {
+    if {[catch {macports::snapshot_main $opts} result]} {
+        ui_debug $::errorInfo
+        return 1
+    }
+	return 0
+}
+
+proc action_restore { action portlist opts } {
+    return [macports::restore_main $opts]
+}
+
+proc action_migrate { action portlist opts } {
+    return [macports::migrate_main $opts]
+    set result [macports::migrate_main $opts]
+    if {$result = -999} {
+        # MacPorts base was upgraded, re-execute migrate with the --continue flag
+        execl $::argv0 [list {*}$::argv "--continue"]
+        ui_debug "Would have executed $::argv0 $::argv --continue"
+        ui_error "Failed to re-execute MacPorts migration, please run 'sudo port migrate' manually."
+    }
+}
 
 proc action_upgrade { action portlist opts } {
     if {[require_portlist portlist "yes"] || (![macports::global_option_isset ports_dryrun] && [prefix_unwritable])} {
@@ -4370,6 +4392,10 @@ array set action_array [list \
     mpkg        [list action_target         [ACTION_ARGS_PORTS]] \
     pkg         [list action_target         [ACTION_ARGS_PORTS]] \
     \
+    snapshot    [list action_snapshot       [ACTION_ARGS_STRINGS]] \
+    restore     [list action_restore        [ACTION_ARGS_STRINGS]] \
+    migrate     [list action_migrate        [ACTION_ARGS_STRINGS]] \
+    \
     quit        [list action_exit           [ACTION_ARGS_NONE]] \
     exit        [list action_exit           [ACTION_ARGS_NONE]] \
 ]
@@ -4449,7 +4475,7 @@ array set cmd_opts_array {
                  depends description epoch exact glob homepage line
                  long_description maintainer maintainers name platform
                  platforms portdir regex revision variant variants version}
-    selfupdate  {nosync}
+    selfupdate  {migrate nosync}
     space       {{units 1} total}
     activate    {no-exec}
     deactivate  {no-exec}
@@ -4466,6 +4492,9 @@ array set cmd_opts_array {
     diagnose    {quiet}
     reclaim     {enable-reminders disable-reminders}
     fetch       {no-mirrors}
+    snapshot    {{note 1}}
+    restore     {{snapshot-id 1} last}
+    migrate     {continue}
 }
 
 ##
@@ -5735,7 +5764,11 @@ set remaining_args [lrange $cmd_argv $cmd_argn end]
 # shell mode
 if { [llength $remaining_args] == 0 && ![info exists ui_options(ports_commandfiles)] } {
     lappend ui_options(ports_commandfiles) -
-} elseif {[lookahead] eq "selfupdate" || [lookahead] eq "sync"} {
+} elseif {[lookahead] in {"selfupdate" "migrate"}} {
+    # tell mportinit not to tell the user they should selfupdate and skip the migration check
+    set ui_options(ports_no_old_index_warning) 1
+    set global_options(ports_no_migration_check) 1
+} elseif {[lookahead] eq "sync"} {
     # tell mportinit not to tell the user they should selfupdate
     set ui_options(ports_no_old_index_warning) 1
 }
