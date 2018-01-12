@@ -1308,7 +1308,7 @@ set ports_dry_last_skipped ""
 proc target_run {ditem} {
     global target_state_fd workpath portpath ports_trace PortInfo ports_dryrun \
            ports_dry_last_skipped worksrcpath subport env portdbpath \
-           macosx_version
+           macosx_version prefix
     set portname $subport
     set result 0
     set skipped 0
@@ -1451,9 +1451,11 @@ proc target_run {ditem} {
                         }
                     }
 
-                    # Add ccache port for access to ${prefix}/bin/ccache binary
-                    if {[option configure.ccache]} {
-                        lappend deplist ccache
+                    # Add ccache port for access to ${prefix}/bin/ccache binary if it exists
+                    if {[option configure.ccache] && [file exists ${prefix}/bin/ccache]} {
+                        set name [_get_dep_port path:bin/ccache:ccache]
+                        lappend deplist $name
+                        set deplist [recursive_collect_deps $name $deplist]
                     }
 
                     ui_debug "Tracemode will respect recursively collected port dependencies: [lsort $deplist]"
