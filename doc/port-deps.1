@@ -19,9 +19,13 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-deps, port-rdeps \- Display a dependency listing for the given port(s)
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-D\fR \fIportdir\fR] \fBdeps\fR
@@ -29,39 +33,68 @@ port-deps, port-rdeps \- Display a dependency listing for the given port(s)
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
 .sp
+
+
+
+.sp
 .nf
 \fBport\fR [\fB\-D\fR \fIportdir\fR] \fBrdeps\fR
      [\-\-full] [\-\-index] [\-\-no\-build]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport deps\fR lists all dependencies of the given port(s), i\&.e\&., the ports that need to be installed to build or use a port\&.
 .sp
 \fBport rdeps\fR recursively descends into the dependencies and displays a tree of dependencies for a given port\&.
+
 .SH "OPTIONS"
+
+
+
 .PP
 \fB\-\-full\fR
 .RS 4
+
+
+
 When using
 \fBrdeps\fR, display all branches of the dependency tree instead of listing each dependency only once\&.
+
 .RE
 .PP
 \fB\-\-index\fR
 .RS 4
+
+
+
 Do not read Portfiles, but instead rely solely on the PortIndex information\&. Note that this option will prevent the dependencies reported from reflecting the effects of any variants specified\&.
+
 .RE
 .PP
 \fB\-\-no\-build\fR
 .RS 4
+
+
+
 Exclude dependencies only required at build time, i\&.e\&., fetch, extract, and build dependencies\&.
+
 .RE
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
 .SH "DEPENDENCY RELATIONS"
+
 .sp
 Do not confuse \fIdependents\fR and \fIdependencies\fR (or, shortened, \fIdeps\fR)\&. Refer to the following example to understand the difference:
+
 .sp
 .if n \{\
 .RS 4
@@ -74,10 +107,15 @@ portA \-\-> portB
 .\}
 .sp
 \fBportA\fR depends on \fBportB\fR, i\&.e\&., \fBportA\fR needs \fBportB\fR to run\&. Because of that, \fBportB\fR is a \fIdependency\fR (or \fIdep\fR) of \fBportA\fR\&. After installing \fBportA\fR, \fBportB\fR has been automatically installed\&. At this point, \fBportA\fR has become a \fIdependent\fR of \fBportB\fR\&. You can only uninstall \fBportB\fR once all of its dependents (i\&.e\&., including \fBportA\fR) have been uninstalled\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-variants\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -89,3 +127,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

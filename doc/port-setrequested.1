@@ -19,33 +19,52 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-setrequested, port-unsetrequested, port-setunrequested \- Set and clear the \*(Aqmanually installed\*(Aq flag of a port
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-qvd\fR] [\fB\-D\fR \fIportdir\fR] \fBsetrequested\fR
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
 .sp
+
+
+
+.sp
 .nf
 \fBport\fR [\fB\-qvd\fR] [\fB\-D\fR \fIportdir\fR] [\fBunsetrequested\fR | \fBsetunrequested\fR]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 MacPorts keeps records indicating whether you installed a port manually, or whether it was pulled in as a dependency of another port\&. This flag is called \fIrequested\fR and is usually automatically set for all ports you list after \fBport install\fR when installing\&. You can disable this automatic behavior by passing the \fB\-\-unrequested\fR flag to \fBport install\fR\&. See \fBport-install\fR(1) for more information\&.
 .sp
 \fBport setrequested\fR and \fBport unsetrequested\fR allow you to manipulate the requested flag of a port manually\&. \fBport setunrequested\fR is an alias of \fBport unsetrequested\fR\&.
 .sp
 The requested flag is used to expand the \fIleaves\fR pseudo\-portname, i\&.e\&. the list of ports that were automatically installed and are no longer needed\&. See \fBport\fR(1) for more information on pseudo\-portnames\&.
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-install\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -57,3 +76,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

@@ -19,41 +19,64 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-archivefetch \- Fetch archive for the given ports if available\&.
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-vdqypotf\fR] [\fB\-D\fR \fIportdir\fR] \fBarchivefetch\fR
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
      [+/\-variant \&...]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport archivefetch\fR attempts to download a binary archive for the given port(s) from the configured binary sources, by default from \fIpackages\&.macports\&.org\fR and its mirrors\&. An archive or port image is a tarball containing the files of a port and some metadata and can be used to install a port without building it from source\&. See the \fBPORT IMAGES\fR section for a description of the port image concept in MacPorts\&.
 .sp
 You can choose multiple variants, by specifying +name, which indicates the variant is desired, or \-name, indicating the contrary\&.
 .sp
 Global variants will be applied as specified in \fBvariants.conf\fR(5)\&.
+
 .SH "PORT IMAGES"
+
 .sp
 MacPorts has the ability to install multiple versions or different variant selections of the same port\&. The files will be stored in an intermediate location as \fIarchives\fR, which allows to switch between the versions\&. Only one version can be active at a time\&. On activation, files will be copied to their intended place in \fIprefix\fR\&.
 .sp
 More information on this topic can be found in the \m[blue]\fBThe MacPorts Guide\fR\m[]\&\s-2\u[1]\d\s+2\&.
 .sp
 To check the current status of a specific port, use \fB\fBport-installed\fR(1)\fR\&.
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
+
 .PP
 \fB\-p\fR
 .RS 4
+
+
+
 Proceed even if a port fails to fetch\&. This is useful if you are trying to download all available binary images for a number of ports, e\&.g\&., if you want to install them later without a network connection\&.
+
 .RE
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-archive\fR(1), \fBport-variants\fR(1), \fBvariants.conf\fR(5)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -65,6 +88,8 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
 .SH "EXTERNAL REFERENCES"
 .IP " 1." 4
 The MacPorts Guide

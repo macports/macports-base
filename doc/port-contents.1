@@ -19,20 +19,29 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-contents \- List the files installed by a given port
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-q\fR] [\fB\-D\fR \fIportdir\fR] \fBcontents\fR
      [\-\-size] [\-\-units \fIunit\fR]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport contents\fR displays a list of all files that have been installed by a given port\&. You can only use \fBcontents\fR for ports that are \fIactive\fR and installed\&.
 .sp
 Common uses for \fBcontents\fR include finding the location of a port\(cqs executable after installing it\&. You can combine \fBport contents\fR with other tools to simplify this, e\&.g\&.
+
 .sp
 .if n \{\
 .RS 4
@@ -43,70 +52,126 @@ port \-q contents asciidoc | grep \-E \*(Aq/s?bin/\*(Aq
 .if n \{\
 .RE
 .\}
+.sp
+
 .SH "OPTIONS"
+
+
+
 .PP
 \fB\-\-size\fR
 .RS 4
+
+
+
 Enable printing a human\-readable representation of the files\*(Aq sizes\&. The size output can be adjusted using the
 \fB\-\-units \fR\fB\fIunit\fR\fR
 flag\&.
+
 .RE
 .PP
 \fB\-\-units \fR\fB\fIunit\fR\fR
 .RS 4
+
+
+
 Used in conjunction with
 \fB\-\-size\fR
 to choose the unit in which the size is given\&. Valid values for
 \fIunit\fR
 are
+
 .PP
 \fBB\fR
 .RS 4
+
+
+
 List sizes in bytes\&.
+
 .RE
 .PP
 \fBK\fR, \fBKi\fR, \fBKiB\fR
 .RS 4
+
+
+
 List sizes in KiB, i\&.e\&., 1024 bytes\&.
+
 .RE
 .PP
 \fBMi\fR, \fBMiB\fR
 .RS 4
+
+
+
 List sizes in MiB, i\&.e\&., 1024 * 1024 bytes\&.
+
 .RE
 .PP
 \fBGi\fR, \fBGiB\fR
 .RS 4
+
+
+
 List sizes in GiB, i\&.e\&., 1024 * 1024 * 1024 bytes\&.
+
 .RE
 .PP
 \fBk\fR, \fBkB\fR
 .RS 4
+
+
+
 List sizes in kB, i\&.e\&., 1000 bytes\&.
+
 .RE
 .PP
 \fBM\fR, \fBMB\fR
 .RS 4
+
+
+
 List sizes in MB, i\&.e\&., 1000 * 1000 bytes\&.
+
 .RE
 .PP
 \fBG\fR, \fBGB\fR
 .RS 4
+
+
+
 List sizes in GB, i\&.e\&., 1000 * 1000 * 1000 bytes\&.
+
 .RE
+.sp
+
 .RE
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
+
 .PP
 \fB\-q\fR
 .RS 4
+
+
+
 Do not print the header line\&.
+
 .RE
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBgrep\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -118,3 +183,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

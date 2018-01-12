@@ -19,30 +19,51 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-platform \- Print the OS version for which MacPorts was built
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-q\fR] \fBplatform\fR
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 This command prints the version of your operating system used to configure and build MacPorts\&. This value is used to detect OS updates and refer users to the \m[blue]\fBMigration\fR\m[]\&\s-2\u[1]\d\s+2 instructions\&.
 .sp
 Since MacPorts picks up a number of paths at configure\-time and uses them later on, changes in the operating system can break a MacPorts installation\&. For example, this happened when Apple removed \(lq/usr/bin/gnutar\(rq from OS X with the release of Mavericks\&. Since MacPorts keeps the path to its tar command in a file, this change required rebuilding MacPorts\&.
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
+
 .PP
 \fB\-q\fR
 .RS 4
+
+
+
 Do not print the \(lqPlatform:\(rq prefix\&.
+
 .RE
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \m[blue]\fBMigration\fR\m[]\&\s-2\u[1]\d\s+2
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -54,6 +75,8 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
 .SH "EXTERNAL REFERENCES"
 .IP " 1." 4
 Migration

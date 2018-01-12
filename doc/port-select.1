@@ -19,26 +19,46 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-select \- Switch between different implementations of a tool
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-dv\fR] \fBselect\fR \-\-summary
 .fi
 .sp
+
+
+
+.sp
 .nf
 \fBport\fR [\fB\-dv\fR] \fBselect\fR \-\-show \fIgroup\fR
 .fi
+.sp
+
+
+
 .sp
 .nf
 \fBport\fR [\fB\-dv\fR] \fBselect\fR [\-\-list] \fIgroup\fR
 .fi
 .sp
+
+
+
+.sp
 .nf
 \fBport\fR [\fB\-dv\fR] \fBselect\fR [\-\-set] \fIgroup\fR \fIoption\fR
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport select\fR provides a mechanism to choose from different implementations of a common tool or port\&. Selecting one of the options makes it the primary version or implementation, e\&.g\&. the one to be run by default when you do not explicitly select a version or implementation on the command line\&.
 .sp
@@ -47,27 +67,46 @@ Note that \fBport select\fR is only for your convenience as user\&. It does not,
 One example is the set of MySQL and forks of MySQL, where there are mysql51, mysql55, mysql56, mariadb, mariadb\-10\&.0, mariadb\-11\&.0, percona, possibly among others\&. \fBport select\fR lets you choose which of these becomes the version run, when you simply run \fImysql\fR or other commands from the MySQL suite\&.
 .sp
 \fBport select\fR has multiple modes of operation: It can display a summary, show the current primary implementation and list all available implementations given a group name, and change the primary implementation\&. See \fBOPTIONS\fR below for details\&.
+
 .SH "OPTIONS"
+
+
+
 .PP
 \fB\-\-summary\fR
 .RS 4
+
+
+
 Display a summary of all available selection groups, their current primary implementation and a list of all available choices\&.
+
 .RE
 .PP
 \fB\-\-show\fR \fIgroup\fR
 .RS 4
+
+
+
 Print the current primary implementation for the given group\&.
+
 .RE
 .PP
 \fB\-\-list\fR \fIgroup\fR
 .RS 4
+
+
+
 Print a list of all currently available choices for the given group\&. This is the default when
 \fBport select\fR
 is called with one argument\&.
+
 .RE
 .PP
 \fB\-\-set\fR \fIgroup\fR \fIoption\fR
 .RS 4
+
+
+
 Make
 \fIoption\fR
 the primary selection for the
@@ -75,13 +114,19 @@ the primary selection for the
 group\&. This is the default when
 \fBport select\fR
 is called with two arguments\&.
+
 .RE
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
 .SH "EXAMPLES"
+
 .sp
 If you have both the mysql56 and the percona port installed, you can switch your implementation of the \fImysql\fR command by running
+
 .sp
 .if n \{\
 .RS 4
@@ -94,10 +139,15 @@ $> sudo port select \-\-set mysql $option
 .\}
 .sp
 where \fI$option\fR is \fImysql56\fR if you want the version from MySQL, or \fIpercona\fR, if you want the version from Percona\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -109,3 +159,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

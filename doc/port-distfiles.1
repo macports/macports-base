@@ -19,23 +19,36 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-distfiles \- Print a list of distribution files for a port
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-qvd\fR] [\fB\-D\fR \fIportdir\fR] \fBdistfiles\fR
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 Print a list of source archives required to build the given port along with the checksums for the file and a list of mirrors\&. If you want to verify that all mirrors actually serve the same file see \fBport-distcheck\fR(1)\&.
 .sp
 To delete the distfiles once they have been downloaded, use \fBport clean \-\-dist\fR\&. See \fBport-clean\fR(1) for more information regarding the \fBclean\fR command\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-distcheck\fR(1), \fBport-clean\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -47,3 +60,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

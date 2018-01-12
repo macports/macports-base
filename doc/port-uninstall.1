@@ -19,9 +19,13 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-uninstall \- Remove a previously installed port
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-vdquxpf\fR] [\fB\-D\fR \fIportdir\fR] \fBuninstall\fR
@@ -29,34 +33,61 @@ port-uninstall \- Remove a previously installed port
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
      [@version]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport uninstall\fR removes a port from your system\&. You can only uninstall a port if all dependents have been removed before or by applying force with \fB\-f\fR\&.
 .sp
 If multiple versions of the same port are installed, you need to specify a version using the \fB@version\fR syntax\&. Use \fBport installed\fR to find out which versions are currently installed on your system\&. If multiple versions are installed and you did not specify a version, \fBport\fR will output a list\&.
+
 .SH "OPTIONS"
+
+
+
 .PP
 \fB\-\-follow\-dependents\fR
 .RS 4
+
+
+
 Also uninstall all ports recursively depending directly or indirectly on one of the specified ports before uninstalling the port itself\&.
+
 .RE
 .PP
 \fB\-\-follow\-dependencies\fR
 .RS 4
+
+
+
 Also recursively uninstall all ports that the specified port depends on\&. This will not uninstall dependencies that are marked as requested or that have other dependents\&.
+
 .RE
 .PP
 \fB\-\-no\-exec\fR
 .RS 4
+
+
+
 Do not execute any stored pre\- or post\-uninstall procedures\&.
+
 .RE
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-uninstall\fR(1), \fBport-info\fR(1), \fBport-variants\fR(1), \fBvariants.conf\fR(5)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -68,3 +99,6 @@ Rainer Mueller <raimue@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

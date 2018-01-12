@@ -19,9 +19,13 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-log, port-logfile \- Print contents or path of a port\*(Aqs log file
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-D\fR \fIportdir\fR] \fBlog\fR
@@ -30,51 +34,92 @@ port-log, port-logfile \- Print contents or path of a port\*(Aqs log file
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
 .sp
+
+
+
+.sp
 .nf
 \fBport\fR [\fB\-D\fR \fIportdir\fR] \fBlogfile\fR
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport log\fR prints and optionally filters the contents of the log file for the installation of the given port\&. The file can be filtered by log message level and installation phase\&.
 .sp
 \fBport logfile\fR prints the path to the log file for the last installation of the given port\&. This is helpful to locate the file to attach when reporting bugs against ports in MacPorts\*(Aq issue tracker\&.
+
 .SH "OPTIONS"
+
 .sp
 \fBport logfile\fR has no options\&. \fBport log\fR has the following options:
+
+
 .PP
 \fB\-\-level SEVERITY\fR
 .RS 4
+
+
+
 Hide all messages below the given severity, which is one of
+
 .PP
 error
 .RS 4
+
+
+
 for error messages
+
 .RE
 .PP
 warn
 .RS 4
+
+
+
 for warnings
+
 .RE
 .PP
 msg
 .RS 4
+
+
+
 for standard MacPorts output
+
 .RE
 .PP
 info
 .RS 4
+
+
+
 for output shown in verbose mode
+
 .RE
 .PP
 debug
 .RS 4
+
+
+
 for all output including debugging messages
+
 .RE
+.sp
+
 .RE
 .PP
 \fB\-\-phase PHASE\fR
 .RS 4
+
+
+
 Only print messages that were generated in the given installation phase, where possible values for
 \fBPHASE\fR
 include
@@ -85,11 +130,17 @@ include
 \fIconfigure\fR,
 \fIbuild\fR, and
 \fIdestroot\fR\&. Note that you can specify an arbitrary value which will be used in a regular expression to filter the log file\&.
+
 .RE
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-install\fR(1), \fBport-clean\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -101,3 +152,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

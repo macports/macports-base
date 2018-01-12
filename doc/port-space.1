@@ -19,82 +19,139 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-space \- Show the disk usage of the given ports
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-D\fR \fIportdir\fR] \fBspace\fR [\-\-units \fIunit\fR] [\fItotal\fR]
     [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport space\fR lists the amount of disk space the port(s) given on the command line occupy on disk\&. Note that the space reported is for the files installed by a port, but not the image of the port\(cqs files MacPorts keeps internally\&. See the \fBPORT IMAGES\fR section for more information on how images work\&. Consequently, \fBport space\fR will only work on active ports\&.
 .sp
 By default, \fBport space\fR will print a line with the size in an appropriate unit followed by the name of a port for each port given on the command line (or expanded from a pseudo\-port expression given; see \fBport\fR(1) for more info on pseudo\-port expressions)\&. The last line of output will contain a total\&.
 .sp
 If you are only interested in the total of all ports (e\&.g\&. if you want to get the total amount of space used by your installed ports) use the \fB\-\-total\fR flag\&. If you want to sort the output by file size, you can pipe the results of \fBport space\fR to \fBsort \-n\fR\&. Since \fBport space\fR defauts to using a suitable unit, you should specify a unit to allow for meaningful numeric sorting, e\&.g\&. \fBport space \-\-units KiB\fR to get all output in KiB\&.
+
 .SH "OPTIONS"
+
+
+
 .PP
 \fB\-\-total\fR*
 .RS 4
+
+
+
 Only print the total amount of space used by all given ports\&.
+
 .RE
 .PP
 \fB\-\-units \fR\fB\fIunit\fR\fR
 .RS 4
+
+
+
 Choose the unit in which the size is given\&. You should specify this if you intend to sort the output\&. Valid values for
 \fIunit\fR
 are
+
 .PP
 \fBB\fR
 .RS 4
+
+
+
 List sizes in bytes\&.
+
 .RE
 .PP
 \fBK\fR, \fBKi\fR, \fBKiB\fR
 .RS 4
+
+
+
 List sizes in KiB, i\&.e\&., 1024 bytes\&.
+
 .RE
 .PP
 \fBMi\fR, \fBMiB\fR
 .RS 4
+
+
+
 List sizes in MiB, i\&.e\&., 1024 * 1024 bytes\&.
+
 .RE
 .PP
 \fBGi\fR, \fBGiB\fR
 .RS 4
+
+
+
 List sizes in GiB, i\&.e\&., 1024 * 1024 * 1024 bytes\&.
+
 .RE
 .PP
 \fBk\fR, \fBkB\fR
 .RS 4
+
+
+
 List sizes in kB, i\&.e\&., 1000 bytes\&.
+
 .RE
 .PP
 \fBM\fR, \fBMB\fR
 .RS 4
+
+
+
 List sizes in MB, i\&.e\&., 1000 * 1000 bytes\&.
+
 .RE
 .PP
 \fBG\fR, \fBGB\fR
 .RS 4
+
+
+
 List sizes in GB, i\&.e\&., 1000 * 1000 * 1000 bytes\&.
+
 .RE
+.sp
+
 .RE
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
 .SH "PORT IMAGES"
+
 .sp
 MacPorts has the ability to install multiple versions or different variant selections of the same port\&. The files will be stored in an intermediate location as \fIarchives\fR, which allows to switch between the versions\&. Only one version can be active at a time\&. On activation, files will be copied to their intended place in \fIprefix\fR\&.
 .sp
 More information on this topic can be found in the \m[blue]\fBThe MacPorts Guide\fR\m[]\&\s-2\u[1]\d\s+2\&.
 .sp
 To check the current status of a specific port, use \fB\fBport-installed\fR(1)\fR\&.
+
 .SH "EXAMPLES"
+
 .sp
 To find the 10 largest ports in your MacPorts installation, you can use the following command:
+
 .sp
 .if n \{\
 .RS 4
@@ -105,10 +162,16 @@ $> port space \-\-units MiB active | sort \-rn | head \-n10
 .if n \{\
 .RE
 .\}
+.sp
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-archive\fR(1), \fBsort\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -120,6 +183,8 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
 .SH "EXTERNAL REFERENCES"
 .IP " 1." 4
 The MacPorts Guide

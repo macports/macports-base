@@ -19,14 +19,22 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-sync \- Update the port definition files
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-qvd\fR] \fBsync\fR
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport sync\fR updates the local port definitions (the so\-called ports tree) to the latest state so you have the latest versions of ports available\&. You should normally not run \fBport sync\fR directly, but use \fBport selfupdate\fR, which updates MacPorts itself and then proceeds to do the same operation as \fBsync\fR does\&. You can, however, use \fBport sync\fR if you know that \fBselfupdate\fR does not work on your system or in your network environment, for example because your network administrator blocks outbound rsync connections and you have changed your \fBsources.conf\fR(5) to use a different method of obtaining the ports tree\&.
 .sp
@@ -48,17 +56,29 @@ When you use \fBport sync\fR, it is your responsibility to check whether new upd
 .sp .5v
 .RE
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
+
 .PP
 \fB\-q\fR
 .RS 4
+
+
+
 Suppress status output, be as silent as possible\&.
+
 .RE
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-selfupdate\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -70,3 +90,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

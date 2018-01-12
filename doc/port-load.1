@@ -19,26 +19,41 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-load, port-unload, port-reload \- Control daemons installed by a port
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-d\fR] [\fB\-D\fR \fIportdir\fR] [\fBload\fR | \fBunload\fR | \fBreload\fR]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 These commands control the daemons that are installed by some of the ports\&. If a port provides daemon functionality, a note will be printed during installation advising you how to use it\&.
 .sp
 The daemon functionality is provided by installing a \fBlaunchd\fR(8) configuration file (see \fBlaunchd.conf\fR(5)) and calling \fBlaunchctl\fR(1) on your behalf\&. \fBport load\fR advises launchd to start the daemon defined by a port\(cqs configuration file, also called a \(lqstartup item\(rq\&. Once loaded, launchd will preserve this state \- even across reboots \- until the daemon is unloaded using \fBport unload\fR\&. If you want to restart a daemon, you can use \fBport reload\fR, which is a convenience wrapper around \fBport unload\fR followed by a short delay and \fBport load\fR\&.
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBlaunchd\fR(8), \fBlaunchd.conf\fR(5), \fBlaunchctl\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -50,3 +65,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

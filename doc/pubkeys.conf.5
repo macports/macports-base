@@ -19,11 +19,15 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 pubkeys.conf \- public key configuration file of the MacPorts system
 .SH "DESCRIPTION"
+
 .sp
 \fBpubkeys\&.conf\fR is the configuration file used by the MacPorts system to locate the public keys used to verify the integrity and authenticity of
+
 .sp
 .RS 4
 .ie n \{\
@@ -33,6 +37,7 @@ pubkeys.conf \- public key configuration file of the MacPorts system
 .sp -1
 .IP \(bu 2.3
 .\}
+
 the tree of port definitions,
 .RE
 .sp
@@ -44,6 +49,7 @@ the tree of port definitions,
 .sp -1
 .IP \(bu 2.3
 .\}
+
 downloaded pre\-built binary archives, and
 .RE
 .sp
@@ -55,24 +61,38 @@ downloaded pre\-built binary archives, and
 .sp -1
 .IP \(bu 2.3
 .\}
+
 MacPorts updates\&.
 .RE
 .sp
 The file is read by the \fBport\fR command\&. Lines beginning with \fI#\fR are comments, empty lines are ignored\&. All other lines must contain absolute paths of PEM\-encoded RSA public keys for use by OpenSSL\&.
 .sp
 MacPorts comes pre\-configured with its official public key\&. The authenticity of the public key file is provided by the MacPorts installer, which is cryptographically signed with an Apple Developer ID of one of the MacPorts developers\&. Unless you want to provide your own separate ports tree or your own pre\-built binary archives, there is no need to modify the \fBpubkeys\&.conf\fR file\&.
+
 .SH "FILES"
+
+
+
 .PP
 ${prefix}/etc/macports/pubkeys\&.conf
 .RS 4
+
+
+
 Standard system\-wide MacPorts public key configuration file\&.
+
 .RE
 .sp
 User\-specific configuration of public keys is not supported\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBmacports.conf\fR(5)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -84,3 +104,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

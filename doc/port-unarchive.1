@@ -19,25 +19,40 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-unarchive \- Extract the destroot of the given ports from a binary archive
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-vdtoy\fR] [\fB\-D\fR \fIportdir\fR] \fBunarchive\fR
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
      [+/\- variant \&...]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 Extract the destroot (i\&.e\&. the set of files that are installed by a port) from installed or downloaded binary archives\&. Usually, users will not have to run this command manually\&. It is run automatically by MacPorts when installing a port from a pre\-built binary\&. The possibility to execute it directly exists for debugging purposes\&.
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-install\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -49,3 +64,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+
