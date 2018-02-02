@@ -19,14 +19,22 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-provides \- Find the port that installed a file
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR \fBprovides\fR \fIfile\fR \&...
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport provides\fR looks up which port installed a given file, if the file has been installed by MacPorts\&. If the given file is not known to MacPorts it was either obtained using a different method, or has been created by a script or an executable after installation\&.
 .sp
@@ -48,12 +56,18 @@ You can only use \fBprovides\fR on files that you have installed on your system\
 .sp .5v
 .RE
 .SH "BUGS"
+
 .sp
 If MacPorts is configured to use a prefix that contains symlinks, \fBprovides\fR may incorrectly report that a file is unknown to MacPorts\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-contents\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -65,3 +79,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

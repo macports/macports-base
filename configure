@@ -667,7 +667,6 @@ OS_MAJOR
 OS_PLATFORM
 READLINE_LIBS
 MD5_LIBS
-READLINK_IS_NOT_P1003_1A
 ac_cv_func_strlcat
 EGREP
 GREP
@@ -692,7 +691,6 @@ CFLAGS_PEDANTIC
 CFLAGS_QUICHEEATERS
 TAR_CMD
 TAR_Q
-SED_EXT
 ZIP
 XZ
 XCRUN
@@ -1474,56 +1472,55 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-flag-sanitization
-                          Do not sanitize CPPFLAGS, CFLAGS, OBJCFLAGS and
+                          do not sanitize CPPFLAGS, CFLAGS, OBJCFLAGS and
                           LDFLAGS
-  --enable-werror         Add -Werror to CFLAGS. Used for development.
-  --enable-readline       Enable addition of readline support, if readline
-                          present.
+  --enable-werror         add -Werror to CFLAGS (used for development)
+  --enable-readline       enable readline support, if readline present
   --enable-shared         build and link with shared libraries --enable-shared
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-bsdmake=PATH     Path to alternate bsdmake/pmake command
-  --with-bzip2_bin=PATH   Path to alternate bzip2 command
-  --with-cvs=PATH         Path to alternate cvs command
-  --with-gnumake=PATH     Path to alternate gnumake command
-  --with-gnutar=PATH      Path to alternate gnutar command
-  --with-lzma=PATH        Path to alternate lzma command
-  --with-make=PATH        Path to alternate make command
-  --with-mtree=PATH       Path to alternate mtree command
-  --with-open=PATH        Path to alternate open command
-  --with-openssl=PATH     Path to alternate openssl command
-  --with-rsync=PATH       Path to alternate rsync command
-  --with-sed=PATH         Path to alternate sed command
-  --with-svn=PATH         Path to alternate svn command
-  --with-swig=PATH        Path to alternate swig command
-  --with-tar=PATH         Path to alternate tar command
-  --with-xar=PATH         Path to alternate xar command
-  --with-xz=PATH          Path to alternate xz command
+  --with-bsdmake=PATH     path to alternate bsdmake/pmake command
+  --with-bzip2_bin=PATH   path to alternate bzip2 command
+  --with-cvs=PATH         path to alternate cvs command
+  --with-gnumake=PATH     path to alternate gnumake command
+  --with-gnutar=PATH      path to alternate gnutar command
+  --with-lzma=PATH        path to alternate lzma command
+  --with-make=PATH        path to alternate make command
+  --with-mtree=PATH       path to alternate mtree command
+  --with-open=PATH        path to alternate open command
+  --with-openssl=PATH     path to alternate openssl command
+  --with-rsync=PATH       path to alternate rsync command
+  --with-sed=PATH         path to alternate sed command
+  --with-svn=PATH         path to alternate svn command
+  --with-swig=PATH        path to alternate swig command
+  --with-tar=PATH         path to alternate tar command
+  --with-xar=PATH         path to alternate xar command
+  --with-xz=PATH          path to alternate xz command
   --with-unsupported-prefix
-                          Acknowledge that you accept the consequences of
-                          using an unsupported prefix.
-  --with-ports-dir=DIR    Specify alternate ports directory
+                          acknowledge that you accept the consequences of
+                          using an unsupported prefix
+  --with-ports-dir=DIR    specify alternate ports directory
   --with-no-root-privileges
-                          Specify that MacPorts should be installed in your
+                          specify that MacPorts should be installed in your
                           home directory
   --with-install-user=USER
-                          Specify user ownership of installed files
+                          specify user ownership of installed files
   --with-install-group=GROUP
-                          Specify group ownership of installed files
+                          specify group ownership of installed files
   --with-macports-user=USER
-                          Specify user to drop privileges to, if possible,
-                          during compiles etc.
+                          specify user to drop privileges to, if possible,
+                          during compiles, etc.
   --with-directory-mode=MODE
-                          Specify directory mode of installed directories
-  --with-shared-directory Use 0775 permissions for installed directories
-  --with-applications-dir Applications installation directory.
-  --with-frameworks-dir   Frameworks installation directory.
+                          specify directory mode of installed directories
+  --with-shared-directory use 0775 permissions for installed directories
+  --with-applications-dir applications installation directory
+  --with-frameworks-dir   frameworks installation directory
   --with-universal-archs="CPU"
-                          Universal CPU architectures (space separated)
-  --with-curlprefix       base directory for the cURL install '/usr', '/usr/local',...
-  --with-sqlite3prefix       base directory for the sqlite3 install '/usr', '/usr/local',...
+                          universal CPU architectures (space separated)
+  --with-curlprefix       base directory for the curl install ('/usr', '/usr/local', ...)
+  --with-sqlite3prefix    base directory for the sqlite3 install ('/usr', '/usr/local', ...)
 
 Some influential environment variables:
   CC          C compiler command
@@ -1776,48 +1773,6 @@ fi
 
 } # ac_fn_c_try_cpp
 
-# ac_fn_c_try_run LINENO
-# ----------------------
-# Try to link conftest.$ac_ext, and return whether this succeeded. Assumes
-# that executables *can* be run.
-ac_fn_c_try_run ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  if { { ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-$as_echo "$ac_try_echo"; } >&5
-  (eval "$ac_link") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } && { ac_try='./conftest$ac_exeext'
-  { { case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-$as_echo "$ac_try_echo"; } >&5
-  (eval "$ac_try") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }; then :
-  ac_retval=0
-else
-  $as_echo "$as_me: program exited with status $ac_status" >&5
-       $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-       ac_retval=$ac_status
-fi
-  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-  as_fn_set_status $ac_retval
-
-} # ac_fn_c_try_run
-
 # ac_fn_c_check_header_mongrel LINENO HEADER VAR INCLUDES
 # -------------------------------------------------------
 # Tests whether HEADER exists, giving a warning if it cannot be compiled using
@@ -1908,6 +1863,48 @@ fi
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
 } # ac_fn_c_check_header_mongrel
+
+# ac_fn_c_try_run LINENO
+# ----------------------
+# Try to link conftest.$ac_ext, and return whether this succeeded. Assumes
+# that executables *can* be run.
+ac_fn_c_try_run ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  if { { ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+$as_echo "$ac_try_echo"; } >&5
+  (eval "$ac_link") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; } && { ac_try='./conftest$ac_exeext'
+  { { case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+$as_echo "$ac_try_echo"; } >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then :
+  ac_retval=0
+else
+  $as_echo "$as_me: program exited with status $ac_status" >&5
+       $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+       ac_retval=$ac_status
+fi
+  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+  as_fn_set_status $ac_retval
+
+} # ac_fn_c_try_run
 
 # ac_fn_c_check_header_compile LINENO HEADER VAR INCLUDES
 # -------------------------------------------------------
@@ -5832,80 +5829,9 @@ fi
 
 
 
-
 if test "x$MTREE" = "x"; then
     as_fn_error $? "mtree not found" "$LINENO" 5
 fi
-
-
-	# Extract the first word of "sed", so it can be a program name with args.
-set dummy sed; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_SED+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $SED in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_SED="$SED" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_SED="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-SED=$ac_cv_path_SED
-if test -n "$SED"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $SED" >&5
-$as_echo "$SED" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-
-	if test "x$SED" = "x"; then
-		as_fn_error $? "cannot find sed. Is sed installed?" "$LINENO" 5
-	fi
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking which sed flag to use for extended regexp" >&5
-$as_echo_n "checking which sed flag to use for extended regexp... " >&6; }
-	any_sed_flag=`echo foo | $SED    -e s/foo+/OK/ 2>&1 | grep OK`
-	bsd_sed_flag=`echo foo | $SED -E -e s/foo+/OK/ 2>&1 | grep OK`
-	gnu_sed_flag=`echo foo | $SED -r -e s/foo+/OK/ 2>&1 | grep OK`
-	if test "x$any_sed_flag" = "xOK" ; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: none" >&5
-$as_echo "none" >&6; }
-		SED_EXT=
-	elif test "x$bsd_sed_flag" = "xOK" ; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: -E (BSD)" >&5
-$as_echo "-E (BSD)" >&6; }
-		SED_EXT=-E
-	elif test "x$gnu_sed_flag" = "xOK" ; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: -r (GNU)" >&5
-$as_echo "-r (GNU)" >&6; }
-		SED_EXT=-r
-	else
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not available" >&5
-$as_echo "not available" >&6; }
-		SED_EXT='N/A'
-	fi
-
 
 
 	# Extract the first word of "tar", so it can be a program name with args.
@@ -7184,205 +7110,6 @@ $as_echo "#define STDC_HEADERS 1" >>confdefs.h
 
 fi
 
-ac_header_dirent=no
-for ac_hdr in dirent.h sys/ndir.h sys/dir.h ndir.h; do
-  as_ac_Header=`$as_echo "ac_cv_header_dirent_$ac_hdr" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_hdr that defines DIR" >&5
-$as_echo_n "checking for $ac_hdr that defines DIR... " >&6; }
-if eval \${$as_ac_Header+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <sys/types.h>
-#include <$ac_hdr>
-
-int
-main ()
-{
-if ((DIR *) 0)
-return 0;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  eval "$as_ac_Header=yes"
-else
-  eval "$as_ac_Header=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-eval ac_res=\$$as_ac_Header
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_hdr" | $as_tr_cpp` 1
-_ACEOF
-
-ac_header_dirent=$ac_hdr; break
-fi
-
-done
-# Two versions of opendir et al. are in -ldir and -lx on SCO Xenix.
-if test $ac_header_dirent = dirent.h; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing opendir" >&5
-$as_echo_n "checking for library containing opendir... " >&6; }
-if ${ac_cv_search_opendir+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char opendir ();
-int
-main ()
-{
-return opendir ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' dir; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_opendir=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_opendir+:} false; then :
-  break
-fi
-done
-if ${ac_cv_search_opendir+:} false; then :
-
-else
-  ac_cv_search_opendir=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_opendir" >&5
-$as_echo "$ac_cv_search_opendir" >&6; }
-ac_res=$ac_cv_search_opendir
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-fi
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing opendir" >&5
-$as_echo_n "checking for library containing opendir... " >&6; }
-if ${ac_cv_search_opendir+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char opendir ();
-int
-main ()
-{
-return opendir ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' x; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_opendir=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_opendir+:} false; then :
-  break
-fi
-done
-if ${ac_cv_search_opendir+:} false; then :
-
-else
-  ac_cv_search_opendir=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_opendir" >&5
-$as_echo "$ac_cv_search_opendir" >&6; }
-ac_res=$ac_cv_search_opendir
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-fi
-
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sys/wait.h that is POSIX.1 compatible" >&5
-$as_echo_n "checking for sys/wait.h that is POSIX.1 compatible... " >&6; }
-if ${ac_cv_header_sys_wait_h+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <sys/types.h>
-#include <sys/wait.h>
-#ifndef WEXITSTATUS
-# define WEXITSTATUS(stat_val) ((unsigned int) (stat_val) >> 8)
-#endif
-#ifndef WIFEXITED
-# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
-#endif
-
-int
-main ()
-{
-  int s;
-  wait (&s);
-  s = WIFEXITED (s) ? WEXITSTATUS (s) : 1;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_header_sys_wait_h=yes
-else
-  ac_cv_header_sys_wait_h=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_header_sys_wait_h" >&5
-$as_echo "$ac_cv_header_sys_wait_h" >&6; }
-if test $ac_cv_header_sys_wait_h = yes; then
-
-$as_echo "#define HAVE_SYS_WAIT_H 1" >>confdefs.h
-
-fi
-
 # On IRIX 5.3, sys/types and inttypes.h are conflicting.
 for ac_header in sys/types.h sys/stat.h stdlib.h string.h memory.h strings.h \
 		  inttypes.h stdint.h unistd.h
@@ -7418,9 +7145,9 @@ done
 
 # Checks for library functions.
 for ac_func in OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 \
-	OSAtomicCompareAndSwapPtr __getdirentries64 bzero clearenv copyfile fgetln \
-	flock fls kqueue lockf memset posix_spawn setmode strcasecmp strlcat \
-	strlcpy strncasecmp sysctlbyname
+	OSAtomicCompareAndSwapPtr __getdirentries64 clearenv copyfile fgetln \
+	flock fls kqueue posix_spawn setmode strlcat \
+	strlcpy sysctlbyname
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -7445,58 +7172,6 @@ fi
 cat >>confdefs.h <<_ACEOF
 #define HAVE_DECL_ATOMIC_COMPARE_EXCHANGE_STRONG_EXPLICIT $ac_have_decl
 _ACEOF
-
-
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if readlink conforms to POSIX 1003.1a" >&5
-$as_echo_n "checking if readlink conforms to POSIX 1003.1a... " >&6; }
-
-	if ${mp_cv_readlink_is_posix_1003_1a+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-					#include <unistd.h>
-					ssize_t readlink(const char *, char *, size_t);
-
-int
-main ()
-{
-
-
-  ;
-  return 0;
-}
-
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-
-				mp_cv_readlink_is_posix_1003_1a="yes"
-
-else
-
-				mp_cv_readlink_is_posix_1003_1a="no"
-
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-fi
-
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ${mp_cv_readlink_is_posix_1003_1a}" >&5
-$as_echo "${mp_cv_readlink_is_posix_1003_1a}" >&6; }
-
-	if test x"${mp_cv_readlink_is_posix_1003_1a}" = "xno"; then
-
-$as_echo "#define READLINK_IS_NOT_P1003_1A /**/" >>confdefs.h
-
-	fi
-
-
 
 
 # Check for md5 implementation

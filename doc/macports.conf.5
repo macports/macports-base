@@ -19,13 +19,17 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 macports.conf \- Configuration file of the MacPorts system
 .SH "DESCRIPTION"
+
 .sp
 \fBmacports\&.conf\fR is the configuration file used to bootstrap the MacPorts system\&. This file is read by the \fBport\fR command and determines how it behaves\&. Lines beginning with \fI#\fR are comments, empty lines are ignored\&. The format is that of a simple key/value space or tab separated pair\&.
 .sp
 The file contains entries of the form:
+
 .sp
 .if n \{\
 .RS 4
@@ -38,12 +42,19 @@ The file contains entries of the form:
 .\}
 .sp
 The value of any given key can be referred to by the \fI${<keyname>}\fR abstraction, where \fI<keyname>\fR expands to the key in question\&.
+
 .SH "KEYS"
+
 .sp
 The following keys are used by \fBport\fR itself:
+
+
 .PP
 prefix
 .RS 4
+
+
+
 Sets the directory where ports are installed\&. Any path may be used but those with spaces and/or non ascii characters should be avoided, as this can break some ports\&. This key is often referred to as
 \fI${prefix}\fR\&.
 .TS
@@ -56,10 +67,14 @@ T}:T{
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 portdbpath
 .RS 4
+
+
+
 Directory where MacPorts keeps working data such as downloaded sources, installed ports\*(Aq receipts and the main registry\&. The same path restrictions apply as for
 \fI${prefix}\fR\&.
 .TS
@@ -72,10 +87,14 @@ ${prefix}/var/macports
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 portdbformat
 .RS 4
+
+
+
 Storage type to use for the MacPorts registry\&. The preferred format is "sqlite", with "flat" also available as a legacy format\&.
 .TS
 tab(:);
@@ -87,10 +106,14 @@ sqlite
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 applications_dir
 .RS 4
+
+
+
 Directory containing Applications installed from ports\&.
 .TS
 tab(:);
@@ -102,10 +125,14 @@ T}:T{
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 frameworks_dir
 .RS 4
+
+
+
 Directory containing Frameworks installed from ports\&.
 .TS
 tab(:);
@@ -117,10 +144,14 @@ ${prefix}/Library/Frameworks
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 sources_conf
 .RS 4
+
+
+
 Location of the sources file\&. This file enables rsync synchronization of the default ports tree with the MacPorts rsync server (through the "sync" target of the port command) and any other local tree(s) you might have\&.
 .TS
 tab(:);
@@ -132,10 +163,14 @@ ${prefix}/etc/macports/sources\&.conf
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 variants_conf
 .RS 4
+
+
+
 Location of the optional global variants definition file, listing those that should be used in all installed ports if available\&.
 .TS
 tab(:);
@@ -147,10 +182,14 @@ ${prefix}/etc/macports/variants\&.conf
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 buildfromsource
 .RS 4
+
+
+
 Controls whether ports are built from source or downloaded as pre\-built archives\&. Setting to
 \fIalways\fR
 will never use archives,
@@ -168,10 +207,14 @@ ifneeded
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 portarchivetype
 .RS 4
+
+
+
 Format of archives in which to store port images\&. This controls the type of archive created locally after building from source, but not the type to request from remote servers (that is controlled by
 \fIarchive_sites\&.conf\fR)\&. Changing this will not affect the usability of already installed archives; they can be of any supported type\&.
 .TS
@@ -190,10 +233,14 @@ tbz2
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 configureccache
 .RS 4
+
+
+
 Use ccache (C/C++ compiler cache)\&. Requires that ccache has been installed\&.
 .TS
 tab(:);
@@ -205,10 +252,14 @@ no
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 ccache_dir
 .RS 4
+
+
+
 Location where ccache stores its files
 .TS
 tab(:);
@@ -220,10 +271,14 @@ ${portdbpath}/build/\&.ccache
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 ccache_size
 .RS 4
+
+
+
 Maximum size ccache may use\&. Use
 \fIG\fR,
 \fIM\fR, or
@@ -239,10 +294,14 @@ T}:T{
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 configuredistcc
 .RS 4
+
+
+
 Use distcc (distributed compiler)\&. Requires that distcc has been installed\&.
 .TS
 tab(:);
@@ -254,10 +313,14 @@ no
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 configurepipe
 .RS 4
+
+
+
 Use pipes rather than intermediate files when compiling C/C++/etc (gcc \-pipe)
 .TS
 tab(:);
@@ -269,10 +332,14 @@ yes
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 buildnicevalue
 .RS 4
+
+
+
 Lowered scheduling priority (0\-20) to use for make when building ports
 .TS
 tab(:);
@@ -284,10 +351,14 @@ T}:T{
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 buildmakejobs
 .RS 4
+
+
+
 Number of simultaneous make jobs (commands) to use when building ports\&. 0 is a special value meaning "the number of CPU cores or the number of GB of physical memory plus one, whichever is less\&."
 .TS
 tab(:);
@@ -299,10 +370,14 @@ T}:T{
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 portautoclean
 .RS 4
+
+
+
 Automatic cleaning of the build directory of a given port after it has been installed\&.
 .TS
 tab(:);
@@ -314,10 +389,14 @@ yes
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 keeplogs
 .RS 4
+
+
+
 Keep logs for ports\&.
 .TS
 tab(:);
@@ -329,10 +408,14 @@ no
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 build_arch
 .RS 4
+
+
+
 The machine architecture to try to build for in normal use\&.
 .TS
 tab(:);
@@ -356,10 +439,14 @@ i386 or ppc depending on hardware
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 universal_archs
 .RS 4
+
+
+
 The machine architectures to use for +universal variant (multiple architecture entries should be space separated)\&.
 .TS
 tab(:);
@@ -383,10 +470,14 @@ i386 ppc
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 startupitem_type
 .RS 4
+
+
+
 Set the default type of startupitems to be generated, overridable by Portfiles that explicitly state a startupitem\&.type key\&. If set to "default", then a type will be selected that\(cqs appropriate to the OS\&.
 .TS
 tab(:);
@@ -404,10 +495,14 @@ default
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 destroot_umask
 .RS 4
+
+
+
 Umask value to use during the destrooting of a port\&.
 .TS
 tab(:);
@@ -419,10 +514,14 @@ T}:T{
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 rsync_server
 .RS 4
+
+
+
 Default rsync server to connect to when running "selfupdate" through the port com\- mand to update your base MacPorts infrastructure\&. While selfupdate also syncs the ports tree, it uses the settings from ${sources_conf} to do so\&.
 .TS
 tab(:);
@@ -434,10 +533,14 @@ rsync\&.macports\&.org
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 rsync_dir
 .RS 4
+
+
+
 Rsync directory from which to pull MacPorts sources from the rsync server\&.
 .TS
 tab(:);
@@ -449,10 +552,14 @@ macports/release/base/ (which pulls sources for the currently shipping MacPorts 
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 rsync_options
 .RS 4
+
+
+
 Default rsync options to use when connecting to the rsync server\&.
 .TS
 tab(:);
@@ -464,10 +571,14 @@ T}:T{
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 binpath
 .RS 4
+
+
+
 Sets the directory search path for locating system executables used by MacPorts\&. This variable should contain the paths for locating utilities such as rsync, tar, cvs and others\&. Don\(cqt change this unless you understand and accept the consequences\&.
 .TS
 tab(:);
@@ -479,15 +590,23 @@ ${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 extra_env
 .RS 4
+
+
+
 List of extra environment variables MacPorts should keep in the user\(cqs environment when sanitizing it\&. Changing this is unsupported\&.
+
 .RE
 .PP
 proxy_override_env
 .RS 4
+
+
+
 Proxy support\&. Precedence is: env, macports\&.conf, System Preferences\&. That is, if it\(cqs set in the environment, that will be used instead of anything here or in System Preferences\&. Setting proxy_override_env to yes will cause any proxies set here (or in System Preferences if set there but not here) to override what\(cqs in the environment\&. Note that System Preferences doesn\(cqt have an rsync proxy definition\&. Also note, on 10\&.5, sudo will clear many environment variables including those for proxy support\&. Equivalent environment variables: http_proxy, HTTPS_PROXY, FTP_PROXY, RSYNC_PROXY, NO_PROXY
 .TS
 tab(:);
@@ -499,10 +618,14 @@ yes
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 proxy_http
 .RS 4
+
+
+
 HTTP proxy
 .TS
 tab(:);
@@ -514,10 +637,14 @@ none
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 proxy_https
 .RS 4
+
+
+
 HTTPS proxy
 .TS
 tab(:);
@@ -529,10 +656,14 @@ none
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 proxy_ftp
 .RS 4
+
+
+
 FTP proxy
 .TS
 tab(:);
@@ -544,10 +675,14 @@ none
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 proxy_rsync
 .RS 4
+
+
+
 rsync proxy
 .TS
 tab(:);
@@ -559,10 +694,14 @@ none
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 proxy_skip
 .RS 4
+
+
+
 Hosts not to go through the proxy (comma\-separated, applies to HTTP, HTTPS and FTP, but not rsync)\&.
 .TS
 tab(:);
@@ -574,10 +713,14 @@ none
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 host_blacklist
 .RS 4
+
+
+
 Space separated list of download hosts that should not be used\&.
 .TS
 tab(:);
@@ -589,10 +732,14 @@ none
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 preferred_hosts
 .RS 4
+
+
+
 Space separated list of download hosts that should be used preferentially\&.
 .TS
 tab(:);
@@ -604,10 +751,14 @@ none
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 revupgrade_autorun
 .RS 4
+
+
+
 Controls whether the rev\-upgrade action will be run automatically after upgrading ports\&.
 .TS
 tab(:);
@@ -619,10 +770,14 @@ yes
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 revupgrade_mode
 .RS 4
+
+
+
 Controls the rev\-upgrade functionality which checks for broken linking and can rebuild ports to fix it\&.
 \fIrebuild\fR
 means ports will automatically be rebuilt when broken linking is detected in their files, while
@@ -638,10 +793,14 @@ rebuild
 T}
 .TE
 .sp 1
+
 .RE
 .PP
 default_compilers
 .RS 4
+
+
+
 Default value for configure\&.compiler\&. This can be a space\-separated list\&. Later entries will be used if earlier entries are unavailable or blacklisted by a port\&. Setting this is unsupported\&.
 .TS
 tab(:);
@@ -653,22 +812,40 @@ none (internal list based on Xcode version is normally used)
 T}
 .TE
 .sp 1
+
 .RE
+
 .SH "FILES"
+
+
+
 .PP
 ${prefix}/etc/macports/macports\&.conf
 .RS 4
+
+
+
 Standard system\-wide MacPorts configuration file\&.
+
 .RE
 .PP
 ~/\&.macports/macports\&.conf
 .RS 4
+
+
+
 User\-specific configuration override\&. This file, if found, will be used instead of the default file at ${prefix}/etc/macports/macports\&.conf\&.
+
 .RE
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBportfile\fR(7)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -682,3 +859,6 @@ Rainer Mueller <raimue@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

@@ -19,39 +19,64 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-dir, port-url, port-file, port-location, port-work \- Print paths for certain properties of a port
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-D\fR \fIportdir\fR] \fBdir\fR
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
 .sp
+
+
+
+.sp
 .nf
 \fBport\fR [\fB\-D\fR \fIportdir\fR] \fBurl\fR
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
+.sp
+
+
+
 .sp
 .nf
 \fBport\fR [\fB\-D\fR \fIportdir\fR] \fBfile\fR
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
 .sp
+
+
+
+.sp
 .nf
 \fBport\fR [\fB\-q\fR] [\fB\-D\fR \fIportdir\fR] \fBlocation\fR
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
 .sp
+
+
+
+.sp
 .nf
 \fBport\fR [\fB\-D\fR \fIportdir\fR] \fBwork\fR
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 These commands print a path for each given port\&. The meaning of the path differs by the command given:
 .sp
 \fBport dir\fR prints the directory that contains the \fIPortfile\fR for the given port expression\&. This can be quite handy in your shell, if you want to locate a \fIPortfile\fR:
+
 .sp
 .if n \{\
 .RS 4
@@ -70,13 +95,20 @@ cd $(port dir <portname>)
 \fBport location\fR only works for installed ports and prints the location of the archive MacPorts internally uses to be able to deactivate and activate a port\&. See \fBport-activate\fR(1) for more details on that\&. This command might be useful for you if you want to setup a local binary mirror of MacPorts packages that are not available from our official infrastructure due to licensing reasons\&.
 .sp
 \fBport work\fR prints the path to the so\-called \fIwork\fR directory, i\&.e\&., the directory used by MacPorts to build a port\&. No output is generated if no build directory exists, e\&.g\&., because there is no unfinished build in progress for the given port\&. Work directories are deleted after successful installation or using \fBport-clean\fR(1)\&.
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-edit\fR(1), \fBport-activate\fR(1), \fBport-clean\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -88,3 +120,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

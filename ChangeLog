@@ -3,9 +3,9 @@
 ###
 
 Release 2.5.0 (????-??-?? by ?)
-    - Pseudo-port 'leaves' is now recursive, matching installed ports that are
+    - New pseudo-portname 'rleaves', matching installed ports that are
       unrequested and that no requested ports depend on.
-      (danchr, raimue in b042c0e7, 14a51540)
+      (danchr in b042c0e7)
 
     - 'port reclaim' will automatically run 'port rev-upgrade' at the end.
       (danchr in eed6ffce)

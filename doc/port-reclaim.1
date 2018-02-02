@@ -19,37 +19,64 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-reclaim \- Reclaims disk space\&.
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-vd\fR] \fBreclaim\fR
     [\-\-enable\-reminders] [\-\-disable\-reminders]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport reclaim\fR will find files that can be removed to reclaim disk space by uninstalling inactive ports on your system as well as unnecessary unrequested ports, and removing unneeded or unused installation files\&. The user is then provided interactive options for files to remove\&. No files are removed initially, until the user selects them from the provided list\&.
+
 .SH "OPTIONS"
+
+
+
 .PP
 \fB\-\-enable\-reminders\fR
 .RS 4
+
+
+
 Enable regular reminders to run
 \fBport reclaim\fR\&. Using this option will only update the configuration; the reclaim process will not be run\&.
+
 .RE
 .PP
 \fB\-\-disable\-reminders\fR
 .RS 4
+
+
+
 Disable reminders to run
 \fBport reclaim\fR\&. Using this option will only update the configuration; the reclaim process will not be run\&.
+
 .RE
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-uninstall\fR(1), \fBport-clean\fR(1),
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -61,3 +88,6 @@ Kyle Sammons <ksammons@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

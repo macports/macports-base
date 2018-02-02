@@ -19,9 +19,13 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-install \- Install a new port
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-vdqysbckpotf\fR] [\fB\-D\fR \fIportdir\fR] \fBinstall\fR
@@ -29,33 +33,56 @@ port-install \- Install a new port
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
      [+/\-variant \&...]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport install\fR will install a new port on your system\&. You can choose multiple variants, by specifying \e+name, which indicates the variant is desired, or \-name, indicating the contrary\&.
 .sp
 Global variants will be applied as specified in \fBvariants.conf\fR(5)\&.
+
 .SH "OPTIONS"
+
+
+
 .PP
 \fB\-\-no\-rev\-upgrade\fR
 .RS 4
+
+
+
 Do not run rev\-upgrade after installation\&. See
 \fBport-rev-upgrade\fR(1)
 for more information\&.
+
 .RE
 .PP
 \fB\-\-unrequested\fR
 .RS 4
+
+
+
 Do not mark the installed ports as requested\&. See
 \fBport-setrequested\fR(1)
 for more information\&.
+
 .RE
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-uninstall\fR(1), \fBport-info\fR(1), \fBport-variants\fR(1), \fBport-rev-upgrade\fR(1), \fBport-setrequested\fR(1), \fBvariants.conf\fR(5)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -67,3 +94,6 @@ Rainer Mueller <raimue@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

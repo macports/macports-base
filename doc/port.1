@@ -1,5 +1,5 @@
 '\" t
-.TH "PORT" "1" "2017\-10\-25" "MacPorts 2\&.4\&.99" "MacPorts Manual"
+.TH "PORT" "1" "2018\-01\-09" "MacPorts 2\&.4\&.99" "MacPorts Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -19,16 +19,24 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port \- Command line interface for MacPorts
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-bcdfknNopqRstuvy\fR] [\fB\-D\fR \fIportdir\fR] [\fB\-F\fR \fIcmdfile\fR] [\fIaction\fR] [\fIactionflags\fR]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
      [[\fI@version\fR] [+/\-variant \&...] \&... [option=value \&...]]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport\fR is designed to operate on individual or multiple \fIports\fR, optionally within a single call, based on the requested \fIaction\fR\&. If no \fIaction\fR is specified the port command enters shell mode, in which commands are read via stdin\&. If no \fIportdir\fR or \fIportname\fR is specified for an \fIaction\fR, the current working directory is assumed\&. Batch commands may be passed via a \fIcmdfile\fR\&. Port \fIoptions\fR are passed as key=value pairs and take precedence over individual \fIportname\fR options as specified in its Portfile and system\-wide settings\&.
 .sp
@@ -48,6 +56,7 @@ When passing \fIportnames\fR to an \fIaction\fR, \fBport\fR recognizes various \
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIall\fR: all the ports in each ports tree listed in
 \fIsources\&.conf\fR
 .RE
@@ -60,6 +69,7 @@ When passing \fIportnames\fR to an \fIaction\fR, \fBport\fR recognizes various \
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIcurrent\fR: the port in the current working directory
 .RE
 .sp
@@ -71,6 +81,7 @@ When passing \fIportnames\fR to an \fIaction\fR, \fBport\fR recognizes various \
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIactive\fR: set of installed and active ports
 .RE
 .sp
@@ -82,6 +93,7 @@ When passing \fIportnames\fR to an \fIaction\fR, \fBport\fR recognizes various \
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIinactive\fR: set of installed but inactive ports
 .RE
 .sp
@@ -93,6 +105,7 @@ When passing \fIportnames\fR to an \fIaction\fR, \fBport\fR recognizes various \
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIinstalled\fR: set of all installed ports
 .RE
 .sp
@@ -104,6 +117,7 @@ When passing \fIportnames\fR to an \fIaction\fR, \fBport\fR recognizes various \
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIuninstalled\fR: ports in the ports tree(s) that are not installed
 .RE
 .sp
@@ -115,6 +129,7 @@ When passing \fIportnames\fR to an \fIaction\fR, \fBport\fR recognizes various \
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIoutdated\fR: installed ports that are out of date with respect to their current version/revision in the ports tree(s)
 .RE
 .sp
@@ -126,6 +141,7 @@ When passing \fIportnames\fR to an \fIaction\fR, \fBport\fR recognizes various \
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIobsolete\fR: set of ports that are installed but no longer exist in any port tree
 .RE
 .sp
@@ -137,6 +153,7 @@ When passing \fIportnames\fR to an \fIaction\fR, \fBport\fR recognizes various \
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIrequested\fR: installed ports that were explicitly asked for
 .RE
 .sp
@@ -148,6 +165,7 @@ When passing \fIportnames\fR to an \fIaction\fR, \fBport\fR recognizes various \
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIunrequested\fR: installed ports that were installed only to satisfy dependencies
 .RE
 .sp
@@ -159,7 +177,20 @@ When passing \fIportnames\fR to an \fIaction\fR, \fBport\fR recognizes various \
 .sp -1
 .IP \(bu 2.3
 .\}
-\fIleaves\fR: installed ports that are unrequested and that no requested ports depend on
+
+\fIleaves\fR: installed ports that are unrequested and have no dependents
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+
+\fIrleaves\fR: installed ports that are unrequested and that no requested ports depend on
 .RE
 .sp
 Sets of ports can also be specified with \fIpseudo\-portname selectors\fR, which expand to the ports in which the value of the \fIPortfile\fR option corresponding to the selector\(cqs name (in either singular or plural form where applicable) matches the given regular expression\&. Usage is: selector:regex
@@ -174,6 +205,7 @@ Sets of ports can also be specified with \fIpseudo\-portname selectors\fR, which
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIname\fR
 .RE
 .sp
@@ -185,6 +217,7 @@ Sets of ports can also be specified with \fIpseudo\-portname selectors\fR, which
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIversion\fR
 .RE
 .sp
@@ -196,6 +229,7 @@ Sets of ports can also be specified with \fIpseudo\-portname selectors\fR, which
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIrevision\fR
 .RE
 .sp
@@ -207,6 +241,7 @@ Sets of ports can also be specified with \fIpseudo\-portname selectors\fR, which
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIepoch\fR
 .RE
 .sp
@@ -218,6 +253,7 @@ Sets of ports can also be specified with \fIpseudo\-portname selectors\fR, which
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIvariant\fR
 or
 \fIvariants\fR
@@ -231,6 +267,7 @@ or
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIcategory\fR
 or
 \fIcategories\fR
@@ -244,6 +281,7 @@ or
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fImaintainer\fR
 or
 \fImaintainers\fR
@@ -257,6 +295,7 @@ or
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIplatform\fR
 or
 \fIplatforms\fR
@@ -270,6 +309,7 @@ or
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIdescription\fR
 .RE
 .sp
@@ -281,6 +321,7 @@ or
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIlong_description\fR
 .RE
 .sp
@@ -292,6 +333,7 @@ or
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIhomepage\fR
 .RE
 .sp
@@ -303,6 +345,7 @@ or
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIlicense\fR
 .RE
 .sp
@@ -314,10 +357,12 @@ or
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIportdir\fR
 .RE
 .sp
 Other pseudo\-portname selectors match ports which have a particular relationship to another port\&. These will match ports that are direct or recursive dependencies or dependents of the given portname:
+
 .sp
 .RS 4
 .ie n \{\
@@ -327,6 +372,7 @@ Other pseudo\-portname selectors match ports which have a particular relationshi
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIdepof\fR
 .RE
 .sp
@@ -338,6 +384,7 @@ Other pseudo\-portname selectors match ports which have a particular relationshi
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIrdepof\fR
 .RE
 .sp
@@ -349,6 +396,7 @@ Other pseudo\-portname selectors match ports which have a particular relationshi
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIrdepends\fR
 .RE
 .sp
@@ -360,6 +408,7 @@ Other pseudo\-portname selectors match ports which have a particular relationshi
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIdependentof\fR
 .RE
 .sp
@@ -371,12 +420,14 @@ Other pseudo\-portname selectors match ports which have a particular relationshi
 .sp -1
 .IP \(bu 2.3
 .\}
+
 \fIrdependentof\fR
 .RE
 .sp
 Search strings that will expand to a set of matching ports can be constructed based on the "\fIpseudo\-portname selector\fR":regex combination used\&. \fIportnames\fR containing valid UNIX glob patterns will also expand to the set of matching ports\&. Any action passed to port will be invoked on each of them\&.
 .sp
 For example:
+
 .sp
 .if n \{\
 .RS 4
@@ -394,6 +445,7 @@ port echo \*(Aqapache*\*(Aq
 Logical operators "and", "or", "not", "!", "(" and ")" may be used to combine individual \fIportnames\fR, port glob patterns and/or \fIpseudo\-portnames\fR to construct complex \fIport\-expressions\fR that expand to the set of matching ports\&.
 .sp
 For example:
+
 .sp
 .if n \{\
 .RS 4
@@ -405,6 +457,7 @@ port echo maintainer:jberry and uninstalled and \e( category:java and not common
 .if n \{\
 .RE
 .\}
+.sp
 .if n \{\
 .sp
 .\}
@@ -422,133 +475,222 @@ Special shell characters like *, \e( or \e) need to be escaped in order to be pa
 .sp .5v
 .RE
 .SH "GLOBAL OPTIONS"
+
 .sp
 The port command recognizes several global flags and options\&.
+
 .PP
 \fBOutput control\fR
 .PP
 \-v
 .RS 4
+
+
+
 Verbose mode, generates verbose messages
+
 .RE
 .PP
 \-d
 .RS 4
+
+
+
 Debug mode, generate debugging messages, implies \-v
+
 .RE
 .PP
 \-q
 .RS 4
+
+
+
 Quiet mode, suppress informational messages to a minimum, implies \-N
+
 .RE
 .PP
 \-N
 .RS 4
+
+
+
 Non\-interactive mode, interactive questions are not asked
+
 .RE
+
 .PP
 \fBInstallation and upgrade\fR
 .PP
 \-n
 .RS 4
+
+
+
 Don\(cqt follow dependencies in upgrade (affects
 \fIupgrade\fR
 and
 \fIinstall\fR)
+
 .RE
 .PP
 \-R
 .RS 4
+
+
+
 Also upgrade dependents (only for
 \fIupgrade\fR)
+
 .RE
 .PP
 \-u
 .RS 4
+
+
+
 Uninstall inactive ports when upgrading and uninstalling
+
 .RE
 .PP
 \-y
 .RS 4
+
+
+
 Perform a dry run\&. All of the steps to build the ports and their dependencies are computed, but not actually performed\&. With the verbose flag, every step is reported; otherwise there is just one message per port, which allows you to easily determine the recursive deps of a port (and the order in which they will be built)\&.
+
 .RE
+
 .PP
 \fBSources\fR
 .PP
 \-s
 .RS 4
+
+
+
 Source\-only mode, build and install from source; do not attempt to fetch binary archives\&.
+
 .RE
 .PP
 \-b
 .RS 4
+
+
+
 Binary\-only mode, build and install from binary archives, ignore source, abort if no archive available\&.
+
 .RE
+
 .PP
 \fBCleaning\fR
 .PP
 \-c
 .RS 4
+
+
+
 Autoclean mode, execute clean after
 \fIinstall\fR
+
 .RE
 .PP
 \-k
 .RS 4
+
+
+
 Keep mode, do not autoclean after
 \fIinstall\fR
+
 .RE
+
 .PP
 \fBExit status\fR
 .PP
 \-p
 .RS 4
+
+
+
 Despite any errors encountered, proceed to process multiple ports and commands\&.
+
 .RE
+
 .PP
 \fBDevelopment\fR
 .PP
 \-o
 .RS 4
+
+
+
 Honor state files even if the Portfile was modified\&. This flag is called \-o because it used to mean "older"\&.
+
 .RE
 .PP
 \-t
 .RS 4
+
+
+
 Enable trace mode debug facilities on platforms that support it, currently only Mac OS X\&.
 
 This feature is two\-folded\&. It consists in automatically detecting and reporting undeclared dependencies based on what files the port reads or what programs the port executes\&. In verbose mode, it will also report unused dependencies for each stage of the port installation\&. It also consists in forbidding and reporting file creation and file writes outside allowed directories (temporary directories and ${workpath})\&.
+
 .RE
+
 .PP
 \fBMisc\fR
 .PP
 \-f
 .RS 4
+
+
+
 Force mode, ignore state file
+
 .RE
 .PP
 \-D \fIportdir\fR
 .RS 4
+
+
+
 Specfiy
 \fIportdir\fR
+
 .RE
 .PP
 \-F \fIcmdfile\fR
 .RS 4
+
+
+
 Read and process the
 \fIfile\fR
 of commands specified by the argument\&. If the argument is
 \fI\-\fR, then read commands from stdin\&. If the option is given multiple times, then multiple files will be read\&.
+
 .RE
+
 .SH "USER ACTIONS"
+
 .sp
 Actions most commonly used by regular MacPorts users are:
+
+
 .PP
 search
 .RS 4
+
+
+
 Search for an available port whose name or description matches a regular expression\&.
 .sp
+
 For example:
+
 .sp
 .if n \{\
 .RS 4
@@ -559,10 +701,15 @@ port search vim
 .if n \{\
 .RE
 .\}
+.sp
+
 .RE
 .PP
 info
 .RS 4
+
+
+
 Displays meta\-information available for
 \fIportname\fR\&. Specific meta\-information may be requested through an option such as
 \fB\-\-maintainer\fR
@@ -577,7 +724,9 @@ is provided, the information will be formatted in a somewhat more attractive fas
 \fB\-\-index\fR
 is provided, the information will be pulled from the PortIndex rather than from the Portfile\&. In this case variant information, such as dependencies, will not affect the output\&.
 .sp
+
 For example:
+
 .sp
 .if n \{\
 .RS 4
@@ -593,54 +742,87 @@ port info \-\-index python27
 .if n \{\
 .RE
 .\}
+.sp
+
 .RE
 .PP
 notes
 .RS 4
+
+
+
 Displays notes for
 \fIportname\fR
 which usually contain useful information concerning setup and use of the port\&.
+
 .RE
 .PP
 variants
 .RS 4
+
+
+
 Lists the variants available for
 \fIportname\fR\&.
+
 .RE
 .PP
 deps
 .RS 4
+
+
+
 Lists the other ports that are required to build and run portname\&. This is simply an alias for \(lqinfo \-\-pretty \-\-fullname \-\-depends\(rq\&.
+
 .RE
 .PP
 rdeps
 .RS 4
+
+
+
 Recursively lists the other ports that are required to build and run portname\&. To display the full dependency tree instead of only showing each port once, use
 \fB\-\-full\fR\&. To take dependency information from the PortIndex instead of the Portfile (faster, but does not take variant selections into account), use
 \fB\-\-index\fR\&. To exclude dependencies that are only needed at build time (i\&.e\&. depends_fetch, depends_extract, depends_build), use
 \fB\-\-no\-build\fR\&.
+
 .RE
 .PP
 dependents
 .RS 4
+
+
+
 Lists the installed ports that depend on the port
 \fIportname\fR\&.
+
 .RE
 .PP
 rdependents
 .RS 4
+
+
+
 Recursively lists the installed ports that depend on the port portname\&. To display the full tree of dependents instead of only showing each port once, use
 \fB\-\-full\fR\&.
+
 .RE
 .PP
 install
 .RS 4
+
+
+
 Install and activate
 \fIportname\fR\&.
+
 .RE
 .PP
 uninstall
 .RS 4
+
+
+
 Deactivate and uninstall portname\&. To uninstall all installed but
 \fIinactive\fR
 ports, use
@@ -648,7 +830,9 @@ ports, use
 \fB\-\-follow\-dependents\fR\&. To uninstall portname and then recursively uninstall all ports it depended on, use
 \fB\-\-follow\-dependencies\fR\&. This will not uninstall dependencies that are marked as requested or that have other dependents\&.
 .sp
+
 For example:
+
 .sp
 .if n \{\
 .RS 4
@@ -661,17 +845,24 @@ port uninstall \-\-follow\-dependents python27
 .if n \{\
 .RE
 .\}
+.sp
+
 .RE
 .PP
 select
 .RS 4
+
+
+
 For a given group, selects a version to be the default by creating appropriate symbolic links\&. For instance, python might be linked to python2\&.6\&. Available select groups are installed as subdirectories of ${prefix}/etc/select/ and can be listed using
 \fB\-\-summary\fR\&. To list the available versions in a group, use
 \fB\-\-list\fR\&. To see which version is currently selected for a group, use
 \fB\-\-show\fR\&. To change the selected version for a group, use
 \fB\-\-set\fR\&.
 .sp
+
 For example:
+
 .sp
 .if n \{\
 .RS 4
@@ -685,57 +876,96 @@ port select \-\-set python python34
 .if n \{\
 .RE
 .\}
+.sp
+
 .RE
 .PP
 activate
 .RS 4
+
+
+
 Activate the installed
 \fIportname\fR\&.
+
 .RE
 .PP
 deactivate
 .RS 4
+
+
+
 Deactivate the installed
 \fIportname\fR\&.
+
 .RE
 .PP
 setrequested
 .RS 4
+
+
+
 Mark portname as requested\&.
+
 .RE
 .PP
 unsetrequested
 .RS 4
+
+
+
 Mark portname as unrequested\&.
+
 .RE
 .PP
 setunrequested
 .RS 4
+
+
+
 Alias for unsetrequested command\&.
+
 .RE
 .PP
 installed
 .RS 4
+
+
+
 Show the installed version, variants and activation status for each
 \fIportname\fR\&. If no arguments are given, all installed ports are displayed\&.
+
 .RE
 .PP
 location
 .RS 4
+
+
+
 Print the install location of a given port\&.
+
 .RE
 .PP
 contents
 .RS 4
+
+
+
 Lists the files installed by
 \fIportname\fR\&.
+
 .RE
 .PP
 provides
 .RS 4
+
+
+
 Determines which port owns a given file and can take either a relative or absolute path\&.
 .sp
+
 For example:
+
 .sp
 .if n \{\
 .RS 4
@@ -747,13 +977,20 @@ port provides include/tiff\&.h
 .if n \{\
 .RE
 .\}
+.sp
+
 .RE
 .PP
 sync
 .RS 4
+
+
+
 Performs a sync operation only on the ports tree of a MacPorts installation, pulling in the latest revision available of the Portfiles from the MacPorts rsync server\&.
 .sp
+
 To update you would normally do:
+
 .sp
 .if n \{\
 .RS 4
@@ -765,24 +1002,35 @@ sudo port \-d sync
 .RE
 .\}
 .sp
+
 If any of the ports tree(s) uses a file: URL that points to a local subversion working copy, sync will perform an svn update on the working copy with the user set to the owner of the working copy\&.
+
 .RE
 .PP
 outdated
 .RS 4
+
+
+
 Lists the installed ports which need a
 \fIupgrade\fR\&.
+
 .RE
 .PP
 upgrade
 .RS 4
+
+
+
 The upgrade action works on a port and its dependencies\&. If you want to change this behavior, look at the switches for
 \fB\-n\fR
 (no dependencies) and
 \fB\-R\fR
 (dependents) above\&.
 .sp
+
 Upgrade all outdated ports:
+
 .sp
 .if n \{\
 .RS 4
@@ -811,8 +1059,10 @@ It is recommended to always upgrade all ports with the command indicated above\&
 .RE
 \ \&
 .sp
+
 Upgrade the installed
 \fIportname\fR\&. For example:
+
 .sp
 .if n \{\
 .RS 4
@@ -824,9 +1074,11 @@ port upgrade vim
 .RE
 .\}
 .sp
+
 To upgrade
 \fIportname\fR
 and the ports that depend on it:
+
 .sp
 .if n \{\
 .RS 4
@@ -838,9 +1090,11 @@ port \-R upgrade libiconv
 .RE
 .\}
 .sp
+
 To force a rebuild of
 \fIportname\fR
 and all of its dependencies use:
+
 .sp
 .if n \{\
 .RS 4
@@ -852,12 +1106,15 @@ port upgrade \-\-force vim
 .RE
 .\}
 .sp
+
 To upgrade
 \fIportname\fR
 without following its dependencies before, use
 \fB\-n\fR\&.
 .sp
+
 For example:
+
 .sp
 .if n \{\
 .RS 4
@@ -889,9 +1146,11 @@ will retain the variant merging procedure described previously\&. Variants will 
 .RE
 \ \&
 .sp
+
 After the upgrade MacPorts will automatically run rev\-upgrade to check for broken ports that need to be rebuilt\&. If there are known problems with rev\-upgrade or other reasons why you would want to avoid running this step, you can disable it by running port upgrade with the
 \fB\-\-no\-rev\-upgrade\fR
 switch:
+
 .sp
 .if n \{\
 .RS 4
@@ -902,10 +1161,15 @@ port upgrade \-\-no\-rev\-upgrade outdated
 .if n \{\
 .RE
 .\}
+.sp
+
 .RE
 .PP
 rev\-upgrade
 .RS 4
+
+
+
 Manually check for broken binaries and rebuild ports containing broken binaries\&. rev\-upgrade is usually automatically run after each upgrade, unless you specify the
 \fB\-\-no\-rev\-upgrade\fR
 option\&.
@@ -916,10 +1180,14 @@ to rev\-upgrade\&.
 
 See also:
 \fBmacports.conf\fR(5)
+
 .RE
 .PP
 clean
 .RS 4
+
+
+
 Clean the files used for building
 \fIportname\fR\&. To just remove the work files, use the
 \fB\-\-work\fR
@@ -929,7 +1197,9 @@ Clean the files used for building
 \fB\-\-logs\fR\&. To remove the work files, distribution files, temporary archives and logs pass
 \fB\-\-all\fR\&.
 .sp
+
 For example:
+
 .sp
 .if n \{\
 .RS 4
@@ -943,7 +1213,9 @@ port clean \-\-logs vim
 .RE
 .\}
 .sp
+
 To remove only certain version(s) of a port\(cqs archives (version is any valid UNIX glob pattern), you can use:
+
 .sp
 .if n \{\
 .RS 4
@@ -955,7 +1227,9 @@ port clean \-\-archive vim 6\&.2\&.114
 .RE
 .\}
 .sp
+
 or:
+
 .sp
 .if n \{\
 .RS 4
@@ -966,10 +1240,15 @@ port clean \-\-archive vim \*(Aq6\&.*\*(Aq
 .if n \{\
 .RE
 .\}
+.sp
+
 .RE
 .PP
 log
 .RS 4
+
+
+
 Parses and shows log files for
 \fIportname\fR\&. To filter log files by some criterions use
 \fB\-\-phase\fR
@@ -977,7 +1256,9 @@ to specify the phase you want to show and
 \fB\-\-verbosity\fR
 to specify message category (msg, info, debug)\&.
 .sp
+
 For example:
+
 .sp
 .if n \{\
 .RS 4
@@ -989,16 +1270,25 @@ port log \-\-phase fetch \-\-verbosity debug vim
 .if n \{\
 .RE
 .\}
+.sp
+
 .RE
 .PP
 logfile
 .RS 4
+
+
+
 Displays the path to the log file for
 \fIportname\fR\&.
+
 .RE
 .PP
 echo
 .RS 4
+
+
+
 Writes to stdout the arguments passed to
 \fIport\fR\&. This follows the expansion of
 \fIpseudo\-portnames\fR, portname glob patterns,
@@ -1008,7 +1298,9 @@ and the evaluation of
 \fBecho\fR
 may be used to determine the exact set of ports to which a given string of arguments will expand, without performing any further operations on them\&.
 .sp
+
 For example:
+
 .sp
 .if n \{\
 .RS 4
@@ -1021,15 +1313,24 @@ port echo maintainer:jmpp and \e( net* or category:text \e)
 .if n \{\
 .RE
 .\}
+.sp
+
 .RE
 .PP
 list
 .RS 4
+
+
+
 If no argument is given, display a list of the latest version of all available ports\&. If portname(s) are given as arguments, display a list of the latest version of each port\&.
+
 .RE
 .PP
 mirror
 .RS 4
+
+
+
 Create/update a local mirror of distfiles used for ports given on the command line\&. The filemap database can be reset by using the
 \fB\-\-new\fR
 option (though if no database is found, it will be created automatically)\&. If the fetched file does not match the checksum given in the Portfile, it is deleted\&. This can be used with
@@ -1040,18 +1341,28 @@ option (though if no database is found, it will be created automatically)\&. If 
 so
 \fBport\fR
 doesn\(cqt quit on the first download failure\&.
+
 .RE
 .PP
 version
 .RS 4
+
+
+
 Display the release number of the installed MacPorts infrastructure\&.
+
 .RE
 .PP
 selfupdate
 .RS 4
+
+
+
 Updates the MacPorts system, ports tree(s) and base tools if needed, from the MacPorts rsync server, installing the newest infrastructure available\&.
 .sp
+
 To update you would typically do:
+
 .sp
 .if n \{\
 .RS 4
@@ -1063,14 +1374,20 @@ sudo port selfupdate
 .RE
 .\}
 .sp
+
 See
 \fIsync\fR
 for more information about updating ports tree(s)\&.
+
 .RE
 .PP
 load
 .RS 4
+
+
+
 Provides a shortcut to using launchctl to load a port\(cqs daemon (as installed in /Library/LaunchDaemons)\&. It runs:
+
 .sp
 .if n \{\
 .RS 4
@@ -1081,79 +1398,134 @@ launchctl load \-w /Library/LaunchDaemons/org\&.macports\&.${port}\&.plist
 .if n \{\
 .RE
 .\}
+.sp
+
 .RE
 .PP
 unload
 .RS 4
+
+
+
 A shortcut to launchctl, like load, but unloads the daemon\&.
+
 .RE
 .PP
 reload
 .RS 4
+
+
+
 A shortcut to launchctl, like load and unload, but reloads the daemon\&.
+
 .RE
 .PP
 gohome
 .RS 4
+
+
+
 Loads the home page for the given portname in the default web browser\&.
+
 .RE
 .PP
 usage
 .RS 4
+
+
+
 Displays a condensed usage summary\&.
+
 .RE
 .PP
 help
 .RS 4
+
+
+
 Displays a summary of all available actions and port command syntax on stdout\&.
+
 .RE
+
 .SH "DEVELOPER ACTIONS"
+
 .sp
 The actions that are often used by Port developers are intended to provide access to the different phases of a Port\(cqs build process:
+
+
 .PP
 dir
 .RS 4
+
+
+
 Displays the path to the directory containing
 \fIportname\fR\&.
+
 .RE
 .PP
 work
 .RS 4
+
+
+
 Displays the path to the work directory for
 \fIportname\fR\&.
+
 .RE
 .PP
 cd
 .RS 4
+
+
+
 Changes the current working directory to the one containing portname\&. Only useful in shell mode\&.
+
 .RE
 .PP
 file
 .RS 4
+
+
+
 Displays the path to the Portfile for
 \fIportname\fR\&.
+
 .RE
 .PP
 url
 .RS 4
+
+
+
 Displays the URL for the path of the given portname, which can be passed as
 \fIport\-url\fR\&.
+
 .RE
 .PP
 cat
 .RS 4
+
+
+
 Concatenates and prints the contents of
 \fIPortfile\fR
 on stdout\&.
+
 .RE
 .PP
 edit
 .RS 4
+
+
+
 Opens Portfile with your default editor specified in your shell\(cqs environment variable\&. You can also use the
 \fB\-\-editor\fR
 flag on the command line to specify an alternative editor\&.
 .sp
+
 For example:
+
 .sp
 .if n \{\
 .RS 4
@@ -1164,111 +1536,184 @@ port edit \-\-editor nano apache2
 .if n \{\
 .RE
 .\}
+.sp
+
 .RE
 .PP
 fetch
 .RS 4
+
+
+
 Fetches the distribution files required to build
 \fIportname\fR\&.
+
 .RE
 .PP
 checksum
 .RS 4
+
+
+
 Compute the checksums of the distribution files for
 \fIportname\fR, and compare them to the checksums listed in
 \fIPortfile\fR\&.
+
 .RE
 .PP
 extract
 .RS 4
+
+
+
 Extracts the distribution files for
 \fIportname\fR\&.
+
 .RE
 .PP
 patch
 .RS 4
+
+
+
 Applies any required patches to
 \fIportname\(cqs\fR
 extracted distribution files\&.
+
 .RE
 .PP
 configure
 .RS 4
+
+
+
 Runs any configure process for
 \fIportname\fR\&.
+
 .RE
 .PP
 build
 .RS 4
+
+
+
 Build
 \fIportname\fR\&.
+
 .RE
 .PP
 destroot
 .RS 4
+
+
+
 Installs
 \fIportname\fR
 to a temporary directory\&.
+
 .RE
 .PP
 test
 .RS 4
+
+
+
 Tests
 \fIportname\fR\&.
+
 .RE
 .PP
 lint
 .RS 4
+
+
+
 Verifies Portfile for portname\&. To nitpick about whitespace and patchfile names, use
 \fB\-\-nitpick\fR\&.
+
 .RE
 .PP
 distcheck
 .RS 4
+
+
+
 Check if the distfiles haven\(cqt changed and can be fetched\&.
+
 .RE
 .PP
 distfiles
 .RS 4
+
+
+
 Display each distfile, its checksums, and the URLs used to fetch it\&.
+
 .RE
 .PP
 livecheck
 .RS 4
+
+
+
 Check if the software hasn\(cqt been updated since the Portfile was last modified\&.
+
 .RE
+
 .SH "PACKAGING ACTIONS"
+
 .sp
 There are also actions for producing installable packages of ports:
+
+
 .PP
 pkg
 .RS 4
+
+
+
 Creates an OS X installer package of
 \fIportname\fR\&.
+
 .RE
 .PP
 mpkg
 .RS 4
+
+
+
 Creates an OS X installer metapackage of
 \fIportname\fR
 and its dependencies\&.
+
 .RE
 .PP
 dmg
 .RS 4
+
+
+
 Creates an internet\-enabled disk image containing an OS X package of
 \fIportname\fR\&.
+
 .RE
 .PP
 mdmg
 .RS 4
+
+
+
 Creates an internet\-enabled disk image containing an OS X metapackage of
 \fIportname\fR
 and its dependencies\&.
+
 .RE
+
 .SH "EXAMPLES"
+
 .sp
 The following demonstrates invoking port with the extract action on portdir \(lqtextproc/figlet\(rq and extract\&.suffix set to \(lq\&.tgz\(rq:
+
 .sp
 .if n \{\
 .RS 4
@@ -1279,36 +1724,64 @@ port extract \-D textproc/figlet extract\&.suffix=\&.tgz
 .if n \{\
 .RE
 .\}
+.sp
+
 .SH "FILES"
+
+
+
 .PP
 ${prefix}/etc/macports/macports\&.conf
 .RS 4
+
+
+
 Global configuration file for the MacPorts system\&.
+
 .RE
 .PP
 ${prefix}/etc/macports/sources\&.conf
 .RS 4
+
+
+
 Global listing of the ports trees used by MacPorts\&. This file also enables rsync synchronization\&.
+
 .RE
 .PP
 ${prefix}/etc/macports/variants\&.conf
 .RS 4
+
+
+
 Global variants used when a port is installed\&.
+
 .RE
 .PP
 ~/\&.macports/macports\&.conf
 .RS 4
+
+
+
 User configuration file for the MacPorts system\&. It overrides the global
 \fImacports\&.conf(5)\fR
 file\&.
+
 .RE
+
 .SH "DIAGNOSTICS"
+
 .sp
 The \fBport\fR utility exits 0 on success, and >0 if an error occurs\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBmacports.conf\fR(5), \fBportfile\fR(7), \fBportgroup\fR(7), \fBportstyle\fR(7), \fBporthier\fR(7)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -1331,3 +1804,6 @@ Rainer Mueller <raimue@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

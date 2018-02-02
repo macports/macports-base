@@ -19,40 +19,67 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-variants \- Print a list of variants with descriptions provided by a port
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-qvd\fR] [\fB\-D\fR \fIportdir\fR] \fBvariants\fR [\-\-index]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
      [+/\-variant \&...]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport variants\fR prints a list of variants provided by the port(s) given on the command line\&. Variants allow users to select certain features when installing a certain port\&. For example, the gtk3 port provides two conflicting variants \fI+quartz\fR and \fI+x11\fR that select whether Gtk uses the X11 backend (which requires an X server) or the OS X\-native Quartz backend (which attempts to provide a more native OS X look and feel)\&. In addition, many ports feature an \fI+universal\fR variant that enables building of universal (i\&.e\&. multi\-arch) binaries\&.
 .sp
 \fBport variants\fR lists all variants by name and (if available) description\&. If variants depend on or conflict with other variants, this information is printed as a bulleted list for each variant\&.
 .sp
 The output of \fBport variants\fR contains \fI[+]\fR before a variant name, if the port declares this variant as default\&. \fI(+)\fR or \fI(\-)\fR in the same spot mark variants enabled or disabled by your \fBvariants.conf\fR(5)\&. Last, a single \fI+\fR or \fI\-\fR marks variants explicitly enabled or disabled on the command line by appending \fI+variantname\fR or \fI\-variantname\fR\&.
+
 .SH "OPTIONS"
+
+
+
 .PP
 \fB\-\-index\fR
 .RS 4
+
+
+
 Do not read the
 \fIPortfile\fR, but rely solely on the port index information\&. Note that this will limit the output to the variant names only\&. No descriptions, dependencies or conflicts between variants will be reported\&.
+
 .RE
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
+
 .PP
 \fB\-q\fR
 .RS 4
+
+
+
 Do not print the header line\&.
+
 .RE
+
 .SH "EXAMPLES"
+
 .sp
 The output of \fBport variants\fR provides all available information on a port\(cqs variants\&. The gtk3 port can serve as a good example:
+
 .sp
 .if n \{\
 .RS 4
@@ -71,10 +98,15 @@ gtk3 has the variants:
 .\}
 .sp
 In this case, \fI(+)\fR means that we have chosen \fI+quartz\fR as a default variant in our \fBvariants.conf\fR(5)\&. Additionally, we have explicitly disabled the universal variant on the command line, as indicated by its leading \fI\-\fR symbol\&. Finally, the port maintainer has chosen \fI+x11\fR as the default, indicated by \fI[+]\fR\&. Furthermore, the \fIquartz\fR and \fIx11\fR variants conflict with each other\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -86,3 +118,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

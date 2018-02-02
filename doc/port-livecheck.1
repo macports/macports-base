@@ -19,36 +19,61 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-livecheck \- Check if a new version of the software is available
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-vd\fR] [\fB\-D\fR \fIportdir\fR] \fBlivecheck\fR
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport livecheck\fR checks whether a newer version of a given port is available upstream\&. It (usually) does that by automatically downloading a web page and applying a regular expression that extracts a version number\&. If the version number is different from the one the port packages, a message is printed\&.
 .sp
 \fBport livecheck\fR is useful for maintainers that want to check whether new versions of their ports are available so they can be updated\&. It can also be used by users that encounter a problem, because updating to the latest upstream version is generally one of the first steps in case of an error or when encountering a bug\&.
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
+
 .PP
 \fB\-v\fR
 .RS 4
+
+
+
 Print a message if the port is up to date\&.
+
 .RE
 .PP
 \fB\-d\fR
 .RS 4
+
+
+
 Print debugging information such as the regular expression and all matches\&.
+
 .RE
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBportfile\fR(7), \fBport-upgrade\fR(7), \m[blue]\fBLivecheck/Distcheck in the MacPorts Guide\fR\m[]\&\s-2\u[1]\d\s+2
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -60,6 +85,8 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
 .SH "EXTERNAL REFERENCES"
 .IP " 1." 4
 Livecheck/Distcheck in the MacPorts Guide

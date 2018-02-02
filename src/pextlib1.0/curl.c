@@ -64,13 +64,13 @@
  * ========================================================================= */
 
 /* ------------------------------------------------------------------------- **
- * Global cURL handles
+ * Global curl handles
  * ------------------------------------------------------------------------- */
-/* If we want to use TclX' signal handling mechanism we need cURL to return
+/* If we want to use TclX' signal handling mechanism we need curl to return
  * control to our code from time to time so we can call Tcl_AsyncInvoke to
  * process pending signals. To do that, we could either abuse the curl progress
  * callback (which would mean we could no longer use the default curl progress
- * callback, or we need to use the cURL multi API. */
+ * callback, or we need to use the curl multi API. */
 static CURLM* theMHandle = NULL;
 /* We use a single global handle rather than creating and destroying handles to
  * take advantage of HTTP pipelining, especially to the packages servers. */
@@ -606,7 +606,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		(void) fclose(theFile);
 		theFile = NULL;
 
-#if LIBCURL_VERSION_NUM == 0x070d01 /* work around broken Tiger version of cURL */
+#if LIBCURL_VERSION_NUM == 0x070d01 /* work around broken Tiger version of curl */
 		if (remotetime) {
 			FILE *fp;
 			char *tmp, *p;

@@ -19,16 +19,24 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-edit \- Open the Portfile in an editor
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-D\fR \fIportdir\fR] \fBedit\fR
      [\-\-editor <editor>]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport edit\fR will open the associated \fIPortfile\fR in an editor\&. It will try to determine your favorite editor by respecting the environment variables \fB$MP_EDITOR\fR, \fB$VISUAL\fR, or \fB$EDITOR\fR in this order\&. If none has been set it will fallback to \fI/usr/bin/vi\fR\&. Your shell will be blocked until the editor returns\&. The path to the \fIPortfile\fR is passed as one single argument to the editor\&.
 .sp
@@ -50,22 +58,42 @@ If you edit a \fIPortfile\fR, your changes might be lost on the next sync\&. If 
 .sp .5v
 .RE
 .SH "OPTIONS"
+
+
+
 .PP
 \fB\-\-editor <editor>\fR
 .RS 4
+
+
+
 Use the specified
 \fIeditor\fR, overriding environment variables\&.
+
 .RE
+
 .SH "ENVIRONMENT"
+
+
+
 .PP
 \fBMP_EDITOR\fR, \fBEDITOR\fR, \fBVISUAL\fR
 .RS 4
+
+
+
 Specifies the editor to be launched\&.
+
 .RE
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-file\fR(1), \fBport-cat\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -77,6 +105,8 @@ Rainer Mueller <raimue@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
 .SH "EXTERNAL REFERENCES"
 .IP " 1." 4
 The MacPorts Guide

@@ -19,40 +19,64 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-search \- Search for a port using keywords
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-dq\fR] \fBsearch\fR
      [\-\-case\-sensitive] [\-\-line] [\-\-exact|\-\-glob|\-\-regex] [\-\-\fIfield\fR \&...]
      \fIkeyword\fR \&...
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport search\fR helps you find ports by partial matches of the name or description (or other fields, depending on the given options)\&. It is the tool of choice if you are looking for software in MacPorts\&.
 .sp
 \fBsearch\fR works by searching for your given keyword(s) in a set of fields of all available ports\&. By default, a port\(cqs name and short description are searched, as if you had specified both \fB\-\-name\fR and \fB\-\-description\fR\&. See \fBOPTIONS\fR for possible values for \fIfield\fR\&.
 .sp
 Note that you can specify multiple fields to be searched\&. A port will be printed when any of the fields matches your keyword(s)\&. If you specify multiple keywords, \fBsearch\fR will run multiple separate searches, one for each given keyword\&.
+
 .SH "OPTIONS"
+
 .SS "Search behavior"
+
+
+
 .PP
 \fB\-\-case\-sensitive\fR
 .RS 4
+
+
+
 Do not ignore case when searching for the given keyword\&.
+
 .RE
 .PP
 \fB\-\-exact\fR
 .RS 4
+
+
+
 Search for the given string exactly\&. Disables
 \fB\-\-glob\fR
 (the default) and
 \fB\-\-regex\fR\&.
+
 .RE
 .PP
 \fB\-\-glob\fR
 .RS 4
+
+
+
 Treat the keyword(s) as wildcard (i\&.e\&., expand
 \fI*\fR,
 \fI?\fR
@@ -62,26 +86,46 @@ and
 section of
 \fBstring\fR(n)
 for a detailed syntax description\&.
+
 .RE
 .PP
 \fB\-\-regex\fR
 .RS 4
+
+
+
 Treat the given string as a Tcl regular expression\&. See
 \fBre_syntax\fR(n)
 for a description of Tcl regular expressions\&.
+
 .RE
+
 .SS "Output behavior"
+
+
+
 .PP
 \fB\-\-line\fR
 .RS 4
+
+
+
 Print one match per line, where a line consists of name, version, categories and short description\&.
+
 .RE
 .sp
 See also \fB\-q\fR in the \fBGLOBAL OPTIONS\fR section below\&.
+
 .SS "Field selection"
+
+
+
 .PP
 \fB\-\-category\fR, \fB\-\-categories\fR
 .RS 4
+
+
+
 Search the category\&. You can use this to list all ports in a given category\&. For example,
 \fBport search \-\-category haskell\fR
 will print all Haskell ports in MacPorts\&. If you don\(cqt need the description it\(cqs usually faster to use the pseudo\-portname selector
@@ -92,65 +136,106 @@ with
 \fBport echo category:haskell\fR) instead\&. See
 \fBport\fR(1)
 for more information on pseudo\-port selectors\&.
+
 .RE
 .PP
 \fB\-\-depends\fR, \fB\-\-depends_build\fR, \fB\-\-depends_extract\fR, \fB\-\-depends_fetch\fR, \fB\-\-depends_lib\fR, \fB\-\-depends_run\fR
 .RS 4
+
+
+
 Search for ports that depend on the port given as keyword\&.
 \fB\-\-depends\fR
 is an alias for all other
 \fB\-\-depends_\fR
 options combined\&. Note that only dependencies present in default variants will be found by this search\&. As with
 \fB\-\-category\fR, there also are pseudo\-portname selectors available for dependencies\&.
+
 .RE
 .PP
 \fB\-\-description\fR, \fB\-\-long_description\fR
 .RS 4
+
+
+
 Test the search string against ports\*(Aq descriptions\&.
+
 .RE
 .PP
 \fB\-\-homepage\fR
 .RS 4
+
+
+
 Search for the keyword(s) in the homepage property\&.
+
 .RE
 .PP
 \fB\-\-maintainer\fR, \fB\-\-maintainers\fR
 .RS 4
+
+
+
 Search for ports maintained by a specific maintainer\&. Note that there also is a pseudo\-portname selector available for maintainer addresses\&. See
 \fBport\fR(1)
 for more information\&.
+
 .RE
 .PP
 \fB\-\-name\fR
 .RS 4
+
+
+
 Search in ports\*(Aq names\&. Since this is the default (together with
 \fB\-\-description\fR), this flag is only useful when you to search
 \fIonly\fR
 in the name, but not the description\&.
+
 .RE
 .PP
 \fB\-\-portdir\fR
 .RS 4
+
+
+
 Test the search string against the path of the directory that contains the port\&.
+
 .RE
 .PP
 \fB\-\-variant\fR, \fB\-\-variants\fR
 .RS 4
+
+
+
 Search for variant names\&.
+
 .RE
+
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
+
 .PP
 \fB\-q\fR
 .RS 4
+
+
+
 Only print the name of the port that matched your query\&. Print one match per line\&.
+
 .RE
+
 .SH "EFFICIENT SEARCHING"
+
 .sp
 The output of \fBsearch\fR can be overwhelming and confusing, especially with a large number of results\&. Here are a few tips to improve your search efficiency with MacPorts\&.
 .sp
 Suppose you are looking for PHP in MacPorts\&. You might start with
+
 .sp
 .if n \{\
 .RS 4
@@ -163,6 +248,7 @@ $> port search php
 .\}
 .sp
 and notice your query produces a lot of output\&. In fact, at the time of writing this, this search produces 763 matches\&. By default, \fBsearch\fR searches both name and description of a port\&. While we\(cqre looking for PHP, we can reduce the number of hits by using the \fB\-\-name\fR flag\&. Furthermore, we only want ports whose name starts with \(lqphp\(rq, so we add the \fB\-\-glob\fR flag (actually, we could leave it out because it is the default) and modify the search term to \fBphp\fR*\&. Note that the asterisk needs to be escaped or quoted to prevent the shell from interpreting it:
+
 .sp
 .if n \{\
 .RS 4
@@ -175,6 +261,7 @@ $> port search \-\-name \-\-glob \*(Aqphp*\*(Aq
 .\}
 .sp
 Since that still produces 689 results, we can activate compressed output using the \fB\-\-line\fR flag
+
 .sp
 .if n \{\
 .RS 4
@@ -187,6 +274,7 @@ $> port search \-\-line \-\-name \-\-glob \*(Aqphp*\*(Aq
 .\}
 .sp
 Scrolling over the output, we see a large number of PHP modules starting with php<version>\-<modulename>\&. That tells us the main PHP ports might be named php<version>\&. Using regex we can further narrow down the results:
+
 .sp
 .if n \{\
 .RS 4
@@ -199,6 +287,7 @@ $> port search \-\-line \-\-name \-\-regex \*(Aq^php\ed+$\*(Aq
 .\}
 .sp
 Note it is not always necessary to drill down to reduce the amount of output\&. For example, if you\(cqre looking for \fBrrdtool\fR, a popular system to store and graph time\-series data, the simple approach works well, with only 12 ports being returned:
+
 .sp
 .if n \{\
 .RS 4
@@ -209,10 +298,16 @@ $> port search rrd
 .if n \{\
 .RE
 .\}
+.sp
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBstring\fR(n), \fBre_syntax\fR(n), \fBport-install\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -224,3 +319,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

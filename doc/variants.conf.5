@@ -19,15 +19,19 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 variants.conf \- Global variant configuration file of the MacPorts system
 .SH "DESCRIPTION"
+
 .sp
 \fBvariants\&.conf\fR is the configuration file used to globally select or deselect certain variants on all ports installed by MacPorts\&. Changes in this file will affect all ports that are installed after the file was changed\&.
 .sp
 For a description of what variants are and how they work, see \fBport-variants\fR(1)\&.
 .sp
 \fBvariants\&.conf\fR is read by the \fBport\fR command\&. In the file, lines beginning with \fI#\fR are comments, empty lines are ignored\&. Each line in the file is a space\- or tab\-delimited list of zero or more variants, where each variant is either explicitly enabled or disabled using a leading \fI+\fR or \fI\-\fR\&. In EBNF:
+
 .sp
 .if n \{\
 .RS 4
@@ -42,12 +46,17 @@ variant = ( \*(Aq+\*(Aq | \*(Aq\-\*(Aq ), name ;
 .\}
 .sp
 where \fIname\fR is the name of the variant\&. Variants that are not provided by a port (or no port at all) are silently ignored\&.
+
 .SH "FILES"
+
 .sp
 The path of the \fIvariants\&.conf\fR file is specified in the \fBvariants_conf\fR option of \fBmacports.conf\fR(5)\&. It defaults to \fI${prefix}/etc/macports/variants\&.conf\fR\&. There is no user\-specific \fIvariants\&.conf\fR file, but support for this can be emulated by setting \fIvariants\&.conf\fR in the user\-specific \fBmacports.conf\fR(5) file\&.
+
 .SH "EXAMPLES"
+
 .sp
 To prefer the \fI+quartz\fR variant over \fI+x11\fR, you can add the following line to your variants\&.conf:
+
 .sp
 .if n \{\
 .RS 4
@@ -62,6 +71,7 @@ To prefer the \fI+quartz\fR variant over \fI+x11\fR, you can add the following l
 This will disable all x11 variants and enable the quartz variant, when it exists\&.
 .sp
 Similarly, if you want all your ports to support multiple architectures, you can enable the universal variant by default:
+
 .sp
 .if n \{\
 .RS 4
@@ -72,10 +82,16 @@ Similarly, if you want all your ports to support multiple architectures, you can
 .if n \{\
 .RE
 .\}
+.sp
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-variants\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -87,3 +103,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

@@ -19,26 +19,41 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-cd \- Change the current working directory in shell mode\&.
 .SH "SYNOPSIS"
 .sp
 To be used only in shell mode:
+
+
 .sp
 .nf
 \fBcd\fR
     [\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBcd\fR can be used when \fBport\fR is running in shell mode (see \fBport-shell\fR(7)) to change the current working directory to the directory that contains a given port\&. The second parameter is not optional, as it usually is with \fBcd\fR in your shell\&.
+
 .SH "BUGS"
+
 .sp
 \fBport cd\fR can be used from the command line, but is a no\-op\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-shell\fR(7)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -50,3 +65,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

@@ -19,9 +19,13 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-upgrade \- Upgrade a port to the latest version
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-vdqysbckpotf\fR] [\fB\-D\fR \fIportdir\fR] \fBupgrade\fR
@@ -29,11 +33,16 @@ port-upgrade \- Upgrade a port to the latest version
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
      [+/\-variant \&...]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport upgrade\fR will upgrade the given installed ports to the latest available version\&. To upgrade a port, MacPorts needs an updated port definition, which can be obtained using the \fBport-selfupdate\fR(1) command\&. You should regularly run \fBselfupdate\fR followed by \fBupgrade outdated\fR to make sure your system has the latest versions and bug fixes\&.
 .sp
 When specifying variants during upgrade, the order of precedence is
+
 .sp
 .RS 4
 .ie n \{\
@@ -43,6 +52,7 @@ When specifying variants during upgrade, the order of precedence is
 .sp -1
 .IP "  1." 4.2
 .\}
+
 variants specified on the command line
 .RE
 .sp
@@ -54,6 +64,7 @@ variants specified on the command line
 .sp -1
 .IP "  2." 4.2
 .\}
+
 variants active in the latest installed version of the port
 .RE
 .sp
@@ -65,63 +76,105 @@ variants active in the latest installed version of the port
 .sp -1
 .IP "  3." 4.2
 .\}
+
 variants specified in
 \fBvariants.conf\fR(5)
 .RE
 .sp
 In most cases, you should specify the \fBoutdated\fR pseudo\-port expression as argument to \fBport upgrade\fR to upgrade all ports where a newer version is available\&. This is the recommended upgrade method for end users\&. See \fBport\fR(1) for more information on pseudo\-port expressions\&. Upgrading individual packages should only be performed by expert users who know what they are doing, since a mix of upgraded and non\-upgraded packages can lead to various software errors\&.
+
 .SH "OPTIONS"
+
+
+
 .PP
 \fB\-\-enforce\-variants\fR
 .RS 4
+
+
+
 Upgrade all given ports and their dependencies where the installed variants do not match those requested on the command line, even if those ports aren\(cqt outdated\&.
+
 .RE
 .PP
 \fB\-\-force\fR
 .RS 4
+
+
+
 Ignore circumstances that would normally cause ports to be skipped, such as not being outdated\&.
+
 .RE
 .PP
 \fB\-\-no\-replace\fR
 .RS 4
+
+
+
 Do not automatically install ports that replace a now\-obsolete port you have installed\&.
+
 .RE
 .PP
 \fB\-\-no\-rev\-upgrade\fR
 .RS 4
+
+
+
 Do not run rev\-upgrade after upgrading\&. See
 \fBport-rev-upgrade\fR(1)
 for more information\&.
+
 .RE
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
+
 .PP
 \fB\-f\fR
 .RS 4
+
+
+
 Upgrade a port, even if it is not outdated\&.
+
 .RE
 .PP
 \fB\-n\fR
 .RS 4
+
+
+
 Only upgrade the given ports and avoid upgrading their dependencies\&. This flag may be useful when combined with
 \fB\-\-enforce\-variants\fR\&.
 
 WARNING: Ports expect their dependencies to always be at the latest version, which is why MacPorts upgrades dependencies first\&. Do not specify this flag if you don\(cqt know what you are doing\&.
+
 .RE
 .PP
 \fB\-p\fR
 .RS 4
+
+
+
 Keep going and attempt to upgrade the next port when a port fails to build\&.
 
 WARNING: This option is harmful to
 \fBupgrade\fR
 and should be avoided at all cost\&. Often, MacPorts ports are only upgraded to rebuild them against updated dependencies\&. Specifying this flag will cause a spurious rebuild if a dependency of a port fails to build and leave your system in a broken state once the dependent port is fixed\&.
+
 .RE
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-uninstall\fR(1), \fBport-info\fR(1), \fBport-variants\fR(1), \fBport-rev-upgrade\fR(1), \fBport-setrequested\fR(1), \fBvariants.conf\fR(5)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -133,3 +186,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

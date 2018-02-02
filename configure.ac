@@ -177,7 +177,6 @@ if test "x$MTREE" = "x"; then
     AC_MSG_ERROR([mtree not found])
 fi
 
-MP_SED_EXTENDED_REGEXP
 MP_TAR_FAST_READ
 MP_TAR_NO_SAME_OWNER
 MP_PATCH_GNU_VERSION
@@ -205,7 +204,7 @@ AC_PREFIX_DEFAULT(/opt/local)
 AC_ARG_WITH(
 		unsupported-prefix,
 		AS_HELP_STRING([--with-unsupported-prefix],
-		[Acknowledge that you accept the consequences of using an unsupported prefix.]),
+		[acknowledge that you accept the consequences of using an unsupported prefix]),
 		[with_unsupported_prefix=$withval],
 		[with_unsupported_prefix=no])
 if test x$prefix = x/usr/local -o x$prefix = x/usr && test x$with_unsupported_prefix != xyes; then
@@ -234,29 +233,24 @@ MP_PATH_FRAMEWORKS
 MP_UNIVERSAL_OPTIONS
 
 # Check for standard header files.
-AC_HEADER_STDC
-AC_HEADER_DIRENT
-AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([crt_externs.h err.h fcntl.h libkern/OSAtomic.h libproc.h limits.h paths.h pwd.h \
 	readline/history.h readline/readline.h stdatomic.h spawn.h sys/cdefs.h sys/event.h \
 	sys/fcntl.h sys/file.h sys/paths.h sys/socket.h sys/sysctl.h utime.h])
 
 # Checks for library functions.
 AC_CHECK_FUNCS([OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 \
-	OSAtomicCompareAndSwapPtr __getdirentries64 bzero clearenv copyfile fgetln \
-	flock fls kqueue lockf memset posix_spawn setmode strcasecmp strlcat \
-	strlcpy strncasecmp sysctlbyname])
+	OSAtomicCompareAndSwapPtr __getdirentries64 clearenv copyfile fgetln \
+	flock fls kqueue posix_spawn setmode strlcat \
+	strlcpy sysctlbyname])
 AC_SUBST([ac_cv_func_strlcat])
 
 AC_CHECK_DECLS([atomic_compare_exchange_strong_explicit], [], [], [[#include <stdatomic.h>]])
-
-MP_CHECK_READLINK_IS_P1003_1A
 
 # Check for md5 implementation
 AC_CHECK_HEADER([CommonCrypto/CommonDigest.h], [AC_DEFINE([HAVE_COMMONCRYPTO_COMMONDIGEST_H], [1], [Define if CommonCrypto is available.])], [MP_LIB_MD5])
 
 # Check for readline
-AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[Enable addition of readline support, if readline present.]),
+AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[enable readline support, if readline present]),
 [
 	AC_CHECK_LIB([readline], [readline], [
 				  READLINE_LIBS=-lreadline

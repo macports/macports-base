@@ -19,15 +19,23 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-list \- List the latest available version for the given ports
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR \fBlist\fR
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport list\fR prints the latest version of the given port(s) that is available through MacPorts\&. It prints name, version number and the relative path of the port in the port tree, i\&.e\&. the name of the primary category followed by the port name\&.
 .if n \{\
@@ -50,10 +58,15 @@ This leads to the common mistake that \fBport list installed\fR lists the same p
 .RE
 .sp
 Pretty much the only use case for \fBport list\fR is checking which version of a specific port is current in MacPorts, or if a port exists at all\&. Do \fBnot\fR use \fBport list\fR to print \fBoutdated\fR, \fBinactive\fR, \fBinstalled\fR, \fBrequested\fR, \fBleaves\fR, or other pseudo\-ports\&. Use \fBport-outdated\fR(1), \fBport-installed\fR(1), or \fBport-echo\fR(1) instead\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-installed\fR(1), \fBport-echo\fR(1), \fBport-outdated\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -65,3 +78,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

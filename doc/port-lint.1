@@ -19,20 +19,29 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-lint \- Check a port for common problems
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-vdq\fR] [\fB\-D\fR \fIportdir\fR] \fBlint\fR
      [\-\-nitpick]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport lint\fR checks the \fIPortfile\fR of a given port for potential errors\&. It is a useful tool for port maintainers to check for possible typos, mistakes and missing definitions\&.
 .sp
 For example, it verifies that
+
 .sp
 .RS 4
 .ie n \{\
@@ -42,6 +51,7 @@ For example, it verifies that
 .sp -1
 .IP \(bu 2.3
 .\}
+
 Portfiles are valid UTF\-8
 .RE
 .sp
@@ -53,6 +63,7 @@ Portfiles are valid UTF\-8
 .sp -1
 .IP \(bu 2.3
 .\}
+
 all mandatory properties are present
 .RE
 .sp
@@ -64,6 +75,7 @@ all mandatory properties are present
 .sp -1
 .IP \(bu 2.3
 .\}
+
 all dependencies actually exist, and
 .RE
 .sp
@@ -75,40 +87,70 @@ all dependencies actually exist, and
 .sp -1
 .IP \(bu 2.3
 .\}
+
 no deprecated features are used\&.
 .RE
 .sp
 If problems are found, \fBport lint\fR emits warnings and error messages explaining the problem\&. Please fix all errors and consider fixing any warnings before submitting your \fIPortfile\fR or your changes to MacPorts\&.
+
 .SH "OPTIONS"
+
+
+
 .PP
 \fB\-\-nitpick\fR
 .RS 4
+
+
+
 Enables additional checks that are mostly whitespace\-related and best practices\&.
+
 .RE
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
+
 .PP
 \fB\-v\fR
 .RS 4
+
+
+
 Print messages for successful tests\&.
+
 .RE
 .PP
 \fB\-d\fR
 .RS 4
+
+
+
 Print the
 \fIPortfile\fR, and debugging information parsed from the
 \fIPortfile\fR\&.
+
 .RE
 .PP
 \fB\-q\fR
 .RS 4
+
+
+
 Suppress the header line, warning and error count; only print warnings and errors, if any\&.
+
 .RE
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBportfile\fR(7), \fBport-dev-style\fR(7)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -120,3 +162,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

@@ -19,9 +19,13 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-activate, port-deactivate \- Change active version of an installed port
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-vdf\fR] [\fB\-D\fR \fIportdir\fR] \fBactivate\fR
@@ -30,38 +34,63 @@ port-activate, port-deactivate \- Change active version of an installed port
      [\fI@version\fR]
 .fi
 .sp
+
+
+
+.sp
 .nf
 \fBport\fR [\fB\-vdf\fR] [\fB\-D\fR \fIportdir\fR] \fBdeactivate\fR
      [\-\-no\-exec]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport activate\fR will set the status of an previously installed version of a port to active\&. The passed ports have to reference already installed versions\&.
 .sp
 \fBport deactivate\fR will set the status of a port to inactive\&. The passed ports have to be active at the moment\&. You will be warned if this port has active dependents\&.
 .sp
 If any version is active at the time of using \fBport activate\fR, it will be deactivated first\&. This can be used to switch from one version to another\&.
+
 .SH "PORT IMAGES"
+
 .sp
 MacPorts has the ability to install multiple versions or different variant selections of the same port\&. The files will be stored in an intermediate location as \fIarchives\fR, which allows to switch between the versions\&. Only one version can be active at a time\&. On activation, files will be copied to their intended place in \fIprefix\fR\&.
 .sp
 More information on this topic can be found in the \m[blue]\fBThe MacPorts Guide\fR\m[]\&\s-2\u[1]\d\s+2\&.
 .sp
 To check the current status of a specific port, use \fB\fBport-installed\fR(1)\fR\&.
+
 .SH "OPTIONS"
+
+
+
 .PP
 \fB\-\-no\-exec\fR
 .RS 4
+
+
+
 Do not execute any stored pre\- or post\-uninstall procedures\&.
+
 .RE
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-install\fR(1), \fBport-installed\fR(1), \fBport-deactivate\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -73,6 +102,8 @@ Rainer Mueller <raimue@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
 .SH "EXTERNAL REFERENCES"
 .IP " 1." 4
 The MacPorts Guide

@@ -19,16 +19,25 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 port-outdated \- List outdated ports
 .SH "SYNOPSIS"
+
+
 .sp
 .nf
 \fBport\fR [\fB\-q\fR] \fBoutdated\fR
 .fi
+.sp
+
+
 .SH "DESCRIPTION"
+
 .sp
 \fBport outdated\fR lists all ports that have newer versions available\&. For each port, it prints the name and both the old and the new version\&. \fBport outdated\fR will give you the reason why MacPorts considers a port to be outdated\&. This could be
+
 .sp
 .RS 4
 .ie n \{\
@@ -38,6 +47,7 @@ port-outdated \- List outdated ports
 .sp -1
 .IP \(bu 2.3
 .\}
+
 due to an update, i\&.e\&. if the version number increased,
 .RE
 .sp
@@ -49,6 +59,7 @@ due to an update, i\&.e\&. if the version number increased,
 .sp -1
 .IP \(bu 2.3
 .\}
+
 due to a revision bump, i\&.e\&. a higher revision,
 .RE
 .sp
@@ -60,6 +71,7 @@ due to a revision bump, i\&.e\&. a higher revision,
 .sp -1
 .IP \(bu 2.3
 .\}
+
 due to an epoch increase (used in situations where the version number decreased, but the port still is newer than the previous one), or
 .RE
 .sp
@@ -71,10 +83,12 @@ due to an epoch increase (used in situations where the version number decreased,
 .sp -1
 .IP \(bu 2.3
 .\}
+
 due to an OS upgrade\&. MacPorts will consider ports built on a previous version of OS X outdated\&.
 .RE
 .sp
 The ports listed in \fBport outdated\fR are the ports that will be upgraded when you run
+
 .sp
 .if n \{\
 .RS 4
@@ -87,18 +101,31 @@ $> sudo port upgrade outdated
 .\}
 .sp
 i\&.e\&. those the \fIoutdated\fR pseudo\-port selector expands to, with one exception: If you have the newest version of a port installed, but deactivated in favor of an older version, \fBport outdated\fR will list it as outdated, but \fBsudo port upgrade outdated\fR will not upgrade it\&. This can be used to intentionally stay at an older version of a port, e\&.g\&. if the newer version does not work as expected\&. Note that MacPorts will still install newer versions of such ports if they are dependencies of other ports to be installed or upgraded\&.
+
 .SH "GLOBAL OPTIONS"
+
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
+
 .PP
 \fB\-q\fR
 .RS 4
+
+
+
 Do not list the header line or the message that no ports are outdated\&.
+
 .RE
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-upgrade\fR(1)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -110,3 +137,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

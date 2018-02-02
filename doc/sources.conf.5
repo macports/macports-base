@@ -19,11 +19,15 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
+
+
 .SH "NAME"
 sources.conf \- port definition configuration file of the MacPorts system
 .SH "DESCRIPTION"
+
 .sp
 \fBsources\&.conf\fR is the configuration file used by the MacPorts system to locate its port definitions\&. The file is read by the \fBport\fR command to find available ports and how to install them\&. Lines beginning with \fI#\fR are comments, empty lines are ignored\&. Entries in this file are URIs optionally followed by flags in square brackets\&. Each source specification is given on a separate line\&. A grammar in EBNF is given below:
+
 .sp
 .if n \{\
 .RS 4
@@ -36,27 +40,50 @@ space = \*(Aq \*(Aq | \*(Aq\et\*(Aq ;
 .if n \{\
 .RE
 .\}
+.sp
+
 .SH "URI FORMATS"
+
 .sp
 MacPorts supports a number of different protocols as source descriptions\&.
+
+
 .PP
 \fIrsync://\fR
 .RS 4
+
+
+
 Followed by a server name and a path on this server, this URI instructs MacPorts to fetch the contents of the file or directory referenced by this URI into a path of its own choosing\&. This is the default method of port tree synchronization and is generally recommended\&. MacPorts will derive a machine\- and architecture\-specific URI (in the subdirectory PortIndex_${platform}_${os_major}_${os_arch}/) and attempt to download a pre\-generated PortIndex (including the PortIndex\&.quick file) from there\&.
+
+
 .PP
 \fBExample\fR
 .RS 4
+
+
+
 rsync://rsync\&.macports\&.org/macports/release/tarballs/ports\&.tar
+
 .RE
 .PP
 \fBDefault\fR
 .RS 4
+
+
+
 rsync://rsync\&.macports\&.org/macports/release/tarballs/ports\&.tar [default]
+
 .RE
+.sp
+
 .RE
 .PP
 \fIfile://\fR
 .RS 4
+
+
+
 Followed by an absolute path (which will result in
 \fBthree\fR
 slashes at the beginning of the URI) to a local directory that should be used as port tree\&. A port index will automatically be generated for this source\&. Note that MacPorts will try to determine whether the given path is under source control and attempt to update from the default remote server if it is\&. Currently, Subversion and Git (including git\-svn) are supported options\&. You can add the
@@ -65,36 +92,61 @@ tag to avoid this behavior\&.
 
 NOTE: The MacPorts user (usually called
 \fImacports\fR) needs to be able to read and write to this location\&. This usually means your home directory is not a suitable place for a port tree, unless you adjust permissions accordingly\&.
+
+
 .PP
 \fBExample\fR
 .RS 4
+
+
+
 \m[blue]\fBfile:///opt/dports\fR\m[]
 [nosync,default]
+
 .RE
 .PP
 \fBDefault\fR
 .RS 4
+
+
+
 none
+
 .RE
+.sp
+
 .RE
 .PP
 \fIhttp://\fR, \fIhttps://\fR and \fIftp://\fR
 .RS 4
+
+
+
 Followed by a server name and a path on this server, this URI instructs MacPorts to download a tarball snapshot of a ports tree from the URI and extract it to a path of its choice\&. This possibility is provided as a fallback to users that can use neither rsync nor subversion to sync the MacPorts port tree\&.
 
 If the tarball contains a pre\-built PortIndex and PortIndex\&.quick file at PortIndex_${platform}_${os_major}_${os_arch}/, those will be used as default\&. If it does not, MacPorts will build a suitable port index for the local system automatically\&.
+
 .RE
+
 .SH "SOURCE FORMATS"
+
 .sp
 Port definition trees can be either directories (e\&.g\&. for the \fIfile://\fR and rsync methods) or tarballs (for HTTP, HTTPS, FTP and rsync)\&. For the directory format, no additional verification is performed\&. Because transfers using rsync are not encrypted or authenticated, the use of this setup over rsync is discouraged\&.
 .sp
 If the URI ends with \fI\&.tar\fR, MacPorts assumes the source is a tarball and attempts to download an additional \fI\&.tar\&.rmd160\fR signature file\&. It then uses the public keys configured in \fBpubkeys.conf\fR(5) to verify this signature to ensure the source has not been tampered with\&. You are strongly encouraged to use this setup, and it has been the default for MacPorts since it has been introduced\&.
+
 .SH "FLAGS"
+
 .sp
 Source specifications support a number of flags that modify the behavior of a source:
+
+
 .PP
 \fInosync\fR
 .RS 4
+
+
+
 Skip this source when
 \fBport sync\fR
 or
@@ -102,21 +154,33 @@ or
 are used\&. You can use this flag to avoid updating your local ports tree managed by a source control system such as Git or Subversion\&. You are responsible for generating a current port index using the
 \fBportindex\fR(1)
 command for sources marked with this flag\&.
+
 .RE
 .PP
 \fIdefault\fR
 .RS 4
+
+
+
 Mark this source as the default\&. The default source is used as a fallback to load additional files (such as PortGroups and mirror definitions) from the
 \fI_resources/port1\&.0\fR
 directory\&.
+
 .RE
+
 .SH "FILES"
+
 .sp
 The path of the \fIsources\&.conf\fR file is specified in the \fBsources_conf\fR option of \fBmacports.conf\fR(5)\&. It defaults to \fI${prefix}/etc/macports/sources\&.conf\fR\&. There is no user\-specific \fIsources\&.conf\fR file, but support for this can be emulated by setting \fIsources\&.conf\fR in the user\-specific \fBmacports.conf\fR(5) file\&.
+
 .SH "SEE ALSO"
+
 .sp
 \fBport\fR(1), \fBport-selfupdate\fR(1), \fBport-sync\fR(1), \fBportindex\fR(1), \fBmacports.conf\fR(5)
+
 .SH "AUTHORS"
+
+
 .sp
 .if n \{\
 .RS 4
@@ -128,3 +192,6 @@ Clemens Lang <cal@macports\&.org>
 .if n \{\
 .RE
 .\}
+.sp
+
+

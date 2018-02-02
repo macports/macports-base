@@ -1,4 +1,3 @@
 #!/bin/sh
 
-autoconf --warnings=all --force
-autoheader --warnings=all --force
+autoreconf --force -Wall -Werror
