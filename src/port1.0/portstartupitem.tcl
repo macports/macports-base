@@ -70,6 +70,31 @@ package require portutil 1.0
 namespace eval portstartupitem {
 }
 
+options startupitem.autostart startupitem.create startupitem.executable \
+        startupitem.init startupitem.install startupitem.location \
+        startupitem.logevents startupitem.logfile startupitem.name \
+        startupitem.netchange startupitem.pidfile startupitem.plist \
+        startupitem.requires startupitem.restart startupitem.start \
+        startupitem.stop startupitem.type startupitem.uniquename
+
+default startupitem.autostart   no
+default startupitem.executable  ""
+default startupitem.init        ""
+default startupitem.install     {$system_options(startupitem_install)}
+default startupitem.location    LaunchDaemons
+default startupitem.logevents   no
+default startupitem.logfile     ""
+default startupitem.name        {${subport}}
+default startupitem.netchange   no
+default startupitem.pidfile     ""
+default startupitem.plist       {${startupitem.uniquename}.plist}
+default startupitem.requires    ""
+default startupitem.restart     ""
+default startupitem.start       ""
+default startupitem.stop        ""
+default startupitem.type        {$system_options(startupitem_type)}
+default startupitem.uniquename  {org.macports.${startupitem.name}}
+
 set_ui_prefix
 
 proc portstartupitem::startupitem_create_darwin_launchd {args} {
@@ -203,7 +228,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     }
     
     # To log events then tell daemondo to log at verbosity=1
-    if { [tbool startupitem.logevents] } {
+    if {[tbool startupitem.logevents]} {
         lappend args "--verbosity=1"
     }
     
