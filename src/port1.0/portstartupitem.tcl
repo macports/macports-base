@@ -18,7 +18,7 @@
 # 3. Neither the name of The MacPorts Project nor the names of its
 #    contributors may be used to endorse or promote products derived from
 #    this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 # LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -114,7 +114,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
            startupitem.install startupitem.autostart startupitem.debug
 
     set scriptdir ${prefix}/etc/startup
-    
+
     set itemname        ${startupitem.name}
     set uniquename      ${startupitem.uniquename}
     set plistname       ${startupitem.plist}
@@ -124,37 +124,37 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
                           "${prefix}/bin/daemondo" \
                           "--label=${itemname}" \
                         ]
-    
+
     file mkdir ${destroot}${itemdir}
     if {[getuid] == 0} {
         file attributes ${destroot}${itemdir} -owner root -group wheel
     }
-        
-    if { [llength ${startupitem.executable}] && 
+
+    if {[llength ${startupitem.executable}] &&
       ![llength ${startupitem.init}] &&
       ![llength ${startupitem.start}] &&
       ![llength ${startupitem.stop}] &&
-      ![llength ${startupitem.restart}] } {
-            
+      ![llength ${startupitem.restart}]} {
+
         # An executable is specified, and there is no init, start, stop, or restart
         # code; so we don't need a wrapper script
         set args [concat $args "--start-cmd" ${startupitem.executable} ";"]
-        
+
     } else {
-    
+
         # No executable was specified, or there was an init, start, stop, or restart
         # option, so we do need a wrapper script
-        
+
         set wrappername     ${itemname}.wrapper
         set wrapper         "${itemdir}/${wrappername}"
 
-        if { ![llength ${startupitem.start}] } {
+        if {![llength ${startupitem.start}]} {
             set startupitem.start [list "sh ${scriptdir}/${subport}.sh start"]
         }
-        if { ![llength ${startupitem.stop}] } {
+        if {![llength ${startupitem.stop}]} {
             set startupitem.stop [list "sh ${scriptdir}/${subport}.sh stop"]
         }
-        if { ![llength ${startupitem.restart}] } {
+        if {![llength ${startupitem.restart}]} {
             set startupitem.restart [list Stop Start]
         }
 
@@ -174,7 +174,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
         puts ${item} "# MacPorts generated daemondo support script"
         puts ${item} "#"
         puts ${item} ""
-        
+
         puts ${item} "#"
         puts ${item} "# Init"
         puts ${item} "#"
@@ -190,7 +190,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
         foreach line ${startupitem.start}   { puts ${item} "\t${line}" }
         puts ${item} "\}"
         puts ${item} ""
-        
+
         puts ${item} "#"
         puts ${item} "# Stop"
         puts ${item} "#"
@@ -199,7 +199,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
         foreach line ${startupitem.stop}    { puts ${item} "\t${line}" }
         puts ${item} "\}"
         puts ${item} ""
-    
+
         puts ${item} "#"
         puts ${item} "# Restart"
         puts ${item} "#"
@@ -231,16 +231,16 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
 
         close ${item}
     }
-    
+
     if {[tbool startupitem.netchange]} {
         lappend args "--restart-netchange"
     }
-    
+
     # To log events then tell daemondo to log at verbosity=n
     if {[tbool startupitem.logevents]} {
         lappend args "--verbosity=[option startupitem.daemondo.verbosity]"
     }
-    
+
     # If pidfile was specified, translate it for daemondo.
     #
     # There are four cases:
@@ -250,7 +250,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     #   (4) manual [pidfilename]
     #
     set pidfileArgCnt [llength ${startupitem.pidfile}]
-    if { ${pidfileArgCnt} > 0 } {
+    if {${pidfileArgCnt} > 0} {
         if { $pidfileArgCnt == 1 } {
             set pidFile "${prefix}/var/run/${itemname}.pid"
             lappend destroot.keepdirs "${destroot}${prefix}/var/run"
@@ -258,10 +258,10 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
             set pidFile [lindex ${startupitem.pidfile} 1]
         }
 
-        if { ${pidfileArgCnt} > 2 } {
+        if {${pidfileArgCnt} > 2} {
             ui_error "$UI_PREFIX [msgcat::mc "Invalid parameter count to startupitem.pidfile: 2 expected, %d found" ${pidfileArgCnt}]"
         }
-        
+
         # Translate into appropriate arguments to daemondo
         set pidStyle [lindex ${startupitem.pidfile} 0]
         switch ${pidStyle} {
@@ -274,37 +274,37 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
             }
         }
     } else {
-        if { [llength ${startupitem.executable}] } {
+        if {[llength ${startupitem.executable}]} {
             lappend args "--pid=exec"
         } else {
             lappend args "--pid=none"
         }
     }
-    
+
     # Create the plist file
     set plist [open "${destroot}${itemdir}/${plistname}" w 0644]
-    
+
     puts ${plist} "<?xml version='1.0' encoding='UTF-8'?>"
     puts ${plist} "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\""
     puts ${plist} "\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\" >"
     puts ${plist} "<plist version='1.0'>"
     puts ${plist} "<dict>"
-    
+
     puts ${plist} "<key>Label</key><string>${uniquename}</string>"
-    
+
     puts ${plist} "<key>ProgramArguments</key>"
     puts ${plist} "<array>"
     foreach arg ${args} { puts ${plist} "\t<string>${arg}</string>" }
     puts ${plist} "</array>"
-    
+
     puts ${plist} "<key>Disabled</key><true/>"
     if {$macosx_deployment_target ne "10.4"} {
         puts ${plist} "<key>KeepAlive</key><true/>"
     } else {
         puts ${plist} "<key>OnDemand</key><false/>"
     }
-    
-    if { [llength ${startupitem.logfile}] } {
+
+    if {[llength ${startupitem.logfile}]} {
         puts ${plist} "<key>StandardOutPath</key><string>${startupitem.logfile}</string>"
     }
 
@@ -317,8 +317,8 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
 
     close ${plist}
 
-    if { [getuid] == 0 && 
-      ${startupitem.install} ne "no" } {
+    if {[getuid] == 0 &&
+      ${startupitem.install} ne "no"} {
         file mkdir "${destroot}/Library/${daemondest}"
         ln -sf "${itemdir}/${plistname}" "${destroot}/Library/${daemondest}"
     }
@@ -347,9 +347,9 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
 
 proc portstartupitem::startupitem_create {args} {
     global UI_PREFIX startupitem.type os.platform
-    
+
     set startupitem.type [string tolower ${startupitem.type}]
-    
+
     # Calculate a default value for startupitem.type
     if {${startupitem.type} eq "default" || ${startupitem.type} eq ""} {
         switch -exact ${os.platform} {
@@ -362,7 +362,7 @@ proc portstartupitem::startupitem_create {args} {
         }
     }
 
-    if { ${startupitem.type} eq "none" } {
+    if {${startupitem.type} eq "none"} {
         ui_notice "$UI_PREFIX [msgcat::mc "Skipping creation of control script"]"
     } else {
         ui_notice "$UI_PREFIX [msgcat::mc "Creating ${startupitem.type} control script"]"
