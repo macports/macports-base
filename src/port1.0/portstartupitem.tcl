@@ -59,10 +59,14 @@
 #   startupitem.logevents   yes/no
 #       Log events to the log
 #       - for launchd, generate log messages inside daemondo
+#       - daemondo verbosity is controlled by startupitem.daemondo.verbosity
 #
 #   startupitem.autostart   yes/no
 #       Automatically load the startupitem after activating. Defaults to no.
 #
+#   startupitem.debug       yes/no
+#       Enable additional debug logging
+#       - for launchd, sets the Debug key to true
 
 package provide portstartupitem 1.0
 package require portutil 1.0
@@ -70,14 +74,17 @@ package require portutil 1.0
 namespace eval portstartupitem {
 }
 
-options startupitem.autostart startupitem.create startupitem.executable \
+options startupitem.autostart startupitem.debug startupitem.create \
+        startupitem.executable \
         startupitem.init startupitem.install startupitem.location \
         startupitem.logevents startupitem.logfile startupitem.name \
         startupitem.netchange startupitem.pidfile startupitem.plist \
         startupitem.requires startupitem.restart startupitem.start \
-        startupitem.stop startupitem.type startupitem.uniquename
+        startupitem.stop startupitem.type startupitem.uniquename \
+        startupitem.daemondo.verbosity
 
 default startupitem.autostart   no
+default startupitem.debug       no
 default startupitem.executable  ""
 default startupitem.init        ""
 default startupitem.install     {$system_options(startupitem_install)}
@@ -95,6 +102,8 @@ default startupitem.stop        ""
 default startupitem.type        {$system_options(startupitem_type)}
 default startupitem.uniquename  {org.macports.${startupitem.name}}
 
+default startupitem.daemondo.verbosity  1
+
 set_ui_prefix
 
 proc portstartupitem::startupitem_create_darwin_launchd {args} {
@@ -102,7 +111,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
            startupitem.name startupitem.uniquename startupitem.plist startupitem.location \
            startupitem.init startupitem.start startupitem.stop startupitem.restart startupitem.executable \
            startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange \
-           startupitem.install startupitem.autostart
+           startupitem.install startupitem.autostart startupitem.debug
 
     set scriptdir ${prefix}/etc/startup
     
@@ -227,9 +236,9 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
         lappend args "--restart-netchange"
     }
     
-    # To log events then tell daemondo to log at verbosity=1
+    # To log events then tell daemondo to log at verbosity=n
     if {[tbool startupitem.logevents]} {
-        lappend args "--verbosity=1"
+        lappend args "--verbosity=[option startupitem.daemondo.verbosity]"
     }
     
     # If pidfile was specified, translate it for daemondo.
@@ -298,7 +307,11 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     if { [llength ${startupitem.logfile}] } {
         puts ${plist} "<key>StandardOutPath</key><string>${startupitem.logfile}</string>"
     }
-    
+
+    if {[tbool startupitem.debug]} {
+        puts ${plist} "<key>Debug</key><true/>"
+    }
+
     puts ${plist} "</dict>"
     puts ${plist} "</plist>"
 
