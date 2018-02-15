@@ -99,12 +99,30 @@ default startupitem.requires    ""
 default startupitem.restart     ""
 default startupitem.start       ""
 default startupitem.stop        ""
-default startupitem.type        {$system_options(startupitem_type)}
+default startupitem.type        {[portstartupitem::get_startupitem_type]}
 default startupitem.uniquename  {org.macports.${startupitem.name}}
 
 default startupitem.daemondo.verbosity  1
 
 set_ui_prefix
+
+# Calculate a default value for startupitem.type
+proc portstartupitem::get_startupitem_type {} {
+    global system_options os.platform
+
+    set type $system_options(startupitem_type)
+    if {$type eq "default" || $type eq ""} {
+        switch -- ${os.platform} {
+            darwin {
+                return "launchd"
+            }
+            default {
+                return "none"
+            }
+        }
+    }
+    return $type
+}
 
 proc portstartupitem::startupitem_create_darwin_launchd {args} {
     global UI_PREFIX prefix destroot destroot.keepdirs subport macosx_deployment_target \
@@ -264,7 +282,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
 
         # Translate into appropriate arguments to daemondo
         set pidStyle [lindex ${startupitem.pidfile} 0]
-        switch ${pidStyle} {
+        switch -- ${pidStyle} {
             none    { lappend args "--pid=none" }
             auto    { lappend args "--pid=fileauto" "--pidfile" ${pidFile} }
             clean   { lappend args "--pid=fileclean" "--pidfile" ${pidFile} }
@@ -345,22 +363,8 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     }
 }
 
-proc portstartupitem::startupitem_create {args} {
-    global UI_PREFIX startupitem.type os.platform
-
-    set startupitem.type [string tolower ${startupitem.type}]
-
-    # Calculate a default value for startupitem.type
-    if {${startupitem.type} eq "default" || ${startupitem.type} eq ""} {
-        switch -exact ${os.platform} {
-            darwin {
-                set startupitem.type "launchd"
-            }
-            default {
-                set startupitem.type "none"
-            }
-        }
-    }
+proc portstartupitem::startupitem_create {} {
+    global UI_PREFIX startupitem.type
 
     if {${startupitem.type} eq "none"} {
         ui_notice "$UI_PREFIX [msgcat::mc "Skipping creation of control script"]"
@@ -372,4 +376,36 @@ proc portstartupitem::startupitem_create {args} {
             default         { ui_error "$UI_PREFIX [msgcat::mc "Unrecognized startupitem type %s" ${startupitem.type}]" }
         }
     }
+}
+
+# Check if this port's startupitem is loaded
+# Returns: 1 if loaded, 0 otherwise
+proc portstartupitem::is_loaded {} {
+    if {[option startupitem.type] eq "launchd"} {
+        set launchctl_path ${portutil::autoconf::launchctl_path}
+        if {$launchctl_path eq ""} {
+            # assuming not loaded if there's no launchctl
+            return 0
+        }
+        global os.major startupitem.uniquename
+        if {${os.major} >= 14} {
+            if {![catch {exec -ignorestderr $launchctl_path print system/${startupitem.uniquename} >/dev/null}]} {
+                return 1
+            }
+        } else {
+            if {[getuid] == 0} {
+                elevateToRoot "launchctl list"
+                set elevated 1
+            }
+            set ret 0
+            if {![catch {exec -ignorestderr $launchctl_path list ${startupitem.uniquename} >/dev/null}]} {
+                set ret 1
+            }
+            if {[info exists elevated]} {
+                dropPrivileges
+            }
+            return $ret
+        }
+    }
+    return 0
 }

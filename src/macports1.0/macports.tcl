@@ -3985,6 +3985,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         return 0
     }
 
+    set workername [ditem_key $mport workername]
     if {$will_build} {
         if {$already_installed
             && ([info exists options(ports_upgrade_force)] || $build_override == 1)} {
@@ -3992,7 +3993,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             # fresh one will be either fetched or built locally.
             # Ideally this would be done in the interp_options when we mportopen,
             # but we don't know if we want to do this at that point.
-            set workername [ditem_key $mport workername]
             $workername eval {set force_archive_refresh yes}
 
             # run archivefetch and destroot for version_in_tree
@@ -4025,6 +4025,12 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 return 1
             }
         }
+    }
+
+    # check if the startupitem is loaded, so we can load again it after upgrading
+    # (deactivating the old version will unload the startupitem)
+    if {$portname eq $newname} {
+        set load_startupitem [$workername eval {portstartupitem::is_loaded}]
     }
 
     # are we installing an existing version due to force or epoch override?
@@ -4084,11 +4090,17 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             ui_msg "Skipping deactivate $portname @${version_active}_${revision_active}$variant_active (dry run)"
         }
         ui_msg "Skipping activate $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
-    } elseif {[catch {set result [mportexec $mport activate]} result]} {
-        ui_debug $::errorInfo
-        ui_error "Couldn't activate $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants): $result"
-        catch {mportclose $mport}
-        return 1
+    } else {
+        if {[catch {mportexec $mport activate} result]} {
+            ui_debug $::errorInfo
+            ui_error "Couldn't activate $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants): $result"
+            catch {mportclose $mport}
+            return 1
+        }
+        if {$load_startupitem && [catch {mportexec $mport load} result]} {
+            ui_debug $::errorInfo
+            ui_warn "Error loading startupitem for ${newname}: $result"
+        }
     }
 
     # Check if we have to do dependents
