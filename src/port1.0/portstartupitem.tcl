@@ -124,12 +124,45 @@ proc portstartupitem::get_startupitem_type {} {
     return $type
 }
 
+# Add user notes regarding any installed startupitem
+proc portstartupitem::add_notes {} {
+    global startupitem.create startupitem.autostart subport
+    if {![tbool startupitem.create]} {
+        return
+    }
+    if {[exists notes]} {
+        # leave a blank line after the existing notes
+        notes-append ""
+    }
+    # Add some information for the user to the port's notes
+    if {[tbool startupitem.autostart]} {
+        notes-append \
+        "A startup item has been generated that will aid in\
+        starting ${subport} with launchd. It will be enabled\
+        automatically on activation. Execute the following\
+        command to manually _disable_ it:
+
+    sudo port unload ${subport}"
+    } else {
+        notes-append \
+        "A startup item has been generated that will aid in\
+        starting ${subport} with launchd. It is disabled\
+        by default. Execute the following command to start it,\
+        and to cause it to launch at startup:
+
+    sudo port load ${subport}"
+    }
+}
+
+# Register the above procedure as a callback after Portfile evaluation
+port::register_callback portstartupitem::add_notes
+
 proc portstartupitem::startupitem_create_darwin_launchd {args} {
     global UI_PREFIX prefix destroot destroot.keepdirs subport macosx_deployment_target \
            startupitem.name startupitem.uniquename startupitem.plist startupitem.location \
            startupitem.init startupitem.start startupitem.stop startupitem.restart startupitem.executable \
            startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange \
-           startupitem.install startupitem.autostart startupitem.debug
+           startupitem.install startupitem.debug
 
     set scriptdir ${prefix}/etc/startup
 
@@ -339,27 +372,6 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
       ${startupitem.install} ne "no"} {
         file mkdir "${destroot}/Library/${daemondest}"
         ln -sf "${itemdir}/${plistname}" "${destroot}/Library/${daemondest}"
-    }
-
-    # Emit some information for the user
-    if {[tbool startupitem.autostart]} {
-        ui_notice "###########################################################"
-        ui_notice "# A startup item has been generated that will aid in"
-        ui_notice "# starting ${subport} with launchd. It will be enabled"
-        ui_notice "# automatically on activation. Execute the following"
-        ui_notice "# command to manually _disable_ it:"
-        ui_notice "#"
-        ui_notice "# sudo port unload ${subport}"
-        ui_notice "###########################################################"
-    } else {
-        ui_notice "###########################################################"
-        ui_notice "# A startup item has been generated that will aid in"
-        ui_notice "# starting ${subport} with launchd. It is disabled"
-        ui_notice "# by default. Execute the following command to start it,"
-        ui_notice "# and to cause it to launch at startup:"
-        ui_notice "#"
-        ui_notice "# sudo port load ${subport}"
-        ui_notice "###########################################################"
     }
 }
 

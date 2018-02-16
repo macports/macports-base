@@ -47,7 +47,7 @@ namespace eval port {
 		variable _callback_list
 		lappend _callback_list ${callback}
 	}
-	
+
 	# Run the callbacks registered in the callback list. Called from
 	# macports1.0 in the child interpreter after evaluating the Portfile and
 	# the variants. Clears the list of callbacks.
