@@ -48,7 +48,7 @@ default unload.asroot yes
 set_ui_prefix
 
 proc portunload::unload_main {args} {
-    global startupitem.type startupitem.name startupitem.location startupitem.plist
+    global startupitem.location startupitem.plist
     set launchctl_path ${portutil::autoconf::launchctl_path}
 
     foreach { path } "/Library/${startupitem.location}/${startupitem.plist}" {
