@@ -108,7 +108,11 @@ set_ui_prefix
 
 # Calculate a default value for startupitem.type
 proc portstartupitem::get_startupitem_type {} {
-    global system_options os.platform
+    global system_options os.platform startupitem.create
+
+    if {![tbool startupitem.create]} {
+        return "none"
+    }
 
     set type $system_options(startupitem_type)
     if {$type eq "default" || $type eq ""} {
@@ -127,7 +131,7 @@ proc portstartupitem::get_startupitem_type {} {
 # Add user notes regarding any installed startupitem
 proc portstartupitem::add_notes {} {
     global startupitem.create startupitem.autostart subport
-    if {![tbool startupitem.create]} {
+    if {${startupitem.type} eq "none"} {
         return
     }
     if {[exists notes]} {
