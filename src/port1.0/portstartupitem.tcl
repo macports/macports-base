@@ -130,7 +130,7 @@ proc portstartupitem::get_startupitem_type {} {
 
 # Add user notes regarding any installed startupitem
 proc portstartupitem::add_notes {} {
-    global startupitem.create startupitem.autostart subport
+    global startupitem.type startupitem.autostart subport
     if {${startupitem.type} eq "none"} {
         return
     }
