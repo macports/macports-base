@@ -130,7 +130,7 @@ proc portstartupitem::get_startupitem_type {} {
 
 # Add user notes regarding any installed startupitem
 proc portstartupitem::add_notes {} {
-    global startupitem.type startupitem.autostart subport
+    global startupitem.type startupitem.autostart subport startupitem_autostart
     if {${startupitem.type} eq "none"} {
         return
     }
@@ -139,7 +139,7 @@ proc portstartupitem::add_notes {} {
         notes-append ""
     }
     # Add some information for the user to the port's notes
-    if {[tbool startupitem.autostart]} {
+    if {[tbool startupitem.autostart] && [tbool startupitem_autostart]} {
         notes-append \
         "A startup item has been generated that will aid in\
         starting ${subport} with launchd. It will be enabled\
