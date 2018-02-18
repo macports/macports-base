@@ -405,7 +405,7 @@ proc portstartupitem::is_loaded {} {
         }
         global os.major startupitem.uniquename
         if {${os.major} >= 14} {
-            if {![catch {exec -ignorestderr $launchctl_path print system/${startupitem.uniquename} >/dev/null}]} {
+            if {![catch {exec -ignorestderr $launchctl_path print system/${startupitem.uniquename} >&/dev/null}]} {
                 return 1
             }
         } else {
@@ -414,7 +414,7 @@ proc portstartupitem::is_loaded {} {
                 set elevated 1
             }
             set ret 0
-            if {![catch {exec -ignorestderr $launchctl_path list ${startupitem.uniquename} >/dev/null}]} {
+            if {![catch {exec -ignorestderr $launchctl_path list ${startupitem.uniquename} >&/dev/null}]} {
                 set ret 1
             }
             if {[info exists elevated]} {
