@@ -112,12 +112,12 @@ proc portdestroot::destroot_start {args} {
 
     file mkdir "${destroot}"
     if { ${os.platform} eq "darwin" } {
-        system "cd \"${destroot}\" && ${mtree} -e -U -f [file join ${portsharepath} install macosx.mtree]"
+        system -W ${destroot} "${mtree} -e -U -f [file join ${portsharepath} install macosx.mtree]"
         file mkdir "${destroot}${applications_dir}"
         file mkdir "${destroot}${frameworks_dir}"
     }
     file mkdir "${destroot}${prefix}"
-    system "cd \"${destroot}${prefix}\" && ${mtree} -e -U -f [file join ${portsharepath} install prefix.mtree]"
+    system -W ${destroot}${prefix} "${mtree} -e -U -f [file join ${portsharepath} install prefix.mtree]"
 }
 
 proc portdestroot::destroot_main {args} {
@@ -219,18 +219,18 @@ proc portdestroot::destroot_finish {args} {
                     if {[file isfile ${manfilepath}] && [file type ${manfilepath}] eq "file"} {
                         if {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$" ${manfile} gzfile manfile]} {
                             set found 1
-                            system "cd ${manpath} && \
-                            $gunzip -f [file join ${mandir} ${gzfile}] && \
+                            system -W ${manpath} \
+                            "$gunzip -f [file join ${mandir} ${gzfile}] && \
                             $gzip -9vnf [file join ${mandir} ${manfile}]"
                         } elseif {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$" ${manfile} bz2file manfile]} {
                             set found 1
-                            system "cd ${manpath} && \
-                            $bunzip2 -f [file join ${mandir} ${bz2file}] && \
+                            system -W ${manpath} \
+                            "$bunzip2 -f [file join ${mandir} ${bz2file}] && \
                             $gzip -9vnf [file join ${mandir} ${manfile}]"
                         } elseif {[regexp "\[.\]${manindex}\[a-z\]*\$" ${manfile}]} {
                             set found 1
-                            system "cd ${manpath} && \
-                            $gzip -9vnf [file join ${mandir} ${manfile}]"
+                            system -W ${manpath} \
+                            "$gzip -9vnf [file join ${mandir} ${manfile}]"
                         }
                         set gzmanfile ${manfile}.gz
                         set gzmanfilepath [file join ${mandirpath} ${gzmanfile}]
