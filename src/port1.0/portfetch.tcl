@@ -199,7 +199,7 @@ proc portfetch::set_fetch_type {option action args} {
 
 proc portfetch::find_svn_path {args} {
     global prefix os.platform os.major
-    # Sierra is the first macOS version whose svn supports modern https protocols.
+    # Sierra is the first macOS version whose svn supports modern TLS cipher suites.
     if {${os.major} >= 16 || ${os.platform} ne "darwin"} {
         return [findBinary svn $portutil::autoconf::svn_path]
     } else {
