@@ -199,8 +199,8 @@ proc portfetch::set_fetch_type {option action args} {
 
 proc portfetch::find_svn_path {args} {
     global prefix os.platform os.major
-    # Snow Leopard is the first Mac OS X version to include a recent enough svn (1.6.x) to support the --trust-server-cert option.
-    if {${os.major} >= 10 || ${os.platform} ne "darwin"} {
+    # Sierra is the first macOS version whose svn supports modern https protocols.
+    if {${os.major} >= 16 || ${os.platform} ne "darwin"} {
         return [findBinary svn $portutil::autoconf::svn_path]
     } else {
         return ${prefix}/bin/svn
