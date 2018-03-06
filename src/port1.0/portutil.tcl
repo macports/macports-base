@@ -2714,6 +2714,7 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
     }
     if {$metadata_type eq "contents"} {
         set contents {}
+        set binary_info {}
         set ignore 0
         set sep [file separator]
         foreach line [split $raw_contents \n] {
@@ -2725,9 +2726,11 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
                 lappend contents "${sep}${line}"
             } elseif {$line eq "@ignore"} {
                 set ignore 1
+            } elseif {[string range $line 0 15] eq "@comment binary:"} {
+                lappend binary_info [lindex $contents end] [string range $line 16 end]
             }
         }
-        return $contents
+        return [list $contents $binary_info]
     } elseif {$metadata_type eq "portname"} {
         foreach line [split $raw_contents \n] {
             if {[lindex $line 0] eq "@portname"} {
@@ -2735,6 +2738,23 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
             }
         }
         return ""
+    } elseif {$metadata_type eq "cxx_info"} {
+        set val_cxx_stdlib ""
+        set val_cxx_stdlib_overridden ""
+        foreach line [split $raw_contents \n] {
+            if {[lindex $line 0] eq "@cxx_stdlib"} {
+                set val_cxx_stdlib [lindex $line 1]
+                if {$val_cxx_stdlib_overridden ne ""} {
+                    break
+                }
+            } elseif {[lindex $line 0] eq "@cxx_stdlib_overridden"} {
+                set val_cxx_stdlib_overridden [lindex $line 1]
+                if {$val_cxx_stdlib ne ""} {
+                    break
+                }
+            }
+        }
+        return [list $val_cxx_stdlib $val_cxx_stdlib_overridden]
     } else {
         return -code error "unknown metadata_type: $metadata_type"
     }
