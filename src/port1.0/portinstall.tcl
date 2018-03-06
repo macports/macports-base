@@ -53,60 +53,6 @@ default install.asroot no
 
 set_ui_prefix
 
-# given a list of binaries, determine which C++ stdlib is used (if any)
-proc portinstall::get_actual_cxx_stdlib {binaries} {
-    if {$binaries eq ""} {
-        return "none"
-    }
-    set handle [machista::create_handle]
-    if {$handle eq "NULL"} {
-        error "Error creating libmachista handle"
-    }
-    array set stdlibs {}
-    foreach b $binaries {
-        set resultlist [machista::parse_file $handle $b]
-        set returncode [lindex $resultlist 0]
-        set result     [lindex $resultlist 1]
-        if {$returncode != $machista::SUCCESS} {
-            if {$returncode == $machista::EMAGIC} {
-                # not a Mach-O file
-                # ignore silently, these are only static libs anyway
-            } else {
-                ui_debug "Error parsing file ${b}: [machista::strerror $returncode]"
-            }
-            continue;
-        }
-        set architecture [$result cget -mt_archs]
-        while {$architecture ne "NULL"} {
-            set loadcommand [$architecture cget -mat_loadcmds]
-            while {$loadcommand ne "NULL"} {
-                set libname [file tail [$loadcommand cget -mlt_install_name]]
-                if {[string match libc++*.dylib $libname]} {
-                    set stdlibs(libc++) 1
-                } elseif {[string match libstdc++*.dylib $libname]} {
-                    set stdlibs(libstdc++) 1
-                }
-                set loadcommand [$loadcommand cget -next]
-            }
-            set architecture [$architecture cget -next]
-        }
-    }
-
-    machista::destroy_handle $handle
-
-    if {[info exists stdlibs(libc++)]} {
-        if {[info exists stdlibs(libstdc++)]} {
-            return "mixed"
-        } else {
-            return "libc++"
-        }
-    } elseif {[info exists stdlibs(libstdc++)]} {
-        return "libstdc++"
-    } else {
-        return "none"
-    }
-}
-
 proc portinstall::install_start {args} {
     global UI_PREFIX subport version revision portvariants \
            prefix registry_open registry.path

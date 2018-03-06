@@ -1377,6 +1377,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias realpath realpath
     $workername alias _mportsearchpath _mportsearchpath
     $workername alias _portnameactive _portnameactive
+    $workername alias get_actual_cxx_stdlib macports::get_actual_cxx_stdlib
 
     # New Registry/Receipts stuff
     $workername alias registry_new registry::new_entry
@@ -4433,6 +4434,61 @@ proc macports::reclaim_main {opts} {
     return 0
 }
 
+# given a list of binaries, determine which C++ stdlib is used (if any)
+proc macports::get_actual_cxx_stdlib {binaries} {
+    if {$binaries eq ""} {
+        return "none"
+    }
+    set handle [machista::create_handle]
+    if {$handle eq "NULL"} {
+        error "Error creating libmachista handle"
+    }
+    array set stdlibs {}
+    foreach b $binaries {
+        set resultlist [machista::parse_file $handle $b]
+        set returncode [lindex $resultlist 0]
+        set result     [lindex $resultlist 1]
+        if {$returncode != $machista::SUCCESS} {
+            if {$returncode == $machista::EMAGIC} {
+                # not a Mach-O file
+                # ignore silently, these are only static libs anyway
+            } else {
+                ui_debug "Error parsing file ${b}: [machista::strerror $returncode]"
+            }
+            continue;
+        }
+        set architecture [$result cget -mt_archs]
+        while {$architecture ne "NULL"} {
+            set loadcommand [$architecture cget -mat_loadcmds]
+            while {$loadcommand ne "NULL"} {
+                set libname [file tail [$loadcommand cget -mlt_install_name]]
+                if {[string match libc++*.dylib $libname]} {
+                    set stdlibs(libc++) 1
+                } elseif {[string match libstdc++*.dylib $libname]} {
+                    set stdlibs(libstdc++) 1
+                }
+                set loadcommand [$loadcommand cget -next]
+            }
+            set architecture [$architecture cget -next]
+        }
+    }
+
+    machista::destroy_handle $handle
+
+    if {[info exists stdlibs(libc++)]} {
+        if {[info exists stdlibs(libstdc++)]} {
+            return "mixed"
+        } else {
+            return "libc++"
+        }
+    } elseif {[info exists stdlibs(libstdc++)]} {
+        return "libstdc++"
+    } else {
+        return "none"
+    }
+}
+
+
 ##
 # Execute the rev-upgrade scan and attempt to rebuild all ports found to be
 # broken. Depends on the revupgrade_mode setting from macports.conf.
@@ -4549,7 +4605,39 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         }
     }
 
-    set broken_files {};
+    set maybe_cxx_ports [registry::entry search state installed cxx_stdlib -null]
+    set maybe_cxx_len [llength $maybe_cxx_ports]
+    if {$maybe_cxx_len > 0} {
+        ui_msg "$macports::ui_prefix Updating database of C++ stdlib usage"
+        set i 1
+        if {$fancy_output} {
+            $revupgrade_progress start
+        }
+        registry::write {
+            foreach maybe_port $maybe_cxx_ports {
+                if {$fancy_output} {
+                    $revupgrade_progress update $i $maybe_cxx_len
+                }
+                incr i
+                set portid [$maybe_port id]
+                set binary_files {}
+                foreach maybe_binary [$maybe_port imagefiles] {
+                    set filehandle [registry::file open $portid $maybe_binary]
+                    if {![catch {$filehandle binary} isbinary] && $isbinary} {
+                        lappend binary_files [$filehandle actual_path]
+                    }
+                }
+                $maybe_port cxx_stdlib [get_actual_cxx_stdlib $binary_files]
+                # can't tell after the fact, assume not overridden
+                $maybe_port cxx_stdlib_overridden 0
+            }
+        }
+        if {$fancy_output} {
+            $revupgrade_progress finish
+        }
+    }
+
+    set broken_files {}
     set binaries [registry::file search active 1 binary 1]
     set binary_count [llength $binaries]
     if {$binary_count > 0} {
@@ -4781,7 +4869,17 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 ui_error "Broken file $file doesn't belong to any port."
             }
         }
-        set broken_ports [lsort -unique $broken_ports]
+        # check for mismatched cxx_stdlib
+        if {${macports::cxx_stdlib} eq "libc++"} {
+            set wrong_stdlib libstdc++
+        } else {
+            set wrong_stdlib libc++
+        }
+        set broken_cxx_ports [registry::entry search state installed cxx_stdlib_overridden 0 cxx_stdlib $wrong_stdlib]
+        foreach cxx_port $broken_cxx_ports {
+            ui_info "[$cxx_port name] is using $wrong_stdlib (this installation is configured to use ${macports::cxx_stdlib})"
+        }
+        set broken_ports [lsort -unique [concat $broken_ports $broken_cxx_ports]]
 
         if {$macports::revupgrade_mode eq "rebuild"} {
             # don't try to rebuild ports that don't exist in the tree
