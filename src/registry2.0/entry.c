@@ -251,11 +251,7 @@ static strategy_type strategies[] = {
 static int entry_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     int i, j;
     reg_registry* reg = registry_for(interp, reg_attached);
-    if ((objc > 2) && ((Tcl_GetString(objv[2])[0] == '-')
-                ? (objc % 2 == 0) : (objc % 2 == 1))) {
-        Tcl_WrongNumArgs(interp, 2, objv, "search ?options? ?key value ...?");
-        return TCL_ERROR;
-    } else if (reg == NULL) {
+    if (reg == NULL) {
         return TCL_ERROR;
     } else {
         char** keys;
@@ -286,8 +282,7 @@ static int entry_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
                 if (strategies[strat_index].strategy != reg_strategy_null) {
                     /* this key must also have a value */
 
-                    if (Tcl_GetStringFromObj(objv[i], &val_length) == NULL
-                            || val_length == 0) {
+                    if (Tcl_GetStringFromObj(objv[i], &val_length) == NULL) {
                         Tcl_WrongNumArgs(interp, 2, objv,
                                 "search ?key ?options? value ...?");
                         return TCL_ERROR;
@@ -298,8 +293,7 @@ static int entry_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
             } else {
                 /* this key must also have a value */
 
-                if (Tcl_GetStringFromObj(objv[i], &val_length) == NULL
-                        || val_length == 0) {
+                if (Tcl_GetStringFromObj(objv[i], &val_length) == NULL) {
                     Tcl_WrongNumArgs(interp, 2, objv,
                             "search ?key ?options? value ...?");
                     return TCL_ERROR;
