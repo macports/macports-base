@@ -47,10 +47,6 @@
 #include <stdio.h>
 
 /*
- * TODO: possibly, allow reg_entry_search to take different matching strategies
- *       for different keys. I don't know of an application for this feature
- *       yet, so no reason to bother for now.
- *
  * TODO: reg_entry_installed and reg_entry_imaged could benefit from the added
  *       flexibility of -glob and -regexp too. Not a high priority, though.
  *
