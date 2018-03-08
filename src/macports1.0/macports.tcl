@@ -4619,13 +4619,9 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     $revupgrade_progress update $i $maybe_cxx_len
                 }
                 incr i
-                set portid [$maybe_port id]
                 set binary_files {}
-                foreach maybe_binary [$maybe_port imagefiles] {
-                    set filehandle [registry::file open $portid $maybe_binary]
-                    if {![catch {$filehandle binary} isbinary] && $isbinary} {
-                        lappend binary_files [$filehandle actual_path]
-                    }
+                foreach filehandle [registry::file search id [$maybe_port id] binary 1] {
+                    lappend binary_files [$filehandle actual_path]
                 }
                 $maybe_port cxx_stdlib [get_actual_cxx_stdlib $binary_files]
                 # can't tell after the fact, assume not overridden

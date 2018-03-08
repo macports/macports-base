@@ -40,6 +40,7 @@
 #include "util.h"
 
 const char* file_props[] = {
+    "id",
     "path",
     "actual_path",
     "active",
