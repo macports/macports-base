@@ -93,7 +93,7 @@ default svn.pre_args {"--non-interactive --trust-server-cert"}
 default svn.args ""
 default svn.post_args ""
 
-default git.cmd {[findBinary git $portutil::autoconf::git_path]}
+default git.cmd {[portfetch::find_git_path]}
 default git.dir {${workpath}}
 default git.branch {}
 
@@ -181,6 +181,7 @@ proc portfetch::set_fetch_type {option action args} {
                 depends_fetch-append bin:cvs:cvs
             }
             svn {
+                # Sierra is the first macOS version whose svn supports modern TLS cipher suites.
                 if {${os.major} >= 16 || ${os.platform} ne "darwin"} {
                     depends_fetch-append bin:svn:subversion
                 } else {
@@ -188,7 +189,12 @@ proc portfetch::set_fetch_type {option action args} {
                 }
             }
             git {
-                depends_fetch-append bin:git:git
+                # Mavericks is the first OS X version whose git supports modern TLS cipher suites.
+                if {${os.major} >= 12 || ${os.platform} ne "darwin"} {
+                    depends_fetch-append bin:git:git
+                } else {
+                    depends_fetch-append port:git
+                }
             }
             hg {
                 depends_fetch-append bin:hg:mercurial
@@ -204,6 +210,16 @@ proc portfetch::find_svn_path {args} {
         return [findBinary svn $portutil::autoconf::svn_path]
     } else {
         return ${prefix}/bin/svn
+    }
+}
+
+proc portfetch::find_git_path {args} {
+    global prefix os.platform os.major
+    # Mavericks is the first OS X version whose git supports modern TLS cipher suites.
+    if {${os.major} >= 12 || ${os.platform} ne "darwin"} {
+        return [findBinary git $portutil::autoconf::git_path]
+    } else {
+        return ${prefix}/bin/git
     }
 }
 
