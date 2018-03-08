@@ -190,7 +190,7 @@ proc portfetch::set_fetch_type {option action args} {
             }
             git {
                 # Mavericks is the first OS X version whose git supports modern TLS cipher suites.
-                if {${os.major} >= 12 || ${os.platform} ne "darwin"} {
+                if {${os.major} >= 13 || ${os.platform} ne "darwin"} {
                     depends_fetch-append bin:git:git
                 } else {
                     depends_fetch-append port:git
@@ -216,7 +216,7 @@ proc portfetch::find_svn_path {args} {
 proc portfetch::find_git_path {args} {
     global prefix os.platform os.major
     # Mavericks is the first OS X version whose git supports modern TLS cipher suites.
-    if {${os.major} >= 12 || ${os.platform} ne "darwin"} {
+    if {${os.major} >= 13 || ${os.platform} ne "darwin"} {
         return [findBinary git $portutil::autoconf::git_path]
     } else {
         return ${prefix}/bin/git
