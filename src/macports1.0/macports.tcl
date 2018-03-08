@@ -4613,8 +4613,8 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         if {$fancy_output} {
             $revupgrade_progress start
         }
-        registry::write {
-            foreach maybe_port $maybe_cxx_ports {
+        foreach maybe_port $maybe_cxx_ports {
+            registry::write {
                 if {$fancy_output} {
                     $revupgrade_progress update $i $maybe_cxx_len
                 }
