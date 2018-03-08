@@ -39,6 +39,7 @@
 #include "util.h"
 
 const char* entry_props[] = {
+    "id",
     "name",
     "portfile",
     "location",
@@ -54,6 +55,8 @@ const char* entry_props[] = {
     "os_platform",
     "os_major",
     "requested",
+    "cxx_stdlib",
+    "cxx_stdlib_overridden",
     NULL
 };
 
@@ -415,6 +418,7 @@ typedef struct {
 
 static entry_obj_cmd_type entry_cmds[] = {
     /* keys */
+    { "id", entry_obj_prop },
     { "name", entry_obj_prop },
     { "portfile", entry_obj_prop },
     { "location", entry_obj_prop },
@@ -430,6 +434,8 @@ static entry_obj_cmd_type entry_cmds[] = {
     { "os_platform", entry_obj_prop },
     { "os_major", entry_obj_prop },
     { "requested", entry_obj_prop },
+    { "cxx_stdlib", entry_obj_prop },
+    { "cxx_stdlib_overridden", entry_obj_prop },
     /* filemap */
     { "map", entry_obj_filemap },
     { "unmap", entry_obj_filemap },

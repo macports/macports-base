@@ -47,7 +47,7 @@ namespace eval port {
 		variable _callback_list
 		lappend _callback_list ${callback}
 	}
-	
+
 	# Run the callbacks registered in the callback list. Called from
 	# macports1.0 in the child interpreter after evaluating the Portfile and
 	# the variants. Clears the list of callbacks.
@@ -83,6 +83,8 @@ package require porttrace 1.0
 package require portdistcheck 1.0
 package require portlivecheck 1.0
 package require portmirror 1.0
+
+package require portstartupitem 1.0
 package require portload 1.0
 package require portunload 1.0
 package require portreload 1.0

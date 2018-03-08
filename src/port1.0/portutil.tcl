@@ -1304,7 +1304,7 @@ set ports_dry_last_skipped ""
 proc target_run {ditem} {
     global target_state_fd workpath portpath ports_trace PortInfo ports_dryrun \
            ports_dry_last_skipped worksrcpath subport env portdbpath \
-           macosx_version
+           macosx_version prefix
     set portname $subport
     set result 0
     set skipped 0
@@ -1447,9 +1447,11 @@ proc target_run {ditem} {
                         }
                     }
 
-                    # Add ccache port for access to ${prefix}/bin/ccache binary
-                    if {[option configure.ccache]} {
-                        lappend deplist ccache
+                    # Add ccache port for access to ${prefix}/bin/ccache binary if it exists
+                    if {[option configure.ccache] && [file exists ${prefix}/bin/ccache]} {
+                        set name [_get_dep_port path:bin/ccache:ccache]
+                        lappend deplist $name
+                        set deplist [recursive_collect_deps $name $deplist]
                     }
 
                     ui_debug "Tracemode will respect recursively collected port dependencies: [lsort $deplist]"
@@ -2712,6 +2714,7 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
     }
     if {$metadata_type eq "contents"} {
         set contents {}
+        set binary_info {}
         set ignore 0
         set sep [file separator]
         foreach line [split $raw_contents \n] {
@@ -2723,9 +2726,11 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
                 lappend contents "${sep}${line}"
             } elseif {$line eq "@ignore"} {
                 set ignore 1
+            } elseif {[string range $line 0 15] eq "@comment binary:"} {
+                lappend binary_info [lindex $contents end] [string range $line 16 end]
             }
         }
-        return $contents
+        return [list $contents $binary_info]
     } elseif {$metadata_type eq "portname"} {
         foreach line [split $raw_contents \n] {
             if {[lindex $line 0] eq "@portname"} {
@@ -2733,6 +2738,23 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
             }
         }
         return ""
+    } elseif {$metadata_type eq "cxx_info"} {
+        set val_cxx_stdlib ""
+        set val_cxx_stdlib_overridden ""
+        foreach line [split $raw_contents \n] {
+            if {[lindex $line 0] eq "@cxx_stdlib"} {
+                set val_cxx_stdlib [lindex $line 1]
+                if {$val_cxx_stdlib_overridden ne ""} {
+                    break
+                }
+            } elseif {[lindex $line 0] eq "@cxx_stdlib_overridden"} {
+                set val_cxx_stdlib_overridden [lindex $line 1]
+                if {$val_cxx_stdlib ne ""} {
+                    break
+                }
+            }
+        }
+        return [list $val_cxx_stdlib $val_cxx_stdlib_overridden]
     } else {
         return -code error "unknown metadata_type: $metadata_type"
     }

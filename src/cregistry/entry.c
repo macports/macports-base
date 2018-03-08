@@ -47,10 +47,6 @@
 #include <stdio.h>
 
 /*
- * TODO: possibly, allow reg_entry_search to take different matching strategies
- *       for different keys. I don't know of an application for this feature
- *       yet, so no reason to bother for now.
- *
  * TODO: reg_entry_installed and reg_entry_imaged could benefit from the added
  *       flexibility of -glob and -regexp too. Not a high priority, though.
  *
@@ -396,23 +392,19 @@ static int reg_all_entries(reg_registry* reg, char* query, int query_len,
  * @param [in] keys      a list of keys to search by
  * @param [in] vals      a list of values to search by, matching keys
  * @param [in] key_count the number of key/value pairs passed
- * @param [in] strategy  strategy to use (one of the `reg_strategy_*` constants)
+ * @param [in] strategies  strategies to use (one of the `reg_strategy_*` constants)
  * @param [out] entries  a list of matching entries
  * @param [out] errPtr   on error, a description of the error that occurred
  * @return               the number of entries if success; false if failure
  */
 int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
-        int strategy, reg_entry*** entries, reg_error* errPtr) {
+        int *strategies, reg_entry*** entries, reg_error* errPtr) {
     int i;
     char* kwd = " WHERE ";
     char* query;
     size_t query_len, query_space;
     int result;
-    /* get the strategy */
-    char* op = reg_strategy_op(strategy, errPtr);
-    if (op == NULL) {
-        return -1;
-    }
+    char* op;
     /* build the query */
     query = strdup("SELECT id FROM registry.ports");
     if (!query) {
@@ -420,6 +412,11 @@ int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
     }
     query_len = query_space = strlen(query);
     for (i=0; i<key_count; i++) {
+        /* get the strategy */
+        op = reg_strategy_op(strategies[i], errPtr);
+        if (op == NULL) {
+            return -1;
+        }
         char* cond = sqlite3_mprintf(op, keys[i], vals[i]);
         if (!cond || !reg_strcat(&query, &query_len, &query_space, kwd)
             || !reg_strcat(&query, &query_len, &query_space, cond)) {

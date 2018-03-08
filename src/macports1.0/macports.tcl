@@ -49,7 +49,8 @@ namespace eval macports {
         portdbpath binpath auto_path extra_env sources_conf prefix portdbformat \
         portarchivetype portautoclean \
         porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
-        rsync_dir startupitem_type startupitem_install place_worksymlink xcodeversion xcodebuildcmd \
+        rsync_dir startupitem_autostart startupitem_type startupitem_install \
+        place_worksymlink xcodeversion xcodebuildcmd \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_sdk_version macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
@@ -62,7 +63,8 @@ namespace eval macports {
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
         registry.path registry.format user_home user_path user_ssh_auth_sock \
         portarchivetype archivefetch_pubkeys portautoclean porttrace keeplogs portverbose destroot_umask \
-        rsync_server rsync_options rsync_dir startupitem_type startupitem_install place_worksymlink macportsuser \
+        rsync_server rsync_options rsync_dir startupitem_autostart startupitem_type startupitem_install \
+        place_worksymlink macportsuser \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
         os_arch os_endian os_version os_major os_minor os_platform macosx_version macosx_sdk_version macosx_deployment_target \
@@ -958,6 +960,11 @@ match macports.conf.default."
         set macports::startupitem_install yes
     }
 
+    # Set whether ports are allowed to auto-load their startupitems
+    if {![info exists macports::startupitem_autostart]} {
+        set macports::startupitem_autostart yes
+    }
+
     # Default place_worksymlink
     if {![info exists macports::place_worksymlink]} {
         set macports::place_worksymlink yes
@@ -1370,6 +1377,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias realpath realpath
     $workername alias _mportsearchpath _mportsearchpath
     $workername alias _portnameactive _portnameactive
+    $workername alias get_actual_cxx_stdlib macports::get_actual_cxx_stdlib
 
     # New Registry/Receipts stuff
     $workername alias registry_new registry::new_entry
@@ -3985,6 +3993,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         return 0
     }
 
+    set workername [ditem_key $mport workername]
     if {$will_build} {
         if {$already_installed
             && ([info exists options(ports_upgrade_force)] || $build_override == 1)} {
@@ -3992,7 +4001,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             # fresh one will be either fetched or built locally.
             # Ideally this would be done in the interp_options when we mportopen,
             # but we don't know if we want to do this at that point.
-            set workername [ditem_key $mport workername]
             $workername eval {set force_archive_refresh yes}
 
             # run archivefetch and destroot for version_in_tree
@@ -4025,6 +4033,12 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 return 1
             }
         }
+    }
+
+    # check if the startupitem is loaded, so we can load again it after upgrading
+    # (deactivating the old version will unload the startupitem)
+    if {$portname eq $newname} {
+        set load_startupitem [$workername eval {portstartupitem::is_loaded}]
     }
 
     # are we installing an existing version due to force or epoch override?
@@ -4084,11 +4098,17 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             ui_msg "Skipping deactivate $portname @${version_active}_${revision_active}$variant_active (dry run)"
         }
         ui_msg "Skipping activate $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
-    } elseif {[catch {set result [mportexec $mport activate]} result]} {
-        ui_debug $::errorInfo
-        ui_error "Couldn't activate $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants): $result"
-        catch {mportclose $mport}
-        return 1
+    } else {
+        if {[catch {mportexec $mport activate} result]} {
+            ui_debug $::errorInfo
+            ui_error "Couldn't activate $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants): $result"
+            catch {mportclose $mport}
+            return 1
+        }
+        if {$load_startupitem && [catch {mportexec $mport load} result]} {
+            ui_debug $::errorInfo
+            ui_warn "Error loading startupitem for ${newname}: $result"
+        }
     }
 
     # Check if we have to do dependents
@@ -4414,6 +4434,61 @@ proc macports::reclaim_main {opts} {
     return 0
 }
 
+# given a list of binaries, determine which C++ stdlib is used (if any)
+proc macports::get_actual_cxx_stdlib {binaries} {
+    if {$binaries eq ""} {
+        return "none"
+    }
+    set handle [machista::create_handle]
+    if {$handle eq "NULL"} {
+        error "Error creating libmachista handle"
+    }
+    array set stdlibs {}
+    foreach b $binaries {
+        set resultlist [machista::parse_file $handle $b]
+        set returncode [lindex $resultlist 0]
+        set result     [lindex $resultlist 1]
+        if {$returncode != $machista::SUCCESS} {
+            if {$returncode == $machista::EMAGIC} {
+                # not a Mach-O file
+                # ignore silently, these are only static libs anyway
+            } else {
+                ui_debug "Error parsing file ${b}: [machista::strerror $returncode]"
+            }
+            continue;
+        }
+        set architecture [$result cget -mt_archs]
+        while {$architecture ne "NULL"} {
+            set loadcommand [$architecture cget -mat_loadcmds]
+            while {$loadcommand ne "NULL"} {
+                set libname [file tail [$loadcommand cget -mlt_install_name]]
+                if {[string match libc++*.dylib $libname]} {
+                    set stdlibs(libc++) 1
+                } elseif {[string match libstdc++*.dylib $libname]} {
+                    set stdlibs(libstdc++) 1
+                }
+                set loadcommand [$loadcommand cget -next]
+            }
+            set architecture [$architecture cget -next]
+        }
+    }
+
+    machista::destroy_handle $handle
+
+    if {[info exists stdlibs(libc++)]} {
+        if {[info exists stdlibs(libstdc++)]} {
+            return "mixed"
+        } else {
+            return "libc++"
+        }
+    } elseif {[info exists stdlibs(libstdc++)]} {
+        return "libstdc++"
+    } else {
+        return "none"
+    }
+}
+
+
 ##
 # Execute the rev-upgrade scan and attempt to rebuild all ports found to be
 # broken. Depends on the revupgrade_mode setting from macports.conf.
@@ -4530,7 +4605,39 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         }
     }
 
-    set broken_files {};
+    set maybe_cxx_ports [registry::entry search state installed cxx_stdlib -null]
+    set maybe_cxx_len [llength $maybe_cxx_ports]
+    if {$maybe_cxx_len > 0} {
+        ui_msg "$macports::ui_prefix Updating database of C++ stdlib usage"
+        set i 1
+        if {$fancy_output} {
+            $revupgrade_progress start
+        }
+        registry::write {
+            foreach maybe_port $maybe_cxx_ports {
+                if {$fancy_output} {
+                    $revupgrade_progress update $i $maybe_cxx_len
+                }
+                incr i
+                set portid [$maybe_port id]
+                set binary_files {}
+                foreach maybe_binary [$maybe_port imagefiles] {
+                    set filehandle [registry::file open $portid $maybe_binary]
+                    if {![catch {$filehandle binary} isbinary] && $isbinary} {
+                        lappend binary_files [$filehandle actual_path]
+                    }
+                }
+                $maybe_port cxx_stdlib [get_actual_cxx_stdlib $binary_files]
+                # can't tell after the fact, assume not overridden
+                $maybe_port cxx_stdlib_overridden 0
+            }
+        }
+        if {$fancy_output} {
+            $revupgrade_progress finish
+        }
+    }
+
+    set broken_files {}
     set binaries [registry::file search active 1 binary 1]
     set binary_count [llength $binaries]
     if {$binary_count > 0} {
@@ -4762,7 +4869,17 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 ui_error "Broken file $file doesn't belong to any port."
             }
         }
-        set broken_ports [lsort -unique $broken_ports]
+        # check for mismatched cxx_stdlib
+        if {${macports::cxx_stdlib} eq "libc++"} {
+            set wrong_stdlib libstdc++
+        } else {
+            set wrong_stdlib libc++
+        }
+        set broken_cxx_ports [registry::entry search state installed cxx_stdlib_overridden 0 cxx_stdlib $wrong_stdlib]
+        foreach cxx_port $broken_cxx_ports {
+            ui_info "[$cxx_port name] is using $wrong_stdlib (this installation is configured to use ${macports::cxx_stdlib})"
+        }
+        set broken_ports [lsort -unique [concat $broken_ports $broken_cxx_ports]]
 
         if {$macports::revupgrade_mode eq "rebuild"} {
             # don't try to rebuild ports that don't exist in the tree

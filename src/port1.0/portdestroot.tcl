@@ -47,13 +47,7 @@ namespace eval portdestroot {
 
 # define options
 options destroot.target destroot.destdir destroot.clean destroot.keepdirs destroot.umask \
-        destroot.violate_mtree destroot.asroot destroot.delete_la_files \
-        startupitem.autostart startupitem.create startupitem.executable \
-        startupitem.init startupitem.install startupitem.location \
-        startupitem.logevents startupitem.logfile startupitem.name \
-        startupitem.netchange startupitem.pidfile startupitem.plist \
-        startupitem.requires startupitem.restart startupitem.start \
-        startupitem.stop startupitem.type startupitem.uniquename
+        destroot.violate_mtree destroot.asroot destroot.delete_la_files
 commands destroot
 
 # Set defaults
@@ -70,24 +64,6 @@ default destroot.clean no
 default destroot.keepdirs ""
 default destroot.violate_mtree no
 default destroot.delete_la_files {${delete_la_files}}
-
-default startupitem.autostart   no
-default startupitem.executable  ""
-default startupitem.init        ""
-default startupitem.install     {$system_options(startupitem_install)}
-default startupitem.location    LaunchDaemons
-default startupitem.logevents   no
-default startupitem.logfile     ""
-default startupitem.name        {${subport}}
-default startupitem.netchange   no
-default startupitem.pidfile     ""
-default startupitem.plist       {${startupitem.uniquename}.plist}
-default startupitem.requires    ""
-default startupitem.restart     ""
-default startupitem.start       ""
-default startupitem.stop        ""
-default startupitem.type        {$system_options(startupitem_type)}
-default startupitem.uniquename  {org.macports.${startupitem.name}}
 
 set_ui_prefix
 
@@ -136,12 +112,12 @@ proc portdestroot::destroot_start {args} {
 
     file mkdir "${destroot}"
     if { ${os.platform} eq "darwin" } {
-        system "cd \"${destroot}\" && ${mtree} -e -U -f [file join ${portsharepath} install macosx.mtree]"
+        system -W ${destroot} "${mtree} -e -U -f [file join ${portsharepath} install macosx.mtree]"
         file mkdir "${destroot}${applications_dir}"
         file mkdir "${destroot}${frameworks_dir}"
     }
     file mkdir "${destroot}${prefix}"
-    system "cd \"${destroot}${prefix}\" && ${mtree} -e -U -f [file join ${portsharepath} install prefix.mtree]"
+    system -W ${destroot}${prefix} "${mtree} -e -U -f [file join ${portsharepath} install prefix.mtree]"
 }
 
 proc portdestroot::destroot_main {args} {
@@ -157,7 +133,6 @@ proc portdestroot::destroot_finish {args} {
 
     # Create startup-scripts/items
     if {[tbool startupitem.create]} {
-        package require portstartupitem 1.0
         portstartupitem::startupitem_create
     }
 
@@ -244,18 +219,18 @@ proc portdestroot::destroot_finish {args} {
                     if {[file isfile ${manfilepath}] && [file type ${manfilepath}] eq "file"} {
                         if {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$" ${manfile} gzfile manfile]} {
                             set found 1
-                            system "cd ${manpath} && \
-                            $gunzip -f [file join ${mandir} ${gzfile}] && \
+                            system -W ${manpath} \
+                            "$gunzip -f [file join ${mandir} ${gzfile}] && \
                             $gzip -9vnf [file join ${mandir} ${manfile}]"
                         } elseif {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$" ${manfile} bz2file manfile]} {
                             set found 1
-                            system "cd ${manpath} && \
-                            $bunzip2 -f [file join ${mandir} ${bz2file}] && \
+                            system -W ${manpath} \
+                            "$bunzip2 -f [file join ${mandir} ${bz2file}] && \
                             $gzip -9vnf [file join ${mandir} ${manfile}]"
                         } elseif {[regexp "\[.\]${manindex}\[a-z\]*\$" ${manfile}]} {
                             set found 1
-                            system "cd ${manpath} && \
-                            $gzip -9vnf [file join ${mandir} ${manfile}]"
+                            system -W ${manpath} \
+                            "$gzip -9vnf [file join ${mandir} ${manfile}]"
                         }
                         set gzmanfile ${manfile}.gz
                         set gzmanfilepath [file join ${mandirpath} ${gzmanfile}]

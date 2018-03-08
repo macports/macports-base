@@ -133,6 +133,12 @@ universal_archs     	@UNIVERSAL_ARCHS@
 # This setting only applies when building ports from source.
 #startupitem_install	yes
 
+# Whether to allow ports to automatically load their StartupItems.
+# If set to "no", StartupItems will never be loaded unless the user
+# explicitly requests it. If set to "yes" (the default), some ports may
+# automatically load their StartupItems when they are activated.
+#startupitem_autostart  yes
+
 # Extra environment variables to keep. MacPorts sanitizes its
 # environment while processing ports, keeping:
 # - DISPLAY

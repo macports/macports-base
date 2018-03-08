@@ -53,7 +53,7 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr);
 void reg_entry_free(reg_entry* entry);
 
 int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
-        int strategy, reg_entry*** entries, reg_error* errPtr);
+        int* strategies, reg_entry*** entries, reg_error* errPtr);
 
 int reg_entry_imaged(reg_registry* reg, const char* name, const char* version,
         const char* revision, const char* variants, reg_entry*** entries,
