@@ -181,7 +181,7 @@ proc portfetch::set_fetch_type {option action args} {
                 depends_fetch-append bin:cvs:cvs
             }
             svn {
-                if {${os.major} >= 10 || ${os.platform} ne "darwin"} {
+                if {${os.major} >= 16 || ${os.platform} ne "darwin"} {
                     depends_fetch-append bin:svn:subversion
                 } else {
                     depends_fetch-append port:subversion
