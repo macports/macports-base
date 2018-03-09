@@ -4037,6 +4037,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
     # check if the startupitem is loaded, so we can load again it after upgrading
     # (deactivating the old version will unload the startupitem)
+    set load_startupitem 0
     if {$portname eq $newname} {
         set load_startupitem [$workername eval {portstartupitem::is_loaded}]
     }
