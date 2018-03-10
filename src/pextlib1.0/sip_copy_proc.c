@@ -339,13 +339,11 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
         goto lazy_copy_out;
     }
 
-    // copyfile(3)/clonefile(2) will not preserve SF_RESTRICTED,
-    // we can safely clone the source file with all metadata
-    copyfile_flags_t flags = COPYFILE_ALL;
-#ifdef COPYFILE_CLONE
-    flags = COPYFILE_CLONE;
-#endif
-    if (copyfile(path, target_path_temp, NULL, flags) != 0) {
+    // copyfile(3) will not preserve SF_RESTRICTED,
+    // we can safely copy the source file with all metadata.
+    // This cannot use COPYFILE_CLONE as it does not follow symlinks,
+    // see https://trac.macports.org/ticket/55575
+    if (copyfile(path, target_path_temp, NULL, COPYFILE_ALL) != 0) {
         fprintf(stderr, "sip_copy_proc: copyfile(%s, %s): %s\n", path, target_path_temp, strerror(errno));
         goto lazy_copy_out;
     }
