@@ -1,0 +1,152 @@
+
+% Generated from file '.FILE.' by tcllib/doctools with format 'latex'
+% Copyright (c) **Copyright**
+% CVS: @ID@ ALL.a
+\documentclass{article}
+\begin{document}
+\author{@USR@}
+\title{.MODULE. / ALL -- ..THE\_MODULE.. : ..THE\_TITLE..}
+\maketitle
+\section{Synopsis}\label{synopsis}
+\begin{flushleft}
+package require {\bf AAA}
+package require {\bf BBB VVV}
+package require {\bf CCC ?VVV?}
+\end{flushleft}
+\begin{itemize}
+\item[] CMDNAME ...
+\item[] CMDNAME ...
+\item[] CMDNAME ...
+\end{itemize}
+\section{Description}\label{section1}
+\begin{itemize}
+%
+\item[] {\bf NAME}
+%
+ DESCRIPTION ::{\bf Command}::
+%
+\item[] {\bf NAME}
+%
+ DESCRIPTION ::::
+%
+\item[] {\bf NAME}
+%
+ DESCRIPTION ::{\bf Constant}::
+\end{itemize}
+\section{API}\label{section2}
+\begin{itemize}
+%
+\item[] TERM
+%
+ DESCRIPTION ::{\it Emphasis}::
+%
+\item[] TERM
+%
+ DESCRIPTION ::"{\it File/Path}"::
+\begin{itemize}
+%
+\item[] Command-Line Switch:	{\bf NAME}\\
+Database Name:	{\bf DBNAME}\\
+Database Class:	{\bf CLASS}\\
+%
+ DESCRIPTION {\bf NARGLE (\ref{subsection1})}
+%
+\item[] Command-Line Switch:	{\bf NAME}\\
+Database Name:	{\bf DBNAME}\\
+Database Class:	{\bf CLASS}\\
+%
+ DESCRIPTION ::{\bf Function}::
+%
+\item[] Command-Line Switch:	{\bf NAME}\\
+Database Name:	{\bf DBNAME}\\
+Database Class:	{\bf CLASS}\\
+%
+ DESCRIPTION ::{\bf Method}::
+\end{itemize}
+%
+\item[] TERM
+%
+ DESCRIPTION
+%
+\item[] CMDNAME ...
+%
+ DESCRIPTION ::{\bf Namespace]}::
+\begin{itemize}
+%
+\item[] \underline{NAME} TYPE
+%
+ DESCRIPTION ::\underline{Argument}::
+%
+\item[] \underline{NAME} TYPE
+%
+ DESCRIPTION ::{\bf Option}::
+%
+\item[] \underline{NAME} TYPE (MODE)
+%
+ DESCRIPTION ::?Optional?::
+\begin{verbatim}
+    THE ARGUMENT IS USED IN THIS
+    AND/OR THAT MANNER
+\end{verbatim}
+\end{itemize}
+%
+\item[] CMDNAME ...
+%
+ DESCRIPTION ::{\bf Package}::
+%
+\item[] CMDNAME ...
+%
+ DESCRIPTION ::{\bf SystemCommand}::
+\begin{itemize}
+%
+\item[] {\bf NAME}
+%
+ DESCRIPTION ::{\it Term}::
+%
+\item[] {\bf NAME}
+%
+ DESCRIPTION ::{\bf Type}::
+%
+\item[] {\bf NAME} ARGUMENT
+%
+ DESCRIPTION ::\underline{Uri}::
+\end{itemize}
+\end{itemize}
+\subsection{NARGLE}\label{subsection1}
+\begin{enumerate}
+%
+\item
+%
+ PARAGRAPH ::\underline{UriLabel} \footnote{Uri}::
+%
+\item
+%
+ PARAGRAPH ::{\bf Variable}::
+%
+\item
+%
+ PARAGRAPH ::{\bf Widget}::
+\begin{itemize}
+%
+\item
+%
+ PARAGRAPH ::{\bf Class}::
+%
+\item
+%
+ PARAGRAPH
+%
+\item
+%
+ PARAGRAPH
+\end{itemize}
+\end{enumerate}
+\section{See Also}\label{see-also}
+ELSE, OTHER
+\section{Keywords}\label{keywords}
+KEYA, KEYZ
+\section{Copyright}\label{copyright}
+\begin{flushleft}
+Copyright (c) **Copyright**\linebreak
+\end{flushleft}
+\end{document}

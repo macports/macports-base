@@ -1,0 +1,1504 @@
+[vset VERSION 1]
+[manpage_begin math::statistics n [vset VERSION]]
+[keywords {data analysis}]
+[keywords mathematics]
+[keywords statistics]
+[moddesc {Tcl Math Library}]
+[titledesc {Basic statistical functions and procedures}]
+[category  Mathematics]
+[require Tcl 8.4]
+[require math::statistics [vset VERSION]]
+[description]
+[para]
+
+The [package math::statistics] package contains functions and procedures for
+basic statistical data analysis, such as:
+
+[list_begin itemized]
+[item]
+Descriptive statistical parameters (mean, minimum, maximum, standard
+deviation)
+
+[item]
+Estimates of the distribution in the form of histograms and quantiles
+
+[item]
+Basic testing of hypotheses
+
+[item]
+Probability and cumulative density functions
+
+[list_end]
+It is meant to help in developing data analysis applications or doing
+ad hoc data analysis, it is not in itself a full application, nor is it
+intended to rival with full (non-)commercial statistical packages.
+
+[para]
+The purpose of this document is to describe the implemented procedures
+and provide some examples of their usage. As there is ample literature
+on the algorithms involved, we refer to relevant text books for more
+explanations.
+
+The package contains a fairly large number of public procedures. They
+can be distinguished in three sets: general procedures, procedures
+that deal with specific statistical distributions, list procedures to
+select or transform data and simple plotting procedures (these require
+Tk).
+
+[emph Note:] The data that need to be analyzed are always contained in a
+simple list. Missing values are represented as empty list elements.
+
+[section "GENERAL PROCEDURES"]
+The general statistical procedures are:
+
+[list_begin definitions]
+
+[call [cmd ::math::statistics::mean] [arg data]]
+Determine the [term mean] value of the given list of data.
+
+[list_begin arguments]
+[arg_def list data] - List of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::min] [arg data]]
+Determine the [term minimum] value of the given list of data.
+
+[list_begin arguments]
+[arg_def list data] - List of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::max] [arg data]]
+Determine the [term maximum] value of the given list of data.
+
+[list_begin arguments]
+[arg_def list data] - List of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::number] [arg data]]
+Determine the [term number] of non-missing data in the given list
+
+[list_begin arguments]
+[arg_def list data] - List of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::stdev] [arg data]]
+Determine the [term "sample standard deviation"] of the data in the
+given list
+
+[list_begin arguments]
+[arg_def list data] - List of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::var] [arg data]]
+Determine the [term "sample variance"] of the data in the given list
+
+[list_begin arguments]
+[arg_def list data] - List of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::pstdev] [arg data]]
+Determine the [term "population standard deviation"] of the data
+in the given list
+
+[list_begin arguments]
+[arg_def list data] - List of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::pvar] [arg data]]
+Determine the [term "population variance"] of the data in the
+given list
+
+[list_begin arguments]
+[arg_def list data] - List of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::median] [arg data]]
+Determine the [term median] of the data in the given list
+(Note that this requires sorting the data, which may be a
+costly operation)
+
+[list_begin arguments]
+[arg_def list data] - List of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::basic-stats] [arg data]]
+Determine a list of all the descriptive parameters: mean, minimum,
+maximum, number of data, sample standard deviation, sample variance,
+population standard deviation and population variance.
+[para]
+(This routine is called whenever either or all of the basic statistical
+parameters are required. Hence all calculations are done and the
+relevant values are returned.)
+
+[list_begin arguments]
+[arg_def list data] - List of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::histogram] [arg limits] [arg values] [opt weights]]
+Determine histogram information for the given list of data. Returns a
+list consisting of the number of values that fall into each interval.
+(The first interval consists of all values lower than the first limit,
+the last interval consists of all values greater than the last limit.
+There is one more interval than there are limits.)
+[para]
+Optionally, you can use weights to influence the histogram.
+
+[list_begin arguments]
+[arg_def list limits] - List of upper limits (in ascending order) for the
+intervals of the histogram.
+[arg_def list values] - List of data
+[arg_def list weights] - List of weights, one weight per value
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::histogram-alt] [arg limits] [arg values] [opt weights]]
+Alternative implementation of the histogram procedure: the open end of the intervals
+is at the lower bound instead of the upper bound.
+
+[list_begin arguments]
+[arg_def list limits] - List of upper limits (in ascending order) for the
+intervals of the histogram.
+[arg_def list values] - List of data
+[arg_def list weights] - List of weights, one weight per value
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::corr] [arg data1] [arg data2]]
+Determine the correlation coefficient between two sets of data.
+
+[list_begin arguments]
+[arg_def list data1] - First list of data
+[arg_def list data2] - Second list of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::interval-mean-stdev] [arg data] [arg confidence]]
+Return the interval containing the mean value and one
+containing the standard deviation with a certain
+level of confidence (assuming a normal distribution)
+
+[list_begin arguments]
+[arg_def list data] - List of raw data values (small sample)
+[arg_def float confidence] - Confidence level (0.95 or 0.99 for instance)
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::t-test-mean] [arg data] [arg est_mean] \
+[arg est_stdev] [arg alpha]]
+Test whether the mean value of a sample is in accordance with the
+estimated normal distribution with a certain probability.
+Returns 1 if the test succeeds or 0 if the mean is unlikely to fit
+the given distribution.
+
+[list_begin arguments]
+[arg_def list data] - List of raw data values (small sample)
+[arg_def float est_mean] - Estimated mean of the distribution
+[arg_def float est_stdev] - Estimated stdev of the distribution
+[arg_def float alpha] - Probability level (0.95 or 0.99 for instance)
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::test-normal] [arg data] [arg significance]]
+Test whether the given data follow a normal distribution
+with a certain level of significance.
+Returns 1 if the data are normally distributed within the level of
+significance, returns 0 if not. The underlying test is the Lilliefors
+test. Smaller values of the significance mean a stricter testing.
+
+[list_begin arguments]
+[arg_def list data] - List of raw data values
+[arg_def float significance] - Significance level (one of 0.01, 0.05, 0.10, 0.15 or 0.20). For compatibility
+reasons the values "1-significance", 0.80, 0.85, 0.90, 0.95 or 0.99 are also accepted.
+[list_end]
+[para]
+Compatibility issue: the original implementation and documentation used the term "confidence" and used a value
+1-significance (see ticket 2812473fff). This has been corrected as of version 0.9.3.
+
+[call [cmd ::math::statistics::lillieforsFit] [arg data]]
+Returns the goodness of fit to a normal distribution according to
+Lilliefors. The higher the number, the more likely the data are indeed
+normally distributed. The test requires at least [emph five] data
+points.
+
+[list_begin arguments]
+[arg_def list data] - List of raw data values
+[list_end]
+[para]
+
+
+[call [cmd ::math::statistics::test-Duckworth] [arg list1] [arg list2] [arg significance]]
+Determine if two data sets have the same median according to the Tukey-Duckworth test.
+The procedure returns 0 if the medians are unequal, 1 if they are equal, -1 if the test can not
+be conducted (the smallest value must be in a different set than the greatest value).
+#
+# Arguments:
+#     list1           Values in the first data set
+#     list2           Values in the second data set
+#     significance    Significance level (either 0.05, 0.01 or 0.001)
+#
+# Returns:
+
+Test whether the given data follow a normal distribution
+with a certain level of significance.
+Returns 1 if the data are normally distributed within the level of
+significance, returns 0 if not. The underlying test is the Lilliefors
+test. Smaller values of the significance mean a stricter testing.
+
+[list_begin arguments]
+[arg_def list list1] - First list of data
+[arg_def list list2] - Second list of data
+[arg_def float significance] - Significance level (either 0.05, 0.01 or 0.001)
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::quantiles] [arg data] [arg confidence]]
+Return the quantiles for a given set of data
+[list_begin arguments]
+[para]
+[arg_def list data] - List of raw data values
+[para]
+[arg_def float confidence] - Confidence level (0.95 or 0.99 for instance) or a list of confidence levels.
+[para]
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::quantiles] [arg limits] [arg counts] [arg confidence]]
+Return the quantiles based on histogram information (alternative to the
+call with two arguments)
+[list_begin arguments]
+[arg_def list limits] - List of upper limits from histogram
+[arg_def list counts] - List of counts for for each interval in histogram
+[arg_def float confidence] -  Confidence level (0.95 or 0.99 for instance) or a list of confidence levels.
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::autocorr] [arg data]]
+Return the autocorrelation function as a list of values (assuming
+equidistance between samples, about 1/2 of the number of raw data)
+[para]
+The correlation is determined in such a way that the first value is
+always 1 and all others are equal to or smaller than 1. The number of
+values involved will diminish as the "time" (the index in the list of
+returned values) increases
+[list_begin arguments]
+[arg_def list data] - Raw data for which the autocorrelation must be determined
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::crosscorr] [arg data1] [arg data2]]
+Return the cross-correlation function as a list of values (assuming
+equidistance between samples, about 1/2 of the number of raw data)
+[para]
+The correlation is determined in such a way that the values can never
+exceed 1 in magnitude. The number of values involved will diminish
+as the "time" (the index in the list of returned values) increases.
+[list_begin arguments]
+[arg_def list data1] - First list of data
+[arg_def list data2] - Second list of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::mean-histogram-limits] [arg mean] \
+[arg stdev] [arg number]]
+Determine reasonable limits based on mean and standard deviation
+for a histogram
+Convenience function - the result is suitable for the histogram function.
+
+[list_begin arguments]
+[arg_def float mean] - Mean of the data
+[arg_def float stdev] - Standard deviation
+[arg_def int number] - Number of limits to generate (defaults to 8)
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::minmax-histogram-limits] [arg min] \
+[arg max] [arg number]]
+Determine reasonable limits based on a minimum and maximum for a histogram
+[para]
+Convenience function - the result is suitable for the histogram function.
+[list_begin arguments]
+[arg_def float min] - Expected minimum
+[arg_def float max] - Expected maximum
+[arg_def int number] - Number of limits to generate (defaults to 8)
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::linear-model] [arg xdata] \
+[arg ydata] [arg intercept]]
+Determine the coefficients for a linear regression between
+two series of data (the model: Y = A + B*X). Returns a list of
+parameters describing the fit
+
+[list_begin arguments]
+[arg_def list xdata] - List of independent data
+[arg_def list ydata] - List of dependent data to be fitted
+[arg_def boolean intercept] - (Optional) compute the intercept (1, default) or fit
+to a line through the origin (0)
+[para]
+The result consists of the following list:
+[list_begin itemized]
+[item]
+(Estimate of) Intercept A
+[item]
+(Estimate of) Slope B
+[item]
+Standard deviation of Y relative to fit
+[item]
+Correlation coefficient R2
+[item]
+Number of degrees of freedom df
+[item]
+Standard error of the intercept A
+[item]
+Significance level of A
+[item]
+Standard error of the slope B
+[item]
+Significance level of B
+[list_end]
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::linear-residuals] [arg xdata] [arg ydata] \
+[arg intercept]]
+Determine the difference between actual data and predicted from
+the linear model.
+[para]
+Returns a list of the differences between the actual data and the
+predicted values.
+[list_begin arguments]
+[arg_def list xdata] - List of independent data
+[arg_def list ydata] - List of dependent data to be fitted
+[arg_def boolean intercept] - (Optional) compute the intercept (1, default) or fit
+to a line through the origin (0)
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::test-2x2] [arg n11] [arg n21] [arg n12] [arg n22]]
+Determine if two set of samples, each from a binomial distribution,
+differ significantly or not (implying a different parameter).
+[para]
+Returns the "chi-square" value, which can be used to the determine the
+significance.
+[list_begin arguments]
+[arg_def int n11] - Number of outcomes with the first value from the first sample.
+[arg_def int n21] - Number of outcomes with the first value from the second sample.
+[arg_def int n12] - Number of outcomes with the second value from the first sample.
+[arg_def int n22] - Number of outcomes with the second value from the second sample.
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::print-2x2] [arg n11] [arg n21] [arg n12] [arg n22]]
+Determine if two set of samples, each from a binomial distribution,
+differ significantly or not (implying a different parameter).
+[para]
+Returns a short report, useful in an interactive session.
+[list_begin arguments]
+[arg_def int n11] - Number of outcomes with the first value from the first sample.
+[arg_def int n21] - Number of outcomes with the first value from the second sample.
+[arg_def int n12] - Number of outcomes with the second value from the first sample.
+[arg_def int n22] - Number of outcomes with the second value from the second sample.
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::control-xbar] [arg data] [opt nsamples]]
+Determine the control limits for an xbar chart. The number of data
+in each subsample defaults to 4. At least 20 subsamples are required.
+[para]
+Returns the mean, the lower limit, the upper limit and the number of
+data per subsample.
+
+[list_begin arguments]
+[arg_def list data] - List of observed data
+[arg_def int nsamples] - Number of data per subsample
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::control-Rchart] [arg data] [opt nsamples]]
+Determine the control limits for an R chart. The number of data
+in each subsample (nsamples) defaults to 4. At least 20 subsamples are required.
+[para]
+Returns the mean range, the lower limit, the upper limit and the number
+of data per subsample.
+
+[list_begin arguments]
+[arg_def list data] - List of observed data
+[arg_def int nsamples] - Number of data per subsample
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::test-xbar] [arg control] [arg data]]
+Determine if the data exceed the control limits for the xbar chart.
+[para]
+Returns a list of subsamples (their indices) that indeed violate the
+limits.
+
+[list_begin arguments]
+[arg_def list control] - Control limits as returned by the "control-xbar" procedure
+[arg_def list data] - List of observed data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::test-Rchart] [arg control] [arg data]]
+Determine if the data exceed the control limits for the R chart.
+[para]
+Returns a list of subsamples (their indices) that indeed violate the
+limits.
+[list_begin arguments]
+[arg_def list control] - Control limits as returned by the "control-Rchart" procedure
+[arg_def list data] - List of observed data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::test-Kruskal-Wallis] [arg confidence] [arg args]]
+Check if the population medians of two or more groups are equal with a
+given confidence level, using the Kruskal-Wallis test.
+
+[list_begin arguments]
+[arg_def float confidence] - Confidence level to be used (0-1)
+[arg_def list args] - Two or more lists of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::analyse-Kruskal-Wallis] [arg args]]
+Compute the statistical parameters for the Kruskal-Wallis test.
+Returns the Kruskal-Wallis statistic and the probability that that
+value would occur assuming the medians of the populations are
+equal.
+
+[list_begin arguments]
+[arg_def list args] - Two or more lists of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::group-rank] [arg args]]
+Rank the groups of data with respect to the complete set.
+Returns a list consisting of the group ID, the value and the rank
+(possibly a rational number, in case of ties) for each data item.
+
+[list_begin arguments]
+[arg_def list args] - Two or more lists of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::test-Wilcoxon] [arg sample_a] [arg sample_b]]
+Compute the Wilcoxon test statistic to determine if two samples have the
+same median or not. (The statistic can be regarded as standard normal, if the
+sample sizes are both larger than 10. Returns the value of this statistic.
+
+[list_begin arguments]
+[arg_def list sample_a] - List of data comprising the first sample
+[arg_def list sample_b] - List of data comprising the second sample
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::spearman-rank] [arg sample_a] [arg sample_b]]
+Return the Spearman rank correlation as an alternative to the ordinary (Pearson's) correlation
+coefficient. The two samples should have the same number of data.
+
+[list_begin arguments]
+[arg_def list sample_a] - First list of data
+[arg_def list sample_b] - Second list of data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::spearman-rank-extended] [arg sample_a] [arg sample_b]]
+Return the Spearman rank correlation as an alternative to the ordinary (Pearson's) correlation
+coefficient as well as additional data. The two samples should have the same number of data.
+The procedure returns the correlation coefficient, the number of data pairs used and the
+z-score, an approximately standard normal statistic, indicating the significance of the correlation.
+
+[list_begin arguments]
+[arg_def list sample_a] - First list of data
+[arg_def list sample_b] - Second list of data
+[list_end]
+
+[call [cmd ::math::statistics::kernel-density] [arg data] opt [arg "-option value"] ...]]
+Return the density function based on kernel density estimation. The procedure is controlled by
+a small set of options, each of which is given a reasonable default.
+[para]
+The return value consists of three lists: the centres of the bins, the associated probability
+density and a list of computational parameters (begin and end of the interval, mean and standard
+deviation and the used bandwidth). The computational parameters can be used for further analysis.
+
+[list_begin arguments]
+[arg_def list data] - The data to be examined
+[arg_def list args] - Option-value pairs:
+[list_begin definitions]
+[def "[option -weights] [arg weights]"]  Per data point the weight (default: 1 for all data)
+[def "[option -bandwidth] [arg value]"]  Bandwidth to be used for the estimation (default: determined from standard deviation)
+[def "[option -number] [arg value]"]  Number of bins to be returned (default: 100)
+[def "[option -interval] [arg "{begin end}"]"]  Begin and end of the interval for
+which the density is returned (default: mean +/- 3*standard deviation)
+[def "[option -kernel] [arg function]"]  Kernel to be used (One of: gaussian, cosine,
+epanechnikov, uniform, triangular, biweight, logistic; default: gaussian)
+[list_end]
+[list_end]
+
+[list_end]
+
+[section "MULTIVARIATE LINEAR REGRESSION"]
+
+Besides the linear regression with a single independent variable, the
+statistics package provides two procedures for doing ordinary
+least squares (OLS) and weighted least squares (WLS) linear regression
+with several variables. They were written by Eric Kemp-Benedict.
+
+[para]
+In addition to these two, it provides a procedure (tstat)
+for calculating the value of the t-statistic for the specified number of
+degrees of freedom that is required to demonstrate a given level of
+significance.
+
+[para]
+Note: These procedures depend on the math::linearalgebra package.
+
+[para]
+[emph "Description of the procedures"]
+
+[list_begin definitions]
+[call [cmd ::math::statistics::tstat] [arg dof] [opt alpha]]
+Returns the value of the t-distribution t* satisfying
+
+[example {
+    P(t*)  =  1 - alpha/2
+    P(-t*) =  alpha/2
+}]
+for the number of degrees of freedom dof.
+[para]
+Given a sample of normally-distributed data x, with an
+estimate xbar for the mean and sbar for the standard deviation,
+the alpha confidence interval for the estimate of the mean can
+be calculated as
+[example {
+      ( xbar - t* sbar , xbar + t* sbar)
+}]
+The return values from this procedure can be compared to
+an estimated t-statistic to determine whether the estimated
+value of a parameter is significantly different from zero at
+the given confidence level.
+
+[list_begin arguments]
+[arg_def int dof]
+Number of degrees of freedom
+
+[arg_def float alpha]
+Confidence level of the t-distribution. Defaults to 0.05.
+
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::mv-wls] [arg wt1] [arg weights_and_values]]
+Carries out a weighted least squares linear regression for
+the data points provided, with weights assigned to each point.
+
+[para]
+The linear model is of the form
+
+[example {
+    y = b0 + b1 * x1 + b2 * x2 ... + bN * xN + error
+}]
+and each point satisfies
+[example {
+    yi = b0 + b1 * xi1 + b2 * xi2 + ... + bN * xiN + Residual_i
+}]
+[para]
+The procedure returns a list with the following elements:
+[list_begin itemized]
+[item]
+The r-squared statistic
+[item]
+The adjusted r-squared statistic
+[item]
+A list containing the estimated coefficients b1, ... bN, b0
+(The constant b0 comes last in the list.)
+[item]
+A list containing the standard errors of the coefficients
+[item]
+A list containing the 95% confidence bounds of the coefficients,
+with each set of bounds returned as a list with two values
+[list_end]
+
+Arguments:
+[list_begin arguments]
+[arg_def list weights_and_values]
+A list consisting of: the weight for the first observation, the data
+for the first observation (as a sublist), the weight for the second
+observation (as a sublist) and so on. The sublists of data are organised
+as lists of the value of the dependent variable y and the independent
+variables x1, x2 to xN.
+
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::mv-ols] [arg values]]
+Carries out an ordinary least squares linear regression for
+the data points provided.
+
+[para]
+This procedure simply calls ::mvlinreg::wls with the weights
+set to 1.0, and returns the same information.
+
+[list_end]
+
+[emph "Example of the use:"]
+[example {
+# Store the value of the unicode value for the "+/-" character
+set pm "\u00B1"
+
+# Provide some data
+set data {{  -.67  14.18  60.03 -7.5  }
+          { 36.97  15.52  34.24 14.61 }
+          {-29.57  21.85  83.36 -7.   }
+          {-16.9   11.79  51.67 -6.56 }
+          { 14.09  16.24  36.97 -12.84}
+          { 31.52  20.93  45.99 -25.4 }
+          { 24.05  20.69  50.27  17.27}
+          { 22.23  16.91  45.07  -4.3 }
+          { 40.79  20.49  38.92  -.73 }
+          {-10.35  17.24  58.77  18.78}}
+
+# Call the ols routine
+set results [::math::statistics::mv-ols $data]
+
+# Pretty-print the results
+puts "R-squared: [lindex $results 0]"
+puts "Adj R-squared: [lindex $results 1]"
+puts "Coefficients $pm s.e. -- \[95% confidence interval\]:"
+foreach val [lindex $results 2] se [lindex $results 3] bounds [lindex $results 4] {
+    set lb [lindex $bounds 0]
+    set ub [lindex $bounds 1]
+    puts "   $val $pm $se -- \[$lb to $ub\]"
+}
+}]
+
+[section "STATISTICAL DISTRIBUTIONS"]
+In the literature a large number of probability distributions can be
+found. The statistics package supports:
+[list_begin itemized]
+[item]
+The normal or Gaussian distribution as well as the log-normal distribution
+[item]
+The uniform distribution - equal probability for all data within a given
+interval
+[item]
+The exponential distribution - useful as a model for certain
+extreme-value distributions.
+[item]
+The gamma distribution - based on the incomplete Gamma integral
+[item]
+The beta distribution
+[item]
+The chi-square distribution
+[item]
+The student's T distribution
+[item]
+The Poisson distribution
+[item]
+The Pareto distribution
+[item]
+The Gumbel distribution
+[item]
+The Weibull distribution
+[item]
+The Cauchy distribution
+[item]
+PM - binomial,F.
+[list_end]
+
+In principle for each distribution one has procedures for:
+[list_begin itemized]
+[item]
+The probability density (pdf-*)
+[item]
+The cumulative density (cdf-*)
+[item]
+Quantiles for the given distribution (quantiles-*)
+[item]
+Histograms for the given distribution (histogram-*)
+[item]
+List of random values with the given distribution (random-*)
+[list_end]
+
+The following procedures have been implemented:
+
+[list_begin definitions]
+
+[call [cmd ::math::statistics::pdf-normal] [arg mean] [arg stdev] [arg value]]
+Return the probability of a given value for a normal distribution with
+given mean and standard deviation.
+
+[list_begin arguments]
+[arg_def float mean] - Mean value of the distribution
+[arg_def float stdev] - Standard deviation of the distribution
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::pdf-lognormal] [arg mean] [arg stdev] [arg value]]
+Return the probability of a given value for a log-normal distribution with
+given mean and standard deviation.
+
+[list_begin arguments]
+[arg_def float mean] - Mean value of the distribution
+[arg_def float stdev] - Standard deviation of the distribution
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::pdf-exponential] [arg mean] [arg value]]
+Return the probability of a given value for an exponential
+distribution with given mean.
+
+[list_begin arguments]
+[arg_def float mean] - Mean value of the distribution
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::pdf-uniform] [arg xmin] [arg xmax] [arg value]]
+Return the probability of a given value for a uniform
+distribution with given extremes.
+
+[list_begin arguments]
+[arg_def float xmin] - Minimum value of the distribution
+[arg_def float xmin] - Maximum value of the distribution
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::pdf-gamma] [arg alpha] [arg beta] [arg value]]
+Return the probability of a given value for a Gamma
+distribution with given shape and rate parameters
+
+[list_begin arguments]
+[arg_def float alpha] - Shape parameter
+[arg_def float beta] - Rate parameter
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::pdf-poisson] [arg mu] [arg k]]
+Return the probability of a given number of occurrences in the same
+interval (k) for a Poisson distribution with given mean (mu)
+
+[list_begin arguments]
+[arg_def float mu] - Mean number of occurrences
+[arg_def int k] - Number of occurences
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::pdf-chisquare] [arg df] [arg value]]
+Return the probability of a given value for a chi square
+distribution with given degrees of freedom
+
+[list_begin arguments]
+[arg_def float df] - Degrees of freedom
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::pdf-student-t] [arg df] [arg value]]
+Return the probability of a given value for a Student's t
+distribution with given degrees of freedom
+
+[list_begin arguments]
+[arg_def float df] - Degrees of freedom
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::pdf-gamma] [arg a] [arg b] [arg value]]
+Return the probability of a given value for a Gamma
+distribution with given shape and rate parameters
+
+[list_begin arguments]
+[arg_def float a] - Shape parameter
+[arg_def float b] - Rate parameter
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::pdf-beta] [arg a] [arg b] [arg value]]
+Return the probability of a given value for a Beta
+distribution with given shape parameters
+
+[list_begin arguments]
+[arg_def float a] - First shape parameter
+[arg_def float b] - Second shape parameter
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::pdf-weibull] [arg scale] [arg shape] [arg value]]
+Return the probability of a given value for a Weibull
+distribution with given scale and shape parameters
+
+[list_begin arguments]
+[arg_def float location] - Scale parameter
+[arg_def float scale] - Shape parameter
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::pdf-gumbel] [arg location] [arg scale] [arg value]]
+Return the probability of a given value for a Gumbel
+distribution with given location and shape parameters
+
+[list_begin arguments]
+[arg_def float location] - Location parameter
+[arg_def float scale] - Shape parameter
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::pdf-pareto] [arg scale] [arg shape] [arg value]]
+Return the probability of a given value for a Pareto
+distribution with given scale and shape parameters
+
+[list_begin arguments]
+[arg_def float scale] - Scale parameter
+[arg_def float shape] - Shape parameter
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::pdf-cauchy] [arg location] [arg scale] [arg value]]
+Return the probability of a given value for a Cauchy
+distribution with given location and shape parameters. Note that the Cauchy distribution
+has no finite higher-order moments.
+
+[list_begin arguments]
+[arg_def float location] - Location parameter
+[arg_def float scale] - Shape parameter
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::cdf-normal] [arg mean] [arg stdev] [arg value]]
+Return the cumulative probability of a given value for a normal
+distribution with given mean and standard deviation, that is the
+probability for values up to the given one.
+
+[list_begin arguments]
+[arg_def float mean] - Mean value of the distribution
+[arg_def float stdev] - Standard deviation of the distribution
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::cdf-lognormal] [arg mean] [arg stdev] [arg value]]
+Return the cumulative probability of a given value for a log-normal
+distribution with given mean and standard deviation, that is the
+probability for values up to the given one.
+
+[list_begin arguments]
+[arg_def float mean] - Mean value of the distribution
+[arg_def float stdev] - Standard deviation of the distribution
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::cdf-exponential] [arg mean] [arg value]]
+Return the cumulative probability of a given value for an exponential
+distribution with given mean.
+
+[list_begin arguments]
+[arg_def float mean] - Mean value of the distribution
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::cdf-uniform] [arg xmin] [arg xmax] [arg value]]
+Return the cumulative probability of a given value for a uniform
+distribution with given extremes.
+
+[list_begin arguments]
+[arg_def float xmin] - Minimum value of the distribution
+[arg_def float xmin] - Maximum value of the distribution
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::cdf-students-t] [arg degrees] [arg value]]
+Return the cumulative probability of a given value for a Student's t
+distribution with given number of degrees.
+[list_begin arguments]
+[arg_def int degrees] - Number of degrees of freedom
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::cdf-gamma] [arg alpha] [arg beta] [arg value]]
+Return the cumulative probability of a given value for a Gamma
+distribution with given shape and rate parameters.
+
+[list_begin arguments]
+[arg_def float alpha] - Shape parameter
+[arg_def float beta] - Rate parameter
+[arg_def float value] - Value for which the cumulative probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::cdf-poisson] [arg mu] [arg k]]
+Return the cumulative probability of a given number of occurrences in
+the same interval (k) for a Poisson distribution with given mean (mu).
+
+[list_begin arguments]
+[arg_def float mu] - Mean number of occurrences
+[arg_def int k] - Number of occurences
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::cdf-beta] [arg a] [arg b] [arg value]]
+Return the cumulative probability of a given value for a Beta
+distribution with given shape parameters
+
+[list_begin arguments]
+[arg_def float a] - First shape parameter
+[arg_def float b] - Second shape parameter
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::cdf-weibull] [arg scale] [arg shape] [arg value]]
+Return the cumulative probability of a given value for a Weibull
+distribution with given scale and shape parameters.
+
+[list_begin arguments]
+[arg_def float scale] - Scale parameter
+[arg_def float shape] - Shape parameter
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::cdf-gumbel] [arg location] [arg scale] [arg value]]
+Return the cumulative probability of a given value for a Gumbel
+distribution with given location and scale parameters.
+
+[list_begin arguments]
+[arg_def float location] - Location parameter
+[arg_def float scale] - Scale parameter
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::cdf-pareto] [arg scale] [arg shape] [arg value]]
+Return the cumulative probability of a given value for a Pareto
+distribution with given scale and shape parameters
+
+[list_begin arguments]
+[arg_def float scale] - Scale parameter
+[arg_def float shape] - Shape parameter
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::cdf-cauchy] [arg location] [arg scale] [arg value]]
+Return the cumulative probability of a given value for a Cauchy
+distribution with given location and scale parameters.
+
+[list_begin arguments]
+[arg_def float location] - Location parameter
+[arg_def float scale] - Scale parameter
+[arg_def float value] - Value for which the probability is required
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::empirical-distribution] [arg values]]
+Return a list of values and their empirical probability. The values are sorted in increasing order.
+(The implementation follows the description at the corresponding Wikipedia page)
+
+[list_begin arguments]
+[arg_def list values] - List of data to be examined
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::random-normal] [arg mean] [arg stdev] [arg number]]
+Return a list of "number" random values satisfying a normal
+distribution with given mean and standard deviation.
+[list_begin arguments]
+[arg_def float mean] - Mean value of the distribution
+[arg_def float stdev] - Standard deviation of the distribution
+[arg_def int number] - Number of values to be returned
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::random-lognormal] [arg mean] [arg stdev] [arg number]]
+Return a list of "number" random values satisfying a log-normal
+distribution with given mean and standard deviation.
+[list_begin arguments]
+[arg_def float mean] - Mean value of the distribution
+[arg_def float stdev] - Standard deviation of the distribution
+[arg_def int number] - Number of values to be returned
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::random-exponential] [arg mean] [arg number]]
+Return a list of "number" random values satisfying an exponential
+distribution with given mean.
+[list_begin arguments]
+[arg_def float mean] - Mean value of the distribution
+[arg_def int number] - Number of values to be returned
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::random-uniform] [arg xmin] [arg xmax] [arg number]]
+Return a list of "number" random values satisfying a uniform
+distribution with given extremes.
+
+[list_begin arguments]
+[arg_def float xmin] - Minimum value of the distribution
+[arg_def float xmax] - Maximum value of the distribution
+[arg_def int number] - Number of values to be returned
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::random-gamma] [arg alpha] [arg beta] [arg number]]
+Return a list of "number" random values satisfying
+a Gamma distribution with given shape and rate parameters.
+
+[list_begin arguments]
+[arg_def float alpha] - Shape parameter
+[arg_def float beta] - Rate parameter
+[arg_def int number] - Number of values to be returned
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::random-poisson] [arg mu] [arg number]]
+Return a list of "number" random values satisfying
+a Poisson distribution with given mean.
+
+[list_begin arguments]
+[arg_def float mu] - Mean of the distribution
+[arg_def int number] - Number of values to be returned
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::random-chisquare] [arg df] [arg number]]
+Return a list of "number" random values satisfying
+a chi square distribution with given degrees of freedom.
+
+[list_begin arguments]
+[arg_def float df] - Degrees of freedom
+[arg_def int number] - Number of values to be returned
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::random-student-t] [arg df] [arg number]]
+Return a list of "number" random values satisfying
+a Student's t distribution with given degrees of freedom.
+
+[list_begin arguments]
+[arg_def float df] - Degrees of freedom
+[arg_def int number] - Number of values to be returned
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::random-beta] [arg a] [arg b] [arg number]]
+Return a list of "number" random values satisfying
+a Beta distribution with given shape parameters.
+
+[list_begin arguments]
+[arg_def float a] - First shape parameter
+[arg_def float b] - Second shape parameter
+[arg_def int number] - Number of values to be returned
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::random-weibull] [arg scale] [arg shape] [arg number]]
+Return a list of "number" random values satisfying
+a Weibull distribution with given scale and shape parameters.
+
+[list_begin arguments]
+[arg_def float scale] - Scale parameter
+[arg_def float shape] - Shape parameter
+[arg_def int number] - Number of values to be returned
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::random-gumbel] [arg location] [arg scale] [arg number]]
+Return a list of "number" random values satisfying
+a Gumbel distribution with given location and scale parameters.
+
+[list_begin arguments]
+[arg_def float location] - Location parameter
+[arg_def float scale] - Scale parameter
+[arg_def int number] - Number of values to be returned
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::random-pareto] [arg scale] [arg shape] [arg number]]
+Return a list of "number" random values satisfying
+a Pareto distribution with given scale and shape parameters.
+
+[list_begin arguments]
+[arg_def float scale] - Scale parameter
+[arg_def float shape] - Shape parameter
+[arg_def int number] - Number of values to be returned
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::random-cauchy] [arg location] [arg scale] [arg number]]
+Return a list of "number" random values satisfying
+a Cauchy distribution with given location and scale parameters.
+
+[list_begin arguments]
+[arg_def float location] - Location parameter
+[arg_def float scale] - Scale parameter
+[arg_def int number] - Number of values to be returned
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::histogram-uniform] [arg xmin] [arg xmax] [arg limits] [arg number]]
+Return the expected histogram for a uniform distribution.
+
+[list_begin arguments]
+[arg_def float xmin] - Minimum value of the distribution
+[arg_def float xmax] - Maximum value of the distribution
+[arg_def list limits] - Upper limits for the buckets in the histogram
+[arg_def int number] - Total number of "observations" in the histogram
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::incompleteGamma] [arg x] [arg p] [opt tol]]
+Evaluate the incomplete Gamma integral
+
+[example {
+                    1       / x               p-1
+      P(p,x) =  --------   |   dt exp(-t) * t
+                Gamma(p)  / 0
+}]
+
+[list_begin arguments]
+[arg_def float x] - Value of x (limit of the integral)
+[arg_def float p] - Value of p in the integrand
+[arg_def float tol] - Required tolerance (default: 1.0e-9)
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::incompleteBeta] [arg a] [arg b] [arg x] [opt tol]]
+Evaluate the incomplete Beta integral
+
+[list_begin arguments]
+[arg_def float a] - First shape parameter
+[arg_def float b] - Second shape parameter
+[arg_def float x] - Value of x (limit of the integral)
+[arg_def float tol] - Required tolerance (default: 1.0e-9)
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::estimate-pareto] [arg values]]
+Estimate the parameters for the Pareto distribution that comes closest to the given values.
+Returns the estimated scale and shape parameters, as well as the standard error for the shape parameter.
+
+[list_begin arguments]
+[arg_def list values] - List of values, assumed to be distributed according to a Pareto distribution
+[list_end]
+[para]
+
+[list_end]
+TO DO: more function descriptions to be added
+
+[section "DATA MANIPULATION"]
+The data manipulation procedures act on lists or lists of lists:
+
+[list_begin definitions]
+
+[call [cmd ::math::statistics::filter] [arg varname] [arg data] [arg expression]]
+Return a list consisting of the data for which the logical
+expression is true (this command works analogously to the command [cmd foreach]).
+
+[list_begin arguments]
+[arg_def string varname] - Name of the variable used in the expression
+[arg_def list data] - List of data
+[arg_def string expression] - Logical expression using the variable name
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::map] [arg varname] [arg data] [arg expression]]
+Return a list consisting of the data that are transformed via the
+expression.
+
+[list_begin arguments]
+[arg_def string varname] - Name of the variable used in the expression
+[arg_def list data] - List of data
+[arg_def string expression] - Expression to be used to transform (map) the data
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::samplescount] [arg varname] [arg list] [arg expression]]
+Return a list consisting of the [term counts] of all data in the
+sublists of the "list" argument for which the expression is true.
+
+[list_begin arguments]
+[arg_def string varname] - Name of the variable used in the expression
+[arg_def list data] - List of sublists, each containing the data
+[arg_def string expression] - Logical expression to test the data (defaults to
+"true").
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::subdivide]]
+Routine [emph PM] - not implemented yet
+[para]
+
+[list_end]
+
+[section "PLOT PROCEDURES"]
+The following simple plotting procedures are available:
+[list_begin definitions]
+
+[call [cmd ::math::statistics::plot-scale] [arg canvas] \
+[arg xmin] [arg xmax] [arg ymin] [arg ymax]]
+Set the scale for a plot in the given canvas. All plot routines expect
+this function to be called first. There is no automatic scaling
+provided.
+
+[list_begin arguments]
+[arg_def widget canvas] - Canvas widget to use
+[arg_def float xmin] - Minimum x value
+[arg_def float xmax] - Maximum x value
+[arg_def float ymin] - Minimum y value
+[arg_def float ymax] - Maximum y value
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::plot-xydata] [arg canvas] \
+[arg xdata] [arg ydata] [arg tag]]
+Create a simple XY plot in the given canvas - the data are
+shown as a collection of dots. The tag can be used to manipulate the
+appearance.
+
+[list_begin arguments]
+[arg_def widget canvas] - Canvas widget to use
+[arg_def float xdata] - Series of independent data
+[arg_def float ydata] - Series of dependent data
+[arg_def string tag] - Tag to give to the plotted data (defaults to xyplot)
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::plot-xyline] [arg canvas] \
+[arg xdata] [arg ydata] [arg tag]]
+Create a simple XY plot in the given canvas - the data are
+shown as a line through the data points. The tag can be used to
+manipulate the appearance.
+[list_begin arguments]
+[arg_def widget canvas] - Canvas widget to use
+[arg_def list xdata] - Series of independent data
+[arg_def list ydata] - Series of dependent data
+[arg_def string tag] - Tag to give to the plotted data (defaults to xyplot)
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::plot-tdata] [arg canvas] \
+[arg tdata] [arg tag]]
+Create a simple XY plot in the given canvas - the data are
+shown as a collection of dots. The horizontal coordinate is equal to the
+index. The tag can be used to manipulate the appearance.
+This type of presentation is suitable for autocorrelation functions for
+instance or for inspecting the time-dependent behaviour.
+[list_begin arguments]
+[arg_def widget canvas] - Canvas widget to use
+[arg_def list tdata] - Series of dependent data
+[arg_def string tag] - Tag to give to the plotted data (defaults to xyplot)
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::plot-tline] [arg canvas] \
+[arg tdata] [arg tag]]
+Create a simple XY plot in the given canvas - the data are
+shown as a line. See plot-tdata for an explanation.
+
+[list_begin arguments]
+[arg_def widget canvas] - Canvas widget to use
+[arg_def list tdata] - Series of dependent data
+[arg_def string tag] - Tag to give to the plotted data (defaults to xyplot)
+[list_end]
+[para]
+
+[call [cmd ::math::statistics::plot-histogram] [arg canvas] \
+[arg counts] [arg limits] [arg tag]]
+Create a simple histogram in the given canvas
+
+[list_begin arguments]
+[arg_def widget canvas] - Canvas widget to use
+[arg_def list counts] - Series of bucket counts
+[arg_def list limits] - Series of upper limits for the buckets
+[arg_def string tag] - Tag to give to the plotted data (defaults to xyplot)
+[list_end]
+[para]
+
+[list_end]
+
+[section {THINGS TO DO}]
+The following procedures are yet to be implemented:
+[list_begin itemized]
+[item]
+F-test-stdev
+[item]
+interval-mean-stdev
+[item]
+histogram-normal
+[item]
+histogram-exponential
+[item]
+test-histogram
+[item]
+test-corr
+[item]
+quantiles-*
+[item]
+fourier-coeffs
+[item]
+fourier-residuals
+[item]
+onepar-function-fit
+[item]
+onepar-function-residuals
+[item]
+plot-linear-model
+[item]
+subdivide
+[list_end]
+
+[section EXAMPLES]
+The code below is a small example of how you can examine a set of
+data:
+[para]
+[example_begin]
+
+# Simple example:
+# - Generate data (as a cheap way of getting some)
+# - Perform statistical analysis to describe the data
+#
+package require math::statistics
+
+#
+# Two auxiliary procs
+#
+proc pause {time} {
+   set wait 0
+   after [lb]expr {$time*1000}[rb] {set ::wait 1}
+   vwait wait
+}
+
+proc print-histogram {counts limits} {
+   foreach count $counts limit $limits {
+      if { $limit != {} } {
+         puts [lb]format "<%12.4g\t%d" $limit $count[rb]
+         set prev_limit $limit
+      } else {
+         puts [lb]format ">%12.4g\t%d" $prev_limit $count[rb]
+      }
+   }
+}
+
+#
+# Our source of arbitrary data
+#
+proc generateData { data1 data2 } {
+   upvar 1 $data1 _data1
+   upvar 1 $data2 _data2
+
+   set d1 0.0
+   set d2 0.0
+   for { set i 0 } { $i < 100 } { incr i } {
+      set d1 [lb]expr {10.0-2.0*cos(2.0*3.1415926*$i/24.0)+3.5*rand()}[rb]
+      set d2 [lb]expr {0.7*$d2+0.3*$d1+0.7*rand()}[rb]
+      lappend _data1 $d1
+      lappend _data2 $d2
+   }
+   return {}
+}
+
+#
+# The analysis session
+#
+package require Tk
+console show
+canvas .plot1
+canvas .plot2
+pack   .plot1 .plot2 -fill both -side top
+
+generateData data1 data2
+
+puts "Basic statistics:"
+set b1 [lb]::math::statistics::basic-stats $data1[rb]
+set b2 [lb]::math::statistics::basic-stats $data2[rb]
+foreach label {mean min max number stdev var} v1 $b1 v2 $b2 {
+   puts "$label\t$v1\t$v2"
+}
+puts "Plot the data as function of \"time\" and against each other"
+::math::statistics::plot-scale .plot1  0 100  0 20
+::math::statistics::plot-scale .plot2  0 20   0 20
+::math::statistics::plot-tline .plot1 $data1
+::math::statistics::plot-tline .plot1 $data2
+::math::statistics::plot-xydata .plot2 $data1 $data2
+
+puts "Correlation coefficient:"
+puts [lb]::math::statistics::corr $data1 $data2]
+
+pause 2
+puts "Plot histograms"
+.plot2 delete all
+::math::statistics::plot-scale .plot2  0 20 0 100
+set limits         [lb]::math::statistics::minmax-histogram-limits 7 16[rb]
+set histogram_data [lb]::math::statistics::histogram $limits $data1[rb]
+::math::statistics::plot-histogram .plot2 $histogram_data $limits
+
+puts "First series:"
+print-histogram $histogram_data $limits
+
+pause 2
+set limits         [lb]::math::statistics::minmax-histogram-limits 0 15 10[rb]
+set histogram_data [lb]::math::statistics::histogram $limits $data2[rb]
+::math::statistics::plot-histogram .plot2 $histogram_data $limits d2
+.plot2 itemconfigure d2 -fill red
+
+puts "Second series:"
+print-histogram $histogram_data $limits
+
+puts "Autocorrelation function:"
+set  autoc [lb]::math::statistics::autocorr $data1[rb]
+puts [lb]::math::statistics::map $autoc {[lb]format "%.2f" $x]}[rb]
+puts "Cross-correlation function:"
+set  crossc [lb]::math::statistics::crosscorr $data1 $data2[rb]
+puts [lb]::math::statistics::map $crossc {[lb]format "%.2f" $x[rb]}[rb]
+
+::math::statistics::plot-scale .plot1  0 100 -1  4
+::math::statistics::plot-tline .plot1  $autoc "autoc"
+::math::statistics::plot-tline .plot1  $crossc "crossc"
+.plot1 itemconfigure autoc  -fill green
+.plot1 itemconfigure crossc -fill yellow
+
+puts "Quantiles: 0.1, 0.2, 0.5, 0.8, 0.9"
+puts "First:  [lb]::math::statistics::quantiles $data1 {0.1 0.2 0.5 0.8 0.9}[rb]"
+puts "Second: [lb]::math::statistics::quantiles $data2 {0.1 0.2 0.5 0.8 0.9}[rb]"
+
+[example_end]
+If you run this example, then the following should be clear:
+[list_begin itemized]
+[item]
+There is a strong correlation between two time series, as displayed by
+the raw data and especially by the correlation functions.
+[item]
+Both time series show a significant periodic component
+[item]
+The histograms are not very useful in identifying the nature of the time
+series - they do not show the periodic nature.
+[list_end]
+
+[vset CATEGORY {math :: statistics}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

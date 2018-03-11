@@ -1,0 +1,218 @@
+
+<div class='fossil-doc' data-title='profiler - Tcl Profiler'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">profiler(n) 0.3 tcllib &quot;Tcl Profiler&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>profiler - Tcl source code profiler</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.3</b></li>
+<li>package require <b class="pkgname">profiler <span class="opt">?0.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::profiler::init</b></a></li>
+<li><a href="#2"><b class="cmd">::profiler::dump</b> <i class="arg">pattern</i></a></li>
+<li><a href="#3"><b class="cmd">::profiler::print</b> <span class="opt">?<i class="arg">pattern</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">::profiler::reset</b> <span class="opt">?<i class="arg">pattern</i>?</span></a></li>
+<li><a href="#5"><b class="cmd">::profiler::suspend</b> <span class="opt">?<i class="arg">pattern</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">::profiler::resume</b> <span class="opt">?<i class="arg">pattern</i>?</span></a></li>
+<li><a href="#7"><b class="cmd">::profiler::sortFunctions</b> <i class="arg">key</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">profiler</b> package provides a simple Tcl source code
+profiler.  It is a function-level profiler; that is, it collects only
+function-level information, not the more detailed line-level
+information.  It operates by redefining the Tcl <b class="cmd"><a href="../../../../index.html#key591">proc</a></b> command.
+Profiling is initiated via the <b class="cmd">::profiler::init</b> command.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::profiler::init</b></a></dt>
+<dd><p>Initiate profiling.  All procedures created after this command is
+called will be profiled.  To profile an entire application, this
+command must be called before any other commands.</p></dd>
+<dt><a name="2"><b class="cmd">::profiler::dump</b> <i class="arg">pattern</i></a></dt>
+<dd><p>Dump profiling information for the all functions matching
+<i class="arg">pattern</i>.  If no pattern is specified, information for all
+functions will be returned.  The result is a list of key/value pairs
+that maps function names to information about that function.  The
+information about each function is in turn a list of key/value pairs.
+The keys used and their values are:</p>
+<dl class="doctools_definitions">
+<dt><b class="const">totalCalls</b></dt>
+<dd><p>The total number of times <i class="arg">functionName</i> was called.</p></dd>
+<dt><b class="const">callerDist</b></dt>
+<dd><p>A list of key/value pairs mapping each calling function that called
+<i class="arg">functionName</i> to the number of times it called
+<i class="arg">functionName</i>.</p></dd>
+<dt><b class="const">compileTime</b></dt>
+<dd><p>The runtime, in clock clicks, of <i class="arg">functionName</i> the first time
+that it was called.</p></dd>
+<dt><b class="const">totalRuntime</b></dt>
+<dd><p>The sum of the runtimes of all calls of <i class="arg">functionName</i>.</p></dd>
+<dt><b class="const">averageRuntime</b></dt>
+<dd><p>Average runtime of <i class="arg">functionName</i>.</p></dd>
+<dt><b class="const">descendantTime</b></dt>
+<dd><p>Sum of the time spent in descendants of <i class="arg">functionName</i>.</p></dd>
+<dt><b class="const">averageDescendantTime</b></dt>
+<dd><p>Average time spent in descendants of <i class="arg">functionName</i>.</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">::profiler::print</b> <span class="opt">?<i class="arg">pattern</i>?</span></a></dt>
+<dd><p>Print profiling information for all functions matching <i class="arg">pattern</i>.
+If no pattern is specified, information about all functions will be
+displayed.  The return result is a human readable display of the
+profiling information.</p></dd>
+<dt><a name="4"><b class="cmd">::profiler::reset</b> <span class="opt">?<i class="arg">pattern</i>?</span></a></dt>
+<dd><p>Reset profiling information for all functions matching <i class="arg">pattern</i>.
+If no pattern is specified, information will be reset for all
+functions.</p></dd>
+<dt><a name="5"><b class="cmd">::profiler::suspend</b> <span class="opt">?<i class="arg">pattern</i>?</span></a></dt>
+<dd><p>Suspend profiling for all functions matching <i class="arg">pattern</i>.  If no
+pattern is specified, profiling will be suspended for all
+functions. It stops gathering profiling information after this command
+is issued. However, it does not erase any profiling information that
+has been gathered previously.  Use resume command to re-enable
+profiling.</p></dd>
+<dt><a name="6"><b class="cmd">::profiler::resume</b> <span class="opt">?<i class="arg">pattern</i>?</span></a></dt>
+<dd><p>Resume profiling for all functions matching <i class="arg">pattern</i>.  If no
+pattern is specified, profiling will be resumed for all functions.
+This command should be invoked after suspending the profiler in the
+code.</p></dd>
+<dt><a name="7"><b class="cmd">::profiler::sortFunctions</b> <i class="arg">key</i></a></dt>
+<dd><p>Return a list of functions sorted by a particular profiling statistic.
+Supported values for <i class="arg">key</i> are: <b class="const">calls</b>,
+<b class="const">exclusiveTime</b>, <b class="const">compileTime</b>, <b class="const">nonCompileTime</b>,
+<b class="const">totalRuntime</b>, <b class="const">avgExclusiveTime</b>, and
+<b class="const">avgRuntime</b>.  The return result is a list of lists, where each
+sublist consists of a function name and the value of <i class="arg">key</i> for
+that function.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>profiler</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key100">performance</a>, <a href="../../../../index.html#key648">profile</a>, <a href="../../../../index.html#key647">speed</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+</div>

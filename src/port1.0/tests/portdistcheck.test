@@ -24,6 +24,10 @@ test distcheck_main {
     set portpath $pwd
     set filespath $pwd/files
 
+    # dummy env values to satisfy mirror_sites.tcl
+    set os.platform darwin
+    set os.major 10
+
     set name gcc_select
     set subport $name
     set distname select-0.1

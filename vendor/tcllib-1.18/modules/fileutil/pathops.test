@@ -1,0 +1,515 @@
+# -*- tcl -*-
+# Tests for the find function.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# Copyright (c) 2001 by ActiveState Tool Corp.
+# Copyright (c) 2005-2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: pathops.test,v 1.2 2009/10/27 19:16:34 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal fileutil.tcl fileutil
+}
+
+# -------------------------------------------------------------------------
+
+set dir $::tcltest::temporaryDirectory
+
+# -------------------------------------------------------------------------
+
+test jail-1.0 {jail error} {
+    catch {::fileutil::jail} res
+    set res
+} [tcltest::wrongNumArgs {::fileutil::jail} {jail filename} 0]
+
+test jail-1.2 {jail error} {
+    catch {::fileutil::jail a} res
+    set res
+} [tcltest::wrongNumArgs {::fileutil::jail} {jail filename} 1]
+
+test jail-1.3 {jail error} {
+    catch {::fileutil::jail a b c} res
+    set res
+} [tcltest::tooManyArgs {::fileutil::jail} {jail filename}]
+
+test jail-2.0 {jail relative} {
+    ::fileutil::jail /var/www a/b/c
+} /var/www/a/b/c
+
+test jail-2.1 {jail absolute outside} {
+    ::fileutil::jail /var/www /a/b/c
+} /var/www/a/b/c
+
+test jail-2.1.1 {jail absolute outside, spaces} {
+    ::fileutil::jail /var/www {/a/b/c d}
+} {/var/www/a/b/c d}
+
+test jail-2.2 {jail absolute inside} {
+    ::fileutil::jail /var/www /var/www/a/b/c
+} /var/www/a/b/c
+
+test jail-2.2.1 {jail absolute inside} {
+    ::fileutil::jail /var/www {/var/www/a/b/c d}
+} {/var/www/a/b/c d}
+
+test jail-2.3 {try to escape from jail} {
+    ::fileutil::jail /var/www ../../etc/passwd
+} /var/www/etc/passwd
+
+test jail-2.4 {jail is relative itself} {
+    ::fileutil::jail a b
+} [file join $dir a b]
+
+test jail-2.4.1 {jail is relative itself, spaces in path} {
+    ::fileutil::jail a {b c}
+} [file join $dir a {b c}]
+
+test jail-2.4.2 {jail is relative itself, spaces in path} {
+    ::fileutil::jail {a b} {c d}
+} [file join $dir {a b} {c d}]
+
+
+# Need tests using non-existing paths for sure. Similar tests for
+# 'normalize' as well.
+
+# Tests for the internal 'Normalize' command. This is our forward
+# compatibility wrapper and it should behave identical to the
+# 8.4. builtin 'file normalize'. We pilfered the test cases from the
+# test suite for 'file normalize' in the Tcl core.
+
+if {![string equal $::tcl_platform(platform) windows]} {
+
+    set dirfile    [makeDirectory dir.file]
+    set dirbfile   [makeDirectory dir2.file]
+    set insidefile [makeFile "test file in directory" dir.file/inside.file]
+    set gorpfile   [makeFile "test file" gorp.file]
+
+    # Paths for the links.
+
+    set linkfile       [tempPath link.file]
+    set dirlink        [tempPath dir.link]
+    set dirblink       [tempPath dir2.link]
+    set linkinsidefile [tempPath $dirfile/linkinside.file]
+    set dirbblink      [tempPath $dirbfile/dir2.link]]
+
+    # Create the links. Unix specific.
+
+    exec ln -s gorp.file    $linkfile
+    exec ln -s inside.file  $linkinsidefile
+    exec ln -s dir.file     $dirlink
+    exec ln -s dir.link     $dirblink
+    exec ln -s ../dir2.link $dirbblink
+
+    # File/Directory structure created by the above.
+    #
+    #    /FOO/dir2.link -> dir.link
+    #    /FOO/dir.link  -> dir.file
+    #    /FOO/dir.file/
+    #    /FOO/dir.file/linkinside.file -> inside.file
+    #    /FOO/dir.file/inside.file
+    #
+    #    /FOO/link.file -> gorp.file
+    #    /FOO/gorp.file
+    #
+    #    /FOO/dir2.file/
+    #    /FOO/dir2.file/dir2.link -> ../dir2.link
+}
+
+
+test fu-normalize-1.0 {link normalisation} {unixOnly} {
+    # Symlink of last path element is not resolved.
+    string equal \
+	    [::fileutil::Normalize $gorpfile] \
+	    [::fileutil::Normalize $linkfile]
+} {0}
+
+test fu-normalize-1.1 {link normalisation} {unixOnly} {
+    # Symlink of last path element is not resolved.
+    string equal \
+	    [::fileutil::Normalize $dirfile] \
+	    [::fileutil::Normalize $dirlink]
+} {0}
+
+test fu-normalize-1.2 {link normalisation} {unixOnly} {
+    # Link higher in path is resolved (File!, non-existing last component).
+    string equal \
+	    [::fileutil::Normalize [file join $gorpfile foo]] \
+	    [::fileutil::Normalize [file join $linkfile foo]]
+} {1}
+
+test fu-normalize-1.3 {link normalisation} {unixOnly} {
+    # Link higher in path is resolved (Directory, non-existing last component).
+    string equal \
+	    [::fileutil::Normalize [file join $dirfile foo]] \
+	    [::fileutil::Normalize [file join $dirlink foo]]
+} {1}
+
+test fu-normalize-1.4 {link normalisation} {unixOnly} {
+    # Link higher in path is resolved (Directory, existing last component).
+    string equal \
+	    [::fileutil::Normalize $insidefile] \
+	    [::fileutil::Normalize [file join $dirlink inside.file]]
+} {1}
+
+test fu-normalize-1.5 {link normalisation} {unixOnly} {
+    # Identical paths.
+    string equal \
+	    [::fileutil::Normalize $linkinsidefile] \
+	    [::fileutil::Normalize $linkinsidefile]
+} {1}
+
+test fu-normalize-1.6 {link normalisation} {unixOnly} {
+    # Double link, one in last component, that one not resolved.
+    string equal \
+	    [::fileutil::Normalize $linkinsidefile] \
+	    [::fileutil::Normalize [file join $dirlink inside.file]]
+} {0}
+
+test fu-normalize-1.7 {link normalisation} {unixOnly} {
+    # Double link, both higher up, second is file!, both resolved
+    string equal \
+	    [::fileutil::Normalize [file join $dirlink linkinside.file foo]] \
+	    [::fileutil::Normalize [file join $insidefile foo]]
+} {1}
+
+test fu-normalize-1.8 {link normalisation} {unixOnly} {
+    # Directory link, and bad last component
+    string equal \
+	    [::fileutil::Normalize ${linkinsidefile}foo] \
+	    [::fileutil::Normalize [file join $dirlink inside.filefoo]]
+} {0}
+
+if 0 {
+    test fu-normalize-1.9 {link normalisation} {unixOnly} {
+	file delete -force $dirlink
+	file link $dirlink [file nativename $dirfile]
+	string equal \
+		[::fileutil::Normalize [file join $linkinsidefile foo]] \
+		[::fileutil::Normalize [file join $dirlink inside.file foo]]
+    } {1}
+}
+
+test fu-normalize-1.10 {link normalisation: double link} {unixOnly} {
+    # Double symlink in one component.
+    string equal \
+	    [::fileutil::Normalize [file join $linkinsidefile foo]] \
+	    [::fileutil::Normalize [file join $dirblink inside.file foo]]
+} {1}
+
+
+test fu-normalize-1.11 {link normalisation: double link, back in tree} {unixOnly} {
+    # Double link and back up in the tree.
+
+    string equal \
+	    [::fileutil::Normalize [file join $linkinsidefile foo]] \
+	    [::fileutil::Normalize [file join $dirbblink inside.file foo]]
+} {1}
+
+
+test fu-normalize-2.0 {normalisation, non-existing paths} {unixOnly} {
+    ::fileutil::Normalize /a/b/c
+} /a/b/c
+
+test fu-normalize-2.1 {normalisation, non-existing paths} {unixOnly} {
+    ::fileutil::Normalize /a/../b/c
+} /b/c
+
+test fu-normalize-2.2 {normalisation, non-existing paths} {unixOnly} {
+    ::fileutil::Normalize /a/./b/c
+} /a/b/c
+
+test fu-normalize-2.3 {normalisation, non-existing paths} {unixOnly} {
+    ::fileutil::Normalize /../b/c
+} /b/c
+
+test fu-normalize-2.4 {normalisation, non-existing paths} {unixOnly} {
+    ::fileutil::Normalize /a/../../b/c
+} /b/c
+
+
+
+# Based on the internal Normalize, a fullnormalize (which resolves a
+# link in the last element as well.
+
+test fu-fullnormalize-1.0 {link normalisation} {unixOnly} {
+    # Symlink of last path element _is_ resolved.
+    string equal \
+	    [::fileutil::fullnormalize $gorpfile] \
+	    [::fileutil::fullnormalize $linkfile]
+} {1}
+
+test fu-fullnormalize-1.1 {link normalisation} {unixOnly} {
+    # Symlink of last path element _is_ resolved.
+    string equal \
+	    [::fileutil::fullnormalize $dirfile] \
+	    [::fileutil::fullnormalize $dirlink]
+} {1}
+
+test fu-fullnormalize-1.2 {link normalisation} {unixOnly} {
+    # Link higher in path is resolved (File!, non-existing last component).
+    string equal \
+	    [::fileutil::fullnormalize [file join $gorpfile foo]] \
+	    [::fileutil::fullnormalize [file join $linkfile foo]]
+} {1}
+
+test fu-fullnormalize-1.3 {link normalisation} {unixOnly} {
+    # Link higher in path is resolved (Directory, non-existing last component).
+    string equal \
+	    [::fileutil::fullnormalize [file join $dirfile foo]] \
+	    [::fileutil::fullnormalize [file join $dirlink foo]]
+} {1}
+
+test fu-fullnormalize-1.4 {link normalisation} {unixOnly} {
+    # Link higher in path is resolved (Directory, existing last component).
+    string equal \
+	    [::fileutil::fullnormalize $insidefile] \
+	    [::fileutil::fullnormalize [file join $dirlink inside.file]]
+} {1}
+
+test fu-fullnormalize-1.5 {link normalisation} {unixOnly} {
+    # Identical paths.
+    string equal \
+	    [::fileutil::fullnormalize $linkinsidefile] \
+	    [::fileutil::fullnormalize $linkinsidefile]
+} {1}
+
+test fu-fullnormalize-1.6 {link normalisation} {unixOnly} {
+    # Double link, one in last component, this one is resolved.
+    string equal \
+	    [::fileutil::fullnormalize $linkinsidefile] \
+	    [::fileutil::fullnormalize [file join $dirlink inside.file]]
+} {1}
+
+test fu-fullnormalize-1.7 {link normalisation} {unixOnly} {
+    # Double link, both higher up, second is file!, both resolved
+    string equal \
+	    [::fileutil::fullnormalize [file join $dirlink linkinside.file foo]] \
+	    [::fileutil::fullnormalize [file join $insidefile foo]]
+} {1}
+
+test fu-fullnormalize-1.8 {link normalisation} {unixOnly} {
+    # Directory link, and bad last component
+    string equal \
+	    [::fileutil::fullnormalize ${linkinsidefile}foo] \
+	    [::fileutil::fullnormalize [file join $dirlink inside.filefoo]]
+} {0}
+
+test fu-fullnormalize-1.10 {link normalisation: double link} {unixOnly} {
+    # Double symlink in one component.
+    string equal \
+	    [::fileutil::fullnormalize [file join $linkinsidefile foo]] \
+	    [::fileutil::fullnormalize [file join $dirblink inside.file foo]]
+} {1}
+
+
+test fu-fullnormalize-2.0 {normalisation, non-existing paths} {unixOnly} {
+    ::fileutil::fullnormalize /a/b/c
+} /a/b/c
+
+test fu-fullnormalize-2.1 {normalisation, non-existing paths} {unixOnly} {
+    ::fileutil::fullnormalize /a/../b/c
+} /b/c
+
+test fu-fullnormalize-2.2 {normalisation, non-existing paths} {unixOnly} {
+    ::fileutil::fullnormalize /a/./b/c
+} /a/b/c
+
+test fu-fullnormalize-2.3 {normalisation, non-existing paths} {unixOnly} {
+    ::fileutil::fullnormalize /../b/c
+} /b/c
+
+test fu-fullnormalize-2.4 {normalisation, non-existing paths} {unixOnly} {
+    ::fileutil::fullnormalize /a/../../b/c
+} /b/c
+
+# Cleaning up after.
+
+removeFile      find3/find4/file5
+removeDirectory find3/find4
+removeDirectory find3
+removeDirectory touchTest
+removeDirectory installDst
+removeDirectory installSrc
+removeDirectory {find 1}
+removeDirectory dotfiles
+removeDirectory grepTest
+
+if {![string equal $::tcl_platform(platform) windows]} {
+    file delete -force $linkfile
+    file delete -force $dirlink
+    file delete -force $dirblink
+    file delete -force $linkinsidefile
+    file delete -force $dirbblink
+
+    removeFile dir.file/inside.file
+    removeFile gorp.file
+    removeDirectory dir.file
+    removeDirectory dir2.file
+}
+
+# -------------------------------------------------------------------------
+# Computation of paths relative to a base.
+
+test fu-relative-1.0 {fileutil::relative, wrong#args} {
+    catch {fileutil::relative} msg
+    set msg
+} [tcltest::wrongNumArgs fileutil::relative {base dst} 0]
+
+test fu-relative-1.1 {fileutil::relative, wrong#args} {
+    catch {fileutil::relative a} msg
+    set msg
+} [tcltest::wrongNumArgs fileutil::relative {base dst} 1]
+
+test fu-relative-1.2 {fileutil::relative, wrong#args} {
+    catch {fileutil::relative a b c} msg
+    set msg
+} [tcltest::tooManyArgs fileutil::relative {base dst}]
+
+foreach {n base dst result} {
+    0  /base         /base/destination    destination
+    1  /base         /destination         ../destination
+    2   base          base/destination    destination
+    3   base          destination         ../destination
+    4  /sub/base     /sub/sub/destination ../sub/destination
+    5  /sub/sub/base /sub/destination     ../../destination
+    6   sub/base      sub/sub/destination ../sub/destination
+    7   sub/sub/base  sub/destination     ../../destination
+    8  /base         /base                .
+    9   base          base                .
+    10 /base/sub     /base/sub            .
+    11  base/sub      base/sub            .
+    12 /base/sub     /base                ..
+    13  base/sub      base                ..
+    14  base/sub      destination         ../../destination
+    15  base/tcl      base/common         ../common
+    16  base/tcl/x    base/common         ../../common
+    17 /base/tcl     /base/common         ../common
+    18 /base/tcl/x   /base/common         ../../common
+} {
+    test fu-relative-2.$n {fileutil::relative} {
+	fileutil::relative $base $dst
+    } $result
+}
+
+foreach {n base dst ra rb} {
+    0 /base          base/destination absolute relative
+    1  base         /destination      relative absolute
+} {
+    test fu-relative-3.$n {fileutil::relative, bad mix} unixOnly {
+	catch {fileutil::relative $base $dst} msg
+	set msg
+    } "Unable to compute relation for paths of different pathtypes: $ra vs. $rb, ($base vs. $dst)"
+}
+
+foreach {n base dst ra rb} {
+    0 /base          base/destination volumerelative relative
+    1  base         /destination      relative volumerelative
+} {
+    test fu-relative-4.$n {fileutil::relative, bad mix} winOnly {
+	catch {fileutil::relative $base $dst} msg
+	set msg
+    } "Unable to compute relation for paths of different pathtypes: $ra vs. $rb, ($base vs. $dst)"
+}
+
+test fu-relativeurl-1.0 {fileutil::relativeUrl, wrong#args} {
+    catch {fileutil::relativeUrl} msg
+    set msg
+} [tcltest::wrongNumArgs fileutil::relativeUrl {base dst} 0]
+
+test fu-relativeurl-1.1 {fileutil::relativeUrl, wrong#args} {
+    catch {fileutil::relativeUrl a} msg
+    set msg
+} [tcltest::wrongNumArgs fileutil::relativeUrl {base dst} 1]
+
+test fu-relativeurl-1.2 {fileutil::relativeUrl, wrong#args} {
+    catch {fileutil::relativeUrl a b c} msg
+    set msg
+} [tcltest::tooManyArgs fileutil::relativeUrl {base dst}]
+
+foreach {n base dst result} {
+    0  /base/file.html         /base/destination/xx.html    destination/xx.html
+    1  /base/file.html         /destination/xx.html         ../destination/xx.html
+    2   base/file.html          base/destination/xx.html    destination/xx.html
+    3   base/file.html          destination/xx.html         ../destination/xx.html
+    4  /sub/base/file.html     /sub/sub/destination/xx.html ../sub/destination/xx.html
+    5  /sub/sub/base/file.html /sub/destination/xx.html     ../../destination/xx.html
+    6   sub/base/file.html      sub/sub/destination/xx.html ../sub/destination/xx.html
+    7   sub/sub/base/file.html  sub/destination/xx.html     ../../destination/xx.html
+    8  /base/file.html         /base/xx.html                xx.html
+    9   base/file.html          base/xx.html                xx.html
+    10 /base/sub/file.html     /base/sub/xx.html            xx.html
+    11  base/sub/file.html      base/sub/xx.html            xx.html
+    12 /base/sub/file.html     /base/xx.html                ../xx.html
+    13  base/sub/file.html      base/xx.html                ../xx.html
+    14  base/sub/file.html      xx.html                     ../../xx.html
+    15  base/tcl/a.html         base/common/../common/./style.css       ../common/style.css
+    16  base/tcl/x/a.html       base/common/../common/./style.css       ../../common/style.css
+    17 /base/tcl/a.html        /base/common/../common/./style.css       ../common/style.css
+    18 /base/tcl/x/a.html      /base/common/../common/./style.css       ../../common/style.css
+} {
+    test fu-relativeurl-2.$n {fileutil::relativeUrl} {
+	fileutil::relativeUrl $base $dst
+    } $result
+}
+
+foreach {n base dst ra rb} {
+    0 /base/file.html          base/destination/xx.html absolute relative
+    1  base/file.html         /destination/xx.html      relative absolute
+} {
+    test fu-relativeurl-3.$n {fileutil::relativeUrl, bad mix} unixOnly {
+	catch {fileutil::relativeUrl $base $dst} msg
+	set msg
+    } "Unable to compute relation for paths of different pathtypes: $ra vs. $rb, ($base vs. $dst)"
+}
+
+foreach {n base dst ra rb} {
+    0 /base/file.html          base/destination/xx.html volumerelative relative
+    1  base/file.html         /destination/xx.html      relative volumerelative
+} {
+    test fu-relativeurl-4.$n {fileutil::relativeUrl, bad mix} winOnly {
+	catch {fileutil::relativeUrl $base $dst} msg
+	set msg
+    } "Unable to compute relation for paths of different pathtypes: $ra vs. $rb, ($base vs. $dst)"
+}
+
+if {[llength [info commands ::fileutil::LexNormalize]]} {
+
+    # Check an internal command. May not exist (i.e. an accelerator
+    # may not define it).
+
+    foreach {n base dst} {
+	0 a/../b  b
+	1 a/./b   a/b
+	2 a       a
+	3 a/b     a/b
+	4 ./a     a
+	5 ../a    a
+	6 /../a   /a
+	7 /./a    /a
+	8 /a/../b /b
+	9 /foo/bar/../snafu/../gobble /foo/gobble
+    } {
+	test fu-lexnormalize-1.$n "fileutil::LexNormalize $base" {
+	    fileutil::LexNormalize $base
+	} $dst
+    }
+}
+
+# -------------------------------------------------------------------------
+
+unset dir
+testsuiteCleanup
+return

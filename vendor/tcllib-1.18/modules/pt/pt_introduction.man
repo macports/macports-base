@@ -1,0 +1,155 @@
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt_introduction n 1]
+[include include/module.inc]
+[titledesc {Introduction to Parser Tools}]
+[description]
+
+Welcome to the Parser Tools, a system for the creation and
+manipulation of parsers and the grammars driving them.
+
+[para]
+
+What are your goals which drove you here ?
+
+[list_begin enumerated]
+[enum]
+Do you simply wish to create a parser for some language ?
+
+[para]
+In that case have a look at our parser generator application,
+[cmd pt], or, for a slightly deeper access, the package underneath it,
+[package pt::pgen].
+
+[enum]
+Do you wish to know more about the architecture of the system ?
+
+[para]
+This is described in the section
+[sectref {Parser Tools Architecture}], below
+
+[enum]
+Is your interest in the theoretical background upon which the packages
+and tools are build ?
+
+[para]
+See the [manpage {Introduction to Parsing Expression Grammars}].
+
+[list_end]
+
+[section {Parser Tools Architecture}]
+
+The system can be split into roughly three layers, as seen in the
+figure below
+
+[para][image architecture][para]
+
+These layers are, from high to low:
+
+[list_begin enumerated]
+[enum]
+
+At the top we have the application and the packages using the packages
+of the layer below to implement common usecases. One example is the
+aforementioned [package pt::pgen] which provides a parser generator.
+
+[para]
+
+The list of packages belonging to this layer can be found in section
+[sectref {User Packages}]
+
+[enum]
+
+In this layer we have the packages which provide the core of the
+functionality for the whole system. They are, in essence, a set of
+blocks which can be combined in myriad ways, like Lego (tm). The
+packages in the previous level are 'just' pre-fabricated combinations
+to cover the most important use cases.
+
+[para]
+
+The list of packages belonging to this layer can be found in section
+[sectref {Core Packages}]
+
+[enum]
+
+Last, but not least is the layer containing support packages providing
+generic functionality which not necessarily belong into the module.
+
+[para]
+
+The list of packages belonging to this layer can be found in section
+[sectref {Support Packages}]
+
+[list_end]
+
+[subsection {User Packages}]
+[list_begin definitions]
+[def [package pt::pgen]]
+[list_end]
+
+[subsection {Core Packages}]
+
+This layer is further split into six sections handling the storage,
+import, export, transformation, and execution of grammars, plus
+grammar specific support packages.
+
+[list_begin definitions]
+[def Storage]
+[list_begin definitions][comment {----- core storage ---}]
+[def [package pt::peg::container]]
+[list_end][comment {------------------- core storage ---}]
+
+[def Export]
+[list_begin definitions][comment {----- core export ---}]
+[def [package pt::peg::export]]
+[def [package pt::peg::export::container]]
+[def [package pt::peg::export::json]]
+[def [package pt::peg::export::peg]]
+[def [package pt::peg::to::container]]
+[def [package pt::peg::to::json]]
+[def [package pt::peg::to::peg]]
+[def [package pt::peg::to::param]]
+[def [package pt::peg::to::tclparam]]
+[def [package pt::peg::to::cparam]]
+[list_end][comment {------------------- core export ---}]
+
+[def Import]
+[list_begin definitions][comment {----- core import ---}]
+[def [package pt::peg::import]]
+[def [package pt::peg::import::container]]
+[def [package pt::peg::import::json]]
+[def [package pt::peg::import::peg]]
+[def [package pt::peg::from::container]]
+[def [package pt::peg::from::json]]
+[def [package pt::peg::from::peg]]
+[list_end][comment {------------------- core import ---}]
+
+[def Transformation]
+[def Execution]
+[list_begin definitions][comment {----- core execution ---}]
+[def [package pt::peg::interp]]
+[def [package pt::rde]]
+[list_end][comment {------------------- core execution ---}]
+
+[def Support]
+[list_begin definitions][comment {----- core support ---}]
+[def [package pt::tclparam::configuration::snit]]
+[def [package pt::tclparam::configuration::tcloo]]
+[def [package pt::cparam::configuration::critcl]]
+[def [package pt::ast]]
+[def [package pt::pe]]
+[def [package pt::peg]]
+[list_end][comment {------------------- core support ---}]
+[list_end]
+
+[subsection {Support Packages}]
+[list_begin definitions]
+[def [package pt::peg::container::peg]]
+[def [package text::write]]
+[def [package configuration]]
+[def [package paths]]
+[def [package char]]
+[list_end]
+
+[include include/feedback.inc]
+[manpage_end]

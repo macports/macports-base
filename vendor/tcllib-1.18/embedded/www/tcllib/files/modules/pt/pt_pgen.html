@@ -1,0 +1,291 @@
+
+<div class='fossil-doc' data-title='pt::pgen - Parser Tools'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">pt::pgen(n) 1.0.2 tcllib &quot;Parser Tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>pt::pgen - Parser Generator</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Example</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">pt::pgen <span class="opt">?1.0.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::pt::pgen</b> <i class="arg">inputformat</i> <i class="arg">text</i> <i class="arg">resultformat</i> <span class="opt">?<i class="arg">options...</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Are you lost ?
+Do you have trouble understanding this document ?
+In that case please read the overview provided by the
+<i class="term"><a href="pt_introduction.html">Introduction to Parser Tools</a></i>. This document is the
+entrypoint to the whole system the current package is a part of.</p>
+<p>This package provides a command implementing a
+<i class="term"><a href="../../../../index.html#key189">parser generator</a></i>
+taking parsing expression grammars as input.</p>
+<p>It is the implementation of method <b class="method">generate</b> of <b class="cmd"><a href="../../apps/pt.html">pt</a></b>, the
+<i class="term"><a href="../../apps/pt.html">Parser Tools Application</a></i>.</p>
+<p>As such the intended audience of this document are people wishing to
+modify and/or extend this part of <b class="cmd"><a href="../../apps/pt.html">pt</a></b>'s functionality. Users of
+<b class="cmd"><a href="../../apps/pt.html">pt</a></b> on the other hand are hereby refered to the applications'
+manpage, i.e. <i class="term"><a href="../../apps/pt.html">Parser Tools Application</a></i>.</p>
+<p>It resides in the User Package Layer of Parser Tools.</p>
+<p><img alt="arch_user_pkg" src="../../../../image/arch_user_pkg.png"></p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::pt::pgen</b> <i class="arg">inputformat</i> <i class="arg">text</i> <i class="arg">resultformat</i> <span class="opt">?<i class="arg">options...</i>?</span></a></dt>
+<dd><p>This command takes the parsing expression grammar in <i class="arg">text</i> (in
+the format specified by <i class="arg">inputformat</i>), and returns the same
+grammar in the format <i class="arg">resultformat</i> as the result of the command.</p>
+<p>The two known input formats are <b class="const">peg</b> and <b class="const">json</b>.
+Introductions to them, including their formal specifications, can be
+found in the <i class="term"><a href="pt_peg_language.html">PEG Language Tutorial</a></i> and
+<i class="term"><a href="pt_json_language.html">The JSON Grammar Exchange Format</a></i>. The packages used to
+parse these formats are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">peg</b></dt>
+<dd><p><b class="package"><a href="pt_peg_from_peg.html">pt::peg::from::peg</a></b></p></dd>
+<dt><b class="const">json</b></dt>
+<dd><p><b class="package"><a href="pt_peg_from_json.html">pt::peg::from::json</a></b></p></dd>
+</dl>
+<p>On the output side the known formats, and the packages used to
+generate them are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">c</b></dt>
+<dd><p><b class="package"><a href="pt_peg_to_cparam.html">pt::peg::to::cparam</a></b></p></dd>
+<dt><b class="const">container</b></dt>
+<dd><p><b class="package"><a href="pt_peg_to_container.html">pt::peg::to::container</a></b></p></dd>
+<dt><b class="const">critcl</b></dt>
+<dd><p><b class="package"><a href="pt_peg_to_cparam.html">pt::peg::to::cparam</a></b> +
+                        <b class="package"><a href="pt_cparam_config_critcl.html">pt::cparam::configuration::critcl</a></b></p></dd>
+<dt><b class="const">json</b></dt>
+<dd><p><b class="package"><a href="pt_peg_to_json.html">pt::peg::to::json</a></b></p></dd>
+<dt><b class="const">oo</b></dt>
+<dd><p><b class="package"><a href="pt_peg_to_tclparam.html">pt::peg::to::tclparam</a></b> +
+                        <b class="package"><a href="pt_tclparam_config_tcloo.html">pt::tclparam::configuration::tcloo</a></b></p></dd>
+<dt><b class="const">peg</b></dt>
+<dd><p><b class="package"><a href="pt_peg_to_peg.html">pt::peg::to::peg</a></b></p></dd>
+<dt><b class="const">snit</b></dt>
+<dd><p><b class="package"><a href="pt_peg_to_tclparam.html">pt::peg::to::tclparam</a></b> +
+                        <b class="package"><a href="pt_tclparam_config_snit.html">pt::tclparam::configuration::snit</a></b></p></dd>
+</dl>
+<p>The options supported by each of these formats are documented
+with their respective packages.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Example</a></h2>
+<p>In this section we are working a complete example, starting with a PEG
+grammar and ending with running the parser generated from it over some
+input, following the outline shown in the figure below:</p>
+<p><img alt="flow" src="../../../../image/flow.png"></p>
+<p>Our grammar, assumed to the stored in the file &quot;<b class="file">calculator.peg</b>&quot;
+is</p>
+<pre class="doctools_example">
+PEG calculator (Expression)
+    Digit      &lt;- '0'/'1'/'2'/'3'/'4'/'5'/'6'/'7'/'8'/'9'       ;
+    Sign       &lt;- '-' / '+'                                     ;
+    Number     &lt;- Sign? Digit+                                  ;
+    Expression &lt;- Term (AddOp Term)*                            ;
+    MulOp      &lt;- '*' / '/'                                     ;
+    Term       &lt;- Factor (MulOp Factor)*                        ;
+    AddOp      &lt;- '+'/'-'                                       ;
+    Factor     &lt;- '(' Expression ')' / Number                   ;
+END;
+</pre>
+<p>From this we create a snit-based parser
+using the script &quot;<b class="file">gen</b>&quot;</p>
+<pre class="doctools_example">
+package require Tcl 8.5
+package require fileutil
+package require pt::pgen
+lassign $argv name
+set grammar [fileutil::cat $name.peg]
+set pclass  [pt::pgen peg $gr snit -class $name -file  $name.peg -name  $name]
+fileutil::writeFile $name.tcl $pclass
+exit 0
+</pre>
+<p>calling it like</p>
+<pre class="doctools_example"> tclsh8.5 gen calculator </pre>
+<p>which leaves us with the parser package and class written to the file
+&quot;<b class="file">calculator.tcl</b>&quot;.
+Assuming that this package is then properly installed in a place where
+Tcl can find it we can now use this class via a script like</p>
+<pre class="doctools_example">
+    package require calculator
+    lassign $argv input
+    set channel [open $input r]
+    set parser [calculator]
+    set ast [$parser parse $channel]
+    $parser destroy
+    close $channel
+    ... now process the returned abstract syntax tree ...
+</pre>
+<p>where the abstract syntax tree stored in the variable will look like</p>
+<pre class="doctools_example">
+set ast {Expression 0 4
+    {Factor 0 4
+        {Term 0 2
+            {Number 0 2
+                {Digit 0 0}
+                {Digit 1 1}
+                {Digit 2 2}
+            }
+        }
+        {AddOp 3 3}
+        {Term 4 4
+            {Number 4 4
+                {Digit 4 4}
+            }
+        }
+    }
+}
+</pre>
+<p>assuming that the input file and channel contained the text</p>
+<pre class="doctools_example"> 120+5 </pre>
+<p>A more graphical representation of the tree would be</p>
+<p><img alt="expr_ast" src="../../../../image/expr_ast.png"></p>
+<p>Regardless, at this point it is the user's responsibility to work with
+the tree to reach whatever goal she desires. I.e. analyze it,
+transform it, etc. The package <b class="package"><a href="pt_astree.html">pt::ast</a></b> should be of help
+here, providing commands to walk such ASTs structures in various ways.</p>
+<p>One important thing to note is that the parsers used here return a
+data structure representing the structure of the input per the grammar
+underlying the parser. There are <em>no</em> callbacks during the
+parsing process, i.e. no <i class="term">parsing actions</i>, as most other
+parsers will have.</p>
+<p>Going back to the last snippet of code, the execution of the parser
+for some input, note how the parser instance follows the specified
+<i class="term"><a href="pt_parser_api.html">Parser API</a></i>.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>pt</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key3">EBNF</a>, <a href="../../../../index.html#key15">LL(k)</a>, <a href="../../../../index.html#key6">PEG</a>, <a href="../../../../index.html#key7">TDPL</a>, <a href="../../../../index.html#key4">context-free languages</a>, <a href="../../../../index.html#key0">expression</a>, <a href="../../../../index.html#key11">grammar</a>, <a href="../../../../index.html#key5">matching</a>, <a href="../../../../index.html#key9">parser</a>, <a href="../../../../index.html#key8">parsing expression</a>, <a href="../../../../index.html#key14">parsing expression grammar</a>, <a href="../../../../index.html#key1">push down automaton</a>, <a href="../../../../index.html#key10">recursive descent</a>, <a href="../../../../index.html#key2">state</a>, <a href="../../../../index.html#key13">top-down parsing languages</a>, <a href="../../../../index.html#key12">transducer</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Parsing and Grammars</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

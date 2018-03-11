@@ -1,0 +1,60 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin fileutil::magic::mimetype n 1.0.2]
+[see_also file(1)]
+[see_also fileutil]
+[see_also magic(5)]
+[keywords {file recognition}]
+[keywords {file type}]
+[keywords {file utilities}]
+[keywords mime]
+[keywords type]
+[moddesc   {file utilities}]
+[titledesc {Procedures implementing mime-type recognition}]
+[category  {Programming tools}]
+[require Tcl 8.4]
+[require fileutil::magic::mimetype [opt 1.0.2]]
+[description]
+[para]
+
+This package provides a command for the recognition of file types in
+pure Tcl. The output is standardized to mime-types.
+
+[para]
+
+The core part of the recognizer was generated from a "magic(5)" file
+containing the checks to perform to recognize files, and associated
+mime-types.
+
+[list_begin definitions]
+
+[call [cmd ::fileutil::magic::mimetype] [arg filename]]
+
+This command is similar to the command [cmd fileutil::fileType].
+
+[para]
+
+The output of the command for the specified file is not a list of
+attributes describing the type of the file, but a list of standard
+mime-types the file may have.
+
+[para]
+
+This list will be empty if the type of the file is not recognized.
+
+[list_end]
+
+[section REFERENCES]
+
+[list_begin enumerated]
+[enum]
+[uri ftp://ftp.astron.com/pub/file/ {File(1) sources}]
+
+This site contains the current sources for the file command, including
+the magic definitions used by it. The latter were used by us to
+generate this recognizer.
+
+[list_end]
+
+[vset CATEGORY {fileutil :: magic}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,403 @@
+<html><head>
+<title>math::calculus::romberg - Tcl Math Library</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'romberg.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2004 Kevin B. Kenny &lt;kennykb@acm.org&gt;. All rights reserved. Redistribution permitted under the terms of the Open Publication License &lt;http://www.opencontent.org/openpub/&gt;
+   -->
+<! -- math::calculus::romberg.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::calculus::romberg(n) 0.6 tcllib &quot;Tcl Math Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::calculus::romberg - Romberg integration</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PROCEDURES</a></li>
+<li class="doctools_section"><a href="#section3">PARAMETERS</a></li>
+<li class="doctools_section"><a href="#section4">OPTIONS</a></li>
+<li class="doctools_section"><a href="#section5">DESCRIPTION</a></li>
+<li class="doctools_section"><a href="#section6">IMPROPER INTEGRALS</a></li>
+<li class="doctools_section"><a href="#section7">OTHER CHANGES OF VARIABLE</a></li>
+<li class="doctools_section"><a href="#section8">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">math::calculus 0.6</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::calculus::romberg</b> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></li>
+<li><a href="#2"><b class="cmd">::math::calculus::romberg_infinity</b> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></li>
+<li><a href="#3"><b class="cmd">::math::calculus::romberg_sqrtSingLower</b> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></li>
+<li><a href="#4"><b class="cmd">::math::calculus::romberg_sqrtSingUpper</b> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></li>
+<li><a href="#5"><b class="cmd">::math::calculus::romberg_powerLawLower</b> <i class="arg">gamma</i> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></li>
+<li><a href="#6"><b class="cmd">::math::calculus::romberg_powerLawUpper</b> <i class="arg">gamma</i> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></li>
+<li><a href="#7"><b class="cmd">::math::calculus::romberg_expLower</b> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></li>
+<li><a href="#8"><b class="cmd">::math::calculus::romberg_expUpper</b> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="cmd">romberg</b> procedures in the <b class="cmd"><a href="calculus.html">math::calculus</a></b> package
+perform numerical integration of a function of one variable.  They
+are intended to be of &quot;production quality&quot; in that they are robust,
+precise, and reasonably efficient in terms of the number of function
+evaluations.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PROCEDURES</a></h2>
+<p>The following procedures are available for Romberg integration:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::calculus::romberg</b> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></dt>
+<dd><p>Integrates an analytic function over a given interval.</p></dd>
+<dt><a name="2"><b class="cmd">::math::calculus::romberg_infinity</b> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></dt>
+<dd><p>Integrates an analytic function over a half-infinite interval.</p></dd>
+<dt><a name="3"><b class="cmd">::math::calculus::romberg_sqrtSingLower</b> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></dt>
+<dd><p>Integrates a function that is expected to be analytic over an interval
+except for the presence of an inverse square root singularity at the
+lower limit.</p></dd>
+<dt><a name="4"><b class="cmd">::math::calculus::romberg_sqrtSingUpper</b> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></dt>
+<dd><p>Integrates a function that is expected to be analytic over an interval
+except for the presence of an inverse square root singularity at the
+upper limit.</p></dd>
+<dt><a name="5"><b class="cmd">::math::calculus::romberg_powerLawLower</b> <i class="arg">gamma</i> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></dt>
+<dd><p>Integrates a function that is expected to be analytic over an interval
+except for the presence of a power law singularity at the
+lower limit.</p></dd>
+<dt><a name="6"><b class="cmd">::math::calculus::romberg_powerLawUpper</b> <i class="arg">gamma</i> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></dt>
+<dd><p>Integrates a function that is expected to be analytic over an interval
+except for the presence of a power law singularity at the
+upper limit.</p></dd>
+<dt><a name="7"><b class="cmd">::math::calculus::romberg_expLower</b> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></dt>
+<dd><p>Integrates an exponentially growing function; the lower limit of the
+region of integration may be arbitrarily large and negative.</p></dd>
+<dt><a name="8"><b class="cmd">::math::calculus::romberg_expUpper</b> <i class="arg">f</i> <i class="arg">a</i> <i class="arg">b</i> <span class="opt">?<i class="arg">-option value</i>...?</span></a></dt>
+<dd><p>Integrates an exponentially decaying function; the upper limit of the
+region of integration may be arbitrarily large.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">PARAMETERS</a></h2>
+<dl class="doctools_definitions">
+<dt><i class="arg">f</i></dt>
+<dd><p>Function to integrate.  Must be expressed as a single Tcl command,
+to which will be appended a single argument, specifically, the
+abscissa at which the function is to be evaluated. The first word
+of the command will be processed with <b class="cmd">namespace which</b> in the
+caller's scope prior to any evaluation. Given this processing, the
+command may local to the calling namespace rather than needing to be
+global.</p></dd>
+<dt><i class="arg">a</i></dt>
+<dd><p>Lower limit of the region of integration.</p></dd>
+<dt><i class="arg">b</i></dt>
+<dd><p>Upper limit of the region of integration.  For the
+<b class="cmd">romberg_sqrtSingLower</b>, <b class="cmd">romberg_sqrtSingUpper</b>,
+<b class="cmd">romberg_powerLawLower</b>, <b class="cmd">romberg_powerLawUpper</b>,
+<b class="cmd">romberg_expLower</b>, and <b class="cmd">romberg_expUpper</b> procedures,
+the lower limit must be strictly less than the upper.  For
+the other procedures, the limits may appear in either order.</p></dd>
+<dt><i class="arg">gamma</i></dt>
+<dd><p>Power to use for a power law singularity; see section
+<span class="sectref"><a href="#section6">IMPROPER INTEGRALS</a></span> for details.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">OPTIONS</a></h2>
+<dl class="doctools_definitions">
+<dt><b class="option">-abserror</b> <i class="arg">epsilon</i></dt>
+<dd><p>Requests that the integration machinery proceed at most until
+the estimated absolute error of the integral is less than
+<i class="arg">epsilon</i>. The error may be seriously over- or underestimated
+if the function (or any of its derivatives) contains singularities;
+see section <span class="sectref"><a href="#section6">IMPROPER INTEGRALS</a></span> for details. Default
+is 1.0e-08.</p></dd>
+<dt><b class="option">-relerror</b> <i class="arg">epsilon</i></dt>
+<dd><p>Requests that the integration machinery proceed at most until
+the estimated relative error of the integral is less than
+<i class="arg">epsilon</i>. The error may be seriously over- or underestimated
+if the function (or any of its derivatives) contains singularities;
+see section <span class="sectref"><a href="#section6">IMPROPER INTEGRALS</a></span> for details.  Default is
+1.0e-06.</p></dd>
+<dt><b class="option">-maxiter</b> <i class="arg">m</i></dt>
+<dd><p>Requests that integration terminate after at most <i class="arg">n</i> triplings of
+the number of evaluations performed.  In other words, given <i class="arg">n</i>
+for <b class="option">-maxiter</b>, the integration machinery will make at most
+3**<i class="arg">n</i> evaluations of the function.  Default is 14, corresponding
+to a limit approximately 4.8 million evaluations. (Well-behaved
+functions will seldom require more than a few hundred evaluations.)</p></dd>
+<dt><b class="option">-degree</b> <i class="arg">d</i></dt>
+<dd><p>Requests that an extrapolating polynomial of degree <i class="arg">d</i> be used
+in Romberg integration; see section <span class="sectref"><a href="#section5">DESCRIPTION</a></span> for
+details. Default is 4.  Can be at most <i class="arg">m</i>-1.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">DESCRIPTION</a></h2>
+<p>The <b class="cmd">romberg</b> procedure performs Romberg integration using
+the modified midpoint rule. Romberg integration is an iterative
+process.  At the first step, the function is evaluated at the
+midpoint of the region of integration, and the value is multiplied by
+the width of the interval for the coarsest possible estimate.
+At the second step, the interval is divided into three parts,
+and the function is evaluated at the midpoint of each part; the
+sum of the values is multiplied by three.  At the third step,
+nine parts are used, at the fourth twenty-seven, and so on,
+tripling the number of subdivisions at each step.</p>
+<p>Once the interval has been divided at least <i class="arg">d</i> times,
+a polynomial is fitted to the integrals estimated in the last
+<i class="arg">d</i>+1 divisions.  The integrals are considered to be a
+function of the square of the width of the subintervals
+(any good numerical analysis text will discuss this process
+under &quot;Romberg integration&quot;).  The polynomial is extrapolated
+to a step size of zero, computing a value for the integral and
+an estimate of the error.</p>
+<p>This process will be well-behaved only if the function is analytic
+over the region of integration; there may be removable singularities
+at either end of the region provided that the limit of the function
+(and of all its derivatives) exists as the ends are approached.
+Thus, <b class="cmd">romberg</b> may be used to integrate a function like
+f(x)=sin(x)/x over an interval beginning or ending at zero.</p>
+<p>Note that <b class="cmd">romberg</b> will either fail to converge or else return
+incorrect error estimates if the function, or any of its derivatives,
+has a singularity anywhere in the region of integration (except for
+the case mentioned above).  Care must be used, therefore, in
+integrating a function like 1/(1-x**2) to avoid the places
+where the derivative is singular.</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">IMPROPER INTEGRALS</a></h2>
+<p>Romberg integration is also useful for integrating functions over
+half-infinite intervals or functions that have singularities.
+The trick is to make a change of variable to eliminate the
+singularity, and to put the singularity at one end or the other
+of the region of integration.  The <b class="cmd"><a href="calculus.html">math::calculus</a></b> package
+supplies a number of <b class="cmd">romberg</b> procedures to deal with the
+commoner cases.</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">romberg_infinity</b></dt>
+<dd><p>Integrates a function over a half-infinite interval; either
+<i class="arg">a</i> or <i class="arg">b</i> may be infinite.  <i class="arg">a</i> and <i class="arg">b</i> must be
+of the same sign; if you need to integrate across the axis,
+say, from a negative value to positive infinity,
+use <b class="cmd">romberg</b> to integrate from the negative
+value to a small positive value, and then <b class="cmd">romberg_infinity</b>
+to integrate from the positive value to positive infinity.  The
+<b class="cmd">romberg_infinity</b> procedure works by making the change of
+variable u=1/x, so that the integral from a to b of f(x) is
+evaluated as the integral from 1/a to 1/b of f(1/u)/u**2.</p></dd>
+<dt><b class="cmd">romberg_powerLawLower</b> and <b class="cmd">romberg_powerLawUpper</b></dt>
+<dd><p>Integrate a function that has an integrable power law singularity
+at either the lower or upper bound of the region of integration
+(or has a derivative with a power law singularity there).
+These procedures take a first parameter, <i class="arg">gamma</i>, which gives
+the power law.  The function or its first derivative are presumed to diverge as
+(x-<i class="arg">a</i>)**(-<i class="arg">gamma</i>) or (<i class="arg">b</i>-x)**(-<i class="arg">gamma</i>).  <i class="arg">gamma</i>
+must be greater than zero and less than 1.</p>
+<p>These procedures are useful not only in integrating functions
+that go to infinity at one end of the region of integration, but
+also functions whose derivatives do not exist at the end of
+the region.  For instance, integrating f(x)=pow(x,0.25) with the
+origin as one end of the region will result in the <b class="cmd">romberg</b>
+procedure greatly underestimating the error in the integral.
+The problem can be fixed by observing that the first derivative
+of f(x), f'(x)=x**(-3/4)/4, goes to infinity at the origin.  Integrating
+using <b class="cmd">romberg_powerLawLower</b> with <i class="arg">gamma</i> set to 0.75
+gives much more orderly convergence.</p>
+<p>These procedures operate by making the change of variable
+u=(x-a)**(1-gamma) (<b class="cmd">romberg_powerLawLower</b>) or
+u=(b-x)**(1-gamma) (<b class="cmd">romberg_powerLawUpper</b>).</p>
+<p>To summarize the meaning of gamma:</p>
+<ul class="doctools_itemized">
+<li><p>If f(x) ~ x**(-a) (0 &lt; a &lt; 1), use gamma = a</p></li>
+<li><p>If f'(x) ~ x**(-b) (0 &lt; b &lt; 1), use gamma = b</p></li>
+</ul></dd>
+<dt><b class="cmd">romberg_sqrtSingLower</b> and <b class="cmd">romberg_sqrtSingUpper</b></dt>
+<dd><p>These procedures behave identically to <b class="cmd">romberg_powerLawLower</b> and
+<b class="cmd">romberg_powerLawUpper</b> for the common case of <i class="arg">gamma</i>=0.5;
+that is, they integrate a function with an inverse square root
+singularity at one end of the interval.  They have a simpler
+implementation involving square roots rather than arbitrary powers.</p></dd>
+<dt><b class="cmd">romberg_expLower</b> and <b class="cmd">romberg_expUpper</b></dt>
+<dd><p>These procedures are for integrating a function that grows or
+decreases exponentially over a half-infinite interval.
+<b class="cmd">romberg_expLower</b> handles exponentially growing functions, and
+allows the lower limit of integration to be an arbitrarily large
+negative number.  <b class="cmd">romberg_expUpper</b> handles exponentially
+decaying functions and allows the upper limit of integration to
+be an arbitrary large positive number.  The functions make the
+change of variable u=exp(-x) and u=exp(x) respectively.</p></dd>
+</dl>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">OTHER CHANGES OF VARIABLE</a></h2>
+<p>If you need an improper integral other than the ones listed here,
+a change of variable can be written in very few lines of Tcl.
+Because the Tcl coding that does it is somewhat arcane,
+we offer a worked example here.</p>
+<p>Let's say that the function that we want to integrate is
+f(x)=exp(x)/sqrt(1-x*x) (not a very natural
+function, but a good example), and we want to integrate
+it over the interval (-1,1).  The denominator falls to zero
+at both ends of the interval. We wish to make a change of variable
+from x to u
+so that dx/sqrt(1-x**2) maps to du.  Choosing x=sin(u), we can
+find that dx=cos(u)*du, and sqrt(1-x**2)=cos(u).  The integral
+from a to b of f(x) is the integral from asin(a) to asin(b)
+of f(sin(u))*cos(u).</p>
+<p>We can make a function <b class="cmd">g</b> that accepts an arbitrary function
+<b class="cmd">f</b> and the parameter u, and computes this new integrand.</p>
+<pre class="doctools_example">
+proc g { f u } {
+    set x [expr { sin($u) }]
+    set cmd $f; lappend cmd $x; set y [eval $cmd]
+    return [expr { $y / cos($u) }]
+}
+</pre>
+<p>Now integrating <b class="cmd">f</b> from <i class="arg">a</i> to <i class="arg">b</i> is the same
+as integrating <b class="cmd">g</b> from <i class="arg">asin(a)</i> to <i class="arg">asin(b)</i>.
+It's a little tricky to get <b class="cmd">f</b> consistently evaluated in
+the caller's scope; the following procedure does it.</p>
+<pre class="doctools_example">
+proc romberg_sine { f a b args } {
+    set f [lreplace $f 0 0 [uplevel 1 [list namespace which [lindex $f 0]]]]
+    set f [list g $f]
+    return [eval [linsert $args 0 romberg $f [expr { asin($a) }] [expr { asin($b) }]]]
+}
+</pre>
+<p>This <b class="cmd">romberg_sine</b> procedure will do any function with
+sqrt(1-x*x) in the denominator. Our sample function is
+f(x)=exp(x)/sqrt(1-x*x):</p>
+<pre class="doctools_example">
+proc f { x } {
+    expr { exp($x) / sqrt( 1. - $x*$x ) }
+}
+</pre>
+<p>Integrating it is a matter of applying <b class="cmd">romberg_sine</b>
+as we would any of the other <b class="cmd">romberg</b> procedures:</p>
+<pre class="doctools_example">
+foreach { value error } [romberg_sine f -1.0 1.0] break
+puts [format &quot;integral is %.6g +/- %.6g&quot; $value $error]
+integral is 3.97746 +/- 2.3557e-010
+</pre>
+</div>
+<div id="section8" class="doctools_section"><h2><a name="section8">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>math :: calculus</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="calculus.html">math::calculus</a>, <a href="interpolate.html">math::interpolate</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2004 Kevin B. Kenny &lt;kennykb@acm.org&gt;. All rights reserved. Redistribution permitted under the terms of the Open Publication License &lt;http://www.opencontent.org/openpub/&gt;</p>
+</div>
+</div></body></html>

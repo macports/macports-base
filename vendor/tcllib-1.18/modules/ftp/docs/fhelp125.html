@@ -1,0 +1,58 @@
+<html>
+<head>
+<title>ftp Library Package 2.1 for Tcl/Tk help file</title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<body>
+
+<p>
+<dl>
+  <dd>
+    <p><font face="Arial,Helvetica" color="#526e9c" size="+2"><b>ftp Library Package 2.1 for Tcl/Tk Manual Pages</b></font></p>
+  </dd>
+
+  <dd><font face="Arial,Helvetica" size="+1"><b>COMMAND</b></font></dd>
+  <dd><dl>  
+    <dd><b>ftp::Append</b><em>&nbsp; handle&nbsp; (local | -data "data") &nbsp;?remote?</em></dd>
+    <dd>&nbsp;</dd>
+    <dd>
+
+	The <b>ftp::Append</b> command appends a local file <em>local</em> to an 
+	existing remote	file <em>remote</em> on the ftp server. If the file
+	not exists at the server site, the file shall be created at the server
+         site. If '-data "data"' is specified, then rather than
+        transferring a file, the data passed in is used as the data to transfer.
+<br>
+	The file parameters passed must
+	contain a fully qualified path name, otherwise the command uses
+	the current directory. If remote file name is unspecified, the
+	local file name is assigned to the remote file name. 
+		
+	<p>If the file was successfully transferred, then the command
+	returns 1, if it fails 0. </p>
+
+    </dd>
+  </dl></dd>
+
+  <dd><font face="Arial,Helvetica" size="+1"><b>EXAMPLE</b></font></dd>
+  <dd><dl>
+    <dd>
+	<pre># store data
+ftp::Put $conn data.log
+
+# append new data
+ftp::Append $conn logfile data.log
+	</pre>
+		
+    </dd> 
+  </dl></dd> 
+</dl>
+</p>
+<p>
+[<a href="index.html">Contents</a>]&nbsp;
+[<b>Previous:</b> <a href="fhelp12.html">ftp::Put</a>]&nbsp;
+[<b>Next:</b> <a href="fhelp13.html">ftp::Get</a>]
+</p>
+<p align="left"><hr noshade size="1"><font face="Arial,Helvetica" size="-1">&copy; 1999 <a href="mailto:Steffen.Traeger@t-online.de">Steffen Traeger</a></font></p>
+</body>
+</html>

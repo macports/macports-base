@@ -1,0 +1,302 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin math::complexnumbers n 1.0.2]
+[keywords {complex numbers}]
+[keywords math]
+[copyright {2004 Arjen Markus <arjenmarkus@users.sourceforge.net>}]
+[moddesc   {Tcl Math Library}]
+[titledesc {Straightforward complex number package}]
+[category  Mathematics]
+[require Tcl 8.3]
+[require math::complexnumbers [opt 1.0.2]]
+
+[description]
+[para]
+
+The mathematical module [emph complexnumbers] provides a straightforward
+implementation of complex numbers in pure Tcl. The philosophy is that
+the user knows he or she is dealing with complex numbers in an abstract
+way and wants as high a performance as can be had within the limitations
+of an interpreted language.
+
+[para]
+
+Therefore the procedures defined in this package assume that the
+arguments are valid (representations of) "complex numbers", that is,
+lists of two numbers defining the real and imaginary part of a
+complex number (though this is a mere detail: rely on the
+[emph complex] command to construct a valid number.)
+
+[para]
+
+Most procedures implement the basic arithmetic operations or elementary
+functions whereas several others convert to and from different
+representations:
+
+[para]
+[example {
+    set z [complex 0 1]
+    puts "z = [tostring $z]"
+    puts "z**2 = [* $z $z]
+}]
+
+would result in:
+[example {
+    z = i
+    z**2 = -1
+}]
+
+[section "AVAILABLE PROCEDURES"]
+
+The package implements all or most basic operations and elementary
+functions.
+
+[para]
+
+[emph {The arithmetic operations are:}]
+
+[list_begin definitions]
+
+[call [cmd ::math::complexnumbers::+] [arg z1] [arg z2]]
+
+Add the two arguments and return the resulting complex number
+
+[list_begin arguments]
+[arg_def complex z1 in]
+First argument in the summation
+
+[arg_def complex z2 in]
+Second argument in the summation
+
+[list_end]
+[para]
+
+[call [cmd ::math::complexnumbers::-] [arg z1] [arg z2]]
+
+Subtract the second argument from the first and return the
+resulting complex number. If there is only one argument, the
+opposite of z1 is returned (i.e. -z1)
+
+[list_begin arguments]
+[arg_def complex z1 in]
+First argument in the subtraction
+
+[arg_def complex z2 in]
+Second argument in the subtraction (optional)
+
+[list_end]
+[para]
+
+[call [cmd ::math::complexnumbers::*] [arg z1] [arg z2]]
+
+Multiply the two arguments and return the resulting complex number
+
+[list_begin arguments]
+[arg_def complex z1 in]
+First argument in the multiplication
+
+[arg_def complex z2 in]
+Second argument in the multiplication
+
+[list_end]
+[para]
+
+[call [cmd ::math::complexnumbers::/] [arg z1] [arg z2]]
+
+Divide the first argument by the second and return the resulting complex
+number
+
+[list_begin arguments]
+[arg_def complex z1 in]
+First argument (numerator) in the division
+
+[arg_def complex z2 in]
+Second argument (denominator) in the division
+
+[list_end]
+[para]
+
+[call [cmd ::math::complexnumbers::conj] [arg z1]]
+
+Return the conjugate of the given complex number
+
+[list_begin arguments]
+[arg_def complex z1 in]
+Complex number in question
+
+[list_end]
+[para]
+
+[list_end]
+
+[para]
+[emph {Conversion/inquiry procedures:}]
+
+[list_begin definitions]
+
+[call [cmd ::math::complexnumbers::real] [arg z1]]
+
+Return the real part of the given complex number
+
+[list_begin arguments]
+[arg_def complex z1 in]
+Complex number in question
+
+[list_end]
+[para]
+
+[call [cmd ::math::complexnumbers::imag] [arg z1]]
+
+Return the imaginary part of the given complex number
+
+[list_begin arguments]
+[arg_def complex z1 in]
+Complex number in question
+
+[list_end]
+[para]
+
+[call [cmd ::math::complexnumbers::mod] [arg z1]]
+
+Return the modulus of the given complex number
+
+[list_begin arguments]
+[arg_def complex z1 in]
+Complex number in question
+
+[list_end]
+[para]
+
+[call [cmd ::math::complexnumbers::arg] [arg z1]]
+
+Return the argument ("angle" in radians) of the given complex number
+
+[list_begin arguments]
+[arg_def complex z1 in]
+Complex number in question
+
+[list_end]
+[para]
+
+[call [cmd ::math::complexnumbers::complex] [arg real] [arg imag]]
+
+Construct the complex number "real + imag*i" and return it
+
+[list_begin arguments]
+[arg_def float real in]
+The real part of the new complex number
+
+[arg_def float imag in]
+The imaginary part of the new complex number
+
+[list_end]
+[para]
+
+[call [cmd ::math::complexnumbers::tostring] [arg z1]]
+
+Convert the complex number to the form "real + imag*i" and return the
+string
+
+[list_begin arguments]
+[arg_def float complex in]
+The complex number to be converted
+
+[list_end]
+[para]
+
+[list_end]
+
+[para]
+[emph {Elementary functions:}]
+
+[list_begin definitions]
+
+[call [cmd ::math::complexnumbers::exp] [arg z1]]
+
+Calculate the exponential for the given complex argument and return the
+result
+
+[list_begin arguments]
+[arg_def complex z1 in]
+The complex argument for the function
+
+[list_end]
+[para]
+
+[call [cmd ::math::complexnumbers::sin] [arg z1]]
+
+Calculate the sine function for the given complex argument and return
+the result
+
+[list_begin arguments]
+[arg_def complex z1 in]
+The complex argument for the function
+
+[list_end]
+[para]
+
+[call [cmd ::math::complexnumbers::cos] [arg z1]]
+
+Calculate the cosine function for the given complex argument and return
+the result
+
+[list_begin arguments]
+[arg_def complex z1 in]
+The complex argument for the function
+
+[list_end]
+[para]
+
+[call [cmd ::math::complexnumbers::tan] [arg z1]]
+
+Calculate the tangent function for the given complex argument and
+return the result
+
+[list_begin arguments]
+[arg_def complex z1 in]
+The complex argument for the function
+
+[list_end]
+[para]
+
+[call [cmd ::math::complexnumbers::log] [arg z1]]
+
+Calculate the (principle value of the) logarithm for the given complex
+argument and return the result
+
+[list_begin arguments]
+[arg_def complex z1 in]
+The complex argument for the function
+
+[list_end]
+[para]
+
+[call [cmd ::math::complexnumbers::sqrt] [arg z1]]
+
+Calculate the (principle value of the) square root for the given complex
+argument and return the result
+
+[list_begin arguments]
+[arg_def complex z1 in]
+The complex argument for the function
+
+[list_end]
+[para]
+
+[call [cmd ::math::complexnumbers::pow] [arg z1] [arg z2]]
+
+Calculate "z1 to the power of z2" and return the result
+
+[list_begin arguments]
+[arg_def complex z1 in]
+The complex number to be raised to a power
+
+[arg_def complex z2 in]
+The complex power to be used
+
+[list_end]
+
+[list_end]
+
+[vset CATEGORY {math :: complexnumbers}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

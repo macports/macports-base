@@ -1,0 +1,76 @@
+# -*- tcl -*-
+# finite_automaton.test:  tests for the grammar::fa container.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: fa_states.test,v 1.4 2007/04/12 03:43:15 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+test fa-states-${setimpl}-1.0 {states, argument errors} {
+    grammar::fa a
+    catch {a states x} res
+    a destroy
+    set res
+} {wrong # args: should be "::grammar::fa::Snit_methodstates type selfns win self"}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-states-${setimpl}-2.0 {states, empty fa} {
+    grammar::fa a
+    set res [a states]
+    a destroy
+    set res
+} {}
+
+test fa-states-${setimpl}-2.1 {states, state addition} {
+    grammar::fa a
+    a state add x
+    set res [a states]
+    a destroy
+    set res
+} x
+
+test fa-states-${setimpl}-2.2 {states, state addition} {
+    grammar::fa a
+    a state add x y
+    set res [lsort [a states]]
+    a destroy
+    set res
+} {x y}
+
+
+test fa-states-${setimpl}-2.3 {states, state addition and removal} {
+    grammar::fa a
+    a state add x y
+    a state delete x
+    set res [a states]
+    a destroy
+    set res
+} y
+
+
+test fa-states-${setimpl}-2.4 {states, state addition and removal} {
+    grammar::fa a
+    a state add x y
+    a state delete y
+    set res [a states]
+    a destroy
+    set res
+} x
+
+
+test fa-states-${setimpl}-2.5 {states, state addition and removal} {
+    grammar::fa a
+    a state add x y
+    a state delete x y
+    set res [a states]
+    a destroy
+    set res
+} {}
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

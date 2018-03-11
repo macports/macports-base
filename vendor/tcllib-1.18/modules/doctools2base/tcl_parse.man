@@ -1,0 +1,184 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctools::tcl::parse n 1]
+[keywords command]
+[keywords doctools]
+[keywords parser]
+[keywords subst]
+[keywords {Tcl syntax}]
+[keywords word]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {Processing text in 'subst -novariables' format}]
+[category  {Documentation tools}]
+[require Tcl 8.4]
+[require snit]
+[require fileutil]
+[require logger]
+[require struct::list]
+[require struct::stack]
+[require struct::set]
+[require treeql]
+[require doctools::tcl::parse]
+[description]
+
+This package provides commands for parsing text with embedded Tcl
+commands as accepted by the Tcl builtin command
+[cmd {subst -novariables}]. The result of the parsing is an abstract
+syntax tree.
+
+[para]
+
+This is an internal package of doctools, for use by the higher level
+parsers processing the [term docidx], [term doctoc], and [term doctools]
+markup languages.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::doctools::tcl::parse] [method text] \
+	[arg tree] [arg text] [opt [arg root]]]
+
+The command takes the [arg text] and parses it under the assumption
+that it contains a string acceptable to the Tcl builtin command
+
+[cmd {subst -novariables}]. Errors are thrown otherwise during the
+parsing. The format used for these errors in described in section
+[sectref {Error format}].
+
+[para]
+
+The command returns the empty string as it result. The actual result
+of the parsing is entered into the tree structure [arg tree], under
+the node [arg root].
+
+If [arg root] is not specified the root of [arg tree] is used. The
+[arg tree] has to exist and be the command of a tree object which
+supports the same methods as trees created by the package
+
+[package struct::tree].
+
+[para]
+
+In case of errors [arg tree] will be left in an undefined state.
+
+[call [cmd ::doctools::tcl::parse] [method file] \
+	[arg tree] [arg path] [opt [arg root]]]
+
+The same as [method text], except that the text to parse is read from
+the file specified by [arg path].
+
+[list_end]
+
+[section {Error format}]
+
+When the parser encounters a problem in the input
+it will throw an error using the format described
+here.
+
+[list_begin enumerated]
+
+[enum]
+The message will contain the reason for the problem (unexpected
+character or end of input in input), the character in question, if
+any, and the line and column the problem was found at, in a human
+readable form. This part is not documented further as its format may
+change as we see fit. It is intended for human consumption, not
+machine.
+
+[enum]
+The error code however will contain a machine-readable representation
+of the problem, in the form of a 5-element list containing, in the
+order listed below
+
+[list_begin enumerated]
+[enum] the constant string [const doctools::tcl::parse]
+
+[enum] the cause of the problem, one of
+
+[list_begin definitions]
+[def [const char]] Unexpected character in input
+[def [const eof]] Unexpected end of the input
+[list_end]
+
+[enum]
+The location of the problem as offset from the beginning of the input,
+counted in characters. Note: Line markers count as one character.
+
+[enum] The line the problem was found on (counted from 1 (one)),
+
+[enum] The column the problem was found at (counted from 0 (zero))
+
+[list_end]
+[list_end]
+
+[section {Tree Structure}]
+
+After successfully parsing a string the generated tree will have the
+following structure:
+
+[list_begin enumerated]
+
+[enum]
+In the following items the word 'root' refers to the node which was
+specified as the root of the tree when invoking either [method text]
+or [method file]. This may be the actual root of the tree.
+
+[enum]
+All the following items further ignore the possibility of pre-existing
+attributes in the pre-existing nodes. If attributes exists with the
+same names as the attributes used by the parser the pre-existing
+values are written over. Attributes with names not clashing with the
+parser's attributes are not touched.
+
+[enum]
+The root node has no attributes.
+
+[enum]
+All other nodes have the attributes
+[list_begin definitions]
+[def type]
+The value is a string from the set { Command , Text , Word }
+[def range]
+The value is either empty or a 2-element list containing integer
+numbers. The numbers are the offsets of the first and last character
+in the input text, of the token described by the node,.
+[def line]
+The value is an integer, it describes the line in the input the token
+described by the node ends on. Lines are counted from 1 ([const one]).
+[def col]
+The value is an integer, it describes the column in the line in the
+input the token described by the node ends on. Columns are counted
+from 0 ([const zero]).
+[list_end]
+
+[enum]
+The children of the root, if any, are of type Command and Text, in
+semi-alternation. This means: After a Text node a Command node has to
+follow, and anything can follow a Command node, a Text or other
+Command node.
+
+[enum]
+The children of a Command node, if any, are of type Command, and Text,
+and Word, they describe the arguments of the command.
+
+[enum]
+The children of a Word node, if any, are of type Command, Text, in
+semi-alternation. This means: After a Text node a Command node has to
+follow, and anything can follow a Command node, a Text or other
+Command node.
+
+[enum]
+A Word node without children represents the empty string.
+
+[enum]
+All Text nodes are leaves of the tree.
+
+[enum]
+All leaves of the tree are either Text or Command nodes.
+Word nodes cannot be leaves.
+[list_end]
+
+[vset CATEGORY doctools]
+[include include/feedback.inc]
+[manpage_end]

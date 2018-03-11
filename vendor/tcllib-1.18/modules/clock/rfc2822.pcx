@@ -1,0 +1,27 @@
+# -*- tcl -*- rfc2822.pcx
+# Syntax of the commands provided by package rfc2822.
+
+# For use by TclDevKit's static syntax checker.
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the documentation describing the format of the code contained in this file
+#
+
+package require pcx
+pcx::register clock::rfc2822
+pcx::tcldep   0.1 needs tcl 8.5
+
+namespace eval ::clock::rfc2822 {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+# Switches are per clock scan (Tcl 8.5), restricted subset.
+pcx::check 0.1 std ::clock::rfc2822::parse_date \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+
+# Initialization via pcx::init.
+# Use a ::rfc2822::init procedure for non-standard initialization.
+pcx::complete

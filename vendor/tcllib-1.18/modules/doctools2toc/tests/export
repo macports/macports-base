@@ -1,0 +1,147 @@
+# -*- tcl -*-
+# toc_export.testsuite: Tests for the management of toc export plugins.
+#
+# Copyright (c) 2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: export,v 1.2 2009/11/15 05:50:03 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+# Tests are run for all formats we have an export plugin for.
+
+# -------------------------------------------------------------------------
+
+set mytestdir      tests/data
+set mytestconfig   {fox dog lazy jump}
+set mytestincludes [TestFilesGlob $mytestdir]
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# doctoc markup
+
+# Testing the export of doctoc markup through an exporter manager, for
+# all possible configurations.
+
+foreach {k nl in al section} {
+    0 0 0 0 -ultracompact
+    1 1 0 0 -compact
+    2 1 1 0 -indented
+    3 1 0 1 -aligned
+    4 1 1 1 -indalign
+    5 0 1 0 -indented
+    6 0 0 1 -aligned
+    7 0 1 1 -indalign
+} {
+    TestFilesProcess $mytestdir ok serial doctoc$section -> n label input data expected {
+	test doctools-toc-export-plugin-doctoc-20.$k.$n "doctools::toc::export /doctoc, $label$section, ok" -setup {
+	    doctools::toc::export OUT
+	    OUT config set newlines $nl
+	    OUT config set indented $in
+	    OUT config set aligned  $al
+	} -body {
+	    stripcomments [OUT export serial $data doctoc]
+	} -cleanup {
+	    OUT destroy
+	} -result $expected
+    }
+}
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# text markup
+
+TestFilesProcess $mytestdir ok serial text -> n label input data expected {
+    test doctools-toc-export-plugin-text-21.$n "doctools::toc::export /text, $label, ok" -setup {
+	doctools::toc::export OUT
+    } -body {
+	OUT export serial $data text
+    } -cleanup {
+	OUT destroy
+    } -result $expected
+}
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# json markup
+
+foreach {k in al section} {
+    0 0 0 -ultracompact
+    1 1 0 -indented
+    2 0 1 -indalign
+    3 1 1 -indalign
+} {
+    TestFilesProcess $mytestdir ok serial json$section -> n label input data expected {
+	test doctools-toc-export-plugin-json-22.$k.$n "doctools::toc::export /json, $label$section, ok" -setup {
+	    doctools::toc::export OUT
+	    OUT config set indented $in
+	    OUT config set aligned  $al
+	} -body {
+	    OUT export serial $data json
+	} -cleanup {
+	    OUT destroy
+	} -result $expected
+    }
+}
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# html markup
+
+foreach {k nl in section} {
+    0 0 0 -ultracompact
+    1 0 1 -indented
+    2 1 0 -compact
+    3 1 1 -indented
+} {
+    TestFilesProcess $mytestdir ok serial html$section -> n label input data expected {
+	test doctools-toc-export-plugin-html-23.$k.$n "doctools::toc::export /html, $label$section, ok" -setup {
+	    doctools::toc::export OUT
+	    OUT config set newlines $nl
+	    OUT config set indented $in
+	    OUT config set user _dummy_
+	} -body {
+	    striphtmlcomments [OUT export serial $data html] 3
+	} -cleanup {
+	    OUT destroy
+	} -result $expected
+    }
+}
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# wiki markup
+
+TestFilesProcess $mytestdir ok serial wiki -> n label input data expected {
+    test doctools-toc-export-plugin-wiki-23.$n "doctools::toc::export /wiki, $label, ok" -setup {
+	doctools::toc::export OUT
+    } -body {
+	OUT export serial $data wiki
+    } -cleanup {
+	OUT destroy
+    } -result $expected
+}
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# nroff markup
+
+foreach {k inline section} {
+    0 0 -external
+    1 1 -inlined
+} {
+    TestFilesProcess $mytestdir ok serial nroff$section -> n label input data expected {
+	test doctools-toc-export-plugin-nroff-24.$k.$n "doctools::toc::export /nroff, $label$section, ok" -setup {
+	    doctools::toc::export OUT
+	    OUT config set inline $inline
+	} -body {
+	    stripnroffcomments [stripmanmacros [OUT export serial $data nroff]]
+	} -cleanup {
+	    OUT destroy
+	} -result $expected
+    }
+}
+
+# -------------------------------------------------------------------------
+unset mytestdir n label input data expected
+return

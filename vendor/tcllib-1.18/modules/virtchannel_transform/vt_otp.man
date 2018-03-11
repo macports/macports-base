@@ -1,0 +1,53 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcl::transform::otp n 1]
+[keywords {channel transformation}]
+[keywords cipher]
+[keywords decryption]
+[keywords encryption]
+[keywords {one time pad}]
+[keywords otp]
+[keywords {reflected channel}]
+[keywords {tip 230}]
+[keywords transformation]
+[keywords {virtual channel}]
+[keywords xor]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Reflected/virtual channel support}]
+[category  Channels]
+[titledesc {Encryption via one-time pad}]
+[require Tcl 8.6]
+[require tcl::transform::core [opt 1]]
+[require tcl::transform::otp [opt 1]]
+[description]
+[para]
+
+The [package tcl::transform::otp] package provides a command creating
+a channel transformation which uses externally provided one-time pads
+to perform encryption (on writing) and decryption (on reading).
+
+[para] A related transformations in this module is
+[package tcl::transform::rot].
+
+[para] The internal [package TclOO] class implementing the transform
+handler is a sub-class of the [package tcl::transform::core]
+framework.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::tcl::transform::otp] [arg chan] [arg keychanw] [arg keychanr]]
+
+This command creates a one-time pad based encryption transformation on
+top of the channel [arg chan] and returns its handle.
+
+[para] The two channels [arg keychanw] and [arg keychanr] contain the
+one-time pads for the write and read directions, respectively. Their
+contents are reads and xored with the bytes written to and read from
+the channel.
+
+[list_end]
+
+[vset CATEGORY virtchannel]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,5 @@
+[comment {-*- tcl -*- --- doctools ---}]
+[vset PACKAGE  de]
+[vset NAME     DE]
+[vset LONGNAME {DE (german)}]
+[include include/msgcat.inc]

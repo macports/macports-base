@@ -1,0 +1,164 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* report.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* report.test: Fixed cleanup of temp. files used by the tests.
+
+2006-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* report.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* report.test: Hooked into the new common test support code.
+
+2005-10-21  Andreas Kupries <andreask@activestate.com>
+
+	* report.test: Reduced struct usage to struct::matrix, and brought
+	  the header code up to date.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* report.tcl:
+	* report.man:
+	* pkgIndex.tcl:  Set version of the package to to 0.3.1
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* report.man: More semantic markup, less visual one.
+
+2002-03-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* report.n: 
+	* report.man: Corrected example for "captionedtable".
+
+2002-03-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* report.man: Added example of formatting a matrix using tabular
+	  reports (See tcllib module "struct" too.). Fixes #530207.
+
+2002-02-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* report.man: New file, manpage in doctools format.
+
+2002-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Version up to 0.3 to differentiate development from the
+	  version in the tcllib 1.2 release.
+
+	* report.tcl: 
+	* report.test: Updated code and tests to cover all paths through the
+	  code.
+
+2001-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* report.n:
+	* report.tcl:
+	* pkgIndex.tcl: Version up to 0.2
+
+2001-08-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* report.test: Fixed broken error messages for 8.4. Using
+	  [tcltest::getErrorMessage] now to get the correct message for
+	  all versions of the core. Bug [440049] reported by Larry Virden.
+
+2001-07-10  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* report.tcl: Frink 2.2 run, fixed dubious code.
+
+2001-06-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* report.tcl: Fixed dubious code reported by frink.
+
+2001-06-19  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* report.n: Fixed nroff trouble.
+
+2001-05-01  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Committed to CVS head at SF.
+
+2001-04-22  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* New module for formatting matrices, reporting tabular data

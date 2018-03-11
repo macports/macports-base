@@ -1,0 +1,199 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin term::ansi::code::ctrl n 0.2]
+[keywords ansi]
+[keywords {attribute control}]
+[keywords {color control}]
+[keywords control]
+[keywords terminal]
+[copyright {2006-2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Terminal control}]
+[titledesc {ANSI control sequences}]
+[category  {Terminal control}]
+[require Tcl 8.4]
+[require term::ansi::code       [opt 0.2]]
+[require term::ansi::code::ctrl [opt 0.2]]
+[description]
+
+This package provides symbolic names for the ANSI control
+sequences. For each sequence a single command is provided which
+returns the sequence as its result. None of the commands of this
+package write to a channel; that is handled by higher level packages,
+like [package term::ansi::send].
+
+[section API]
+[subsection Introspection]
+
+[list_begin definitions]
+[call [cmd ::term::ansi::code::ctrl::names]]
+
+This command is for introspection. It returns as its result a list
+containing the names of all attribute commands.
+
+[call [cmd ::term::ansi::code::ctrl::import] [opt [arg ns]] [opt [arg arg]...]]
+
+This command imports some or all attribute commands into the namespace
+[arg ns]. This is by default the namespace [emph ctrl]. Note that this
+is relative namespace name, placing the imported command into a child
+of the current namespace. By default all commands are imported, this
+can howver be restricted by listing the names of the wanted commands
+after the namespace argument.
+
+[list_end]
+
+[subsection Sequences]
+[list_begin definitions]
+[call [cmd ::term::ansi::code::ctrl::eeol]]    Erase (to) End Of Line
+[call [cmd ::term::ansi::code::ctrl::esol]]    Erase (to) Start Of Line
+[call [cmd ::term::ansi::code::ctrl::el]]      Erase (current) Line
+[call [cmd ::term::ansi::code::ctrl::ed]]      Erase Down (to bottom)
+[call [cmd ::term::ansi::code::ctrl::eu]]      Erase Up (to top)
+[call [cmd ::term::ansi::code::ctrl::es]]      Erase Screen
+[call [cmd ::term::ansi::code::ctrl::sd]]      Scroll Down
+[call [cmd ::term::ansi::code::ctrl::su]]      Scroll Up
+[call [cmd ::term::ansi::code::ctrl::ch]]      Cursor Home
+[call [cmd ::term::ansi::code::ctrl::sc]]      Save Cursor
+[call [cmd ::term::ansi::code::ctrl::rc]]      Restore Cursor (Unsave)
+[call [cmd ::term::ansi::code::ctrl::sca]]     Save Cursor + Attributes
+[call [cmd ::term::ansi::code::ctrl::rca]]     Restore Cursor + Attributes
+[call [cmd ::term::ansi::code::ctrl::st]]      Set Tab (@ current position)
+[call [cmd ::term::ansi::code::ctrl::ct]]      Clear Tab (@ current position)
+[call [cmd ::term::ansi::code::ctrl::cat]]     Clear All Tabs
+[call [cmd ::term::ansi::code::ctrl::qdc]]     Query Device Code
+[call [cmd ::term::ansi::code::ctrl::qds]]     Query Device Status
+[call [cmd ::term::ansi::code::ctrl::qcp]]     Query Cursor Position
+[call [cmd ::term::ansi::code::ctrl::rd]]      Reset Device
+[call [cmd ::term::ansi::code::ctrl::elw]]     Enable Line Wrap
+[call [cmd ::term::ansi::code::ctrl::dlw]]     Disable Line Wrap
+[call [cmd ::term::ansi::code::ctrl::eg]]      Enter Graphics Mode
+[call [cmd ::term::ansi::code::ctrl::lg]]      Exit Graphics Mode
+
+[call [cmd ::term::ansi::code::ctrl::scs0] [arg tag]] Set default character set
+[call [cmd ::term::ansi::code::ctrl::scs1] [arg tag]] Set alternate character set
+
+Select Character Set.
+[para]
+
+Choose which character set is used for either default (scs0) or
+alternate font (scs1). This does not change whether default or
+alternate font are used, only their definition.
+
+[para]
+The legal tags, and their meanings, are:
+
+[list_begin definitions]
+[def A] United Kingdom Set
+[def B] ASCII Set
+[def 0] Special Graphics
+[def 1] Alternate Character ROM Standard Character Set
+[def 2] Alternate Character ROM Special Graphics
+[list_end]
+
+[call [cmd ::term::ansi::code::ctrl::sda] [arg arg]...]
+
+Set Display Attributes. The arguments are the code sequences for the possible
+attributes, as provided by the package [package term::ansi::code::attr]. For
+convenience this package also provides additional commands each setting a single
+specific attribute.
+
+[call [cmd ::term::ansi::code::ctrl::sda_fgblack]]     Set text color to [emph Black].
+[call [cmd ::term::ansi::code::ctrl::sda_fgred]]       Set text color to [emph Red].
+[call [cmd ::term::ansi::code::ctrl::sda_fggreen]]     Set text color to [emph Green].
+[call [cmd ::term::ansi::code::ctrl::sda_fgyellow]]    Set text color to [emph Yellow].
+[call [cmd ::term::ansi::code::ctrl::sda_fgblue]]      Set text color to [emph Blue].
+[call [cmd ::term::ansi::code::ctrl::sda_fgmagenta]]   Set text color to [emph Magenta].
+[call [cmd ::term::ansi::code::ctrl::sda_fgcyan]]      Set text color to [emph Cyan].
+[call [cmd ::term::ansi::code::ctrl::sda_fgwhite]]     Set text color to [emph White].
+[call [cmd ::term::ansi::code::ctrl::sda_fgdefault]]   Set default text color ([emph Black]).
+[call [cmd ::term::ansi::code::ctrl::sda_bgblack]]     Set background to [emph Black].
+[call [cmd ::term::ansi::code::ctrl::sda_bgred]]       Set background to [emph Red].
+[call [cmd ::term::ansi::code::ctrl::sda_bggreen]]     Set background to [emph Green].
+[call [cmd ::term::ansi::code::ctrl::sda_bgyellow]]    Set background to [emph Yellow].
+[call [cmd ::term::ansi::code::ctrl::sda_bgblue]]      Set background to [emph Blue].
+[call [cmd ::term::ansi::code::ctrl::sda_bgmagenta]]   Set background to [emph Magenta].
+[call [cmd ::term::ansi::code::ctrl::sda_bgcyan]]      Set background to [emph Cyan].
+[call [cmd ::term::ansi::code::ctrl::sda_bgwhite]]     Set background to [emph White].
+[call [cmd ::term::ansi::code::ctrl::sda_bgdefault]]   Set default background (Transparent).
+[call [cmd ::term::ansi::code::ctrl::sda_bold]]        Bold on.
+[call [cmd ::term::ansi::code::ctrl::sda_dim]]         Dim on.
+[call [cmd ::term::ansi::code::ctrl::sda_italic]]      Italics on.
+[call [cmd ::term::ansi::code::ctrl::sda_underline]]   Underscore on.
+[call [cmd ::term::ansi::code::ctrl::sda_blink]]       Blink on.
+[call [cmd ::term::ansi::code::ctrl::sda_revers]]      Reverse on.
+[call [cmd ::term::ansi::code::ctrl::sda_hidden]]      Hidden on.
+[call [cmd ::term::ansi::code::ctrl::sda_strike]]      Strike-through on.
+[call [cmd ::term::ansi::code::ctrl::sda_nobold]]      Bold off.
+[call [cmd ::term::ansi::code::ctrl::sda_noitalic]]    Italics off.
+[call [cmd ::term::ansi::code::ctrl::sda_nounderline]] Underscore off.
+[call [cmd ::term::ansi::code::ctrl::sda_noblink]]     Blink off.
+[call [cmd ::term::ansi::code::ctrl::sda_norevers]]    Reverse off.
+[call [cmd ::term::ansi::code::ctrl::sda_nohidden]]    Hidden off.
+[call [cmd ::term::ansi::code::ctrl::sda_nostrike]]    Strike-through off.
+[call [cmd ::term::ansi::code::ctrl::sda_reset]]       Reset all attributes to their default values.
+
+[call [cmd ::term::ansi::send::fcp] [arg row] [arg col]]
+
+Force Cursor Position (aka Go To).
+
+[call [cmd ::term::ansi::code::ctrl::cu] [opt [arg n]]] Cursor Up. [arg n] defaults to 1.
+[call [cmd ::term::ansi::code::ctrl::cd] [opt [arg n]]] Cursor Down. [arg n] defaults to 1.
+[call [cmd ::term::ansi::code::ctrl::cf] [opt [arg n]]] Cursor Forward. [arg n] defaults to 1.
+[call [cmd ::term::ansi::code::ctrl::cb] [opt [arg n]]] Cursor Backward. [arg n] defaults to 1.
+
+[call [cmd ::term::ansi::code::ctrl::ss] [opt "[arg s] [arg e]"]]
+
+Scroll Screen (entire display, or between rows start end, inclusive).
+
+[call [cmd ::term::ansi::code::ctrl::skd] [arg code] [arg str]]
+
+Set Key Definition.
+[comment {-- list the possible codes --}]
+
+[call [cmd ::term::ansi::code::ctrl::title] [arg str]]
+
+Set the terminal title.
+
+[call [cmd ::term::ansi::code::ctrl::gron]]
+
+Switch to character/box graphics. I.e. switch to the alternate font.
+
+[call [cmd ::term::ansi::code::ctrl::groff]]
+
+Switch to regular characters. I.e. switch to the default font.
+
+[call [cmd ::term::ansi::code::ctrl::tlc]] Character graphics, Top Left Corner.
+[call [cmd ::term::ansi::code::ctrl::trc]] Character graphics, Top Right Corner.
+[call [cmd ::term::ansi::code::ctrl::brc]] Character graphics, Bottom Right Corner.
+[call [cmd ::term::ansi::code::ctrl::blc]] Character graphics, Bottom Left Corner.
+[call [cmd ::term::ansi::code::ctrl::ltj]] Character graphics, Left T Junction.
+[call [cmd ::term::ansi::code::ctrl::ttj]] Character graphics, Top T Junction.
+[call [cmd ::term::ansi::code::ctrl::rtj]] Character graphics, Right T Junction.
+[call [cmd ::term::ansi::code::ctrl::btj]] Character graphics, Bottom T Junction.
+[call [cmd ::term::ansi::code::ctrl::fwj]] Character graphics, Four-Way Junction.
+[call [cmd ::term::ansi::code::ctrl::hl]]  Character graphics, Horizontal Line.
+[call [cmd ::term::ansi::code::ctrl::vl]]  Character graphics, Vertical Line.
+
+[call [cmd ::term::ansi::code::ctrl::groptim] [arg str]]
+
+Optimize character graphics. The generator commands above create way to many
+superfluous commands shifting into and out of the graphics mode. This command
+removes all shifts which are not needed. To this end it also knows which
+characters will look the same in both modes, to handle strings created outside
+of this package.
+
+[call [cmd ::term::ansi::code::ctrl::clear]]
+
+Clear screen. In essence a sequence of CursorHome + EraseDown.
+
+[call [cmd ::term::ansi::code::ctrl::init]]
+
+Initialize default and alternate fonts to ASCII and box graphics.
+
+[call [cmd ::term::ansi::code::ctrl::showat] [arg row] [arg col] [arg text]]
+
+Format the block of text for display at the specified location.
+
+[list_end]
+
+[vset CATEGORY term]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

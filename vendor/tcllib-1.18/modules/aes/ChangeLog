@@ -1,0 +1,146 @@
+2013-05-30  Andreas Kupries  <andreask@activestate.com>
+
+	* aes.tcl (::aes::Chunk): [Bug 3612645][Allura 1366]: Fix handling
+	* aes.test: of last block read, it may be empty. In that case we
+	* aes.man: must not pad, nor try to decrypt it into garbage.
+	* pkgIndex.tcl: Extended testsuite with cases for this. Version
+	  bumped to 1.1.1.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2013-01-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* aes.man: [Bug 3574004]: Documented the -- option stopping
+	* aes.tcl: option processing to protect data starting with
+	* aes.test: a dash. Additionally auto-stop if only one argument
+	* pkgIndex.tcl: is left, treating it as data. Bumped to
+	  version 1.1.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-07-06  Andreas Kupries  <andreask@activestate.com>
+
+	* aes.tcl (DecryptBlock, EncryptBlock): [Bug 2993029]: More code
+	* aes.man: limiting the values to int32 range. Extended the
+	* aes.test: testsuite. Bumped version to 1.0.2. See also the
+	* pkgIndex.tcl: changelog entry of 2008-05-12.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-01-19  Elchonon Edelson  <eee@users.sourceforge.net>
+
+	* aes.man: Minor enhancement.
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-06-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* aes.pcx: New file. Syntax definitions for the public commands of
+	  the aes package.
+
+2008-05-13  Andreas Kupries  <andreask@activestate.com>
+
+	* pkgIndex.tcl: Version bump missed the index :(
+
+2008-05-12  Andreas Kupries  <andreask@activestate.com>
+
+	* aes.tcl (DecryptBlock, EncryptBlock): Added code limiting the
+	* aes.man: values to int32 range, to prevent going out of range
+	* aes.test: when run by Tcl 8.5 and its bignums. Extended
+	* pkgIndex.tcl: testsuite to catch a problematic case which fails
+	  without the change. Bumped version to 1.0.1.
+
+	* aes.tcl (::aes::Pop, ::aes::aes): Also, cleaned up upvar command
+	  without explicit level information.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* aes.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* aes.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* aes.test: Hooked into the new common test support code.
+
+2005-10-18  Andreas Kupries <andreask@activestate.com>
+
+	* aes.bench: Extended with benchmarks for the keyschedule.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-09-04  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* aes.tcl:      Frink warning suppression
+	* aes.man:      Added a description of cipher modes of operation.
+
+2005-09-01  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* aes.tcl:      Re-written to support CBC mode AES and to allow for
+	* aes.test:     the tcllib-style programming API (as per blowfish, RC4 and
+	* aes.man:      the hash implementations). Converted from an array based
+	* pkgIndex.tcl: implementation to a list based implementation and
+	                gained a 4x speedup. Set to 1.0.0 for now the API is fixed.
+	
+2005-08-30  Andreas Kupries <andreask@activestate.com>
+
+	* pkgIndex.tcl: **New file**. Added the missing package index
+	  without which the package cannot be used.
+
+2005-08-29  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* aes.tcl:   Added a number of performance improvements
+	* aes.test:
+
+2005-08-29  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* aes.tcl:   Initial import of a Tcl implementation of
+	* aes.test:  the Advanced Encryption Standard contributed
+	* aes.man:   by Thorsten Schloermann <fattobi@users.sourceforge.net>

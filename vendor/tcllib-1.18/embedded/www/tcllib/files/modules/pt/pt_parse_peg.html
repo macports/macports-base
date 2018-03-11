@@ -1,0 +1,222 @@
+
+<div class='fossil-doc' data-title='pt_parse_peg - Parser Tools'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">pt_parse_peg(i) 1 tcllib &quot;Parser Tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>pt_parse_peg - Parser Tools PEG Parser</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Class API</a></li>
+<li class="doctools_section"><a href="#section3">Instances API</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">pt::parse::peg 1</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">pt::parse::peg</b> <span class="opt">?<i class="arg">objectName</i>?</span></a></li>
+<li><a href="#2"><i class="arg">objectName</i> <b class="method">destroy</b></a></li>
+<li><a href="#3"><i class="arg">objectName</i> <b class="method">parse</b> <i class="arg">chan</i></a></li>
+<li><a href="#4"><i class="arg">objectName</i> <b class="method">parset</b> <i class="arg">text</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Are you lost ?
+Do you have trouble understanding this document ?
+In that case please read the overview provided by the
+<i class="term"><a href="pt_introduction.html">Introduction to Parser Tools</a></i>. This document is the
+entrypoint to the whole system the current package is a part of.</p>
+<p>This package provides a class whose instances are parsers for parsing
+expression grammars in textual form.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Class API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">pt::parse::peg</b> <span class="opt">?<i class="arg">objectName</i>?</span></a></dt>
+<dd><p>The class command constructs parser instances, i.e. objects. The
+result of the command is the fully-qualified name of the instance
+command.</p>
+<p>If no <i class="arg">objectName</i> is specified the class will generate and use an
+automatic name. If the <i class="arg">objectName</i> was specified, but is not
+fully qualified the command will be created in the current namespace.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Instances API</a></h2>
+<p>All parser instances provide at least the methods shown below:</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><i class="arg">objectName</i> <b class="method">destroy</b></a></dt>
+<dd><p>This method destroys the parser instance, releasing all claimed memory
+and other resources, and deleting the instance command.</p>
+<p>The result of the command is the empty string.</p></dd>
+<dt><a name="3"><i class="arg">objectName</i> <b class="method">parse</b> <i class="arg">chan</i></a></dt>
+<dd><p>This method runs the parser using the contents of <i class="arg">chan</i> as input
+(starting at the current location in the channel), until parsing is
+not possible anymore, either because parsing has completed, or run
+into a syntax error.</p>
+<p>Note here that the Parser Tools are based on Tcl 8.5+. In other words,
+the channel argument is not restricted to files, sockets, etc. We have
+the full power of <i class="term">reflected channels</i> available.</p>
+<p>It should also be noted that the parser pulls the characters from the
+input stream as it needs them. If a parser created by this package has
+to be operated in a push aka event-driven manner it will be necessary
+to go to Tcl 8.6+ and use the <b class="package"><a href="../coroutine/coro_auto.html">coroutine::auto</a></b> to wrap it
+into a coroutine where <b class="cmd"><a href="../../../../index.html#key410">read</a></b> is properly changed for
+push-operation.</p>
+<p>Upon successful completion the command returns an abstract syntax tree
+as its result.
+This AST is in the form specified in section
+<b class="sectref">AST serialization format</b>.
+As a plain nested Tcl-list it can then be processed with any Tcl
+commands the user likes, doing transformations, semantic checks, etc.
+To help in this the package <b class="package"><a href="pt_astree.html">pt::ast</a></b> provides a set of
+convenience commands for validation of the tree's basic structure,
+printing it for debugging, and walking it either from the bottom up,
+or top down.</p>
+<p>When encountering a syntax error the command will throw an error instead.
+This error will be a 4-element Tcl-list, containing, in the order
+listed below:</p>
+<ol class="doctools_enumerated">
+<li><p>The string <b class="const">pt::rde</b> identifying it as parser runtime error.</p></li>
+<li><p>The location of the parse error, as character offset from the
+beginning of the parsed input.</p></li>
+<li><p>The location of parse error, now as a 2-element list containing
+line-number and column in the line.</p></li>
+<li><p>A set of atomic parsing expressions indicating encoding the characters
+and/or nonterminal symbols the parser expected to see at the location
+of the parse error, but did not get.
+ For the specification of atomic parsing expressions please see the
+section <b class="sectref">PE serialization format</b>.</p></li>
+</ol></dd>
+<dt><a name="4"><i class="arg">objectName</i> <b class="method">parset</b> <i class="arg">text</i></a></dt>
+<dd><p>This method runs the parser using the string in <i class="arg">text</i> as input.
+In all other ways it behaves like the method <b class="method">parse</b>, shown
+above.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>pt</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key3">EBNF</a>, <a href="../../../../index.html#key15">LL(k)</a>, <a href="../../../../index.html#key6">PEG</a>, <a href="../../../../index.html#key7">TDPL</a>, <a href="../../../../index.html#key4">context-free languages</a>, <a href="../../../../index.html#key0">expression</a>, <a href="../../../../index.html#key11">grammar</a>, <a href="../../../../index.html#key5">matching</a>, <a href="../../../../index.html#key9">parser</a>, <a href="../../../../index.html#key8">parsing expression</a>, <a href="../../../../index.html#key14">parsing expression grammar</a>, <a href="../../../../index.html#key1">push down automaton</a>, <a href="../../../../index.html#key10">recursive descent</a>, <a href="../../../../index.html#key2">state</a>, <a href="../../../../index.html#key13">top-down parsing languages</a>, <a href="../../../../index.html#key12">transducer</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Parsing and Grammars</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

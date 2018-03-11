@@ -1,0 +1,78 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin base32::hex n 0.1]
+[keywords base32]
+[keywords hex]
+[keywords rfc3548]
+[copyright {Public domain}]
+[moddesc   {Base32 encoding}]
+[titledesc {base32 extended hex encoding}]
+[category  {Text processing}]
+[require Tcl 8.4]
+[require base32::core [opt 0.1]]
+[require base32::hex  [opt 0.1]]
+[description]
+[para]
+
+This package provides commands for encoding and decoding of strings
+into and out of the extended hex base32 encoding as specified in the
+RFC 3548bis draft.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::base32::hex::encode] [arg string]]
+
+This command encodes the given [arg string] in extended hex base32 and
+returns the encoded string as its result. The result may be padded
+with the character [const =] to signal a partial encoding at the end
+of the input string.
+
+[call [cmd ::base32::hex::decode] [arg estring]]
+
+This commands takes the [arg estring] and decodes it under the
+assumption that it is a valid extended hex base32 encoded string. The
+result of the decoding is returned as the result of the command.
+
+[para]
+
+Note that while the encoder will generate only uppercase characters
+this decoder accepts input in lowercase as well.
+
+[para]
+
+The command will always throw an error whenever encountering
+conditions which signal some type of bogus input, namely if
+
+[list_begin enumerated]
+[enum] the input contains characters which are not valid output
+       of a extended hex base32 encoder,
+[enum] the length of the input is not a multiple of eight,
+[enum] padding appears not at the end of input, but in the middle,
+[enum] the padding has not of length six, four, three, or one characters,
+[list_end]
+[list_end]
+
+[section {Code map}]
+
+The code map used to convert 5-bit sequences is shown below, with the
+numeric id of the bit sequences to the left and the character used to
+encode it to the right. The important feature of the extended hex
+mapping is that the first 16 codes map to the digits and hex
+characters.
+
+[example {
+	0 0    9 9        18 I   27 R
+	1 1   10 A        19 J   28 S
+	2 2   11 B        20 K   29 T
+	3 3   12 C        21 L   30 U
+	4 4   13 D        22 M   31 V
+	5 5   14 E        23 N
+	6 6   15 F        24 O
+	7 7        16 G   25 P
+	8 8        17 H   26 Q
+}]
+
+[vset CATEGORY base32]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

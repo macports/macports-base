@@ -1,0 +1,370 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctools::toc n 2]
+[keywords conversion]
+[keywords {doctoc markup}]
+[keywords documentation]
+[keywords formatting]
+[keywords generation]
+[keywords HTML]
+[keywords json]
+[keywords latex]
+[keywords markup]
+[keywords nroff]
+[keywords parsing]
+[keywords plugin]
+[keywords reference]
+[keywords table]
+[keywords {table of contents}]
+[keywords {tcler's wiki}]
+[keywords text]
+[keywords TMML]
+[keywords wiki]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {Holding tables of contents}]
+[category  {Documentation tools}]
+[require doctools::toc [opt 2]]
+[require Tcl 8.4]
+[require doctools::toc::structure]
+[require struct::tree]
+[require snit]
+[description]
+
+This package provides a class to contain and programmatically
+manipulate tables of contents.
+
+[para]
+
+This is one of the three public pillars the management of tables of
+contents resides on. The other two pillars are
+
+[list_begin enum]
+[enum] [manpage {Exporting tables of contents}], and
+[enum] [manpage {Importing tables of contents}]
+[list_end]
+
+[para]
+
+For information about the [sectref Concepts] of tables of contents, and
+their parts, see the same-named section.
+
+For information about the data structure which is used to encode
+tables of contents as values see the section
+[sectref {ToC serialization format}].
+
+This is the only format directly known to this class. Conversions from
+and to any other format are handled by export and import manager
+objects. These may be attached to a container, but do not have to be,
+it is merely a convenience.
+
+[section Concepts] [include include/concept.inc]
+
+[section API]
+[subsection {Package commands}]
+
+[list_begin definitions]
+
+[call [cmd ::doctools::toc] [arg objectName]]
+
+This command creates a new container object with an associated Tcl
+command whose name is [arg objectName]. This [term object] command is
+explained in full detail in the sections [sectref {Object command}]
+and [sectref {Object methods}]. The object command will be created
+under the current namespace if the [arg objectName] is not fully
+qualified, and in the specified namespace otherwise.
+
+[list_end]
+
+[subsection {Object command}]
+
+All objects created by the [cmd ::doctools::toc] command have the
+following general form:
+
+[list_begin definitions]
+
+[call [cmd objectName] [method method] [opt [arg "arg arg ..."]]]
+
+The method [method method] and its [arg arg]'uments determine the
+exact behavior of the command.
+
+See section [sectref {Object methods}] for the detailed
+specifications.
+
+[list_end]
+
+[subsection {Object methods}]
+
+[list_begin definitions]
+
+[call [arg objectName] [method destroy]]
+
+This method destroys the object it is invoked for.
+
+[call [arg objectName] [method {+ reference}] [arg id] [arg label] [arg docid] [arg desc]]
+
+This method adds a new reference element to the table of contents,
+under the element specified via its handle [arg id]. This parent
+element has to be a division element, or the root. An error is thrown
+otherwise.
+
+The new element will be externally identified by its [arg label],
+which has to be be unique within the parent element. An error is
+thrown otherwise.
+
+[para]
+
+As a reference element it will refer to a document identified by the
+symbolic [arg docid]. This reference must not be the empty string, an
+error is thrown otherwise.
+
+Beyond the label the element also has a longer descriptive string,
+supplied via [arg desc].
+
+[para]
+
+The result of the method is the handle (id) of the new element.
+
+[call [arg objectName] [method {+ division}] [arg id] [arg label] [opt [arg docid]]]
+
+This method adds a new division element to the table of contents,
+under the element specified via its handle [arg id]. This parent
+element has to be a division element, or the root. An error is thrown
+otherwise.
+
+The new element will be externally identified by its [arg label],
+which has to be be unique within the parent element. An error is
+thrown otherwise.
+
+[para]
+
+As a division element it is can refer to a document, identified by the
+symbolic [arg docid], but may choose not to.
+
+[para]
+
+The result of the method is the handle (id) of the new element.
+
+[call [arg objectName] [method remove] [arg id]]
+
+This method removes the element identified by the handle [arg id] from
+the table of contents.
+
+If the element is a division all of its children, if any, are removed
+as well. The root element/division of the table of contents cannot be
+removed however, only its children.
+
+[para]
+
+The result of the method is the empty string.
+
+[call [arg objectName] [method up] [arg id]]
+
+This method returns the handle of the parent for the element
+identified by its handle [arg id], or the empty string if [arg id]
+refered to the root element.
+
+[call [arg objectName] [method next] [arg id]]
+
+This method returns the handle of the right sibling for the element
+identified by its handle [arg id], or the handle of the parent if the
+element has no right sibling, or the empty string if [arg id] refered
+to the root element.
+
+[call [arg objectName] [method prev] [arg id]]
+
+This method returns the handle of the left sibling for the element
+identified by its handle [arg id], or the handle of the parent if the
+element has no left sibling, or the empty string if [arg id] refered
+to the root element.
+
+[call [arg objectName] [method child] [arg id] [arg label] [opt [arg ...]]]
+
+This method returns the handle of a child of the element identified by
+its handle [arg id]. The child itself is identified by a series of
+labels.
+
+[call [arg objectName] [method element] [opt [arg ...]]]
+
+This method returns the handle of the element identified by a series
+of labels, starting from the root of the table of contents. The series
+of labels is allowed to be empty, in which case the handle of the root
+element is returned.
+
+[call [arg objectName] [method children] [arg id]]
+
+This method returns a list containing the handles of all children of
+the element identified by the handle [arg id], from first to last, in
+that order.
+
+[call [arg objectName] [method type] [arg id]]
+
+This method returns the type of the element, either [const reference],
+or [const division].
+
+[call [arg objectName] [method full-label] [arg id]]
+
+This method is the complement of the method [method element],
+converting the handle [arg id] of an element into a list of labels
+full identifying the element within the whole table of contents.
+
+[call [arg objectName] [method elabel] [arg id] [opt [arg newlabel]]]
+
+This method queries and/or changes the label of the element identified
+by the handle [arg id]. If the argument [arg newlabel] is present then
+the label is changed to that value. Regardless of this, the result of
+the method is the current value of the label.
+
+[para]
+
+If the label is changed the new label has to be unique within the
+containing division, or an error is thrown.
+
+[para]
+
+Further, of the [arg id] refers to the root element of the table of
+contents, then using this method is equivalent to using the method
+[arg label], i.e. it is accessing the global label for the whole
+table.
+
+[call [arg objectName] [method description] [arg id] [opt [arg newdesc]]]
+
+This method queries and/or changes the description of the element
+identified by the handle [arg id]. If the argument [arg newdesc] is
+present then the description is changed to that value. Regardless of
+this, the result of the method is the current value of the description.
+
+[para]
+
+The element this method operates on has to be a reference element, or
+an error will be thrown.
+
+[call [arg objectName] [method document] [arg id] [opt [arg newdocid]]]
+
+This method queries and/or changes the document reference of the
+element identified by the handle [arg id].
+
+If the argument [arg newdocid] is present then the description is
+changed to that value. Regardless of this, the result of the method is
+the current value of the document reference.
+
+[para]
+
+Setting the reference to the empty string means unsetting it, and is
+allowed only for division elements. Conversely, if the result is the
+empty string then the element has no document reference, and this can
+happen only for division elements.
+
+[call [arg objectName] [method title]]
+
+Returns the currently defined title of the table of contents.
+
+[call [arg objectName] [method title] [arg text]]
+
+Sets the title of the table of contents to [arg text], and returns it as
+the result of the command.
+
+[call [arg objectName] [method label]]
+
+Returns the currently defined label of the table of contents.
+
+[call [arg objectName] [method label] [arg text]]
+
+Sets the label of the table of contents to [arg text], and returns it as
+the result of the command.
+
+[call [arg objectName] [method importer]]
+
+Returns the import manager object currently attached to the container,
+if any.
+
+[call [arg objectName] [method importer] [arg object]]
+
+Attaches the [arg object] as import manager to the container, and
+returns it as the result of the command.
+
+Note that the [arg object] is [emph not] put into ownership of the
+container. I.e., destruction of the container will [emph not] destroy
+the [arg object].
+
+[para]
+
+It is expected that [arg object] provides a method named
+[method {import text}] which takes a text and a format name, and
+returns the canonical serialization of the table of contents contained in
+the text, assuming the given format.
+
+[call [arg objectName] [method exporter]]
+
+Returns the export manager object currently attached to the container,
+if any.
+
+[call [arg objectName] [method exporter] [arg object]]
+
+Attaches the [arg object] as export manager to the container, and
+returns it as the result of the command.
+
+Note that the [arg object] is [emph not] put into ownership of the
+container. I.e., destruction of the container will [emph not] destroy
+the [arg object].
+
+[para]
+
+It is expected that [arg object] provides a method named
+[method {export object}] which takes the container and a format name,
+and returns a text encoding table of contents stored in the container, in
+the given format. It is further expected that the [arg object] will
+use the container's method [method serialize] to obtain the
+serialization of the table of contents from which to generate the text.
+
+[call [arg objectName] [method {deserialize =}] [arg data] [opt [arg format]]]
+
+This method replaces the contents of the table object with the table
+contained in the [arg data]. If no [arg format] was specified it is
+assumed to be the regular serialization of a table of contents.
+
+[para]
+
+Otherwise the object will use the attached import manager to convert
+the data from the specified format to a serialization it can handle.
+
+In that case an error will be thrown if the container has no import
+manager attached to it.
+
+[para]
+
+The result of the method is the empty string.
+
+[call [arg objectName] [method {deserialize +=}] [arg data] [opt [arg format]]]
+
+This method behaves like [method {deserialize =}] in its essentials,
+except that it merges the table of contents in the [arg data] to its
+contents instead of replacing it.
+
+The method will throw an error if merging is not possible, i.e. would
+produce an invalid table. The existing content is left unchanged in
+that case.
+
+[para]
+
+The result of the method is the empty string.
+
+[call [arg objectName] [method serialize] [opt [arg format]]]
+
+This method returns the table of contents contained in the object. If no
+[arg format] is not specified the returned result is the canonical
+serialization of its contents.
+
+[para]
+
+Otherwise the object will use the attached export manager to convert
+the data to the specified format.
+
+In that case an error will be thrown if the container has no export
+manager attached to it.
+
+[list_end]
+
+[include include/serialization.inc]
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

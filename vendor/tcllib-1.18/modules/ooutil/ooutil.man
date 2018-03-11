@@ -1,0 +1,165 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset OOUTIL_VERSION 1.2.2]
+[manpage_begin oo::util n [vset OOUTIL_VERSION]]
+[see_also snit(n)]
+[keywords callback]
+[keywords {class methods}]
+[keywords {class variables}]
+[keywords {command prefix}]
+[keywords currying]
+[keywords {method reference}]
+[keywords {my method}]
+[keywords singleton]
+[keywords TclOO]
+[copyright {2011-2015 Andreas Kupries, BSD licensed}]
+[moddesc {Utility commands for TclOO}]
+[titledesc {Utility commands for TclOO}]
+[category  Utility]
+[require Tcl 8.5]
+[require TclOO]
+[require oo::util [opt [vset OOUTIL_VERSION]]]
+[description]
+[para]
+
+This package provides a convenience command for the easy specification
+of instance methods as callback commands, like timers, file events, Tk
+bindings, etc.
+
+[section {COMMANDS}]
+
+[list_begin definitions]
+[comment {- - -- --- ----- -------- ------------- ---------------------}]
+[call [cmd mymethod] [arg method] [opt [arg arg]...]]
+
+This command is available within instance methods. It takes a method
+name and, possibly, arguments for the method and returns a command
+prefix which, when executed, will invoke the named method of the
+object we are in, with the provided arguments, and any others supplied
+at the time of actual invokation.
+
+[para] Note: The command is equivalent to and named after the command
+provided by the OO package [package snit] for the same purpose.
+
+[comment {- - -- --- ----- -------- ------------- ---------------------}]
+[call [cmd classmethod] [arg name] [arg arguments] [arg body]]
+
+This command is available within class definitions. It takes a method
+name and, possibly, arguments for the method and creates a method on the
+class, available to a user of the class and of derived classes.
+
+[para] Note: The command is equivalent to the command [cmd typemethod]
+provided by the OO package [package snit] for the same purpose.
+
+[para] Example
+[example {
+oo::class create ActiveRecord {
+    classmethod find args { puts "[self] called with arguments: $args" }
+}
+oo::class create Table {
+    superclass ActiveRecord
+}
+puts [Table find foo bar]
+# ======
+# which will write
+# ======
+# ::Table called with arguments: foo bar
+}]
+
+[comment {- - -- --- ----- -------- ------------- ---------------------}]
+[call [cmd classvariable] [opt [arg arg]...]]
+
+This command is available within instance methods. It takes a series
+of variable names and makes them available in the method's scope. The
+originating scope for the variables is the class (instance) the object
+instance belongs to. In other words, the referenced variables are shared
+between all instances of their class.
+
+[para] Note: The command is roughly equivalent to the command
+[cmd typevariable] provided by the OO package [package snit] for the
+same purpose. The difference is that it cannot be used in the class
+definition itself.
+
+[para] Example:
+[example {
+% oo::class create Foo {
+    method bar {z} {
+        classvariable x y
+        return [incr x $z],[incr y]
+    }
+}
+::Foo
+% Foo create a
+::a
+% Foo create b
+::b
+% a bar 2
+2,1
+% a bar 3
+5,2
+% b bar 7
+12,3
+% b bar -1
+11,4
+% a bar 0
+11,5
+}]
+
+[comment {- - -- --- ----- -------- ------------- ---------------------}]
+[call [cmd link] [arg method]...]
+[call [cmd link] "{[arg alias] [arg method]}..."]
+
+This command is available within instance methods. It takes a list of
+method names and/or pairs of alias- and method-name and makes the
+named methods available to all instance methods without requiring the
+[cmd my] command.
+
+[para] The alias name under which the method becomes available defaults
+to the method name, except where explicitly specified through an
+alias/method pair.
+
+[para] Examples:
+[example {
+    link foo
+    # The method foo is now directly accessible as foo instead of my foo.
+
+    link {bar foo}
+    # The method foo is now directly accessible as bar.
+
+    link a b c
+    # The methods a, b, and c all become directly acessible under their
+    # own names.
+}]
+
+The main use of this command is expected to be in instance constructors,
+for convenience, or to set up some methods for use in a mini DSL.
+
+[comment {- - -- --- ----- -------- ------------- ---------------------}]
+[call [cmd ooutil::singleton] [opt [arg arg]...]]
+
+This command is a meta-class, i.e. a variant of the builtin
+[cmd oo::class] which ensures that it creates only a single
+instance of the classes defined with it.
+
+[para] Syntax and results are like for [cmd oo::class].
+
+[para] Example:
+[example {
+% oo::class create example {
+   self mixin singleton
+   method foo {} {self}
+}
+::example
+% [example new] foo
+::oo::Obj22
+% [example new] foo
+::oo::Obj22
+}]
+
+[list_end]
+
+[section AUTHORS]
+Donal Fellows, Andreas Kupries
+
+[vset CATEGORY oo::util]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

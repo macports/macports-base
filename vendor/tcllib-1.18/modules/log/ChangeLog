@@ -1,0 +1,526 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2012-07-09  Andreas Kupries  <aku@hephaistos>
+
+	* logger.tcl: [Bug 3541628]: Fixed creative writing issue in
+	* logger.man: logger::init. Bumped package to version 0.9.3
+	* pkgIndex.tcl: Whitespace cleanup in places.
+
+2011-12-20  Michael Schlenker <mic42@users.sourceforge.net>
+
+        Fix for [Bug 3463420]. The default loglevel was not
+	being inherited. Increased version to 0.9.2.
+	* logger.tcl:
+	* logger.test:
+	* pkgIndex.tcl:
+
+2011-12-20  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * logger.man: Fix for [Bug 3462341].
+	* logger.tcl: The use of empty servicenames is not allowed.
+	* logger.test: The use of a name of only : is also forbidden.
+	* pkgIndex.tcl:
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	*
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	*
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	*
+
+2009-10-27  Andreas Kupries  <andreask@activestate.com>
+
+	* log.man: Flush writes to the log channel. Bumped to
+	* log.tcl: version 1.3.
+	* pkgIndex.tcl:
+
+2008-12-22  Andreas Kupries  <andreask@activestate.com>
+
+	* log.man: Extended documentation a bit to tell about the levels
+	* log.tcl: which are suppressed by default. Added comment to code
+	  to point from the first initialization to the second at the
+	  bottom of the file. Fixes [Bug 2418580].
+
+2008-12-17  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * logger.tcl: Applied modified patch [RFE 2381524].
+	* logger.test: Thanks to Hemang Lavana for the patch.
+	* pkgIndex.tcl: Added -errorcode arguments and msgcat::mc
+	  calls to all error messages, so this could be localized.
+	  Bumped version to 0.9.
+	  Proc bodies are now constructed via format instead of
+	  all the quoting hell.
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	*
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	*
+
+2008-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* log.tcl: Bumped version to 1.2.1 for commit on
+	* log.man: 2008-09-25 by eee. API change, needs at
+	* pkgIndex.tcl: least a patchlevel bump.
+
+2008-09-25  Elchonon Edelson  <eee@users.sourceforge.net>
+
+	* log.tcl: Changed the error message returned by the log::log
+	* log.test: function. Instead of saying ""foo" is no unique
+	  abbreviation of a level name", it now gives a reasonable
+	  error message that lists the valid levels.
+
+2008-06-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* log.pcx: New file. Syntax definitions for the public commands of
+	  the log package.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	*
+
+2007-03-26  Andreas Kupries  <andreask@activestate.com>
+
+	* loggerUtils.man: Uh, the section was put into the list instead
+	* loggerAppender.man: of after. Fixed. [Bug 1688650].
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* log.man: Fixed all warnings due to use of now deprecated
+	* logger.man: commands. Added a section about how to give
+	* loggerUtils.man: feedback.
+	* loggerAppender.man:
+
+2007-03-20  Andreas Kupries  <andreask@activestate.com>
+
+	* loggerUtils.tcl: Added MD pragmas regarding ownership of the
+	  message files.
+
+2007-02-08  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.tcl: Accepted patch for [SF Tcllib 1599978],
+	* logger.man: adding emergency and alert levels to the logger
+	* pkgIndex.tcl: package. Raising package version to 0.8,
+	even if it is just a rather minor change. But there is a
+
+	**** POTENTIAL INCOMPATIBILITY ****
+	If code uses explicitly 'criticalr' to disable all available loggers
+	instead of looking at the highest level in logger::levels, this
+	no longer disables all log messages.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	*
+
+2006-09-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* logger.test: Moved the tests of the new trace facility to a
+	* logger_trace.test: separate file, as they require a newer
+	  version of tcltest (2.x), and Tcl 8.4 instead of 8.2.
+
+2006-08-18  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.tcl:        Applied patch [SF Tcllib 1530725] to
+	* logger.man:	     add a command trace logging facility to
+	* logger.test:       logger. This raises the package version
+	* pkgIndex.tcl:      to 0.7.
+	* loggerUtils.tcl:    Fixed abbreviated subcommands to use
+	* loggerAppender.tcl: the full form.
+
+2006-04-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* logger.tcl:   Added a convenience command to fully initialize
+	* logger.man:   a namespace for logging (create service, import
+	* pkgIndex.tcl: commands, set default logging level)
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* log.test:    Fixed cleanup of temp. files used by testsuite.
+	* logger.test: Fixed usage of duplicate test names.
+
+2006-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* log.test: More boilerplate simplified via use of test support.
+	* logger.test:
+	* loggerUtils.test:
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* loggerUtils.tcl: The utilities require Tcl 8.4, they use
+	* loggerUtils.man: 'trace'-APIs not yet present before 8.4.
+	* pkgIndex.tcl:
+
+	* log.test: Hooked into the new common test support code.
+	* logger.test:
+	* loggerUtils.test:
+
+2005-12-02  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.tcl:        Fixed bug [SF Tcllib 1329642]. There
+	* logger.man:        is now a new global enabled state.
+	* logger.test:       This needed a fix to the loggerUtils
+	* pkgIndex.tcl:      testsuit, to set a working default log
+	  loggerUtils.test:  level (debug instead of critical).
+
+	**** Potential Incompatibility ****
+	New top level logger instances now start with the loglevel set
+	by logger::setlevel instead of debug. The default is still
+	set to debug.
+
+2005-11-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* loggerAppender.man: Fixed small typo in the appender
+	  documentation, a reference to the wrong package.
+
+2005-10-11  Pat Thoyts <patthoyts@users.sourceforge.net>
+
+	* loggerUtils.tcl: Avoid use of %G in time formats. (not
+	                   widely supported in C libraries)
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	*
+
+2005-09-28  Andreas Kupries <andreask@activestate.com>
+
+	* loggerAppender.tcl: Integrated the formatter/appender utilities
+	* loggerAppender.man: provided by [SF Tcllib 1267636]. Created
+	* loggerUtils.tcl:    doctools based documentation. Fixed mis-
+	* loggerUtils.man:    spellings. Moved the utility code into
+	* loggerUtils.test:   the namespace "logger::utils". Added the
+	* pkgIndex.tcl:       new packages to the package index.
+
+2005-09-23  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.man : Added section about logprocs and their effect
+	  on the callstack, including a small example.
+
+2005-05-07  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.tcl  :
+	  logger.test :
+	  pkgIndex.tcl: Added more tests to the new lvlchangeproc and
+	  provided a sane default to the no-op proc to fix a bug reported
+	  by Hemang Lavana. Callbacks are now checked to exist before they
+	  are allowed or used. Added tests for these checks.
+	  Raised package version to 0.6.1.
+
+2005-04-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pkgIndex.tcl: Synchronized indexed vs. provided versions of
+	  logger.
+
+2005-03-04  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.test :
+	  logger.tcl  :
+	  logger.man  : Added a test (13.7) for a small glitch in the
+	  fix for bug [1102131]. logprocs could be called with
+	  too many arguments. Added new lvlchangeproc callback command
+	  including tests and docs.
+
+2005-02-18  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.test : Added tests for the clean callstack (14.x)
+	  to satisfy RFE 1120152. logger should not appear in the
+	  callstacks of the logprocs from now on.
+
+2005-02-09  Michael Schlenker <mic42@users.sourceforge.net>
+	* logger.tcl : Added fix for sideeffect of bugfix [1102131].
+	  The callstack for a logproc now looks nice again.
+
+2005-01-31  Michael Schlenker <mic42@users.sourceforge.net>
+	* logger.test : Added tests for bug [1102131].
+	  The logger servicename can not be detected correctly.
+	  logger.tcl  : Fix for bug [1102131]. There is
+	  still no way for a proc given to logproc to discover
+	  the servicename, that requires an extension to the
+	  logproc API (extra argument).
+	  See the 13.x tests for an example how to get the
+	  servicename with the help of the old logproc syntax.
+
+2005-01-12  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.tcl : Fixed bug [1099722]. New children did
+	  logger.test: not inherit their parents loglevel if
+	  it was set prior to their creation. Added a new test 5.2
+	  for this case. Raised package version to 0.5.1.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	*
+
+2004-10-04  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.tcl : Added more tests for logger::import,
+	  logger.test: minor fixes to error messages.
+
+2004-09-23  Andreas Kupries  <andreask@activestate.com>
+
+	* logger.tcl (logger::import): Fixed malformed return value,
+	  premature end of the string due to unquoted ".
+
+	* logger.tcl: A small fix in the new command [nsExists] for Tcl
+	  8.[23]. The condition was revers.
+
+2004-09-23  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.tcl : Added a workaround for non-existing
+	  namespace exists in logger::import, so we can
+	  stay at Tcl 8.2.
+
+2004-09-13  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.tcl : Changed defaults for logger::import,
+          logger.man : added a -force option and some more tests
+          logger.test:
+
+2004-09-13  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.tcl : Implemented and doc'ed new global logger::setlevel
+          logger.man :
+
+2004-09-06  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.tcl : Implemented and doc'ed new logger::import feature.
+          logger.man : Needs more tests.
+          logger.test:
+
+2004-09-06  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.tcl: Removed hardcoded level names in logger::init.
+
+2004-06-18  Andreas Kupries  <andreask@activestate.com>
+
+	* log.man: Fixed bad formatting in documentation of 'logarray'.
+
+2004-06-04  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.tcl : Changed error handling from ::error to
+	  logger.test: return -code error. Added more tests and
+	  argument checking to make the code more robust.
+
+2004-05-26  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.tcl: Fixed bug with enable/disable
+	  wrong enabled value was reported if disable critical was used.
+	  Added "none" as result for currentloglevel for this situation.
+	* logger.test: Added tests 7.1-7.4 to check for the above bug.
+	* logger.man: Fixed docs and replaced the nonsensical "or" with
+	  the correct "and" in enable/disable docs. Added a comment how
+	  to completely disable logging for a service and its children.
+
+2004-05-25  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* logger.tcl: Fixed bug [948273] in ::logger::services
+	  Fixed cleanup of services list in delproc
+	  Implemented doc'ed but missing ${log}::services subcommand
+	  Fixed misuse of set inside namespace eval to prevent
+	  overwriting of global variables
+	  Added new subcommands servicecmd and servicename
+	  for introspection
+	  Added introspection to logproc and delproc
+	  Version number changed to 0.4
+	* pkgIndex.tcl: updated version number of logger package
+	* logger.man: updated docs for ${log}::services,
+	  ${log}::delproc and ${log}::logproc.
+	  Added docs for servicecmd and servicename.
+	* logger.test: Added tests for new features and fixed bugs
+
+2004-05-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* log.tcl: New command 'loghex' for logging of binary data.
+	* log.man: Documented the new 'loghex', and 'logarray'.
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* log.tcl: Updated version number to sync with 1.6.1
+	* log.man: release.
+	* pkgIndex.tcl:
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	*
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* log.tcl: Rel. engineering. Updated version number
+	* log.man: of log to reflect its changes, to 1.1.1.
+	* pkgIndex.tcl:
+
+2004-03-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* log.tcl: Added initialization code to suppress the lower levels
+	  (warning notice info debug) from generating output. In other
+	  words, by default only statements with messages of level error
+	  or higher will generate output when the package is loaded.
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	*
+
+2004-02-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* logger.man:   Brought the version numbers back into sync
+	* pkgIndex.tcl: with 'logger.tcl'
+
+2004-02-13  David N. Welton  <davidw@dedasys.com>
+
+	* logger.test: Added tests from Schlenker regarding new commands.
+
+	* logger.tcl (logproc): Better error message, bugfix for new code
+	from Schlenker.
+
+	* logger.man: Added documentation for new logger commands.
+
+2004-01-19  David N. Welton  <davidw@dedasys.com>
+
+	* logger.tcl (currentloglevel): Added proc from Michael Schlenker
+	to get information about the current log level for a given
+	service.
+	(logproc): Make logproc optionally take a command as an argument.
+	From Michael Schlenker.
+	(::logger::levels): New proc - returns the available log levels.
+	From Michael Schlenker.
+
+2003-12-18  David N. Welton  <davidw@dedasys.com>
+
+	* logger.man: Document changes to logger API.
+
+2003-12-16  David N. Welton  <davidw@dedasys.com>
+
+	* logger.test (2.1): Test deletion callbacks.
+	(2.2): Test deletion callbacks.
+
+	* logger.tcl: Bump logger version number because of API change.
+	(::logger::walk): Do eval after walk on children.
+	(delproc): New procedure to set a deletion-time callback that is
+	called for each of the instance's children.  Thanks to Michael
+	Schlenker for the suggestion [ 856280 ].
+
+2003-11-25  Andreas Kupries  <andreask@activestate.com>
+
+	* log.tcl (log::log): Added better handling of multiple lines in log message.
+	  (log::logarray): New command to dump the contents of an array into the log.
+
+2003-06-25  David N. Welton  <davidw@dedasys.com>
+
+	* log.man: Fixed spelling bug (Supress -> Suppress), thanks to
+	Aaron Faupell.
+
+	* logger.man: Updated documentation example - destroy should have
+	been delete.  Thanks to Aaron Faupell.
+
+2003-05-20  David N. Welton  <davidw@dedasys.com>
+
+	* logger.test: Added test for setlevel command.
+
+	* logger.man: Document setlevel command in the 'man' page.
+
+	* logger.tcl (setlevel): New command that takes care of enabling
+	  all levels above that specified, and disabling all those below
+	  it.
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	*
+
+2003-04-21  Andreas Kupries  <andreask@activestate.com>
+
+	* loggerperformance.test: Renaming to 'loggerperformance'. This is
+	  neither a .tcl file of the package itself, nor does it belong
+	  into the testsuite (which is about functionality, not speed). It
+	  is a benchmark application.
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* log.man:
+	* log.tcl:
+	* pkgIndex.tcl:  Set version of the package 'log' to to 1.0.2.
+
+	* logger.tcl: Fixed bug #614591.
+
+2003-02-25  David N. Welton  <davidw@dedasys.com>
+
+	* logger.tcl: Require Tcl 8.2 - we use string map.
+
+2003-01-30  David N. Welton  <davidw@dedasys.com>
+
+	* loggerperformance.test: Changed file name so as to avoid
+	  problems with autoindexer.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* logger.man: More semantic markup, less visual one.
+	* log.man:
+
+2002-12-16  David N. Welton  <davidw@dedasys.com>
+
+	* logger.test: Logger tests.
+
+	* loggerperformance.tcl : Logger performance testing.
+
+	* logger.man : Logger documentation.
+
+	* logger.tcl: Initial commit of logger package.
+
+2002-02-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* log.n:
+	* log.man: Rewrote the introduction to the module for better
+	  understanding by novices. Added examples to highlight use cases
+	  from the simplest to more complex ones.
+
+2002-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Version up to 1.0.1 to differentiate development from the
+	  version in the tcllib 1.2 release.
+
+	* log.tcl:
+	* log.test: Updated code and tests to cover all paths through the
+	  code.
+
+2001-09-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* log.tcl: Restricted export list to public API.
+	  [456255]. Patch by Hemang Lavana
+	  <hemanglavana@users.sourceforge.net>
+
+2001-03-20  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* New module 'log', a logging facility.

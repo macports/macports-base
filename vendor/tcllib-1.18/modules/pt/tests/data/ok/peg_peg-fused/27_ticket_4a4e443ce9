@@ -1,0 +1,7 @@
+PEG a_pe_grammar (eos)
+
+ eos <- ex (<space>+ ex)* ;
+ ex  <- (!X [xz])+ X? ;
+ X   <- 'x' ;
+
+END;

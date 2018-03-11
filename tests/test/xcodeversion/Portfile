@@ -1,12 +1,11 @@
-# $Id$
-
 PortSystem 1.0
+
 name        xcodeversion
 version     1
 categories  test
 maintainers pguyot@kallisys.net
 description Test port for \$xcodeversion
-homepage    http://www.macports.org/
+homepage    https://www.macports.org/
 platforms   darwin
 
 long_description ${description}

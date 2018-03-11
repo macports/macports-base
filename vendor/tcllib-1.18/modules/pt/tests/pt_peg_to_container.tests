@@ -1,0 +1,72 @@
+# -*- tcl -*-
+# General set of error cases regarding the number of arguments.
+
+test pt-peg-to-container-set:${setimpl}-1.0 {convert, wrong#args} -body {
+    pt::peg::to::container convert
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::container convert serial"}
+
+test pt-peg-to-container-set:${setimpl}-1.1 {convert, wrong#args} -body {
+    pt::peg::to::container convert S XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::container convert serial"}
+
+test pt-peg-to-container-set:${setimpl}-2.0 {reset, wrong#args} -body {
+    pt::peg::to::container reset XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::container reset"}
+
+# -------------------------------------------------------------------------
+
+# TODO :: Tests missing for: configure/cget, reset
+
+# -------------------------------------------------------------------------
+
+# Testing the generation of container output, from grammar
+# serialization, for most configurations of the converter package.
+
+foreach {k mode section} {
+    0 incremental -incremental
+    1 bulk        -bulk
+} {
+    TestFilesProcess $mytestdir ok peg_serial-canonical peg_container$section -> n label input data expected {
+	test pt-peg-to-container-set:${setimpl}-3.$k.$n "pt::peg::to::container, $label$section, ok :- $input" -setup {
+	    pt::peg::to::container reset
+	    pt::peg::to::container configure -mode $mode
+	} -body {
+	    pt::peg::to::container convert $data
+	} -cleanup {
+	    pt::peg::to::container reset
+	} -result $expected
+    }
+
+    TestFilesProcess $mytestdir ok peg_serial-canonical peg_container-templated$section -> n label input data expected {
+	test pt-peg-to-container-set:${setimpl}-4.$k.$n "pt::peg::to::container, $label$section, ok :- $input" -setup {
+	    text::write reset
+	    text::write field   # -*- tcl -*-                               ; text::write /line
+	    text::write field   # Parsing Expression Grammar '@name@'.      ; text::write /line
+	    text::write field   # Generated for @user@, from file '@file@'  ; text::write /line
+	    text::write /line
+	    text::write field   package require Tcl 8.5                     ; text::write /line
+	    text::write field   package require snit                        ; text::write /line
+	    text::write field   package require pt::peg::container          ; text::write /line
+	    text::write /line
+	    text::write field   @code@                                      ; text::write /line
+	    text::write /line
+	    text::write field   package provide @name@                      ; text::write /line
+	    text::write field   return                                      ; text::write /line
+
+	    pt::peg::to::container reset
+	    pt::peg::to::container configure -mode     $mode
+	    pt::peg::to::container configure -name     TEMPLATE
+	    pt::peg::to::container configure -file     TEST
+	    pt::peg::to::container configure -template [text::write get]
+
+	    text::write reset
+	} -body {
+	    pt::peg::to::container convert $data
+	} -cleanup {
+	    pt::peg::to::container reset
+	} -result $expected
+    }
+}
+
+#----------------------------------------------------------------------
+unset n label input data expected

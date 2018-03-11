@@ -1,0 +1,62 @@
+set here [file dirname [file join [pwd] [info script]]]
+set auto_path [linsert $auto_path 0 [file dirname $here]]
+
+package require oo::meta
+package require oo::dialect
+oo::dialect::create tool
+
+# Add a new keyword
+proc ::tool::define::option {name def} {
+  set class [current_class]
+  oo::meta::info $class branchset option $name $def
+}
+
+# Override the "constructor" keyword
+proc ::tool::define::constructor {arglist body} {
+  set class [current_class]
+  puts [list CONSTRUCTOR for $class]
+  set prebody {
+puts [list CREATED [self]]
+my _optionInit
+  }
+  oo::define $class constructor $arglist "$prebody\n$body"
+}
+
+# Add functions to the core class
+::tool::define ::tool::object {
+  method _optionInit {} {
+    my variable options meta
+    if {![info exists meta]} {
+      set meta {}
+    }
+    foreach {opt info} [my meta getnull option] {
+      set options($opt) [dict getnull $info default:]
+    }
+  }
+  method cget option {
+    my variable options
+    return $options($option)
+  }
+}
+
+::tool::class create myclass {
+  # Use our new option keyword
+  option color {default: green}
+  
+  constructor {} {
+    my variable meta
+    set meta {}
+  }
+}
+
+myclass create myobj
+puts [myobj cget color]
+
+source [file join $here .. tool dictobj.tcl]
+
+::tool::define myclass {
+  dictobj test test
+}
+
+myobj test set foo bar
+puts [myobj test get foo]

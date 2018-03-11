@@ -1,0 +1,117 @@
+# -*- tcl -*-
+# fa_operations.test:  tests for the FA operations.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: faop_determinize.test,v 1.4 2007/04/12 03:43:15 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+test faop-determinize-${setimpl}-1.0 {determinize, error} {
+    catch {grammar::fa::op::determinize} res
+    set res
+} {wrong # args: should be "grammar::fa::op::determinize fa ?mapvar? ?idstart?"}
+
+
+test faop-determinize-${setimpl}-1.1 {determinize, error} {
+    catch {grammar::fa::op::determinize a b c d} res
+    set res
+} {wrong # args: should be "grammar::fa::op::determinize fa ?mapvar? ?idstart?"}
+
+
+test faop-determinize-${setimpl}-1.2 {determinize, error} {
+    catch {grammar::fa::op::determinize a} res
+    set res
+} {invalid command name "a"}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+foreach {n code st fin mapres result} {
+    00 datom x y {}
+    {grammar::fa @ {x {1 0 {@ y}} y {0 1 {}}}}
+
+    01 dalt  u z {0 {u v w} 1 {y z} 2 {x z}}
+    {grammar::fa {@ =} {0 {1 0 {@ 2 = 1}} 1 {0 1 {}} 2 {0 1 {}}}}
+
+    02 dopt  u x {0 {u v x} 1 {w x}}
+    {grammar::fa @ {0 {1 1 {@ 1}} 1 {0 1 {}}}}
+
+    03 drep  u x {0 {u v x} 1 {u v w x}} 
+    {grammar::fa @ {0 {1 1 {@ 1}} 1 {0 1 {@ 1}}}}
+} {
+    set key ${n}.${code}
+
+    test faop-determinize-${setimpl}-2.$key {determinize, bounded} {
+	grammar::fa a
+	gen $code
+	a start add $st
+	a final add $fin
+	grammar::fa::op::determinize a map
+	set res [validate_serial $result a]
+	lappend res [string equal $mapres [dictsort $map]]
+	lappend res [a is deterministic]
+	a destroy
+	set res
+    } {ok 1 1}
+
+    test faop-determinize-${setimpl}-3.$key {determinize, bounded, as method} {
+	grammar::fa a
+	gen $code
+	a start add $st
+	a final add $fin
+	a determinize map
+	set res [validate_serial $result a]
+	lappend res [string equal $mapres [dictsort $map]]
+	lappend res [a is deterministic]
+	a destroy
+	set res
+    } {ok 1 1}
+}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+foreach {n code mapres result} {
+    00 datom {0 x 1 y}
+    {grammar::fa @ {0 {0 0 {@ 1}} 1 {0 0 {}}}}
+
+    01 dalt  {0 x 1 y 2 u 3 z 4 v 5 w 6 {y z} 7 {x z}}
+    {grammar::fa {@ =} {0 {0 0 {}} 1 {0 0 {}} 2 {0 0 {@ 7 = 6}} 3 {0 0 {}} 4 {0 0 {@ 7}} 5 {0 0 {= 6}} 6 {0 0 {}} 7 {0 0 {}}}}
+
+    02 dopt  {0 x 1 u 2 v 3 w 4 {w x}}
+    {grammar::fa @ {0 {0 0 {}} 1 {0 0 {@ 4}} 2 {0 0 {@ 4}} 3 {0 0 {}} 4 {0 0 {}}}}
+
+    03 drep  {0 x 1 u 2 v 3 w 4 {u v w x}} 
+    {grammar::fa @ {0 {0 0 {@ 4}} 1 {0 0 {@ 4}} 2 {0 0 {@ 4}} 3 {0 0 {@ 4}} 4 {0 0 {@ 4}}}}
+} {
+    set key ${n}.${code}
+
+    test faop-determinize-${setimpl}-4.$key {determinize, unbounded} {
+	grammar::fa a
+	gen $code
+	grammar::fa::op::determinize a map
+	set res [validate_serial $result a]
+	lappend res [string equal $mapres [dictsort $map]]
+        lappend res [a is deterministic] ; # Never formally det, because of missing start.
+	a destroy
+	set res
+    } {ok 1 0}
+
+    test faop-determinize-${setimpl}-5.$key {determinize, unbounded, as method} {
+	grammar::fa a
+	gen $code
+	a determinize map
+	set res [validate_serial $result a]
+	lappend res [string equal $mapres [dictsort $map]]
+        lappend res [a is deterministic] ; # Never formally det, because of missing start.
+	a destroy
+	set res
+    } {ok 1 0}
+}
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

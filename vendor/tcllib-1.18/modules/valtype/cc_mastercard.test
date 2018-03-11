@@ -1,0 +1,126 @@
+# -------------------------------------------------------------------------
+# cc_mastercard.test -*- tcl -*-
+# (C) 2011 Andreas Kupries. BSD licensed.
+#
+# NOTE: All "creditcard" numbers in this file have been created by
+# randomly hitting the number pad. They are not real.
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    use      snit/snit2.tcl snit            ;# snit v2 fixed, due Tcl 8.5
+    useLocal valtype.tcl    valtype::common
+    useLocal luhn.tcl       valtype::luhn
+}
+testing {
+    useLocal cc_mastercard.tcl valtype::creditcard::mastercard
+}
+
+# -------------------------------------------------------------------------
+
+test valtype-creditcard-mastercard-1.0 {creditcard mastercard validation wrong\#args} -body {
+    valtype::creditcard::mastercard validate
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::mastercard validate value"}
+
+test valtype-creditcard-mastercard-1.1 {creditcard mastercard validation wrong\#args} -body {
+    valtype::creditcard::mastercard validate A B
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::mastercard validate value"}
+
+# -------------------------------------------------------------------------
+
+test valtype-creditcard-mastercard-2.0 {creditcard mastercard validation failure, bad char} -body {
+    valtype::creditcard::mastercard validate 54A3456274910467
+} -returnCodes error \
+    -result {Not a CREDITCARD MASTERCARD number, expected only digits}
+
+foreach {n in} {
+    1  03064061545
+    2  97803064
+} {
+    test valtype-creditcard-mastercard-2.1.$n {creditcard mastercard validation failure, bad length} -body {
+    valtype::creditcard::mastercard validate $in
+    } -returnCodes error \
+        -result {Not a CREDITCARD MASTERCARD number, incorrect length, expected 16 characters}
+}
+
+foreach {n in} {
+    1  5340123456789012
+    2  5344321098765432
+    3  5379927398717557
+    4  5371234567812345
+} {
+    test valtype-creditcard-mastercard-2.2.$n {creditcard mastercard validation failure, bad check} -body {
+	valtype::creditcard::mastercard validate $in
+    } -returnCodes error \
+	-result {Not a CREDITCARD MASTERCARD number, the check digit is incorrect}
+}
+
+foreach {n in} {
+    1  9772890458925573
+    2  8285298475847569
+} {
+    test valtype-creditcard-mastercard-2.3.$n {creditcard mastercard validation failure, bad prefix} -body {
+	valtype::creditcard::mastercard validate $in
+    } -returnCodes error \
+	-result {Not a CREDITCARD MASTERCARD number, incorrect prefix, expected 5}
+}
+
+
+test valtype-creditcard-mastercard-3.0 {creditcard mastercard checkdigit wrong\#args} -body {
+    valtype::creditcard::mastercard checkdigit
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::mastercard checkdigit value"}
+
+test valtype-creditcard-mastercard-3.1 {creditcard mastercard checkdigit wrong\#args} -body {
+    valtype::creditcard::mastercard checkdigit A B
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::mastercard checkdigit value"}
+
+# -------------------------------------------------------------------------
+
+test valtype-creditcard-mastercard-5.0 {creditcard mastercard checkdigit calculation failure, bad char} -body {
+    valtype::creditcard::mastercard checkdigit 54A012345678940
+} -returnCodes error \
+    -result {Not a CREDITCARD MASTERCARD number, expected only digits}
+
+test valtype-creditcad-mastercard-5.1 {creditcard mastercard checkdigit calculation failure, bad length} -body {
+    valtype::creditcard::mastercard checkdigit 401234
+} -returnCodes error \
+    -result {Not a CREDITCARD MASTERCARD number without checkdigit, incorrect length, expected 15 characters}
+
+test valtype-creditcad-mastercard-5.2 {creditcard mastercard checkdigit calculation failure, bad length} -body {
+    valtype::creditcard::mastercard checkdigit 012345678901245
+} -returnCodes error \
+    -result {Not a CREDITCARD MASTERCARD number without checkdigit, incorrect prefix, expected 5}
+
+foreach {n in check} {
+    1  534012345678901 3
+    2  534109876543210 0
+    3  537992739871753 4
+    4  537123456781234 7
+} {
+    test valtype-creditcard-mastercard-4.$n {creditcard mastercard validation} -body {
+	valtype::creditcard::mastercard validate $in$check
+    } -result $in$check
+
+    test valtype-creditcard-mastercard-6.$n {creditcard mastercard checkdigit} -body {
+	valtype::creditcard::mastercard checkdigit $in
+    } -result $check
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

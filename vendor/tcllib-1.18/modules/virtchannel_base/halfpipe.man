@@ -1,0 +1,81 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcl::chan::halfpipe n 1]
+[keywords callbacks]
+[keywords fifo]
+[keywords {in-memory channel}]
+[keywords {reflected channel}]
+[keywords {tip 219}]
+[keywords {virtual channel}]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Reflected/virtual channel support}]
+[category  Channels]
+[titledesc {In-memory channel, half of a fifo2}]
+[require Tcl 8.5]
+[require TclOO]
+[require tcl::chan::events [opt 1]]
+[require tcl::chan::halfpipe [opt 1]]
+[require tcl::chan::halfpipe [opt 1]]
+[description]
+[para]
+
+The [package tcl::chan::halfpipe] package provides a command creating
+one half of a [package tcl::chan::fifo2] pair. Writing into such a
+channel invokes a set of callbacks which then handle the data. This is
+similar to a channel handler, except having a much simpler API.
+
+[para] The internal [package TclOO] class implementing the channel
+handler is a sub-class of the [package tcl::chan::events] framework.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::tcl::chan::halfpipe] [opt "[option -option] [arg value]..."]]
+
+This command creates a halfpipe channel and configures it with the
+callbacks to run when the channel is closed, data was written to it,
+or ran empty. See the section [sectref Options] for the list of
+options and associated semantics.
+
+The result of the command is a list containing two elements, the
+handle of the new channel, and the object command of the channel
+handler, in this order.
+
+The latter is supplied to the caller to provide her with access to the
+[method put] method for adding data to the channel.
+
+[para] Two halfpipes with a bit of glue logic in the callbacks make
+for one [package tcl::chan::fifo2].
+
+[call [arg objectCmd] [method put] [arg bytes]]
+
+This method of the channel handler object puts the data [arg bytes]
+into the channel so that it can be read from it.
+
+[list_end]
+
+[section Options]
+
+[list_begin options]
+[opt_def -close-command cmdprefix]
+
+This callback is invoked when the channel is closed.
+A single argument is supplied, the handle of the channel being closed.
+The result of the callback is ignored.
+
+[opt_def -write-command cmdprefix]
+
+This callback is invoked when data is written to the channel.
+Two arguments are supplied, the handle of the channel written to, and the data written.
+The result of the callback is ignored.
+
+[opt_def -empty-command cmdprefix]
+
+This callback is invoked when the channel has run out of data to read.
+A single argument is supplied, the handle of the channel.
+
+[list_end]
+
+[vset CATEGORY virtchannel]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,198 @@
+# -*- tcl -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+#
+# Grammar Start Expression
+#
+
+<<def>> <<ns>><<main>> {} {
+    <<self>> sym_eos
+    return
+}
+
+#
+# value Symbol 'eos'
+#
+
+<<def>> <<ns>>sym_eos {} {
+    # x
+    #     (ex)
+    #     *
+    #         x
+    #             +
+    #                 <space>
+    #             (ex)
+
+    <<runtime>> si:value_symbol_start eos
+    <<self>> sequence_11
+    <<runtime>> si:reduce_symbol_end eos
+    return
+}
+
+<<def>> <<ns>>sequence_11 {} {
+    # x
+    #     (ex)
+    #     *
+    #         x
+    #             +
+    #                 <space>
+    #             (ex)
+
+    <<runtime>> si:value_state_push
+    <<self>> sym_ex
+    <<runtime>> si:valuevalue_part
+    <<self>> kleene_9
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>kleene_9 {} {
+    # *
+    #     x
+    #         +
+    #             <space>
+    #         (ex)
+
+    while {1} {
+        <<runtime>> si:void2_state_push
+    <<self>> sequence_7
+        <<runtime>> si:kleene_close
+    }
+    return
+}
+
+<<def>> <<ns>>sequence_7 {} {
+    # x
+    #     +
+    #         <space>
+    #     (ex)
+
+    <<runtime>> si:void_state_push
+    <<self>> poskleene_4
+    <<runtime>> si:voidvalue_part
+    <<self>> sym_ex
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>poskleene_4 {} {
+    # +
+    #     <space>
+
+    <<runtime>> i_loc_push
+    <<runtime>> si:next_space
+    <<runtime>> si:kleene_abort
+    while {1} {
+        <<runtime>> si:void2_state_push
+    <<runtime>> si:next_space
+        <<runtime>> si:kleene_close
+    }
+    return
+}
+
+#
+# value Symbol 'ex'
+#
+
+<<def>> <<ns>>sym_ex {} {
+    # x
+    #     +
+    #         x
+    #             !
+    #                 (X)
+    #             [xz]
+    #     ?
+    #         (X)
+
+    <<runtime>> si:value_symbol_start ex
+    <<self>> sequence_25
+    <<runtime>> si:reduce_symbol_end ex
+    return
+}
+
+<<def>> <<ns>>sequence_25 {} {
+    # x
+    #     +
+    #         x
+    #             !
+    #                 (X)
+    #             [xz]
+    #     ?
+    #         (X)
+
+    <<runtime>> si:void_state_push
+    <<self>> poskleene_20
+    <<runtime>> si:voidvalue_part
+    <<self>> optional_23
+    <<runtime>> si:value_state_merge
+    return
+}
+
+<<def>> <<ns>>poskleene_20 {} {
+    # +
+    #     x
+    #         !
+    #             (X)
+    #         [xz]
+
+    <<runtime>> i_loc_push
+    <<self>> sequence_18
+    <<runtime>> si:kleene_abort
+    while {1} {
+        <<runtime>> si:void2_state_push
+    <<self>> sequence_18
+        <<runtime>> si:kleene_close
+    }
+    return
+}
+
+<<def>> <<ns>>sequence_18 {} {
+    # x
+    #     !
+    #         (X)
+    #     [xz]
+
+    <<runtime>> si:void_state_push
+    <<self>> notahead_15
+    <<runtime>> si:voidvoid_part
+    <<runtime>> si:next_class xz
+    <<runtime>> si:void_state_merge
+    return
+}
+
+<<def>> <<ns>>notahead_15 {} {
+    # !
+    #     (X)
+
+    <<runtime>> si:value_notahead_start
+    <<self>> sym_X
+    <<runtime>> si:value_notahead_exit
+    return
+}
+
+<<def>> <<ns>>optional_23 {} {
+    # ?
+    #     (X)
+
+    <<runtime>> si:void2_state_push
+    <<self>> sym_X
+    <<runtime>> si:void_state_merge_ok
+    return
+}
+
+#
+# value Symbol 'X'
+#
+
+<<def>> <<ns>>sym_X {} {
+    # 'x'
+
+    <<runtime>> si:void_symbol_start X
+    <<runtime>> si:next_char x
+    <<runtime>> si:void_leaf_symbol_end X
+    return
+}
+
+#
+#

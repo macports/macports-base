@@ -1,0 +1,222 @@
+
+<html><head>
+<title>pop3d::udb - Tcl POP3 Server Package</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'pop3d_udb.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2002 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- pop3d::udb.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">pop3d::udb(n) 1.0.1 tcllib &quot;Tcl POP3 Server Package&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>pop3d::udb - Simple user database for pop3d</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">pop3d::udb <span class="opt">?1.0.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::pop3d::udb::new</b> <span class="opt">?<i class="arg">dbName</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">dbName</b> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+<li><a href="#3"><i class="arg">dbName</i> <b class="method">destroy</b></a></li>
+<li><a href="#4"><i class="arg">dbName</i> <b class="method">add</b> <i class="arg">user pwd storage</i></a></li>
+<li><a href="#5"><i class="arg">dbName</i> <b class="method">remove</b> <i class="arg">user</i></a></li>
+<li><a href="#6"><i class="arg">dbName</i> <b class="method">rename</b> <i class="arg">user newName</i></a></li>
+<li><a href="#7"><i class="arg">dbName</i> <b class="method">lookup</b> <i class="arg">user</i></a></li>
+<li><a href="#8"><i class="arg">dbName</i> <b class="method">exists</b> <i class="arg">user</i></a></li>
+<li><a href="#9"><i class="arg">dbName</i> <b class="method">who</b></a></li>
+<li><a href="#10"><i class="arg">dbName</i> <b class="method">save</b> <span class="opt">?<i class="arg">file</i>?</span></a></li>
+<li><a href="#11"><i class="arg">dbName</i> <b class="method">read</b> <i class="arg">file</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The package <b class="package">pop3d::udb</b> provides simple in memory databases
+which can be used in conjunction with the pop3 server core provided by
+the package <b class="package"><a href="pop3d.html">pop3d</a></b>. The databases will use the names of users
+as keys and associates passwords and storage references with them.</p>
+<p>Objects created by this package can be directly used in the
+authentication callback of pop3 servers following the same interface
+as servers created by the package <b class="package"><a href="pop3d.html">pop3d</a></b>.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::pop3d::udb::new</b> <span class="opt">?<i class="arg">dbName</i>?</span></a></dt>
+<dd><p>This command creates a new database object with an associated global
+Tcl command whose name is <i class="arg">dbName</i>.</p></dd>
+</dl>
+<p>The command <b class="cmd">dbName</b> may be used to invoke various operations on
+the database.  It has the following general form:</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">dbName</b> <i class="arg">option</i> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p><i class="arg">Option</i> and the <i class="arg">arg</i>s determine the exact behavior of the
+command.</p></dd>
+</dl>
+<p>The following commands are possible for database objects:</p>
+<dl class="doctools_definitions">
+<dt><a name="3"><i class="arg">dbName</i> <b class="method">destroy</b></a></dt>
+<dd><p>Destroys the database object.</p></dd>
+<dt><a name="4"><i class="arg">dbName</i> <b class="method">add</b> <i class="arg">user pwd storage</i></a></dt>
+<dd><p>Add a new user or changes the data of an existing user. Stores
+<i class="arg">password</i> and <i class="arg">storage</i> reference for the given <i class="arg">user</i>.</p></dd>
+<dt><a name="5"><i class="arg">dbName</i> <b class="method">remove</b> <i class="arg">user</i></a></dt>
+<dd><p>Removes the specified <i class="arg">user</i> from the database.</p></dd>
+<dt><a name="6"><i class="arg">dbName</i> <b class="method">rename</b> <i class="arg">user newName</i></a></dt>
+<dd><p>Changes the name of the specified <i class="arg">user</i> to <i class="arg">newName</i>.</p></dd>
+<dt><a name="7"><i class="arg">dbName</i> <b class="method">lookup</b> <i class="arg">user</i></a></dt>
+<dd><p>Searches the database for the specified <i class="arg">user</i> and returns a
+two-element list containing the associated password and storage
+reference, in this order. Throws an error if the user could not be
+found. This is the interface as expected by the authentication
+callback of package <b class="package"><a href="pop3d.html">pop3d</a></b>.</p></dd>
+<dt><a name="8"><i class="arg">dbName</i> <b class="method">exists</b> <i class="arg">user</i></a></dt>
+<dd><p>Returns true if the specified <i class="arg">user</i> is known to the database,
+else false.</p></dd>
+<dt><a name="9"><i class="arg">dbName</i> <b class="method">who</b></a></dt>
+<dd><p>Returns a list of users known to the database.</p></dd>
+<dt><a name="10"><i class="arg">dbName</i> <b class="method">save</b> <span class="opt">?<i class="arg">file</i>?</span></a></dt>
+<dd><p>Saves the contents of the database into the given <i class="arg">file</i>. If the
+file is not specified the system will use the path last used in a call
+to <i class="arg">dbName</i> <b class="method">read</b>. The generated file can be read by the
+<b class="method">read</b> method.</p></dd>
+<dt><a name="11"><i class="arg">dbName</i> <b class="method">read</b> <i class="arg">file</i></a></dt>
+<dd><p>Reads the specified <i class="arg">file</i> and adds the contained user definitions
+to the database. As the file is actually <b class="cmd"><a href="../../../../index.html#key435">source</a></b>'d a safe
+interpreter is employed to safeguard against malicious code. This
+interpreter knows the <b class="cmd">add</b> command for adding users and their
+associated data to this database. This command has the same argument
+signature as the method <b class="method">add</b>. The path of the <i class="arg">file</i> is
+remembered internally so that it can be used in the next call of
+<i class="arg">dbName</i> <b class="method">save</b> without an argument.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>pop3d</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key131">internet</a>, <a href="../../../../index.html#key671">network</a>, <a href="../../../../index.html#key443">pop3</a>, <a href="../../../../index.html#key133">protocol</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2002 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

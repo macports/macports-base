@@ -1,6 +1,5 @@
 /*
  * realpath.c
- * $Id$
  *
  * Copyright (c) 2009 The MacPorts Project.
  * All rights reserved.
@@ -36,6 +35,7 @@
 
 /* required for PATH_MAX and realpath(3) */
 #define _XOPEN_SOURCE 500
+#define _DARWIN_C_SOURCE
 
 #include <tcl.h>
 

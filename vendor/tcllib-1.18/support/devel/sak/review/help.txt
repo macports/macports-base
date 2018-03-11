@@ -1,0 +1,10 @@
+
+    review -- Interactively review changed modules and packages
+
+    sak review
+
+    	This command scans the system for changes and then enters
+	a sub-shell where the caller can interactively review and
+	tag these changes.
+
+	This is a support command for the release manager.

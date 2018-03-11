@@ -1,0 +1,1280 @@
+
+<div class='fossil-doc' data-title='S3 - Amazon S3 Web Service Utilities'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">S3(n) 1.0.3 tcllib &quot;Amazon S3 Web Service Utilities&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>S3 - Amazon S3 Web Service Interface</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">ERROR REPORTING</a></li>
+<li class="doctools_section"><a href="#section3">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section4">LOW LEVEL COMMANDS</a></li>
+<li class="doctools_section"><a href="#section5">HIGH LEVEL COMMANDS</a></li>
+<li class="doctools_section"><a href="#section6">LIMITATIONS</a></li>
+<li class="doctools_section"><a href="#section7">USAGE SUGGESTIONS</a></li>
+<li class="doctools_section"><a href="#section8">FUTURE DEVELOPMENTS</a></li>
+<li class="doctools_section"><a href="#section9">TLS Security Considerations</a></li>
+<li class="doctools_section"><a href="#section10">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">S3 <span class="opt">?1.0.3?</span></b></li>
+<li>package require <b class="pkgname">sha1 1.0</b></li>
+<li>package require <b class="pkgname">md5 2.0</b></li>
+<li>package require <b class="pkgname">base64 2.3</b></li>
+<li>package require <b class="pkgname">xsxp 1.0</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">S3::Configure</b> <span class="opt">?<b class="option">-reset</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-retries</b> <i class="arg">integer</i>?</span> <span class="opt">?<b class="option">-accesskeyid</b> <i class="arg">idstring</i>?</span> <span class="opt">?<b class="option">-secretaccesskey</b> <i class="arg">idstring</i>?</span> <span class="opt">?<b class="option">-service-access-point</b> <i class="arg">FQDN</i>?</span> <span class="opt">?<b class="option">-use-tls</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-default-compare</b> <i class="arg">always|never|exists|missing|newer|date|checksum|different</i>?</span> <span class="opt">?<b class="option">-default-separator</b> <i class="arg">string</i>?</span> <span class="opt">?<b class="option">-default-acl</b> <i class="arg">private|public-read|public-read-write|authenticated-read|keep|calc</i>?</span> <span class="opt">?<b class="option">-default-bucket</b> <i class="arg">bucketname</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">S3::SuggestBucket</b> <span class="opt">?<i class="arg">name</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">S3::REST</b> <i class="arg">dict</i></a></li>
+<li><a href="#4"><b class="cmd">S3::ListAllMyBuckets</b> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-parse-xml</b> <i class="arg">xmlstring</i>?</span> <span class="opt">?<b class="option">-result-type</b> <i class="arg">REST|xml|pxml|dict|names|owner</i>?</span></a></li>
+<li><a href="#5"><b class="cmd">S3::PutBucket</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-acl</b> <i class="arg">{}|private|public-read|public-read-write|authenticated-read</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">S3::DeleteBucket</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span></a></li>
+<li><a href="#7"><b class="cmd">S3::GetBucket</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-parse-xml</b> <i class="arg">xmlstring</i>?</span> <span class="opt">?<b class="option">-max-count</b> <i class="arg">integer</i>?</span> <span class="opt">?<b class="option">-prefix</b> <i class="arg">prefixstring</i>?</span> <span class="opt">?<b class="option">-delimiter</b> <i class="arg">delimiterstring</i>?</span> <span class="opt">?<b class="option">-result-type</b> <i class="arg">REST|xml|pxml|names|dict</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">S3::Put</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-resource</b> <i class="arg">resourcename</i> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-file</b> <i class="arg">filename</i>?</span> <span class="opt">?<b class="option">-content</b> <i class="arg">contentstring</i>?</span> <span class="opt">?<b class="option">-acl</b> <i class="arg">private|public-read|public-read-write|authenticated-read|calc|keep</i>?</span> <span class="opt">?<b class="option">-content-type</b> <i class="arg">contenttypestring</i>?</span> <span class="opt">?<b class="option">-x-amz-meta-*</b> <i class="arg">metadatatext</i>?</span> <span class="opt">?<b class="option">-compare</b> <i class="arg">comparemode</i>?</span></a></li>
+<li><a href="#9"><b class="cmd">S3::Get</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-resource</b> <i class="arg">resourcename</i> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-compare</b> <i class="arg">comparemode</i>?</span> <span class="opt">?<b class="option">-file</b> <i class="arg">filename</i>?</span> <span class="opt">?<b class="option">-content</b> <i class="arg">contentvarname</i>?</span> <span class="opt">?<b class="option">-timestamp</b> <i class="arg">aws|now</i>?</span> <span class="opt">?<b class="option">-headers</b> <i class="arg">headervarname</i>?</span></a></li>
+<li><a href="#10"><b class="cmd">S3::Head</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-resource</b> <i class="arg">resourcename</i> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-dict</b> <i class="arg">dictvarname</i>?</span> <span class="opt">?<b class="option">-headers</b> <i class="arg">headersvarname</i>?</span> <span class="opt">?<b class="option">-status</b> <i class="arg">statusvarname</i>?</span></a></li>
+<li><a href="#11"><b class="cmd">S3::GetAcl</b> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-resource</b> <i class="arg">resourcename</i> <span class="opt">?<b class="option">-result-type</b> <i class="arg">REST|xml|pxml</i>?</span></a></li>
+<li><a href="#12"><b class="cmd">S3::PutAcl</b> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-resource</b> <i class="arg">resourcename</i> <span class="opt">?<b class="option">-acl</b> <i class="arg">new-acl</i>?</span></a></li>
+<li><a href="#13"><b class="cmd">S3::Delete</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-resource</b> <i class="arg">resourcename</i> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-status</b> <i class="arg">statusvar</i>?</span></a></li>
+<li><a href="#14"><b class="cmd">S3::Push</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-directory</b> <i class="arg">directoryname</i> <span class="opt">?<b class="option">-prefix</b> <i class="arg">prefixstring</i>?</span> <span class="opt">?<b class="option">-compare</b> <i class="arg">comparemode</i>?</span> <span class="opt">?<b class="option">-x-amz-meta-*</b> <i class="arg">metastring</i>?</span> <span class="opt">?<b class="option">-acl</b> <i class="arg">aclcode</i>?</span> <span class="opt">?<b class="option">-delete</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-error</b> <i class="arg">throw|break|continue</i>?</span> <span class="opt">?<b class="option">-progress</b> <i class="arg">scriptprefix</i>?</span></a></li>
+<li><a href="#15"><b class="cmd">S3::Pull</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-directory</b> <i class="arg">directoryname</i> <span class="opt">?<b class="option">-prefix</b> <i class="arg">prefixstring</i>?</span> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-compare</b> <i class="arg">comparemode</i>?</span> <span class="opt">?<b class="option">-delete</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-timestamp</b> <i class="arg">aws|now</i>?</span> <span class="opt">?<b class="option">-error</b> <i class="arg">throw|break|continue</i>?</span> <span class="opt">?<b class="option">-progress</b> <i class="arg">scriptprefix</i>?</span></a></li>
+<li><a href="#16"><b class="cmd">S3::Toss</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-prefix</b> <i class="arg">prefixstring</i> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-error</b> <i class="arg">throw|break|continue</i>?</span> <span class="opt">?<b class="option">-progress</b> <i class="arg">scriptprefix</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides access to Amazon's Simple Storage Solution web service.</p>
+<p>As a quick summary, Amazon Simple Storage Solution
+provides a for-fee web service allowing the storage of arbitrary data as
+&quot;resources&quot; within &quot;buckets&quot; online.
+See <a href="http://www.amazonaws.com/">http://www.amazonaws.com/</a> for details on that system.
+Access to the service is via HTTP (SOAP or REST).  Much of this
+documentation will not make sense if you're not familiar with
+the terms and functionality of the Amazon S3 service.</p>
+<p>This package provides services for reading and writing
+the data items via the REST interface.  It also provides some
+higher-level operations.  Other packages in the same distribution
+provide for even more functionality.</p>
+<p>Copyright 2006 Darren New. All Rights Reserved.
+NO WARRANTIES OF ANY TYPE ARE PROVIDED.
+COPYING OR USE INDEMNIFIES THE AUTHOR IN ALL WAYS.
+This software is licensed under essentially the same
+terms as Tcl. See LICENSE.txt for the terms.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">ERROR REPORTING</a></h2>
+<p>The error reporting from this package makes use of $errorCode to
+provide more details on what happened than simply throwing an error.
+Any error caught by the S3 package (and we try to catch them all)
+will return with an $errorCode being a list having at least three
+elements. In all cases, the first element will be &quot;S3&quot;. The second
+element will take on one of six values, with that element defining
+the value of the third and subsequent elements. S3::REST does not
+throw an error, but rather returns a dictionary with the keys &quot;error&quot;,
+&quot;errorInfo&quot;, and &quot;errorCode&quot; set. This allows for reliable background
+use. The possible second elements are these:</p>
+<dl class="doctools_definitions">
+<dt>usage</dt>
+<dd><p>The usage of the package is incorrect. For example,
+a command has been invoked which requires the library to be configured
+before the library has been configured, or an invalid combination of
+options has been specified. The third element of $errorCode supplies
+the name of the parameter that was wrong. The fourth usually provides
+the arguments that were actually supplied to the throwing proc, unless
+the usage error isn't confined to a single proc.</p></dd>
+<dt>local</dt>
+<dd><p>Something happened on the local system which threw
+an error. For example, a request to upload or download a file was made
+and the file permissions denied that sort of access. The third element
+of $errorCode is the original $errorCode.</p></dd>
+<dt>socket</dt>
+<dd><p>Something happened with the socket. It closed
+prematurely, or some other condition of failure-to-communicate-with-Amazon
+was detected. The third element of $errorCode is the original $errorCode,
+or sometimes the message from fcopy, or ...?</p></dd>
+<dt>remote</dt>
+<dd><p>The Amazon web service returned an error code outside
+the 2xx range in the HTTP header. In other words, everything went as
+documented, except this particular case was documented not to work.
+The third element is the dictionary returned from <b class="cmd">::S3::REST</b>.
+Note that S3::REST itself never throws this error, but just returns
+the dictionary. Most of the higher-level commands throw for convenience,
+unless an argument indicates they should not. If something is documented
+as &quot;not throwing an S3 remote error&quot;, it means a status return is set
+rather than throwing an error if Amazon returns a non-2XX HTTP result code.</p></dd>
+<dt>notyet</dt>
+<dd><p>The user obeyed the documentation, but the author
+has not yet gotten around to implementing this feature. (Right now,
+only TLS support and sophisticated permissions fall into this category,
+as well as the S3::Acl command.)</p></dd>
+<dt>xml</dt>
+<dd><p>The service has returned invalid XML, or XML whose
+schema is unexpected. For the high-level commands that accept
+service XML as input for parsing, this may also be thrown.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">COMMANDS</a></h2>
+<p>This package provides several separate levels of complexity.</p>
+<ul class="doctools_itemized">
+<li><p>The lowest level simply takes arguments to be sent to the service,
+sends them, retrieves the result, and provides it to the caller.
+<em>Note:</em> This layer allows both synchronous and event-driven
+processing. It depends on the MD5 and SHA1 and base64 packages
+from Tcllib (available at <a href="http://core.tcl.tk/tcllib/">http://core.tcl.tk/tcllib/</a>).
+Note that <b class="cmd">S3::Configure</b> is required for <b class="cmd">S3::REST</b> to
+work due to the authentication portion, so we put that in the &quot;lowest level.&quot;</p></li>
+<li><p>The next layer parses the results of calls, allowing for functionality
+such as uploading only changed files, synchronizing directories,
+and so on.  This layer depends on the <b class="package">TclXML</b> package as well as the
+included <b class="package"><a href="xsxp.html">xsxp</a></b> package. These packages are package required when
+these more-sophisticated routines are called, so nothing breaks if
+they are not correctly installed.</p></li>
+<li><p>Also included is a separate program that uses the library.
+It provides code to parse $argv0 and $argv from the
+command line, allowing invocation as a tclkit, etc.
+(Not yet implmented.)</p></li>
+<li><p>Another separate program provides a GUI interface allowing drag-and-drop
+and other such functionality. (Not yet implemented.)</p></li>
+<li><p>Also built on this package is the OddJob program. It is
+a separate program designed to allow distribution of
+computational work units over Amazon's Elastic Compute
+Cloud web service.</p></li>
+</ul>
+<p>The goal is to have at least the bottom-most layers implemented in
+pure Tcl using only that which comes from widely-available sources,
+such as Tcllib.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">LOW LEVEL COMMANDS</a></h2>
+<p>These commands do not require any packages not listed above.
+They talk directly to the service, or they are utility or
+configuration routines. Note that the &quot;xsxp&quot; package was
+written to support this package, so it should be available
+wherever you got this package.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">S3::Configure</b> <span class="opt">?<b class="option">-reset</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-retries</b> <i class="arg">integer</i>?</span> <span class="opt">?<b class="option">-accesskeyid</b> <i class="arg">idstring</i>?</span> <span class="opt">?<b class="option">-secretaccesskey</b> <i class="arg">idstring</i>?</span> <span class="opt">?<b class="option">-service-access-point</b> <i class="arg">FQDN</i>?</span> <span class="opt">?<b class="option">-use-tls</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-default-compare</b> <i class="arg">always|never|exists|missing|newer|date|checksum|different</i>?</span> <span class="opt">?<b class="option">-default-separator</b> <i class="arg">string</i>?</span> <span class="opt">?<b class="option">-default-acl</b> <i class="arg">private|public-read|public-read-write|authenticated-read|keep|calc</i>?</span> <span class="opt">?<b class="option">-default-bucket</b> <i class="arg">bucketname</i>?</span></a></dt>
+<dd><p>There is one command for configuration, and that is <b class="cmd">S3::Configure</b>.
+If called with no arguments, it returns a
+dictionary of key/value pairs listing all current settings.  If called
+with one argument, it returns the value of that single argument.  If
+called with two or more arguments, it must be called with pairs of
+arguments, and it applies the changes in order.  There is only one set
+of configuration information per interpreter.</p>
+<p>The following options are accepted:</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-reset</b> <i class="arg">boolean</i></dt>
+<dd><p>By default, false.  If true, any previous changes and any changes on the
+same call before the reset option will be returned to default values.</p></dd>
+<dt><b class="option">-retries</b> <i class="arg">integer</i></dt>
+<dd><p>Default value is 3.
+If Amazon returns a 500 error, a retry after an exponential
+backoff delay will be tried this many times before finally
+throwing the 500 error. This applies to each call to <b class="cmd">S3::REST</b>
+from the higher-level commands, but not to <b class="cmd">S3::REST</b> itself.
+That is, <b class="cmd">S3::REST</b> will always return httpstatus 500 if that's
+what it receives. Functions like <b class="cmd">S3::Put</b> will retry the PUT call,
+and will also retry the GET and HEAD calls used to do content comparison.
+Changing this to 0 will prevent retries and their associated delays.
+In addition, socket errors (i.e., errors whose errorCode starts with
+&quot;S3 socket&quot;) will be similarly retried after backoffs.</p></dd>
+<dt><b class="option">-accesskeyid</b> <i class="arg">idstring</i></dt>
+<dd></dd>
+<dt><b class="option">-secretaccesskey</b> <i class="arg">idstring</i></dt>
+<dd><p>Each defaults to an empty string.
+These must be set before any calls are made. This is your S3 ID.
+Once you sign up for an account, go to <a href="http://www.amazonaws.com/">http://www.amazonaws.com/</a>,
+sign in, go to the &quot;Your Web Services Account&quot; button, pick &quot;AWS
+Access Identifiers&quot;, and your access key ID and secret access keys
+will be available. All <b class="cmd">S3::REST</b> calls are authenticated.
+Blame Amazon for the poor choice of names.</p></dd>
+<dt><b class="option">-service-access-point</b> <i class="arg">FQDN</i></dt>
+<dd><p>Defaults to &quot;s3.amazonaws.com&quot;. This is the fully-qualified domain
+name of the server to contact for <b class="cmd">S3::REST</b> calls. You should
+probably never need to touch this, unless someone else implements
+a compatible service, or you wish to test something by pointing
+the library at your own service.</p></dd>
+<dt><b class="option">-slop-seconds</b> <i class="arg">integer</i></dt>
+<dd><p>When comparing dates between Amazon and the local machine,
+two dates within this many seconds of each other are considered
+the same. Useful for clock drift correction, processing overhead
+time, and so on.</p></dd>
+<dt><b class="option">-use-tls</b> <i class="arg">boolean</i></dt>
+<dd><p>Defaults to false. This is not yet implemented. If true, <b class="cmd">S3::REST</b> will
+negotiate a TLS connection to Amazon. If false, unencrypted connections
+are used.</p></dd>
+<dt><b class="option">-bucket-prefix</b> <i class="arg">string</i></dt>
+<dd><p>Defaults to &quot;TclS3&quot;.  This string is used by <b class="cmd">S3::SuggestBucketName</b>
+if that command is passed an empty string as an argument. It is used
+to distinguish different applications using the Amazon service.
+Your application should always set this to keep from interfering with
+the buckets of other users of Amazon S3 or with other buckets of the
+same user.</p></dd>
+<dt><b class="option">-default-compare</b> <i class="arg">always|never|exists|missing|newer|date|checksum|different</i></dt>
+<dd><p>Defaults to &quot;always.&quot; If no -compare is specified on
+<b class="cmd">S3::Put</b>, <b class="cmd">S3::Get</b>, or <b class="cmd">S3::Delete</b>, this comparison is used.
+See those commands for a description of the meaning.</p></dd>
+<dt><b class="option">-default-separator</b> <i class="arg">string</i></dt>
+<dd><p>Defaults to &quot;/&quot;. This is currently unused. It might make sense to use
+this for <b class="cmd">S3::Push</b> and <b class="cmd">S3::Pull</b>, but allowing resources to
+have slashes in their names that aren't marking directories would be
+problematic. Hence, this currently does nothing.</p></dd>
+<dt><b class="option">-default-acl</b> <i class="arg">private|public-read|public-read-write|authenticated-read|keep|calc</i></dt>
+<dd><p>Defaults to an empty string. If no -acl argument is provided to <b class="cmd">S3::Put</b> or
+<b class="cmd">S3::Push</b>, this string is used
+(given as the x-amz-acl header if not keep or calc). If this is also
+empty, no x-amz-acl header is generated.
+This is <em>not</em> used by <b class="cmd">S3::REST</b>.</p></dd>
+<dt><b class="option">-default-bucket</b> <i class="arg">bucketname</i></dt>
+<dd><p>If no bucket is given to <b class="cmd">S3::GetBucket</b>, <b class="cmd">S3::PutBucket</b>,
+<b class="cmd">S3::Get</b>, <b class="cmd">S3::Put</b>,
+<b class="cmd">S3::Head</b>, <b class="cmd">S3::Acl</b>,
+<b class="cmd">S3::Delete</b>, <b class="cmd">S3::Push</b>,
+<b class="cmd">S3::Pull</b>, or <b class="cmd">S3::Toss</b>, and if this configuration variable
+is not an empty string (and not simply &quot;/&quot;), then this value
+will be used for the bucket. This is useful if one program does
+a large amount of resource manipulation within a single bucket.</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">S3::SuggestBucket</b> <span class="opt">?<i class="arg">name</i>?</span></a></dt>
+<dd><p>The <b class="cmd">S3::SuggestBucket</b> command accepts an optional string as
+a prefix and returns a valid bucket containing the <i class="arg">name</i> argument
+and the Access Key ID. This makes the name unique to the owner and
+to the application (assuming the application picks a good <i class="arg">name</i> argument).
+If no name is provided,
+the name from <b class="cmd">S3::Configure</b> <i class="arg">-bucket-prefix</i> is used.
+If that too is empty (which is not the default), an error is thrown.</p></dd>
+<dt><a name="3"><b class="cmd">S3::REST</b> <i class="arg">dict</i></a></dt>
+<dd><p>The <b class="cmd">S3::REST</b> command takes as an argument a dictionary and
+returns a dictionary.  The return dictionary has the same keys
+as the input dictionary, and includes additional keys as the result.
+The presence or absence of keys in the input dictionary can control
+the behavior of the routine.  It never throws an error directly, but
+includes keys &quot;error&quot;, &quot;errorInfo&quot;, and &quot;errorCode&quot; if necessary.
+Some keys are required, some optional. The routine can run either
+in blocking or non-blocking mode, based on the presense
+of <b class="option">resultvar</b> in the input dictionary. This requires
+the <i class="arg">-accesskeyid</i> and <i class="arg">-secretaccesskey</i> to be configured via
+<b class="cmd">S3::Configure</b> before being called.</p>
+<p>The possible input keys are these:</p>
+<dl class="doctools_definitions">
+<dt><b class="option">verb</b> <i class="arg">GET|PUT|DELETE|HEAD</i></dt>
+<dd><p>This required item indicates the verb to be used.</p></dd>
+<dt><b class="option">resource</b> <i class="arg">string</i></dt>
+<dd><p>This required item indicates the resource to be accessed.
+A leading / is added if not there already. It will
+be URL-encoded for you if necessary. Do not supply a
+resource name that is already URL-encoded.</p></dd>
+<dt><span class="opt">?<b class="option">rtype</b> <i class="arg">torrent|acl</i>?</span></dt>
+<dd><p>This indicates a torrent or acl resource is being manipulated.
+Do not include this in the <b class="option">resource</b> key, or the
+&quot;?&quot; separator will get URL-encoded.</p></dd>
+<dt><span class="opt">?<b class="option">parameters</b> <i class="arg">dict</i>?</span></dt>
+<dd><p>This optional dictionary provides parameters added to the URL
+for the transaction. The keys must be in the correct case
+(which is confusing in the Amazon documentation) and the
+values must be valid. This can be an empty dictionary or
+omitted entirely if no parameters are desired. No other
+error checking on parameters is performed.</p></dd>
+<dt><span class="opt">?<b class="option">headers</b> <i class="arg">dict</i>?</span></dt>
+<dd><p>This optional dictionary provides headers to be added
+to the HTTP request. The keys must be in <em>lower case</em>
+for the authentication to work. The values must not contain
+embedded newlines or carriage returns. This is primarily
+useful for adding x-amz-* headers. Since authentication
+is calculated by <b class="cmd">S3::REST</b>, do not add that header here.
+Since content-type gets its own key, also do not add
+that header here.</p></dd>
+<dt><span class="opt">?<b class="option">inbody</b> <i class="arg">contentstring</i>?</span></dt>
+<dd><p>This optional item, if provided, gives the content that will
+be sent. It is sent with a tranfer encoding of binary, and
+only the low bytes are used, so use [encoding convertto utf-8]
+if the string is a utf-8 string. This is written all in one blast,
+so if you are using non-blocking mode and the <b class="option">inbody</b> is
+especially large, you may wind up blocking on the write socket.</p></dd>
+<dt><span class="opt">?<b class="option">infile</b> <i class="arg">filename</i>?</span></dt>
+<dd><p>This optional item, if provided, and if <b class="option">inbody</b> is not provided,
+names the file from which the body of the HTTP message will be
+constructed. The file is opened for reading and sent progressively
+by [fcopy], so it should not block in non-blocking mode
+even if the file is very large. The file is transfered in
+binary mode, so the bytes on your disk will match the bytes
+in your resource. Due to HTTP restrictions, it must be possible to
+use [file size] on this file to determine the size at the
+start of the transaction.</p></dd>
+<dt><span class="opt">?<b class="option">S3chan</b> <i class="arg">channel</i>?</span></dt>
+<dd><p>This optional item, if provided, indicates the already-open socket
+over which the transaction should be conducted. If not provided,
+a connection is made to the service access point specified via
+<b class="cmd">S3::Configure</b>, which is normally s3.amazonaws.com. If this
+is provided, the channel is not closed at the end of the transaction.</p></dd>
+<dt><span class="opt">?<b class="option">outchan</b> <i class="arg">channel</i>?</span></dt>
+<dd><p>This optional item, if provided, indicates the already-open channel
+to which the body returned from S3 should be written. That is,
+to retrieve a large resource, open a file, set the translation mode,
+and pass the channel as the value of the key outchan. Output
+will be written to the channel in pieces so memory does not fill
+up unnecessarily. The channel is not closed at the end of the transaction.</p></dd>
+<dt><span class="opt">?<b class="option">resultvar</b> <i class="arg">varname</i>?</span></dt>
+<dd><p>This optional item, if provided, indicates that <b class="cmd">S3::REST</b> should
+run in non-blocking mode. The <i class="arg">varname</i> should be fully qualified
+with respect to namespaces and cannot be local to a proc. If provided,
+the result of the <b class="cmd">S3::REST</b> call is assigned to this variable once
+everything has completed; use trace or vwait to know when this has happened.
+If this key is not provided, the result is simply returned from the
+call to <b class="cmd">S3::REST</b> and no calls to the eventloop are invoked from
+within this call.</p></dd>
+<dt><span class="opt">?<b class="option">throwsocket</b> <i class="arg">throw|return</i>?</span></dt>
+<dd><p>This optional item, if provided, indicates that <b class="cmd">S3::REST</b> should
+throw an error if throwmode is throw and a socket error is encountered.
+It indicates that <b class="cmd">S3::REST</b> should return the error code in the
+returned dictionary if a socket error is encountered and this is
+set to return. If <b class="option">throwsocket</b> is set to <i class="arg">return</i> or
+if the call is not blocking, then a socket error (i.e., an error
+whose error code starts with &quot;S3 socket&quot; will be returned in the
+dictionary as <b class="option">error</b>, <b class="option">errorInfo</b>, and <b class="option">errorCode</b>.
+If a foreground call is made (i.e., <b class="option">resultvar</b> is not provided),
+and this option is not provided or is set to <i class="arg">throw</i>, then
+<b class="cmd"><a href="../../../../index.html#key161">error</a></b> will be invoked instead.</p></dd>
+</dl>
+<p>Once the call to <b class="cmd">S3::REST</b> completes, a new dict is returned,
+either in the <i class="arg">resultvar</i> or as the result of execution. This dict is
+a copy of the original dict with the results added as new keys. The possible
+new keys are these:</p>
+<dl class="doctools_definitions">
+<dt><b class="option">error</b> <i class="arg">errorstring</i></dt>
+<dd></dd>
+<dt><b class="option">errorInfo</b> <i class="arg">errorstring</i></dt>
+<dd></dd>
+<dt><b class="option">errorCode</b> <i class="arg">errorstring</i></dt>
+<dd><p>If an error is caught, these three keys will be set in the result.
+Note that <b class="cmd">S3::REST</b> does <em>not</em> consider a non-2XX HTTP
+return code as an error. The <b class="option">errorCode</b> value will be
+formatted according to the <span class="sectref"><a href="#section2">ERROR REPORTING</a></span> description.
+If these are present, other keys described here might not be.</p></dd>
+<dt><b class="option">httpstatus</b> <i class="arg">threedigits</i></dt>
+<dd><p>The three-digit code from the HTTP transaction. 2XX for good,
+5XX for server error, etc.</p></dd>
+<dt><b class="option">httpmessage</b> <i class="arg">text</i></dt>
+<dd><p>The textual result after the status code. &quot;OK&quot; or &quot;Forbidden&quot;
+or etc.</p></dd>
+<dt><b class="option">outbody</b> <i class="arg">contentstring</i></dt>
+<dd><p>If <i class="arg">outchan</i> was not specified, this key will hold a
+reference to the (unencoded) contents of the body returned.
+If Amazon returned an error (a la the httpstatus not a 2XX value),
+the error message will be in <b class="option">outbody</b> or written to
+<b class="option">outchan</b> as appropriate.</p></dd>
+<dt><b class="option">outheaders</b> <i class="arg">dict</i></dt>
+<dd><p>This contains a dictionary of headers returned by Amazon.
+The keys are always lower case. It's mainly useful for
+finding the x-amz-meta-* headers, if any, although things
+like last-modified and content-type are also useful.
+The keys of this dictionary are always lower case.
+Both keys and values are trimmed of extraneous whitespace.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">HIGH LEVEL COMMANDS</a></h2>
+<p>The routines in this section all make use of one or more calls
+to <b class="cmd">S3::REST</b> to do their work, then parse and manage the data
+in a convenient way.  All these commands throw errors
+as described in <span class="sectref"><a href="#section2">ERROR REPORTING</a></span> unless otherwise noted.</p>
+<p>In all these commands, all arguments are presented as name/value pairs,
+in any order. All the argument names start with a hyphen.</p>
+<p>There are a few options that are common to many
+of the commands, and those common options are documented here.</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-blocking</b> <i class="arg">boolean</i></dt>
+<dd><p>If provided and specified as false,
+then any calls to <b class="cmd">S3:REST</b> will be non-blocking,
+and internally these routines will call [vwait] to get
+the results. In other words, these routines will return the
+same value, but they'll have event loops running while waiting
+for Amazon.</p></dd>
+<dt><b class="option">-parse-xml</b> <i class="arg">xmlstring</i></dt>
+<dd><p>If provided, the routine skips actually communicating with
+Amazon, and instead behaves as if the XML string provided
+was returned as the body of the call. Since several of
+these routines allow the return of data in various formats,
+this argument can be used to parse existing XML to extract
+the bits of information that are needed. It's also helpful
+for testing.</p></dd>
+<dt><b class="option">-bucket</b> <i class="arg">bucketname</i></dt>
+<dd><p>Almost every high-level command needs to know what bucket
+the resources are in. This option specifies that. (Only the
+command to list available buckets does not require this parameter.)
+This does not need to be URL-encoded, even if it contains
+special or non-ASCII characters. May or may not contain leading
+or trailing spaces - commands normalize the bucket. If this is
+not supplied, the value is taken from <b class="cmd">S3::Configure -default-bucket</b>
+if that string isn't empty. Note that spaces and slashes are
+always trimmed from both ends and the rest must leave a valid bucket.</p></dd>
+<dt><b class="option">-resource</b> <i class="arg">resourcename</i></dt>
+<dd><p>This specifies the resource of interest within the bucket.
+It may or may not start with a slash - both cases are handled.
+This does not need to be URL-encoded, even if it contains
+special or non-ASCII characters.</p></dd>
+<dt><b class="option">-compare</b> <i class="arg">always|never|exists|missing|newer|date|checksum|different</i></dt>
+<dd><p>When commands copy resources to files or files to resources, the caller may specify that the copy should be skipped if the contents are the same. This argument specifies the conditions under which the files should be copied. If it is not passed, the result of <b class="cmd">S3::Configure -default-compare</b> is used, which in turn defaults to &quot;always.&quot; The meanings of the various values are these:</p>
+<dl class="doctools_definitions">
+<dt><i class="arg">always</i></dt>
+<dd><p>Always copy the data. This is the default.</p></dd>
+<dt><i class="arg">never</i></dt>
+<dd><p>Never copy the data. This is essentially a no-op, except in <b class="cmd">S3::Push</b> and <b class="cmd">S3::Pull</b> where the -delete flag might make a difference.</p></dd>
+<dt><i class="arg">exists</i></dt>
+<dd><p>Copy the data only if the destination already exists.</p></dd>
+<dt><i class="arg">missing</i></dt>
+<dd><p>Copy the data only if the destination does not already exist.</p></dd>
+<dt><i class="arg">newer</i></dt>
+<dd><p>Copy the data if the destination is missing, or if the date on the source is
+newer than the date on the destination by at
+least <b class="cmd">S3::Configure -slop-seconds</b> seconds. If the source is
+Amazon, the date is taken from the Last-Modified header. If the
+source is local, it is taken as the mtime of the file. If the source data
+is specified in a string rather than a file, it is taken as right now,
+via [clock seconds].</p></dd>
+<dt><i class="arg">date</i></dt>
+<dd><p>Like <i class="arg">newer</i>, except copy if the date is newer <em>or</em> older.</p></dd>
+<dt><i class="arg">checksum</i></dt>
+<dd><p>Calculate the MD5 checksum on the local file or string, ask Amazon for the eTag
+of the resource, and copy the data if they're different. Copy the data
+also if the destination is missing. Note that this can be slow with
+large local files unless the C version of the MD5 support is available.</p></dd>
+<dt><i class="arg">different</i></dt>
+<dd><p>Copy the data if the destination does not exist.
+If the destination exists and an actual file name was specified
+(rather than a content string),
+and the date on the file differs from the date on the resource,
+copy the data.
+If the data is provided as a content string, the &quot;date&quot; is treated
+as &quot;right now&quot;, so it will likely always differ unless slop-seconds is large.
+If the dates are the same, the MD5 checksums are compared, and the
+data is copied if the checksums differ.</p></dd>
+</dl>
+<p>Note that &quot;newer&quot; and &quot;date&quot; don't care about the contents, and &quot;checksum&quot; doesn't care about the dates, but &quot;different&quot; checks both.</p></dd>
+<dt><a name="4"><b class="cmd">S3::ListAllMyBuckets</b> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-parse-xml</b> <i class="arg">xmlstring</i>?</span> <span class="opt">?<b class="option">-result-type</b> <i class="arg">REST|xml|pxml|dict|names|owner</i>?</span></a></dt>
+<dd><p>This routine performs a GET on the Amazon S3 service, which is
+defined to return a list of buckets owned by the account identified
+by the authorization header. (Blame Amazon for the dumb names.)</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-blocking</b> <i class="arg">boolean</i></dt>
+<dd><p>See above for standard definition.</p></dd>
+<dt><b class="option">-parse-xml</b> <i class="arg">xmlstring</i></dt>
+<dd><p>See above for standard definition.</p></dd>
+<dt><b class="option">-result-type</b> <i class="arg">REST</i></dt>
+<dd><p>The dictionary returned by <b class="cmd">S3::REST</b> is the return value of <b class="cmd">S3::ListAllMyBuckets</b>. In this case, a non-2XX httpstatus will not throw an error. You may not combine this with <i class="arg">-parse-xml</i>.</p></dd>
+<dt><b class="option">-result-type</b> <i class="arg">xml</i></dt>
+<dd><p>The raw XML of the body is returned as the result (with no encoding applied).</p></dd>
+<dt><b class="option">-result-type</b> <i class="arg">pxml</i></dt>
+<dd><p>The XML of the body as parsed by <b class="cmd">xsxp::parse</b> is returned.</p></dd>
+<dt><b class="option">-result-type</b> <i class="arg">dict</i></dt>
+<dd><p>A dictionary of interesting portions of the XML is returned. The dictionary contains the following keys:</p>
+<dl class="doctools_definitions">
+<dt>Owner/ID</dt>
+<dd><p>The Amazon AWS ID (in hex) of the owner of the bucket.</p></dd>
+<dt>Owner/DisplayName</dt>
+<dd><p>The Amazon AWS ID's Display Name.</p></dd>
+<dt>Bucket/Name</dt>
+<dd><p>A list of names, one for each bucket.</p></dd>
+<dt>Bucket/CreationDate</dt>
+<dd><p>A list of dates, one for each bucket,
+in the same order as Bucket/Name, in ISO format (as returned by Amazon).</p></dd>
+</dl></dd>
+<dt><b class="option">-result-type</b> <i class="arg">names</i></dt>
+<dd><p>A list of bucket names is returned with all other information stripped out.
+This is the default result type for this command.</p></dd>
+<dt><b class="option">-result-type</b> <i class="arg">owner</i></dt>
+<dd><p>A list containing two elements is returned. The first element is
+the owner's ID, and the second is the owner's display name.</p></dd>
+</dl></dd>
+<dt><a name="5"><b class="cmd">S3::PutBucket</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-acl</b> <i class="arg">{}|private|public-read|public-read-write|authenticated-read</i>?</span></a></dt>
+<dd><p>This command creates a bucket if it does not already exist. Bucket names are
+globally unique, so you may get a &quot;Forbidden&quot; error from Amazon even if you
+cannot see the bucket in <b class="cmd">S3::ListAllMyBuckets</b>. See <b class="cmd">S3::SuggestBucket</b> for ways to minimize this risk. The x-amz-acl header comes from the <b class="option">-acl</b> option, or from <b class="cmd">S3::Configure -default-acl</b> if not specified.</p></dd>
+<dt><a name="6"><b class="cmd">S3::DeleteBucket</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span></a></dt>
+<dd><p>This command deletes a bucket if it is empty and you have such permission.
+Note that Amazon's list of buckets is a global resource, requiring
+far-flung synchronization. If you delete a bucket, it may be quite
+a few minutes (or hours) before you can recreate it, yielding &quot;Conflict&quot;
+errors until then.</p></dd>
+<dt><a name="7"><b class="cmd">S3::GetBucket</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-parse-xml</b> <i class="arg">xmlstring</i>?</span> <span class="opt">?<b class="option">-max-count</b> <i class="arg">integer</i>?</span> <span class="opt">?<b class="option">-prefix</b> <i class="arg">prefixstring</i>?</span> <span class="opt">?<b class="option">-delimiter</b> <i class="arg">delimiterstring</i>?</span> <span class="opt">?<b class="option">-result-type</b> <i class="arg">REST|xml|pxml|names|dict</i>?</span></a></dt>
+<dd><p>This lists the contents of a bucket. That is, it returns a directory
+listing of resources within a bucket, rather than transfering any
+user data.</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-bucket</b> <i class="arg">bucketname</i></dt>
+<dd><p>The standard bucket argument.</p></dd>
+<dt><b class="option">-blocking</b> <i class="arg">boolean</i></dt>
+<dd><p>The standard blocking argument.</p></dd>
+<dt><b class="option">-parse-xml</b> <i class="arg">xmlstring</i></dt>
+<dd><p>The standard parse-xml argument.</p></dd>
+<dt><b class="option">-max-count</b> <i class="arg">integer</i></dt>
+<dd><p>If supplied, this is the most number of records to be returned.
+If not supplied, the code will iterate until all records have been found.
+Not compatible with -parse-xml. Note that if this is supplied, only
+one call to <b class="cmd">S3::REST</b> will be made. Otherwise, enough calls
+will be made to exhaust the listing, buffering results in memory,
+so take care if you may have huge buckets.</p></dd>
+<dt><b class="option">-prefix</b> <i class="arg">prefixstring</i></dt>
+<dd><p>If present, restricts listing to resources with a particular prefix. One
+leading / is stripped if present.</p></dd>
+<dt><b class="option">-delimiter</b> <i class="arg">delimiterstring</i></dt>
+<dd><p>If present, specifies a delimiter for the listing.
+The presence of this will summarize multiple resources
+into one entry, as if S3 supported directories. See the
+Amazon documentation for details.</p></dd>
+<dt><b class="option">-result-type</b> <i class="arg">REST|xml|pxml|names|dict</i></dt>
+<dd><p>This indicates the format of the return result of the command.</p>
+<dl class="doctools_definitions">
+<dt>REST</dt>
+<dd><p>If <i class="arg">-max-count</i> is specified, the dictionary returned
+from <b class="cmd">S3::REST</b> is returned. If <i class="arg">-max-count</i> is
+not specified, a list of all the dictionaries returned from
+the one or more calls to <b class="cmd">S3::REST</b> is returned.</p></dd>
+<dt>xml</dt>
+<dd><p>If <i class="arg">-max-count</i> is specified, the body returned
+from <b class="cmd">S3::REST</b> is returned. If <i class="arg">-max-count</i> is
+not specified, a list of all the bodies returned from
+the one or more calls to <b class="cmd">S3::REST</b> is returned.</p></dd>
+<dt>pxml</dt>
+<dd><p>If <i class="arg">-max-count</i> is specified, the body returned
+from <b class="cmd">S3::REST</b> is passed throught <b class="cmd">xsxp::parse</b> and then returned.
+If <i class="arg">-max-count</i> is
+not specified, a list of all the bodies returned from
+the one or more calls to <b class="cmd">S3::REST</b> are each passed through
+<b class="cmd">xsxp::parse</b> and then returned.</p></dd>
+<dt>names</dt>
+<dd><p>Returns a list of all names found in either the Contents/Key fields or
+the CommonPrefixes/Prefix fields. If no <i class="arg">-delimiter</i> is specified
+and no <i class="arg">-max-count</i> is specified, this returns a list of all
+resources with the specified <i class="arg">-prefix</i>.</p></dd>
+<dt>dict</dt>
+<dd><p>Returns a dictionary. (Returns only one dictionary even if <i class="arg">-max-count</i>
+wasn't specified.) The keys of the dictionary are as follows:</p>
+<dl class="doctools_definitions">
+<dt>Name</dt>
+<dd><p>The name of the bucket (from the final call to <b class="cmd">S3::REST</b>).</p></dd>
+<dt>Prefix</dt>
+<dd><p>From the final call to <b class="cmd">S3::REST</b>.</p></dd>
+<dt>Marker</dt>
+<dd><p>From the final call to <b class="cmd">S3::REST</b>.</p></dd>
+<dt>MaxKeys</dt>
+<dd><p>From the final call to <b class="cmd">S3::REST</b>.</p></dd>
+<dt>IsTruncated</dt>
+<dd><p>From the final call to <b class="cmd">S3::REST</b>, so
+always false if <i class="arg">-max-count</i> is not specified.</p></dd>
+<dt>NextMarker</dt>
+<dd><p>Always provided if IsTruncated is true, and
+calculated of Amazon does not provide it. May be empty if IsTruncated is false.</p></dd>
+<dt>Key</dt>
+<dd><p>A list of names of resources in the bucket matching the <i class="arg">-prefix</i> and <i class="arg">-delimiter</i> restrictions.</p></dd>
+<dt>LastModified</dt>
+<dd><p>A list of times of resources in the bucket, in the same
+order as Key, in the format returned by Amazon. (I.e., it is not parsed into
+a seconds-from-epoch.)</p></dd>
+<dt>ETag</dt>
+<dd><p>A list of entity tags (a.k.a. MD5 checksums) in the same order as Key.</p></dd>
+<dt>Size</dt>
+<dd><p>A list of sizes in bytes of the resources, in the same order as Key.</p></dd>
+<dt>Owner/ID</dt>
+<dd><p>A list of owners of the resources in the bucket, in the same order as Key.</p></dd>
+<dt>Owner/DisplayName</dt>
+<dd><p>A list of owners of the resources in the bucket, in the same order as Key. These are the display names.</p></dd>
+<dt>CommonPrefixes/Prefix</dt>
+<dd><p>A list of prefixes common to multiple entities. This is present only if <i class="arg">-delimiter</i> was supplied.</p></dd>
+</dl></dd>
+</dl></dd>
+</dl></dd>
+<dt><a name="8"><b class="cmd">S3::Put</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-resource</b> <i class="arg">resourcename</i> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-file</b> <i class="arg">filename</i>?</span> <span class="opt">?<b class="option">-content</b> <i class="arg">contentstring</i>?</span> <span class="opt">?<b class="option">-acl</b> <i class="arg">private|public-read|public-read-write|authenticated-read|calc|keep</i>?</span> <span class="opt">?<b class="option">-content-type</b> <i class="arg">contenttypestring</i>?</span> <span class="opt">?<b class="option">-x-amz-meta-*</b> <i class="arg">metadatatext</i>?</span> <span class="opt">?<b class="option">-compare</b> <i class="arg">comparemode</i>?</span></a></dt>
+<dd><p>This command sends data to a resource on Amazon's servers for storage,
+using the HTTP PUT command. It returns 0 if the <b class="option">-compare</b> mode
+prevented the transfer, 1 if the transfer worked, or throws an error
+if the transfer was attempted but failed.
+Server 5XX errors and S3 socket errors are retried
+according to <b class="cmd">S3:Configure -retries</b> settings before throwing an error;
+other errors throw immediately.</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-bucket</b></dt>
+<dd><p>This specifies the bucket into which the resource will be written.
+Leading and/or trailing slashes are removed for you, as are spaces.</p></dd>
+<dt><b class="option">-resource</b></dt>
+<dd><p>This is the full name of the resource within the bucket. A single
+leading slash is removed, but not a trailing slash.
+Spaces are not trimmed.</p></dd>
+<dt><b class="option">-blocking</b></dt>
+<dd><p>The standard blocking flag.</p></dd>
+<dt><b class="option">-file</b></dt>
+<dd><p>If this is specified, the <i class="arg">filename</i> must exist, must be readable,
+and must not be a special or directory file. [file size] must
+apply to it and must not change for the lifetime of the call.  The
+default content-type is calculated based on the name and/or contents
+of the file. Specifying this is an error if <b class="option">-content</b> is
+also specified, but at least one of <b class="option">-file</b> or <b class="option">-content</b> must
+be specified. (The file is allowed to not exist or not be readable if
+<b class="option">-compare</b> <i class="arg">never</i> is specified.)</p></dd>
+<dt><b class="option">-content</b></dt>
+<dd><p>If this is specified, the <i class="arg">contentstring</i> is sent as the body
+of the resource. The content-type defaults to &quot;application/octet-string&quot;.
+Only the low bytes are sent, so non-ASCII should use the appropriate encoding
+(such as [encoding convertto utf-8]) before passing it
+to this routine, if necessary. Specifying this is an error if <b class="option">-file</b>
+is also specified, but at least one of <b class="option">-file</b> or <b class="option">-content</b> must
+be specified.</p></dd>
+<dt><b class="option">-acl</b></dt>
+<dd><p>This defaults to <b class="cmd">S3::Configure -default-acl</b> if not specified.
+It sets the x-amz-acl header on the PUT operation.
+If the value provided is <i class="arg">calc</i>, the x-amz-acl header is
+calculated based on the I/O permissions of the file to be uploaded;
+it is an error to specify <i class="arg">calc</i> and <b class="option">-content</b>.
+If the value provided is <i class="arg">keep</i>, the acl of the resource
+is read before the PUT (or the default is used if the
+resource does not exist), then set back to what it
+was after the PUT (if it existed). An error will occur if
+the resource is successfully written but the kept ACL cannot
+be then applied. This should never happen.
+<em>Note:</em>  <i class="arg">calc</i> is not currently fully implemented.</p></dd>
+<dt><b class="option">-x-amz-meta-*</b></dt>
+<dd><p>If any header starts with &quot;-x-amz-meta-&quot;, its contents are added to the
+PUT command to be stored as metadata with the resource. Again, no
+encoding is performed, and the metadata should not contain characters
+like newlines, carriage returns, and so on. It is best to stick with
+simple ASCII strings, or to fix the library in several places.</p></dd>
+<dt><b class="option">-content-type</b></dt>
+<dd><p>This overrides the content-type calculated by <b class="option">-file</b> or
+sets the content-type for <b class="option">-content</b>.</p></dd>
+<dt><b class="option">-compare</b></dt>
+<dd><p>This is the standard compare mode argument. <b class="cmd">S3::Put</b> returns
+1 if the data was copied or 0 if the data was skipped due to
+the comparison mode so indicating it should be skipped.</p></dd>
+</dl></dd>
+<dt><a name="9"><b class="cmd">S3::Get</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-resource</b> <i class="arg">resourcename</i> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-compare</b> <i class="arg">comparemode</i>?</span> <span class="opt">?<b class="option">-file</b> <i class="arg">filename</i>?</span> <span class="opt">?<b class="option">-content</b> <i class="arg">contentvarname</i>?</span> <span class="opt">?<b class="option">-timestamp</b> <i class="arg">aws|now</i>?</span> <span class="opt">?<b class="option">-headers</b> <i class="arg">headervarname</i>?</span></a></dt>
+<dd><p>This command retrieves data from a resource on Amazon's S3 servers,
+using the HTTP GET command. It returns 0 if the <b class="option">-compare</b> mode
+prevented the transfer, 1 if the transfer worked, or throws an error
+if the transfer was attempted but failed. Server 5XX errors and S3 socket
+errors are are retried
+according to <b class="cmd">S3:Configure</b> settings before throwing an error;
+other errors throw immediately. Note that this is always authenticated
+as the user configured in via <b class="cmd">S3::Configure -accesskeyid</b>. Use
+the Tcllib http for unauthenticated GETs.</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-bucket</b></dt>
+<dd><p>This specifies the bucket from which the resource will be read.
+Leading and/or trailing slashes are removed for you, as are spaces.</p></dd>
+<dt><b class="option">-resource</b></dt>
+<dd><p>This is the full name of the resource within the bucket. A single
+leading slash is removed, but not a trailing slash.
+Spaces are not trimmed.</p></dd>
+<dt><b class="option">-blocking</b></dt>
+<dd><p>The standard blocking flag.</p></dd>
+<dt><b class="option">-file</b></dt>
+<dd><p>If this is specified, the body of the resource will be read into this file,
+incrementally without pulling it entirely into memory first. The parent
+directory must already exist. If the file already exists, it must be
+writable. If an error is thrown part-way through the process and the
+file already existed, it may be clobbered. If an error is thrown part-way
+through the process and the file did not already exist, any partial
+bits will be deleted. Specifying this is an error if <b class="option">-content</b>
+is also specified, but at least one of <b class="option">-file</b> or <b class="option">-content</b> must
+be specified.</p></dd>
+<dt><b class="option">-timestamp</b></dt>
+<dd><p>This is only valid in conjunction with <b class="option">-file</b>. It may be specified
+as <i class="arg">now</i> or <i class="arg">aws</i>. The default is <i class="arg">now</i>. If <i class="arg">now</i>, the file's
+modification date is left up to the system. If <i class="arg">aws</i>, the file's
+mtime is set to match the Last-Modified header on the resource, synchronizing
+the two appropriately for <b class="option">-compare</b> <i class="arg">date</i> or
+<b class="option">-compare</b> <i class="arg">newer</i>.</p></dd>
+<dt><b class="option">-content</b></dt>
+<dd><p>If this is specified, the <i class="arg">contentvarname</i> is a variable in the caller's
+scope (not necessarily global) that receives the value of the body of
+the resource. No encoding is done, so if the resource (for example) represents
+a UTF-8 byte sequence, use [encoding convertfrom utf-8] to get a valid
+UTF-8 string. If this is specified, the <b class="option">-compare</b> is ignored unless
+it is <i class="arg">never</i>, in which case no assignment to <i class="arg">contentvarname</i> is
+performed. Specifying this is an error if <b class="option">-file</b> is also specified,
+but at least one of <b class="option">-file</b> or <b class="option">-content</b> must be specified.</p></dd>
+<dt><b class="option">-compare</b></dt>
+<dd><p>This is the standard compare mode argument. <b class="cmd">S3::Get</b> returns
+1 if the data was copied or 0 if the data was skipped due to
+the comparison mode so indicating it should be skipped.</p></dd>
+<dt><b class="option">-headers</b></dt>
+<dd><p>If this is specified, the headers resulting from the fetch are stored
+in the provided variable, as a dictionary. This will include content-type
+and x-amz-meta-* headers, as well as the usual HTTP headers, the x-amz-id
+debugging headers, and so on. If no file is fetched (due to <b class="option">-compare</b>
+or other errors), no assignment to this variable is performed.</p></dd>
+</dl></dd>
+<dt><a name="10"><b class="cmd">S3::Head</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-resource</b> <i class="arg">resourcename</i> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-dict</b> <i class="arg">dictvarname</i>?</span> <span class="opt">?<b class="option">-headers</b> <i class="arg">headersvarname</i>?</span> <span class="opt">?<b class="option">-status</b> <i class="arg">statusvarname</i>?</span></a></dt>
+<dd><p>This command requests HEAD from the resource.
+It returns whether a 2XX code was returned as a result
+of the request, never throwing an S3 remote error.
+That is, if this returns 1, the resource exists and is
+accessible. If this returns 0, something went wrong, and the
+<b class="option">-status</b> result can be consulted for details.</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-bucket</b></dt>
+<dd><p>This specifies the bucket from which the resource will be read.
+Leading and/or trailing slashes are removed for you, as are spaces.</p></dd>
+<dt><b class="option">-resource</b></dt>
+<dd><p>This is the full name of the resource within the bucket. A single
+leading slash is removed, but not a trailing slash.
+Spaces are not trimmed.</p></dd>
+<dt><b class="option">-blocking</b></dt>
+<dd><p>The standard blocking flag.</p></dd>
+<dt><b class="option">-dict</b></dt>
+<dd><p>If specified, the resulting dictionary from the <b class="cmd">S3::REST</b>
+call is assigned to the indicated (not necessarily global) variable
+in the caller's scope.</p></dd>
+<dt><b class="option">-headers</b></dt>
+<dd><p>If specified, the dictionary of headers from the result are assigned
+to the indicated (not necessarily global) variable in the caller's scope.</p></dd>
+<dt><b class="option">-status</b></dt>
+<dd><p>If specified, the indicated (not necessarily global) variable in
+the caller's scope is assigned a 2-element list. The first element is
+the 3-digit HTTP status code, while the second element is
+the HTTP message (such as &quot;OK&quot; or &quot;Forbidden&quot;).</p></dd>
+</dl></dd>
+<dt><a name="11"><b class="cmd">S3::GetAcl</b> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-resource</b> <i class="arg">resourcename</i> <span class="opt">?<b class="option">-result-type</b> <i class="arg">REST|xml|pxml</i>?</span></a></dt>
+<dd><p>This command gets the ACL of the indicated resource or throws an
+error if it is unavailable.</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-blocking</b> <i class="arg">boolean</i></dt>
+<dd><p>See above for standard definition.</p></dd>
+<dt><b class="option">-bucket</b></dt>
+<dd><p>This specifies the bucket from which the resource will be read.
+Leading and/or trailing slashes are removed for you, as are spaces.</p></dd>
+<dt><b class="option">-resource</b></dt>
+<dd><p>This is the full name of the resource within the bucket. A single
+leading slash is removed, but not a trailing slash.
+Spaces are not trimmed.</p></dd>
+<dt><b class="option">-parse-xml</b> <i class="arg">xml</i></dt>
+<dd><p>The XML from a previous GetACL can be passed in to be parsed into
+dictionary form.  In this case, -result-type must be pxml or dict.</p></dd>
+<dt><b class="option">-result-type</b> <i class="arg">REST</i></dt>
+<dd><p>The dictionary returned by <b class="cmd">S3::REST</b> is the return value of
+<b class="cmd">S3::GetAcl</b>.  In this case, a non-2XX httpstatus will not throw an
+error.</p></dd>
+<dt><b class="option">-result-type</b> <i class="arg">xml</i></dt>
+<dd><p>The raw XML of the body is returned as the result (with no encoding applied).</p></dd>
+<dt><b class="option">-result-type</b> <i class="arg">pxml</i></dt>
+<dd><p>The XML of the body as parsed by <b class="cmd">xsxp::parse</b> is returned.</p></dd>
+<dt><b class="option">-result-type</b> <i class="arg">dict</i></dt>
+<dd><p>This fetches the ACL, parses it, and returns a dictionary of two elements.</p>
+<p>The first element has the key &quot;owner&quot; whose value is the canonical ID of the owner of the resource.</p>
+<p>The second element has the key &quot;acl&quot; whose value is a dictionary.  Each
+key in the dictionary is one of Amazon's permissions, namely &quot;READ&quot;,
+&quot;WRITE&quot;, &quot;READ_ACP&quot;, &quot;WRITE_ACP&quot;, or &quot;FULL_CONTROL&quot;.  Each value of each
+key is a list of canonical IDs or group URLs that have that permission.
+Elements are not in the list in any particular order, and not all keys
+are necessarily present.  Display names are not returned, as they are
+not especially useful; use pxml to obtain them if necessary.</p></dd>
+</dl></dd>
+<dt><a name="12"><b class="cmd">S3::PutAcl</b> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-resource</b> <i class="arg">resourcename</i> <span class="opt">?<b class="option">-acl</b> <i class="arg">new-acl</i>?</span></a></dt>
+<dd><p>This sets the ACL on the indicated resource. It returns the XML written to the ACL, or throws an error if anything went wrong.</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-blocking</b> <i class="arg">boolean</i></dt>
+<dd><p>See above for standard definition.</p></dd>
+<dt><b class="option">-bucket</b></dt>
+<dd><p>This specifies the bucket from which the resource will be read.
+Leading and/or trailing slashes are removed for you, as are spaces.</p></dd>
+<dt><b class="option">-resource</b></dt>
+<dd><p>This is the full name of the resource within the bucket. A single
+leading slash is removed, but not a trailing slash.
+Spaces are not trimmed.</p></dd>
+<dt><b class="option">-owner</b></dt>
+<dd><p>If this is provided, it is assumed to match the owner of the resource.
+Otherwise, a GET may need to be issued against the resource to find
+the owner. If you already have the owner (such as from a call
+to <b class="cmd">S3::GetAcl</b>, you can pass the value of the &quot;owner&quot; key
+as the value of this option, and it will be used in the construction
+of the XML.</p></dd>
+<dt><b class="option">-acl</b></dt>
+<dd><p>If this option is specified, it provides the ACL the caller wishes
+to write to the resource. If this is not supplied or is empty,
+the value is taken from <b class="cmd">S3::Configure -default-acl</b>.
+The ACL is written with a PUT to the ?acl resource.</p>
+<p>If the value passed to this option
+starts with &quot;&lt;&quot;, it is taken to be a body to be PUT to the ACL resource.</p>
+<p>If the value matches one of the standard Amazon x-amz-acl headers (i.e.,
+a canned access policy), that header is translated to XML and then
+applied. The canned access policies are private, public-read,
+public-read-write, and authenticated-read (in lower case).</p>
+<p>Otherwise, the value is assumed to be a dictionary formatted as the
+&quot;acl&quot; sub-entry within the dict returns by <b class="cmd">S3::GetAcl -result-type dict</b>.
+The proper XML is generated and applied to the resource.  Note that a
+value containing &quot;//&quot; is assumed to be a group, a value containing &quot;@&quot;
+is assumed to be an AmazonCustomerByEmail, and otherwise the value is
+assumed to be a canonical Amazon ID.</p>
+<p>Note that you cannot change the owner, so calling GetAcl on a resource
+owned by one user and applying it via PutAcl on a resource owned by
+another user may not do exactly what you expect.</p></dd>
+</dl></dd>
+<dt><a name="13"><b class="cmd">S3::Delete</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-resource</b> <i class="arg">resourcename</i> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-status</b> <i class="arg">statusvar</i>?</span></a></dt>
+<dd><p>This command deletes the specified resource from the specified bucket.
+It returns 1 if the resource was deleted successfully, 0 otherwise.
+It returns 0 rather than throwing an S3 remote error.</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-bucket</b></dt>
+<dd><p>This specifies the bucket from which the resource will be deleted.
+Leading and/or trailing slashes are removed for you, as are spaces.</p></dd>
+<dt><b class="option">-resource</b></dt>
+<dd><p>This is the full name of the resource within the bucket. A single
+leading slash is removed, but not a trailing slash.
+Spaces are not trimmed.</p></dd>
+<dt><b class="option">-blocking</b></dt>
+<dd><p>The standard blocking flag.</p></dd>
+<dt><b class="option">-status</b></dt>
+<dd><p>If specified, the indicated (not necessarily global) variable
+in the caller's scope is set to a two-element list. The first
+element is the 3-digit HTTP status code. The second element
+is the HTTP message (such as &quot;OK&quot; or &quot;Forbidden&quot;). Note that
+Amazon's DELETE result is 204 on success, that being the
+code indicating no content in the returned body.</p></dd>
+</dl></dd>
+<dt><a name="14"><b class="cmd">S3::Push</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-directory</b> <i class="arg">directoryname</i> <span class="opt">?<b class="option">-prefix</b> <i class="arg">prefixstring</i>?</span> <span class="opt">?<b class="option">-compare</b> <i class="arg">comparemode</i>?</span> <span class="opt">?<b class="option">-x-amz-meta-*</b> <i class="arg">metastring</i>?</span> <span class="opt">?<b class="option">-acl</b> <i class="arg">aclcode</i>?</span> <span class="opt">?<b class="option">-delete</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-error</b> <i class="arg">throw|break|continue</i>?</span> <span class="opt">?<b class="option">-progress</b> <i class="arg">scriptprefix</i>?</span></a></dt>
+<dd><p>This synchronises a local directory with a remote bucket
+by pushing the differences using <b class="cmd">S3::Put</b>. Note that
+if something has changed in the bucket but not locally,
+those changes could be lost. Thus, this is not a general
+two-way synchronization primitive. (See <b class="cmd">S3::Sync</b>
+for that.) Note too that resource names are case sensitive,
+so changing the case of a file on a Windows machine may lead
+to otherwise-unnecessary transfers.
+Note that only regular files are considered, so devices, pipes, symlinks,
+and directories are not copied.</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-bucket</b></dt>
+<dd><p>This names the bucket into which data will be pushed.</p></dd>
+<dt><b class="option">-directory</b></dt>
+<dd><p>This names the local directory from which files will be taken.
+It must exist, be readable via [glob] and so on. If only
+some of the files therein are readable, <b class="cmd">S3::Push</b> will PUT
+those files that are readable and return in its results the list
+of files that could not be opened.</p></dd>
+<dt><b class="option">-prefix</b></dt>
+<dd><p>This names the prefix that will be added to all resources.
+That is, it is the remote equivalent of <b class="option">-directory</b>.
+If it is not specified, the root of the bucket will be treated
+as the remote directory. An example may clarify.</p>
+<pre class="doctools_example">
+S3::Push -bucket test -directory /tmp/xyz -prefix hello/world
+</pre>
+<p>In this example, /tmp/xyz/pdq.html will be stored as
+http://s3.amazonaws.com/test/hello/world/pdq.html in Amazon's servers. Also,
+/tmp/xyz/abc/def/Hello will be stored as
+http://s3.amazonaws.com/test/hello/world/abc/def/Hello in Amazon's servers.
+Without the <b class="option">-prefix</b> option, /tmp/xyz/pdq.html would be stored
+as http://s3.amazonaws.com/test/pdq.html.</p></dd>
+<dt><b class="option">-blocking</b></dt>
+<dd><p>This is the standard blocking option.</p></dd>
+<dt><b class="option">-compare</b></dt>
+<dd><p>If present, this is passed to each invocation of <b class="cmd">S3::Put</b>.
+Naturally, <b class="cmd">S3::Configure -default-compare</b> is used
+if this is not specified.</p></dd>
+<dt><b class="option">-x-amz-meta-*</b></dt>
+<dd><p>If present, this is passed to each invocation of <b class="cmd">S3::Put</b>. All copied
+files will have the same metadata.</p></dd>
+<dt><b class="option">-acl</b></dt>
+<dd><p>If present, this is passed to each invocation of <b class="cmd">S3::Put</b>.</p></dd>
+<dt><b class="option">-delete</b></dt>
+<dd><p>This defaults to false. If true, resources in the destination that
+are not in the source directory are deleted with <b class="cmd">S3::Delete</b>.
+Since only regular files are considered, the existance of a symlink,
+pipe, device, or directory in the local source will <em>not</em>
+prevent the deletion of a remote resource with a corresponding name.</p></dd>
+<dt><b class="option">-error</b></dt>
+<dd><p>This controls the behavior of <b class="cmd">S3::Push</b> in the event that
+<b class="cmd">S3::Put</b> throws an error. Note that
+errors encountered on the local file system or in reading the
+list of resources in the remote bucket always throw errors.
+This option allows control over &quot;partial&quot; errors, when some
+files were copied and some were not. <b class="cmd">S3::Delete</b> is always
+finished up, with errors simply recorded in the return result.</p>
+<dl class="doctools_definitions">
+<dt>throw</dt>
+<dd><p>The error is rethrown with the same errorCode.</p></dd>
+<dt>break</dt>
+<dd><p>Processing stops without throwing an error, the error is recorded
+in the return value, and the command returns with a normal return.
+The calls to <b class="cmd">S3::Delete</b> are not started.</p></dd>
+<dt>continue</dt>
+<dd><p>This is the default. Processing continues without throwing,
+recording the error in the return result, and resuming with the
+next file in the local directory to be copied.</p></dd>
+</dl></dd>
+<dt><b class="option">-progress</b></dt>
+<dd><p>If this is specified and the indicated script prefix is not empty, the
+indicated script prefix will be invoked several times in the caller's
+context with additional arguments at various points in the processing.
+This allows progress reporting without backgrounding.  The provided
+prefix will be invoked with additional arguments, with the first
+additional argument indicating what part of the process is being
+reported on.  The prefix is initially invoked with <i class="arg">args</i> as the
+first additional argument and a dictionary representing the normalized
+arguments to the <b class="cmd">S3::Push</b> call as the second additional argument.
+Then the prefix is invoked with <i class="arg">local</i> as the first additional
+argument and a list of suffixes of the files to be considered as the
+second argument.  Then the prefix is invoked with <i class="arg">remote</i> as the
+first additional argument and a list of suffixes existing in the remote
+bucket as the second additional argument.  Then, for each file in the
+local list, the prefix will be invoked with <i class="arg">start</i> as the first
+additional argument and the common suffix as the second additional
+argument.  When <b class="cmd">S3::Put</b> returns for that file, the prefix will be
+invoked with <i class="arg">copy</i> as the first additional argument, the common
+suffix as the second additional argument, and a third argument that will
+be &quot;copied&quot; (if <b class="cmd">S3::Put</b> sent the resource), &quot;skipped&quot; (if
+<b class="cmd">S3::Put</b> decided not to based on <b class="option">-compare</b>), or the errorCode
+that <b class="cmd">S3::Put</b> threw due to unexpected errors (in which case the
+third argument is a list that starts with &quot;S3&quot;). When all files have
+been transfered, the prefix may be invoked zero or more times with
+<i class="arg">delete</i> as the first additional argument and the suffix of the
+resource being deleted as the second additional argument, with a third
+argument being either an empty string (if the delete worked) or the
+errorCode from <b class="cmd">S3::Delete</b> if it failed. Finally, the prefix
+will be invoked with <i class="arg">finished</i> as the first additional argument
+and the return value as the second additional argument.</p></dd>
+</dl>
+<p>The return result from this command is a dictionary. They keys are the
+suffixes (i.e., the common portion of the path after the <b class="option">-directory</b>
+and <b class="option">-prefix</b>), while the values are either &quot;copied&quot;, &quot;skipped&quot; (if
+<b class="option">-compare</b> indicated not to copy the file), or the errorCode
+thrown by <b class="cmd">S3::Put</b>, as appropriate. If <b class="option">-delete</b> was true,
+there may also be entries for suffixes with the value &quot;deleted&quot; or
+&quot;notdeleted&quot;, indicating whether the attempted <b class="cmd">S3::Delete</b>
+worked or not, respectively. There is one additional pair in the return
+result, whose key is the empty string and whose value is a nested dictionary.
+The keys of this nested dictionary include &quot;filescopied&quot; (the number of
+files successfully copied), &quot;bytescopied&quot; (the number of data bytes in
+the files copied, excluding headers, metadata, etc), &quot;compareskipped&quot; (the
+number of files not copied due to <b class="option">-compare</b> mode), &quot;errorskipped&quot;
+(the number of files not copied due to thrown errors), &quot;filesdeleted&quot;
+(the number of resources deleted due to not having corresponding files
+locally, or 0 if <b class="option">-delete</b> is false), and &quot;filesnotdeleted&quot;
+(the number of resources whose deletion was attempted but failed).</p>
+<p>Note that this is currently implemented somewhat inefficiently.
+It fetches the bucket listing (including timestamps and eTags),
+then calls <b class="cmd">S3::Put</b>, which uses HEAD to find the timestamps
+and eTags again. Correcting this with no API change
+is planned for a future upgrade.</p></dd>
+<dt><a name="15"><b class="cmd">S3::Pull</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-directory</b> <i class="arg">directoryname</i> <span class="opt">?<b class="option">-prefix</b> <i class="arg">prefixstring</i>?</span> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-compare</b> <i class="arg">comparemode</i>?</span> <span class="opt">?<b class="option">-delete</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-timestamp</b> <i class="arg">aws|now</i>?</span> <span class="opt">?<b class="option">-error</b> <i class="arg">throw|break|continue</i>?</span> <span class="opt">?<b class="option">-progress</b> <i class="arg">scriptprefix</i>?</span></a></dt>
+<dd><p>This synchronises a remote bucket with a local directory by pulling the
+differences using <b class="cmd">S3::Get</b> If something has been changed locally but not
+in the bucket, those difference may be lost. This is not a general two-way
+synchronization mechanism. (See <b class="cmd">S3::Sync</b> for that.)
+This creates directories
+if needed; new directories are created with default permissions. Note that
+resource names are case sensitive, so changing the case of a file on a
+Windows machine may lead to otherwise-unnecessary transfers. Also, try not
+to store data in resources that end with a slash, or which are prefixes of
+resources that otherwise would start with a slash; i.e., don't use this if
+you store data in resources whose names have to be directories locally.</p>
+<p>Note that this is currently implemented somewhat inefficiently.
+It fetches the bucket listing (including timestamps and eTags),
+then calls <b class="cmd">S3::Get</b>, which uses HEAD to find the timestamps
+and eTags again. Correcting this with no API change
+is planned for a future upgrade.</p>
+<dl class="doctools_definitions">
+<dt><b class="option">-bucket</b></dt>
+<dd><p>This names the bucket from which data will be pulled.</p></dd>
+<dt><b class="option">-directory</b></dt>
+<dd><p>This names the local directory into which files will be written
+It must exist, be readable via [glob], writable for file creation,
+and so on. If only some of the files therein are writable,
+<b class="cmd">S3::Pull</b> will GET
+those files that are writable and return in its results the list
+of files that could not be opened.</p></dd>
+<dt><b class="option">-prefix</b></dt>
+<dd><p>The prefix of resources that will be considered for retrieval.
+See <b class="cmd">S3::Push</b> for more details, examples, etc. (Of course,
+<b class="cmd">S3::Pull</b> reads rather than writes, but the prefix is
+treated similarly.)</p></dd>
+<dt><b class="option">-blocking</b></dt>
+<dd><p>This is the standard blocking option.</p></dd>
+<dt><b class="option">-compare</b></dt>
+<dd><p>This is passed to each invocation of <b class="cmd">S3::Get</b> if provided.
+Naturally, <b class="cmd">S3::Configure -default-compare</b> is
+used if this is not provided.</p></dd>
+<dt><b class="option">-timestamp</b></dt>
+<dd><p>This is passed to each invocation of <b class="cmd">S3::Get</b> if provided.</p></dd>
+<dt><b class="option">-delete</b></dt>
+<dd><p>If this is specified and true, files that exist in the <b class="option">-directory</b>
+that are not in the <b class="option">-prefix</b> will be deleted after all resources
+have been copied. In addition, empty directories (other than the
+top-level <b class="option">-directory</b>) will be deleted, as
+Amazon S3 has no concept of an empty directory.</p></dd>
+<dt><b class="option">-error</b></dt>
+<dd><p>See <b class="cmd">S3::Push</b> for a description of this option.</p></dd>
+<dt><b class="option">-progress</b></dt>
+<dd><p>See <b class="cmd">S3::Push</b> for a description of this option.
+It differs slightly in that local directories may be included
+with a trailing slash to indicate they are directories.</p></dd>
+</dl>
+<p>The return value from this command is a dictionary. It
+is identical in form and meaning to the description of the
+return result of <b class="cmd">S3::Push</b>. It differs only in that
+directories may be included, with a trailing slash in their name,
+if they are empty and get deleted.</p></dd>
+<dt><a name="16"><b class="cmd">S3::Toss</b> <span class="opt">?<b class="option">-bucket</b> <i class="arg">bucketname</i>?</span> <b class="option">-prefix</b> <i class="arg">prefixstring</i> <span class="opt">?<b class="option">-blocking</b> <i class="arg">boolean</i>?</span> <span class="opt">?<b class="option">-error</b> <i class="arg">throw|break|continue</i>?</span> <span class="opt">?<b class="option">-progress</b> <i class="arg">scriptprefix</i>?</span></a></dt>
+<dd><p>This deletes some or all resources within a bucket. It would be
+considered a &quot;recursive delete&quot; had Amazon implemented actual
+directories.</p>
+<dl class="doctools_options">
+<dt><b class="option">-bucket</b></dt>
+<dd><p>The bucket from which resources will be deleted.</p></dd>
+<dt><b class="option"><b class="option">-blocking</b></b></dt>
+<dd><p>The standard blocking option.</p></dd>
+<dt><b class="option"><b class="option">-prefix</b></b></dt>
+<dd><p>The prefix for resources to be deleted. Any resource that
+starts with this string will be deleted. This is required.
+To delete everything in the bucket, pass an empty string
+for the prefix.</p></dd>
+<dt><b class="option"><b class="option">-error</b></b></dt>
+<dd><p>If this is &quot;throw&quot;, <b class="cmd">S3::Toss</b> rethrows any errors
+it encounters.  If this is &quot;break&quot;, <b class="cmd">S3::Toss</b> returns
+with a normal return after the first error, recording that
+error in the return result. If this is &quot;continue&quot;, which is
+the default, <b class="cmd">S3::Toss</b> continues on and lists all
+errors in the return result.</p></dd>
+<dt><b class="option"><b class="option">-progress</b></b></dt>
+<dd><p>If this is specified and not an empty string, the script
+prefix will be invoked several times in the context of the caller
+with additional arguments appended.  Initially, it will be invoked
+with the first additional argument being <i class="arg">args</i> and the second
+being the processed list of arguments to <b class="cmd">S3::Toss</b>. Then it
+is invoked with <i class="arg">remote</i> as the first additional argument and
+the list of suffixes in the bucket to be deleted as the second
+additional argument. Then it is invoked with the first additional
+argument being <i class="arg">delete</i> and the second additional argument being
+the suffix deleted and the third additional argument being &quot;deleted&quot;
+or &quot;notdeleted&quot; depending on whether <b class="cmd">S3::Delete</b> threw an error.
+Finally, the script prefix is invoked with a first additional argument
+of &quot;finished&quot; and a second additional argument of the return value.</p></dd>
+</dl>
+<p>The return value is a dictionary. The keys are the suffixes of files
+that <b class="cmd">S3::Toss</b> attempted to delete, and whose values are either
+the string &quot;deleted&quot; or &quot;notdeleted&quot;. There is also one additional
+pair, whose key is the empty string and whose value is an embedded
+dictionary. The keys of this embedded dictionary include
+&quot;filesdeleted&quot; and &quot;filesnotdeleted&quot;, each of which has integer values.</p></dd>
+</dl>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">LIMITATIONS</a></h2>
+<ul class="doctools_itemized">
+<li><p>The pure-Tcl MD5 checking is slow. If you are processing
+files in the megabyte range, consider ensuring binary support is available.</p></li>
+<li><p>The commands <b class="cmd">S3::Pull</b> and <b class="cmd">S3::Push</b> fetch a
+directory listing which includes timestamps and MD5 hashes,
+then invoke <b class="cmd">S3::Get</b> and <b class="cmd">S3::Put</b>. If
+a complex <b class="option">-compare</b> mode is specified, <b class="cmd">S3::Get</b> and
+<b class="cmd">S3::Put</b> will invoke a HEAD operation for each file to fetch
+timestamps and MD5 hashes of each resource again. It is expected that
+a future release of this package will solve this without any API changes.</p></li>
+<li><p>The commands <b class="cmd">S3::Pull</b> and <b class="cmd">S3::Push</b> fetch a
+directory listing without using <b class="option">-max-count</b>. The entire
+directory is pulled into memory at once. For very large buckets,
+this could be a performance problem. The author, at this time,
+does not plan to change this behavior. Welcome to Open Source.</p></li>
+<li><p><b class="cmd">S3::Sync</b> is neither designed nor implemented yet.
+The intention would be to keep changes synchronised, so changes
+could be made to both the bucket and the local directory and
+be merged by <b class="cmd">S3::Sync</b>.</p></li>
+<li><p>Nor is
+<b class="option">-compare</b> <i class="arg">calc</i> fully implemented. This is primarily due to
+Windows not providing a convenient method for distinguishing between
+local files that are &quot;public-read&quot; or &quot;public-read-write&quot;. Assistance
+figuring out TWAPI for this would be appreciated. The U**X semantics
+are difficult to map directly as well. See the source for details.
+Note that there are not tests for calc, since it isn't done yet.</p></li>
+<li><p>The HTTP processing is implemented within the library,
+rather than using a &quot;real&quot; HTTP package. Hence, multi-line headers
+are not (yet) handled correctly. Do not include carriage returns or
+linefeeds in x-amz-meta-* headers, content-type values, and so on.
+The author does not at this time expect to improve this.</p></li>
+<li><p>Internally, <b class="cmd">S3::Push</b> and <b class="cmd">S3::Pull</b> and <b class="cmd">S3::Toss</b>
+are all very similar and should be refactored.</p></li>
+<li><p>The idea of using <b class="option">-compare</b> <i class="arg">never</i>
+<b class="option">-delete</b> <i class="arg">true</i> to delete files that have been
+deleted from one place but not the other yet not copying
+changed files is untested.</p></li>
+</ul>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">USAGE SUGGESTIONS</a></h2>
+<p>To fetch a &quot;directory&quot; out of a bucket, make changes, and store it back:</p>
+<pre class="doctools_example">
+file mkdir ./tempfiles
+S3::Pull -bucket sample -prefix of/interest -directory ./tempfiles \
+  -timestamp aws
+do_my_process ./tempfiles other arguments
+S3::Push -bucket sample -prefix of/interest -directory ./tempfiles \
+  -compare newer -delete true
+</pre>
+<p>To delete files locally that were deleted off of S3 but not otherwise
+update files:</p>
+<pre class="doctools_example">
+S3::Pull -bucket sample -prefix of/interest -directory ./myfiles \
+  -compare never -delete true
+</pre>
+</div>
+<div id="section8" class="doctools_section"><h2><a name="section8">FUTURE DEVELOPMENTS</a></h2>
+<p>The author intends to work on several additional projects related to
+this package, in addition to finishing the unfinished features.</p>
+<p>First, a command-line program allowing browsing of buckets and
+transfer of files from shell scripts and command prompts is useful.</p>
+<p>Second, a GUI-based program allowing visual manipulation of
+bucket and resource trees not unlike Windows Explorer would
+be useful.</p>
+<p>Third, a command-line (and perhaps a GUI-based) program called
+&quot;OddJob&quot; that will use S3 to synchronize computation amongst
+multiple servers running OddJob. An S3 bucket will be set up
+with a number of scripts to run, and the OddJob program can
+be invoked on multiple machines to run scripts on all the machines,
+each moving on to the next unstarted task as it finishes each.
+This is still being designed, and it is intended primarily
+to be run on Amazon's Elastic Compute Cloud.</p>
+</div>
+<div id="section9" class="doctools_section"><h2><a name="section9">TLS Security Considerations</a></h2>
+<p>This package uses the <b class="package"><a href="../../../../index.html#key331">TLS</a></b> package to handle the security
+for <b class="const">https</b> urls and other socket connections.</p>
+<p>Policy decisions like the set of protocols to support and what
+ciphers to use are not the responsibility of <b class="package"><a href="../../../../index.html#key331">TLS</a></b>, nor of
+this package itself however.
+Such decisions are the responsibility of whichever application is
+using the package, and are likely influenced by the set of servers
+the application will talk to as well.</p>
+<p>For example, in light of the recent
+<a href="http://googleonlinesecurity.blogspot.co.uk/2014/10/this-poodle-bites-exploiting-ssl-30.html">POODLE attack</a> discovered by Google many servers will disable support
+for the SSLv3 protocol.
+To handle this change the applications using <b class="package"><a href="../../../../index.html#key331">TLS</a></b> must be
+patched, and not this package, nor <b class="package"><a href="../../../../index.html#key331">TLS</a></b> itself.
+Such a patch may be as simple as generally activating <b class="const">tls1</b>
+support, as shown in the example below.</p>
+<pre class="doctools_example">
+    package require tls
+    tls::init -tls1 1 ;# forcibly activate support for the TLS1 protocol
+    ... your own application code ...
+</pre>
+</div>
+<div id="section10" class="doctools_section"><h2><a name="section10">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>amazon-s3</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key521">amazon</a>, <a href="../../../../index.html#key522">cloud</a>, <a href="../../../../index.html#key520">s3</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>2006,2008 Darren New. All Rights Reserved. See LICENSE.TXT for terms.</p>
+</div>
+</div>

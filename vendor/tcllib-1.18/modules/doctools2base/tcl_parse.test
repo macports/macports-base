@@ -1,0 +1,80 @@
+# -*- tcl -*-
+# docparsetcl.test:  tests for the doctools::parse::tcl package.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: tcl_parse.test,v 1.1 2009/04/01 04:27:47 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+support {
+    useAccel [useTcllibC] struct/tree.tcl  struct::tree
+    TestAccelInit                          struct::tree
+
+    useAccel [useTcllibC] struct/stack.tcl struct::stack
+    TestAccelInit                          struct::stack
+
+    useAccel [useTcllibC] struct/sets.tcl  struct::set
+    TestAccelInit                          struct::set
+
+    use struct/list.tcl        struct::list
+    use snit/snit.tcl          snit
+    use fileutil/fileutil.tcl  fileutil
+    use log/logger.tcl         logger
+    use treeql/treeql.tcl      treeql
+}
+testing {
+    useLocal tcl_parse.tcl doctools::tcl::parse
+}
+
+# -------------------------------------------------------------------------
+
+test doctools-tcl-parse-1.0 {parse file, wrong#args} -body {
+    doctools::tcl::parse file
+} -returnCodes error -result {wrong # args: should be "::doctools::tcl::parse::Snit_typemethodfile type t path ?root?"}
+
+test doctools-tcl-parse-1.1 {parse file, wrong#args} -body {
+    doctools::tcl::parse file T
+} -returnCodes error -result {wrong # args: should be "::doctools::tcl::parse::Snit_typemethodfile type t path ?root?"}
+
+test doctools-tcl-parse-1.2 {parse file, wrong#args} -body {
+    doctools::tcl::parse file T P R XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::tcl::parse::Snit_typemethodfile type t path ?root?"}
+
+test doctools-tcl-parse-2.0 {parse text, wrong#args} -body {
+    doctools::tcl::parse text
+} -returnCodes error -result {wrong # args: should be "::doctools::tcl::parse::Snit_typemethodtext type t text ?root?"}
+
+test doctools-tcl-parse-2.1 {parse text, wrong#args} -body {
+    doctools::tcl::parse text T
+} -returnCodes error -result {wrong # args: should be "::doctools::tcl::parse::Snit_typemethodtext type t text ?root?"}
+
+test doctools-tcl-parse-2.2 {parse text, wrong#args} -body {
+    doctools::tcl::parse text T P R XXX
+} -returnCodes error -result {wrong # args: should be "::doctools::tcl::parse::Snit_typemethodtext type t text ?root?"}
+
+# tcl_parse tests, numbering starts at 10
+# -------------------------------------------------------------------------
+
+TestAccelDo struct::stack stkimpl {
+    TestAccelDo struct::set setimpl {
+	TestAccelDo struct::tree impl {
+	    source [localPath tests/tcl_parse]
+	}
+    }
+}
+
+#----------------------------------------------------------------------
+TestAccelExit struct::tree
+TestAccelExit struct::set
+TestAccelExit struct::stack
+testsuiteCleanup
+return

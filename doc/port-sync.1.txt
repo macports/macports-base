@@ -1,7 +1,6 @@
 // vim: set et sw=4 ts=8 ft=asciidoc tw=80:
 port-sync(1)
 ============
-$Id$
 
 NAME
 ----
@@ -38,7 +37,7 @@ version has not been updated.
 include::global-flags.txt[]
 
 *-q*::
-    Supress status output, be as silent as possible.
+    Suppress status output, be as silent as possible.
 
 SEE ALSO
 --------

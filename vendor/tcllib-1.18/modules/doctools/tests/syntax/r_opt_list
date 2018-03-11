@@ -1,0 +1,3 @@
+Doctools Error in macro at line 5, column 0:
+[opt_def .option.]
+--> (FmtError) Manpage error (opt_list), "opt_def .option." : Command restricted to usage in option lists.

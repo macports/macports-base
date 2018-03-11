@@ -1,0 +1,3 @@
+Doctools Error in macro at line 4, column 0:
+[package .p.]
+--> (FmtError) Manpage error (nodonecmd), "package .p." : Command not allowed after [manpage_end].

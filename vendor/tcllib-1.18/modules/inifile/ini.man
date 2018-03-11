@@ -1,0 +1,100 @@
+[vset VERSION 0.3]
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin inifile n [vset VERSION]]
+[moddesc   {Parsing of Windows INI files}]
+[titledesc {Parsing of Windows INI files}]
+[category  {Text processing}]
+[require Tcl 8.2]
+[require inifile [opt [vset VERSION]]]
+[description]
+
+This package provides an interface for easy manipulation of Windows INI files.
+
+[para]
+
+[list_begin definitions]
+
+[call [cmd ::ini::open] [arg file] [opt "[option -encoding] [arg encoding]"] [opt [arg access]]]
+
+Opens an INI file and returns a handle that is used by other commands.
+[arg access] is the same as the first form (non POSIX) of the [const open]
+command, with the exception that mode [const a] is not supported. The
+default mode is [const r+].
+
+[para] The default [arg encoding] is the system encoding.
+
+
+[call [cmd ::ini::close] [arg ini]]
+
+Close the specified handle. If any changes were made and not written by
+[const commit] they are lost.
+
+[call [cmd ::ini::commit] [arg ini]]
+
+Writes the file and all changes to disk. The sections are written in
+arbitrary order. The keys in a section are written in alphabetical
+order. If the ini was opened in read only mode an error will be thrown.
+
+[call [cmd ::ini::revert] [arg ini]]
+
+Rolls all changes made to the inifile object back to the last
+committed state.
+
+[call [cmd ::ini::filename] [arg ini]]
+
+Returns the name of the file the [arg ini] object is associated with.
+
+[call [cmd ::ini::sections] [arg ini]]
+
+Returns a list of all the names of the existing sections in the file handle
+specified.
+
+[call [cmd ::ini::keys] [arg ini] [arg section]]
+
+Returns a list of all they key names in the section and file specified.
+
+[call [cmd ::ini::get] [arg ini] [arg section]]
+
+Returns a list of key value pairs that exist in the section and file specified.
+
+[call [cmd ::ini::exists] [arg ini] [arg section] [opt [arg key]]]
+
+Returns a boolean value indicating the existance of the specified section as a
+whole or the specified key within that section.
+
+[call [cmd ::ini::value] [arg ini] [arg section] [arg key] [opt [arg default]]]
+
+Returns the value of the named key and section. If specified,
+the default value will be returned if the key does not exist. If the key does
+not exist and no default is specified an error will be thrown.
+
+[call [cmd ::ini::set] [arg ini] [arg section] [arg key] [arg value]]
+
+Sets the value of the key in the specified section. If the section does not
+exist then a new one is created.
+
+[call [cmd ::ini::delete] [arg ini] [arg section] [opt [arg key]]]
+
+Removes the key or the entire section and all its keys. A section is not
+automatically deleted when it has no remaining keys.
+
+[call [cmd ::ini::comment] [arg ini] [arg section] [opt [arg key]] [opt [arg text]]]
+
+Reads and modifies comments for sections and keys. To write a section comment use an
+empty string for the [arg key]. To remove all comments use an empty string for [arg text].
+[arg text] may consist of a list of lines or one single line. Any embedded newlines in
+[arg text] are properly handled.  Comments may be written to nonexistant
+sections or keys and will not return an error. Reading a comment from a nonexistant
+section or key will return an empty string.
+
+[call [cmd ::ini::commentchar] [opt char]]
+
+Reads and sets the comment character. Lines that begin with this character are treated as
+comments. When comments are written out each line is preceded by this character. The default
+is [const \;].
+
+[list_end]
+
+[vset CATEGORY inifile]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

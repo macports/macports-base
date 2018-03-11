@@ -1,7 +1,5 @@
 #!@TCLSH@
 #
-# $Id$
-#
 # Upgrade sources.conf for a given prefix (passed as the first and only
 # argument).
 #

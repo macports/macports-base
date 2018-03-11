@@ -1,0 +1,136 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-11-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* multiplexer.test: Re-merged the split test, and modified to
+	  accept both possible results. 8.6 can return an ipv4 address
+	  as well, depending on the OS configuration.
+
+2011-11-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* multiplexer.test: Split a test with core version dependent
+	  results into two, one per possible result.
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* multiplexer.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* multiplexer.test: Accept anything matching 127.*.*.* as
+	  ip-address for localhost.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* multiplexer.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* multiplexer.test: Hooked into the new common test support code.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2004-02-10  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* multiplexer.man: This package is can be used with Tcl
+	* pkgIndex.tcl:    8.2. Documented as such.
+
+	* multiplexer.test: One test uses the 8.3'ism 'file
+	  channels'. Added constraint and skipping it when under Tcl
+	  8.2. Changed initialization code to ensure that the local
+	  multiplexer package is loaded, and not an installed one.
+
+2003-05-20  Andreas Kupries  <andreask@activestate.com>
+
+	* multiplexer.man: Cleaned up the documentation of the three hooks
+	  which can be set per multiplexer instance (access, data, exit).
+
+	* multiplexer.tcl: Made sendtoorigin a true boolean flag, instead
+	  of just 0/1.
+
+2003-05-19  David N. Welton  <davidw@dedasys.com>
+
+	* multiplexer.tcl (NewClient): Added access denied debug message
+	for accessfilter.
+
+	* multiplexer.man: Minor cleanups.
+
+	* multiplexer.test: Added several tests.
+
+	* multiplexer.tcl: Adding updated multiplexer to tcllib.  It is
+	now possible to run multiple multiplexer instances, and it uses
+	the logger package for logging.
+
+	* multiplexer.man: New file, still needs cleaning up.  Content
+	taken from old multiplexer.n.
+
+	* multiplexer.test: Added a few initial tests.  Working on more.

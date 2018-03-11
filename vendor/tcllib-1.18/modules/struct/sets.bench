@@ -1,0 +1,428 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'struct::set'
+# data structure to allow developers to monitor package performance.
+#
+# (c) 2007-2010 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+# We need at least version 8.4 for the package and thus the
+# benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.4]} {
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+set moddir [file dirname [file dirname [info script]]]
+lappend auto_path $moddir
+
+package forget struct::set
+
+set self  [file join [pwd] [file dirname [info script]]]
+set mod   [file dirname $self]
+set index [file join [file dirname $self] tcllibc pkgIndex.tcl]
+
+if 1 {
+    if {[file exists $index]} {
+	set ::dir [file dirname $index]
+	uplevel #0 [list source $index]
+	unset ::dir
+	package require tcllibc
+    }
+}
+
+source [file join $self sets.tcl]
+
+# ### ### ### ######### ######### ######### ###########################
+# Helper commands to build various types of sets.
+
+proc makeN {n {times 1}} {
+    set res {}
+    for {set i 0} {$i < $times} {incr i} {
+	for {set j 1} {$j <= $n} {incr j} {
+	    lappend res $j
+	}
+    }
+    return $res
+}
+
+# Select between configurations for quick overview vs full test
+
+#set xtime {1 2}
+#set xlen  {1 10 100}
+set xtime {1 2 3}
+set xlen  {1 10 100 1000}
+#set xtime {1 2 3 4}
+#set xlen  {1 10 100 1000 10000}
+
+foreach times $xtime {
+    foreach n $xlen {
+	set sx($times,$n) [makeN $n $times]
+    }
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Get all the possible implementations
+
+struct::set::SwitchTo {}
+foreach e [struct::set::KnownImplementations] {
+    ::struct::set::LoadAccelerator $e
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+# empty
+# size = cardinality
+# contains
+# union
+# intersect
+# difference
+# symdiff
+# intersect3
+# equal
+# include, add
+# exclude, subtract
+# subsetof
+
+foreach setimpl [struct::set::Implementations] {
+    struct::set::SwitchTo $setimpl
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## empty
+
+    bench -desc "set empty set($setimpl)" -body {
+	struct::set empty {}
+    }
+
+    if {$setimpl eq "tcl"} {
+	# Not useable for a critcl implementation.
+	bench -desc "set empty, raw set($setimpl)" -body {
+	    struct::set::S_empty {}
+	}
+    }
+    # ### ### ### ######### ######### ######### ###########################
+    ## cardinality
+
+    foreach times $xtime {
+	foreach n $xlen {
+	    bench -desc "set size x$times $n set($setimpl)" -body {
+		struct::set size $sx($times,$n)
+	    }
+	}
+    }
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## contains
+
+    foreach times $xtime {
+	foreach n $xlen {
+	    bench -desc "set contains, not,   x$times $n set($setimpl)" -body {
+		struct::set contains  $sx($times,$n) 0
+	    }
+	    bench -desc "set contains, early, x$times $n set($setimpl)" -body {
+		struct::set contains  $sx($times,$n) 1
+	    }
+	    bench -desc "set contains, last,  x$times $n set($setimpl)" -body {
+		struct::set contains  $sx($times,$n) $n
+	    }
+	}
+    }
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## union
+    # cases: no intersection, partial intersection, equal sets, subsets
+    # and always a varying number of duplicates.
+
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## intersect
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## difference
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## symdiff
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## intersect3
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## equal
+
+    foreach times $xtime {
+	foreach n $xlen {
+	    bench -desc "set equal, yes,  x$times $n set($setimpl)" -body {
+		struct::set equal $sx($times,$n) $sx($times,$n) 
+	    }
+	    # sets have no intersection
+	    bench -desc "set equal, no1,   x$times $n set($setimpl)" -body {
+		struct::set equal $sx($times,$n) {a b c d e}
+	    }
+	    # second set is either true subset, or true superset
+	    bench -desc "set equal, no2,   x$times $n set($setimpl)" -body {
+		struct::set equal $sx($times,$n) {1 2 3 4}
+	    }
+	}
+    }
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## include, add
+
+    foreach times $xtime {
+	foreach n $xlen {
+
+	    # Adding/including known items should be fast, as nothing
+	    # changes. It should even be fast in case of a shared
+	    # object. Which we have in A btw.
+
+	    bench -desc "set include, known x$times $n set($setimpl)" -pre {
+		set A $sx($times,$n)
+		struct::set include A x
+	    } -body {
+		struct::set include A x
+	    } -post {
+		unset A
+	    }
+	    bench -desc "set add, known x$times $n set($setimpl)" -pre {
+		set A $sx($times,$n)
+		struct::set add A {a b c d e}
+	    } -body {
+		struct::set add A {a b c d e}
+	    } -post {
+		unset A
+	    }
+
+	    # Now adding/including items not yet in the set is affected
+	    # much more by the environment. I.e: Is the object shared ?
+	    # And: Is the object already in set-type ? Four possibilities.
+
+	    # (a) S/U - shared/unshared
+	    # (b) S/C - set/string (c for conversion required)
+
+	    # Notes on the results:
+	    #
+	    # I.   <SC> - duplication&conversion - time goes up with set size
+	    # II.  <SS> - duplication            - s.a
+	    # III. <UC> - conversion             - s.a, but with larger constant
+	    # IV.  <US> - near constant - likely linear in the size of the set added.
+	    #
+	    # The times for I-III ramp up rapidly enough to make Critcl
+	    # slower than Tcl for a constant set containing somewhere between
+	    # 100-1000 elements. This however is only of consequence to
+	    # one-shot set operations. In case of multiple operations only
+	    # the first one incurs the above costs, any operation coming
+	    # after is fast, see IV. I.e.Tcl keeps on adding large times
+	    # to the total, Critcl otoh goes flat. IOW Critcl may incur a
+	    # high startup cost when starting with large constant sets,
+	    # but amortizes this then over all future operations.
+
+	    # Note 2: Most of the other benchmarks do not measure
+	    # conversion time, because the first untimed execution of a
+	    # body forces not only bc compilation of the script, but also
+	    # the input to set-type already (values held in the array
+	    # 'sx').
+
+	    # --
+
+	    # I. shared string-type <SC>
+
+	    bench -desc "set include, missing <SC> x$times $n set($setimpl)" -ipre {
+		set A $sx($times,$n)
+		set B $A
+	    } -body {
+		struct::set include A x
+	    } -ipost {
+		unset A B
+	    }
+	    bench -desc "set add, missing <SC> x$times $n set($setimpl)" -ipre {
+		set A $sx($times,$n)
+		set B $A
+	    } -body {
+		struct::set add A {a b c d e}
+	    } -ipost {
+		unset A B
+	    }
+
+	    # II. shared set-type <SS>
+
+	    bench -desc "set include, missing <SS> x$times $n set($setimpl)" -ipre {
+		set A $sx($times,$n)
+	    } -body {
+		struct::set include A x
+	    } -ipost {
+		unset A
+	    }
+	    bench -desc "set add, missing <SS> x$times $n set($setimpl)" -ipre {
+		set A $sx($times,$n)
+	    } -body {
+		struct::set add A {a b c d e}
+	    } -ipost {
+		unset A
+	    }
+
+	    # III. unshared string-type <UC>
+
+	    bench -desc "set include, missing <UC> x$times $n set($setimpl)" -ipre {
+		# string range creates new unshared duplicate in A.
+		set A [string range $sx($times,$n) 1 end]
+	    } -body {
+		struct::set include A x
+	    } -ipost {
+		unset A
+	    }
+	    bench -desc "set add, missing <UC> x$times $n set($setimpl)" -ipre {
+		set A [string range $sx($times,$n) 1 end]
+	    } -body {
+		struct::set add A {a b c d e}
+	    } -ipost {
+		unset A
+	    }
+
+	    # IV. unshared set-type <US>
+
+	    bench -desc "set include, missing <US> x$times $n set($setimpl)" -ipre {
+		# string range creates new unshared duplicate in A.
+		# Adding the empty set forces the value of A to set-type.
+		set A [string range $sx($times,$n) 1 end]
+		struct::set add A {}
+	    } -body {
+		struct::set include A x
+	    } -ipost {
+		unset A
+	    }
+	    bench -desc "set add, missing <US> x$times $n set($setimpl)" -ipre {
+		set A [string range $sx($times,$n) 1 end]
+		struct::set add A {}
+	    } -body {
+		struct::set add A {a b c d e}
+	    } -ipost {
+		unset A
+	    }
+	}
+    }
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## exclude, subtract
+
+    foreach times $xtime {
+	foreach n $xlen {
+
+	    # Subtracting/excluding unknown items should be fast, as
+	    # nothing changes. It should even be fast in case of a shared
+	    # object. Which we have in A btw.
+
+	    bench -desc "set exclude, missing x$times $n set($setimpl)" -pre {
+		set A $sx($times,$n)
+	    } -body {
+		struct::set exclude A x
+	    } -post {
+		unset A
+	    }
+	    bench -desc "set subtract, missing x$times $n set($setimpl)" -pre {
+		set A $sx($times,$n)
+	    } -body {
+		struct::set subtract A {a b c d e}
+	    } -post {
+		unset A
+	    }
+
+	    # Now subtracting/excluding items in the set is affected
+	    # much more by the environment. I.e: Is the object shared ?
+	    # And: Is the object already in set-type ? Four possibilities.
+
+	    # See above for discussion.
+	    # --
+
+	    # I. shared string-type <SC>
+
+	    bench -desc "set exclude, known <SC> x$times $n set($setimpl)" -ipre {
+		set A $sx($times,$n)
+		set B $A
+	    } -body {
+		struct::set exclude A 1
+	    } -ipost {
+		unset A B
+	    }
+	    bench -desc "set subtract, known <SC> x$times $n set($setimpl)" -ipre {
+		set A $sx($times,$n)
+		set B $A
+	    } -body {
+		struct::set subtract A {1 2 3 4 5}
+	    } -ipost {
+		unset A B
+	    }
+
+	    # II. shared set-type <SS>
+
+	    bench -desc "set exclude, known <SS> x$times $n set($setimpl)" -ipre {
+		set A $sx($times,$n)
+	    } -body {
+		struct::set exclude A 1
+	    } -ipost {
+		unset A
+	    }
+	    bench -desc "set subtract, known <SS> x$times $n set($setimpl)" -ipre {
+		set A $sx($times,$n)
+	    } -body {
+		struct::set subtract A {1 2 3 4 5}
+	    } -ipost {
+		unset A
+	    }
+
+	    # III. unshared string-type <UC>
+
+	    bench -desc "set exclude, known <UC> x$times $n set($setimpl)" -ipre {
+		# string range creates new unshared duplicate in A.
+		set A [string range $sx($times,$n) 1 end]
+	    } -body {
+		struct::set exclude A 1
+	    } -ipost {
+		unset A
+	    }
+	    bench -desc "set subtract, known <UC> x$times $n set($setimpl)" -ipre {
+		set A [string range $sx($times,$n) 1 end]
+	    } -body {
+		struct::set subtract A {1 2 3 4 5}
+	    } -ipost {
+		unset A
+	    }
+
+	    # IV. unshared set-type <US>
+
+	    bench -desc "set exclude, known <US> x$times $n set($setimpl)" -ipre {
+		# string range creates new unshared duplicate in A.
+		# Adding the empty set forces the value of A to set-type.
+		set A [string range $sx($times,$n) 1 end]
+		struct::set add A {}
+	    } -body {
+		struct::set exclude A 1
+	    } -ipost {
+		unset A
+	    }
+	    bench -desc "set subtract, known <US> x$times $n set($setimpl)" -ipre {
+		set A [string range $sx($times,$n) 1 end]
+		struct::set add A {}
+	    } -body {
+		struct::set subtract A {1 2 3 4 5}
+	    } -ipost {
+		unset A
+	    }
+	}
+    }
+
+    # ### ### ### ######### ######### ######### ###########################
+    ## subsetof
+
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete
+
+return
+
+# ### ### ### ######### ######### ######### ###########################
+## Notes ...

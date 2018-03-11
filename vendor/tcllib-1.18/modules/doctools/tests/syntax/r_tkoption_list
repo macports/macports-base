@@ -1,0 +1,3 @@
+Doctools Error in macro at line 5, column 0:
+[tkoption_def .option. .dbname....]
+--> (FmtError) Manpage error (tkoption_list), "tkoption_def .option. .dbname. .dbclass." : Command restricted to usage in tkoption lists.

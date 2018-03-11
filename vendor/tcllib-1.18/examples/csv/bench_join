@@ -1,0 +1,11 @@
+
+./csvcut '1-' Benchmark.833.csv  > tmp.csv ; ./csvjoin -outer 1 Benchmark.84a3.csv 0 tmp.csv tmp1.csv
+./csvcut '1-' Benchmark.823.csv  > tmp.csv ; ./csvjoin -outer 1 tmp1.csv           0 tmp.csv tmp2.csv
+./csvcut '1-' Benchmark.811.csv  > tmp.csv ; ./csvjoin -outer 1 tmp2.csv           0 tmp.csv tmp1.csv
+./csvcut '1-' Benchmark.805.csv  > tmp.csv ; ./csvjoin -outer 1 tmp1.csv           0 tmp.csv tmp2.csv
+./csvcut '1-' Benchmark.76p2.csv > tmp.csv ; ./csvjoin -outer 1 tmp2.csv           0 tmp.csv tmp1.csv
+./csvcut '1-' Benchmark.75p2.csv > tmp.csv ; ./csvjoin -outer 1 tmp1.csv           0 tmp.csv Bench.csv
+
+rm -f tmp.csv tmp1.csv tmp2.csv
+
+./csv2html -title 'Core Benchmark Results' Bench.csv > Bench.html

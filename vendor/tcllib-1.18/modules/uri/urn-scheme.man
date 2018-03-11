@@ -1,0 +1,41 @@
+[vset VERSION 1.0.3]
+[manpage_begin uri_urn n [vset VERSION]]
+[keywords {rfc 2141}]
+[keywords uri]
+[keywords url]
+[keywords urn]
+[moddesc   {Tcl Uniform Resource Identifier Management}]
+[titledesc {URI utilities, URN scheme}]
+[category  Networking]
+[require Tcl 8.2]
+[require uri::urn [opt [vset VERSION]]]
+[description]
+
+This package provides two commands to quote and unquote the disallowed
+characters for url using the [term urn] scheme, registers the scheme
+with the package [package uri], and provides internal helpers which
+will be automatically used by the commands [cmd uri::split] and
+[cmd uri::join] of package [package uri] to handle urls using the
+[term urn] scheme.
+
+[section COMMANDS]
+
+[list_begin definitions]
+
+[call [cmd uri::urn::quote] [arg url]]
+
+This command quotes the characters disallowed by the [term urn] scheme
+(per RFC 2141 sec2.2) in the [arg url] and returns the modified url as
+its result.
+
+[call [cmd uri::urn::unquote] [arg url]]
+
+This commands performs the reverse of [cmd ::uri::urn::quote]. It
+takes an [term urn] url, removes the quoting from all disallowed
+characters, and returns the modified urls as its result.
+
+[list_end]
+
+[vset CATEGORY uri]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

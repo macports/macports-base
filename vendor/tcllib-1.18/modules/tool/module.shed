@@ -1,0 +1,8 @@
+my shed set name: tool
+my shed set origin: http://fossil.etoyoc.com/fossil/tool
+my shed set description: {
+The base of the TOOL framework
+}
+foreach file [glob -nocomplain [file join $dir *]] {
+  my scan $file {class: source}
+}

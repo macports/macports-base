@@ -1,0 +1,106 @@
+# -*- tcl -*-
+# Graph tests - node rename
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: rename.test,v 1.2 2007/04/12 03:01:56 andreas_kupries Exp $
+
+# Syntax: graph node rename NODE NEW-NAME
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-node-rename-1.0 {node rename, wrong # args, missing} {
+    SETUP
+    catch {mygraph node rename} result
+    mygraph destroy
+    set result
+} [tmWrong {node rename} {node newname} 0]
+
+test graph-${impl}-${setimpl}-node-rename-1.1 {node rename, wrong # args, missing} {
+    SETUP
+    catch {mygraph node rename foo} result
+    mygraph destroy
+    set result
+} [tmWrong {node rename} {node newname} 1]
+
+test graph-${impl}-${setimpl}-node-rename-1.2 {node rename, wrong # args, too many} {
+    SETUP
+    catch {mygraph node rename foo far fox} result
+    mygraph destroy
+    set result
+} [tmTooMany {node rename} {node newname}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-node-rename-2.0 {node rename, missing node} {
+    SETUP
+    catch {mygraph node rename 0 foo} result
+    mygraph destroy
+    set result
+} [MissingNode $MY 0]
+
+test graph-${impl}-${setimpl}-node-rename-2.1 {node rename, duplicate target node} {
+    SETUP
+    mygraph node insert root 0
+    catch {mygraph node rename root 0} result
+    mygraph destroy
+    set result
+} [ExistingNode $MY 0]
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-node-rename-3.0 {node rename, arc linkage} {
+    SETUP
+
+    mygraph node insert 0 1 2 3 4 5 6
+    mygraph arc  insert 1 0 a
+    mygraph arc  insert 2 0 b
+    mygraph arc  insert 3 0 c
+    mygraph arc  insert 0 4 d
+    mygraph arc  insert 0 5 e
+    mygraph arc  insert 0 6 f
+
+
+    set     result {}
+    lappend result [mygraph node degree -in   0]
+    lappend result [mygraph node degree -out  0]
+    lappend result [mygraph node exists       0]
+    lappend result [mygraph node exists       snarf]
+    lappend result [lsort [mygraph nodes -in  0]]
+    lappend result [lsort [mygraph nodes -out 0]]
+
+    mygraph node rename 0 snarf
+    lappend result |
+
+    lappend result [mygraph node degree -in   snarf]
+    lappend result [mygraph node degree -out  snarf]
+    lappend result [mygraph node exists       0]
+    lappend result [mygraph node exists       snarf]
+    lappend result [lsort [mygraph nodes -in  snarf]]
+    lappend result [lsort [mygraph nodes -out snarf]]
+
+    mygraph destroy
+    set result
+} {3 3 1 0 {1 2 3} {4 5 6} | 3 3 0 1 {1 2 3} {4 5 6}}
+
+test graph-${impl}-${setimpl}-node-rename-3.1 {node rename, attribute transfer} {
+    SETUP
+    mygraph node insert 0
+    mygraph node set 0 data foo
+
+    set     result {}
+    lappend result        [mygraph node getall 0]
+    lappend result [catch {mygraph node getall 5}]
+
+    mygraph node rename 0 5
+
+    lappend result        [mygraph node getall 5]
+    lappend result [catch {mygraph node getall 0}]
+
+    mygraph destroy
+    set result
+} {{data foo} 1 {data foo} 1}
+
+# -------------------------------------------------------------------------

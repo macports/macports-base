@@ -1,7 +1,6 @@
 /*
  * -*- coding: utf-8; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=c:et:sw=4:ts=4:sts=4:tw=100
  * libmachista.h
- * $Id$
  *
  * Copyright (c) 2011 The MacPorts Project
  * Copyright (c) 2011 Clemens Lang <cal@macports.org>

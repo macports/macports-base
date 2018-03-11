@@ -1,0 +1,106 @@
+# -*- tcl -*-
+# pt_runtime.test: tests for the pt::rde package and parsers on top
+# (generated, interpreted) for various grammars and inputs.
+#
+# Copyright (c) 2010 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: pt_runtime.test,v 1.1 2010/07/27 22:53:53 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+        [file dirname [file dirname [file join [pwd] [info script]]]] \
+        devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    useAccel [useTcllibC] struct/stack.tcl struct::stack
+    TestAccelInit                          struct::stack
+
+    use      snit/snit2.tcl      snit
+    useLocal pt_pexpression.tcl  pt::pe
+    useLocal pt_astree.tcl       pt::ast
+
+    use      fileutil/fileutil.tcl  fileutil      ;# tests/common
+    use      textutil/adjust.tcl    textutil::adjust
+
+    useLocal pt_pexpr_op.tcl        pt::pe::op
+    useLocal pt_pegrammar.tcl       pt::peg
+    useLocal pt_peg_container.tcl   pt::peg::container
+
+    # runtime underneath generated and interpreted parsers
+    useAccel [useTcllibC] pt/pt_rdengine.tcl pt::rde
+    TestAccelInit                            pt::rde
+
+    # interpreter for arbitrary grammars
+    useLocal pt_peg_interp.tcl      pt::peg::interp
+
+    useLocal text_write.tcl         text::write
+    useLocal char.tcl               char
+
+    # generator for snit parsers
+    useLocal pt_tclparam_config_snit.tcl pt::tclparam::configuration::snit
+    useLocal pt_peg_to_tclparam.tcl      pt::peg::to::tclparam
+}
+
+#----------------------------------------------------------------------
+
+snitErrors
+# -------------------------------------------------------------------------
+# Note: When using pt::rde's C implementation struct::stack is not
+#       used, and its implementation of no relevance.
+
+TestAccelDo pt::rde rdeimpl {
+    switch -exact -- $rdeimpl {
+	critcl {
+	    set MY myrde
+
+	    proc tmWrong {m loarg n {xarg {}}} {
+		return [tcltest::wrongNumArgs "myrde $m" $loarg $n]
+	    }
+
+	    proc tmTooMany {m loarg {xarg {}}} {
+		return [tcltest::tooManyArgs "myrde $m" $loarg]
+	    }
+
+	    proc take {tcl critcl} { return $critcl }
+	}
+	tcl {
+	    set MY ::myrde
+
+	    proc tmWrong {m loarg n {xarg {}}} {
+		if {$xarg == {}} {set xarg $loarg}
+		if {$xarg != {}} {set xarg " $xarg"}
+		incr n
+		return [tcltest::wrongNumArgs "::pt::rde::$m" "name$xarg" $n]
+	    }
+
+	    proc tmTooMany {m loarg {xarg {}}} {
+		if {$xarg == {}} {set xarg $loarg}
+		if {$xarg != {}} {set xarg " $xarg"}
+		return [tcltest::tooManyArgs "::pt::rde::$m" "name$xarg"]
+	    }
+
+	    proc take {tcl critcl} { return $tcl }
+	}
+    }
+
+    if {$rdeimpl eq "critcl"} {
+	set stackimpl n/a
+	struct::stack::SwitchTo {}
+	source [localPath tests/pt_runtime.tests]
+    } else {
+	TestAccelDo struct::stack stackimpl {
+	    source [localPath tests/pt_runtime.tests]
+	}
+    }
+}
+
+#----------------------------------------------------------------------
+
+TestAccelExit pt::rde
+TestAccelExit struct::stack
+testsuiteCleanup

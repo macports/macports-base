@@ -1,0 +1,754 @@
+
+<html><head>
+<title>ldapx - LDAP extended object interface</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'ldapx.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2006 Pierre David &lt;pdav@users.sourceforge.net&gt;
+   -->
+<! -- ldapx.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">ldapx(n) 0.2.5 tcllib &quot;LDAP extended object interface&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>ldapx - LDAP extended object interface</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">OVERVIEW</a></li>
+<li class="doctools_section"><a href="#section3">ENTRY CLASS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Entry Instance Data</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Entry Options</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Methods for all kinds of entries</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Methods for standard entries only</a></li>
+<li class="doctools_subsection"><a href="#subsection5">Methods for change entries only</a></li>
+<li class="doctools_subsection"><a href="#subsection6">Entry Example</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">LDAP CLASS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection7">Ldap Instance Data</a></li>
+<li class="doctools_subsection"><a href="#subsection8">Ldap Options</a></li>
+<li class="doctools_subsection"><a href="#subsection9">Ldap Methods</a></li>
+<li class="doctools_subsection"><a href="#subsection10">Ldap Example</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section5">LDIF CLASS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection11">Ldif Instance Data</a></li>
+<li class="doctools_subsection"><a href="#subsection12">Ldif Options</a></li>
+<li class="doctools_subsection"><a href="#subsection13">Ldif Methods</a></li>
+<li class="doctools_subsection"><a href="#subsection14">Ldif Example</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section6">References</a></li>
+<li class="doctools_section"><a href="#section7">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">ldapx <span class="opt">?1.0?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><i class="arg">e</i> <b class="method">reset</b></a></li>
+<li><a href="#2"><i class="arg">e</i> <b class="method">dn</b> <span class="opt">?<i class="arg">newdn</i>?</span></a></li>
+<li><a href="#3"><i class="arg">e</i> <b class="method">rdn</b></a></li>
+<li><a href="#4"><i class="arg">e</i> <b class="method">superior</b></a></li>
+<li><a href="#5"><i class="arg">e</i> <b class="method">print</b></a></li>
+<li><a href="#6"><i class="arg">se</i> <b class="method">isempty</b></a></li>
+<li><a href="#7"><i class="arg">se</i> <b class="method">get</b> <i class="arg">attr</i></a></li>
+<li><a href="#8"><i class="arg">se</i> <b class="method">get1</b> <i class="arg">attr</i></a></li>
+<li><a href="#9"><i class="arg">se</i> <b class="method">set</b> <i class="arg">attr</i> <i class="arg">values</i></a></li>
+<li><a href="#10"><i class="arg">se</i> <b class="method">set1</b> <i class="arg">attr</i> <i class="arg">value</i></a></li>
+<li><a href="#11"><i class="arg">se</i> <b class="method">add</b> <i class="arg">attr</i> <i class="arg">values</i></a></li>
+<li><a href="#12"><i class="arg">se</i> <b class="method">add1</b> <i class="arg">attr</i> <i class="arg">value</i></a></li>
+<li><a href="#13"><i class="arg">se</i> <b class="method">del</b> <i class="arg">attr</i> <span class="opt">?<i class="arg">values</i>?</span></a></li>
+<li><a href="#14"><i class="arg">se</i> <b class="method">del1</b> <i class="arg">attr</i> <i class="arg">value</i></a></li>
+<li><a href="#15"><i class="arg">se</i> <b class="method">getattr</b></a></li>
+<li><a href="#16"><i class="arg">se</i> <b class="method">getall</b></a></li>
+<li><a href="#17"><i class="arg">se</i> <b class="method">setall</b> <i class="arg">avpairs</i></a></li>
+<li><a href="#18"><i class="arg">se</i> <b class="method">backup</b> <span class="opt">?<i class="arg">other</i>?</span></a></li>
+<li><a href="#19"><i class="arg">se</i> <b class="method">swap</b></a></li>
+<li><a href="#20"><i class="arg">se</i> <b class="method">restore</b> <span class="opt">?<i class="arg">other</i>?</span></a></li>
+<li><a href="#21"><i class="arg">se</i> <b class="method">apply</b> <i class="arg">centry</i></a></li>
+<li><a href="#22"><i class="arg">ce</i> <b class="method">change</b> <span class="opt">?<i class="arg">new</i>?</span></a></li>
+<li><a href="#23"><i class="arg">ce</i> <b class="method">diff</b> <i class="arg">new</i> <span class="opt">?<i class="arg">old</i>?</span></a></li>
+<li><a href="#24"><i class="arg">la</i> <b class="method">error</b> <span class="opt">?<i class="arg">newmsg</i>?</span></a></li>
+<li><a href="#25"><i class="arg">la</i> <b class="method">connect</b> <i class="arg">url</i> <span class="opt">?<i class="arg">binddn</i>?</span> <span class="opt">?<i class="arg">bindpw</i>?</span></a></li>
+<li><a href="#26"><i class="arg">la</i> <b class="method">disconnect</b></a></li>
+<li><a href="#27"><i class="arg">la</i> <b class="method">traverse</b> <i class="arg">base</i> <i class="arg">filter</i> <i class="arg">attrs</i> <i class="arg">entry</i> <i class="arg">body</i></a></li>
+<li><a href="#28"><i class="arg">la</i> <b class="method">search</b> <i class="arg">base</i> <i class="arg">filter</i> <i class="arg">attrs</i></a></li>
+<li><a href="#29"><i class="arg">la</i> <b class="method">read</b> <i class="arg">base</i> <i class="arg">filter</i> <i class="arg">entry</i> ... <i class="arg">entry</i></a></li>
+<li><a href="#30"><i class="arg">la</i> <b class="method">commit</b> <i class="arg">entry</i> ... <i class="arg">entry</i></a></li>
+<li><a href="#31"><i class="arg">li</i> <b class="method">channel</b> <i class="arg">chan</i></a></li>
+<li><a href="#32"><i class="arg">li</i> <b class="method">error</b> <span class="opt">?<i class="arg">newmsg</i>?</span></a></li>
+<li><a href="#33"><i class="arg">li</i> <b class="method">read</b> <i class="arg">entry</i></a></li>
+<li><a href="#34"><i class="arg">li</i> <b class="method">write</b> <i class="arg">entry</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">ldapx</b> package provides an extended Tcl interface to
+LDAP directores and LDIF files. The <b class="package">ldapx</b> package is built
+upon the <b class="package"><a href="ldap.html">ldap</a></b> package in order to get low level LDAP access.</p>
+<p>LDAP access is compatible with RFC 2251
+(<a href="http://www.rfc-editor.org/rfc/rfc2251.txt">http://www.rfc-editor.org/rfc/rfc2251.txt</a>).
+LDIF access is compatible with RFC 2849
+(<a href="http://www.rfc-editor.org/rfc/rfc2849.txt">http://www.rfc-editor.org/rfc/rfc2849.txt</a>).</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">OVERVIEW</a></h2>
+<p>The <b class="package">ldapx</b> package provides objects to interact with LDAP
+directories and LDIF files with an easy to use programming interface.
+It implements three <b class="package"><a href="../snit/snit.html">snit</a></b>::type classes.</p>
+<p>The first class, <b class="class">entry</b>, is used to store individual entries.
+Two different formats are available: the first one is the
+<em>standard</em> format, which represents an entry as read from the
+directory. The second format is the <em>change</em> format, which
+stores differences between two standard entries.</p>
+<p>With these entries, an application which wants to modify an entry
+in a directory needs to read a (standard) entry from the directory,
+create a fresh copy into a new (standard) entry, modify the new
+copy, and then compute the differences between the two entries into
+a new (change) entry, which may be commited to the directory.</p>
+<p>Such kinds of modifications are so heavily used that standard entries
+may contain their own copy of the original data. With such a copy,
+the application described above reads a (standard) entry from the
+directory, backs-up the original data, modifies the entry, and
+computes the differences between the entry and its backup. These
+differences are then commited to the directory.</p>
+<p>Methods are provided to compute differences between two entries,
+to apply differences to an entry in order to get a new entry, and
+to get or set attributes in standard entries.</p>
+<p>The second class is the <b class="class">ldap</b> class. It provides a method
+to <b class="method">connect</b> and bind to the directory with a uniform access
+to LDAP and LDAPS through an URL (ldap:// or ldaps://). The
+<b class="method">traverse</b> control structure executes a body for each entry
+found in the directory. The <b class="method">commit</b> method applies some
+changes (represented as <b class="class">entry</b> objects) to the directory.
+Since some attributes are represented as UTF-8 strings, the option
+<b class="option">-utf8</b> controls which attributes must be converted and
+which attributes must not be converted.</p>
+<p>The last class is the <b class="class">ldif</b> class. It provides a method to
+associate a standard Tcl <em>channel</em> to an LDIF object. Then,
+methods <b class="method">read</b> and <b class="method">write</b> read or write entries from
+or to this channel. This class can make use of standard or change
+entries, according to the type of the LDIF file which may contain
+either standard entries or change entries (but not both at the same
+time). The option <b class="option">-utf8</b> works exactly as with the
+<b class="class">ldap</b> class.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">ENTRY CLASS</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Entry Instance Data</a></h3>
+<p>An instance of the <b class="class">entry</b> class keeps the following data:</p>
+<dl class="doctools_definitions">
+    
+<dt>dn</dt>
+<dd><p>This is the DN of the entry, which includes (in LDAP
+	terminology) the RDN (relative DN) and the Superior parts.</p></dd>
+<dt>format</dt>
+<dd><p>The format may be <em>uninitialized</em> (entry not yet used),
+	<em>standard</em> or <em>change</em>. Most methods check the
+	format of the entry, which can be reset with the
+	<b class="method">reset</b> method.</p></dd>
+<dt>attrvals</dt>
+<dd><p>In a <em>standard</em> entry, this is where the attributes
+	and associated values are stored. Many methods provide
+	access to these informations. Attribute names are always
+	converted into lower case.</p></dd>
+<dt>backup</dt>
+<dd><p>In a <em>standard</em> entry, the backup may contain a copy
+	of the dn and all attributes and values. Methods
+	<b class="method">backup</b> and <b class="method">restore</b> manipulate these data,
+	and method <b class="method">diff</b> may use this backup.</p></dd>
+<dt>change</dt>
+<dd><p>In a <em>change</em> entry, these data represent the
+	modifications. Such modifications are handled by specialized
+	methods such as <b class="method">apply</b> or <b class="method">commit</b>.
+	Detailed format should not be used directly by programs.</p>
+<p>Internally, modifications are represented as a list of
+	elements, each element has one of the following formats
+	(which match the corresponding LDAP operations):</p>
+<ol class="doctools_enumerated">
+	    
+<li><p>{<b class="const">add</b> {attr1 {val1...valn} attr2 {...} ...}}</p>
+<p>Addition of a new entry.</p></li>
+<li><p>{<b class="const">mod</b> {modop {attr1 <span class="opt">?val1...valn?</span>} attr2 ...} {modop ...} ...}</p>
+<p>Modification of one or more attributes and/or values,
+		where &lt;modop&gt; can be <b class="const">modadd</b>, <b class="const">moddel</b>
+		or <b class="const">modrepl</b> (see the LDAP modify operation).</p></li>
+<li><p>{<b class="const">del</b>}</p>
+<p>Deletion of an old entry.</p></li>
+<li><p>{<b class="const">modrdn</b> newrdn deleteoldrdn <span class="opt">?newsuperior?</span>}</p>
+<p>Renaming of an entry.</p></li>
+</ol></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Entry Options</a></h3>
+<p>No option is defined by this class.</p>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Methods for all kinds of entries</a></h3>
+<dl class="doctools_definitions">
+    
+<dt><a name="1"><i class="arg">e</i> <b class="method">reset</b></a></dt>
+<dd><p>This method resets the entry to an uninitialized state.</p></dd>
+<dt><a name="2"><i class="arg">e</i> <b class="method">dn</b> <span class="opt">?<i class="arg">newdn</i>?</span></a></dt>
+<dd><p>This method returns the current DN of the entry. If the
+	optional <i class="arg">newdn</i> is specified, it replaces the current
+	DN of the entry.</p></dd>
+<dt><a name="3"><i class="arg">e</i> <b class="method">rdn</b></a></dt>
+<dd><p>This method returns the RDN part of the DN of the entry.</p></dd>
+<dt><a name="4"><i class="arg">e</i> <b class="method">superior</b></a></dt>
+<dd><p>This method returns the superior part of the DN of the entry.</p></dd>
+<dt><a name="5"><i class="arg">e</i> <b class="method">print</b></a></dt>
+<dd><p>This method returns the entry as a string ready to be printed.</p></dd>
+</dl>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Methods for standard entries only</a></h3>
+<p>In all methods, attribute names are converted in lower case.</p>
+<dl class="doctools_definitions">
+    
+<dt><a name="6"><i class="arg">se</i> <b class="method">isempty</b></a></dt>
+<dd><p>This method returns 1 if the entry is empty (i.e. without
+	any attribute).</p></dd>
+<dt><a name="7"><i class="arg">se</i> <b class="method">get</b> <i class="arg">attr</i></a></dt>
+<dd><p>This method returns all values of the attribute <i class="arg">attr</i>,
+	or the empty list if the attribute is not fond.</p></dd>
+<dt><a name="8"><i class="arg">se</i> <b class="method">get1</b> <i class="arg">attr</i></a></dt>
+<dd><p>This method returns the first value of the attribute.</p></dd>
+<dt><a name="9"><i class="arg">se</i> <b class="method">set</b> <i class="arg">attr</i> <i class="arg">values</i></a></dt>
+<dd><p>This method sets the values (list <i class="arg">values</i>) of the
+	attribute <i class="arg">attr</i>. If the list is empty, this method
+	deletes all</p></dd>
+<dt><a name="10"><i class="arg">se</i> <b class="method">set1</b> <i class="arg">attr</i> <i class="arg">value</i></a></dt>
+<dd><p>This method sets the values of the attribute <i class="arg">attr</i> to
+	be an unique value <i class="arg">value</i>. Previous values, if any,
+	are replaced by the new value.</p></dd>
+<dt><a name="11"><i class="arg">se</i> <b class="method">add</b> <i class="arg">attr</i> <i class="arg">values</i></a></dt>
+<dd><p>This method adds all elements the list <i class="arg">values</i> to the
+	values of the attribute <i class="arg">attr</i>.</p></dd>
+<dt><a name="12"><i class="arg">se</i> <b class="method">add1</b> <i class="arg">attr</i> <i class="arg">value</i></a></dt>
+<dd><p>This method adds a single value given by the parameter
+	<i class="arg">value</i> to the attribute <i class="arg">attr</i>.</p></dd>
+<dt><a name="13"><i class="arg">se</i> <b class="method">del</b> <i class="arg">attr</i> <span class="opt">?<i class="arg">values</i>?</span></a></dt>
+<dd><p>If the optional list <i class="arg">values</i> is specified, this method
+	deletes all specified values from the attribute <i class="arg">attr</i>.
+	If the argument <i class="arg">values</i> is not specified, this method
+	deletes all values.</p></dd>
+<dt><a name="14"><i class="arg">se</i> <b class="method">del1</b> <i class="arg">attr</i> <i class="arg">value</i></a></dt>
+<dd><p>This method deletes a unique <i class="arg">value</i> from the attribute
+	<i class="arg">attr</i>.</p></dd>
+<dt><a name="15"><i class="arg">se</i> <b class="method">getattr</b></a></dt>
+<dd><p>This method returns all attributes names.</p></dd>
+<dt><a name="16"><i class="arg">se</i> <b class="method">getall</b></a></dt>
+<dd><p>This method returns all attributes and values from the
+	entry, packed in a list of pairs &lt;attribute, list of values&gt;.</p></dd>
+<dt><a name="17"><i class="arg">se</i> <b class="method">setall</b> <i class="arg">avpairs</i></a></dt>
+<dd><p>This method sets at once all attributes and values. The
+	format of the <i class="arg">avpairs</i> argument is the same as the one
+	returned by method <b class="method">getall</b>.</p></dd>
+<dt><a name="18"><i class="arg">se</i> <b class="method">backup</b> <span class="opt">?<i class="arg">other</i>?</span></a></dt>
+<dd><p>This method stores in an <i class="arg">other</i> standard entry object
+	a copy of the current DN and attributes/values. If the
+	optional <i class="arg">other</i> argument is not specified, copy is
+	done in the current entry (in a specific place, see section
+	<span class="sectref"><a href="#section2">OVERVIEW</a></span>).</p></dd>
+<dt><a name="19"><i class="arg">se</i> <b class="method">swap</b></a></dt>
+<dd><p>This method swaps the current and backup contexts of the
+	entry.</p></dd>
+<dt><a name="20"><i class="arg">se</i> <b class="method">restore</b> <span class="opt">?<i class="arg">other</i>?</span></a></dt>
+<dd><p>If the optional argument <i class="arg">other</i> is given, which must
+	then be a <em>standard</em> entry, this method restores the
+	current entry into the <i class="arg">other</i> entry. If the argument
+	<i class="arg">other</i> argument is not specified, this methods restores
+	the current entry from its internal backup (see section
+	<span class="sectref"><a href="#section2">OVERVIEW</a></span>).</p></dd>
+<dt><a name="21"><i class="arg">se</i> <b class="method">apply</b> <i class="arg">centry</i></a></dt>
+<dd><p>This method applies changes defined in the <i class="arg">centry</i>
+	argument, which must be a <em>change</em> entry.</p></dd>
+</dl>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">Methods for change entries only</a></h3>
+<dl class="doctools_definitions">
+    
+<dt><a name="22"><i class="arg">ce</i> <b class="method">change</b> <span class="opt">?<i class="arg">new</i>?</span></a></dt>
+<dd><p>If the optional argument <i class="arg">new</i> is specified, this method
+	modifies the change list (see subsection <span class="sectref"><a href="#subsection1">Entry Instance Data</a></span> for
+	the exact format). In both cases, current change list is
+	returned.
+	Warning: values returned by this method should only be used
+	by specialized methods such as <b class="method">apply</b> or
+	<b class="method">commit</b>.</p></dd>
+<dt><a name="23"><i class="arg">ce</i> <b class="method">diff</b> <i class="arg">new</i> <span class="opt">?<i class="arg">old</i>?</span></a></dt>
+<dd><p>This method computes the differences between the <i class="arg">new</i>
+	and <i class="arg">old</i> entries under the form of a change list, and
+	stores this list into the current <em>change</em> entry. If
+	the optional argument <i class="arg">old</i> is not specified, difference
+	is computed from the entry and its internal backup (see
+	section <span class="sectref"><a href="#section2">OVERVIEW</a></span>). Return value is the computed
+	change list.</p></dd>
+</dl>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">Entry Example</a></h3>
+<pre class="doctools_example">
+    package require ldapx
+    #
+    # Create an entry and fill it as a standard entry with
+    # attributes and values
+    #
+    ::ldapx::entry create e
+    e dn &quot;uid=joe,ou=people,o=mycomp&quot;
+    e set1 &quot;uid&quot;             &quot;joe&quot;
+    e set  &quot;objectClass&quot;     {person anotherObjectClass}
+    e set1 &quot;givenName&quot;       &quot;Joe&quot;
+    e set1 &quot;sn&quot;              &quot;User&quot;
+    e set  &quot;telephoneNumber&quot; {+31415926535 +2182818}
+    e set1 &quot;anotherAttr&quot;     &quot;This is a beautiful day, isn't it?&quot;
+    puts stdout &quot;e\n[e print]&quot;
+    #
+    # Create a second entry as a backup of the first, and
+    # make some changes on it.
+    # Entry is named automatically by snit.
+    #
+    set b [::ldapx::entry create %AUTO%]
+    e backup $b
+    puts stdout &quot;$b\n[$b print]&quot;
+    $b del  &quot;anotherAttr&quot;
+    $b del1 &quot;objectClass&quot; &quot;anotherObjectClass&quot;
+    #
+    # Create a change entry, a compute differences between first
+    # and second entry.
+    #
+    ::ldapx::entry create c
+    c diff e $b
+    puts stdout &quot;$c\n[$c print]&quot;
+    #
+    # Apply changes to first entry. It should be the same as the
+    # second entry, now.
+    #
+    e apply c
+    ::ldapx::entry create nc
+    nc diff e $b
+    puts stdout &quot;nc\n[nc print]&quot;
+    #
+    # Clean-up
+    #
+    e destroy
+    $b destroy
+    c destroy
+    nc destroy
+</pre>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">LDAP CLASS</a></h2>
+<div id="subsection7" class="doctools_subsection"><h3><a name="subsection7">Ldap Instance Data</a></h3>
+<p>An instance of the <b class="class">ldap</b> class keeps the following data:</p>
+<dl class="doctools_definitions">
+    
+<dt>channel</dt>
+<dd><p>This is the channel used by the <b class="package"><a href="ldap.html">ldap</a></b> package for
+	communication with the LDAP server.</p></dd>
+<dt>lastError</dt>
+<dd><p>This variable contains the error message which appeared in
+	the last method of the <b class="class">ldap</b> class (this string is
+	modified in nearly all methods). The <b class="method">error</b> method
+	may be used to fetch this message.</p></dd>
+</dl>
+</div>
+<div id="subsection8" class="doctools_subsection"><h3><a name="subsection8">Ldap Options</a></h3>
+<p>A first set of options of the <b class="class">ldap</b> class is used during
+search operations (methods <b class="method">traverse</b>, <b class="method">search</b> and
+<b class="method">read</b>, see below).</p>
+<dl class="doctools_options">
+    
+<dt><b class="option">-scope</b> <b class="const">base</b>|<b class="const">one</b>|<b class="const">sub</b></dt>
+<dd><p>Specify the scope of the LDAP search to be one of
+	<b class="const">base</b>, <b class="const">one</b> or <b class="const">sub</b> to specify
+	a base object, one-level or subtree search.</p>
+<p>The default is <b class="const">sub</b>.</p></dd>
+<dt><b class="option">-derefaliases</b> <b class="const">never</b>|<b class="const">seach</b>|<b class="const">find</b>|<b class="const">always</b></dt>
+<dd><p>Specify how aliases dereferencing is handled:
+	<b class="const">never</b> is used to specify that aliases are never derefenced,
+	<b class="const">always</b> that aliases are always derefenced,
+	<b class="const">search</b> that aliases are dereferenced when searching,
+	or <b class="const">find</b> that aliases are dereferenced only  when
+	locating  the  base object for the search.</p>
+<p>The default is <b class="const">never</b>.</p></dd>
+<dt><b class="option">-sizelimit</b> integer</dt>
+<dd><p>Specify the maximum number of entries to be retreived
+	during a search. A value of <b class="const">0</b> means no limit.</p>
+<p>Default is <b class="const">0</b>.</p></dd>
+<dt><b class="option">-timelimit</b> integer</dt>
+<dd><p>Specify the time limit for a search to complete.
+	A value of <b class="const">0</b> means no limit.</p>
+<p>Default is <b class="const">0</b>.</p></dd>
+<dt><b class="option">-attrsonly</b> <b class="const">0</b>|<b class="const">1</b></dt>
+<dd><p>Specify if only attribute names are to be retrieved (value
+	<b class="const">1</b>). Normally (value <b class="const">0</b>), attribute values
+	are also retrieved.</p>
+<p>Default is <b class="const">0</b>.</p></dd>
+</dl>
+<p>The last option is used when getting entries or committing changes
+in the directory:</p>
+<dl class="doctools_options">
+    
+<dt><b class="option">-utf8</b> pattern-yes pattern-no</dt>
+<dd><p>Specify which attribute values are encoded in UTF-8. This
+	information is specific to the LDAP schema in use by the
+	application, since some attributes such as jpegPhoto, for
+	example, are not encoded in UTF-8. This option takes the
+	form of a list with two regular expressions suitable for
+	the <b class="cmd">regexp</b> command (anchored by ^ and $).
+	The first specifies which attribute names are to be UTF-8
+	encoded, and the second selects, among those, the attribute
+	names which will not be UTF-8 encoded.  It is thus possible
+	to say: convert all attributes, except jpegPhoto.</p>
+<p>Default is {{.*} {}}, meaning: all attributes are converted,
+	without exception.</p></dd>
+</dl>
+</div>
+<div id="subsection9" class="doctools_subsection"><h3><a name="subsection9">Ldap Methods</a></h3>
+<dl class="doctools_definitions">
+    
+<dt><a name="24"><i class="arg">la</i> <b class="method">error</b> <span class="opt">?<i class="arg">newmsg</i>?</span></a></dt>
+<dd><p>This method returns the error message that occurred in the
+	last call to a <b class="class">ldap</b> class method. If the optional
+	argument <i class="arg">newmsg</i> is supplied, it becomes the last
+	error message.</p></dd>
+<dt><a name="25"><i class="arg">la</i> <b class="method">connect</b> <i class="arg">url</i> <span class="opt">?<i class="arg">binddn</i>?</span> <span class="opt">?<i class="arg">bindpw</i>?</span></a></dt>
+<dd><p>This method connects to the LDAP server using given URL
+	(which can be of the form <a href="ldap://host:port">ldap://host:port</a> or
+	<a href="ldaps://host:port">ldaps://host:port</a>). If an optional <i class="arg">binddn</i>
+	argument is given together with the <i class="arg">bindpw</i> argument,
+	the <b class="method">connect</b> binds to the LDAP server using the
+	specified DN and password.</p></dd>
+<dt><a name="26"><i class="arg">la</i> <b class="method">disconnect</b></a></dt>
+<dd><p>This method disconnects (and unbinds, if necessary) from
+	the LDAP server.</p></dd>
+<dt><a name="27"><i class="arg">la</i> <b class="method">traverse</b> <i class="arg">base</i> <i class="arg">filter</i> <i class="arg">attrs</i> <i class="arg">entry</i> <i class="arg">body</i></a></dt>
+<dd><p>This method is a new control structure. It searches the
+	LDAP directory from the specified base DN (given by the
+	<i class="arg">base</i> argument) and selects entries based on the
+	argument <i class="arg">filter</i>. For each entry found, this method
+	fetches attributes specified by the <i class="arg">attrs</i> argument
+	(or all attributes if it is an empty list), stores them in
+	the <i class="arg">entry</i> instance of class <b class="class">entry</b> and executes
+	the script defined by the argument <i class="arg">body</i>. Options are
+	used to refine the search.</p>
+<p>Caution: when this method is used, the script <i class="arg">body</i>
+	cannot perform another LDAP search (methods <b class="method">traverse</b>,
+	<b class="method">search</b> or <b class="method">read</b>).</p></dd>
+<dt><a name="28"><i class="arg">la</i> <b class="method">search</b> <i class="arg">base</i> <i class="arg">filter</i> <i class="arg">attrs</i></a></dt>
+<dd><p>This method searches the directory using the same way as
+	method <b class="method">traverse</b>. All found entries are stored in
+	newly created instances of class <b class="class">entry</b>, which are
+	returned in a list. The newly created instances should be
+	destroyed when they are no longer used.</p></dd>
+<dt><a name="29"><i class="arg">la</i> <b class="method">read</b> <i class="arg">base</i> <i class="arg">filter</i> <i class="arg">entry</i> ... <i class="arg">entry</i></a></dt>
+<dd><p>This method reads one or more entries, using the same search
+	criteria as methods <b class="method">traverse</b> and <b class="method">search</b>.
+	All attributes are stored in the entries. This method
+	provides a quick way to read some entries. It returns the
+	number of entries found in the directory (which may be more
+	than the number of read entries). If called without any
+	<i class="arg">entry</i> argument, this method just returns the number
+	of entries found, without returning any data.</p></dd>
+<dt><a name="30"><i class="arg">la</i> <b class="method">commit</b> <i class="arg">entry</i> ... <i class="arg">entry</i></a></dt>
+<dd><p>This method commits the changes stored in the <i class="arg">entry</i>
+	arguments. Each <i class="arg">entry</i> may be either a <em>change</em>
+	entry, or a <em>standard</em> entry with a backup.</p>
+<p>Note: in the future, this method should use the LDAP
+	transaction extension provided by OpenLDAP 2.3 and later.</p></dd>
+</dl>
+</div>
+<div id="subsection10" class="doctools_subsection"><h3><a name="subsection10">Ldap Example</a></h3>
+<pre class="doctools_example">
+    package require ldapx
+    #
+    # Connects to the LDAP directory
+    #
+    ::ldapx::ldap create l
+    set url &quot;ldap://server.mycomp.com&quot;
+    if {! [l connect $url &quot;cn=admin,o=mycomp&quot; &quot;mypasswd&quot;]} then {
+	puts stderr &quot;error: [l error]&quot;
+	exit 1
+    }
+    #
+    # Search all entries matching some criterion
+    #
+    l configure -scope one
+    ::ldapx::entry create e
+    set n 0
+    l traverse &quot;ou=people,o=mycomp&quot; &quot;(sn=Joe*)&quot; {sn givenName} e {
+	puts &quot;dn: [e dn]&quot;
+	puts &quot;  sn:        [e get1 sn]&quot;
+	puts &quot;  givenName: [e get1 givenName]&quot;
+	incr n
+    }
+    puts &quot;$n entries found&quot;
+    e destroy
+    #
+    # Add a telephone number to some entries
+    # Note this modification cannot be done in the &quot;traverse&quot; operation.
+    #
+    set lent [l search &quot;ou=people,o=mycomp&quot; &quot;(sn=Joe*)&quot; {}]
+    ::ldapx::entry create c
+    foreach e $lent {
+	$e backup
+	$e add1 &quot;telephoneNumber&quot; &quot;+31415926535&quot;
+	c diff $e
+	if {! [l commit c]} then {
+	    puts stderr &quot;error: [l error]&quot;
+	    exit 1
+	}
+	$e destroy
+    }
+    l disconnect
+    l destroy
+</pre>
+</div>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">LDIF CLASS</a></h2>
+<div id="subsection11" class="doctools_subsection"><h3><a name="subsection11">Ldif Instance Data</a></h3>
+<p>An instance of the <b class="class">ldif</b> class keeps the following data:</p>
+<dl class="doctools_definitions">
+    
+<dt>channel</dt>
+<dd><p>This is the Tcl channel used to retrieve or store LDIF file
+	contents. The association between an instance and a channel
+	is made by the method <b class="method">channel</b>. There is no need
+	to disrupt this association when the LDIF file operation
+	has ended.</p></dd>
+<dt>format</dt>
+<dd><p>LDIF files may contain <em>standard</em> entries or
+	<em>change</em> entries, but not both. This variable contains
+	the detected format of the file (when reading) or the format
+	of entries written to the file (when writing).</p></dd>
+<dt>lastError</dt>
+<dd><p>This variable contains the error message which appeared in
+	the last method of the <b class="class">ldif</b> class (this string is
+	modified in nearly all methods). The <b class="method">error</b> method
+	may be used to fetch this message.</p></dd>
+<dt>version</dt>
+<dd><p>This is the version of the LDIF file. Only version 1 is
+	supported: the method <b class="method">read</b> can only read from
+	version 1 files, and method <b class="method">write</b> only creates
+	version 1 files.</p></dd>
+</dl>
+</div>
+<div id="subsection12" class="doctools_subsection"><h3><a name="subsection12">Ldif Options</a></h3>
+<p>This class defines two options:</p>
+<dl class="doctools_options">
+    
+<dt><b class="option">-ignore</b> list-of-attributes</dt>
+<dd><p>This option is used to ignore certain attribute names on
+	reading. For example, to read OpenLDAP replica files (replog),
+	one must ignore <b class="const">replica</b> and <b class="const">time</b> attributes
+	since they do not conform to the RFC 2849 standard for LDIF
+	files.</p>
+<p>Default is empty list: no attribute is ignored.</p></dd>
+<dt><b class="option">-utf8</b> pattern-yes pattern-no</dt>
+<dd><p>Specify which attribute values are encoded in UTF-8. This
+	information is specific to the LDAP schema in use by the
+	application, since some attributes such as jpegPhoto, for
+	example, are not encoded in UTF-8. This option takes the
+	form of a list with two regular expressions suitable for
+	the <b class="cmd">regexp</b> command (anchored by ^ and $).
+	The first specifies which attribute names are to be UTF-8
+	encoded, and the second selects, among those, the attribute
+	names which will not be UTF-8 encoded.  It is thus possible
+	to say: convert all attributes, except jpegPhoto.</p>
+<p>Default is {{.*} {}}, meaning: all attributes are converted,
+	without exception.</p></dd>
+</dl>
+</div>
+<div id="subsection13" class="doctools_subsection"><h3><a name="subsection13">Ldif Methods</a></h3>
+<dl class="doctools_definitions">
+    
+<dt><a name="31"><i class="arg">li</i> <b class="method">channel</b> <i class="arg">chan</i></a></dt>
+<dd><p>This method associates the Tcl channel named <i class="arg">chan</i>
+	with the LDIF instance. It resets the type of LDIF object
+	to <em>uninitialized</em>.</p></dd>
+<dt><a name="32"><i class="arg">li</i> <b class="method">error</b> <span class="opt">?<i class="arg">newmsg</i>?</span></a></dt>
+<dd><p>This method returns the error message that occurred in the
+	last call to a <b class="class">ldif</b> class method. If the optional
+	argument <i class="arg">newmsg</i> is supplied, it becomes the last
+	error message.</p></dd>
+<dt><a name="33"><i class="arg">li</i> <b class="method">read</b> <i class="arg">entry</i></a></dt>
+<dd><p>This method reads the next entry from the LDIF file and
+	stores it in the <i class="arg">entry</i> object of class <b class="class">entry</b>.
+	The entry may be a <em>standard</em> or <em>change</em> entry.</p></dd>
+<dt><a name="34"><i class="arg">li</i> <b class="method">write</b> <i class="arg">entry</i></a></dt>
+<dd><p>This method writes the entry given in the argument
+	<i class="arg">entry</i> to the LDIF file.</p></dd>
+</dl>
+</div>
+<div id="subsection14" class="doctools_subsection"><h3><a name="subsection14">Ldif Example</a></h3>
+<pre class="doctools_example">
+    package require ldapx
+    # This examples reads a LDIF file containing entries,
+    # compare them to a LDAP directory, and writes on standard
+    # output an LDIF file containing changes to apply to the
+    # LDAP directory to match exactly the LDIF file.
+    ::ldapx::ldif create liin
+    liin channel stdin
+    ::ldapx::ldif create liout
+    liout channel stdout
+    ::ldapx::ldap create la
+    if {! [la connect &quot;ldap://server.mycomp.com&quot;]} then {
+	puts stderr &quot;error: [la error]&quot;
+	exit 1
+    }
+    la configure -scope one
+    # Reads LDIF file
+    ::ldapx::entry create e1
+    ::ldapx::entry create e2
+    ::ldapx::entry create c
+    while {[liin read e1] != 0} {
+	set base [e1 superior]
+	set id [e1 rdn]
+	if {[la read $base &quot;($id)&quot; e2] == 0} then {
+	    e2 reset
+	}
+	c diff e1 e2
+	if {[llength [c change]] != 0} then {
+	    liout write c
+	}
+    }
+    la disconnect
+    la destroy
+    e1 destroy
+    e2 destroy
+    c destroy
+    liout destroy
+    liin destroy
+</pre>
+</div>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">References</a></h2>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>ldap</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key135">directory access</a>, <a href="../../../../index.html#key131">internet</a>, <a href="../../../../index.html#key130">ldap</a>, <a href="../../../../index.html#key128">ldap client</a>, <a href="../../../../index.html#key502">ldif</a>, <a href="../../../../index.html#key133">protocol</a>, <a href="../../../../index.html#key129">rfc 2251</a>, <a href="../../../../index.html#key501">rfc 2849</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2006 Pierre David &lt;pdav@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

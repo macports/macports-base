@@ -1,0 +1,247 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* counter.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-27  Andreas Kupries <andreask@activestate.com>
+
+	* counter.test: [SF Tcllib Bug 1272754]. Using 'format' to get
+	  results with a deterministic precision.
+
+2006-01-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* counter.test: Fixed use of duplicate test names.
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* counter.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* counter.test: Hooked into the new common test support code.
+
+2006-01-10  Andreas Kupries <andreask@activestate.com>
+
+	* counter.test: Fixed [SF Tcllib Bug 1316036]. Uncluttering test
+	  output.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-04-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* counter.tcl: Re-added the 'alt' attribute, i.e. the output now
+	  contains both 'title' and 'alt', so that all browsers will be
+	  satisfied, whichever attribute they use for their tooltips.
+
+2005-04-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* counter.tcl: Replace usage of the 'alt' attribute in a the <img>
+	  tag with the 'title' attribute. Fixed [SF Tcllib Bug 1176744].
+	  Reported by David Gravereaux <davygrvy@users.sourceforge.net>.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+Wed Sep 29 12:13:38 2004  Andreas Kupries <andreask@activestate.com>
+
+	* counter.tcl (MergeDay): Fixed [Tcllib SF Bug 943984], a typo
+ 	  causing loss of data. Reported by David Gravereaux
+ 	  <davygrvy@users.sourceforge.net>.
+
+2004-09-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* counter.tcl: Fixed expr'essions without braces.
+
+2004-08-18  Michael Schlenker <mic42@users.sourceforge.net>
+
+	* counter.tcl: Error message added in counter::get if -avgn is
+	  used on a non -lastn counter. Replaced fragile prefix stripping
+	  with string map in counter::names with a more robust string
+	  range based version.
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-11-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* counter.man: Added documentation for counter::reset. This fixes
+	  [SF Tcllib Bug 759959]. Also added some keywords.
+
+2003-08-13  Brent Welch <welch@panasas.com>
+
+	* counter.tcl: Fixed math in counter::start and counter::stop
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-05-02  Andreas Kupries  <andreask@activestate.com>
+
+	* counter.test: Deactivated 'counter-timehist' (via constraint),
+	  this test is load-dependent. I.e. it will fail if the machine
+	  the test are run on is heavily loaded.
+
+2003-04-24  Andreas Kupries  <andreask@activestate.com>
+
+	* counter.test: Added missing propagation of test results.
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* counter.tcl:
+	* counter.man:
+	* pkgIndex.tcl: Fixed bug #614591. Set version of the package to
+	  to 2.0.1.
+
+2003-02-23  David N. Welton  <davidw@dedasys.com>
+
+	* counter.tcl (counter::names): Use string map instead of regsub.
+	Require Tcl 8.2 as a consequence.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* counter.man: More semantic markup, less visual one.
+
+2002-08-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* counter.tcl: Updated 'info exist' to 'info exists'.
+
+2002-04-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* counter.man: Added doctools manpage.
+
+2001-09-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* counter.tcl: Restricted export list to public API.
+	  [456255]. Patch by Hemang Lavana
+	  <hemanglavana@users.sourceforge.net>
+
+2001-07-10  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* counter.tcl: Frink 2.2 run, fixed dubious code.
+
+2001-07-09  Brent Welch <welch@panasas.com>
+
+	* counter.test: Fixed histlog test
+
+2001-06-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* counter.tcl: Fixed dubious code reported by frink.
+
+2000-10-04  Brent Welch <welch@ajubasolutions.com>
+
+	* counter.tcl: Fixed bug in counter::MergeDay
+
+2000-10-03  Brent Welch <welch@ajubasolutions.com>
+
+	* counter.tcl: Fixed bug in label format for daily graph.
+
+2000-10-02  Brent Welch <welch@ajubasolutions.com>
+
+	* NAME CHANGE from "stats" to "counter"
+	* counter.tcl: Changed shading of histogram labels.
+
+2000-10-02  Brent Welch <welch@ajubasolutions.com>
+
+	* modules/stats/stats.tcl: Added stats::htmlHistDisplayRow
+	so that the calling page could define the overall table structure.
+
+2000-10-01  Brent Welch <welch@ajubasolutions.com>
+
+	* modules/stats/stats.tcl: Fixed calculation of hourBase
+	and minuteBase when secsPerMinute was not 60.
+
+2000-09-23  Brent Welch <welch@ajubasolutions.com>
+
+	* modules/stats/stats.tcl: Time-based histograms were
+	not displaying the 23rd hour nor the 59th minute.
+
+2000-09-22  Brent Welch <welch@ajubasolutions.com>
+
+	* modules/stats/stats.tcl: Fixed initialization when the
+	server starts in the 59'th minute.  The first after event
+	was an hour too long, so the first hour of data didn't
+	display correctly.
+
+2000-09-21  Brent Welch <welch@ajubasolutions.com>
+
+	* modules/stats/stats.tcl: Added time labels and tick
+	marks to all the time-based histograms.
+	Fixed alignment of per-minute and per-hour histograms.
+
+2000-09-20  Brent Welch <welch@ajubasolutions.com>
+
+	* modules/stats/stats.tcl: Refined the countGet routine to return things
+	needed by the TclHttpd status module.  Refined the value-based histogram display.
+	* modules/stats/stats.tests: Added more tests.
+	* modules/stats/stats.n: Completed the man page.
+
+2000-09-15  Brent Welch <welch@ajubasolutions.com>
+
+	* Created this module.
+

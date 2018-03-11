@@ -1,8 +1,8 @@
 /*
  * curl.c
- * $Id$
  *
- * Copyright (c) 2005 Paul Guyot, The MacPorts Project.
+ * Copyright (c) 2005 Paul Guyot
+ * Copyright 2006-2011, 2013-2014 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,13 +64,13 @@
  * ========================================================================= */
 
 /* ------------------------------------------------------------------------- **
- * Global cURL handles
+ * Global curl handles
  * ------------------------------------------------------------------------- */
-/* If we want to use TclX' signal handling mechanism we need cURL to return
+/* If we want to use TclX' signal handling mechanism we need curl to return
  * control to our code from time to time so we can call Tcl_AsyncInvoke to
  * process pending signals. To do that, we could either abuse the curl progress
  * callback (which would mean we could no longer use the default curl progress
- * callback, or we need to use the cURL multi API. */
+ * callback, or we need to use the curl multi API. */
 static CURLM* theMHandle = NULL;
 /* We use a single global handle rather than creating and destroying handles to
  * take advantage of HTTP pipelining, especially to the packages servers. */
@@ -500,28 +500,24 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 
 			long curl_timeout = -1;
 
-			/* use at most half a second as timeout */
-			timeout.tv_sec = 0;
-			timeout.tv_usec = 500 * 1000;
-
+			/* curl_multi_timeout introduced in libcurl 7.15.4 */
+#if LIBCURL_VERSION_NUM >= 0x070f04
 			/* get the next timeout */
 			theCurlMCode = curl_multi_timeout(theMHandle, &curl_timeout);
 			if (theCurlMCode != CURLM_OK) {
 				theResult = SetResultFromCurlMErrorCode(interp, theCurlMCode);
 				break;
 			}
+#endif
 
 			timeout.tv_sec = 1;
 			timeout.tv_usec = 0;
 			/* convert the timeout into a suitable format for select(2) and
-			 * limit the timeout to 500 msecs at most */
-			if (curl_timeout > 0) {
-				timeout.tv_sec = curl_timeout / 1000;
-				if (timeout.tv_sec > 1) {
-					timeout.tv_sec = 1;
-				}
-
-				timeout.tv_usec = (curl_timeout % 1000) * 1000;
+			 * limit the timeout to 1 second at most */
+			if (curl_timeout >= 0 && curl_timeout < 1000) {
+				timeout.tv_sec = 0;
+				/* convert ms to us */
+				timeout.tv_usec = curl_timeout * 1000;
 			}
 
 			/* get the fd sets for select(2) */
@@ -610,7 +606,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		(void) fclose(theFile);
 		theFile = NULL;
 
-#if LIBCURL_VERSION_NUM == 0x070d01 /* work around broken Tiger version of cURL */
+#if LIBCURL_VERSION_NUM == 0x070d01 /* work around broken Tiger version of curl */
 		if (remotetime) {
 			FILE *fp;
 			char *tmp, *p;
@@ -696,7 +692,6 @@ int
 CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int theResult = TCL_OK;
-	CURL* theHandle = NULL;
 	FILE* theFile = NULL;
 
 	do {
@@ -933,7 +928,6 @@ int
 CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int theResult = TCL_OK;
-	CURL* theHandle = NULL;
 	FILE* theFile = NULL;
 
 	do {
@@ -1142,7 +1136,6 @@ int
 CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int theResult = TCL_OK;
-	CURL* theHandle = NULL;
 	FILE* theFile = NULL;
 
 	do {

@@ -1,0 +1,75 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin base32 n 0.1]
+[keywords base32]
+[keywords rfc3548]
+[copyright {Public domain}]
+[moddesc   {Base32 encoding}]
+[titledesc {base32 standard encoding}]
+[category  {Text processing}]
+[require Tcl 8.4]
+[require base32::core [opt 0.1]]
+[require base32       [opt 0.1]]
+[description]
+[para]
+
+This package provides commands for encoding and decoding of strings
+into and out of the standard base32 encoding as specified in RFC 3548.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::base32::encode] [arg string]]
+
+This command encodes the given [arg string] in base32 and returns the
+encoded string as its result. The result may be padded with the
+character [const =] to signal a partial encoding at the end of the
+input string.
+
+[call [cmd ::base32::decode] [arg estring]]
+
+This commands takes the [arg estring] and decodes it under the
+assumption that it is a valid base32 encoded string. The result of the
+decoding is returned as the result of the command.
+
+[para]
+
+Note that while the encoder will generate only uppercase characters
+this decoder accepts input in lowercase as well.
+
+[para]
+
+The command will always throw an error whenever encountering
+conditions which signal some type of bogus input, namely if
+
+[list_begin enumerated]
+[enum] the input contains characters which are not valid output of a base32 encoder,
+[enum] the length of the input is not a multiple of eight,
+[enum] padding appears not at the end of input, but in the middle,
+[enum] the padding has not of length six, four, three, or one characters,
+[list_end]
+[list_end]
+
+[section {Code map}]
+
+The code map used to convert 5-bit sequences is shown below, with the
+numeric id of the bit sequences to the left and the character used to
+encode it to the right. It should be noted that the characters "0" and
+"1" are not used by the encoding. This is done as these characters can
+be easily confused with "O", "o" and "l" (L).
+
+[example {
+	0 A    9 J   18 S   27 3
+	1 B   10 K   19 T   28 4
+	2 C   11 L   20 U   29 5
+	3 D   12 M   21 V   30 6
+	4 E   13 N   22 W   31 7
+	5 F   14 O   23 X
+	6 G   15 P   24 Y
+	7 H   16 Q   25 Z
+	8 I   17 R   26 2
+}]
+
+[vset CATEGORY base32]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

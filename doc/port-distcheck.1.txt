@@ -1,7 +1,6 @@
 // vim: set et sw=4 ts=8 ft=asciidoc tw=80:
 port-deps(1)
 ============
-$Id$
 
 NAME
 ----
@@ -30,7 +29,7 @@ BUGS
 checksums available in the 'Portfile' to verify the integrity of the files on
 the mirrors instead. See man:port-checksum[1].
 
-Meanwhile, you can use source:contrib/port-checkmirrors[port-checkmirrors] from
+Meanwhile, you can use source:macports-contrib/blob/master/mirror-utils/port-checkmirrors[port-checkmirrors] from
 contrib to do that.
 
 include::global-flags.txt[]

@@ -1,0 +1,163 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin transfer::copy n 0.2]
+[keywords channel]
+[keywords copy]
+[keywords transfer]
+[copyright {2006-2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Data transfer facilities}]
+[titledesc {Data transfer foundation}]
+[category  {Transfer module}]
+[require Tcl 8.4]
+[require transfer::copy [opt 0.2]]
+[description]
+[para]
+
+This package provides a number of commands for the asynchronous of
+information contained in either a string or channel. The main point of
+this package is that the commands here provide a nicer callback API
+than the builtin command [cmd fcopy], making the use of these
+facilities simpler than the builtin.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd transfer::copy::do] [const chan]|[const string] [arg data] \
+	[arg outchannel] [opt [arg options]...]]
+
+This command transfers the information in [arg data] to the
+[arg outchannel], according to the [arg options]. The type of the
+information in [arg data] is determined by the first argument.
+
+[para]
+
+The options available to this command are the same as are available to
+the command [cmd transfer::copy::options], and explained there.
+
+[list_begin definitions]
+[def [const chan]]
+
+The argument [arg data] contains the handle of a channel and the
+actual infomration to transfer is read from that channel.
+
+[def [const string]]
+
+The argument [arg data] contains a string and this is the information
+to be transfered.
+
+[list_end]
+
+[call [cmd transfer::copy::chan] [arg channel] [arg outchannel] \
+	[opt [arg options]...]]
+
+This command is a shorter and more direct form for the command
+[cmd {transfer::copy::do chan}].
+
+[call [cmd transfer::copy::string] [arg string] [arg outchannel] \
+	[opt [arg options]...]]
+
+This command is a shorter and more direct form for the command
+[cmd {transfer::copy::do string}].
+
+[call [cmd transfer::copy::doChan] [arg channel] [arg outchannel] \
+	[arg optvar]]
+
+This command is an alternate form of [cmd transfer::copy::chan] which
+reads its options out of the array variable named by [arg optvar]
+instead of from a variable length argument list.
+
+[call [cmd transfer::copy::doString] [arg string] [arg outchannel] \
+	[arg optvar]]
+
+This command is an alternate form of [cmd transfer::copy::string] which
+reads its options out of the array variable named by [arg optvar]
+instead of from a variable length argument list.
+
+[call [cmd transfer::copy::options] [arg outchannel] [arg optionlist] \
+	[arg optvar]]
+
+This command is the option processor used by all the commands above
+which read their options from a variable length argument list. It
+first reads default settings from the channel handle [arg outchannel],
+then processes the list of options in [arg optionlist], at last stores
+the results in the array variable named by [arg optvar]. The contents
+of that variable are in a format which is directly understood by all
+the commands above which read their options out of an array variable.
+
+[para]
+
+The recognized options are:
+
+[list_begin options]
+
+[opt_def -blocksize [arg int]]
+
+This option specifies the size of the chunks to transfer in one
+operation. It is optional and defaults to the value of
+[option -buffersize] as configured for the output channel.
+
+[para]
+If specified its value has to be an integer number greater than zero.
+
+[opt_def -command [arg commandprefix]]
+
+This option specifies the completion callback of the operation. This
+option has to be specified. An error will be thrown if it is not, or
+if the empty list was specified as argument to it.
+
+[para]
+Its value has to be a command prefix, i.e. a list whose first word is
+the command to execute, followed by words containing fixed
+arguments. When the callback is invoked one or two additional
+arguments are appended to the prefix. The first argument is the number
+of bytes which were transfered. The optional second argument is an
+error message and added if and only if an error occured during the the
+transfer.
+
+[opt_def -progress [arg commandprefix]]
+
+This option specifies the progress callback of the operation. It is
+optional and defaults to the empty list. This last possibility signals
+that no feedback was asked for and disabled it.
+
+[para]
+
+Its value has to be a command prefix, see above, [option -command] for
+a more detailed explanation. When the callback is invoked a single
+additional arguments is appended to the prefix. This argument is the
+number of bytes which were transfered so far.
+
+[opt_def -size [arg int]]
+
+This option specifies the number of bytes to read from the input data
+and transfer. It is optional and defaults to "Transfer everything".
+Its value has to be an integer number and any value less than zero has
+the same meaning, i.e. to transfer all available data. Any other value
+is the amount of bytes to transfer.
+
+[para]
+
+All transfer commands will throw error an when their user tries to
+transfer more data than is available in the input. This happens
+immediately, before the transfer is actually started, should the input
+be a string. Otherwise the, i.e. for a channel as input, the error is
+thrown the moment the underflow condition is actually detected.
+
+[opt_def -encoding    [arg encodingname]]
+[opt_def -eofchar     [arg eofspec]]
+[opt_def -translation [arg transspec]]
+
+These options are the same as are recognized by the builtin command
+[cmd fconfigure] and provide the settings for the output channel which
+are to be active during the transfer, and only then. I.e. the settings
+of the output channel before the transfer are saved, and restored at
+the end of a transfer, regardless of its success or failure. None of
+these options are required, and they default to the settings of the
+output channel if not specified.
+
+[list_end][comment options]
+[list_end][comment definitions/api]
+
+[vset CATEGORY transfer]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

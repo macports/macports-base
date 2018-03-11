@@ -1,0 +1,144 @@
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt::peg n 1]
+[include include/module.inc]
+[titledesc {Parsing Expression Grammar Serialization}]
+[require pt::peg [opt 1]]
+[require pt::pe]
+[description]
+[include include/ref_intro.inc]
+
+This package provides commands to work with the serializations of
+parsing expression grammars as managed by the Parser Tools, and
+specified in section [sectref {PEG serialization format}].
+
+[para]
+
+This is a supporting package in the Core Layer of Parser Tools.
+[para][image arch_core_support][para]
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::pt::peg] [method verify] \
+	[arg serial] [opt [arg canonvar]]]
+
+This command verifies that the content of [arg serial] is a valid
+serialization of a parsing expression and will throw an error if that
+is not the case. The result of the command is the empty string.
+
+[para]
+
+If the argument [arg canonvar] is specified it is interpreted as the
+name of a variable in the calling context. This variable will be
+written to if and only if [arg serial] is a valid regular
+serialization. Its value will be a boolean, with [const True]
+indicating that the serialization is not only valid, but also
+[term canonical]. [const False] will be written for a valid, but
+non-canonical serialization.
+
+[para]
+
+For the specification of serializations see the section
+[sectref {PE serialization format}].
+
+[call [cmd ::pt::peg] [method verify-as-canonical] \
+	[arg serial]]
+
+This command verifies that the content of [arg serial] is a valid
+[term canonical] serialization of a PEG and will throw an error if
+that is not the case. The result of the command is the empty string.
+
+[para]
+
+For the specification of canonical serializations see the section
+[sectref {PEG serialization format}].
+
+[call [cmd ::pt::peg] [method canonicalize] [arg serial]]
+
+This command assumes that the content of [arg serial] is a valid
+[term regular] serialization of a PEG and will throw an error if that
+is not the case.
+
+[para]
+
+It will then convert the input into the [term canonical] serialization
+of the contained PEG and return it as its result. If the input is
+already canonical it will be returned unchanged.
+
+[para]
+
+For the specification of regular and canonical serializations see the
+section [sectref {PEG serialization format}].
+
+[call [cmd ::pt::peg] [method print] [arg serial]]
+
+This command assumes that the argument [arg serial] contains a valid
+serialization of a parsing expression and returns a string containing
+that PE in a human readable form.
+
+[para]
+
+The exact format of this form is not specified and cannot be relied on
+for parsing or other machine-based activities.
+
+[para]
+
+For the specification of serializations see the section
+[sectref {PEG serialization format}].
+
+[call [cmd ::pt::peg] [method merge] \
+	[arg seriala] [arg serialb]]
+
+This command accepts the regular serializations of two grammars and
+uses them to create their union.  The result of the command is the
+canonical serialization of this unified grammar.
+
+[para]
+A merge errors occurs if for any nonterminal symbol S occuring in both
+input grammars the two input grammars specify different semantic
+modes.
+
+[para]
+The semantic mode of each nonterminal symbol S is the semantic mode of
+S in any of its input grammars. The previous rule made sure that for
+symbols occuring in both grammars these values are identical.
+
+[para]
+
+The right-hand side of each nonterminal symbol S occuring in both
+input grammars is the choice between the right-hand sides of S in the
+input grammars, with the parsing expression of S in [arg seriala]
+coming first, except if both expressions are identical. In that case
+the first expression is taken.
+
+[para]
+The right-hand side of each nonterminal symbol S occuring in only one
+of the input grammars is the right-hand side of S in its input
+grammar.
+
+[para]
+The start expression of the unified grammar is the choice between the
+start expressions of the input grammars, with the start expression of
+[arg seriala] coming first, except if both expressions are identical.
+In that case the first expression is taken
+
+[call [cmd ::pt::peg] [method equal] \
+	[arg seriala] [arg serialb]]
+
+This command tests the two grammars [arg seriala] and [arg serialb]
+for structural equality. The result of the command is a boolean
+value. It will be set to [const true] if the expressions are
+identical, and [const false] otherwise.
+
+[para]
+
+String equality is usable only if we can assume that the two grammars
+are pure Tcl lists and dictionaries.
+
+[list_end]
+
+[include include/serial/pegrammar.inc]
+[include include/serial/pexpression.inc]
+[include include/feedback.inc]
+[manpage_end]

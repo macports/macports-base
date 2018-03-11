@@ -1,0 +1,160 @@
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# 1_procedure_introduction.demo: This file is part of the TEPAM demo
+#
+# Copyright (C) 2009, 2010 Andreas Drollinger
+# 
+# Id: 1_procedure_introduction.demo
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+#### Initialization ####
+
+DemoControl(Initialization) 1
+DemoControl(IsExecutable) {0}
+
+# This demo gives a very short overview about the major features of the
+# advanced procedure and argument manager. This basically includes:
+#   - Procedure declaration
+#   - Interactive procedure help query
+#   - Procedure call with several argument definition variations
+#   - Interactive procedure call and argument definitions
+
+   package require Tk
+   package require tepam
+   namespace import -force tepam::*; # Import tepam::procedure and tepam::argument_dialogbox
+
+#### Procedure definition ####
+
+DemoControl(IsExecutable) {[info commands {display message}]=={}}
+
+# This first example section declares the sub procedure 'display message' that has
+# several arguments. The last one is an unnamed argument while the others are named 
+# arguments.
+
+   procedure {display message} {
+      -return            -
+      -short_description "Displays a simple message box"
+      -description       "This procedure allows displaying a configurable message box."
+      -args {
+         {-mtype -default Warning -choices {Info Warning Error} -description "M. type"}
+         {-font -type font -default {Arial 10 italic} -description "Message font"}
+         {-level -type integer -optional -range {1 10} -description "Message level"}
+         {-fg -type color -default black -description "Message color"}
+         {-bg -type color -optional -description "Background color"}
+         {-no_border -type none -description "Use a splash window style (no border)"}
+         {-log_file -type file -optional -description "Optional message log file"}
+         {text -type string -multiple -description "Multiple text lines to display"}
+      }
+      -example {
+         display message "The document hasn't yet been saved!"
+         display message -fg red -bg black "Please save first the document"
+      }
+   } {
+      puts "display message:"
+      foreach var {mtype font level fg bg no_border log_file text} {
+         if {[info exists $var]} {
+            puts  "  $var=[set $var]"
+         }
+      }
+   }
+
+#### Procedure help ####
+
+DemoControl(IsExecutable) {[info commands {display message}]!={} && !$Executed}
+
+# Simply call de declared procedure with the -help option to get the information to
+# the procedure and its arguments.
+
+   display message -help
+
+#### Correct procedure calls ####
+
+DemoControl(IsExecutable) {[info commands {display message}]!={} && !$Executed}
+
+# The specified procedure can be called in many ways:
+
+   display message "The document hasn't yet been saved!"
+   display message -fg red -bg black "Please save first the document"
+   display message -mtype Error -no_border "Why is here no border?"
+   display message -font {Courier 12} -level 10 "Is there enough space?" "Reduce otherwise the font size!"
+
+#### Incorrect procedure calls ####
+
+DemoControl(IsExecutable) {[info commands {display message}]!={} && !$Executed}
+
+# The next lines show how wrong arguments specifications are recognized.
+
+   # The argument 'text' is mandatory:
+   display message -font {Courier 12}
+
+   # Unknown options are leading to an error:
+   display message -category warning "Hello"
+
+   # The argument types are automatically checked. For example the colors:
+   display message -fg MyColor "Hello"
+
+   # Choice lists have to be respected:
+   display message -mtype "Fatal" "Hello"
+
+   # Ranges have to be respected:
+   display message -level 12 "Hello"
+
+#### Interactive procedure call ####
+
+DemoControl(IsExecutable) {[info commands {display message}]!={}}
+
+# The most intuitive way to call the procedure is using an interactive form that allows
+# specifying all arguments. This form will automatically be opened when the declared
+# procedure is called with the -interactive option.
+
+   display message -interactive
+
+#### Documentation generation ####
+
+DemoControl(IsExecutable) {[info commands {display message}]!={}}
+
+# The TEPAM documentation generation package allows generating documentation for the 
+# specified procedures in various formats. This demo section opens a dialog box to 
+# define the document name, and generates then the documentation based on the 
+# specified file format.
+
+   # Load TEPAM Doc Gen package
+   package require tepam::doc_gen
+
+   # Get the document file name
+   set DocFile [tk_getSaveFile \
+                   -filetypes {{Text *.txt} {HTML *.html} {POD *.pod} {"Tcllib doctools" *.dt}}]
+
+   # Extract the document type
+   set DocFormat [string toupper [string range [file extension $DocFile] 1 end]]
+   
+   # Generate the document. In case of a HTML document copy also the CSS stylesheet 
+   # to the document destination folder. In case of an unknown document type 
+   # generate an error message.
+   if {$DocFile!=""} {
+      if {[lsearch -exact {TXT HTML POD DT} $DocFormat]<0} {
+         tk_messageBox -message "Extension '$DocFormat' of file '$DocFile' unknown!\
+                                 Chose either extension .txt, .html, .pod or .dt"
+      } else {
+         tepam::doc_gen::generate -format $DocFormat -dest_file $DocFile {display message}
+         if {$DocFormat=="HTML"} {
+            file copy -force [pwd]/tepam_doc_stylesheet.css [file dirname $DocFile]
+         }
+      }
+   }
+
+##########################################################################
+# Id: 1_procedure_introduction.demo
+# Modifications:
+#
+# Revision 1.2  2013/10/14 droll
+# * Add the documentation generation section
+#
+# Revision 1.1  2010/02/11 21:54:38  droll
+# * TEPAM module checkin
+##########################################################################

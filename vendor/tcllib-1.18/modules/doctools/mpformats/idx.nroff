@@ -1,0 +1,81 @@
+# -*- tcl -*-
+#
+# $Id: idx.nroff,v 1.7 2009/01/30 04:56:47 andreas_kupries Exp $
+#
+# Engine to convert a docidx document into nroff.
+#
+# Copyright (c) 2003 Andreas Kupries <andreas_kupries@sourceforge.net>
+# Freely redistributable.
+#
+######################################################################
+
+dt_source _idx_common.tcl
+dt_source _nroff.tcl
+
+######################################################################
+# Conversion specification.
+#
+# One-pass processing.
+
+proc idx_postprocess {nroff} {
+    # Postprocessing after generation ...
+    # Strip empty lines out of the generated nroff source
+    # and trim leading blanks, except in code samples.
+
+    set lines [list]
+    foreach line [split $nroff "\n"] {
+	set line [string trim $line]
+	if {0 == [string length $line]} {
+	    continue
+	}
+	lappend lines $line
+    } 
+    return [nroff_postprocess [join $lines \n]]
+}
+
+#proc fmt_plain_text {text} {if {$text != {}} {return \n} else {return {}}}
+proc fmt_plain_text {text} {return {}}
+
+################################################################
+## Backend for NROFF markup
+
+global prec ok haskey
+set    prec   ""
+set    ok     0
+set    haskey 0
+
+proc fmt_index_begin     {label title}      {
+    global prec ok
+    set ok 1
+    set     hdr [nr_comment {}]\n
+    if {$prec != {}} {
+	set hdr [nr_comment $prec]\n
+    }
+    append  hdr [nr_comment [c_provenance]]\n
+    append  hdr [nr_title "\"[string trimleft $label :]\" n"]\n
+    append  hdr [nr_read man.macros]\n
+    append  hdr [nr_bolds]\n
+    append  hdr [nr_section INDEX]\n
+    append  hdr $title[nr_in]\n
+    return $hdr
+}
+proc fmt_index_end {}          {return [nr_out]}
+proc fmt_key       {text}      {
+    global haskey
+    set res ""
+    if {$haskey} {append res [nr_out]\n}
+    append res $text[nr_in]\n
+    set haskey 1
+    return $res
+}
+proc fmt_manpage   {file label} {return [nr_blt [nr_bld]$file[nr_rst]]\n$label\n}
+proc fmt_url       {url label}  {return [nr_blt [nr_bld]$url[nr_rst]]\n$label\n}
+
+proc fmt_comment {text} {
+    global prec ok
+    if {$ok} {return [nr_comment $text]}
+    append prec $text \n
+    return {}
+}
+
+################################################################

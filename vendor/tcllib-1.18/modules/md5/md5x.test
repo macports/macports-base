@@ -1,0 +1,216 @@
+# -*- tcl -*-
+# md5.test:  tests for the md5 commands
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2001 by ActiveState Tool Corp.
+# All rights reserved.
+#
+# RCS: @(#) $Id: md5x.test,v 1.17 2008/04/08 00:33:07 patthoyts Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal md5x.tcl md5
+}
+
+# -------------------------------------------------------------------------
+
+if {[::md5::LoadAccelerator critcl]} {
+    puts "> critcl based"
+}
+if {[::md5::LoadAccelerator cryptkit]} {
+    puts "> cryptkit based"
+}
+if {[::md5::LoadAccelerator trf]} {
+    puts "> Trf based"
+}
+puts "> pure Tcl"
+
+# -------------------------------------------------------------------------
+# Handle multiple implementation testing
+#
+
+array set preserve [array get ::md5::accel]
+
+proc implementations {} {
+    variable ::md5::accel
+    foreach {a v} [array get accel] {if {$v} {lappend r $a}}
+    lappend r tcl; set r
+}
+
+proc select_implementation {impl} {
+    variable ::md5::accel
+    foreach e [array names accel] { set accel($e) 0 }
+    if {[string compare "tcl" $impl] != 0} {
+        set accel($impl) 1
+    }
+}
+
+proc reset_implementation {} {
+    variable ::md5::accel
+    array set accel [array get ::preserve]
+}
+
+# -------------------------------------------------------------------------
+
+test md5-v2-1.0 {md5} {
+    catch {::md5::md5} result
+    set result
+} {wrong # args: should be "md5 ?-hex? -filename file | string"}
+# [tcltest::wrongNumArgs "md5" "?-hex? -filename file | string" 0]
+
+test md5-v2-1.1 {md5} {
+    catch {::md5::hmac} result
+    set result
+} {wrong # args: should be "hmac ?-hex? -key key -filename file | string"}
+# [tcltest::wrongNumArgs "hmac" "?-hex? -key key -filename file | string" 0]
+
+test md5-v2-1.2 {md5} {
+    catch {::md5::hmac key} result
+    set result
+} {wrong # args: should be "hmac ?-hex? -key key -filename file | string"}
+# [tcltest::wrongNumArgs "hmac" "?-hex? -key key -filename file | string" 1]
+
+
+set tests {
+    1    ""
+    "D41D8CD98F00B204E9800998ECF8427E"
+    2    "a"
+    "0CC175B9C0F1B6A831C399E269772661"
+    3    "abc"
+    "900150983CD24FB0D6963F7D28E17F72"
+    4    "message digest"
+    "F96B697D7CB7938D525A2F31AAF161D0"
+    5    "abcdefghijklmnopqrstuvwxyz"
+    "C3FCD3D76192E4007DFB496CCA67E13B"
+    6    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    "D174AB98D277D9F5A5611C2C9F419D9F"
+    7    "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "57EDF4A22BE3C955AC49DA2E2107B67A"
+    8    "a\$apr1\$a" "020C3DD6931F7E94ECC99A1F4E4C53E2"
+}
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n msg expected} $tests {
+        test md5-v2-$impl-2.$n "md5 ($impl impl)" {
+            list [catch {::md5::md5 -hex -- $msg} msg] $msg
+        } [list 0 $expected]
+    }
+    reset_implementation
+}
+
+set vectors {
+    1 ""     ""      "74E6F7298A9C2D168935F58C001BAD88"
+    2 "\x01" ""      "DFA55EFBE6ED07FA2E056E57E949930A"
+    3 "foo"  "hello" "EF2AC8901530DB30AA56929ADFE5E13B"
+    4 "bar"  "world" "DFC05594B019ED51535922A1295446E8"
+    5 "key"  "text"  "D0CA6177C61C975FD2F8C07D8C6528C6"
+    6 "md5"  "hmac"  "D189F362DAF86A5C8E14BA4ABA91B260"
+    7 "hmac" "md5"   "480343CF0F2D5931EC4923E81059FB84"
+    8 "md5"  "md5"   "92C5FB986E345F21F181047AB939EC77"
+    9 "hmac" "hmac"  "08ABBE58A55219789E3EEDE153808A56"
+   10 "01234567abcdefgh01234567abcdefgh01234567abcdefgh01234567abcdefgh==" "hello world"
+    "CF0237466F9B3C773858A1892B474C9E"
+   11 "-"    "a"     "E3BA60E98ED812A68AEB04A8FF57AC8E"
+   12 "a"    "-"     "A9DD01C469578DCD4220600667DF6FFB"
+} 
+
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n key text expected} $vectors {
+        test md5-v2-$impl-3.$n "hmac ($impl impl)" {
+            list [catch {::md5::hmac -hex -key $key -- $text} msg] $msg
+        } [list 0 $expected]
+    }
+    reset_implementation
+}
+
+# -------------------------------------------------------------------------
+# RFC 2202 has a set of test vectors for HMAC-MD5 and HMAC-SHA1.
+# This is those test vectors...
+# -------------------------------------------------------------------------
+
+set vectors \
+    [list \
+         1 [string repeat \x0b 16] "Hi There" \
+         9294727A3638BB1C13F48EF8158BFC9D \
+         2 "Jefe" "what do ya want for nothing?" \
+         750C783E6AB0B503EAA86E310A5DB738 \
+         3 [string repeat \xaa 16] [string repeat \xdd 50] \
+         56BE34521D144C88DBB8C733F0E8B3F6 \
+         4 \
+         [binary format H* 0102030405060708090a0b0c0d0e0f10111213141516171819]\
+         [string repeat \xcd 50] \
+         697EAF0ACA3A3AEA3A75164746FFAA79 \
+         5 [string repeat \x0c 16] "Test With Truncation" \
+         56461EF2342EDC00F9BAB995690EFD4C \
+         6 [string repeat \xaa 80] \
+         "Test Using Larger Than Block-Size Key - Hash Key First" \
+         6B1AB7FE4BD7BF8F0B62E6CE61B9D0CD \
+         7 [string repeat \xaa 80] \
+         "Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data" \
+         6F630FAD67CDA0EE1FB1F562DB3AA53E \
+        ]
+
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n key msg hash} $vectors {
+        test md5-v2-$impl-4.$n "RFC2202 test vectors for HMAC-MD5 ($impl)" {
+            ::md5::hmac -hex -key $key -- $msg
+        } $hash
+    }
+}
+
+# -------------------------------------------------------------------------
+
+test md5-v2-6.1 {Check hashing data that begins with hyphen} {
+    list [catch {::md5::md5 -hex -hello} msg] $msg
+} {0 110CD19610AD6247F30263C882670CC1}
+
+test md5-v2-6.2 {Check hashing data that begins with hyphen} {
+    list [catch {::md5::md5 -hex -- -hello} msg] $msg
+} {0 110CD19610AD6247F30263C882670CC1}
+
+test md5-v2-6.3 {Check hashing data that begins with hyphen} {
+    list [catch {::md5::md5 -hex --} msg] $msg
+} {0 CFAB1BA8C67C7C838DB98D666F02A132}
+
+test md5-v2-6.4 {Check hashing data that begins with hyphen} {
+    list [catch {::md5::md5 -hex -- --} msg] $msg
+} {0 CFAB1BA8C67C7C838DB98D666F02A132}
+
+test md5-v2-7.1 {Check hmac data that begins with hyphen} {
+    list [catch {::md5::hmac -hex -key "" -hello} msg] $msg
+} {0 6C39C49DA482D110B72B72F24E082E0F}
+
+test md5-v2-7.2 {Check hmac data that begins with hyphen} {
+    list [catch {::md5::hmac -hex -key "" -- -hello} msg] $msg
+} {0 6C39C49DA482D110B72B72F24E082E0F}
+
+test md5-v2-7.3 {Check hmac data that begins with hyphen} {
+    list [catch {::md5::hmac -hex -key "" --} msg] $msg
+} {0 8EB61D377088779210AD82659AECD631}
+
+test md5-v2-7.4 {Check hmac data that begins with hyphen} {
+    list [catch {::md5::hmac -hex -key "" -- --} msg] $msg
+} {0 8EB61D377088779210AD82659AECD631}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# -------------------------------------------------------------------------
+# Local Variables:
+#   mode: tcl
+#   indent-tabs-mode: nil
+# End:

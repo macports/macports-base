@@ -1,0 +1,194 @@
+
+<div class='fossil-doc' data-title='struct::queue - Tcl Data Structures'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">struct::queue(n) 1.4.5 tcllib &quot;Tcl Data Structures&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>struct::queue - Create and manipulate queue objects</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">struct::queue <span class="opt">?1.4.5?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><i class="arg">queueName</i> <b class="cmd">option</b> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+<li><a href="#2"><i class="arg">queueName</i> <b class="cmd">clear</b></a></li>
+<li><a href="#3"><i class="arg">queueName</i> <b class="cmd">destroy</b></a></li>
+<li><a href="#4"><i class="arg">queueName</i> <b class="cmd">get</b> <span class="opt">?<i class="arg">count</i>?</span></a></li>
+<li><a href="#5"><i class="arg">queueName</i> <b class="cmd">peek</b> <span class="opt">?<i class="arg">count</i>?</span></a></li>
+<li><a href="#6"><i class="arg">queueName</i> <b class="cmd">put</b> <i class="arg">item</i> <span class="opt">?<i class="arg">item ...</i>?</span></a></li>
+<li><a href="#7"><i class="arg">queueName</i> <b class="cmd">unget</b> <i class="arg">item</i></a></li>
+<li><a href="#8"><i class="arg">queueName</i> <b class="cmd">size</b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="namespace">::struct</b> namespace contains a commands for processing
+finite queues.</p>
+<p>It exports a single command, <b class="cmd">::struct::queue</b>. All functionality
+provided here can be reached through a subcommand of this command.</p>
+<p><em>Note:</em> As of version 1.4.1 of this package a critcl based C
+implementation is available. This implementation however requires Tcl
+8.4 to run.</p>
+<p>The <b class="cmd">::struct::queue</b> command creates a new queue object with an
+associated global Tcl command whose name is <em>queueName</em>.  This
+command may be used to invoke various operations on the queue.  It has
+the following general form:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><i class="arg">queueName</i> <b class="cmd">option</b> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p><i class="arg">Option</i> and the <i class="arg">arg</i>s determine the exact behavior of the
+command.  The following commands are possible for queue objects:</p></dd>
+<dt><a name="2"><i class="arg">queueName</i> <b class="cmd">clear</b></a></dt>
+<dd><p>Remove all items from the queue.</p></dd>
+<dt><a name="3"><i class="arg">queueName</i> <b class="cmd">destroy</b></a></dt>
+<dd><p>Destroy the queue, including its storage space and associated command.</p></dd>
+<dt><a name="4"><i class="arg">queueName</i> <b class="cmd">get</b> <span class="opt">?<i class="arg">count</i>?</span></a></dt>
+<dd><p>Return the front <i class="arg">count</i> items of the queue and remove them from
+the queue.  If <i class="arg">count</i> is not specified, it defaults to 1.  If
+<i class="arg">count</i> is 1, the result is a simple string; otherwise, it is a
+list.  If specified, <i class="arg">count</i> must be greater than or equal to 1.
+If there are not enough items in the queue to fulfull the request,
+this command will throw an error.</p></dd>
+<dt><a name="5"><i class="arg">queueName</i> <b class="cmd">peek</b> <span class="opt">?<i class="arg">count</i>?</span></a></dt>
+<dd><p>Return the front <i class="arg">count</i> items of the queue, without removing them
+from the queue.  If <i class="arg">count</i> is not specified, it defaults to 1.
+If <i class="arg">count</i> is 1, the result is a simple string; otherwise, it is a
+list.  If specified, <i class="arg">count</i> must be greater than or equal to 1.
+If there are not enough items in the queue to fulfull the request,
+this command will throw an error.</p></dd>
+<dt><a name="6"><i class="arg">queueName</i> <b class="cmd">put</b> <i class="arg">item</i> <span class="opt">?<i class="arg">item ...</i>?</span></a></dt>
+<dd><p>Put the <i class="arg">item</i> or items specified into the queue.  If more than
+one <i class="arg">item</i> is given, they will be added in the order they are
+listed.</p></dd>
+<dt><a name="7"><i class="arg">queueName</i> <b class="cmd">unget</b> <i class="arg">item</i></a></dt>
+<dd><p>Put the <i class="arg">item</i> into the queue, at the front, i.e. before any other
+items already in the queue. This makes this operation the complement
+to the method <b class="method">get</b>.</p></dd>
+<dt><a name="8"><i class="arg">queueName</i> <b class="cmd">size</b></a></dt>
+<dd><p>Return the number of items in the queue.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>struct :: queue</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key305">graph</a>, <a href="../../../../index.html#key302">list</a>, <a href="../../../../index.html#key51">matrix</a>, <a href="../../../../index.html#key304">pool</a>, <a href="../../../../index.html#key308">prioqueue</a>, <a href="../../../../index.html#key307">record</a>, <a href="../../../../index.html#key301">set</a>, <a href="../../../../index.html#key306">skiplist</a>, <a href="../../../../index.html#key303">stack</a>, <a href="../../../../index.html#key300">tree</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Data structures</p>
+</div>
+</div>

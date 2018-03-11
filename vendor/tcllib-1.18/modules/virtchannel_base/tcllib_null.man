@@ -1,0 +1,45 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcl::chan::null n 1]
+[keywords /dev/null]
+[keywords null]
+[keywords {reflected channel}]
+[keywords {tip 219}]
+[keywords {virtual channel}]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Reflected/virtual channel support}]
+[category  Channels]
+[titledesc {Null channel}]
+[require Tcl 8.5]
+[require TclOO]
+[require tcl::chan::events [opt 1]]
+[require tcl::chan::null [opt 1]]
+[description]
+[para]
+
+The [package tcl::chan::null] package provides a command creating null
+channels, i.e. write-only channels which immediately forget whatever
+is written to them. This is equivalent to the null channels provided by
+the package [package Memchan], except that this is written in pure Tcl,
+not C. On the other hand, [package Memchan] is usable with Tcl 8.4 and
+before, whereas this package requires Tcl 8.5 or higher, and
+[package TclOO].
+
+[para] Packages related to this are [package tcl::chan::zero] and
+[package tcl::chan::nullzero].
+
+[para] The internal [package TclOO] class implementing the channel
+handler is a sub-class of the [package tcl::chan::events] framework.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::tcl::chan::null]]
+
+This command creates a new null channel and returns its handle.
+
+[list_end]
+
+[vset CATEGORY virtchannel]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,335 @@
+2013-03-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.man: Added references to the relevant RFCs 1939 and 2449.
+	* rfc1939.txt: Removed copies of RFC documents. Keep only links.
+	* rfc2449.txt:
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-11-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.test: Another update to accept both 127.x.x.x and ::1 as
+	  possible result. The OS configuration may cause return of the
+	  former even for 8.6+.
+
+2011-11-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.test: Updated the tests to handle Tcl 8.6+ IPv6 changes.
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-09-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.test: Fixed typos in expected results, the socket command
+	  comes back fully qualified.
+
+2009-04-14  Andreas Kupries  <andreask@activestate.com>
+
+	* pop3d.man: Updated documentation with example on how to use the
+	  option -socket to secure the server channel with TLS.
+	* pop3d.tcl: Fixed typos in comments.
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.test: Updated to prevent the multiple loading of comm.
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.man: Fixed all warnings due to use of now deprecated
+	* pop3d_dbox.man: commands. Added a section about how to give feedback.
+	* pop3d_udb.man:
+
+2006-10-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.test: Accept anything matching 127.*.*.* as ip-address for
+	  localhost.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries <andreask@activestate.com>
+
+	* pop3d.test: Fixed the tests requiring tcltest 2.x syntax,
+	  despite our declaration that tcltest 1.0 is acceptable. This
+	  broke 8.2/8.3, and the missing shutdown of the fake client
+	  processes then hung the testsuite at the end.
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.test: .... Fixed usage of temp. files by testsuite. Fixed
+	* pop3d_dbox.test: use of duplicate test names.
+	* pop3d_udb.test: 
+
+2006-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.test: More boilerplate simplified via use of test support.
+	* pop3d_dbox.test:
+	* pop3d_udb.test:
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.test: Hooked into the new common test support code.
+	* pop3d_dbox.test:
+	* pop3d_udb.test:
+
+2006-01-10  Andreas Kupries <andreask@activestate.com>
+
+	* pop3d.test: Fixed [SF Tcllib Bug 1316057]. Uncluttering test
+	  output.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-09-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pkgIndex.tcl: Fixed version inconsistency.
+
+2005-09-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.tcl (H_capa): Replaced 8.4isms (operator eq) with usage of
+	  'string equal'. The module is for 8.3+.
+
+2005-07-07  Reinhard Max  <max@suse.de>
+
+	* pop3d.test: Using wildcards in some expected results so that
+	they don't need adjustments every time the version number is
+	bumped. Added tests for CAPA.
+ 
+	* pop3d.tcl: Added basic support for the CAPA command as specified
+	in RFC2449. Cleaned up and optimized pop3d::Transfer.
+	
+	* pop3d.man: Added documentation for [autCmd exists].
+
+	* rfc2449.txt: New file: "POP3 Extension Mechanism".
+	
+2005-07-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.man: Bumped version number to 1.1.0.
+
+2005-07-06  Reinhard Max  <max@suse.de>
+
+	* pop3d.tcl:  Added a -socket option to server objects, so that
+	* pop3d.man:  e.g. SSL sockets from the tls extension can be
+	* pop3d.test: used. Bumped version number to 1.1.0.
+ 
+2004-10-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.test: Made verbosity easier to switch, and log output a
+	  bit more readable.
+
+	* pop3d.tcl:  Made prefix strings of log output consistent.
+
+2004-10-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.test: Rewritten to use the new facilities for programmed
+	  interaction and sub processes.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-08-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d_dbox.test: Fixed problems with usage of md5, now
+	* pop3d.test:      switchable between v1 and v2.
+	* pop3d.tcl:
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2004-02-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pkgIndex.tcl:   Both pop3d and dbox rely on 'mime', which requires
+	* pop3d.man:      Tcl 8.3. This implies that these packages require
+	* pop3d_dbox.man: Tcl 8.3 as well, and not 8.2, as advertised.
+
+	* pop3d.tcl: Requiring v1 of md5 explicitly.
+
+	* pop3d.test:      Explicitly loading the supporting packages
+	* pop3d_dbox.test: (mime, md5, dbox, udb, ...). Ensured usage of
+	  md5 v1. Excluding the whole series of tests if the interpreter
+	  is not at least 8.3. Added suppression of logger output.
+
+2003-10-21  Andreas Kupries  <andreask@activestate.com>
+
+	* pop3d.tcl (H_quit): Remember the handle of the idle event we are
+	  scheduling. This event can be passed by by an eof on the
+	  channel. (CloseConnection): Kill a pending idle event, it was
+	  passed by and is not relevant anymore. [Bug 650977].
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-05-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.test: Added propagation of auto_path so that
+	  sub-processes are able to find additional packages even if
+	  tcllib is not installed.
+
+2003-04-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.test: Updated to new version number.
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* pop3d.tcl:
+	* pop3d.man:
+	* pop3d_dbox.tcl:
+	* pop3d_dbox.man:
+	* pop3d_udb.tcl:
+	* pop3d_udbx.man:
+	* pkgIndex.tcl: Set version of the package 'pop3d' to to
+	  1.0.1. 'dbox' is now at version 1.1. 'udb' is now at version
+	  1.0.1.
+
+2003-04-09  Andreas Kupries  <andreask@activestate.com>
+
+	* pop3d.tcl: A bit more logging of internals.
+
+2003-04-02  Andreas Kupries  <andreask@activestate.com>
+
+	* pop3d_dbox.tcl: Started to add log output.
+
+	* pop3d.tcl: Added "."-stuffing. Not done by mime, out of scope,
+	  has to be done by the transport, i.e. the pop3 demon. Also
+	  removed the transmission of superfluous newline at end of the
+	  message.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.man: More semantic markup, less visual one.
+	* pop3d_dbox.man:
+	* pop3d_udb.man: 
+
+2002-09-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.tcl (Transfer): Use a single dot to write the
+	  terminator. Not \n.\n. Puts does the terminating \n, and
+	  buildmessage/copymessage the other. Brought the client out of
+	  sync after a retrieval because of an empty line after the
+	  terminator line of the multi-line response.
+
+2002-08-31  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Note aside: The pop3 server may understate the size of a message
+	  and of the maildrop. This happens as the package 'mime' we use
+	  to transfer a message may add additional headers not present in
+	  the original message (For example Mime-Version and/or
+	  Content-Type).
+
+	* pop3d.tcl (::pop3d::Transfer): Fixed oversight in my usage of
+	  'mime::copymessage'. This command copies a mime message to a
+	  channel, but does not know about the framing protocol. In other
+	  words, it does not write the singular dot closing a pop3 data
+	  transfer. We have to do this in the calling routine. Added such
+	  a piece of code. Fixed problem with distinguishing RETR and TOP
+	  modes, wrong conditional.
+
+	* pop3d.test: 
+	* pop3d.tcl (CheckLogin): Now additionally retrieves size of
+	  maildrop after querying the number of waiting messages.
+	  (H_stat): Returns size of maildrop as second result of
+	  STAT. Bugfix, pop3d was not rfc 1939 compliant with respect to
+	  STAT, and now is. This problem was found while working on the
+	  testsuite for the pop3 package (Result of pop3::stat was
+	  bogus). Updated the testsuite.
+
+	* pop3d_dbox.tcl: 
+	* pop3d_dbox.man: method 'size' no accepts a call without message
+	  id and returns the total size of the mail drop for that
+	  case. Reason for the change: see above.
+
+2002-06-17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.test: Modified testsuite courtesy Gerald Lester
+	  <gwlester@users.sourceforge.net> for better execution of the
+	  subshells under windows.
+
+2002-05-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d.test:
+	* pop3d.man:
+	* pop3d_dbox.tcl: Split port into configured port and true
+	  port. This allows the usage of port "0" to force auto-selection
+	  of a free port. Documented the special behaviour of
+	  -port. Created testsuite for pop3 server. Tcllib #532216.
+
+2002-05-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pop3d_dbox.man:
+	* pop3d_dbox.tcl:
+	* pop3d_dbox.test: New method [destroy]. Extended
+	  documentation. Clarified interaction lock/remove and interaction
+	  lock/stat/(size/get/dele). Added checks of message ids in size,
+	  get, dele. Added general check of define base directory to all
+	  methods. Added testsuite. Bugfixes. Tcllib #532216.
+
+	* pop3d_udb.man:
+	* pop3d_udb.tcl: 
+	* pop3d_udb.test: Documented [destroy]. Fixed documentation of
+	  [lookup], refered to non-existing method [do]. Added [destroy]
+	  method. Added test suite. Tcllib #532216.
+
+2002-03-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* New module. Pop3 server, and associated objects for simple user
+	  and mailbox management. No testsuite yet. Testsuite will be
+	  written in conjunction with testsuite for pop3 module.

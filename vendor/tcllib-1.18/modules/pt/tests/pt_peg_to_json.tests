@@ -1,0 +1,45 @@
+# -*- tcl -*-
+# General set of error cases regarding the number of arguments.
+
+test pt-peg-to-json-1.0 {convert, wrong#args} -body {
+    pt::peg::to::json convert
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::json convert serial"}
+
+test pt-peg-to-json-1.1 {convert, wrong#args} -body {
+    pt::peg::to::json convert S XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::json convert serial"}
+
+test pt-peg-to-json-2.0 {reset, wrong#args} -body {
+    pt::peg::to::json reset XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg::to::json reset"}
+
+# -------------------------------------------------------------------------
+
+# TODO :: Tests missing for: configure/cget, reset
+
+# -------------------------------------------------------------------------
+
+# Testing the generation of json output, from grammar serialization,
+# for all possible configurations of this plugin.
+
+foreach {k in al section} {
+    0 0 0 -ultracompact
+    1 1 0 -indented
+    2 0 1 -indalign
+    3 1 1 -indalign
+} {
+    TestFilesProcess $mytestdir ok peg_serial-canonical peg_json$section -> n label input data expected {
+	test pt-peg-to-json-3.$k.$n "pt::peg::to::json, $label$section, ok :- $input" -setup {
+	    pt::peg::to::json reset
+	    pt::peg::to::json configure -indented $in
+	    pt::peg::to::json configure -aligned  $al
+	} -body {
+	    pt::peg::to::json convert $data
+	} -cleanup {
+	    pt::peg::to::json reset
+	} -result $expected
+    }
+}
+
+#----------------------------------------------------------------------
+unset n label input data expected

@@ -1,0 +1,167 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'json' parser
+# to allow developers to monitor package performance.
+#
+# (c) 2013 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+# We need at least version 8.4 for the package and thus the
+# benchmarks.
+
+if {![package vsatisfies [package present Tcl] 8.4]} {
+    bench_puts "Need Tcl 8.4+, found Tcl [package present Tcl]"
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+package require Tcl 8.4
+
+package forget json
+
+set self  [file join [pwd] [file dirname [info script]]]
+set mod   [file dirname $self]
+set index [file join [file dirname $self] tcllibc pkgIndex.tcl]
+
+if 1 {
+    if {[file exists $index]} {
+	set ::dir [file dirname $index]
+	uplevel #0 [list source $index]
+	unset ::dir
+	package require tcllibc
+    }
+}
+
+source [file join $self json.tcl]
+
+# ### ### ### ######### ######### ######### ###########################
+## Helpers
+
+proc cat {f} {
+    set c [open $f]
+    set d [read $c]
+    close $c
+    return $d
+}
+
+proc iota {n} {
+    set r {}
+    while {$n > 0} {
+	lappend r [json::string2json $n]
+	incr n -1
+    }
+    return $r
+}
+
+proc iota-dict {n} {
+    set r {}
+    while {$n > 0} {
+	lappend r f$n [json::string2json $n]
+	incr n -1
+    }
+    return $r
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Get all the possible implementations
+
+json::SwitchTo {}
+foreach e [json::KnownImplementations] {
+    ::json::LoadAccelerator $e
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+## Just the parser, on the valid inputs for the testsuite.
+
+foreach impl [json::Implementations] {
+    json::SwitchTo $impl
+
+    if {$impl eq "tcl"} {
+	set series {0 1 10 100 1000}
+    } else {
+	set series {0 1 10 100 1000}
+    }
+
+    bench_puts "=== === === === === ==="
+    bench_puts "=== === === $impl ==="
+    bench_puts "=== === === === === ==="
+
+    bench_puts {=== test-data =========}
+
+    foreach f [glob -nocomplain -directory $self/tests *.json] {
+	set in [cat $f]
+
+	bench -desc "parse [file rootname [file tail $f]] ($impl)" -body {
+	    json::json2dict $in
+	}
+
+	bench -desc "validate [file rootname [file tail $f]] ($impl)" -body {
+	    json::validate $in
+	}
+    }
+
+    foreach f [glob -nocomplain -directory $self/tests *.bench] {
+	set in [cat $f]
+
+	bench -desc "parse [file rootname [file tail $f]] ($impl)" -body {
+	    json::json2dict $in
+	}
+
+	bench -desc "validate [file rootname [file tail $f]] ($impl)" -body {
+	    json::validate $in
+	}
+    }
+
+    bench_puts {=== synthetic array =========}
+
+    foreach n $series {
+	set in [json::list2json [iota $n]]
+
+	bench -desc "parse array-$n ($impl)" -body {
+	    json::json2dict $in
+	}
+
+	bench -desc "validate array-$n ($impl)" -body {
+	    json::validate $in
+	}
+    }
+
+    bench_puts {=== synthetic object =========}
+
+    foreach n $series {
+	set in [json::dict2json [iota-dict $n]]
+
+	bench -desc "parse object-$n ($impl)" -body {
+	    json::json2dict $in
+	}
+
+	bench -desc "validate object-$n ($impl)" -body {
+	    json::validate $in
+	}
+    }
+
+    bench_puts {=== synthetic string =========}
+
+    foreach n $series {
+	set in [json::string2json [string repeat . $n]]
+
+	bench -desc "parse string-$n ($impl)" -body {
+	    json::json2dict $in
+	}
+
+	bench -desc "validate string-$n ($impl)" -body {
+	    json::validate $in
+	}
+    }
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete
+
+return
+
+# ### ### ### ######### ######### ######### ###########################
+## Notes ...

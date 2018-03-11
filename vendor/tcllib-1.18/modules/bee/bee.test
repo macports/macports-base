@@ -1,0 +1,384 @@
+# -*- tcl -*-
+# bee.test:  tests for the bee encoding.
+#
+# Copyright (c) 2004 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: bee.test,v 1.9 2006/10/09 21:41:39 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+testing {
+    useLocal bee.tcl bee
+}
+
+# -------------------------------------------------------------------------
+# encoder ............................................................
+
+test bee-1.0 {encoder, string} {
+    bee::encodeString ""
+} {0:}
+
+test bee-1.1 {encoder, string} {
+    bee::encodeString spam
+} {4:spam}
+
+test bee-1.2 {encoder, string, wrong#args} {
+    catch {bee::encodeString} msg
+    set msg
+} [tcltest::wrongNumArgs {bee::encodeString} {string} 1]
+
+test bee-1.3 {encoder, string, wrong#args} {
+    catch {bee::encodeString 3 4} msg
+    set msg
+} [tcltest::tooManyArgs {bee::encodeString} {string}]
+
+
+
+test bee-2.0 {encoder, integer} {
+    bee::encodeNumber 0
+} {i0e}
+
+test bee-2.1 {encoder, integer, stupid zero} {
+    bee::encodeNumber -0
+} {i0e}
+
+test bee-2.2 {encoder, integer, good octal} {
+    bee::encodeNumber 004
+} {i4e}
+
+test bee-2.3 {encoder, integer, negatives} {
+    bee::encodeNumber -5
+} {i-5e}
+
+test bee-2.4 {encoder, integer, non-numeric} {
+    catch {bee::encodeNumber spam} msg
+    set msg
+} {Expected integer number, got "spam"}
+
+test bee-2.5 {encoder, integer, bad octal} {
+    catch {bee::encodeNumber 009} msg
+    set msg
+} {Expected integer number, got "009"}
+
+test bee-2.6 {encoder, integer, hex} {
+    bee::encodeNumber 0x45
+} {i69e}
+
+test bee-2.7 {encoder, integer, wrong#args} {
+    catch {bee::encodeNumber} msg
+    set msg
+} [tcltest::wrongNumArgs {bee::encodeNumber} {num} 1]
+
+test bee-2.8 {encoder, integer, wrong#args} {
+    catch {bee::encodeNumber 3 4} msg
+    set msg
+} [tcltest::tooManyArgs {bee::encodeNumber} {num}]
+
+
+
+test bee-3.0 {encoder, list, empty} {
+    bee::encodeListArgs
+} {le}
+
+test bee-3.1 {encoder, list, empty elements} {
+    bee::encodeListArgs [bee::encodeString {}] [bee::encodeString {}]
+} {l0:0:e}
+
+test bee-3.2 {encoder, list, regular elements} {
+    bee::encodeListArgs [bee::encodeString eggs] [bee::encodeNumber 12]
+} {l4:eggsi12ee}
+
+test bee-3.3 {encoder, list, empty} {
+    bee::encodeList {}
+} {le}
+
+test bee-3.4 {encoder, list, empty elements} {
+    bee::encodeList [list [bee::encodeString {}] [bee::encodeString {}]]
+} {l0:0:e}
+
+test bee-3.5 {encoder, list, regular elements} {
+    bee::encodeList [list [bee::encodeString eggs] [bee::encodeNumber 12]]
+} {l4:eggsi12ee}
+
+test bee-3.6 {encoder, list, empty} {
+    catch {bee::encodeList} msg
+    set msg
+}  [tcltest::wrongNumArgs {bee::encodeList} {list} 1]
+
+test bee-3.7 {encoder, list, empty} {
+    catch {bee::encodeList 1 2} msg
+    set msg
+}  [tcltest::tooManyArgs {bee::encodeList} {list}]
+
+
+test bee-4.0 {encoder, dict, empty} {
+    bee::encodeDictArgs
+} {de}
+
+test bee-4.1 {encoder, dict, empty elements} {
+    bee::encodeDictArgs {} [bee::encodeString {}]
+} {d0:0:e}
+
+test bee-4.2 {encoder, dict, regular elements} {
+    bee::encodeDictArgs eggs [bee::encodeNumber 12]
+} {d4:eggsi12ee}
+
+test bee-4.3 {encoder, dict, empty} {
+    bee::encodeDict {}
+} {de}
+
+test bee-4.4 {encoder, dict, empty elements} {
+    bee::encodeDict [list {} [bee::encodeString {}]]
+} {d0:0:e}
+
+test bee-4.5 {encoder, dict, regular elements} {
+    bee::encodeDict [list eggs [bee::encodeNumber 12]]
+} {d4:eggsi12ee}
+
+test bee-4.6 {encoder, dict, empty} {
+    catch {bee::encodeDict} msg
+    set msg
+}  [tcltest::wrongNumArgs {bee::encodeDict} {dict} 1]
+
+test bee-4.7 {encoder, dict, empty} {
+    catch {bee::encodeDict 1 2} msg
+    set msg
+}  [tcltest::tooManyArgs {bee::encodeDict} {dict}]
+
+test bee-4.8 {encoder, dict, sorted keys} {
+    bee::encodeDictArgs spam  [bee::encodeNumber 2] eggs [bee::encodeNumber 12]
+} {d4:eggsi12e4:spami2ee}
+
+
+# decoder ............................................................
+
+proc tick {m tok args} {
+    global  res tick
+    lappend res $m $args
+    if {$m eq "eof" || $m eq "error"} {set tick 0}
+    return
+}
+
+proc tickoff {m tok args} {
+    global  res tick
+    lappend res $m $args
+    bee::decodeCancel $tok
+    set tick 0
+    return
+}
+
+proc gen {name data} {
+    set                       path [makeFile {} $name]
+    set              f [open $path w]
+    puts -nonewline $f $data
+    close           $f
+    return $path
+}
+
+foreach {n bee result} {
+    0 i0e          {0 3}
+    1 i-5e         {-5 4}
+    2 4:spam       {spam 6}
+    3 0:           {{} 2}
+    4 le           {{} 2}
+    5 l0:e         {{{}} 4}
+    6 li5ee        {5 5}
+    7 li5e4:spame  {{5 spam} 11}
+    8  de          {{} 2}
+    9  d0:0:e      {{{} {}} 6}
+    10 d0:i5ee     {{{} 5} 7}
+    11 d1:a4:spame {{a spam} 11}
+    12 ld1:a4:spame3:egge {{{a spam} egg} 18}
+    13 13:eggs+spam+ham {eggs+spam+ham 16}
+    14 d1:a1:b1:c1:de     {{a b c d} 14}
+} {
+    test bee-5.$n {decoder} {
+	list [bee::decode $bee end] $end
+    } $result ; # {}
+
+    test bee-6.$n {decoder, channel} {
+	set path [gen bee6.$n $bee]
+
+	set res "" ; set tick 1
+	bee::decodeChannel [open $path r] \
+		-command tick
+	vwait tick
+	removeFile bee6.$n
+	set res
+    } [list value [list [lindex $result 0]] eof {}] ; # {}
+
+    test bee-7.$n {decoder, channel} {
+	set path [gen bee7.$n $bee]
+
+	set res "" ; set tick 1
+	bee::decodeChannel [open $path r] \
+		-command tick -exact
+	vwait tick
+	removeFile bee7.$n
+	set res
+    } [list value [list [lindex $result 0]] eof {}] ; # {}
+}
+
+foreach {n bee result resultchan} {
+    0 i-0e    {Expected integer number, got "-0"}
+    {Expected integer number, got "-0"}
+    1 i-5     {End of integer number not found}
+    {Incomplete value at end of channel}
+    2 ie      {Expected integer number, got ""}
+    {Syntax error in integer, expected sign or digit, got "e"}
+    3 4:      {String not large enough for value}
+    {Incomplete value at end of channel}
+    4 1:      {String not large enough for value}
+    {Incomplete value at end of channel}
+    5 0       {String not large enough for value}
+    {Incomplete value at end of channel}
+    6 123     {End of string length not found}
+    {Incomplete value at end of channel}
+    7 12t:    {Expected integer number for string length, got "12t"}
+    {Syntax error in string length, expected digit, or ':', got "t"}
+    8 -123    {Unknown bee-type "-"}
+    {Unknown bee-type "-"}
+    9 d0:e    {Dictionary has to be of even length}
+    {Dictionary has to be of even length}
+} {
+    test bee-8.$n {decoder errors} {
+	catch {bee::decode $bee} msg
+	set msg
+    } $result ; # {}
+
+    test bee-9.$n {decoder, channel} {
+	set path [gen bee9.$n $bee]
+
+	set res "" ; set tick 1
+	bee::decodeChannel [set f [open $path r]] \
+		-command tick
+	vwait tick
+	close $f
+	removeFile bee9.$n
+	set res
+    } [list error [list $resultchan]] ;# {}
+
+    test bee-10.$n {decoder, channel} {
+	set path [gen bee10.$n $bee]
+
+	set res "" ; set tick 1
+	bee::decodeChannel [set f [open $path r]] \
+		-command tick -exact
+	vwait tick
+	close $f
+	removeFile bee10.$n
+	set res
+    } [list error [list $resultchan]] ;# {}
+}
+
+
+foreach {n bee result} {
+    0  i0e                {{integer 0 2} 3}
+    1  i-5e               {{integer 0 3} 4}
+    2  4:spam             {{string 0 5} 6}
+    3  0:                 {{string 0 1} 2}
+    4  le                 {{list 0 1 {}} 2}
+    5  l0:e               {{list 0 3 {{string 1 2}}} 4}
+    6  li5ee              {{list 0 4 {{integer 1 3}}} 5}
+    7  li5e4:spame        {{list 0 10 {{integer 1 3} {string 4 9}}} 11}
+    8  de                 {{dict 0 1 {}} 2}
+    9  d0:0:e             {{dict 0 5 {{} {{string 1 2} {string 3 4}}}} 6}
+    10 d0:i5ee            {{dict 0 6 {{} {{string 1 2} {integer 3 5}}}} 7}
+    11 d1:a4:spame        {{dict 0 10 {a {{string 1 3} {string 4 9}}}} 11}
+    12 ld1:a4:spame3:egge {{list 0 17 {{dict 1 11 {a {{string 2 4} {string 5 10}}}} {string 12 16}}} 18}
+    13 13:eggs+spam+ham   {{string 0 15} 16}
+    14 d1:a1:b1:c1:de     {{dict 0 13 {a {{string 1 3} {string 4 6}} c {{string 7 9} {string 10 12}}}} 14}
+} {
+    test bee-11.$n {decoder} {
+	list [bee::decodeIndices $bee end] $end
+    } $result ; # {}
+}
+
+
+test bee-12.0 {decoder, torrent file} {
+    set end 0
+
+    # tcltest::viewFile does not do binary :(
+    set f [open  [file join $::tcltest::testsDirectory example.torrent] r]
+    fconfigure $f -translation binary
+    set d [read $f]
+    close $f
+
+    set data [bee::decode $d end]
+
+    # Cut the binary stuff out of the result, to much, display problems
+    list [lreplace $data 5 5 [lreplace [lindex $data 5] end end {}]] $end
+
+} {{announce http://bt.etree.org/announce.php {creation date} 1087598771 info {files {{length 627 path ch1999-05-22.md5} {length 434 path ch1999-05-22.txt} {length 4356201 path ch1999-05-22d1t01.shn} {length 53782885 path ch1999-05-22d1t02.shn} {length 50689401 path ch1999-05-22d1t03.shn} {length 70969629 path ch1999-05-22d1t04.shn} {length 31978833 path ch1999-05-22d1t05.shn} {length 57722005 path ch1999-05-22d1t06.shn} {length 45629997 path ch1999-05-22d2t01.shn} {length 74878121 path ch1999-05-22d2t02.shn} {length 102446341 path ch1999-05-22d2t03.shn} {length 71148293 path ch1999-05-22d2t04.shn}} name ch1999-05-22.schoeps.shnf {piece length} 524288 pieces {}}} 22267}
+
+
+
+foreach {n bee result} {
+    0 i0e4:hams              {value 0 value hams eof {}}
+    1 lede                   {value {{}} value {{}} eof {}}
+    2 le3:egg                {value {{}} value egg eof {}}
+    3 3:eggle                {value egg value {{}} eof {}}
+    4 de3:egg                {value {{}} value egg eof {}}
+    5 3:eggde                {value egg value {{}} eof {}}
+    6 li6e6:plierse3:ham     {value {{6 pliers}} value ham eof {}}
+    7 7:monitorli6e6:plierse {value monitor value {{6 pliers}} eof {}}
+    8 d6:pliersi6ee3:ham     {value {{pliers 6}} value ham eof {}}
+    9 7:monitord6:pliersi6ee {value monitor value {{pliers 6}} eof {}}
+} {
+    test bee-13.$n {decoder, channel, multiple values} {
+	set path [gen bee13.$n $bee]
+
+	set res "" ; set tick 1
+	bee::decodeChannel [open $path r] \
+		-command tick
+	vwait tick
+	removeFile bee13.$n
+	set res
+    } $result ; # {}
+
+    test bee-14.$n {decoder, channel, multiple values} {
+	set path [gen bee14.$n $bee]
+
+	set res "" ; set tick 1
+	bee::decodeChannel [open $path r] \
+		-command tick -exact
+	vwait tick
+	removeFile bee14.$n
+	set res
+    } $result ; # {}
+
+    test bee-15.$n {decoder, channel, multiple values, abort} {
+	set path [gen bee15.$n $bee]
+
+	set res "" ; set tick 1
+	bee::decodeChannel [set f [open $path r]] \
+		-command tickoff
+	vwait tick
+	close $f
+	removeFile bee15.$n
+	set res
+    } [lrange $result 0 1] ; # {}
+
+    test bee-16.$n {decoder, channel, multiple values, abort} {
+	set path [gen bee16.$n $bee]
+
+	set res "" ; set tick 1
+	bee::decodeChannel [set f [open $path r]] \
+		-command tickoff -exact
+	vwait tick
+	close $f
+	removeFile bee16.$n
+	set res
+    } [lrange $result 0 1] ; # {}
+}
+
+# ....... ............................................................
+testsuiteCleanup

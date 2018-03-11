@@ -1,6 +1,5 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # selfupdate.tcl
-# $Id$
 #
 # Copyright (c) 2016 The MacPorts Project
 # All rights reserved.
@@ -205,7 +204,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
             }
         }
     } elseif {$comp < 0} {
-        ui_msg "$macports::ui_prefix MacPorts base is probably trunk or a release candidate"
+        ui_msg "$macports::ui_prefix MacPorts base is probably master or a release candidate"
     } else {
         ui_msg "$macports::ui_prefix MacPorts base is already the latest version"
     }

@@ -1,0 +1,44 @@
+# -------------------------------------------------------------------------
+# rfc2822.test -*- tcl -*-
+# (C) 2013 Andreas Kupries. BSD licensed.
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+testing {
+    useLocal rfc2822.tcl clock::rfc2822
+}
+
+# -------------------------------------------------------------------------
+
+test clock-rfc2822-1.0 {parse_date wrong\#args} -body {
+    clock::rfc2822 parse_date
+} -returnCodes error -result {wrong # args: should be "clock::rfc2822 parse_date date"}
+
+test clock-rfc2822-1.1 {parse_date wrong\#args} -body {
+    clock::rfc2822 parse_date D X
+} -returnCodes error -result {wrong # args: should be "clock::rfc2822 parse_date date"}
+
+# -------------------------------------------------------------------------
+
+test clock-rfc2822-2.0 {parse_date, bad input} -body {
+    clock::rfc2822 parse_date D
+} -returnCodes error -result {expected an RFC2822 date, got "D"}
+
+test clock-rfc2822-2.1 {parse_date} -body {
+    clock::rfc2822 parse_date {Fri, 09 Sep 2005 13:51:39 -0700}
+} -result 1126299099
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

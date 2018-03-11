@@ -1,0 +1,109 @@
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# 1b_procedure_interactive.demo: This file is part of the TEPAM demo
+#
+# Copyright (C) 2009, 2010 Andreas Drollinger
+# 
+# Id: 1c_procedure_interactive_aux.demo
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+#### Initialization ####
+
+DemoControl(Initialization) 1
+DemoControl(IsExecutable) {0}
+
+# This demo shows two features for interactive procedure calls.
+# The first example shows how additional arguments can be declared and defined that will 
+# just be used for the interactive dialog box.
+# The second example shows how the declared arguments can be commented in a way that the
+# interactive argument definition form organizes the entries in sections (frames).
+
+   package require Tk
+   package require tepam
+   namespace import -force tepam::*; # Import tepam::procedure and tepam::argument_dialogbox
+
+#### AuxArgs ####
+
+DemoControl(IsExecutable) {1}
+
+# In case a procedure is called interactively, additional argument attributes can be provided 
+# to the interactive argument definition form via the -auxargs attribute that is itself a list 
+# of attribute name/attribute data pairs:
+# For example, if a procedure takes as argument a file name it may be beneficial to specify for 
+# the interactive argument definition form the required file type. This information can be 
+# provided via the -auxargs attribute to the argument definition form:
+
+   procedure copy {
+      -return            -
+      -short_description "File copy"
+      -description       "This procedure allows copying a file."
+      -args {
+         {-source -type existingfile -description "Existing file" -auxargs {-filetypes {{"Log files" *.log} {"All files" *.*}}}}
+         {-dest -type file -description "Archived new file"}
+      }
+   } {
+      puts "copy $source into $dest"
+   }
+
+   copy -interactive
+
+#### Argument sections and comments ####
+
+DemoControl(IsExecutable) {1}
+
+# Commenting the declared procedure arguments correctly will allows the interactive
+# argument definition form to organize the different data entry widgets in sections/
+# frames.
+# An argument definition list that starts with '#' is considered as a section comment. 
+# The argument definition list will be trimmed from the '#' characters and the remaining 
+# string will be used as section comment. Section comments can be used to structure 
+# visually the argument definition code. But section comments are also used to structure 
+# the generated help texts and the interactive argument definition forms.
+
+   procedure path_search {
+      -return            -
+      -short_description "Path search"
+      -description       "This function searches an itinerary"
+      -args {
+         {#### Itinerary start ####}
+         {- Please enter into the following fields the itinerary start location}
+         {-start_city -type string}
+         {-start_street -type string}
+         {-start_street_nbr -type integer}
+
+         {#### Itinerary cross point ####}
+         {- Please enter into the following fields an intermediate point of your itinerary}
+         {-through_city -type string}
+         {-through_street -type string}
+         {-through_street_nbr -type integer}
+
+         {#### Itinerary destination ####}
+         {- Specify in the following ifelds your itinarary destination}
+         {-destination_city -type string}
+         {-destination_street -type string}
+         {-destination_street_nbr -type integer}
+         
+      }
+   } {
+      foreach var {mtype font size fg bg no_border text} {
+         if {[info exists $var]} {
+            append Arguments "$var='[set $var]', "
+         }
+      }
+      puts "path_search([string range $Arguments 0 end-2])"
+   }
+
+   path_search -interactive
+
+##########################################################################
+# Id: 1c_procedure_interactive_aux.demo
+# Modifications:
+#
+# Revision 1.1  2010/02/11 21:54:38  droll
+# * TEPAM module checkin
+##########################################################################

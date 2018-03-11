@@ -1,0 +1,110 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset CORO_VERSION 1.1.3]
+[manpage_begin coroutine n [vset CORO_VERSION]]
+[keywords after]
+[keywords channel]
+[keywords coroutine]
+[keywords events]
+[keywords exit]
+[keywords gets]
+[keywords global]
+[keywords {green threads}]
+[keywords read]
+[keywords threads]
+[keywords update]
+[keywords vwait]
+[copyright {2010-2015 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Coroutine utilities}]
+[category  Coroutine]
+[titledesc {Coroutine based event and IO handling}]
+[require Tcl 8.6]
+[require coroutine [vset CORO_VERSION]]
+[description]
+
+The [package coroutine] package provides coroutine-aware
+implementations of various event- and channel related commands. It can
+be in multiple modes:
+
+[list_begin enumerated]
+
+[enum] Call the commands through their ensemble, in code which is
+explicitly written for use within coroutines.
+
+[enum] Import the commands into a namespace, either directly, or
+through [cmd {namespace path}]. This allows the use from within code
+which is not coroutine-aware per se and restricted to specific
+namespaces.
+
+[list_end]
+
+A more agressive form of making code coroutine-oblivious than point 2
+above is available through the package [package coroutine::auto],
+which intercepts the relevant builtin commands and changes their
+implementation dependending on the context they are run in, i.e.
+inside or outside of a coroutine.
+
+[section API]
+
+All the commands listed below are synchronous with respect to the
+coroutine invoking them, i.e. this coroutine blocks until the result
+is available. The overall eventloop is not blocked however.
+
+[list_begin definitions]
+
+[call [cmd {coroutine::util after}] [arg delay]]
+
+This command delays the coroutine invoking it by [arg delay]
+milliseconds.
+
+[call [cmd {coroutine::util await}] [arg varname]...]
+
+This command is an extension form of the [cmd {coroutine::util vwait}]
+command (see below) which waits on a write to one of many named
+namespace variables.
+
+[call [cmd {coroutine::util create}] [arg arg]...]
+
+This command creates a new coroutine with an automatically assigned
+name and causes it to run the code specified by the arguments.
+
+[call [cmd {coroutine::util exit}] [opt [arg status]]]
+
+This command exits the current coroutine, causing it to return
+[arg status]. If no status was specified the default [arg 0] is
+returned.
+
+[call [cmd {coroutine::util gets}] [arg chan] [opt [arg varname]]]
+
+This command reads a line from the channel [arg chan] and returns it
+either as its result, or, if a [arg varname] was specified, writes it
+to the named variable and returns the number of characters read.
+
+[call [cmd {coroutine::util global}] [arg varname]...]
+
+This command imports the named global variables of the coroutine into
+the current scope. From the technical point of view these variables
+reside in level [const #1] of the Tcl stack. I.e. these are not the
+regular global variable in to the global namespace, and each coroutine
+can have their own set, independent of all others.
+
+[call [cmd {coroutine::util read}] [option -nonewline] [arg chan] [opt [arg n]]]
+
+This command reads [arg n] characters from the channel [arg chan] and
+returns them as its result. If [arg n] is not specified the command
+will read the channel until EOF is reached.
+
+[call [cmd {coroutine::util update}] [opt [const idletasks]]]
+
+This command causes the coroutine invoking it to run pending events or
+idle handlers before proceeding.
+
+[call [cmd {coroutine::util vwait}] [arg varname]]
+
+This command causes the coroutine calling it to wait for a write to
+the named namespace variable [arg varname].
+
+[list_end]
+
+[vset CATEGORY coroutine]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

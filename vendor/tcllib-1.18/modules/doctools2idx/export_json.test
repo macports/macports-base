@@ -1,0 +1,74 @@
+# -*- tcl -*-
+# idx_export_json.test:  tests for the doctools::idx::export::json package/plugin.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: export_json.test,v 1.1 2009/04/01 04:28:37 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+support {
+    use      fileutil/fileutil.tcl  fileutil      ;# tests/common
+    use      textutil/adjust.tcl    textutil::adjust
+    useLocal structure.tcl      doctools::idx::structure
+}
+testing {
+    package provide doctools::idx::export::plugin 1
+    # The above fakes the export plugin environment.
+
+    useLocal export_json.tcl doctools::idx::export::json
+}
+
+source [tcllibPath doctools2base/tests/common]
+set mytestdir tests/data
+
+# -------------------------------------------------------------------------
+
+# General set of error cases regarding the number of arguments.
+
+test doctools-idx-export-json-1.0 {export, wrong#args} -body {
+    export
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+test doctools-idx-export-json-1.1 {export, wrong#args} -body {
+    export S
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+test doctools-idx-export-json-1.2 {export, wrong#args} -body {
+    export S C XXX
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+# -------------------------------------------------------------------------
+
+# Testing the generation of json output, from index serialization,
+# for all possible plugin configurations.
+
+foreach {k in al section} {
+    0 0 0 -ultracompact
+    1 1 0 -indented
+    2 0 1 -indalign
+    3 1 1 -indalign
+} {
+    TestFilesProcess $mytestdir ok serial json$section -> n label input data expected {
+	test doctools-idx-export-json-2.$k.$n "doctools::idx::export::json, $label$section, ok" -setup {
+	    set configuration [list indented $in aligned $al]
+	} -body {
+	    export $data $configuration
+	} -cleanup {
+	    unset configuration
+	} -result $expected
+    }
+}
+
+#----------------------------------------------------------------------
+unset n label input data expected
+testsuiteCleanup
+return

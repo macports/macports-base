@@ -1,0 +1,57 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcl::transform::rot n 1]
+[keywords {caesar cipher}]
+[keywords {channel transformation}]
+[keywords cipher]
+[keywords decryption]
+[keywords encryption]
+[keywords {reflected channel}]
+[keywords rot]
+[keywords rot13]
+[keywords {tip 230}]
+[keywords transformation]
+[keywords {virtual channel}]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Reflected/virtual channel support}]
+[category  Channels]
+[titledesc {rot-encryption}]
+[require Tcl 8.6]
+[require tcl::transform::core [opt 1]]
+[require tcl::transform::rot [opt 1]]
+[description]
+[para]
+
+The [package tcl::transform::rot] package provides a command creating
+a channel transformation which performs primitive encryption (on
+writing) and decryption (on reading) on the alphabetic characters. The
+algorithm is the Caesar-cipher, a specific variant of which is rot13.
+
+[para] A related transformations in this module is
+[package tcl::transform::otp].
+
+[para] The internal [package TclOO] class implementing the transform
+handler is a sub-class of the [package tcl::transform::core]
+framework.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::tcl::transform::rot] [arg chan] [arg key]]
+
+This command creates a rot encryption transformation on top of the
+channel [arg chan] and returns its handle.
+
+[para] The "[arg key]" specifies how far characters are rotated in the
+alphabet, and is wrapped to the range "0...25".
+
+[para] Note that this transformation affects only bytes in the ranges
+ASCII 65...90, and 97...122, i.e. the upper- and lower-case alphabetic
+characters, i.e. "A...Z" and "a...z". All other bytes are passed
+through unchanged.
+
+[list_end]
+
+[vset CATEGORY virtchannel]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

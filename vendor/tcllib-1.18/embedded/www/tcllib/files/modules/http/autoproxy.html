@@ -1,0 +1,319 @@
+<div class='fossil-doc' data-title='autoproxy - HTTP protocol helper modules'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">autoproxy(n) 1.5.3 tcllib &quot;HTTP protocol helper modules&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>autoproxy - Automatic HTTP proxy usage and authentication</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">TLS Security Considerations</a></li>
+<li class="doctools_section"><a href="#section3">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section4">OPTIONS</a></li>
+<li class="doctools_section"><a href="#section5">Basic Authentication</a></li>
+<li class="doctools_section"><a href="#section6">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section7">REFERENCES</a></li>
+<li class="doctools_section"><a href="#section8">BUGS</a></li>
+<li class="doctools_section"><a href="#section9">AUTHORS</a></li>
+<li class="doctools_section"><a href="#section10">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">http <span class="opt">?2.0?</span></b></li>
+<li>package require <b class="pkgname">autoproxy <span class="opt">?1.5.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::autoproxy::init</b></a></li>
+<li><a href="#2"><b class="cmd">::autoproxy::cget</b> <i class="arg">-option</i></a></li>
+<li><a href="#3"><b class="cmd">::autoproxy::configure</b> <span class="opt">?-option <i class="arg">value</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">::autoproxy::tls_connect</b> <i class="arg">args</i></a></li>
+<li><a href="#5"><b class="cmd">::autoproxy::tunnel_connect</b> <i class="arg">args</i></a></li>
+<li><a href="#6"><b class="cmd">::autoproxy::tls_socket</b> <i class="arg">args</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package attempts to automate the use of HTTP proxy servers in Tcl
+HTTP client code. It tries to initialize the web access settings from
+system standard locations and can be configured to negotiate
+authentication with the proxy if required.</p>
+<p>On Unix the standard for identifying the local HTTP proxy server
+seems to be to use the environment variable http_proxy or ftp_proxy and
+no_proxy to list those domains to be excluded from proxying.
+On Windows we can retrieve the Internet Settings values from the registry
+to obtain pretty much the same information.
+With this information we can setup a suitable filter procedure for the
+Tcl http package and arrange for automatic use of the proxy.</p>
+<p>There seem to be a number of ways that the http_proxy environment
+variable may be set up. Either a plain host:port or more commonly a
+URL and sometimes the URL may contain authentication parameters or
+these may be requested from the user or provided via http_proxy_user
+and http_proxy_pass. This package attempts to deal with all these
+schemes. It will do it's best to get the required parameters from the
+environment or registry and if it fails can be reconfigured.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">TLS Security Considerations</a></h2>
+<p>This package uses the <b class="package"><a href="../../../../index.html#key331">TLS</a></b> package to handle the security
+for <b class="const">https</b> urls and other socket connections.</p>
+<p>Policy decisions like the set of protocols to support and what
+ciphers to use are not the responsibility of <b class="package"><a href="../../../../index.html#key331">TLS</a></b>, nor of
+this package itself however.
+Such decisions are the responsibility of whichever application is
+using the package, and are likely influenced by the set of servers
+the application will talk to as well.</p>
+<p>For example, in light of the recent
+<a href="http://googleonlinesecurity.blogspot.co.uk/2014/10/this-poodle-bites-exploiting-ssl-30.html">POODLE attack</a> discovered by Google many servers will disable support
+for the SSLv3 protocol.
+To handle this change the applications using <b class="package"><a href="../../../../index.html#key331">TLS</a></b> must be
+patched, and not this package, nor <b class="package"><a href="../../../../index.html#key331">TLS</a></b> itself.
+Such a patch may be as simple as generally activating <b class="const">tls1</b>
+support, as shown in the example below.</p>
+<pre class="doctools_example">
+    package require tls
+    tls::init -tls1 1 ;# forcibly activate support for the TLS1 protocol
+    ... your own application code ...
+</pre>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::autoproxy::init</b></a></dt>
+<dd><p>Initialize the autoproxy package from system resources. Under unix
+this means we look for environment variables. Under windows we look
+for the same environment variables but also look at the registry
+settings used by Internet Explorer.</p></dd>
+<dt><a name="2"><b class="cmd">::autoproxy::cget</b> <i class="arg">-option</i></a></dt>
+<dd><p>Retrieve individual package configuration options. See <span class="sectref"><a href="#section4">OPTIONS</a></span>.</p></dd>
+<dt><a name="3"><b class="cmd">::autoproxy::configure</b> <span class="opt">?-option <i class="arg">value</i>?</span></a></dt>
+<dd><p>Configure the autoproxy package. Calling <b class="cmd">configure</b> with no
+options will return a list of all option names and values.
+See <span class="sectref"><a href="#section4">OPTIONS</a></span>.</p></dd>
+<dt><a name="4"><b class="cmd">::autoproxy::tls_connect</b> <i class="arg">args</i></a></dt>
+<dd><p>Connect to a secure socket through a proxy. HTTP proxy servers permit
+the use of the CONNECT HTTP command to open a link through the proxy
+to the target machine. This function hides the details. For use with
+the http package see <b class="cmd">tls_socket</b>.</p>
+<p>The <i class="arg">args</i> list may contain any of the <b class="package"><a href="../../../../index.html#key331">tls</a></b> package options but
+must end with the host and port as the last two items.</p></dd>
+<dt><a name="5"><b class="cmd">::autoproxy::tunnel_connect</b> <i class="arg">args</i></a></dt>
+<dd><p>Connect to a target host throught a proxy. This uses the same CONNECT
+HTTP command as the <b class="cmd">tls_connect</b> but does not promote the link
+security once the connection is established.</p>
+<p>The <i class="arg">args</i> list may contain any of the <b class="package"><a href="../../../../index.html#key331">tls</a></b> package options but
+must end with the host and port as the last two items.</p>
+<p>Note that many proxy servers will permit CONNECT calls to a limited
+set of ports - typically only port 443 (the secure HTTP port).</p></dd>
+<dt><a name="6"><b class="cmd">::autoproxy::tls_socket</b> <i class="arg">args</i></a></dt>
+<dd><p>This function is to be used to register a proxy-aware secure socket
+handler for the https protocol. It may only be used with the Tcl http
+package and should be registered using the http::register command (see
+the examples below). The job of actually creating the tunnelled
+connection is done by the tls_connect command and this may be used
+when not registering with the http package.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">OPTIONS</a></h2>
+<dl class="doctools_options">
+<dt><b class="option">-host</b> hostname</dt>
+<dd></dd>
+<dt><b class="option">-proxy_host</b> hostname</dt>
+<dd><p>Set the proxy hostname. This is normally set up by <b class="cmd">init</b> but may
+be configured here as well.</p></dd>
+<dt><b class="option">-port</b> number</dt>
+<dd></dd>
+<dt><b class="option">-proxy_port</b> number</dt>
+<dd><p>Set the proxy port number. This is normally set up by <b class="cmd">init</b>.
+e.g. <b class="cmd">configure</b> <b class="option">-port</b> <i class="arg">3128</i></p></dd>
+<dt><b class="option">-no_proxy</b> list</dt>
+<dd><p>You may manipulate the <b class="option">no_proxy</b> list that was setup by
+<b class="cmd">init</b>. The value of this option is a tcl list of
+strings that are matched against the http request host using the tcl
+<b class="cmd">string match</b> command. Therefore glob patterns are permitted.
+For instance, <b class="cmd">configure</b> <b class="option">-no_proxy</b> <i class="arg">*.localdomain</i></p></dd>
+<dt><b class="option">-authProc</b> procedure</dt>
+<dd><p>This option may be used to set an application defined procedure to be
+called when <b class="cmd">configure</b> <b class="option">-basic</b> is called with either no or
+insufficient authentication details. This can be used to present a
+dialog to the user to request the additional information.</p></dd>
+<dt><b class="option">-basic</b></dt>
+<dd><p>Following options are for configuring the Basic authentication
+scheme parameters. See <span class="sectref"><a href="#section5">Basic Authentication</a></span>.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Basic Authentication</a></h2>
+<p>Basic is the simplest and most commonly use HTTP proxy authentication
+scheme. It is described in (1 section 11) and also in (2). It offers
+no privacy whatsoever and its use should be discouraged in favour of
+more secure alternatives like Digest. To perform Basic authentication
+the client base64 encodes the username and plaintext password
+separated by a colon. This encoded text is prefixed with the word
+&quot;Basic&quot; and a space.</p>
+<p>The following options exists for this scheme:</p>
+<dl class="doctools_options">
+<dt><b class="option">-username</b> name</dt>
+<dd><p>The username required to authenticate with the configured proxy.</p></dd>
+<dt><b class="option">-password</b> password</dt>
+<dd><p>The password required for the username specified.</p></dd>
+<dt><b class="option">-realm</b> realm</dt>
+<dd><p>This option is not used.</p></dd>
+</dl>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">EXAMPLES</a></h2>
+<pre class="doctools_example">
+package require autoproxy
+autoproxy::init
+autoproxy::configure -basic -username ME -password SEKRET
+set tok [http::geturl http://wiki.tcl.tk/]
+http::data $tok
+</pre>
+<pre class="doctools_example">
+package require http
+package require tls
+package require autoproxy
+autoproxy::init
+http::register https 443 autoproxy::tls_socket
+set tok [http::geturl https://www.example.com/]
+</pre>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">REFERENCES</a></h2>
+<ol class="doctools_enumerated">
+<li><p>Berners-Lee, T., Fielding R. and Frystyk, H.
+      &quot;Hypertext Transfer Protocol -- HTTP/1.0&quot;,
+      RFC 1945, May 1996,
+      (<a href="http://www.rfc-editor.org/rfc/rfc1945.txt">http://www.rfc-editor.org/rfc/rfc1945.txt</a>)</p></li>
+<li><p>Franks, J. et al.
+      &quot;HTTP Authentication: Basic and Digest Access Authentication&quot;,
+      RFC 2617, June 1999
+      (<a href="http://www.rfc-editor.org/rfc/rfc2617.txt">http://www.rfc-editor.org/rfc/rfc2617.txt</a>)</p></li>
+</ol>
+</div>
+<div id="section8" class="doctools_section"><h2><a name="section8">BUGS</a></h2>
+<p>At this time only Basic authentication (1) (2) is supported. It is
+planned to add support for Digest (2) and NTLM in the future.</p>
+</div>
+<div id="section9" class="doctools_section"><h2><a name="section9">AUTHORS</a></h2>
+<p>Pat Thoyts</p>
+</div>
+<div id="section10" class="doctools_section"><h2><a name="section10">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>http :: autoproxy</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p>http(n)</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key393">authentication</a>, <a href="../../../../index.html#key445">http</a>, <a href="../../../../index.html#key829">proxy</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+</div>

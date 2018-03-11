@@ -1,0 +1,338 @@
+
+<div class='fossil-doc' data-title='ftpd - Tcl FTP Server Package'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">ftpd(n) 1.3 tcllib &quot;Tcl FTP Server Package&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>ftpd - Tcl FTP server implementation</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">CALLBACKS</a></li>
+<li class="doctools_section"><a href="#section4">VARIABLES</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.3</b></li>
+<li>package require <b class="pkgname">ftpd <span class="opt">?1.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::ftpd::server</b> <span class="opt">?<i class="arg">myaddr</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::ftpd::config</b> <span class="opt">?<i class="arg">option value</i>?</span> <span class="opt">?<i class="arg">option value ...</i>?</span></a></li>
+<li><a href="#3"><i class="arg">fsCmd</i> <b class="method">append</b> <i class="arg">path</i></a></li>
+<li><a href="#4"><i class="arg">fsCmd</i> <b class="method">delete</b> <i class="arg">path</i> <i class="arg">channel</i></a></li>
+<li><a href="#5"><i class="arg">fsCmd</i> <b class="method">dlist</b> <i class="arg">path</i> <i class="arg">style</i> <i class="arg">channel</i></a></li>
+<li><a href="#6"><i class="arg">fsCmd</i> <b class="method">exists</b> <i class="arg">path</i></a></li>
+<li><a href="#7"><i class="arg">fsCmd</i> <b class="method">mkdir</b> <i class="arg">path</i> <i class="arg">channel</i></a></li>
+<li><a href="#8"><i class="arg">fsCmd</i> <b class="method">mtime</b> <i class="arg">path</i> <i class="arg">channel</i></a></li>
+<li><a href="#9"><i class="arg">fsCmd</i> <b class="method">permissions</b> <i class="arg">path</i></a></li>
+<li><a href="#10"><i class="arg">fsCmd</i> <b class="method">rename</b> <i class="arg">path</i> <i class="arg">newpath</i> <i class="arg">channel</i></a></li>
+<li><a href="#11"><i class="arg">fsCmd</i> <b class="method">retr</b> <i class="arg">path</i></a></li>
+<li><a href="#12"><i class="arg">fsCmd</i> <b class="method">rmdir</b> <i class="arg">path</i> <i class="arg">channel</i></a></li>
+<li><a href="#13"><i class="arg">fsCmd</i> <b class="method">size</b> <i class="arg">path</i> <i class="arg">channel</i></a></li>
+<li><a href="#14"><i class="arg">fsCmd</i> <b class="method">store</b> <i class="arg">path</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">ftpd</b> package provides a simple Tcl-only server library
+for the FTP protocol as specified in
+RFC 959 (<a href="http://www.rfc-editor.org/rfc/rfc959.txt">http://www.rfc-editor.org/rfc/rfc959.txt</a>).
+It works by listening on the standard FTP socket.  Most server errors
+are returned as error messages with the appropriate code attached to
+them.  Since the server code for the ftp daemon is executed in the
+event loop, it is possible that a
+<b class="cmd">bgerror</b> will be thrown on the server if there are problems with
+the code in the module.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::ftpd::server</b> <span class="opt">?<i class="arg">myaddr</i>?</span></a></dt>
+<dd><p>Open a listening socket to listen to and accept ftp connections.
+myaddr is an optional argument.  <i class="arg">myaddr</i> is the domain-style name
+or numerical IP address of the client-side network interface to use
+for the connection.</p></dd>
+<dt><a name="2"><b class="cmd">::ftpd::config</b> <span class="opt">?<i class="arg">option value</i>?</span> <span class="opt">?<i class="arg">option value ...</i>?</span></a></dt>
+<dd><p>The value is always the name of the command to call as the
+callback. The option specifies which callback should be configured.
+See section <span class="sectref"><a href="#section3">CALLBACKS</a></span> for descriptions of the arguments and
+return values for each of the callbacks.</p>
+<dl class="doctools_definitions">
+<dt>-authIpCmd <i class="arg">proc</i></dt>
+<dd><p>Callback to authenticate new connections based on the ip-address of
+the peer.</p></dd>
+<dt>-authUsrCmd <i class="arg">proc</i></dt>
+<dd><p>Callback to authenticate new connections based on the user logging in
+(and the users password).</p></dd>
+<dt>-authFileCmd <i class="arg">proc</i></dt>
+<dd><p>Callback to accept or deny a users access to read and write to a
+specific path or file.</p></dd>
+<dt>-logCmd <i class="arg">proc</i></dt>
+<dd><p>Callback for log information generated by the FTP engine.</p></dd>
+<dt>-fsCmd <i class="arg">proc</i></dt>
+<dd><p>Callback to connect the engine to the filesystem it operates on.</p></dd>
+<dt>-closeCmd <i class="arg">proc</i></dt>
+<dd><p>Callback to be called when a connection is closed. This allows the
+embedding application to perform its own cleanup operations.</p></dd>
+<dt>-xferDoneCmd <i class="arg">proc</i></dt>
+<dd><p>Callback for transfer completion notification. In other words, it is
+called whenever a transfer of data to or from the client has
+completed.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">CALLBACKS</a></h2>
+<dl class="doctools_definitions">
+<dt><b class="cmd">authIpCmd</b> callback</dt>
+<dd><p>The authIpCmd receives the ip-address of the peer attempting to
+connect to the ftp server as its argument. It returns a 1 to allow
+users from the specified IP to attempt to login and a 0 to reject the
+login attempt from the specified IP.</p></dd>
+<dt><b class="cmd">authUsrCmd</b> callback</dt>
+<dd><p>The authUsrCmd receives the username and password as its two
+arguments. It returns a 1 to accept the attempted login to the ftpd
+and a 0 to reject the attempted login.</p></dd>
+<dt><b class="cmd">authFileCmd</b> callback</dt>
+<dd><p>The authFileCmd receives the user (that is currently logged in), the
+path or filename that is about to be read or written, and
+<b class="const">read</b> or <b class="const">write</b> as its three arguments.  It returns a
+1 to allow the path or filename to be read or written, and a 0 to
+reject the attempted read or write with a permissions error code.</p></dd>
+<dt><b class="cmd">logCmd</b> callback</dt>
+<dd><p>The logCmd receives a severity and a message as its two arguments.
+The severities used within the ftpd package are <b class="const">note</b>,
+<b class="const">debug</b>, and <b class="const">error</b>. The logCmd doesn't return
+anything.</p></dd>
+<dt><b class="cmd">fsCmd</b> callback</dt>
+<dd><p>The fsCmd receives a subcommand, a filename or path, and optional
+additional arguments (depending on the subcommand).</p>
+<p>The subcommands supported by the fsCmd are:</p>
+<dl class="doctools_definitions">
+<dt><a name="3"><i class="arg">fsCmd</i> <b class="method">append</b> <i class="arg">path</i></a></dt>
+<dd><p>The append subcommand receives the filename to append to as its
+argument. It returns a writable tcl channel as its return value.</p></dd>
+<dt><a name="4"><i class="arg">fsCmd</i> <b class="method">delete</b> <i class="arg">path</i> <i class="arg">channel</i></a></dt>
+<dd><p>The delete subcommand receives the filename to delete, and a channel
+to write to as its two arguments.  The file specified is deleted and
+the appropriate ftp message is written to the channel that is passed
+as the second argument.  The delete subcommand returns nothing.</p></dd>
+<dt><a name="5"><i class="arg">fsCmd</i> <b class="method">dlist</b> <i class="arg">path</i> <i class="arg">style</i> <i class="arg">channel</i></a></dt>
+<dd><p>The dlist subcommand receives the path that it should list the files
+that are in, the style in which the files should be listed which is
+either <b class="const">nlst</b> or <b class="const">list</b>, and a channel to write to as
+its three arguments.  The files in the specified path are printed to
+the specified channel one per line.  If the style is <b class="const">nlst</b>
+only the name of the file is printed to the channel.  If the style is
+<b class="const">list</b> then the file permissions, number of links to the file,
+the name of the user that owns the file, the name of the group that
+owns the file, the size (in bytes) of the file, the modify time of the
+file, and the filename are printed out to the channel in a formatted
+space separated format.  The <b class="method">dlist</b> subcommand returns
+nothing.</p></dd>
+<dt><a name="6"><i class="arg">fsCmd</i> <b class="method">exists</b> <i class="arg">path</i></a></dt>
+<dd><p>The exists subcommand receives the name of a file to check the
+existence of as its only argument.  The exists subcommand returns a 1
+if the path specified exists and the path is not a directory.</p></dd>
+<dt><a name="7"><i class="arg">fsCmd</i> <b class="method">mkdir</b> <i class="arg">path</i> <i class="arg">channel</i></a></dt>
+<dd><p>The mkdir subcommand receives the path of a directory to create and a
+channel to write to as its two arguments.  The mkdir subcommand
+creates the specified directory if necessary and possible.  The mkdir
+subcommand then prints the appropriate success or failure message to
+the channel.  The mkdir subcommand returns nothing.</p></dd>
+<dt><a name="8"><i class="arg">fsCmd</i> <b class="method">mtime</b> <i class="arg">path</i> <i class="arg">channel</i></a></dt>
+<dd><p>The mtime subcommand receives the path of a file to check the modify
+time on and a channel as its two arguments.  If the file exists the
+mtime is printed to the channel in the proper FTP format, otherwise an
+appropriate error message and code are printed to the channel.  The
+mtime subcommand returns nothing.</p></dd>
+<dt><a name="9"><i class="arg">fsCmd</i> <b class="method">permissions</b> <i class="arg">path</i></a></dt>
+<dd><p>The permissions subcommand receives the path of a file to retrieve the
+permissions of.  The permissions subcommand returns the octal file
+permissions of the specified file.  The file is expected to exist.</p></dd>
+<dt><a name="10"><i class="arg">fsCmd</i> <b class="method">rename</b> <i class="arg">path</i> <i class="arg">newpath</i> <i class="arg">channel</i></a></dt>
+<dd><p>The rename subcommand receives the path of the current file, the new
+file path, and a channel to write to as its three arguments.  The
+rename subcommand renames the current file to the new file path if the
+path to the new file exists, and then prints out the appropriate
+message to the channel.  If the new file path doesn't exist the
+appropriate error message is printed to the channel.  The rename
+subcommand returns nothing.</p></dd>
+<dt><a name="11"><i class="arg">fsCmd</i> <b class="method">retr</b> <i class="arg">path</i></a></dt>
+<dd><p>The retr subcommand receives the path of a file to read as its only
+argument.  The retr subcommand returns a readable channel that the
+specified file can be read from.</p></dd>
+<dt><a name="12"><i class="arg">fsCmd</i> <b class="method">rmdir</b> <i class="arg">path</i> <i class="arg">channel</i></a></dt>
+<dd><p>The rmdir subcommand receives the path of a directory to remove and a
+channel to write to as its two arguments.  The rmdir subcommand
+removes the specified directory (if possible) and prints the
+appropriate message to the channel (which may be an error if the
+specified directory does not exist or is not empty).  The rmdir
+subcommand returns nothing.</p></dd>
+<dt><a name="13"><i class="arg">fsCmd</i> <b class="method">size</b> <i class="arg">path</i> <i class="arg">channel</i></a></dt>
+<dd><p>The size subcommand receives the path of a file to get the size (in
+bytes) of and a channel to write to as its two arguments.  The size
+subcommand prints the appropriate code and the size of the file if the
+specified path is a file, otherwise an appropriate error code and
+message are printed to the channel.  The size subcommand returns
+nothing.</p></dd>
+<dt><a name="14"><i class="arg">fsCmd</i> <b class="method">store</b> <i class="arg">path</i></a></dt>
+<dd><p>The store subcommand receives the path of a file to write as its only
+argument.  The store subcommand returns a writable channel.</p></dd>
+</dl></dd>
+<dt><b class="cmd">closeCmd</b></dt>
+<dd><p>The <b class="cmd">closeCmd</b> receives no arguments when it is invoked, and any
+return value it may generate is discarded.</p></dd>
+<dt><b class="cmd">xferDoneCmd</b> sock sock2 file bytes filename err</dt>
+<dd><p>The <b class="cmd">xferDoneCmd</b> receives six arguments when invoked. These are,
+in this order, the channel handle of the control socket for the
+connection, the channel handle of the data socket used for the
+transfer (already closed), the handle of the channel containing the
+transfered file, the number of bytes transfered, the path of the file
+which was transfered, and a (possibly empty) error message.
+Any return value it may generate is discarded.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">VARIABLES</a></h2>
+<dl class="doctools_definitions">
+<dt><b class="variable">::ftpd::cwd</b></dt>
+<dd><p>The current working directory for a session when someone first
+connects to the FTPD or when the <b class="cmd">REIN</b> ftp command is received.</p></dd>
+<dt><b class="variable">::ftpd::contact</b></dt>
+<dd><p>The e-mail address of the person that is the contact for the ftp
+server.  This address is printed out as part of the response to the
+<b class="cmd">FTP HELP</b> command.</p></dd>
+<dt><b class="variable">::ftpd::port</b></dt>
+<dd><p>The port that the ftp server should listen on.
+If port is specified as zero, the operating system will allocate an
+unused port for use as a server socket; afterwards, the variable will
+contain the port number that was allocated.</p></dd>
+<dt><b class="variable">::ftpd::welcome</b></dt>
+<dd><p>The message that is printed out when the user first connects to the
+ftp server.</p></dd>
+<dt><b class="variable">::ftpd::CurrentSocket</b></dt>
+<dd><p>Accessible to all callbacks and all filesystem commands (which are a
+special form of callback) and contains the handle of the socket
+channel which was active when the callback was invoked.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>ftpd</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key294">ftp</a>, <a href="../../../../index.html#key606">ftpd</a>, <a href="../../../../index.html#key605">ftpserver</a>, <a href="../../../../index.html#key293">rfc 959</a>, <a href="../../../../index.html#key604">services</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+</div>

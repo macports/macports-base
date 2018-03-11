@@ -1,0 +1,94 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin grammar::me_intro n 0.1]
+[keywords CFG]
+[keywords CFL]
+[keywords {context-free grammar}]
+[keywords {context-free languages}]
+[keywords expression]
+[keywords grammar]
+[keywords LL(k)]
+[keywords matching]
+[keywords parsing]
+[keywords {parsing expression grammar}]
+[keywords PEG]
+[keywords {push down automaton}]
+[keywords {recursive descent}]
+[keywords {top-down parsing languages}]
+[keywords TPDL]
+[keywords transducer]
+[keywords {virtual machine}]
+[copyright {2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Grammar operations and usage}]
+[titledesc {Introduction to virtual machines for parsing token streams}]
+[category  {Grammars and finite automata}]
+[description]
+
+This document is an introduction to and overview of the basic
+facilities for the parsing and/or matching of [term token]
+streams. One possibility often used for the token domain are
+characters.
+
+[para]
+
+The packages themselves all provide variants of one
+
+[term {virtual machine}], called a [term {match engine}] (short
+
+[term ME]), which has all the facilities needed for the matching and
+parsing of a stream, and which are either controlled directly, or are
+customized with a match program. The virtual machine is basically a
+pushdown automaton, with additional elements for backtracking and/or
+handling of semantic data and construction of abstract syntax trees
+([term AST]).
+
+[para]
+
+Because of the high degree of similarity in the actual implementations
+of the aforementioned virtual machine and the data structures they
+receive and generate these common parts are specified in a separate
+document which will be referenced by the documentation for packages
+actually implementing it.
+
+[para]
+
+The relevant documents are:
+
+[para]
+[list_begin definitions]
+
+[def [package grammar::me_vm]]
+
+Virtual machine specification.
+
+[def [package grammar::me_ast]]
+
+Specification of various representations used for abstract syntax
+trees.
+
+[def [package grammar::me::util]]
+
+Utility commands.
+
+[def [package grammar::me::tcl]]
+
+Singleton ME virtual machine implementation tied to Tcl for control
+flow and stacks. Hardwired for pull operation. Uninteruptible during
+processing.
+
+[def [package grammar::me::cpu]]
+
+Object-based ME virtual machine implementation with explicit control
+flow, and stacks, using bytecodes. Suspend/Resumable. Push/pull
+operation.
+
+[def [package grammar::me::cpu::core]]
+
+Core functionality for state manipulation and stepping used in the
+bytecode based implementation of ME virtual machines.
+
+[list_end]
+[para]
+
+[vset CATEGORY grammar_me]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

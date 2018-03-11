@@ -1,9 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portlivecheck.tcl
 #
-# $Id$
-#
-# Copyright (c) 2007-2011 The MacPorts Project
+# Copyright (c) 2007-2011, 2014, 2016 The MacPorts Project
 # Copyright (c) 2005-2007 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
 #
@@ -57,7 +55,7 @@ default livecheck.regex ""
 default livecheck.name default
 default livecheck.distname default
 default livecheck.version {$version}
-default livecheck.ignore_sslcert yes
+default livecheck.ignore_sslcert no
 
 proc portlivecheck::livecheck_main {args} {
     global livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version \
@@ -74,9 +72,7 @@ proc portlivecheck::livecheck_main {args} {
     }
 
     set tempfile [mktemp "/tmp/mports.livecheck.XXXXXXXX"]
-    set port_moddate [file mtime ${portpath}/Portfile]
 
-    ui_debug "Portfile modification date is [clock format $port_moddate]"
     ui_debug "Port (livecheck) version is ${livecheck.version}"
 
     set curl_options {}
@@ -135,8 +131,7 @@ proc portlivecheck::livecheck_main {args} {
         set defaults_file "$types_dir/${livecheck.type}.tcl"
         ui_debug "Loading the defaults from '$defaults_file'"
         if {[catch {source $defaults_file} result]} {
-            global errorInfo
-            ui_debug "$errorInfo: result"
+            ui_debug "$::errorInfo: result"
             return -code 1 "The defaults could not be loaded from '$defaults_file'."
         }
     }
@@ -160,21 +155,25 @@ proc portlivecheck::livecheck_main {args} {
                 ui_debug "The regex is \"$the_re\""
                 if {${livecheck.type} eq "regexm"} {
                     set data [read $chan]
-                    if {[regexp $the_re $data matched updated_version]} {
+                    if {[regexp -nocase $the_re $data matched updated_version]} {
                         set foundmatch 1
+                        ui_debug "The regex matched \"$matched\", extracted \"$updated_version\""
                         if {$updated_version ne ${livecheck.version}} {
-                            set updated 1
+                            if {[vercmp $updated_version ${livecheck.version}] > 0} {
+                                set updated 1
+                            } else {
+                                ui_error "livecheck failed for ${subport}: extracted version '$updated_version' is older than livecheck.version '${livecheck.version}'"
+                            }
                         } else {
                             set updated 0
                         }
-                        ui_debug "The regex matched \"$matched\", extracted \"$updated_version\""
                     }
                 } else {
                     set updated_version 0
                     while {[gets $chan line] >= 0} {
                         set lastoff 0
-                        while {[regexp -start $lastoff -indices $the_re $line offsets]} {
-                            regexp -start $lastoff $the_re $line matched upver
+                        while {$lastoff >= 0 && [regexp -nocase -start $lastoff -indices $the_re $line offsets]} {
+                            regexp -nocase -start $lastoff $the_re $line matched upver
                             set foundmatch 1
                             if {$updated_version == 0 || [vercmp $upver $updated_version] > 0} {
                                 set updated_version $upver
@@ -217,6 +216,7 @@ proc portlivecheck::livecheck_main {args} {
         }
         "moddate" {
             set port_moddate [file mtime ${portpath}/Portfile]
+            ui_debug "Portfile modification date is [clock format $port_moddate]"
             if {[catch {set updated [curl isnewer ${livecheck.url} $port_moddate]} error]} {
                 ui_error "cannot check if $subport was updated ($error)"
                 set updated -1

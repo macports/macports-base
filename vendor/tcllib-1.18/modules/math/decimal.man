@@ -1,0 +1,199 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin math::decimal n 1.0.3]
+[keywords decimal]
+[keywords math]
+[keywords tcl]
+[copyright {2011 Mark Alston <mark at beernut dot com>}]
+[moddesc   {Tcl Decimal Arithmetic Library}]
+[titledesc {General decimal arithmetic}]
+[category  Mathematics]
+[require Tcl [opt 8.5]]
+[require math::decimal 1.0.3]
+
+[description]
+[para]
+The decimal package provides decimal arithmetic support for both limited
+precision floating point and arbitrary precision floating point.
+Additionally, integer arithmetic is supported.
+[para]
+More information and the specifications on which this package depends can be
+found on the general decimal arithmetic page at http://speleotrove.com/decimal
+
+This package provides for:
+[list_begin itemized]
+[item]
+A new data type decimal which is represented as a list containing sign,
+mantissa and exponent.
+[item]
+Arithmetic operations on those decimal numbers such as addition, subtraction,
+multiplication, etc...
+
+[list_end]
+[para]
+Numbers are converted to decimal format using the operation ::math::decimal::fromstr.
+[para]
+Numbers are converted back to string format using the operation
+::math::decimal::tostr.
+
+[para]
+
+[section "EXAMPLES"]
+This section shows some simple examples. Since the purpose of this library
+is to perform decimal math operations, examples may be the simplest way
+to learn how to work with it and to see the difference between using this
+package and sticking with expr. Consult the API section of
+this man page for information about individual procedures.
+
+[para]
+[example_begin]
+    package require decimal
+
+    # Various operations on two numbers.
+    # We first convert them to decimal format.
+    set a [lb]::math::decimal::fromstr 8.2[rb]
+    set b [lb]::math::decimal::fromstr .2[rb]
+
+    # Then we perform our operations. Here we multiply
+    set c [lb]::math::decimal::* $a $b[rb]
+
+    # Finally we convert back to string format for presentation to the user.
+    puts [lb]::math::decimal::tostr $c[rb] ; # => will output 8.4
+
+    # Other examples
+    #
+    # Subtraction
+    set c [lb]::math::decimal::- $a $b[rb]
+    puts [lb]::math::decimal::tostr $c[rb] ; # => will output 8.0
+
+    # Why bother using this instead of simply expr?
+    puts [expr {8.2 + .2}] ; # => will output 8.399999999999999
+    puts [expr {8.2 - .2}] ; # => will output 7.999999999999999
+    # See http://speleotrove.com/decimal to learn more about why this happens.
+[example_end]
+
+[section "API"]
+[list_begin definitions]
+
+[call [cmd ::math::decimal::fromstr] [arg string]]
+Convert [emph string] into a decimal.
+
+[call [cmd ::math::decimal::tostr] [arg decimal]]
+Convert [emph decimal] into a string representing the number in base 10.
+
+[call [cmd ::math::decimal::setVariable] [arg variable] [arg setting]]
+Sets the [emph variable] to [emph setting]. Valid variables are:
+[list_begin itemized]
+[item][arg rounding] - Method of rounding to use during rescale. Valid
+	methods are round_half_even, round_half_up, round_half_down,
+	round_down, round_up, round_floor, round_ceiling.
+[item][arg precision] - Maximum number of digits allowed in mantissa.
+[item][arg extended] - Set to 1 for extended mode. 0 for simplified mode.
+[item][arg maxExponent] - Maximum value for the exponent. Defaults to 999.
+[item][arg minExponent] - Minimum value for the exponent. Default to -998.
+[list_end]
+[call [cmd ::math::decimal::add] [arg a] [arg b]]
+[call [cmd ::math::decimal::+] [arg a] [arg b]]
+Return the sum of the two decimals [emph a] and [emph b].
+
+[call [cmd ::math::decimal::subtract] [arg a] [arg b]]
+[call [cmd ::math::decimal::-] [arg a] [arg b]]
+Return the differnece of the two decimals [emph a] and [emph b].
+
+[call [cmd ::math::decimal::multiply] [arg a] [arg b]]
+[call [cmd ::math::decimal::*] [arg a] [arg b]]
+Return the product of the two decimals [emph a] and [emph b].
+
+[call [cmd ::math::decimal::divide] [arg a] [arg b]]
+[call [cmd ::math::decimal::/] [arg a] [arg b]]
+Return the quotient of the division between the two
+decimals [emph a] and [emph b].
+
+[call [cmd ::math::decimal::divideint] [arg a] [arg b]]
+Return a the integer portion of the quotient of the division between
+decimals [emph a] and [emph b]
+
+[call [cmd ::math::decimal::remainder] [arg a] [arg b]]
+Return the remainder of the division between the two
+decimals [emph a] and [emph b].
+
+[call [cmd ::math::decimal::abs] [arg decimal]]
+Return the absolute value of the decimal.
+
+[call [cmd ::math::decimal::compare] [arg a] [arg b]]
+Compare the two decimals a and b, returning [emph 0] if [emph {a == b}],
+[emph 1] if [emph {a > b}], and [emph -1] if [emph {a < b}].
+
+[call [cmd ::math::decimal::max] [arg a] [arg b]]
+Compare the two decimals a and b, and return [emph a] if [emph {a >= b}], and [emph b] if [emph {a < b}].
+
+[call [cmd ::math::decimal::maxmag] [arg a] [arg b]]
+Compare the two decimals a and b while ignoring their signs, and return [emph a] if [emph {abs(a) >= abs(b)}], and [emph b] if [emph {abs(a) < abs(b)}].
+
+[call [cmd ::math::decimal::min] [arg a] [arg b]]
+Compare the two decimals a and b, and return [emph a] if [emph {a <= b}], and [emph b] if [emph {a > b}].
+
+[call [cmd ::math::decimal::minmag] [arg a] [arg b]]
+Compare the two decimals a and b while ignoring their signs, and return [emph a] if [emph {abs(a) <= abs(b)}], and [emph b] if [emph {abs(a) > abs(b)}].
+
+[call [cmd ::math::decimal::plus] [arg a]]
+Return the result from [emph {::math::decimal::+ 0 $a}].
+
+[call [cmd ::math::decimal::minus] [arg a]]
+Return the result from [emph {::math::decimal::- 0 $a}].
+
+[call [cmd ::math::decimal::copynegate] [arg a]]
+Returns [emph a] with the sign flipped.
+
+[call [cmd ::math::decimal::copysign] [arg a] [arg b]]
+Returns [emph a] with the sign set to the sign of the [emph b].
+
+[call [cmd ::math::decimal::is-signed] [arg decimal]]
+Return the sign of the decimal.
+The procedure returns 0 if the number is positive, 1 if it's negative.
+
+[call [cmd ::math::decimal::is-zero] [arg decimal]]
+Return true if [emph decimal] value is zero, otherwise false is returned.
+
+[call [cmd ::math::decimal::is-NaN] [arg decimal]]
+Return true if [emph decimal] value is NaN (not a number), otherwise false is returned.
+
+[call [cmd ::math::decimal::is-infinite] [arg decimal]]
+Return true if [emph decimal] value is Infinite, otherwise false is returned.
+
+[call [cmd ::math::decimal::is-finite] [arg decimal]]
+Return true if [emph decimal] value is finite, otherwise false is returned.
+
+[call [cmd ::math::decimal::fma] [arg a] [arg b] [arg c]]
+Return the result from first multiplying [emph a] by [emph b] and then adding [emph c]. Rescaling only occurs after completion of all operations. In this way the result may vary from that returned by performing the operations individually.
+
+[call [cmd ::math::decimal::round_half_even] [arg decimal] [arg digits]]
+Rounds [emph decimal] to [emph digits] number of decimal points with the following rules: Round to the nearest. If equidistant, round so the final digit is even.
+
+[call [cmd ::math::decimal::round_half_up] [arg decimal] [arg digits]]
+Rounds [emph decimal] to [emph digits] number of decimal points with the following rules: Round to the nearest. If equidistant, round up.
+
+[call [cmd ::math::decimal::round_half_down] [arg decimal] [arg digits]]
+Rounds [emph decimal] to [emph digits] number of decimal points with the following rules: Round to the nearest. If equidistant, round down.
+
+[call [cmd ::math::decimal::round_down] [arg decimal] [arg digits]]
+Rounds [emph decimal] to [emph digits] number of decimal points with the following rules: Round toward 0.  (Truncate)
+
+[call [cmd ::math::decimal::round_up] [arg decimal] [arg digits]]
+Rounds [emph decimal] to [emph digits] number of decimal points with the following rules: Round away from 0
+
+[call [cmd ::math::decimal::round_floor] [arg decimal] [arg digits]]
+Rounds [emph decimal] to [emph digits] number of decimal points with the following rules: Round toward -Infinity.
+
+[call [cmd ::math::decimal::round_ceiling] [arg decimal] [arg digits]]
+Rounds [emph decimal] to [emph digits] number of decimal points with the following rules: Round toward Infinity
+
+[call [cmd ::math::decimal::round_05up] [arg decimal] [arg digits]]
+Rounds [emph decimal] to [emph digits] number of decimal points with the following rules: Round zero or five away from 0. The same as round-up, except that rounding up only occurs if the digit to be rounded up is 0 or 5, and after overflow
+the result is the same as for round-down.
+
+[list_end]
+[para]
+
+[vset CATEGORY decimal]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,188 @@
+<div class='fossil-doc' data-title='textutil::trim - Text and string utilities, macro processing'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">textutil::trim(n) 0.7 tcllib &quot;Text and string utilities, macro processing&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>textutil::trim - Procedures to trim strings</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">textutil::trim <span class="opt">?0.7?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::textutil::trim::trim</b> <i class="arg">string</i> <span class="opt">?<i class="arg">regexp</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::textutil::trim::trimleft</b> <i class="arg">string</i> <span class="opt">?<i class="arg">regexp</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">::textutil::trim::trimright</b> <i class="arg">string</i> <span class="opt">?<i class="arg">regexp</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">::textutil::trim::trimPrefix</b> <i class="arg">string</i> <i class="arg">prefix</i></a></li>
+<li><a href="#5"><b class="cmd">::textutil::trim::trimEmptyHeading</b> <i class="arg">string</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The package <b class="package">textutil::trim</b> provides commands that trim
+strings using arbitrary regular expressions.</p>
+<p>The complete set of procedures is described below.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::textutil::trim::trim</b> <i class="arg">string</i> <span class="opt">?<i class="arg">regexp</i>?</span></a></dt>
+<dd><p>Remove in <i class="arg">string</i> any leading and trailing substring according to
+the regular expression <i class="arg">regexp</i> and return the result as a new
+string.  This is done for all <em>lines</em> in the string, that is any
+substring between 2 newline chars, or between the beginning of the
+string and a newline, or between a newline and the end of the string,
+or, if the string contain no newline, between the beginning and the
+end of the string.
+The regular expression <i class="arg">regexp</i> defaults to &quot;[ \\t]+&quot;.</p></dd>
+<dt><a name="2"><b class="cmd">::textutil::trim::trimleft</b> <i class="arg">string</i> <span class="opt">?<i class="arg">regexp</i>?</span></a></dt>
+<dd><p>Remove in <i class="arg">string</i> any leading substring according to the regular
+expression <i class="arg">regexp</i> and return the result as a new string. This
+apply on any <em>line</em> in the string, that is any substring between
+2 newline chars, or between the beginning of the string and a newline,
+or between a newline and the end of the string, or, if the string
+contain no newline, between the beginning and the end of the string.
+The regular expression <i class="arg">regexp</i> defaults to &quot;[ \\t]+&quot;.</p></dd>
+<dt><a name="3"><b class="cmd">::textutil::trim::trimright</b> <i class="arg">string</i> <span class="opt">?<i class="arg">regexp</i>?</span></a></dt>
+<dd><p>Remove in <i class="arg">string</i> any trailing substring according to the regular
+expression <i class="arg">regexp</i> and return the result as a new string. This
+apply on any <em>line</em> in the string, that is any substring between
+2 newline chars, or between the beginning of the string and a newline,
+or between a newline and the end of the string, or, if the string
+contain no newline, between the beginning and the end of the string.
+The regular expression <i class="arg">regexp</i> defaults to &quot;[ \\t]+&quot;.</p></dd>
+<dt><a name="4"><b class="cmd">::textutil::trim::trimPrefix</b> <i class="arg">string</i> <i class="arg">prefix</i></a></dt>
+<dd><p>Removes the <i class="arg">prefix</i> from the beginning of <i class="arg">string</i> and
+returns the result. The <i class="arg">string</i> is left unchanged if it doesn't
+have <i class="arg">prefix</i> at its beginning.</p></dd>
+<dt><a name="5"><b class="cmd">::textutil::trim::trimEmptyHeading</b> <i class="arg">string</i></a></dt>
+<dd><p>Looks for empty lines (including lines consisting of only whitespace)
+at the beginning of the <i class="arg">string</i> and removes it. The modified
+string is returned as the result of the command.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>textutil</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p>regexp(n), split(n), string(n)</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key686">prefix</a>, <a href="../../../../index.html#key324">regular expression</a>, <a href="../../../../index.html#key280">string</a>, <a href="../../../../index.html#key428">trimming</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Text processing</p>
+</div>
+</div>

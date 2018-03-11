@@ -1,0 +1,38 @@
+# -*- tcl -*- Tests for "base32"
+# This testsuite is in the public domain.
+#__________________________________________
+# RCS: @(#) $Id: base32.test,v 1.4 2008/03/22 23:46:42 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.1
+
+testing {
+    useLocal     base32core.tcl base32::core
+    useTcllibC
+    useLocalKeep base32.tcl     base32
+    TestAccelInit               base32
+}
+
+set tests [localPath base32.testsuite]
+
+# -------------------------------------------------------------------------
+
+# The global variable 'impl' is part of the public API the testsuite
+# (in base32.testsuite) does expect from the environment.
+
+TestAccelDo base32 impl {
+    source $tests
+}
+
+# -------------------------------------------------------------------------
+
+unset tests
+TestAccelExit base32
+testsuiteCleanup
+return

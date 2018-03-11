@@ -1,9 +1,8 @@
 /*
  * sql.c
- * $Id$
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
- * Copyright (c) 2012, 2014 The MacPorts Project
+ * Copyright (c) 2012, 2014, 2017 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +38,12 @@
 #include <string.h>
 #include <tcl.h>
 #include <time.h>
+
+/*** Keep all SQL compatible with SQLite 3.1.3 as shipped with Tiger.
+ *** (Conditionally doing things a better way when possible based on
+ *** SQLITE_VERSION_NUMBER is OK.)
+ ***/
+
 
 /**
  * Executes a null-terminated list of queries. Pass it a list of queries, it'll
@@ -129,7 +134,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
 
         /* metadata table */
         "CREATE TABLE registry.metadata (key UNIQUE, value)",
-        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.202')",
+        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.204')",
         "INSERT INTO registry.metadata (key, value) VALUES ('created', strftime('%s', 'now'))",
 
         /* ports table */
@@ -150,6 +155,8 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
             ", requested INTEGER"
             ", os_platform TEXT"
             ", os_major INTEGER"
+            ", cxx_stdlib TEXT"
+            ", cxx_stdlib_overridden INTEGER"
             ", UNIQUE (name, epoch, version, revision, variants)"
             ")",
         "CREATE INDEX registry.port_name ON ports"
@@ -167,6 +174,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         "CREATE INDEX registry.file_port ON files(id)",
         "CREATE INDEX registry.file_path ON files(path)",
         "CREATE INDEX registry.file_actual ON files(actual_path)",
+        "CREATE INDEX registry.file_actual_nocase ON files(actual_path COLLATE NOCASE)",
 
         /* dependency map */
         "CREATE TABLE registry.dependencies ("
@@ -388,7 +396,11 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             /* Delete the file_binary index, since it's a low-quality index
              * according to https://www.sqlite.org/queryplanner-ng.html#howtofix */
             static char* version_1_201_queries[] = {
+#if SQLITE_VERSION_NUMBER >= 3003000
                 "DROP INDEX IF EXISTS registry.file_binary",
+#else
+                "DROP INDEX registry.file_binary",
+#endif
                 "UPDATE registry.metadata SET value = '1.201' WHERE key = 'version'",
                 "COMMIT",
                 NULL
@@ -578,6 +590,125 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             continue;
         }
 
+        if (sql_version(NULL, -1, version, -1, "1.203") < 0) {
+            /*
+             * A new index on files.actual_path with the COLLATE NOCASE attribute
+             * will speed up queries with the equality operator and the COLLATE NOCASE
+             * attribute or the LIKE operator. Needed for file mapping to ports
+             * on case-insensitive file systems. Without it, any search operation
+             * will be very, very, very slow.
+             */
+            static char* version_1_203_queries[] = {
+                "CREATE INDEX registry.file_actual_nocase ON files(actual_path COLLATE NOCASE)",
+
+                /* Update version and commit */
+                "UPDATE registry.metadata SET value = '1.203' WHERE key = 'version'",
+                "COMMIT",
+                NULL
+            };
+
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+            if (!do_queries(db, version_1_203_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
+        if (sql_version(NULL, -1, version, -1, "1.204") < 0) {
+            /* add */
+            static char* version_1_204_queries[] = {
+#if SQLITE_VERSION_NUMBER >= 3002000
+                "ALTER TABLE registry.ports ADD COLUMN cxx_stdlib TEXT",
+                "ALTER TABLE registry.ports ADD COLUMN cxx_stdlib_overridden INTEGER",
+#else
+
+                /* Create a temporary table */
+                "CREATE TEMPORARY TABLE mp_ports_backup ("
+                "id INTEGER PRIMARY KEY"
+                ", name TEXT COLLATE NOCASE"
+                ", portfile TEXT"
+                ", location TEXT"
+                ", epoch INTEGER"
+                ", version TEXT COLLATE VERSION"
+                ", revision INTEGER"
+                ", variants TEXT"
+                ", negated_variants TEXT"
+                ", state TEXT"
+                ", date DATETIME"
+                ", installtype TEXT"
+                ", archs TEXT"
+                ", requested INTEGER"
+                ", os_platform TEXT"
+                ", os_major INTEGER"
+                ", UNIQUE (name, epoch, version, revision, variants)"
+                ")",
+
+                /* Copy all data into the temporary table */
+                "INSERT INTO mp_ports_backup SELECT id, name, portfile, location, epoch, "
+                    "version, revision, variants, negated_variants, state, date, installtype, "
+                    "archs, requested, os_platform, os_major FROM registry.ports",
+
+                /* Drop the original table and re-create it with the new structure */
+                "DROP TABLE registry.ports",
+                "CREATE TABLE registry.ports ("
+                "id INTEGER PRIMARY KEY"
+                ", name TEXT COLLATE NOCASE"
+                ", portfile TEXT"
+                ", location TEXT"
+                ", epoch INTEGER"
+                ", version TEXT COLLATE VERSION"
+                ", revision INTEGER"
+                ", variants TEXT"
+                ", negated_variants TEXT"
+                ", state TEXT"
+                ", date DATETIME"
+                ", installtype TEXT"
+                ", archs TEXT"
+                ", requested INTEGER"
+                ", os_platform TEXT"
+                ", os_major INTEGER"
+                ", cxx_stdlib TEXT"
+                ", cxx_stdlib_overridden INTEGER"
+                ", UNIQUE (name, epoch, version, revision, variants)"
+                ")",
+                "CREATE INDEX registry.port_name ON ports"
+                    "(name, epoch, version, revision, variants)",
+                "CREATE INDEX registry.port_state ON ports(state)",
+
+                /* Copy all data back from temporary table */
+                "INSERT INTO registry.ports (id, name, portfile, location, epoch, version, "
+                    "revision, variants, negated_variants, state, date, installtype, archs, "
+                    "requested, os_platform, os_major) SELECT id, name, portfile, location, "
+                    "epoch, version, revision, variants, negated_variants, state, date, "
+                    "installtype, archs, requested, os_platform, os_major "
+                    "FROM mp_ports_backup",
+
+                /* Remove temporary table */
+                "DROP TABLE mp_ports_backup",
+#endif
+
+                "UPDATE registry.metadata SET value = '1.204' WHERE key = 'version'",
+
+                "COMMIT",
+                NULL
+            };
+
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+
+            if (!do_queries(db, version_1_204_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
         /* add new versions here, but remember to:
          *  - finalize the version query statement and set stmt to NULL
          *  - do _not_ use "BEGIN" in your query list, since a transaction has
@@ -587,7 +718,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
          *  - update the current version number below
          */
 
-        if (sql_version(NULL, -1, version, -1, "1.202") > 0) {
+        if (sql_version(NULL, -1, version, -1, "1.204") > 0) {
             /* the registry was already upgraded to a newer version and cannot be used anymore */
             reg_throw(errPtr, REG_INVALID, "Version number in metadata table is newer than expected.");
             sqlite3_finalize(stmt);

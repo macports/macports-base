@@ -1,0 +1,47 @@
+# -*- tcl -*-
+# General set of error cases regarding the number of arguments.
+
+test pt-peg-from-peg-parse:${parseimpl}-rde:${rdeimpl}-stack:${stackimpl}-1.0 {convert, wrong#args} -body {
+    pt::peg::from::peg convert
+} -returnCodes error -result {wrong # args: should be "pt::peg::from::peg convert text"}
+
+test pt-peg-from-peg-parse:${parseimpl}-rde:${rdeimpl}-stack:${stackimpl}-1.1 {convert, wrong#args} -body {
+    pt::peg::from::peg convert S XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg::from::peg convert text"}
+
+# -------------------------------------------------------------------------
+
+# Testing the processing of PEG input in various form.
+
+foreach {k section} {
+    0 {}
+    1 -fused
+    2 -templated
+    3 -templated-fused
+} {
+    TestFilesProcess $mytestdir ok peg_peg$section peg_serial-canonical -> n label input data expected {
+	# The PEG parser flattens the expression it comes across, as
+	# part of the conversion from AST to grammar. The grammars we
+	# have around are not flattened, so we have to this now for
+	# proper comparison.
+
+	pt::peg::container G deserialize $expected
+	G start [pt::pe::op flatten [G start]]
+	foreach s [G nonterminals] {
+	    G rule $s [pt::pe::op flatten [G rule $s]]
+	}
+	set expected [G serialize]
+	G destroy
+
+	test pt-peg-from-peg-parse:${parseimpl}-rde:${rdeimpl}-stack:${stackimpl}-2.$k.$n "pt::peg::from::peg /text, $label$section, ok :- $input" -body {
+	    pt::peg::from::peg convert $data
+	} -result $expected
+
+	test pt-peg-from-peg-parse:${parseimpl}-rde:${rdeimpl}-stack:${stackimpl}-3.$k.$n "pt::peg::from::peg /file, $label$section, ok :- $input" -body {
+	    pt::peg::from::peg convert-file $input
+	} -result $expected
+    }
+}
+
+#----------------------------------------------------------------------
+unset n label input data expected

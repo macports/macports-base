@@ -1,0 +1,118 @@
+# -*- tcl -*-
+# Tests for the find function.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# Copyright (c) 2001 by ActiveState Tool Corp.
+# Copyright (c) 2005-2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: strip.test,v 1.3 2009/10/27 19:16:34 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal fileutil.tcl fileutil
+}
+
+# -------------------------------------------------------------------------
+
+set dir $::tcltest::temporaryDirectory
+
+# -------------------------------------------------------------------------
+
+# stripPwd/N/Prefix -----------------------------------------------------
+# dir = $::tcltest::temporaryDirectory = current working directory
+
+test stripPwd-1.0 {unrelated path} {
+    fileutil::stripPwd {find 1}
+} {find 1}
+
+test stripPwd-1.1 {pwd-relative path} {
+    fileutil::stripPwd [file join [pwd] $dir {find 1}]
+} {find 1}
+
+test stripPwd-1.2 {pwd-relative path} {
+    fileutil::stripPwd [file join [pwd] $dir {find 1} {find 2}]
+} [file join {find 1} {find 2}]
+
+test stripPwd-1.3 {pwd itself} {
+    fileutil::stripPwd [pwd]
+} .
+
+
+test stripPath-1.0 {unrelated path} {
+    fileutil::stripPath [pwd] {find 1}
+} {find 1}
+
+test stripPath-1.1 {prefix-relative path} {
+    fileutil::stripPath [pwd] [file join [pwd] $dir {find 1}]
+} {find 1}
+
+test stripPath-1.2 {prefix-relative path} {
+    fileutil::stripPath [pwd] [file join [pwd] $dir {find 1} {find 2}]
+} [file join {find 1} {find 2}]
+
+test stripPath-1.3 {prefix itself} {
+    fileutil::stripPath [pwd] [pwd]
+} .
+
+
+test stripPath-2.0 {SF Tcllib Bug 2499641, handle mixed case properly on windows} win {
+    fileutil::stripPath C:/temp C:/Temp/foo
+} foo
+
+test stripPath-2.1.0 {SF Tcllib Bug 2872536, partial paths} unix {
+    fileutil::stripPath /temp /tempx/foo
+} /tempx/foo
+
+test stripPath-2.1.1 {SF Tcllib Bug 2872536, partial paths} win {
+    fileutil::stripPath C:/temp C:/Tempx/foo
+} C:/Tempx/foo
+
+test stripPath-2.2 {SF Tcllib Bug 2872536, different separators} win {
+    fileutil::stripPath c:/temp/foo/bar c:/temp/foo\\bar
+} .
+
+
+test stripN-1.0 {remove nothing} {
+    fileutil::stripN {find 1} 0
+} {find 1}
+
+test stripN-1.1 {remove all} {
+    fileutil::stripN {find 1} 1
+} {}
+
+test stripN-1.2 {remove more than existing} {
+    fileutil::stripN {find 1} 2
+} {}
+
+test stripN-2.0 {remove nothing} {
+    fileutil::stripN [file join {find 1} {find 2}] 0
+} [file join {find 1} {find 2}]
+
+test stripN-2.1 {remove part} {
+    fileutil::stripN [file join {find 1} {find 2}] 1
+} {find 2}
+
+test stripN-2.2 {remove all} {
+    fileutil::stripN [file join {find 1} {find 2}] 2
+} {}
+
+test stripN-2.3 {remove more than existing} {
+    fileutil::stripN [file join {find 1} {find 2}] 3
+} {}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return

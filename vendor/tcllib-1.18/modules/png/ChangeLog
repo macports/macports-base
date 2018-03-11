@@ -1,0 +1,145 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2012-07-09  Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* png.tcl: add capability to read and write images from color lists
+        * png.tcl: make crc package optional in imageInfo
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-06-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* png.pcx: New file. Syntax definitions for the public commands of
+	  the png package.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-20  Andreas Kupries  <andreask@activestate.com>
+
+	* png.tcl: Bumped version of package to 0.1.2.
+	* png.man:
+	* pkgIndex.tcl:
+
+2007-04-30  Andreas Kupries  <andreask@activestate.com>
+
+	* png.test: Added tests for removeComments, also converted to use
+	  of 'TestFilesGlob'.
+
+2004-04-28  Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* png.tcl: fixed output file encoding in removeComments
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* png.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* png.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* png.test: Hooked into the new common test support code.
+
+2006-01-10  Andreas Kupries <andreask@activestate.com>
+
+	* png.test: Fixed [SF Tcllib Bug 1316055]. Uncluttering test
+	  output.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-08-25  Andreas Kupries <andreask@activestate.com>
+
+	* png.tcl (::png::validate): Added forced truncation to 32bit when
+	* png.tcl (::png::imageInfo): reformatting a read negative crc to
+	  unsigned. Otherwise this is becomes a 64bit unsigned, causing
+	  bogus crc checksum failures. This fixes [Tcllib SF Bug 1042420].
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-09-22  Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* png.test: updated timestamp test to use gmt
+
+2004-08-25  Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* png.tcl bug fix in getTimestamp, made times be interpreted as gmt.
+
+2004-08-09  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* png.man: Spelling police.
+	* png.test:
+
+2004-05-22  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* png.tcl: Fixed a problem with the reading of crc data from png
+	  files. The 'binary scan' may return a negative integer, but the
+	  check is against unsigned data. Added code to check for this and
+	  compute the proper unsigned number for correct comparison.
+
+	* png.test: New file. A testsuite for the module. Incomplete.
+	  Tests the validation, signature, retrieval of image information,
+	  and of timestamps. The image files used are from the official
+	  PNG testsuite.
+
+2004-05-20  Aaron Faupell <afaupell@users.sourceforge.net>
+
+	* png.tcl: moved file opening and signature validation to
+		a seperate proc. added isPNG command.
+	* png.man: updated to include isPNG command
+
+2004-05-07  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* New module for querying PNG images, and manipulating their
+	  comments, and timestamp.

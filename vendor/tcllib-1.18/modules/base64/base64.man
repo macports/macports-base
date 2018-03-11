@@ -1,0 +1,70 @@
+[manpage_begin base64 n 2.4.2]
+[keywords base64]
+[keywords encoding]
+[copyright {2000, Eric Melski}]
+[copyright {2001, Miguel Sofer}]
+[moddesc   {Text encoding & decoding binary data}]
+[titledesc {base64-encode/decode binary data}]
+[category  {Text processing}]
+[require Tcl 8]
+[require base64 [opt 2.4.2]]
+[description]
+[para]
+
+This package provides procedures to encode binary data into base64 and back.
+
+[list_begin definitions]
+
+[call [cmd ::base64::encode] [opt "[option -maxlen] [arg maxlen]"] [opt "[option -wrapchar] [arg wrapchar]"] [arg string]]
+
+Base64 encodes the given binary [arg string] and returns the encoded
+result. Inserts the character [arg wrapchar] every [arg maxlen]
+characters of output. [arg wrapchar] defaults to newline. [arg maxlen]
+defaults to [const 76].
+
+[para] [emph Note] that if [arg maxlen] is set to [const 0], the
+output will not be wrapped at all.
+
+[para]
+
+[emph {Note well}]: If your string is not simple ascii you should fix
+the string encoding before doing base64 encoding. See the examples.
+
+[para]
+
+The command will throw an error for negative values of [arg maxlen],
+or if [arg maxlen] is not an integer number.
+
+[call [cmd ::base64::decode] [arg "string"]]
+
+Base64 decodes the given [arg "string"] and returns the binary data.
+The decoder ignores whitespace in the string.
+
+[list_end]
+
+[section {EXAMPLES}]
+
+[example {
+% base64::encode "Hello, world"
+SGVsbG8sIHdvcmxk
+}]
+
+[example {
+% base64::encode [string repeat xyz 20]
+eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6
+eHl6eHl6eHl6
+% base64::encode -wrapchar "" [string repeat xyz 20]
+eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6
+}]
+
+[example {
+# NOTE: base64 encodes BINARY strings.
+% set chemical [encoding convertto utf-8 "C\u2088H\u2081\u2080N\u2084O\u2082"]
+% set encoded [base64::encode $chemical]
+Q+KCiEjigoHigoBO4oKET+KCgg==
+% set caffeine [encoding convertfrom utf-8 [base64::decode $encoded]]
+}]
+
+[vset CATEGORY base64]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

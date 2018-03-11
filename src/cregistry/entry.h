@@ -1,6 +1,5 @@
 /*
  * entry.h
- * $Id$
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
  * Copyright (c) 2012 The MacPorts Project
@@ -54,7 +53,7 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr);
 void reg_entry_free(reg_entry* entry);
 
 int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
-        int strategy, reg_entry*** entries, reg_error* errPtr);
+        int* strategies, reg_entry*** entries, reg_error* errPtr);
 
 int reg_entry_imaged(reg_registry* reg, const char* name, const char* version,
         const char* revision, const char* variants, reg_entry*** entries,
@@ -62,9 +61,9 @@ int reg_entry_imaged(reg_registry* reg, const char* name, const char* version,
 int reg_entry_installed(reg_registry* reg, char* name, reg_entry*** entries,
         reg_error* errPtr);
 
-sqlite_int64 reg_entry_owner_id(reg_registry* reg, char* path);
-int reg_entry_owner(reg_registry* reg, char* path, reg_entry** entry,
-        reg_error* errPtr);
+sqlite_int64 reg_entry_owner_id(reg_registry* reg, char* path, int cs);
+int reg_entry_owner(reg_registry* reg, char* path, int cs,
+        reg_entry** entry, reg_error* errPtr);
 
 int reg_entry_propget(reg_entry* entry, char* key, char** value,
         reg_error* errPtr);

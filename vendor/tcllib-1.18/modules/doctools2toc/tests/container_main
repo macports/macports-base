@@ -1,0 +1,1003 @@
+
+# -------------------------------------------------------------------------
+
+test doctools-toc-${impl}-1.0 {deserialize =, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I deserialize =
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_hmethoddeserialize_= type selfns win self data ?format?"}
+
+test doctools-toc-${impl}-1.1 {deserialize =, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I deserialize = T F XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_hmethoddeserialize_= type selfns win self data ?format?"}
+
+test doctools-toc-${impl}-2.0 {deserialize +=, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I deserialize +=
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_hmethoddeserialize_+= type selfns win self data ?format?"}
+
+test doctools-toc-${impl}-2.1 {deserialize +=, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I deserialize += T F XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_hmethoddeserialize_+= type selfns win self data ?format?"}
+
+test doctools-toc-${impl}-3.0 {serialize, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I serialize F XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodserialize type selfns win self ?format?"}
+
+test doctools-toc-${impl}-4.0 {+ reference, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I + reference
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_hmethod+_reference type selfns win self pid label docid desc"}
+
+test doctools-toc-${impl}-4.1 {+ reference, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I + reference P
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_hmethod+_reference type selfns win self pid label docid desc"}
+
+test doctools-toc-${impl}-4.2 {+ reference, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I + reference P L
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_hmethod+_reference type selfns win self pid label docid desc"}
+
+test doctools-toc-${impl}-4.3 {+ reference, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I + reference P L D
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_hmethod+_reference type selfns win self pid label docid desc"}
+
+test doctools-toc-${impl}-4.4 {+ reference, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I + reference P L D D XXXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_hmethod+_reference type selfns win self pid label docid desc"}
+
+test doctools-toc-${impl}-5.0 {+ division, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I + division
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_hmethod+_division type selfns win self pid label ?docid?"}
+
+test doctools-toc-${impl}-5.1 {+ division, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I + division P
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_hmethod+_division type selfns win self pid label ?docid?"}
+
+test doctools-toc-${impl}-5.2 {+ division, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I + division P L D XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_hmethod+_division type selfns win self pid label ?docid?"}
+
+test doctools-toc-${impl}-6.0 {remove, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I remove
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodremove type selfns win self id"}
+
+test doctools-toc-${impl}-6.1 {remove, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I remove I XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodremove type selfns win self id"}
+
+test doctools-toc-${impl}-7.0 {up, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I up
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodup type selfns win self id"}
+
+test doctools-toc-${impl}-7.1 {up, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I up I XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodup type selfns win self id"}
+
+test doctools-toc-${impl}-8.0 {next, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I next
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodnext type selfns win self id"}
+
+test doctools-toc-${impl}-8.1 {next, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I next I XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodnext type selfns win self id"}
+
+test doctools-toc-${impl}-9.0 {prev, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I prev
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodprev type selfns win self id"}
+
+test doctools-toc-${impl}-9.1 {prev, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I prev I XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodprev type selfns win self id"}
+
+test doctools-toc-${impl}-10.0 {child, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I child
+} -cleanup {
+    I destroy
+} -returnCodes error -result [tcltest::wrongNumArgs ::doctools::toc::Snit_methodchild {type selfns win self id label args} 0]
+
+test doctools-toc-${impl}-10.1 {child, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I child I
+} -cleanup {
+    I destroy
+} -returnCodes error -result [tcltest::wrongNumArgs ::doctools::toc::Snit_methodchild {type selfns win self id label args} 0]
+
+test doctools-toc-${impl}-11.0 {children, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I children
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodchildren type selfns win self id"}
+
+test doctools-toc-${impl}-11.1 {children, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I children I XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodchildren type selfns win self id"}
+
+test doctools-toc-${impl}-12.0 {type, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I type
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodtype type selfns win self id"}
+
+test doctools-toc-${impl}-12.1 {type, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I type I XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodtype type selfns win self id"}
+
+test doctools-toc-${impl}-13.0 {full-label, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I full-label
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodfull-label type selfns win self id"}
+
+test doctools-toc-${impl}-13.1 {full-label, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I full-label I XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodfull-label type selfns win self id"}
+
+test doctools-toc-${impl}-13.0 {elabel, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I elabel
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodelabel type selfns win self id ?newlabel?"}
+
+test doctools-toc-${impl}-14.1 {elabel, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I elabel I V XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodelabel type selfns win self id ?newlabel?"}
+
+test doctools-toc-${impl}-15.0 {description, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I description
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methoddescription type selfns win self id ?newdesc?"}
+
+test doctools-toc-${impl}-15.1 {description, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I description I V XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methoddescription type selfns win self id ?newdesc?"}
+
+test doctools-toc-${impl}-16.0 {document, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I document
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methoddocument type selfns win self id ?newdocid?"}
+
+test doctools-toc-${impl}-16.1 {document, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I document I V XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methoddocument type selfns win self id ?newdocid?"}
+
+test doctools-toc-${impl}-17.0 {title, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I title T XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodtitle type selfns win self ?text?"}
+
+test doctools-toc-${impl}-18.0 {label, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I label L XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodlabel type selfns win self ?text?"}
+
+test doctools-toc-${impl}-19.0 {exporter, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I exporter E XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodexporter type selfns win self ?object?"}
+
+test doctools-toc-${impl}-20.0 {importer, wrong#args} -setup {
+    doctools::toc I
+} -body {
+    I importer I XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {wrong # args: should be "::doctools::toc::Snit_methodimporter type selfns win self ?object?"}
+
+# -------------------------------------------------------------------------
+
+test doctools-toc-${impl}-21.0 {+ reference, new label} -setup {
+    doctools::toc I
+    set R [I element]
+} -body {
+    I + reference $R L D DESC
+    I children $R
+} -cleanup {
+    I destroy
+    unset R
+} -result node1
+
+test doctools-toc-${impl}-21.1 {+ reference, known key} -setup {
+    doctools::toc I
+    set R [I element]
+    I + reference $R L D DESC
+} -body {
+    I + reference $R L D' DESC'
+} -cleanup {
+    I destroy
+    unset R
+} -returnCodes error -result {Redefinition of label 'L' in '{}'}
+
+test doctools-toc-${impl}-21.2 {+ reference, not in div} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + reference $R L D DESC]
+} -body {
+    I + reference $R L' D' DESC'
+} -cleanup {
+    I destroy
+    unset R
+} -returnCodes error -result {toc element handle 'node1' does not refer to a division}
+
+test doctools-toc-${impl}-21.3 {+ reference, bogus handle} -setup {
+    doctools::toc I
+} -body {
+    I + reference XXX L D DESC
+} -cleanup {
+    I destroy
+} -returnCodes error -result {Bad toc element handle 'XXX'}
+
+test doctools-toc-${impl}-21.4 {+ reference, bogus document id} -setup {
+    doctools::toc I
+    set R [I element]
+} -body {
+    I + reference $R L {} DESC
+} -cleanup {
+    I destroy
+    unset R
+} -returnCodes error -result {Illegal empty document reference for reference entry}
+
+test doctools-toc-${impl}-22.0 {+ division, new label} -setup {
+    doctools::toc I
+    set R [I element]
+} -body {
+    I + division $R L D
+    I children $R
+} -cleanup {
+    I destroy
+    unset R
+} -result node1
+
+test doctools-toc-${impl}-22.1 {+ division, known key} -setup {
+    doctools::toc I
+    set R [I element]
+    I + division $R L D
+} -body {
+    I + division $R L D'
+} -cleanup {
+    I destroy
+    unset R
+} -returnCodes error -result {Redefinition of label 'L' in '{}'}
+
+test doctools-toc-${impl}-22.2 {+ division, not in div} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + reference $R L D DESC]
+} -body {
+    I + division $R L' D'
+} -cleanup {
+    I destroy
+    unset R
+} -returnCodes error -result {toc element handle 'node1' does not refer to a division}
+
+test doctools-toc-${impl}-22.3 {+ division, bogus handle} -setup {
+    doctools::toc I
+} -body {
+    I + division XXX L D
+} -cleanup {
+    I destroy
+} -returnCodes error -result {Bad toc element handle 'XXX'}
+
+test doctools-toc-${impl}-23.0 {remove, known key, reference} -setup {
+    doctools::toc I
+    set R [I + reference [I element] L D DESC]
+} -body {
+    I remove $R
+    I children [I element]
+} -cleanup {
+    I destroy
+    unset R
+} -result {}
+
+test doctools-toc-${impl}-23.1 {remove, known key, division} -setup {
+    doctools::toc I
+    set R [I + division [I element] L D]
+} -body {
+    I remove $R
+    I children [I element]
+} -cleanup {
+    I destroy
+    unset R
+} -result {}
+
+test doctools-toc-${impl}-23.2 {remove, unknown key} -setup {
+    doctools::toc I
+} -body {
+    I remove XXX
+} -cleanup {
+    I destroy
+} -returnCodes error -result {Bad toc element handle 'XXX'}
+
+test doctools-toc-${impl}-23.3 {remove, root} -setup {
+    doctools::toc I
+} -body {
+    I remove [I element]
+} -cleanup {
+    I destroy
+} -returnCodes error -result {Unable to remove root}
+
+test doctools-toc-${impl}-23.4 {remove, division, children as well} -setup {
+    doctools::toc I
+    set R [I element]
+    set A [I + division  $R L D]
+    set B [I + reference $A L D DESC]
+} -body {
+    I remove $A
+    I type $B
+} -cleanup {
+    I destroy
+    unset R A B
+} -returnCodes error -result {Bad toc element handle 'node2'}
+
+test doctools-toc-${impl}-24.0 {children, nothing} -setup {
+    doctools::toc I
+} -body {
+    I children [I element]
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-toc-${impl}-24.1 {children, something} -setup {
+    doctools::toc I
+    set R [I element]
+    set A [I + division $R L D]
+} -body {
+    list [llength [I children $R]] \
+	[string equal $A [lindex [I children $R] 0]]
+} -cleanup {
+    I destroy
+    unset R A
+} -result {1 1}
+
+test doctools-toc-${impl}-24.2 {children, multiple, order} -setup {
+    doctools::toc I
+    set R [I element]
+    set A [I + division $R L D]
+    set B [I + division $R L' D]
+} -body {
+    list [llength [I children $R]] \
+	[string equal $A [lindex [I children $R] 0]] \
+	[string equal $B [lindex [I children $R] 1]]
+} -cleanup {
+    I destroy
+    unset R A B
+} -result {2 1 1}
+
+test doctools-toc-${impl}-25.0 {type, reference} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + reference $R L D DESC]
+} -body {
+    I type $R
+} -cleanup {
+    I destroy
+    unset R
+} -result reference
+
+test doctools-toc-${impl}-25.1 {type, division} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + division $R L D]
+} -body {
+    I type $R
+} -cleanup {
+    I destroy
+    unset R
+} -result division
+
+test doctools-toc-${impl}-26.0 {full-label, reference} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + division $R L D]
+    set R [I + reference $R L' D DESC]
+} -body {
+    I full-label $R
+} -cleanup {
+    I destroy
+    unset R
+} -result {L L'}
+
+test doctools-toc-${impl}-26.1 {full-label, division} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + division $R L D]
+    set R [I + division $R L' D]
+} -body {
+    I full-label $R
+} -cleanup {
+    I destroy
+    unset R
+} -result {L L'}
+
+test doctools-toc-${impl}-27.0 {elabel, reference, query} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + reference $R L D DESC]
+} -body {
+    I elabel $R
+} -cleanup {
+    I destroy
+    unset R
+} -result L
+
+test doctools-toc-${impl}-27.1 {elabel, reference, set, unchanged} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + reference $R L D DESC]
+} -body {
+    I elabel $R L
+} -cleanup {
+    I destroy
+    unset R
+} -result L
+
+test doctools-toc-${impl}-27.2 {elabel, reference, set, changed} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + reference $R L D DESC]
+} -body {
+    I elabel $R L'
+} -cleanup {
+    I destroy
+    unset R
+} -result L'
+
+test doctools-toc-${impl}-27.3 {elabel, reference, set, collision} -setup {
+    doctools::toc I
+    set R [I element]
+    I + reference $R L' D DESC
+    set R [I + reference $R L D DESC]
+} -body {
+    I elabel $R L'
+} -cleanup {
+    I destroy
+    unset R
+} -returnCodes error -result {Redefinition of label 'L'' in '{}'}
+
+test doctools-toc-${impl}-27.4 {elabel, division, query} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + division $R L D]
+} -body {
+    I elabel $R
+} -cleanup {
+    I destroy
+    unset R
+} -result L
+
+test doctools-toc-${impl}-27.5 {elabel, division, set, unchanged} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + division $R L D]
+} -body {
+    I elabel $R L
+} -cleanup {
+    I destroy
+    unset R
+} -result L
+
+test doctools-toc-${impl}-27.6 {elabel, division, set, changed} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + division $R L D]
+} -body {
+    I elabel $R L'
+} -cleanup {
+    I destroy
+    unset R
+} -result L'
+
+test doctools-toc-${impl}-27.7 {elabel, division, set, collision} -setup {
+    doctools::toc I
+    set R [I element]
+    I + division $R L' D
+    set R [I + division $R L D]
+} -body {
+    I elabel $R L'
+} -cleanup {
+    I destroy
+    unset R
+} -returnCodes error -result {Redefinition of label 'L'' in '{}'}
+
+test doctools-toc-${impl}-28.0 {description, reference, query} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + reference $R L D DESC]
+} -body {
+    I description $R
+} -cleanup {
+    I destroy
+    unset R
+} -result DESC
+
+test doctools-toc-${impl}-28.1 {description, reference, set, unchanged} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + reference $R L D DESC]
+} -body {
+    I description $R DESC
+} -cleanup {
+    I destroy
+    unset R
+} -result DESC
+
+test doctools-toc-${impl}-28.2 {description, reference, set, changed} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + reference $R L D DESC]
+} -body {
+    I description $R DESC'
+} -cleanup {
+    I destroy
+    unset R
+} -result DESC'
+
+test doctools-toc-${impl}-28.3 {description, division, query} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + division $R L D]
+} -body {
+    I description $R
+} -cleanup {
+    I destroy
+    unset R
+} -returnCodes error -result {Divisions have no description}
+
+test doctools-toc-${impl}-28.4 {description, division, set} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + division $R L D]
+} -body {
+    I description $R DESC
+} -cleanup {
+    I destroy
+    unset R
+} -returnCodes error -result {Divisions have no description}
+
+test doctools-toc-${impl}-29.0 {document, reference, query} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + reference $R L D DESC]
+} -body {
+    I document $R
+} -cleanup {
+    I destroy
+    unset R
+} -result D
+
+test doctools-toc-${impl}-29.1 {document, reference, set, unchanged} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + reference $R L D DESC]
+} -body {
+    I document $R D
+} -cleanup {
+    I destroy
+    unset R
+} -result D
+
+test doctools-toc-${impl}-29.2 {document, reference, set, changed} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + reference $R L D DESC]
+} -body {
+    I document $R D'
+} -cleanup {
+    I destroy
+    unset R
+} -result D'
+
+test doctools-toc-${impl}-29.3 {document, reference, set, empty} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + reference $R L D DESC]
+} -body {
+    I document $R {}
+} -cleanup {
+    I destroy
+    unset R
+} -returnCodes error -result {Illegal to unset document reference in reference entry}
+
+test doctools-toc-${impl}-29.4 {document, division, query} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + division $R L D]
+} -body {
+    I document $R
+} -cleanup {
+    I destroy
+    unset R
+} -result D
+
+test doctools-toc-${impl}-29.5 {document, division, set, unchanged} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + division $R L D]
+} -body {
+    I document $R D
+} -cleanup {
+    I destroy
+    unset R
+} -result D
+
+test doctools-toc-${impl}-29.6 {document, division, set, changed} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + division $R L D]
+} -body {
+    I document $R D'
+} -cleanup {
+    I destroy
+    unset R
+} -result D'
+
+test doctools-toc-${impl}-29.7 {document, division, unset} -setup {
+    doctools::toc I
+    set R [I element]
+    set R [I + division $R L D]
+} -body {
+    I document $R {}
+} -cleanup {
+    I destroy
+    unset R
+} -result {}
+
+# -------------------------------------------------------------------------
+
+test doctools-toc-${impl}-30.0 {title, default} -setup {
+    doctools::toc I
+} -body {
+    I title
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-toc-${impl}-30.1 {title, set} -setup {
+    doctools::toc I
+} -body {
+    I title T
+} -cleanup {
+    I destroy
+} -result T
+
+test doctools-toc-${impl}-30.2 {title, get} -setup {
+    doctools::toc I
+    I title T
+} -body {
+    I title
+} -cleanup {
+    I destroy
+} -result T
+
+test doctools-toc-${impl}-31.0 {label, default} -setup {
+    doctools::toc I
+} -body {
+    I label
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-toc-${impl}-31.1 {label, set} -setup {
+    doctools::toc I
+} -body {
+    I label T
+} -cleanup {
+    I destroy
+} -result T
+
+test doctools-toc-${impl}-31.2 {label, get} -setup {
+    doctools::toc I
+    I label T
+} -body {
+    I label
+} -cleanup {
+    I destroy
+} -result T
+
+test doctools-toc-${impl}-32.0 {exporter, default} -setup {
+    doctools::toc I
+} -body {
+    I exporter
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-toc-${impl}-32.1 {exporter, set} -setup {
+    doctools::toc I
+} -body {
+    I exporter T
+} -cleanup {
+    I destroy
+} -result T
+
+test doctools-toc-${impl}-32.2 {exporter, get} -setup {
+    doctools::toc I
+    I exporter T
+} -body {
+    I exporter
+} -cleanup {
+    I destroy
+} -result T
+
+test doctools-toc-${impl}-33.0 {importer, default} -setup {
+    doctools::toc I
+} -body {
+    I importer
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-toc-${impl}-33.1 {importer, set} -setup {
+    doctools::toc I
+} -body {
+    I importer T
+} -cleanup {
+    I destroy
+} -result T
+
+test doctools-toc-${impl}-33.2 {importer, get} -setup {
+    doctools::toc I
+    I importer T
+} -body {
+    I importer
+} -cleanup {
+    I destroy
+} -result T
+
+# -------------------------------------------------------------------------
+
+test doctools-toc-${impl}-34.0 {up, at root} -setup {
+    doctools::toc I
+} -body {
+    I up [I element]
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-toc-${impl}-34.1 {up, at root} -setup {
+    doctools::toc I
+    set R [I element]
+    set A [I + reference $R L D DESC]
+} -body {
+    string equal $R [I up $A]
+} -cleanup {
+    I destroy
+    unset R A
+} -result 1
+
+test doctools-toc-${impl}-35.0 {next, at root} -setup {
+    doctools::toc I
+} -body {
+    I next [I element]
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-toc-${impl}-35.1 {next, right} -setup {
+    doctools::toc I
+    set R [I element]
+    set A [I + reference $R L  D  DESC]
+    set B [I + reference $R L' D' DESC']
+} -body {
+    string equal $B [I next $A]
+} -cleanup {
+    I destroy
+    unset R A B
+} -result 1
+
+test doctools-toc-${impl}-35.2 {next, right up} -setup {
+    doctools::toc I
+    set R [I element]
+    set A [I + reference $R L  D  DESC]
+    set B [I + reference $R L' D' DESC']
+} -body {
+    string equal $R [I next $B]
+} -cleanup {
+    I destroy
+    unset R A B
+} -result 1
+
+test doctools-toc-${impl}-36.0 {prev, at root} -setup {
+    doctools::toc I
+} -body {
+    I prev [I element]
+} -cleanup {
+    I destroy
+} -result {}
+
+test doctools-toc-${impl}-36.1 {prev, left} -setup {
+    doctools::toc I
+    set R [I element]
+    set A [I + reference $R L  D  DESC]
+    set B [I + reference $R L' D' DESC']
+} -body {
+    string equal $A [I prev $B]
+} -cleanup {
+    I destroy
+    unset R A B
+} -result 1
+
+test doctools-toc-${impl}-36.2 {prev, left up} -setup {
+    doctools::toc I
+    set R [I element]
+    set A [I + reference $R L  D  DESC]
+    set B [I + reference $R L' D' DESC']
+} -body {
+    string equal $R [I prev $A]
+} -cleanup {
+    I destroy
+    unset R A B
+} -result 1
+
+test doctools-toc-${impl}-37.0 {child, ok} -setup {
+    doctools::toc I
+    set R [I element]
+    set A [I + reference $R L  D  DESC]
+} -body {
+    string equal $A [I child $R L]
+} -cleanup {
+    I destroy
+    unset R A
+} -result 1
+
+test doctools-toc-${impl}-37.1 {child, unknown} -setup {
+    doctools::toc I
+    set R [I element]
+    set A [I + reference $R L  D  DESC]
+} -body {
+    I child $R bogus
+} -cleanup {
+    I destroy
+    unset R A
+} -returnCodes error -result {Bad label 'bogus' in '{}'}
+
+test doctools-toc-${impl}-37.2 {child, nested} -setup {
+    doctools::toc I
+    set R [I element]
+    set A [I + division  $R L  D]
+    set B [I + reference $A L' D' DESC']
+} -body {
+    string equal $B [I child $R L L']
+} -cleanup {
+    I destroy
+    unset R A B
+} -result 1
+
+
+
+# TODO :: check toc merging (+=).
+
+# toc tests, numbering starts at 40
+# -------------------------------------------------------------------------
+
+source [localPath tests/container]
+return

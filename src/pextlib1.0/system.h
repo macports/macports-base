@@ -1,6 +1,5 @@
 /*
  * system.h
- * $Id$
  *
  * Copyright (c) 2009 The MacPorts Project
  * All rights reserved.

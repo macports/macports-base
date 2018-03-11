@@ -1,0 +1,24 @@
+pt::grammar::peg
+    start := (eos)
+    rules
+        eos :: <value> :=
+            x
+                (ex)
+                *
+                    x
+                        +
+                            <space>
+                        (ex)
+        ex :: <value> :=
+            x
+                +
+                    x
+                        !
+                            (X)
+                        /
+                            'x'
+                            'z'
+                ?
+                    (X)
+        X :: <value> :=
+            'x'

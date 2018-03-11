@@ -1,0 +1,5 @@
+PEG a_pe_grammar (TEST)
+
+ TEST <- !'a' IDENTIFIER ;
+
+END;

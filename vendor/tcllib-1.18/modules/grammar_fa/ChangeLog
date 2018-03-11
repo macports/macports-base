@@ -1,0 +1,368 @@
+2013-11-06  Andreas Kupries  <andreask@activestate.com>
+
+	* fa.tcl: Extended the range of acceptable snit beyond 1.3-2 to
+	* pkgIndex.tcl: beyond 2. Bumped version to 0.5. Testsuite update
+	  defered. Requires more work to update the wrong#args messages.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-10-27  Andreas Kupries  <andreask@activestate.com>
+
+	* fa.man: Noted that the implementation could be simplified by
+	* fa.tcl: using snit's hierarchical methods. The changed methods
+	* pkgIndex.tcl: are 'start', 'final', 'symbol', and 'state'.
+	* tests/fa_final.test: Updated the testsuite, the error messages
+	* tests/fa_state.test:  changed across branches of Tcl. Bumped
+	* tests/fa_symbol.test: version to 0.4 (Due to us bumping the
+	  required snit to 1.3+).
+
+2009-02-13  Andreas Kupries  <andreask@activestate.com>
+
+	* fa.tcl: Fixed [SF Tcllib Bug 2595296], renaming of states
+	* fa.man: having loop transitions. Bumped version to 0.3.1.
+	* pkgIndex.tcl: Extended testsuite.
+	* tests/fa_state.test:
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-03-14  Andreas Kupries   <andreask@activestate.com>
+
+	* faop.tcl (::grammar::fa::op::cons): Fixed bad return code,
+	* pkgIndex.tcl: reported in [SF Tcllib Bug 1826418], by Erik
+	* faop.man: Leunissen. Bumped to version 0.4.1.
+
+2007-12-03  Andreas Kupries  <andreask@activestate.com>
+
+	* tests/faop_regex.test: Added examples for to(Tcl)Regexp provided
+	  by Lars Hellstroem <lars_h@users.sourceforge.net>, see [Tcllib SF
+	  Bug 1841979].
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-22  Andreas Kupries  <andreask@activestate.com>
+
+	* faop.tcl: Extended the package with commands to convert finite
+	* faop.man: automatons back to regular expressions, simplify
+	* pkgIndex.tcl: regular expressions, and translate regular
+	* tests/faop_regexp.test: expressions to Tcl syntax. Extended the
+	  documentation and testsuite. This fixes [SF Tcllib RFE 1735601],
+	  submitted by Lars Hellstroem <lars_h@users.sourceforge.net>. He
+	  submitted the code used for this as well. Documentation however
+	  by myself, based on his comments in the original code (dtx
+	  format). Version of the package bumped to 0.4.
+
+2007-08-21  Andreas Kupries  <andreask@activestate.com>
+
+	* faop.man: Extend fromRegex and helper commands to accept zero
+	* faop.tcl: arguments for "|" (Choice) and "." (Sequence), to
+	* pkgIndex.tcl: represent empty language and epsilon
+	  language. Documentation extended. Version of package fa::op
+	  bumped to 0.3. This implements [SF Tcllib Bug 1759532], an RFE
+	  submitted by Lars Hellstroem <lars_h@users.sourceforge.net>.
+
+2007-08-14  Andreas Kupries <andreask@activestate.com>
+
+	* tests/fa_symbols_at.test: Added proper documentation for the
+	* fa.tcl: methods symbols@ and symbols@set. Extended method
+	* fa.man: symbols@ to allow querying of symbols between two
+	* pkgIndex.tcl: states, extended documentation, and updated
+	  testsuite. Bumped package version to 0.3.
+
+2007-06-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* faop.tcl: Replaced deprecated {expand} syntax in comments with
+	  {*}.
+
+2007-04-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dacceptor.test: Added the switching of struct::set
+	* dexec.test:     implementations to the testsuite.
+	* fa.test:
+	* faop.test:
+	* tests/da_accept.test:
+	* tests/da_cons.test:
+	* tests/de_cons.test:
+	* tests/de_exec.test:
+	* tests/fa_cons.test:
+	* tests/fa_ec.test:
+	* tests/fa_final.test:
+	* tests/fa_is.test:
+	* tests/fa_is_complete.test:
+	* tests/fa_is_deterministic.test:
+	* tests/fa_is_epsfree.test:
+	* tests/fa_is_useful.test:
+	* tests/fa_next.test:
+	* tests/fa_reach.test:
+	* tests/fa_serial.test:
+	* tests/fa_start.test:
+	* tests/fa_state.test:
+	* tests/fa_states.test:
+	* tests/fa_symbol.test:
+	* tests/fa_symbols.test:
+	* tests/fa_symbols_at.test:
+	* tests/fa_useful.test:
+	* tests/faop_complete.test:
+	* tests/faop_concat.test:
+	* tests/faop_determinize.test:
+	* tests/faop_difference.test:
+	* tests/faop_intersect.test:
+	* tests/faop_kleene.test:
+	* tests/faop_minimize.test:
+	* tests/faop_optional.test:
+	* tests/faop_regex.test:
+	* tests/faop_remeps.test:
+	* tests/faop_reverse.test:
+	* tests/faop_trim.test:
+	* tests/faop_union.test:
+
+2007-04-03  Andreas Kupries  <andreask@activestate.com>
+
+	* dexec.tcl: Accepted [Tcllib RFE 1692954] and the associated
+	* dexec.man: patch [Tcllib Patch 1693491], by Bogdan
+	* pkgIndex.tcl: <rftghost@users.sourceforge.net>. Bumped version
+	* test/de_exec.test: number to 0.2. New API: State introspection,
+	  additional callback invokation for state transitions. Updated
+	  testsuite to accept the additional callbacks in the activity
+	  traces.
+
+2007-03-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dacceptor.man: Fixed all warnings due to use of now deprecated
+	* dexec.man: commands. Added a section about how to give feedback.
+	* fa.man:
+	* faop.man:
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	*
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* faop.man: Bumped versions to 0.2
+	* faop.tcl:
+	* fa.man:
+	* fa.tcl:
+	* pkgIndex.tcl:
+
+2006-06-15  Andreas Kupries <andreask@activestate.com>
+
+	* fa.tcl:         Reworked the internal of the container and
+	* faop.tcl:       operations packages to break their circularity.
+	* fa.test:        The user of the operations packages now has to
+	* faop.test:      specify a command to construct containers. The
+	* dexec.test:     uses the ops package and sets its own class
+	* dacceptor.text: command as constructor.
+	* fa.man:
+	* faop.man:
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tests/fa_symbols_at.test: Fixed use of duplicate test names.
+	* tests/fa_symbol.test:
+	* tests/faop_remeps.test:
+	* tests/faop_reverse.test:
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dacceptor.test: More boilerplate simplified via use of test support.
+	* dexec.test:
+	* fa.test:
+	* faop.test:
+
+	* tests/faop_trim.test:  Replaced old 'queryconstraint' with proper
+	* tests/fa_serial.test: 'testConstraint' call.
+	* tests/fa_is_useful.test:
+	* tests/fa_is_deterministic.test:
+	* tests/da_cons.test:
+	* tests/de_cons.test:
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dacceptor.test: Hooked into the new common test support code.
+	* dexec.test:
+	* fa.test:
+	* faop.test:
+
+2006-01-10  Andreas Kupries <andreask@activestate.com>
+
+	* dacceptor.test: Fixed [SF Tcllib Bug 1316040]. Uncluttering test
+	* dexec.test:     output.
+	* fa.test:
+	* faop.test:
+	* tests/da_accept.test:
+	* tests/de_exec.test:
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	*
+
+2005-09-20  Andreas Kupries  <akupries@shaw.ca>
+
+	* tests/fa_final.test: Fixed problems of testsuite with
+	* tests/fa_next.test:  Tcl 8.5, caused by changes to the
+	* tests/fa_start.test: proc error messages.
+	* tests/fa_state.test:
+	* tests/fa_symbol.test:
+
+2004-11-22  Andreas Kupries <andreask@activestate.com>
+
+	* pkgIndex.tcl: Fixed usage of wrong file for package 'dacceptor'.
+
+2004-11-11  Andreas Kupries <andreask@activestate.com>
+
+	* fa.man: Removed duplicate description of method
+	  startstates. Fixed typos (wrong term, missing word).
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	*
+
+2004-08-05  Andreas Kupries  <andreask@activestate.com>
+
+	* tests/fa_is_deterministic.test:
+	* tests/fa_is_useful.test:
+	* tests/da_cons.test:   Introduced constraint 'runtotal'.
+	* tests/de_cons.test:   Skip the most timeconsuming tests
+	* tests/fa_serial.test: if the constraint is off (default).
+	* tests/faop_trim.test: Reduces #tests from 58143 to 2410.
+	 (fa_serial, faop_trim are the biggest hitters).
+
+	* ../../all.tcl: Added command 'queryConstraint' for portability.
+
+2004-07-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tests/da_cons.test: Updated tests to changed error message of snit.
+	* tests/de_cons.test:
+
+	* tests/faop_difference.test: Fixed problem with missing object
+	* tests/faop_intersect.test:  destruction uncovered by the new
+	  checks in snit which cause it to avoid overwriting an existing
+	  command.
+
+2004-07-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* faop.man: Inserted the correct package names into the
+	* fa.man:   manpage headers.
+	* dexec.man:
+	* dacceptor.man:
+
+2004-05-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dacceptor.test: Adapted to changes in the struct package.
+	* dexec.test:     Now importing only the needed structures
+	* fa.test:        (list, set operations). Updated all test
+	* faop.test:      suites in the same way. Updated all manpages
+	* dacceptor.tcl:  to contain the correct package requirements
+	* dexec.tcl:      as well.
+	* fa.tcl:
+	* faop.tcl:
+	* dacceptor.man:
+	* dexec.man:
+	* fa.man:
+	* faop.man:
+
+2004-04-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dacceptor.man: Slight renaming of a section for better
+	  understanding.
+
+	* dexec.tcl:  New package, execution of deterministic
+	* dexec.man:  finite automatons. Executors can do only this,
+	* dexec.test: and cannot be manipulated. Added reference
+	* fa.man:     to this package to the FA documenation.
+	* tests/de_cons.test:
+	* tests/de_exec.test:
+
+2004-04-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dacceptor.tcl:  New package, deterministic acceptors
+	* dacceptor.man:  out of deterministic finite automaton.
+	* dacceptor.test: Acceptors do only this check, and cannot
+	* fa.man:         be manipulated. Added reference to this
+	                  package to the FA documenation.
+	* tests/da_cons.test:
+	* tests/da_accept.test:
+
+	* fa.tcl:  Added fromRegex constructor operation. Updated
+	* fa.man:  the documentation, and testsuite. Typo fixes in
+	* fa.test: documentation as well.
+
+2004-04-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* faop.tcl: Complement requires deterministic input for a correct
+	* faop.man: result. Fixed. Updated documentation as well. Typo
+	  fixes in doc.
+
+2004-04-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* test_support.tcl: Renamed to tests.support. Prevents the
+	* fa.test:          installation of this internal file.
+	* faop.test:        Updated the test suites.
+
+2004-04-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* All files: Bugfixes in basic FA support. Updated tests, updated
+	  documentation. Completed implementation of more comlex FA
+	  operations, their documentation, and their tests. Test suite is
+	  now definitely in overkill, taking 13 minutes to run :P
+
+2004-03-25  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tests/fa_state.test
+	* tests/fa_is_complete.test
+	* tests/fa_is_cons.test
+	* fa.tcl: Fixed definition of 'is complete' for FAs without
+	  symbols. Updated tests. Fixed deletion of states, added test for
+	  the fixed case. Aded construction from serialization. Updated
+	  tests. Added cache for epsilon closures.
+
+	* fa.man: Removed the remnants of the documentation for 'state
+	  priority'. Added the missing documentation for all 'is' commands
+	  beyond 'deterministic'.
+
+2004-03-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* New module: Grammar operations, Finite Automatons.
+

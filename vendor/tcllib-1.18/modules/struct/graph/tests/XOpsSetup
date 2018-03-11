@@ -1,0 +1,2750 @@
+# -*- tcl -*-
+# graphops.testsuite.setup:  Setting up implementation specific definitions.
+#
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: XOpsSetup,v 1.13 2009/11/03 17:38:30 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+# Place holder for future setup / helper actions.
+
+
+proc SETUP_A {} {
+    # Used by kruskal, prim tests
+
+    struct::graph mygraph
+    mygraph node insert 'node0'
+    mygraph node insert 'node1'
+    mygraph node insert 'node2'
+    mygraph node insert 'node3'
+    mygraph node insert 'node4'
+    mygraph node insert 'node5'
+    mygraph node insert 'node6'
+
+    mygraph arc insert 'node0' 'node1' 'arc0_1'
+    mygraph arc insert 'node0' 'node3' 'arc0_3'
+    mygraph arc insert 'node1' 'node3' 'arc1_3' 
+    mygraph arc insert 'node1' 'node4' 'arc1_4'
+    mygraph arc insert 'node2' 'node0' 'arc2_0'
+    mygraph arc insert 'node2' 'node5' 'arc2_5'
+    mygraph arc insert 'node3' 'node4' 'arc3_4'
+    mygraph arc insert 'node3' 'node6' 'arc3_6'
+    mygraph arc insert 'node3' 'node2' 'arc3_2'
+    mygraph arc insert 'node3' 'node5' 'arc3_5'
+    mygraph arc insert 'node4' 'node6' 'arc4_6'
+    mygraph arc insert 'node6' 'node5' 'arc6_5'
+
+    mygraph arc setweight 'arc0_1' 2
+    mygraph arc setweight 'arc0_3' 1
+    mygraph arc setweight 'arc1_3' 3
+    mygraph arc setweight 'arc1_4' 10
+    mygraph arc setweight 'arc2_0' 4
+    mygraph arc setweight 'arc2_5' 5
+    mygraph arc setweight 'arc3_4' 2
+    mygraph arc setweight 'arc3_6' 4
+    mygraph arc setweight 'arc3_2' 2
+    mygraph arc setweight 'arc3_5' 8
+    mygraph arc setweight 'arc4_6' 6
+    mygraph arc setweight 'arc6_5' 1
+
+    # 2 --/4/--> 0 --/2/--> 1
+    # |^         |         /|
+    # - \        -        / -
+    # 5  -|2|-   1   -/3/-  10
+    # -       \  -  /       -
+    # |        \ | /        |
+    # V         \VV         V
+    # 5 <--/8/-- 3 --/2/--> 4
+    #  ^         |         /
+    #   \        -        /
+    #    -|1|-   4   -/6/-
+    #         \  -  /
+    #          \ | /
+    #           \VV
+    #            6
+
+    return
+}
+
+proc SETUP_A2 {} {
+    SETUP_A
+    mygraph arc insert 'node0' 'node2' 'arc0_2'
+    mygraph arc insert 'node0' 'node4' 'arc0_4'
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_B {} {
+    # Predefined Graph for testing on:
+    # - isConnected?
+    # - connectedComponents
+    # - prim
+    # - isEulerian?
+    # Author: Alejandro Eduardo Cruz Paz
+    # 28 August 2008
+
+    struct::graph mygraph
+    # Graph's nodes definition
+    mygraph node insert S
+    mygraph node insert A
+    mygraph node insert B
+    mygraph node insert C
+    mygraph node insert D
+    mygraph node insert E
+    
+    # setup arcs and it's weights
+    mygraph arc insert S A S_A ;	mygraph arc setweight S_A 3
+    mygraph arc insert A C A_C ;	mygraph arc setweight A_C 2
+    mygraph arc insert S B S_B ;	mygraph arc setweight S_B 1
+    mygraph arc insert A B A_B ;	mygraph arc setweight A_B 1
+    mygraph arc insert B C B_C ;	mygraph arc setweight B_C 3
+    mygraph arc insert B D B_D ;	mygraph arc setweight B_D 5
+    mygraph arc insert C D C_D ;	mygraph arc setweight C_D 1
+    mygraph arc insert D E D_E ;	mygraph arc setweight D_E 1
+    mygraph arc insert C E C_E ;	mygraph arc setweight C_E 3
+
+    # S --/3/--> A --/2/--> C --/3/--> E
+    #  \         |        /^|        /-^
+    #   \        -       /  -       /
+    #    -|1|    1  -|3|-   1  -|1|-
+    #        \   - /        - /
+    #         \  V/         V/
+    #          > B --/5/--> D
+    #
+
+    return
+}
+
+proc SETUP_B2 {} {
+    struct::graph mygraph
+
+    mygraph node insert A B C D E F G
+
+    mygraph arc insert A B
+    mygraph arc insert A E
+    mygraph arc insert B D
+    mygraph arc insert B F
+    mygraph arc insert C A
+    mygraph arc insert D C
+    mygraph arc insert E B
+    mygraph arc insert E F
+    mygraph arc insert F A
+    mygraph arc insert F G
+    mygraph arc insert G E
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_C {} {
+    # Predefined Graph for testing on:
+    # - isConnected? 
+    # - isEulerian?
+    # - isBipartite?
+    # Author: Alejandro Eduardo Cruz Paz
+    # 28 August 2008
+
+    struct::graph mygraph
+    mygraph node insert A
+    mygraph node insert B
+    mygraph node insert C
+    mygraph node insert D
+    mygraph node insert E
+    mygraph node insert F
+
+    mygraph arc insert A B A_B 
+    mygraph arc insert B D B_D
+    mygraph arc insert D C D_C
+    mygraph arc insert C A C_A
+    mygraph arc insert A E A_E
+    mygraph arc insert E F E_F
+
+    mygraph arc setweight A_B 9
+    mygraph arc setweight B_D 10
+    mygraph arc setweight D_C 4
+    mygraph arc setweight C_A 3
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_D {} {
+    # Predefined Graph for testing on:
+    # - isConnected?
+    # - isEulerian?
+    # - isBipartite?
+    # Author: Alejandro Eduardo Cruz Paz
+    # 28 August 2008
+
+    struct::graph mygraph
+    mygraph node insert a
+    mygraph node insert b
+    mygraph node insert c
+    mygraph node insert d
+    
+    mygraph node insert f
+    mygraph node insert g
+    mygraph node insert h
+    
+    mygraph node insert i
+    mygraph node insert j
+    
+    mygraph arc insert d f
+    mygraph arc insert h j
+    mygraph arc insert i j
+    mygraph arc insert f g
+    mygraph arc insert g h
+    mygraph arc insert h f
+    mygraph arc insert a b
+    mygraph arc insert b c
+    mygraph arc insert c d
+    mygraph arc insert d a
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_E {} {
+    # Predefined Graph for testing on:
+    #  - isBipartite?
+    #  - maxMatching
+    # - isEulerian?
+    # Author: Alejandro Eduardo Cruz Paz
+    # 28 August 2008
+
+    struct::graph mygraph	
+    mygraph node insert 1w
+    mygraph node insert 1b
+    mygraph node insert 2w
+    mygraph node insert 2b
+    mygraph node insert 3w
+    mygraph node insert 3b
+    mygraph node insert 4w
+    mygraph node insert 4b
+    mygraph node insert 5w
+    mygraph node insert 5b
+    mygraph node insert 6w
+    mygraph node insert 6b
+    mygraph node insert 7w
+    mygraph node insert 7b
+    mygraph node insert 8w
+    mygraph node insert 8b
+    
+    mygraph arc insert 1b 1w
+    mygraph arc insert 1b 2w
+    mygraph arc insert 2b 1w
+    mygraph arc insert 2b 2w
+    mygraph arc insert 2b 3w
+    mygraph arc insert 2b 4w
+    mygraph arc insert 3b 2w
+    mygraph arc insert 3b 3w
+    mygraph arc insert 3b 5w
+    mygraph arc insert 3w 4b
+    mygraph arc insert 4b 3w
+    mygraph arc insert 4b 4w
+    mygraph arc insert 4b 6w
+    mygraph arc insert 4w 5b
+    mygraph arc insert 4w 7b
+    mygraph arc insert 5b 5w
+    mygraph arc insert 5b 6w
+    mygraph arc insert 5w 6b
+    mygraph arc insert 6b 6w
+    mygraph arc insert 6w 7b
+    mygraph arc insert 6w 8b
+    mygraph arc insert 7b 7w 
+    mygraph arc insert 7w 8b
+    mygraph arc insert 8b 8w
+    mygraph arc insert 8w 7b
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_F {} {
+    # Predefined Graph for testing on:
+    #  - isBipartite?
+    #  - maxMatching
+    # Author: Alejandro Eduardo Cruz Paz
+    # 28 August 2008
+    struct::graph mygraph
+    
+    mygraph node insert 1w
+    mygraph node insert 1b
+    mygraph node insert 2w
+    mygraph node insert 2b
+    mygraph node insert 3w
+    mygraph node insert 3b
+    mygraph node insert 4w
+    mygraph node insert 4b
+    
+    mygraph arc insert 1b 2w
+    mygraph arc insert 1b 3w
+    mygraph arc insert 1b 4w
+    mygraph arc insert 1w 3b
+    mygraph arc insert 2b 1w
+    mygraph arc insert 2b 3w
+    mygraph arc insert 3b 2w
+    mygraph arc insert 3w 4b
+    mygraph arc insert 4b 1w
+    mygraph arc insert 4b 2w
+    mygraph arc insert 4w 2b
+    mygraph arc insert 4w 3b
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_G {} {
+    # Predefined Graph for testing on:
+    #  - isBipartite?
+    #  - maxMatching 
+    #  - isBridge?
+    # Author: Alejandro Eduardo Cruz Paz
+    # 28 August 2008
+
+    struct::graph mygraph
+    
+    mygraph node insert 1w
+    mygraph node insert 1b
+    mygraph node insert 2w
+    mygraph node insert 2b
+    mygraph node insert 3w
+    mygraph node insert 3b
+    mygraph node insert 4w
+    mygraph node insert 4b
+    mygraph node insert 5w
+    mygraph node insert 5b
+    
+    mygraph arc insert 1b 5w bridge1
+    mygraph arc insert 2b 4w
+    mygraph arc insert 2w 4b
+    mygraph arc insert 2w 5b
+    mygraph arc insert 3b 4w
+    mygraph arc insert 3w 4b
+    mygraph arc insert 3w 5b
+    mygraph arc insert 4b 4w bridge2
+    mygraph arc insert 5b 1w bridge3
+    mygraph arc insert 5w 2b
+    mygraph arc insert 5w 3b nobridge
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_H {} {
+    # Predefined Graph for testing on:
+    # - isConnected?
+    # - isEulerian?
+    # Author: Alejandro Eduardo Cruz Paz
+    # 28 August 2008
+
+    struct::graph mygraph
+    mygraph node insert A
+    mygraph node insert B
+    mygraph node insert C
+    mygraph node insert D
+    mygraph node insert E
+
+    mygraph arc insert A B A_B ;    mygraph arc setweight A_B 10
+    mygraph arc insert B C B_C ;    mygraph arc setweight B_C 8
+    mygraph arc insert D C D_C ;    mygraph arc setweight D_C 2
+    mygraph arc insert B D B_D ;    mygraph arc setweight B_D 7
+    mygraph arc insert C D C_D ;    mygraph arc setweight C_D 1
+    mygraph arc insert D E D_E ;    mygraph arc setweight D_E 6
+    mygraph arc insert E A E_A ;    mygraph arc setweight E_A 4
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_I {} {
+    # Predefined Graph for testing on:
+    # isConnected?
+    # isEulerian?
+    # Author: Alejandro Eduardo Cruz Paz
+    # 28 August 2008
+
+    struct::graph mygraph
+    
+    mygraph node insert N1 
+    mygraph node insert N2
+    mygraph node insert N3
+    mygraph node insert N4
+    mygraph node insert N5
+    
+    mygraph arc insert N1 N5 N1_N5
+    mygraph arc insert N2 N5 N2_N5
+    mygraph arc insert N3 N5 N3_N5
+    mygraph arc insert N4 N5 N4_N5
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_J {} {
+    # Predefined Graph for testing on:
+    # isConnected?
+    # Author: Alejandro Eduardo Cruz Paz
+    # 28 August 2008
+
+    struct::graph mygraph
+    
+    mygraph node insert 1
+    mygraph node insert 2
+    mygraph node insert 3
+    mygraph node insert 4
+    mygraph node insert 5
+    mygraph node insert 6
+    mygraph node insert 7
+    
+    mygraph arc insert 7 6
+    mygraph arc insert 6 7
+    mygraph arc insert 1 4
+    mygraph arc insert 4 5
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_K {} {
+    # Predefined Graph for testing on:
+    # isConnected?
+    # Author: Alejandro Eduardo Cruz Paz
+    # 28 August 2008
+
+    struct::graph mygraph
+    
+    mygraph node insert No1
+    mygraph node insert No2
+    mygraph node insert No3
+    mygraph node insert No4
+    mygraph node insert No5
+    
+    mygraph arc insert No1 No2 a
+    mygraph arc insert No2 No3 b
+    mygraph arc insert No3 No4 c
+    mygraph arc insert No4 No2 d
+    
+    mygraph arc insert No5 No5 e
+    return
+}
+
+proc SETUP_K2 {} {
+    SETUP_K
+    mygraph arc insert No5 No1 f
+    mygraph arc insert No5 No2 g
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_L {} {
+    # Koenigsberg.
+
+    struct::graph mygraph
+    mygraph node insert a b c d
+    mygraph arc  insert a c
+    mygraph arc  insert a d
+    mygraph arc  insert b a
+    mygraph arc  insert b c
+    mygraph arc  insert c a
+    mygraph arc  insert d a
+    mygraph arc  insert d b
+    return
+}    
+
+# -------------------------------------------------------------------------
+
+proc SETUP_M {} {
+    # penta-hex-something
+
+    struct::graph mygraph
+    mygraph node insert 1 2 3 4 5 6
+    mygraph arc  insert 1 2
+    mygraph arc  insert 2 3
+    mygraph arc  insert 3 4
+    mygraph arc  insert 4 5
+    mygraph arc  insert 5 1
+    mygraph arc  insert 1 6
+    mygraph arc  insert 6 2
+    mygraph arc  insert 2 5
+    mygraph arc  insert 5 6
+    mygraph arc  insert 6 3
+    mygraph arc  insert 3 1
+    return
+}    
+
+# -------------------------------------------------------------------------
+
+proc SETUP_N {} {
+    # Predefined Graph for testing on:
+    # isConnected?
+    # Author: Alejandro Eduardo Cruz Paz
+    # 28 August 2008
+
+    struct::graph mygraph
+    
+    mygraph node insert 0 1 2 a b c d e f
+    mygraph arc insert 0 1
+    mygraph arc insert 1 2
+    mygraph arc insert 2 0
+
+    mygraph arc insert a b
+    mygraph arc insert b 0
+    mygraph arc insert 0 a
+
+    mygraph arc insert c d
+    mygraph arc insert d 1
+    mygraph arc insert 1 c
+
+    mygraph arc insert e f
+    mygraph arc insert f 2
+    mygraph arc insert 2 e
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_BELLMANFORD_1 {} {
+    #Graph for testing Bellman's Ford algorithm (and also other pathfinding algorithms)
+    #Used for:
+    #Bellman's-Ford
+    #Floyd-Warshall's
+    #Basic test
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4
+    mygraph arc insert node1 node2 edge12
+    mygraph arc insert node2 node3 edge23
+    mygraph arc insert node3 node4 edge34
+    mygraph arc insert node4 node1 edge41
+    
+    mygraph arc setunweighted 1
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_BELLMANFORD_2 {} {
+    #Graph for testing Bellman-Ford's Algorithm
+    #More complex test case
+    #Used by:
+    #Bellman-Ford's Algorithm
+    #Floyd-Warshall's Algorithm
+    #Shortest Pathfinding by BFS algorithm
+    #BFS Algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5 node6
+    
+    mygraph arc insert node1 node2 edge12
+    mygraph arc setweight edge12 8
+    mygraph arc insert node1 node3 edge13
+    mygraph arc setweight edge13 6
+    mygraph arc insert node2 node4 edge24
+    mygraph arc setweight edge24 -1
+    mygraph arc insert node3 node2 edge32
+    mygraph arc setweight edge32 3
+    mygraph arc insert node3 node5 edge35
+    mygraph arc setweight edge35 -2
+    mygraph arc insert node4 node3 edge43
+    mygraph arc setweight edge43 -2
+    mygraph arc insert node4 node6 edge46
+    mygraph arc setweight edge46 3
+    mygraph arc insert node5 node6 edge56
+    mygraph arc setweight edge56 2
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_POSITIVEWEIGHTED_K4 {} {
+    SETUP_UNWEIGHTED_K4
+    mygraph arc setunweighted 2
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_NEGATIVECYCLE_1 {} {
+    #Graph containing cycle with negative sum of weights
+    #Used for testing:
+    #Bellman-Ford's Algorithm
+    #Johnson's Algorithm
+    #Floyd-Warshall's Algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3
+    mygraph arc insert node1 node2 edge12
+    mygraph arc setweight edge12 -1
+    mygraph arc insert node2 node3 edge23
+    mygraph arc setweight edge23 -2
+    mygraph arc insert node3 node1 edge31
+    mygraph arc setweight edge31 -3
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_NEGATIVECYCLE_2 {} {
+    #Graph containing cycle with negative sum of weights
+    #Used for testing:
+    #Bellman-Ford's Algorithm
+    #Johnson's Algorithm
+    #Floyd-Warshall's Algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5 node6
+    mygraph arc insert node1 node6
+    mygraph arc insert node6 node5
+    mygraph arc insert node5 node4
+    mygraph arc insert node4 node3
+    mygraph arc insert node3 node2
+    mygraph arc insert node2 node1
+    mygraph arc insert node6 node2 edge62
+    mygraph arc setweight edge62 -5
+    mygraph arc setunweighted 1
+    
+    return 
+    
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_NEGATIVECYCLE_3 {} {
+    #Graph containing cycle with negative sum of weights
+    #Used for testing:
+    #Bellman-Ford's Algorithm
+    #Johnson's Algorithm
+    #Floyd-Warshall's Algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5
+    mygraph arc insert node1 node2 edge12
+    mygraph arc setweight edge12 6
+    mygraph arc insert node1 node5 edge15
+    mygraph arc setweight edge15 7
+    mygraph arc insert node2 node4 edge24
+    mygraph arc setweight edge24 -4
+    mygraph arc insert node2 node5 edge25
+    mygraph arc setweight edge25 2
+    mygraph arc insert node3 node2 edge32
+    mygraph arc setweight edge32 -2
+    mygraph arc insert node4 node3 edge43
+    mygraph arc setweight edge43 7
+    mygraph arc insert node4 node1 edge41
+    mygraph arc setweight edge41 2
+    mygraph arc insert node5 node3 edge53
+    mygraph arc setweight edge53 -3
+    mygraph arc insert node5 node4 edge54
+    mygraph arc setweight edge54 9
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_K4 {} {
+    #Complete graph with 4 nodes
+    #Here without one edge - test for directed graphs
+    #Used by:
+    #For distance searches: Johnson's and Bellman-Ford's
+    #Vertices Cover
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4
+
+    mygraph arc insert node1 node2 edge12
+    mygraph arc setweight edge12 1
+    mygraph arc insert node1 node3 edge13
+    mygraph arc setweight edge13 1
+    mygraph arc insert node1 node4 edge14
+    mygraph arc setweight edge14 1
+
+    mygraph arc insert node2 node1 edge21
+    mygraph arc setweight edge21 1
+    mygraph arc insert node2 node3 edge23
+    mygraph arc setweight edge23 1
+    mygraph arc insert node2 node4 edge24
+    mygraph arc setweight edge24 1
+
+    mygraph arc insert node3 node1 edge31
+    mygraph arc setweight edge31 1
+    mygraph arc insert node3 node2 edge32
+    mygraph arc setweight edge32 1
+    mygraph arc insert node3 node4 edge34
+    mygraph arc setweight edge34 1
+
+    mygraph arc insert node4 node1 edge41
+    mygraph arc setweight edge41 2
+    mygraph arc insert node4 node2 edge42
+    mygraph arc setweight edge42 2
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_PARTIALLYCONNECTED_1 {} {
+
+    #Graph where their does not exists a path between each pair of vertices
+    #Used for testing:
+    #Bellman-Ford's Algorithm (Causes appearing of Inf values as a result)
+    #Johnson's Algorithm (Causes appearing of Inf values as a result)
+    #Metric Travelling Salesman 2-approximation algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5
+    
+    mygraph arc insert node1 node5
+    mygraph arc insert node2 node5
+    mygraph arc insert node3 node5
+    mygraph arc insert node4 node5
+    
+    mygraph arc setunweighted 1
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_JOHNSONS_1 {} {
+    #Graph for testing Johnson's Algorithm
+    #Used by:
+    #Johnson's Algorithm
+    #Floyd-Warshall's Algorithm
+    #
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5
+    
+    mygraph arc insert node1 node3 edge13
+    mygraph arc setweight edge13 1
+    mygraph arc insert node1 node4 edge14
+    mygraph arc setweight edge14 7
+
+    mygraph arc insert node2 node1 edge21
+    mygraph arc setweight edge21 4
+
+    mygraph arc insert node3 node2 edge32
+    mygraph arc setweight edge32 -5
+    mygraph arc insert node3 node5 edge35
+    mygraph arc setweight edge35 2
+
+    mygraph arc insert node4 node3 edge43
+    mygraph arc setweight edge43 6
+
+    mygraph arc insert node5 node1 edge51
+    mygraph arc setweight edge51 3
+    mygraph arc insert node5 node2 edge52
+    mygraph arc setweight edge52 8
+    mygraph arc insert node5 node4 edge54
+    mygraph arc setweight edge54 -4
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_JOHNSONS_2 {} {
+    #Graph for testing Johnson's Algorithm
+    #Used by:
+    #Johnson's Algorithm
+    #Floyd-Warshall's Algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5 node6
+    
+    mygraph arc insert node1 node2 edge12
+    mygraph arc setweight edge12 8
+    mygraph arc insert node1 node6 edge16
+    mygraph arc setweight edge16 6
+    mygraph arc insert node2 node3 edge23
+    mygraph arc setweight edge23 -1
+    mygraph arc insert node3 node4 edge34
+    mygraph arc setweight edge34 3
+    mygraph arc insert node3 node6 edge36
+    mygraph arc setweight edge36 -2
+    mygraph arc insert node5 node4 edge54
+    mygraph arc setweight edge54 2
+    mygraph arc insert node6 node2 edge62
+    mygraph arc setweight edge62 3
+    mygraph arc insert node6 node5 edge65
+    mygraph arc setweight edge65 -2
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_UNWEIGHTED_K4 {} {
+    #Unweighted directed complete graph K4
+    #Used by:
+    #Bellman's-Ford
+    #Johnson's Algorithm
+    #Floyd-Warshall's Algorithm
+    #Metric Travelling Salesman 2-approximation algorithm
+    #Christofides Algorithm
+    #Greedy Maximum Independent Set algorithm
+    #Unweighted k-center 2-approximation algorithm
+    #Weighted k-center 3-approximation algorithm
+    #Greedy Weighted Maximum Independent Set algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4
+    
+    mygraph arc insert node1 node2
+    mygraph arc insert node1 node3
+    mygraph arc insert node1 node4
+    mygraph arc insert node2 node3
+    mygraph arc insert node2 node4
+    mygraph arc insert node2 node1
+    mygraph arc insert node3 node1
+    mygraph arc insert node3 node2
+    mygraph arc insert node3 node4
+    mygraph arc insert node4 node1
+    mygraph arc insert node4 node2
+    mygraph arc insert node4 node3
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_UNDIRECTED_K4 {} {
+    #Undirected complete graph K4
+    #Used by:
+    #Metric Travelling Salesman 2-approximation algorithm
+    #Vertices Cover
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4
+    
+    mygraph arc insert node1 node2 edge12
+    mygraph arc insert node1 node3 edge13
+    mygraph arc insert node1 node4 edge14
+    mygraph arc insert node2 node3 edge23
+    mygraph arc insert node2 node4 edge24
+    mygraph arc insert node3 node4 edge34
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_PARTIALLYWEIGHTED_K4 {} {
+    #complete graph K4 with some weights set on edges
+    #Used by:
+    #Bellman's-Ford
+    #Johnson's Algorithm
+    SETUP_UNWEIGHTED_K4
+    
+    mygraph arc setweight arc1 1
+    mygraph arc setweight arc2 2
+    mygraph arc setweight arc3 3
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_NOEDGES_1 {} {
+    #Graph containing only nodes
+    #Used by:
+    #Johnson's Algorithm
+    #Floyd-Warshall's Algorithm
+    #Metric Travelling Salesman 2-approximation algorithm
+    #Christofides Algorithm
+    #Max Cut 2-approximation algorithm
+    
+    struct::graph mygraph 
+    
+    mygraph node insert node1 node2 node3 node4
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_ZEROWEIGHTED_K4 {} {
+    #K4 graph with all edge's weights set to 0
+    #Used by:
+    #Bellman's-Ford
+    #Johnson's Algorithm
+    #Floyd-Warshall's Algorithm
+    
+    SETUP_UNWEIGHTED_K4
+    mygraph arc setunweighted
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_PARTIALLYZEROWEIGHTED {} {
+    #graph with some weights of edges set to 0 (others set to 1)
+    #Used by:
+    #Bellman's-Ford
+    #Johnson's Algorithm
+    #Floyd-Warshall's Algorithm
+    
+    SETUP_BELLMANFORD_1
+    
+    mygraph arc setweight edge12 0
+    mygraph arc setweight edge23 0
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_PARTIALLYZEROWEIGHTED_K4 {} {
+    #K4 graph with some weights of edges set to 0
+    #Used by:
+    #Bellman's-Ford
+    #Johnson's Algorithm
+    #Floyd-Warshall's Algorithm
+    
+    SETUP_ZEROWEIGHTED_K4
+    
+    mygraph arc setweight arc1 1
+    mygraph arc setweight arc2 2
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_ADJACENCYLIST_K4 {} {
+    #special undirected K4 case where we have two arcs between two nodes
+    #with different sources and targets
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4
+    
+    mygraph arc insert node1 node2
+    mygraph arc insert node1 node3
+    mygraph arc insert node1 node4 edge14
+    mygraph arc insert node2 node3
+    mygraph arc insert node3 node4
+    mygraph arc insert node4 node1 edge41
+    
+    return
+}
+# -------------------------------------------------------------------------
+
+proc SETUP_ADJACENCYLIST_K4_WEIGHTED {} {
+    #weighted version of upper graph
+    SETUP_ADJACENCYLIST_K4
+    
+    mygraph arc setunweighted 1
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_ADJACENCYLIST_K4_WEIGHTED_DIRECTED {} {
+    #directed case, with mixed weights at crucial edges
+    SETUP_ADJACENCYLIST_K4_WEIGHTED
+    
+    mygraph arc setweight edge14 2
+    mygraph arc setweight edge41 3
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_ADJACENCYLIST_1 {} {
+    #undirected and unweighted graph for Adjacency List Testing
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5 node6
+    mygraph arc insert node1 node2
+    mygraph arc insert node1 node6
+    mygraph arc insert node2 node3
+    mygraph arc insert node3 node6
+    mygraph arc insert node4 node5
+    mygraph arc insert node4 node6
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_TSP_1 {} {
+
+    #Graph object for Metric Travelling Salesman problems testing
+    #Used by:
+    #Metric Travelling Salesman 2-approximation algorithm
+    
+    struct::graph mygraph
+
+    mygraph node insert node1 node2 node3 node4 node5 node6
+    mygraph arc insert node1 node2 
+    mygraph arc insert node2 node3
+    mygraph arc insert node3 node4
+    mygraph arc insert node4 node5
+    mygraph arc insert node5 node1
+    mygraph arc insert node6 node1
+    mygraph arc insert node6 node2
+    mygraph arc insert node6 node3
+    mygraph arc insert node6 node4
+    mygraph arc insert node6 node5
+    mygraph arc setunweighted 1
+    mygraph arc insert node1 node3
+    mygraph arc insert node1 node4
+    mygraph arc insert node2 node4
+    mygraph arc insert node2 node5
+    mygraph arc insert node3 node5
+    mygraph arc setunweighted 2
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_TSP_2 {} {
+    
+    #Graph object for Metric Travelling Salesman problems testing
+    #Used by:
+    #Metric Travelling Salesman 2-approximation algorithm
+    
+    struct::graph mygraph 
+    
+    mygraph node insert node1 node2 node3 node4 node5
+    mygraph arc insert node1 node2
+    mygraph arc insert node2 node3
+    mygraph arc insert node3 node4
+    mygraph arc insert node4 node1
+    mygraph arc insert node5 node1
+    mygraph arc insert node5 node2
+    mygraph arc insert node5 node3
+    mygraph arc insert node5 node4
+    mygraph arc setunweighted 1
+    mygraph arc insert node2 node4
+    mygraph arc insert node1 node3
+    mygraph arc setunweighted 2
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_TSP_3 {} {
+
+    #Graph object for Metric Travelling Salesman problems testing
+    #Used by:
+    #Metric Travelling Salesman 2-approximation algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4
+    mygraph arc insert node1 node2 
+    mygraph arc insert node3 node2 
+    mygraph arc insert node3 node4 
+    mygraph arc insert node4 node1
+    mygraph arc insert node2 node1 edge21
+    mygraph arc insert node2 node3 edge23
+    mygraph arc insert node4 node3 edge43
+    mygraph arc insert node1 node4 edge14
+    mygraph arc setunweighted 1
+    mygraph arc insert node1 node3
+    mygraph arc insert node2 node4
+    mygraph arc setunweighted 3
+    mygraph arc setweight edge23 5
+    mygraph arc setweight edge21 4
+    mygraph arc setweight edge43 6
+    mygraph arc setweight edge14 7
+    
+    return
+}
+
+
+# -------------------------------------------------------------------------
+
+proc SETUP_MAXCUT_1 {} {
+    #Graph representing Tight Example for Maximum Cut problem
+    #In this case algorithm should find right solution.
+    #Used by:
+    #Max Cut 2-approximation algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4
+    mygraph arc insert node1 node2 edge12
+    mygraph arc insert node1 node4 edge14
+    mygraph arc insert node2 node3 edge23
+    mygraph arc insert node3 node4 edge34
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_MAXCUT_2 {} {
+    #Graph representing Tight Example for Maximum Cut problem
+    #In this case algorithm should find solution, with maximum aproximation factor : ALG = 2 * OPT
+    #Used by:
+    #Max Cut 2-approximation algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4
+    mygraph arc insert node1 node3 edge13
+    mygraph arc insert node1 node4 edge14
+    mygraph arc insert node2 node3 edge23
+    mygraph arc insert node2 node4 edge24
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_MAXCUT_3 {} {
+
+    #Used by:
+    #Max Cut 2-approximation algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5 node6
+    mygraph arc insert node1 node3
+    mygraph arc insert node1 node6
+    mygraph arc insert node2 node4
+    mygraph arc insert node2 node5
+    mygraph arc insert node3 node4
+    mygraph arc insert node3 node5
+    mygraph arc insert node4 node6
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_MAXCUT_4 {} {
+
+    #Used by:
+    #Max Cut 2-approximation algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5 node6
+    mygraph arc insert node1 node2 edge12
+    mygraph arc insert node2 node1 edge21
+    mygraph arc insert node2 node3 edge23
+    mygraph arc insert node3 node2 edge32
+    mygraph arc insert node1 node4 edge14
+    mygraph arc insert node4 node5 edge45
+    mygraph arc insert node5 node4 edge54
+    mygraph arc insert node5 node6 edge56
+    mygraph arc insert node6 node5 edge65
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_MAXCUT_5 {} {
+
+    #Used by:
+    #Max Cut 2-approximation algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5 node6
+    mygraph arc insert node1 node2 
+    mygraph arc insert node1 node3
+    mygraph arc insert node3 node1
+    mygraph arc insert node4 node2
+    mygraph arc insert node2 node4
+    mygraph arc insert node4 node6
+    mygraph arc insert node6 node4
+    mygraph arc insert node5 node3
+    mygraph arc insert node3 node5
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_COUNTEDGES_1 {U V} {
+
+    #Used by:
+    #Max Cut 2-approximation algorithm (subprocedure)
+    
+    upvar 1 U varU V varV
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4
+    mygraph arc insert node1 node3
+    mygraph arc insert node1 node4
+    mygraph arc insert node4 node1
+    mygraph arc insert node3 node2
+    
+    set varU "node1 node2"
+    set varV "node3 node4"
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_COUNTEDGES_2 {U V} {
+
+    #Used by:
+    #Max Cut 2-approximation algorithm (subprocedure)
+    
+    upvar 1 U varU V varV
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4
+    mygraph arc insert node1 node3
+    mygraph arc insert node1 node4
+    mygraph arc insert node4 node1
+    mygraph arc insert node3 node2
+    mygraph arc insert node1 node1
+    mygraph arc insert node1 node2
+    mygraph arc insert node4 node3
+    
+    set varU "node1 node2"
+    set varV "node3 node4"
+    return
+}
+# -------------------------------------------------------------------------
+
+proc SETUP_COUNTEDGES_3 {U V} {
+
+    #Used by:
+    #Max Cut 2-approximation algorithm (subprocedure)
+    
+    upvar 1 U varU V varV
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4
+    mygraph arc insert node1 node1
+    mygraph arc insert node1 node2
+    mygraph arc insert node4 node3
+    
+    set varU "node1 node2"
+    set varV "node3 node4"
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_COUNTEDGES_4 {U V} {
+    
+    #Used by:
+    #Max Cut 2-approximation algorithm (subprocedure)
+    
+    upvar 1 U varU V varV
+    SETUP_COUNTEDGES_2 varU varV
+    
+    set varU "node1 node3"
+    set varV "node2 node4"
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_CUT_1 {U V param} {
+
+    #Used by:
+    #Max Cut 2-approximation algorithm (subprocedure)
+    
+    upvar 1 U varU V varV param varParam
+    SETUP_MAXCUT_3
+    
+    set varU "node1 node5 node4"
+    set varV "node2 node3 node6"
+    set varParam 7
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_CUT_2 {U V param} {
+
+    #Used by:
+    #Max Cut 2-approximation algorithm (subprocedure)
+    
+    upvar 1 U varU V varV param varParam
+    SETUP_CUT_1 varU varV varParam
+    
+    set varU "node1 node3 node5"
+    set varV "node2 node4 node6"
+    set varParam 3
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_CREATETGRAPH_1 {E} {
+
+    #Graph object for Metric Travelling Salesman problems testing
+    #Used by:
+    #Metric Travelling Salesman 2-approximation algorithm
+    
+    upvar 1 E edges
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4
+    mygraph arc insert node1 node2 edge12
+    mygraph arc setweight edge12 1
+    mygraph arc insert node1 node3 edge13
+    mygraph arc setweight edge13 2
+    mygraph arc insert node1 node4 edge14
+    mygraph arc setweight edge14 3
+    mygraph arc insert node4 node1 edge41
+    mygraph arc setweight edge41 4
+    
+    set edges "edge12 edge14"
+    return
+    
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_CREATETGRAPH_2 {E} {
+
+    #Graph object for Metric Travelling Salesman problems testing
+    #Used by:
+    #Metric Travelling Salesman 2-approximation algorithm
+    
+    SETUP_NOEDGES_1
+    upvar 1 E edges
+    
+    set edges "edge1 edge2"
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_CREATETGRAPH_3 {E} {
+
+    #Graph object for Metric Travelling Salesman problems testing
+    #Used by:
+    #Metric Travelling Salesman 2-approximation algorithm
+    
+    upvar 1 E edges
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4
+    mygraph arc insert node1 node2 edge12
+    mygraph arc setweight edge12 1
+    mygraph arc insert node1 node3 edge13
+    mygraph arc setweight edge13 2
+    mygraph arc insert node1 node4 edge14
+    mygraph arc setweight edge14 3
+    mygraph arc insert node4 node1 edge41
+    mygraph arc setweight edge41 4
+    
+    set edges {edge14 edge41 edge13}
+    return
+    
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_CHRISTO_1 {} {
+
+    #Used by:
+    #Christofides Algorithm (Tight Example)
+
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5 node6 node7
+    mygraph arc insert node1 node2 edge12
+    mygraph arc insert node1 node3 edge13
+    mygraph arc insert node2 node3 edge23
+    mygraph arc insert node2 node4 edge24
+    mygraph arc insert node3 node4 edge34
+    mygraph arc insert node3 node5 edge35
+    mygraph arc insert node4 node5 edge45
+    mygraph arc insert node4 node6 edge46
+    mygraph arc insert node5 node6 edge56
+    mygraph arc insert node5 node7 edge57
+    mygraph arc insert node6 node7 edge67
+    mygraph arc setunweighted 1
+    mygraph arc insert node7 node1 edge71
+    mygraph arc setunweighted 3
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_VC_1 {} {
+    
+    #Used by:
+    #Vertices Cover
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5 node6
+    mygraph arc insert node1 node2 edge12
+    mygraph arc insert node1 node3 edge13
+    mygraph arc insert node2 node3 edge23
+    mygraph arc insert node3 node4 edge34
+    mygraph arc insert node3 node5 edge35
+    mygraph arc insert node3 node6 edge36
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_VC_1_2 {} {
+
+    #Used by:
+    #Vertices Cover
+    
+    SETUP_VC_1
+    
+    mygraph arc insert node2 node1 edge21
+    mygraph arc insert node3 node1 edge31
+    mygraph arc insert node3 node2 edge32
+    mygraph arc insert node4 node3 edge43
+    mygraph arc insert node5 node3 edge53
+    mygraph arc insert node6 node3 edge63
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_VC_1_3 {} {
+
+    #Used by:
+    #Vertices Cover
+    
+    SETUP_VC_1
+    
+    mygraph arc insert node2 node1 edge21
+    mygraph arc insert node3 node1 edge31
+    mygraph arc insert node3 node2 edge32
+    mygraph arc insert node4 node3 edge43
+    
+    return
+}
+# -------------------------------------------------------------------------
+
+proc SETUP_VC_2 {} {
+    
+    #Used by:
+    #Vertices Cover
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5 node6
+    mygraph arc insert node1 node2 edge12
+    mygraph arc insert node1 node3 edge13
+    mygraph arc insert node2 node3 edge23
+    mygraph arc insert node2 node4 edge24
+    mygraph arc insert node3 node5 edge35
+    mygraph arc insert node4 node5 edge45
+    mygraph arc insert node4 node6 edge46
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_C5 {} {
+
+    #Cycle with 5 edges - C5
+    #Used by:
+    #Greedy Maximum Independent Set algorithm
+    #Greedy Weighted Maximum Independent Set algorithm
+    #Vertices Cover
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5
+    mygraph arc insert node1 node2
+    mygraph arc insert node2 node3
+    mygraph arc insert node3 node4
+    mygraph arc insert node4 node5
+    mygraph arc insert node5 node1
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_INDEPENDENTSET_1 {} {
+    
+    #graph containing 24 nodes for independent set testing
+    #Reference: http://en.wikipedia.org/wiki/Independent_set_(graph_theory)#Maximal_independent_set
+    #Used by:
+    #Greedy Maximum Independent Set algorithm
+    #Greedy Weighted Maximum Independent Set algorithm
+    
+    struct::graph mygraph
+    
+    #adding 24 nodes: node1 - node24
+    for {set i 1} {$i<=24} {incr i} {
+	mygraph node insert node$i
+    }
+
+    #adding external edges: node1 node2, node2 node3....
+    for {set i 1} {$i<=12} {incr i} {
+	set j [ expr { $i%12 } ]
+	incr j
+	mygraph arc insert node$i node$j ;#[list node$i node$j]
+    }
+
+    #adding edges connecting internal nodes with external nodes
+    for {set i 1} {$i<=12} {incr i} {
+	mygraph arc insert node$i node[expr {$i+12}] ;#[list node$i node[expr {$i+12}]]
+    }
+
+    #adding edges between internal nodes
+    for {set i 13} {$i<=24} {incr i} {
+	set u [ expr {($i+4)%24} ]
+	set v [ expr {($i-4)%24} ]
+	if { $u < 13 } {
+	    if {$u == 0} {
+		set u 24
+	    } else {
+		set u [expr {$u+12}]
+	    }
+	}
+	if { $v < 13} {
+	    if {$v == 0} {
+		set v 24
+	    } else {
+		set v [expr {$v+12}]
+	    }
+	}
+	
+	if { ![mygraph arc exists [list node$u node$i]] } {
+	    mygraph arc insert node$i node$u [list node$i node$u]
+	}
+	if { ![mygraph arc exists [list node$v node$i]] } {
+	    mygraph arc insert node$i node$v [list node$i node$v]
+	}
+    }
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_KCENTER_1 {} {
+    #Tight Example for unweighted version of K-Center problem
+    #Used by:
+    #Unweighted k-center 2-approximation algorithm
+    #Weighted k-center 3-approximation algorithm
+    
+    struct::graph mygraph
+    mygraph node insert node1 node2 node3 node4 node5 node6 node7
+    mygraph arc insert node1 node7 [list node1 node7]
+    mygraph arc insert node2 node7 [list node2 node7]
+    mygraph arc insert node3 node7 [list node3 node7]
+    mygraph arc insert node4 node7 [list node4 node7]
+    mygraph arc insert node5 node7 [list node5 node7]
+    mygraph arc insert node6 node7 [list node6 node7]
+    mygraph arc setunweighted 1
+
+    for {set i 1} {$i < 7 } { incr i } {
+	# i in 1..6	
+	if { ($i+1) < 7 } {
+	    # i in 1..5
+	    mygraph arc insert node$i node[ expr { $i+1 } ] [list node$i node[ expr { $i+1 } ]]
+	} elseif { ![mygraph arc exists [list node6 node1]] } {
+	    mygraph arc insert node6 node1 [list node6 node1]
+	}
+	
+	if { ($i+2) < 7 } {
+	    # i in 1..4
+	    mygraph arc insert node$i node[ expr { $i+2 } ] [list node$i node[ expr { $i+2 } ]]
+	} elseif { ![mygraph arc exists [list node6 node2]] } {
+	    mygraph arc insert node6 node2 [list node6 node2]
+	}
+    }
+    mygraph arc insert node1 node5 [list node1 node5]
+    mygraph arc setunweighted 2
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_KCENTER_2 {} {
+    
+    #Used by:
+    #Unweighted k-center 2-approximation algorithm
+    
+    struct::graph mygraph 
+    
+    mygraph node insert node1 node2 node3 node4 node5 node6 node7 node8
+    
+    foreach v [mygraph nodes] {
+	foreach u [mygraph nodes] {
+	    if { ($u!=$v) && ![mygraph arc exists [list $u $v]] } {
+		mygraph arc insert $v $u [list $v $u]
+	    }
+	}
+    }
+    foreach x [mygraph nodes -adj node1] {
+	if { [mygraph arc exists [list $x node1]] } {
+	    mygraph arc setweight [list $x node1] 1
+	} else {
+	    mygraph arc setweight [list node1 $x] 1
+	}
+    }
+    foreach x [mygraph nodes -adj node2] {
+	if { [mygraph arc exists [list $x node2]] } {
+	    mygraph arc setweight [list $x node2] 1
+	} else {
+	    mygraph arc setweight [list node2 $x] 1
+	}
+    }
+    
+    mygraph arc setunweighted 2
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_TWOSQUARED_1 {} {
+    
+    #Used by:
+    #createSquaredGraph procedure
+    #Unweighted k-center 2-approximation algorithm (subprocedure that extends two-squared graphs)
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5 node6 node7 node8
+    mygraph arc insert node1 node2 "node1 node2"
+    mygraph arc insert node2 node3 "node2 node3"
+    mygraph arc insert node2 node4 "node2 node4"
+    mygraph arc insert node3 node4 "node3 node4"
+    mygraph arc insert node3 node5 "node3 node5"
+    mygraph arc insert node5 node6 "node5 node6"
+    mygraph arc insert node5 node7 "node5 node7"
+    mygraph arc insert node7 node8 "node7 node8"
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_TWOSQUARED_2 {} {
+    
+    #Used by:
+    #createSquaredGraph procedure
+    #Unweighted k-center 2-approximation algorithm (subprocedure that extends two-squared graphs)
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5
+    mygraph arc insert node1 node2 "node1 node2"
+    mygraph arc insert node2 node3 "node2 node3"
+    mygraph arc insert node3 node4 "node3 node4"
+    mygraph arc insert node4 node5 "node4 node5"
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_TWOSQUARED_3 {} {
+
+    #Used by:
+    #Unweighted k-center 2-approximation algorithm (subprocedure that extends two-squared graphs)
+    
+    struct::graph mygraph2
+    
+    mygraph2 node insert node1 node2 node3 node4 node5
+    mygraph2 arc insert node1 node2 "node1 node2"
+    mygraph2 arc insert node2 node3 "node2 node3"
+    mygraph2 arc insert node3 node4 "node3 node4"
+    mygraph2 arc insert node1 node3 "node1 node3"
+    mygraph2 arc insert node2 node4 "node2 node4"
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_TWOSQUARED_4 {} {
+
+    #Used by:
+    #Unweighted k-center 2-approximation algorithm (subprocedure that extends two-squared graphs)
+    
+    struct::graph mygraph2
+    
+    mygraph2 node insert node1 node2 node3 node4 node5 node6 node7 node8
+    
+    mygraph2 arc insert node1 node2 "node1 node2"
+    mygraph2 arc insert node1 node3 "node1 node3"
+    mygraph2 arc insert node1 node4 "node1 node4"
+    mygraph2 arc insert node2 node3 "node2 node3"
+    mygraph2 arc insert node2 node4 "node2 node4"
+    mygraph2 arc insert node3 node4 "node3 node4"
+    
+    mygraph2 arc insert node5 node6 "node5 node6"
+    mygraph2 arc insert node5 node7 "node5 node7"
+    mygraph2 arc insert node5 node8 "node5 node8"
+    mygraph2 arc insert node6 node7 "node6 node7"
+    mygraph2 arc insert node7 node8 "node7 node8"
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_WEIGHTEDKCENTER_1 {nodeWeights} {
+
+    #Used by:
+    #Weighted k-center 3-approximation algorithm
+    
+    upvar 1 nodeWeights nW
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5 node6 node7 node8
+    mygraph arc insert node1 node2
+    mygraph arc insert node2 node3
+    mygraph arc insert node3 node4
+    mygraph arc setunweighted 1
+    mygraph arc insert node4 node5
+    mygraph arc insert node4 node6
+    mygraph arc insert node4 node7
+    mygraph arc insert node4 node8
+    mygraph arc setunweighted 1.5
+    
+    set nW {{node1 2} {node2 2} {node3 2} {node4 1} {node5 Inf} {node6 Inf} {node7 Inf} {node8 Inf}}
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_WEIGHTEDKCENTER_2 {nodeWeights} {
+
+    #Used by:
+    #Weighted k-center 3-approximation algorithm
+    
+    upvar 1 nodeWeights nW
+    
+    struct::graph mygraph
+    
+    mygraph node insert node1 node2 node3 node4 node5 node6
+    mygraph arc insert node1 node6
+    mygraph arc insert node2 node6
+    mygraph arc insert node3 node6
+    
+    mygraph arc insert node5 node6
+    mygraph arc insert node1 node5
+    mygraph arc insert node2 node5
+    mygraph arc insert node3 node5
+    mygraph arc setunweighted 1
+        
+    mygraph arc insert node4 node5
+    mygraph arc setunweighted 3
+    mygraph arc insert node4 node6
+    mygraph arc setunweighted 2
+    
+    set nW {{node1 2} {node2 2} {node3 2} {node4 3} {node5 2} {node6 1}}
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_WEIGHTEDKCENTER_3 {nodeWeights} {
+    
+    #Used by:
+    #Weighted k-center 3-approximation algorithm
+    
+    SETUP_WEIGHTEDKCENTER_2 n
+    
+    upvar 1 nodeWeights nW
+    
+    set nW {{node1 1} {node2 1} {node3 1} {node4 1} {node5 1} {node6 3}}
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_FORDFULKERSON_1 {} {
+
+    #The flow network with througputs set for each existing (non-zero) link
+    #Used by:
+    #Edmond's Karp algorithm
+    #Create Residual Graph procedure (subprocedure of Edmond's Karp)
+    #Dinic's Algorithm for maximum flow computation
+    #Subprocedures of above: MKM and Dinic's algorithms for blocking flow finding
+    
+    struct::graph mygraph
+    
+    mygraph node insert s v1 v2 v3 v4 t
+    
+    mygraph arc insert s v1 {s v1}
+    mygraph arc set {s v1} throughput 16
+    
+    mygraph arc insert s v2 {s v2}
+    mygraph arc set {s v2} throughput 13
+    
+    mygraph arc insert v1 v2 {v1 v2}
+    mygraph arc set {v1 v2} throughput 10
+    
+    mygraph arc insert v2 v1 {v2 v1}
+    mygraph arc set {v2 v1} throughput 4
+    
+    mygraph arc insert v1 v3 {v1 v3}
+    mygraph arc set {v1 v3} throughput 12
+    
+    mygraph arc insert v2 v4 {v2 v4}
+    mygraph arc set {v2 v4} throughput 14
+    
+    mygraph arc insert v3 v2 {v3 v2}
+    mygraph arc set {v3 v2} throughput 9
+    
+    mygraph arc insert v3 t {v3 t}
+    mygraph arc set {v3 t} throughput 20
+    
+    mygraph arc insert v4 v3 {v4 v3}
+    mygraph arc set {v4 v3} throughput 7
+    
+    mygraph arc insert v4 t {v4 t}
+    mygraph arc set {v4 t} throughput 4
+
+    return
+    
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_FORDFULKERSON_2 {} {
+
+    #The flow network with througputs set for each existing (non-zero) link
+    #Used by:
+    #Edmond's Karp algorithm (Tight Example)
+    #Dinic's Algorithm for maximum flow computation
+    #Subprocedures of above: MKM and Dinic's algorithms for blocking flow finding
+    
+    struct::graph mygraph
+    
+    mygraph node insert a b c d
+    
+    mygraph arc insert a b ab
+    mygraph arc set ab throughput 1000000
+    mygraph arc insert a c ac
+    mygraph arc set ac throughput 1000000
+    mygraph arc insert b d bd
+    mygraph arc set bd throughput 1000000
+    mygraph arc insert c d cd
+    mygraph arc set cd throughput 1000000
+    mygraph arc insert b c bc 
+    mygraph arc set bc throughput 1
+    
+    return
+
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_FORDFULKERSON_3 {} {
+
+    #The flow network with througputs set for each existing (non-zero) link
+    #Used by:
+    #Edmond's Karp algorithm
+    #Dinic's Algorithm for maximum flow computation
+    #Subprocedures of above: MKM and Dinic's algorithms for blocking flow finding
+    
+    struct::graph mygraph
+    
+    mygraph node insert s v1 v2 v3 t
+    
+    mygraph arc insert s v1 sv1
+    mygraph arc set sv1 throughput 10
+    
+    mygraph arc insert s v2 sv2
+    mygraph arc set sv2 throughput 5
+    
+    mygraph arc insert s v3 sv3
+    mygraph arc set sv3 throughput 3
+    
+    mygraph arc insert v1 v2 v1v2
+    mygraph arc set v1v2 throughput 4
+    
+    mygraph arc insert v2 v1 v2v1
+    mygraph arc set v2v1 throughput 2
+    
+    mygraph arc insert v2 v2 v2v3
+    mygraph arc set v2v3 throughput 2
+    
+    mygraph arc insert v3 v2 v3v2
+    mygraph arc set v3v2 throughput 4
+    
+    mygraph arc insert v1 t v1t
+    mygraph arc set v1t throughput 3
+    
+    mygraph arc insert v2 t v2t
+    mygraph arc set v2t throughput 8
+    
+    mygraph arc insert v3 t v3t
+    mygraph arc set v3t throughput 10
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_FORDFULKERSON_4 {} {
+
+    #The flow network with througputs set for each existing (non-zero) link
+    #Used by:
+    #Edmond's Karp algorithm
+    #Dinic's Algorithm for maximum flow computation
+    #Subprocedures of above: MKM and Dinic's algorithms for blocking flow finding
+    
+    SETUP_FORDFULKERSON_3
+    
+    mygraph arc set v1v2 throughput 1
+    mygraph arc set v2v1 throughput 1
+    mygraph arc set v2v3 throughput 1
+    mygraph arc set v3v2 throughput 1
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_FORDFULKERSON_5 {} {
+    #The flow network with througputs set for each existing (non-zero) link
+    #Used by:
+    #Edmond's Karp algorithm
+    #Dinic's Algorithm for maximum flow computation
+    #Subprocedures of above: MKM and Dinic's algorithms for blocking flow finding
+    
+    SETUP_FORDFULKERSON_3
+    
+    mygraph arc setweight sv1 10.5
+    mygraph arc set sv1 throughput 10.5
+    mygraph arc set sv2 throughput 5.5
+    mygraph arc set sv3 throughput 3.5
+    mygraph arc set v1v2 throughput 4.5
+    mygraph arc set v2v1 throughput 2.5
+    mygraph arc set v2v3 throughput 2.3
+    mygraph arc set v3v2 throughput 4.2
+    mygraph arc set v1t throughput 3.1
+    mygraph arc set v2t throughput 8.9
+    mygraph arc set v3t throughput 10.1
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_FLOWS_0 {mygraph} {
+    
+    #Used by:
+    #Create Residual Graph procedure (subprocedure of Edmond's Karp)
+    
+    foreach arc [$mygraph arcs] {
+	set u [$mygraph arc source $arc]
+	set v [$mygraph arc target $arc]
+	dict set f [list $u $v] 0
+	dict set f [list $v $u] 0
+    }
+    
+    return $f
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_FLOWS_1 {mygraph} {
+
+    #Used by:
+    #Create Residual Graph procedure (subprocedure of Edmond's Karp)
+    
+    set f [SETUP_FLOWS_0 $mygraph]
+    
+    dict set f [list s v1] 4
+    dict set f [list v1 v3] 4
+    dict set f [list v3 v2] 4
+    dict set f [list v2 v4] 4
+    dict set f [list v4 t] 4
+    
+    return $f
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_FLOWS_2 {mygraph} {
+
+    #Used by:
+    #Create Residual Graph procedure (subprocedure of Edmond's Karp)
+    
+    set f [SETUP_FLOWS_0 $mygraph]
+    
+    dict set f [list s v1] 11
+    dict set f [list v1 v3] 4
+    dict set f [list v3 v2] 4
+    dict set f [list v2 v4] 11
+    dict set f [list v4 t] 4
+    
+    dict set f [list v1 v2] 7
+    dict set f [list v4 v3] 7
+    dict set f [list v3 t] 7
+    
+    
+    return $f
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_FLOWS_3 {mygraph} {
+    
+    #Used by:
+    #Create Residual Graph procedure (subprocedure of Edmond's Karp)
+    
+    set f [SETUP_FLOWS_0 $mygraph]
+    
+    dict set f [list s v1] 11
+    dict set f [list s v2] 8
+    dict set f [list v2 v1] 1
+    dict set f [list v1 v3] 12
+    dict set f [list v2 v4] 11
+    dict set f [list v3 v2] 4
+    dict set f [list v4 v3] 7
+    dict set f [list v3 t] 15
+    dict set f [list v4 t] 4
+    
+    return $f
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_FLOWS_4 {mygraph} {
+
+    #Used by:
+    #Create Residual Graph procedure (subprocedure of Edmond's Karp)
+    
+    set f [SETUP_FLOWS_0 $mygraph]
+    
+    dict set f [list s v1] 11
+    dict set f [list s v2] 12
+    dict set f [list v2 v1] 1
+    dict set f [list v1 v3] 12
+    dict set f [list v2 v4] 11
+    dict set f [list v4 v3] 7
+    dict set f [list v3 t] 19
+    dict set f [list v4 t] 4
+    
+    return $f
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_AUGMENTINGNETWORK_1 {_f _path} {
+    
+    #Used by:
+    #Create Augmenting Network procedure (subprocedure of Busacker-Gowen's Algorithm)
+    
+    upvar 1 $_f f $_path path
+    
+    struct::graph mygraph 
+    
+    mygraph node insert s a b c t
+    
+    mygraph arc insert s a [list s a]
+    mygraph arc set [list s a] throughput 18
+    mygraph arc set [list s a] cost 3
+    
+    mygraph arc insert s c [list s c]
+    mygraph arc set [list s c] throughput 20
+    mygraph arc set [list s c] cost 8
+    
+    mygraph arc insert a b [list a b]
+    mygraph arc set [list a b] throughput 20
+    mygraph arc set [list a b] cost 5
+    
+    mygraph arc insert a c [list a c]
+    mygraph arc set [list a c] throughput 15
+    mygraph arc set [list a c] cost 4
+    
+    mygraph arc insert c b [list c b]
+    mygraph arc set [list c b] throughput 12
+    mygraph arc set [list c b] cost 8
+    
+    mygraph arc insert b t [list b t]
+    mygraph arc set [list b t] throughput 14
+    mygraph arc set [list b t] cost 5
+    
+    mygraph arc insert c t [list c t]
+    mygraph arc set [list c t] throughput 17
+    mygraph arc set [list c t] cost 3
+    
+    set path {}
+    lappend path s a c t
+    
+    foreach e [mygraph arcs] {
+	set u [mygraph arc source $e]
+	set v [mygraph arc target $e]
+	dict set f [list $u $v] 0
+	dict set f [list $v $u] 0
+    }
+    
+    dict set f [list s a] 15
+    dict set f [list a c] 15
+    dict set f [list c t] 15
+    
+    return	
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_AUGMENTINGNETWORK_2 {_f _path} {
+    
+    #Used by:
+    #Create Augmenting Network procedure (subprocedure of Busacker-Gowen's Algorithm)
+    
+    upvar 1 $_f f $_path path
+    
+    SETUP_AUGMENTINGNETWORK_1 f path
+    
+    #mygraph arc insert s a [list s a]
+    mygraph arc set [list s a] throughput 3
+    mygraph arc set [list s a] cost 3
+    
+    mygraph arc insert a s [list a s]
+    mygraph arc set [list a s] throughput 15
+    mygraph arc set [list a s] cost -3
+    
+    mygraph arc insert c a [list c a]
+    mygraph arc set [list c a] throughput 15
+    mygraph arc set [list c a] cost -4
+    
+    mygraph arc set [list a c] throughput 0
+    mygraph arc set [list a c] cost Inf
+    
+    #mygraph arc insert c t [list c t]
+    mygraph arc set [list c t] throughput 2
+    mygraph arc set [list c t] cost 3
+    
+    mygraph arc insert t c [list t c]
+    mygraph arc set [list t c] throughput 15
+    mygraph arc set [list t c] cost -3
+    
+    set path {}
+    lappend path s c t
+    
+    dict set f [list s a] 15
+    dict set f [list a c] 15
+    dict set f [list c t] 17
+    dict set f [list s c] 2
+    
+    return	
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_AUGMENTINGNETWORK_3 {_f _path} {
+    
+    #Used by:
+    #Create Augmenting Network procedure (subprocedure of Busacker-Gowen's Algorithm)
+    
+    upvar 1 $_f f $_path path
+    
+    SETUP_AUGMENTINGNETWORK_2 f path
+    
+    mygraph arc set [list c t] throughput 0
+    mygraph arc set [list c t] cost Inf
+    
+    mygraph arc set [list t c] throughput 17
+    mygraph arc set [list t c] cost -3
+    
+    mygraph arc set [list s c] throughput 18
+    mygraph arc set [list s c] cost 8
+    
+    mygraph arc insert c s [list c s]
+    mygraph arc set [list c s] throughput 2
+    mygraph arc set [list c s] cost -8
+    
+    set path {}
+    lappend path s a b t
+    
+    dict set f [list s a] 18
+    dict set f [list a c] 15
+    dict set f [list c t] 17
+    dict set f [list s c] 2
+    dict set f [list a b] 3
+    dict set f [list b t] 3
+    
+    return	
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_BUSACKERGOWEN_1 {} {
+
+    #Used by:
+    #Busacker Gowen Algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert s a b c t
+    
+    mygraph arc insert s a sa
+    mygraph arc setweight sa 3
+    mygraph arc set sa cost 3
+    mygraph arc set sa throughput 18
+    
+    mygraph arc insert s c sc
+    mygraph arc setweight sc 8
+    mygraph arc set sc cost 8
+    mygraph arc set sc throughput 20
+    
+    mygraph arc insert a b ab
+    mygraph arc setweight ab 5
+    mygraph arc set ab cost 5
+    mygraph arc set ab throughput 20
+    
+    mygraph arc insert a c ac
+    mygraph arc setweight ac 4
+    mygraph arc set ac cost 4
+    mygraph arc set ac throughput 15
+    
+    mygraph arc insert c b cb
+    mygraph arc setweight cb 8
+    mygraph arc set cb cost 8
+    mygraph arc set cb throughput 12
+    
+    mygraph arc insert b t bt
+    mygraph arc setweight bt 5
+    mygraph arc set bt cost 5
+    mygraph arc set bt throughput 14
+    
+    mygraph arc insert c t ct
+    mygraph arc setweight ct 3	
+    mygraph arc set ct cost 3
+    mygraph arc set ct throughput 17
+
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_BUSACKERGOWEN_2 {} {
+    #graph with not all attributes set
+    
+    #Used by:
+    #Busacker Gowen Algorithm
+    #Edmond's Karp Algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert s v1 v2 t
+    mygraph arc insert v1 s v1s
+    
+    mygraph arc insert v2 s v2s
+    mygraph arc insert v1 t v1t
+    mygraph arc set v1t throughput 20
+    mygraph arc set v1t cost 5
+    mygraph arc insert v2 t v2t
+    mygraph arc set v2t throughput 20
+    mygraph arc set v2t cost 5
+
+    return
+}
+# -------------------------------------------------------------------------
+
+proc SETUP_SOURCESINKNOPATHS {} {
+    #graph where from the start path between source node s and 
+    #sink node t doesn't exist
+    #Used by Busacker - Gowen
+    
+    struct::graph mygraph
+    
+    mygraph node insert s v1 v2 t
+    mygraph arc insert v1 s v1s
+    mygraph arc set v1s throughput 20
+    mygraph arc set v1s cost 5
+    mygraph arc insert v2 s v2s
+    mygraph arc set v2s throughput 20
+    mygraph arc set v2s cost 5
+    mygraph arc insert v1 t v1t
+    mygraph arc set v1t throughput 20
+    mygraph arc set v1t cost 5
+    mygraph arc insert v2 t v2t
+    mygraph arc set v2t throughput 20
+    mygraph arc set v2t cost 5
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_MDST_1 {} {
+
+    #Used by:
+    #Minimum Diameter Spanning Tree Algorithm
+    #BFS algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert a b c d e f g h i j
+
+    mygraph arc insert a b
+    mygraph arc insert b c
+    mygraph arc insert c d
+    mygraph arc insert d e
+    mygraph arc insert e f
+    mygraph arc insert b h
+    mygraph arc insert c g
+    mygraph arc insert d h
+    mygraph arc insert e g
+    mygraph arc insert g i
+    mygraph arc insert h j
+
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_MDST_2 {} {
+
+    #Used by:
+    #Minimum Degree Spanning Tree Tests
+    
+    struct::graph mygraph
+    
+    mygraph node insert v1 v2 v3 v4 v5 v6 v7 v8
+    mygraph arc insert v1 v2 12
+    mygraph arc insert v1 v3 13
+    mygraph arc insert v2 v4 24
+    mygraph arc insert v3 v4 34
+    mygraph arc insert v3 v5 35
+    mygraph arc insert v4 v5 45
+    mygraph arc insert v5 v6 56
+    mygraph arc insert v5 v7 57
+    mygraph arc insert v7 v8 78
+    mygraph arc insert v6 v8 68
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_MDST_3 {} {
+
+    #Used by:
+    #Minimum Diameter Spanning Tree Algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert a b c d e
+    mygraph arc insert a b ab
+    mygraph arc insert b c bc
+    mygraph arc insert c d cd
+    mygraph arc insert d e de
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_MDST_4 {} {
+
+    #Used by:
+    #Minimum Diameter Spanning Tree Algorithm
+    
+    SETUP_MDST_3
+    
+    mygraph node insert f g
+    mygraph arc insert e f ef
+    mygraph arc insert f g fg
+    mygraph arc insert d g dg
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_MDST_5 {} {
+
+    #Used by:
+    #Minimum Diameter Spanning Tree Algorithm
+    
+    struct::graph mygraph
+    mygraph node insert a b c d e
+    mygraph arc insert a b ab
+    mygraph arc insert b c bc
+    mygraph arc insert c d cd
+    mygraph arc insert d e de
+    mygraph arc insert a c ac
+    mygraph arc insert b d bd
+    mygraph arc insert c e ce
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_MDST_6 {} {
+
+    #Used by:
+    #Minimum Degree Spanning Tree Tests
+    
+    struct::graph mygraph
+    
+    mygraph node insert a b c d e f g
+    mygraph arc insert a b ab
+    mygraph arc insert b c bc
+    mygraph arc insert c d cd
+    mygraph arc insert d e de
+    mygraph arc insert e f ef
+    mygraph arc insert f a fa
+    mygraph arc insert g a ga
+    mygraph arc insert g b gb
+    mygraph arc insert g c gc
+    mygraph arc insert g d gd
+    mygraph arc insert g e ge
+    mygraph arc insert g f gf
+    
+    return	
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_MDST_7 {} {
+    
+    #Used by:
+    #Minimum Degree Spanning Tree Tests
+    
+    struct::graph mygraph
+    
+    mygraph node insert a b c d e f
+    mygraph arc insert a b ab
+    mygraph arc insert a c ac
+    mygraph arc insert b d bd
+    mygraph arc insert c e ce
+    mygraph arc insert d f df
+    mygraph arc insert e f ef
+    mygraph arc insert b e be
+    mygraph arc insert c d cd
+    mygraph arc insert a f af
+    mygraph arc insert f a fa
+    mygraph arc insert b c bc
+    mygraph arc insert d e de
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_BLOCKINGFLOW_1 {} {
+
+    #Residual graph for blocking flow testing
+    #Used by:
+    #Dinic's Blocking Flow Algorithm
+    #MKM (3 Hindu) Blocking Flow Algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert s v1 v2 v3 v4 v5 v6 v7 t
+
+    mygraph arc insert s v1 sv1
+    mygraph arc set sv1 throughput 4
+    mygraph arc insert s v3 sv3
+    mygraph arc set sv3 throughput 2
+    mygraph arc insert v1 v2 v1v2
+    mygraph arc set v1v2 throughput 3
+    mygraph arc insert v1 v4 v1v4
+    mygraph arc set v1v4 throughput 1
+    mygraph arc insert v2 v5 v2v5
+    mygraph arc set v2v5 throughput 2
+    mygraph arc insert v3 v4 v3v4
+    mygraph arc set v3v4 throughput 1
+    mygraph arc insert v3 v6 v3v6
+    mygraph arc set v3v6 throughput 3
+    mygraph arc insert v4 v1 v4v1
+    mygraph arc set v4v1 throughput 1
+    mygraph arc insert v4 v5 v4v5
+    mygraph arc set v4v5 throughput 2
+    mygraph arc insert v4 v7 v4v7
+    mygraph arc set v4v7 throughput 2
+    mygraph arc insert v4 v6 v4v6
+    mygraph arc set v4v6 throughput 1
+    mygraph arc insert v5 v1 v5v1
+    mygraph arc set v5v1 throughput 3
+    mygraph arc insert v5 t v5t
+    mygraph arc set v5t throughput 3
+    mygraph arc insert v6 v4 v6v4
+    mygraph arc set v6v4 throughput 3
+    mygraph arc insert v6 v7 v6v7
+    mygraph arc set v6v7 throughput 4
+    mygraph arc insert v7 t v7t
+    mygraph arc set v7t throughput 2
+    mygraph arc insert t v7 tv7
+    mygraph arc set tv7 throughput 3
+
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_BLOCKINGFLOW_2 {} {
+    
+    #residual graph for blocking flow testing
+    #Used by:
+    #Dinic's Blocking Flow Algorithm
+    #MKM (3 Hindu) Blocking Flow Algorithm
+    
+    struct::graph mygraph 
+    
+    mygraph node insert s v1 v2 v3 v4 t
+    
+    mygraph arc insert s v2 sv2
+    mygraph arc set sv2 throughput 6
+    mygraph arc insert v2 s v2s
+    mygraph arc set v2s throughput 4
+    mygraph arc insert v1 s v1s
+    mygraph arc set v1s throughput 10
+    mygraph arc insert v1 v2 v1v2
+    mygraph arc set v1v2 throughput 2
+    mygraph arc insert v1 v4 v1v4 
+    mygraph arc set v1v4 throughput 2
+    mygraph arc insert v2 v4 v2v4
+    mygraph arc set v2v4 throughput 5
+    mygraph arc insert v3 v1 v3v1
+    mygraph arc set v3v1 throughput 4
+    mygraph arc insert v3 t v3t
+    mygraph arc set v3t throughput 6
+    mygraph arc insert v4 v1 v4v1
+    mygraph arc set v4v1 throughput 6
+    mygraph arc insert v4 v2 v4v2
+    mygraph arc set v4v2 throughput 4
+    mygraph arc insert v4 v3 v4v3
+    mygraph arc set v4v3 throughput 6
+    mygraph arc insert t v4 tv4
+    mygraph arc set tv4 throughput 10
+    mygraph arc insert t v3 tv3
+    mygraph arc set tv3 throughput 4
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_BLOCKINGFLOW_3 {} {
+    
+    #residual graph for blocking flow testing
+    #Used by:
+    #Dinic's Blocking Flow Algorithm
+    #MKM (3 Hindu) Blocking Flow Algorithm
+    
+    struct::graph mygraph 
+    
+    mygraph node insert s v1 v2 v3 v4 t
+    
+    mygraph arc insert v2 s v2s
+    mygraph arc set v2s throughput 10
+    mygraph arc insert v1 s v1s
+    mygraph arc set v1s throughput 10
+    mygraph arc insert v1 v2 v1v2
+    mygraph arc set v1v2 throughput 2
+    mygraph arc insert v1 v4 v1v4 
+    mygraph arc set v1v4 throughput 2
+    mygraph arc insert v3 v1 v3v1
+    mygraph arc set v3v1 throughput 4
+    mygraph arc insert v3 t v3t
+    mygraph arc set v3t throughput 1
+    mygraph arc insert v3 v4 v3v4
+    mygraph arc set v3v4 throughput 5
+    mygraph arc insert v4 v1 v4v1
+    mygraph arc set v4v1 throughput 6
+    mygraph arc insert v4 v2 v4v2
+    mygraph arc set v4v2 throughput 9
+    mygraph arc insert v4 v3 v4v3
+    mygraph arc set v4v3 throughput 1
+    mygraph arc insert t v4 tv4
+    mygraph arc set tv4 throughput 10
+    mygraph arc insert t v3 tv3
+    mygraph arc set tv3 throughput 9
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_MAXIMUMFLOW_1 {} {
+
+    #Flow network for maximum flow computation problems and generally flow problems.
+    #Used by:
+    #Dinic's Maximum Flow Algorithm
+    #Dinic's Blocking Flow Algorithm
+    #MKM (3 Hindu) Blocking Flow Algorithm
+    
+    struct::graph mygraph
+    
+    mygraph node insert s v1 v2 v3 v4 t
+
+    mygraph arc insert s v1 sv1
+    mygraph arc set sv1 throughput 10
+    mygraph arc insert s v2 sv2
+    mygraph arc set sv2 throughput 10
+    mygraph arc insert v1 v2 v1v2
+    mygraph arc set v1v2 throughput 2
+    mygraph arc insert v2 v4 v2v4
+    mygraph arc set v2v4 throughput 9
+    mygraph arc insert v1 v4 v1v4
+    mygraph arc set v1v4 throughput 8
+    mygraph arc insert v1 v3 v1v3
+    mygraph arc set v1v3 throughput 4
+    mygraph arc insert v4 v3 v4v3
+    mygraph arc set v4v3 throughput 6
+    mygraph arc insert v3 t v3t
+    mygraph arc set v3t throughput 10
+    mygraph arc insert v4 t v4t
+    mygraph arc set v4t throughput 10
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_BFS_1 {} {
+    
+    #Used by:
+    #BFS algorithm
+    #Shortest Pathfinding by BFS algorithm
+    
+    struct::graph mygraph
+    mygraph node insert s a b c d x
+
+    mygraph arc insert s a sa
+    mygraph arc setweight sa 4
+    mygraph arc insert s x sx
+    mygraph arc setweight sx 5
+    mygraph arc insert a b ab
+    mygraph arc setweight ab 5
+    mygraph arc insert x d xd
+    mygraph arc setweight xd 7
+    mygraph arc insert x a xa
+    mygraph arc setweight xa -3
+    mygraph arc insert b d bd
+    mygraph arc setweight bd 2
+    mygraph arc insert b c bc
+    mygraph arc setweight bc 6
+
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_BFS_2 {} {
+
+    #Used by:
+    #BFS algorithm
+    #Shortest Pathfinding by BFS algorithm
+    
+    struct::graph mygraph
+    mygraph node insert s a b c d t
+    
+    mygraph arc insert s d sd
+    mygraph arc setweight sd 9
+    mygraph arc insert s a sa
+    mygraph arc setweight sa 15
+    mygraph arc insert a c ac
+    mygraph arc setweight ac 3
+    mygraph arc insert a b ab
+    mygraph arc setweight ab 35
+    mygraph arc insert b a ba
+    mygraph arc setweight ba 16
+    mygraph arc insert b c bc
+    mygraph arc setweight bc 6
+    mygraph arc insert b t bt
+    mygraph arc setweight bt 21
+    mygraph arc insert c t ct
+    mygraph arc setweight ct 7
+    mygraph arc insert c d cd
+    mygraph arc setweight cd 2
+    mygraph arc insert d c dc
+    mygraph arc setweight dc 2
+    mygraph arc insert d a da
+    mygraph arc setweight da 4
+    mygraph arc insert t b tb 
+    mygraph arc setweight tb 5
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc SETUP_TSPHEURISTIC_1 {C} {
+
+    #Used by:
+    #TSP heuristics of local searching - 2 approximation algorithm
+    upvar $C _C
+    
+    struct::graph mygraph
+    mygraph node insert a b c d e
+
+    mygraph arc insert a b ab
+    mygraph arc set ab weight 11
+    mygraph arc insert a c ac
+    mygraph arc set ac weight 16
+    mygraph arc insert a d ad
+    mygraph arc set ad weight 28
+    mygraph arc insert a e ae
+    mygraph arc set ae weight 42
+    mygraph arc insert b c bc
+    mygraph arc set bc weight 44
+    mygraph arc insert b d bd
+    mygraph arc set bd weight 31
+    mygraph arc insert b e be
+    mygraph arc set be weight 27
+    mygraph arc insert c d cd
+    mygraph arc set cd weight 6
+    mygraph arc insert c e ce
+    mygraph arc set ce weight 15
+    mygraph arc insert d e de
+    mygraph arc set de weight 21
+
+    set _C {ab bc cd de ae}
+    
+    return
+}
+
+# -------------------------------------------------------------------------
+# Generators for various error messages generated
+# by the implementations.
+
+proc NegativeCycleOccurance { g } { return "Error. Given graph \"mygraph\" contains cycle with negative sum of weights." }
+proc UnweightedArcOccurance { } { return "Operation invalid for graph with unweighted arcs." }
+proc LackOfEdgesOccurance {G e} { return "Edge \"$e\" doesn't exist in graph \"mygraph\". Set the proper set of edges." }
+proc UnconnectedGraphOccurance {G} { return "Error. Given graph \"mygraph\" is not a connected graph." }
+proc WrongValueAtInput {x} { return "The \"$x\" value must be an positive integer." }
+proc LackOfSinkOrSource {s t} { return "Nodes \"$s\" and \"$t\" should be contained in graph's G set of nodes" }
+proc WrongAttributes {args} {
+    set    message "The input network doesn't have all attributes set correctly... Please, check again attributes: "
+    append message "\"[join $args "\" and \""]\""
+    return "$message for input graph."
+}

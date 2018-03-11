@@ -1,0 +1,257 @@
+<html><head>
+<title>png - Image manipulation</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'png.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2004, Code: Aaron Faupell &lt;afaupell@users.sourceforge.net&gt;   -- Copyright &copy; 2004, Doc:  Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- png.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">png(n) 0.1.2 tcllib &quot;Image manipulation&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>png - PNG querying and manipulation of meta data</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">crc32</b></li>
+<li>package require <b class="pkgname">png <span class="opt">?0.1.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::png::validate</b> <i class="arg">file</i></a></li>
+<li><a href="#2"><b class="cmd">::png::isPNG</b> <i class="arg">file</i></a></li>
+<li><a href="#3"><b class="cmd">::png::imageInfo</b> <i class="arg">file</i></a></li>
+<li><a href="#4"><b class="cmd">::png::getTimestamp</b> <i class="arg">file</i></a></li>
+<li><a href="#5"><b class="cmd">::png::setTimestamp</b> <i class="arg">file</i> <i class="arg">time</i></a></li>
+<li><a href="#6"><b class="cmd">::png::getComments</b> <i class="arg">file</i></a></li>
+<li><a href="#7"><b class="cmd">::png::removeComments</b> <i class="arg">file</i></a></li>
+<li><a href="#8"><b class="cmd">::png::addComment</b> <i class="arg">file</i> <i class="arg">keyword</i> <i class="arg">text</i></a></li>
+<li><a href="#9"><b class="cmd">::png::addComment</b> <i class="arg">file</i> <i class="arg">keyword</i> <i class="arg">lang</i> <i class="arg">keyword2</i> <i class="arg">text</i></a></li>
+<li><a href="#10"><b class="cmd">::png::image</b> <i class="arg">file</i></a></li>
+<li><a href="#11"><b class="cmd">::png::write</b> <i class="arg">file</i> <i class="arg">data</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides commands to query and modify PNG images. PNG
+stands for <i class="term">Portable Network Graphics</i> and is specified at
+<a href="http://www.libpng.org/pub/png/spec/1.2">http://www.libpng.org/pub/png/spec/1.2</a>.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::png::validate</b> <i class="arg">file</i></a></dt>
+<dd><p>Returns a value indicating if <i class="arg">file</i> is a valid PNG file. The file
+is checked for PNG signature, each chunks checksum is verified,
+existence of a data chunk is verified, first chunk is checked for
+header, last chunk is checked for ending. Things <em>not</em> checked
+for are: validity of values within a chunk, multiple header chunks,
+noncontiguous data chunks, end chunk before actual eof. This procedure
+can take lots of time.</p>
+<p>Possible return values:</p>
+<dl class="doctools_definitions">
+<dt>OK</dt>
+<dd><p>File is a valid PNG file.</p></dd>
+<dt>SIG</dt>
+<dd><p>no/broken PNG signature.</p></dd>
+<dt>BADLEN</dt>
+<dd><p>corrupt chunk length.</p></dd>
+<dt>EOF</dt>
+<dd><p>premature end of file.</p></dd>
+<dt>NOHDR</dt>
+<dd><p>missing header chunk.</p></dd>
+<dt>CKSUM</dt>
+<dd><p>crc mismatch.</p></dd>
+<dt>NODATA</dt>
+<dd><p>missing data chunk(s).</p></dd>
+<dt>NOEND</dt>
+<dd><p>missing end marker.</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">::png::isPNG</b> <i class="arg">file</i></a></dt>
+<dd><p>Returns a boolean value indicating if the file <i class="arg">file</i> starts with
+a PNG signature. This is a much faster and less intensive check than
+<b class="cmd">::png::validate</b> as it does not check if the PNG data is valid.</p></dd>
+<dt><a name="3"><b class="cmd">::png::imageInfo</b> <i class="arg">file</i></a></dt>
+<dd><p>Returns a dictionary with keys <b class="const">width</b>, <b class="const">height</b>,
+<b class="const">depth</b>, <b class="const">color</b>, <b class="const">compression</b>, <b class="const">filter</b>, and
+<b class="const">interlace</b>. The values are the associated properties of the PNG
+image in <i class="arg">file</i>.
+Throws an error if file is not a PNG image, or if the checksum of the
+header is invalid. For information on interpreting the values for the
+returned properties see
+<a href="http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html">http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html</a>.</p></dd>
+<dt><a name="4"><b class="cmd">::png::getTimestamp</b> <i class="arg">file</i></a></dt>
+<dd><p>Returns the epoch time if a timestamp chunk is found in the PNG image
+contained in the <i class="arg">file</i>, otherwise returns the empty string. Does
+not attempt to verify the checksum of the timestamp chunk.
+Throws an error if the <i class="arg">file</i> is not a valid PNG image.</p></dd>
+<dt><a name="5"><b class="cmd">::png::setTimestamp</b> <i class="arg">file</i> <i class="arg">time</i></a></dt>
+<dd><p>Writes a new timestamp to the <i class="arg">file</i>, either replacing the old
+timestamp, or adding one just before the data chunks if there was no
+previous timestamp. <i class="arg">time</i> is the new time in the gmt epoch
+format.
+Throws an error if <i class="arg">file</i> is not a valid PNG image.</p></dd>
+<dt><a name="6"><b class="cmd">::png::getComments</b> <i class="arg">file</i></a></dt>
+<dd><p>Currently supports only uncompressed comments. Does not attempt to
+verify the checksums of the comment chunks. Returns a list where each
+element is a comment. Each comment is itself a list. The list for a
+plain text comment consists of 2 elements: the human readable keyword,
+and the text data. A unicode (international) comment consists of 4
+elements: the human readable keyword, the language identifier, the
+translated keyword, and the unicode text data.
+Throws an error if <i class="arg">file</i> is not a valid PNG image.</p></dd>
+<dt><a name="7"><b class="cmd">::png::removeComments</b> <i class="arg">file</i></a></dt>
+<dd><p>Removes all comments from the PNG image in <i class="arg">file</i>. Beware - This
+uses memory equal to the file size minus comments, to hold the
+intermediate result.
+Throws an error if <i class="arg">file</i> is not a valid PNG image.</p></dd>
+<dt><a name="8"><b class="cmd">::png::addComment</b> <i class="arg">file</i> <i class="arg">keyword</i> <i class="arg">text</i></a></dt>
+<dd><p>Adds a plain <i class="arg">text</i> comment to the PNG image in <i class="arg">file</i>, just
+before the first data chunk. Will throw an error if no data chunk is
+found. <i class="arg">keyword</i> has to be less than 80 characters long to conform
+to the PNG specification.</p></dd>
+<dt><a name="9"><b class="cmd">::png::addComment</b> <i class="arg">file</i> <i class="arg">keyword</i> <i class="arg">lang</i> <i class="arg">keyword2</i> <i class="arg">text</i></a></dt>
+<dd><p>Adds a unicode (international) comment to the PNG image in <i class="arg">file</i>,
+just before the first data chunk. Will throw an error if no data chunk
+is found. <i class="arg">keyword</i> has to be less than 80 characters long to
+conform to the PNG specification. <i class="arg">keyword2</i> is the translated
+<i class="arg">keyword</i>, in the language specified by the language identifier
+<i class="arg">lang</i>.</p></dd>
+<dt><a name="10"><b class="cmd">::png::image</b> <i class="arg">file</i></a></dt>
+<dd><p>Given a PNG file returns the image in the list of scanlines format used by Tk_GetColor.</p></dd>
+<dt><a name="11"><b class="cmd">::png::write</b> <i class="arg">file</i> <i class="arg">data</i></a></dt>
+<dd><p>Takes a list of scanlines in the Tk_GetColor format and writes the represented image
+to <i class="arg">file</i>.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>png</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key155">comment</a>, <a href="../../../../index.html#key121">image</a>, <a href="../../../../index.html#key703">png</a>, <a href="../../../../index.html#key702">timestamp</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>File formats</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2004, Code: Aaron Faupell &lt;afaupell@users.sourceforge.net&gt;<br>
+Copyright &copy; 2004, Doc:  Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

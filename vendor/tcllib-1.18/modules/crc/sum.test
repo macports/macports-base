@@ -1,0 +1,196 @@
+# sum.test - Copyright (C) 2002 Pat Thoyts <patthoyts@users.sourceforge.net>
+#
+# Tests for the Tcllib sum command
+#
+# -------------------------------------------------------------------------
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# -------------------------------------------------------------------------
+# RCS: @(#) $Id: sum.test,v 1.8 2006/10/09 21:41:40 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+testing {
+    useLocal sum.tcl sum ::crc
+}
+
+# -------------------------------------------------------------------------
+
+if {[info commands ::crc::SumBsd_c] == {}} {
+    puts "> pure tcl"
+} else {    
+    puts "> critcl based"
+}
+
+# -------------------------------------------------------------------------
+
+test sum-1.0 {sum with no parameters} -body {
+   ::crc::sum
+} -returnCodes error -result {wrong # args: should be  "sum ?-bsd|-sysv? ?-format string? ?-chunksize size?  ?-timeout ms? -file name | -channel chan | data"}
+
+test sum-1.1 {sum with incorrect parameters} -body {
+   ::crc::sum -zxcv
+} -returnCodes error -result {bad option -zxcv: must be one of -bsd, -channel, -chunksize, -filename, -format, -sysv, -timeout}
+
+# -------------------------------------------------------------------------
+
+foreach {n msg expected} {
+    1    ""
+    "0"
+    2    "a"
+    "97"
+    3    "abc"
+    "16556"
+    4    "cba"
+    "49322"
+    5    "message digest"
+    "26423"
+    6    "abcdefghijklmnopqrstuvwxyz"
+    "53553"
+    7    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    "25587"
+    8    "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "21845"
+    9    "\uFFFE\u0000\u0001\u0002"
+    "16418"
+} {
+    test sum-2.$n {sum using BSD algorithm and unsigned integer} -body {
+	::crc::sum -bsd $msg
+    } -result $expected
+}
+
+# -------------------------------------------------------------------------
+foreach {n msg expected} {
+    1    ""
+    "0"
+    2    "a"
+    "97"
+    3    "abc"
+    "294"
+    4    "cba"
+    "294"
+    5    "message digest"
+    "1413"
+    6    "abcdefghijklmnopqrstuvwxyz"
+    "2847"
+    7    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    "5387"
+    8    "12345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "4200"
+    9    "\uFFFE\u0000\u0001\u0002"
+    "257"
+} {
+    test sum-3.$n {sum using SysV algorithm and unsigned integer} -body {
+	::crc::sum -sysv $msg
+    } -result $expected
+}
+
+# -------------------------------------------------------------------------
+
+set crc::testfile [info script]
+
+proc ::crc::loaddata {filename} {
+    set f [open $filename r]
+    fconfigure $f -translation binary
+    set data [read $f]
+    close $f
+    return $data
+}
+
+test sum-4.0 {sum file option (BSD)} -body {
+    set r1 [::crc::sum -bsd -file $::crc::testfile]
+    set r2 [::crc::sum -bsd [::crc::loaddata $::crc::testfile]]
+    if {$r1 != $r2} {
+        set r "differing results: $r1 != $r2"
+    } else {
+        set r ok
+    }
+} -result ok
+
+test sum-4.1 {sum file option (SysV)} -body {
+    set r1 [::crc::sum -sysv -file $::crc::testfile]
+    set r2 [::crc::sum -sysv [::crc::loaddata $crc::testfile]]
+    if {$r1 != $r2} {
+        set r "differing results: $r1 != $r2"
+    } else {
+        set r ok
+    }
+} -result ok
+
+test sum-4.2 {sum -channel option (BSD)} -body {
+    set r1 [::crc::sum -bsd [::crc::loaddata $::crc::testfile]]
+    set f [open $::crc::testfile r]
+    fconfigure $f -translation binary
+    set r2 [::crc::sum -bsd -channel $f]
+    close $f
+    if {$r1 != $r2} {
+        set r "differing results: $r1 != $r2"
+    } else {
+        set r ok
+    }
+} -result ok
+
+test sum-4.3 {sum -channel option (SysV)} -body {
+    set r1 [::crc::sum -sysv -file $::crc::testfile]
+    set f [open $::crc::testfile r]
+    fconfigure $f -translation binary
+    set r2 [::crc::sum -sysv -channel $f]
+    close $f
+    if {$r1 != $r2} {
+        set r "differing results: $r1 != $r2"
+    } else {
+        set r ok
+    }
+} -result ok
+
+# -------------------------------------------------------------------------
+
+test sum-5.0 {sum format option (BSD)} -body {
+    ::crc::sum -bsd -format 0x%X [string repeat x 200]
+} -result 0xF8EE
+
+test sum-5.1 {sum format option (SysV)} -body {
+    ::crc::sum -sysv -format 0x%X [string repeat x 200]
+} -result 0x5DC0
+
+# -------------------------------------------------------------------------
+# ticket a80e60deb1 vectors - data over 1 KB length.
+
+foreach {n expected base count} {
+    0 58625 a    1280
+    1 11010 fx    640
+    2 62980 \xfe 1280
+} {
+    test sum-6.$n {sum (sysv) over 1 K} -body {
+        crc::sum -sysv -- [string repeat $base $count]
+    } -result $expected
+}
+
+# -------------------------------------------------------------------------
+# ticket 0a3d5dfe52
+
+foreach {n expected base count suffix} {
+    0 65535 X 1489 &
+} {
+    test sum-7.$n "sum (sysv) ${base}*${count}" -body {
+        crc::sum -sysv -- [string repeat $base $count]$suffix
+    } -result $expected
+}
+
+# -------------------------------------------------------------------------
+
+catch {unset ::crc::testfile}
+testsuiteCleanup
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:
+

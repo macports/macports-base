@@ -1,6 +1,5 @@
 # et:ts=4
 # port.tcl
-# $Id$
 #
 # Copyright (c) 2002 Apple Inc.
 # All rights reserved.
@@ -32,6 +31,10 @@
 # standard package load
 package provide port 1.0
 
+# catch wrapper shared with macports1.0
+# aliasing it in doesn't work right because of uplevel use
+package require mpcommon 1.0
+
 # Provide a callback registration mechanism for port subpackages. This needs to
 # be done _before_ loading the subpackages.
 namespace eval port {
@@ -44,7 +47,7 @@ namespace eval port {
 		variable _callback_list
 		lappend _callback_list ${callback}
 	}
-	
+
 	# Run the callbacks registered in the callback list. Called from
 	# macports1.0 in the child interpreter after evaluating the Portfile and
 	# the variants. Clears the list of callbacks.
@@ -80,6 +83,8 @@ package require porttrace 1.0
 package require portdistcheck 1.0
 package require portlivecheck 1.0
 package require portmirror 1.0
+
+package require portstartupitem 1.0
 package require portload 1.0
 package require portunload 1.0
 package require portreload 1.0

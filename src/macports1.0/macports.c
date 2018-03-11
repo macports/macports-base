@@ -1,6 +1,5 @@
 /*
  * macports.c
- * $Id$
  *
  * Copyright (c) 2009 The MacPorts Project
  * Copyright (c) 2003 Apple Inc.

@@ -1,0 +1,174 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin transfer::copy::queue n 0.1]
+[keywords channel]
+[keywords copy]
+[keywords queue]
+[keywords transfer]
+[copyright {2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Data transfer facilities}]
+[titledesc {Queued transfers}]
+[category  {Transfer module}]
+[require Tcl                   8.4]
+[require snit                  [opt 1.0]]
+[require struct::queue         [opt 1.4]]
+[require transfer::copy        [opt 0.2]]
+[require transfer::copy::queue [opt 0.1]]
+[description]
+[para]
+
+This package provides objects which serialize transfer requests for a
+single channel by means of a fifo queue. Accumulated requests are
+executed in order of entrance, with the first request reaching an idle
+object starting the execution in general. New requests can be added
+while the object is active and are defered until all requests entered
+before them have been completed successfully.
+
+[para]
+
+When a request causes a transfer error execution stops and all
+requests coming after it are not served. Currently this means that
+their completion callbacks are never triggered at all.
+
+[para]
+[emph NOTE]:
+
+	Not triggering the completion callbacks of the unserved
+	requests after an error stops the queue object is something I
+	am not fully sure that it makes sense. It forces the user of
+	the queue to remember the callbacks as well and run
+	them. Because otherwise everything in the system which depends
+	on getting a notification about the status of a request will
+	hang in the air. I am slowly convincing myself that it is more
+	sensible to trigger the relevant completion callbacks with an
+	error message about the queue abort, and 0 bytes transfered.
+
+[para]
+
+All transfer requests are of the form
+
+[para][example {
+	{type data options...}
+}][para]
+
+where [arg type] is in {[const chan], [const string]}, and [arg data]
+specifies the information to transfer.
+
+For [const chan] the data is the handle of the channel containing the
+actual information to transfer, whereas for [const string] [arg data]
+contains directly the information to transfer.
+
+The [arg options] are a list of them and their values, and are the
+same as are accepted by the low-level copy operations of the package
+[package transfer::copy].
+
+Note how just prepending the request with [cmd transfer::copy::do] and
+inserting a channel handle in between [arg data] and [arg options]
+easily transforms it from a pure data structure into a command whose
+evaluation will perform the request.
+
+[section API]
+[subsection {Package commands}]
+
+[list_begin definitions]
+
+[call [cmd transfer::copy::queue] \
+	[arg objectName] \
+	[arg outchannel] \
+	[opt [arg options]...]]
+
+This command creates a new queue object for the management of the
+channel [arg outchannel], with an associated Tcl command whose name is
+[arg objectName].
+
+This [term object] command is explained in full detail in the sections
+[sectref {Object command}] and [sectref {Object methods}]. The set of
+supported [arg options] is explained in section [sectref {Options}].
+
+[para]
+
+The object command will be created under the current namespace if the
+[arg objectName] is not fully qualified, and in the specified
+namespace otherwise.
+
+The fully qualified name of the object command is returned as the
+result of the command.
+
+[list_end]
+
+[subsection {Object command}]
+
+All objects created by the [cmd ::transfer::copy::queue] command have
+the following general form:
+
+[list_begin definitions]
+
+[call [arg objectName] [method method] [opt [arg "arg arg ..."]]]
+
+The method [method method] and its [arg arg]'uments determine the
+exact behavior of the command.
+
+See section [sectref {Object methods}] for the detailed
+specifications.
+
+[list_end]
+
+[subsection {Object methods}]
+
+[list_begin definitions]
+
+[call [arg objectName] [method destroy]]
+
+This method destroys the object. Doing so while the object is busy
+will cause errors later on, when the currently executed request
+completes and tries to access the now missing data structures of the
+destroyed object.
+
+[call [arg objectName] [method busy]]
+
+This method returns a boolean value telling us if the object is
+currently serving a request (i.e. [term busy], value [const True]), or
+not (i.e. [term idle], value [const False]).
+
+[call [arg objectName] [method pending]]
+
+This method returns the number of requests currently waiting in the
+queue for their execution. A request currently served is not counted
+as waiting.
+
+[call [arg objectName] [method put] [arg request]]
+
+This method enters the transfer [arg request] into the object's queue
+of waiting requests.
+
+If the object is [term idle] it will become [term busy], immediately
+servicing the request. Otherwise servicing the new request will be
+defered until all preceding requests have been served.
+
+[list_end]
+
+[section Options]
+
+The only option known is [option -on-status-change]. It is optional
+and defaults to the empty list, disabling the reporting of status
+changes. Otherwise its argument is a command prefix which is invoked
+whenever the internal status of the object changed. The callback is
+invoked with two additional arguments, the result of the methods
+[method pending] and [method busy], in this order. This allows any
+user to easily know, for example, when the object has processed all
+outstanding requests.
+
+[section Use]
+
+A possible application of this package and class is within a HTTP 1.1
+server, managing the results waiting for transfer to the client.
+
+[para]
+
+It should be noted that in this application the system also needs an
+additional data structure which keeps track of outstanding results as
+they may come back in a different order than the requests from the
+client, and releases them to the actual queue in the proper order.
+
+[vset CATEGORY transfer]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

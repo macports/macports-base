@@ -1,7 +1,5 @@
 #!/bin/bash
 #
-# $Id$
-#
 # Check for proper OS version for the package (meant to be used by the
 # MacPorts port which replaces __DARWINVERS__ with the version of Darwin
 # needed).

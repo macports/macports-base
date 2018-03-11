@@ -22,7 +22,6 @@ distclean:: clean
 	rm -f Makefile
 
 test::
-	-$(prefix)/bin/port sync
 	$(TCLSH) $(srcdir)/../tests/test.tcl -nocolor
 
 install:: all

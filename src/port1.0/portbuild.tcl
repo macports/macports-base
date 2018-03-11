@@ -1,6 +1,5 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portbuild.tcl
-# $Id$
 #
 # Copyright (c) 2007 - 2013 The MacPorts Project
 # Copyright (c) 2002 - 2004 Apple Inc.
@@ -137,9 +136,9 @@ proc portbuild::build_getjobs {args} {
         try -pass_signal {
             set jobs [sysctl hw.activecpu]
         } catch {{*} eCode eMessage} {
+            set jobs 2
             ui_warn "failed to determine the number of available CPUs (probably not supported on this platform)"
             ui_warn "defaulting to $jobs jobs, consider setting buildmakejobs to a nonzero value in macports.conf"
-            set jobs 2
         }
 
         try -pass_signal {
@@ -174,7 +173,7 @@ proc portbuild::build_getjobsarg {args} {
         return ""
     }
 
-    if {![exists build.jobs] || !([string match "*make*" [option build.cmd]] || [string match "*scons*" [option build.cmd]])} {
+    if {![exists build.jobs] || !([string match "*make*" [option build.cmd]] || [string match "*ninja*" [option build.cmd]] || [string match "*scons*" [option build.cmd]])} {
         return ""
     }
     set jobs [option build.jobs]

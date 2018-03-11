@@ -1,0 +1,393 @@
+# -*- tcl -*-
+# Tests for the log facility
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 2001 by ActiveState Tool Corp.
+# All rights reserved.
+#
+# RCS: @(#) $Id: log.test,v 1.10 2008/09/25 21:52:57 eee Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal log.tcl log
+}
+
+# -------------------------------------------------------------------------
+
+test log-1.0 {levels} {
+    ::log::levels
+} {alert critical debug emergency error info notice warning}
+
+foreach {abbrev long} {
+	a		alert            d               debug
+	al		alert            de              debug
+	ale		alert            deb             debug
+	aler		alert            debu            debug
+	alert		alert            debug           debug
+	c		critical         em              emergency
+	cr		critical         eme             emergency
+	cri		critical         emer            emergency
+	crit		critical         emerg           emergency
+	criti		critical         emerge          emergency
+	critic		critical         emergen         emergency
+	critica		critical         emergenc        emergency
+	critical	critical         emergency       emergency
+	er		error            i               info
+	err		error            in              info
+	erro		error            inf             info
+	error		error            info            info
+	n		notice           w               warning
+	no		notice           wa              warning
+	not		notice           war             warning
+	noti		notice           warn            warning
+	notic		notice           warni           warning
+	notice		notice           warnin          warning
+				         warning         warning
+} {
+    test log-2.0.$abbrev {level abbreviations} {
+	::log::lv2longform $abbrev
+    } $long
+}
+
+test log-2.1 {abbreviation error} {
+    if {![catch {::log::lv2longform e} msg]} {
+	error "e is an unique abbreviation of a level name"
+    }
+    set msg
+} {bad level "e": must be alert, critical, debug, emergency, error, info, notice, or warning.}
+
+foreach {level color} {
+	emergency red        warning   yellow
+	alert     red        notice    seagreen
+	critical  red        info      {}
+	error     red        debug     lightsteelblue
+} {
+    test log-3.0.$level {color conversion} {
+	::log::lv2color $level
+    } $color
+}
+
+test log-3.1 {color conversion error} {
+    if {![catch {::log::lv2color foo} msg]} {
+	error "foo is an unique abbreviation of a level name"
+    }
+    set msg
+} {bad level "foo": must be alert, critical, debug, emergency, error, info, notice, or warning.}
+
+foreach {level priority} {
+	emergency 7        warning   3
+	alert     6        notice    2
+	critical  5        info      1
+	error     4        debug     0
+} {
+    test log-4.0.$level {priority conversion} {
+	::log::lv2priority $level
+    } $priority
+}
+
+test log-4.1 {priority conversion error} {
+    if {![catch {::log::lv2priority foo} msg]} {
+	error "foo is an unique abbreviation of a level name"
+    }
+    set msg
+} {bad level "foo": must be alert, critical, debug, emergency, error, info, notice, or warning.}
+
+foreach level {alert critical debug error emergency info notice warning} {
+    test log-5.0.$level {cmd retrieval} {
+	::log::lv2cmd $level
+    } ::log::Puts
+}
+
+test log-5.1 {cmd error} {
+    if {![catch {::log::lv2cmd foo} msg]} {
+	error "foo is an unique abbreviation of a level name"
+    }
+    set msg
+} {bad level "foo": must be alert, critical, debug, emergency, error, info, notice, or warning.}
+
+foreach {level chan} {
+	emergency  stderr        warning    stdout
+	alert      stderr        notice     stdout
+	critical   stderr        info       stdout
+	error      stderr        debug      stdout
+} {
+    test log-6.0.$level {channel retrieval} {
+	::log::lv2channel $level
+    } $chan
+}
+
+test log-6.1 {channel error} {
+    if {![catch {::log::lv2channel foo} msg]} {
+	error "foo is an unique abbreviation of a level name"
+    }
+    set msg
+} {bad level "foo": must be alert, critical, debug, emergency, error, info, notice, or warning.}
+
+foreach level {alert critical error emergency} {
+    test log-7.0.$level {query suppression state} {
+	::log::lvIsSuppressed $level
+    } 0
+}
+foreach level {debug info notice warning} {
+    test log-7.0.$level {query suppression state} {
+	::log::lvIsSuppressed $level
+    } 1
+}
+
+test log-7.1 {error when querying suppression state} {
+    if {![catch {::log::lv2cmd foo} msg]} {
+	error "foo is an unique abbreviation of a level name"
+    }
+    set msg
+} {bad level "foo": must be alert, critical, debug, emergency, error, info, notice, or warning.}
+
+
+foreach {la lb res} {
+    emergency emergency 0    alert emergency -1    critical emergency -1    error emergency -1
+    emergency alert     1    alert alert      0    critical alert     -1    error alert     -1
+    emergency critical  1    alert critical   1    critical critical   0    error critical  -1
+    emergency error     1    alert error      1    critical error      1    error error      0
+    emergency warning   1    alert warning    1    critical warning    1    error warning    1
+    emergency notice    1    alert notice     1    critical notice     1    error notice     1
+    emergency info      1    alert info       1    critical info       1    error info       1
+    emergency debug     1    alert debug      1    critical debug      1    error debug      1
+
+    warning emergency -1    notice emergency -1    info emergency -1    debug emergency -1
+    warning alert     -1    notice alert     -1    info alert     -1    debug alert     -1
+    warning critical  -1    notice critical  -1    info critical  -1    debug critical  -1
+    warning error     -1    notice error     -1    info error     -1    debug error     -1
+    warning warning    0    notice warning   -1    info warning   -1    debug warning   -1
+    warning notice     1    notice notice     0    info notice    -1    debug notice    -1
+    warning info       1    notice info       1    info info       0    debug info      -1
+    warning debug      1    notice debug      1    info debug      1    debug debug      0
+} {
+    test log-8.0.$la.$lb {level priority comparisons} {
+	list [::log::lvCompare $la $lb] $la $lb
+    } [list $res $la $lb]
+}
+
+test log-8.1 {comparison errors} {
+    if {![catch {::log::lvCompare foo error} msg]} {
+	error "foo is an unique abbreviation of a level name"
+    }
+    set msg
+} {bad level "foo": must be alert, critical, debug, emergency, error, info, notice, or warning.}
+
+test log-8.2 {comparison errors} {
+    if {![catch {::log::lvCompare error foo} msg]} {
+	error "foo is an unique abbreviation of a level name"
+    }
+    set msg
+} {bad level "foo": must be alert, critical, debug, emergency, error, info, notice, or warning.}
+
+
+foreach level {alert critical debug error emergency info notice warning} {
+    test log-9.0.$level {redefining colors} {
+	set old [::log::lv2color $level]
+	::log::lvColor $level foo
+	set new [::log::lv2color $level]
+	::log::lvColor $level $old
+	set new
+    } foo
+}
+
+test log-9.1 {redefining colors} {
+    ::log::lvColorForall fox
+    set res [list]
+    foreach level [::log::levels] {
+	lappend res [::log::lv2color $level]
+    }
+    set res
+} {fox fox fox fox fox fox fox fox}
+
+foreach level {alert critical debug error emergency info notice warning} {
+    test log-10.0.$level {redefining channels} {
+	set old [::log::lv2channel $level]
+	::log::lvChannel $level foo
+	set new [::log::lv2channel $level]
+	::log::lvChannel $level $old
+	set new
+    } foo
+}
+
+test log-10.1 {redefining channels} {
+    ::log::lvChannelForall fox
+    set res [list]
+    foreach level [::log::levels] {
+	lappend res [::log::lv2channel $level]
+    }
+    set res
+} {fox fox fox fox fox fox fox fox}
+
+foreach level {alert critical debug error emergency info notice warning} {
+    test log-11.0.$level {redefining cmds} {
+	set old [::log::lv2cmd $level]
+	::log::lvCmd $level foo
+	set new [::log::lv2cmd $level]
+	::log::lvCmd $level $old
+	set new
+    } foo
+}
+
+test log-11.1 {redefining cmds} {
+    ::log::lvCmdForall logMem
+    set res [list]
+    foreach level [::log::levels] {
+	lappend res [::log::lv2cmd $level]
+    }
+    set res
+} {logMem logMem logMem logMem logMem logMem logMem logMem}
+
+foreach level {alert critical debug error emergency info notice warning} {
+    test log-12.0.$level {change suppression state} {
+	set old [::log::lvIsSuppressed $level]
+	::log::lvSuppress $level
+	set new [::log::lvIsSuppressed $level]
+	::log::lvSuppress $level 0
+	lappend new [::log::lvIsSuppressed $level]
+	set new
+    } {1 0}
+}
+
+test log-12.1 {suppressor errors} {
+    if {![catch {::log::lvSuppress error foo} msg]} {
+	error "foo should be no boolean value"
+    }
+    set msg
+} {"foo" is not a member of {0, 1}}
+
+test log-12.2 {suppressor errors} {
+    if {![catch {::log::lvSuppressLE error foo} msg]} {
+	error "foo should be no boolean value"
+    }
+    set msg
+} {"foo" is not a member of {0, 1}}
+
+foreach {level range} {
+    emergency {1 1 1 1 1 1 1 1}
+    alert     {1 1 1 0 1 1 1 1}
+    critical  {0 1 1 0 1 1 1 1}
+    error     {0 0 1 0 1 1 1 1}
+    warning   {0 0 1 0 0 1 1 1}
+    notice    {0 0 1 0 0 1 1 0}
+    info      {0 0 1 0 0 1 0 0}
+    debug     {0 0 1 0 0 0 0 0}
+} {
+    test log-12.3.$level {change suppression state, ranges} {
+	::log::lvSuppressLE emergency 0 ; # initial full unsuppressed state
+	::log::lvSuppressLE $level
+	set res [list]
+	foreach l [::log::levels] {
+	    lappend res [::log::lvIsSuppressed $l]
+	}
+	set res
+    } $range
+}
+
+foreach {level range} {
+    debug     {1 1 0 1 1 1 1 1}
+    info      {1 1 0 1 1 0 1 1}
+    notice    {1 1 0 1 1 0 0 1}
+    warning   {1 1 0 1 1 0 0 0}
+    error     {1 1 0 1 0 0 0 0}
+    critical  {1 0 0 1 0 0 0 0}
+    alert     {0 0 0 1 0 0 0 0}
+    emergency {0 0 0 0 0 0 0 0}
+} {
+    test log-12.4.$level {change suppression state, ranges} {
+	::log::lvSuppressLE emergency ; # initial full supressed state
+	::log::lvSuppressLE $level 0
+	set res [list]
+	foreach l [::log::levels] {
+	    lappend res [::log::lvIsSuppressed $l]
+	}
+	set res
+    } $range
+}
+
+
+
+# Define our own logger command adding all messages to a global list
+# variable.
+
+global _log_
+set    _log_ [list]
+proc logMem {level text} {
+    global  _log_
+    lappend _log_ $level $text
+}
+
+# Setup some levels with different properties:
+# - Suppressed
+# - No command
+
+::log::lvCmdForall logMem
+::log::lvCmd       alert {}
+::log::lvSuppress  critical
+
+test log-13.0 {logging} {
+    set _log_ [list]
+    ::log::log emergency fofafraz
+    ::log::log alert     fofafraz1
+    ::log::log critical  fofafraz2
+    ::log::log error     fofafraz3
+    ::log::log warning   fofafraz4
+    set _log_
+} {emergency fofafraz error fofafraz3 warning fofafraz4}
+
+test log-13.1 {logging} {
+    set _log_ [list]
+    ::log::logMsg fobar
+    set _log_
+} {info fobar}
+
+test log-13.2 {logging} {
+    set _log_ [list]
+    ::log::logError buz
+    set _log_
+} {error buz}
+
+test log-13.3 {log error} {
+    if {![catch {::log::log e foobar} msg]} {
+	error "e is an unique abbreviation of a level name"
+    }
+    set msg
+} {bad level "e": must be alert, critical, debug, emergency, error, info, notice, or warning.}
+
+
+set lastlevel warning
+foreach level {alert critical debug error emergency info notice warning} {
+    test log-14.0.$level {log::Puts} {
+	makeFile {} test.log
+	::log::lvCmdForall ::log::Puts
+	::log::lvSuppressLE emergency 0
+
+	set old [::log::lv2channel $level]
+	::log::lvChannelForall {}
+	::log::lvChannel $level [open test.log w]
+
+	::log::log $level     __data__
+	::log::log $lastlevel __NOT__
+
+	close  [::log::lv2channel $level]
+	set lastlevel $level
+
+	set log [join [split [viewFile test.log] \n]]
+	removeFile test.log
+	list [string match *__data__* $log] [string match *__NOT__* $log]
+    } {1 0}
+}
+::log::lvChannelForall {}
+
+testsuiteCleanup
+return

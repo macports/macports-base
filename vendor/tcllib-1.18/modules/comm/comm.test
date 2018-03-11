@@ -1,0 +1,318 @@
+# -*- tcl -*-
+# Tests for the comm module.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 2001 by ActiveState Tool Corp.
+# All rights reserved.
+#
+# RCS: @(#) $Id: comm.test,v 1.14 2010/09/15 19:48:33 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.3 ; # snit
+testsNeedTcltest 1.0
+
+tcltest::testConstraint hastls [expr {![catch {package require tls}]}]
+
+support {
+    # Using snit1 here, whatever the version of Tcl
+    use snit/snit.tcl snit
+}
+testing {
+    useLocal comm.tcl comm
+}
+
+# ------------------------------------------------------------------------
+# First order of things is to spawn a separate tclsh into the background
+# and have it execute comm too, with some general code to respond to our
+# requests
+
+useLocalFile comm.slaveboot
+
+# ------------------------------------------------------------------------
+
+test comm-1.0 {set remote variable} {
+    ::comm::comm send [slave] {set foo b}
+} {b}
+
+test comm-1.1 {set remote variable, async} {
+    ::comm::comm send -async [slave] {set fox a}
+} {}
+
+test comm-1.2 {get remote variables} {
+    ::comm::comm send [slave] {list $foo $fox}
+} {b a}
+
+# ------------------------------------------------------------------------
+
+set hack [interp create]
+
+test comm-2.0 {-interp configuration} {
+    ::comm::comm configure -interp $hack
+} {}
+
+test comm-2.1 {-interp configuration} {
+    ::comm::comm configure -interp 
+} $hack
+
+test comm-2.2 {-interp configuration} {
+    res!
+    res+ [::comm::comm configure -interp $hack] [::comm::comm configure -interp]
+    res+ [::comm::comm configure -interp {}]    [::comm::comm configure -interp]
+    res?
+} [list [list {} $hack] {{} {}}]
+
+test comm-2.3 {-interp configuration} {
+    catch {::comm::comm configure -interp bad} msg
+    set msg
+} {Non-interpreter to configuration option: -interp}
+
+test comm-2.4 {-interp configuration, destruction} {
+    res!
+    res+ [interp exists $hack]
+    res+ [info commands FOO]
+    comm::comm new FOO -interp $hack
+    FOO destroy
+    res+ [interp exists $hack]
+    res+ [info commands FOO]
+    res?
+} {1 {{}} 0 {{}}}
+
+set hack [interp create]
+set beta [interp create]
+
+test comm-2.5 {-interp configuration, destruction} {
+    res!
+    res+ [interp exists $hack]
+    res+ [interp exists $beta]
+    res+ [info commands FOO]
+    comm::comm new FOO -interp $hack
+    FOO configure      -interp $beta
+    FOO destroy
+    res+ [interp exists $hack]
+    res+ [interp exists $beta]
+    res+ [info commands FOO]
+    res?
+} {1 1 {{}} 1 0 {{}}}
+
+test comm-2.6 {-interp use for received scripts} {
+    set FOO [::comm::comm send [slave] {
+	set hack [interp create]
+	interp eval $hack {set fox 0}
+	comm::comm new FOO -interp $hack -listen 1
+	FOO self
+    }] ; # {}
+
+    comm::comm send $FOO {set fox 1}
+    set res [comm::comm send [slave] {
+	interp eval $hack {set fox}
+    }] ; # {}
+    comm::comm send [slave] {FOO destroy}
+    set res
+} 1
+
+test comm-2.7 {-interp use for received scripts} {
+    set FOO [::comm::comm send [slave] {
+	set hack [interp create]
+	interp eval $hack {set fox 0}
+	comm::comm new FOO -interp $hack -listen 1
+	FOO self
+    }] ; # {}
+
+    comm::comm send $FOO set fox 2
+    set res [comm::comm send [slave] {
+	interp eval $hack {set fox}
+    }] ; # {}
+    comm::comm send [slave] {FOO destroy}
+    set res
+} 2
+
+# ------------------------------------------------------------------------
+
+test comm-3.0 {-events configuration} {
+    ::comm::comm configure -events eval
+} {}
+
+test comm-3.1 {-events configuration} {
+    ::comm::comm configure -events
+} eval
+
+test comm-3.2 {-events configuration} {
+    res!
+    res+ [::comm::comm configure -events eval] [::comm::comm configure -events]
+    res+ [::comm::comm configure -events {}]   [::comm::comm configure -events]
+    res?
+} {{{} eval} {{} {}}}
+
+test comm-3.3 {-events configuration} {
+    catch {::comm::comm configure -events bad} msg
+    set msg
+} {Non-event to configuration option: -events}
+
+
+test comm-3.4 {-interp use for -events scripts, eval} {
+    set FOO [::comm::comm send [slave] {
+	set hack [interp create]
+	interp eval $hack {set fox 0 ; set wolf 0}
+	comm::comm new FOO -interp $hack -listen 1 -events eval
+	FOO hook eval {set wolf 2}
+	FOO self
+    }] ; # {}
+
+    comm::comm send $FOO {set fox 1}
+    set res [comm::comm send [slave] {
+	interp eval $hack {set wolf}
+    }] ; # {}
+    comm::comm send [slave] {FOO destroy}
+    set res
+} 2
+
+# ------------------------------------------------------------------------
+
+test comm-4.0 {async generation of result on remote side} {
+    ::comm::comm send [slave] {
+	proc future {} {
+	    set f [comm::comm return_async]
+	    after 3000 [list $f return "delayed $f"]
+	    return ignored
+	}
+    }
+    ::comm::comm send [slave] {future}
+} {delayed ::comm::future1}
+
+test comm-4.1 {async reception of a result via callback} {
+    set res {}
+    proc foo {args} {
+	array set tmp $args
+	unset tmp(-id)
+	unset tmp(-serial)
+	global res ; lappend res [dictsort [array get tmp]]
+    }
+    ::comm::comm send -command foo [slave] {list $foo $fox}
+    vwait res
+    rename foo {}
+    set res
+} {{-chan ::comm::comm -code 0 -errorcode {} -errorinfo {} -result {b a}}}
+
+test comm-4.2 {async generation/reception of results in parallel} {
+
+    # Setup long running operations with async result generation.
+    ::comm::comm send [slave] {
+	proc future {n x} {
+	    set f [comm::comm return_async]
+	    after $n [list $f return "delayed $x"]
+	    return ignored
+	}
+    }
+
+    # Setup async receiver callback.
+    proc receive {args} {
+	global res tick tock
+	array set tmp $args
+	unset tmp(-id)
+	unset tmp(-serial)
+	unset tmp(-chan)
+	unset tmp(-code)
+	unset tmp(-errorcode)
+	unset tmp(-errorinfo)
+	lappend res [dictsort [array get tmp]]
+	incr tock -1
+	if {!$tock} {set tick .}
+	return
+    }
+
+    # Execute two requests, the second of which is returns before the first.
+    # The main point is that the server does process it due to first doing
+    # an async return.
+
+    set tick .
+    set tock 2
+    set res {}
+
+    ::comm::comm send -command receive [slave] {future 5000 A}
+    ::comm::comm send -command receive [slave] {future 2500 B}
+    vwait tick
+    rename receive {}
+    set res
+    # B returned before A, A was sent before B
+} {{-result {delayed B}} {-result {delayed A}}}
+
+
+test comm-4.3 {bug 2972571, handling of \\ by Word0} {
+    ::comm::comm send [slave] {
+	proc foo {args} {
+	    return nothing
+	}
+    }
+    ::comm::comm send [slave] {foo \\}
+} {nothing}
+
+
+# ------------------------------------------------------------------------
+
+test comm-5.0 {-port already in use} {
+    # First start a server on port 12345
+    set port 12345
+    catch {set shdl [socket -server foo $port]}
+    catch {::comm::comm new bar -port $port -listen 1 -local 0} msg
+    catch {close $shdl}
+    unset -nocomplain shdl port
+    set msg
+} {couldn't open socket: address already in use}
+
+# ------------------------------------------------------------------------
+
+test comm-6.0 {secured communication via tls package} hastls {
+    # Setup secured channel in main process.
+    tls::init \
+	-keyfile  [tcllibPath devtools/receiver.key] \
+	-certfile [tcllibPath devtools/receiver.crt] \
+	-cafile   [tcllibPath devtools/ca.crt] \
+	-ssl2 1    \
+	-ssl3 1    \
+	-tls1 0    \
+	-require 1
+    comm::comm new BAR -socketcmd tls::socket -listen 1
+
+    # Setup secured channel in slave process
+    ::comm::comm send [slave] {
+	package require tls
+	set fox dog
+    }
+    ::comm::comm send [slave] \
+	[list \
+	     tls::init \
+	     -keyfile  [tcllibPath devtools/transmitter.key] \
+	     -certfile [tcllibPath devtools/transmitter.crt] \
+	     -cafile   [tcllibPath devtools/ca.crt] \
+	     -ssl2 1    \
+	     -ssl3 1    \
+	     -tls1 0    \
+	     -require 1]
+    set FOO [::comm::comm send [slave] {
+	comm::comm new FOO -socketcmd tls::socket -listen 1
+	FOO self
+    }] ; # {}
+
+    # Run command interaction over the secured channel
+    set res [BAR send $FOO {set fox}]
+
+    # Cleanup, remove secured endpoints
+    comm::comm send [slave] {FOO destroy}
+    BAR destroy
+
+    # Return result of the secured command
+    set res
+} dog
+
+# ------------------------------------------------------------------------
+
+slavestop
+testsuiteCleanup
+return

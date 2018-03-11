@@ -24,17 +24,17 @@ test pkg_main {
 } -constraints {
     root darwin
 } -setup {
-    global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
+    global os.platform os.major os.arch destpath package.destpath configure.build_arch
     global subport version revision package.flat maintainers description categories
     global supported_archs porturl
     env_init
 
     file mkdir $destpath
-    close [open $destpath/fondu-1_060102_1.pkg w+]
+    close [open $destpath/fondu-060102_1.pkg w+]
 
-    set contents_dir $destpath/fondu-1_060102_1.mpkg/Contents/
-    set packages_dir $destpath/fondu-1_060102_1.mpkg/Contents/Packages
-    set res_dir $destpath/fondu-1_060102_1.mpkg/Contents/Resources
+    set contents_dir $destpath/fondu-060102_1.mpkg/Contents/
+    set packages_dir $destpath/fondu-060102_1.mpkg/Contents/Packages
+    set res_dir $destpath/fondu-060102_1.mpkg/Contents/Resources
 
     set mport [mportopen file://.]
     set workername [ditem_key $mport workername]

@@ -1,0 +1,281 @@
+
+<div class='fossil-doc' data-title='doctools::toc::export::wiki - Documentation tools'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">doctools::toc::export::wiki(n) 0.1 tcllib &quot;Documentation tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>doctools::toc::export::wiki - wiki export plugin</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Wiki markup</a></li>
+<li class="doctools_section"><a href="#section4">Configuration</a></li>
+<li class="doctools_section"><a href="#section5">ToC serialization format</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">doctools::toc::export::wiki <span class="opt">?0.1?</span></b></li>
+<li>package require <b class="pkgname">doctools::text</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd"><a href="../../../../index.html#key260">export</a></b> <i class="arg">serial</i> <i class="arg">configuration</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package implements the doctools table of contents export plugin
+for the generation of wiki markup.</p>
+<p>This is an internal package of doctools, for use by the higher level
+management packages handling tables of contents, especially <b class="package"><a href="toc_export.html">doctools::toc::export</a></b>, the export manager.</p>
+<p>Using it from a regular interpreter is possible, however only with
+contortions, and is not recommended.
+The proper way to use this functionality is through the package
+<b class="package"><a href="toc_export.html">doctools::toc::export</a></b> and the export manager objects it
+provides.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<p>The API provided by this package satisfies the specification of the
+doctoc export plugin API version 2.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd"><a href="../../../../index.html#key260">export</a></b> <i class="arg">serial</i> <i class="arg">configuration</i></a></dt>
+<dd><p>This command takes the canonical serialization of a table of contents,
+as specified in section <span class="sectref"><a href="#section5">ToC serialization format</a></span>, and
+contained in <i class="arg">serial</i>, the <i class="arg">configuration</i>, a dictionary, and
+generates wiki markup encoding the table.
+The created string is then returned as the result of the command.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Wiki markup</a></h2>
+<p>The basic syntax of the wiki markup generated by this plugin are
+described at <a href="http://wiki.tcl.tk/14">http://wiki.tcl.tk/14</a>.</p>
+<p>The plugin goes beyond the classic markup to generate proper headers
+and indenting.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Configuration</a></h2>
+<p>The wiki export plugin recognizes the following configuration
+variables and changes its behaviour as they specify.</p>
+<dl class="doctools_arguments">
+<dt>dictionary <i class="arg">map</i></dt>
+<dd><p>This standard configuration variable contains a dictionary mapping
+from the (symbolic) document ids in reference entries to the actual
+filenames and/or urls to be used in the output.</p>
+<p>Document ids without a mapping are used unchanged.</p></dd>
+</dl>
+<p><em>Note</em> that this plugin ignores the standard configuration
+variables <b class="variable">user</b>, <b class="variable">file</b> and <b class="variable">format</b>, and their values.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">ToC serialization format</a></h2>
+<p>Here we specify the format used by the doctools v2 packages to
+serialize tables of contents as immutable values for transport,
+comparison, etc.</p>
+<p>We distinguish between <i class="term">regular</i> and <i class="term">canonical</i>
+serializations.
+While a table of contents may have more than one regular serialization
+only exactly one of them will be <i class="term">canonical</i>.</p>
+<dl class="doctools_definitions">
+<dt>regular serialization</dt>
+<dd><ol class="doctools_enumerated">
+<li><p>The serialization of any table of contents is a nested Tcl dictionary.</p></li>
+<li><p>This dictionary holds a single key, <b class="const">doctools::toc</b>, and its
+value. This value holds the contents of the table of contents.</p></li>
+<li><p>The contents of the table of contents are a Tcl dictionary holding the
+title of the table of contents, a label, and its elements. The
+relevant keys and their values are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">title</b></dt>
+<dd><p>The value is a string containing the title of the table of contents.</p></dd>
+<dt><b class="const">label</b></dt>
+<dd><p>The value is a string containing a label for the table of contents.</p></dd>
+<dt><b class="const">items</b></dt>
+<dd><p>The value is a Tcl list holding the elements of the table, in the
+order they are to be shown.</p>
+<p>Each element is a Tcl list holding the type of the item, and its
+description, in this order. An alternative description would be that
+it is a Tcl dictionary holding a single key, the item type, mapped to
+the item description.</p>
+<p>The two legal item types and their descriptions are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">reference</b></dt>
+<dd><p>This item describes a single entry in the table of contents,
+referencing a single document.
+To this end its value is a Tcl dictionary containing an id for the
+referenced document, a label, and a longer textual description which
+can be associated with the entry.
+The relevant keys and their values are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">id</b></dt>
+<dd><p>The value is a string containing the id of the document associated
+with the entry.</p></dd>
+<dt><b class="const">label</b></dt>
+<dd><p>The value is a string containing a label for this entry. This string
+also identifies the entry, and no two entries (references and
+divisions) in the containing list are allowed to have the same label.</p></dd>
+<dt><b class="const">desc</b></dt>
+<dd><p>The value is a string containing a longer description for this entry.</p></dd>
+</dl></dd>
+<dt><b class="const">division</b></dt>
+<dd><p>This item describes a group of entries in the table of contents,
+inducing a hierarchy of entries.
+To this end its value is a Tcl dictionary containing a label for the
+group, an optional id to a document for the whole group, and the list
+of entries in the group.
+The relevant keys and their values are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">id</b></dt>
+<dd><p>The value is a string containing the id of the document associated
+with the whole group. This key is optional.</p></dd>
+<dt><b class="const">label</b></dt>
+<dd><p>The value is a string containing a label for the group. This string
+also identifies the entry, and no two entries (references and
+divisions) in the containing list are allowed to have the same label.</p></dd>
+<dt><b class="const">items</b></dt>
+<dd><p>The value is a Tcl list holding the elements of the group, in the
+order they are to be shown.
+This list has the same structure as the value for the keyword
+<b class="const">items</b> used to describe the whole table of contents, see
+above. This closes the recusrive definition of the structure, with
+divisions holding the same type of elements as the whole table of
+contents, including other divisions.</p></dd>
+</dl></dd>
+</dl></dd>
+</dl>
+</li>
+</ol></dd>
+<dt>canonical serialization</dt>
+<dd><p>The canonical serialization of a table of contents has the format as
+specified in the previous item, and then additionally satisfies the
+constraints below, which make it unique among all the possible
+serializations of this table of contents.</p>
+<ol class="doctools_enumerated">
+<li><p>The keys found in all the nested Tcl dictionaries are sorted in
+ascending dictionary order, as generated by Tcl's builtin command
+<b class="cmd">lsort -increasing -dict</b>.</p></li>
+</ol></dd>
+</dl>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>doctools</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key179">doctools</a>, <a href="../../../../index.html#key260">export</a>, <a href="../../../../index.html#key109">serialization</a>, <a href="../../../../index.html#key157">table of contents</a>, <a href="../../../../index.html#key156">toc</a>, <a href="../../../../index.html#key183">wiki</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Text formatter plugin</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2009 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

@@ -1,8 +1,7 @@
 /*
  * entry.c
- * $Id$
  *
- * Copyright (c) 2010-2011, 2014 The MacPorts Project
+ * Copyright (c) 2010-2011, 2014, 2017 The MacPorts Project
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
  * All rights reserved.
  *
@@ -31,6 +30,11 @@
 #include <config.h>
 #endif
 
+/* required for asprintf(3) on OS X */
+#define _DARWIN_C_SOURCE
+/* required for asprintf(3) on Linux */
+#define _GNU_SOURCE
+
 #include "portgroup.h"
 #include "entry.h"
 #include "registry.h"
@@ -40,12 +44,9 @@
 #include <sqlite3.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 /*
- * TODO: possibly, allow reg_entry_search to take different matching strategies
- *       for different keys. I don't know of an application for this feature
- *       yet, so no reason to bother for now.
- *
  * TODO: reg_entry_installed and reg_entry_imaged could benefit from the added
  *       flexibility of -glob and -regexp too. Not a high priority, though.
  *
@@ -391,23 +392,19 @@ static int reg_all_entries(reg_registry* reg, char* query, int query_len,
  * @param [in] keys      a list of keys to search by
  * @param [in] vals      a list of values to search by, matching keys
  * @param [in] key_count the number of key/value pairs passed
- * @param [in] strategy  strategy to use (one of the `reg_strategy_*` constants)
+ * @param [in] strategies  strategies to use (one of the `reg_strategy_*` constants)
  * @param [out] entries  a list of matching entries
  * @param [out] errPtr   on error, a description of the error that occurred
  * @return               the number of entries if success; false if failure
  */
 int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
-        int strategy, reg_entry*** entries, reg_error* errPtr) {
+        int *strategies, reg_entry*** entries, reg_error* errPtr) {
     int i;
     char* kwd = " WHERE ";
     char* query;
     size_t query_len, query_space;
     int result;
-    /* get the strategy */
-    char* op = reg_strategy_op(strategy, errPtr);
-    if (op == NULL) {
-        return -1;
-    }
+    char* op;
     /* build the query */
     query = strdup("SELECT id FROM registry.ports");
     if (!query) {
@@ -415,6 +412,11 @@ int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
     }
     query_len = query_space = strlen(query);
     for (i=0; i<key_count; i++) {
+        /* get the strategy */
+        op = reg_strategy_op(strategies[i], errPtr);
+        if (op == NULL) {
+            return -1;
+        }
         char* cond = sqlite3_mprintf(op, keys[i], vals[i]);
         if (!cond || !reg_strcat(&query, &query_len, &query_space, kwd)
             || !reg_strcat(&query, &query_len, &query_space, cond)) {
@@ -518,16 +520,26 @@ int reg_entry_installed(reg_registry* reg, char* name, reg_entry*** entries,
  *
  * @param [in] reg     registry to search in
  * @param [in] path    path of the file to check ownership of
+ * @param [in] cs      false if check should be performed case-insensitive,
+ *                     true otherwise
  * @param [out] entry  the owner, or NULL if no active port owns the file
  * @param [out] errPtr on error, a description of the error that occurred
  * @return             true if success; false if failure
  */
-int reg_entry_owner(reg_registry* reg, char* path, reg_entry** entry,
+int reg_entry_owner(reg_registry* reg, char* path, int cs, reg_entry** entry,
         reg_error* errPtr) {
     int result = 0;
     sqlite3_stmt* stmt = NULL;
-    char* query = "SELECT id FROM registry.files WHERE actual_path=? AND active";
     int lower_bound = 0;
+    char *query = NULL;
+
+    asprintf(&query, "SELECT id FROM registry.files WHERE (actual_path = ? %s) AND active",
+             cs ? "" : "COLLATE NOCASE");
+
+    if (!query) {
+        return 0;
+    }
+
     if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_text(stmt, 1, path, -1, SQLITE_STATIC)
                 == SQLITE_OK)) {
@@ -556,6 +568,7 @@ int reg_entry_owner(reg_registry* reg, char* path, reg_entry** entry,
     if (stmt) {
         sqlite3_finalize(stmt);
     }
+    free(query);
     return result;
 }
 
@@ -569,12 +582,22 @@ int reg_entry_owner(reg_registry* reg, char* path, reg_entry** entry,
  *
  * @param [in] reg  registry to find file in
  * @param [in] path path of file to get owner of
+ * @param [in] cs   false if check should be performed case-insensitive,
+ *                  true otherwise
  * @return          id of owner, or 0 for none
  */
-sqlite_int64 reg_entry_owner_id(reg_registry* reg, char* path) {
+sqlite_int64 reg_entry_owner_id(reg_registry* reg, char* path, int cs) {
     sqlite3_stmt* stmt = NULL;
     sqlite_int64 result = 0;
-    char* query = "SELECT id FROM registry.files WHERE actual_path=? AND active";
+    char *query = NULL;
+
+    asprintf(&query, "SELECT id FROM registry.files WHERE (actual_path = ? %s) AND active",
+             cs ? "" : "COLLATE NOCASE");
+
+    if (!query) {
+        return 0;
+    }
+
     if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_text(stmt, 1, path, -1, SQLITE_STATIC)
                 == SQLITE_OK)) {
@@ -589,6 +612,7 @@ sqlite_int64 reg_entry_owner_id(reg_registry* reg, char* path) {
     if (stmt) {
         sqlite3_finalize(stmt);
     }
+    free(query);
     return result;
 }
 

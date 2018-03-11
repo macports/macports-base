@@ -1,0 +1,44 @@
+# -*- tcl -*- 
+# Syntax of the commands provided by package valtype::common.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register valtype::common
+pcx::tcldep   1 needs tcl 8.5
+
+pcx::check 1 std ::valtype::common::reject \
+    {checkSimpleArgs 2 2 {
+	checkList
+	checkWord
+    }}
+pcx::check 1 std ::valtype::common::badchar \
+    {checkSimpleArgs 1 2 {
+	checkList
+	checkWord
+    }}
+pcx::check 1 std ::valtype::common::badcheck \
+    {checkSimpleArgs 1 2 {
+	checkList
+	checkWord
+    }}
+pcx::check 1 std ::valtype::common::badlength \
+    {checkSimpleArgs 2 3 {
+	checkList
+	checkList
+	checkWord
+    }}
+pcx::check 1 std ::valtype::common::badprefix \
+    {checkSimpleArgs 2 3 {
+	checkList
+	checkList
+	checkWord
+    }}
+
+# Initialization via pcx::init.
+# Use a ::XXX::init procedure for non-standard initialization.
+pcx::complete

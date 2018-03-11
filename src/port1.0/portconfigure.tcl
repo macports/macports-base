@@ -1,7 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
-# $Id$
 #
-# Copyright (c) 2007 - 2014 The MacPorts Project
+# Copyright (c) 2007 - 2015 The MacPorts Project
 # Copyright (c) 2007 Markus W. Weissmann <mww@macports.org>
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
@@ -379,23 +378,58 @@ proc portconfigure::configure_get_ld_archflags {} {
 
 proc portconfigure::configure_get_sdkroot {sdk_version} {
     global developer_dir macosx_version xcodeversion os.arch os.platform
-    if {${os.platform} eq "darwin" && ($sdk_version ne $macosx_version
-        || (${os.arch} eq "powerpc" && $macosx_version eq "10.4" && [variant_exists universal] && [variant_isset universal]))} {
-        if {[vercmp $xcodeversion 4.3] < 0} {
-            set sdks_dir ${developer_dir}/SDKs
-        } else {
-            set sdks_dir ${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs
-        }
-        if {$sdk_version eq "10.4"} {
-            set sdk ${sdks_dir}/MacOSX10.4u.sdk
-        } else {
-            set sdk ${sdks_dir}/MacOSX${sdk_version}.sdk
-        }
-        if {[file exists $sdk]} {
-            return $sdk
-        }
+
+    # This is only relevant for macOS
+    if {${os.platform} ne "darwin"} {
+        return {}
     }
-    return {}
+
+    # Special hack for Tiger/ppc, since the system libraries do not contain intel slices
+    if {${os.arch} eq "powerpc" && $macosx_version eq "10.4" && [variant_exists universal] && [variant_isset universal]} {
+        return ${developer_dir}/SDKs/MacOSX10.4u.sdk
+    }
+
+    # Use the DevSDK (eg: /usr/include) if present and the requested SDK version matches the host version
+    if {$sdk_version eq $macosx_version && [file exists /usr/include]} {
+        return {}
+    }
+
+    if {[vercmp $xcodeversion 4.3] < 0} {
+        set sdks_dir ${developer_dir}/SDKs
+    } else {
+        set sdks_dir ${developer_dir}/Platforms/MacOSX.platform/Developer/SDKs
+    }
+
+    if {$sdk_version eq "10.4"} {
+        set sdk ${sdks_dir}/MacOSX10.4u.sdk
+    } else {
+        set sdk ${sdks_dir}/MacOSX${sdk_version}.sdk
+    }
+
+    if {[file exists $sdk]} {
+        return $sdk
+    }
+
+    if {![catch {set sdk [exec xcrun --sdk macosx${sdk_version} --show-sdk-path 2> /dev/null]}]} {
+        return $sdk
+    }
+
+    set sdk /Library/Developer/CommandLineTools/SDKs/MacOSX${sdk_version}.sdk
+    if {[file exists $sdk]} {
+        return $sdk
+    }
+
+    # TODO: Support falling back to "macosx" if it is present?
+    #       This leads to problems when it is newer than the base OS because many OSS assume that
+    #       the SDK version matches the deployment target, so they unconditionally try to use
+    #       symbols that are only available on newer OS versions..
+    #if {![catch {set sdk [exec xcrun --sdk macosx --show-sdk-path 2> /dev/null]}]} {
+    #    ui_warn "Unable to determine location of the macOS ${sdk_version} SDK.  Using the default macOS SDK."
+    #    return $sdk
+    #}
+
+    ui_error "Unable to determine location of a macOS SDK."
+    return -code error "Unable to determine location of a macOS SDK."
 }
 
 # internal function to determine the "-arch xy" flags for the compiler
@@ -513,15 +547,24 @@ proc portconfigure::get_compiler_fallback {} {
     }
 
     # Determine which versions of clang we prefer
-    if {${configure.cxx_stdlib} eq "libc++"} { # clang-3.5+ require libc++
-        lappend compilers macports-clang-3.7 macports-clang-3.6 macports-clang-3.5 macports-clang-3.4
-    } else {
-        lappend compilers macports-clang-3.4 macports-clang-3.3
+    if {${configure.cxx_stdlib} eq "libc++"} {
+        # clang-3.5+ require libc++
+        lappend compilers macports-clang-5.0 macports-clang-4.0
+
+        if {${os.major} < 17} {
+            # The High Sierra SDK requires a toolchain that can apply nullability to uuid_t
+            lappend compilers macports-clang-3.9
+        }
+
+        if {${os.major} < 16} {
+            # The Sierra SDK requires a toolchain that supports class properties
+            lappend compilers macports-clang-3.7
+        }
     }
 
-    # Determine if we have MacPorts-provided legacy gcc fallbacks
     if {${os.major} < 16} {
-        lappend compilers macports-llvm-gcc-4.2 apple-gcc-4.2
+        # We dropped support for these compilers on Sierra
+        lappend compilers macports-clang-3.4 macports-llvm-gcc-4.2 apple-gcc-4.2
     }
 
     return $compilers
@@ -775,10 +818,17 @@ proc portconfigure::configure_main {args} {
             CC CXX OBJC OBJCXX FC F77 F90 JAVAC \
             CFLAGS CPPFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS \
             FFLAGS F90FLAGS FCFLAGS LDFLAGS LIBS CLASSPATH \
-            PERL PYTHON RUBY INSTALL AWK BISON PKG_CONFIG PKG_CONFIG_PATH \
+            PERL PYTHON RUBY INSTALL AWK BISON PKG_CONFIG \
         } {
             set value [option configure.[string tolower $env_var]]
             append_to_environment_value configure $env_var {*}$value
+        }
+
+        foreach env_var { \
+            PKG_CONFIG_PATH \
+        } {
+            set value [option configure.[string tolower $env_var]]
+            append_to_environment_value configure $env_var [join $value ":"]
         }
 
         # https://trac.macports.org/ticket/34221

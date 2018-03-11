@@ -1,0 +1,104 @@
+# crc32bugs.test - Copyright (C) 2002 Pat Thoyts <patthoyts@users.sf.net>
+#
+# Bug finding for crc32 module.
+# In particular we are looking for byte order problems, and issues between
+# the trf code and tcl-only code.
+#
+# -------------------------------------------------------------------------
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# -------------------------------------------------------------------------
+# RCS: @(#) $Id: crc32bugs.test,v 1.8 2006/10/09 21:41:40 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+catch {namespace delete ::crc}
+support {
+    useLocal crc16.tcl crc16
+}
+testing {
+    useLocal crc32.tcl crc32
+}
+
+# -------------------------------------------------------------------------
+
+puts "> $::tcl_platform(byteOrder)"
+
+if {[::crc::LoadAccelerator critcl]} {
+    puts "> bugs, critcl based"
+}
+if {[::crc::LoadAccelerator trf]} {
+    puts "> bugs, Trf based"
+}
+puts "> bugs, pure Tcl"
+
+# -------------------------------------------------------------------------
+# Handle multiple implementation testing
+#
+
+array set preserve [array get ::crc::accel]
+
+proc implementations {} {
+    variable ::crc::accel
+    foreach {a v} [array get accel] {if {$v} {lappend r $a}}
+    lappend r tcl; set r
+}
+
+proc select_implementation {impl} {
+    variable ::crc::accel
+    foreach e [array names accel] { set accel($e) 0 }
+    if {[string compare "tcl" $impl] != 0} {
+        set accel($impl) 1
+    }
+}
+
+proc reset_implementation {} {
+    variable ::crc::accel
+    array set accel [array get ::preserve]
+}
+
+# -------------------------------------------------------------------------
+
+set tests {
+    1  ""                 "0"
+    2  "\x00"             "d202ef8d"
+    3  "\x00\x00"         "41d912ff"
+    4  "\x00\x00\x00"     "ff41d912"
+    5  "\x00\x00\x00\x00" "2144df1c"
+    6  "\xFF"             "ff000000"
+    7  "\xFF\xFF"         "ffff0000"
+    8  "\xFF\xFF\xFF"     "ffffff00"
+    9  "\xFF\xFF\xFF\xFF" "ffffffff"
+   10  "\x00\x00\x00\x01" "5643ef8a"
+   11  "\x80\x00\x00\x00" "cc1d6927"
+}
+
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n msg expected} $tests {
+        test crc32bugs-$impl-1.$n "crc32 (crc32 and crc16 comparison)" {
+            set r [catch {
+                list [::crc::crc32 -format %x $msg] \
+                    [::crc::crc-32 -format %x $msg]
+            } err]
+            if {$r} {lappend err $::errorInfo}
+            list $r $err
+        } [list 0 [list $expected $expected]]
+    }
+}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

@@ -1,0 +1,557 @@
+# Tests for the tie module.                              -*- tcl -*- 
+#
+# Copyright (c) 2004 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: tie.test,v 1.11 2006/10/09 21:41:42 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+support {
+    use snit/snit.tcl       snit
+    use cmdline/cmdline.tcl cmdline
+}
+testing {
+    useLocal tie.tcl         tie
+    useLocal tie_dsource.tcl tie::std::dsource
+}
+
+# -------------------------------------------------------------------------
+
+proc group {dict} {
+    set res {}
+    foreach {k v} $dict {lappend res [list $k $v]}
+    return $res
+}
+
+proc ignore {dict args} {
+    array set tmp $dict
+    foreach k $args {unset tmp($k)}
+    array get tmp
+}
+
+# Fake data source, uses a fixed array, logs all invokations.
+proc note  {item} {global res ; lappend res $item ; return}
+proc trackdb {dbvar args} {
+    upvar #0 $dbvar db
+    note [list $dbvar $args]
+    switch -exact -- [set m [lindex $args 0]] {
+	destroy   {# nothing}
+	set       {array set db [lindex $args 1]}
+	get       {array get db}
+	unset     {
+	    set p [lindex $args 1]
+	    if {$p eq ""} {set p *}
+	    array unset db $p
+	}
+	names     {array names db}
+	size      {array size  db}
+	setv      {set   db([lindex $args 1]) [lindex $args 2]}
+	getv      {set   db([lindex $args 1])}
+	unsetv    {unset db([lindex $args 1])}
+	default   {return -code error "Invoked unknown method \"$m\""}
+    }
+}
+proc initdb {dbvar dict} {upvar #0 $dbvar db ; unset -nocomplain db ; array set db $dict}
+
+interp alias {} track   {} trackdb db
+interp alias {} trackb  {} trackdb da
+interp alias {} trackav {} trackdb av
+
+interp alias {} init  {} initdb db
+interp alias {} initb {} initdb da
+
+proc peek {resvar avar} {
+    upvar $resvar r $avar a
+    lappend r [dictsort [array get a]]
+    return
+}
+
+# -------------------------------------------------------------------------
+# Creation of ties.
+# Errors: Undefined variable, scalar, local variable
+
+test tie-1.0 {tie creation, undefined variable} {
+    unset -nocomplain av
+    catch {tie::tie av dsource track} msg
+    set msg
+} {can't tie to "av": no such array variable}
+
+test tie-1.1 {tie creation, variable defined, not an array} {
+    unset -nocomplain av ; set av SCALAR
+    catch {tie::tie av dsource track} msg
+    set msg
+} {can't tie to "av": no such array variable}
+
+test tie-1.2 {tie creation, variable defined, proc local} {
+    set res {}
+    proc foo {} {
+	unset -nocomplain av ; array set av {}
+	list [tie::tie av dsource track] [::tie::Peek] [trace info variable av]
+	# Token, has to have tie mgr structures, and the internal trace.
+    }
+    # And now the tie mgr structures have to be gone, with the local array.
+    lappend res [foo] [::tie::Peek]
+    rename foo {}
+    set res
+} {{db get} {tie1 {1 1 mgr {1 tie1} tie {tie1 {1 ::tie::dsource1}}} {{{write unset} {::tie::Trace 1}}}} {1 1 mgr {} tie {}}}
+
+test tie-1.3 {tie creation, bad option} {
+    unset -nocomplain av ; array set av {}
+    catch {tie::tie av -foo} msg
+    set msg
+} {bad option "foo", should be one of -merge, -open, or -save}
+
+test tie-1.4 {tie creation, open/save conflict} {
+    unset -nocomplain av ; array set av {}
+    catch {tie::tie av -open -save dsource foo} msg
+    set msg
+} {-open and -save exclude each other}
+
+test tie-1.5 {tie creation, dsource/type required} {
+    unset -nocomplain av ; array set av {}
+    catch {tie::tie av -open} msg
+    set msg
+} {dstype and type arguments missing}
+
+test tie-1.6 {tie creation, bad ds class command} {
+    unset -nocomplain av ; array set av {}
+    catch {tie::tie av foo bar} msg
+    set msg
+} {invalid command name "foo"}
+
+test tie-1.7 {tie creation, bad ds object command} {
+    unset -nocomplain av ; array set av {}
+    catch {tie::tie av dsource foo} msg
+    set msg
+} {invalid command name "foo"}
+
+# -------------------------------------------------------------------------
+# Creation, also testing untying in various ways
+
+test tie-2.0 {tie creation, destruction by untie, token} {
+    set res {}
+    unset -nocomplain av ;    array set av {}
+    ::tie::Reset         ;    init {foo bar}
+
+    lappend res [set token [tie::tie av dsource track]]
+    lappend res [list [::tie::Peek] [trace info variable av]]
+
+    ::tie::untie av $token
+    lappend res [list [::tie::Peek] [trace info variable av]]
+    ::tie::Reset
+
+    join $res \n
+} {db get
+tie1
+{1 1 mgr {1 tie1} tie {tie1 {1 ::tie::dsource5}}} {{{write unset} {::tie::Trace 1}}}
+{1 1 mgr {} tie {}} {}}
+
+test tie-2.1 {tie creation, destruction by untie, all} {
+    set res {}
+    unset -nocomplain av ;    array set av {}
+    ::tie::Reset         ;    init {foo bar}
+
+    lappend res [set token [tie::tie av dsource track]]
+    lappend res [list [::tie::Peek] [trace info variable av]]
+
+    ::tie::untie av
+    lappend res [list [::tie::Peek] [trace info variable av]]
+    ::tie::Reset
+
+    join $res \n
+} {db get
+tie1
+{1 1 mgr {1 tie1} tie {tie1 {1 ::tie::dsource7}}} {{{write unset} {::tie::Trace 1}}}
+{1 1 mgr {} tie {}} {}}
+
+test tie-2.2 {tie creation, destruction via unset} {
+    set res {}
+    unset -nocomplain av ;    array set av {}
+    ::tie::Reset         ;    init {foo bar}
+
+    lappend res [set token [tie::tie av dsource track]]
+    lappend res [list [::tie::Peek] [trace info variable av]]
+
+    unset av
+    lappend res [list [::tie::Peek] [trace info variable av]]
+    ::tie::Reset
+
+    join $res \n
+} {db get
+tie1
+{1 1 mgr {1 tie1} tie {tie1 {1 ::tie::dsource9}}} {{{write unset} {::tie::Trace 1}}}
+{1 1 mgr {} tie {}} {}}
+
+# -------------------------------------------------------------------------
+# Go over the various connection modes.
+
+foreach {n mode merge avinit dbinit result} {
+    1 -open {}     {a 1 b 2} {b 4 c 3}     {b 4 c 3}
+    2 -open -merge {a 1 b 2} {b 4 c 3} {a 1 b 4 c 3}
+    3 -save {}     {a 1 b 2} {b 4 c 3} {a 1 b 2}
+    4 -save -merge {a 1 b 2} {b 4 c 3} {a 1 b 2 c 3}
+} {
+    test tie-3.$n "tie creation modes: $mode $merge" {
+	set res {}
+	unset -nocomplain av ; array set av $avinit
+	::tie::Reset         ; init         $dbinit
+
+	eval "tie::tie av $mode $merge dsource track"
+	tie::untie av
+
+	set     res {}
+	lappend res [dictsort [array get av]] ; # Should be
+	lappend res [dictsort [array get db]] ; # identical
+
+	join $res \n
+    } [join [list $result $result] \n]
+}
+
+foreach {n mode merge avinit dbainit dbbinit result} {
+    5 -open {}     {a 1 b 2} {b 4 c 3} {d 5}             {d 5}
+    6 -open -merge {a 1 b 2} {b 4 c 3} {d 5} {a 1 b 4 c 3 d 5}
+    7 -save {}     {a 1 b 2} {b 4 c 3} {d 5} {a 1 b 2}
+    8 -save -merge {a 1 b 2} {b 4 c 3} {d 5} {a 1 b 2 c 3 d 5}
+} {
+    test tie-3.$n "tie creation modes: $mode $merge, multi tie" {
+	set res {}
+	unset -nocomplain av ; array set av $avinit
+	::tie::Reset         ; init         $dbainit
+	initb                               $dbbinit
+
+	eval "tie::tie av $mode $merge dsource track"
+	eval "tie::tie av $mode $merge dsource trackb"
+	tie::untie av
+
+	set     res {}
+	lappend res [dictsort [array get av]] ; # Should be
+	lappend res [dictsort [array get db]] ; # identical
+	lappend res [dictsort [array get da]] ; #
+
+	join $res \n
+    } [join [list $result $result $result] \n]
+}
+
+# -------------------------------------------------------------------------
+# Test data propagation
+
+test tie-4.1 {array operations properly stored} {
+    set res {}
+    unset -nocomplain av ; array set av {}
+    ::tie::Reset         ; init         {a 1 b 2 c 3}
+
+    tie::tie av dsource track
+
+    set r {}               ; peek r db
+    set av(a) 4            ; peek r db
+    set av(ax) foo         ; peek r db
+    array unset av a*      ; peek r db
+    array set av {b 5 d 6} ; peek r db
+
+    tie::untie av
+    join $r \n
+} {a 1 b 2 c 3
+a 4 b 2 c 3
+a 4 ax foo b 2 c 3
+b 2 c 3
+b 5 c 3 d 6}
+
+test tie-4.2 {array operations properly stored, multi-tie} {
+    set res {}
+    unset -nocomplain av ; array set av {}
+    ::tie::Reset         ; init         {}
+    initb                               {a 1 b 2 c 3}
+
+    tie::tie av dsource track
+    tie::tie av dsource trackb
+
+    set r {}               ; peek r db ; peek r da
+    set av(a) 4            ; peek r db ; peek r da
+    set av(ax) foo         ; peek r db ; peek r da
+    array unset av a*      ; peek r db ; peek r da
+    array set av {b 5 d 6} ; peek r db ; peek r da
+
+    tie::untie av
+    join $r \n
+} {a 1 b 2 c 3
+a 1 b 2 c 3
+a 4 b 2 c 3
+a 4 b 2 c 3
+a 4 ax foo b 2 c 3
+a 4 ax foo b 2 c 3
+b 2 c 3
+b 2 c 3
+b 5 c 3 d 6
+b 5 c 3 d 6}
+
+# -------------------------------------------------------------------------
+# And circular connectivity (several ds's refering to each other).
+
+foreach {n mode merge avinit dbinit result} {
+    1 -open {}     {a 1 b 2} {b 4 c 3}     {b 4 c 3}
+    2 -open -merge {a 1 b 2} {b 4 c 3} {a 1 b 4 c 3}
+    3 -save {}     {a 1 b 2} {b 4 c 3} {a 1 b 2}
+    4 -save -merge {a 1 b 2} {b 4 c 3} {a 1 b 2 c 3}
+    5 -open {}     {}       {} {}
+    6 -open {}     {a 1}    {} {}
+    7 -open {}     {}    {a 1} {a 1}
+    8 -open {}     {b 2} {a 1} {a 1}
+    9 -open -merge {}       {} {}
+   10 -open -merge {a 1}    {} {a 1}
+   11 -open -merge {}    {a 1} {a 1}
+   12 -open -merge {b 2} {a 1} {a 1 b 2}
+   13 -save {}     {}       {} {}
+   14 -save {}     {a 1}    {} {a 1}
+   15 -save {}     {}    {a 1} {}
+   16 -save {}     {b 2} {a 1} {b 2}
+   17 -save -merge {}       {} {}
+   18 -save -merge {a 1}    {} {a 1}
+   19 -save -merge {}    {a 1} {a 1}
+   20 -save -merge {b 2} {a 1} {a 1 b 2}
+} {
+    test tie-5.$n "circular tie, initialization $mode $merge" {
+	set res {}
+	unset -nocomplain av ; array set av $avinit
+	::tie::Reset         ; init         $dbinit
+
+	eval "tie::tie av $mode $merge dsource track"
+	eval "tie::tie db $mode $merge dsource trackav"
+	tie::untie av
+	tie::untie db
+
+	set res {}
+	lappend res [dictsort [array get av]]
+	lappend res [dictsort [array get db]]
+
+	join $res \n
+    } [join [list $result $result] \n] ; # {}
+}
+
+test tie-6.1 {array operations properly stored, circular} {
+    set res {}
+    unset -nocomplain av ; array set av {}
+    ::tie::Reset         ; init         {a 1 b 2 c 3}
+
+    tie::tie av dsource track
+    tie::tie db dsource trackav
+
+    set r {}               ; peek r db ; peek r av
+    set av(a) 4            ; peek r db ; peek r av
+    set av(ax) foo         ; peek r db ; peek r av
+    array unset av a*      ; peek r db ; peek r av
+    array set av {b 5 d 6} ; peek r db ; peek r av
+
+    tie::untie av
+    join $r \n
+} {a 1 b 2 c 3
+a 1 b 2 c 3
+a 4 b 2 c 3
+a 4 b 2 c 3
+a 4 ax foo b 2 c 3
+a 4 ax foo b 2 c 3
+b 2 c 3
+b 2 c 3
+b 5 c 3 d 6
+b 5 c 3 d 6}
+
+test tie-6.2 {array operations properly stored, circular} {
+    set res {}
+    unset -nocomplain av ; array set av {}
+    ::tie::Reset         ; init         {a 1 b 2 c 3}
+
+    tie::tie av dsource track
+    tie::tie db dsource trackav
+
+    set r {}               ; peek r db ; peek r av
+    set db(a) 4            ; peek r db ; peek r av
+    set db(ax) foo         ; peek r db ; peek r av
+    array unset db a*      ; peek r db ; peek r av
+    array set db {b 5 d 6} ; peek r db ; peek r av
+
+    tie::untie av
+    join $r \n
+} {a 1 b 2 c 3
+a 1 b 2 c 3
+a 4 b 2 c 3
+a 4 b 2 c 3
+a 4 ax foo b 2 c 3
+a 4 ax foo b 2 c 3
+b 2 c 3
+b 2 c 3
+b 5 c 3 d 6
+b 5 c 3 d 6}
+
+# -------------------------------------------------------------------------
+# Untie error checking
+
+test tie-7.1 {untie, wrong#args} {
+    catch {tie::untie} msg
+    set msg
+} [tcltest::tooManyArgs tie::untie {avar args}]
+
+test tie-7.2 {untie, wrong#args} {
+    catch {tie::untie a b c} msg
+    set msg
+} {wrong#args: array ?token?}
+
+test tie-7.3 {untie, bad token} {
+    catch {tie::untie av a} msg
+    set msg
+} {Unknown tie "a"}
+
+test tie-7.4 {untie, bad token, for other array} {
+    ::tie::Reset
+    array set av {}
+    array set db {}
+
+    set ta [tie::tie av dsource track]
+    set tb [tie::tie db dsource trackb]
+
+    catch {tie::untie av $tb} msg
+    unset av db
+    set msg
+} {Tie "tie2" not associated with variable "av"}
+
+# -------------------------------------------------------------------------
+# Introspection
+
+test tie-8.0 {tie::info, wrong#args, not enough} {
+    catch {tie::info} msg
+    set msg
+} [tcltest::wrongNumArgs tie::info {cmd args} 0]
+
+test tie-8.1 {tie::info ties, wrong#args, not enough} {
+    catch {tie::info ties} msg
+    set msg
+} {wrong#args: should be "tie::info ties avar"}
+
+test tie-8.2 {tie::info, bad command} {
+    catch {tie::info foo bar} msg
+    set msg
+} {Unknown command "foo", should be ties, type, or types}
+
+test tie-8.3 {tie::info ties, wrong#args to many} {
+    catch {tie::info ties bar ex} msg
+    set msg
+} {wrong#args: should be "tie::info ties avar"}
+
+test tie-8.4 {tie::info ties, no ties} {
+    array set av {}
+    set res [tie::info ties av]
+    unset av
+    set res
+} {}
+
+test tie-8.5 {tie::info ties, one tie} {
+    ::tie::Reset
+    array set av {}
+    tie::tie av dsource track
+
+    set res [tie::info ties av]
+    unset av
+    set res
+} {tie1}
+
+test tie-8.6 {tie::info, multiple ties} {
+    ::tie::Reset
+    array set av {}
+    tie::tie av dsource track
+    tie::tie av dsource trackb
+
+    set res [tie::info ties av]
+    unset av
+    set res
+} {tie1 tie2}
+
+test tie-8.7 {tie::info types, standard} {
+    join [group [dictsort [tie::info types]]] \n
+} {array {package require tie::std::array    ; ::tie::std::array}
+dsource ::tie::std::dsource
+file {package require tie::std::file     ; ::tie::std::file}
+growfile {package require tie::std::growfile ; ::tie::std::growfile}
+log {package require tie::std::log      ; ::tie::std::log}
+remotearray {package require tie::std::rarray   ; ::tie::std::rarray}}
+
+
+test tie-8.8 {tie::info type, wrong#args} {
+    catch {tie::info type} msg
+    set msg
+} {wrong#args: should be "tie::info type dstype"}
+
+test tie-8.9 {tie::info type, wrong#args} {
+    catch {tie::info type a b} msg
+    set msg
+} {wrong#args: should be "tie::info type dstype"}
+
+test tie-8.10 {tie::info type, bad type} {
+    catch {tie::info type a} msg
+    set msg
+} {Unknown type "a"}
+
+# -------------------------------------------------------------------------
+# Registry of types.
+
+test tie-9.0 {register, wrong#args} {
+    catch {tie::register} msg
+    set msg
+} {wrong # args: should be "tie::register dsclasscmd _as_ dstype"}
+
+test tie-9.1 {register, wrong#args} {
+    catch {tie::register a} msg
+    set msg
+} {wrong # args: should be "tie::register dsclasscmd _as_ dstype"}
+
+test tie-9.2 {register, wrong#args} {
+    catch {tie::register a b} msg
+    set msg
+} {wrong # args: should be "tie::register dsclasscmd _as_ dstype"}
+
+test tie-9.3 {register, wrong#args} {
+    catch {tie::register a b c d} msg
+    set msg
+} {wrong # args: should be "tie::register dsclasscmd _as_ dstype"}
+
+test tie-9.4 {register, wrong#args} {
+    catch {tie::register a b c} msg
+    set msg
+} {wrong#args: should be "tie::register command 'as' type"}
+
+test tie-9.5 {register, simple definition} {
+    set res {}
+    catch {tie::info type c} msg ; lappend res $msg
+    lappend res [tie::register a as c]
+    lappend res [tie::info type c]
+} {{Unknown type "c"} {} a}
+
+test tie-9.6 {register, chained definition} {
+    set res {}
+
+    tie::register cmdc as cmda
+    tie::register cmda as b
+
+    list [tie::info type b] [dictsort [ignore [tie::info types] array file growfile log dsource remotearray c]]
+} {cmdc {b cmdc cmda cmdc}}
+
+test tie-9.7 {register, broken chain} {
+    set res {}
+
+    # chain resolution depends on order of definitions.
+
+    tie::register cmdy as x
+    tie::register cmdz as cmdy
+
+    list [tie::info type x] [dictsort [ignore [tie::info types] array file growfile log dsource remotearray c cmda b]]
+} {cmdy {cmdy cmdz x cmdy}}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return

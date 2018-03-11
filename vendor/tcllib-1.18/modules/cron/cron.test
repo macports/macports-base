@@ -1,0 +1,83 @@
+# Tests for the cron module
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2014 by Sean Woods
+# (Insert BSDish style "use at your own risk" license text)
+
+source [file join \
+    [file dirname [file dirname [file join [pwd] [info script]]]] \
+    devtools testutilities.tcl]
+
+package require tcltest
+testsNeedTcl     8.5
+testsNeedTcltest 1.0
+
+testing {
+    useLocal cron.tcl cron
+}
+
+set timecounter 0
+::cron::every timecounter 1 {incr timecounter}
+set now [clock seconds]
+
+# Test at
+set timerevent 0
+::cron::at timeevent1 [expr {$now + 5}] {set ::timerevent 1}
+::cron::at timeevent2 [expr {$now + 6}] {set ::eventpause 0}
+::cron::at timeevent3 [expr {$now + 10}] {set ::timerevent 2}
+::cron::at timeevent4 [expr {$now + 11}] {set ::pause 0}
+
+test cron-1.1 {cron::every} {
+  set ::timecounter
+} 0
+test cron-1.2 {cron::at1} {
+  set ::timerevent
+} 0
+vwait eventpause
+test cron-1.3 {cron::at1} {
+  set ::timerevent
+} 1
+
+# Test that in X seconds our timer
+# was incremented X times
+vwait pause  
+test cron-1.4 {cron::every} {
+  set ::timecounter
+} [expr {[clock seconds]-$now}]
+
+test cron-1.5 {cron::at2} {
+  set ::timerevent
+} 2
+
+###
+# Confirm cancel works
+::cron::cancel timecounter
+set timecounterfinal $::timecounter
+
+after 2000 {set pause 0}
+vwait pause
+test cron-1.6 {cron::cancel} {
+  set ::timecounter
+} $::timecounterfinal
+
+###
+# Test the new IN command
+###
+set ::inevent 0
+cron::in 5 {set ::inevent 1}
+
+test cron-1.7 {cron::in} {
+  set ::inevent
+} 0
+
+after 6000 {set pause 0}
+vwait pause
+test cron-1.8 {cron::in} {
+  set ::inevent
+} 1
+
+testsuiteCleanup
+return

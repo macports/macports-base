@@ -1,0 +1,57 @@
+<html>
+<head>
+<title>ftp Library Package 2.1 for Tcl/Tk help file</title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<body>
+
+<p>
+<dl>
+  <dd>
+    <p><font face="Arial,Helvetica" color="#526e9c" size="+2"><b>ftp Library Package 2.1 for Tcl/Tk Manual Pages</b></font></p>
+  </dd>
+
+  <dd><font face="Arial,Helvetica" size="+1"><b>COMMAND</b></font></dd>
+  <dd><dl>  
+    <dd><b>ftp::Reget</b><em>&nbsp; handle&nbsp; remote &nbsp;?local?</em></dd>
+    <dd>&nbsp;</dd>
+    <dd>
+
+	The <b>ftp::Reget</b> command has the same behavior as <b>ftp::Get</b>, except
+	that if local file <em>local</em> exists and is smaller than remote
+	file <em>remote</em>, the local file is presumed to be a partially
+	transferred copy of the remote file and the transfer is
+	continued from the apparent point of failure. This command is
+	useful when transferring very large files over networks that 
+	tend to drop connections.
+		
+	<p>If the file was successfully transferred, then the command
+	returns 1, if it fails 0. </p>
+
+    </dd>
+  </dl></dd>
+
+  <dd><font face="Arial,Helvetica" size="+1"><b>EXAMPLE</b></font></dd>
+  <dd><dl>
+    <dd>
+        <pre># retrieve a large file name (12 MByte)
+ftp::Get $conn foo.tar
+
+.... after 1 hour and 11.9 transfered MBytes the connection is broken :-(
+
+# restart file transfer at the broken position and
+# retrieve only the remaining 0.1 MByte
+ftp::Reget $conn foo.tar
+        </pre>
+    </dd> 
+  </dl></dd> 
+</dl>
+</p>
+<p>
+[<a href="index.html">Contents</a>]&nbsp;
+[<b>Previous:</b> <a href="fhelp14.html">ftp::Reget</a>]&nbsp;
+[<b>Next:</b> <a href="fhelp16.html">ftp::MkDir</a>]
+</p>
+<p align="left"><hr noshade size="1"><font face="Arial,Helvetica" size="-1">&copy; 1999 <a href="mailto:Steffen.Traeger@t-online.de">Steffen Traeger</a></font></p>
+</body>
+</html>

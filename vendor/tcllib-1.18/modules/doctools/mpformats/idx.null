@@ -1,0 +1,23 @@
+# -*- tcl -*-
+#
+# -- Null format (docidx)
+#
+# Copyright (c) 2003      Andreas Kupries <andreas_kupries@sourceforge.net>
+
+# This is a null format which does return no output at all.
+
+################################################################
+
+proc idx_initialize  {}     {return}
+proc idx_shutdown    {}     {return}
+proc idx_numpasses   {}     {return 1}
+proc idx_postprocess {text} {return ""}
+proc idx_setup       {n}    {return}
+
+foreach p {
+    index_begin index_end key manpage url comment plain_text
+} {
+    proc fmt_$p {args} {return ""}
+}
+
+################################################################

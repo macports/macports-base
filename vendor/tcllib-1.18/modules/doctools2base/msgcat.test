@@ -1,0 +1,51 @@
+# -*- tcl -*-
+# doctools::msgcat.test:  tests for the doctools::msgcat package.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: msgcat.test,v 1.1 2009/04/01 04:27:47 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2
+
+support {
+    # NOTE: Better use a base local file and test package ?
+    use doctools2idx/msgcat_c.tcl doctools::msgcat::idx::c ; # See 'doctools-msgcat-2.0'.
+}
+testing {
+    useLocal msgcat.tcl doctools::msgcat
+}
+
+# -------------------------------------------------------------------------
+
+array_unset env LANG*
+array_unset env LC_*
+set env(LANG) C ; # Usually default if nothing is set, OS X requires this.
+
+# -------------------------------------------------------------------------
+
+# search paths .............................................................
+
+test doctools-msgcat-1.0 {init, wrong#args, not enough} -body {
+    doctools::msgcat::init
+} -returnCodes error -result {wrong # args: should be "doctools::msgcat::init prefix"}
+
+test doctools-msgcat-1.1 {init, wrong#args, too many} -body {
+    doctools::msgcat::init fu bar
+} -returnCodes error -result {wrong # args: should be "doctools::msgcat::init prefix"}
+
+test doctools-msgcat-2.0 {init, ok args} -body {
+    doctools::msgcat::init idx
+} -result 1
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return

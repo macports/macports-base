@@ -1,0 +1,126 @@
+# -*- tcl -*-
+# -------------------------------------------------------------------------
+
+test pt-peg-container-set:${setimpl}-1.0 {deserialize =, wrong#args} -setup {
+    pt::peg::container G
+} -body {
+    G deserialize =
+} -cleanup {
+    G destroy
+} -returnCodes error -result {wrong # args: should be "::pt::peg::container::Snit_hmethoddeserialize_= type selfns win self data ?format?"}
+
+test pt-peg-container-set:${setimpl}-1.1 {deserialize =, wrong#args} -setup {
+    pt::peg::container G
+} -body {
+    G deserialize = T F XXX
+} -cleanup {
+    G destroy
+} -returnCodes error -result {wrong # args: should be "::pt::peg::container::Snit_hmethoddeserialize_= type selfns win self data ?format?"}
+
+test pt-peg-container-set:${setimpl}-2.0 {deserialize +=, wrong#args} -setup {
+    pt::peg::container G
+} -body {
+    G deserialize +=
+} -cleanup {
+    G destroy
+} -returnCodes error -result {wrong # args: should be "::pt::peg::container::Snit_hmethoddeserialize_+= type selfns win self data ?format?"}
+
+test pt-peg-container-set:${setimpl}-2.1 {deserialize +=, wrong#args} -setup {
+    pt::peg::container G
+} -body {
+    G deserialize += T F XXX
+} -cleanup {
+    G destroy
+} -returnCodes error -result {wrong # args: should be "::pt::peg::container::Snit_hmethoddeserialize_+= type selfns win self data ?format?"}
+
+test pt-peg-container-set:${setimpl}-3.0 {serialize, wrong#args} -setup {
+    pt::peg::container G
+} -body {
+    G serialize F XXX
+} -cleanup {
+    G destroy
+} -returnCodes error -result {wrong # args: should be "::pt::peg::container::Snit_methodserialize type selfns win self ?format?"}
+
+#
+## TODO :: need tests for the various container methods ... 
+#
+
+test pt-peg-container-set:${setimpl}-19.0 {exporter, wrong#args} -setup {
+    pt::peg::container G
+} -body {
+    G exporter E XXX
+} -cleanup {
+    G destroy
+} -returnCodes error -result {wrong # args: should be "::pt::peg::container::Snit_methodexporter type selfns win self ?object?"}
+
+test pt-peg-container-set:${setimpl}-20.0 {importer, wrong#args} -setup {
+    pt::peg::container G
+} -body {
+    G importer G XXX
+} -cleanup {
+    G destroy
+} -returnCodes error -result {wrong # args: should be "::pt::peg::container::Snit_methodimporter type selfns win self ?object?"}
+
+# -------------------------------------------------------------------------
+
+test pt-peg-container-set:${setimpl}-32.0 {exporter, default} -setup {
+    pt::peg::container G
+} -body {
+    G exporter
+} -cleanup {
+    G destroy
+} -result {}
+
+test pt-peg-container-set:${setimpl}-32.1 {exporter, set} -setup {
+    pt::peg::container G
+} -body {
+    G exporter T
+} -cleanup {
+    G destroy
+} -result T
+
+test pt-peg-container-set:${setimpl}-32.2 {exporter, get} -setup {
+    pt::peg::container G
+    G exporter T
+} -body {
+    G exporter
+} -cleanup {
+    G destroy
+} -result T
+
+# -------------------------------------------------------------------------
+
+test pt-peg-container-set:${setimpl}-33.0 {importer, default} -setup {
+    pt::peg::container G
+} -body {
+    G importer
+} -cleanup {
+    G destroy
+} -result {}
+
+test pt-peg-container-set:${setimpl}-33.1 {importer, set} -setup {
+    pt::peg::container G
+} -body {
+    G importer T
+} -cleanup {
+    G destroy
+} -result T
+
+test pt-peg-container-set:${setimpl}-33.2 {importer, get} -setup {
+    pt::peg::container G
+    G importer T
+} -body {
+    G importer
+} -cleanup {
+    G destroy
+} -result T
+
+# -------------------------------------------------------------------------
+
+# TODO :: check grammar merging (+=).
+
+# grammar tests, numbering starts at 40
+# -------------------------------------------------------------------------
+
+#source [localPath tests/container]
+return

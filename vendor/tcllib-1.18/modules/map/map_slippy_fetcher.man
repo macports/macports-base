@@ -1,0 +1,85 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset VERSION 0.4]
+[manpage_begin map::slippy::fetcher n [vset VERSION]]
+[keywords http]
+[keywords location]
+[keywords map]
+[keywords server]
+[keywords slippy]
+[keywords tile]
+[keywords url]
+[keywords zoom]
+[moddesc   {Mapping utilities}]
+[titledesc {Accessing a server providing tiles for slippy-based maps}]
+[require Tcl 8.4]
+[require Tk 8.4]
+[require img::png]
+[require map::slippy]
+[require map::slippy::fetcher [opt [vset VERSION]]]
+[description]
+
+This package provides a class for accessing http servers providing
+tiles for slippy-based maps.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::map::slippy::fetcher] [arg fetcherName] [arg levels] [arg url]]
+
+Creates the fetcher [arg fetcherName] and configures it with the
+number of zoom [arg levels] supported by the tile server, and the
+[arg url] it is listening on for tile requests.
+
+[para]
+
+The result of the command is [arg fetcherName].
+
+[list_end]
+
+[subsection Methods]
+
+[list_begin definitions]
+
+[call [arg fetcherName] [method levels]]
+
+This method returns the number of zoom levels supported by the fetcher
+object, and the tile server it is accessing.
+
+[call [arg fetcherName] [method tileheight]]
+
+This method returns the height of tiles served, in pixels.
+
+[call [arg fetcherName] [method tilewidth]]
+
+This method returns the width of tiles served, in pixels.
+
+[call [arg fetcherName] [method get] [arg tile] [arg donecmd]]
+
+This is the main method of the fetcher, retrieving the image for the
+specified [arg tile]. The tile identifier is a list containing three
+elements, the zoom level, row, and column number of the tile, in this
+order.
+
+[para]
+
+The command refix [arg donecmd] will be invoked when the fetcher
+either knows the image for the tile or that no image will forthcoming.
+It will be invoked with either 2 or 3 arguments, i.e.
+
+[list_begin enum]
+[enum] The string [const set], the [arg tile], and the image.
+[enum] The string [const unset], and the [arg tile].
+[list_end]
+
+These two possibilities are used to either signal the image for the
+[arg tile], or that the [arg tile] has no image defined for it.
+
+[list_end]
+
+[section References]
+
+[list_begin enum]
+[enum]	[uri http://wiki.openstreetmap.org/wiki/Main_Page]
+[list_end]
+[manpage_end]

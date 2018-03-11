@@ -1,0 +1,317 @@
+# do.test --
+#
+#         Tests for [control::do]
+# 
+# RCS: @(#) $Id: do.test,v 1.14 2009/11/24 04:52:49 andreas_kupries Exp $
+#
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal control.tcl control
+}
+
+# -------------------------------------------------------------------------
+
+namespace import ::control::do
+
+# ----------------------------------------
+test {do-1.0} {do ... while} {
+    set x 0
+    do {incr x} while {$x < 10}
+    set x
+} 10
+
+# ----------------------------------------
+test {do-1.1} {do ... until} {
+    set x 0
+    do {incr x} until {$x > 10}
+    set x
+} 11
+
+# ----------------------------------------
+test {do-1.2} {break} {
+    set x 0
+    do {
+	incr x
+	if {$x == 5} {break}
+    } until {$x == 10}
+    set x
+} 5
+
+# ----------------------------------------
+test {do-1.3} {continue} {
+
+    set x 0
+    set xx [list]
+    do {
+	incr x
+	if {$x == 5} {continue}
+	lappend xx $x
+    } until {$x == 10}
+    set xx
+} {1 2 3 4 6 7 8 9 10}
+
+# ----------------------------------------
+test {do-1.4} {error} {
+    catch {
+	set x 0
+	do {
+	    incr x
+	    if {$x == 5} {foo}
+	} while {$x < 10}
+    } result
+    list $x $result
+} {5 {invalid command name "foo"}}
+
+# ----------------------------------------
+test {do-1.5} {return} {
+    proc foo {} {
+	set x 0
+	do {
+	    incr x
+	    if {$x == 5} { return $x }
+	} while {$x < 10}
+    }
+    set result [foo]
+    rename foo ""
+    set result
+} 5
+
+# ----------------------------------------
+test {do-1.6} {break in the first loop} {
+    set x 0
+    do {
+	break
+	incr x
+    } while {$x < 10}
+    set x
+} 0
+
+# ----------------------------------------
+test {do-1.7} {continue in the first loop} {
+    set x 0
+    set xx [list]
+    do {
+	incr x
+	if {$x == 1} {continue}
+	lappend xx $x
+    } until {$x == 10}
+    set xx
+} {2 3 4 5 6 7 8 9 10}
+
+# ----------------------------------------
+test {do-1.8} {error in the first loop} {
+    set x 0
+    catch {
+	do {
+	    foo
+	    incr x
+	} until {$x == 10}
+    } result
+    list $x $result
+} {0 {invalid command name "foo"}}
+
+# ----------------------------------------
+test {do-1.9} {[do ... while] with false condition} {
+    set x 0
+    do {
+	incr x
+    } while 0
+    set x
+} 1
+
+# ----------------------------------------
+test do-1.10 {[do ... until] with true condition} {
+    set x 0
+    do {
+	incr x
+    } until 1
+    set x
+} 1
+
+# ----------------------------------------
+test do-1.11 {third arg is neither while nor until} {
+    set x 0
+    catch {
+	do {
+	    incr x
+	} foo 1
+	set x
+    } result
+    list $x $result
+} {0 {bad option "foo": must be until, or while}}
+
+# ----------------------------------------
+test do-1.12 {stack traces for errors in the first iteration} {
+    proc a {} b
+    proc b {} {do c while 1}
+    proc c {} d
+    catch a
+    set ::errorInfo
+} {invalid command name "d"
+    while executing
+"d"
+    (procedure "c" line 1)
+    invoked from within
+"c"
+    ("do" body line 1)
+    invoked from within
+"do c while 1"
+    (procedure "b" line 1)
+    invoked from within
+"b"
+    (procedure "a" line 1)
+    invoked from within
+"a"}
+
+# ----------------------------------------
+test do-1.14 {stack traces for errors in subsequent iterations} tcl8.3plus {
+    proc a {} b
+    proc b {} {
+	set i 10
+	do {
+	    incr i -1
+	    c $i
+	} while {$i}
+    }
+    proc c {i} {if {$i==5} e}
+    catch a
+    set ::errorInfo
+} {invalid command name "e"
+    while executing
+"e"
+    (procedure "c" line 1)
+    invoked from within
+"c $i"
+    ("do" body line 3)
+    invoked from within
+"do {
+	    incr i -1
+	    c $i
+	} while {$i}"
+    (procedure "b" line 3)
+    invoked from within
+"b"
+    (procedure "a" line 1)
+    invoked from within
+"a"}
+
+# ----------------------------------------
+test do-2.0 {one-shot do} {
+    set x 0
+    do {incr x}
+    set x
+} 1
+
+# ----------------------------------------
+test do-2.1 {one-shot do with break} {
+    set x 0
+    do {incr x; break; incr x}
+    set x
+} 1
+
+# ----------------------------------------
+test do-2.2 {wrong no of arguments} {
+    set x 0
+    set res [catch {do {incr x} foo} ret]
+    list $x $res $errorInfo
+} {0 1 {wrong # args: should be "::control::do body" or "::control::do body [until|while] test"
+    while executing
+"do {incr x} foo"}}
+
+# ----------------------------------------
+
+if {[package vsatisfies [package provide Tcl] 8.6]} {
+    # 8.6+
+    set do23res {1 {wrong # args: should be "do body ?arg ...?"
+    while executing
+"do"}}
+} elseif {[package vsatisfies [package provide Tcl] 8.5]} {
+    # 8.5+
+    set do23res {1 {wrong # args: should be "do body ..."
+    while executing
+"do"}}
+} else {
+    # 8.4-
+    set do23res {1 {wrong # args: should be "do body args"
+    while executing
+"do"}}
+}
+
+test do-2.3 {wrong no of arguments} {} {
+    set res [catch do]
+    if {[string match \
+	     {no value given for parameter "body" to "do"*} \
+	     $::errorInfo]
+    } then {
+	set ::errorInfo {wrong # args: should be "do body args"
+    while executing
+"do"}
+    }
+    list $res $::errorInfo
+} $do23res
+
+# ----------------------------------------
+test do-2.4 {one-shot do with error} {
+    set x 0
+    set res [catch {do {
+	incr x
+	foo
+	incr x
+    }}]
+    list $x $res $::errorInfo
+} {1 1 {invalid command name "foo"
+    while executing
+"foo"
+    ("do" body line 3)
+    invoked from within
+"do {
+	incr x
+	foo
+	incr x
+    }"}}
+
+testsuiteCleanup
+
+if {[info exists ::argv0] && $::argv0 == [info script]} {
+    # a proc that wastes some time
+    proc something {n} {
+	for {set i 0} {$i < $n} {incr i} {}
+    }
+    
+    proc main {} {
+	# run it for the first time to get it byte compiled
+	something 1
+	
+	set payload {
+	    something 10
+	    incr x
+	}
+	puts "\nComparing performance of do-while, do-until and builtin while..."
+	set format "%-8s : %20s for %4d iteration(s)."
+	foreach c {1 10 5000} {
+	    puts ""
+	    foreach {descr script} {
+		{do while} {do $payload while {$x < $c}}
+		{do until} {do $payload until {$x == $c}}
+		{while} {while {$x < $c} $payload}
+	    } {
+		set x 0
+		puts [format $format $descr [lrange [time $script 1] 0 1] $x]
+	    }
+	}
+    }
+    main
+}
+
+# Local variables:
+# mode: tcl
+# End:

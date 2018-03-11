@@ -1,0 +1,37 @@
+# -*- tcl -*- cksum.pcx
+# Syntax of the commands provided by package cksum.
+
+# For use by TclDevKit's static syntax checker.
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the documentation describing the format of the code contained in this file
+#
+
+package require pcx
+pcx::register cksum
+pcx::tcldep   1.1.1 needs tcl 8.2
+
+namespace eval ::cksum {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 1.1.1 std ::crc::cksum \
+    {checkConstrained {checkSimpleArgs 1 -1 {
+	{checkSwitches 1 {
+	    {-channel  {checkSetConstraint fn checkChannelID}}
+	    {-chunksize checkInt}
+	    {-filename {checkSetConstraint fn checkFileName}}
+	    {-format    checkWord}
+	    {-command   {checkProcCall 0}}
+	    {-timeout   checkWholeNum}
+	    --
+	} {checkConstraint {
+	    {fn  {checkSimpleArgs 0 0 {}}}
+	    {!fn {checkSimpleArgs 1 1 checkWord}}
+	} {}}}
+    }}}
+
+# Initialization via pcx::init.
+# Use a ::cksum::init procedure for non-standard initialization.
+pcx::complete

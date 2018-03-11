@@ -10,7 +10,8 @@ set work_dir "work"
 ::tcltest::testConstraint tracemode_support [expr {@TRACEMODE_SUPPORT@ != 0}]
 
 # constraint for tests that use svn
-::tcltest::testConstraint has_svn [expr {"@SVN@" ne ""}]
+# system svn can't be used on darwin < 10
+::tcltest::testConstraint has_svn [expr {"@SVN@" ne "" && (@OS_MAJOR@ >= 10 || "@OS_PLATFORM@" ne "darwin")}]
 
 # Set of procs used for testing.
 
@@ -60,9 +61,9 @@ proc port_index {} {
     set path [pwd]
     cd ../..
     # Avoid warning about ports tree being old
-    exec sh -c {touch */*/Portfile}
+    exec -ignorestderr sh -c {touch */*/Portfile}
 
-    exec ${bindir}/portindex 2>@1
+    exec -ignorestderr ${bindir}/portindex 2>@1
 
     file copy ${cpwd}/sources.conf /tmp/macports-tests/opt/local/etc/macports/
     file copy ${cpwd}/PortIndex ${cpwd}/PortIndex.quick /tmp/macports-tests/ports/
@@ -77,7 +78,7 @@ proc port_clean {pwd} {
     set back [pwd]
     cd $pwd
 
-    catch {exec env PORTSRC=${portsrc} ${bindir}/port clean 2>@1}
+    catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port clean 2>@1}
     cd $back
 }
 
@@ -88,7 +89,7 @@ proc port_run {pwd} {
     set back [pwd]
     cd $pwd
 
-    set result [catch {exec env PORTSRC=${portsrc} ${bindir}/port -d -N test >&output} ]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port -d -N test >&output} ]
     cd $back
     return $result
 }
@@ -100,7 +101,7 @@ proc port_trace {pwd} {
     set back [pwd]
     cd $pwd
 
-    set result [catch {exec env PORTSRC=${portsrc} ${bindir}/port -t test >&output 2>@1} ]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port -d -N -t test >&output 2>@1} ]
     cd $back
     return $result
 }
@@ -109,14 +110,14 @@ proc port_trace {pwd} {
 proc port_install {} {
     global bindir portsrc
 
-    set result [catch {exec env PORTSRC=${portsrc} ${bindir}/port install > output 2>@1} ]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port install > output 2>@1} ]
 }
 
 # Run configure command.
 proc port_config {pwd} {
     global path bindir portsrc
 
-    set result [catch {exec env PORTSRC=${portsrc} ${bindir}/port configure 2>@1} ]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port configure 2>@1} ]
 }
 
 # Run destroot command.
@@ -124,17 +125,17 @@ proc port_destroot {pwd} {
     global path bindir portsrc work_dir output_file
 
     file copy -force ${path}/statefile ${work_dir}/.macports.statefile-unknown-version.state
-    if { [exec id -u] == 0 } {
-        exec chown macports ${work_dir}/.macports.statefile-unknown-version.state
+    if { [exec -ignorestderr id -u] == 0 } {
+        exec -ignorestderr chown macports ${work_dir}/.macports.statefile-unknown-version.state
     }
-    set result [catch {exec env PORTSRC=${portsrc} ${bindir}/port destroot >$output_file 2>@1} ]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port destroot >$output_file 2>@1} ]
 }
 
 # Uninstalls portfile.
 proc port_uninstall {} {
     global bindir portsrc
 
-    set result [catch {exec env PORTSRC=${portsrc} ${bindir}/port uninstall > output 2>@1} ]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port uninstall > output 2>@1} ]
 }
 
 # Returns the line containint a given string

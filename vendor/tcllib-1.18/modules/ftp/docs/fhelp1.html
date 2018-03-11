@@ -1,0 +1,126 @@
+<html>
+<head>
+<title>ftp Library Package 2.2 for Tcl/Tk help file</title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<body>
+
+<p>
+<dl>
+  <dd>
+    <p><font face="Arial,Helvetica" color="#526e9c" size="+2"><b>ftp Library Package 2.1 for Tcl/Tk Manual Pages</b></font></p>
+  </dd>
+
+  <dd><font face="Arial,Helvetica" size="+1"><b>COMMAND</b></font></dd>
+  <dd><dl>  
+    <dd><b>ftp::Open</b>&nbsp; <em>server&nbsp; user&nbsp; passwd&nbsp; ?options?</em></dd>
+    <dd>&nbsp;</dd>
+    <dd>
+	The <b>ftp::Open</b> command is used to start the FTP session by 
+	establishing a control connection to the FTP server. If no 
+	options are specified, then the defaults are used. 
+
+	<p>The <b>ftp::Open</b> command takes a host name <em>server</em>, a user name
+	<em>user</em> and a password <em>password</em> as its parameters and returns
+	a session handle that is an integer greater than or equal to 0 if the
+        connection is successfully established, otherwise it returns "-1".<br>
+	The <em>server</em> parameter must be the name or internet address (in dotted decimal
+	notation) of the ftp server. The <em>user</em> and <em>passwd</em> parameters must contain a
+	valid user name and password to complete the login process.</p>
+
+	The options overwrite some default values or set special 
+	abilities:
+
+	<p><b>-blocksize size</b><dl><dd>
+	The blocksize is used during data transfer. At most <em>size</em>
+	bytes are transfered at once. After each block, a call 	to the "-progress callback" is made.
+	The default value for this option is 4096.</dd></dl></p>
+
+	<p><b>-timeout seconds</b><dl><dd>
+	If <em>seconds</em> is non-zero, then <b>ftp::Open</b> sets up a timeout
+	to occur after the specified number of seconds. The default value is 600.</dd></dl></p>
+
+	<p><b>-port number</b><dl><dd>
+	The <em>port number</em> specifies an alternative remote port on
+	the ftp server on which the ftp service resides. Most 
+	ftp services listen for connection requests on default
+	port 21. Sometimes, usually for security reasons, port
+	numbers other than 21 are used for ftp connections.</dd></dl></p>
+		
+	<p><b>-mode mode</b><dl><dd>
+	The <em>transfer mode</em> option determines if a file transfer 
+	occurs in an active or passive way. In passive mode the
+	client session may want to request the ftp Server to
+	listen for a data port and wait for the connection 
+	rather than initiate the process when a data transfer
+	request comes in. Passive mode is normally a requirement
+	when accessing sites via a firewall. The default mode is active.</dd></dl></p>
+		
+	<p><b>-progress callback</b><dl><dd>
+	The <em>callback</em> is made after each transfer of a data 
+	block specified	in blocksize.  The callback gets as
+	additional argument the current	number of bytes transferred so far. 
+	Here is a template for the progress callback:<br>
+
+	<pre>proc Progress {total} {
+	puts "$total bytes transfered!"
+}</pre></dd></dl></p>
+
+	<p><b>-command callback</b><dl><dd>
+	Specifying this option puts the connection in asynchronous mode.
+	The <em>callback</em> is made after each operation has been
+	completed.  The callback gets as an additional argument
+	a keyword of the operation that has completed plus
+	additional arguments specific to the operation.
+	If an error occurs the callback is made with the keyword
+	"error".  When an operation, such as "Cd", "Get", and so on,
+	has been started no further operations should be started
+	until a callback has been received for the current
+	operation.
+	A template for the callback is:<br>
+
+	<pre>proc Callback {what args} {
+    puts "Operation $what $args completed"
+}</pre></dd></dl></p>
+
+    </dd>
+  </dl></dd>
+
+  <dd><font face="Arial,Helvetica" size="+1"><b>EXAMPLE</b></font></dd>
+  <dd><dl>
+    <dd>
+	<pre>set server "ftp.server.com"
+set user "anonymous"
+set passwd "mist@foo.com"
+
+# define callback
+proc Progress {total} {
+	puts "$total bytes transfered!"
+}
+
+# open a new connection
+if {[set conn [ftp::Open $server $user $passwd -progress Progress -blocksize 1024 -mode passive]] == -1} {
+	puts "Connection refused!"
+	exit 1
+}
+
+# get a file
+ftp::Get $conn index.html
+
+# close connection
+ftp::Close $conn
+	</pre>
+		
+    </dd> 
+  </dl></dd> 
+
+</dl>
+</p>
+<p>
+[<a href="index.html">Contents</a>]&nbsp;
+[<b>Next:</b> <a href="fhelp2.html">ftp::Close</a>]
+</p>
+
+<p align="left"><hr noshade size="1"><font face="Arial,Helvetica" size="-1">&copy; 1999 <a href="mailto:Steffen.Traeger@t-online.de">Steffen Traeger</a></font></p>
+</body>
+</html>

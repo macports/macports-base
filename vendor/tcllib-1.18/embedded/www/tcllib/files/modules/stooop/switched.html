@@ -1,0 +1,371 @@
+
+<div class='fossil-doc' data-title='switched - Simple Tcl Only Object Oriented Programming'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">switched(n) 2.2.1 tcllib &quot;Simple Tcl Only Object Oriented Programming&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>switched - switch/option management.</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.3</b></li>
+<li>package require <b class="pkgname">switched <span class="opt">?2.2.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">&lt;switched&gt;</b> <b class="method">complete</b> <i class="arg">this</i></a></li>
+<li><a href="#2"><b class="cmd">&lt;switched&gt;</b> <b class="method">options</b> <i class="arg">this</i></a></li>
+<li><a href="#3"><b class="cmd">&lt;switched&gt;</b> <b class="method">set-<b class="option">option</b></b> <i class="arg">this</i> <i class="arg">value</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="class">switched</b> class serves as base class for user classes with
+switch / option configuration procedures. It provides facilities for
+managing options through a simple interface.</p>
+<p>For example:</p>
+<pre class="doctools_example">
+set vehicle [new car -length 4.5 -width 2 -power 100 -fuel diesel]
+puts &quot;my car was running on [switched::cget $vehicle -fuel]&quot;
+switched::configure $vehicle -power 40 -fuel electricity
+puts &quot;but is now running on clean [switched::cget $vehicle -fuel]&quot;
+</pre>
+<p>Of course, as you might have guessed, the <b class="class">car</b> class is
+derived from the <b class="class">switched</b> class. Let us see how it works:</p>
+<pre class="doctools_example">
+class car {
+    proc car {this args} switched {$args} {
+        # car specific initialization code here
+        switched::complete $this
+    }
+    ...
+}
+</pre>
+<p>The switched class constructor takes the optional configuration
+option / value pairs as parameters.
+The switched class layer then completely manages the switched options:
+it checks their validity, stores their values and provides a clean
+interface to the user layer configuration setting procedures.</p>
+<p>The switched class members available to the programmer are:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">&lt;switched&gt;</b> <b class="method">complete</b> <i class="arg">this</i></a></dt>
+<dd><p>This procedure is used to tell the switched layer that the derived
+class object (a car in the examples) is completely built.
+At that time, the initial configuration of the switched object occurs,
+using default option values (see procedure <b class="method">options</b>)
+eventually overridden by construction time values, passed at the time
+of the <b class="method">new</b> operator invocation.
+This procedure must be called only once, usually around or at the end
+of the derived class constructor.
+(<em>Note</em>: Also check the <b class="variable">complete</b> data member later in this
+chapter).</p></dd>
+<dt><a name="2"><b class="cmd">&lt;switched&gt;</b> <b class="method">options</b> <i class="arg">this</i></a></dt>
+<dd><p>This procedure must return the configuration description for
+<em>all</em> options that the switched object will accept.
+It is a pure virtual member procedure and therefore its implementation
+is <em>mandatory</em> in the derived class layer.
+The procedure must return a list of lists.
+Each list pertains to a single option and is composed of the switch
+name, the default value for the option and an optional initial value.
+For example:</p>
+<pre class="doctools_example">
+class car {
+    ...
+    proc options {this} {
+        return [list [list -fuel petrol petrol] [list -length {} {}] [list -power {} {}] [list -width {} {}] ]
+    }
+    proc set-fuel {this value} {
+        ...
+    }
+    ...
+}
+</pre>
+<p>In this case, 4 options are specified:
+<b class="option">fuel</b>, <b class="option">length</b>, <b class="option">power</b> and <b class="option">width</b>.
+The default and initial values for the <b class="option">fuel</b> option are
+identical and set to <b class="option">petrol</b>.
+For the other options, values are all empty.</p>
+<p>For each option, there must be a corresponding
+<b class="method">set-<b class="option">option</b></b> procedure defined in the derived class
+layer.
+For example, since we defined a <b class="option">fuel</b> option, there is a
+<b class="method">set-fuel</b> procedure in the car class.
+The parameters always are the object identifier (since this is not a
+static procedure, but rather a dynamically defined virtual one),
+followed by the new value for the option.
+A <b class="method">set-<b class="option">option</b></b> procedure is only invoked if the new
+value differs from the current one (a caching scheme for improving
+performance), or if there is no initial value set in the
+<b class="method">options</b> procedure for that option.</p>
+<p>In this procedure, if the initial value differs from the
+default value or is omitted, then initial configuration is forced and
+the corresponding <b class="method">set-<b class="option">option</b></b> procedure is invoked by
+the switched <b class="method">complete</b> procedure located at the end of the
+derived class constructor.
+For example:</p>
+<pre class="doctools_example">
+class car {
+    ...
+    proc options {this} {
+        return [list [list -fuel petrol] [list -length {} {}] [list -power 100 50] [list -width {} {}] ]
+    }
+    ...
+}
+</pre>
+<p>In this case, configuration is forced on the <b class="option">fuel</b> and
+<b class="option">power</b> options, that is the corresponding
+<b class="method">set-<b class="option">option</b></b> procedures will be invoked when the
+switched object is constructed (see <b class="method">set-<b class="option">option</b></b>
+procedures documentation below).</p>
+<p>For the <b class="option">fuel</b> option, since there is no initial value,
+the <b class="method">set-<b class="option">fuel</b></b> procedure is called with the default
+value (<b class="const">petrol</b>) as argument.
+For the <b class="option">power</b> option, since the initial value differs from
+the default value, the <b class="method">set-<b class="option">power</b></b> procedure is called
+with the initial value as argument (<b class="const">50</b>).</p>
+<p>For the other options, since the initial values (last elements
+of the option lists) are identical to their default values, the
+corresponding <b class="method">set-<b class="option">option</b></b> procedures will not be
+invoked. It is the programmer's responsibility to insure that the
+initial option values are correct.</p></dd>
+<dt><a name="3"><b class="cmd">&lt;switched&gt;</b> <b class="method">set-<b class="option">option</b></b> <i class="arg">this</i> <i class="arg">value</i></a></dt>
+<dd><p>These procedures may be viewed as dynamic virtual functions.
+There must be one implementation per supported option, as returned by
+the <b class="method">options</b> procedure.
+For example:</p>
+<pre class="doctools_example">
+class car {
+    ...
+    proc options {this} {
+        return [list ...
+            [list -width {} {}] ]
+    }
+    ...
+    proc set-width {this value} {
+        ...
+    }
+    ...
+}
+</pre>
+<p>Since the <b class="option">-width</b> option was listed in the <b class="method">options</b>
+procedure, a <b class="method">set-width</b> procedure implementation is provided, which
+of course would proceed to set the width of the car (and would modify
+the looks of a graphical representation, for example).</p>
+<p>As you add a supported <b class="option">option</b> in the list returned by
+the <b class="method">options</b> procedure, the corresponding
+<b class="method">set-<b class="option">option</b></b> procedure may be called as soon as the
+switched object is complete, which occurs when the switched level
+<b class="method">complete</b> procedure is invoked.
+For example:</p>
+<pre class="doctools_example">
+class car {
+    proc car {this args} switched {args} {
+        ...
+        switched::complete $this
+   }
+    ...
+    proc options {this} {
+        return [list [list -fuel petrol] [list -length 4.5] [list -power 350] [list -width 1.8] ]
+    }
+    proc set-fuel {this value} {
+        ...
+    }
+    proc set-length {this value} {
+        ...
+    }
+    proc set-power {this value} {
+        ...
+    }
+    proc set-width {this value} {
+        ...
+    }
+}
+new car
+</pre>
+<p>In this case, a new car is created with no options, which
+causes the car constructor to be called, which in turns calls the
+switched level <b class="method">complete</b> procedure after the car object layer
+is completely initialized.
+At this point, since there are no initial values in any option list in
+the options procedure, the <b class="method">set-fuel</b> procedure is called with
+its default value of <b class="const">petrol</b> as parameter, followed by the
+<b class="method">set-length</b> call with <b class="const">4.5</b> value, <b class="method">set-power</b>
+with <b class="const">350</b> value and finally with <b class="method">set-width</b> with
+<b class="const">1.8</b> as parameter.
+This is a good way to test the <b class="method">set-<b class="option">option</b></b> procedures
+when debugging, and when done, just fill-in the initial option values.</p>
+<p>The switched layer checks that an option is valid (that is,
+listed in the <b class="method">options</b> procedure) but obviously does not check
+the validity of the value passed to the <b class="method">set-<b class="option">option</b></b>
+procedure, which should throw an error (for example by using the Tcl
+error command) if the value is invalid.</p>
+<p>The switched layer also keeps track of the options current
+values, so that a <b class="method">set-<b class="option">option</b></b> procedure is called
+only when the corresponding option value passed as parameter is
+different from the current value (see  data members
+description).</p></dd>
+<dt></dt>
+<dd><p>The  data member is an options current value.
+There is one for each option listed in the options procedure. It is a
+read-only value which the switched layer checks against when an option
+is changed.
+It is rarely used at the layer derived from switched, except in the
+few cases, such as in the following example:</p>
+<pre class="doctools_example">
+...
+proc car::options {this} {
+    return {
+        ...
+        {-manufacturer {} {}}
+        ...
+    }
+}
+proc car::set-manufacturer {this value} {}
+proc car::printData {this} {
+    puts &quot;manufacturer: $switched::($this,-manufacturer)&quot;
+    ...
+}
+</pre>
+<p>In this case, the manufacturer's name is stored at the switched
+layer level (this is why the set-manufacturer procedure has nothing to
+do) and later retrieved in the printData procedure.</p></dd>
+<dt></dt>
+<dd><p>The  data member (not to be confused with
+the <b class="method">complete</b> procedure) is a boolean.
+Its initial value is <b class="const">false</b> and it is set to <b class="const">true</b> at
+the very end of the switched <b class="method">complete</b> procedure.
+It becomes useful when some options should be set at construction time
+only and not dynamically, as the following example shows:</p>
+<pre class="doctools_example">
+proc car::set-width {this value} {
+    if {$switched::($this,complete)} {
+        error {option -width cannot be set dynamically}
+    }
+    ...
+}
+</pre>
+</dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>stooop</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key237">C++</a>, <a href="../../../../index.html#key240">class</a>, <a href="../../../../index.html#key243">object</a>, <a href="../../../../index.html#key236">object oriented</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+</div>

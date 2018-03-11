@@ -1,5 +1,4 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
-# $Id$
 #
 # Copyright (c) 2007-2014 The MacPorts Project
 # Copyright (c) 2007 James D. Berry
@@ -48,7 +47,7 @@ default reload.asroot yes
 set_ui_prefix
 
 proc portreload::reload_main {args} {
-    global startupitem.type startupitem.name startupitem.location startupitem.plist
+    global startupitem.location startupitem.plist
     set launchctl_path ${portutil::autoconf::launchctl_path}
 
     foreach { path } "/Library/${startupitem.location}/${startupitem.plist}" {

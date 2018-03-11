@@ -1,0 +1,121 @@
+#
+# tclmanpages --
+#
+#   Manual info file to be sources by bldmanhelp.tcl that returns a table
+# describing the Tcl manual to build the help files from.
+#------------------------------------------------------------------------------
+# Copyright 1992-1999 Karl Lehenbauer and Mark Diekhans.
+#
+# Permission to use, copy, modify, and distribute this software and its
+# documentation for any purpose and without fee is hereby granted, provided
+# that the above copyright notice appear in all copies.  Karl Lehenbauer and
+# Mark Diekhans make no representations about the suitability of this
+# software for any purpose.  It is provided "as is" without express or
+# implied warranty.
+#------------------------------------------------------------------------------
+# $Id: tclmanpages,v 8.9 2004/12/01 23:30:17 hobbs Exp $
+#------------------------------------------------------------------------------
+#
+set docs {
+    {Tcl.n          tcl/intro/syntax}
+    {append.n       tcl/strings/append}
+    {after.n        tcl/events/after}
+    {array.n        tcl/variables/array}
+    {bgerror.n      tcl/events/background-error}
+    {binary.n       tcl/strings/binary}
+    {break.n        tcl/control/break}
+    {case.n         tcl/control/case}
+    {catch.n        tcl/control/catch}
+    {cd.n           tcl/status/cd}
+    {clock.n        tcl/time/clock}
+    {close.n        tcl/files/close}
+    {concat.n       tcl/lists/concat}
+    {continue.n     tcl/control/continue}
+    {dde.n          tcl/control/dde}
+    {encoding.n     tcl/intl/encoding}
+    {eof.n          tcl/files/eof}
+    {error.n        tcl/control/error}
+    {eval.n         tcl/control/eval}
+    {exec.n         tcl/processes/exec}
+    {exit.n         tcl/control/exit}
+    {expr.n         tcl/math/expr}
+    {fblocked.n     tcl/files/fblocked}
+    {fconfigure.n   tcl/files/fconfigure}
+    {fcopy.n        tcl/files/fcopy}
+    {file.n         tcl/files/file}
+    {fileevent.n    tcl/events/fileevent}
+    {filename.n     tcl/files/filename}
+    {flush.n        tcl/files/flush}
+    {for.n          tcl/control/for}
+    {foreach.n      tcl/control/foreach}
+    {format.n       tcl/strings/format}
+    {gets.n         tcl/files/gets}
+    {glob.n         tcl/files/glob}
+    {global.n       tcl/variables/global}
+    {history.n      tcl/status/history}
+    {http.n         tcl/sockets/http}
+    {if.n           tcl/control/if}
+    {incr.n         tcl/math/incr}
+    {info.n         tcl/status/info}
+    {interp.n       tcl/control/interp}
+    {join.n         tcl/lists/join}
+    {lappend.n      tcl/lists/lappend}
+    {library.n      tcl/libraries/library}
+    {lindex.n       tcl/lists/lindex}
+    {linsert.n      tcl/lists/linsert}
+    {list.n         tcl/lists/list}
+    {llength.n      tcl/lists/llength}
+    {load.n         tcl/libraries/load}
+    {lrange.n       tcl/lists/lrange}
+    {lreplace.n     tcl/lists/lreplace}
+    {lsearch.n      tcl/lists/lsearch}
+    {lsort.n        tcl/lists/lsort}
+    {msgcat.n       tcl/intl/msgcat}
+    {namespace.n    tcl/variables/namespace}
+    {open.n         tcl/files/open}
+    {package.n      tcl/libraries/package}
+    {pid.n          tcl/processes/pid}
+    {pkgMkIndex.n   tcl/libraries/pkgMkIndex}
+    {proc.n         tcl/control/proc}
+    {puts.n         tcl/files/puts}
+    {pwd.n          tcl/status/pwd}
+    {read.n         tcl/files/read}
+    {regexp.n       tcl/strings/regexp}
+    {re_syntax.n    tcl/strings/re_syntax}
+    {registry.n     tcl/files/registry}
+    {regsub.n       tcl/strings/regsub}
+    {rename.n       tcl/control/rename}
+    {return.n       tcl/control/return}
+    {safe.n         tcl/control/safe}
+    {scan.n         tcl/strings/scan}
+    {seek.n         tcl/files/seek}
+    {set.n          tcl/variables/set}
+    {source.n       tcl/control/source}
+    {split.n        tcl/lists/split}
+    {string.n       tcl/strings/string}
+    {subst.n        tcl/strings/subst}
+    {switch.n       tcl/control/switch}
+    {tell.n         tcl/files/tell}
+    {time.n         tcl/time/time}
+    {trace.n        tcl/variables/trace}
+    {unknown.n      tcl/libraries/unknown}
+    {unset.n        tcl/variables/unset}
+    {uplevel.n      tcl/control/uplevel}
+    {upvar.n        tcl/variables/upvar}
+    {while.n        tcl/control/while}
+    {tclvars.n      tcl/variables/stdvars}
+    {socket.n       tcl/sockets/socket}
+    {update.n       tcl/events/update}
+    {variable.n     tcl/variables/variable}
+    {vwait.n        tcl/events/vwait}
+    {tclsh.1        tcl/intro/tclsh}
+}
+
+if {$tcl_version <= 8.4} {
+   lappend docs {resource.n     tcl/files/resource}
+}
+if {$tcl_version >= 8.4} {
+   lappend docs {lset.n	        tcl/lists/lset}
+}
+
+return $docs

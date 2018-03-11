@@ -1,0 +1,3 @@
+# An identifier is an alphanumeric string which is not a keyword.
+PEG a_pe_grammar (!("serial"!<alnum>) (<alpha> <alnum>+ !<alnum>))
+END;

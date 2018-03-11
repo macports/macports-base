@@ -1,0 +1,126 @@
+# -------------------------------------------------------------------------
+# cc_discover.test -*- tcl -*-
+# (C) 2011 Andreas Kupries. BSD licensed.
+#
+# NOTE: All "creditcard" numbers in this file have been created by
+# randomly hitting the number pad. They are not real.
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    use      snit/snit2.tcl snit            ;# snit v2 fixed, due Tcl 8.5
+    useLocal valtype.tcl    valtype::common
+    useLocal luhn.tcl       valtype::luhn
+}
+testing {
+    useLocal cc_discover.tcl valtype::creditcard::discover
+}
+
+# -------------------------------------------------------------------------
+
+test valtype-creditcard-discover-1.0 {creditcard discover validation wrong\#args} -body {
+    valtype::creditcard::discover validate
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::discover validate value"}
+
+test valtype-creditcard-discover-1.1 {creditcard discover validation wrong\#args} -body {
+    valtype::creditcard::discover validate A B
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::discover validate value"}
+
+# -------------------------------------------------------------------------
+
+test valtype-creditcard-discover-2.0 {creditcard discover validation failure, bad char} -body {
+    valtype::creditcard::discover validate 65A3456274910463
+} -returnCodes error \
+    -result {Not a CREDITCARD DISCOVER number, expected only digits}
+
+foreach {n in} {
+    1  03064061545
+    2  97803064
+} {
+    test valtype-creditcard-discover-2.1.$n {creditcard discover validation failure, bad length} -body {
+    valtype::creditcard::discover validate $in
+    } -returnCodes error \
+        -result {Not a CREDITCARD DISCOVER number, incorrect length, expected 16 characters}
+}
+
+foreach {n in} {
+    1  6011234567890124
+    2  6543210987654325
+    3  6011273987175596
+    4  6512345678123457
+} {
+    test valtype-creditcard-discover-2.2.$n {creditcard discover validation failure, bad check} -body {
+	valtype::creditcard::discover validate $in
+    } -returnCodes error \
+	-result {Not a CREDITCARD DISCOVER number, the check digit is incorrect}
+}
+
+foreach {n in} {
+    1  9772890458925574
+    2  8285298475847568
+} {
+    test valtype-creditcard-discover-2.3.$n {creditcard discover validation failure, bad prefix} -body {
+	valtype::creditcard::discover validate $in
+    } -returnCodes error \
+	-result {Not a CREDITCARD DISCOVER number, incorrect prefix, expected one of 6011, or 65}
+}
+
+
+test valtype-creditcard-discover-3.0 {creditcard discover checkdigit wrong\#args} -body {
+    valtype::creditcard::discover checkdigit
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::discover checkdigit value"}
+
+test valtype-creditcard-discover-3.1 {creditcard discover checkdigit wrong\#args} -body {
+    valtype::creditcard::discover checkdigit A B
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::discover checkdigit value"}
+
+# -------------------------------------------------------------------------
+
+test valtype-creditcard-discover-5.0 {creditcard discover checkdigit calculation failure, bad char} -body {
+    valtype::creditcard::discover checkdigit 65A012345678942
+} -returnCodes error \
+    -result {Not a CREDITCARD DISCOVER number, expected only digits}
+
+test valtype-creditcad-discover-5.1 {creditcard discover checkdigit calculation failure, bad length} -body {
+    valtype::creditcard::discover checkdigit 401234
+} -returnCodes error \
+    -result {Not a CREDITCARD DISCOVER number without checkdigit, incorrect length, expected 15 characters}
+
+test valtype-creditcad-discover-5.2 {creditcard discover checkdigit calculation failure, bad length} -body {
+    valtype::creditcard::discover checkdigit 012345678901245
+} -returnCodes error \
+    -result {Not a CREDITCARD DISCOVER number without checkdigit, incorrect prefix, expected one of 6011, or 65}
+
+foreach {n in check} {
+    1  650123456789012 0
+    2  601198765432100 1
+    3  659927398717534 3
+    4  601134567812348 3
+} {
+    test valtype-creditcard-discover-4.$n {creditcard discover validation} -body {
+	valtype::creditcard::discover validate $in$check
+    } -result $in$check
+
+    test valtype-creditcard-discover-6.$n {creditcard discover checkdigit} -body {
+	valtype::creditcard::discover checkdigit $in
+    } -result $check
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

@@ -1,0 +1,85 @@
+Here are some applications for handling and manipulating CSV files in
+various ways. Provided are:
+=======================================================================
+
+csv2html ?-sep sepchar? ?-title string? file...
+
+	Reads CSV data from the files and returns it as a HTML table
+	on stdout.
+
+=======================================================================
+
+csvsort ?-sep sepchar? ?-f? ?-n? ?-r? ?-skip cnt? column file.in|- file.out|-
+
+	Like "sort", but for CSV files. Sorts after the specified
+	column. Input and output are from and to a file or stdin
+	and stdout (Any combination is possible).
+
+	Options:
+
+	-sep	specifies the separator character used in the input file.
+		Default is comma.
+
+	-n	If specified integer sorting is used.
+	-f	If specified floating point sorting is used.
+		(-n and -f exclude each other. If both are used the
+		last option decides the mode).
+
+	-r	If specified reverse sorting is used (largest first)
+
+	-skip	If specified that number of rows is skipped at the beginning,
+		i.e. excluded from sorting. This is to allow sorting of
+		CSV files with header lines.
+
+=======================================================================
+
+csvcut  ?-sep sepchar? LIST file...
+
+	Like "cut", but for CSV files. Print selected parts of CSV
+	records from each FILE to standard output.
+
+	LIST is a comma separated list of column specifications. The
+	allowed forms are:
+
+	N	numeric specification of single column
+	N-M	range specification, both parts numberic,
+		N < M required.
+	-M	See N-M, N defaults to 0.
+	N-	See N-M, M defaults to last column
+
+	If there are no files or file = "-" read from stdin.
+
+=======================================================================
+
+csvuniq ?-sep sepchar? column file.in|- file.out|-
+
+	Like "uniq", but for CSV files. Uniq's the specified column.
+	Writes the first record it encounters for a value. Input and
+	output are from and to a file or stdin and stdout (Any
+	combination is possible).
+
+	Options:
+
+	-sep	specifies the separator character used in the input file.
+		Default is comma.
+
+=======================================================================
+
+csvjoin ?-sep sepchar? ?-outer? keycol1 file1.in keycol2 file2.in file.out|-
+
+	Joins the two CSV inputtables using the specified columns as
+	keys to compare and associate. The result will contain all
+	columns from both files with the exception of the second key
+	column (the result needs only one key column, the other is
+	identical by definition and therefore superfluous).
+
+	Options:
+
+	-sep	specifies the separator character used in the input file.
+		Default is comma.
+
+	-outer	Flag, perform outer join. Means that if the key is
+		missing in file2 a record is nevertheless written,
+		extended with empty values.
+
+=======================================================================

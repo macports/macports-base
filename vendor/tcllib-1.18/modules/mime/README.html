@@ -1,0 +1,880 @@
+<html><head><title>The README file: Tcl MIME</title>
+<meta http-equiv="Expires" content="Wed, 23 Feb 2000 04:36:30 +0000">
+<STYLE type='text/css'>
+    .title { color: #990000; font-size: 22px; line-height: 22px; font-weight: bold; text-align: right;
+             font-family: helvetica, arial, sans-serif }
+    .filename { color: #666666; font-size: 18px; line-height: 28px; font-weight: bold; text-align: right;
+                  font-family: helvetica, arial, sans-serif }
+    p.copyright { color: #000000; font-size: 10px;
+                  font-family: verdana, charcoal, helvetica, arial, sans-serif }
+    p { margin-left: 2em; margin-right: 2em; }
+    ol { margin-left: 2em; margin-right: 2em; }
+    ul.text { margin-left: 2em; margin-right: 2em; }
+    pre { margin-left: 3em; color: #333333 }
+    ul.toc { color: #000000; line-height: 16px;
+             font-family: verdana, charcoal, helvetica, arial, sans-serif }
+    H3 { color: #333333; font-size: 16px; line-height: 16px; font-family: helvetica, arial, sans-serif }
+    H4 { color: #000000; font-size: 14px; font-family: helvetica, arial, sans-serif }
+    TD.header { color: #ffffff; font-size: 10px; font-family: arial, helvetica, san-serif; valign: top }
+    TD.author-text { color: #000000; font-size: 10px;
+                     font-family: verdana, charcoal, helvetica, arial, sans-serif }
+    TD.author { color: #000000; font-weight: bold; margin-left: 4em; font-size: 10px; font-family: verdana, charcoal, helvetica, arial, sans-serif }
+    A:link { color: #990000; font-size: 10px; text-transform: uppercase; font-weight: bold;
+             font-family: MS Sans Serif, verdana, charcoal, helvetica, arial, sans-serif }
+    A:visited { color: #333333; font-weight: bold; font-size: 10px; text-transform: uppercase;
+                font-family: MS Sans Serif, verdana, charcoal, helvetica, arial, sans-serif }
+    A:name { color: #333333; font-weight: bold; font-size: 10px; text-transform: uppercase;
+             font-family: MS Sans Serif, verdana, charcoal, helvetica, arial, sans-serif }
+    .link2 { color:#ffffff; font-weight: bold; text-decoration: none;
+             font-family: monaco, charcoal, geneva, MS Sans Serif, helvetica, monotype, verdana, sans-serif;
+             font-size: 9px }
+    .RFC { color:#666666; font-weight: bold; text-decoration: none;
+           font-family: monaco, charcoal, geneva, MS Sans Serif, helvetica, monotype, verdana, sans-serif;
+           font-size: 9px }
+    .hotText { color:#ffffff; font-weight: normal; text-decoration: none;
+               font-family: charcoal, monaco, geneva, MS Sans Serif, helvetica, monotype, verdana, sans-serif;
+               font-size: 9px }
+</style>
+</head>
+<body bgcolor="#ffffff"alink="#000000" vlink="#666666" link="#990000">
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<table width="66%" border="0" cellpadding="0" cellspacing="0"><tr><td><table width="100%" border="0" cellpadding="2" cellspacing="1">
+<tr valign="top"><td width="33%" bgcolor="#666666" class="header">The README file</td><td width="33%" bgcolor="#666666" class="header">M.T. Rose</td></tr>
+<tr valign="top"><td width="33%" bgcolor="#666666" class="header">&nbsp;</td><td width="33%" bgcolor="#666666" class="header">Dover Beach Consulting, Inc.</td></tr>
+<tr valign="top"><td width="33%" bgcolor="#666666" class="header">&nbsp;</td><td width="33%" bgcolor="#666666" class="header">February 22, 2000</td></tr>
+</table></td></tr></table>
+<div align="right"><font face="monaco, MS Sans Serif" color="#990000" size="+3"><b><br><span class="title">Tcl MIME</span></b></font></div>
+<font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<h3>Abstract</h3>
+
+<p>
+Tcl MIME generates and parses MIME body parts.
+</p>
+<a name="toc"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<h3>Table of Contents</h3>
+<ul compact class="toc">
+<b><a href="#anchor1">1.</a>&nbsp;
+SYNOPSIS<br></b>
+<b><a href="#anchor2">1.1</a>&nbsp;
+Requirements<br></b>
+<b><a href="#anchor3">1.2</a>&nbsp;
+Copyrights<br></b>
+<b><a href="#anchor4">2.</a>&nbsp;
+SYNTAX<br></b>
+<b><a href="#anchor5">3.</a>&nbsp;
+SEMANTICS<br></b>
+<b><a href="#mime_initialize">3.1</a>&nbsp;
+mime::initialize<br></b>
+<b><a href="#mime_finalize">3.2</a>&nbsp;
+mime::finalize<br></b>
+<b><a href="#mime_getproperty">3.3</a>&nbsp;
+mime::getproperty<br></b>
+<b><a href="#mime_getheader">3.4</a>&nbsp;
+mime::getheader<br></b>
+<b><a href="#mime_setheader">3.5</a>&nbsp;
+mime::setheader<br></b>
+<b><a href="#mime_getbody">3.6</a>&nbsp;
+mime::getbody<br></b>
+<b><a href="#mime_copymessage">3.7</a>&nbsp;
+mime::copymessage<br></b>
+<b><a href="#mime_buildmessage">3.7</a>&nbsp;
+mime::buildmessage<br></b>
+<b><a href="#smtp_sendmessage">3.8</a>&nbsp;
+smtp::sendmessage<br></b>
+<b><a href="#mime_parseaddress">3.9</a>&nbsp;
+mime::parseaddress<br></b>
+<b><a href="#mime_parsedatetime">3.10</a>&nbsp;
+mime::parsedatetime<br></b>
+<b><a href="#mime_mapencoding">3.10</a>&nbsp;
+mime::mapencoding<br></b>
+<b><a href="#mime_reversemapencoding">3.10</a>&nbsp;
+mime::reversemapencoding<br></b>
+
+<b><a href="#anchor6">4.</a>&nbsp;
+EXAMPLES<br></b>
+<b><a href="#rfc.references">&#167;</a>&nbsp;
+References<br></b>
+<b><a href="#rfc.authors">&#167;</a>&nbsp;
+Author's Address<br></b>
+<b><a href="#anchor7">A.</a>&nbsp;
+TODO List<br></b>
+<b><a href="#anchor8">B.</a>&nbsp;
+Acknowledgements<br></b>
+</ul>
+<br clear="all">
+
+<a name="anchor1"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<h3>1.&nbsp;SYNOPSIS</h3>
+</font><pre>
+    package provide mime 1.2
+    package provide smtp 1.2
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+Tcl MIME is an implementation of a Tcl package that generates and
+parses <a href="#RFC2045">MIME</a>[1] body parts.
+</p>
+
+<p>
+Each MIME part consists of a header
+(zero or more key/value pairs), 
+an empty line,
+and a structured body.
+A MIME part is either a "leaf" or has (zero or more) subordinates.
+</p>
+
+<p>
+MIME defines four keys that may appear in the headers:
+
+<blockquote class="text"><dl>
+
+<dt>   Content-Type:</dt>
+<dd>
+describes the data contained in the body
+("the content");
+</dd>
+
+<dt>   Content-Transfer-Encoding:</dt>
+<dd>
+describes how the content is
+encoded for transmission in an ASCII stream;
+</dd>
+
+<dt>   Content-Description:</dt>
+<dd>
+a textual description of the
+content; and,
+</dd>
+
+<dt>   Content-ID:</dt>
+<dd>
+a globally-unique identifier for the
+content.
+</dd>
+
+</dl></blockquote>
+
+</p>
+
+<p>
+Consult <a href="#RFC2046">[2]</a> for a list of standard content types.
+Further,
+consult <a href="#RFC822">[3]</a> for a list of several other header keys
+(e.g., "To", "cc", etc.)
+</p>
+
+<p>
+A simple example might be:
+</p>
+</font><pre>
+    Date: Sun, 04 July 1999 10:38:25 -0600
+    From: Marshall Rose &lt;mrose@dbc.mtview.ca.us>
+    To: Andreas Kupries &lt;a.kupries@westend.com>
+    cc: dnew@messagemedia.com (Darren New)
+    MIME-Version: 1.0
+    Content-Type: text/plain; charset="us-ascii"
+    Content-Description: a simple example
+    Content-ID: &lt;4294407315.931384918.1@dbc.mtview.ca.us>
+    
+    Here is the body. In this case, simply plain text.
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+In addition to an implementation of the mime package,
+Tcl MIME includes an implementation of the smtp package.
+</p>
+
+<h4><a name="anchor2">1.1</a>&nbsp;Requirements</h4>
+
+<p>
+This package requires:
+
+<ul class="text">
+
+<li>
+<a href="http://www.scriptics.com/software/8.1.html">Tcl/Tk version 8.0.3</a>
+or later
+</li>
+</ul>
+</p>
+<p>
+In addition, this package requires one of the following:
+
+<ul class="text">
+<li>
+<a href="http://www.oche.de/~akupries/soft/trf/">Trf version 2.0p5</a> or later
+</li>
+<li>
+<a href="http://dev.ajubasolutions.com/software/tcllib/">base 64
+version 2.0</a> or later (included with tcllib)
+</li>
+</ul>
+</p>
+<p>
+If it is available, Trf will be used to provide better performance;
+if not, Tcl-only equivalent functions, based on the base64 package, are used.
+</p>
+
+<h4><a name="anchor3">1.2</a>&nbsp;Copyrights</h4>
+
+<p>
+(c) 1999-2000 Marshall T. Rose
+</p>
+
+<p>
+Hold harmless the author, and any lawful use is allowed.
+</p>
+
+<a name="anchor4"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<h3>2.&nbsp;SYNTAX</h3>
+
+<p>
+<a href="#mime_initialize">mime::initialize</a>
+returns a token.
+Parameters:
+</p>
+</font><pre>    ?-canonical type/subtype
+        ?-param    {key value}?...
+        ?-encoding value?
+        ?-header   {key value}?... ?
+    (-file name | -string value | -parts {token1 ... tokenN})
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+<a href="#mime_finalize">mime::finalize</a> returns
+an empty string.
+Parameters:
+</p>
+</font><pre>    token ?-subordinates "all" | "dynamic" | "none"?
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+<a href="#mime_getproperty">mime::getproperty</a>
+returns a string or a list of strings.
+Parameters:
+</p>
+</font><pre>    token ?property | -names?
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+<a href="#mime_getheader">mime::getheader</a> returns
+a list of strings.
+Parameters:
+</p>
+</font><pre>    token ?key | -names?
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+<a href="#mime_setheader">mime::setheader</a> returns
+a list of strings.
+Parameters:
+</p>
+</font><pre>    token key value ?-mode "write" | "append" | "delete"?
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+<a href="#mime_getbody">mime::getbody</a> returns a string.
+Parameters:
+</p>
+</font><pre>    ?-command callback ?-blocksize octets? ?
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+<a href="#mime_copymessage">mime::copymessage</a>
+returns an empty string.
+Parameters:
+</p>
+</font><pre>    token channel
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+<a href="#mime_buildmessage">mime::buildmessage</a>
+returns a string.
+Parameters:
+</p>
+</font><pre>    token
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+<a href="#smtp_sendmessage">smtp::sendmessage</a>
+returns a list.
+Parameters:
+</p>
+</font><pre>    token ?-servers list? ?-ports list?
+          ?-queue boolean?     ?-atleastone boolean?
+          ?-originator string? ?-recipients string?
+          ?-header {key value}?...
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+<a href="#mime_parseaddress">mime::parseaddress</a>
+returns a list of serialized arrays.
+Parameters:
+</p>
+</font><pre>    string
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+<a href="#mime_parsedatetime">mime::parsedatetime</a>
+returns a string.
+Parameters:
+</p>
+</font><pre>    [string | -now] property
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+<a href="#mime_mapencoding">mime::mapencoding</a>
+returns a string.
+Parameters:
+</p>
+</font><pre>    encoding_name
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+<a href="#mime_reversemapencoding">mime::reversemapencoding</a>
+returns a string.
+Parameters:
+</p>
+</font><pre>    mime_charset
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<a name="anchor5"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<h3>3.&nbsp;SEMANTICS</h3>
+
+<h4><a name="mime_initialize">3.1</a>&nbsp;mime::initialize</h4>
+
+<p>
+mime::initialize creates a MIME part:
+
+<ul class="text">
+
+<li>
+If the -canonical option is present,
+then the body is in canonical (raw) form and is found by consulting
+either the -file, -string, or -part option.
+<br>
+<br>
+
+In addition,
+both the -param and -header options may occur zero or more times to
+specify "Content-Type" parameters (e.g., "charset")
+and header keyword/values (e.g., "Content-Disposition"),
+respectively.
+<br>
+<br>
+
+Also, -encoding, if present,
+specifies the "Content-Transfer-Encoding" when copying the body.
+</li>
+
+<li>
+If the -canonical option is not present,
+then the MIME part contained in either the -file or the -string option
+is parsed,
+dynamically generating subordinates as appropriate.
+</li>
+
+</ul>
+
+</p>
+
+<h4><a name="mime_finalize">3.2</a>&nbsp;mime::finalize</h4>
+
+<p>
+mime::finalize destroys a MIME part.
+</p>
+
+<p>
+If the -subordinates option is present,
+it specifies which subordinates should also be destroyed.
+The default value is "dynamic".
+</p>
+
+<h4><a name="mime_getproperty">3.3</a>&nbsp;mime::getproperty</h4>
+
+<p>
+mime::getproperty returns the properties of a MIME part.
+</p>
+
+<p>
+The properties are:
+</p>
+</font><pre>
+    property    value
+    ========    =====
+    content     the type/subtype describing the content
+    encoding    the "Content-Transfer-Encoding"
+    params      a list of "Content-Type" parameters
+    parts       a list of tokens for the part's subordinates
+    size        the approximate size of the content (unencoded)
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+The "parts" property is present only if the MIME part has
+subordinates.
+</p>
+
+<p>
+If mime::getproperty is invoked with the name of a specific property,
+then the corresponding value is returned;
+instead,
+if -names is specified,
+a list of all properties is returned;
+otherwise,
+a serialized array of properties and values is returned.
+</p>
+
+<h4><a name="mime_getheader">3.4</a>&nbsp;mime::getheader</h4>
+
+<p>
+mime::getheader returns the header of a MIME part.
+</p>
+
+<p>
+A header consists of zero or more key/value pairs.
+Each value is a list containing one or more strings.
+</p>
+
+<p>
+If mime::getheader is invoked with the name of a specific key,
+then a list containing the corresponding value(s) is returned;
+instead,
+if -names is specified,
+a list of all keys is returned;
+otherwise,
+a serialized array of keys and values is returned.
+Note that when a key is specified (e.g., "Subject"),
+the list returned usually contains exactly one string;
+however,
+some keys (e.g., "Received") often occur more than once in the header,
+accordingly the list returned usually contains more than one string.
+</p>
+
+<h4><a name="mime_setheader">3.5</a>&nbsp;mime::setheader</h4>
+
+<p>
+mime::setheader writes, appends to, or deletes the value associated
+with a key in the header.
+</p>
+
+<p>
+The value for -mode is one of:
+
+<blockquote class="text"><dl>
+
+<dt>   write:</dt>
+<dd>
+ the key/value is either created or
+overwritten (the default);
+</dd>
+
+<dt>   append:</dt>
+<dd>
+ a new value is appended for the key
+(creating it as necessary); or,
+</dd>
+
+<dt>   delete:</dt>
+<dd>
+ all values associated with the key are removed
+(the "value" parameter is ignored).
+</dd>
+
+</dl></blockquote>
+
+</p>
+
+<p>
+Regardless,
+mime::setheader returns the previous value associated with the key.
+</p>
+
+<h4><a name="mime_getbody">3.6</a>&nbsp;mime::getbody</h4>
+
+<p>
+mime::getbody returns the body of a leaf MIME part in canonical form.
+</p>
+
+<p>
+If the -command option is present,
+then it is repeatedly invoked with a fragment of the body as this:
+</p>
+</font><pre>
+    uplevel #0 $callback [list "data" $fragment]
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+(The -blocksize option,
+if present,
+specifies the maximum size of each fragment passed to the
+callback.)
+</p>
+
+<p>
+When the end of the body is reached,
+the callback is invoked as:
+</p>
+</font><pre>
+    uplevel #0 $callback "end"
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+Alternatively,
+if an error occurs,
+the callback is invoked as:
+</p>
+</font><pre>
+    uplevel #0 $callback [list "error" reason]
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+Regardless,
+the return value of the final invocation of the callback is propagated
+upwards by mime::getbody.
+</p>
+
+<p>
+If the -command option is absent,
+then the return value of mime::getbody is a string containing the MIME
+part's entire body.
+</p>
+
+<h4><a name="mime_copymessage">3.7</a>&nbsp;mime::copymessage</h4>
+
+<p>
+mime::copymessage copies the MIME part to the specified channel.
+</p>
+
+<p>
+mime::copymessage operates synchronously,
+and uses fileevent to allow asynchronous operations to proceed
+independently.
+</p>
+
+<h4><a name="mime_buildmessage">3.7</a>&nbsp;mime::buildmessage</h4>
+
+<p>
+mime::buildmessage returns the MIME part as a string.  It is similar
+to mime::copymessage, only it returns the data as a return string
+instead of writing to a channel.
+</p>
+
+
+<h4><a name="smtp_sendmessage">3.8</a>&nbsp;smtp::sendmessage</h4>
+
+<p>
+smtp::sendmessage sends a MIME part to an SMTP server.
+(Note that this procedure is in the "smtp" package,
+not the "mime" package.)
+</p>
+
+<p>
+The options are:
+
+<blockquote class="text"><dl>
+
+<dt>   -servers:</dt>
+<dd>
+a list of SMTP servers
+(the default is "localhost");
+</dd>
+
+<dt>   -ports:</dt>
+<dd>
+a list of SMTP ports
+(the default is 25);
+</dd>
+
+<dt>   -queue:</dt>
+<dd>
+indicates that the SMTP server should be
+asked to queue the message for later processing;
+</dd>
+
+<dt>   -atleastone:</dt>
+<dd>
+indicates that the SMTP server must find
+at least one recipient acceptable for the message to be sent;
+</dd>
+
+<dt>   -originator:</dt>
+<dd>
+a string containing an 822-style address
+specification
+(if present the header isn't examined for an originator address);
+</dd>
+
+<dt>   -recipients:</dt>
+<dd>
+a string containing one or more 822-style
+address specifications
+(if present the header isn't examined for recipient addresses); and,
+</dd>
+
+<dt>   -header:</dt>
+<dd>
+a keyword/value pairing
+(may occur zero or more times).
+</dd>
+
+</dl></blockquote>
+
+</p>
+
+<p>
+If the -originator option is not present,
+the originator address is taken from "From" (or "Resent-From");
+similarly,
+if the -recipients option is not present,
+recipient addresses are taken from "To", "cc", and "Bcc" (or
+"Resent-To", and so on).
+Note that the header key/values supplied by the "-header" option
+(not those present in the MIME part)
+are consulted.
+Regardless,
+header key/values are added to the outgoing message as necessary to
+ensure that a valid 822-style message is sent.
+</p>
+
+<p>
+smtp::sendmessage returns a list indicating which recipients were
+unacceptable to the SMTP server.
+Each element of the list is another list,
+containing the address, an SMTP error code, and a textual diagnostic.
+Depending on the -atleastone option and the intended recipients,,
+a non-empty list may still indicate that the message was accepted by
+the server.
+</p>
+
+<h4><a name="mime_parseaddress">3.9</a>&nbsp;mime::parseaddress</h4>
+
+<p>
+mime::parseaddr takes a string containing one or more 822-style
+address specifications and returns a list of serialized arrays,
+one element for each address specified in the argument.
+</p>
+
+<p>
+Each serialized array contains these properties:
+</p>
+</font><pre>
+    property    value
+    ========    =====
+    address     local@domain
+    comment     822-style comment
+    domain      the domain part (rhs)
+    error       non-empty on a parse error 
+    group       this address begins a group
+    friendly    user-friendly rendering
+    local       the local part (lhs)
+    memberP     this address belongs to a group
+    phrase      the phrase part
+    proper      822-style address specification
+    route       822-style route specification (obsolete)
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>
+Note that one or more of these properties may be empty.
+</p>
+
+<h4><a name="mime_parsedatetime">3.10</a>&nbsp;mime::parsedatetime</h4>
+
+<p>
+mime::parsedatetime takes a string containing an 822-style
+date-time specification and returns the specified property.
+</p>
+
+<p>
+The list of properties and their ranges are:
+</p>
+</font><pre>
+    property     range
+    ========     =====
+    hour         0 .. 23
+    lmonth       January, February, ..., December
+    lweekday     Sunday, Monday, ... Saturday
+    mday         1 .. 31
+    min          0 .. 59
+    mon          1 .. 12
+    month        Jan, Feb, ..., Dec
+    proper       822-style date-time specification
+    rclock       elapsed seconds between then and now
+    sec          0 .. 59
+    wday         0 .. 6 (Sun .. Mon)
+    weekday      Sun, Mon, ..., Sat
+    yday         1 .. 366
+    year         1900 ...
+    zone         -720 .. 720 (minutes east of GMT)
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<h4><a name="mime_mapencoding">3.10</a>&nbsp;mime::mapencoding</h4>
+
+<p>
+mime::mapencoding takes a string containing the name of a
+tcl encoding (see [encoding names]) and returns the MIME
+charset name for that encoding (or "" if the charset name
+is unknown).
+</p>
+
+<h4><a name="mime_reversemapencoding">3.10</a>&nbsp;mime::reversemapencoding</h4>
+
+<p>
+mime::reversemapencoding takes a string containing the name of a
+MIME charset tcl encoding (see [encoding names]) and returns the MIME
+charset name for that encoding (or "" if no known tcl encoding maps to
+the mime charset type).
+</p>
+
+<a name="anchor6"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<h3>4.&nbsp;EXAMPLES</h3>
+</font><pre>
+package require mime 1.0
+package require smtp 1.0
+
+
+# create an image
+
+set imageT [mime::initialize -canonical image/gif \
+                             -file logo.gif]
+
+
+# parse a message
+
+set messageT [mime::initialize -file example.msg]
+
+
+# recursively traverse a message looking for primary recipients
+
+proc traverse {token} {
+    set result ""
+
+# depth-first search
+    if {![catch { mime::getproperty $token parts } parts]} {
+        foreach part $parts {
+            set result [concat $result [traverse $part]]
+        }
+    }
+
+# one value for each line occuring in the header
+    foreach value [mime::getheader $token To] {
+        foreach addr [mime::parseaddress $value] {
+            catch { unset aprops }
+            array set aprops $addr
+            lappend result $aprops(address)
+        }
+    }
+
+    return $result
+}
+
+
+# create a multipart containing both, and a timestamp
+
+set multiT [mime::initialize -canonical multipart/mixed
+                             -parts [list $imageT $messageT]]
+
+
+
+
+# send it to some friends
+
+smtp::sendmessage $multiT \
+      -header [list From "Marshall Rose &lt;mrose@dbc.mtview.ca.us>"] \
+      -header [list To "Andreas Kupries &lt;a.kupries@westend.com>"] \
+      -header [list cc "dnew@messagemedia.com (Darren New)"] \
+      -header [list Subject "test message..."]
+
+
+# clean everything up
+
+mime::finalize $multiT -subordinates all
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+<a name="rfc.references"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<h3>
+References</h3>
+<table width="99%" border="0">
+<tr><td class="author-text" valign="top"><b><a name="RFC2045">[1]</a></b></td>
+<td class="author-text"><a href="mailto:ned@innosoft.com">Freed, N.</a> and <a href="mailto:nsb@messagemedia.com">N.S. Borenstein</a>, "<a href="http://info.internet.isi.edu/in-notes/rfc/files/rfc2045.txt">Multipurpose Internet Mail Extensions (MIME)
+Part One: Format of Internet Message Bodies</a>", RFC 2045, November 1996.</td></tr>
+<tr><td class="author-text" valign="top"><b><a name="RFC2046">[2]</a></b></td>
+<td class="author-text"><a href="mailto:ned@innosoft.com">Freed, N.</a> and <a href="mailto:nsb@messagemedia.com">N.S. Borenstein</a>, "<a href="http://info.internet.isi.edu/in-notes/rfc/files/rfc2046.txt">Multipurpose Internet Mail Extensions (MIME)
+Part Two: Media Types</a>", RFC 2046, November 1995.</td></tr>
+<tr><td class="author-text" valign="top"><b><a name="RFC822">[3]</a></b></td>
+<td class="author-text"><a href="mailto:DCrocker@UDel-Relay">Crocker, D.</a>, "<a href="http://info.internet.isi.edu/in-notes/rfc/files/rfc822.txt">Standard for the format of ARPA Internet Text Messages</a>", RFC 822, STD 11, August 1982.</td></tr>
+</table>
+
+<a name="rfc.authors"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<h3>Author's Address</h3>
+<table width="99%" border="0" cellpadding="0" cellspacing="0">
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Marshall T. Rose</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Dover Beach Consulting, Inc.</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">POB 255268</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Sacramento, CA  95865-5268</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">US</td></tr>
+<tr><td class="author" align="right">Phone:&nbsp;</td>
+<td class="author-text">+1 916 483 8878</td></tr>
+<tr><td class="author" align="right">Fax:&nbsp;</td>
+<td class="author-text">+1 916 483 8848</td></tr>
+<tr><td class="author" align="right">EMail:&nbsp;</td>
+<td class="author-text"><a href="mailto:mrose@dbc.mtview.ca.us">mrose@dbc.mtview.ca.us</a></td></tr>
+</table>
+
+<a name="anchor7"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<h3>Appendix A.&nbsp;TODO List</h3>
+
+<p>
+
+<blockquote class="text"><dl>
+
+<dt>mime::initialize</dt>
+<dd>
+
+<ul class="text">
+
+<li>
+well-defined errorCode values
+</li>
+
+<li>
+catch nested errors when processing a multipart
+</li>
+
+</ul>
+
+</dd>
+
+</dl></blockquote>
+
+</p>
+
+<a name="anchor8"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<h3>Appendix B.&nbsp;Acknowledgements</h3>
+
+<p>
+This package is influenced by the safe-tcl package
+(Borenstein and Rose, circa 1993),
+and also by <a href="mailto:dnew@messagemedia.com">Darren New</a>'s
+unpublished package of 1999.
+</p>
+
+<p>
+This package makes use of 
+<a href="mailto:a.kupries@westend.com">Andreas Kupries</a>'s
+excellent Trf package.
+</p>
+</font></body></html>

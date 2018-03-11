@@ -1,0 +1,51 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin page_util_norm_lemon n 1.0]
+[keywords {graph walking}]
+[keywords lemon]
+[keywords normalization]
+[keywords page]
+[keywords {parser generator}]
+[keywords {text processing}]
+[keywords {tree walking}]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Parser generator tools}]
+[titledesc {page AST normalization, LEMON}]
+[category  {Page Parser Generator}]
+[require page::util::norm_lemon [opt 0.1]]
+[require snit]
+[description]
+[para]
+
+This package provides a single utility command which takes an AST for a
+lemon  grammar and normalizes it in various ways. The result
+is called a [term {Normalized Lemon Grammar Tree}].
+
+[para]
+
+[emph Note] that this package can only be used from within a plugin
+managed by the package [package page::pluginmgr].
+
+[comment {
+    TODO: Document the structure of a LEMON AST,
+          and then of a Normalized LEMON Tree. Which
+          is not a true AST any longer.
+}]
+
+[section API]
+
+[list_begin definitions]
+[call [cmd ::page::util::norm::lemon] [arg tree]]
+
+This command assumes the [arg tree] object contains for a lemon
+grammar. It normalizes this tree in place. The result is called a
+[term {Normalized Lemon Grammar Tree}].
+
+[para]
+
+The exact operations performed are left undocumented for the moment.
+
+[list_end]
+
+[vset CATEGORY page]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

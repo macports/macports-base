@@ -1,0 +1,187 @@
+
+<div class='fossil-doc' data-title='tcl::chan::facade - Reflected/virtual channel support'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">tcl::chan::facade(n) 1 tcllib &quot;Reflected/virtual channel support&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>tcl::chan::facade - Facade channel</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">TclOO</b></li>
+<li>package require <b class="pkgname">logger</b></li>
+<li>package require <b class="pkgname">tcl::chan::core <span class="opt">?1?</span></b></li>
+<li>package require <b class="pkgname">tcl::chan::facade <span class="opt">?1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::tcl::chan::facade</b> <i class="arg">chan</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">tcl::chan::facade</b> package provides a command creating
+facades to other channels. These are channels which own a single
+subordinate channel and delegate all operations to.</p>
+<p>The main use for facades is the debugging of actions on a
+channel. While most of the information could be tracked by a virtual
+channel transformation it does not have access to the event-related
+operation, and furthermore they are only available in Tcl 8.6.</p>
+<p>Therefore this channel, usable with Tcl 8.5, and having access
+to everything going on for a channel.</p>
+<p>The intercepted actions on channel are logged through package
+<b class="package"><a href="../log/logger.html">logger</a></b>.</p>
+<p>Beyond that facades provide the following additional channel
+configuration options:</p>
+<dl class="doctools_options">
+<dt><b class="option">-self</b></dt>
+<dd><p>The TclOO object handling the facade.</p></dd>
+<dt><b class="option">-fd</b></dt>
+<dd><p>The handle of the subordinate, i.e. wrapped channel.</p></dd>
+<dt><b class="option">-used</b></dt>
+<dd><p>The last time the wrapped channel was read from or written to by
+the facade, as per <b class="cmd">clock milliseconds</b>. A value of <b class="const">0</b>
+indicates that the subordinate channel was not accessed at all, yet.</p></dd>
+<dt><b class="option">-created</b></dt>
+<dd><p>The time the facade was created, as per <b class="cmd">clock milliseconds</b>.</p></dd>
+<dt><b class="option">-user</b></dt>
+<dd><p>A free-form value identifying the user of the facade and its
+wrapped channel.</p></dd>
+</dl>
+<p>Of these only option <b class="option">-user</b> is writable.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::tcl::chan::facade</b> <i class="arg">chan</i></a></dt>
+<dd><p>This command creates the facade channel around the provided
+channel <i class="arg">chan</i>, and returns its handle.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>virtchannel</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key163">concatenation channel</a>, <a href="../../../../index.html#key47">reflected channel</a>, <a href="../../../../index.html#key45">tip 219</a>, <a href="../../../../index.html#key44">virtual channel</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Channels</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2011 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

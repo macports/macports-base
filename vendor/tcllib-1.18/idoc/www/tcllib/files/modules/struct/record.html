@@ -1,0 +1,433 @@
+
+<html><head>
+<title>struct::record - Tcl Data Structures</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'record.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2002, Brett Schwarz &lt;brett_schwarz@yahoo.com&gt;
+   -->
+<! -- struct::record.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">struct::record(n) 1.2.1 tcllib &quot;Tcl Data Structures&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>struct::record - Define and create records (similar to 'C' structures)</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">RECORD MEMBERS</a></li>
+<li class="doctools_section"><a href="#section3">RECORD COMMAND</a></li>
+<li class="doctools_section"><a href="#section4">INSTANCE COMMAND</a></li>
+<li class="doctools_section"><a href="#section5">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">struct::record <span class="opt">?1.2.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">record define</b> <i class="arg">recordName</i> <i class="arg">recordMembers</i> <span class="opt">?<i class="arg">instanceName1 instanceName2 ...</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">record show</b> <i class="arg">record</i></a></li>
+<li><a href="#3"><b class="cmd">record show</b> <i class="arg">instances</i> <i class="arg">recordName</i></a></li>
+<li><a href="#4"><b class="cmd">record show</b> <i class="arg">members</i> <i class="arg">recordName</i></a></li>
+<li><a href="#5"><b class="cmd">record show</b> <i class="arg">values</i> <i class="arg">instanceName</i></a></li>
+<li><a href="#6"><b class="cmd">record exists</b> <i class="arg">record</i> <i class="arg">recordName</i></a></li>
+<li><a href="#7"><b class="cmd">record exists</b> <i class="arg">instance</i> <i class="arg">instanceName</i></a></li>
+<li><a href="#8"><b class="cmd">record delete</b> <i class="arg">record</i> <i class="arg">recordName</i></a></li>
+<li><a href="#9"><b class="cmd">record delete</b> <i class="arg">instance</i> <i class="arg">instanceName</i></a></li>
+<li><a href="#10"><i class="arg">recordName</i> <b class="method"><i class="arg">instanceName|#auto</i></b> <span class="opt">?<i class="arg">-member1 value1 -member2 value2 ...</i>?</span></a></li>
+<li><a href="#11"><i class="arg">instanceName</i> <b class="method">cget</b> <span class="opt">?<i class="arg">-member1 -member2 ...</i>?</span></a></li>
+<li><a href="#12"><i class="arg">instanceName</i> <b class="method">configure</b> <span class="opt">?<i class="arg">-member1 value1 -member2 value2 ...</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="cmd">::struct::record</b> package provides a mechanism to group variables together
+as one data structure, similar to a 'C' structure. The members of a
+record can be variables or other records. However, a record can not contain circular
+record, i.e. records that contain the same record as a
+member.</p>
+<p>This package was structured so that it is very similar to how Tk objects work. Each record
+definition creates a record object that encompasses that definition. Subsequently, that
+record object can create instances of that record. These instances can then
+be manipulated with the <b class="method">cget</b> and <b class="method">configure</b> methods.</p>
+<p>The package only contains one top level command, but several sub commands (see below). It also obeys the namespace in which the record was define, hence the objects returned are fully qualified.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">record define</b> <i class="arg">recordName</i> <i class="arg">recordMembers</i> <span class="opt">?<i class="arg">instanceName1 instanceName2 ...</i>?</span></a></dt>
+<dd><p>Defines a record. <i class="arg">recordName</i> is the name of the record, and is also
+used as an object command. This object command is used to create instances of the
+record definition. <i class="arg">recordMembers</i> are the members of
+the record that make up the record definition. These are variables
+and other record. If optional <i class="arg">instanceName</i> args are given, then an instance
+is generated after the definition is created for each <i class="arg">instanceName</i>.</p></dd>
+<dt><a name="2"><b class="cmd">record show</b> <i class="arg">record</i></a></dt>
+<dd><p>Returns a list of records that have been defined.</p></dd>
+<dt><a name="3"><b class="cmd">record show</b> <i class="arg">instances</i> <i class="arg">recordName</i></a></dt>
+<dd><p>Returns the instances that have been instantiated by
+<i class="arg">recordName</i>.</p></dd>
+<dt><a name="4"><b class="cmd">record show</b> <i class="arg">members</i> <i class="arg">recordName</i></a></dt>
+<dd><p>Returns the members that are defined for
+record <i class="arg">recordName</i>. It returns the same format as how the
+records were defined.</p></dd>
+<dt><a name="5"><b class="cmd">record show</b> <i class="arg">values</i> <i class="arg">instanceName</i></a></dt>
+<dd><p>Returns a list of values that are set for the instance
+<i class="arg">instanceName</i>. The output is a list of key/value pairs. If there
+are nested records, then the values of the nested records will
+itself be a list.</p></dd>
+<dt><a name="6"><b class="cmd">record exists</b> <i class="arg">record</i> <i class="arg">recordName</i></a></dt>
+<dd><p>Tests for the existence of a <i class="arg">record</i> with the
+name <i class="arg">recordName</i>.</p></dd>
+<dt><a name="7"><b class="cmd">record exists</b> <i class="arg">instance</i> <i class="arg">instanceName</i></a></dt>
+<dd><p>Tests for the existence of a <i class="arg">instance</i> with the
+name <i class="arg">instanceName</i>.</p></dd>
+<dt><a name="8"><b class="cmd">record delete</b> <i class="arg">record</i> <i class="arg">recordName</i></a></dt>
+<dd><p>Deletes <i class="arg">recordName</i>, and all instances of <i class="arg">recordName</i>. It will return
+an error if the record does not exist.</p></dd>
+<dt><a name="9"><b class="cmd">record delete</b> <i class="arg">instance</i> <i class="arg">instanceName</i></a></dt>
+<dd><p>Deletes <i class="arg">instance</i> with the name of <i class="arg">instanceName</i>. It
+will return an error if the instance does not exist.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">RECORD MEMBERS</a></h2>
+<p>Record members can either be variables, or other records, However, the
+same record can not be nested witin itself (circular). To define a
+nested record, you need to specify the <b class="const">record</b> keyword, along
+the with name of the record, and the name of the instance of that
+nested record. For example, it would look like this:</p>
+<pre class="doctools_example">
+# this is the nested record
+record define mynestedrecord {
+    nest1
+    nest2
+}
+# This is the main record
+record define myrecord {
+    mem1
+    mem2
+    {record mynestedrecord mem3}
+}
+</pre>
+<p>You can also assign default or initial values to the members of a record,
+by enclosing the member entry in braces:</p>
+<pre class="doctools_example">
+record define myrecord {
+    mem1
+    {mem2 5}
+}
+</pre>
+<p>All instances created from this record definition, will initially have 5 as
+the value for <i class="arg">mem2</i>. If no default is given, then the value will be the empty string.</p>
+<p><em>Getting Values</em></p>
+<p>To get a value of a member, there are several ways to do this.</p>
+<ol class="doctools_enumerated">
+<li><p>To get a member value, then use the instance built-in <b class="method">cget</b> method:</p>
+<p><i class="arg">instanceName</i> <b class="method">cget</b> -mem1</p></li>
+<li><p>To get multiple member values, you can specify them all in one command:</p>
+<p><i class="arg">instanceName</i> <b class="method">cget</b> -mem1 -mem2</p></li>
+<li><p>To get a list of the key/value of all of the members, there are 3 ways:</p>
+<p>- <i class="arg">instanceName</i> <b class="method">cget</b></p>
+<p>- <i class="arg">instanceName</i> <b class="method">configure</b></p>
+<p>- <i class="arg">instanceName</i></p></li>
+<li><p>To get a value of a nested member, then use the dot notation:</p>
+<p><i class="arg">instanceName</i> <b class="method">cget</b> -mem3.nest1</p></li>
+</ol>
+<p><em>Setting Values</em></p>
+<p>To set a value of a member, there are several ways to do this.</p>
+<ol class="doctools_enumerated">
+<li><p>To set a member value, then use the instance built-in <b class="method">configure</b> method:</p>
+<p><i class="arg">instanceName</i> <b class="method">configure</b> -mem1 val1</p></li>
+<li><p>To set multiple member values, you can specify them all in one command:</p>
+<p><i class="arg">instanceName</i> <b class="method">configure</b> -mem1 va1 -mem2 val2</p></li>
+<li><p>To set a value of a nested member, then use the dot notation:</p>
+<p><i class="arg">instanceName</i> <b class="method">configure</b> -mem3.nest1 value</p></li>
+</ol>
+<p><em>Alias access</em></p>
+<p>In the original implementation, access was done by using dot notation similar to how 'C' structures are accessed. However,
+there was a concensus to make the interface more Tcl like, which made sense. However, the original alias access still
+exists. It might prove to be helpful to some.</p>
+<p>Basically, for every member of every instance, an alias is created. This alias is used to get and set values for that
+member. An example will illustrate the point, using the above defined records:</p>
+<pre class="doctools_example">
+# Create an instance first
+% myrecord inst1
+::inst1
+% # To get a member of an instance, just use the
+% # alias (it behaves like a Tcl command):
+% inst1.mem1
+%
+% # To set a member via the alias, just include
+% # a value (optionally the equal sign - syntactic sugar)
+% inst1.mem1 = 5
+5
+% inst1.mem1
+5
+% # For nested records, just continue with the
+% # dot notation (note no equal sign)
+% inst1.mem3.nest1 10
+10
+% inst1.mem3.nest1
+10
+% # just the instance by itself gives all
+% # member/values pairs for that instance
+% inst1
+-mem1 5 -mem2 {} -mem3 {-nest1 10 -nest2 {}}
+% # and to get all members within the nested record
+% inst1.mem3
+-nest1 10 -nest2 {}
+%
+</pre>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">RECORD COMMAND</a></h2>
+<p>The following subcommands and corresponding arguments are available to any
+record command:</p>
+<dl class="doctools_definitions">
+<dt><a name="10"><i class="arg">recordName</i> <b class="method"><i class="arg">instanceName|#auto</i></b> <span class="opt">?<i class="arg">-member1 value1 -member2 value2 ...</i>?</span></a></dt>
+<dd><p>Using the <i class="arg">recordName</i> object command that was created from the record definition,
+instances of the record definition can be created. Once a instance is
+created, then it inherits the members of the record definition, very
+similar to how objects work. During instance generation, an object command for the instance
+is created as well, using <i class="arg">instanceName</i>. This object command is used
+to access the data members of the instance. During the instantiation, values for
+that instance can be given, <em>but</em> all values must be given, and be given
+in key/value pairs. Nested records, need to be in list format.</p>
+<p>Optionally, <i class="arg">#auto</i> can be used in place of <i class="arg">instanceName</i>. When #auto is used,
+then a instance name will automatically be generated, of the form recordName&lt;integer&gt;, where
+&lt;integer&gt; is a unique integer (starting at 0) that is generated.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">INSTANCE COMMAND</a></h2>
+<p>The following subcommands and corresponding arguments are available to
+any record instance command:</p>
+<dl class="doctools_definitions">
+<dt><a name="11"><i class="arg">instanceName</i> <b class="method">cget</b> <span class="opt">?<i class="arg">-member1 -member2 ...</i>?</span></a></dt>
+<dd><p>Each instance has the sub command <b class="method">cget</b> associated with it. This
+is very similar to how Tk widget's cget command works. It queries
+the values of the member for that particular instance. If
+no arguments are given, then a key/value list is returned.</p></dd>
+<dt><a name="12"><i class="arg">instanceName</i> <b class="method">configure</b> <span class="opt">?<i class="arg">-member1 value1 -member2 value2 ...</i>?</span></a></dt>
+<dd><p>Each instance has the sub command <b class="method">configure</b> associated with it. This
+is very similar to how Tk widget's configure command works. It sets
+the values of the particular member for that particular instance. If
+no arguments are given, then a key/value list is returned.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">EXAMPLES</a></h2>
+<p>Two examples are provided to give an good illustration on how to use
+this package.</p>
+<p><em>Example 1</em></p>
+<p>Probably the most obvious example would be to hold contact information,
+such as addresses, phone numbers, comments, etc. Since a person can have
+multiple phone numbers, multiple email addresses, etc, we will use nested
+records to define these. So, the first thing we do is define the nested
+records:</p>
+<pre class="doctools_example">
+##
+##  This is an interactive example, to see what is
+##  returned by each command as well.
+##
+% namespace import ::struct::record::*
+% # define a nested record. Notice that country has default 'USA'.
+% record define locations {
+    street
+    street2
+    city
+    state
+    zipcode
+    {country USA}
+    phone
+}
+::locations
+% # Define the main record. Notice that it uses the location record twice.
+% record define contacts {
+    first
+    middle
+    last
+    {record locations home}
+    {record locations work}
+}
+::contacts
+% # Create an instance for the contacts record.
+% contacts cont1
+::cont1
+% # Display some introspection values
+% record show records
+::contacts ::locations
+% #
+% record show values cont1
+-first {} -middle {} -last {} -home {-street {} -street2 {} -city {} -state {} -zipcode {} -country USA -phone {}} -work {-street {} -street2 {} -city {} -state {} -zipcode {} -country USA -phone {}}
+% #
+% record show instances contacts
+::cont1
+% #
+% cont1 config
+-first {} -middle {} -last {} -home {-street {} -street2 {} -city {} -state {} -zipcode {} -country USA -phone {}} -work {-street {} -street2 {} -city {} -state {} -zipcode {} -country USA -phone {}}
+% #
+% cont1 cget
+-first {} -middle {} -last {} -home {-street {} -street2 {} -city {} -state {} -zipcode {} -country USA -phone {}} -work {-street {} -street2 {} -city {} -state {} -zipcode {} -country USA -phone {}}
+% # copy one record to another record
+% record define contacts2 [record show members contacts]
+::contacts2
+% record show members contacts2
+first middle last {record locations home} {record locations work}
+% record show members contacts
+first middle last {record locations home} {record locations work}
+%
+</pre>
+<p><em>Example 1</em></p>
+<p>This next example just illustrates a simple linked list</p>
+<pre class="doctools_example">
+% # define a very simple record for linked list
+% record define llist {
+    value
+    next
+}
+::llist
+% llist lstart
+::lstart
+% lstart config -value 1 -next [llist #auto]
+% [lstart cget -next] config -value 2 -next [llist #auto]
+% [[lstart cget -next] cget -next] config -value 3 -next &quot;end&quot;
+% set next lstart
+lstart
+% while 1 {
+lappend values [$next cget -value]
+set next [$next cget -next]
+if {[string match &quot;end&quot; $next]} {break}
+}
+% puts &quot;$values&quot;
+1 2 3
+% # cleanup linked list
+% # We could just use delete record llist also
+% foreach I [record show instances llist] {
+record delete instance $I
+}
+% record show instances llist
+%
+</pre>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>struct :: record</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key328">data structures</a>, <a href="../../../../index.html#key307">record</a>, <a href="../../../../index.html#key327">struct</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Data structures</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2002, Brett Schwarz &lt;brett_schwarz@yahoo.com&gt;</p>
+</div>
+</div></body></html>

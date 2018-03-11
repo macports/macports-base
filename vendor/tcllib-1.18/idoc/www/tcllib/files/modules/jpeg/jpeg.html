@@ -1,0 +1,297 @@
+<html><head>
+<title>jpeg - JPEG image manipulation</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'jpeg.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2004-2005, Code: Aaron Faupell &lt;afaupell@users.sourceforge.net&gt;   -- Copyright &copy; 2007, Code:  Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;   -- Copyright &copy; 2004-2009, Doc:  Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;   -- Copyright &copy; 2011, Code: Pat Thoyts &lt;patthoyts@users.sourceforge.net&gt;
+   -->
+<! -- jpeg.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">jpeg(n) 0.5 tcllib &quot;JPEG image manipulation&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>jpeg - JPEG querying and manipulation of meta data</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">LIMITATIONS</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">jpeg <span class="opt">?0.5?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::jpeg::isJPEG</b> <i class="arg">file</i></a></li>
+<li><a href="#2"><b class="cmd">::jpeg::imageInfo</b> <i class="arg">file</i></a></li>
+<li><a href="#3"><b class="cmd">::jpeg::dimensions</b> <i class="arg">file</i></a></li>
+<li><a href="#4"><b class="cmd">::jpeg::getThumbnail</b> <i class="arg">file</i></a></li>
+<li><a href="#5"><b class="cmd">::jpeg::getExif</b> <i class="arg">file</i> <span class="opt">?<i class="arg">section</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">::jpeg::getExifFromChannel</b> <i class="arg">channel</i> <span class="opt">?<i class="arg">section</i>?</span></a></li>
+<li><a href="#7"><b class="cmd">::jpeg::formatExif</b> <i class="arg">keys</i></a></li>
+<li><a href="#8"><b class="cmd">::jpeg::exifKeys</b></a></li>
+<li><a href="#9"><b class="cmd">::jpeg::removeExif</b> <i class="arg">file</i></a></li>
+<li><a href="#10"><b class="cmd">::jpeg::stripJPEG</b> <i class="arg">file</i></a></li>
+<li><a href="#11"><b class="cmd">::jpeg::getComments</b> <i class="arg">file</i></a></li>
+<li><a href="#12"><b class="cmd">::jpeg::addComment</b> <i class="arg">file</i> <i class="arg">text</i>...</a></li>
+<li><a href="#13"><b class="cmd">::jpeg::removeComments</b> <i class="arg">file</i></a></li>
+<li><a href="#14"><b class="cmd">::jpeg::replaceComment</b> <i class="arg">file</i> <i class="arg">text</i></a></li>
+<li><a href="#15"><b class="cmd">::jpeg::debug</b> <i class="arg">file</i></a></li>
+<li><a href="#16"><b class="cmd">::jpeg::markers</b> <i class="arg">channel</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides commands to query and modify JPEG images. JPEG
+stands for <i class="term">Joint Photography Experts Group</i> and is a standard
+for the lossy compression of photographical images. It is specified at
+<a href="LINK_HERE">LINK_HERE</a>.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::jpeg::isJPEG</b> <i class="arg">file</i></a></dt>
+<dd><p>Returns a boolean value indicating if <i class="arg">file</i> is a
+JPEG image.</p></dd>
+<dt><a name="2"><b class="cmd">::jpeg::imageInfo</b> <i class="arg">file</i></a></dt>
+<dd><p>Returns a dictionary with keys <b class="const">version</b>, <b class="const">units</b>,
+<b class="const">xdensity</b>, <b class="const">ydensity</b>, <b class="const">xthumb</b>, and
+<b class="const">ythumb</b>. The values are the associated properties of the JPEG
+image in <i class="arg">file</i>.
+Throws an error if <i class="arg">file</i> is not a JPEG image.</p></dd>
+<dt><a name="3"><b class="cmd">::jpeg::dimensions</b> <i class="arg">file</i></a></dt>
+<dd><p>Returns the dimensions of the JPEG <i class="arg">file</i> as a list of the
+horizontal and vertical pixel count.
+Throws an error if <i class="arg">file</i> is not a JPEG image.</p></dd>
+<dt><a name="4"><b class="cmd">::jpeg::getThumbnail</b> <i class="arg">file</i></a></dt>
+<dd><p>This procedure will return the binary thumbnail image data, if a JPEG
+thumbnail is included in <i class="arg">file</i>, and the empty string
+otherwise. Note that it is possible to include thumbnails in formats
+other than JPEG although that is not common. The command finds
+thumbnails that are encoded in either the JFXX or EXIF segments of the
+JPEG information. If both are present the EXIF thumbnail will take precedence.
+Throws an error if <i class="arg">file</i> is not a JPEG image.</p>
+<pre class="doctools_example">
+    set fh [open thumbnail.jpg w+]
+    fconfigure $fh -translation binary -encoding binary
+    puts -nonewline $fh [::jpeg::getThumbnail photo.jpg]
+    close $fh
+</pre>
+</dd>
+<dt><a name="5"><b class="cmd">::jpeg::getExif</b> <i class="arg">file</i> <span class="opt">?<i class="arg">section</i>?</span></a></dt>
+<dd><p><i class="arg">section</i> must be one of <b class="const">main</b> or <b class="const">thumbnail</b>.
+The default is <b class="const">main</b>.
+Returns a dictionary containing the EXIF information for the specified section.
+For example:</p>
+<pre class="doctools_example">
+    set exif {
+	Make     Canon
+	Model    {Canon DIGITAL IXUS}
+	DateTime {2001:06:09 15:17:32}
+    }
+</pre>
+<p>Throws an error if <i class="arg">file</i> is not a JPEG image.</p></dd>
+<dt><a name="6"><b class="cmd">::jpeg::getExifFromChannel</b> <i class="arg">channel</i> <span class="opt">?<i class="arg">section</i>?</span></a></dt>
+<dd><p>This command is as per <b class="cmd">::jpeg::getExif</b> except that it uses a
+previously opened channel.  <i class="arg">channel</i> should be a seekable channel
+and <i class="arg">section</i> is as described in the documentation of
+<b class="cmd">::jpeg::getExif</b>.</p>
+<p><em>Note</em>: The jpeg parser expects that the start of the
+channel is the start of the image data. If working with an image
+embedded in a container file format it may be necessary to read the
+jpeg data into a temporary container: either a temporary file or a
+memory channel.</p>
+<p><em>Attention</em>: It is the resonsibility of the caller to close
+the channel after its use.</p></dd>
+<dt><a name="7"><b class="cmd">::jpeg::formatExif</b> <i class="arg">keys</i></a></dt>
+<dd><p>Takes a list of key-value pairs as returned by <b class="cmd">getExif</b> and formats
+many of the values into a more human readable form. As few as one key-value
+may be passed in, the entire exif is not required.</p>
+<pre class="doctools_example">
+    foreach {key val} [::jpeg::formatExif [::jpeg::getExif photo.jpg]] {
+        puts &quot;$key: $val&quot;
+    }
+</pre>
+<pre class="doctools_example">
+    array set exif [::jpeg::getExif photo.jpg]
+    puts &quot;max f-stop: [::jpeg::formatExif [list MaxAperture $exif(MaxAperture)]]
+</pre>
+</dd>
+<dt><a name="8"><b class="cmd">::jpeg::exifKeys</b></a></dt>
+<dd><p>Returns a list of the EXIF keys which are currently understood.
+There may be keys present in <b class="cmd">getExif</b> data that are not understood.
+Those keys will appear in a 4 digit hexadecimal format.</p></dd>
+<dt><a name="9"><b class="cmd">::jpeg::removeExif</b> <i class="arg">file</i></a></dt>
+<dd><p>Removes the Exif data segment from the specified file and replaces
+it with a standard JFIF segment.
+Throws an error if <i class="arg">file</i> is not a JPEG image.</p></dd>
+<dt><a name="10"><b class="cmd">::jpeg::stripJPEG</b> <i class="arg">file</i></a></dt>
+<dd><p>Removes all metadata from the JPEG file leaving only
+the image. This includes comments, EXIF segments, JFXX
+segments, and application specific segments.
+Throws an error if <i class="arg">file</i> is not a JPEG image.</p></dd>
+<dt><a name="11"><b class="cmd">::jpeg::getComments</b> <i class="arg">file</i></a></dt>
+<dd><p>Returns a list containing all the JPEG comments found in
+the <i class="arg">file</i>.
+Throws an error if <i class="arg">file</i> is not a valid JPEG image.</p></dd>
+<dt><a name="12"><b class="cmd">::jpeg::addComment</b> <i class="arg">file</i> <i class="arg">text</i>...</a></dt>
+<dd><p>Adds one or more plain <i class="arg">text</i> comments to the JPEG image
+in <i class="arg">file</i>.
+Throws an error if <i class="arg">file</i> is not a valid JPEG image.</p></dd>
+<dt><a name="13"><b class="cmd">::jpeg::removeComments</b> <i class="arg">file</i></a></dt>
+<dd><p>Removes all comments from the file specified.
+Throws an error if <i class="arg">file</i> is not a valid JPEG image.</p></dd>
+<dt><a name="14"><b class="cmd">::jpeg::replaceComment</b> <i class="arg">file</i> <i class="arg">text</i></a></dt>
+<dd><p>Replaces the first comment in the file with the new <i class="arg">text</i>.
+This is merely a shortcut for <b class="cmd">::jpeg::removeComments</b>
+and <b class="cmd">::jpeg::addComment</b>
+Throws an error if <i class="arg">file</i> is not a valid JPEG image.</p></dd>
+<dt><a name="15"><b class="cmd">::jpeg::debug</b> <i class="arg">file</i></a></dt>
+<dd><p>Prints everything we know about the given file in a nice format.</p></dd>
+<dt><a name="16"><b class="cmd">::jpeg::markers</b> <i class="arg">channel</i></a></dt>
+<dd><p>This is an internal helper command, we document it for use by advanced
+users of the package. The argument <i class="arg">channel</i> is an open file
+handle positioned at the start of the first marker (usually 2
+bytes). The command returns a list with one element for each JFIF
+marker found in the file. Each element consists of a list of the
+marker name, its offset in the file, and its length. The offset points
+to the beginning of the sections data, not the marker itself.  The
+length is the length of the data from the offset listed to the start
+of the next marker.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">LIMITATIONS</a></h2>
+<p>can only work with files
+cant write exif data
+gps exif data not parsed
+makernote data not yet implemented</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>jpeg</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key155">comment</a>, <a href="../../../../index.html#key152">exif</a>, <a href="../../../../index.html#key121">image</a>, <a href="../../../../index.html#key154">jfif</a>, <a href="../../../../index.html#key153">jpeg</a>, <a href="../../../../index.html#key151">thumbnail</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>File formats</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2004-2005, Code: Aaron Faupell &lt;afaupell@users.sourceforge.net&gt;<br>
+Copyright &copy; 2007, Code:  Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;<br>
+Copyright &copy; 2004-2009, Doc:  Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;<br>
+Copyright &copy; 2011, Code: Pat Thoyts &lt;patthoyts@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

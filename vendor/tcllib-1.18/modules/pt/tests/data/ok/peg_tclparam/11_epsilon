@@ -1,0 +1,28 @@
+# -*- tcl -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+#
+# Grammar Start Expression
+#
+
+<<def>> <<ns>><<main>> {} {
+    <<self>> choice_3
+    return
+}
+
+<<def>> <<ns>>choice_3 {} {
+    # /
+    #     'a'
+    #     <epsilon>
+
+    <<runtime>> si:void_state_push
+    <<runtime>> si:next_char a
+    <<runtime>> si:voidvoid_branch
+    <<runtime>> i_status_ok
+    <<runtime>> si:void_state_merge
+    return
+}
+
+#
+#

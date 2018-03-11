@@ -1,0 +1,37 @@
+Example application using tcllib modules.
+=========================================
+
+This application (oscon) extracts session, track and talk information
+from the O'Reilly OSCON webpages, collates them and writes some global
+reports. It uses the tcllib modules "htmlparse", "struct" ("matrix",
+"tree"), "csv", "report" and "log".
+
+It is called as
+
+	oscon <prefix> <htmlfile>...
+
+reads the provided HTML files containing the webpages to process and
+then produces the six files
+
+	<prefix>.main.csv	All talks with time, location, track
+				information, as CSV file.
+	<prefix>.main.txt	As above, ASCII report
+	<prefix>.main.html	As above, as HTML table
+
+	<prefix>.sched.csv	Track information, sorted by day and
+				start time, as CSV file
+	<prefix>.sched.txt	As above, ASCII report
+	<prefix>.sched.html	As above, as HTML table
+
+Adding other reports (like room usage, east/west usage, ...) should be
+rather easy.
+
+If "a2ps" is available the script will additionally generate .ps files
+out of the .txt files.
+
+----------------------------------------------------------------
+
+*Note*: The webpages used to develop this application are provided
+here too to allow a successful operation of the example even if the
+actual webpages at O'Reilly changed their format or are not available
+anymore.

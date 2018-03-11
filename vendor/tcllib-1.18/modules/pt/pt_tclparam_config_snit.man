@@ -1,0 +1,48 @@
+[vset VERSION 1.0.2]
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt::tclparam::configuration::snit n [vset VERSION]]
+[include include/module.inc]
+[titledesc {Tcl/PARAM, Canned configuration, Snit}]
+[require pt::tclparam::configuration::snit [opt [vset VERSION]]]
+[description]
+[include include/ref_intro.inc]
+
+This package is an adjunct to [package pt::peg::to::tclparam], to make
+the use of this highly configurable package easier by providing a
+canned configuration. When applied this configuration causes the
+package [package pt::peg::to::tclparam] to generate
+[package snit]-based parser packages.
+
+[para]
+
+It is a supporting package in the Core Layer of Parser Tools.
+[para][image arch_core_support][para]
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::pt::tclparam::configuration::snit] [method def] \
+	[arg name] [arg pkg] [arg version] [arg cmdprefix]]
+
+The command applies the configuration provided by this package to the
+[arg cmdprefix], causing the creation of [package snit]-based parsers
+whose class is [arg name], in package [arg pkg] with [arg version].
+
+[para]
+
+The use of a command prefix as API allows application of the
+configuration to not only [package pt::peg::to::tclparam]
+([cmd {pt::peg::to::tclparam configure}]), but also export manager
+instances and PEG containers ([cmd {$export configuration set}] and
+[cmd {[$container exporter] configuration set}] respectively).
+
+[para]
+
+Or anything other command prefix accepting two arguments, option and
+value.
+
+[list_end]
+
+[include include/feedback.inc]
+[manpage_end]

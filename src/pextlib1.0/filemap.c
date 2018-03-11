@@ -1,6 +1,5 @@
 /*
  * filemap.c
- * $Id$
  *
  * Copyright (c) 2004 Paul Guyot, The MacPorts Project.
  * All rights reserved.
@@ -41,12 +40,13 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <string.h>
+#include <strings.h>
 #include <unistd.h>
 
 #include <tcl.h>
 
 #include "filemap.h"
-#include "strcasecmp.h"
 
 /* ========================================================================= **
  * Definitions

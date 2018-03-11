@@ -1,0 +1,91 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin nnsd n 1.0.1]
+[see_also nameserv::common(n)]
+[see_also nameserv::server(n)]
+[keywords application]
+[keywords {name service}]
+[keywords server]
+[copyright {2007-2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Name service facility}]
+[titledesc {Name service facility, Commandline Server Application}]
+[category  Networking]
+[description]
+[para]
+
+Please read [term {Name service facility, introduction}] first.
+
+[para]
+
+The application described by this document, [syscmd nns], is a simple
+command line server for the nano name service facility provided by the
+Tcllib packages [package nameserv], and [package nameserv::server].
+
+Beyond that the application's sources also serve as an example of how
+to use the server package [package nameserv::server].
+
+[para]
+
+This name service facility has nothing to do with the Internet's
+[term {Domain Name System}], otherwise known as [term DNS]. If the
+reader is looking for a package dealing with that please see either of
+the packages [package dns] and [package resolv], both found in Tcllib
+too.
+
+[subsection {USE CASES}]
+
+[syscmd nnsd] was written with the following main use case in
+mind.
+
+[para]
+[list_begin enumerated]
+[enum]
+Run a nano name service on some host.
+
+[list_end]
+
+[para]
+
+[subsection {COMMAND LINE}]
+
+[list_begin definitions]
+
+[call [cmd nnsd] \
+	[opt "[option -localonly] [arg flag]"] \
+	[opt "[option -port] [arg port]"]]
+
+The command configures a server per the specified options and starts
+it. The command will not exit on its own, as it keeps the name service
+database wholly in memory. The user has to kill it explicitly, either
+by sending a a signal, or through the job-control facilities of the
+shell in use.
+
+[para]
+The options to configure the name service are explained in section
+[sectref OPTIONS].
+
+[list_end]
+
+[subsection OPTIONS]
+
+This section describes all the options available to the user of the
+application
+
+[para]
+[list_begin options]
+[opt_def -localonly bool]
+
+If this option is not specified it defaults to [const true], i.e.
+acceptance of only local connections. The server will accept remote
+connections, i.e. connections from other hosts, if and only if this
+option is configured to [const false].
+
+[opt_def -port number]
+
+If this option is not specified it defaults to [const 38573]. It
+specifies the TCP port the server has to listen on for requests.
+
+[list_end]
+
+[vset CATEGORY nameserv]
+[include ../modules/doctools2base/include/feedback.inc]
+[manpage_end]

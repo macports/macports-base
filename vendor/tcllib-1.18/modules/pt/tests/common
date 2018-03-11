@@ -1,0 +1,412 @@
+# -*- tcl -*-
+# Code common to the various control files.
+#
+# Copyright (c) 2009-2014 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: common,v 1.1 2010/03/26 05:07:24 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+# Similar to TestFiles in devtools/testutilities.tcl, but not
+# identical.  Here we do not expect source'able test suites, but data
+# files, organized in sections under a main directory.
+
+proc TestFilesProcess {maindir section inset outset -> nv lv iv dv ev script {optionalok 0}} {
+    upvar 1 $nv n $lv label $dv data $ev expected $iv inputfile
+
+    set pattern $maindir/$section/$inset/*
+
+    set files [TestFilesGlob $pattern]
+    if {![llength $files]} {
+	if {$optionalok} return
+	return -code error "No files matching \"$pattern\""
+    }
+    foreach src $files {
+	if {[string match *README* $src]} continue
+	if {[file isdirectory      $src]} continue
+
+	set srcname  [file tail $src]
+	set exp      [localPath $maindir]/$section/$outset/$srcname
+	set data     [fileutil::cat -translation binary -encoding utf-8 $src]
+	set expected [string trim [fileutil::cat -translation binary -encoding utf-8 $exp]]
+	set expected [string map [list \
+				      @sak   @sak \
+				      @line  @line \
+				      {@ %d} {@ %d} \
+				      {@ %p} {@ %p} \
+				      @ $::tcltest::testsDirectory] $expected]
+
+	regexp -- {^([0-9]+)}    $srcname -> n
+	regsub -all -- {^[0-9]+} $srcname {} label
+
+	scan $n %d n
+	set label [string trim [string map {_ { }} $label]]
+	set inputfile $src
+
+	uplevel 1 $script
+    }
+    return
+}
+
+
+proc TestFilesProcessIn {maindir section inset -> nv lv iv dv script} {
+    upvar 1 $nv n $lv label $dv data $iv inputfile
+
+    set pattern $maindir/$section/$inset/*
+
+    set files [TestFilesGlob $pattern]
+    if {![llength $files]} {
+	return -code error "No files matching \"$pattern\""
+    }
+    foreach src $files {
+	if {[string match *README* $src]} continue
+	if {[file isdirectory      $src]} continue
+
+	set srcname  [file tail $src]
+	set data     [fileutil::cat -translation binary -encoding utf-8 $src]
+
+	regexp -- {^([0-9]+)}    $srcname -> n
+	regsub -all -- {^[0-9]+} $srcname {} label
+
+	scan $n %d n
+	set label [string trim [string map {_ { }} $label]]
+	set inputfile $src
+
+	uplevel 1 $script
+    }
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc setup_plugins {} {
+    global env
+
+    array_unset env LANG*
+    array_unset env LC_*
+    set env(LANG) C ; # Usually default if nothing is set, OS X requires this.
+
+    set paths [join [list \
+			 [tcllibPath grammar_peg] \
+			 [tcllibPath struct] \
+			 [tcllibPath json] \
+			 [tcllibPath textutil] \
+			] \
+		   [expr {$::tcl_platform(platform) eq "windows" ? ";" : ":"}]]
+
+    # Initialize the paths an import plugin manager should use when
+    # searching for an import plugin used by the code under test, and
+    # also provide the paths enabling the import plugins to find their
+    # supporting packages as well.
+
+    set env(GRAMMAR_PEG_IMPORT_PLUGINS) $paths
+
+    # Initialize the paths an export plugin manager should use when
+    # searching for an export plugin used by the code under test, and
+    # also provide the paths enabling the export plugins to find their
+    # supporting packages as well.
+
+    set env(GRAMMAR_PEG_EXPORT_PLUGINS) $paths
+
+    return
+}
+
+# -------------------------------------------------------------------------
+
+proc stripcomments {text} {
+    set pattern {[[:space:]]*\[comment[[:space:]][[:space:]]*\{[^\}]*\}[[:space:]]*\][[:space:]]*}
+    regsub -all -- $pattern $text {} text
+    return $text
+}
+
+proc striphtmlcomments {text {n {}}} {
+    set pattern {<!--.*?-->}
+    if {$n eq {}} {
+	regsub -all -- $pattern $text {} text
+    } else {
+	while {$n} {
+	    regsub -- $pattern $text {} text
+	    incr n -1
+	}
+    }
+    return $text
+}
+
+proc stripmanmacros {text} {
+    return [string map [list \n[pt::nroff::man_macros::contents] {}] $text]
+}
+
+proc stripnroffcomments {text {n {}}} {
+#    return $text
+    set pattern "'\\\\\"\[^\n\]*\n"
+    if {$n eq {}} {
+	regsub -all -- $pattern $text {} text
+    } else {
+	while {$n} {
+	    regsub -- $pattern $text {} text
+	    incr n -1
+	}
+    }
+    return $text
+}
+
+# -------------------------------------------------------------------------
+
+# Validate a serialization against the tree it
+# was generated from.
+
+proc validate_serial {t serial {rootname {}}} {
+    if {$rootname == {}} {
+	set rootname [$t rootname]
+    }
+
+    # List length is multiple of 3
+    if {[llength $serial] % 3} {
+	return serial/wrong#elements
+    }
+
+    # Scan through list and built a number helper
+    # structures (arrays).
+
+    array set a  {}
+    array set p  {}
+    array set ch {}
+    foreach {node parent attr} $serial {
+	# Node has to exist in tree
+	if {![$t exists $node]} {
+	    return node/$node/unknown
+	}
+	if {![info exists ch($node)]} {set ch($node) {}}
+	# Parent reference has to be empty or
+	# integer, == 0 %3, >=0, < length serial
+	if {$parent != {}} {
+	    if {![string is integer -strict $parent]} {
+		return node/$node/parent/no-integer/$parent
+	    }
+	    if {$parent % 3} {
+		return node/$node/parent/not-triple/$parent
+	    }
+	    if {$parent < 0} {
+		return node/$node/parent/out-of-bounds/$parent
+	    }
+	    if {$parent >= [llength $serial]} {
+		return node/$node/parent/out-of-bounds/$parent
+	    }
+	    # Resolve parent index into node name, has to match
+	    set parentnode [lindex $serial $parent]
+	    if {![$t exists $parentnode]} {
+		return node/$node/parent/unknown/$parent/$parentnode
+	    }
+	    if {![string equal [$t parent $node] $parentnode]} {
+		return node/$node/parent/mismatch/$parent/$parentnode/[$t parent $node]
+	    }
+	    lappend ch($parentnode) $node
+	} else {
+	    set p($node) {}
+	}
+	# Attr list has to be of even length.
+	if {[llength $attr] % 2} {
+	    return attr/$node/wrong#elements
+	}
+	# Attr have to exist and match in all respects
+	if {![string equal \
+		[dictsort $attr] \
+		[dictsort [$t getall $node]]]} {
+	    return attr/$node/mismatch
+	}
+    }
+    # Second pass, check that the children information is encoded
+    # correctly. Reconstructed data has to match originals.
+
+    foreach {node parent attr} $serial {
+	if {![string equal $ch($node) [$t children $node]]} {
+	    return node/$node/children/mismatch
+	}
+    }
+
+    # Reverse check
+    # - List of nodes from the 'rootname' and check
+    #   that it and all its children are present
+    #   in the structure.
+
+    set ::FOO {}
+    $t walk $rootname n {walker $n}
+
+    foreach n $::FOO {
+	if {![info exists ch($n)]} {
+	    return node/$n/mismatch/reachable/missing
+	}
+    }
+    if {[llength $::FOO] != [llength $serial]/3} {
+	return structure/mismatch/#nodes/multiples
+    }
+    if {[llength $::FOO] != [array size ch]} {
+	return structure/mismatch/#nodes/multiples/ii
+    }
+    return ok
+}
+
+# Callbacks for tree walking.
+# Remember the node in a global variable.
+
+proc walker {node} {
+    lappend ::FOO $node
+}
+
+proc match_tree {ta tb} {
+    match_node $ta [$ta rootname] $tb [$tb rootname]
+    return
+}
+
+proc match_node {ta a tb b} {
+    if {[dictsort [$ta getall $a]] ne [dictsort [$tb getall $b]]} {
+	return -code error "$ta/$a at $tb/$b, attribute mismatch (([dictsort [$ta getall $a]]) ne ([dictsort [$tb getall $b]]))"
+    }
+    if {[llength [$ta children $a]] != [llength [$tb children $b]]} {
+	return -code error "$ta/$a at $tb/$b, children mismatch"
+    }
+    foreach ca [$ta children $a] cb [$tb children $b] {
+	match_node $ta $ca $tb $cb
+    }
+    return
+}
+
+# -------------------------------------------------------------------------
+## Dynamically create a parser for a PE grammar stored in a string.
+## Different types:
+## - critcl    -- Run through critcl tool for compilation at test time.
+## - oo
+## - container -- interpreter loaded from a container
+## - snit
+
+proc make-parser {format glabel grammar} {
+    global pcounter
+    if {![info exist pcounter]} { set pcounter 0 }
+
+    set debug 0
+    set keep  0
+
+    # should be preloaded by test suite.
+    if {[catch {
+	package present pt::pgen
+    }]} {
+	error "pt::pgen package required and not loaded. Please fix your testsuite."
+    }
+
+    # Options per format.
+    # container :        -name
+    # critcl    : -class -name
+    # oo        : -class -name
+    # snit      : -class -name
+
+    set gc GC[incr pcounter]
+    lappend cmd pt::pgen peg $grammar $format -name G
+    if {$format ne "container"} {
+	lappend cmd -class $gc
+    }
+
+    try {
+	set code [eval $cmd]
+    } trap {PT RDE SYNTAX} {e o} {
+	error [pt::util error2readable $e $grammar]
+    }
+
+    # debugging generator output
+    if {$debug} {
+	set   k [expr {$keep ? [open $gc$format w] : "stdout"}]
+	puts $k "#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% $format ($glabel)"
+	puts $k $code
+	puts $k "#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% $format ($glabel)"
+	if {$keep} { close $k }
+    }
+
+    # Now do format-specific post-processing of the generated code to
+    # get a proper parser object.
+
+    switch -exact -- $format {
+	container {
+	    # should be preloaded by test suite.
+	    if {[catch {
+		package present pt::peg::interp
+	    }]} {
+		error "pt::peg::interp package required and not loaded. Please fix your testsuite."
+	    }
+
+	    # Instantiate container class (transient).
+	    eval $code
+	    # Instantiate container (transient).
+	    set c [G %AUTO%]
+
+	    # Instantiate PEG interpreter, and configure with grammar in container.
+	    set p [pt::peg::interp %AUTO%]
+	    $p use $c
+
+	    # Clean up the transient pieces (container class and instance).
+	    $c destroy
+	    G destroy
+	}
+	snit {
+	    # Instantiate the parser class.
+	    # ATTENTION: We chop the last 2 lines of the code first,
+	    # unwanted "package provide" and "return" commands.
+	    eval [join [lrange [split $code \n] 0 end-2] \n]
+
+	    # Instantiate a parser based on the class.
+	    set p [$gc %AUTO%]
+	    # Note: Cannot destroy class now, would destroy instance as well.
+	}
+	oo {
+	    # Instantiate the parser class.
+	    # ATTENTION: We chop the last 2 lines of the code first,
+	    # unwanted "package provide" and "return" commands.
+	    eval [join [lrange [split $code \n] 0 end-2] \n]
+
+	    # Instantiate a parser based on the class.
+	    set p [$gc new]
+	    # Note: Cannot destroy class now, would destroy instance as well.
+	}
+	critcl {
+	    # Instantiate the parser class.
+	    # ATTENTION: We chop the last line of the code first,
+	    # unwanted "return" command.
+	    #
+	    # ATTENTION: We muck with [info script] to distinguish the
+	    # multiple parsers going through this file and procedure
+	    # from each other. Without doing this they would all map
+	    # to the same file and critcl bailing on us for code
+	    # redefinition after a compile & link for that file.
+
+	    set here [info script]
+	    info script $gc
+
+	    eval [join [lrange [split $code \n] 0 end-1] \n]
+
+	    # Above invoked critcl's collection of the C fragments.
+	    # We have made sure (in "pt_pgen.test" and
+	    # "tests/pt_pgen.tests") that the critcl package is
+	    # available (we use it in run&compile mode).
+
+	    # Hidden in the execution of the command instantiating the
+	    # parser is the compilation, link and load of the C
+	    # pieces, via $auto_index() and [unknown].
+	    set p [${gc}::${gc}_critcl]
+
+	    info script $here
+	}
+    }
+
+    # Provide parser instance.
+    if {$debug} {
+	puts "P = ($p)"
+	puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% $format ($glabel)"
+	puts "** [join [info loaded] "\n** "]"
+	puts "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% $format ($glabel)"
+	puts %%
+	puts %%%
+    }
+    return $p
+}
+
+# -------------------------------------------------------------------------
+return

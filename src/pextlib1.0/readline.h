@@ -1,6 +1,5 @@
 /*
  * readline.h
- * $Id$
  *
  */
 

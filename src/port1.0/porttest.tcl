@@ -1,6 +1,5 @@
 # et:ts=4
 # porttest.tcl
-# $Id$
 
 package provide porttest 1.0
 package require portutil 1.0

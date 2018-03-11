@@ -1,0 +1,47 @@
+# -*- tcl -*-
+# pt_peg_to_cparam.test:  tests for the pt::peg::to::cparam converter package.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: pt_peg_to_cparam.test,v 1.1 2010/03/26 05:07:24 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2
+
+support {
+    useAccel [useTcllibC] struct/sets.tcl struct::set ; # used by pt::pe::op,
+    TestAccelInit                         struct::set ; # however not by the
+    #                                                   # commands used here.
+
+    use      fileutil/fileutil.tcl  fileutil      ;# tests/common
+    use      textutil/adjust.tcl    textutil::adjust
+
+    useLocal pt_pexpression.tcl     pt::pe
+    useLocal pt_pexpr_op.tcl        pt::pe::op
+    useLocal pt_pegrammar.tcl       pt::peg
+    useLocal text_write.tcl         text::write
+    useLocal char.tcl               char
+
+    source [localPath tests/common]
+}
+testing {
+    useLocal pt_peg_to_cparam.tcl pt::peg::to::cparam
+}
+
+set mytestdir tests/data
+
+# -------------------------------------------------------------------------
+
+source [localPath tests/pt_peg_to_cparam.tests]
+
+# -------------------------------------------------------------------------
+TestAccelExit struct::set
+testsuiteCleanup
+return

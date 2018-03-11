@@ -1,0 +1,127 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctoc_lang_cmdref n 1.0]
+[see_also doctoc_intro]
+[see_also doctoc_lang_faq]
+[see_also doctoc_lang_intro]
+[see_also doctoc_lang_syntax]
+[keywords {doctoc commands}]
+[keywords {doctoc language}]
+[keywords {doctoc markup}]
+[keywords markup]
+[keywords {semantic markup}]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {doctoc language command reference}]
+[category  {Documentation tools}]
+[description]
+[para]
+
+This document specifies both names and syntax of all the commands
+which together are the doctoc markup language, version 1.
+
+As this document is intended to be a reference the commands are listed
+in alphabetical order, and the descriptions are relatively short.
+
+A beginner should read the much more informally written
+[term {doctoc language introduction}] first.
+
+[section Commands]
+[list_begin definitions]
+
+[call [cmd comment] [arg plaintext]]
+
+Toc markup. The argument text is marked up as a comment standing
+outside of the actual text of the document. Main use is in free-form
+text.
+
+[call [cmd division_end]]
+
+Toc structure. This command closes the division opened by the last
+[cmd division_begin] command coming before it, and not yet closed.
+
+[call [cmd division_start] [arg text] [opt [arg symfile]]]
+
+Toc structure. This command opens a division in the table of
+contents. Its counterpart is [cmd division_end]. Together they allow a
+user to give a table of contents additional structure.
+
+[para]
+
+The title of the new division is provided by the argument [arg text].
+
+[para]
+
+If the symbolic filename [arg symfile] is present then the section
+title should link to the referenced document, if links are supported
+by the output format.
+
+[call [cmd include] [arg filename]]
+
+Templating. The contents of the named file are interpreted as text
+written in the doctoc markup and processed in the place of the
+include command. The markup in the file has to be self-contained. It
+is not possible for a markup command to cross the file boundaries.
+
+[call [cmd item] [arg file] [arg text] [arg desc]]
+
+Toc structure. This command adds an individual element to the table of
+contents. Each such element refers to a document. The document is
+specified through the symbolic name [arg file]. The [arg text]
+argument is used to label the reference, whereas the [arg desc]
+provides a short descriptive text of that document.
+
+[para]
+
+The symbolic names are used to preserve the convertibility of this
+format to any output format. The actual name of the file will be
+inserted by the chosen formatting engine when converting the
+input. This will be based on a mapping from symbolic to actual names
+given to the engine.
+
+[call [cmd lb]]
+
+Text. The command is replaced with a left bracket. Use in free-form
+text. Required to avoid interpretation of a left bracket as the start
+of a markup command. Its usage is restricted to the arguments of other
+markup commands.
+
+[call [cmd rb]]
+
+Text. The command is replaced with a right bracket. Use in free-form
+text. Required to avoid interpretation of a right bracket as the end
+of a markup command. Its usage is restricted to the arguments of other
+commands.
+
+[call [cmd toc_begin] [arg text] [arg title]]
+
+Document structure. The command to start a table of contents. The
+arguments are a label for the whole group of documents the index
+refers to ([arg text]) and the overall title text for the index
+([arg title]), without markup.
+
+[para]
+
+The label often is the name of the package (or extension) the
+documents belong to.
+
+[call [cmd toc_end]]
+
+Document structure. Command to end a table of contents. Anything in
+the document coming after this command is in error.
+
+[call [cmd vset] [arg varname] [arg value] ]
+
+Templating. In this form the command sets the named document variable
+to the specified [arg value]. It does not generate output. I.e. the
+command is replaced by the empty string.
+
+[call [cmd vset] [arg varname]]
+
+Templating. In this form the command is replaced by the value of the
+named document variable
+
+[list_end]
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,195 @@
+# -*- tcl -*-
+# Testsuite for pt::peg.
+# Called by the ../peg_structure.test driver file.
+
+test pt-peg-1.0 {verify, wrong#args} -body {
+    pt::peg verify
+} -returnCodes error -result {wrong # args: should be "pt::peg verify serial ?canonvar?"}
+
+test pt-peg-1.1 {verify, wrong#args} -body {
+    pt::peg verify S V XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg verify serial ?canonvar?"}
+
+test pt-peg-2.0 {verify-as-canonical, wrong#args} -body {
+    pt::peg verify-as-canonical
+} -returnCodes error -result {wrong # args: should be "pt::peg verify-as-canonical serial"}
+
+test pt-peg-2.1 {verify-as-canonical, wrong#args} -body {
+    pt::peg verify-as-canonical S XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg verify-as-canonical serial"}
+
+test pt-peg-3.0 {print, wrong#args} -body {
+    pt::peg print
+} -returnCodes error -result {wrong # args: should be "pt::peg print serial"}
+
+test pt-peg-3.1 {print, wrong#args} -body {
+    pt::peg print S XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg print serial"}
+
+# -------------------------------------------------------------------------
+
+foreach {n badserial expected} {
+    0 {}
+    {error in serialization: dictionary too short, expected exactly one key}
+    1 {FOO {}}
+    {error in serialization: bad type tag "FOO"}
+    2 {pt::grammar::peg {}}
+    {error in serialization: dictionary of bad length, expected exactly two keys}
+    3 {pt::grammar::peg {a . b .}}
+    {error in serialization: missing expected key "rules"}
+    4 {pt::grammar::peg {rules . b . }}
+    {error in serialization: missing expected key "start"}
+    5 {pt::grammar::peg {rules {} start .}}
+    {error in serialization: bad start parsing expression: invalid operator "."}
+    6 {pt::grammar::peg {start epsilon rules {}}}
+    {error in serialization: duplicate and/or unsorted keywords and/or irrelevant whitespace}
+    7 {pt::grammar::peg {start epsilon rules {x y z}}}
+    {error in serialization: rule dictionary of bad length, not a dictionary}
+    8 {pt::grammar::peg {start epsilon rules {x 0 y 1 x 2}}}
+    {error in serialization: duplicate nonterminal keywords}
+    9 {pt::grammar::peg {start epsilon rules {{} 0}}}
+    {error in serialization: expected symbol name, got empty string}
+    10 {pt::grammar::peg {start epsilon rules {X 0}}}
+    {error in serialization: symbol dictionary for "X" of bad length, expected exactly two keys}
+    11 {pt::grammar::peg {start epsilon rules {X {a . b .}}}}
+    {error in serialization: symbol "X", missing expected key "is"}
+    12 {pt::grammar::peg {start epsilon rules {X {is . b .}}}}
+    {error in serialization: symbol "X", missing expected key "mode"}
+    13 {pt::grammar::peg {start epsilon rules {X {is . mode .}}}}
+    {error in serialization: bad (X) parsing expression: invalid operator "."}
+    14 {pt::grammar::peg {start epsilon rules {X {is epsilon mode .}}}}
+    {error in serialization: symbol "X", bad nonterminal mode "."}
+    15 {pt::grammar::peg {start epsilon rules {X {mode leaf is epsilon}}}}
+    {error in serialization: duplicate and/or unsorted keywords and/or irrelevant whitespace}
+} {
+    test pt-peg-4.$n "pt::peg verify-as-canonical, error" -body {
+	pt::peg verify-as-canonical $badserial
+    } -returnCodes error -result $expected
+}
+
+#----------------------------------------------------------------------
+
+foreach {n badserial expected} {
+
+    0 {}
+    {error in serialization: dictionary too short, expected exactly one key}
+    1 {FOO {}}
+    {error in serialization: bad type tag "FOO"}
+    2 {pt::grammar::peg {}}
+    {error in serialization: dictionary of bad length, expected exactly two keys}
+    3 {pt::grammar::peg {a . b .}}
+    {error in serialization: missing expected key "rules"}
+    4 {pt::grammar::peg {rules . b . }}
+    {error in serialization: missing expected key "start"}
+    5 {pt::grammar::peg {rules {} start .}}
+    {error in serialization: bad start parsing expression: invalid operator "."}
+
+    7 {pt::grammar::peg {start epsilon rules {x y z}}}
+    {error in serialization: rule dictionary of bad length, not a dictionary}
+    8 {pt::grammar::peg {start epsilon rules {x 0 y 1 x 2}}}
+    {error in serialization: duplicate nonterminal keywords}
+    9 {pt::grammar::peg {start epsilon rules {{} 0}}}
+    {error in serialization: expected symbol name, got empty string}
+    10 {pt::grammar::peg {start epsilon rules {X 0}}}
+    {error in serialization: symbol dictionary for "X" of bad length, expected exactly two keys}
+    11 {pt::grammar::peg {start epsilon rules {X {a . b .}}}}
+    {error in serialization: symbol "X", missing expected key "is"}
+    12 {pt::grammar::peg {start epsilon rules {X {is . b .}}}}
+    {error in serialization: symbol "X", missing expected key "mode"}
+    13 {pt::grammar::peg {start epsilon rules {X {is . mode .}}}}
+    {error in serialization: bad (X) parsing expression: invalid operator "."}
+    14 {pt::grammar::peg {start epsilon rules {X {is epsilon mode .}}}}
+    {error in serialization: symbol "X", bad nonterminal mode "."}
+
+} {
+    test pt-peg-5.$n "pt::peg verify, error" -body {
+	pt::peg verify $badserial
+    } -returnCodes error -result $expected
+}
+
+# -------------------------------------------------------------------------
+
+TestFilesProcess $mytestdir ok peg_serial peg_serial-print -> n label input data expected {
+    # The 'expected' data is irrelevant here, only used to satisfy
+    # TestFilesProcess' syntax.
+    test pt-peg-6.$n "pt::peg verify, $label, ok :- $input" -body {
+	pt::peg verify $data
+    } -result {}
+}
+
+# -------------------------------------------------------------------------
+
+TestFilesProcess $mytestdir ok peg_serial peg_serial-print -> n label input data expected {
+    # The 'expected' data is irrelevant here, only used to satisfy
+    # TestFilesProcess' syntax.
+    test pt-peg-7.$n "pt::peg print, $label :- $input" -body {
+	pt::peg print $data
+    } -result $expected
+}
+
+#----------------------------------------------------------------------
+# Merge ...
+
+test pt-peg-8.0 "pt::peg merge" -body {
+    pt::peg print \
+	[pt::peg merge \
+	     [fileutil::cat [localPath $mytestdir/ok/peg_serial/1_functions]] \
+	     [fileutil::cat [localPath $mytestdir/ok/peg_serial/0_basic_arithmetic]]]
+} -result [string trimright [fileutil::cat [localPath $mytestdir/ok/peg_serial-print/2_fun_arithmetic]] \n]
+
+#----------------------------------------------------------------------
+
+test pt-peg-9.0 {canonicalize, wrong#args} -body {
+    pt::peg canonicalize
+} -returnCodes error -result {wrong # args: should be "pt::peg canonicalize serial"}
+
+test pt-peg-9.1 {canonicalize, wrong#args} -body {
+    pt::peg canonicalize S XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg canonicalize serial"}
+
+
+test pt-peg-10.1 {equal, wrong#args} -body {
+    pt::peg equal
+} -returnCodes error -result {wrong # args: should be "pt::peg equal seriala serialb"}
+
+test pt-peg-10.2 {equal, wrong#args} -body {
+    pt::peg equal PE
+} -returnCodes error -result {wrong # args: should be "pt::peg equal seriala serialb"}
+
+test pt-peg-10.3 {equal, wrong#args} -body {
+    pt::peg equal PE PEB XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg equal seriala serialb"}
+
+
+test pt-peg-11.1 {merge, wrong#args} -body {
+    pt::peg merge
+} -returnCodes error -result {wrong # args: should be "pt::peg merge seriala serialb"}
+
+test pt-peg-11.2 {merge, wrong#args} -body {
+    pt::peg merge PE
+} -returnCodes error -result {wrong # args: should be "pt::peg merge seriala serialb"}
+
+test pt-peg-11.3 {merge, wrong#args} -body {
+    pt::peg merge PE PEB XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg merge seriala serialb"}
+
+#----------------------------------------------------------------------
+
+TestFilesProcess $mytestdir ok peg_serial peg_serial-canonical -> n label input data expected {
+    test pt-peg-12.$n "pt::peg canonicalize, $label :- $input" -body {
+	pt::peg canonicalize $data
+    } -result $expected
+}
+
+#----------------------------------------------------------------------
+
+TestFilesProcess $mytestdir ok peg_serial-canonical peg_serial-print -> n label input data expected {
+    # The 'expected' data is irrelevant here, only used to satisfy
+    # TestFilesProcess' syntax.
+    test pt-peg-13.$n "pt::peg verify-as-canonical, $label, ok :- $input" -body {
+	pt::peg verify-as-canonical $data
+    } -result {}
+}
+
+#----------------------------------------------------------------------
+unset n badserial expected label input data

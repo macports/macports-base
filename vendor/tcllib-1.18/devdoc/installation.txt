@@ -1,0 +1,85 @@
+Tcllib installation directory layout
+====================================
+
+This document describes the possible layouts for an installed tcllib,
+discusses their pro and contra and makes a choice for Tcllib 1.4. A
+roadmap of changes in the future is made available as appendix.
+
+[L1/D] Deep layout
+------------------
+
+	This is the layout of Tcllib 1.3 (and versions before that).
+
+	A single directory tcllib<version> is created, and all
+	subdirectories of the 'modules' subdirectory in the
+	distribution is copied into it. This is restricted at large to
+	*.tcl files, with exception made for some modules with special
+	needs.
+
+	Pro:
+	Contra:
+		Makes the handling of the various package indices,
+		well, not difficult, but uncomfortable.
+
+
+[L2/Fa] Flat layout 1
+---------------------
+
+	A directory is created for each module of tcllib.
+
+	Pro:
+		Handling of package indices is easier than for L1/D, a
+		toplevel index file with all its problems is not
+		required anymore.
+
+	Contra:
+		Directories should be versioned to avoid conflicts
+		between multiple releases. modules have no
+		version. This can be faked for modules containing one
+		package, but not for the modules with more.
+
+
+[L2/Fb] Flat layout 2
+---------------------
+
+	A directory is created for each package in tcllib.
+
+	Pro
+		Handling of package indices is easy, one per package.
+
+	Contra:
+		Modules containing more than one package are difficult
+		to handle. The system has to split them into the
+		individual packages. This rendered very difficult
+		because of shared package index files.
+	
+		This can be solved by moving tcllib (back) towards of
+		one package per module. When that goal is reached
+		L2/Fa and L2/Fb become the same, and the contra for
+		L2/Fa vanishes too as an exact version number can be
+		associated with each directory.
+
+Chosen layout for Tcllib 1.4
+----------------------------
+
+	L2/D
+
+	Despite the problems with package indices the contras against
+	the flat structures are too strong at this point in
+	time. Automatic solutions are not really possible, or require
+	a very high effort.
+
+Roadmap
+-------
+	Change the module directories of tcllib to contain exactly one
+	package per directory, with appropriate index (and meta data).
+
+	This not only makes sense for easier handling of installation
+	and package indices, but also in the greater context of
+	wrapping code for deployment.
+
+
+-----------------------------------
+This document is in the public domain.
+
+			Andreas Kupries	<andreas_kupries@users.sf.net>

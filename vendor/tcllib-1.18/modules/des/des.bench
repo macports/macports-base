@@ -1,0 +1,105 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'des' module.
+# This allow developers to monitor/gauge/track package performance.
+#
+# (c) 2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+# We need at least version 8.2 for the package and thus the
+# benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.2]} {
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+package forget tclDES
+catch {namespace delete ::des}
+catch {source [file join [file dirname [info script]] tcldes.tcl]}
+
+package forget des
+catch {namespace delete ::DES}
+source [file join [file dirname [info script]] des.tcl]
+
+set i [binary format H* 0000000000000000]
+set p [binary format H* 0123456789ABCDEF0123456789ABCDEF]]
+
+set k [binary format H* FEDCBA9876543210]
+set c [binary format H* ED39D950FA74BCC4ED39D950FA74BCC4]
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+bench -desc "DES 1des ECB encryption" -body {
+    DES::des -mode ecb -dir enc -key $k -iv $i $p
+}
+
+bench -desc "DES 1des ECB decryption" -body {
+    DES::des -mode ecb -dir dec -key $k -iv $i $c
+}
+
+bench -desc "DES 1des ECB encryption core" -pre {
+    set key [DES::Init ecb $k $i]
+} -body {
+    DES::Encrypt $key $p
+} -post {
+    DES::Final $key
+}
+
+bench -desc "DES 1des ECB decryption core" -pre {
+    set key [DES::Init ecb $k $i]
+} -body {
+    DES::Decrypt $key $c
+} -post {
+    DES::Final $key
+}
+
+bench -desc "DES 1des ECB keyschedule" -body {
+    DES::Final [DES::Init ecb $k $i]
+}
+
+bench -desc "DES 1des CBC keyschedule" -body {
+    DES::Final [DES::Init cbc $k $i]
+}
+
+if {[llength [package provide tclDES]] != 0} {
+    set k [binary format H* FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210]
+
+    bench -desc "DES 3des ECB encryption" -body {
+	DES::des -mode ecb -dir enc -key $k -iv $i $p
+    }
+
+    bench -desc "DES 3des ECB decryption" -body {
+	DES::des -mode ecb -dir dec -key $k -iv $i $c
+    }
+
+    bench -desc "DES 3des ECB encryption core" -pre {
+	set key [DES::Init ecb $k $i]
+    } -body {
+	DES::Encrypt $key $p
+    } -post {
+	DES::Final $key
+    }
+
+    bench -desc "DES 3des ECB decryption core" -pre {
+	set key [DES::Init ecb $k $i]
+    } -body {
+	DES::Decrypt $key $c
+    } -post {
+	DES::Final $key
+    }
+
+    bench -desc "DES 3des ECB keyschedule" -body {
+	DES::Final [DES::Init ecb $k $i]
+    }
+
+    bench -desc "DES 3des CBC keyschedule" -body {
+	DES::Final [DES::Init cbc $k $i]
+    }
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete

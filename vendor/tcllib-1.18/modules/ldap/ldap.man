@@ -1,0 +1,525 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin ldap n 1.6.9]
+[keywords {directory access}]
+[keywords internet]
+[keywords ldap]
+[keywords {ldap client}]
+[keywords protocol]
+[keywords {rfc 2251}]
+[keywords {rfc 4511}]
+[keywords x.500]
+[copyright {2004 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[copyright {2004 Jochen Loewer <loewerj@web.de>}]
+[copyright {2006 Michael Schlenker <mic42@users.sourceforge.net>}]
+[moddesc   {LDAP client}]
+[titledesc {LDAP client}]
+[category  Networking]
+[require Tcl 8.4]
+[require ldap [opt 1.8]]
+[description]
+[para]
+
+The [package ldap] package provides a Tcl-only client library
+for the LDAPv3 protocol as specified in
+
+RFC 4511 ([uri http://www.rfc-editor.org/rfc/rfc4511.txt]).
+
+It works by opening the standard (or secure) LDAP socket on the
+server, and then providing a Tcl API to access the LDAP protocol
+commands.  All server errors are returned as Tcl errors (thrown) which
+must be caught with the Tcl [cmd catch] command.
+
+[include ../common-text/tls-security-notes.inc]
+
+[section COMMANDS]
+
+[list_begin definitions]
+
+[call [cmd ::ldap::connect] [arg host] [opt [arg port]]]
+
+Opens a LDAPv3 connection to the specified [arg host], at the given
+[arg port], and returns a token for the connection. This token is the
+[arg handle] argument for all other commands. If no [arg port] is
+specified it will default to [const 389].
+
+[para]
+
+The command blocks until the connection has been established, or
+establishment definitely failed.
+
+[call [cmd ::ldap::secure_connect] [arg host] [opt [arg port]]]
+
+Like [cmd ::ldap::connect], except that the created connection is
+secured by SSL. The port defaults to [const 636].  This command
+depends on the availability of the package [package TLS], which is a
+SSL binding for Tcl. If [package TLS] is not available, then this
+command will fail.
+
+[para]
+
+The command blocks until the connection has been established, or
+establishment definitely failed.
+
+[call [cmd ::ldap::disconnect] [arg handle]]
+
+Closes the ldap connection refered to by the token
+[arg handle]. Returns the empty string as its result.
+
+[call [cmd ::ldap::starttls] [arg handle] [opt [arg cafile]] [opt [arg certfile]] [opt [arg keyfile]]]
+
+Start TLS negotiation on the connection denoted by [arg handle].
+
+This is currently experimental and subject to change, more control over the TLS details
+will probably be exposed later, to allow users to fine tune the negotiation according
+to their security needs.
+
+[call [cmd ::ldap::bind] [arg handle] [opt [arg name]] [opt [arg password]]]
+
+This command authenticates the ldap connection refered to by the token
+in [arg handle], with a user name and associated password. It blocks
+until a response from the ldap server arrives. Its result is the empty
+string.
+
+Both [arg name] and [arg passwd] default to the empty string if they
+are not specified.
+
+By leaving out [arg name] and [arg passwd] you can make an anonymous bind to
+the ldap server.
+
+You can issue [cmd ::ldap::bind] again to bind with different credentials.
+
+[call [cmd ::ldap::bindSASL] [arg handle] [opt [arg name]] [opt [arg password]]]
+
+This command uses SASL authentication mechanisms to do a multistage bind.
+
+Its otherwise identical to the standard [cmd ::ldap::bind].
+
+This feature is currently experimental and subject to change. See the documentation
+for the [package SASL] and the [file SASL.txt] in the tcllib CVS repository for
+details how to setup and use SASL with openldap.
+
+[call [cmd ::ldap::unbind] [arg handle]]
+
+This command asks the ldap server to release the last bind done for
+the connection refered to by the token in [arg handle].
+
+The [arg handle] is invalid after the unbind, as the server closes the connection.
+So this is effectivly just a more polite disconnect operation.
+
+[call [cmd ::ldap::search] [arg handle] [arg baseObject] [arg filterString] [arg attributes] [arg options]]
+
+This command performs a LDAP search below the [arg baseObject] tree
+using a complex LDAP search expression [arg filterString] and returns
+the specified [arg attributes] of all matching objects (DNs). If the
+list of [arg attributes] was empty all attributes are returned. The
+command blocks until it has received all results.
+
+The valid [arg options] are identical to the options listed for [cmd ::ldap::searchInit].
+
+[para]
+An example of a search expression is
+[para]
+[example {
+    set filterString "|(cn=Linus*)(sn=Torvalds*)"
+}]
+[para]
+
+The return value of the command is a list of nested dictionaries. The
+first level keys are object identifiers (DNs), second levels keys are
+attribute names. In other words, it is in the form
+
+[para]
+[example {
+    {dn1 {attr1 {val11 val12 ...} attr2 {val21...} ...}} {dn2 {a1 {v11 ...} ...}} ...
+}]
+[para]
+
+[call [cmd ::ldap::searchInit] [arg handle] [arg baseObject] [arg filterString] [arg attributes] [arg options]]
+
+This command initiates a LDAP search below the [arg baseObject] tree
+using a complex LDAP search expression [arg filterString].
+The search gets the specified [arg attributes] of all matching objects (DNs).
+
+The command itself just starts the search, to retrieve the actual results, use
+[cmd ::ldap::searchNext].
+A search can be terminated at any time by
+[cmd ::ldap::searchEnd]. This informs the server that no further results should be sent by sending and ABANDON message
+and cleans up the internal state of the search.
+
+Only one [cmd ::ldap::search] can be active at a given time, this
+includes the introspection commands [cmd {::ldap::info saslmechanisms}], [cmd {ldap::info control}] and
+[cmd {ldap::info extensions}], which invoke a search internally.
+
+Error responses from the server due to wrong arguments or similar things are returned
+with the first [cmd ::ldap::searchNext] call and should be checked and dealed with there.
+
+If the list of requested [arg attributes] is empty all attributes will be returned.
+The parameter [arg options] specifies the options to be used in the search,
+and has the following format:
+
+[para]
+[example {
+    {-option1 value1 -option2 value2 ... }
+}]
+[para]
+
+Following options are available:
+
+[list_begin options]
+[opt_def -scope  {base one sub} ]
+
+Control the scope of the search to be one of [const base], [const one], or [const sub],  to  specify  a  base
+object,  one-level or  subtree  search.   The  default is [const sub].
+
+[opt_def {-derefaliases} {never search find always}]
+
+Control how aliases dereferencing is done.  Should be one of [const never], [const always], [const search],  or  [const find]  to
+specify that aliases are never dereferenced, always dereferenced, dereferenced when searching, or
+dereferenced only when locating the base object for the search.
+The default is to never dereference aliases.
+
+[opt_def {-sizelimit} num ]
+
+Determines the maximum number of entries to return in a search. If specified as
+0 no limit is enforced. The server may enforce a configuration dependent sizelimit,
+which may be lower than the one given by this option. The default is 0, no limit.
+
+[opt_def {-timelimit} seconds]
+
+Asks the server to use a timelimit of [arg seconds] for the search. Zero means no
+limit. The default is 0, no limit.
+
+[opt_def {-attrsonly} boolean]
+
+If set to 1 only the attribute names but not the values will be present in the search result.
+The default is to retrieve attribute names and values.
+
+[opt_def {-referencevar} varname]
+
+If set the search result reference LDAPURIs, if any, are returned in the given variable.
+The caller can than decide to follow those references and query other LDAP servers for
+further results.
+
+[list_end]
+[para]
+
+[call [cmd ::ldap::searchNext] [arg handle]]
+
+This command returns the next entry from a LDAP search initiated
+by [cmd ::ldap::searchInit]. It returns only after a new result is received
+or when no further results are available, but takes care to keep
+the event loop alive.
+
+The returned entry is a list with
+two elements: the first is the DN of the entry, the second is the
+list of attributes and values, under the format:
+
+[para]
+[example {
+    dn {attr1 {val11 val12 ...} attr2 {val21...} ...}
+}]
+[para]
+
+The [cmd ::ldap::searchNext] command returns an empty list at the
+end of the search.
+
+[para]
+
+[call [cmd ::ldap::searchEnd] [arg handle]]
+
+This command terminates a LDAP search initiated
+by [cmd ::ldap::searchInit]. It also cleans up
+the internal state so a new search can be initiated.
+
+If the client has not yet received all results, the client
+sends an ABANDON message to inform the server that no
+further results for the previous search should to be sent.
+
+[para]
+
+[call [cmd ::ldap::modify] [arg handle] [arg dn] \
+	[arg attrValToReplace] \
+	[opt [arg attrToDelete]] \
+	[opt [arg attrValToAdd]]]
+
+This command modifies the object [arg dn] on the ldap server we are
+connected to via [arg handle]. It replaces attributes with new values,
+deletes attributes, and adds new attributes with new values.
+
+All arguments are dictionaries mapping attribute names to values. The
+optional arguments default to the empty dictionary, which means that
+no attributes will be deleted nor added.
+
+[list_begin arguments]
+[arg_def dictionary attrValToReplace in]
+
+No attributes will be changed if this argument is empty. The
+dictionary contains the new attributes and their values. They
+[emph {replace all}] attributes known to the object.
+
+[arg_def dictionary attrToDelete in]
+
+No attributes will be deleted if this argument is empty. The
+dictionary values are restrictions on the deletion. An attribute
+listed here will be deleted if and only if its current value at the
+server matches the value specified in the dictionary, or if the value
+in the dictionary is the empty string.
+
+[arg_def dictionary attrValToAdd in]
+
+No attributes will be added if this argument is empty. The dictionary
+values are the values for the new attributes.
+
+[list_end]
+[para]
+
+The command blocks until all modifications have completed. Its result
+is the empty string.
+
+[call [cmd ::ldap::modifyMulti] [arg handle] [arg dn] \
+	[arg attrValToReplace] \
+	[opt [arg attrValToDelete]] \
+	[opt [arg attrValToAdd]]]
+
+This command modifies the object [arg dn] on the ldap server we are
+connected to via [arg handle]. It replaces attributes with new values,
+deletes attributes, and adds new attributes with new values.
+
+All arguments are lists with the format:
+[para]
+[example {
+    attr1 {val11 val12 ...} attr2 {val21...} ...
+}]
+[para]
+where each value list may be empty for deleting all attributes.
+The optional arguments default to empty lists of attributes to
+delete and to add.
+
+[list_begin arguments]
+[arg_def list attrValToReplace in]
+
+No attributes will be changed if this argument is empty. The
+dictionary contains the new attributes and their values. They
+[emph {replace all}] attributes known to the object.
+
+[arg_def list attrValToDelete in]
+
+No attributes will be deleted if this argument is empty. If no
+value is specified, the whole set of values for an attribute
+will be deleted.
+
+[arg_def list attrValToAdd in]
+
+No attributes will be added if this argument is empty.
+
+[list_end]
+[para]
+
+The command blocks until all modifications have completed. Its result
+is the empty string.
+
+[call [cmd ::ldap::add] [arg handle] [arg dn] [arg attrValueTuples]]
+
+This command creates a new object using the specified [arg dn]. The
+attributes of the new object are set to the values in the list
+[arg attrValueTuples].
+Multiple valuated attributes may be specified using multiple tuples.
+
+The command blocks until the operation has completed. Its result
+is the empty string.
+
+[call [cmd ::ldap::addMulti] [arg handle] [arg dn] [arg attrValueTuples]]
+
+This command is the preferred one to create
+a new object using the specified [arg dn]. The
+attributes of the new object are set to the values in the dictionary
+[arg attrValueTuples] (which is keyed by the attribute names).
+Each tuple is a list containing multiple values.
+
+The command blocks until the operation has completed. Its result
+is the empty string.
+
+[call [cmd ::ldap::delete] [arg handle] [arg dn]]
+
+This command removes the object specified by [arg dn], and all its
+attributes from the server.
+
+The command blocks until the operation has completed. Its result
+is the empty string.
+
+[call [cmd ::ldap::modifyDN] [arg handle] [arg dn] [arg newrdn] [opt [arg deleteOld]] [opt [arg newSuperior]]]]
+
+This command moves or copies the object specified by [arg dn]
+to a new location in the tree of object. This location is
+specified by [arg newrdn], a [emph relative] designation,
+or by [arg newrdn] and [arg newSuperior], a [emph absolute] designation.
+
+The optional argument [arg deleteOld] defaults to [const true],
+i.e. a move operation. If [arg deleteOld] is not set, then the
+operation will create a copy of [arg dn] in the new location.
+
+The optional argument [arg newSuperior] defaults an empty string,
+meaning that the object must not be relocated in another branch of
+the tree. If this argument is given, the argument [arg deleteOld]
+must be specified also.
+
+The command blocks until the operation has completed. Its result
+is the empty string.
+
+[call [cmd ::ldap::info] [cmd ip] [arg handle]]
+
+This command returns the IP address of the remote LDAP server the handle is connected to.
+
+[call [cmd ::ldap::info] [cmd bound] [arg handle]]
+
+This command returns 1 if a handle has successfully completed a [cmd ::ldap::bind].
+If no bind was done or it failed, a 0 is returned.
+
+[call [cmd ::ldap::info] [cmd bounduser] [arg handle]]
+
+This command returns the username used in the bind operation if a handle has successfully completed a [cmd ::ldap::bind].
+If no bound was done or it failed, an empty string is returned.
+
+[call [cmd ::ldap::info] [cmd connections] ]
+
+This command returns all currently existing ldap connection handles.
+
+[call [cmd ::ldap::info] [cmd tls] [arg handle] ]
+
+This command returns 1 if the ldap connection [arg handle] used TLS/SSL for
+connection via [cmd ldap::secure_connect] or completed [cmd ldap::starttls], 0 otherwise.
+
+[call [cmd ::ldap::info] [cmd saslmechanisms] [arg handle]]
+
+Return the supported SASL mechanisms advertised by the server. Only valid in a
+bound state (anonymous or other).
+
+[call [cmd ::ldap::info] [cmd control] [arg handle] ]
+
+Return the supported controls advertised by the server as a list of OIDs. Only valid in a bound state.
+
+This is currently experimental and subject to change.
+
+[call [cmd ::ldap::info] [cmd extensions] [arg extensions] ]
+
+Returns the supported LDAP extensions as list of OIDs. Only valid in a bound state.
+
+This is currently experimental and subject to change.
+
+[call [cmd ::ldap::info] [cmd whoami] [arg handle]]
+
+Returns authzId for the current connection. This implements the RFC 4532
+protocol extension.
+
+[list_end]
+[para]
+
+[section EXAMPLES]
+[para]
+
+A small example, extracted from the test application coming with this
+code.
+
+[para]
+[example {
+    package require ldap
+
+    # Connect, bind, add a new object, modify it in various ways
+
+    set handle [ldap::connect localhost 9009]
+
+    set dn "cn=Manager, o=University of Michigan, c=US"
+    set pw secret
+
+    ldap::bind $handle $dn $pw
+
+    set dn "cn=Test User,ou=People,o=University of Michigan,c=US"
+
+    ldap::add $handle $dn {
+	objectClass     OpenLDAPperson
+	cn              {Test User}
+	mail            test.user@google.com
+	uid             testuid
+	sn              User
+	telephoneNumber +31415926535
+	telephoneNumber +27182818285
+    }
+
+    set dn "cn=Another User,ou=People,o=University of Michigan,c=US"
+
+    ldap::addMulti $handle $dn {
+	objectClass     {OpenLDAPperson}
+	cn              {{Anotther User}}
+	mail            {test.user@google.com}
+	uid             {testuid}
+	sn              {User}
+	telephoneNumber {+31415926535 +27182818285}
+    }
+
+    # Replace all attributes
+    ldap::modify $handle $dn [list drink icetea uid JOLO]
+
+    # Add some more
+    ldap::modify $handle $dn {} {} [list drink water \
+	    drink orangeJuice pager "+1 313 555 7671"]
+
+    # Delete
+    ldap::modify $handle $dn {} [list drink water \
+	    pager ""]
+
+    # Move
+    ldap::modifyDN $handle $dn "cn=Tester"
+
+    # Kill the test object, and shut the connection down.
+    set dn "cn=Tester,ou=People,o=University of Michigan,c=US"
+    ldap::delete $handle $dn
+
+    ldap::unbind     $handle
+    ldap::disconnect $handle
+}]
+[para]
+
+And a another example, a simple query, and processing the
+results.
+
+[para]
+[example {
+    package require ldap
+    set handle [ldap::connect ldap.acme.com 389]
+    ldap::bind $handle
+    set results [ldap::search $handle "o=acme,dc=com" "(uid=jdoe)" {}]
+    foreach result $results {
+	foreach {object attributes} $result break
+
+	# The processing here is similar to what 'parray' does.
+	# I.e. finding the longest attribute name and then
+	# generating properly aligned output listing all attributes
+	# and their values.
+
+	set width 0
+	set sortedAttribs {}
+	foreach {type values} $attributes {
+	    if {[string length $type] > $width} {
+		set width [string length $type]
+	    }
+	    lappend sortedAttribs [list $type $values]
+	}
+
+	puts "object='$object'"
+
+	foreach sortedAttrib  $sortedAttribs {
+	    foreach {type values} $sortedAttrib break
+	    foreach value $values {
+		regsub -all "\[\x01-\x1f\]" $value ? value
+		puts [format "  %-${width}s %s" $type $value]
+	    }
+	}
+	puts ""
+    }
+    ldap::unbind $handle
+    ldap::disconnect $handle
+}]
+
+[vset CATEGORY ldap]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,280 @@
+
+
+The EXIF documentation file                                       D. New
+                                                       February 12, 2002
+
+
+                            The EXIF Package
+
+
+Abstract
+
+   Tcl EXIF extracts and parses EXIF fields from digital images.
+
+Table of Contents
+
+   1. Synopsis . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+   2. Details  . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+   3. Copyrights . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+   4. Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . . 5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+New                                                             [Page 1]
+
+EXIF                        The EXIF Package               February 2002
+
+
+1. Synopsis
+
+       package provide exif 1.0
+
+   The EXIF package is a recoding of Chris Breeze's Perl package to do
+   the same thing.  This version accepts a channel as input and returns
+   a serialized array with all the recognised fields parsed out.
+
+   There is also a function to obtain a list of all possible field names
+   that might be present, which is useful in building GUIs that present
+   such information.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+New                                                             [Page 2]
+
+EXIF                        The EXIF Package               February 2002
+
+
+2. Details
+
+       array set answer [exif::analyze $channel]
+
+   $channel should be an open file handle rewound to the start.  It does
+   not need to be seekable.  $channel will be set to binary mode and is
+   left wherever it happens to stop being parsed, usually at the end of
+   the file or the start of the image data.  You must open and close the
+   stream yourself.  If no error is thrown, the return value is a
+   serialized array with informative English text about what was found
+   in the EXIF block.  Failure during parsing or I/O throw errors.
+
+       set names [exif::fieldnames]
+
+   This returns a list of all possible field names.  That is, the array
+   returned by exif::analyze will not contain keys that are not listed
+   in the return from exif::fieldnames.  Of course, if information is
+   missing in the image file, exif::analyze may not return all the
+   fields listed in the return from exif::fieldnames.  This function is
+   expected to be primarily useful for building GUIs to display results.
+   N.B.: Read the implementation of exif::fieldnames before modifying
+   the implementation of exif::analyze.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+New                                                             [Page 3]
+
+EXIF                        The EXIF Package               February 2002
+
+
+3. Copyrights
+
+   (c) 2002 Darren New
+
+   Hold harmless the author, and any lawful use is allowed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+New                                                             [Page 4]
+
+EXIF                        The EXIF Package               February 2002
+
+
+4. Acknowledgements
+
+   This code is a direct translation of version 1.3 of exif.pl by Chris
+   Breeze.  See the source for full headers, references, etc.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+New                                                             [Page 5]
+

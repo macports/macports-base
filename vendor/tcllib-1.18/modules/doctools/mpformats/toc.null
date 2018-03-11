@@ -1,0 +1,23 @@
+# -*- tcl -*-
+#
+# -- Null format (doctoc)
+#
+# Copyright (c) 2003      Andreas Kupries <andreas_kupries@sourceforge.net>
+
+# This is a null format which does return no output at all.
+
+################################################################
+
+proc toc_initialize  {}     {return}
+proc toc_shutdown    {}     {return}
+proc toc_numpasses   {}     {return 1}
+proc toc_postprocess {text} {return ""}
+proc toc_setup       {n}    {return}
+
+foreach p {
+    toc_begin toc_end item division_start division_end comment plain_text
+} {
+    proc fmt_$p {args} {return ""}
+}
+
+################################################################

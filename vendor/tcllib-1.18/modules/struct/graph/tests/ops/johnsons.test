@@ -1,0 +1,130 @@
+# -*- tcl -*-
+#Johnson's Algorithm - Tests
+#
+#Searching distances between all pairs of nodes
+
+#------------------------------------------------------------------------------------
+#Tests concerning returning right values by algorithm
+
+
+#Tests 1.0 and 1.1 - couting right values for special cases of graphs
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Johnsons-1.0 { Johnsons, graph simulation } {
+    SETUP_JOHNSONS_1
+    set result [dictsort [struct::graph::op::Johnsons mygraph]]
+    mygraph destroy
+    set result
+} {{node1 node2} -4 {node1 node3} 1 {node1 node4} -1 {node1 node5} 3 {node2 node1} 4 {node2 node3} 5 {node2 node4} 3 {node2 node5} 7 {node3 node1} -1 {node3 node2} -5 {node3 node4} -2 {node3 node5} 2 {node4 node1} 5 {node4 node2} 1 {node4 node3} 6 {node4 node5} 8 {node5 node1} 1 {node5 node2} -3 {node5 node3} 2 {node5 node4} -4}
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Johnsons-1.1 { Johnsons, graph simulation } {
+    SETUP_JOHNSONS_2
+    set result [dictsort [struct::graph::op::Johnsons mygraph]]
+    mygraph destroy
+    set result
+} {{node1 node2} 8 {node1 node3} 7 {node1 node4} 5 {node1 node5} 3 {node1 node6} 5 {node2 node1} Inf {node2 node3} -1 {node2 node4} -3 {node2 node5} -5 {node2 node6} -3 {node3 node1} Inf {node3 node2} 1 {node3 node4} -2 {node3 node5} -4 {node3 node6} -2 {node4 node1} Inf {node4 node2} Inf {node4 node3} Inf {node4 node5} Inf {node4 node6} Inf {node5 node1} Inf {node5 node2} Inf {node5 node3} Inf {node5 node4} 2 {node5 node6} Inf {node6 node1} Inf {node6 node2} 3 {node6 node3} 2 {node6 node4} 0 {node6 node5} -2}
+
+#Tests 1.2 and 1.3 - based on the same graphs as previous tests but checking the return value when using option -cutdisplay
+#1.2 - cutting from return value 'Inf' ( returned when connection between two nodes doesn't exist ) 
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Johnsons-1.2 { Johnsons, graph simulation, cutted display} {
+    SETUP_JOHNSONS_2
+    set result [dictsort [struct::graph::op::Johnsons mygraph -filter]]
+    mygraph destroy
+    set result
+} {{node1 node2} 8 {node1 node3} 7 {node1 node4} 5 {node1 node5} 3 {node1 node6} 5 {node2 node3} -1 {node2 node4} -3 {node2 node5} -5 {node2 node6} -3 {node3 node2} 1 {node3 node4} -2 {node3 node5} -4 {node3 node6} -2 {node5 node4} 2 {node6 node2} 3 {node6 node3} 2 {node6 node4} 0 {node6 node5} -2}
+
+#1.3 - case when there are no 'Inf' values and we use -cutdisplay option.
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Johnsons-1.3 { Johnsons, graph simulation, cutted display } {
+    SETUP_JOHNSONS_1
+    set result [dictsort [struct::graph::op::Johnsons mygraph]]
+    mygraph destroy
+    set result
+} {{node1 node2} -4 {node1 node3} 1 {node1 node4} -1 {node1 node5} 3 {node2 node1} 4 {node2 node3} 5 {node2 node4} 3 {node2 node5} 7 {node3 node1} -1 {node3 node2} -5 {node3 node4} -2 {node3 node5} 2 {node4 node1} 5 {node4 node2} 1 {node4 node3} 6 {node4 node5} 8 {node5 node1} 1 {node5 node2} -3 {node5 node3} 2 {node5 node4} -4}
+
+#Tests 1.4 - 1.6 - Test cases when there occur existance of cycle with negative sum of weights at edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Johnsons-1.4 { Johnsons, negative cycles } {
+    SETUP_NEGATIVECYCLE_1
+    catch { struct::graph::op::Johnsons mygraph } result
+    mygraph destroy
+    set result
+} [NegativeCycleOccurance {mygraph}]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Johnsons-1.5 { Johnsons, negative cycles } {
+    SETUP_NEGATIVECYCLE_2
+    catch { struct::graph::op::Johnsons mygraph } result
+    mygraph destroy
+    set result
+} [NegativeCycleOccurance {mygraph}]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Johnsons-1.6 { Johnsons, negative cycles } {
+    SETUP_NEGATIVECYCLE_3
+    catch { struct::graph::op::Johnsons mygraph } result
+    mygraph destroy
+    set result
+} [NegativeCycleOccurance {mygraph}]
+
+#Test 1.7 - case when we are given a graph without any edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Johnsons-1.7 { Johnsons, no edges } {
+    SETUP_NOEDGES_1
+    set result [dictsort [struct::graph::op::Johnsons mygraph]]
+    mygraph destroy
+    set result
+} {{node1 node2} Inf {node1 node3} Inf {node1 node4} Inf {node2 node1} Inf {node2 node3} Inf {node2 node4} Inf {node3 node1} Inf {node3 node2} Inf {node3 node4} Inf {node4 node1} Inf {node4 node2} Inf {node4 node3} Inf}
+
+#Test 1.8 - case when we are given a graph with all edge's weights set to 0
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Johnsons-1.8 { Johnsons, all weights set to 0 } {
+    SETUP_ZEROWEIGHTED_K4
+    set result [dictsort [struct::graph::op::Johnsons mygraph]]
+    mygraph destroy
+    set result	
+} {{node1 node2} 0 {node1 node3} 0 {node1 node4} 0 {node2 node1} 0 {node2 node3} 0 {node2 node4} 0 {node3 node1} 0 {node3 node2} 0 {node3 node4} 0 {node4 node1} 0 {node4 node2} 0 {node4 node3} 0}
+
+#Test 1.9 - case when we are given a graph with some edge's weights set to 0
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Johnsons-1.9 { Johnsons, some weights set to 0 } {
+    SETUP_PARTIALLYZEROWEIGHTED
+    set result [dictsort [struct::graph::op::Johnsons mygraph]]
+    mygraph destroy
+    set result	
+} {{node1 node2} 0 {node1 node3} 0 {node1 node4} 1 {node2 node1} 2 {node2 node3} 0 {node2 node4} 1 {node3 node1} 2 {node3 node2} 2 {node3 node4} 1 {node4 node1} 1 {node4 node2} 1 {node4 node3} 1}
+
+#Test 1.10 - case when we are given a complete K4 graph with some edge's weights set to 0
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Johnsons-1.10 { Johnsons, some weights set to 0 } {
+    SETUP_PARTIALLYZEROWEIGHTED_K4
+    set result [dictsort [struct::graph::op::Johnsons mygraph]]
+    mygraph destroy
+    set result	
+} {{node1 node2} 0 {node1 node3} 0 {node1 node4} 0 {node2 node1} 0 {node2 node3} 0 {node2 node4} 0 {node3 node1} 0 {node3 node2} 0 {node3 node4} 0 {node4 node1} 0 {node4 node2} 0 {node4 node3} 0}
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Johnsons-2.0 { Johnsons, wrong args, missing } {
+    catch {struct::graph::op::Johnsons} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::Johnsons {G args} 0]
+
+
+# -------------------------------------------------------------------------
+# Logical arguments checks, failures and unproper graphs handling
+
+#Test 3.0 - case when given graph doesn't have weights at all edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Johnsons-3.0 {Johnsons, lack of weights at edges } {
+    SETUP_UNWEIGHTED_K4
+    catch {struct::graph::op::Johnsons mygraph} result
+    mygraph destroy
+    set result
+} [UnweightedArcOccurance]
+
+#Test 3.1 - case when user sets wrong option to the procedure
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Johnsons-3.1 {Johnsons, bad option used } {
+    SETUP
+    catch {struct::graph::op::Johnsons mygraph -badoption} result
+    mygraph destroy
+    set result
+} {Bad option "-badoption". Expected -filter}
+
+#Test 3.2 - case when given graph doesn't have weights at some edges
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-Johnsons-3.2 {Johnsons, partial lack of weights at edges } {
+    SETUP_PARTIALLYWEIGHTED_K4
+    catch {struct::graph::op::Johnsons mygraph} result
+    mygraph destroy
+    set result
+} [UnweightedArcOccurance]

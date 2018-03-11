@@ -1,0 +1,14 @@
+<Grammar> :: 0 28
+    <Header> :: 0 23
+        <Identifier> :: 4 16
+            <Ident> :: 4 15
+        <StartExpr> :: 17 23
+            <Expression> :: 18 21
+                <Sequence> :: 18 21
+                    <Prefix> :: 18 21
+                        <Suffix> :: 18 21
+                            <Primary> :: 18 20
+                                <Literal> :: 18 20
+                                    <Char> :: 19 19
+                                        <CharUnescaped> :: 19 19
+                            <STAR> :: 21 21

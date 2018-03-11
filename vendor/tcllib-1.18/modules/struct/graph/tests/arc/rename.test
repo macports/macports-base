@@ -1,0 +1,104 @@
+# -*- tcl -*-
+# Graph tests - arc rename
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: rename.test,v 1.2 2007/04/12 03:01:55 andreas_kupries Exp $
+
+# Syntax: graph arc rename ARC NEWNAME
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-arc-rename-1.0 {arc rename, wrong # args, missing} {
+    SETUP
+    catch {mygraph arc rename} result
+    mygraph destroy
+    set result
+} [tmWrong {arc rename} {arc newname} 0]
+
+test graph-${impl}-${setimpl}-arc-rename-1.1 {arc rename, wrong # args, missing} {
+    SETUP
+    catch {mygraph arc rename foo} result
+    mygraph destroy
+    set result
+} [tmWrong {arc rename} {arc newname} 1]
+
+test graph-${impl}-${setimpl}-arc-rename-1.2 {arc rename, wrong # args, too many} {
+    SETUP
+    catch {mygraph arc rename foo far fox} result
+    mygraph destroy
+    set result
+} [tmTooMany {arc rename} {arc newname}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-arc-rename-2.0 {arc rename, missing arc} {
+    SETUP
+    catch {mygraph arc rename 0 foo} result
+    mygraph destroy
+    set result
+} [MissingArc $MY 0]
+
+test graph-${impl}-${setimpl}-arc-rename-2.1 {arc rename, duplicate arc for target} {
+    SETUP
+    mygraph node insert 0 1
+    mygraph arc  insert 0 1 a
+    mygraph arc  insert 0 1 b
+
+    catch {mygraph arc rename a b} result
+    mygraph destroy
+    set result
+} [ExistingArc $MY b]
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-arc-rename-3.0 {arc rename, node linkage} {
+    SETUP
+
+    mygraph node insert a b
+    mygraph arc  insert a b 0
+
+    set     result {}
+    lappend result [mygraph arc source 0]
+    lappend result [mygraph arc target 0]
+    lappend result [mygraph arc exists 0]
+    lappend result [mygraph arc exists snarf]
+    lappend result [mygraph arcs -in   b]
+    lappend result [mygraph arcs -out  a]
+
+    mygraph arc rename 0 snarf
+    lappend result |
+
+    lappend result [mygraph arc source snarf]
+    lappend result [mygraph arc target snarf]
+    lappend result [mygraph arc exists 0]
+    lappend result [mygraph arc exists snarf]
+    lappend result [mygraph arcs -in   b]
+    lappend result [mygraph arcs -out  a]
+
+    mygraph destroy
+    set result
+} {a b 1 0 0 0 | a b 0 1 snarf snarf}
+
+test graph-${impl}-${setimpl}-arc-rename-3.1 {arc rename, attribute transfer} {
+    SETUP
+    mygraph node insert a b
+    mygraph arc  insert a b 0
+    mygraph arc  set 0 data foo
+
+    set     result {}
+    lappend result        [mygraph arc getall 0]
+    lappend result [catch {mygraph arc getall 5}]
+
+    mygraph arc rename 0 5
+
+    lappend result        [mygraph arc getall 5]
+    lappend result [catch {mygraph arc getall 0}]
+
+    mygraph destroy
+    set result
+} {{data foo} 1 {data foo} 1}
+
+# -------------------------------------------------------------------------

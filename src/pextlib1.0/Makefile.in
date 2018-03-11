@@ -21,8 +21,6 @@ OBJS= \
 	setmode.o \
 	sha1cmd.o \
 	sha256cmd.o \
-	sip_copy_proc.o \
-	strcasecmp.o \
 	strsed.o \
 	system.o \
 	tracelib.o \
@@ -30,6 +28,9 @@ OBJS= \
 	uid.o \
 	vercomp.o \
 	xinstall.o
+ifeq (@TRACEMODE_SUPPORT@,1)
+OBJS+=sip_copy_proc.o
+endif
 ifneq (@ac_cv_func_strlcat@,yes)
 OBJS+=strlcat.o
 endif

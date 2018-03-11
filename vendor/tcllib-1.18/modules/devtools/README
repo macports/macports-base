@@ -1,0 +1,22 @@
+
+Right now this module only contains code to make the handling of sub
+processes from within a testsuite easier in general and of minimal
+protocol server especially. Things which are not directly within in
+the scope of the package "tcltest".
+
+The initial name for the module was 'testsupport'. This was changed to
+'devtools' to allow the collection other code here too. Like for
+example the generation of TEA 2 compatible configure scripts and
+Makefiles.
+
+For now the contents are considered internal to tcllib and are neither
+listed in the main makefile, nor do they have a package index file. So
+even if the module and its code gets installed it won't be useable
+without jumping through some hoops.
+
+The code is used in some of the tcllib testsuites.
+Currently: "comm", and "pop3".
+
+These certificates have been created with SimpleCA,
+see http://wiki.tcl.tk/11419
+and http://users.skynet.be/ballet/joris/SimpleCA/

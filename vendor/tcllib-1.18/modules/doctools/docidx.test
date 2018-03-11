@@ -1,0 +1,316 @@
+# -*- tcl -*-
+# docidx.test:  tests for the doctools::idx package.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2003-2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: docidx.test,v 1.15 2009/02/12 05:42:47 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+support {
+    use textutil/expander.tcl textutil::expander
+}
+testing {
+    useLocal docidx.tcl doctools::idx
+}
+
+# -------------------------------------------------------------------------
+
+array_unset env LANG*
+array_unset env LC_*
+set env(LANG) C ; # Usually default if nothing is set, OS X requires this.
+
+# -------------------------------------------------------------------------
+
+namespace import ::doctools::idx::new
+
+# search paths .............................................................
+
+test docidx-1.0 {default search paths} {
+    llength $::doctools::idx::paths
+} 1
+
+test docidx-1.1 {extend package search paths} {
+    ::doctools::idx::search [file dirname [info script]]
+    set     res [list]
+    lappend res [llength $::doctools::idx::paths]
+    lappend res [lindex  $::doctools::idx::paths 0]
+    set     res
+} [list 2 [file dirname [info script]]]
+
+test docidx-1.2 {extend package search paths, error} {
+    catch {::doctools::idx::search foo} result
+    set     result
+} {doctools::idx::search: path does not exist}
+
+# format help .............................................................
+
+test docidx-2.0 {format help} {
+    string length [doctools::idx::help]
+} 368
+
+# docidx .............................................................
+
+test docidx-3.0 {docidx errors} {
+    catch {new} msg
+    set msg
+} [tcltest::wrongNumArgs "new" "name args" 0]
+
+test docidx-3.1 {docidx errors} {
+    catch {new set} msg
+    set msg
+} "command \"set\" already exists, unable to create docidx object"
+
+test docidx-3.2 {docidx errors} {
+    new mydocidx
+    catch {new mydocidx} msg
+    mydocidx destroy
+    set msg
+} "command \"mydocidx\" already exists, unable to create docidx object"
+
+test docidx-3.3 {docidx errors} {
+    catch {new mydocidx -foo} msg
+    set msg
+} {wrong # args: doctools::new name ?opt val...??}
+
+# docidx methods ......................................................
+
+test docidx-4.0 {docidx method errors} {
+    new mydocidx
+    catch {mydocidx} msg
+    mydocidx destroy
+    set msg
+} "wrong # args: should be \"mydocidx option ?arg arg ...?\""
+
+test docidx-4.1 {docidx errors} {
+    new mydocidx
+    catch {mydocidx foo} msg
+    mydocidx destroy
+    set msg
+} "bad option \"foo\": must be cget, configure, destroy, format, map, search, warnings, parameters, or setparam"
+
+# cget ..................................................................
+
+test docidx-5.0 {cget errors} {
+    new mydocidx
+    catch {mydocidx cget} result
+    mydocidx destroy
+    set result
+} [tcltest::wrongNumArgs "::doctools::idx::_cget" "name option" 1]
+
+test docidx-5.1 {cget errors} {
+    new mydocidx
+    catch {mydocidx cget foo bar} result
+    mydocidx destroy
+    set result
+} [tcltest::tooManyArgs "::doctools::idx::_cget" "name option"]
+
+test docidx-5.2 {cget errors} {
+    new mydocidx
+    catch {mydocidx cget -foo} result
+    mydocidx destroy
+    set result
+} {doctools::idx::_configure: Unknown option "-foo", expected -file, or -format}
+
+foreach {na nb option default newvalue} {
+    3  4 -file       {} foo
+    5  6 -format     {} html
+} {
+    test docidx-5.$na {cget query} {
+	new mydocidx
+	set res [mydocidx cget $option]
+	mydocidx destroy
+	set res
+    } $default ; # {}
+
+    test docidx-5.$nb {cget set & query} {
+	new mydocidx
+	mydocidx configure $option $newvalue
+	set res [mydocidx cget $option]
+	mydocidx destroy
+	set res
+    } $newvalue ; # {}
+}
+
+# configure ..................................................................
+
+test docidx-6.0 {configure errors} {
+    new mydocidx
+    catch {mydocidx configure -foo bar -glub} result
+    mydocidx destroy
+    set result
+} {wrong # args: doctools::idx::_configure name ?opt val...??}
+# [tcltest::wrongNumArgs "::doctools::idx::_configure" "name ?option?|?option value...?" 1]
+
+test docidx-6.1 {configure errors} {
+    new mydocidx
+    catch {mydocidx configure -foo} result
+    mydocidx destroy
+    set result
+} {doctools::idx::_configure: Unknown option "-foo", expected -file, or -format}
+
+test docidx-6.2 {configure retrieval} {
+    new mydocidx
+    catch {mydocidx configure} result
+    mydocidx destroy
+    set result
+} {-file {} -format {}}
+
+foreach {n option illegalvalue result} {
+    3 -format     barf {doctools::idx::_configure: -format: Unknown format "barf"}
+} {
+    test docidx-6.$n {configure illegal value} {
+	new mydocidx
+	catch {mydocidx configure $option $illegalvalue} result
+	mydocidx destroy
+	set result
+    } $result
+}
+
+foreach {na nb option default newvalue} {
+    4  5 -file       {} foo
+    6  7 -format     {} html
+} {
+    test docidx-6.$na {configure query} {
+	new mydocidx
+	set res [mydocidx configure $option]
+	mydocidx destroy
+	set res
+    } $default ; # {}
+
+    test docidx-6.$nb {configure set & query} {
+	new mydocidx
+	mydocidx configure $option $newvalue
+	set res [mydocidx configure $option]
+	mydocidx destroy
+	set res
+    } $newvalue ; # {}
+}
+
+test docidx-6.8 {configure full retrieval} {
+    new mydocidx -file foo -format html
+    catch {mydocidx configure} result
+    mydocidx destroy
+    set result
+} {-file foo -format html}
+
+# search ..................................................................
+
+test docidx-7.0 {search errors} {
+    new mydocidx
+    catch {mydocidx search} result
+    mydocidx destroy
+    set result
+} [tcltest::wrongNumArgs "::doctools::idx::_search" "name path" 1]
+
+test docidx-7.1 {search errors} {
+    new mydocidx
+    catch {mydocidx search foo bar} result
+    mydocidx destroy
+    set result
+} [tcltest::tooManyArgs "::doctools::idx::_search" "name path"]
+
+test docidx-7.2 {search errors} {
+    new mydocidx
+    catch {mydocidx search foo} result
+    mydocidx destroy
+    set result
+} {mydocidx search: path does not exist}
+
+test docidx-7.3 {search, initial} {
+    new mydocidx
+    set res [llength $::doctools::idx::docidxmydocidx::paths]
+    mydocidx destroy
+    set res
+} 0
+
+test docidx-7.4 {extend object search paths} {
+    new mydocidx
+    mydocidx search [file dirname [info script]]
+    set     res [list]
+    lappend res [llength $::doctools::idx::docidxmydocidx::paths]
+    lappend res [lindex  $::doctools::idx::docidxmydocidx::paths 0]
+    mydocidx destroy
+    set     res
+} [list 1 [file dirname [info script]]]
+
+# format & warnings .......................................................
+
+test docidx-8.0 {format errors} {
+    new mydocidx
+    catch {mydocidx format} result
+    mydocidx destroy
+    set result
+} [tcltest::wrongNumArgs "::doctools::idx::_format" "name text" 1]
+
+test docidx-8.1 {format errors} {
+    new mydocidx
+    catch {mydocidx format foo bar} result
+    mydocidx destroy
+    set result
+} [tcltest::tooManyArgs "::doctools::idx::_format" "name text"]
+
+test docidx-8.2 {format errors} {
+    new mydocidx
+    catch {mydocidx format foo} result
+    mydocidx destroy
+    set result
+} {mydocidx: No format was specified}
+
+
+test docidx-8.3 {format} {
+    new mydocidx -format wiki
+    set res [mydocidx format {[index_begin foo bar][key snafu][manpage at fubar][index_end]}]
+    lappend res [mydocidx warnings]
+    mydocidx destroy
+    set res
+} {Index '''foo''' '''bar''' '''snafu''': at {}}
+
+
+# docidx syntax .......................................................
+
+test docidx-9.0 {docidx syntax} {
+    new mydocidx -format null
+    catch {mydocidx format foo} result
+    mydocidx destroy
+    set result
+} {Docidx Error in plain text at line 1, column 0:
+[plain_text foo]
+--> (FmtError) IDX error (idx/plaintext), "plain_text foo" : Plain text beyond whitespace is not allowed..}
+
+
+test docidx-9.1 {docidx syntax, empty index, ok} {
+    new mydocidx -format null
+    set result [mydocidx format {[index_begin KWIC Test][index_end]}]
+    mydocidx destroy
+    set result
+} {}
+
+test docidx-9.2 {docidx syntax, key without references, error} {
+    new mydocidx -format null
+    catch {mydocidx format {[index_begin KWIC Test][key X][index_end]}} result
+    mydocidx destroy
+    set result
+} {Docidx Error in macro at line 1, column 30:
+[index_end]
+--> (FmtError) IDX error (idx/endcmd), "index_end" : Command not allowed here..}
+
+
+namespace forget ::doctools::idx::new
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return

@@ -1,0 +1,387 @@
+# -*- tcl -*-
+# fuzzy.test --
+#
+#    Test suite for the math::fuzzy procs of tolerant comparisons
+#    (Tcl-only version)
+#
+#    version 0.2: improved and extended implementation, march 2002
+#    version 0.2.1: added test for bug #2933130, january 2010
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+support {
+    useLocal math.tcl math
+}
+testing {
+    useLocal fuzzy.tcl math::fuzzy
+}
+
+# -------------------------------------------------------------------------
+
+namespace import ::math::fuzzy::*
+
+# -------------------------------------------------------------------------
+
+#
+# Test: tolerance has sane value
+#
+#test math-fuzzy-Tolerance-1.0 {Tolerance has acceptable value} {
+#   expr {(1.0+0.5*$::math::fuzzy::eps3) != 1.0}
+#} 1
+#test math-fuzzy-Tolerance-1.1 {Tolerance has acceptable value} {
+#   expr {(1.0-0.5*$::math::fuzzy::eps3) != 1.0}
+#} 1
+
+test math-fuzzy-Tolerance-1.0 {Tolerance has acceptable value} {
+   expr {(1.0+0.5*$::math::fuzzy::eps3) != 1.0}
+} 1
+
+test math-fuzzy-Tolerance-1.1 {Tolerance has acceptable value} {
+   expr {(1.0-0.5*$::math::fuzzy::eps3) != 1.0}
+} 1
+
+#
+# Note: Equal-1.* and NotEqual-1.* are complementary
+#       GrEqual-1.* and Lower-1.* ditto
+#       GrThan-1.* and LoEqual-1.* ditto
+#
+
+test math-fuzzy-Equal-1.0 {Compare two floats and see if they are equal} {
+   teq 1.0 1.001
+} 0
+test math-fuzzy-Equal-1.1 {Compare two floats and see if they are equal} {
+   teq 1.0 1.0001
+} 0
+test math-fuzzy-Equal-1.2 {Compare two floats and see if they are equal} {
+   teq 1.0 1.00000000000000001
+} 1
+test math-fuzzy-Equal-1.3 {Compare two floats and see if they are equal} {
+   teq 1.0 1.000000000000001
+} 0
+
+test math-fuzzy-NotEqual-1.0 {Compare two floats and see if they differ} {
+   tne 1.0 1.001
+} 1
+test math-fuzzy-NotEqual-1.1 {Compare two floats and see if they differ} {
+   tne 1.0 1.0001
+} 1
+test math-fuzzy-NotEqual-1.2 {Compare two floats and see if they differ} {
+   tne 1.0 1.00000000000000001
+} 0
+test math-fuzzy-NotEqual-1.3 {Compare two floats and see if they differ} {
+   tne 1.0 1.000000000000001
+} 1
+
+test math-fuzzy-GrEqual-1.0 {Compare two floats - check greater/equal} {
+   tge 1.0 1.001
+} 0
+test math-fuzzy-GrEqual-1.1 {Compare two floats - check greater/equal} {
+   tge 1.0 1.0001
+} 0
+test math-fuzzy-GrEqual-1.2 {Compare two floats - check greater/equal} {
+   tge 1.0 1.00000000000000001
+} 1
+test math-fuzzy-GrEqual-1.3 {Compare two floats - check greater/equal} {
+   tge 1.0 1.000000000000001
+} 0
+
+test math-fuzzy-Lower-1.0 {Compare two floats - check lower} {
+   tlt 1.0 1.001
+} 1
+test math-fuzzy-Lower-1.1 {Compare two floats - check lower} {
+   tlt 1.0 1.0001
+} 1
+test math-fuzzy-Lower-1.2 {Compare two floats - check lower} {
+   tlt 1.0 1.00000000000000001
+} 0
+test math-fuzzy-Lower-1.3 {Compare two floats - check lower} {
+   tlt 1.0 1.000000000000001
+} 1
+test math-fuzzy-Lower-1.4 {Compare two floats - check lower} {
+   # They can not both be true
+   expr {[tlt 1.1 1.0] && [tlt 1.0 1.1]}
+} 0
+
+test math-fuzzy-LoEqual-1.0 {Compare two floats - check lower/equal} {
+   tle 1.0 1.001
+} 1
+test math-fuzzy-LoEqual-1.1 {Compare two floats - check lower/equal} {
+   tle 1.0 1.0001
+} 1
+test math-fuzzy-LoEqual-1.2 {Compare two floats - check lower/equal} {
+   tle 1.0 1.00000000000000001
+} 1
+test math-fuzzy-LoEqual-1.3 {Compare two floats - check lower/equal} {
+   tle 1.0 1.000000000000001
+} 1
+
+test math-fuzzy-Greater-1.0 {Compare two floats - check greater} {
+   tgt 1.0 1.001
+} 0
+test math-fuzzy-Greater-1.1 {Compare two floats - check greater} {
+   tgt 1.0 1.0001
+} 0
+test math-fuzzy-Greater-1.2 {Compare two floats - check greater} {
+   tgt 1.0 1.00000000000000001
+} 0
+test math-fuzzy-Greater-1.3 {Compare two floats - check greater} {
+   tgt 1.0 1.000000000000001
+} 0
+
+#
+# Note: there is no possibility to print the results of the
+# naive comparison or floor/ceil?
+#
+# Note: no attention paid to tcl_precision!
+#
+test math-fuzzy-ManyCompares-1.0 {Compare results of calculations} {
+   set tol_eq 0
+   set tol_ne 0
+   set tol_ge 0
+   set tol_gt 0
+   set tol_le 0
+   set tol_lt 0
+
+   for { set i -1000 } { $i <= 1000 } { incr i } {
+      if { $i == 0 } continue
+
+      set x [expr {1.01/double($i)}]
+      set y [expr {(2.1*$x)*(double($i)/2.1)}]
+
+      if { [teq $y 1.01] } { incr tol_eq }
+      if { [tne $y 1.01] } { incr tol_ne }
+      if { [tge $y 1.01] } { incr tol_ge }
+      if { [tgt $y 1.01] } { incr tol_gt }
+      if { [tle $y 1.01] } { incr tol_le }
+      if { [tlt $y 1.01] } { incr tol_lt }
+   }
+   set result [list $tol_eq $tol_ne $tol_ge $tol_gt $tol_le $tol_lt]
+} {2000 0 2000 0 2000 0}
+
+test math-fuzzy-ManyCompares-1.1 {Compare fails due to missing braces at reduced precision} {
+   set tol_eq 0
+   set tol_ne 0
+   set tol_ge 0
+   set tol_gt 0
+   set tol_le 0
+   set tol_lt 0
+
+   #
+   # Force Tcl8.4 or earlier behaviour in expanding numbers
+   # Requires tcl_precision of 12!
+   #
+   set prec $::tcl_precision
+   set ::tcl_precision 12
+
+   for { set i -1000 } { $i <= 1000 } { incr i } {
+      if { $i == 0 } continue
+
+      #
+      # NOTE: The braces in the assignment for y are missing on purpose!
+      #
+      set x [expr {1.01/double($i)}]
+      set y [expr (2.1*$x)*(double($i)/2.1)]
+
+      if { [teq $y 1.01] } { incr tol_eq }
+      if { [tne $y 1.01] } { incr tol_ne }
+      if { [tge $y 1.01] } { incr tol_ge }
+      if { [tgt $y 1.01] } { incr tol_gt }
+      if { [tle $y 1.01] } { incr tol_le }
+      if { [tlt $y 1.01] } { incr tol_lt }
+   }
+   set result [list $tol_eq $tol_ne $tol_ge $tol_gt $tol_le $tol_lt]
+   set intended {2000 0 2000 0 2000 0}
+   set equal 1
+   foreach r $result i $intended {
+      if { $r != $i } {
+         set equal 0
+      }
+   }
+   set tcl_precision $prec
+   set equal
+} 0
+
+test math-fuzzy-ManyCompares-1.2 {Compare does not fail even with missing braces because of sufficient precision} {
+   set tol_eq 0
+   set tol_ne 0
+   set tol_ge 0
+   set tol_gt 0
+   set tol_le 0
+   set tol_lt 0
+
+   #
+   # Force sufficient precision if Tcl8.4 or earlier
+   #
+   set prec $::tcl_precision
+   if {![package vsatisfies [package provide Tcl] 8.5]} {
+       set ::tcl_precision 17
+   } else {
+       set ::tcl_precision 0
+   }
+
+   for { set i -1000 } { $i <= 1000 } { incr i } {
+      if { $i == 0 } continue
+
+      #
+      # NOTE: The braces in the assignment for y are missing on purpose!
+      #
+      set x [expr {1.01/double($i)}]
+      set y [expr (2.1*$x)*(double($i)/2.1)]
+
+      if { [teq $y 1.01] } { incr tol_eq }
+      if { [tne $y 1.01] } { incr tol_ne }
+      if { [tge $y 1.01] } { incr tol_ge }
+      if { [tgt $y 1.01] } { incr tol_gt }
+      if { [tle $y 1.01] } { incr tol_le }
+      if { [tlt $y 1.01] } { incr tol_lt }
+   }
+   set result [list $tol_eq $tol_ne $tol_ge $tol_gt $tol_le $tol_lt]
+   set intended {2000 0 2000 0 2000 0}
+   set equal 1
+   foreach r $result i $intended {
+      if { $r != $i } {
+         set equal 0
+      }
+   }
+   set tcl_precision $prec
+   set equal
+} 1
+
+test math-fuzzy-ManyCompares-1.3 {Compare fails due to naive comparison} {
+   set naiv_eq 0
+   set naiv_ne 0
+   set naiv_ge 0
+   set naiv_gt 0
+   set naiv_le 0
+   set naiv_lt 0
+
+   for { set i -1000 } { $i <= 1000 } { incr i } {
+      if { $i == 0 } continue
+
+      set x [expr {1.01/double($i)}]
+      set y [expr {(2.1*$x)*(double($i)/2.1)}]
+
+      if { $y == 1.01 } { incr naiv_eq }
+      if { $y != 1.01 } { incr naiv_ne }
+      if { $y >= 1.01 } { incr naiv_ge }
+      if { $y >  1.01 } { incr naiv_gt }
+      if { $y <= 1.01 } { incr naiv_le }
+      if { $y <  1.01 } { incr naiv_lt }
+   }
+   set result [list $naiv_eq $naiv_ne $naiv_ge $naiv_gt $naiv_le $naiv_lt]
+   set intended {2000 0 2000 0 2000 0}
+   set equal 1
+   foreach r $result i $intended {
+      if { $r != $i } {
+         set equal 0
+      }
+   }
+   set equal
+} 0
+
+test math-fuzzy-Floor-Ceil-1.0 {Check floor and ceil functions} {
+   set fc_eq 0
+   set fz_eq 0
+   set fz_ne 0
+
+   for { set i -1000 } { $i <= 1000 } { incr i } {
+
+      set x [expr {0.11*double($i)}]
+      set y [expr {(($x*11.0)-$x)-double($i)/10.0}]
+      set z [expr {double($i)}]
+
+      if { [tfloor $y] == $z }         { incr fz_eq }
+      if { [tfloor $y] == [tceil $y] } { incr fc_eq }
+   }
+   set result [list $fc_eq $fz_eq]
+} {2001 2001}
+
+test math-fuzzy-Floor-Ceil-1.1 {Naive floor and ceil fail} {
+   set fc_eq 0
+   set fz_eq 0
+   set fz_ne 0
+
+   for { set i -1000 } { $i <= 1000 } { incr i } {
+
+      set x [expr {0.11*double($i)}]
+      set y [expr {(($x*11.0)-$x)-double($i)/10.0}]
+      set z [expr {double($i)}]
+
+      if { [expr {floor($y)}]  == $z } { incr fz_eq }
+      if { [expr {floor($y)}] == [expr {ceil($y)}] } { incr fc_eq }
+   }
+   set result [list $fc_eq $fz_eq]
+   set intended {2001 2001}
+   set equal 1
+   foreach r $result i $intended {
+      if { $r != $i } {
+         set equal 0
+      }
+   }
+   set equal
+} 0
+
+test math-fuzzy-Roundoff-1.0 {Rounding off numbers} {
+
+   set result {}
+   foreach x {
+       0.1  0.3  0.4999999  0.5000001  0.99999
+       -0.1 -0.3 -0.4999999 -0.5000001 -0.99999
+   } {
+      lappend result [tround $x]
+   }
+   set result
+} {0.0 0.0 0.0 1.0 1.0 0.0 0.0 0.0 -1.0 -1.0}
+
+test math-fuzzy-Roundoff-1.1 {Rounding off numbers naively - may fail} {
+   set result {}
+   foreach x {
+       0.1  0.3  0.4999999  0.5000001  0.99999
+       -0.1 -0.3 -0.4999999 -0.5000001 -0.99999
+   } {
+      lappend result [expr {floor($x+0.5)}]
+   }
+   set result
+} {0.0 0.0 0.0 1.0 1.0 0.0 0.0 0.0 -1.0 -1.0}
+
+test math-fuzzy-Roundoff-2.1 {Rounding off numbers with one digit} {
+   set result {}
+   foreach x {
+       0.11  0.32  0.4999999  0.5000001  0.99999
+       -0.11 -0.32 -0.4999999 -0.5000001 -0.99999
+   } {
+      lappend result [troundn $x 1]
+   }
+   set result
+} {0.1 0.3 0.5 0.5 1.0 -0.1 -0.3 -0.5 -0.5 -1.0}
+
+test math-fuzzy-Roundoff-2.2 {Rounding off numbers with two digits} {
+   set result {}
+   foreach x {
+       0.11  0.32  0.4999999  0.5000001  0.99999
+       -0.11 -0.32 -0.4999999 -0.5000001 -0.99999
+   } {
+      lappend result [troundn $x 2]
+   }
+   set result
+} {0.11 0.32 0.5 0.5 1.0 -0.11 -0.32 -0.5 -0.5 -1.0}
+
+test math-fuzzy-Roundoff-2.3 {Rounding off numbers with three digits} {
+   set result {}
+   foreach x {
+       0.1115  0.3210  0.4909999  0.5123401  0.99999
+       -0.1115 -0.3210 -0.4909999 -0.5123401 -0.99999
+   } {
+      lappend result [troundn $x 3]
+   }
+   set result
+} {0.112 0.321 0.491 0.512 1.0 -0.111 -0.321 -0.491 -0.512 -1.0}
+#
+# Hm, here we have a discrepancy: 0.112 and -0.111!

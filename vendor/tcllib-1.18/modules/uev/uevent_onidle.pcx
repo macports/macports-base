@@ -1,0 +1,27 @@
+# -*- tcl -*- uevent::onidle.pcx
+# Syntax of the commands provided by package uevent.
+
+# For use by TclDevKit's static syntax checker.
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the documentation describing the format of the code contained in this file
+#
+
+package require pcx
+pcx::register uevent::onidle
+pcx::tcldep   0.1 needs tcl 8.4
+
+namespace eval ::uevent::onidle {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 0.1 std ::uevent::onidle \
+    {checkSimpleArgs 2 2 {
+	checkWord
+	checkWord
+    }}
+
+# Initialization via pcx::init.
+# Use a ::uevent::init procedure for non-standard initialization.
+pcx::complete

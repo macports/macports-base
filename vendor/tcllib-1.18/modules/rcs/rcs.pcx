@@ -1,0 +1,65 @@
+# -*- tcl -*- rcs.pcx
+# Syntax of the commands provided by package rcs.
+
+# For use by TclDevKit's static syntax checker.
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the documentation describing the format of the code contained in this file
+#
+
+package require pcx
+pcx::register rcs
+pcx::tcldep   0.1 needs tcl 8.4
+
+namespace eval ::rcs {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 0.1 std ::rcs::applyRcsPatch \
+    {checkSimpleArgs 2 2 {
+	checkWord
+	{checkListValues 1 -1 {
+	    {checkListValues 3 3 {
+		{checkOption 1 {
+		    {a {checkSimpleArgs 2 2 {checkInt checkWord}}}
+		    {d {checkSimpleArgs 2 2 {checkInt checkInt}}}
+		} {}}
+	    }}
+	}}
+    }}
+pcx::check 0.1 std ::rcs::decodeRcsPatch \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 0.1 std ::rcs::dict2file \
+    {checkSimpleArgs 1 1 {
+	{checkDictValues checkNatNum checkWord}
+    }}
+pcx::check 0.1 std ::rcs::dict2text \
+    {checkSimpleArgs 1 1 {
+	{checkDictValues checkNatNum checkWord}
+    }}
+pcx::check 0.1 std ::rcs::encodeRcsPatch \
+    {checkSimpleArgs 1 1 {
+       	{checkListValues 1 -1 {
+	    {checkListValues 3 3 {
+		{checkOption 1 {
+		    {a {checkSimpleArgs 2 2 {checkInt checkWord}}}
+		    {d {checkSimpleArgs 2 2 {checkInt checkInt}}}
+		} {}}
+	    }}
+	}}
+    }}
+pcx::check 0.1 std ::rcs::file2dict \
+    {checkSimpleArgs 1 1 {
+	checkFileName
+    }}
+pcx::check 0.1 std ::rcs::text2dict \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+
+# Initialization via pcx::init.
+# Use a ::rcs::init procedure for non-standard initialization.
+pcx::complete

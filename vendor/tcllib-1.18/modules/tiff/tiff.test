@@ -1,0 +1,556 @@
+# -*- tcl -*-
+# tiff.test:  Tests for the TIFF utilities.
+#
+# Copyright (c) 2008 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# TIFF: @(#) $Id: tiff.test,v 1.1 2008/03/24 03:48:59 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+# Marks tests which are only for Tk.
+tcltest::testConstraint tk [info exists tk_version]
+
+# Remove constraint from the tests when bug is fixed.
+# Uncomment next line to run tests with this constraint.
+#tcltest::testConstraint knownBug 1
+
+support {
+    use fileutil/fileutil.tcl fileutil
+}
+testing {
+    useLocal tiff.tcl tiff
+}
+
+# TODO: Test multi-image forms of the commands having that
+# ability. Test that commands check for bad indices and properly error
+# out on them.
+
+# -------------------------------------------------------------------------
+
+test tiff-1.0 {isTIFF error, wrong#args, not enough} {
+    catch {::tiff::isTIFF} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::isTIFF} {file} 0]
+
+test tiff-1.1 {isTIFF error, wrong#args, too many} {
+    catch {::tiff::isTIFF foo bar} msg
+    set msg
+} [tcltest::tooManyArgs {::tiff::isTIFF} {file}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.tiff] {
+    test tiff-2.$n "isTIFF, ok, [file tail $f]" {
+	::tiff::isTIFF $f
+    } 1
+    incr n
+}
+
+test tiff-2.$n "isTIFF, fail, [file tail [info script]]" {
+    ::tiff::isTIFF [info script]
+} 0
+
+# -------------------------------------------------------------------------
+
+test tiff-3.0 {byteOrder error, wrong#args, not enough} {
+    catch {::tiff::byteOrder} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::byteOrder} {file} 0]
+
+test tiff-3.1 {byteOrder error, wrong#args, too many} {
+    catch {::tiff::byteOrder foo bar} msg
+    set msg
+} [tcltest::tooManyArgs {::tiff::byteOrder} {file}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.tiff] {
+    test tiff-4.$n "byteOrder regular, [file tail $f]" {
+	::tiff::byteOrder $f
+    } little
+    incr n
+}
+
+test tiff-5.0 "byteOrder, fail, [file tail [info script]]" {
+    list [catch {::tiff::byteOrder [info script]} msg] $msg
+} {1 {not a tiff file}}
+
+# -------------------------------------------------------------------------
+
+test tiff-6.0 {numImages error, wrong#args, not enough} {
+    catch {::tiff::numImages} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::numImages} {file} 0]
+
+test tiff-6.1 {numImages error, wrong#args, too many} {
+    catch {::tiff::numImages foo bar} msg
+    set msg
+} [tcltest::tooManyArgs {::tiff::numImages} {file}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.tiff] {
+    test tiff-7.$n "numImages regular, [file tail $f]" {
+	::tiff::numImages $f
+    } 1
+    incr n
+}
+
+test tiff-8.0 "numImages, fail, [file tail [info script]]" {
+    list [catch {::tiff::numImages [info script]} msg] $msg
+} {1 {not a tiff file}}
+
+# -------------------------------------------------------------------------
+
+test tiff-9.0 {dimensions error, wrong#args, not enough} {
+    catch {::tiff::dimensions} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::dimensions} {file ?image?} 0]
+
+test tiff-9.1 {dimensions error, wrong#args, too many} {
+    catch {::tiff::dimensions foo bar glop} msg
+    set msg
+} [tcltest::tooManyArgs {::tiff::dimensions} {file ?image?}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.tiff] {
+    test tiff-10.$n "dimensions regular, [file tail $f]" {
+	::tiff::dimensions $f
+    } {320 240}
+    incr n
+}
+
+test tiff-11.0 "dimensions, fail, [file tail [info script]]" {
+    list [catch {::tiff::dimensions [info script]} msg] $msg
+} {1 {not a tiff file}}
+
+# -------------------------------------------------------------------------
+
+test tiff-12.0 {imageInfo error, wrong#args, not enough} {
+    catch {::tiff::imageInfo} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::imageInfo} {file ?image?} 0]
+
+test tiff-12.1 {imageInfo error, wrong#args, too many} {
+    catch {::tiff::imageInfo foo bar glop} msg
+    set msg
+} [tcltest::tooManyArgs {::tiff::imageInfo} {file ?image?}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.tiff] {
+    test tiff-13.$n "imageInfo regular, [file tail $f]" {
+	dictsort [::tiff::imageInfo $f]
+    } {Artist {} BitsPerSample {8 8 8} Compression 7 DateTime {} HostComputer {} ImageDescription {} ImageLength 240 ImageWidth 320 Orientation 1 PhotometricInterpretation 2 ResolutionUnit 2 XResolution 180 YResolution 180}
+    incr n
+}
+
+test tiff-14.0 "imageInfo, fail, [file tail [info script]]" {
+    list [catch {::tiff::imageInfo [info script]} msg] $msg
+} {1 {not a tiff file}}
+
+# -------------------------------------------------------------------------
+
+test tiff-15.0 {entries error, wrong#args, not enough} {
+    catch {::tiff::entries} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::entries} {file ?image?} 0]
+
+test tiff-15.1 {entries error, wrong#args, too many} {
+    catch {::tiff::entries foo bar glop} msg
+    set msg
+} [tcltest::tooManyArgs {::tiff::entries} {file ?image?}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.tiff] {
+    test tiff-16.$n "entries regular, [file tail $f]" {
+	lsort [::tiff::entries $f]
+    } {BitsPerSample Compression DocumentName FillOrder ImageLength ImageWidth JPEGTables Orientation PhotometricInterpretation PlanarConfiguration ResolutionUnit RowsPerStrip SamplesPerPixel Software StripByteCounts StripOffsets XResolution YCbCrSubSampling YResolution}
+    incr n
+}
+
+test tiff-17.0 "entries, fail, [file tail [info script]]" {
+    list [catch {::tiff::entries [info script]} msg] $msg
+} {1 {not a tiff file}}
+
+# -------------------------------------------------------------------------
+
+test tiff-18.0 {getEntry error, wrong#args, not enough} {
+    catch {::tiff::getEntry} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::getEntry} {file entry ?image?} 0]
+
+test tiff-18.1 {getEntry error, wrong#args, not enough} {
+    catch {::tiff::getEntry foo} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::getEntry} {file entry ?image?} 0]
+
+test tiff-18.2 {getEntry error, wrong#args, too many} {
+    catch {::tiff::getEntry foo bar glop snarf} msg
+    set msg
+} [tcltest::tooManyArgs {::tiff::getEntry} {file entry ?image?}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.tiff] {
+    test tiff-19.$n "getEntry regular, [file tail $f]" {
+	::tiff::getEntry $f {Artist Compression}
+    } {Artist {} Compression 7}
+    incr n
+}
+
+test tiff-20.0 "getEntry, fail, [file tail [info script]]" {
+    list [catch {::tiff::getEntry [info script] Artist} msg] $msg
+} {1 {not a tiff file}}
+
+# -------------------------------------------------------------------------
+
+test tiff-21.0 {addEntry error, wrong#args, not enough} {
+    catch {::tiff::addEntry} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::addEntry} {file entry ?image?} 0]
+
+test tiff-21.1 {addEntry error, wrong#args, not enough} {
+    catch {::tiff::addEntry foo} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::addEntry} {file entry ?image?} 0]
+
+test tiff-21.2 {addEntry error, wrong#args, too many} {
+    catch {::tiff::addEntry foo bar glop snarf} msg
+    set msg
+} [tcltest::tooManyArgs {::tiff::addEntry} {file entry ?image?}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.tiff] {
+    test tiff-22.$n "addEntry, new tag, [file tail $f]" {
+	file copy -force $f [set fx [makeFile {} ttmp]]
+	set res {}
+	lappend res [tiff::getEntry $fx Artist]
+	::tiff::addEntry $fx {{Artist 2 Andreas}}
+	lappend res [tiff::getEntry $fx Artist]
+	removeFile ttmp
+	set res
+    } {{Artist {}} {Artist Andreas}}
+    incr n
+}
+
+set n 0
+foreach f [TestFilesGlob testimages/*.tiff] {
+    test tiff-23.$n "addEntry, overwrite tag, [file tail $f]" knownBug {
+	file copy -force $f [set fx [makeFile {} ttmp]]
+	set res {}
+	::tiff::addEntry $fx {{Artist 2 Andreas}}
+	lappend res [tiff::getEntry $fx Artist]
+	::tiff::addEntry $fx {{Artist 2 AK}}
+	lappend res [tiff::getEntry $fx Artist]
+	removeFile ttmp
+	set res
+    } {{Artist Andreas} {Artist AK}}
+    incr n
+}
+
+test tiff-24.0 "addEntry, fail, [file tail [info script]]" {
+    list [catch {::tiff::addEntry [info script] Foo} msg] $msg
+} {1 {not a tiff file}}
+
+# TODO: Test what happens when a string tag like Artist is used with a
+# numeric type code.
+
+# -------------------------------------------------------------------------
+
+test tiff-25.0 {deleteEntry error, wrong#args, not enough} {
+    catch {::tiff::deleteEntry} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::deleteEntry} {file entry ?image?} 0]
+
+test tiff-25.1 {deleteEntry error, wrong#args, not enough} {
+    catch {::tiff::deleteEntry foo} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::deleteEntry} {file entry ?image?} 0]
+
+test tiff-25.2 {deleteEntry error, wrong#args, too many} {
+    catch {::tiff::deleteEntry foo bar glop snarf} msg
+    set msg
+} [tcltest::tooManyArgs {::tiff::deleteEntry} {file entry ?image?}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.tiff] {
+    test tiff-26.$n "deleteEntry, [file tail $f]" {
+	file copy -force $f [set fx [makeFile {} ttmp]]
+	set res {}
+	lappend res [tiff::getEntry $fx Artist]
+	::tiff::addEntry $fx {{Artist 2 Andreas}}
+	lappend res [tiff::getEntry $fx Artist]
+	::tiff::deleteEntry $fx Artist
+	lappend res [tiff::getEntry $fx Artist]
+	removeFile ttmp
+	set res
+    } {{Artist {}} {Artist Andreas} {Artist {}}}
+    incr n
+}
+
+test tiff-27.0 "deleteEntry, fail, [file tail [info script]]" {
+    list [catch {::tiff::deleteEntry [info script] Foo} msg] $msg
+} {1 {not a tiff file}}
+
+# -------------------------------------------------------------------------
+
+test tiff-28.0 {getImage error, wrong#args, not enough} {
+    catch {::tiff::getImage} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::getImage} {file ?image?} 0]
+
+test tiff-28.1 {getImage error, wrong#args, too many} {
+    catch {::tiff::getImage foo bar glop snarf} msg
+    set msg
+} [tcltest::tooManyArgs {::tiff::getImage} {file ?image?}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.tiff] {
+    test tiff-29.$n "getImage, [file tail $f]" {tk unkownFormat} {
+	set image [tiff::getImage $f]
+	lappend res [image width  $image]
+	lappend res [image height $image]
+	image delete $image
+	set res
+    } {320 240}
+    incr n
+}
+
+test tiff-30.0 "getImage, fail, [file tail [info script]]" {
+    list [catch {::tiff::getImage [info script]} msg] $msg
+} {1 {not a tiff file}}
+
+# -------------------------------------------------------------------------
+
+test tiff-31.0 {writeImage error, wrong#args, not enough} {
+    catch {::tiff::writeImage} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::writeImage} {image file ?entry?} 0]
+
+test tiff-31.1 {writeImage error, wrong#args, not enough} {
+    catch {::tiff::writeImage foo} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::writeImage} {image file ?entry?} 0]
+
+test tiff-31.2 {writeImage error, wrong#args, too many} {
+    catch {::tiff::writeImage foo bar glop snarf} msg
+    set msg
+} [tcltest::tooManyArgs {::tiff::writeImage} {image file ?entry?}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach f [TestFilesGlob testimages/*.tiff] {
+    test tiff-32.$n "writeImage, [file tail $f]" {tk unkownFormat} {
+	set image [tiff::getImage $f]
+	set fx [makeFile {} ttmp]
+	tiff::writeImage $image $fx
+	image delete $image
+	foreach k [lsort [::tiff::entries $fx]] {
+	    lappend res [tiff::getEntry $fx $k]
+	}
+	removeFile ttmp
+	set res
+    } {}
+    incr n
+}
+
+# -------------------------------------------------------------------------
+
+test tiff-33.0 {nametotag error, wrong#args, not enough} {
+    catch {::tiff::nametotag} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::nametotag} {names} 0]
+
+test tiff-33.1 {nametotag error, wrong#args, too many} {
+    catch {::tiff::nametotag foo bar} msg
+    set msg
+} [tcltest::tooManyArgs {::tiff::nametotag} {names}]
+
+test tiff-34.0 {tagtoname error, wrong#args, not enough} {
+    catch {::tiff::tagtoname} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::tagtoname} {tags} 0]
+
+test tiff-34.1 {tagtoname error, wrong#args, too many} {
+    catch {::tiff::tagtoname foo bar} msg
+    set msg
+} [tcltest::tooManyArgs {::tiff::tagtoname} {tags}]
+
+# -------------------------------------------------------------------------
+
+set n 0
+foreach {tag name} {
+    00fe NewSubfileType
+    00ff SubfileType 
+    0100 ImageWidth 
+    0101 ImageLength
+    0102 BitsPerSample 
+    0103 Compression
+    0106 PhotometricInterpretation
+    0107 Threshholding 
+    0108 CellWidth  
+    0109 CellLength 
+    010a FillOrder
+    010e ImageDescription
+    010f Make
+    0110 Model
+    0111 StripOffsets
+    0112 Orientation   
+    0115 SamplesPerPixel
+    0116 RowsPerStrip
+    0117 StripByteCounts
+    0118 MinSampleValue
+    0119 MaxSampleValue
+    011a XResolution 
+    011b YResolution
+    011c PlanarConfiguration
+    0120 FreeOffsets
+    0121 FreeByteCounts
+    0122 GrayResponseUnit
+    0123 GrayResponseCurve
+    0128 ResolutionUnit
+    0131 Software
+    0132 DateTime
+    013b Artist
+    013c HostComputer
+    0140 ColorMap
+    0152 ExtraSamples
+    8298 Copyright
+
+    010d DocumentName 
+    011d PageName   
+    011e XPosition  
+    011f YPosition   
+    0124 T4Options
+    0125 T6Options
+    0129 PageNumber
+    012d TransferFunction
+    013d Predictor
+    013e WhitePoint
+    013f PrimaryChromaticities
+    0141 HalftoneHints
+    0142 TileWidth   
+    0143 TileLength  
+    0144 TileOffsets
+    0145 TileByteCounts  
+    0146 BadFaxLines
+    0147 CleanFaxData
+    0148 ConsecutiveBadFaxLines
+    014a SubIFDs
+    014c InkSet
+    014d InkNames
+    014e NumberOfInks
+    0150 DotRange
+    0151 TargetPrinter
+    0153 SampleFormat
+    0154 SMinSampleValue
+    0155 SMaxSampleValue
+    0156 TransferRange
+    0157 ClipPath
+    0158 XClipPathUnits
+    0159 YClipPathUnits
+    015a Indexed
+    015b JPEGTables
+    015f OPIProxy
+    0190 GlobalParametersIFD
+    0191 ProfileType
+    0192 FaxProfile
+    0193 CodingMethods
+    0194 VersionYear
+    0195 ModeNumber
+    01b1 Decode
+    01b2 DefaultImageColor
+    0200 JPEGProc
+    0201 JPEGInterchangeFormat
+    0202 JPEGInterchangeFormatLength
+    0203 JPEGRestartInterval
+    0205 JPEGLosslessPredictors
+    0206 JPEGPointTransforms
+    0207 JPEGQTables
+    0208 JPEGDCTables
+    0209 JPEGACTables
+    0211 YCbCrCoefficients
+    0212 YCbCrSubSampling
+    0213 YCbCrPositioning
+    0214 ReferenceBlackWhite
+    022f StripRowCounts
+    02bc XMP
+    800d ImageID
+    87ac ImageLayer
+
+    8649 Photoshop
+    8769 ExifIFD
+    8773 ICCProfile
+} {
+    test tiff-35.$n {nametotag} {
+	::tiff::nametotag $name
+    } $tag
+    test tiff-36.$n {tagtoname} {
+	::tiff::tagtoname $tag
+    } $name
+    incr n
+}
+
+test tiff-38.0 {nametotag error, bad name} {
+    list [catch {::tiff::nametotag Fufara} msg] $msg
+} {1 {unknown tag Fufara}}
+
+test tiff-39.0 {tagtoname error, bad tag, passed unchanged} {
+    list [catch {::tiff::tagtoname ffff} msg] $msg
+} {0 ffff}
+
+# -------------------------------------------------------------------------
+
+test tiff-40.0 {debug error, wrong#args, not enough} {
+    catch {::tiff::debug} msg
+    set msg
+} [tcltest::wrongNumArgs {::tiff::debug} {file} 0]
+
+test tiff-40.1 {debug error, wrong#args, too many} {
+    catch {::tiff::debug foo bar} msg
+    set msg
+} [tcltest::tooManyArgs {::tiff::debug} {file}]
+
+# -------------------------------------------------------------------------
+# We do not try to actually run 'debug', because it prints its results
+# to stdout. This may change when we can capture stdout as test result
+
+set n 0
+foreach f [TestFilesGlob testimages/*.tiff] {
+    test tiff-41.$n "debug ok, [file tail $f]" donotrun {
+	::tiff::debug $f
+    } {}
+    incr n
+}
+
+test tiff-42.0 "debug, fail, [file tail [info script]]" {
+    list [catch {::tiff::debug [info script]} msg] $msg
+} {1 {not a tiff file}}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup

@@ -1,8 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # portuninstall.tcl
-# $Id$
 #
-# Copyright (c) 2004-2005, 2008-2011 The MacPorts Project
+# Copyright (c) 2004-2005, 2008-2011, 2014-2015 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
@@ -110,8 +109,7 @@ proc uninstall_composite {portname {v ""} {optionslist ""}} {
 }
 
 proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""}} {
-    global uninstall.force uninstall.nochecksum UI_PREFIX \
-           macports::portimagefilepath macports::registry.path
+    global uninstall.force UI_PREFIX macports::registry.path
     array set options $optionslist
     if {[info exists options(subport)]} {
         # don't want this set when calling registry::run_target
@@ -153,22 +151,15 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         }
         set sortedlist [portlist_sortint $ilist]
         foreach i $sortedlist {
-            set ispec "[$i version]_[$i revision][$i variants]"
-            ##
-            # User Interaction Question
-            # Asking choice to select option in case of ambiguous uninstall
+            set portstr [format "%s @%s_%s%s" [$i name] [$i version] [$i revision] [$i variants]]
+            if {[$i state] eq "installed"} {
+                append portstr [msgcat::mc " (active)"]
+            }
+
             if {[info exists macports::ui_options(questions_multichoice)]} {
-                if { [$i state] eq "installed" } {
-                    lappend portilist [$i name]@[$i version]_[$i revision][$i variants](active)
-                } else {
-                    lappend portilist [$i name]@[$i version]_[$i revision][$i variants]
-                }
+                lappend portilist "$portstr"
             } else {
-                if {[$i state] eq "installed"} {
-                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s (active)"] [$i name] $ispec]"
-                } else {
-                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s"] [$i name] $ispec]"
-                }
+                ui_msg "$UI_PREFIX     $portstr"
             }
         }
         if {[info exists macports::ui_options(questions_multichoice)]} {
@@ -276,7 +267,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         }
 
         set portfile_path [file join ${registry.path} registry portfiles ${portname}-${version}_${revision} $portfile]
-        if {[registry::entry search portfile $portfile] eq {}} {
+        if {[registry::entry search portfile $portfile name $portname version $version revision $revision] eq {}} {
             file delete -force $portfile_path
             catch {file delete [file dirname $portfile_path]}
         }

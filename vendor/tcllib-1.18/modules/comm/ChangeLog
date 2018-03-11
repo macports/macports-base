@@ -1,0 +1,368 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-09-15  Andreas Kupries  <andreask@activestate.com>
+
+	* comm.tcl (::comm::commIncoming): [Bug 3066872]: Replaced
+	blocking gets call to read line of offered protocols by
+	non-blocking gets and additional event handling. The procedure
+	"commIncoming" is split into two.
+
+	* comm.tcl (::comm::Word0): [Bug 2972571]: Fixed misdetection
+	* comm.man: of quoted brace due to not handling \\ on its
+	* comm.test: own. Extended testsuite. Updated docs.
+
+	* pkgIndex.tcl: Bumped to version 4.6.2.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-11-04  Andreas Kupries  <andreask@activestate.com>
+
+	* comm.tcl (::comm::commCollect): [Bug 2890743]. Replaced
+	* comm.man: lindex/lreplace with a procedure emulating lindex's
+	* pkgIndex.tcl: behaviour pre Tcl 8, i.e. it needs only the first
+	  word to be a proper list element to parse it ouf the
+	  buffer. Bumped package version to 4.6.1.
+
+2009-04-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm.tcl: Added option -socketcmd enabling users to override how
+	* comm.man: a socket is opened. The envisioned main use is the
+	* pkgIndex.tcl: specification of tls::socket to secure the
+	* comm.pcx: communications. Version bumped to 4.6. Extended syntax
+	* comm.test: definitions for tclchecker, and extended testsuite.
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-06-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm.pcx: New file. Syntax definitions for the public commands
+	  of the comm package.
+
+2008-05-16  Andreas Kupries  <andreask@activestate.com>
+
+	* comm_wire.man: Fixed the sectref argument order issues.
+
+2008-05-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm_wire.man: Updated to changes in doctools (sub)section
+	  reference handling.
+
+2008-03-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm_wire.man: Changed 'require' information to show that this
+	  manpage belongs to the documentation for the package 'comm'.
+
+2008-02-29  Andreas Kupries  <andreask@activestate.com>
+
+	* comm.tcl: Accepted Hemang's <hemanglavana@users.sourceforge.net>
+	* comm.man: patch for the [SF Tcllib Bug 1861565] he
+	* comm.test: reported. This changes the handling of 'port already
+	* pkgIndex.tcl: in use' errors to provide a clear
+	  message. Testsuite was updated. Version bumped to 4.5.7.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-21  Andreas Kupries  <andreask@activestate.com>
+
+	* comm_wire.man: Fixed description of messages in the basic
+	  message layer, and of EOL, per [SF Tcllib Bug 1739372] (by Lars
+	  Hellstroem). General cleanup (spell checking).
+
+2007-08-20  Andreas Kupries  <andreask@activestate.com>
+
+	* comm.test: Updated to require Tcl 8.3 (for snit).
+
+2007-08-15  Andreas Kupries  <andreask@activestate.com>
+
+	* comm.tcl (::comm::Vwait): Fixed uplevel which failed when used
+	* comm.man: with variable names containing spaces. Bumped the
+	* pkgIndex.tcl: package version to 4.5.6. Thanks to Bryan Oakley.
+
+2007-08-14  Andreas Kupries  <andreask@activestate.com>
+
+	* comm.tcl (::comm::CommRunHook): Fixed typo in variable name,
+ 	* comm.man: should be 'res', not 'result'. Bumped the package
+	* pkgIndex.tcl: version to 4.5.5. Thanks to Bryan Oakley.
+
+2007-08-09  Andreas Kupries  <andreask@activestate.com>
+
+	* comm.tcl (comm::comm_cmd_send): Replaced the 'after idle unset
+	  result' with an immediate unset, saving the information into a
+	  local variable. The 'after idle' can spill into a forked child
+	  process if there is no event loop between its location and the
+	  fork. This may bork the child if the next event loop is the
+	  'vwait' of comm's send a few lines above, and the child used the
+	  same serial number for its next request. In that case the
+	  parent's 'after idle unset' will delete the very array element
+	  the child is waiting for, unlocking the vwait, causing it to
+	  access a now missing array element, instead of the expected
+	  result. Fix by JeffH, Analysis by AndreasK, bugfix actually done
+	  before the analysis. This bug happened at Cisco.	
+	* comm.man: Bumped the package version to 4.5.4.
+	* pkgIndex.tcl:
+
+2007-06-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm.tcl: Bugfixes in the wrapper for 'update'.
+	* comm.man: Bumped the package version to 4.5.3.
+	* pkgIndex.tcl:
+
+2007-05-10  Andreas Kupries  <andreask@activestate.com>
+
+	* comm.tcl: Bugfix in the wrapper for 'update'. Bumped the
+	* comm.man: package version to 4.5.2.
+	* pkgIndex.tcl: 
+
+2007-05-04  Andreas Kupries  <andreask@activestate.com>
+
+	* comm.tcl: Bugfixes in the handling of -interp for regular
+	* comm.man: scripts. The handling of the buffer was wrong for
+	* pkgIndex.tcl: scripts which are a single statement as
+	  list. Fixed missing argument to new command commSendReply,
+	  introduced by version 4.5. Affected debugging. Bumped package
+	  version to 4.5.1.
+
+2007-05-01  Andreas Kupries  <andreask@activestate.com>
+
+	* comm.tcl: Added ability to asynchronously generate script
+	* comm.man: results. Enables proper handling of long-running
+	* comm.test: operations (like db queries) without blocking the
+	* comm.slaveboot: server, nor requiring nested eventloops. 
+	* pkgIndex.tcl: Extended documentation, and testsuite. Version
+	  bumped to 4.5. Now depending on snit, and Tcl 8.3.
+
+2007-03-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm.man: Fixed all warnings due to use of now deprecated
+	* comm_wire.man: commands. Added a section about how to give
+	  feedback.
+
+2006-11-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm.tcl (commRunHook): Fixed double execution of the hook
+	  script. Thanks to Will Duquette for the report.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries <andreask@activestate.com>
+
+	* pkgIndex.tcl: Bumped to version 4.4. changes were extension
+	* comm.tcl:     of the existing API.
+	* comm.man:
+
+2006-09-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm_wire.man: Clarified the use of the TCP port in the initial
+	  message a bit more, i.e. the meaning of the special value '0'.
+
+	* comm.tcl: The rewrite of the hook handling broken the promised
+	* comm.man: semantics. Fixed. Also extended the handling of a
+	  configured -interp to deal with a variety of possibilities
+	  regarding missing or hidden commands. Updated the documentation.
+
+	* pkgIndex.tcl:  Bumped to version 4.3.2
+
+2006-08-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm.man: Bumped to version 4.3.1
+	* comm.tcl:
+	* pkgIndex.tcl:
+
+	* comm.tcl: Implemented the new options -interp and -events,
+	* comm.test: extended the testsuite to cover them. Created
+	  utility/helper command for the execution of hook scripts, and
+	  rewrote all hook places to use it.
+
+2006-08-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm.man: Documented an easier use of slave interpreters
+	  (-interp, -events).
+
+2006-08-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm.test:      Moved startup and cleanup of slave process
+	* comm.slaveboot: into a separate file.
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm.test: Fixed cleanup of temp. files.
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm.test: Hooked into the new common test support code.
+
+2006-01-10  Andreas Kupries <andreask@activestate.com>
+
+	* comm.test: Fixed [SF Tcllib Bug 1316033]. Uncluttering test
+	  output.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-10-03  Andreas Kupries <andreask@activestate.com>
+
+	* comm.tcl: Accepted [SF Tcllib Bug 1006282], which is actually an
+	* comm.man: RFE. Comm channels are extended with an option which
+	            allows the user to force the server side to silently
+		    ignore connection attempts where the protocol
+		    negotiation with the other side failed.
+
+2005-03-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm_wire.man: Added documentation for the wire protocol run by
+	  comm internally.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-08-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm.tcl: Typo police.
+	* comm.man:
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-10-23  Andreas Kupries  <andreask@activestate.com>
+
+	* comm.man: Updated version number in documentation.
+
+2003-10-21  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* pkgIndex.tcl: updated to v4.2.
+
+	* comm.man: 
+	* comm.tcl (comm_cmd_new): make 'comm::comm new ?chan?' fully
+	qualify the namespace of the new channel and return that.
+	[Bug #741653, #817351]
+
+	* comm.tcl: change default encoding to utf-8.  This should still
+	work with other versions of comm because the previous one-sided
+	binary setting only allowed for limited i18n-ness.  Using this
+	version of comm on both sides will ensure full i18n-happiness.
+	[Bug #806420]
+
+2003-05-09  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* pkgIndex.tcl: updated to comm 4.1
+	* comm.man:
+	* comm.tcl: rewrite of code to remove pseudo-object model.
+	Clean up code, add send -command callback to allow for
+	notification of results for asynchronous sends.
+
+2003-05-08  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* comm.tcl: update use of string functions to 8.2 cleanliness.
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-11  Andreas Kupries  <andreask@activestate.com>
+
+	* comm.man:
+	* comm.tcl:
+	* pkgIndex.tcl: Set version of the package to to 4.0.1.
+
+2003-01-28  David N. Welton  <davidw@dedasys.com>
+
+	* comm.tcl (::comm::commConfigure): Use 'string is integer'
+	  instead of regexp's.
+	  Require Tcl 8.2.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm.man: More semantic markup, less visual one.
+
+2002-08-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm.test: Removed writing of file ~/foo, was debugging
+	  code. Changed creation and usage of file 'spawn' to allow an
+	  arbitrary setting of -tmpdir. Fixes SF Bug #589225 reported by
+	  Don Porter <dgp@users.sourceforge.net>.
+
+2002-03-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version number to 4.0 per request by John LoVerso.
+
+	* comm.tcl: Applied patch #526499 improving the handling of errors
+	  for async invoked commands.
+
+2002-02-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* comm.tcl: Frink run.
+
+2002-01-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version to 3.7.1.
+
+2001-11-16  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* comm.n: Updated to reflect the changes in the comm code
+	  (namespaces). This fixes SF item #480227.
+
+	* comm.tcl: Fixed two places where namespacing was not handled
+	  correctly.
+
+2001-08-22  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* Integrated into tcllib.

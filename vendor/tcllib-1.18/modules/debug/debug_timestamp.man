@@ -1,0 +1,34 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin debug::timestamp n 1]
+[keywords debug]
+[keywords log]
+[keywords narrative]
+[keywords timestamps]
+[keywords trace]
+[copyright {200?, Colin McCormack, Wub Server Utilities}]
+[copyright {2012, Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc {debug narrative}]
+[titledesc {debug narrative - timestamping}]
+[category  {debugging, tracing, and logging}]
+[require Tcl 8.5]
+[require debug::timestamp [opt 1]]
+[require debug [opt 1]]
+[description]
+[para]
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd debug] [method timestamp]]
+
+This method returns millisecond timing information since a baseline or
+last call, making it useful in a tag-specific prefix to automatically
+provide caller information for all uses of the tag. Or in a message,
+when only specific places need such detail.
+
+[list_end]
+
+[vset CATEGORY debug]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

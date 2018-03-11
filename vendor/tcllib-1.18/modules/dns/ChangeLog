@@ -1,0 +1,385 @@
+2013-07-26  Andreas Kupries <andreask@activestate.com>
+
+	* ip.tcl: [AS Bug 99728]: Fixed version mismatch code vs package
+	  index. Bug introduced by last change, below.
+
+2013-03-25  Andreas Kupries  <andreask@activestate.com>
+
+	* ip.tcl: [Bug 3608943] Check ip::version for empty input and
+	* ip.test: react properly. Extended testsuite. Bumped version
+	* pkgIndex.tcl: to 1.2.1.
+	* tcllib_ip.man:
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-08-16  Andreas Kupries  <andreask@activestate.com>
+
+	* ip.tcl: Added new commands 'collapse' and 'subtract' for
+	* ip.test: more 'arithmetic' on network ranges. Extended
+	* pkgIndex.tcl: documentation and testsuite. Version bumped
+	* tcllib_ip.man: to 1.2. Base code by Roy Keene, with thanks.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-04-13  Andreas Kupries  <andreask@activestate.com>
+
+	* ip.tcl (::ip::IPv4?, ::ip::version): Corrected check for colons
+	* tcllib_ip.man: (wrong order of arguments), and moved this check,
+	* pkgIndex.tcl: a speed optimization from the look of it, into the
+	  main IPv4 test to be used everywhere. Bumped the package version
+	  to 1.1.3. Fixes [Bug 2123397].
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-11-22  Michael Schlenker <mic42@users.sourceforge.net>
+	
+	* dns.tcl: Fixed typo in flags for errorcode decoding
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-03-14  Andreas Kupries  <andreask@activestate.com>
+
+	* spf.tcl (::spf::_exists): Fixed bad use of 'return', reported in
+	* pkgIndex.tcl: [SF Tcllib Bug 1826418], by Erik Leunissen. Bumped
+	  to version 1.1.1.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-26  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* dns.tcl: Applied patch #1610330 from Sergei Golovan to provide
+	asynchronous connection for dns over tcp.
+
+2007-08-25  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* tcllib_dns.man: Documented the -loglevel configure option.
+
+2007-08-22  Andreas Kupries  <andreask@activestate.com>
+
+	* spf.test: Added proper requisites to the testsuite.
+
+2007-08-20  Andreas Kupries  <andreask@activestate.com>
+
+	* tcllib_ip.man: Bumped version to 1.1.2 due to the bugfix made
+	* ip.tcl:        by the last change.
+	* pkgIndex.tcl:
+
+2007-07-05  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* ip.tcl:   bug #1739359 - reject domain names that look like 
+	* ip.test:  ipv4 addresses
+	
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tcllib_ip.man: Fixed all warnings due to use of now deprecated
+	* tcllib_dns.man: commands. Added a section about how to give feedback.
+
+2006-11-04  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* ipMoreC.tcl: Silence critcl warning.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* tcllib_ip.man: Bumped version to 1.1.1
+	* ip.tcl:
+	* pkgIndex.tcl:
+
+2006-05-05  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* dns.tcl: Extended the nameservers command to work on Win9x
+	systems and we now make use of this to initially configure a
+	default nameserver. Some minor additional cleanup.
+
+2006-04-21  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* dns.tcl: Fixed bug #1158037. We were using the query id to
+	locate the DNS state token but this restricts us to 65535 queries
+	as the value is packed into a short.
+
+2006-04-20  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* dns.tcl: Applied patch from #1453327 by Segei Golovan to improve
+	           support for TXT records.
+
+2006-01-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* spf.test: Fixed use of duplicate test names.
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dns.test: More boilerplate simplified via use of test support.
+	* ip.test:
+	* ipMore.test:
+	* spf.test:
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dns.test: Hooked into the new common test support code.
+	* ip.test:
+	* ipMore.test:
+	* spf.test
+
+2005-10-21  Andreas Kupries <andreask@activestate.com>
+
+	* ipMore.tcl: Style cleanup. We need only one $Id expansion at
+	  the top of the file, not for every command in it.
+
+2005-10-18  Andreas Kupries <andreask@activestate.com>
+
+	* ipMore.tcl (::ip::maskToInt): Fixed [SF Tcllib Bug 1323146],
+	  using the patch supplied by Mikhail Teterin
+	  <kot@users.sf.net>. One path through the code did not mask the
+	  data down to 32bit.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-10-04  Andreas Kupries <andreask@activestate.com>
+
+	* ipMoreC.tcl: disabling the new critcl parts of ip for the
+	  platforms it is known to not work for. A better solution will be
+	  worked on after the release.
+
+2005-09-30  Andreas Kupries <andreask@activestate.com>
+
+	* ipMore.test:  Integrated Aamer Akhter's extended
+	* ipMore.tcl:   conversion and manipulation commands
+	* ipMoreC.tcl:  for ip-addresses and -masks. See the
+	* msmgs/en.msg: [SF Tcllib Patch 1260196]. Extended the
+	* ip.man:       documentation, testsuite, critcl setup.
+
+2005-05-21  Pat Thoyts  <pat@zsplat.freeserve.co.uk>
+
+	* dns.tcl: Added support for ceptcl as well as tcludp for udp
+	support.
+
+2005-05-06  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* ip.tcl:   Added some support for acceping RFC3056 6to4 addresses
+	* ip.test:  of the form 2002:<ipv4 address>::/48
+
+2005-04-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dns.tcl (TcpEvent): Fixed [SF Tcllib Bug 1173444]. The cause was
+	  a series of typos, the procedure argument 'token' was referenced
+	  to in the code via 'tok'.
+
+2004-11-21  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* dns.tcl:     Fixed bug in ReadUShort.
+	
+	* dns.tcl:     Incremented the version to 1.2.1 and updated the
+	* ip.tcl:      manual. 
+	
+	* dns.tcl:     Added support for RFC2782 (DNS SRV) which provides
+	               for service discovery via DNS. 
+		       Added dns::nameservers command to return the list
+	               of nameservers configured -- this is not
+	               necessarily all that reliable but should be useful.
+		       Implemented for Windows and Unix.
+
+	* ip.tcl:      Added an error message to deal with invalid address
+	               formats during normalization.
+	
+2004-11-06  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* ip.tcl:       Bug #1060460 - support for IPv4 in IPv6-style
+	                addresses in ip::normalize.
+
+2004-10-19  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* dns.tcl:       Applied fix for bug #1018934 "incorrectly
+	                 detecting query as a reverse lookup"
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-07-31  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* spf.test:      Added lots of macro tests and fixed some bugs
+	* spf.tcl:       that this revealed.
+
+2004-07-30  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* spf.tcl:       Updated to draft-ietf-marid-protocol-00 document.
+	* spf.test:      Fully implements section 7 macro expansion.
+
+2004-07-23  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* spf.tcl:       Use ip package and implemented IPv6 type.
+
+	* dns.tcl:       Added support for IPv6 lookups (type AAAA).
+
+	* ip.tcl:        NEW: IP address package
+	* ip.test:       tests (ipv4 and ipv6)
+	* tcllib_ip.man: Manual page
+
+2004-06-01  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* spf.tcl:      NEW: Implementation of SPF using our dns package.
+	* spf.test:     NEW: tests for SPF package.
+	* pkgIndex.tcl: Updated to include SPF.
+
+	* dns-url.txt: Updated the dns-url document to -09 version. This
+	implementation is still valid so no changes to the uri code.
+
+2004-05-26  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* dns.tcl: Fix issue setting the log level properly.
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2004-01-22  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* dns.tcl: Added automatic recognition of reverse lookups (where
+	query is 1.2.3.4). These are converted to in-addr.arpa lookups.
+	Added a dns::result to return the whole decoded answer record.
+	Added SPF record type (an alias for TXT).
+	Incremented package version to 1.0.5
+
+2003-07-09  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* dns.tcl: Added decoding for SOA response records. 
+
+2003-05-09  Andreas Kupries  <andreask@activestate.com>
+
+	* resolv.tcl (::resolv::init): Added missing [expr] bracing.
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-14  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* dns.tcl: Added error message to the timeout.
+	* resolv.tcl: incorporated some of Emmanuel's updated code.
+
+2003-04-12  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* dns.man: *Renamed* to tcllib_dns.man to avoid a name clash with
+	the dns manpage from the scotty package.
+
+2003-04-11  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* dns.tcl: Try to read the whole reply when using tcp. Added a 
+	catch to avoid bgerrors within the handler.
+	* dns.tcl:
+	* dns.man:
+	* pkgIndex.tcl: hiked version to 1.0.4
+	
+2003-04-11  Andreas Kupries  <andreask@pliers.activestate.com>
+
+	* dns.tcl:
+	* dns.man:
+	* pkgIndex.tcl:  Fixed bug #614591. Set version of the package to
+	  to 1.0.3 throughout. Added package 'resolv' to index.
+
+2003-03-04  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* dns.tcl: converted from the log package to logger. Enable UDP as
+	the default if available.
+
+2003-02-27  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* resolv.tcl: Imported Emmanuel Frecon's code from the Tclers
+	Wiki. Provides a name cache and simplifies usage of the dns
+	package.
+	
+2003-02-25  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* dns.tcl: Tested the UDP transmission using a fixed TclUDP.
+	* dns.tcl: Implemented inverse queries. (Pretty useless though).
+	* dns.tcl: Added errorcode procedure.
+	
+2003-01-30  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* dns.tcl: Implemented UDP transmission. Currently not tested
+	because tcludp doesn't handle binary data.
+
+2003-01-24  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* pkgIndex.tcl:
+	* dns.man:   Added Tcl 8.2 as minimum Tcl version to resolve bug
+	* dns.tcl:   #674330. Upped version to 1.0.2
+	* dns.test:  Added some tests for the dns uri handling and fixed a
+	bug in decoding the class and type section.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dns.man: More semantic markup, less visual one.
+
+2002-08-30  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dns.tcl: Updated 'info exist' to 'info exists'.
+
+2002-06-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dns.man: 
+	* dns.tcl:
+	* pkgIndex.tcl: Version up to 1.0.1
+
+	* dns.tcl: moved var initialization code to the end, as it uses
+	  the 'dns::configure' command, and thus should be called after
+	  its definition. This is the reason for bug #564670, thus now
+	  fixed.
+
+2002-06-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* dns.man: Added note to manpage regarding DNS via TCP and
+	  possible pitfalls.

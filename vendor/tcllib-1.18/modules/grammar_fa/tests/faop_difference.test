@@ -1,0 +1,110 @@
+# -*- tcl -*-
+# fa_operations.test:  tests for the FA operations.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: faop_difference.test,v 1.6 2007/04/12 03:43:15 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+test faop-difference-${setimpl}-1.0 {difference, error} {
+    catch {grammar::fa::op::difference} res
+    set res
+} {wrong # args: should be "grammar::fa::op::difference fa fb ?mapvar?"}
+
+
+test faop-difference-${setimpl}-1.1 {difference, error} {
+    catch {grammar::fa::op::difference a b c d} res
+    set res
+} {wrong # args: should be "grammar::fa::op::difference fa fb ?mapvar?"}
+
+
+test faop-difference-${setimpl}-1.2 {difference, error} {
+    catch {grammar::fa::op::difference a b} res
+    set res
+} {invalid command name "a"}
+
+
+test faop-difference-${setimpl}-1.3 {difference, error} {
+    grammar::fa a
+    catch {grammar::fa::op::difference a b} res
+    a destroy
+    set res
+} {invalid command name "b"}
+
+
+test faop-difference-${setimpl}-1.4 {difference, error} {
+    grammar::fa a
+    grammar::fa b
+    catch {grammar::fa::op::difference a b} res
+    a destroy
+    b destroy
+    set res
+} {Unable to perform the difference of two FAs without start/final states}
+
+
+test faop-difference-${setimpl}-1.5 {difference, error} {
+    grammar::fa a
+    grammar::fa b
+    a state add x
+    a start add x
+    catch {grammar::fa::op::difference a b} res
+    a destroy
+    b destroy
+    set res
+} {Unable to perform the difference of two FAs without start/final states}
+
+
+test faop-difference-${setimpl}-1.6 {difference, error} {
+    grammar::fa a
+    grammar::fa b
+    a state add x
+    a final add x
+    catch {grammar::fa::op::difference a b} res
+    a destroy
+    b destroy
+    set res
+} {Unable to perform the difference of two FAs without start/final states}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+foreach {n fa fb fres rmap} {
+    00
+    {grammar::fa {a b c}   {x {1 0 {a y}} y {0 0 {b y c z}} z {0 1 {}}}}
+    {grammar::fa {a d c}   {u {1 0 {a v}} v {0 0 {d v c w}} w {0 1 {}}}}
+    {grammar::fa {a b c d} {0 {1 0 {a 2}} 2 {0 0 {b 4}} 4 {0 0 {c 7 b 4}} 7 {0 1 {}}}}
+    {0 {x u} 2 {y v} 4 {y sink.0} 7 {z sink.0}}
+
+} {
+    set key $n
+
+    test faop-difference-${setimpl}-2.$key {difference} {
+	grammar::fa a deserialize $fa
+	grammar::fa b deserialize $fb
+	set res {}
+	grammar::fa::op::difference a b map
+	lappend res [validate_serial $fres a]
+        lappend res [string equal $rmap [dictsort $map]]
+	a destroy
+	b destroy
+	set res
+    } {ok 1}
+
+    test faop-difference-${setimpl}-3.$key {difference, as method} {
+	grammar::fa a deserialize $fa
+	grammar::fa b deserialize $fb
+	set res {}
+	a difference b map
+	lappend res [validate_serial $fres a]
+        lappend res [string equal $rmap [dictsort $map]]
+	a destroy
+	b destroy
+	set res
+    } {ok 1}
+}
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

@@ -1,0 +1,270 @@
+
+<html><head>
+<title>ripemd160 - RIPEMD Message-Digest Algorithm</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'ripemd160.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2004, Pat Thoyts &lt;patthoyts@users.sourceforge.net&gt;
+   -->
+<! -- ripemd160.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">ripemd160(n) 1.0.5 tcllib &quot;RIPEMD Message-Digest Algorithm&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>ripemd160 - RIPEMD-160 Message-Digest Algorithm</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">PROGRAMMING INTERFACE</a></li>
+<li class="doctools_section"><a href="#section4">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section5">REFERENCES</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">ripemd160 <span class="opt">?1.0.5?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::ripemd::ripemd160</b> <span class="opt">?<i class="arg">-hex</i>?</span> [ <i class="arg">-channel channel</i> | <i class="arg">-file filename</i> | <i class="arg">string</i> ]</a></li>
+<li><a href="#2"><b class="cmd">::ripemd::hmac160</b> <span class="opt">?<i class="arg">-hex</i>?</span> <i class="arg">-key key</i> [ <i class="arg">-channel channel</i> | <i class="arg">-file filename</i> | <i class="arg">string</i> ]</a></li>
+<li><a href="#3"><b class="cmd">::ripemd::RIPEMD160Init</b></a></li>
+<li><a href="#4"><b class="cmd">::ripemd::RIPEMD160Update</b> <i class="arg">token</i> <i class="arg">data</i></a></li>
+<li><a href="#5"><b class="cmd">::ripemd::RIPEMD160Final</b> <i class="arg">token</i></a></li>
+<li><a href="#6"><b class="cmd">::ripemd::RIPEHMAC160Init</b> <i class="arg">key</i></a></li>
+<li><a href="#7"><b class="cmd">::ripemd::RIPEHMAC160Update</b> <i class="arg">token</i> <i class="arg">data</i></a></li>
+<li><a href="#8"><b class="cmd">::ripemd::RIPEHMAC160Final</b> <i class="arg">token</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package is an implementation in Tcl of the RIPEMD-160 message-digest
+algorithm (1). This algorithm takes an arbitrary quantity of data and
+generates a 160-bit message digest from the input. The RIPEMD-160
+algorithm is based upon the MD4 algorithm (2, 4) but has been
+cryptographically strengthened against weaknesses that have been found
+in MD4 (4).</p>
+<p>This package will use <b class="package">cryptkit</b> or <b class="package">Trf</b> to
+accelerate the digest computation if either package is available. In
+the absence of an accelerator package the pure-Tcl implementation will
+be used.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::ripemd::ripemd160</b> <span class="opt">?<i class="arg">-hex</i>?</span> [ <i class="arg">-channel channel</i> | <i class="arg">-file filename</i> | <i class="arg">string</i> ]</a></dt>
+<dd><p>Calculate the RIPEMD-160 digest of the data given in string. This is
+returned as a binary string by default. Giving the <i class="arg">-hex</i> option
+will return a hexadecimal encoded version of the digest.</p>
+<p>The data to be hashed can be specified either as a string argument to
+the ripemd160 command, or as a filename or a pre-opened channel. If the
+<i class="arg">-filename</i> argument is given then the file is opened, the data read
+and hashed and the file is closed. If the <i class="arg">-channel</i> argument is
+given then data is read from the channel until the end of file. The
+channel is not closed.</p>
+<p>Only one of <i class="arg">-file</i>, <i class="arg">-channel</i> or <i class="arg">string</i> should be given.</p></dd>
+<dt><a name="2"><b class="cmd">::ripemd::hmac160</b> <span class="opt">?<i class="arg">-hex</i>?</span> <i class="arg">-key key</i> [ <i class="arg">-channel channel</i> | <i class="arg">-file filename</i> | <i class="arg">string</i> ]</a></dt>
+<dd><p>Calculate an Hashed Message Authentication digest (HMAC) using the
+RIPEMD-160 digest algorithm. HMACs are described in RFC 2104 (5) and
+provide a RIPEMD-160 digest that includes a key. All options other
+than <i class="arg">-key</i> are as for the <b class="cmd">::ripemd::ripemd160</b> command.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">PROGRAMMING INTERFACE</a></h2>
+<p>For the programmer, hash functions can be viewed as a bucket into which
+one pours data. When you have finished, you extract a value that is
+uniquely derived from the data that was poured into the bucket. The
+programming interface to the hash operates on a token (equivalent to the
+bucket). You call <b class="cmd">RIPEMD160Init</b> to obtain a token and then call
+<b class="cmd">RIPEMD160Update</b> as many times as required to add data to the hash. To
+release any resources and obtain the hash value, you then call
+<b class="cmd">RIPEMD160Final</b>. An equivalent set of functions gives you a keyed
+digest (HMAC).</p>
+<dl class="doctools_definitions">
+<dt><a name="3"><b class="cmd">::ripemd::RIPEMD160Init</b></a></dt>
+<dd><p>Begins a new RIPEMD-160 hash. Returns a token ID that must be used for the
+remaining functions.</p></dd>
+<dt><a name="4"><b class="cmd">::ripemd::RIPEMD160Update</b> <i class="arg">token</i> <i class="arg">data</i></a></dt>
+<dd><p>Add data to the hash identified by token. Calling
+<em>RIPEMD160Update $token &quot;abcd&quot;</em> is equivalent to calling
+<em>RIPEMD160Update $token &quot;ab&quot;</em> followed by
+<em>RIPEMD160Update $token &quot;cb&quot;</em>. See <span class="sectref"><a href="#section4">EXAMPLES</a></span>.</p></dd>
+<dt><a name="5"><b class="cmd">::ripemd::RIPEMD160Final</b> <i class="arg">token</i></a></dt>
+<dd><p>Returns the hash value and releases any resources held by this
+token. Once this command completes the token will be invalid. The
+result is a binary string of 16 bytes representing the 160 bit
+RIPEMD-160 digest value.</p></dd>
+<dt><a name="6"><b class="cmd">::ripemd::RIPEHMAC160Init</b> <i class="arg">key</i></a></dt>
+<dd><p>This is equivalent to the <b class="cmd">::ripemd::RIPEMD160Init</b> command
+except that it requires the key that will be included in the HMAC.</p></dd>
+<dt><a name="7"><b class="cmd">::ripemd::RIPEHMAC160Update</b> <i class="arg">token</i> <i class="arg">data</i></a></dt>
+<dd></dd>
+<dt><a name="8"><b class="cmd">::ripemd::RIPEHMAC160Final</b> <i class="arg">token</i></a></dt>
+<dd><p>These commands are identical to the RIPEMD160 equivalent commands.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">EXAMPLES</a></h2>
+<pre class="doctools_example">
+% ripemd::ripemd160 -hex &quot;Tcl does RIPEMD-160&quot;
+0829dea75a1a7074c702896723fe37763481a0a7
+</pre>
+<pre class="doctools_example">
+% ripemd::hmac160 -hex -key Sekret &quot;Tcl does RIPEMD-160&quot;
+bf0c927231733686731dddb470b64a9c23f7f53b
+</pre>
+<pre class="doctools_example">
+% set tok [ripemd::RIPEMD160Init]
+::ripemd::1
+% ripemd::RIPEMD160Update $tok &quot;Tcl &quot;
+% ripemd::RIPEMD160Update $tok &quot;does &quot;
+% ripemd::RIPEMD160Update $tok &quot;RIPEMD-160&quot;
+% ripemd::Hex [ripemd::RIPEMD160Final $tok]
+0829dea75a1a7074c702896723fe37763481a0a7
+</pre>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">REFERENCES</a></h2>
+<ol class="doctools_enumerated">
+<li><p>H. Dobbertin, A. Bosselaers, B. Preneel,
+        &quot;RIPEMD-160, a strengthened version of RIPEMD&quot;
+        <a href="http://www.esat.kuleuven.ac.be/~cosicart/pdf/AB-9601/AB-9601.pdf">http://www.esat.kuleuven.ac.be/~cosicart/pdf/AB-9601/AB-9601.pdf</a></p></li>
+<li><p>Rivest, R., &quot;The MD4 Message Digest Algorithm&quot;, RFC 1320, MIT,
+       April 1992. (<a href="http://www.rfc-editor.org/rfc/rfc1320.txt">http://www.rfc-editor.org/rfc/rfc1320.txt</a>)</p></li>
+<li><p>Rivest, R., &quot;The MD4 message digest algorithm&quot;, in A.J.  Menezes
+       and S.A. Vanstone, editors, Advances in Cryptology - CRYPTO '90
+       Proceedings, pages 303-311, Springer-Verlag, 1991.</p></li>
+<li><p>Dobbertin, H., &quot;Cryptanalysis of MD4&quot;, Journal of Cryptology
+        vol 11 (4), pp. 253-271 (1998)</p></li>
+<li><p>Krawczyk, H., Bellare, M. and Canetti, R. &quot;HMAC: Keyed-Hashing for
+      Message Authentication&quot;, RFC 2104, February 1997.
+	(<a href="http://www.rfc-editor.org/rfc/rfc2104.txt">http://www.rfc-editor.org/rfc/rfc2104.txt</a>)</p></li>
+</ol>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>ripemd</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../md4/md4.html">md4</a>, <a href="../md5/md5.html">md5</a>, <a href="ripemd128.html">ripemd128</a>, <a href="../sha1/sha1.html">sha1</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key377">RIPEMD</a>, <a href="../../../../index.html#key216">hashing</a>, <a href="../../../../index.html#key379">md4</a>, <a href="../../../../index.html#key215">message-digest</a>, <a href="../../../../index.html#key378">rfc 1320</a>, <a href="../../../../index.html#key380">rfc 1321</a>, <a href="../../../../index.html#key214">rfc 2104</a>, <a href="../../../../index.html#key122">security</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Hashes, checksums, and encryption</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2004, Pat Thoyts &lt;patthoyts@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

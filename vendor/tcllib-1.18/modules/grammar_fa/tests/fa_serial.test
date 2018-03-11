@@ -1,0 +1,221 @@
+# -*- tcl -*-
+# finite_automaton.test:  tests for the grammar::fa container.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: fa_serial.test,v 1.8 2007/04/12 03:43:14 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+if {![::tcltest::testConstraint runtotal]} {
+    ::tcltest::cleanupTests
+    return
+}
+
+# -------------------------------------------------------------------------
+
+test fa-serial-${setimpl}-1.0 {serialize, error} {
+    grammar::fa a
+    catch {a serialize a} msg
+    a destroy
+    set msg
+} {wrong # args: should be "::grammar::fa::Snit_methodserialize type selfns win self"}
+
+
+test fa-serial-${setimpl}-1.1 {deserialize, error} {
+    grammar::fa a
+    catch {a deserialize} msg
+    a destroy
+    set msg
+} {wrong # args: should be "::grammar::fa::Snit_methoddeserialize type selfns win self value"}
+
+
+test fa-serial-${setimpl}-1.2 {deserialize, error} {
+    grammar::fa a
+    catch {a deserialize a b} msg
+    a destroy
+    set msg
+} {wrong # args: should be "::grammar::fa::Snit_methoddeserialize type selfns win self value"}
+
+
+test fa-serial-${setimpl}-1.3 {assignment, error} {
+    grammar::fa a
+    catch {a =} msg
+    a destroy
+    set msg
+} {wrong # args: should be "::grammar::fa::Snit_method= type selfns win self b"}
+
+
+test fa-serial-${setimpl}-1.4 {assignment, error} {
+    grammar::fa a
+    catch {a = a b} msg
+    a destroy
+    set msg
+} {wrong # args: should be "::grammar::fa::Snit_method= type selfns win self b"}
+
+
+test fa-serial-${setimpl}-1.5 {assignment, error} {
+    grammar::fa a
+    catch {a -->} msg
+    a destroy
+    set msg
+} {wrong # args: should be "::grammar::fa::Snit_method--> type selfns win self b"}
+
+test fa-serial-${setimpl}-1.6 {assignment, error} {
+    grammar::fa a
+    catch {a --> a b} msg
+    a destroy
+    set msg
+} {wrong # args: should be "::grammar::fa::Snit_method--> type selfns win self b"}
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+foreach {n code} {
+    00 x
+    01 x-
+    02 xe
+    03 xy
+    04 xy-
+    05 xye
+    06 xyee
+    07 xye-
+    08 xy--
+    09 xy-=
+    10 xyz/ee
+    11 xyz/e-
+    12 xyz/--
+    13 xyz/-=
+    14 xyz|ee
+    15 xyz|e-
+    16 xyz|--
+    17 xyz|-=
+    18 xyz+eee
+    19 xyz+ee-
+    20 xyz+e--
+    21 xyz+e-=
+    22 xyz+---
+    23 xyz+--=
+    24 xyz+-=_
+    25 xyz&eee
+    26 xyz&ee-
+    27 xyz&e--
+    28 xyz&e-=
+    29 xyz&---
+    30 xyz&--=
+    31 xyz&-=_
+    32 xyz!ee
+    33 xyz!e-
+    34 xyz!--
+    35 xyz!-=
+    36 xyz!-e
+} {
+    if {[string match xyz* $code]} {
+	set sets {{} x y z {x y} {x z} {y z} {x y z}}
+    } elseif {[string match xy* $code]} {
+	set sets {{} x y {x y}}
+    } elseif {[string match x* $code]} {
+	set sets {{} x}
+    } else {
+	set sets {{}}
+    }
+
+    foreach st $sets {
+	foreach fin $sets {
+	    set key $n.$code.([join $st {}],[join $fin {}])
+
+	    test fa-serial-${setimpl}-2.$key {serialize} {
+		grammar::fa a
+		gen $code
+		foreach s $st  {if {[a state exists $s]} {a start add $s}}
+		foreach s $fin {if {[a state exists $s]} {a final add $s}}
+		set res [validate_serial [a serialize] a]
+		a destroy
+		set res
+	    } ok
+
+	    test fa-serial-${setimpl}-3.$key {deserialize} {
+		grammar::fa a
+		gen $code
+		foreach s $st  {if {[a state exists $s]} {a start add $s}}
+		foreach s $fin {if {[a state exists $s]} {a final add $s}}
+
+		grammar::fa b
+		b deserialize [a serialize]
+		set     res [validate_serial [b serialize] a]
+		lappend res [validate_serial [a serialize] b]
+
+		a destroy
+		b destroy
+		set res
+	    } {ok ok}
+
+	    test fa-serial-${setimpl}-4.$key {assignment} {
+		grammar::fa a
+		gen $code
+		foreach s $st  {if {[a state exists $s]} {a start add $s}}
+		foreach s $fin {if {[a state exists $s]} {a final add $s}}
+
+		grammar::fa b
+		b = a
+		set     res [validate_serial [b serialize] a]
+		lappend res [validate_serial [a serialize] b]
+
+		a destroy
+		b destroy
+		set res
+	    } {ok ok}
+
+	    test fa-serial-${setimpl}-5.$key {reverse assignment} {
+		grammar::fa a
+		gen $code
+		foreach s $st  {if {[a state exists $s]} {a start add $s}}
+		foreach s $fin {if {[a state exists $s]} {a final add $s}}
+
+		grammar::fa b
+		a --> b
+		set     res [validate_serial [b serialize] a]
+		lappend res [validate_serial [a serialize] b]
+
+		a destroy
+		b destroy
+		set res
+	    } {ok ok}
+
+	    foreach op {= := <-- as} {
+		test fa-serial-${setimpl}-6.$key.$op {construction from fa} {
+		    grammar::fa a
+		    gen $code
+		    foreach s $st  {if {[a state exists $s]} {a start add $s}}
+		    foreach s $fin {if {[a state exists $s]} {a final add $s}}
+
+		    grammar::fa b $op a
+		    set     res [validate_serial [b serialize] a]
+		    lappend res [validate_serial [a serialize] b]
+
+		    a destroy
+		    b destroy
+		    set res
+		} {ok ok}
+	    }
+
+	    test fa-serial-${setimpl}-7.$key {construction from fa} {
+		grammar::fa a
+		gen $code
+		foreach s $st  {if {[a state exists $s]} {a start add $s}}
+		foreach s $fin {if {[a state exists $s]} {a final add $s}}
+
+		grammar::fa b deserialize [a serialize]
+		set     res [validate_serial [b serialize] a]
+		lappend res [validate_serial [a serialize] b]
+
+		a destroy
+		b destroy
+		set res
+	    } {ok ok}
+	}
+    }
+}
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

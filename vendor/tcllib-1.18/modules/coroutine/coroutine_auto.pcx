@@ -1,0 +1,23 @@
+# -*- tcl -*- coroutine::auto.pcx
+# Syntax of the commands provided by package coroutine::auto.
+#
+# No commands in this package. The point of the package is to overlay
+# existing builtin commands with syntactically and semantically
+# equivalent variants which behave propery inside and outside of
+# coroutines.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register coroutine::auto
+pcx::tcldep   1 needs tcl 8.6
+
+namespace eval ::coroutine {}
+
+# Initialization via pcx::init.
+# Use a ::coroutine::init procedure for non-standard initialization.
+pcx::complete

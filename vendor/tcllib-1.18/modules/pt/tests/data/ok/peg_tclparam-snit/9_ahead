@@ -1,0 +1,119 @@
+## -*- tcl -*-
+##
+## Snit-based Tcl/PARAM implementation of the parsing
+## expression grammar
+##
+##	TEMPLATE
+##
+## Generated from file	TEST
+##            for user  unknown
+##
+# # ## ### ##### ######## ############# #####################
+## Requirements
+
+package require Tcl 8.5
+package require snit
+package require pt::rde ; # Implementation of the PARAM
+			  # virtual machine underlying the
+			  # Tcl/PARAM code used below.
+
+# # ## ### ##### ######## ############# #####################
+##
+
+snit::type ::PARSER {
+    # # ## ### ##### ######## #############
+    ## Public API
+
+    constructor {} {
+	# Create the runtime supporting the parsing process.
+	set myparser [pt::rde ${selfns}::ENGINE]
+	return
+    }
+
+    method parse {channel} {
+	$myparser reset $channel
+	MAIN ; # Entrypoint for the generated code.
+	return [$myparser complete]
+    }
+
+    method parset {text} {
+	$myparser reset
+	$myparser data $text
+	MAIN ; # Entrypoint for the generated code.
+	return [$myparser complete]
+    }
+
+    # # ## ### ###### ######## #############
+    ## Configuration
+
+    pragma -hastypeinfo    0
+    pragma -hastypemethods 0
+    pragma -hasinfo        0
+    pragma -simpledispatch 1
+
+    # # ## ### ###### ######## #############
+    ## Data structures.
+
+    variable myparser {} ; # Our instantiation of the PARAM.
+
+    # # ## ### ###### ######## #############
+    ## BEGIN of GENERATED CODE. DO NOT EDIT.
+
+    #
+    # Grammar Start Expression
+    #
+    
+    proc MAIN {} { upvar 1 myparser myparser
+        sym_TEST
+        return
+    }
+    
+    #
+    # value Symbol 'TEST'
+    #
+    
+    proc sym_TEST {} { upvar 1 myparser myparser
+        # x
+        #     &
+        #         'a'
+        #     (IDENTIFIER)
+    
+        $myparser si:void_symbol_start TEST
+        sequence_6
+        $myparser si:void_leaf_symbol_end TEST
+        return
+    }
+    
+    proc sequence_6 {} { upvar 1 myparser myparser
+        # x
+        #     &
+        #         'a'
+        #     (IDENTIFIER)
+    
+        $myparser si:void_state_push
+        ahead_3
+        $myparser si:voidvoid_part
+        $myparser i_status_fail ; # Undefined symbol 'IDENTIFIER'
+        $myparser si:void_state_merge
+        return
+    }
+    
+    proc ahead_3 {} { upvar 1 myparser myparser
+        # &
+        #     'a'
+    
+        $myparser i_loc_push
+        $myparser si:next_char a
+        $myparser i_loc_pop_rewind
+        return
+    }
+    
+    ## END of GENERATED CODE. DO NOT EDIT.
+    # # ## ### ###### ######## #############
+}
+
+# # ## ### ##### ######## ############# #####################
+## Ready
+
+package provide SNIT_PACKAGE 1
+return

@@ -1,0 +1,81 @@
+# -*- tcl -*-
+# Tests for special (Bessel) functions in math library  -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# $Id: bessel.test,v 1.15 2007/08/21 17:33:00 andreas_kupries Exp $
+#
+# Copyright (c) 2004 by Arjen Markus
+# All rights reserved.
+#
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4;# statistics,linalg!
+testsNeedTcltest 2.1
+
+support {
+    useLocal math.tcl       math
+    useLocal constants.tcl  math::constants
+    useLocal linalg.tcl     math::linearalgebra ;# for statistics
+    useLocal statistics.tcl math::statistics
+}
+testing {
+    useLocal special.tcl math::special
+}
+
+# -------------------------------------------------------------------------
+
+#
+# As the values were given with four digits, an absolute
+# error is most appropriate
+#
+proc matchNumbers {expected actual} {
+    set match 1
+    foreach a $actual e $expected {
+        if {abs($a-$e) > 0.1e-4} {
+            set match 0
+            break
+        }
+    }
+    return $match
+}
+
+customMatch numbers matchNumbers
+
+# -------------------------------------------------------------------------
+
+test "Bessel-1.0" "Values of the zeroth-order Bessel function" \
+    -match numbers -body {
+    set result {}
+    foreach x {0.0 1.0 2.0 5.0 7.0 10.0 11.0 14.0} {
+        lappend result [::math::special::J0 $x]
+    }
+   set result
+} -result {1.0 0.765198 0.223891 -0.177597 0.300079 -0.245936 -0.171190 0.171073}
+
+test "Bessel-1.1" "Values of the first-order Bessel function" \
+    -match numbers -body {
+    set result {}
+    foreach x {0.0 1.0 2.0 5.0 7.0 10.0 11.0 14.0} {
+        lappend result [::math::special::J1 $x]
+    }
+    set result
+} -result {0.0 0.440050 0.576725 -0.327579 -0.004683 0.043473 -0.176785 0.133375}
+
+#
+# No tests for J1/2 yet
+#
+
+#
+# No tests for I_n yet
+#
+
+# End of test cases
+testsuiteCleanup

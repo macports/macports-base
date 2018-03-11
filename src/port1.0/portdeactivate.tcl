@@ -1,6 +1,5 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # portdeactivate.tcl
-# $Id$
 #
 # Copyright (c) 2010-2011 The MacPorts Project
 # All rights reserved.
@@ -57,12 +56,12 @@ proc portdeactivate::deactivate_start {args} {
 }
 
 proc portdeactivate::deactivate_main {args} {
-    global subport version revision portvariants user_options startupitem.autostart UI_PREFIX
+    global subport version revision portvariants user_options UI_PREFIX
 
-    if {[tbool startupitem.autostart]} {
-        ui_notice "$UI_PREFIX [format [msgcat::mc "Unloading %s"] [option subport]]"
+    if {[portstartupitem::is_loaded]} {
+        ui_notice "$UI_PREFIX [format [msgcat::mc "Unloading startupitem for %s"] $subport]"
         if {[eval_targets "unload"]} {
-            ui_warn [format [msgcat::mc "Failed to unload %s, continuing anyway."] [option subport]]
+            ui_warn [format [msgcat::mc "Failed to unload startupitem for %s (continuing anyway)"] $subport]
         }
     }
 

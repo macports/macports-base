@@ -1,0 +1,87 @@
+# -*- tcl -*-
+# finite_automaton.test:  tests for the grammar::fa container.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: fa_cons.test,v 1.6 2007/04/12 03:43:14 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+test fa-cons-${setimpl}-1.0 {construction error} {
+    catch {grammar::fa a foo} msg
+    set msg
+} {Error in constructor: wrong#args: ::a ?=|:=|<--|as|deserialize a'|fromRegex re ?over??}
+
+
+test fa-cons-${setimpl}-1.1 {construction error} {
+    catch {grammar::fa a foo fie far fux} msg
+    set msg
+} {Error in constructor: wrong#args: ::a ?=|:=|<--|as|deserialize a'|fromRegex re ?over??}
+
+
+test fa-cons-${setimpl}-1.2 {construction error} {
+    catch {grammar::fa a foo fie far} msg
+    set msg
+} {Error in constructor: bad assignment: ::a ?=|:=|<--|as|deserialize a'|fromRegex re ?over??}
+
+
+test fa-cons-${setimpl}-1.3 {construction error} {
+    catch {grammar::fa a foo fie} msg
+    set msg
+} {Error in constructor: bad assignment: ::a ?=|:=|<--|as|deserialize a'|fromRegex re ?over??}
+
+
+test fa-cons-${setimpl}-1.4 {construction error} {
+    catch {grammar::fa a = b} msg
+    set msg
+} {Error in constructor: invalid command name "b"}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+test fa-cons-${setimpl}-2.0 {construction} {
+    grammar::fa a
+    a destroy
+} {}
+
+test fa-cons-${setimpl}-2.1 {construction} {
+    set res {}
+    lappend res [info commands ::a]
+    grammar::fa a
+    lappend res [info commands ::a]
+    a destroy
+    lappend res [info commands ::a]
+    set res
+} {{} ::a {}}
+
+
+test fa-cons-${setimpl}-2.2 {construction, properties of empty fa} {
+    set res {}
+    grammar::fa a
+    lappend res [a info type]
+    lappend res [a symbols]
+    lappend res [a states]
+    lappend res [a finalstates]
+    lappend res [a startstates]
+    lappend res [a reachable_states]
+    lappend res [a useful_states]
+    lappend res [a is deterministic]
+    lappend res [a is useful]
+    lappend res [a is complete]
+    lappend res [a is epsilon-free]
+    a destroy
+    set res
+} {::grammar::fa {} {} {} {} {} {} 0 0 1 1}
+
+
+test fa-cons-${setimpl}-2.3 {construction, serial} {
+    grammar::fa a
+    set res [a serialize]
+    a destroy
+    set res
+} $fa_empty
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

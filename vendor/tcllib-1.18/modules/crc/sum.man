@@ -1,0 +1,108 @@
+[vset SUM_VERSION 1.1.2]
+[manpage_begin sum n [vset SUM_VERSION]]
+[see_also cksum(n)]
+[see_also crc32(n)]
+[see_also sum(1)]
+[keywords checksum]
+[keywords cksum]
+[keywords crc]
+[keywords crc32]
+[keywords {cyclic redundancy check}]
+[keywords {data integrity}]
+[keywords security]
+[keywords sum]
+[copyright {2002, Pat Thoyts <patthoyts@users.sourceforge.net>}]
+[moddesc   {Cyclic Redundancy Checks}]
+[titledesc {Calculate a sum(1) compatible checksum}]
+[category  {Hashes, checksums, and encryption}]
+[require Tcl 8.2]
+[require sum [opt [vset SUM_VERSION]]]
+[description]
+[para]
+
+This package provides a Tcl-only implementation of the sum(1) command
+which calculates a 16 bit checksum value from the input data.  The BSD
+sum algorithm is used by default but the SysV algorithm is also
+available.
+
+[section COMMANDS]
+
+[list_begin definitions]
+
+[call [cmd "::crc::sum"] \
+        [opt "[arg -bsd] | [arg -sysv]"] \
+        [opt [arg "-format fmt"]] \
+        [opt [arg "-chunksize size"]] \
+        [lb] [arg "-filename file"] | \
+        [arg "-channel chan"] | [arg "string"] [rb]]
+
+The command takes string data or a file name or a channel and returns
+a checksum value calculated using the [syscmd sum(1)] algorithm. The
+result is formatted using the [arg format](n) specifier provided or as
+an unsigned integer (%u) by default.
+
+[list_end]
+
+[section OPTIONS]
+
+[list_begin definitions]
+
+[def "-sysv"]
+
+The SysV algorithm is fairly naive. The byte values are summed and any
+overflow is discarded. The lowest 16 bits are returned as the
+checksum.  Input with the same content but different ordering will
+give the same result.
+
+[def "-bsd"]
+
+This algorithm is similar to the SysV version but includes a bit rotation
+step which provides a dependency on the order of the data values.
+
+[def "-filename [arg name]"]
+
+Return a checksum for the file contents instead of for parameter data.
+
+[def "-channel [arg chan]"]
+
+Return a checksum for the contents of the specified channel. The
+channel must be open for reading and should be configured for binary
+translation. The channel will no be closed on completion.
+
+[def "-chunksize [arg size]"]
+
+Set the block size used when reading data from either files or
+channels. This value defaults to 4096.
+
+[def "-format [arg string]"]
+
+Return the checksum using an alternative format template.
+
+[list_end]
+
+[section EXAMPLES]
+
+[para]
+[example {
+% crc::sum "Hello, World!"
+37287
+}]
+
+[para]
+[example {
+% crc::sum -format 0x%X "Hello, World!"
+0x91A7
+}]
+
+[para]
+[example {
+% crc::sum -file sum.tcl
+13392
+}]
+
+[section AUTHORS]
+Pat Thoyts
+
+[vset CATEGORY crc]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

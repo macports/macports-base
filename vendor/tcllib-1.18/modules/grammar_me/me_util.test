@@ -1,0 +1,168 @@
+# me_util.test:  tests for the AST utilities -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: me_util.test,v 1.7 2007/08/01 22:49:26 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.1
+
+support {
+    useAccel [useTcllibC] struct/tree.tcl struct::tree
+    TestAccelInit                         struct::tree
+}
+testing {
+    useLocal me_util.tcl grammar::me::util
+}
+
+# -------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------
+
+## Pre-requisites. An AST value and various serializations of plain
+## and extended tree representations of the same AST. Plus helper
+## commands for the checking of trees for structural equality.
+
+set ast {a 0 56 {{} 3 15} {b 16 40 {d 16 20} {{} 21 40}} {c 41 56}}
+
+set serial_0 {
+    root {} {}
+    node0 0 {type nonterminal detail a range  {0 56}}
+    node1 3 {type terminal             range  {3 15}}
+    node2 3 {type nonterminal detail b range {16 40}}
+    node3 3 {type nonterminal detail c range {41 56}}
+    node4 9 {type nonterminal detail d range {16 20}}
+    node5 9 {type terminal             range {21 40}}
+}
+
+set serial_0a {
+    node0 {} {type nonterminal detail a range  {0 56}}
+    node1  0 {type terminal             range  {3 15}}
+    node2  0 {type nonterminal detail b range {16 40}}
+    node3  0 {type nonterminal detail c range {41 56}}
+    node4  6 {type nonterminal detail d range {16 20}}
+    node5  6 {type terminal             range {21 40}}
+}
+
+set serial_1 {
+    root  {} {}
+    foo    0 {}
+    node0  3 {type nonterminal detail a range  {0 56}}
+    node1  6 {type terminal             range  {3 15}}
+    node2  6 {type nonterminal detail b range {16 40}}
+    node3  6 {type nonterminal detail c range {41 56}}
+    node4 12 {type nonterminal detail d range {16 20}}
+    node5 12 {type terminal             range {21 40}}
+}
+
+set serial_2 {
+    root {} {}
+    node0 0 {type nonterminal detail a range  {0 56} range_lc  {{l0 c0} {l56 c56}}}
+    node1 3 {type terminal             range  {3 15} range_lc  {{l3 c3} {l15 c15}} detail {{T3 l3 c3 L3} {T4 l4 c4 L4} {T5 l5 c5 L5} {T6 l6 c6 L6} {T7 l7 c7 L7} {T8 l8 c8 L8} {T9 l9 c9 L9} {T10 l10 c10 L10} {T11 l11 c11 L11} {T12 l12 c12 L12} {T13 l13 c13 L13} {T14 l14 c14 L14} {T15 l15 c15 L15}}}
+    node2 3 {type nonterminal detail b range {16 40} range_lc {{l16 c16} {l40 c40}}}
+    node3 3 {type nonterminal detail c range {41 56} range_lc {{l41 c41} {l56 c56}}}
+    node4 9 {type nonterminal detail d range {16 20} range_lc {{l16 c16} {l20 c20}}}
+    node5 9 {type terminal             range {21 40} range_lc {{l21 c21} {l40 c40}} detail {{T21 l21 c21 L21} {T22 l22 c22 L22} {T23 l23 c23 L23} {T24 l24 c24 L24} {T25 l25 c25 L25} {T26 l26 c26 L26} {T27 l27 c27 L27} {T28 l28 c28 L28} {T29 l29 c29 L29} {T30 l30 c30 L30} {T31 l31 c31 L31} {T32 l32 c32 L32} {T33 l33 c33 L33} {T34 l34 c34 L34} {T35 l35 c35 L35} {T36 l36 c36 L36} {T37 l37 c37 L37} {T38 l38 c38 L38} {T39 l39 c39 L39} {T40 l40 c40 L40}}}
+}
+
+set serial_2a {
+    node0 {} {type nonterminal detail a range  {0 56}}
+    node1  0 {type terminal             range  {3 15}}
+    node2  0 {type nonterminal detail b range {16 40}}
+    node3  0 {type nonterminal detail c range {41 56}}
+    node4  6 {type nonterminal detail d range {16 20}}
+    node5  6 {type terminal             range {21 40}}
+}
+
+set serial_3 {
+    root  {} {}
+    foo    0 {}
+    node0  3 {type nonterminal detail a range  {0 56} range_lc  {{l0 c0} {l56 c56}}}
+    node1  6 {type terminal             range  {3 15} range_lc  {{l3 c3} {l15 c15}} detail {{T3 l3 c3 L3} {T4 l4 c4 L4} {T5 l5 c5 L5} {T6 l6 c6 L6} {T7 l7 c7 L7} {T8 l8 c8 L8} {T9 l9 c9 L9} {T10 l10 c10 L10} {T11 l11 c11 L11} {T12 l12 c12 L12} {T13 l13 c13 L13} {T14 l14 c14 L14} {T15 l15 c15 L15}}}
+    node2  6 {type nonterminal detail b range {16 40} range_lc {{l16 c16} {l40 c40}}}
+    node3  6 {type nonterminal detail c range {41 56} range_lc {{l41 c41} {l56 c56}}}
+    node4 12 {type nonterminal detail d range {16 20} range_lc {{l16 c16} {l20 c20}}}
+    node5 12 {type terminal             range {21 40} range_lc {{l21 c21} {l40 c40}} detail {{T21 l21 c21 L21} {T22 l22 c22 L22} {T23 l23 c23 L23} {T24 l24 c24 L24} {T25 l25 c25 L25} {T26 l26 c26 L26} {T27 l27 c27 L27} {T28 l28 c28 L28} {T29 l29 c29 L29} {T30 l30 c30 L30} {T31 l31 c31 L31} {T32 l32 c32 L32} {T33 l33 c33 L33} {T34 l34 c34 L34} {T35 l35 c35 L35} {T36 l36 c36 L36} {T37 l37 c37 L37} {T38 l38 c38 L38} {T39 l39 c39 L39} {T40 l40 c40 L40}}}
+}
+
+proc tree_equal {ta tb} {
+    set tna [llength [$ta nodes]]
+    set tnb [llength [$tb nodes]]
+
+    if {$tna != $tnb}  {
+	puts "sizes: $ta n = $tna != $tnb = $tb n"
+	return 0
+    }
+    node_equal $ta $tb [$ta rootname] [$tb rootname]
+}
+
+proc node_equal {ta tb na nb} {
+    if {[dictsort [$ta getall $na]] ne [dictsort [$tb getall $nb]]} {
+	puts "attr delta $ta $na: [dictsort [$ta getall $na]]\n           $tb $nb: [dictsort [$tb getall $nb]]"
+	return 0
+    }
+    if {[$ta numchildren $na] != [$tb numchildren $nb]} {
+	puts "#c $na / $nb: [$ta numchildren $na] != [$tb numchildren $nb]"
+	return 0
+    }
+    foreach ca [$ta children $na] cb [$tb children $nb] {
+	if {![node_equal $ta $tb $ca $cb]} {
+	    return 0
+	}
+    }
+    return 1
+}
+
+proc tsdump {ser} {
+    set line {}
+    foreach {a b c} $ser {
+	lappend line [list $a $b $c]
+    }
+    return \t[join $line \n\t]
+}
+
+# -------------------------------------------------------------------------
+# In this section we run all the tests depending on a struct::tree,
+# and thus have to test all the available implementations.
+
+set tests [file join [file dirname [info script]] me_util.testsuite]
+
+catch {memory validate on}
+
+TestAccelDo struct::tree impl {
+    # The global variable 'impl' is part of the public API the
+    # testsuit (in htmlparse_tree.testsuite) can expect from the
+    # environment.
+
+    namespace import -force struct::tree
+
+    set usec [time {source $tests} 1]
+
+    #puts "$impl:\t$usec"
+}
+
+catch {memory validate off}
+
+unset usec
+unset tests
+
+# -------------------------------------------------------------------------
+
+## Cleanup and statistics.
+
+rename tree_equal {}
+rename node_equal {}
+rename tsdump     {}
+TestAccelExit struct::tree
+testsuiteCleanup

@@ -1,0 +1,143 @@
+[manpage_begin cache::async n 0.3]
+[keywords asynchronous]
+[keywords cache]
+[keywords callback]
+[keywords synchronous]
+[copyright {2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {In-memory caches}]
+[titledesc {Asynchronous in-memory cache}]
+[require Tcl 8.4]
+[require cache::async [opt 0.3]]
+[description]
+
+This package provides objects which cache data in memory, and operate
+asynchronously with regard to request and responses. The objects are
+agnostic with regard to cache keys and values, and unknown methods are
+delegated to the provider of cached data. These two properties make it
+easy to use caches as a facade for any data provider.
+
+[section API]
+
+The package exports a class, [class cache::async], as specified
+below.
+
+[list_begin definitions]
+
+[call [cmd ::cache::async] [arg objectName] [arg commandprefix] [opt [arg options]...]]
+
+The command creates a new [term cache] object with an associated
+global Tcl command whose name is [arg objectName].  This command may
+be used to invoke various operations on the object.
+
+[para]
+
+The [arg commandprefix] is the action to perform when an user asks for
+data in the cache and the cache doesn't yet know about the key. When
+run the commandprefix is given three additional arguments, the string
+[const get], the key requested, and the cache object itself, in the
+form of its object command, in this order. The execution of the action
+is done in an idle-handler, decoupling it from the original request.
+
+[para]
+
+The only supported option is
+
+[list_begin options]
+[opt_def -full-async-results]
+
+This option defines the behaviour of the cache for when requested keys
+are known to the cache at the time of [method get] request. By default
+such requeste are responded to asynchronously as well. Setting this
+option to [const false] forces the cache to respond to them
+synchronuously, although still through the specified callback.
+
+[list_end]
+[list_end]
+
+The object commands created by the class commands above have
+the form:
+
+[list_begin definitions]
+
+[call [arg objectName] [method get] [arg key] [arg donecmdprefix]]
+
+This method requests the data for the [arg key] from the cache. If the
+data is not yet known the command prefix specified during construction
+of the cache object is used to ask for this information.
+
+[para]
+
+Whenever the information is/becomes available the [arg donecmdprefix]
+will be run to transfer the result to the caller. This command prefix
+is invoked with either 2 or 3 arguments, i.e.
+
+[list_begin enum]
+[enum] The string [const set], the [arg key], and the value.
+[enum] The string [const unset], and the [arg key].
+[list_end]
+
+These two possibilities are used to either signal the value for the
+[arg key], or that the [arg key] has no value defined for it. The
+latter is distinct from the cache not knowing about the [arg key].
+
+[para]
+
+For a cache object configured to be fully asynchronous (default) the
+[arg donecmdprefix] is always run in an idle-handler, decoupling it
+from the request. Otherwise the callback will be invoked synchronously
+when the [arg key] is known to the cache at the time of the
+invokation.
+
+[para]
+
+Another important part of the cache's behaviour, as it is asynchronous
+it is possible that multiple [method get] requests are issued for the
+same [arg key] before it can respond. In that case the cache will
+issue only one data request to the provider, for the first of these,
+and suspend the others, and then notify all of them when the data
+becomes available.
+
+[call [arg objectName] [method set] [arg key] [arg value]]
+[call [arg objectName] [method unset] [arg key]]
+
+These two methods are provided to allow users of the cache to make
+keys known to the cache, as either having a [arg value], or as
+undefined.
+
+[para]
+
+It is expected that the data provider (see [arg commandprefix] of the
+constructor) uses them in response to data requests for unknown keys.
+
+[para]
+
+Note how this matches the cache's own API towards its caller, calling
+the [arg donecmd] of [method get]-requests issued to itself with
+either "set key value" or "unset key", versus issuing
+[method get]-requests to its own provider with itself in the place of
+the [arg donecmd], expecting to be called with either "set key value"
+or "unset key".
+
+[para]
+
+This also means that these methods invoke the [arg donecmd] of all
+[method get]-requests waiting for information about the modified
+[arg key].
+
+[call [arg objectName] [method exists] [arg key]]
+
+This method queries the cache for knowledge about the [arg key] and
+returns a boolean value. The result is [const true] if the key is
+known, and [const false] otherwise.
+
+[call [arg objectName] [method clear] [opt [arg key]]]
+
+This method resets the state of either the specified [arg key] or of
+all keys known to the cache, making it unkown. This forces future
+[method get]-requests to reload the information from the provider.
+
+[list_end]
+
+[vset CATEGORY cache]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

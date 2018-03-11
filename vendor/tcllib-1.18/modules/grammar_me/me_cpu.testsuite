@@ -1,0 +1,445 @@
+# -*- tcl -*- me_cpu.test
+# ### ### ### ######### ######### #########
+
+# ### ### ### ######### ######### #########
+## Cpu creation.
+
+test me-cpu-new-${impl}-1.0 {new, wrong args} -body {
+    grammar::me::cpu cpu
+} -result {Error in constructor: wrong # args: should be "::grammar::me::cpu::Snit_constructor type selfns win self code_"} \
+  -returnCodes error
+
+test me-cpu-new-${impl}-1.1 {new, wrong args} -body {
+    grammar::me::cpu cpu a b
+} -result {Error in constructor: wrong # args: should be "::grammar::me::cpu::Snit_constructor type selfns win self code_"} \
+  -returnCodes error
+
+test me-cpu-run-${impl}-2.0 run -setup {
+    grammar::me::cpu cpu {{} {} {}}
+} -body {
+    cpu run
+} -cleanup {
+    cpu destroy
+} -returnCodes error -result {No instructions to execute}
+
+set n -1
+foreach {cmd cargs expected} $asm_table {
+    set asm [list [linsert $cargs 0 branchlabel $cmd]]
+    incr n
+
+    test me-cpu-new-${impl}-3.$n "new, $cmd, code" -body {
+	grammar::me::cpu cpu \
+		[canon_code [grammar::me::cpu::core::asm $asm]]
+	cpu code
+    } -cleanup {
+	cpu destroy
+    } -result $expected
+
+    test me-cpu-new-${impl}-4.$n "new, $cmd, state" -body {
+	grammar::me::cpu cpu \
+		[canon_code [grammar::me::cpu::core::asm $asm]]
+	cpusubst [cpustate cpu] cd {}
+    } -cleanup {
+	cpu destroy
+    } -result {cd {} pc 0 ht 0 eo 0 tc {} at -1 cc {} ok 0 sv {} er {} ls {} as {} ms {} es {} rs {} nc {}}
+}
+
+set n -1
+foreach {insns expected} $badmach_table {
+    incr n
+
+    test me-cpu-new-${impl}-5.$n "new error" -body {
+	grammar::me::cpu cpu $insns
+    } -result "Error in constructor: $expected" -returnCodes error
+}
+
+# ### ### ### ######### ######### #########
+## CPU manipulation - Add tokens I
+
+test me-cpu-put-${impl}-1.0 {put, wrong args} -setup {
+    grammar::me::cpu cpu {{} {} {}}
+} -body {
+    cpu put
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result [snitWrongNumArgs cpu ::grammar::me::cpu::Snit_methodput {tok lex line col} 0]
+
+test me-cpu-put-${impl}-1.1 {put, wrong args} -setup {
+    grammar::me::cpu cpu {{} {} {}}
+} -body {
+    cpu put a
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result [snitWrongNumArgs cpu ::grammar::me::cpu::Snit_methodput {tok lex line col} 1]
+
+test me-cpu-put-${impl}-1.2 {put, wrong args} -setup {
+    grammar::me::cpu cpu {{} {} {}}
+} -body {
+    cpu put a b
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result [snitWrongNumArgs cpu ::grammar::me::cpu::Snit_methodput {tok lex line col} 2]
+
+test me-cpu-put-${impl}-1.3 {put, wrong args} -setup {
+    grammar::me::cpu cpu {{} {} {}}
+} -body {
+    cpu put a b c
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result [snitWrongNumArgs cpu ::grammar::me::cpu::Snit_methodput {tok lex line col} 3]
+
+test me-cpu-put-${impl}-1.4 {put, wrong args} -setup {
+    grammar::me::cpu cpu {{} {} {}}
+} -body {
+    cpu put a b c d e
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result [snitTooManyArgs cpu ::grammar::me::cpu::Snit_methodput {tok lex line col}]
+
+test me-cpu-put-${impl}-2.0 put -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    set base [cpustate cpu]
+} -body {
+    cpu put ID  ident 1 0
+    cpu put NUM 12345 1 5
+    cpudelta $base [cpustate cpu]
+} -cleanup {
+    cpu destroy
+    unset base
+} -result {tc {{ID ident 1 0} {NUM 12345 1 5}}}
+
+test me-cpu-put-${impl}-3.0 {put after eof} -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu eof
+} -body {
+    cpu put ID ident 1 0
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result {Cannot add input data after eof}
+
+
+# ### ### ### ######### ######### #########
+## CPU manipulation - Add tokens II
+
+test me-cpu-putstring-${impl}-1.0 {putstring, wrong args} -setup {
+    grammar::me::cpu cpu {{} {} {}}
+} -body {
+    cpu putstring
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result [snitWrongNumArgs cpu ::grammar::me::cpu::Snit_methodputstring {str lvar cvar} 0]
+
+test me-cpu-putstring-${impl}-1.1 {putstring, wrong args} -setup {
+    grammar::me::cpu cpu {{} {} {}}
+} -body {
+    cpu putstring a
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result [snitWrongNumArgs cpu ::grammar::me::cpu::Snit_methodputstring {str lvar cvar} 1]
+
+test me-cpu-putstring-${impl}-1.2 {putstring, wrong args} -setup {
+    grammar::me::cpu cpu {{} {} {}}
+} -body {
+    cpu putstring a b
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result [snitWrongNumArgs cpu ::grammar::me::cpu::Snit_methodputstring {str lvar cvar} 2]
+
+test me-cpu-putstring-${impl}-1.3 {putstring, wrong args} -setup {
+    grammar::me::cpu cpu {{} {} {}}
+} -body {
+    cpu putstring a b c d
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result [snitTooManyArgs cpu ::grammar::me::cpu::Snit_methodputstring {str lvar cvar}]
+
+test me-cpu-putstring-${impl}-2.0 put -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    set base [cpustate cpu]
+    set l 0
+    set c 0
+} -body {
+    cpu putstring ID l c
+    list $l $c [cpudelta $base [cpustate cpu]]
+} -cleanup {
+    cpu destroy
+    unset base
+} -result {0 2 {tc {{I {} 0 0} {D {} 0 1}}}}
+
+test me-cpu-putstring-${impl}-3.0 {put after eof} -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu eof
+    set l 0
+    set c 0
+} -body {
+    cpu putstring ID l c
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result {Cannot add input data after eof}
+
+# ### ### ### ######### ######### #########
+## State manipulation - Set eof
+
+test me-cpu-eof-${impl}-1.0 {eof, wrong args} -setup {
+    grammar::me::cpu cpu {{} {} {}}
+} -body {
+    cpu eof x
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result [snitTooManyArgs cpu ::grammar::me::cpu::Snit_methodeof {}]
+
+test me-cpu-eof-${impl}-2.0 eof -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    set base [cpustate cpu]
+} -body {
+    cpu eof
+    cpudelta $base [cpustate cpu]
+} -cleanup {
+    cpu destroy
+} -result {eo 1}
+
+# ### ### ### ######### ######### #########
+## State accessors - line/col retrieval
+
+test me-cpu-lc-${impl}-1.0 {lc, wrong args} -setup {
+    grammar::me::cpu cpu {{} {} {}}
+} -body {
+    cpu lc
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result [snitWrongNumArgs cpu ::grammar::me::cpu::Snit_methodlc {location} 0]
+
+test me-cpu-lc-${impl}-1.1 {lc, wrong args} -setup {
+    grammar::me::cpu cpu {{} {} {}}
+} -body {
+    cpu lc a b
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result [snitTooManyArgs cpu ::grammar::me::cpu::Snit_methodlc {location}]
+
+test me-cpu-lc-${impl}-2.0 lc -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put NUM 12345 1 5
+} -body {
+    cpu lc 0
+} -cleanup {
+    cpu destroy
+} -result {1 5}
+
+test me-cpu-lc-${impl}-3.0 {lc, bad index} -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put NUM 12345 1 5
+} -body {
+    cpu lc -1
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result {Illegal location -1}
+
+test me-cpu-lc-${impl}-3.1 {lc, bad index} -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put NUM 12345 1 5
+} -body {
+    cpu lc 1
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result {Illegal location 1}
+
+test me-cpu-lc-${impl}-3.2 {lc, bad index} -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+} -body {
+    cpu lc 0
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result {Illegal location 0}
+
+# ### ### ### ######### ######### #########
+## State accessors - Token retrieval
+
+test me-cpu-tok-${impl}-1.0 {tok, wrong args} -setup {
+    grammar::me::cpu cpu {{} {} {}}
+} -body {
+    cpu tok a b c
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result {wrong # args: should be "grammar::me::cpu::core::tok state ?from ?to??"}
+
+test me-cpu-tok-${impl}-2.0 tok -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+} -body {
+    cpu tok
+} -cleanup {
+    cpu destroy
+} -result {}
+
+test me-cpu-tok-${impl}-2.1 tok -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put NUM 12345 1 5
+} -body {
+    cpu tok
+} -cleanup {
+    cpu destroy
+} -result {{NUM 12345 1 5}}
+
+test me-cpu-tok-${impl}-2.2 tok -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put ID  lalal 0 0
+    cpu put NUM 12345 1 5
+} -body {
+    cpu tok
+} -cleanup {
+    cpu destroy
+} -result {{ID lalal 0 0} {NUM 12345 1 5}}
+
+test me-cpu-tok-${impl}-3.0 tok -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+} -body {
+    cpu tok 0
+} -cleanup {
+    cpu destroy
+} -result {Illegal location 0} -returnCodes error
+
+test me-cpu-tok-${impl}-3.1 tok -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put NUM 12345 1 5
+} -body {
+    cpu tok -1
+} -cleanup {
+    cpu destroy
+} -result {Illegal location -1} -returnCodes error
+
+test me-cpu-tok-${impl}-3.2 tok -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put NUM 12345 1 5
+} -body {
+    cpu tok 1
+} -cleanup {
+    cpu destroy
+} -result {Illegal location 1} -returnCodes error
+
+test me-cpu-tok-${impl}-3.3 tok -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put NUM 12345 1 5
+} -body {
+    cpu tok 0
+} -cleanup {
+    cpu destroy
+} -result {{NUM 12345 1 5}}
+
+test me-cpu-tok-${impl}-3.4 tok -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put ID  lalal 0 0
+    cpu put NUM 12345 1 5
+} -body {
+    cpu tok 0
+} -cleanup {
+    cpu destroy
+} -result {{ID lalal 0 0}}
+
+test me-cpu-tok-${impl}-4.0 tok -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put NUM 12345 1 5
+} -body {
+    cpu tok -1 0
+} -cleanup {
+    cpu destroy
+} -result {Illegal start location -1} -returnCodes error
+
+test me-cpu-tok-${impl}-4.1 tok -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put NUM 12345 1 5
+} -body {
+    cpu tok 1 0
+} -cleanup {
+    cpu destroy
+} -result {Illegal start location 1} -returnCodes error
+
+test me-cpu-tok-${impl}-4.2 tok -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put NUM 12345 1 5
+} -body {
+    cpu tok 0 -1
+} -cleanup {
+    cpu destroy
+} -result {Illegal end location -1} -returnCodes error
+
+test me-cpu-tok-${impl}-4.3 tok -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put NUM 12345 1 5
+} -body {
+    cpu tok 0 1
+} -cleanup {
+    cpu destroy
+} -result {Illegal end location 1} -returnCodes error
+
+test me-cpu-tok-${impl}-4.4 tok -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put ID  lalal 0 0
+    cpu put NUM 12345 1 5
+} -body {
+    cpu tok 1 0
+} -cleanup {
+    cpu destroy
+} -result {Illegal empty location range 1 .. 0} -returnCodes error
+
+test me-cpu-tok-${impl}-4.5 tok -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put ID  lalal 0 0
+    cpu put NUM 12345 1 5
+} -body {
+    cpu tok 0 1
+} -cleanup {
+    cpu destroy
+} -result {{ID lalal 0 0} {NUM 12345 1 5}}
+
+test me-cpu-tok-${impl}-4.6 tok -setup {
+    grammar::me::cpu cpu [canon_code [grammar::me::cpu::core::asm {}]]
+    cpu put ID  lalal 0 0
+    cpu put ID  lalal 0 0
+} -body {
+    cpu tok 0 0
+} -cleanup {
+    cpu destroy
+} -result {{ID lalal 0 0}}
+
+# ### ### ### ######### ######### #########
+## Checking the instruction semantics
+
+test me-cpu-run-${impl}-1.0 {run, wrong args} -setup {
+    grammar::me::cpu cpu {{} {} {}}
+} -body {
+    cpu run a b
+} -returnCodes error -cleanup {
+    cpu destroy
+} -result [snitTooManyArgs cpu ::grammar::me::cpu::Snit_methodrun {?n?}]
+
+set n -1
+foreach {description input eof stepsSetup steps code expectedDelta} $semantics {
+    incr n
+
+    if 0 {
+	puts ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	puts $description
+	puts "INPUT $input"
+	puts "EOF   $eof"
+	puts "CODE  $stepsSetup $steps $code"
+	puts $expectedDelta
+    }
+
+    test me-cpu-run-${impl}-2.$n "run $description" -setup {
+	grammar::me::cpu cpu $code
+	foreach token $input {
+	    eval [linsert $token 0 cpu put]
+	    # cpu put {*}$token
+	}
+	if {$eof}        {cpu eof}
+	if {$stepsSetup} {cpu run $stepsSetup}
+	set save [cpustate cpu]
+    } -body {
+	cpu run $steps
+	cpudelta $save [cpustate cpu]
+    } -cleanup {
+	cpu destroy
+    } -result $expectedDelta
+}
+
+return

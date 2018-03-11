@@ -1,0 +1,63 @@
+# -*- tcl -*-
+#
+# $Id: toc.wiki,v 1.6 2005/09/28 04:51:19 andreas_kupries Exp $
+#
+# Engine to convert a doctoc document into Wiki markup.
+#
+# Copyright (c) 2003 Andreas Kupries <andreas_kupries@sourceforge.net>
+# Freely redistributable.
+#
+######################################################################
+
+dt_source _toc_common.tcl   ; # Shared code
+
+######################################################################
+
+proc toc_postprocess {wiki} {
+    # Strip empty lines out of the generated wiki source
+    # and trim leading blanks, except in code samples.
+    #
+    set lines [list]
+    foreach line [split $wiki \n] {
+	if {[string match " |*" $line]} {
+	    # Verbatim / example
+	    lappend lines [string trimright $line]
+	} elseif {[string match ". *" $line]} {
+	    # Verbatim / regular
+	    lappend lines [string range [string trimright $line] 1 end]
+	} elseif {[string match "   \* *" $line]} {
+	    # Itemized lists.
+	    lappend lines [string map {[ [[ ] ]]} [string trimright $line]]
+	} elseif {[string match "   1. *" $line]} {
+	    # Enumerated lists
+	    lappend lines [string map {[ [[ ] ]]} [string trimright $line]]
+	} elseif {[regexp "^   (\[^:\]): " $line]} {
+	    # Definition list
+	    lappend lines [string map {[ [[ ] ]]} [string trimright $line]]
+	} elseif {[string match " *" $line]} {
+	    # Unwanted indentation
+	    lappend lines [string map {[ [[ ] ]]} [string trim $line]]
+	} else {
+	    # Everything else
+	    lappend lines [string map {[ [[ ] ]]} [string trimright $line]]
+	}
+    }
+    set wiki [join $lines \n]\n
+
+    regsub {^[ ]+} $wiki {} wiki
+    return $wiki
+}
+
+proc fmt_plain_text {text} {if {$text != {}} {return \n} else {return {}}}
+
+################################################################
+## Backend for wiki markup
+
+proc fmt_toc_begin      {label title} {return "Table of Contents '''$label'''\n'''[string trim $title]'''"}
+proc fmt_toc_end        {}                {return {}}
+proc fmt_division_start {title symfile}   {return '''[string trim $title]'''}
+proc fmt_division_end   {}                {return {}}
+proc fmt_item           {file label desc} {return "   \[$label\]:   $file -- $desc"}
+proc fmt_comment        {text}            {return {}}
+
+################################################################

@@ -1,0 +1,97 @@
+# -*- tcl -*-
+# Graph tests - arc attr
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: attr.test,v 1.2 2007/04/12 03:01:55 andreas_kupries Exp $
+
+# Syntax: graph arc attr KEY ?-arcs ARCLIST|-glob PATTERN|-regexp PATTERN?
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graph-${impl}-${setimpl}-arc-attr-1.0 {arc attr, wrong#args, missing} {
+    SETUPx
+    catch {mygraph arc attr} msg
+    mygraph destroy
+    set msg
+} [tmWrong {arc attr} {key ?-arcs list|-glob pattern|-regexp pattern?} 0 {key args}]
+
+test graph-${impl}-${setimpl}-arc-attr-1.1 {arc attr, wrong#args, missing} {
+    SETUPx
+    catch {mygraph arc attr a b} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"$MY arc attr key ?-arcs list|-glob pattern|-regexp pattern?\""
+
+test graph-${impl}-${setimpl}-arc-attr-1.2 {arc attr, wrong#args, too many} {
+    SETUPx
+    catch {mygraph arc attr a b c d} msg
+    mygraph destroy
+    set msg
+} "wrong # args: should be \"$MY arc attr key ?-arcs list|-glob pattern|-regexp pattern?\""
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graph-${impl}-${setimpl}-arc-attr-2.0 {arc attr, bogus switch} {
+    SETUPx
+    catch {mygraph arc attr a -foo barf} msg
+    mygraph destroy
+    set msg
+} {bad type "-foo": must be -arcs, -glob, or -regexp}
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+test graph-${impl}-${setimpl}-arc-attr-3.0 {arc attr, unfiltered, nothing} {
+    SETUPx
+    set result [mygraph arc attr vol]
+    mygraph destroy
+    set result
+} {}
+
+test graph-${impl}-${setimpl}-arc-attr-3.1 {arc attr, unfiltered, something} {
+    SETUPx
+    set result [dictsort [mygraph arc attr volume]]
+    mygraph destroy
+    set result
+} {0 30 5 50}
+
+test graph-${impl}-${setimpl}-arc-attr-3.2 {arc attr, filtered -arcs} {
+    SETUPx
+    set result [mygraph arc attr volume -arcs {0 3}]
+    mygraph destroy
+    set result
+} {0 30}
+
+test graph-${impl}-${setimpl}-arc-attr-3.3 {arc attr, filtered -glob} {
+    SETUPx
+    set result [mygraph arc attr volume -glob {[0-3]}]
+    mygraph destroy
+    set result
+} {0 30}
+
+test graph-${impl}-${setimpl}-arc-attr-3.4 {arc attr, filtered -regexp} {
+    SETUPx
+    set result [mygraph arc attr volume -regexp {[0-3]}]
+    mygraph destroy
+    set result
+} {0 30}
+
+test graph-${impl}-${setimpl}-arc-attr-3.5 {arc attr, filtered -arcs nothing} {
+    SETUPx
+    set result [mygraph arc attr volume -arcs {}]
+    mygraph destroy
+    set result
+} {}
+
+test graph-${impl}-${setimpl}-arc-attr-3.6 {arc attr, nothing} {
+    SETUPx
+    mygraph arc unset 0 volume
+    mygraph arc unset 5 volume
+    set result [mygraph arc attr volume]
+    mygraph destroy
+    set result
+} {}
+
+# ---------------------------------------------------  

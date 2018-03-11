@@ -1,0 +1,266 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin term::ansi::send n 0.2]
+[keywords {character output}]
+[keywords control]
+[keywords terminal]
+[copyright {2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Terminal control}]
+[titledesc {Output of ANSI control sequences to terminals}]
+[category  {Terminal control}]
+[require Tcl 8.4]
+[require term::ansi::send [opt 0.2]]
+[description]
+
+This package provides commands to send ANSI terminal control sequences to a
+terminal. All commands come in two variants, one for sending to any channel,
+the other for sending to [emph stdout].
+
+[para]
+
+The commands are defined using the control sequences provided by the package
+[package term::ansi::code::ctrl]. They have the same arguments as the commands
+they are based on, with the exception of the variant for sending to any channel.
+Their first argument is always a channel handle, then followed by the original
+arguments. Below we will list only the variant sending to [emph stdout].
+
+[list_begin definitions]
+[call [cmd ::term::ansi::send::import] [opt [arg ns]] [arg ...]]
+
+Imports the commands of this package into the namespace [arg ns]. If not specified
+it defaults to [emph send]. Note that this default is a relative namespace name,
+i.e. the actual namespace will be created under the current namespace.
+
+[para]
+
+By default all commands will be imported, this can however be restricted to specific
+commands, by listing them after the namespace to import them into.
+
+[call [cmd ::term::ansi::send::eeol]]
+
+Erase (to) End Of Line.
+
+[call [cmd ::term::ansi::send::esol]]
+
+Erase (to) Start Of Line.
+
+[call [cmd ::term::ansi::send::el]]
+
+Erase (current) Line.
+
+[call [cmd ::term::ansi::send::ed]]
+
+Erase Down (to bottom).
+
+[call [cmd ::term::ansi::send::eu]]
+
+Erase Up (to top).
+
+[call [cmd ::term::ansi::send::es]]
+
+Erase Screen.
+
+[call [cmd ::term::ansi::send::sd]]
+
+Scroll Down.
+
+[call [cmd ::term::ansi::send::su]]
+
+Scroll Up.
+
+[call [cmd ::term::ansi::send::ch]]
+
+Cursor Home.
+
+[call [cmd ::term::ansi::send::sc]]
+
+Save Cursor. Note: Only one saved position can be handled.
+This is no unlimited stack. Saving before restoring will
+overwrite the saved data.
+
+[call [cmd ::term::ansi::send::rc]]
+
+Restore Cursor (Unsave).
+
+[call [cmd ::term::ansi::send::sca]]
+
+Save Cursor + Attributes.
+
+[call [cmd ::term::ansi::send::rca]]
+
+Restore Cursor + Attributes.
+
+[call [cmd ::term::ansi::send::st]]
+
+Set Tab (@ current position).
+
+[call [cmd ::term::ansi::send::ct]]
+
+Clear Tab (@ current position).
+
+[call [cmd ::term::ansi::send::cat]]
+
+Clear All Tabs.
+
+[call [cmd ::term::ansi::send::qdc]]
+
+Query Device Code.
+
+[call [cmd ::term::ansi::send::qds]]
+
+Query Device Status.
+
+[call [cmd ::term::ansi::send::qcp]]
+
+Query Cursor Position.
+
+[call [cmd ::term::ansi::send::rd]]
+
+Reset Device.
+
+[call [cmd ::term::ansi::send::elw]]
+
+Enable Line Wrap.
+
+[call [cmd ::term::ansi::send::dlw]]
+
+Disable Line Wrap.
+
+[call [cmd ::term::ansi::send::eg]]
+
+Enter Graphics Mode.
+
+[call [cmd ::term::ansi::send::lg]]
+
+Exit Graphics Mode.
+
+[call [cmd ::term::ansi::send::scs0] [arg tag]]
+[call [cmd ::term::ansi::send::scs1] [arg tag]]
+
+Select Character Set.
+[para]
+
+Choose which character set is used for default (scs0) and alternate font (scs1).
+This does not change whether default or alternate font are used, just their
+definitions.
+
+[para]
+
+The legal tags, and their meanings, are:
+
+[list_begin definitions]
+[def A] United Kingdom Set
+[def B] ASCII Set
+[def 0] Special Graphics
+[def 1] Alternate Character ROM Standard Character Set
+[def 2] Alternate Character ROM Special Graphics
+[list_end]
+
+[call [cmd ::term::ansi::send::sda] [arg arg]...]
+
+Set Display Attributes. The arguments are the code sequences for the possible
+attributes, as provided by the package [package term::ansi::code::attr]. For
+convenience this package also provides additional commands each setting a single
+specific attribute.
+
+[call [cmd ::term::ansi::send::sda_fgblack]]     Set text color to [emph Black].
+[call [cmd ::term::ansi::send::sda_fgred]]       Set text color to [emph Red].
+[call [cmd ::term::ansi::send::sda_fggreen]]     Set text color to [emph Green].
+[call [cmd ::term::ansi::send::sda_fgyellow]]    Set text color to [emph Yellow].
+[call [cmd ::term::ansi::send::sda_fgblue]]      Set text color to [emph Blue].
+[call [cmd ::term::ansi::send::sda_fgmagenta]]   Set text color to [emph Magenta].
+[call [cmd ::term::ansi::send::sda_fgcyan]]      Set text color to [emph Cyan].
+[call [cmd ::term::ansi::send::sda_fgwhite]]     Set text color to [emph White].
+[call [cmd ::term::ansi::send::sda_fgdefault]]   Set default text color ([emph Black]).
+[call [cmd ::term::ansi::send::sda_bgblack]]     Set background to [emph Black].
+[call [cmd ::term::ansi::send::sda_bgred]]       Set background to [emph Red].
+[call [cmd ::term::ansi::send::sda_bggreen]]     Set background to [emph Green].
+[call [cmd ::term::ansi::send::sda_bgyellow]]    Set background to [emph Yellow].
+[call [cmd ::term::ansi::send::sda_bgblue]]      Set background to [emph Blue].
+[call [cmd ::term::ansi::send::sda_bgmagenta]]   Set background to [emph Magenta].
+[call [cmd ::term::ansi::send::sda_bgcyan]]      Set background to [emph Cyan].
+[call [cmd ::term::ansi::send::sda_bgwhite]]     Set background to [emph White].
+[call [cmd ::term::ansi::send::sda_bgdefault]]   Set default background (Transparent).
+[call [cmd ::term::ansi::send::sda_bold]]        Bold on.
+[call [cmd ::term::ansi::send::sda_dim]]         Dim on.
+[call [cmd ::term::ansi::send::sda_italic]]      Italics on.
+[call [cmd ::term::ansi::send::sda_underline]]   Underscore on.
+[call [cmd ::term::ansi::send::sda_blink]]       Blink on.
+[call [cmd ::term::ansi::send::sda_revers]]      Reverse on.
+[call [cmd ::term::ansi::send::sda_hidden]]      Hidden on.
+[call [cmd ::term::ansi::send::sda_strike]]      Strike-through on.
+[call [cmd ::term::ansi::send::sda_nobold]]      Bold off.
+[call [cmd ::term::ansi::send::sda_noitalic]]    Italics off.
+[call [cmd ::term::ansi::send::sda_nounderline]] Underscore off.
+[call [cmd ::term::ansi::send::sda_noblink]]     Blink off.
+[call [cmd ::term::ansi::send::sda_norevers]]    Reverse off.
+[call [cmd ::term::ansi::send::sda_nohidden]]    Hidden off.
+[call [cmd ::term::ansi::send::sda_nostrike]]    Strike-through off.
+[call [cmd ::term::ansi::send::sda_reset]]       Reset all attributes to their default values.
+
+[call [cmd ::term::ansi::send::fcp] [arg row] [arg col]]
+
+Force Cursor Position (aka Go To).
+
+[call [cmd ::term::ansi::send::cu] [opt [arg n]]] Cursor Up. [arg n] defaults to 1.
+[call [cmd ::term::ansi::send::cd] [opt [arg n]]] Cursor Down. [arg n] defaults to 1.
+[call [cmd ::term::ansi::send::cf] [opt [arg n]]] Cursor Forward. [arg n] defaults to 1.
+[call [cmd ::term::ansi::send::cb] [opt [arg n]]] Cursor Backward. [arg n] defaults to 1.
+
+[call [cmd ::term::ansi::send::ss] [opt "[arg s] [arg e]"]]
+
+Scroll Screen (entire display, or between rows start end, inclusive).
+
+[call [cmd ::term::ansi::send::skd] [arg code] [arg str]]
+
+Set Key Definition.
+[comment {-- list the possible codes --}]
+
+[call [cmd ::term::ansi::send::title] [arg str]]
+
+Set the terminal title.
+
+[call [cmd ::term::ansi::send::gron]]
+
+Switch to character/box graphics. I.e. switch to the alternate font.
+
+[call [cmd ::term::ansi::send::groff]]
+
+Switch to regular characters. I.e. switch to the default font.
+
+[call [cmd ::term::ansi::send::tlc]] Character graphics, Top Left Corner.
+[call [cmd ::term::ansi::send::trc]] Character graphics, Top Right Corner.
+[call [cmd ::term::ansi::send::brc]] Character graphics, Bottom Right Corner.
+[call [cmd ::term::ansi::send::blc]] Character graphics, Bottom Left Corner.
+[call [cmd ::term::ansi::send::ltj]] Character graphics, Left T Junction.
+[call [cmd ::term::ansi::send::ttj]] Character graphics, Top T Junction.
+[call [cmd ::term::ansi::send::rtj]] Character graphics, Right T Junction.
+[call [cmd ::term::ansi::send::btj]] Character graphics, Bottom T Junction.
+[call [cmd ::term::ansi::send::fwj]] Character graphics, Four-Way Junction.
+[call [cmd ::term::ansi::send::hl]]  Character graphics, Horizontal Line.
+[call [cmd ::term::ansi::send::vl]]  Character graphics, Vertical Line.
+
+[call [cmd ::term::ansi::send::groptim] [arg str]]
+
+Optimize character graphics. The generator commands above create way to many
+superfluous commands shifting into and out of the graphics mode. This command
+removes all shifts which are not needed. To this end it also knows which
+characters will look the same in both modes, to handle strings created outside
+of this package.
+
+[call [cmd ::term::ansi::send::clear]]
+
+Clear screen. In essence a sequence of CursorHome + EraseDown.
+
+[call [cmd ::term::ansi::send::init]]
+
+Initialize default and alternate fonts to ASCII and box graphics.
+
+[call [cmd ::term::ansi::send::showat] [arg row] [arg col] [arg text]]
+
+Show the block of text at the specified location.
+
+[list_end]
+
+[vset CATEGORY term]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

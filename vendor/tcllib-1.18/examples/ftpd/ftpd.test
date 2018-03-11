@@ -1,0 +1,42 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+# FTP daemon
+
+# This ftpd runs on port 7777, uses /tmp as root dir and does not do
+# any authentication at all. IOW, do not run this server for longer
+# periods of time or you create a security hole on your machine. This
+# server is strictly for short testing the implementation of the ftp
+# module over short periods of time.
+
+package require Tcl 8.3
+package require ftpd
+package require log
+
+proc bgerror {args} {
+    global errorInfo
+    puts stderr "bgerror: [join $args]"
+    puts stderr $errorInfo
+}
+
+proc ftplog {level text} {
+    if {[string equal $level note]} {set level notice}
+    log::log $level $text
+}
+
+proc noauth {args} {
+    return 1
+}
+
+proc fakefs {cmd path args} {
+    # Use the standard unix fs, i.e. "::ftpd::fsFile::fs", but rewrite the incoming path
+    # to stay in the /tmp directory.
+
+    set path [file join / tmp [file tail $path]]
+    eval [linsert $args 0 ::ftpd::fsFile::fs $cmd $path]
+}
+
+::ftpd::config -logCmd ftplog -authUsrCmd noauth -authFileCmd noauth -fsCmd fakefs
+set ::ftpd::port 7777 ; # Listen on user port
+
+::ftpd::server
+vwait forever

@@ -1,0 +1,75 @@
+2013-05-30  Andreas Kupries  <andreask@activestate.com>
+
+	* rest.tcl (::rest::_call): [Bug 3613726][Allura 1370]: Added
+	  status code 303 ("See Other") to the set of codes returning with
+	  a location error instead of a plain one.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-10-14  Aaron Faupell  <afaupell@users.sourceforge.net>
+
+	* rest.tcl: add -- to denote end of options
+                    add body types "arg" and "mime_multipart"
+                    fix typo bug in option parsing
+                    make %variable substitution occur for content-type
+                    make content-type in header config override http module
+                    fix problem with unset option
+                    dont append ? to urls unless there are parameters following
+                    add basic google docs api
+
+2009-03-23  Andreas Kupries  <andreask@activestate.com>
+
+	* rest.man: Fixed all the reported syntax errors. Quick hack,
+	  large sections of the document were unformatted and not touched,
+	  I did not have the time to perform big cleanup.
+	* rest.tcl: Fixed syntax error in parse_opts.
+
+2009-03-21  Aaron Faupell  <afaupell@users.sourceforge.net>
+	rest.tcl: comment out debugging code which dumped the proc contents
+		add rest::simple command for making simple requests
+		change _format procs for format for easier use with simple calls
+		add version to http package require
+		add format as an alias to result config option
+		if a transform is a single cmd it is called directly instead of creating a proc
+
+2009-03-11  Aaron Faupell  <afaupell@users.sourceforge.net>
+	rest.tcl: make http methods upper case
+		add 301 to redirect errors
+
+2009-02-06  Aaron Faupell  <afaupell@users.sourceforge.net>
+
+	twitter: forgot to check this one in
+	flickr: fixed some broken or incomplete calls
+
+2009-02-05  Aaron Faupell  <afaupell@users.sourceforge.net>
+
+	rest.tcl: fix some errors regarding static args, the body command
+	rest.man: add more documentation and examples. still needs formatting
+	facebook: remove extraneous line in sign proc
+
+2009-02-04  Aaron Faupell  <afaupell@users.sourceforge.net>
+
+	Initial commit
+

@@ -1,0 +1,250 @@
+<html><head>
+<title>math::fuzzy - Tcl Math Library</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'fuzzy.man' by tcllib/doctools with format 'html'
+   -->
+<! -- math::fuzzy.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::fuzzy(n) 0.2 tcllib &quot;Tcl Math Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::fuzzy - Fuzzy comparison of floating-point numbers</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PROCEDURES</a></li>
+<li class="doctools_section"><a href="#section3">TEST CASES</a></li>
+<li class="doctools_section"><a href="#section4">REFERENCES</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl <span class="opt">?8.3?</span></b></li>
+<li>package require <b class="pkgname">math::fuzzy <span class="opt">?0.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::fuzzy::teq</b> <i class="arg">value1</i> <i class="arg">value2</i></a></li>
+<li><a href="#2"><b class="cmd">::math::fuzzy::tne</b> <i class="arg">value1</i> <i class="arg">value2</i></a></li>
+<li><a href="#3"><b class="cmd">::math::fuzzy::tge</b> <i class="arg">value1</i> <i class="arg">value2</i></a></li>
+<li><a href="#4"><b class="cmd">::math::fuzzy::tle</b> <i class="arg">value1</i> <i class="arg">value2</i></a></li>
+<li><a href="#5"><b class="cmd">::math::fuzzy::tlt</b> <i class="arg">value1</i> <i class="arg">value2</i></a></li>
+<li><a href="#6"><b class="cmd">::math::fuzzy::tgt</b> <i class="arg">value1</i> <i class="arg">value2</i></a></li>
+<li><a href="#7"><b class="cmd">::math::fuzzy::tfloor</b> <i class="arg">value</i></a></li>
+<li><a href="#8"><b class="cmd">::math::fuzzy::tceil</b> <i class="arg">value</i></a></li>
+<li><a href="#9"><b class="cmd">::math::fuzzy::tround</b> <i class="arg">value</i></a></li>
+<li><a href="#10"><b class="cmd">::math::fuzzy::troundn</b> <i class="arg">value</i> <i class="arg">ndigits</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The package Fuzzy is meant to solve common problems with floating-point
+numbers in a systematic way:</p>
+<ul class="doctools_itemized">
+<li><p>Comparing two numbers that are &quot;supposed&quot; to be identical, like
+1.0 and 2.1/(1.2+0.9) is not guaranteed to give the
+intuitive result.</p></li>
+<li><p>Rounding a number that is halfway two integer numbers can cause
+strange errors, like int(100.0*2.8) != 28 but 27</p></li>
+</ul>
+<p>The Fuzzy package is meant to help sorting out this type of problems
+by defining &quot;fuzzy&quot; comparison procedures for floating-point numbers.
+It does so by allowing for a small margin that is determined
+automatically - the margin is three times the &quot;epsilon&quot; value, that is
+three times the smallest number <em>eps</em> such that 1.0 and 1.0+$eps
+canbe distinguished. In Tcl, which uses double precision floating-point
+numbers, this is typically 1.1e-16.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PROCEDURES</a></h2>
+<p>Effectively the package provides the following procedures:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::fuzzy::teq</b> <i class="arg">value1</i> <i class="arg">value2</i></a></dt>
+<dd><p>Compares two floating-point numbers and returns 1 if their values
+fall within a small range. Otherwise it returns 0.</p></dd>
+<dt><a name="2"><b class="cmd">::math::fuzzy::tne</b> <i class="arg">value1</i> <i class="arg">value2</i></a></dt>
+<dd><p>Returns the negation, that is, if the difference is larger than
+the margin, it returns 1.</p></dd>
+<dt><a name="3"><b class="cmd">::math::fuzzy::tge</b> <i class="arg">value1</i> <i class="arg">value2</i></a></dt>
+<dd><p>Compares two floating-point numbers and returns 1 if their values
+either fall within a small range or if the first number is larger
+than the second. Otherwise it returns 0.</p></dd>
+<dt><a name="4"><b class="cmd">::math::fuzzy::tle</b> <i class="arg">value1</i> <i class="arg">value2</i></a></dt>
+<dd><p>Returns 1 if the two numbers are equal according to
+[teq] or if the first is smaller than the second.</p></dd>
+<dt><a name="5"><b class="cmd">::math::fuzzy::tlt</b> <i class="arg">value1</i> <i class="arg">value2</i></a></dt>
+<dd><p>Returns the opposite of [tge].</p></dd>
+<dt><a name="6"><b class="cmd">::math::fuzzy::tgt</b> <i class="arg">value1</i> <i class="arg">value2</i></a></dt>
+<dd><p>Returns the opposite of [tle].</p></dd>
+<dt><a name="7"><b class="cmd">::math::fuzzy::tfloor</b> <i class="arg">value</i></a></dt>
+<dd><p>Returns the integer number that is lower or equal
+to the given floating-point number, within a well-defined
+tolerance.</p></dd>
+<dt><a name="8"><b class="cmd">::math::fuzzy::tceil</b> <i class="arg">value</i></a></dt>
+<dd><p>Returns the integer number that is greater or equal to the given
+floating-point number, within a well-defined tolerance.</p></dd>
+<dt><a name="9"><b class="cmd">::math::fuzzy::tround</b> <i class="arg">value</i></a></dt>
+<dd><p>Rounds the floating-point number off.</p></dd>
+<dt><a name="10"><b class="cmd">::math::fuzzy::troundn</b> <i class="arg">value</i> <i class="arg">ndigits</i></a></dt>
+<dd><p>Rounds the floating-point number off to the
+specified number of decimals (Pro memorie).</p></dd>
+</dl>
+<p>Usage:</p>
+<pre class="doctools_example">
+if { [teq $x $y] } { puts &quot;x == y&quot; }
+if { [tne $x $y] } { puts &quot;x != y&quot; }
+if { [tge $x $y] } { puts &quot;x &gt;= y&quot; }
+if { [tgt $x $y] } { puts &quot;x &gt; y&quot; }
+if { [tlt $x $y] } { puts &quot;x &lt; y&quot; }
+if { [tle $x $y] } { puts &quot;x &lt;= y&quot; }
+set fx      [tfloor $x]
+set fc      [tceil  $x]
+set rounded [tround $x]
+set roundn  [troundn $x $nodigits]
+</pre>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">TEST CASES</a></h2>
+<p>The problems that can occur with floating-point numbers are illustrated
+by the test cases in the file &quot;fuzzy.test&quot;:</p>
+<ul class="doctools_itemized">
+<li><p>Several test case use the ordinary comparisons, and they
+fail invariably to produce understandable results</p></li>
+<li><p>One test case uses [expr] without braces ({ and }). It too
+fails.</p></li>
+</ul>
+<p>The conclusion from this is that any expression should be surrounded by
+braces, because otherwise very awkward things can happen if you need
+accuracy. Furthermore, accuracy and understandable results are
+enhanced by using these &quot;tolerant&quot; or fuzzy comparisons.</p>
+<p>Note that besides the Tcl-only package, there is also a C-based version.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">REFERENCES</a></h2>
+<p>Original implementation in Fortran by dr. H.D. Knoble (Penn State
+University).</p>
+<p>P. E. Hagerty, &quot;More on Fuzzy Floor and Ceiling,&quot;
+APL QUOTE QUAD 8(4):20-24, June 1978. Note that TFLOOR=FL5 took five
+years of refereed evolution (publication).</p>
+<p>L. M. Breed, &quot;Definitions for Fuzzy Floor and Ceiling&quot;,
+APL QUOTE QUAD 8(3):16-23, March 1978.</p>
+<p>D. Knuth, Art of Computer Programming,
+Vol. 1, Problem 1.2.4-5.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>math :: fuzzy</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key392">floating-point</a>, <a href="../../../../index.html#key71">math</a>, <a href="../../../../index.html#key391">rounding</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+</div></body></html>

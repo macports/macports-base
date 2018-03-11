@@ -1,0 +1,727 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctools_lang_intro n 1.0]
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {doctools language introduction}]
+[category  {Documentation tools}]
+[description]
+[para]
+
+This document is an informal introduction to version 1 of the doctools
+markup language based on a multitude of examples. After reading this a
+writer should be ready to understand the two parts of the formal
+specification, i.e. the [term {doctools language syntax}] specification
+and the [term {doctools language command reference}].
+
+[subsection Fundamentals]
+
+In the broadest terms possible the [term {doctools markup language}]
+is LaTeX-like, instead of like SGML and similar languages. A document
+written in this language consists primarily of text, with markup
+commands embedded into it.
+
+[para]
+
+Each markup command is a Tcl command surrounded by a matching pair of
+[const [lb]] and [const [rb]]. Inside of these delimiters the usual
+rules for a Tcl command apply with regard to word quotation, nested
+commands, continuation lines, etc. I.e.
+
+[para]
+[example {
+  ... [list_begin enumerated] ...
+}]
+
+[example {
+  ... [call [cmd foo] \\
+          [arg bar]] ...
+}]
+
+[example {
+  ... [term {complex concept}] ...
+}]
+
+[example {
+  ... [opt "[arg key] [arg value]"] ...
+}]
+
+[subsection {Basic structure}]
+
+The most simple document which can be written in doctools is
+
+[example {
+    [manpage_begin NAME SECTION VERSION]
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+    [description]
+    [vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]
+}]
+
+This also shows us that all doctools documents are split into two
+parts, the [term header] and the [term body]. Everything coming before
+[lb][cmd description][rb] belongs to the header, and everything coming
+after belongs to the body, with the whole document bracketed by the
+two [cmd manpage_*] commands. Before and after these opening and
+closing commands we have only [term whitespace].
+
+[para]
+
+In the remainder of this section we will discuss only the contents of
+the header, the structure of the body will be discussed in the section
+[sectref {Text structure}].
+
+[para]
+
+The header section can be empty, and otherwise may contain only an
+arbitrary sequence of the four so-called [term header] commands, plus
+[term whitespace]. These commands are
+
+[list_begin commands]
+[cmd_def titledesc]
+[cmd_def moddesc]
+[cmd_def require]
+[cmd_def copyright]
+[list_end]
+
+They provide, through their arguments, additional information about
+the document, like its title, the title of the larger group the
+document belongs to (if applicable), the requirements of the
+documented packages (if applicable), and copyright assignments. All of
+them can occur multiple times, including none, and they can be used in
+any order.
+
+However for [cmd titledesc] and [cmd moddesc] only the last occurrence
+is taken. For the other two the specified information is accumulated,
+in the given order. Regular text is not allowed within the header.
+
+[para]
+
+Given the above a less minimal example of a document is
+
+[example_begin]
+[lb]manpage_begin NAME SECTION VERSION[rb]
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+[lb][cmd {copyright {YEAR AUTHOR}}][rb]
+[lb][cmd {titledesc TITLE}][rb]
+[lb][cmd {moddesc   MODULE_TITLE}][rb]
+[lb][cmd {require   PACKAGE VERSION}][rb]
+[lb][cmd {require   PACKAGE}][rb]
+[lb]description[rb]
+[lb]manpage_end[rb]
+[example_end]
+
+Remember that the whitespace is optional. The document
+
+[example {
+    [manpage_begin NAME SECTION VERSION]
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+    [copyright {YEAR AUTHOR}][titledesc TITLE][moddesc MODULE_TITLE]
+    [require PACKAGE VERSION][require PACKAGE][description]
+    [vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]
+}]
+
+has the same meaning as the example before.
+
+[para]
+
+On the other hand, if [term whitespace] is present it consists not
+only of any sequence of characters containing the space character,
+horizontal and vertical tabs, carriage return, and newline, but it may
+contain comment markup as well, in the form of the [cmd comment]
+command.
+
+[example_begin]
+[lb][cmd {comment { ... }}][rb]
+[lb]manpage_begin NAME SECTION VERSION[rb]
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+[lb]copyright {YEAR AUTHOR}[rb]
+[lb]titledesc TITLE[rb]
+[lb]moddesc   MODULE_TITLE[rb][lb][cmd {comment { ... }}][rb]
+[lb]require   PACKAGE VERSION[rb]
+[lb]require   PACKAGE[rb]
+[lb]description[rb]
+[lb]manpage_end[rb]
+[lb][cmd {comment { ... }}][rb]
+[example_end]
+
+[subsection {Advanced structure}]
+
+In the simple examples of the last section we fudged a bit regarding
+the markup actually allowed to be used before the [cmd manpage_begin]
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+command opening the document.
+
+[para]
+
+Instead of only whitespace the two templating commands [cmd include]
+and [cmd vset] are also allowed, to enable the writer to either set
+and/or import configuration settings relevant to the document. I.e. it
+is possible to write
+
+[example_begin]
+[lb][cmd {include FILE}][rb]
+[lb][cmd {vset VAR VALUE}][rb]
+[lb]manpage_begin NAME SECTION VERSION[rb]
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+[lb]description[rb]
+[lb]manpage_end[rb]
+[example_end]
+
+Even more important, these two commands are allowed anywhere where a
+markup command is allowed, without regard for any other
+structure. I.e. for example in the header as well.
+
+[example_begin]
+[lb]manpage_begin NAME SECTION VERSION[rb]
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+[lb][cmd {include FILE}][rb]
+[lb][cmd {vset VAR VALUE}][rb]
+[lb]description[rb]
+[lb]manpage_end[rb]
+[example_end]
+
+The only restriction [cmd include] has to obey is that the contents of
+the included file must be valid at the place of the inclusion. I.e. a
+file included before [cmd manpage_begin] may contain only the
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+templating commands [cmd vset] and [cmd include], a file included in
+the header may contain only header commands, etc.
+
+[subsection {Text structure}]
+
+The body of the document consists mainly of text, possibly split into
+sections, subsections, and paragraphs, with parts marked up to
+highlight various semantic categories of text, and additional
+structure through the use of examples and (nested) lists.
+
+[para]
+
+This section explains the high-level structural commands, with
+everything else deferred to the following sections.
+
+[para]
+
+The simplest way of structuring the body is through the introduction
+of paragraphs. The command for doing so is [cmd para]. Each occurrence
+of this command closes the previous paragraph and automatically opens
+the next. The first paragraph is automatically opened at the beginning
+of the body, by [cmd description]. In the same manner the last
+paragraph automatically ends at [cmd manpage_end].
+
+[example_begin]
+[lb]manpage_begin NAME SECTION VERSION[rb]
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+[lb]description[rb]
+ ...
+[lb][cmd para][rb]
+ ...
+[lb][cmd para][rb]
+ ...
+[lb]manpage_end[rb]
+[example_end]
+
+Empty paragraphs are ignored.
+
+[para]
+
+A structure coarser than paragraphs are sections, which allow the
+writer to split a document into larger, and labeled, pieces. The
+command for doing so is [cmd section]. Each occurrence of this command
+closes the previous section and automatically opens the next,
+including its first paragraph. The first section is automatically
+opened at the beginning of the body, by [cmd description] (This
+section is labeled "DESCRIPTION"). In the same manner the last section
+automatically ends at [cmd manpage_end].
+
+[para]
+
+Empty sections are [emph not] ignored. We are free to (not) use
+paragraphs within sections.
+
+[example_begin]
+[lb]manpage_begin NAME SECTION VERSION[rb]
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+[lb]description[rb]
+ ...
+[lb][cmd {section {Section A}}][rb]
+ ...
+[lb]para[rb]
+ ...
+[lb][cmd {section {Section B}}][rb]
+ ...
+[lb]manpage_end[rb]
+[example_end]
+
+Between sections and paragraphs we have subsections, to split sections.
+
+The command for doing so is [cmd subsection]. Each occurrence of this
+command closes the previous subsection and automatically opens the
+next, including its first paragraph. A subsection is automatically
+opened at the beginning of the body, by [cmd description], and at the
+beginning of each section. In the same manner the last subsection
+automatically ends at [cmd manpage_end].
+
+[para]
+
+Empty subsections are [emph not] ignored. We are free to (not) use
+paragraphs within subsections.
+
+[example_begin]
+[lb]manpage_begin NAME SECTION VERSION[rb]
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+[lb]description[rb]
+ ...
+[lb]section {Section A}[rb]
+ ...
+[lb][cmd {subsection {Sub 1}}][rb]
+ ...
+[lb]para[rb]
+ ...
+[lb][cmd {subsection {Sub 2}}][rb]
+ ...
+[lb]section {Section B}[rb]
+ ...
+[lb]manpage_end[rb]
+[example_end]
+
+[subsection {Text markup}]
+
+Having handled the overall structure a writer can impose on the
+document we now take a closer at the text in a paragraph.
+
+[para]
+
+While most often this is just the unadorned content of the document we
+do have situations where we wish to highlight parts of it as some type
+of thing or other, like command arguments, command names, concepts,
+uris, etc.
+
+[para]
+
+For this we have a series of markup commands which take the text to
+highlight as their single argument. It should be noted that while
+their predominant use is the highlighting of parts of a paragraph they
+can also be used to mark up the arguments of list item commands, and
+of other markup commands.
+
+[para]
+
+The commands available to us are
+
+[list_begin commands]
+[cmd_def arg]       Its argument is a the name of a command argument.
+[cmd_def class]     Its argument is a class name.
+[cmd_def cmd]       Its argument is a command name (Tcl command).
+[cmd_def const]     Its argument is a constant.
+[cmd_def emph]      General, non-semantic emphasis.
+[cmd_def file]      Its argument is a filename / path.
+[cmd_def fun]       Its argument is a function name.
+[cmd_def method]    Its argument is a method name
+[cmd_def namespace] Its argument is namespace name.
+[cmd_def opt]       Its argument is some optional syntax element.
+[cmd_def option]    Its argument is a command line switch / widget option.
+[cmd_def package]   Its argument is a package name.
+[cmd_def sectref]   Its argument is the title of a section or subsection,
+                    i.e. a section reference.
+[cmd_def syscmd]    Its argument is a command name (external, system command).
+[cmd_def term]      Its argument is a concept, or general terminology.
+[cmd_def type]      Its argument is a type name.
+[cmd_def uri]       Its argument is a uniform resource identifier, i.e an
+                    external reference. A second argument can be used
+                    to specify an explicit label for the reference in
+                    question.
+[cmd_def usage]     The arguments describe the syntax of a Tcl command.
+[cmd_def var]       Its argument is a variable.
+[cmd_def widget]    Its argument is a widget name.
+[list_end]
+
+The example demonstrating the use of text markup is an excerpt from
+the [term {doctools language command reference}], with some
+highlighting added.
+
+It shows their use within a block of text, as the arguments of a list
+item command ([cmd call]), and our ability to nest them.
+
+[example_begin]
+  ...
+  [lb]call [lb][cmd {cmd arg_def}][rb] [lb][cmd {arg type}][rb] [lb][cmd {arg name}][rb]] [lb][cmd opt] [lb][cmd {arg mode}][rb][rb][rb]
+
+  Text structure. List element. Argument list. Automatically closes the
+  previous list element. Specifies the data-[lb][cmd {arg type}][rb] of the described
+  argument of a command, its [lb][cmd {arg name}][rb] and its i/o-[lb][cmd {arg mode}][rb]. The
+  latter is optional.
+  ...
+[example_end]
+
+[subsection Escapes]
+
+Beyond the 20 commands for simple markup shown in the previous section
+we have two more available which are technically simple markup.
+
+However their function is not the marking up of phrases as specific
+types of things, but the insertion of characters, namely [const [lb]]
+and [const [rb]].
+
+These commands, [cmd lb] and [cmd rb] respectively, are required
+because our use of [lb] and [rb] to bracket markup commands makes it
+impossible to directly use [lb] and [rb] within the text.
+
+[para]
+
+Our example of their use are the sources of the last sentence in the
+previous paragraph, with some highlighting added.
+
+[example_begin]
+  ...
+  These commands, [lb]cmd lb[rb] and [lb]cmd lb[rb] respectively, are required
+  because our use of [lb][cmd lb][rb] and [lb][cmd rb][rb] to bracket markup commands makes it
+  impossible to directly use [lb][cmd lb][rb] and [lb][cmd rb][rb] within the text.
+  ...
+[example_end]
+
+[subsection Cross-references]
+
+The last two commands we have to discuss are for the declaration of
+cross-references between documents, explicit and implicit. They are
+[cmd keywords] and [cmd see_also]. Both take an arbitrary number of
+arguments, all of which have to be plain unmarked text. I.e. it is not
+allowed to use markup on them. Both commands can be used multiple
+times in a document. If that is done all arguments of all occurrences
+of one of them are put together into a single set.
+
+[list_begin definitions]
+[def [cmd keywords]]
+
+The arguments of this command are interpreted as keywords describing
+the document. A processor can use this information to create an index
+indirectly linking the containing document to all documents with the
+same keywords.
+
+[def [cmd see_also]]
+
+The arguments of this command are interpreted as references to other
+documents. A processor can format them as direct links to these
+documents.
+
+[list_end]
+
+[para]
+
+All the cross-reference commands can occur anywhere in the document
+between [cmd manpage_begin] and [cmd manpage_end]. As such the writer
+[see_also doctools_intro]
+[see_also doctools_lang_cmdref]
+[see_also doctools_lang_faq]
+[see_also doctools_lang_syntax]
+[keywords {doctools commands}]
+[keywords {doctools language}]
+[keywords {doctools markup}]
+[keywords {doctools syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+can choose whether she wants to have them at the beginning of the
+body, or at its end, maybe near the place a keyword is actually
+defined by the main content, or considers them as meta data which
+should be in the header, etc.
+
+[para]
+
+Our example shows the sources for the cross-references of this
+document, with some highlighting added. Incidentally they are found
+at the end of the body.
+
+[example_begin]
+  ...
+  [lb][cmd {see_also doctools_intro}][rb]
+  [lb][cmd {see_also doctools_lang_syntax}][rb]
+  [lb][cmd {see_also doctools_lang_cmdref}][rb]
+  [lb][cmd {keywords markup {semantic markup}}][rb]
+  [lb][cmd {keywords {doctools markup} {doctools language}}][rb]
+  [lb][cmd {keywords {doctools syntax} {doctools commands}}][rb]
+  [lb]manpage_end[rb]
+[example_end]
+
+[subsection Examples]
+
+Where ever we can write plain text we can write examples too. For
+simple examples we have the command [cmd example] which takes a single
+argument, the text of the argument. The example text must not contain
+markup. If we wish to have markup within an example we have to use the
+2-command combination [cmd example_begin] / [cmd example_end] instead.
+
+[para]
+
+The first opens an example block, the other closes it, and in between
+we can write plain text and use all the regular text markup commands.
+Note that text structure commands are not allowed. This also means
+that it is not possible to embed examples and lists within an example.
+On the other hand, we [emph can] use templating commands within
+example blocks to read their contents from a file (Remember section
+[sectref {Advanced structure}]).
+
+[para]
+
+The source for the very first example in this document (see section
+[sectref Fundamentals]), with some highlighting added, is
+
+[example_begin]
+  [lb][cmd example] {
+    ... [lb]list_begin enumerated[rb] ...
+  }[rb]
+[example_end]
+
+Using [cmd example_begin] / [cmd example_end] this would look like
+
+[example_begin]
+  [lb][cmd example_begin][rb]
+    ... [lb]list_begin enumerated[rb] ...
+  [lb][cmd example_end][rb]
+[example_end]
+
+[subsection Lists]
+
+Where ever we can write plain text we can write lists too. The main
+commands are [cmd list_begin] to start a list, and [cmd list_end] to
+close one. The opening command takes an argument specifying the type
+of list started it, and this in turn determines which of the eight
+existing list item commands are allowed within the list to start list
+items.
+
+[para]
+
+After the opening command only whitespace is allowed, until the first
+list item command opens the first item of the list. Each item is a
+regular series of paragraphs and is closed by either the next list
+item command, or the end of the list. If closed by a list item command
+this command automatically opens the next list item. A consequence of
+a list item being a series of paragraphs is that all regular text
+markup can be used within a list item, including examples and other
+lists.
+
+[para]
+
+The list types recognized by [cmd list_begin] and their associated
+list item commands are:
+
+[list_begin definitions]
+[def [const arguments]]
+
+([cmd arg_def]) This opens an [term {argument (declaration) list}]. It
+is a specialized form of a term definition list where the term is an
+argument name, with its type and i/o-mode.
+
+[def [const commands]]
+
+([cmd cmd_def]) This opens a [term {command (declaration) list}]. It
+is a specialized form of a term definition list where the term is a
+command name.
+
+[def [const definitions]]
+
+([cmd def] and [cmd call]) This opens a general
+[term {term definition list}]. The terms defined by the list items are
+specified through the argument(s) of the list item commands, either
+general terms, possibly with markup ([cmd def]), or Tcl commands with
+their syntax ([cmd call]).
+
+[def [const enumerated]]
+
+([cmd enum]) This opens a general [term {enumerated list}].
+
+[def [const itemized]]
+
+([cmd item])
+This opens a general [term {itemized list}].
+
+[def [const options]]
+
+([cmd opt_def]) This opens an [term {option (declaration) list}]. It
+is a specialized form of a term definition list where the term is an
+option name, possibly with the option's arguments.
+
+[def [const tkoptions]]
+
+([cmd tkoption_def]) This opens a
+[term {widget option (declaration) list}]. It is a specialized form of
+a term definition list where the term is the name of a configuration
+option for a widget, with its name and class in the option database.
+
+[list_end]
+
+Our example is the source of the definition list in the previous
+paragraph, with most of the content in the middle removed.
+
+[example_begin]
+  ...
+  [lb][cmd list_begin] definitions[rb]
+  [lb][cmd def] [lb]const arg[rb][rb]
+
+  ([lb]cmd arg_def[rb]) This opens an argument (declaration) list. It is a
+  specialized form of a definition list where the term is an argument
+  name, with its type and i/o-mode.
+
+  [lb][cmd def] [lb]const itemized[rb][rb]
+
+  ([lb]cmd item[rb])
+  This opens a general itemized list.
+
+  ...
+  [lb][cmd def] [lb]const tkoption[rb][rb]
+
+  ([lb]cmd tkoption_def[rb]) This opens a widget option (declaration) list. It
+  is a specialized form of a definition list where the term is the name
+  of a configuration option for a widget, with its name and class in the
+  option database.
+
+  [lb][cmd list_end][rb]
+  ...
+[example_end]
+
+Note that a list cannot begin in one (sub)section and end in
+another. Differently said, (sub)section breaks are not allowed within
+lists and list items. An example of this [emph illegal] construct is
+
+[example_begin]
+  ...
+  [lb]list_begin itemized[rb]
+  [lb]item[rb]
+  ...
+  [lb][cmd {section {ILLEGAL WITHIN THE LIST}}][rb]
+  ...
+  [lb]list_end[rb]
+  ...
+[example_end]
+
+[section {FURTHER READING}]
+
+Now that this document has been digested the reader, assumed to be a
+[term writer] of documentation should be fortified enough to be able
+to understand the formal [term {doctools language syntax}]
+specification as well. From here on out the
+[term {doctools language command reference}] will also serve as the
+detailed specification and cheat sheet for all available commands and
+their syntax.
+
+[para]
+
+To be able to validate a document while writing it, it is also
+recommended to familiarize oneself with one of the applications for
+the processing and conversion of doctools documents, i.e. either
+Tcllib's easy and simple [syscmd dtplite], or Tclapps'
+ultra-configurable [syscmd dtp].
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

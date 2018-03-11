@@ -1,0 +1,92 @@
+# -*- tcl -*-
+# idx_import_docidx.test:  tests for the doctools::idx::import::docidx package/plugin.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: import_docidx.test,v 1.1 2009/04/01 04:28:37 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+support {
+    useAccel [useTcllibC] struct/tree.tcl  struct::tree
+    TestAccelInit                          struct::tree
+
+    useAccel [useTcllibC] struct/stack.tcl struct::stack
+    TestAccelInit                          struct::stack
+
+    useAccel [useTcllibC] struct/sets.tcl  struct::set
+    TestAccelInit                          struct::set
+
+    use      struct/list.tcl        struct::list
+    use      snit/snit.tcl          snit
+    use      fileutil/fileutil.tcl  fileutil
+    use      log/logger.tcl         logger
+    use      treeql/treeql.tcl      treeql
+
+    use doctools2base/tcl_parse.tcl          doctools::tcl::parse
+    use doctools2base/msgcat.tcl             doctools::msgcat
+
+    useLocal msgcat_c.tcl       doctools::msgcat::idx::c
+    useLocal structure.tcl      doctools::idx::structure
+    useLocal parse.tcl doctools::idx::parse
+
+    msgcat::mclocale C
+}
+testing {
+    package provide doctools::idx::import::plugin 1
+    # The above fakes plugin environment. Well, not completely. By
+    # leaving out a definition for the 'include' alias the plugin is
+    # signaled that there is no need to overwrite the GetFile command
+    # of doctools::idx::parse with a version calling out to the plugin
+    # manager, i.e. that it can still use the regular file operations.
+
+    useLocal import_docidx.tcl doctools::idx::import::docidx
+}
+
+# -------------------------------------------------------------------------
+
+# General set of error cases regarding the number of arguments.
+
+test doctools-idx-import-docidx-1.0 {import, wrong#args} -body {
+    import
+} -returnCodes error -result {wrong # args: should be "import text configuration"}
+
+test doctools-idx-import-docidx-1.1 {import, wrong#args} -body {
+    import T
+} -returnCodes error -result {wrong # args: should be "import text configuration"}
+
+test doctools-idx-import-docidx-1.2 {import, wrong#args} -body {
+    import T C XXX
+} -returnCodes error -result {wrong # args: should be "import text configuration"}
+
+# idx_import_docidx tests, numbering starts at 2
+# -------------------------------------------------------------------------
+
+array_unset env LANG*
+array_unset env LC_*
+set env(LANG) C ; # Usually default if nothing is set, OS X requires this.
+
+# -------------------------------------------------------------------------
+
+TestAccelDo struct::stack stkimpl {
+    TestAccelDo struct::set setimpl {
+	TestAccelDo struct::tree impl {
+	    source [localPath tests/import_docidx]
+	}
+    }
+}
+
+#----------------------------------------------------------------------
+TestAccelExit struct::tree
+TestAccelExit struct::set
+TestAccelExit struct::stack
+testsuiteCleanup
+return

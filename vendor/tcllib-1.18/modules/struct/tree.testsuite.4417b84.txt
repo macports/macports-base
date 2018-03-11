@@ -1,0 +1,27 @@
+fubar
+    while executing
+"error fubar"
+    ("WalkCall" body line 4)
+    invoked from within
+"WalkCall $avar $nvar $name $node "enter" $script"
+    (procedure "::struct::tree::_walk" line 88)
+    invoked from within
+"::struct::tree::_walk ::mytree root {a n} {
+	    if {[string equal $n "b"]} {
+		lappend t .
+		error fubar
+	    }
+	    lappend t $a $n
+	}"
+    ("_walk" body line 1)
+    invoked from within
+"mytree walk root {a n} {
+	    if {[string equal $n "b"]} {
+		lappend t .
+		error fubar
+	    }
+	    lappend t $a $n
+	}"
+    (procedure "foo" line 7)
+    invoked from within
+"foo"

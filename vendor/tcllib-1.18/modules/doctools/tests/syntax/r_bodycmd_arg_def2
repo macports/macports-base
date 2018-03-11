@@ -1,0 +1,3 @@
+Doctools Error in macro at line 2, column 0:
+[arg_def arg-type arg-name]
+--> (FmtError) Manpage error (bodycmd), "arg_def arg-type arg-name" : Command not allowed outside of the body of the manpage.

@@ -29,15 +29,15 @@ proc test_trace {} {
     makeDirectory ../tracetesttmp
     if {[getuid] == 0} {
         file attributes ../tracetesttmp -owner $user
-        exec chown -h $user /tmp/link-trace2
+        exec -ignorestderr chown -h $user /tmp/link-trace2
     }
 
     if {[getuid] == 0} {
         seteuid [name_to_uid $user]
     }
-    exec touch  ../tracetesttmp/delete-trace
-    exec touch ../tracetesttmp/rename-trace
-    exec mkdir ../tracetesttmp/rmdir-trace
+    exec -ignorestderr touch  ../tracetesttmp/delete-trace
+    exec -ignorestderr touch ../tracetesttmp/rename-trace
+    exec -ignorestderr mkdir ../tracetesttmp/rmdir-trace
     if {[getuid] == 0} {
         seteuid 0
     }

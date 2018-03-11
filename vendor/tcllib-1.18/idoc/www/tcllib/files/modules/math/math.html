@@ -1,0 +1,225 @@
+<html><head>
+<title>math - Tcl Math Library</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'math.man' by tcllib/doctools with format 'html'
+   -->
+<! -- math.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math(n) 1.2.5 tcllib &quot;Tcl Math Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math - Tcl Math Library</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">BASIC COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">math <span class="opt">?1.2.5?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::cov</b> <i class="arg">value</i> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::math::integrate</b> <i class="arg">list of xy value pairs</i></a></li>
+<li><a href="#3"><b class="cmd">::math::fibonacci</b> <i class="arg">n</i></a></li>
+<li><a href="#4"><b class="cmd">::math::max</b> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></li>
+<li><a href="#5"><b class="cmd">::math::mean</b> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">::math::min</b> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></li>
+<li><a href="#7"><b class="cmd">::math::product</b> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></li>
+<li><a href="#8"><b class="cmd">::math::random</b> <span class="opt">?<i class="arg">value1</i>?</span> <span class="opt">?<i class="arg">value2</i>?</span></a></li>
+<li><a href="#9"><b class="cmd">::math::sigma</b> <i class="arg">value</i> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></li>
+<li><a href="#10"><b class="cmd">::math::stats</b> <i class="arg">value</i> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></li>
+<li><a href="#11"><b class="cmd">::math::sum</b> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">math</b> package provides utility math functions.</p>
+<p>Besides a set of basic commands, available via the package <em>math</em>,
+there are more specialised packages:</p>
+<ul class="doctools_itemized">
+<li><p><b class="package"><a href="bigfloat.html">math::bigfloat</a></b> - Arbitrary-precision floating-point
+arithmetic</p></li>
+<li><p><b class="package"><a href="bignum.html">math::bignum</a></b> - Arbitrary-precision integer arithmetic</p></li>
+<li><p><b class="package"><a href="romberg.html">math::calculus::romberg</a></b> - Robust integration methods for
+functions of one variable, using Romberg integration</p></li>
+<li><p><b class="package"><a href="calculus.html">math::calculus</a></b> - Integration of functions, solving ordinary
+differential equations</p></li>
+<li><p><b class="package"><a href="combinatorics.html">math::combinatorics</a></b> - Procedures for various combinatorial
+functions (for instance the Gamma function and &quot;k out of n&quot;)</p></li>
+<li><p><b class="package"><a href="qcomplex.html">math::complexnumbers</a></b> - Complex number arithmetic</p></li>
+<li><p><b class="package"><a href="constants.html">math::constants</a></b> - A set of well-known mathematical
+constants, such as Pi, E, and the golden ratio</p></li>
+<li><p><b class="package"><a href="fourier.html">math::fourier</a></b> - Discrete Fourier transforms</p></li>
+<li><p><b class="package"><a href="fuzzy.html">math::fuzzy</a></b> - Fuzzy comparisons of floating-point numbers</p></li>
+<li><p><b class="package"><a href="math_geometry.html">math::geometry</a></b> - 2D geometrical computations</p></li>
+<li><p><b class="package"><a href="interpolate.html">math::interpolate</a></b> - Various interpolation methods</p></li>
+<li><p><b class="package"><a href="linalg.html">math::linearalgebra</a></b> - Linear algebra package</p></li>
+<li><p><b class="package"><a href="optimize.html">math::optimize</a></b> - Optimization methods</p></li>
+<li><p><b class="package"><a href="polynomials.html">math::polynomials</a></b> - Polynomial arithmetic (includes families
+of classical polynomials)</p></li>
+<li><p><b class="package"><a href="rational_funcs.html">math::rationalfunctions</a></b> - Arithmetic of rational functions</p></li>
+<li><p><b class="package"><a href="roman.html">math::roman</a></b> - Manipulation (including arithmetic) of Roman
+numerals</p></li>
+<li><p><b class="package"><a href="special.html">math::special</a></b> - Approximations of special functions from
+mathematical physics</p></li>
+<li><p><b class="package"><a href="statistics.html">math::statistics</a></b> - Statistical operations and tests</p></li>
+</ul>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">BASIC COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::cov</b> <i class="arg">value</i> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></dt>
+<dd><p>Return the coefficient of variation expressed as percent of two or
+more numeric values.</p></dd>
+<dt><a name="2"><b class="cmd">::math::integrate</b> <i class="arg">list of xy value pairs</i></a></dt>
+<dd><p>Return the area under a &quot;curve&quot; defined by a set of x,y pairs and the
+error bound as a list.</p></dd>
+<dt><a name="3"><b class="cmd">::math::fibonacci</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the <i class="arg">n</i>'th Fibonacci number.</p></dd>
+<dt><a name="4"><b class="cmd">::math::max</b> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></dt>
+<dd><p>Return the maximum of one or more numeric values.</p></dd>
+<dt><a name="5"><b class="cmd">::math::mean</b> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></dt>
+<dd><p>Return the mean, or &quot;average&quot; of one or more numeric values.</p></dd>
+<dt><a name="6"><b class="cmd">::math::min</b> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></dt>
+<dd><p>Return the minimum of one or more numeric values.</p></dd>
+<dt><a name="7"><b class="cmd">::math::product</b> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></dt>
+<dd><p>Return the product of one or more numeric values.</p></dd>
+<dt><a name="8"><b class="cmd">::math::random</b> <span class="opt">?<i class="arg">value1</i>?</span> <span class="opt">?<i class="arg">value2</i>?</span></a></dt>
+<dd><p>Return a random number.  If no arguments are given, the number is a
+floating point value between 0 and 1.  If one argument is given, the
+number is an integer value between 0 and <i class="arg">value1</i>.  If two
+arguments are given, the number is an integer value between
+<i class="arg">value1</i> and <i class="arg">value2</i>.</p></dd>
+<dt><a name="9"><b class="cmd">::math::sigma</b> <i class="arg">value</i> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></dt>
+<dd><p>Return the population standard deviation of two or more numeric
+values.</p></dd>
+<dt><a name="10"><b class="cmd">::math::stats</b> <i class="arg">value</i> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></dt>
+<dd><p>Return the mean, standard deviation, and coefficient of variation (as
+percent) as a list.</p></dd>
+<dt><a name="11"><b class="cmd">::math::sum</b> <i class="arg">value</i> <span class="opt">?<i class="arg">value ...</i>?</span></a></dt>
+<dd><p>Return the sum of one or more numeric values.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>math</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key71">math</a>, <a href="../../../../index.html#key195">statistics</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+</div></body></html>

@@ -1,0 +1,66 @@
+# -*- tcl -*-
+# General set of error cases regarding the number of arguments.
+
+test pt-peg-export-container-set:${setimpl}-1.0 {export, wrong#args} -body {
+    export
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+test pt-peg-export-container-set:${setimpl}-1.1 {export, wrong#args} -body {
+    export S
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+test pt-peg-export-container-set:${setimpl}-1.2 {export, wrong#args} -body {
+    export S C XXX
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+# -------------------------------------------------------------------------
+
+# Testing the generation of container output, from grammar serialization,
+# for all possible configurations of this plugin.
+
+foreach {k mode section} {
+    0 incremental -incremental
+    1 bulk        -bulk
+} {
+    TestFilesProcess $mytestdir ok peg_serial-canonical peg_container$section -> n label input data expected {
+	test pt-peg-export-container-set:${setimpl}-2.$k.$n "pt::peg::export::container, $label$section, ok :- $input" -setup {
+	    set configuration [list -mode $mode -user unknown]
+	} -body {
+	    export $data $configuration
+	} -cleanup {
+	    unset configuration
+	} -result $expected
+    }
+
+    TestFilesProcess $mytestdir ok peg_serial-canonical peg_container-templated$section -> n label input data expected {
+	test pt-peg-export-container-set:${setimpl}-3.$k.$n "pt::peg::export::container, $label$section, ok :- $input" -setup {
+	    text::write reset
+	    text::write field   # -*- tcl -*-                              ; text::write /line
+	    text::write field   # Parsing Expression Grammar '@name@'.     ; text::write /line
+	    text::write field   # Generated for @user@, from file '@file@' ; text::write /line
+	    text::write /line
+	    text::write field   package require Tcl 8.5                    ; text::write /line
+	    text::write field   package require snit                       ; text::write /line
+	    text::write field   package require pt::peg::container         ; text::write /line
+	    text::write /line
+	    text::write field   @code@                                     ; text::write /line
+	    text::write /line
+	    text::write field   package provide @name@                     ; text::write /line
+	    text::write field   return                                     ; text::write /line
+	    set configuration [list \
+				   -user     unknown   \
+				   -mode     $mode     \
+				   -name     TEMPLATE  \
+				   -file     TEST      \
+				   -template [text::write get]]
+	    text::write reset
+	} -body {
+	    export $data $configuration
+	} -cleanup {
+	    unset configuration
+	} -result $expected
+    }
+}
+
+#----------------------------------------------------------------------
+unset n label input data expected

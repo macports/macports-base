@@ -1,0 +1,19 @@
+[manpage_begin TEST z 3.14.15.926]
+[description]
+[section AaA]
+1
+[section BbB]
+22
+[subsection BbB.cCc]
+333
+[subsection BbB.dDd]
+4444
+[section EeE]
+5555
+
+[para]
+At [sectref AaA].
+[para]
+At [sectref __undefined__].
+[manpage_end]
+

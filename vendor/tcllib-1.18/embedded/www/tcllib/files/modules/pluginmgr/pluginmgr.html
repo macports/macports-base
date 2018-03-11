@@ -1,0 +1,414 @@
+
+<div class='fossil-doc' data-title='pluginmgr - Plugin management'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">pluginmgr(n) 0.3 tcllib &quot;Plugin management&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>pluginmgr - Manage a plugin</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PUBLIC API</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">PACKAGE COMMANDS</a></li>
+<li class="doctools_subsection"><a href="#subsection2">OBJECT COMMAND</a></li>
+<li class="doctools_subsection"><a href="#subsection3">OBJECT METHODS</a></li>
+<li class="doctools_subsection"><a href="#subsection4">OBJECT CONFIGURATION</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">pluginmgr <span class="opt">?0.3?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::pluginmgr</b> <i class="arg">objectName</i> <span class="opt">?<i class="arg">option value</i>...?</span></a></li>
+<li><a href="#2"><b class="cmd">::pluginmgr::paths</b> <i class="arg">objectName</i> <i class="arg">name</i>...</a></li>
+<li><a href="#3"><b class="cmd">objectName</b> <b class="method">method</b> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></li>
+<li><a href="#4"><i class="arg">objectName</i> <b class="method">clone</b></a></li>
+<li><a href="#5"><i class="arg">objectName</i> <b class="method">configure</b></a></li>
+<li><a href="#6"><i class="arg">objectName</i> <b class="method">configure</b> <i class="arg">option</i></a></li>
+<li><a href="#7"><i class="arg">objectName</i> <b class="method">configure</b> <b class="option">-option</b> <i class="arg">value</i>...</a></li>
+<li><a href="#8"><i class="arg">objectName</i> <b class="method">cget</b> <b class="option">-option</b></a></li>
+<li><a href="#9"><i class="arg">objectName</i> <b class="method">destroy</b></a></li>
+<li><a href="#10"><i class="arg">objectName</i> <b class="method">do</b> <i class="arg">arg</i>...</a></li>
+<li><a href="#11"><i class="arg">objectName</i> <b class="method">interpreter</b></a></li>
+<li><a href="#12"><i class="arg">objectName</i> <b class="method">plugin</b></a></li>
+<li><a href="#13"><i class="arg">objectName</i> <b class="method">load</b> <i class="arg">string</i></a></li>
+<li><a href="#14"><i class="arg">objectName</i> <b class="method">unload</b></a></li>
+<li><a href="#15"><i class="arg">objectName</i> <b class="method">list</b></a></li>
+<li><a href="#16"><i class="arg">objectName</i> <b class="method">path</b> <i class="arg">path</i></a></li>
+<li><a href="#17"><i class="arg">objectName</i> <b class="method">paths</b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides commands and objects for the generic management
+of plugins which can be loaded into an application.</p>
+<p>To avoid the implementation of yet another system to locate Tcl code
+the system provides by this package is built on top of the regular
+package management system. Each plugin is considered as a package and
+a simple invokation of <b class="cmd">package require</b> is enough to locate and
+load it, if it exists. The only time we will need additional paths is
+when a plugin manager is part of a wrapped application and has to be
+able to search for plugins existing outside of that application. For
+this situation the package provides a command to create a general set
+of such paths based on names for the plugin manager and/or application
+in question.</p>
+<p>The main contribution of this package is a generic framework which
+allows the easy declaration of</p>
+<ol class="doctools_enumerated">
+<li><p>How to translate a plugin name to the name of the package implementing
+it, and vice versa.</p></li>
+<li><p>The list of commands a plugin has to provide as API, and also of more
+complex checks as code.</p></li>
+<li><p>The list of commands expected by the plugin from the environment.</p></li>
+</ol>
+<p>This then allows the easy generation of plugin managers customized to
+particular types of plugins for an application.</p>
+<p>It should be noted that all plugin code is considered untrusted and
+will always be executed within a safe interpreter. The interpreter is
+enabled enough to allow plugins the loading of all additional packages
+they may need.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PUBLIC API</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">PACKAGE COMMANDS</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::pluginmgr</b> <i class="arg">objectName</i> <span class="opt">?<i class="arg">option value</i>...?</span></a></dt>
+<dd><p>This command creates a new plugin manager object with an associated
+Tcl command whose name is <i class="arg">objectName</i>. This <i class="term"><a href="../../../../index.html#key243">object</a></i> command
+is explained in full detail in the sections <span class="sectref"><a href="#subsection2">OBJECT COMMAND</a></span>
+and <span class="sectref"><a href="#subsection3">OBJECT METHODS</a></span>. The object command will be created
+under the current namespace if the <i class="arg">objectName</i> is not fully
+qualified, and in the specified namespace otherwise.</p>
+<p>The options and their values coming after the name of the object are
+used to set the initial configuration of the mamager object,
+specifying the applicable plugins and their API.</p></dd>
+<dt><a name="2"><b class="cmd">::pluginmgr::paths</b> <i class="arg">objectName</i> <i class="arg">name</i>...</a></dt>
+<dd><p>This utility command adds a set of paths to the specified object,
+based on the given <i class="arg">name</i>s.
+It will search for:</p>
+<ol class="doctools_enumerated">
+<li><p>The environment variable <b class="variable"><i class="arg">name</i>_PLUGINS</b>. Its contents will
+be interpreted as a list of package paths. The entries have to be
+separated by either <b class="const">:</b> (unix) or <b class="const">;</b> (windows).</p>
+<p>The name will be converted to upper-case letters.</p></li>
+<li><p>The registry entry &quot;HKEY_LOCAL_MACHINE\SOFTWARE\<i class="arg">name</i>\PLUGINS&quot;.
+Its contents will be interpreted as a list of package paths. The
+entries have to be separated by <b class="const">;</b>. This item is considered
+only when on Windows (tm).</p>
+<p>The casing of letters is not changed.</p></li>
+<li><p>The registry entry &quot;HKEY_CURRENT_USER\SOFTWARE\<i class="arg">name</i>\PLUGINS&quot;.
+Its contents will be interpreted as a list of package paths. The
+entries have to be separated by <b class="const">;</b>. This item is considered
+only when on Windows (tm).</p>
+<p>The casing of letters is not changed.</p></li>
+<li><p>The directory &quot;<b class="file">~/.<i class="arg">name</i>/plugin</b>&quot;.</p></li>
+<li><p>The directory &quot;<b class="file">~/.<i class="arg">name</i>/plugins</b>&quot;.</p>
+<p>The casing of letters is not changed.</p></li>
+</ol>
+<p>and add all the paths found that way to the list of package paths
+maintained by the object.</p>
+<p>If <i class="arg">name</i> is namespaced each item in the list will be repeated per
+prefix of <i class="arg">name</i>, with conversion of :-sequences into the proper
+separator (underscore for environment variables, backslash for
+registry entries, and / for directories).</p>
+<p>Examples:</p>
+<pre class="doctools_example">
+    ::pluginmgr::paths ::obj docidx
+    =&gt; env  DOCIDX_PLUGINS
+       reg  HKEY_LOCAL_MACHINE\SOFTWARE\docidx\PLUGINS
+       reg  HKEY_CURRENT_USER\SOFTWARE\docidx\PLUGINS
+       path ~/.docidx/plugins
+    ::pluginmgr::paths ::obj doctools::idx
+    =&gt; env  DOCTOOLS_PLUGINS
+       env  DOCTOOLS_IDX_PLUGINS
+       reg  HKEY_LOCAL_MACHINE\SOFTWARE\doctools\PLUGINS
+       reg  HKEY_LOCAL_MACHINE\SOFTWARE\doctools\idx\PLUGINS
+       reg  HKEY_CURRENT_USER\SOFTWARE\doctools\PLUGINS
+       reg  HKEY_CURRENT_USER\SOFTWARE\doctools\idx\PLUGINS
+       path ~/.doctools/plugin
+       path ~/.doctools/idx/plugin
+</pre>
+</dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">OBJECT COMMAND</a></h3>
+<p>All commands created by the command <b class="cmd">::pluginmgr</b> (See section
+<span class="sectref"><a href="#subsection1">PACKAGE COMMANDS</a></span>) have the following general form and may
+be used to invoke various operations on their plugin manager object.</p>
+<dl class="doctools_definitions">
+<dt><a name="3"><b class="cmd">objectName</b> <b class="method">method</b> <span class="opt">?<i class="arg">arg arg ...</i>?</span></a></dt>
+<dd><p>The method <b class="method">method</b> and its <i class="arg">arg</i>'uments determine the exact
+behavior of the command. See section <span class="sectref"><a href="#subsection3">OBJECT METHODS</a></span> for
+the detailed specifications.</p></dd>
+</dl>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">OBJECT METHODS</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="4"><i class="arg">objectName</i> <b class="method">clone</b></a></dt>
+<dd><p>This method creates a new plugin management object and returns the
+associated object command. The generated object is a clone of the
+object the method was invoked on. I.e. the new object will have the
+same configuration as the current object. With regard to state, if the
+current object has a plugin loaded then this plugin and all associated
+state is moved to the generated clone and the current object is reset
+into the base state (no plugin loaded). In this manner a configured
+plugin manager is also a factory for loaded plugins.</p></dd>
+<dt><a name="5"><i class="arg">objectName</i> <b class="method">configure</b></a></dt>
+<dd><p>The method returns a list of all known options and their current
+values when called without any arguments.</p></dd>
+<dt><a name="6"><i class="arg">objectName</i> <b class="method">configure</b> <i class="arg">option</i></a></dt>
+<dd><p>The method behaves like the method <b class="method">cget</b> when called with a
+single argument and returns the value of the option specified by said
+argument.</p></dd>
+<dt><a name="7"><i class="arg">objectName</i> <b class="method">configure</b> <b class="option">-option</b> <i class="arg">value</i>...</a></dt>
+<dd><p>The method reconfigures the specified <b class="option">option</b>s of the object,
+setting them to the associated <i class="arg">value</i>s, when called with an even
+number of arguments, at least two.</p>
+<p>The legal options are described in the section
+<span class="sectref"><a href="#subsection4">OBJECT CONFIGURATION</a></span>.</p></dd>
+<dt><a name="8"><i class="arg">objectName</i> <b class="method">cget</b> <b class="option">-option</b></a></dt>
+<dd><p>This method expects a legal configuration option as argument and will
+return the current value of that option for the object the method was
+invoked for.</p>
+<p>The legal configuration options are described in section
+<span class="sectref"><a href="#subsection4">OBJECT CONFIGURATION</a></span>.</p></dd>
+<dt><a name="9"><i class="arg">objectName</i> <b class="method">destroy</b></a></dt>
+<dd><p>This method destroys the object it is invoked for.</p></dd>
+<dt><a name="10"><i class="arg">objectName</i> <b class="method">do</b> <i class="arg">arg</i>...</a></dt>
+<dd><p>This method interprets its list of arguments as the words of a command
+and invokes this command in the execution context of the plugin.
+The result of the invoked command is made the result of the method.
+The call will fail with an error if no valid plugin has been loaded
+into the manager object.</p></dd>
+<dt><a name="11"><i class="arg">objectName</i> <b class="method">interpreter</b></a></dt>
+<dd><p>This method returns the handle of the safe interpreter the current
+plugin is loaded into. An empty string as return value signals that
+the manager currently has no valid plugin loaded.</p></dd>
+<dt><a name="12"><i class="arg">objectName</i> <b class="method">plugin</b></a></dt>
+<dd><p>This method returns the name of the plugin currently loaded. An empty
+string as return value signals that the manager currently has no valid
+plugin loaded.</p></dd>
+<dt><a name="13"><i class="arg">objectName</i> <b class="method">load</b> <i class="arg">string</i></a></dt>
+<dd><p>This method loads, validates, and initializes a named plugin into the
+manager object.</p>
+<p>The algorithm to locate and load the plugin employed is:</p>
+<ol class="doctools_enumerated">
+<li><p>If the <i class="arg">string</i> contains the path to an existing file then this
+file is taken as the implementation of the plugin.</p></li>
+<li><p>Otherwise the plugin name is translated into a package name via the value
+of the option <b class="option">-pattern</b> and then loaded through the
+regular package management.</p></li>
+<li><p>The load fails.</p></li>
+</ol>
+<p>The algorithm to validate and initialize the loaded code is:</p>
+<ol class="doctools_enumerated">
+<li><p>If the option <b class="option">-api</b> is non-empty introspection commands are
+used to ascertain that the plugin provides the listed commands.</p></li>
+<li><p>If the option <b class="option">-check</b> is non-empty the specified command
+prefix is called.</p></li>
+<li><p>If either of the above fails the candidate plugin is unloaded again</p></li>
+<li><p>Otherwise all the commands specified via the option
+<b class="option">-cmds</b> are installed in the plugin.</p></li>
+</ol>
+<p>A previously loaded plugin is discarded, but only if the new plugin
+was found and sucessfully validated and initialized. Note that there
+will be no intereference between old and new plugin as both will be
+put into separate safe interpreters.</p></dd>
+<dt><a name="14"><i class="arg">objectName</i> <b class="method">unload</b></a></dt>
+<dd><p>This method unloads the currently loaded plugin. It returns the empty
+string. The call will be silently ignored if no plugin is loaded at
+all.</p></dd>
+<dt><a name="15"><i class="arg">objectName</i> <b class="method">list</b></a></dt>
+<dd><p>This method uses the contents of the option <b class="option">-pattern</b> to find
+all packages which can be plugins under the purview of this manager
+object. It translates their names into plugin names and returns a list
+containing them.</p></dd>
+<dt><a name="16"><i class="arg">objectName</i> <b class="method">path</b> <i class="arg">path</i></a></dt>
+<dd><p>This methods adds the specified <i class="arg">path</i> to the list of additional
+package paths to look at when searching for a plugin. It returns the
+empty string. Duplicate paths are ignored, i.e. each path is added
+only once. Paths are made absolute, but are not normalized.</p></dd>
+<dt><a name="17"><i class="arg">objectName</i> <b class="method">paths</b></a></dt>
+<dd><p>This method returns a list containing all additional paths which have
+been added to the plugin manager object since its creation.</p></dd>
+</dl>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">OBJECT CONFIGURATION</a></h3>
+<p>All plugin manager objects understand the following configuration options:</p>
+<dl class="doctools_options">
+<dt><b class="option">-pattern</b> <i class="arg">string</i></dt>
+<dd><p>The value of this option is a glob pattern which has to contain
+exactly one '*'-operator. All packages whose names match this pattern
+are the plugins recognized by the manager object. And vice versa, the
+replacement of the '*'-operator with a plugin name will yield the name
+of the package implementing that plugin.</p>
+<p>This option has no default, except if option <b class="option">-name</b> was set.
+It has to be set before attempting to load a plugin, either directly,
+or through option <b class="option">-name</b>.</p></dd>
+<dt><b class="option">-api</b> <i class="arg">list</i></dt>
+<dd><p>The value of this option is a list of command names, and any plugin
+loaded has to provide these commands. Names which are not fully
+qualified are considered to be rooted in the global namespace.
+If empty no expectations are made on the plugin. The default value is
+the empty list.</p></dd>
+<dt><b class="option">-check</b> <i class="arg">cmdprefix</i></dt>
+<dd><p>The value of this option is interpreted as a command prefix.
+Its purpose is to perform complex checks on a loaded plugin package to
+validate it, which go beyond a simple list of provided commands.</p>
+<p>It is called with the manager object command as the only argument and
+has to return a boolean value. A value of <b class="const">true</b> will be
+interpreted to mean that the candidate plugin passed the test.
+The call will happen if and only if the candidate plugin already
+passed the basic API check specified through the option <b class="option">-api</b>.</p>
+<p>The default value is the empty list, which causes the manager object
+to suppress the call and to assume the candidate plugin passes.</p></dd>
+<dt><b class="option">-cmds</b> <i class="arg">dict</i></dt>
+<dd><p>The value of this option is a dictionary.  It specifies the commands
+which will be made available to the plugin (as keys), and the trusted
+commands in the environment which implement them (as values).
+The trusted commands will be executed in the interpreter specified by
+the option <b class="option">-cmdip</b>.
+The default value is the empty dictionary.</p></dd>
+<dt><b class="option">-cmdip</b> <i class="arg">ipspec</i></dt>
+<dd><p>The value of this option is the path of the interpreter where the
+trusted commands given to the plugin will be executed in.
+The default is the empty string, referring to the current interpreter.</p></dd>
+<dt><b class="option">-setup</b> <i class="arg">cmdprefix</i></dt>
+<dd><p>The value of this option is interpreted as a command prefix.</p>
+<p>It is called whenever a new safe interpreter for a plugin has been
+created, but before a plugin is loaded. It is provided with the
+manager object command and the interpreter handle as its only
+arguments. Any return value will be ignored.</p>
+<p>Its purpose is give a user of the plugin management the ability to
+define commands, packages, etc. a chosen plugin may need while being
+loaded.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>pluginmgr</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key180">plugin management</a>, <a href="../../../../index.html#key181">plugin search</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

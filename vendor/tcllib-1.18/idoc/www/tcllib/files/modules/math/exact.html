@@ -1,0 +1,305 @@
+<html><head>
+<title>math::exact - Tcl Math Library</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'exact.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2015 Kevin B. Kenny &lt;kennykb@acm.org&gt;   -- Redistribution permitted under the terms of the Open Publication License &lt;http://www.opencontent.org/openpub/&gt;
+   -->
+<! -- math::exact.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::exact(n) 1.0 tcllib &quot;Tcl Math Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::exact - Exact Real Arithmetic</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Procedures</a></li>
+<li class="doctools_section"><a href="#section3">Parameters</a></li>
+<li class="doctools_section"><a href="#section4">Expressions</a></li>
+<li class="doctools_section"><a href="#section5">Functions</a></li>
+<li class="doctools_section"><a href="#section6">Summary</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">grammar::aycock 1.0</b></li>
+<li>package require <b class="pkgname">math::exact 1.0</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::exact::exactexpr</b> <i class="arg">expr</i></a></li>
+<li><a href="#2"><i class="arg">number</i> <b class="cmd">ref</b></a></li>
+<li><a href="#3"><i class="arg">number</i> <b class="cmd">unref</b></a></li>
+<li><a href="#4"><i class="arg">number</i> <b class="cmd">asPrint</b> <i class="arg">precision</i></a></li>
+<li><a href="#5"><i class="arg">number</i> <b class="cmd">asFloat</b> <i class="arg">precision</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="cmd">exactexpr</b> command in the <b class="cmd">math::exact</b> package
+allows for exact computations over the computable real numbers.
+These are not arbitrary-precision calculations; rather they are
+exact, with numbers represented by algorithms that produce successive
+approximations. At the end of a calculation, the caller can
+request a given precision for the end result, and intermediate results are
+computed to whatever precision is necessary to satisfy the request.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Procedures</a></h2>
+<p>The following procedure is the primary entry into the <b class="cmd">math::exact</b>
+package.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::exact::exactexpr</b> <i class="arg">expr</i></a></dt>
+<dd><p>Accepts a mathematical expression in Tcl syntax, and returns an object
+that represents the program to calculate successive approximations to
+the expression's value. The result will be referred to as an
+exact real number.</p></dd>
+<dt><a name="2"><i class="arg">number</i> <b class="cmd">ref</b></a></dt>
+<dd><p>Increases the reference count of a given exact real number.</p></dd>
+<dt><a name="3"><i class="arg">number</i> <b class="cmd">unref</b></a></dt>
+<dd><p>Decreases the reference count of a given exact real number, and destroys
+the number if the reference count is zero.</p></dd>
+<dt><a name="4"><i class="arg">number</i> <b class="cmd">asPrint</b> <i class="arg">precision</i></a></dt>
+<dd><p>Formats the given <i class="arg">number</i> for printing, with the specified <i class="arg">precision</i>.
+(See below for how <i class="arg">precision</i> is interpreted). Numbers that are known to
+be rational are formatted as fractions.</p></dd>
+<dt><a name="5"><i class="arg">number</i> <b class="cmd">asFloat</b> <i class="arg">precision</i></a></dt>
+<dd><p>Formats the given <i class="arg">number</i> for printing, with the specified <i class="arg">precision</i>.
+(See below for how <i class="arg">precision</i> is interpreted). All numbers are formatted
+in floating-point E format.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Parameters</a></h2>
+<dl class="doctools_definitions">
+<dt><i class="arg">expr</i></dt>
+<dd><p>Expression to evaluate. The syntax for expressions is the same as it is in Tcl,
+but the set of operations is smaller. See <span class="sectref"><a href="#section4">Expressions</a></span> below
+for details.</p></dd>
+<dt><i class="arg">number</i></dt>
+<dd><p>The object returned by an earlier invocation of <b class="cmd">math::exact::exactexpr</b></p></dd>
+<dt><i class="arg">precision</i></dt>
+<dd><p>The requested 'precision' of the result. The precision is (approximately)
+the absolute value of the binary exponent plus the number of bits of the
+binary significand. For instance, to return results to IEEE-754 double
+precision, 56 bits plus the exponent are required. Numbers between 1/2 and 2
+will require a precision of 57; numbers between 1/4 and 1/2 or between 2 and 4
+will require 58; numbers between 1/8 and 1/4 or between 4 and 8 will require
+59; and so on.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Expressions</a></h2>
+<p>The <b class="cmd">math::exact::exactexpr</b> command accepts expressions in a subset
+of Tcl's syntax. The following components may be used in an expression.</p>
+<ul class="doctools_itemized">
+<li><p>Decimal integers.</p></li>
+<li><p>Variable references with the dollar sign (<b class="const">$</b>).
+The value of the variable must be the result of another call to
+<b class="cmd">math::exact::exactexpr</b>. The reference count of the value
+will be increased by one for each position at which it appears
+in the expression.</p></li>
+<li><p>The exponentiation operator (<b class="const">**</b>).</p></li>
+<li><p>Unary plus (<b class="const">+</b>) and minus (<b class="const">-</b>) operators.</p></li>
+<li><p>Multiplication (<b class="const">*</b>) and division (<b class="const">/</b>) operators.</p></li>
+<li><p>Parentheses used for grouping.</p></li>
+<li><p>Functions. See <span class="sectref"><a href="#section5">Functions</a></span> below for the functions that are
+available.</p></li>
+</ul>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Functions</a></h2>
+<p>The following functions are available for use within exact real expressions.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">acos(</b><i class="arg">x</i><b class="const">)</b></dt>
+<dd><p>The inverse cosine of <i class="arg">x</i>. The result is expressed in radians. 
+The absolute value of <i class="arg">x</i> must be less than 1.</p></dd>
+<dt><b class="const">acosh(</b><i class="arg">x</i><b class="const">)</b></dt>
+<dd><p>The inverse hyperbolic cosine of <i class="arg">x</i>. 
+<i class="arg">x</i> must be greater than 1.</p></dd>
+<dt><b class="const">asin(</b><i class="arg">x</i><b class="const">)</b></dt>
+<dd><p>The inverse sine of <i class="arg">x</i>. The result is expressed in radians. 
+The absolute value of <i class="arg">x</i> must be less than 1.</p></dd>
+<dt><b class="const">asinh(</b><i class="arg">x</i><b class="const">)</b></dt>
+<dd><p>The inverse hyperbolic sine of <i class="arg">x</i>.</p></dd>
+<dt><b class="const">atan(</b><i class="arg">x</i><b class="const">)</b></dt>
+<dd><p>The inverse tangent of <i class="arg">x</i>. The result is expressed in radians.</p></dd>
+<dt><b class="const">atanh(</b><i class="arg">x</i><b class="const">)</b></dt>
+<dd><p>The inverse hyperbolic tangent of <i class="arg">x</i>.
+The absolute value of <i class="arg">x</i> must be less than 1.</p></dd>
+<dt><b class="const">cos(</b><i class="arg">x</i><b class="const">)</b></dt>
+<dd><p>The cosine of <i class="arg">x</i>. <i class="arg">x</i> is expressed in radians.</p></dd>
+<dt><b class="const">cosh(</b><i class="arg">x</i><b class="const">)</b></dt>
+<dd><p>The hyperbolic cosine of <i class="arg">x</i>.</p></dd>
+<dt><b class="const">e()</b></dt>
+<dd><p>The base of the natural logarithms = <b class="const">2.71828...</b></p></dd>
+<dt><b class="const">exp(</b><i class="arg">x</i><b class="const">)</b></dt>
+<dd><p>The exponential function of <i class="arg">x</i>.</p></dd>
+<dt><b class="const">log(</b><i class="arg">x</i><b class="const">)</b></dt>
+<dd><p>The natural logarithm of <i class="arg">x</i>. <i class="arg">x</i> must be positive.</p></dd>
+<dt><b class="const">pi()</b></dt>
+<dd><p>The value of pi = <b class="const">3.15159...</b></p></dd>
+<dt><b class="const">sin(</b><i class="arg">x</i><b class="const">)</b></dt>
+<dd><p>The sine of <i class="arg">x</i>. <i class="arg">x</i> is expressed in radians.</p></dd>
+<dt><b class="const">sinh(</b><i class="arg">x</i><b class="const">)</b></dt>
+<dd><p>The hyperbolic sine of <i class="arg">x</i>.</p></dd>
+<dt><b class="const">sqrt(</b><i class="arg">x</i><b class="const">)</b></dt>
+<dd><p>The square root of <i class="arg">x</i>. <i class="arg">x</i> must be positive.</p></dd>
+<dt><b class="const">tan(</b><i class="arg">x</i><b class="const">)</b></dt>
+<dd><p>The tangent of <i class="arg">x</i>. <i class="arg">x</i> is expressed in radians.</p></dd>
+<dt><b class="const">tanh(</b><i class="arg">x</i><b class="const">)</b></dt>
+<dd><p>The hyperbolic tangent of <i class="arg">x</i>.</p></dd>
+</dl>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Summary</a></h2>
+<p>The <b class="cmd">math::exact::exactexpr</b> command provides a system that
+performs exact arithmetic over computable real numbers, representing
+the numbers as algorithms for successive approximation.
+An example, which implements the high-school quadratic formula,
+is shown below.</p>
+<pre class="doctools_example">
+namespace import math::exact::exactexpr
+proc exactquad {a b c} {
+    set d [[exactexpr {sqrt($b*$b - 4*$a*$c)}] ref]
+    set r0 [[exactexpr {(-$b - $d) / (2 * $a)}] ref]
+    set r1 [[exactexpr {(-$b + $d) / (2 * $a)}] ref]
+    $d unref
+    return [list $r0 $r1]
+}
+set a [[exactexpr 1] ref]
+set b [[exactexpr 200] ref]
+set c [[exactexpr {(-3/2) * 10**-12}] ref]
+lassign [exactquad $a $b $c] r0 r1
+$a unref; $b unref; $c unref
+puts [list [$r0 asFloat 70] [$r1 asFloat 110]]
+$r0 unref; $r1 unref
+</pre>
+<p>The program prints the result:</p>
+<pre class="doctools_example">
+-2.000000000000000075e2 7.499999999999999719e-15
+</pre>
+<p>Note that if IEEE-754 floating point had been used, a catastrophic
+roundoff error would yield a smaller root that is a factor of two
+too high:</p>
+<pre class="doctools_example">
+-200.0 1.4210854715202004e-14
+</pre>
+<p>The invocations of <b class="cmd">exactexpr</b> should be fairly self-explanatory.
+The other commands of note are <b class="cmd">ref</b> and <b class="cmd">unref</b>. It is necessary
+for the caller to keep track of references to exact expressions - to call
+<b class="cmd">ref</b> every time an exact expression is stored in a variable and
+<b class="cmd">unref</b> every time the variable goes out of scope or is overwritten.
+The <b class="cmd">asFloat</b> method emits decimal digits as long as the requested
+precision supports them. It terminates when the requested precision
+yields an uncertainty of more than one unit in the least significant digit.</p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2015 Kevin B. Kenny &lt;kennykb@acm.org&gt;<br>
+Redistribution permitted under the terms of the Open Publication License &lt;http://www.opencontent.org/openpub/&gt;</p>
+</div>
+</div></body></html>

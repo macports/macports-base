@@ -1,0 +1,384 @@
+# -*- text -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+#
+# Grammar Start Expression
+#
+
+<<MAIN>>:
+         call              sym_eos
+         halt
+
+#
+# value Symbol 'eos'
+#
+
+sym_eos:
+# x
+#     (ex)
+#     *
+#         x
+#             +
+#                 <space>
+#             (ex)
+
+         symbol_restore    eos
+  found! jump              found_19
+         loc_push
+         ast_push
+
+         call              sequence_16
+
+   fail! value_clear
+     ok! value_reduce      eos
+         symbol_save       eos
+         error_nonterminal eos
+         ast_pop_rewind
+         loc_pop_discard
+
+found_19:
+     ok! ast_value_push
+         return
+
+sequence_16:
+# x
+#     (ex)
+#     *
+#         x
+#             +
+#                 <space>
+#             (ex)
+
+         ast_push
+         loc_push
+         error_clear
+
+         error_push
+
+         call              sym_ex
+
+         error_pop_merge
+   fail! jump              failed_17
+         error_push
+
+         call              kleene_13
+
+         error_pop_merge
+   fail! jump              failed_17
+
+         ast_pop_discard
+         loc_pop_discard
+         return
+
+failed_17:
+         ast_pop_rewind
+         loc_pop_rewind
+         return
+
+kleene_13:
+# *
+#     x
+#         +
+#             <space>
+#         (ex)
+
+         loc_push
+         error_push
+
+         call              sequence_9
+
+         error_pop_merge
+   fail! jump              failed_14
+         loc_pop_discard
+         jump              kleene_13
+
+failed_14:
+         loc_pop_rewind
+         status_ok
+         return
+
+sequence_9:
+# x
+#     +
+#         <space>
+#     (ex)
+
+         loc_push
+         error_clear
+
+         error_push
+
+         call              poskleene_4
+
+         error_pop_merge
+   fail! jump              failednoast_11
+         ast_push
+         error_push
+
+         call              sym_ex
+
+         error_pop_merge
+   fail! jump              failed_10
+
+         ast_pop_discard
+         loc_pop_discard
+         return
+
+failed_10:
+         ast_pop_rewind
+
+failednoast_11:
+         loc_pop_rewind
+         return
+
+poskleene_4:
+# +
+#     <space>
+
+         loc_push
+
+         input_next        "space"
+     ok! test_space
+
+   fail! jump              failed_5
+
+loop_6:
+         loc_pop_discard
+         loc_push
+         error_push
+
+         input_next        "space"
+     ok! test_space
+
+         error_pop_merge
+     ok! jump              loop_6
+         status_ok
+
+failed_5:
+         loc_pop_rewind
+         return
+#
+# value Symbol 'ex'
+#
+
+sym_ex:
+# x
+#     +
+#         x
+#             !
+#                 (X)
+#             /
+#                 'x'
+#                 'z'
+#     ?
+#         (X)
+
+         symbol_restore    ex
+  found! jump              found_43
+         loc_push
+         ast_push
+
+         call              sequence_39
+
+   fail! value_clear
+     ok! value_reduce      ex
+         symbol_save       ex
+         error_nonterminal ex
+         ast_pop_rewind
+         loc_pop_discard
+
+found_43:
+     ok! ast_value_push
+         return
+
+sequence_39:
+# x
+#     +
+#         x
+#             !
+#                 (X)
+#             /
+#                 'x'
+#                 'z'
+#     ?
+#         (X)
+
+         loc_push
+         error_clear
+
+         error_push
+
+         call              poskleene_32
+
+         error_pop_merge
+   fail! jump              failednoast_41
+         ast_push
+         error_push
+
+         call              optional_37
+
+         error_pop_merge
+   fail! jump              failed_40
+
+         ast_pop_discard
+         loc_pop_discard
+         return
+
+failed_40:
+         ast_pop_rewind
+
+failednoast_41:
+         loc_pop_rewind
+         return
+
+poskleene_32:
+# +
+#     x
+#         !
+#             (X)
+#         /
+#             'x'
+#             'z'
+
+         loc_push
+
+         call              sequence_29
+
+   fail! jump              failed_33
+
+loop_34:
+         loc_pop_discard
+         loc_push
+         error_push
+
+         call              sequence_29
+
+         error_pop_merge
+     ok! jump              loop_34
+         status_ok
+
+failed_33:
+         loc_pop_rewind
+         return
+
+sequence_29:
+# x
+#     !
+#         (X)
+#     /
+#         'x'
+#         'z'
+
+         loc_push
+         error_clear
+
+         error_push
+
+         call              notahead_22
+
+         error_pop_merge
+   fail! jump              failed_30
+         error_push
+
+         call              choice_27
+
+         error_pop_merge
+   fail! jump              failed_30
+
+         loc_pop_discard
+         return
+
+failed_30:
+         loc_pop_rewind
+         return
+
+notahead_22:
+# !
+#     (X)
+
+         loc_push
+         ast_push
+
+         call              sym_X
+
+   fail! ast_pop_discard
+     ok! ast_pop_rewind
+         loc_pop_rewind
+         status_negate
+         return
+
+choice_27:
+# /
+#     'x'
+#     'z'
+
+         error_clear
+
+         loc_push
+         error_push
+
+         input_next        "t x"
+     ok! test_char         "x"
+
+         error_pop_merge
+     ok! jump              oknoast_26
+
+         loc_pop_rewind
+         loc_push
+         error_push
+
+         input_next        "t z"
+     ok! test_char         "z"
+
+         error_pop_merge
+     ok! jump              oknoast_26
+
+         loc_pop_rewind
+         status_fail
+         return
+
+oknoast_26:
+         loc_pop_discard
+         return
+
+optional_37:
+# ?
+#     (X)
+
+         loc_push
+         error_push
+
+         call              sym_X
+
+         error_pop_merge
+   fail! loc_pop_rewind
+     ok! loc_pop_discard
+         status_ok
+         return
+#
+# value Symbol 'X'
+#
+
+sym_X:
+# 'x'
+
+         symbol_restore    X
+  found! jump              found_46
+         loc_push
+
+         input_next        "t x"
+     ok! test_char         "x"
+
+   fail! value_clear
+     ok! value_leaf        X
+         symbol_save       X
+         error_nonterminal X
+         loc_pop_discard
+
+found_46:
+     ok! ast_value_push
+         return
+
+#
+#

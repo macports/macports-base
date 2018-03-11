@@ -1,0 +1,15 @@
+# -*- tcl -*-
+# Parsing Expression Grammar 'TEMPLATE'.
+# Generated for unknown, from file 'TEST'
+
+#
+# Grammar Start Expression
+#
+
+<<def>> <<ns>><<main>> {} {
+    <<runtime>> si:next_str abc
+    return
+}
+
+#
+#

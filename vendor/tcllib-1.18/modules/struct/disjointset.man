@@ -1,0 +1,160 @@
+[manpage_begin struct::disjointset n 1.0]
+[keywords {disjoint set}]
+[keywords {equivalence class}]
+[keywords find]
+[keywords {merge find}]
+[keywords partition]
+[keywords {partitioned set}]
+[keywords union]
+[moddesc   {Tcl Data Structures}]
+[titledesc {Disjoint set data structure}]
+[category  {Data structures}]
+[require Tcl 8.4]
+[require struct::disjointset [opt 1.0]]
+[description]
+[para]
+
+This package provides [term {disjoint sets}]. An alternative name for
+this kind of structure is [term {merge-find}].
+
+[para]
+
+Normally when dealing with sets and their elements the question is "Is
+this element E contained in this set S?", with both E and S known.
+
+[para]
+
+Here the question is "Which of several sets contains the element
+E?". I.e. while the element is known, the set is not, and we wish to
+find it quickly. It is not quite the inverse of the original question,
+but close.
+
+Another operation which is often wanted is that of quickly merging two
+sets into one, with the result still fast for finding elements. Hence
+the alternative term [term merge-find] for this.
+
+[para]
+
+Why now is this named a [term disjoint-set] ?
+
+Because another way of describing the whole situation is that we have
+
+[list_begin itemized]
+[item] a finite [term set] S, containing
+[item] a number of [term elements] E, split into
+[item] a set of [term partitions] P. The latter term
+       applies, because the intersection of each pair P, P' of
+       partitions is empty, with the union of all partitions
+       covering the whole set.
+[item] An alternative name for the [term partitions] would be
+       [term {equvalence classes}], and all elements in the same
+       class are considered as equal.
+[list_end]
+
+Here is a pictorial representation of the concepts listed above:
+[example {
+	+-----------------+ The outer lines are the boundaries of the set S.
+	|           /     | The inner regions delineated by the skewed lines
+	|  *       /   *  | are the partitions P. The *'s denote the elements
+	|      *  / \     | E in the set, each in a single partition, their
+	|*       /   \    | equivalence class.
+	|       /  *  \   |
+	|      / *   /    |
+	| *   /\  * /     |
+	|    /  \  /      |
+	|   /    \/  *    |
+	|  / *    \       |
+	| /     *  \      |
+	+-----------------+
+}]
+
+[para]
+
+For more information see [uri http://en.wikipedia.org/wiki/Disjoint_set_data_structure].
+
+[section API]
+
+The package exports a single command, [cmd ::struct::disjointset]. All
+functionality provided here can be reached through a subcommand of
+this command.
+
+[para]
+
+[list_begin definitions]
+
+[call [cmd ::struct::disjointset] [arg disjointsetName]]
+
+Creates a new disjoint set object with an associated global Tcl
+command whose name is [emph disjointsetName]. This command may be used
+to invoke various operations on the disjointset. It has the following
+general form:
+
+[list_begin definitions]
+
+[call [arg disjointsetName] [arg option] [opt [arg {arg arg ...}]]]
+
+The [cmd option] and the [arg arg]s determine the exact behavior of
+the command. The following commands are possible for disjointset
+objects:
+
+[list_end]
+
+[call [arg disjointsetName] [method add-partition] [arg elements]]
+
+Creates a new partition in specified disjoint set, and fills it with
+the values found in the set of [arg elements]. The command maintains
+the integrity of the disjoint set, i.e. it verifies that none of the
+[arg elements] are already part of the disjoint set and throws an
+error otherwise.
+
+[para]
+
+The result of the command is the empty string.
+
+[call [arg disjointsetName] [method partitions]]
+
+Returns the set of partitions the named disjoint set currently
+consists of.
+
+[call [arg disjointsetName] [method num-partitions]]
+
+Returns the number of partitions the named disjoint set currently
+consists of.
+
+[call [arg disjointsetName] [method equal] [arg a] [arg b]]
+
+Determines if the two elements [arg a] and [arg b] of the disjoint set
+belong to the same partition. The result of the method is a boolean
+value, [const True] if the two elements are contained in the same
+partition, and [const False] otherwise.
+
+[para]
+
+An error will be thrown if either [arg a] or [arg b] are not elements
+of the disjoint set.
+
+[call [arg disjointsetName] [method merge] [arg a] [arg b]]
+
+Determines the partitions the elements [arg a] and [arg b] are
+contained in and merges them into a single partition.  If the two
+elements were already contained in the same partition nothing will
+change.
+
+[para]
+
+The result of the method is the empty string.
+
+[call [arg disjointsetName] [method find] [arg e]]
+
+Returns the partition of the disjoint set which contains the element
+[arg e].
+
+[call [arg disjointsetName] [method destroy]]
+
+Destroys the disjoint set object and all associated memory.
+
+[list_end]
+
+[vset CATEGORY {struct :: disjointset}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

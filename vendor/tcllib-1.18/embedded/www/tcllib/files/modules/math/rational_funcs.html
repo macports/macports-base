@@ -1,0 +1,272 @@
+
+<div class='fossil-doc' data-title='math::rationalfunctions - Math'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::rationalfunctions(n) 1.0.1 tcllib &quot;Math&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::rationalfunctions - Polynomial functions</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PROCEDURES</a></li>
+<li class="doctools_section"><a href="#section3">REMARKS ON THE IMPLEMENTATION</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl <span class="opt">?8.4?</span></b></li>
+<li>package require <b class="pkgname">math::rationalfunctions <span class="opt">?1.0.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::rationalfunctions::rationalFunction</b> <i class="arg">num</i> <i class="arg">den</i></a></li>
+<li><a href="#2"><b class="cmd">::math::rationalfunctions::ratioCmd</b> <i class="arg">num</i> <i class="arg">den</i></a></li>
+<li><a href="#3"><b class="cmd">::math::rationalfunctions::evalRatio</b> <i class="arg">rational</i> <i class="arg">x</i></a></li>
+<li><a href="#4"><b class="cmd">::math::rationalfunctions::addRatio</b> <i class="arg">ratio1</i> <i class="arg">ratio2</i></a></li>
+<li><a href="#5"><b class="cmd">::math::rationalfunctions::subRatio</b> <i class="arg">ratio1</i> <i class="arg">ratio2</i></a></li>
+<li><a href="#6"><b class="cmd">::math::rationalfunctions::multRatio</b> <i class="arg">ratio1</i> <i class="arg">ratio2</i></a></li>
+<li><a href="#7"><b class="cmd">::math::rationalfunctions::divRatio</b> <i class="arg">ratio1</i> <i class="arg">ratio2</i></a></li>
+<li><a href="#8"><b class="cmd">::math::rationalfunctions::derivPolyn</b> <i class="arg">ratio</i></a></li>
+<li><a href="#9"><b class="cmd">::math::rationalfunctions::coeffsNumerator</b> <i class="arg">ratio</i></a></li>
+<li><a href="#10"><b class="cmd">::math::rationalfunctions::coeffsDenominator</b> <i class="arg">ratio</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package deals with rational functions of one variable:</p>
+<ul class="doctools_itemized">
+<li><p>the basic arithmetic operations are extended to rational functions</p></li>
+<li><p>computing the derivatives of these functions</p></li>
+<li><p>evaluation through a general procedure or via specific procedures)</p></li>
+</ul>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PROCEDURES</a></h2>
+<p>The package defines the following public procedures:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::rationalfunctions::rationalFunction</b> <i class="arg">num</i> <i class="arg">den</i></a></dt>
+<dd><p>Return an (encoded) list that defines the rational function. A
+rational function</p>
+<pre class="doctools_example">
+             1 + x^3
+   f(x) = ------------
+          1 + 2x + x^2
+</pre>
+<p>can be defined via:</p>
+<pre class="doctools_example">
+   set f [::math::rationalfunctions::rationalFunction [list 1 0 0 1]  [list 1 2 1]]
+</pre>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">num</i></dt>
+<dd><p>Coefficients of the numerator of the rational
+function (in ascending order)</p></dd>
+<dt>list <i class="arg">den</i></dt>
+<dd><p>Coefficients of the denominator of the rational
+function (in ascending order)</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">::math::rationalfunctions::ratioCmd</b> <i class="arg">num</i> <i class="arg">den</i></a></dt>
+<dd><p>Create a new procedure that evaluates the rational function. The name of the
+function is automatically generated. Useful if you need to evaluate
+the function many times, as the procedure consists of a single
+[expr] command.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">num</i></dt>
+<dd><p>Coefficients of the numerator of the rational
+function (in ascending order)</p></dd>
+<dt>list <i class="arg">den</i></dt>
+<dd><p>Coefficients of the denominator of the rational
+function (in ascending order)</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">::math::rationalfunctions::evalRatio</b> <i class="arg">rational</i> <i class="arg">x</i></a></dt>
+<dd><p>Evaluate the rational function at x.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">rational</i></dt>
+<dd><p>The rational function's definition (as returned
+by the rationalFunction command).
+order)</p></dd>
+<dt>float <i class="arg">x</i></dt>
+<dd><p>The coordinate at which to evaluate the function</p></dd>
+</dl></dd>
+<dt><a name="4"><b class="cmd">::math::rationalfunctions::addRatio</b> <i class="arg">ratio1</i> <i class="arg">ratio2</i></a></dt>
+<dd><p>Return a new rational function which is the sum of the two others.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">ratio1</i></dt>
+<dd><p>The first rational function operand</p></dd>
+<dt>list <i class="arg">ratio2</i></dt>
+<dd><p>The second rational function operand</p></dd>
+</dl></dd>
+<dt><a name="5"><b class="cmd">::math::rationalfunctions::subRatio</b> <i class="arg">ratio1</i> <i class="arg">ratio2</i></a></dt>
+<dd><p>Return a new rational function which is the difference of the two
+others.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">ratio1</i></dt>
+<dd><p>The first rational function operand</p></dd>
+<dt>list <i class="arg">ratio2</i></dt>
+<dd><p>The second rational function operand</p></dd>
+</dl></dd>
+<dt><a name="6"><b class="cmd">::math::rationalfunctions::multRatio</b> <i class="arg">ratio1</i> <i class="arg">ratio2</i></a></dt>
+<dd><p>Return a new rational function which is the product of the two others.
+If one of the arguments is a scalar value, the other rational function is
+simply scaled.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">ratio1</i></dt>
+<dd><p>The first rational function operand or a scalar</p></dd>
+<dt>list <i class="arg">ratio2</i></dt>
+<dd><p>The second rational function operand or a scalar</p></dd>
+</dl></dd>
+<dt><a name="7"><b class="cmd">::math::rationalfunctions::divRatio</b> <i class="arg">ratio1</i> <i class="arg">ratio2</i></a></dt>
+<dd><p>Divide the first rational function by the second rational function and
+return the result. The remainder is dropped</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">ratio1</i></dt>
+<dd><p>The first rational function operand</p></dd>
+<dt>list <i class="arg">ratio2</i></dt>
+<dd><p>The second rational function operand</p></dd>
+</dl></dd>
+<dt><a name="8"><b class="cmd">::math::rationalfunctions::derivPolyn</b> <i class="arg">ratio</i></a></dt>
+<dd><p>Differentiate the rational function and return the result.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">ratio</i></dt>
+<dd><p>The rational function to be differentiated</p></dd>
+</dl></dd>
+<dt><a name="9"><b class="cmd">::math::rationalfunctions::coeffsNumerator</b> <i class="arg">ratio</i></a></dt>
+<dd><p>Return the coefficients of the numerator of the rational function.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">ratio</i></dt>
+<dd><p>The rational function to be examined</p></dd>
+</dl></dd>
+<dt><a name="10"><b class="cmd">::math::rationalfunctions::coeffsDenominator</b> <i class="arg">ratio</i></a></dt>
+<dd><p>Return the coefficients of the denominator of the rational
+function.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">ratio</i></dt>
+<dd><p>The rational function to be examined</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">REMARKS ON THE IMPLEMENTATION</a></h2>
+<p>The implementation of the rational functions relies on the
+math::polynomials package. For further remarks see the documentation on
+that package.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>math :: rationalfunctions</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key71">math</a>, <a href="../../../../index.html#key655">rational functions</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2005 Arjen Markus &lt;arjenmarkus@users.sourceforge.net&gt;</p>
+</div>
+</div>

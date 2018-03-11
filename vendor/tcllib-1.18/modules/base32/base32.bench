@@ -1,0 +1,87 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'base32' module.
+# This allow developers to monitor/gauge/track package performance.
+#
+# Public domain
+
+# We need at least version 8.4 for the package and thus the
+# benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.4]} return
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+package forget base32
+package forget base32::core
+catch {namespace delete ::base32}
+
+set self  [file join [pwd] [file dirname [info script]]]
+set index [file join [file dirname $self] tcllibc pkgIndex.tcl]
+
+if {[file exists $index]} {
+    set ::dir [file dirname $index]
+    uplevel #0 [list source $index]
+    unset ::dir
+    package require tcllibc
+}
+
+source [file join $self base32core.tcl]
+source [file join $self base32.tcl]
+
+set    bytes \000\010\020\030\001\011\021\031\002\012\022\032\003\013\023\033
+append bytes \004\014\024\034\005\015\025\035\006\016\026\036\007\017\027\037
+append bytes \040\050\060\070\041\051\061\071\042\052\062\072\043\053\063\073
+append bytes \044\054\064\074\045\055\065\075\046\056\066\076\047\057\067\077
+append bytes \100\110\120\130\101\111\121\131\102\112\122\132\103\113\123\133
+append bytes \104\114\124\134\105\115\125\135\106\116\126\136\107\117\127\137
+append bytes \140\150\160\170\141\151\161\171\142\152\162\172\143\153\163\173
+append bytes \144\154\164\174\145\155\165\175\146\156\166\176\147\157\167\177
+append bytes \200\210\220\230\201\211\221\231\202\212\222\232\203\213\223\233
+append bytes \204\214\224\234\205\215\225\235\206\216\226\236\207\217\227\237
+append bytes \240\250\260\270\241\251\261\271\242\252\262\272\243\253\263\273
+append bytes \244\254\264\274\245\255\265\275\246\256\266\276\247\257\267\277
+append bytes \300\310\320\330\301\311\321\331\302\312\322\332\303\313\323\333
+append bytes \304\314\324\334\305\315\325\335\306\316\326\336\307\317\327\337
+append bytes \340\350\360\370\341\351\361\371\342\352\362\372\343\353\363\373
+append bytes \344\354\364\374\345\355\365\375\346\356\366\376\347\357\367\377
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+base32::SwitchTo {}
+foreach e [base32::KnownImplementations] {
+    ::base32::LoadAccelerator $e
+}
+
+foreach impl [base32::Implementations] {
+    base32::SwitchTo $impl
+
+    foreach rem {0 1 2 3 4} {
+	foreach len {0 10 100 1000 10000} {
+	    set  blen $len
+	    incr blen $rem
+
+	    set blanks  [string repeat { } $blen]
+	    set identic [string repeat A   $blen]
+	    set sbytes  [string range [string repeat $bytes [expr {1+$blen/256}]] 0 [expr {$blen - 1}]]
+
+	    bench -desc "base32-std-${impl}-enc-$rem/${len} blanks" -body {base32::encode $blanks}
+	    bench -desc "base32-std-${impl}-enc-$rem/${len} identi" -body {base32::encode $identic}
+	    bench -desc "base32-std-${impl}-enc-$rem/${len} sbytes" -body {base32::encode $sbytes}
+
+	    set blanks  [base32::encode $blanks]
+	    set identic [base32::encode $identic]
+	    set sbytes  [base32::encode $sbytes]
+
+	    bench -desc "base32-std-${impl}-dec-$rem/${len} blanks" -body {base32::decode $blanks}
+	    bench -desc "base32-std-${impl}-dec-$rem/${len} identi" -body {base32::decode $identic}
+	    bench -desc "base32-std-${impl}-dec-$rem/${len} sbytes" -body {base32::decode $sbytes}
+	}
+    }
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete

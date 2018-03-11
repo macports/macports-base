@@ -1,0 +1,39 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+
+lappend auto_path [file join [file dirname [file dirname [file dirname [info script]]]] modules]
+package require term::ansi::send
+term::ansi::send::import vt
+
+array set as {
+    {}        {Default  }
+    bold      {Bold     }
+    underline {Underline}
+    revers    {Revers   }
+}
+
+vt::init
+vt::clear
+vt::wr \n
+vt::wr {    }
+vt::sda_bgcyan
+vt::wr {[ Attributes ]}
+vt::sda_reset
+vt::wr \n\n
+
+vt::wr "   \016lqqqqqqqqqqqk\017\n"
+
+foreach a {{} underline bold revers} {
+
+    vt::sda_fgdefault
+    vt::wr {   }
+    vt::wr "\016x\017"
+    if {$a != {}} vt::sda_$a
+    vt::wr " $as($a) "
+    vt::sda_reset
+    vt::wr "\016x\017\n"
+}
+
+vt::wr "   \016mqqqqqqqqqqqj\017\n\n"
+
+exit

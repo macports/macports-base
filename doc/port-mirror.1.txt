@@ -1,7 +1,6 @@
 // vim: set et sw=4 ts=8 ft=asciidoc tw=80:
 port-mirror(1)
 ==============
-$Id$
 
 NAME
 ----
@@ -62,8 +61,8 @@ $> sudo port -p fetch $newport rdepof:$newport and not installed
 ----
 
 If your intention is creating a new complete mirror of all MacPorts distfiles,
-it is probably easier to sync them via rsync from our main mirror hosted by Mac
-OS Forge. See wiki:Mirrors[] for details.
+it is probably easier to sync them via rsync from our main mirror. See
+wiki:Mirrors[] for details.
 
 If you want to create a partial mirror of MacPorts distfiles or are running the
 main mirror for MacPorts, you should use *port mirror*:

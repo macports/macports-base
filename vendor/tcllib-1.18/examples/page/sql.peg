@@ -1,0 +1,643 @@
+# -*- text -*-
+## Parsing Expression Grammar 'sqlite3Parser'.
+## Layouted by the PG backend 'PEGwriter'.
+
+PEG sqlite3Parser (input)
+
+leaf: ABORT                  <- 'A' 'B' 'O' 'R' 'T' ;
+
+leaf: ADD                    <- 'A' 'D' 'D' ;
+
+      add_column_fullname    <- fullname ;
+
+leaf: AFTER                  <- 'A' 'F' 'T' 'E' 'R' ;
+
+leaf: ALL                    <- 'A' 'L' 'L' ;
+
+leaf: ALTER                  <- 'A' 'L' 'T' 'E' 'R' ;
+
+leaf: AND                    <- 'A' 'N' 'D' ;
+
+leaf: AS                     <- 'A' 'S' ;
+
+      as                     <- (  AS nm
+                                 / ids)? ;
+
+leaf: ASC                    <- 'A' 'S' 'C' ;
+
+leaf: ATTACH                 <- 'A' 'T' 'T' 'A' 'C' 'H' ;
+
+      autoinc                <- AUTOINCR? ;
+
+leaf: AUTOINCR               <- 'A' 'U' 'T' 'O' 'I' 'N' 'C' 'R' ;
+
+leaf: BEFORE                 <- 'B' 'E' 'F' 'O' 'R' 'E' ;
+
+leaf: BEGIN                  <- 'B' 'E' 'G' 'I' 'N' ;
+
+leaf: BETWEEN                <- 'B' 'E' 'T' 'W' 'E' 'E' 'N' ;
+
+      between_op             <-   BETWEEN
+                                / NOT BETWEEN ;
+
+leaf: BITAND                 <- 'B' 'I' 'T' 'A' 'N' 'D' ;
+
+leaf: BITNOT                 <- 'B' 'I' 'T' 'N' 'O' 'T' ;
+
+leaf: BITOR                  <- 'B' 'I' 'T' 'O' 'R' ;
+
+leaf: BLOB                   <- 'B' 'L' 'O' 'B' ;
+
+leaf: BY                     <- 'B' 'Y' ;
+
+      carg                   <-   CONSTRAINT nm ccons
+                                / ccons
+                                / DEFAULT term
+                                / DEFAULT PLUS term
+                                / DEFAULT MINUS term
+                                / DEFAULT id ;
+
+      carglist               <- (carglist carg)? ;
+
+leaf: CASCADE                <- 'C' 'A' 'S' 'C' 'A' 'D' 'E' ;
+
+leaf: CASE                   <- 'C' 'A' 'S' 'E' ;
+
+      case_else              <- (ELSE expr)? ;
+
+      case_exprlist          <-   case_exprlist WHEN expr THEN expr
+                                / WHEN expr THEN expr ;
+
+      case_operand           <- expr? ;
+
+      ccons                  <-   NULL onconf
+                                / NOT NULL onconf
+                                / PRIMARY KEY sortorder onconf autoinc
+                                / UNIQUE onconf
+                                / CHECK LP expr RP onconf
+                                / REFERENCES nm idxlist_opt refargs
+                                / defer_subclause
+                                / COLLATE id ;
+
+leaf: CDATE                  <- 'C' 'D' 'A' 'T' 'E' ;
+
+leaf: CHECK                  <- 'C' 'H' 'E' 'C' 'K' ;
+
+      cmd                    <-   BEGIN transtype trans_opt
+                                / COMMIT trans_opt
+                                / END trans_opt
+                                / ROLLBACK trans_opt
+                                / create_table create_table_args
+                                / DROP TABLE fullname
+                                / CREATE temp VIEW nm dbnm AS select
+                                / DROP VIEW fullname
+                                / select
+                                / DELETE FROM fullname where_opt
+                                / UPDATE orconf fullname SET setlist where_opt
+                                / insert_cmd INTO fullname inscollist_opt VALUES
+                                  LP itemlist RP
+                                / insert_cmd INTO fullname inscollist_opt select
+                                / CREATE uniqueflag INDEX nm dbnm ON nm LP idxlist
+                                  RP onconf
+                                / DROP INDEX fullname
+                                / VACUUM
+                                / VACUUM nm
+                                / PRAGMA nm dbnm EQ nm
+                                / PRAGMA nm dbnm EQ ON
+                                / PRAGMA nm dbnm EQ plus_num
+                                / PRAGMA nm dbnm EQ minus_num
+                                / PRAGMA nm dbnm LP nm RP
+                                / PRAGMA nm dbnm
+                                / CREATE trigger_decl BEGIN trigger_cmd_list END
+                                / DROP TRIGGER fullname
+                                / ATTACH database_kw_opt ids AS nm key_opt
+                                / DETACH database_kw_opt nm
+                                / REINDEX
+                                / REINDEX nm dbnm
+                                / ALTER TABLE fullname RENAME TO nm
+                                / ALTER TABLE add_column_fullname ADD kwcolumn_opt
+                                  column ;
+
+      cmdlist                <-   cmdlist ecmd
+                                / ecmd ;
+
+      cmdx                   <- cmd ;
+
+leaf: COLLATE                <- 'C' 'O' 'L' 'L' 'A' 'T' 'E' ;
+
+      collate                <- (COLLATE id)? ;
+
+      column                 <- columnid type carglist ;
+
+      columnid               <- nm ;
+
+leaf: COLUMNKW               <- 'C' 'O' 'L' 'U' 'M' 'N' 'K' 'W' ;
+
+      columnlist             <-   columnlist COMMA column
+                                / column ;
+
+leaf: COMMA                  <- 'C' 'O' 'M' 'M' 'A' ;
+
+leaf: COMMIT                 <- 'C' 'O' 'M' 'M' 'I' 'T' ;
+
+leaf: CONCAT                 <- 'C' 'O' 'N' 'C' 'A' 'T' ;
+
+leaf: CONFLICT               <- 'C' 'O' 'N' 'F' 'L' 'I' 'C' 'T' ;
+
+      conslist               <-   conslist COMMA tcons
+                                / conslist tcons
+                                / tcons ;
+
+      conslist_opt           <- (COMMA conslist)? ;
+
+leaf: CONSTRAINT             <- 'C' 'O' 'N' 'S' 'T' 'R' 'A' 'I' 'N' 'T' ;
+
+leaf: CREATE                 <- 'C' 'R' 'E' 'A' 'T' 'E' ;
+
+      create_table           <- CREATE temp TABLE nm dbnm ;
+
+      create_table_args      <-   LP columnlist conslist_opt RP
+                                / AS select ;
+
+leaf: CTIME                  <- 'C' 'T' 'I' 'M' 'E' ;
+
+leaf: CTIMESTAMP             <- 'C' 'T' 'I' 'M' 'E' 'S' 'T' 'A' 'M' 'P' ;
+
+leaf: DATABASE               <- 'D' 'A' 'T' 'A' 'B' 'A' 'S' 'E' ;
+
+      database_kw_opt        <- DATABASE? ;
+
+      dbnm                   <- (DOT nm)? ;
+
+leaf: DEFAULT                <- 'D' 'E' 'F' 'A' 'U' 'L' 'T' ;
+
+      defer_subclause        <-   NOT DEFERRABLE init_deferred_pred_opt
+                                / DEFERRABLE init_deferred_pred_opt ;
+
+      defer_subclause_opt    <- defer_subclause? ;
+
+leaf: DEFERRABLE             <- 'D' 'E' 'F' 'E' 'R' 'R' 'A' 'B' 'L' 'E' ;
+
+leaf: DEFERRED               <- 'D' 'E' 'F' 'E' 'R' 'R' 'E' 'D' ;
+
+leaf: DELETE                 <- 'D' 'E' 'L' 'E' 'T' 'E' ;
+
+leaf: DESC                   <- 'D' 'E' 'S' 'C' ;
+
+leaf: DETACH                 <- 'D' 'E' 'T' 'A' 'C' 'H' ;
+
+leaf: DISTINCT               <- 'D' 'I' 'S' 'T' 'I' 'N' 'C' 'T' ;
+
+      distinct               <- (  DISTINCT
+                                 / ALL)? ;
+
+leaf: DOT                    <- 'D' 'O' 'T' ;
+
+leaf: DROP                   <- 'D' 'R' 'O' 'P' ;
+
+leaf: EACH                   <- 'E' 'A' 'C' 'H' ;
+
+      ecmd                   <-   SEMI
+                                / explain cmdx SEMI ;
+
+leaf: ELSE                   <- 'E' 'L' 'S' 'E' ;
+
+leaf: END                    <- 'E' 'N' 'D' ;
+
+leaf: EQ                     <- 'E' 'Q' ;
+
+leaf: ESCAPE                 <- 'E' 'S' 'C' 'A' 'P' 'E' ;
+
+      escape                 <- (ESCAPE expr)? ;
+
+leaf: EXCEPT                 <- 'E' 'X' 'C' 'E' 'P' 'T' ;
+
+leaf: EXCLUSIVE              <- 'E' 'X' 'C' 'L' 'U' 'S' 'I' 'V' 'E' ;
+
+leaf: EXISTS                 <- 'E' 'X' 'I' 'S' 'T' 'S' ;
+
+leaf: EXPLAIN                <- 'E' 'X' 'P' 'L' 'A' 'I' 'N' ;
+
+      explain                <- EXPLAIN? ;
+
+      expr                   <-   term
+                                / LP expr RP
+                                / ID
+                                / JOIN_KW
+                                / nm DOT nm
+                                / nm DOT nm DOT nm
+                                / REGISTER
+                                / VARIABLE
+                                / ID LP exprlist RP
+                                / ID LP STAR RP
+                                / expr AND expr
+                                / expr OR expr
+                                / expr LT expr
+                                / expr GT expr
+                                / expr LE expr
+                                / expr GE expr
+                                / expr NE expr
+                                / expr EQ expr
+                                / expr BITAND expr
+                                / expr BITOR expr
+                                / expr LSHIFT expr
+                                / expr RSHIFT expr
+                                / expr PLUS expr
+                                / expr MINUS expr
+                                / expr STAR expr
+                                / expr SLASH expr
+                                / expr REM expr
+                                / expr CONCAT expr
+                                / expr likeop expr escape
+                                / expr ISNULL
+                                / expr IS NULL
+                                / expr NOTNULL
+                                / expr NOT NULL
+                                / expr IS NOT NULL
+                                / NOT expr
+                                / BITNOT expr
+                                / MINUS expr
+                                / PLUS expr
+                                / expr between_op expr AND expr
+                                / expr in_op LP exprlist RP
+                                / LP select RP
+                                / expr in_op LP select RP
+                                / expr in_op nm dbnm
+                                / EXISTS LP select RP
+                                / CASE case_operand case_exprlist case_else END
+                                / RAISE LP IGNORE RP
+                                / RAISE LP raisetype COMMA nm RP ;
+
+      expritem               <- expr? ;
+
+      exprlist               <-   exprlist COMMA expritem
+                                / expritem ;
+
+leaf: FAIL                   <- 'F' 'A' 'I' 'L' ;
+
+leaf: FLOAT                  <- 'F' 'L' 'O' 'A' 'T' ;
+
+leaf: FOR                    <- 'F' 'O' 'R' ;
+
+      foreach_clause         <- (  FOR EACH ROW
+                                 / FOR EACH STATEMENT)? ;
+
+leaf: FOREIGN                <- 'F' 'O' 'R' 'E' 'I' 'G' 'N' ;
+
+leaf: FROM                   <- 'F' 'R' 'O' 'M' ;
+
+      from                   <- (FROM seltablist)? ;
+
+      fullname               <- nm dbnm ;
+
+leaf: GE                     <- 'G' 'E' ;
+
+leaf: GLOB                   <- 'G' 'L' 'O' 'B' ;
+
+leaf: GROUP                  <- 'G' 'R' 'O' 'U' 'P' ;
+
+      groupby_opt            <- (GROUP BY exprlist)? ;
+
+leaf: GT                     <- 'G' 'T' ;
+
+leaf: HAVING                 <- 'H' 'A' 'V' 'I' 'N' 'G' ;
+
+      having_opt             <- (HAVING expr)? ;
+
+leaf: ID                     <- 'I' 'D' ;
+
+      id                     <- ID ;
+
+      ids                    <-   ID
+                                / STRING ;
+
+      idxitem                <- nm ;
+
+      idxlist                <-   idxlist COMMA idxitem collate sortorder
+                                / idxitem collate sortorder ;
+
+      idxlist_opt            <- (LP idxlist RP)? ;
+
+leaf: IGNORE                 <- 'I' 'G' 'N' 'O' 'R' 'E' ;
+
+leaf: IMMEDIATE              <- 'I' 'M' 'M' 'E' 'D' 'I' 'A' 'T' 'E' ;
+
+leaf: IN                     <- 'I' 'N' ;
+
+      in_op                  <-   IN
+                                / NOT IN ;
+
+leaf: INDEX                  <- 'I' 'N' 'D' 'E' 'X' ;
+
+      init_deferred_pred_opt <- (  INITIALLY DEFERRED
+                                 / INITIALLY IMMEDIATE)? ;
+
+leaf: INITIALLY              <- 'I' 'N' 'I' 'T' 'I' 'A' 'L' 'L' 'Y' ;
+
+      input                  <- cmdlist ;
+
+      inscollist             <-   inscollist COMMA nm
+                                / nm ;
+
+      inscollist_opt         <- (LP inscollist RP)? ;
+
+leaf: INSERT                 <- 'I' 'N' 'S' 'E' 'R' 'T' ;
+
+      insert_cmd             <-   INSERT orconf
+                                / REPLACE ;
+
+leaf: INSTEAD                <- 'I' 'N' 'S' 'T' 'E' 'A' 'D' ;
+
+leaf: INTEGER                <- 'I' 'N' 'T' 'E' 'G' 'E' 'R' ;
+
+leaf: INTERSECT              <- 'I' 'N' 'T' 'E' 'R' 'S' 'E' 'C' 'T' ;
+
+leaf: INTO                   <- 'I' 'N' 'T' 'O' ;
+
+leaf: IS                     <- 'I' 'S' ;
+
+leaf: ISNULL                 <- 'I' 'S' 'N' 'U' 'L' 'L' ;
+
+      itemlist               <-   itemlist COMMA expr
+                                / expr ;
+
+leaf: JOIN                   <- 'J' 'O' 'I' 'N' ;
+
+leaf: JOIN_KW                <- 'J' 'O' 'I' 'N' '_' 'K' 'W' ;
+
+      joinop                 <-   COMMA
+                                / JOIN
+                                / JOIN_KW JOIN
+                                / JOIN_KW nm JOIN
+                                / JOIN_KW nm nm JOIN ;
+
+leaf: KEY                    <- 'K' 'E' 'Y' ;
+
+      key_opt                <- (  KEY ids
+                                 / KEY BLOB)? ;
+
+      kwcolumn_opt           <- COLUMNKW? ;
+
+leaf: LE                     <- 'L' 'E' ;
+
+leaf: LIKE                   <- 'L' 'I' 'K' 'E' ;
+
+      likeop                 <-   LIKE
+                                / GLOB
+                                / NOT LIKE
+                                / NOT GLOB ;
+
+leaf: LIMIT                  <- 'L' 'I' 'M' 'I' 'T' ;
+
+      limit_opt              <- (  LIMIT expr
+                                 / LIMIT expr OFFSET expr
+                                 / LIMIT expr COMMA expr)? ;
+
+leaf: LP                     <- 'L' 'P' ;
+
+leaf: LSHIFT                 <- 'L' 'S' 'H' 'I' 'F' 'T' ;
+
+leaf: LT                     <- 'L' 'T' ;
+
+leaf: MATCH                  <- 'M' 'A' 'T' 'C' 'H' ;
+
+leaf: MINUS                  <- 'M' 'I' 'N' 'U' 'S' ;
+
+      minus_num              <- MINUS number ;
+
+      multiselect_op         <-   UNION
+                                / UNION ALL
+                                / INTERSECT
+                                / EXCEPT ;
+
+leaf: NE                     <- 'N' 'E' ;
+
+      nm                     <-   ID
+                                / STRING
+                                / JOIN_KW ;
+
+leaf: NOT                    <- 'N' 'O' 'T' ;
+
+leaf: NOTNULL                <- 'N' 'O' 'T' 'N' 'U' 'L' 'L' ;
+
+leaf: NULL                   <- 'N' 'U' 'L' 'L' ;
+
+      number                 <-   INTEGER
+                                / FLOAT ;
+
+leaf: OF                     <- 'O' 'F' ;
+
+leaf: OFFSET                 <- 'O' 'F' 'F' 'S' 'E' 'T' ;
+
+leaf: ON                     <- 'O' 'N' ;
+
+      on_opt                 <- (ON expr)? ;
+
+      onconf                 <- (ON CONFLICT resolvetype)? ;
+
+      oneselect              <- SELECT distinct selcollist from where_opt
+                                groupby_opt having_opt orderby_opt limit_opt ;
+
+leaf: OR                     <- 'O' 'R' ;
+
+      orconf                 <- (OR resolvetype)? ;
+
+leaf: ORDER                  <- 'O' 'R' 'D' 'E' 'R' ;
+
+      orderby_opt            <- (ORDER BY sortlist)? ;
+
+leaf: PLUS                   <- 'P' 'L' 'U' 'S' ;
+
+      plus_num               <- plus_opt number ;
+
+      plus_opt               <- PLUS? ;
+
+leaf: PRAGMA                 <- 'P' 'R' 'A' 'G' 'M' 'A' ;
+
+leaf: PRIMARY                <- 'P' 'R' 'I' 'M' 'A' 'R' 'Y' ;
+
+leaf: RAISE                  <- 'R' 'A' 'I' 'S' 'E' ;
+
+      raisetype              <-   ROLLBACK
+                                / ABORT
+                                / FAIL ;
+
+      refact                 <-   SET NULL
+                                / SET DEFAULT
+                                / CASCADE
+                                / RESTRICT ;
+
+      refarg                 <-   MATCH nm
+                                / ON DELETE refact
+                                / ON UPDATE refact
+                                / ON INSERT refact ;
+
+      refargs                <- (refargs refarg)? ;
+
+leaf: REFERENCES             <- 'R' 'E' 'F' 'E' 'R' 'E' 'N' 'C' 'E' 'S' ;
+
+leaf: REGISTER               <- 'R' 'E' 'G' 'I' 'S' 'T' 'E' 'R' ;
+
+leaf: REINDEX                <- 'R' 'E' 'I' 'N' 'D' 'E' 'X' ;
+
+leaf: REM                    <- 'R' 'E' 'M' ;
+
+leaf: RENAME                 <- 'R' 'E' 'N' 'A' 'M' 'E' ;
+
+leaf: REPLACE                <- 'R' 'E' 'P' 'L' 'A' 'C' 'E' ;
+
+      resolvetype            <-   raisetype
+                                / IGNORE
+                                / REPLACE ;
+
+leaf: RESTRICT               <- 'R' 'E' 'S' 'T' 'R' 'I' 'C' 'T' ;
+
+leaf: ROLLBACK               <- 'R' 'O' 'L' 'L' 'B' 'A' 'C' 'K' ;
+
+leaf: ROW                    <- 'R' 'O' 'W' ;
+
+leaf: RP                     <- 'R' 'P' ;
+
+leaf: RSHIFT                 <- 'R' 'S' 'H' 'I' 'F' 'T' ;
+
+      sclp                   <- (selcollist COMMA)? ;
+
+      selcollist             <-   sclp expr as
+                                / sclp STAR
+                                / sclp nm DOT STAR ;
+
+leaf: SELECT                 <- 'S' 'E' 'L' 'E' 'C' 'T' ;
+
+      select                 <-   oneselect
+                                / select multiselect_op oneselect ;
+
+      seltablist             <-   stl_prefix nm dbnm as on_opt using_opt
+                                / stl_prefix LP seltablist_paren RP as on_opt
+                                  using_opt ;
+
+      seltablist_paren       <-   select
+                                / seltablist ;
+
+leaf: SEMI                   <- 'S' 'E' 'M' 'I' ;
+
+leaf: SET                    <- 'S' 'E' 'T' ;
+
+      setlist                <-   setlist COMMA nm EQ expr
+                                / nm EQ expr ;
+
+      signed                 <-   plus_num
+                                / minus_num ;
+
+leaf: SLASH                  <- 'S' 'L' 'A' 'S' 'H' ;
+
+      sortitem               <- expr ;
+
+      sortlist               <-   sortlist COMMA sortitem collate sortorder
+                                / sortitem collate sortorder ;
+
+      sortorder              <- (  ASC
+                                 / DESC)? ;
+
+leaf: STAR                   <- 'S' 'T' 'A' 'R' ;
+
+leaf: STATEMENT              <- 'S' 'T' 'A' 'T' 'E' 'M' 'E' 'N' 'T' ;
+
+      stl_prefix             <- (seltablist joinop)? ;
+
+leaf: STRING                 <- 'S' 'T' 'R' 'I' 'N' 'G' ;
+
+leaf: TABLE                  <- 'T' 'A' 'B' 'L' 'E' ;
+
+      tcons                  <-   CONSTRAINT nm
+                                / PRIMARY KEY LP idxlist autoinc RP onconf
+                                / UNIQUE LP idxlist RP onconf
+                                / CHECK expr onconf
+                                / FOREIGN KEY LP idxlist RP REFERENCES nm
+                                  idxlist_opt refargs defer_subclause_opt ;
+
+leaf: TEMP                   <- 'T' 'E' 'M' 'P' ;
+
+      temp                   <- TEMP? ;
+
+      term                   <-   NULL
+                                / INTEGER
+                                / FLOAT
+                                / STRING
+                                / BLOB
+                                / CTIME
+                                / CDATE
+                                / CTIMESTAMP ;
+
+leaf: THEN                   <- 'T' 'H' 'E' 'N' ;
+
+leaf: TO                     <- 'T' 'O' ;
+
+      trans_opt              <- (  TRANSACTION
+                                 / TRANSACTION nm)? ;
+
+leaf: TRANSACTION            <- 'T' 'R' 'A' 'N' 'S' 'A' 'C' 'T' 'I' 'O' 'N' ;
+
+      transtype              <- (  DEFERRED
+                                 / IMMEDIATE
+                                 / EXCLUSIVE)? ;
+
+leaf: TRIGGER                <- 'T' 'R' 'I' 'G' 'G' 'E' 'R' ;
+
+      trigger_cmd            <-   UPDATE orconf nm SET setlist where_opt
+                                / insert_cmd INTO nm inscollist_opt VALUES LP
+                                  itemlist RP
+                                / insert_cmd INTO nm inscollist_opt select
+                                / DELETE FROM nm where_opt
+                                / select ;
+
+      trigger_cmd_list       <- (trigger_cmd SEMI trigger_cmd_list)? ;
+
+      trigger_decl           <- temp TRIGGER nm dbnm trigger_time trigger_event
+                                ON fullname foreach_clause when_clause ;
+
+      trigger_event          <-   DELETE
+                                / INSERT
+                                / UPDATE
+                                / UPDATE OF inscollist ;
+
+      trigger_time           <- (  BEFORE
+                                 / AFTER
+                                 / INSTEAD OF)? ;
+
+      type                   <- (  typename
+                                 / typename LP signed RP
+                                 / typename LP signed COMMA signed RP)? ;
+
+      typename               <-   ids
+                                / typename ids ;
+
+leaf: UNION                  <- 'U' 'N' 'I' 'O' 'N' ;
+
+leaf: UNIQUE                 <- 'U' 'N' 'I' 'Q' 'U' 'E' ;
+
+      uniqueflag             <- UNIQUE? ;
+
+leaf: UPDATE                 <- 'U' 'P' 'D' 'A' 'T' 'E' ;
+
+leaf: USING                  <- 'U' 'S' 'I' 'N' 'G' ;
+
+      using_opt              <- (USING LP inscollist RP)? ;
+
+leaf: VACUUM                 <- 'V' 'A' 'C' 'U' 'U' 'M' ;
+
+leaf: VALUES                 <- 'V' 'A' 'L' 'U' 'E' 'S' ;
+
+leaf: VARIABLE               <- 'V' 'A' 'R' 'I' 'A' 'B' 'L' 'E' ;
+
+leaf: VIEW                   <- 'V' 'I' 'E' 'W' ;
+
+leaf: WHEN                   <- 'W' 'H' 'E' 'N' ;
+
+      when_clause            <- (WHEN expr)? ;
+
+leaf: WHERE                  <- 'W' 'H' 'E' 'R' 'E' ;
+
+      where_opt              <- (WHERE expr)? ;
+
+END;
+

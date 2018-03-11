@@ -1,0 +1,456 @@
+
+<html><head>
+<title>mapproj - Tcl Library</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'mapproj.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2007 Kevin B. Kenny &lt;kennykb@acm.org&gt;
+   -->
+<! -- mapproj.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">mapproj(n) 0.1 tcllib &quot;Tcl Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>mapproj - Map projection routines</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Commands</a></li>
+<li class="doctools_section"><a href="#section3">Arguments</a></li>
+<li class="doctools_section"><a href="#section4">Results</a></li>
+<li class="doctools_section"><a href="#section5">Choosing a projection</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl <span class="opt">?8.4?</span></b></li>
+<li>package require <b class="pkgname">math::interpolate <span class="opt">?1.0?</span></b></li>
+<li>package require <b class="pkgname">math::special <span class="opt">?0.2.1?</span></b></li>
+<li>package require <b class="pkgname">mapproj <span class="opt">?1.0?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::mapproj::toPlateCarree</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#2"><b class="cmd">::mapproj::fromPlateCarree</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#3"><b class="cmd">::mapproj::toCylindricalEqualArea</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#4"><b class="cmd">::mapproj::fromCylindricalEqualArea</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#5"><b class="cmd">::mapproj::toMercator</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#6"><b class="cmd">::mapproj::fromMercator</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#7"><b class="cmd">::mapproj::toMillerCylindrical</b> <i class="arg">lambda_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#8"><b class="cmd">::mapproj::fromMillerCylindrical</b> <i class="arg">lambda_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#9"><b class="cmd">::mapproj::toSinusoidal</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#10"><b class="cmd">::mapproj::fromSinusoidal</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#11"><b class="cmd">::mapproj::toMollweide</b> <i class="arg">lambda_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#12"><b class="cmd">::mapproj::fromMollweide</b> <i class="arg">lambda_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#13"><b class="cmd">::mapproj::toEckertIV</b> <i class="arg">lambda_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#14"><b class="cmd">::mapproj::fromEckertIV</b> <i class="arg">lambda_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#15"><b class="cmd">::mapproj::toEckertVI</b> <i class="arg">lambda_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#16"><b class="cmd">::mapproj::fromEckertVI</b> <i class="arg">lambda_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#17"><b class="cmd">::mapproj::toRobinson</b> <i class="arg">lambda_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#18"><b class="cmd">::mapproj::fromRobinson</b> <i class="arg">lambda_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#19"><b class="cmd">::mapproj::toCassini</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#20"><b class="cmd">::mapproj::fromCassini</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#21"><b class="cmd">::mapproj::toPeirceQuincuncial</b> <i class="arg">lambda_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#22"><b class="cmd">::mapproj::fromPeirceQuincuncial</b> <i class="arg">lambda_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#23"><b class="cmd">::mapproj::toOrthographic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#24"><b class="cmd">::mapproj::fromOrthographic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#25"><b class="cmd">::mapproj::toStereographic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#26"><b class="cmd">::mapproj::fromStereographic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#27"><b class="cmd">::mapproj::toGnomonic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#28"><b class="cmd">::mapproj::fromGnomonic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#29"><b class="cmd">::mapproj::toAzimuthalEquidistant</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#30"><b class="cmd">::mapproj::fromAzimuthalEquidistant</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#31"><b class="cmd">::mapproj::toLambertAzimuthalEqualArea</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#32"><b class="cmd">::mapproj::fromLambertAzimuthalEqualArea</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#33"><b class="cmd">::mapproj::toHammer</b> <i class="arg">lambda_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#34"><b class="cmd">::mapproj::fromHammer</b> <i class="arg">lambda_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#35"><b class="cmd">::mapproj::toConicEquidistant</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">phi_1</i> <i class="arg">phi_2</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#36"><b class="cmd">::mapproj::fromConicEquidistant</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">phi_1</i> <i class="arg">phi_2</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#37"><b class="cmd">::mapproj::toAlbersEqualAreaConic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">phi_1</i> <i class="arg">phi_2</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#38"><b class="cmd">::mapproj::fromAlbersEqualAreaConic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">phi_1</i> <i class="arg">phi_2</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#39"><b class="cmd">::mapproj::toLambertConformalConic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">phi_1</i> <i class="arg">phi_2</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#40"><b class="cmd">::mapproj::fromLambertConformalConic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">phi_1</i> <i class="arg">phi_2</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#41"><b class="cmd">::mapproj::toLambertCylindricalEqualArea</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#42"><b class="cmd">::mapproj::fromLambertCylindricalEqualArea</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#43"><b class="cmd">::mapproj::toBehrmann</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#44"><b class="cmd">::mapproj::fromBehrmann</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#45"><b class="cmd">::mapproj::toTrystanEdwards</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#46"><b class="cmd">::mapproj::fromTrystanEdwards</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#47"><b class="cmd">::mapproj::toHoboDyer</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#48"><b class="cmd">::mapproj::fromHoboDyer</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#49"><b class="cmd">::mapproj::toGallPeters</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#50"><b class="cmd">::mapproj::fromGallPeters</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+<li><a href="#51"><b class="cmd">::mapproj::toBalthasart</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></li>
+<li><a href="#52"><b class="cmd">::mapproj::fromBalthasart</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">mapproj</b> package provides a set of procedures for
+converting between world co-ordinates (latitude and longitude) and map
+co-ordinates on a number of different map projections.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Commands</a></h2>
+<p>The following commands convert between world co-ordinates and
+map co-ordinates:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::mapproj::toPlateCarree</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the <em>plate carr&eacute;e</em> (cylindrical equidistant)
+projection.</p></dd>
+<dt><a name="2"><b class="cmd">::mapproj::fromPlateCarree</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the <em>plate carr&eacute;e</em> (cylindrical equidistant)
+projection.</p></dd>
+<dt><a name="3"><b class="cmd">::mapproj::toCylindricalEqualArea</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the cylindrical equal-area projection.</p></dd>
+<dt><a name="4"><b class="cmd">::mapproj::fromCylindricalEqualArea</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the cylindrical equal-area projection.</p></dd>
+<dt><a name="5"><b class="cmd">::mapproj::toMercator</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Mercator (cylindrical conformal) projection.</p></dd>
+<dt><a name="6"><b class="cmd">::mapproj::fromMercator</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Mercator (cylindrical conformal) projection.</p></dd>
+<dt><a name="7"><b class="cmd">::mapproj::toMillerCylindrical</b> <i class="arg">lambda_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Miller Cylindrical projection.</p></dd>
+<dt><a name="8"><b class="cmd">::mapproj::fromMillerCylindrical</b> <i class="arg">lambda_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Miller Cylindrical projection.</p></dd>
+<dt><a name="9"><b class="cmd">::mapproj::toSinusoidal</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the sinusoidal (Sanson-Flamsteed) projection.
+projection.</p></dd>
+<dt><a name="10"><b class="cmd">::mapproj::fromSinusoidal</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the sinusoidal (Sanson-Flamsteed) projection.
+projection.</p></dd>
+<dt><a name="11"><b class="cmd">::mapproj::toMollweide</b> <i class="arg">lambda_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Mollweide projection.</p></dd>
+<dt><a name="12"><b class="cmd">::mapproj::fromMollweide</b> <i class="arg">lambda_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Mollweide projection.</p></dd>
+<dt><a name="13"><b class="cmd">::mapproj::toEckertIV</b> <i class="arg">lambda_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Eckert IV projection.</p></dd>
+<dt><a name="14"><b class="cmd">::mapproj::fromEckertIV</b> <i class="arg">lambda_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Eckert IV projection.</p></dd>
+<dt><a name="15"><b class="cmd">::mapproj::toEckertVI</b> <i class="arg">lambda_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Eckert VI projection.</p></dd>
+<dt><a name="16"><b class="cmd">::mapproj::fromEckertVI</b> <i class="arg">lambda_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Eckert VI projection.</p></dd>
+<dt><a name="17"><b class="cmd">::mapproj::toRobinson</b> <i class="arg">lambda_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Robinson projection.</p></dd>
+<dt><a name="18"><b class="cmd">::mapproj::fromRobinson</b> <i class="arg">lambda_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Robinson projection.</p></dd>
+<dt><a name="19"><b class="cmd">::mapproj::toCassini</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Cassini (transverse cylindrical equidistant)
+projection.</p></dd>
+<dt><a name="20"><b class="cmd">::mapproj::fromCassini</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Cassini (transverse cylindrical equidistant)
+projection.</p></dd>
+<dt><a name="21"><b class="cmd">::mapproj::toPeirceQuincuncial</b> <i class="arg">lambda_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Peirce Quincuncial Projection.</p></dd>
+<dt><a name="22"><b class="cmd">::mapproj::fromPeirceQuincuncial</b> <i class="arg">lambda_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Peirce Quincuncial Projection.</p></dd>
+<dt><a name="23"><b class="cmd">::mapproj::toOrthographic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the orthographic projection.</p></dd>
+<dt><a name="24"><b class="cmd">::mapproj::fromOrthographic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the orthographic projection.</p></dd>
+<dt><a name="25"><b class="cmd">::mapproj::toStereographic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the stereographic (azimuthal conformal) projection.</p></dd>
+<dt><a name="26"><b class="cmd">::mapproj::fromStereographic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the stereographic (azimuthal conformal) projection.</p></dd>
+<dt><a name="27"><b class="cmd">::mapproj::toGnomonic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the gnomonic projection.</p></dd>
+<dt><a name="28"><b class="cmd">::mapproj::fromGnomonic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the gnomonic projection.</p></dd>
+<dt><a name="29"><b class="cmd">::mapproj::toAzimuthalEquidistant</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the azimuthal equidistant projection.</p></dd>
+<dt><a name="30"><b class="cmd">::mapproj::fromAzimuthalEquidistant</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the azimuthal equidistant projection.</p></dd>
+<dt><a name="31"><b class="cmd">::mapproj::toLambertAzimuthalEqualArea</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Lambert azimuthal equal-area projection.</p></dd>
+<dt><a name="32"><b class="cmd">::mapproj::fromLambertAzimuthalEqualArea</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Lambert azimuthal equal-area projection.</p></dd>
+<dt><a name="33"><b class="cmd">::mapproj::toHammer</b> <i class="arg">lambda_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Hammer projection.</p></dd>
+<dt><a name="34"><b class="cmd">::mapproj::fromHammer</b> <i class="arg">lambda_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Hammer projection.</p></dd>
+<dt><a name="35"><b class="cmd">::mapproj::toConicEquidistant</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">phi_1</i> <i class="arg">phi_2</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the conic equidistant projection.</p></dd>
+<dt><a name="36"><b class="cmd">::mapproj::fromConicEquidistant</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">phi_1</i> <i class="arg">phi_2</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the conic equidistant projection.</p></dd>
+<dt><a name="37"><b class="cmd">::mapproj::toAlbersEqualAreaConic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">phi_1</i> <i class="arg">phi_2</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Albers equal-area conic projection.</p></dd>
+<dt><a name="38"><b class="cmd">::mapproj::fromAlbersEqualAreaConic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">phi_1</i> <i class="arg">phi_2</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Albers equal-area conic projection.</p></dd>
+<dt><a name="39"><b class="cmd">::mapproj::toLambertConformalConic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">phi_1</i> <i class="arg">phi_2</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Lambert conformal conic projection.</p></dd>
+<dt><a name="40"><b class="cmd">::mapproj::fromLambertConformalConic</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">phi_1</i> <i class="arg">phi_2</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Lambert conformal conic projection.</p></dd>
+</dl>
+<p>Among the cylindrical equal-area projections, there are a number of
+choices of standard parallels that have names:</p>
+<dl class="doctools_definitions">
+<dt><a name="41"><b class="cmd">::mapproj::toLambertCylindricalEqualArea</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Lambert cylindrical equal area projection. (standard parallel
+is the Equator.)</p></dd>
+<dt><a name="42"><b class="cmd">::mapproj::fromLambertCylindricalEqualArea</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Lambert cylindrical equal area projection. (standard parallel
+is the Equator.)</p></dd>
+<dt><a name="43"><b class="cmd">::mapproj::toBehrmann</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Behrmann cylindrical equal area projection. (standard parallels
+are 30 degrees North and South)</p></dd>
+<dt><a name="44"><b class="cmd">::mapproj::fromBehrmann</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Behrmann cylindrical equal area projection. (standard parallels
+are 30 degrees North and South.)</p></dd>
+<dt><a name="45"><b class="cmd">::mapproj::toTrystanEdwards</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Trystan Edwards cylindrical equal area projection. (standard parallels
+are 37.4 degrees North and South)</p></dd>
+<dt><a name="46"><b class="cmd">::mapproj::fromTrystanEdwards</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Trystan Edwards cylindrical equal area projection. (standard parallels
+are 37.4 degrees North and South.)</p></dd>
+<dt><a name="47"><b class="cmd">::mapproj::toHoboDyer</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Hobo-Dyer cylindrical equal area projection. (standard parallels
+are 37.5 degrees North and South)</p></dd>
+<dt><a name="48"><b class="cmd">::mapproj::fromHoboDyer</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Hobo-Dyer cylindrical equal area projection. (standard parallels
+are 37.5 degrees North and South.)</p></dd>
+<dt><a name="49"><b class="cmd">::mapproj::toGallPeters</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Gall-Peters cylindrical equal area projection. (standard parallels
+are 45 degrees North and South)</p></dd>
+<dt><a name="50"><b class="cmd">::mapproj::fromGallPeters</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Gall-Peters cylindrical equal area projection. (standard parallels
+are 45 degrees North and South.)</p></dd>
+<dt><a name="51"><b class="cmd">::mapproj::toBalthasart</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">lambda</i> <i class="arg">phi</i></a></dt>
+<dd><p>Converts to the Balthasart cylindrical equal area projection. (standard parallels
+are 50 degrees North and South)</p></dd>
+<dt><a name="52"><b class="cmd">::mapproj::fromBalthasart</b> <i class="arg">lambda_0</i> <i class="arg">phi_0</i> <i class="arg">x</i> <i class="arg">y</i></a></dt>
+<dd><p>Converts from the Balthasart cylindrical equal area projection. (standard parallels
+are 50 degrees North and South.)</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Arguments</a></h2>
+<p>The following arguments are accepted by the projection commands:</p>
+<dl class="doctools_definitions">
+<dt><i class="arg">lambda</i></dt>
+<dd><p>Longitude of the point to be projected, in degrees.</p></dd>
+<dt><i class="arg">phi</i></dt>
+<dd><p>Latitude of the point to be projected, in degrees.</p></dd>
+<dt><i class="arg">lambda_0</i></dt>
+<dd><p>Longitude of the center of the sheet, in degrees.  For many projections,
+this figure is also the reference meridian of the projection.</p></dd>
+<dt><i class="arg">phi_0</i></dt>
+<dd><p>Latitude of the center of the sheet, in degrees.  For the azimuthal
+projections, this figure is also the latitude of the center of the projection.</p></dd>
+<dt><i class="arg">phi_1</i></dt>
+<dd><p>Latitude of the first reference parallel, for projections that use reference
+parallels.</p></dd>
+<dt><i class="arg">phi_2</i></dt>
+<dd><p>Latitude of the second reference parallel, for projections that use reference
+parallels.</p></dd>
+<dt><i class="arg">x</i></dt>
+<dd><p>X co-ordinate of a point on the map, in units of Earth radii.</p></dd>
+<dt><i class="arg">y</i></dt>
+<dd><p>Y co-ordinate of a point on the map, in units of Earth radii.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Results</a></h2>
+<p>For all of the procedures whose names begin with 'to', the return value
+is a list comprising an <em>x</em> co-ordinate and a <em>y</em> co-ordinate.
+The co-ordinates are relative to the center of the map sheet to be drawn,
+measured in Earth radii at the reference location on the map.
+For all of the functions whose names begin with 'from', the return value
+is a list comprising the longitude and latitude, in degrees.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Choosing a projection</a></h2>
+<p>This package offers a great many projections, because no single projection
+is appropriate to all maps.  This section attempts to provide guidance
+on how to choose a projection.</p>
+<p>First, consider the type of data that you intend to display on the map.
+If the data are <em>directional</em> (<em>e.g.,</em> winds, ocean currents, or
+magnetic fields) then you need to use a projection that preserves
+angles; these are known as <em>conformal</em> projections.  Conformal
+projections include the Mercator, the Albers azimuthal equal-area,
+the stereographic, and the Peirce Quincuncial projection.  If the
+data are <em>thematic</em>, describing properties of land or water, such
+as temperature, population density, land use, or demographics; then
+you need a projection that will show these data with the areas on the map
+proportional to the areas in real life.  These so-called <em>equal area</em>
+projections include the various cylindrical equal area projections,
+the sinusoidal projection, the Lambert azimuthal equal-area projection,
+the Albers equal-area conic projection, and several of the world-map
+projections (Miller Cylindrical, Mollweide, Eckert IV, Eckert VI, Robinson,
+and Hammer). If the significant factor in your data is distance from a
+central point or line (such as air routes), then you will do best with
+an <em>equidistant</em> projection such as <em>plate carr&eacute;e</em>,
+Cassini, azimuthal equidistant, or conic equidistant.  If direction from
+a central point is a critical factor in your data (for instance,
+air routes, radio antenna pointing), then you will almost surely want to
+use one of the azimuthal projections. Appropriate choices are azimuthal
+equidistant, azimuthal equal-area, stereographic, and perhaps orthographic.</p>
+<p>Next, consider how much of the Earth your map will cover, and the general
+shape of the area of interest.  For maps of the entire Earth,
+the cylindrical equal area, Eckert IV and VI, Mollweide, Robinson, and Hammer
+projections are good overall choices.  The Mercator projection is traditional,
+but the extreme distortions of area at high latitudes make it
+a poor choice unless a conformal projection is required. The Peirce
+projection is a better choice of conformal projection, having less distortion
+of landforms.  The Miller Cylindrical is a compromise designed to give
+shapes similar to the traditional Mercator, but with less polar stretching.
+The Peirce Quincuncial projection shows all the continents with acceptable
+distortion if a reference meridian close to +20 degrees is chosen.
+The Robinson projection yields attractive maps for things like political
+divisions, but should be avoided in presenting scientific data, since other
+projections have moe useful geometric properties.</p>
+<p>If the map will cover a hemisphere, then choose stereographic,
+azimuthal-equidistant, Hammer, or Mollweide projections; these all project
+the hemisphere into a circle.</p>
+<p>If the map will cover a large area (at least a few hundred km on a side),
+but less than
+a hemisphere, then you have several choices.  Azimuthal projections
+are usually good (choose stereographic, azimuthal equidistant, or
+Lambert azimuthal equal-area according to whether shapes, distances from
+a central point, or areas are important).  Azimuthal projections (and possibly
+the Cassini projection) are the only
+really good choices for mapping the polar regions.</p>
+<p>If the large area is in one of the temperate zones and is round or has
+a primarily east-west extent, then the conic projections are good choices.
+Choose the Lambert conformal conic, the conic equidistant, or the Albers
+equal-area conic according to whether shape, distance, or area are the
+most important parameters.  For any of these, the reference parallels
+should be chosen at approximately 1/6 and 5/6 of the range of latitudes
+to be displayed.  For instance, maps of the 48 coterminous United States
+are attractive with reference parallels of 28.5 and 45.5 degrees.</p>
+<p>If the large area is equatorial and is round or has a primarily east-west
+extent, then the Mercator projection is a good choice for a conformal
+projection; Lambert cylindrical equal-area and sinusoidal projections are
+good equal-area projections; and the <em>plate carr&eacute;e</em> is a
+good equidistant projection.</p>
+<p>Large areas having a primarily North-South aspect, particularly those
+spanning the Equator, need some other choices.  The Cassini projection
+is a good choice for an equidistant projection (for instance, a Cassini
+projection with a central meridian of 80 degrees West produces an
+attractive map of the Americas). The cylindrical equal-area, Albers
+equal-area conic, sinusoidal, Mollweide and Hammer
+projections are possible choices for equal-area projections.
+A good conformal projection in this situation is the Transverse
+Mercator, which alas, is not yet implemented.</p>
+<p>Small areas begin to get into a realm where the ellipticity of the
+Earth affects the map scale.  This package does not attempt to
+handle accurate mapping for large-scale topographic maps.  If
+slight scale errors are acceptable in your application, then any
+of the projections appropriate to large areas should work for
+small ones as well.</p>
+<p>There are a few projections that are included for their special
+properties.  The orthographic projection produces views of the
+Earth as seen from space.  The gnomonic projection produces a
+map on which all great circles (the shortest distance between
+two points on the Earth's surface) are rendered as straight lines.
+While this projection is useful for navigational planning, it
+has extreme distortions of shape and area, and can display
+only a limited area of the Earth (substantially less than a hemisphere).</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key197">geodesy</a>, <a href="../../../../index.html#key201">map</a>, <a href="../../../../index.html#key642">projection</a></p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2007 Kevin B. Kenny &lt;kennykb@acm.org&gt;</p>
+</div>
+</div></body></html>

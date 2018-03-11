@@ -1,0 +1,139 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin grammar::aycock n 1.0]
+[keywords ambiguous]
+[keywords aycock]
+[keywords earley]
+[keywords grammar]
+[keywords horspool]
+[keywords parser]
+[keywords parsing]
+[keywords transducer]
+[copyright "2006 by Kevin B. Kenny <kennykb@acm.org>
+Redistribution permitted under the terms of the Open\
+Publication License <http://www.opencontent.org/openpub/>"]
+[moddesc "Aycock-Horspool-Earley parser generator for Tcl"]
+[titledesc "Aycock-Horspool-Earley parser generator for Tcl"]
+[category "Grammars and finite automata"]
+[require Tcl 8.5]
+[require grammar::aycock [opt 1.0]]
+[description]
+[para]
+The [package grammar::aycock] package
+implements a parser generator for the class of parsers described
+in John Aycock and R. Nigel Horspool. Practical Earley Parsing.
+[emph "The Computer Journal,"] [emph 45](6):620-630, 2002.
+[uri http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.12.4254]
+[section "PROCEDURES"]
+
+The [package grammar::aycock] package exports the single procedure:
+
+[list_begin definitions]
+[call [cmd ::aycock::parser] [arg grammar] [opt [option -verbose]]]
+
+Generates a parser for the given [arg grammar], and returns its
+name.  If the optional [option -verbose] flag is given, dumps verbose
+information relating to the generated parser to the standard output.
+The returned parser is an object that accepts commands as shown in
+[sectref {OBJECT COMMAND}] below.
+
+[list_end]
+
+[section "OBJECT COMMAND"]
+
+[list_begin definitions]
+[call [arg parserName] [method parse] [arg symList] [arg valList] [opt [arg clientData]]]
+
+Invokes a parser returned from [cmd ::aycock::parser]. [arg symList] is
+a list of grammar symbols representing the terminals in an input
+string, and [arg valList] is a list of their semantic values. The
+result is the semantic value of the entire string when parsed.
+
+[call [arg parserName] [method destroy]]
+
+Destroys a parser constructed by [cmd ::aycock::parser].
+
+[call [arg parserName] [method terminals]]
+
+Returns a list of terminal symbols that may be presented in the
+[arg symList] argument to the [method parse] object command.
+
+[call [arg parserName] [method nonterminals]]
+
+Returns a list of nonterminal symbols that were defined in the
+parser's grammar.
+
+[call [arg parserName] [method save]]
+
+Returns a Tcl script that will reconstruct the parser without
+needing all the mechanism of the parser generator at run time.
+The reconstructed parser depends on a set of commands in the
+package [package grammar::aycock::runtime],
+which is also automatically loaded
+when the [package grammar::aycock] package is loaded.
+
+[list_end]
+
+[section "DESCRIPTION"]
+
+The [cmd grammar::aycock::parser] command accepts a grammar expressed as
+a Tcl list.  The list must be structured as the concatenation of a set
+of [term rule]s. Each [term rule] comprises a variable number of
+elements in the list:
+
+[list_begin itemized]
+
+[item] The name of the nonterminal symbol that the rule reduces.
+
+[item] The literal string, [const "::="]
+
+[item] Zero or more names of terminal or nonterminal symbols that
+comprise the right-hand-side of the rule.
+
+[item] Finally, a Tcl script to execute when the rule is reduced.
+Within the given script, a variable called [var _] contains a list of
+the semantic values of the symbols on the right-hand side. The value
+returned by the script is expected to be the semantic value of the
+left-hand side.  If the [arg clientData] parameter was passed to the
+[method parse] method, it is available in a variable called
+[var clientData].  It is permissible for the script to be the empty
+string.  In this case, the semantic value of the rule will be the same
+as the semantic value of the first symbol on the right-hand side.  If
+the right-hand side is also empty, the semantic value will be the
+empty string.
+
+[list_end]
+
+Parsing is done with an Earley parser, which is not terribly efficient
+in speed or memory consumption, but which deals effectively with
+ambiguous grammars.  For this reason, the [package grammar::aycock] package is
+perhaps best adapted to natural-language processing or the parsing of
+extraordinarily complex languages in which ambiguity can be tolerated.
+
+[section EXAMPLE]
+
+The following code demonstrates a trivial desk calculator, admitting
+only [const +], [const *] and parentheses as its operators.  It also
+shows the format in which the lexical analyzer is expected to present
+terminal symbols to the parser.
+
+[example {
+set p [aycock::parser {
+    start ::= E {}
+    E ::= E + T {expr {[lindex $_ 0] + [lindex $_ 2]}}
+    E ::= T {}
+    T ::= T * F {expr {[lindex $_ 0] * [lindex $_ 2]}}
+    T ::= F {}
+    F ::= NUMBER {}
+    F ::= ( E ) {lindex $_ 1}
+}]
+puts [$p parse {(  NUMBER +  NUMBER )  *  ( NUMBER +  NUMBER ) } \
+	       {{} 2      {} 3      {} {} {} 7     {} 1      {}}]
+$p destroy
+}]
+
+The example, when run, prints [const 40].
+
+[section KEYWORDS]
+
+Aycock, Earley, Horspool, parser, compiler
+[manpage_end]

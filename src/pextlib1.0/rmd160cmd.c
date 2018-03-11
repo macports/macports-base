@@ -1,6 +1,5 @@
 /*
  * rmd160cmd.c
- * $Id$
  *
  * Copyright (c) 2006, 2009-2011 The MacPorts Project
  * Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>.

@@ -1,0 +1,238 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin fileutil::magic::rt n 1.0]
+[see_also file(1)]
+[see_also fileutil]
+[see_also magic(5)]
+[keywords {file recognition}]
+[keywords {file type}]
+[keywords {file utilities}]
+[keywords mime]
+[keywords type]
+[moddesc   {file utilities}]
+[titledesc {Runtime core for file type recognition engines written in pure Tcl}]
+[category  {Programming tools}]
+[require Tcl 8.4]
+[require fileutil::magic::rt [opt 1.0]]
+[description]
+[para]
+
+This package provides the runtime core for file type recognition
+engines written in pure Tcl and is thus used by all other packages in
+this module, i.e. the two frontend packages
+[package fileutil::magic::mimetypes] and
+
+[package fileutil::magic::filetypes], and the two engine compiler
+packages [package fileutil::magic::cgen] and
+[package fileutil::magic::cfront].
+
+[section COMMANDS]
+
+[list_begin definitions]
+
+[call [cmd ::fileutil::magic::rt::open] [arg filename]]
+
+This command initializes the runtime and prepares the file
+[arg filename] for use by the system.
+
+This command has to be invoked first, before any other command of this
+package.
+
+[para]
+
+The command returns the channel handle of the opened file as its
+result.
+
+[call [cmd ::fileutil::magic::rt::close]]
+
+This command closes the last file opened via
+[cmd ::fileutil::magic::rt::open] and shuts the runtime down.
+
+This command has to be invoked last, after the file has been dealt
+with completely.
+
+Afterward another invokation of [cmd ::fileutil::magic::rt::open]  is
+required to process another file.
+
+[para]
+
+This command returns the empty string as its result.
+
+[call [cmd ::fileutil::magic::rt::file_start] [arg name]]
+
+This command marks the start of a magic file when debugging. It
+returns the empty string as its result.
+
+[call [cmd ::fileutil::magic::rt::result] [opt [arg msg]]]
+
+This command returns the current result and stops processing.
+
+[para]
+
+If [arg msg] is specified its text is added to the result before it is
+returned. See [cmd ::fileutil::magic::rt::emit] for the allowed
+special character sequences.
+
+[call [cmd ::fileutil::magic::rt::resultv] [opt [arg msg]]]
+
+This command returns the current result.
+
+In contrast to [cmd ::fileutil::magic::rt::result] processing
+continues.
+
+[para]
+
+If [arg msg] is specified its text is added to the result before it is
+returned. See [cmd ::fileutil::magic::rt::emit] for the allowed
+special character sequences.
+
+[call [cmd ::fileutil::magic::rt::emit] [arg msg]]
+
+This command adds the text [arg msg] to the result buffer. The
+message may contain the following special character sequences. They
+will be replaced with buffered values before the message is added to
+the result. The command returns the empty string as its result.
+
+[list_begin definitions]
+[def [const \\b]] This sequence is removed
+[def [const %s]]  Replaced with the last buffered string value.
+[def [const %ld]] Replaced with the last buffered numeric value.
+[def [const %d]]  See above.
+[list_end]
+
+[comment [call [cmd ::fileutil::magic::rt::offset] [arg where]]]
+[comment {
+	Handling of complex offsets. Currently not implemented.
+	Always returns zero.
+}]
+
+[call [cmd ::fileutil::magic::rt::Nv] [arg type] [arg offset] [opt [arg qual]]]
+
+This command fetches the numeric value with [arg type] from the
+absolute location [arg offset] and returns it as its result. The
+fetched value is further stored in the numeric buffer.
+
+[para]
+
+If [arg qual] is specified it is considered to be a mask and applied
+to the fetched value before it is stored and returned. It has to have
+the form of a partial Tcl bit-wise expression, i.e.
+
+[example {
+	& number
+}]
+
+For example:
+
+[example {
+	Nv lelong 0 &0x8080ffff
+}]
+
+For the possible types see section [sectref {NUMERIC TYPES}].
+
+[call [cmd ::fileutil::magic::rt::N] [arg type] [arg offset] [arg comp] [arg val] [opt [arg qual]]]
+
+This command behaves mostly like [cmd ::fileutil::magic::rt::Nv],
+except that it compares the fetched and masked value against [arg val]
+as specified with [arg comp] and returns the result of that
+comparison.
+
+[para]
+
+The argument [arg comp] has to contain one of Tcl's comparison
+operators, and the comparison made will be
+
+[example {
+	<val> <comp> <fetched-and-masked-value>
+}]
+
+[para]
+
+The special comparison operator [const x] signals that no comparison
+should be done, or, in other words, that the fetched value will always
+match [arg val].
+
+[call [cmd ::fileutil::magic::rt::Nvx] [arg atlevel] [arg type] [arg offset] [opt [arg qual]]]
+
+This command behaves like [cmd ::fileutil::magic::rt::Nv], except that
+it additionally remembers the location in the file after the fetch in
+the calling context, for the level [arg atlevel], for later use by
+[cmd ::fileutil::magic::rt::R].
+
+[call [cmd ::fileutil::magic::rt::Nx] [arg atlevel] [arg type] [arg offset] [arg comp] [arg val] [opt [arg qual]]]
+
+This command behaves like [cmd ::fileutil::magic::rt::N], except that
+it additionally remembers the location in the file after the fetch in
+the calling context, for the level [arg atlevel], for later use by
+[cmd ::fileutil::magic::rt::R].
+
+[call [cmd ::fileutil::magic::rt::S] [arg offset] [arg comp] [arg val] [opt [arg qual]]]
+
+This command behaves like [cmd ::fileutil::magic::rt::N], except that
+it fetches and compares strings, not numeric data. The fetched value
+is also stored in the internal string buffer instead of the numeric
+buffer.
+
+[call [cmd ::fileutil::magic::rt::Sx] [arg atlevel] [arg offset] [arg comp] [arg val] [opt [arg qual]]]
+
+This command behaves like [cmd ::fileutil::magic::rt::S], except that
+it additionally remembers the location in the file after the fetch in
+the calling context, for the level [arg atlevel], for later use by
+[cmd ::fileutil::magic::rt::R].
+
+[call [cmd ::fileutil::magic::rt::L] [arg newlevel]]
+
+This command sets the current level in the calling context to
+[arg newlevel]. The command returns the empty string as its result.
+
+[call [cmd ::fileutil::magic::rt::I] [arg base] [arg type] [arg delta]]
+
+This command handles base locations specified indirectly through the
+contents of the inspected file. It returns the sum of [arg delta] and
+the value of numeric [arg type] fetched from the absolute location
+[arg base].
+
+[para]
+
+For the possible types see section [sectref {NUMERIC TYPES}].
+
+[call [cmd ::fileutil::magic::rt::R] [arg offset]]
+
+This command handles base locations specified relative to the end of
+the last field one level above.
+
+[para]
+
+In other words, the command computes an absolute location in the file
+based on the relative [arg offset] and returns it as its result. The
+base the offset is added to is the last location remembered for the
+level in the calling context.
+
+[list_end]
+
+[section {NUMERIC TYPES}]
+
+[list_begin definitions]
+[def [const byte]]    8-bit integer
+[def [const short]]   16-bit integer, stored in native endianess
+[def [const beshort]] see above, stored in big endian
+[def [const leshort]] see above, stored in small/little endian
+[def [const long]]    32-bit integer, stored in native endianess
+[def [const belong]]  see above, stored in big endian
+[def [const lelong]]  see above, stored in small/little endian
+[list_end]
+
+All of the types above exit in an unsigned form as well. The type
+names are the same, with the character "u" added as prefix.
+
+[list_begin definitions]
+[def [const date]]    32-bit integer timestamp, stored in native endianess
+[def [const bedate]]  see above, stored in big endian
+[def [const ledate]]  see above, stored in small/little endian
+[def [const ldate]]   32-bit integer timestamp, stored in native endianess
+[def [const beldate]] see above, stored in big endian
+[def [const leldate]] see above, stored in small/little endian
+[list_end]
+
+[vset CATEGORY {fileutil :: magic}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

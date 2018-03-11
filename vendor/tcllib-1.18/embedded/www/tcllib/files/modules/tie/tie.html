@@ -1,0 +1,499 @@
+<div class='fossil-doc' data-title='tie - Tcl Data Structures'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">tie(n) 1.1 tcllib &quot;Tcl Data Structures&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>tie - Array persistence</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">USING TIES</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">TIE API</a></li>
+<li class="doctools_subsection"><a href="#subsection2">STANDARD DATA SOURCE TYPES</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">CREATING NEW DATA SOURCES</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection3">DATA SOURCE OBJECTS</a></li>
+<li class="doctools_subsection"><a href="#subsection4">REGISTERING A NEW DATA SOURCE CLASS</a></li>
+<li class="doctools_subsection"><a href="#subsection5">DATA SOURCE CLASS</a></li>
+<li class="doctools_subsection"><a href="#subsection6">DATA SOURCE OBJECT API</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">tie <span class="opt">?1.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::tie::tie</b> <i class="arg">arrayvarname</i> <i class="arg">options</i>... <i class="arg">dstype</i> <i class="arg">dsname</i>...</a></li>
+<li><a href="#2"><b class="cmd">::tie::untie</b> <i class="arg">arrayvarname</i> <span class="opt">?<i class="arg">token</i>?</span></a></li>
+<li><a href="#3"><b class="cmd">::tie::info</b> <b class="method">ties</b> <i class="arg">arrayvarname</i></a></li>
+<li><a href="#4"><b class="cmd">::tie::info</b> <b class="method">types</b></a></li>
+<li><a href="#5"><b class="cmd">::tie::info</b> <b class="method">type</b> <i class="arg">dstype</i></a></li>
+<li><a href="#6"><b class="cmd">::tie::register</b> <i class="arg">dsclasscmd</i> <b class="const">as</b> <i class="arg">dstype</i></a></li>
+<li><a href="#7"><b class="cmd">dsclasscmd</b> <i class="arg">objname</i> <span class="opt">?<i class="arg">dsname</i>...?</span></a></li>
+<li><a href="#8"><b class="cmd">ds</b> <b class="method">destroy</b></a></li>
+<li><a href="#9"><b class="cmd">ds</b> <b class="method">names</b></a></li>
+<li><a href="#10"><b class="cmd">ds</b> <b class="method">size</b></a></li>
+<li><a href="#11"><b class="cmd">ds</b> <b class="method">get</b></a></li>
+<li><a href="#12"><b class="cmd">ds</b> <b class="method">set</b> <i class="arg">dict</i></a></li>
+<li><a href="#13"><b class="cmd">ds</b> <b class="method">unset</b> <span class="opt">?<i class="arg">pattern</i>?</span></a></li>
+<li><a href="#14"><b class="cmd">ds</b> <b class="method">setv</b> <i class="arg">index</i> <i class="arg">value</i></a></li>
+<li><a href="#15"><b class="cmd">ds</b> <b class="method">unsetv</b> <i class="arg">index</i></a></li>
+<li><a href="#16"><b class="cmd">ds</b> <b class="method">getv</b> <i class="arg">index</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">tie</b> package provides a framework for the creation of
+persistent Tcl array variables. It should be noted that the provided
+mechanism is generic enough to also allow its usage for the
+distribution of the contents of Tcl arrays over multiple threads and
+processes, i.e. communication.</p>
+<p>This, persistence and communication, is accomplished by <i class="term">tying</i>)
+a Tcl array variable to a <i class="term"><a href="../../../../index.html#key365">data source</a></i>. Examples of data
+sources are other Tcl arrays and files.</p>
+<p>It should be noted that a single Tcl array variable can be tied to
+more than one <i class="term"><a href="../../../../index.html#key365">data source</a></i>. It is this feature which allows
+the framework to be used for communication as well. Just tie several
+Tcl arrays in many client processes to a Tcl array in a server and all
+changes to any of them will be distributed to all. Less centralized
+variants of this are of course possible as well.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">USING TIES</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">TIE API</a></h3>
+<p>This section describes the basic API used to establish and remove ties
+between Tcl array variables and data sources. This interface is the
+only one a casual user has to be concerned about. The following
+sections about the various internal interfaces can be safely skipped.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::tie::tie</b> <i class="arg">arrayvarname</i> <i class="arg">options</i>... <i class="arg">dstype</i> <i class="arg">dsname</i>...</a></dt>
+<dd><p>This command establishes a tie between the Tcl array whose name is
+provided by the argument <i class="arg">arrayvarname</i> and the
+<i class="term"><a href="../../../../index.html#key365">data source</a></i> identified by the <i class="arg">dstype</i> and its series of
+<i class="arg">dsname</i> arguments. All changes made to the Tcl array after this
+command returns will be saved to the <i class="term"><a href="../../../../index.html#key365">data source</a></i> for
+safekeeping (or distribution).</p>
+<p>The result of the command is always a token which identifies the new
+tie. This token can be used later to destroy this specific tie.</p>
+<dl class="doctools_arguments">
+<dt>varname <i class="arg">arrayvarname</i> (in)</dt>
+<dd><p>The name of the Tcl array variable to connect the new tie to.</p></dd>
+<dt>name|command <i class="arg">dstype</i> (in)</dt>
+<dd><p>This argument specifies the type of the <i class="term"><a href="../../../../index.html#key365">data source</a></i> we wish
+to access.
+The <i class="arg">dstype</i> can be one of <b class="const">log</b>, <b class="const">array</b>,
+<b class="const">remotearray</b>, <b class="const">file</b>, <b class="const">growfile</b>, or
+<b class="const">dsource</b>; in addition, the programmer can register additional
+data source types.
+Each <i class="arg">dstype</i> is followed by one or more arguments that identify
+the <i class="term"><a href="../../../../index.html#key365">data source</a></i> to which the array is to be tied.</p></dd>
+<dt>string <i class="arg">dsname</i> (in)</dt>
+<dd><p>The series of <i class="arg">dsname</i> arguments coming after the <i class="arg">dstype</i>
+identifies the <i class="term"><a href="../../../../index.html#key365">data source</a></i> we wish to connect to, and has to
+be appropriate for the chosen type.</p></dd>
+</dl>
+<p>The command understands a number of additional options which guide the
+process of setting up the connection between Tcl array and
+<i class="term"><a href="../../../../index.html#key365">data source</a></i>.</p>
+<dl class="doctools_options">
+<dt><b class="option">-open</b></dt>
+<dd><p>The Tcl array for the new tie is <i class="term">loaded</i> from the
+<i class="term"><a href="../../../../index.html#key365">data source</a></i>, and the previously existing contents of the Tcl
+array are erased. Care is taken to <em>not</em> erase the previous
+contents should the creation of the tie fail.</p>
+<p>This option and the option <b class="option">-save</b> exclude each other. If
+neither this nor option <b class="option">-save</b> are specified then this option
+is assumed as default.</p></dd>
+<dt><b class="option">-save</b></dt>
+<dd><p>The Tcl array for the new tie is <i class="term">saved</i> to the
+<i class="term"><a href="../../../../index.html#key365">data source</a></i>, and the previously existing contents of the
+<i class="term"><a href="../../../../index.html#key365">data source</a></i> are erased.</p>
+<p>This option and the option <b class="option">-open</b> exclude each other. If
+neither this nor option <b class="option">-open</b> are specified then option
+<b class="option">-open</b> is assumed as default.</p></dd>
+<dt><b class="option">-merge</b></dt>
+<dd><p>Using this option prevents the erasure of any previously existing
+content and merges the data instead. It can be specified in
+conjunction with either <b class="option">-open</b> or <b class="option">-save</b>. They
+determine how data existing in both Tcl array and
+<i class="term"><a href="../../../../index.html#key365">data source</a></i>, i.e duplicates, are dealt with.</p>
+<p>When used with <b class="option">-open</b> data in the <i class="term"><a href="../../../../index.html#key365">data source</a></i> has
+precedence.
+In other words, for duplicates the data in the <i class="term"><a href="../../../../index.html#key365">data source</a></i> is
+loaded into the Tcl array.</p>
+<p>When used with <b class="option">-save</b> data in the Tcl array has precedence. In
+other words, for duplicates the data in the Tcl array is saved into
+the <i class="term"><a href="../../../../index.html#key365">data source</a></i>.</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">::tie::untie</b> <i class="arg">arrayvarname</i> <span class="opt">?<i class="arg">token</i>?</span></a></dt>
+<dd><p>This command dissolves one or more ties associated with the Tcl array
+named by <i class="arg">arrayvarname</i>. If no <i class="arg">token</i> is specified then all
+ties to that Tcl array are dissolved. Otherwise only the tie the token
+stands for is removed, if it is actually connected to the
+array. Trying to remove a specific tie not belonging to the provided
+array will cause an error.</p>
+<p>It should be noted that while severing a tie will destroy management
+information internal to the package the <i class="term"><a href="../../../../index.html#key365">data source</a></i> which was
+handled by the tie will not be touched, only closed.</p>
+<p>After the command returns none of changes made to the array will be
+saved to the <i class="term"><a href="../../../../index.html#key365">data source</a></i> anymore.</p>
+<p>The result of the command is an empty string.</p>
+<dl class="doctools_arguments">
+<dt>varname <i class="arg">arrayname</i> (in)</dt>
+<dd><p>The name of a Tcl array variable which may have ties.</p></dd>
+<dt>handle <i class="arg">token</i> (in)</dt>
+<dd><p>A handle representing a specific tie. This argument is optional.</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">::tie::info</b> <b class="method">ties</b> <i class="arg">arrayvarname</i></a></dt>
+<dd><p>This command returns a list of ties associated with the Tcl array
+variable named by <i class="arg">arrayvarname</i>. The result list will be empty if
+the variable has no ties associated with it.</p></dd>
+<dt><a name="4"><b class="cmd">::tie::info</b> <b class="method">types</b></a></dt>
+<dd><p>This command returns a dictionary of registered types, and the class
+commands they are associated with.</p></dd>
+<dt><a name="5"><b class="cmd">::tie::info</b> <b class="method">type</b> <i class="arg">dstype</i></a></dt>
+<dd><p>This command returns the fully resolved class command for a type
+name. This means that the command will follow a chain of type
+definitions ot its end.</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">STANDARD DATA SOURCE TYPES</a></h3>
+<p>This package provides the six following types as examples and standard
+data sources.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">log</b></dt>
+<dd><p>This <i class="term"><a href="../../../../index.html#key365">data source</a></i> does not maintain any actual data, nor
+persistence. It does not accept any identifying arguments. All changes
+are simply logged to <b class="const">stdout</b>.</p></dd>
+<dt><b class="const">array</b></dt>
+<dd><p>This <i class="term"><a href="../../../../index.html#key365">data source</a></i> uses a regular Tcl array as the origin of
+the persistent data. It accepts a single identifying argument, the
+name of this Tcl array. All changes are mirrored to that array.</p></dd>
+<dt><b class="const">remotearray</b></dt>
+<dd><p>This <i class="term"><a href="../../../../index.html#key365">data source</a></i> is similar to <b class="const">array</b>. The difference
+is that the Tcl array to which we are mirroring is not directly
+accessible, but through a <b class="cmd"><a href="../../../../index.html#key353">send</a></b>-like command.</p>
+<p>It accepts three identifying arguments, the name of the other Tcl
+array, the command prefix for the <b class="cmd"><a href="../../../../index.html#key353">send</a></b>-like accessor command,
+and an identifier for the remote entity hosting the array, in this
+order. All changes are mirrored to that array, via the command
+prefix. All commands will be executed in the context of the global
+namespace.</p>
+<p><b class="cmd"><a href="../../../../index.html#key353">send</a></b>-like means that the command prefix has to have <b class="cmd"><a href="../../../../index.html#key353">send</a></b>
+syntax and semantics. I.e. it is a channel over which we can send
+arbitrary commands to some other entity.
+The remote array <i class="term"><a href="../../../../index.html#key365">data source</a></i> however uses only the commands
+<b class="cmd"><a href="../../../../index.html#key301">set</a></b>, <b class="cmd">unset</b>, <b class="cmd">array exists</b>, <b class="cmd">array names</b>, <b class="cmd">array set</b>, and
+<b class="cmd">array get</b> to retrieve and set values in the remote array.</p>
+<p>The command prefix and the entity id are separate to allow the data
+source to use options like <b class="option">-async</b> when assembling the actual
+commands.</p>
+<p>Examples of command prefixes, listed with the id of the remote entity,
+without options. In reality only the part before the id is the command
+prefix:</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd"><a href="../../../../index.html#key353">send</a></b> <i class="arg">tkname</i></dt>
+<dd><p>The Tcl array is in a remote interpreter and is accessed via Tk's X
+communication.</p></dd>
+<dt><b class="cmd">comm::comm send</b> <i class="arg">hostportid</i></dt>
+<dd><p>The Tcl array is in a remote interpreter and is accessed through a
+socket.</p></dd>
+<dt><b class="cmd">thread::send</b> <i class="arg">threadid</i></dt>
+<dd><p>The Tcl array is in a remote interpreter in a different thread of this
+process.</p></dd>
+</dl></dd>
+<dt><b class="const">file</b></dt>
+<dd><p>This <i class="term"><a href="../../../../index.html#key365">data source</a></i> uses a single file as origin of the
+persistent data. It accepts a single identifying argument, the path to
+this file. The file has to be both readable and writable. It may not
+exist, the <i class="term"><a href="../../../../index.html#key365">data source</a></i> will create it in that case. This (and
+only this) situation will require that the directory for the file
+exists and is writable as well.</p>
+<p>All changes are saved in the file, as proper Tcl commands, one command
+per operation. In other words, the file will always contain a proper
+Tcl script.</p>
+<p>If the file exists when the tie using it is set up, then it will be
+compacted, i.e. superfluous operations are removed, if the operations
+log stored in it contains either at least one operation clearing the
+whole array, or at least 1.5 times more operations than entries in the
+loaded array.</p></dd>
+<dt><b class="const">growfile</b></dt>
+<dd><p>This <i class="term"><a href="../../../../index.html#key365">data source</a></i> is like <b class="const">file</b> in terms of the storage
+medium for the array data, and how it is configured. In constrast to
+the former it however assumes and ensures that the tied array will
+never shrink. I.e. the creation of new array entries, and the
+modification of existing entries is allowed, but the deletion of
+entries is not, and causes the data source to throw errors.</p>
+<p>This restriction allows us to simplify both file format and access to
+the file radically. For one, the file is read only once and the
+internal cache cannot be invalidated. Second, writing data is reduced
+to a simple append, and no compaction step is necessary. The format of
+the contents is the string representation of a dictionary which can be
+incrementally extended forever at the end.</p></dd>
+<dt><b class="const">dsource</b></dt>
+<dd><p>This <i class="term"><a href="../../../../index.html#key365">data source</a></i> uses an explicitly specified
+<i class="term">data source object</i> as the source for the persistent
+data. It accepts a single identifying argument, the command prefix,
+i.e. object command.</p>
+<p>To use this type it is necessary to know how the framework manages
+ties and what <span class="sectref"><a href="#subsection3">data source objects</a></span> are.</p>
+<p>All changes are delegated to the specified object.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">CREATING NEW DATA SOURCES</a></h2>
+<p>This section is of no interest to the casual user of ties. Only
+developers wishing to create new data sources have to know the
+information provided herein.</p>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">DATA SOURCE OBJECTS</a></h3>
+<p>All ties are represented internally by an in-memory object which
+mediates between the tie framework and the specific
+<i class="term"><a href="../../../../index.html#key365">data source</a></i>, like an array, file, etc.
+This is the <i class="term">data source object</i>.</p>
+<p>Its class, the <span class="sectref"><a href="#subsection5">data source class</a></span> is <em>not</em> generic,
+but specific to the type of the <i class="term"><a href="../../../../index.html#key365">data source</a></i>. Writing a new
+<i class="term"><a href="../../../../index.html#key365">data source</a></i> requires us to write such a class, and then
+registering it with the framework as a new type.</p>
+<p>The following subsections describe the various APIs a
+<span class="sectref"><a href="#subsection5">data source class</a></span> and the objects it generates will have
+to follow to be compatible with the tie framework.</p>
+<p>Data source objects are normally automatically created and destroyed
+by the framework when a tie is created, or removed. This management
+can be explicitly bypassed through the usage of the &quot;dsource&quot; type.
+The <i class="term"><a href="../../../../index.html#key365">data source</a></i> for this type is a
+<i class="term">data source object</i> itself, and this object is outside of the
+scope of the tie framework and not managed by it.
+In other words, this type allows the creation of ties which talk to
+pre-existing <i class="term">data source object</i>s, and these objects will
+survive the removal of the ties using them as well.</p>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">REGISTERING A NEW DATA SOURCE CLASS</a></h3>
+<p>After a <span class="sectref"><a href="#subsection5">data source class</a></span> has been written it is necessary
+to register it as a new type with the framework.</p>
+<dl class="doctools_definitions">
+<dt><a name="6"><b class="cmd">::tie::register</b> <i class="arg">dsclasscmd</i> <b class="const">as</b> <i class="arg">dstype</i></a></dt>
+<dd><p>Using this command causes the tie framework to remember the class
+command <i class="arg">dsclasscmd</i> of a <span class="sectref"><a href="#subsection5">data source class</a></span> under the
+type name <i class="arg">dstype</i>.</p>
+<p>After the call the argument <i class="arg">dstype</i> of the basic user command
+<b class="cmd">::tie::tie</b> will accept <i class="arg">dstype</i> as a type name and translate
+it internally to the appropriate class command for the creation of
+<span class="sectref"><a href="#subsection3">data source objects</a></span> for the new <i class="term"><a href="../../../../index.html#key365">data source</a></i>.</p></dd>
+</dl>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">DATA SOURCE CLASS</a></h3>
+<p>Each data source class is represented by a single command, also called
+the <i class="term">class command</i>, or <i class="term">object creation command</i>. Its
+syntax is</p>
+<dl class="doctools_definitions">
+<dt><a name="7"><b class="cmd">dsclasscmd</b> <i class="arg">objname</i> <span class="opt">?<i class="arg">dsname</i>...?</span></a></dt>
+<dd><p>The first argument of the class command is the name of the
+<i class="term">data source object</i> to create.
+The framework itself will always supply the string <b class="const">%AUTO%</b>, to
+signal that the class command has to generate not only the object, but
+the object name as well.</p>
+<p>This is followed by a series of arguments identifying the data source
+the new object is for. These are the same <i class="arg">dsname</i> arguments which
+are given to the basic user command <b class="cmd">::tie::tie</b>. Their actual
+meaning is dependent on the <i class="term">data source class</i>.</p>
+<p>The result of the class command has to be the fully-qualified name of
+the new <i class="term">data source object</i>, i.e. the name of the
+<i class="term">object command</i>.
+The interface this command has to follow is described in the section
+<span class="sectref"><a href="#subsection6">DATA SOURCE OBJECT API</a></span></p></dd>
+</dl>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">DATA SOURCE OBJECT API</a></h3>
+<p>Please read the section <span class="sectref"><a href="#subsection5">DATA SOURCE CLASS</a></span> first, to know
+how to generate new <i class="term">object commands</i>.</p>
+<p>Each <i class="term">object command</i> for a <i class="term"><a href="../../../../index.html#key365">data source</a></i> object has to
+provide at least the methods listed below for proper inter-operation
+with the tie framework. Note that the names of most of the methods
+match the subcommands of the builtin <b class="cmd"><a href="../../../../index.html#key37">array</a></b> command.</p>
+<dl class="doctools_definitions">
+<dt><a name="8"><b class="cmd">ds</b> <b class="method">destroy</b></a></dt>
+<dd><p>This method is called when the object <b class="cmd">ds</b> is destroyed. It now
+has to release all its internal resources associated with the external
+data source.</p></dd>
+<dt><a name="9"><b class="cmd">ds</b> <b class="method">names</b></a></dt>
+<dd><p>This command has to return a list containing the names of all keys
+found in the <i class="term"><a href="../../../../index.html#key365">data source</a></i> the object talks to. This is
+equivalent to <b class="cmd">array names</b>.</p></dd>
+<dt><a name="10"><b class="cmd">ds</b> <b class="method">size</b></a></dt>
+<dd><p>This command has to return an integer number specifying the number of
+keys found in the <i class="term"><a href="../../../../index.html#key365">data source</a></i> the object talks to. This is
+equivalent to <b class="cmd">array size</b>.</p></dd>
+<dt><a name="11"><b class="cmd">ds</b> <b class="method">get</b></a></dt>
+<dd><p>This command has to return a dictionary containing the data found in
+the <i class="term"><a href="../../../../index.html#key365">data source</a></i> the object talks to. This is equivalent to
+<b class="cmd">array get</b>.</p></dd>
+<dt><a name="12"><b class="cmd">ds</b> <b class="method">set</b> <i class="arg">dict</i></a></dt>
+<dd><p>This command takes a dictionary and adds its contents to the data
+source the object talks to. This is equivalent to <b class="cmd">array set</b>.</p></dd>
+<dt><a name="13"><b class="cmd">ds</b> <b class="method">unset</b> <span class="opt">?<i class="arg">pattern</i>?</span></a></dt>
+<dd><p>This command takes a pattern and removes all elements whose keys
+matching it from the <i class="term"><a href="../../../../index.html#key365">data source</a></i>. If no pattern is specified
+it defaults to <b class="const">*</b>, causing the removal of all elements. This
+is nearly equivalent to <b class="cmd">array unset</b>.</p></dd>
+<dt><a name="14"><b class="cmd">ds</b> <b class="method">setv</b> <i class="arg">index</i> <i class="arg">value</i></a></dt>
+<dd><p>This command has to save the <i class="arg">value</i> in the <i class="term"><a href="../../../../index.html#key365">data source</a></i>
+the object talks to, under the key <i class="arg">index</i>.</p>
+<p>The result of the command is ignored. If an error is thrown then this
+error will show up as error of the set operation which caused the
+method call.</p></dd>
+<dt><a name="15"><b class="cmd">ds</b> <b class="method">unsetv</b> <i class="arg">index</i></a></dt>
+<dd><p>This command has to remove the value under the key <i class="arg">index</i> from
+the <i class="term"><a href="../../../../index.html#key365">data source</a></i> the object talks to.</p>
+<p>The result of the command is ignored. If an error is thrown then this
+error will show up as error of the unset operation which caused the
+method call.</p></dd>
+<dt><a name="16"><b class="cmd">ds</b> <b class="method">getv</b> <i class="arg">index</i></a></dt>
+<dd><p>This command has to return the value for the key <i class="arg">index</i> in the
+<i class="term"><a href="../../../../index.html#key365">data source</a></i> the object talks to.</p></dd>
+</dl>
+<p>And here a small table comparing the <i class="term"><a href="../../../../index.html#key365">data source</a></i> methods to
+the regular Tcl commands for accessing an array.</p>
+<pre class="doctools_example">
+        Regular Tcl             Data source
+        -----------             -----------
+        array names a           ds names
+        array size  a           ds size
+        array get   a           ds get
+        array set   a dict      ds set   dict
+        array unset a pattern   ds unset ?pattern?
+        -----------             -----------
+        set a($idx) $val        ds setv   idx val
+        unset a($idx)           ds unsetv idx
+        $a($idx)                ds getv   idx
+        -----------             -----------
+</pre>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>tie</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key37">array</a>, <a href="../../../../index.html#key34">database</a>, <a href="../../../../index.html#key31">file</a>, <a href="../../../../index.html#key36">metakit</a>, <a href="../../../../index.html#key33">persistence</a>, <a href="../../../../index.html#key35">tie</a>, <a href="../../../../index.html#key32">untie</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2004-2008 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

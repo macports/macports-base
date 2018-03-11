@@ -1,0 +1,23 @@
+tcllib STATUS:
+$Id: STATUS,v 1.3 2004/01/15 06:36:11 andreas_kupries Exp $
+
+Release:
+-------
+
+Next release?
+
+To be done before release?
+
+Open Issues:
+-----------
+
+Problems outlined here (bgerror):
+https://sourceforge.net/mailarchive/forum.php?thread_id=1288113&forum_id=6718
+
+	Bugs/feature requests need filing.
+
+	Several solutions offered - we need to pick one.
+
+"Feature requests" for packages doing their own output.
+
+Feature requests for packages using too much regexp/regsub.

@@ -1,0 +1,476 @@
+
+<html><head>
+<title>logger - Object Oriented logging facility</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'logger.man' by tcllib/doctools with format 'html'
+   -->
+<! -- logger.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">logger(n) 0.9.4 tcllib &quot;Object Oriented logging facility&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>logger - System to control logging of events.</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">IMPLEMENTATION</a></li>
+<li class="doctools_section"><a href="#section3">Logprocs and Callstack</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">logger <span class="opt">?0.9.4?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">logger::init</b> <i class="arg">service</i></a></li>
+<li><a href="#2"><b class="cmd">logger::import</b> <span class="opt">?<b class="option">-all</b>?</span> <span class="opt">?<b class="option">-force</b>?</span> <span class="opt">?<b class="option">-prefix</b> <i class="arg">prefix</i>?</span> <span class="opt">?<b class="option">-namespace</b> <i class="arg">namespace</i>?</span> <i class="arg">service</i></a></li>
+<li><a href="#3"><b class="cmd">logger::initNamespace</b> <i class="arg">ns</i> <span class="opt">?<i class="arg">level</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">logger::services</b></a></li>
+<li><a href="#5"><b class="cmd">logger::enable</b> <i class="arg">level</i></a></li>
+<li><a href="#6"><b class="cmd">logger::disable</b> <i class="arg">level</i></a></li>
+<li><a href="#7"><b class="cmd">logger::setlevel</b> <i class="arg">level</i></a></li>
+<li><a href="#8"><b class="cmd">logger::levels</b></a></li>
+<li><a href="#9"><b class="cmd">logger::servicecmd</b> <i class="arg">service</i></a></li>
+<li><a href="#10"><b class="cmd">${log}::debug</b> <i class="arg">message</i></a></li>
+<li><a href="#11"><b class="cmd">${log}::info</b> <i class="arg">message</i></a></li>
+<li><a href="#12"><b class="cmd">${log}::notice</b> <i class="arg">message</i></a></li>
+<li><a href="#13"><b class="cmd">${log}::warn</b> <i class="arg">message</i></a></li>
+<li><a href="#14"><b class="cmd">${log}::error</b> <i class="arg">message</i></a></li>
+<li><a href="#15"><b class="cmd">${log}::critical</b> <i class="arg">message</i></a></li>
+<li><a href="#16"><b class="cmd">${log}::alert</b> <i class="arg">message</i></a></li>
+<li><a href="#17"><b class="cmd">${log}::emergency</b> <i class="arg">message</i></a></li>
+<li><a href="#18"><b class="cmd">${log}::setlevel</b> <i class="arg">level</i></a></li>
+<li><a href="#19"><b class="cmd">${log}::enable</b> <i class="arg">level</i></a></li>
+<li><a href="#20"><b class="cmd">${log}::disable</b> <i class="arg">level</i></a></li>
+<li><a href="#21"><b class="cmd">${log}::lvlchangeproc</b> <i class="arg">command</i></a></li>
+<li><a href="#22"><b class="cmd">${log}::lvlchangeproc</b></a></li>
+<li><a href="#23"><b class="cmd">${log}::logproc</b> <i class="arg">level</i></a></li>
+<li><a href="#24"><b class="cmd">${log}::logproc</b> <i class="arg">level</i> <i class="arg">command</i></a></li>
+<li><a href="#25"><b class="cmd">${log}::logproc</b> <i class="arg">level</i> <i class="arg">argname</i> <i class="arg">body</i></a></li>
+<li><a href="#26"><b class="cmd">${log}::services</b></a></li>
+<li><a href="#27"><b class="cmd">${log}::servicename</b></a></li>
+<li><a href="#28"><b class="cmd">${log}::currentloglevel</b></a></li>
+<li><a href="#29"><b class="cmd">${log}::delproc</b> <i class="arg">command</i></a></li>
+<li><a href="#30"><b class="cmd">${log}::delproc</b></a></li>
+<li><a href="#31"><b class="cmd">${log}::delete</b></a></li>
+<li><a href="#32"><b class="cmd">${log}::trace</b> <i class="arg">command</i></a></li>
+<li><a href="#33"><b class="cmd">${log}::trace</b> <b class="cmd">on</b></a></li>
+<li><a href="#34"><b class="cmd">${log}::trace</b> <b class="cmd">off</b></a></li>
+<li><a href="#35"><b class="cmd">${log}::trace</b> <b class="cmd">status</b> <span class="opt">?procName?</span> <span class="opt">?...?</span></a></li>
+<li><a href="#36"><b class="cmd">${log}::trace</b> <b class="cmd">add</b> <i class="arg">procName</i> <span class="opt">?...?</span></a></li>
+<li><a href="#37"><b class="cmd">${log}::trace</b> <b class="cmd">add</b> <span class="opt">?-ns?</span> <i class="arg">nsName</i> <span class="opt">?...?</span></a></li>
+<li><a href="#38"><b class="cmd">${log}::trace</b> <b class="cmd"><a href="../../../../index.html#key228">remove</a></b> <i class="arg">procName</i> <span class="opt">?...?</span></a></li>
+<li><a href="#39"><b class="cmd">${log}::trace</b> <b class="cmd"><a href="../../../../index.html#key228">remove</a></b> <span class="opt">?-ns?</span> <i class="arg">nsName</i> <span class="opt">?...?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">logger</b> package provides a flexible system for logging messages
+from different services, at priority levels, with different commands.</p>
+<p>To begin using the logger package, we do the following:</p>
+<pre class="doctools_example">
+    package require logger
+    set log [logger::init myservice]
+    ${log}::notice &quot;Initialized myservice logging&quot;
+    ... code ...
+    ${log}::notice &quot;Ending myservice logging&quot;
+    ${log}::delete
+</pre>
+<p>In the above code, after the package is loaded, the following things
+happen:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">logger::init</b> <i class="arg">service</i></a></dt>
+<dd><p>Initializes the service <i class="arg">service</i> for logging.  The service names
+are actually Tcl namespace names, so they are separated with '::'.
+The service name may not be the empty string or only ':'s.
+When a logger service is initialized, it &quot;inherits&quot; properties from its
+parents.  For instance, if there were a service <i class="term">foo</i>, and
+we did a <b class="cmd">logger::init</b> <i class="arg">foo::bar</i> (to create a <i class="term">bar</i>
+service underneath <i class="term">foo</i>), <i class="term">bar</i> would copy the current
+configuration of the <i class="term">foo</i> service, although it would of
+course, also be possible to then separately configure <i class="term">bar</i>.
+If a logger service is initialized and the parent does not yet exist, the
+parent is also created.
+The new logger service is initialized with the default loglevel set
+with <b class="cmd">logger::setlevel</b>.</p></dd>
+<dt><a name="2"><b class="cmd">logger::import</b> <span class="opt">?<b class="option">-all</b>?</span> <span class="opt">?<b class="option">-force</b>?</span> <span class="opt">?<b class="option">-prefix</b> <i class="arg">prefix</i>?</span> <span class="opt">?<b class="option">-namespace</b> <i class="arg">namespace</i>?</span> <i class="arg">service</i></a></dt>
+<dd><p>Import the logger service commands into the current namespace. Without the <b class="option">-all</b> option
+only the commands corresponding to the log levels are imported. If <b class="option">-all</b> is given,
+all the <b class="cmd">${log}::cmd</b> style commands are imported. If the import would overwrite a command
+an error is returned and no command is imported. Use the <b class="option">-force</b> option to force the import
+and overwrite existing commands without complaining.
+If the <b class="option">-prefix</b> option is given, the commands are imported with the given <i class="arg">prefix</i>
+prepended to their names.
+If the <b class="option">-namespace</b> option is given, the commands are imported into the given namespace. If the
+namespace does not exist, it is created. If a namespace without a leading :: is given, it is interpreted as
+a child namespace to the current namespace.</p></dd>
+<dt><a name="3"><b class="cmd">logger::initNamespace</b> <i class="arg">ns</i> <span class="opt">?<i class="arg">level</i>?</span></a></dt>
+<dd><p>Convenience command for setting up a namespace for logging. Creates a
+logger service named after the namespace <i class="arg">ns</i> (a :: prefix is
+stripped), imports all the log commands into the namespace, and sets
+the default logging level, either as specified by <i class="arg">level</i>, or
+inherited from a service in the parent namespace, or a hardwired
+default, <b class="const">warn</b>.</p></dd>
+<dt><a name="4"><b class="cmd">logger::services</b></a></dt>
+<dd><p>Returns a list of all the available services.</p></dd>
+<dt><a name="5"><b class="cmd">logger::enable</b> <i class="arg">level</i></a></dt>
+<dd><p>Globally enables logging at and &quot;above&quot; the given level.  Levels are
+<b class="const">debug</b>, <b class="const">info</b>, <b class="const">notice</b>, <b class="const">warn</b>, <b class="const">error</b>,
+<b class="const">critical</b>, <b class="const">alert</b>, <b class="const">emergency</b>.</p></dd>
+<dt><a name="6"><b class="cmd">logger::disable</b> <i class="arg">level</i></a></dt>
+<dd><p>Globally disables logging at and &quot;below&quot; the given level.  Levels are
+those listed above.</p></dd>
+<dt><a name="7"><b class="cmd">logger::setlevel</b> <i class="arg">level</i></a></dt>
+<dd><p>Globally enable logging at and &quot;above&quot; the given level. Levels are those
+listed above. This command changes the default loglevel for new loggers
+created with <b class="cmd">logger::init</b>.</p></dd>
+<dt><a name="8"><b class="cmd">logger::levels</b></a></dt>
+<dd><p>Returns a list of the available log levels (also listed above under <b class="cmd">enable</b>).</p></dd>
+<dt><a name="9"><b class="cmd">logger::servicecmd</b> <i class="arg">service</i></a></dt>
+<dd><p>Returns the <b class="cmd">${log}</b> token created by <b class="cmd">logger::init</b> for this service.</p></dd>
+<dt><a name="10"><b class="cmd">${log}::debug</b> <i class="arg">message</i></a></dt>
+<dd></dd>
+<dt><a name="11"><b class="cmd">${log}::info</b> <i class="arg">message</i></a></dt>
+<dd></dd>
+<dt><a name="12"><b class="cmd">${log}::notice</b> <i class="arg">message</i></a></dt>
+<dd></dd>
+<dt><a name="13"><b class="cmd">${log}::warn</b> <i class="arg">message</i></a></dt>
+<dd></dd>
+<dt><a name="14"><b class="cmd">${log}::error</b> <i class="arg">message</i></a></dt>
+<dd></dd>
+<dt><a name="15"><b class="cmd">${log}::critical</b> <i class="arg">message</i></a></dt>
+<dd></dd>
+<dt><a name="16"><b class="cmd">${log}::alert</b> <i class="arg">message</i></a></dt>
+<dd></dd>
+<dt><a name="17"><b class="cmd">${log}::emergency</b> <i class="arg">message</i></a></dt>
+<dd><p>These are the commands called to actually log a message about an
+event.  <b class="variable">${log}</b> is the variable obtained from <b class="cmd">logger::init</b>.</p></dd>
+<dt><a name="18"><b class="cmd">${log}::setlevel</b> <i class="arg">level</i></a></dt>
+<dd><p>Enable logging, in the service referenced by <b class="variable">${log}</b>, and its
+children, at and above the level specified, and disable logging below
+it.</p></dd>
+<dt><a name="19"><b class="cmd">${log}::enable</b> <i class="arg">level</i></a></dt>
+<dd><p>Enable logging, in the service referenced by <b class="variable">${log}</b>, and its
+children, at and above the level specified.  Note that this does <em>not</em> disable logging below this level, so you should probably use
+<b class="cmd">setlevel</b> instead.</p></dd>
+<dt><a name="20"><b class="cmd">${log}::disable</b> <i class="arg">level</i></a></dt>
+<dd><p>Disable logging, in the service referenced by <b class="variable">${log}</b>, and its
+children, at and below the level specified. Note that this does <em>not</em> enable logging above this level,
+so you should probably use <b class="cmd">setlevel</b> instead.
+Disabling the loglevel <b class="const">emergency</b> switches logging off for the service and its children.</p></dd>
+<dt><a name="21"><b class="cmd">${log}::lvlchangeproc</b> <i class="arg">command</i></a></dt>
+<dd></dd>
+<dt><a name="22"><b class="cmd">${log}::lvlchangeproc</b></a></dt>
+<dd><p>Set the script to call when the log instance in question changes its log level.
+If called without a command it returns the currently registered command. The command gets two arguments
+appended, the old and the new loglevel. The callback is invoked after all changes have been done.
+If child loggers are affected, their callbacks are called before their parents callback.</p>
+<pre class="doctools_example">
+ 	proc lvlcallback {old new} {
+ 	    puts &quot;Loglevel changed from $old to $new&quot;
+ 	}
+ 	${log}::lvlchangeproc lvlcallback
+ </pre>
+</dd>
+<dt><a name="23"><b class="cmd">${log}::logproc</b> <i class="arg">level</i></a></dt>
+<dd></dd>
+<dt><a name="24"><b class="cmd">${log}::logproc</b> <i class="arg">level</i> <i class="arg">command</i></a></dt>
+<dd></dd>
+<dt><a name="25"><b class="cmd">${log}::logproc</b> <i class="arg">level</i> <i class="arg">argname</i> <i class="arg">body</i></a></dt>
+<dd><p>This command comes in three forms - the third, older one is deprecated
+and may be removed from future versions of the logger package.
+The current set version takes one argument, a command to be executed when the
+level is called.  The callback command takes on argument, the text to
+be logged. If called only with a valid level <b class="cmd">logproc</b> returns the name of the command
+currently registered as callback command.
+<b class="cmd">logproc</b> specifies which command will perform the actual logging
+for a given level.  The logger package ships with default commands for
+all log levels, but with <b class="cmd">logproc</b> it is possible to replace them
+with custom code.  This would let you send your logs over the network,
+to a database, or anything else.  For example:</p>
+<pre class="doctools_example">
+    proc logtoserver {txt} {
+        variable socket
+        puts $socket &quot;Notice: $txt&quot;
+    }
+    ${log}::logproc notice logtoserver
+</pre>
+<p>Trace logs are slightly different: instead of a plain text argument,
+the argument provided to the logproc is a dictionary consisting of the
+<b class="const">enter</b> or <b class="const">leave</b> keyword along with another dictionary of
+details about the trace.  These include:</p>
+<ul class="doctools_itemized">
+<li><p><b class="const">proc</b> - Name of the procedure being traced.</p></li>
+<li><p><b class="const">level</b> - The stack level for the procedure invocation
+(from <b class="cmd"><a href="../../../../index.html#key83">info</a></b> <b class="cmd">level</b>).</p></li>
+<li><p><b class="const">script</b> - The name of the file in which the procedure is
+defined, or an empty string if defined in interactive mode.</p></li>
+<li><p><b class="const">caller</b> - The name of the procedure calling the procedure
+being traced, or an empty string if the procedure was called from the
+global scope (stack level 0).</p></li>
+<li><p><b class="const">procargs</b> - A dictionary consisting of the names of arguments
+to the procedure paired with values given for those arguments (<b class="const">enter</b>
+traces only).</p></li>
+<li><p><b class="const">status</b> - The Tcl return code (e.g. <b class="const">ok</b>,
+<b class="const">continue</b>, etc.) (<b class="const">leave</b> traces only).</p></li>
+<li><p><b class="const">result</b> - The value returned by the procedure (<b class="const">leave</b>
+traces only).</p></li>
+</ul></dd>
+<dt><a name="26"><b class="cmd">${log}::services</b></a></dt>
+<dd><p>Returns a list of the registered logging services which are children of this service.</p></dd>
+<dt><a name="27"><b class="cmd">${log}::servicename</b></a></dt>
+<dd><p>Returns the name of this service.</p></dd>
+<dt><a name="28"><b class="cmd">${log}::currentloglevel</b></a></dt>
+<dd><p>Returns the currently enabled log level for this service. If no logging is enabled returns <b class="const">none</b>.</p></dd>
+<dt><a name="29"><b class="cmd">${log}::delproc</b> <i class="arg">command</i></a></dt>
+<dd></dd>
+<dt><a name="30"><b class="cmd">${log}::delproc</b></a></dt>
+<dd><p>Set the script to call when the log instance in question is deleted.
+If called without a command it returns the currently registered command.
+For example:</p>
+<pre class="doctools_example">
+    ${log}::delproc [list closesock $logsock]
+</pre>
+</dd>
+<dt><a name="31"><b class="cmd">${log}::delete</b></a></dt>
+<dd><p>This command deletes a particular logging service, and its children.
+You must call this to clean up the resources used by a service.</p></dd>
+<dt><a name="32"><b class="cmd">${log}::trace</b> <i class="arg">command</i></a></dt>
+<dd><p>This command controls logging of enter/leave traces for specified procedures.
+It is used to enable and disable tracing, query tracing status, and
+specify procedures are to be traced.  Trace handlers are unregistered when
+tracing is disabled.  As a result, there is not performance impact to a
+library when tracing is disabled, just as with other log level commands.</p>
+<pre class="doctools_example">
+  proc tracecmd { dict } {
+      puts $dict
+  }
+  set log [::logger::init example]
+  ${log}::logproc trace tracecmd
+  proc foo { args } {
+      puts &quot;In foo&quot;
+      bar 1
+      return &quot;foo_result&quot;
+  }
+  proc bar { x } {
+      puts &quot;In bar&quot;
+      return &quot;bar_result&quot;
+  }
+  ${log}::trace add foo bar
+  ${log}::trace on
+  foo
+# Output:
+enter {proc ::foo level 1 script {} caller {} procargs {args {}}}
+In foo
+enter {proc ::bar level 2 script {} caller ::foo procargs {x 1}}
+In bar
+leave {proc ::bar level 2 script {} caller ::foo status ok result bar_result}
+leave {proc ::foo level 1 script {} caller {} status ok result foo_result}
+</pre>
+</dd>
+<dt><a name="33"><b class="cmd">${log}::trace</b> <b class="cmd">on</b></a></dt>
+<dd><p>Turns on trace logging for procedures registered through the <b class="cmd"><a href="../../../../index.html#key74">trace</a></b>
+<b class="cmd">add</b> command.  This is similar to the <b class="cmd">enable</b> command for other
+logging levels, but allows trace logging to take place at any level.
+The trace logging mechanism takes advantage of the execution trace feature
+of Tcl 8.4 and later.  The <b class="cmd"><a href="../../../../index.html#key74">trace</a></b> <b class="cmd">on</b> command will return an
+error if called from earlier versions of Tcl.</p></dd>
+<dt><a name="34"><b class="cmd">${log}::trace</b> <b class="cmd">off</b></a></dt>
+<dd><p>Turns off trace logging for procedures registered for trace logging
+through the <b class="cmd"><a href="../../../../index.html#key74">trace</a></b> <b class="cmd">add</b> command.  This is similar to the
+<b class="cmd">disable</b> command for other logging levels, but allows trace logging
+to take place at any level.
+Procedures are not unregistered, so logging for them can be turned back
+on with the <b class="cmd"><a href="../../../../index.html#key74">trace</a></b> <b class="cmd">on</b> command.  There is no overhead imposed
+by trace registration when trace logging is disabled.</p></dd>
+<dt><a name="35"><b class="cmd">${log}::trace</b> <b class="cmd">status</b> <span class="opt">?procName?</span> <span class="opt">?...?</span></a></dt>
+<dd><p>This command returns a list of the procedures currently registered for
+trace logging, or a flag indicating whether or not a trace is registered
+for one or more specified procedures.</p></dd>
+<dt><a name="36"><b class="cmd">${log}::trace</b> <b class="cmd">add</b> <i class="arg">procName</i> <span class="opt">?...?</span></a></dt>
+<dd></dd>
+<dt><a name="37"><b class="cmd">${log}::trace</b> <b class="cmd">add</b> <span class="opt">?-ns?</span> <i class="arg">nsName</i> <span class="opt">?...?</span></a></dt>
+<dd><p>This command registers one or more procedures for logging of entry/exit
+traces.  Procedures can be specified via a list of procedure names or
+namespace names (in which case all procedure within the namespace
+are targeted by the operation).  By default, each name is first
+interpreted as a procedure name or glob-style search pattern, and if
+not found its interpreted as a namespace name.  The <i class="arg">-ns</i> option can
+be used to force interpretation of all provided arguments as namespace names.
+Procedures must be defined prior to registering them for tracing
+through the <b class="cmd"><a href="../../../../index.html#key74">trace</a></b> <b class="cmd">add</b> command.  Any procedure or namespace
+names/patterns that don't match any existing procedures will be
+silently ignored.</p></dd>
+<dt><a name="38"><b class="cmd">${log}::trace</b> <b class="cmd"><a href="../../../../index.html#key228">remove</a></b> <i class="arg">procName</i> <span class="opt">?...?</span></a></dt>
+<dd></dd>
+<dt><a name="39"><b class="cmd">${log}::trace</b> <b class="cmd"><a href="../../../../index.html#key228">remove</a></b> <span class="opt">?-ns?</span> <i class="arg">nsName</i> <span class="opt">?...?</span></a></dt>
+<dd><p>This command unregisters one or more procedures so that they will no
+longer have trace logging performed, with the same matching rules as
+that of the <b class="cmd"><a href="../../../../index.html#key74">trace</a></b> <b class="cmd">add</b> command.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">IMPLEMENTATION</a></h2>
+<p>The logger package is implemented in such a way as to optimize (for
+Tcl 8.4 and newer) log procedures which are disabled.  They are
+aliased to a proc which has no body, which is compiled to a no op in
+bytecode.  This should make the peformance hit minimal.  If you really
+want to pull out all the stops, you can replace the ${log} token in
+your code with the actual namespace and command (${log}::warn becomes
+::logger::tree::myservice::warn), so that no variable lookup is done.
+This puts the performance of disabled logger commands very close to no
+logging at all.</p>
+<p>The &quot;object orientation&quot; is done through a hierarchy of namespaces.
+Using an actual object oriented system would probably be a better way
+of doing things, or at least provide for a cleaner implementation.</p>
+<p>The service &quot;object orientation&quot; is done with namespaces.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Logprocs and Callstack</a></h2>
+<p>The logger package takes extra care to keep the logproc out of the call stack.
+This enables logprocs to execute code in the callers scope by using uplevel or
+linking to local variables by using upvar. This may fire traces with all usual
+side effects.</p>
+<pre class="doctools_example">
+     # Print caller and current vars in the calling proc
+     proc log_local_var {txt} {
+          set caller [info level -1]
+          set vars [uplevel 1 info vars]
+          foreach var [lsort $vars] {
+             if {[uplevel 1 [list array exists $var]] == 1} {
+             	lappend val $var &lt;Array&gt;
+             } else {
+             	lappend val $var [uplevel 1 [list set $var]]
+             }
+          }
+          puts &quot;$txt&quot;
+          puts &quot;Caller: $caller&quot;
+          puts &quot;Variables in callers scope:&quot;
+          foreach {var value} $val {
+          	puts &quot;$var = $value&quot;
+          }
+     }
+     # install as logproc
+     ${log}::logproc debug log_local_var
+     </pre>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>logger</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key73">log</a>, <a href="../../../../index.html#key91">log level</a>, <a href="../../../../index.html#key89">logger</a>, <a href="../../../../index.html#key90">service</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+</div></body></html>

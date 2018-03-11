@@ -1,0 +1,83 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin unicode n 1.0.0]
+[see_also stringprep(n)]
+[keywords normalization]
+[keywords unicode]
+[copyright {2007, Sergei Golovan <sgolovan@nes.ru>}]
+[moddesc {Unicode normalization}]
+[titledesc {Implementation of Unicode normalization}]
+[require Tcl 8.3]
+[require unicode 1.0]
+[description]
+[para]
+
+This is an implementation in Tcl of the Unicode normalization forms.
+
+[section "COMMANDS"]
+
+[list_begin definitions]
+[call [cmd "::unicode::fromstring"] \
+        [arg string]]
+
+Converts [arg string] to list of integer Unicode character codes which
+is used in [package unicode] for internal string representation.
+
+[call [cmd "::unicode::tostring"] \
+        [arg uclist]]
+
+Converts list of integers [arg uclist] back to Tcl string.
+
+[call [cmd "::unicode::normalize"] \
+        [arg form] \
+        [arg uclist]]
+
+Normalizes Unicode characters list [arg ulist] according to [arg form]
+and returns the normalized list. Form [arg form] takes one of the following
+values: [arg D] (canonical decomposition), [arg C] (canonical decomposition, followed
+by canonical composition), [arg KD] (compatibility decomposition), or [arg KC]
+(compatibility decomposition, followed by canonical composition).
+
+[call [cmd "::unicode::normalizeS"] \
+        [arg form] \
+        [arg string]]
+
+A shortcut to
+::unicode::tostring [lb]unicode::normalize \$form [lb]::unicode::fromstring \$string[rb][rb].
+Normalizes Tcl string and returns normalized string.
+
+[list_end]
+
+[section EXAMPLES]
+
+[example {
+% ::unicode::fromstring "\u0410\u0411\u0412\u0413"
+1040 1041 1042 1043
+% ::unicode::tostring {49 50 51 52 53}
+12345
+%
+}]
+
+[example {
+% ::unicode::normalize D {7692 775}
+68 803 775
+% ::unicode::normalizeS KD "\u1d2c"
+A
+%
+}]
+
+[section "REFERENCES"]
+
+[list_begin enum]
+
+[enum]
+    "Unicode Standard Annex #15: Unicode Normalization Forms",
+    ([uri http://unicode.org/reports/tr15/])
+
+[list_end]
+
+[section "AUTHORS"]
+Sergei Golovan
+
+[vset CATEGORY stringprep]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

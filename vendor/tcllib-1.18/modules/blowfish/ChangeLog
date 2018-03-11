@@ -1,0 +1,136 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2007-09-17  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* blowfish.test: Fix default if -dir option is not specified it
+	defaults to 'enc' and this fails to match 'encrypt' and results in
+	the default operation being 'decrypt'
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-20  Andreas Kupries  <andreask@activestate.com>
+
+	* blowfish.man: Version bumped to 1.0.3 due to bugfix at Mar 12.
+	* blowfish.tcl:
+	* pkgIndex.tcl:
+
+2007-03-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* blowfish.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2007-03-12  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* blowfish.tcl: Applied patch from bug #1664626 by Neil Madden to
+	the fix variable mis-naming in the Chunk command.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-10-02  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* blowfish.test: Document the padding and added -pad option
+	* blowfish.tcl:  to turn off padding or change the pad char.
+	* blowfish.man:  Increment the patchlevel.
+	* pkgIndex.tcl: 
+
+2006-09-19  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* blowfish.tcl:  Bug 1560822: hyphen handling.
+	* blowfish.test: Added test for hyphen handling.
+	* blowfish.man:  Note -- for option termination.
+	* pkgIndex.tcl:  Increment patchlevel.
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* blowfish.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* blowfish.test: Hooked into the new common test support code.
+
+2005-10-18  Andreas Kupries <andreask@activestate.com>
+
+	* blowfish.bench: Extended with benchmarks for the keyschedule.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-09-04  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* blowfish.tcl:   Added some performance enhancements. Added some
+	* blowfish.test:  documentation for the API. Fix testing to test 
+	* blowfish.man:   each implementation. Checked with tcl 8.2.
+	* pkgIndex.tcl:
+
+2005-06-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* blowfish.man: Fixed a typo.
+
+2005-06-22  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* blowfish.man: new file
+
+2004-12-21  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* blowfish.tcl: Fixed bug in search for Trfcrypt (noticed by
+	Antirez). Added a Reset command to the programming API to permit
+	reuse of a key with a new initialization vector..
+
+2004-12-07  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* blowfish.tcl:  Add in support for Trfcrypt implementation.
+	* blowfish.test: Support variable key length and added tests.
+
+2004-12-06  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* blowfish.tcl:  Imported Frank Pilhofer's pure-Tcl implementation
+	* blowfish.test: from the Tcler's wiki. Modified to remove the
+	Itcl code and to conform to the tcllib programming standards and
+	conventions. Test file includes standard test vectors.
+	
+

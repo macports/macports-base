@@ -1,0 +1,6 @@
+root ()
+....node1 (col 4 line 1 range {1 3} text foo type Command)
+........node5 (col 6 line 1 range {5 5} text x type Text)
+........node7 (col 8 line 1 range {10 10} text y type Text)
+....node8 (col 0 line 2 range {12 12} text {
+} type Text)

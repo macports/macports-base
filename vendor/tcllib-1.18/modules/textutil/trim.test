@@ -1,0 +1,177 @@
+# -*- tcl -*-
+# trim.test:  tests for the trim command of the textutil package.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal     trim.tcl     textutil::trim
+}
+
+# -------------------------------------------------------------------------
+
+test trim-0.1 {trim string on left} {
+    set str [::textutil::trim::trimleft "\t\t hello, world \t " ]
+    set str
+} "hello, world \t "
+
+test trim-0.2 {trim string on right} {
+    set str [::textutil::trim::trimright "\t\t hello, world \t " ]
+    set str 
+} "\t\t hello, world"
+
+test trim-0.3 {trim string on both side} {
+    set str [::textutil::trim::trim "\t\t hello, world \t " ]
+    set str 
+} "hello, world"
+
+test trim-0.4 {trim string with embedded spaces and tabs on both side} {
+    set str [::textutil::trim::trim "\t\t hello,    \t\t  world \t " ]
+    set str 
+} "hello,    \t\t  world"
+
+test trim-1.1 {trim text on left} {
+    set str [::textutil::trim::trimleft "\t\t hello, \t\n \tworld \t " ]
+    set str
+} "hello, \t
+world \t "
+
+test trim-1.2 {trim text on right} {
+    set str [::textutil::trim::trimright "\t\t hello, \t\n \tworld \t " ]
+    set str 
+} "\t\t hello,
+ \tworld"
+
+test trim-1.3 {trim string on both side} {
+    set str [::textutil::trim::trim "\t\t hello, \t\n \tworld \t " ]
+    set str 
+} "hello,
+world"
+
+test trim-1.4 {trim string with embedded spaces and tabs on both side} {
+    set str [::textutil::trim::trim "\t\t hello\t \t, \t\n \tthe\t  \t world \t " ]
+    set str 
+} "hello\t \t,
+the\t  \t world"
+
+test trim-2.1 {trim text on left with regexp} {
+    set str [::textutil::trim::trimleft "\t\t hello, \t\n \tworld \t " "\[ \thwdo\]+" ]
+    set str
+} "ello, \t
+rld \t "
+
+test trim-2.2 {trim text on right} {
+    set str [::textutil::trim::trimright "\t\t hello, \t\n \tworld \t " "\[ \thwdo\]+" ]
+    set str 
+} "\t\t hello,
+ \tworl"
+
+test trim-2.3 {trim string on both side} {
+    set str [::textutil::trim::trim "\t\t hello, \t\n \tworld \t " "\[ \thwdo\]+" ]
+    set str 
+} "ello,
+rl"
+
+test trim-2.4 {trim string with embedded spaces and tabs on both side} {
+    set str [::textutil::trim::trim "\t\t hello\t \t, \t\n \tthe\t  \t world \t " "\[ \thwdo\]+" ]
+    set str 
+} "ello\t \t,
+the\t  \t worl"
+
+# Not the real parray proc, because the default value of pattern is intentionnally omitted
+
+set myparray "\t \tproc myparray {a pattern} {
+    # print nicely an associated array sorted by element
+    upvar 1 \$a array \t
+    if {!\[array exists array\]} {
+	error \"\\\"\$a\\\" isn't an array\" \t
+    }
+    set maxl 0 ; # used to find the longest name of element
+    foreach name \[lsort \[array names array \$pattern\]\] {
+	if {\[string length \$name\] > \$maxl} { \t\t\t 
+	    set maxl \[string length \$name\]
+	}
+    }
+    set maxl \[expr {\$maxl + \[string length \$a\] + 2}\]      \t
+    foreach name \[lsort \[array names array \$pattern\]\] {
+	set nameString \[format %s(%s) \$a \$name\]
+	puts stdout \[format \"%-*s = %s\" \$maxl \$nameString \$array(\$name)\]
+    }
+\t\t}\t\t"
+
+test trim-3.1 {trim block of Tcl code} {
+    set code [::textutil::trim::trim $myparray ]
+    set code
+} "proc myparray {a pattern} {
+# print nicely an associated array sorted by element
+upvar 1 \$a array
+if {!\[array exists array\]} {
+error \"\\\"\$a\\\" isn't an array\"
+}
+set maxl 0 ; # used to find the longest name of element
+foreach name \[lsort \[array names array \$pattern\]\] {
+if {\[string length \$name\] > \$maxl} {
+set maxl \[string length \$name\]
+}
+}
+set maxl \[expr {\$maxl + \[string length \$a\] + 2}\]
+foreach name \[lsort \[array names array \$pattern\]\] {
+set nameString \[format %s(%s) \$a \$name\]
+puts stdout \[format \"%-*s = %s\" \$maxl \$nameString \$array(\$name)\]
+}
+}"
+
+test trim-3.2 {trim block of Tcl code with regexp} {
+    set code [::textutil::trim::trim $myparray "\[\] \t{}pu\]+" ]
+    set code
+} "roc myparray {a pattern
+# print nicely an associated array sorted by element
+var 1 \$a array
+if {!\[array exists array
+error \"\\\"\$a\\\" isn't an array\"
+
+set maxl 0 ; # used to find the longest name of element
+foreach name \[lsort \[array names array \$pattern
+if {\[string length \$name\] > \$maxl
+set maxl \[string length \$name
+
+
+set maxl \[expr {\$maxl + \[string length \$a\] + 2
+foreach name \[lsort \[array names array \$pattern
+set nameString \[format %s(%s) \$a \$name
+ts stdout \[format \"%-*s = %s\" \$maxl \$nameString \$array(\$name)
+
+"
+
+test trim-3.3 {trim block of commented Tcl code with regexp} {
+    set code [::textutil::trim::trim $myparray "(\[ \t\]+)|(\[ \t;\]*#.*)" ]
+    set code
+} "proc myparray {a pattern} {
+
+upvar 1 \$a array
+if {!\[array exists array\]} {
+error \"\\\"\$a\\\" isn't an array\"
+}
+set maxl 0
+foreach name \[lsort \[array names array \$pattern\]\] {
+if {\[string length \$name\] > \$maxl} {
+set maxl \[string length \$name\]
+}
+}
+set maxl \[expr {\$maxl + \[string length \$a\] + 2}\]
+foreach name \[lsort \[array names array \$pattern\]\] {
+set nameString \[format %s(%s) \$a \$name\]
+puts stdout \[format \"%-*s = %s\" \$maxl \$nameString \$array(\$name)\]
+}
+}"

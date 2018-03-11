@@ -1,0 +1,83 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin term::ansi::code::attr n 0.1]
+[keywords ansi]
+[keywords {attribute control}]
+[keywords {color control}]
+[keywords control]
+[keywords terminal]
+[copyright {2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Terminal control}]
+[titledesc {ANSI attribute sequences}]
+[category  {Terminal control}]
+[require Tcl 8.4]
+[require term::ansi::code       [opt 0.1]]
+[require term::ansi::code::attr [opt 0.1]]
+[description]
+
+This package provides symbolic names for the ANSI attribute control
+codes. For each control code a single command is provided which
+returns this code as its result. None of the commands of this package
+write to a channel; that is handled by higher level packages, like
+[package term::ansi::send].
+
+[section API]
+[subsection Introspection]
+
+[list_begin definitions]
+[call [cmd ::term::ansi::code::attr::names]]
+
+This command is for introspection. It returns as its result a list
+containing the names of all attribute commands.
+
+[call [cmd ::term::ansi::code::attr::import] [opt [arg ns]] [opt [arg arg]...]]
+
+This command imports some or all attribute commands into the namespace
+[arg ns]. This is by default the namespace [emph attr]. Note that this
+is relative namespace name, placing the imported command into a child
+of the current namespace. By default all commands are imported, this
+can howver be restricted by listing the names of the wanted commands
+after the namespace argument.
+
+[list_end]
+
+[subsection Attributes]
+[list_begin definitions]
+[call [cmd ::term::ansi::code::attr::fgblack]]     Set text color to [emph Black].
+[call [cmd ::term::ansi::code::attr::fgred]]       Set text color to [emph Red].
+[call [cmd ::term::ansi::code::attr::fggreen]]     Set text color to [emph Green].
+[call [cmd ::term::ansi::code::attr::fgyellow]]    Set text color to [emph Yellow].
+[call [cmd ::term::ansi::code::attr::fgblue]]      Set text color to [emph Blue].
+[call [cmd ::term::ansi::code::attr::fgmagenta]]   Set text color to [emph Magenta].
+[call [cmd ::term::ansi::code::attr::fgcyan]]      Set text color to [emph Cyan].
+[call [cmd ::term::ansi::code::attr::fgwhite]]     Set text color to [emph White].
+[call [cmd ::term::ansi::code::attr::fgdefault]]   Set default text color ([emph Black]).
+[call [cmd ::term::ansi::code::attr::bgblack]]     Set background to [emph Black].
+[call [cmd ::term::ansi::code::attr::bgred]]       Set background to [emph Red].
+[call [cmd ::term::ansi::code::attr::bggreen]]     Set background to [emph Green].
+[call [cmd ::term::ansi::code::attr::bgyellow]]    Set background to [emph Yellow].
+[call [cmd ::term::ansi::code::attr::bgblue]]      Set background to [emph Blue].
+[call [cmd ::term::ansi::code::attr::bgmagenta]]   Set background to [emph Magenta].
+[call [cmd ::term::ansi::code::attr::bgcyan]]      Set background to [emph Cyan].
+[call [cmd ::term::ansi::code::attr::bgwhite]]     Set background to [emph White].
+[call [cmd ::term::ansi::code::attr::bgdefault]]   Set default background (Transparent).
+[call [cmd ::term::ansi::code::attr::bold]]        Bold on.
+[call [cmd ::term::ansi::code::attr::dim]]         Dim on.
+[call [cmd ::term::ansi::code::attr::italic]]      Italics on.
+[call [cmd ::term::ansi::code::attr::underline]]   Underscore on.
+[call [cmd ::term::ansi::code::attr::blink]]       Blink on.
+[call [cmd ::term::ansi::code::attr::revers]]      Reverse on.
+[call [cmd ::term::ansi::code::attr::hidden]]      Hidden on.
+[call [cmd ::term::ansi::code::attr::strike]]      Strike-through on.
+[call [cmd ::term::ansi::code::attr::nobold]]      Bold off.
+[call [cmd ::term::ansi::code::attr::noitalic]]    Italics off.
+[call [cmd ::term::ansi::code::attr::nounderline]] Underscore off.
+[call [cmd ::term::ansi::code::attr::noblink]]     Blink off.
+[call [cmd ::term::ansi::code::attr::norevers]]    Reverse off.
+[call [cmd ::term::ansi::code::attr::nohidden]]    Hidden off.
+[call [cmd ::term::ansi::code::attr::nostrike]]    Strike-through off.
+[call [cmd ::term::ansi::code::attr::reset]]       Reset all attributes to their default values.
+[list_end]
+
+[vset CATEGORY term]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

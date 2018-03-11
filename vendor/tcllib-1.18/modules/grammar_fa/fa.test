@@ -1,0 +1,44 @@
+# -*- tcl -*-
+# fa.test:  tests for the grammar::fa container.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: fa.test,v 1.12 2009/10/27 21:17:23 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+snitErrors
+
+support {
+    useAccel [useTcllibC] struct/sets.tcl struct::set
+    TestAccelInit                         struct::set
+
+    use snit/snit.tcl   snit ; # 1.1 always, even when Tcl 8.5 runs the testsuite.
+    use struct/list.tcl struct::list
+
+    useLocalFile tests/Xsupport
+    useLocal     faop.tcl grammar::fa::op
+}
+testing {
+    useLocalKeep fa.tcl grammar::fa
+}
+
+# -------------------------------------------------------------------------
+
+set class ::grammar::fa
+
+# -------------------------------------------------------------------------
+
+TestAccelDo struct::set setimpl {
+    TestFiles tests/fa_*.test
+}
+
+# -------------------------------------------------------------------------
+TestAccelExit struct::set
+testsuiteCleanup

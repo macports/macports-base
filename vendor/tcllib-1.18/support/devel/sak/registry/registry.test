@@ -1,0 +1,450 @@
+# -*- tcl -*-
+# registry.test:  tests for the registry structure.
+#
+# Copyright (c) 2006 by Andreas Kupries <a.kupries@westend.com>
+# All rights reserved.
+#
+# RCS: @(#) $Id: registry.test,v 1.1 2006/09/06 06:07:09 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 2.2
+
+support {
+    use snit/snit.tcl snit
+    use tie/tie.tcl   tie
+}
+testing {
+    useLocal registry.tcl pregistry
+}
+
+# -------------------------------------------------------------------------
+
+proc dump/ {r {root {}} {rv {}}} {
+    if {$rv != {}} {upvar 1 $rv res} else {set res {}}
+    lappend res $root/
+    foreach a [$r attrs $root] {
+	lappend res [list $root/ :$a [$r get $root $a]]
+    }
+    foreach c [$r keys $root] {
+	dump/ $r $c res
+    }
+    return $res
+}
+
+proc dump {r root} {
+    lappend res $root/
+    foreach a [$r attrs $root] {
+	lappend res [list $root/ :$a [$r get $root $a]]
+    }
+    return $res
+}
+
+# -------------------------------------------------------------------------
+
+test registry-1.0 {base state} {
+    pregistry myreg
+    set res [dump/ myreg]
+    myreg destroy
+    set res
+} /
+
+# -------------------------------------------------------------------------
+# Attribute manipulation, root, in-tree, and leaf
+
+set n 0
+foreach {key prekey structure} {
+    {}              {}              /
+    {sub tree leaf} {}              {/ sub/ {sub tree/} {sub tree leaf/}}
+    {sub tree}      {sub tree leaf} {/ sub/ {sub tree/} {sub tree leaf/}}
+} {
+    test registry-2.$n {structure} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key
+	set res [dump/ myreg]
+	myreg destroy
+	set res
+    } $structure
+
+    test registry-3.1.$n {no attributes, node creation} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key
+	set res [dump myreg $key]
+	myreg destroy
+	set res
+    } [list $key/]
+
+    test registry-3.2.$n {bad node creation} {
+	pregistry myreg
+	catch {myreg set} res
+	myreg destroy
+	set res
+    } {wrong # args: should be "::pregistry::Snit_methodset type selfns win self key args"}
+
+    test registry-3.3.$n {bad node creation} {
+	pregistry myreg
+	catch {myreg set a b c d} res
+	myreg destroy
+	set res
+    } {wrong#args}
+
+    test registry-3.4.$n {bad node creation} {
+	pregistry myreg
+	catch {myreg set a b} res
+	myreg destroy
+	set res
+    } {wrong#args}
+
+    test registry-4.1.$n {set attribute, ok} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	set res [dump myreg $key]
+	myreg destroy
+	set res
+    } [list $key/ [list $key/ :foo bar]]
+
+    test registry-4.2.$n {set attribute, change} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	set res     [myreg get $key foo]
+	myreg set $key foo bold
+	lappend res [myreg get $key foo]
+	myreg destroy
+	set res
+    } {bar bold}
+
+    test registry-5.1.$n {get attribute, ok} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	set res [myreg get $key foo]
+	myreg destroy
+	set res
+    } bar
+
+    test registry-5.2.$n {get attribute, missing attribute} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	catch {myreg get $key alpha} res
+	myreg destroy
+	set res
+    } "Unknown attribute \"alpha\" in key \"$key\""
+
+    test registry-5.3.$n {get attribute, missing key} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	catch {myreg get TEST x} res
+	myreg destroy
+	set res
+    } {Unknown key "TEST"}
+
+    test registry-5.4.$n {get attribute, wrong#args} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	catch {myreg get} res
+	myreg destroy
+	set res
+    } {wrong # args: should be "::pregistry::Snit_methodget type selfns win self key attr"}
+
+    test registry-5.5.$n {get attribute, wrong#args} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	catch {myreg get x} res
+	myreg destroy
+	set res
+    } {wrong # args: should be "::pregistry::Snit_methodget type selfns win self key attr"}
+
+    test registry-5.6.$n {get attribute, wrong#args} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	catch {myreg get x y z} res
+	myreg destroy
+	set res
+    } {wrong # args: should be "::pregistry::Snit_methodget type selfns win self key attr"}
+
+    test registry-6.1.$n {get||default, ok} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	set res [myreg get||default $key foo DEF]
+	myreg destroy
+	set res
+    } bar
+
+    test registry-6.2.$n {get||default, missing attribute} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	set res [myreg get||default $key alpha DEF]
+	myreg destroy
+	set res
+    } DEF
+
+    test registry-6.3.$n {get||default, missing key} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	set res [myreg get||default TEST x DEF]
+	myreg destroy
+	set res
+    } DEF
+
+    test registry-6.4.$n {get||default, wrong#args} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	catch {myreg get||default} res
+	myreg destroy
+	set res
+    } {wrong # args: should be "::pregistry::Snit_methodget||default type selfns win self key attr default"}
+
+    test registry-6.5.$n {get||default, wrong#args} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	catch {myreg get||default x} res
+	myreg destroy
+	set res
+    } {wrong # args: should be "::pregistry::Snit_methodget||default type selfns win self key attr default"}
+
+    test registry-6.6.$n {get||default, wrong#args} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	catch {myreg get||default x y} res
+	myreg destroy
+	set res
+    } {wrong # args: should be "::pregistry::Snit_methodget||default type selfns win self key attr default"}
+
+    test registry-6.7.$n {get||default, wrong#args} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	catch {myreg get||default x y z a} res
+	myreg destroy
+	set res
+    } {wrong # args: should be "::pregistry::Snit_methodget||default type selfns win self key attr default"}
+
+    test registry-7.1.$n {attribute matching, total} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo   bar
+	myreg set $key alpha omega
+	set res [lsort [myreg attrs $key]]
+	myreg destroy
+	set res
+    } {alpha foo}
+
+    test registry-7.2.$n {attribute matching, partial} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo   bar
+	myreg set $key alpha omega
+	set res [lsort [myreg attrs $key a*]]
+	myreg destroy
+	set res
+    } alpha
+
+    test registry-7.3.$n {attribute matching, wrong#args} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo   bar
+	catch {myreg attrs} res
+	myreg destroy
+	set res
+    } {wrong # args: should be "::pregistry::Snit_methodattrs type selfns win self key ?pattern?"}
+
+    test registry-7.4.$n {attribute matching, wrong#args} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo   bar
+	catch {myreg attrs x y z} res
+	myreg destroy
+	set res
+    } {wrong # args: should be "::pregistry::Snit_methodattrs type selfns win self key ?pattern?"}
+
+    test registry-8.1.$n {attribute existence, ok} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo   bar
+	set res [myreg exists $key foo]
+	myreg destroy
+	set res
+    } 1
+
+    test registry-8.2.$n {attribute existence, missing} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo   bar
+	set res [myreg exists $key alpha]
+	myreg destroy
+	set res
+    } 0
+
+    test registry-8.3.$n {attribute existence, wrong#args} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	catch {myreg exists} res
+	myreg destroy
+	set res
+    } {wrong # args: should be "::pregistry::Snit_methodexists type selfns win self key args"}
+
+    test registry-8.4.$n {attribute existence, wrong#args} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	catch {myreg exists x y z} res
+	myreg destroy
+	set res
+    } {wrong#args}
+
+    test registry-9.1.$n {key existence, ok} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	set res [myreg exists $key]
+	myreg destroy
+	set res
+    } 1
+
+    test registry-9.2.$n {key existence, missing} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo bar
+	set res [myreg exists alpha]
+	myreg destroy
+	set res
+    } 0
+
+    # key existence, wrong args, see attribute existence
+
+    test registry-10.1.$n {key matching, total} {
+	pregistry myreg
+	myreg set $key
+	myreg set [linsert $key end alpha]
+	myreg set [linsert $key end omega]
+	set res [lsort [myreg keys $key]]
+	myreg destroy
+	set res
+    } [list [linsert $key end alpha] [linsert $key end omega]]
+
+    test registry-10.2.$n {key matching, partial} {
+	pregistry myreg
+	myreg set $key
+	myreg set [linsert $key end alpha]
+	myreg set [linsert $key end omega]
+	set res [lsort [myreg keys $key a*]]
+	myreg destroy
+	set res
+    } [list [linsert $key end alpha]]
+
+    test registry-10.3.$n {key matching, wrong#args} {
+	pregistry myreg
+	myreg set $key
+	catch {myreg keys} res
+	myreg destroy
+	set res
+    } {wrong # args: should be "::pregistry::Snit_methodkeys type selfns win self key ?pattern?"}
+
+    test registry-10.4.$n {key matching, wrong#args} {
+	pregistry myreg
+	myreg set $key
+	catch {myreg keys x y z} res
+	myreg destroy
+	set res
+    } {wrong # args: should be "::pregistry::Snit_methodkeys type selfns win self key ?pattern?"}
+
+    test registry-11.1.$n {attribute deletion, ok} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo   bar
+	myreg set $key alpha omega
+	myreg delete $key foo
+	set res [dump myreg $key]
+	myreg destroy
+	set res
+    } [list $key/ [list $key/ :alpha omega]]
+
+    test registry-11.2.$n {attribute deletion, missing} {
+	pregistry myreg
+	myreg set $prekey
+	myreg set $key foo   bar
+	myreg set $key alpha omega
+	set code [catch {myreg delete $key fox} res]
+	myreg destroy
+	list $code $res
+    } {0 {}}
+
+    incr n
+}
+
+set n 0
+foreach {par key structure} {
+    {foo fox fool} {foo fox fool bar soom}
+    {{/ foo/ {foo fox/} {foo fox fool/} {foo fox fool bar/} {foo fox fool bar soom/} {{foo fox fool bar soom/} :foo bar}} {/ foo/ {foo fox/}}}
+
+    foo foo
+    {{/ foo/ {foo/ :foo bar}} /}
+} {
+    test registry-12.1.$n {deletion} {
+	set res {}
+	pregistry myreg
+	myreg set $par
+	myreg set $key foo bar
+	lappend res [dump/ myreg]
+	myreg delete $par
+	lappend res [dump/ myreg]
+	myreg destroy
+	set res
+    } $structure
+
+    test registry-12.2.$n {deletion of non-existing key} {
+	pregistry myreg
+	myreg set $par
+	catch {myreg delete FOO} res
+	myreg destroy
+	set res
+    } {}
+
+    incr n
+}
+
+test registry-13.1 {deletion of root} {
+    pregistry myreg
+    catch {myreg delete {}} res
+    myreg destroy
+    set res
+} {cannot delete root}
+
+test registry-13.2 {wrong#args} {
+    pregistry myreg
+    catch {myreg delete} res
+    myreg destroy
+    set res
+} {wrong # args: should be "::pregistry::Snit_methoddelete type selfns win self key args"}
+
+test registry-13.3 {wrong#args} {
+    pregistry myreg
+    catch {myreg delete a b c} res
+    myreg destroy
+    set res
+} {wrong#args}
+
+# -------------------------------------------------------------------------
+
+::tcltest::cleanupTests

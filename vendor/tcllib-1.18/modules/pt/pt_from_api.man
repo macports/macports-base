@@ -1,0 +1,203 @@
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt_import_api i 1]
+[include include/module.inc]
+[titledesc {Parser Tools Import API}]
+[description]
+[include include/ref_intro.inc]
+
+This document describes two APIs. First the API shared by all packages
+for the conversion of some other format into Parsing Expression
+Grammars , and then the API shared by the packages which implement the
+import plugins sitting on top of the conversion packages.
+
+[para]
+
+Its intended audience are people who wish to create their own
+converter for some type of input, and/or an import plugin for their or
+some other converter.
+
+[para]
+
+It resides in the Import section of the Core Layer of Parser Tools.
+[para][image arch_core_import][para]
+
+[section {Converter API}]
+
+Any (grammar) import converter has to follow the rules set out below:
+
+[list_begin enumerated][comment {-- converter rules --}]
+
+[enum]	A converter is a package. Its name is arbitrary, however it is
+	recommended to put it under the [namespace ::pt::peg::from]
+	namespace.
+
+[enum]	The package provides either a single Tcl command following the
+	API outlined below, or a class command whose instances follow
+	the same API. The commands which follow the API are called
+	[term {converter commands}].
+
+[enum]	A converter command has to provide the following single method
+	with the given signature and semantic. Converter commands
+	are allowed to provide more methods of their own, but not
+	less, and they may not provide different semantics for the
+	standardized method.
+
+[list_begin definitions][comment {-- api command signatures --}]
+
+[call [cmd CONVERTER] [method convert] [arg text]]
+
+This method has to accept some [arg text], a parsing expression
+grammar in some format.
+
+The result of the method has to be the canonical serialization of a
+parsing expression grammar, as specified in section
+[sectref {PEG serialization format}], the result of reading and
+converting the input text.
+
+[list_end][comment {-- api command signatures --}]
+[list_end][comment {-- converter rules --}]
+
+[section {Plugin API}]
+
+Any (grammar) import plugin has to follow the rules set out below:
+
+[list_begin enumerated][comment {-- plugin rules --}]
+
+[enum]	A plugin is a package.
+
+[enum]	The name of a plugin package has the form
+
+		pt::peg::import::[var FOO],
+
+	where [var FOO] is the name of the format the plugin will
+	accept input for.
+
+[enum]	The plugin can expect that the package
+	[package pt::peg::import::plugin] is present, as
+	indicator that it was invoked from a genuine plugin manager.
+
+	[para]
+
+	It is recommended that a plugin does check for the presence of
+	this package.
+
+[enum]	The plugin can expect that a command named [cmd IncludeFile]
+	is present, with the signature
+
+[list_begin definitions]
+[call [cmd IncludeFile] [arg currentfile] [arg path]]
+
+This command has to be invoked by the plugin when it has to process an
+included file, if the format has the concept of such.
+
+[para]
+The plugin has to supply the following arguments
+
+[list_begin arguments]
+[arg_def string currentfile]
+The path of the file it is currently processing. This may be the empty
+string if no such is known.
+
+[arg_def string path]
+The path of the include file as specified in the include directive
+being processed.
+
+[list_end]
+
+The result of the command will be a 5-element list containing
+
+[list_begin enum]
+
+[enum] A boolean flag indicating the success ([const True]) or failure
+       ([const False]) of the operation.
+
+[enum] In case of success the contents of the included file, and the
+       empty string otherwise.
+
+[enum] The resolved, i.e. absolute path of the included file, if
+       possible, or the unchanged [arg path] argument. This is for
+       display in an error message, or as the [arg currentfile]
+       argument of another call to [cmd IncludeFile] should this file
+       contain more files.
+
+[enum] In case of success an empty string, and for failure a code
+       indicating the reason for it, one of
+
+[list_begin definitions]
+[def notfound] The specified file could not be found.
+[def notread]  The specified file was found, but not be read into memory.
+[list_end][comment {-- include error codes --}]
+
+[enum] An empty string in case of success of a [const notfound]
+       failure, and an additional error message describing the reason
+       for a [const notread] error in more detail.
+
+[list_end][comment {-- result list elements --}]
+[list_end][comment {-- include-file signature --}]
+
+[enum]	A plugin has to provide a single command, in the global
+	namespace, with the signature shown below. Plugins are allowed
+	to provide more commands of their own, but not less, and they
+	may not provide different semantics for the standardized
+	command.
+
+[list_begin definitions][comment {-- api command signatures --}]
+
+[call [cmd ::import] [arg text]]
+
+This command has to accept the a text containing a parsing expression
+grammar in some format. The result of the command has to be the result
+of the converter invoked by the plugin for the input grammar, the
+canonical serialization of the parsing expression grammar contained in
+the input.
+
+[list_begin arguments][comment {-- arguments --}]
+
+[arg_def string text]
+
+This argument will contain the parsing expression grammar for which to
+generate the serialization.
+
+The specification of what a [term canonical] serialization is can be
+found in the section [sectref {PEG serialization format}].
+
+[list_end][comment {-- arguments --}]
+[list_end][comment {-- api command signatures --}]
+
+[enum]	A single usage cycle of a plugin consists of an invokation of
+	the command [cmd import]. This call has to leave the plugin in
+	a state where another usage cycle can be run without problems.
+
+[list_end][comment {-- plugin rules --}]
+
+[section Usage]
+
+To use a converter do
+
+[example {
+    # Get the converter (single command here, not class)
+    package require the-converter-package
+
+    # Perform the conversion
+    set serial [theconverter convert $thegrammartext]
+
+    ... process the result ...
+}]
+
+To use a plugin [var FOO] do
+
+[example {
+    # Get an import plugin manager
+    package require pt::peg::import
+    pt::peg::import I
+
+    # Run the plugin, and the converter inside.
+    set serial [I import serial $thegrammartext FOO]
+
+    ... process the result ...
+}]
+
+[include include/serial/pegrammar.inc]
+[include include/serial/pexpression.inc]
+[include include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,50 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcl::transform::identity n 1]
+[keywords {channel transformation}]
+[keywords identity]
+[keywords {reflected channel}]
+[keywords {tip 230}]
+[keywords transformation]
+[keywords {virtual channel}]
+[copyright {2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Reflected/virtual channel support}]
+[category  Channels]
+[titledesc {Identity transformation}]
+[require Tcl 8.6]
+[require tcl::transform::core [opt 1]]
+[require tcl::transform::identity [opt 1]]
+[description]
+[para]
+
+The [package tcl::transform::identity] package provides a command
+creating an identity channel transformation, which does nothing but
+pass the read and written bytes through it unchanged. Not really
+useful in an application, however as the prototypical observer
+transformation its code is a useful starting point for any other
+observers people may wish to write.
+
+[para] The transformations in this module which derived from
+identity's code are
+[package tcl::transform::adler32],
+[package tcl::transform::counter],
+[package tcl::transform::crc32], and
+[package tcl::transform::observe].
+
+[para] The internal [package TclOO] class implementing the transform
+handler is a sub-class of the [package tcl::transform::core]
+framework.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::tcl::transform::identity] [arg chan]]
+
+This command creates an identity transformation on top of the channel
+[arg chan] and returns its handle.
+
+[list_end]
+
+[vset CATEGORY virtchannel]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

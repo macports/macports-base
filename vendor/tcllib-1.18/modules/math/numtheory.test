@@ -1,0 +1,208 @@
+## 
+## This is the file `numtheory.test',
+## generated with the SAK utility
+## (sak docstrip/regen).
+## 
+## The original source files were:
+## 
+## numtheory.dtx  (with options: `test')
+## 
+## In other words:
+## **************************************
+## * This Source is not the True Source *
+## **************************************
+## the true source is the file from which this one was generated.
+##
+source [file join\
+  [file dirname [file dirname [file join [pwd] [info script]]]]\
+  devtools testutilities.tcl]
+testsNeedTcl     8.5
+testsNeedTcltest 2
+testing {useLocal numtheory.tcl math::numtheory}
+test prime_trialdivision-1 "Trial division of 1" -body {
+   ::math::numtheory::prime_trialdivision 1
+} -returnCodes 2 -result 0
+test prime_trialdivision-2 "Trial division of 2" -body {
+   ::math::numtheory::prime_trialdivision 2
+} -returnCodes 2 -result 1
+test prime_trialdivision-3 "Trial division of 6" -body {
+   ::math::numtheory::prime_trialdivision 6
+} -returnCodes 2 -result 0
+test prime_trialdivision-4 "Trial division of 7" -body {
+   ::math::numtheory::prime_trialdivision 7
+} -returnCodes 2 -result 1
+test prime_trialdivision-5 "Trial division of 101" -body {
+   ::math::numtheory::prime_trialdivision 101
+} -returnCodes 2 -result 1
+test prime_trialdivision-6 "Trial division of 105" -body {
+   ::math::numtheory::prime_trialdivision 105
+} -returnCodes 2 -result 0
+test prime_trialdivision-7 "Trial division of 121" -body {
+   ::math::numtheory::prime_trialdivision 121
+} -returnCodes 0 -result ""
+test prime_trialdivision-8 "Trial division of 127" -body {
+   ::math::numtheory::prime_trialdivision 127
+} -returnCodes 0 -result ""
+test Miller--Rabin-1.1 "Miller--Rabin 3" -body {
+   list [::math::numtheory::Miller--Rabin 3 1 1 1]\
+     [::math::numtheory::Miller--Rabin 3 1 1 2]
+} -result {0 0}
+test Miller--Rabin-1.2 "Miller--Rabin 11" -body {
+   list [::math::numtheory::Miller--Rabin 11 1 5 1]\
+     [::math::numtheory::Miller--Rabin 11 1 5 2]\
+     [::math::numtheory::Miller--Rabin 11 1 5 4]
+} -result {0 0 0}
+test Miller--Rabin-1.3 "Miller--Rabin 27" -body {
+   list [::math::numtheory::Miller--Rabin 27 1 13 1]\
+     [::math::numtheory::Miller--Rabin 27 1 13 2]\
+     [::math::numtheory::Miller--Rabin 27 1 13 3]\
+     [::math::numtheory::Miller--Rabin 27 1 13 4]\
+     [::math::numtheory::Miller--Rabin 27 1 13 8]\
+     [::math::numtheory::Miller--Rabin 27 1 13 26]
+} -result {0 1 1 1 1 0}
+test Miller--Rabin-1.4 "Miller--Rabin 65" -body {
+   list [::math::numtheory::Miller--Rabin 65 6 1 1]\
+     [::math::numtheory::Miller--Rabin 65 6 1 64]\
+     [::math::numtheory::Miller--Rabin 65 6 1 14]\
+     [::math::numtheory::Miller--Rabin 65 6 1 8]\
+     [::math::numtheory::Miller--Rabin 65 6 1 27]\
+     [::math::numtheory::Miller--Rabin 65 6 1 2]
+} -result {0 0 1 0 1 1}
+test Miller--Rabin-1.5 "Miller--Rabin 17*257" -body {
+   list [::math::numtheory::Miller--Rabin 4369 4 273 1]\
+     [::math::numtheory::Miller--Rabin 4369 4 273 4368]\
+     [::math::numtheory::Miller--Rabin 4369 4 273 4113]\
+     [::math::numtheory::Miller--Rabin 4369 4 273 1815]\
+     [::math::numtheory::Miller--Rabin 4369 4 273 273]\
+     [::math::numtheory::Miller--Rabin 4369 4 273 2831]\
+     [::math::numtheory::Miller--Rabin 4369 4 273 1029]\
+     [::math::numtheory::Miller--Rabin 4369 4 273 2315]\
+     [::math::numtheory::Miller--Rabin 4369 4 273 258]
+} -result {0 0 1 0 1 0 1 0 1}
+test Miller--Rabin-2.1 "Miller--Rabin 1373653" -body {
+   list\
+     [::math::numtheory::Miller--Rabin 1373653 2 343413 2]\
+     [::math::numtheory::Miller--Rabin 1373653 2 343413 3]\
+     [::math::numtheory::Miller--Rabin 1373653 2 343413 5]
+} -result {0 0 1}
+test Miller--Rabin-2.2 "Miller--Rabin 25326001" -body {
+   list\
+     [::math::numtheory::Miller--Rabin 25326001 4 1582875 2]\
+     [::math::numtheory::Miller--Rabin 25326001 4 1582875 3]\
+     [::math::numtheory::Miller--Rabin 25326001 4 1582875 5]\
+     [::math::numtheory::Miller--Rabin 25326001 4 1582875 7]
+} -result {0 0 0 1}
+test Miller--Rabin-2.3 "Miller--Rabin 3215031751" -body {
+   list\
+     [::math::numtheory::Miller--Rabin 3215031751 1 1607515875 2]\
+     [::math::numtheory::Miller--Rabin 3215031751 1 1607515875 3]\
+     [::math::numtheory::Miller--Rabin 3215031751 1 1607515875 5]\
+     [::math::numtheory::Miller--Rabin 3215031751 1 1607515875 7]\
+     [::math::numtheory::Miller--Rabin 3215031751 1 1607515875 11]
+} -result {0 0 0 0 1}
+test Miller--Rabin-2.4 "Miller--Rabin 118670087467" -body {
+   list\
+     [::math::numtheory::Miller--Rabin 118670087467 1 59335043733 2]\
+     [::math::numtheory::Miller--Rabin 118670087467 1 59335043733 3]\
+     [::math::numtheory::Miller--Rabin 118670087467 1 59335043733 5]\
+     [::math::numtheory::Miller--Rabin 118670087467 1 59335043733 7]\
+     [::math::numtheory::Miller--Rabin 118670087467 1 59335043733 11]
+} -result {0 0 0 0 1}
+test isprime-1.1 "1 is not prime" -body {
+   ::math::numtheory::isprime 1
+} -result 0
+test isprime-1.2 "0 is not prime" -body {
+   ::math::numtheory::isprime 0
+} -result 0
+test isprime-1.3 "-2 is not prime" -body {
+   ::math::numtheory::isprime -2
+} -result 0
+test isprime-1.4 "2 is prime" -body {
+   ::math::numtheory::isprime 2
+} -result 1
+test isprime-1.5 "6 is not prime" -body {
+   ::math::numtheory::isprime 6
+} -result 0
+test isprime-1.6 "7 is prime" -body {
+   ::math::numtheory::isprime 7
+} -result 1
+test isprime-1.7 "101 is prime" -body {
+   ::math::numtheory::isprime 101
+} -result 1
+test isprime-1.8 "105 is not prime" -body {
+   ::math::numtheory::isprime 105
+} -result 0
+test isprime-1.9 "121 is not prime" -body {
+   ::math::numtheory::isprime 121
+} -result 0
+test isprime-1.10 "127 is prime" -body {
+   ::math::numtheory::isprime 127
+} -result 1
+test isprime-1.11 "4369 is not prime" -body {
+   ::math::numtheory::isprime 4369
+} -result 0
+test isprime-1.12 "1373653 is not prime" -body {
+   ::math::numtheory::isprime 1373653
+} -result 0
+test isprime-1.13 "25326001 is not prime" -body {
+   ::math::numtheory::isprime 25326001
+} -result 0
+test isprime-1.14 "3215031751 is not prime" -body {
+   ::math::numtheory::isprime 3215031751
+} -result 0
+test isprime-1.15 "118670087467 may appear prime, but isn't" -body {
+   expr srand(1)
+   list\
+     [::math::numtheory::isprime 118670087467 -randommr 0]\
+     [::math::numtheory::isprime 118670087467 -randommr 1]
+} -result {on 0}
+test isprime-1.16 "Jaeschke psi_10" -body {
+   expr srand(1)
+   set p 22754930352733
+   set n [expr {$p * (3*$p-2)}]
+   list\
+     [::math::numtheory::isprime $p -randommr 25]\
+     [::math::numtheory::isprime $n -randommr 0]\
+     [::math::numtheory::isprime $n -randommr 1]
+} -result {on on 0}
+test isprime-1.17 "Jaeschke psi_11" -body {
+   expr srand(1)
+   set p 137716125329053
+   set n [expr {$p * (3*$p-2)}]
+   list\
+     [::math::numtheory::isprime $p -randommr 25]\
+     [::math::numtheory::isprime $n -randommr 0]\
+     [::math::numtheory::isprime $n -randommr 1]\
+     [::math::numtheory::isprime $n -randommr 2]
+} -result {on on on 0}
+test isprime-1.18 "OAKLEY group 1 prime" -body {
+   set digits [join {
+      FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
+      29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
+      EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
+      E485B576 625E7EC6 F44C42E9 A63A3620 FFFFFFFF FFFFFFFF
+   } ""]
+   expr srand(1)
+   list\
+     [::math::numtheory::isprime 0x$digits]\
+     [::math::numtheory::isprime 0x[string reverse $digits]]
+} -result {on 0}
+test isprime-2.0 "PRNG tweak" -setup {
+   namespace eval ::math::numtheory {
+      rename Miller--Rabin _orig_Miller--Rabin
+      proc Miller--Rabin {n s d a} {
+         expr {$a>7 && $a%6!=1 && $a%6!=5}
+      }
+   }
+} -body {
+   ::math::numtheory::isprime 118670087467 -randommr 500
+} -result on -cleanup {
+   namespace eval ::math::numtheory {
+      rename Miller--Rabin ""
+      rename _orig_Miller--Rabin Miller--Rabin
+   }
+}
+testsuiteCleanup
+## 
+## 
+## End of file `numtheory.test'.

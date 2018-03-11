@@ -1,0 +1,9 @@
+snit::type a_pe_grammar {
+    constructor {} {
+        install myg using pt::peg::container ${selfns}::G
+        $myg start {/ {t a} {t b} {t c}}
+    }
+
+    component myg
+    delegate method * to myg
+}

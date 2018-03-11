@@ -26,7 +26,7 @@ namespace eval portutil {
 test filter_sites {
     Filter sites unit test.
 } -setup {
-    global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
+    global os.platform os.major os.arch destpath package.destpath configure.build_arch
     global subport version revision package.flat maintainers description categories
     global supported_archs name porturl portdbpath portpath workpath distname filespath license
     env_init
@@ -46,7 +46,7 @@ test filter_sites {
 test checkarchivefiles {
     Check archive files unit test.
 } -setup {
-    global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
+    global os.platform os.major os.arch destpath package.destpath configure.build_arch
     global subport version revision package.flat maintainers description categories
     global supported_archs name porturl portdbpath portpath workpath distname filespath license
     env_init
@@ -79,7 +79,7 @@ test fetchfiles {
 } -constraints {
     root
 } -setup {
-    global os.platform os.major os.arch epoch destpath package.destpath configure.build_arch
+    global os.platform os.major os.arch destpath package.destpath configure.build_arch
     global subport version revision package.flat maintainers description categories
     global supported_archs name porturl portdbpath portpath workpath distname filespath license
     env_init

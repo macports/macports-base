@@ -1,0 +1,116 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'asn' module.
+# This allow developers to monitor/gauge/track package performance.
+#
+# (c) 2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+# We need at least version 8.2 for the package and thus the
+# benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.4]} {
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+package forget log
+catch {namespace delete ::log}
+source [file join [file dirname [file dirname [info script]]] log log.tcl]
+
+package forget asn
+catch {namespace delete ::asn}
+source [file join [file dirname [info script]] asn.tcl]
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+foreach n {
+    -10 -100 -1000 -10000 -100000 -1000000
+    0
+    10 100 1000 10000 100000 1000000
+} {
+    bench -desc "ASN Integer $n" -body {
+	asn::asnInteger $n
+    }
+
+    bench -desc "ASN Enum $n" -body {
+	asn::asnEnumeration $n
+    }
+
+    bench -desc "ASN Boolean $n" -body {
+	asn::asnBoolean $n
+    }
+}
+
+foreach n {10 100 1000 10000} {
+    bench -desc "ASN OctetString ${n}" -pre {
+	set str [string repeat X $n]
+    } -body {
+	asn::asnOctetString $str
+    } -post {
+	unset str
+    }
+}
+
+for {set n 1; set i 0} {$i < 64} { set n [expr {wide($n)*2}] ; incr i} {
+    bench -desc "ASN asnLength 2^${i}" -body {
+	asn::asnLength $n
+    }
+}
+
+for {set n 0} {$n < 10} { incr n} {
+    bench -desc "ASN encode oid with ${n}+2 components" -pre {
+	set oid [list 1 10]
+	for {set i 0} {$i < $n} {incr i} {
+	    lappend oid $i
+	}
+    } -body {
+	asn::asnObjectIdentifier $oid
+    } -post {
+	unset oid
+    }
+}
+
+for {set n 0} {$n < 10} { incr n} {
+    bench -desc "ASN decode oid with ${n}+2 components" -pre {
+	set oid [list 1 10]
+	for {set i 0} {$i < $n} {incr i} {
+	    lappend oid $i
+	}
+	set oidval [asn::asnObjectIdentifier $oid]
+    } -body {
+	asn::asnGetObjectIdentifier $oidval
+    } -post {
+	unset oid
+	unset oidval
+    }
+}
+
+foreach n {10 100 1000 10000 100000} {
+    bench -desc "ASN asnGetByte ${n}" -pre {
+	set bytes [binary format a* [string repeat X $n]]
+    } -body {
+	::asn::asnGetByte bytes dummy
+    } -post {
+	unset bytes
+	unset dummy
+    }
+}
+
+
+foreach n {10 100 1000 10000 100000} {
+    bench -desc "ASN asnGetBytes ${n} len 5" -pre {
+	set bytes [binary format a* [string repeat X $n]]
+    } -body {
+	::asn::asnGetBytes bytes 5 dummy
+    } -post {
+	unset bytes
+	unset dummy
+    }
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete

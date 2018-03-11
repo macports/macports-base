@@ -1,7 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
-# $Id$
 #
-# Copyright (c) 2007 - 2014 The MacPorts Project
+# Copyright (c) 2007 - 2016 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -202,13 +201,10 @@ proc portlint::lint_main {args} {
             ui_info "OK: Line $lineno has emacs/vim Mode"
             incr topline_number
         }
-        if {($lineno == $topline_number) && ![string match "*\$Id*\$" $line]} {
-            ui_warn "Line $lineno is missing RCS tag (\$Id\$)"
+
+        if {[string match "*\$Id*\$" $line]} {
+            ui_warn "Line $lineno is using obsolete RCS tag (\$Id\$)"
             incr warnings
-        } elseif {($lineno == $topline_number)} {
-            ui_info "OK: Line $lineno has RCS tag (\$Id\$)"
-            set require_blank true
-            set require_after "RCS tag"
         }
         
         # skip the rest for comment lines (not perfectly accurate...)
@@ -231,8 +227,8 @@ proc portlint::lint_main {args} {
             set require_blank true
             set require_after "PortSystem"
         }
-        if {[string match "PortGroup*" $line]} {
-            regexp {PortGroup\s+([A-Za-z0-9_]+)\s+([0-9.]+)} $line -> portgroup portgroupversion
+        if {[string match "*PortGroup*" $line]} {
+            regexp {^\s*PortGroup\s+([A-Za-z0-9_]+)\s+([0-9.]+)} $line -> portgroup portgroupversion
             if {![info exists portgroup]} {
                 ui_error "Line $lineno has unrecognized PortGroup"
                 incr errors
@@ -352,17 +348,17 @@ proc portlint::lint_main {args} {
            lint_required lint_optional replaced_by conflicts
     set portarch [get_canonical_archs]
 
-    if (!$seen_portsystem) {
+    if {!$seen_portsystem} {
         ui_error "Didn't find PortSystem specification"
         incr errors
-    }  elseif {$portsystem != $lint_portsystem} {
+    }  elseif {$portsystem ne $lint_portsystem} {
         ui_error "Unknown PortSystem: $portsystem"
         incr errors
     } else {
         ui_info "OK: Found PortSystem $portsystem"
     }
 
-    if ($seen_portgroup) {
+    if {$seen_portgroup} {
         # Using a PortGroup is optional
         foreach {portgroup portgroupversion} [array get portgroups] {
             if {![file exists [getportresourcepath $porturl "port1.0/group/${portgroup}-${portgroupversion}.tcl"]]} {
@@ -377,7 +373,7 @@ proc portlint::lint_main {args} {
     foreach req_var $lint_required {
 
         if {$req_var eq "master_sites"} {
-            if {${fetch.type} != "standard"} {
+            if {${fetch.type} ne "standard"} {
                 ui_info "OK: $req_var not required for fetch.type ${fetch.type}"
                 continue
             }
@@ -430,15 +426,6 @@ proc portlint::lint_main {args} {
         }
     }
 
-    if {![string is integer -strict $epoch]} {
-        ui_error "Port epoch is not numeric:  $epoch"
-        incr errors
-    }
-    if {![string is integer -strict $revision]} {
-        ui_error "Port revision is not numeric: $revision"
-        incr errors
-    }
-
     set variantnumber 1
     foreach variant $all_variants {
         set variantname [ditem_key $variant name] 
@@ -477,7 +464,7 @@ proc portlint::lint_main {args} {
             foreach vconflict [ditem_key $variant conflicts] {
                 set exists 0
                 foreach v $all_variants {
-                    if {$vconflict == [ditem_key $v name]} {
+                    if {$vconflict eq [ditem_key $v name]} {
                         set exists 1
                         break
                     }
@@ -521,8 +508,7 @@ proc portlint::lint_main {args} {
     foreach depspec $all_depends {
         set dep [lindex [split $depspec :] end]
         if {[catch {set res [mport_lookup $dep]} error]} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            ui_debug $::errorInfo
             continue
         }
         if {$res eq ""} {
@@ -555,8 +541,7 @@ proc portlint::lint_main {args} {
             incr errors
         } else {
             if {[catch {set res [mport_lookup $replaced_by]} error]} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
             }
             if {$res eq ""} {
                 ui_error "replaced_by references unknown port: $replaced_by"
@@ -575,8 +560,7 @@ proc portlint::lint_main {args} {
                 continue
             }
             if {[catch {set res [mport_lookup $cport]} error]} {
-                global errorInfo
-                ui_debug "$errorInfo"
+                ui_debug $::errorInfo
                 continue
             }
             if {$res eq ""} {
@@ -598,20 +582,22 @@ proc portlint::lint_main {args} {
         incr errors
     }
 
-    foreach addr $maintainers {
-        if {$addr == "nomaintainer@macports.org" ||
-                $addr == "openmaintainer@macports.org"} {
-            ui_warn "Using full email address for no/open maintainer"
-            incr warnings
-        } elseif {[regexp "^(.+)@macports.org$" $addr -> localpart]} {
-            ui_warn "Maintainer email address for $localpart includes @macports.org"
-            incr warnings
-        } elseif {$addr == "darwinports@opendarwin.org"} {
-            ui_warn "Using legacy email address for no/open maintainer"
-            incr warnings
-        } elseif {[regexp "^(.+)@(.+)$" $addr -> localpart domain]} {
-            ui_warn "Maintainer email address should be obfuscated as $domain:$localpart"
-            incr warnings
+    foreach maintainer $maintainers {
+        foreach addr $maintainer {
+            if {$addr eq "nomaintainer@macports.org" ||
+                    $addr eq "openmaintainer@macports.org"} {
+                ui_warn "Using full email address for no/open maintainer"
+                incr warnings
+            } elseif {[regexp "^(.+)@macports.org$" $addr -> localpart]} {
+                ui_warn "Maintainer email address for $localpart includes @macports.org"
+                incr warnings
+            } elseif {$addr eq "darwinports@opendarwin.org"} {
+                ui_warn "Using legacy email address for no/open maintainer"
+                incr warnings
+            } elseif {[regexp "^(.+)@(.+)$" $addr -> localpart domain]} {
+                ui_warn "Maintainer email address should be obfuscated as $domain:$localpart"
+                incr warnings
+            }
         }
     }
 
@@ -642,7 +628,7 @@ proc portlint::lint_main {args} {
                         # if the last character of license name is a number or plus sign
                         # then a hyphen is missing
                         set license_end [string index $subtest end]
-                        if {"+" eq $license_end || [string is integer -strict $license_end]} {
+                        if {"+" eq $license_end || [string is digit -strict $license_end]} {
                             ui_error "invalid license '${test}': missing hyphen before version"
                             incr errors
                         }
@@ -670,13 +656,13 @@ proc portlint::lint_main {args} {
     }
 
     # these checks are only valid for ports stored in the regular tree directories
-    if {[info exists category] && $portcatdir != $category} {
+    if {[info exists category] && $portcatdir ne $category} {
         ui_error "Portfile parent directory $portcatdir does not match primary category $category"
         incr errors
     } else {
         ui_info "OK: Portfile parent directory matches primary category"
     }
-    if {$portdir != $name} {
+    if {$portdir ne $name} {
         ui_error "Portfile directory $portdir does not match port name $name"
         incr errors
     } else {
@@ -725,32 +711,6 @@ proc portlint::lint_main {args} {
     ui_debug "Version: $version"
     ui_debug "Revision: $revision"
     ui_debug "Archs: $portarch"
-
-    ###################################################################
-
-    set svn_cmd ""
-    catch {set svn_cmd [findBinary svn]}
-    if {$svn_cmd ne "" && ([file exists $portpath/.svn] || ![catch {exec $svn_cmd info $portpath > /dev/null 2>@1}])} {
-        ui_debug "Checking svn properties"
-        if {[catch {exec $svn_cmd propget svn:keywords $portfile 2>@1} output]} {
-            ui_warn "Unable to check for svn:keywords property: $output"
-        } else {
-            ui_debug "Property svn:keywords is \"$output\", should be \"Id\""
-            if {$output ne "Id"} {
-                ui_error "Missing subversion property on Portfile, please execute: svn ps svn:keywords Id Portfile"
-                incr errors
-            }
-        }
-        if {[catch {exec $svn_cmd propget svn:eol-style $portfile 2>@1} output]} {
-            ui_warn "Unable to check for svn:eol-style property: $output"
-        } else {
-            ui_debug "Property svn:eol-style is \"$output\", should be \"native\""
-            if {$output ne "native"} {
-                ui_error "Missing subversion property on Portfile, please execute: svn ps svn:eol-style native Portfile"
-                incr errors
-            }
-        }
-    }
 
     ###################################################################
 

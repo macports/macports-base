@@ -1,7 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
-# $Id$
 #
-# Copyright (c) 2004 - 2014 The MacPorts Project
+# Copyright (c) 2004 - 2014, 2016 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
@@ -69,7 +68,7 @@ default fetch.type standard
 default bzr.cmd {[findBinary bzr $portutil::autoconf::bzr_path]}
 default bzr.dir {${workpath}}
 default bzr.revision {-1}
-default bzr.pre_args {"--builtin --no-aliases checkout --lightweight"}
+default bzr.pre_args {"--builtin --no-aliases checkout --lightweight --verbose"}
 default bzr.args ""
 default bzr.post_args {"-r ${bzr.revision} ${bzr.url} ${worksrcdir}"}
 
@@ -94,7 +93,7 @@ default svn.pre_args {"--non-interactive --trust-server-cert"}
 default svn.args ""
 default svn.post_args ""
 
-default git.cmd {[findBinary git $portutil::autoconf::git_path]}
+default git.cmd {[portfetch::find_git_path]}
 default git.dir {${workpath}}
 default git.branch {}
 default git.file {${distname}.${fetch.type}.tar.xz}
@@ -119,7 +118,6 @@ default fetch.ignore_sslcert "no"
 # Use remote timestamps
 default fetch.remote_time "no"
 
-default fallback_mirror_site "macports"
 default global_mirror_site "macports_distfiles"
 default mirror_sites.listfile {"mirror_sites.tcl"}
 default mirror_sites.listpath {"port1.0/fetch"}
@@ -186,14 +184,20 @@ proc portfetch::set_fetch_type {option action args} {
                 depends_fetch-append bin:cvs:cvs
             }
             svn {
-                if {${os.major} >= 10 || ${os.platform} ne "darwin"} {
+                # Sierra is the first macOS version whose svn supports modern TLS cipher suites.
+                if {${os.major} >= 16 || ${os.platform} ne "darwin"} {
                     depends_fetch-append bin:svn:subversion
                 } else {
                     depends_fetch-append port:subversion
                 }
             }
             git {
-                depends_fetch-append bin:git:git
+                # Mavericks is the first OS X version whose git supports modern TLS cipher suites.
+                if {${os.major} >= 13 || ${os.platform} ne "darwin"} {
+                    depends_fetch-append bin:git:git
+                } else {
+                    depends_fetch-append port:git
+                }
                 default distname {${name}-${git.branch}}
                 # xz will not be used for non-tarballable fetches,
                 # but we cannot decide this yet, so we just add it anyway
@@ -209,11 +213,21 @@ proc portfetch::set_fetch_type {option action args} {
 
 proc portfetch::find_svn_path {args} {
     global prefix os.platform os.major
-    # Snow Leopard is the first Mac OS X version to include a recent enough svn (1.6.x) to support the --trust-server-cert option.
-    if {${os.major} >= 10 || ${os.platform} ne "darwin"} {
+    # Sierra is the first macOS version whose svn supports modern TLS cipher suites.
+    if {${os.major} >= 16 || ${os.platform} ne "darwin"} {
         return [findBinary svn $portutil::autoconf::svn_path]
     } else {
         return ${prefix}/bin/svn
+    }
+}
+
+proc portfetch::find_git_path {args} {
+    global prefix os.platform os.major
+    # Mavericks is the first OS X version whose git supports modern TLS cipher suites.
+    if {${os.major} >= 13 || ${os.platform} ne "darwin"} {
+        return [findBinary git $portutil::autoconf::git_path]
+    } else {
+        return ${prefix}/bin/git
     }
 }
 
@@ -282,12 +296,17 @@ proc portfetch::get_full_mirror_sites_path {} {
 # Perform the full checksites/checkpatchfiles/checkdistfiles sequence.
 # This method is used by distcheck target.
 proc portfetch::checkfiles {urls} {
-    global global_mirror_site fallback_mirror_site
+    global global_mirror_site ports_fetch_no-mirrors
     upvar $urls fetch_urls
 
-    checksites [list patch_sites [list $global_mirror_site $fallback_mirror_site PATCH_SITE_LOCAL] \
-                master_sites [list $global_mirror_site $fallback_mirror_site MASTER_SITE_LOCAL]] \
-               [get_full_mirror_sites_path]
+    set sites [list patch_sites {} \
+                    master_sites {}]
+    if {![info exists ports_fetch_no-mirrors] || ${ports_fetch_no-mirrors} eq "no"} {
+        set sites [list patch_sites [list $global_mirror_site PATCH_SITE_LOCAL] \
+                        master_sites [list $global_mirror_site MASTER_SITE_LOCAL]]
+    }
+
+    checksites $sites [get_full_mirror_sites_path]
     checkpatchfiles fetch_urls
     checkdistfiles fetch_urls
 }
@@ -320,10 +339,10 @@ proc portfetch::bzrfetch {args} {
             return -code error [msgcat::mc "Bazaar checkout failed"]
         }
     } finally {
-        if ([info exists orig_http_proxy]) {
+        if {[info exists orig_http_proxy]} {
             set env(http_proxy) ${orig_http_proxy}
         }
-        if ([info exists orig_https_proxy]) {
+        if {[info exists orig_https_proxy]} {
             set env(HTTPS_PROXY) ${orig_https_proxy}
         }
     }
@@ -339,7 +358,7 @@ proc portfetch::cvsfetch {args} {
            patch_sites filespath
 
     set cvs.args "${cvs.method} ${cvs.args}"
-    if {${cvs.method} == "export" && ![string length ${cvs.tag}] && ![string length ${cvs.date}]} {
+    if {${cvs.method} eq "export" && ![string length ${cvs.tag}] && ![string length ${cvs.date}]} {
         set cvs.tag "HEAD"
     }
     if {[string length ${cvs.tag}]} {
@@ -467,7 +486,7 @@ proc portfetch::gitfetch {args} {
         return 0
     }
 
-    set options ""
+    set options "--progress"
     if {${git.branch} eq ""} {
         # If we're just using HEAD, we can make a shallow repo. In other cases,
         # it might cause a failure for some repos if the requested sha1 is not
@@ -584,7 +603,7 @@ proc portfetch::hgfetch {args} {
 proc portfetch::fetchfiles {args} {
     global distpath all_dist_files UI_PREFIX \
            fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time \
-           fallback_mirror_site portverbose usealtworkpath altprefix
+           portverbose
     variable fetch_urls
     variable urlmap
 
@@ -593,13 +612,13 @@ proc portfetch::fetchfiles {args} {
         lappend fetch_options -u
         lappend fetch_options "${fetch.user}:${fetch.password}"
     }
-    if {${fetch.use_epsv} != "yes"} {
+    if {${fetch.use_epsv} ne "yes"} {
         lappend fetch_options "--disable-epsv"
     }
-    if {${fetch.ignore_sslcert} != "no"} {
+    if {${fetch.ignore_sslcert} ne "no"} {
         lappend fetch_options "--ignore-ssl-cert"
     }
-    if {${fetch.remote_time} != "no"} {
+    if {${fetch.remote_time} ne "no"} {
         lappend fetch_options "--remote-time"
     }
     if {$portverbose eq "yes"} {
@@ -617,16 +636,8 @@ proc portfetch::fetchfiles {args} {
             if {![file writable $distpath]} {
                 return -code error [format [msgcat::mc "%s must be writable"] $distpath]
             }
-            if {!$usealtworkpath && [file isfile ${altprefix}${distpath}/${distfile}]} {
-                if {[catch {file link -hard "${distpath}/${distfile}" "${altprefix}${distpath}/${distfile}"}]} {
-                    ui_debug "failed to hardlink ${distfile} into distpath, copying instead"
-                    file copy "${altprefix}${distpath}/${distfile}" "${distpath}/${distfile}"
-                }
-                ui_info "Found $distfile in ${altprefix}${distpath}"
-                continue
-            }
             if {!$sorted} {
-                sortsites fetch_urls [mirror_sites $fallback_mirror_site {} {} [get_full_mirror_sites_path]] master_sites
+                sortsites fetch_urls master_sites
                 set sorted yes
             }
             if {![info exists urlmap($url_var)]} {
@@ -754,7 +765,7 @@ proc portfetch::fetch_main {args} {
     global all_dist_files fetch.type patchfiles
 
     # Check for files, download if necessary
-    if {![info exists all_dist_files] && "${fetch.type}" == "standard"} {
+    if {![info exists all_dist_files] && "${fetch.type}" eq "standard"} {
         return 0
     }
 

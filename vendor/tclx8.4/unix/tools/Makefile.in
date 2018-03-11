@@ -1,0 +1,63 @@
+#
+# unix/tools/Makefile.in  --
+#
+# Makefile for building tools used during build and install process.  Nothing
+# here is actually installed on the system.
+#------------------------------------------------------------------------------
+# Copyright 1992-1999 Karl Lehenbauer and Mark Diekhans.
+#
+# Permission to use, copy, modify, and distribute this software and its
+# documentation for any purpose and without fee is hereby granted, provided
+# that the above copyright notice appear in all copies.  Karl Lehenbauer and
+# Mark Diekhans make no representations about the suitability of this
+# software for any purpose.  It is provided "as is" without express or
+# implied warranty.
+#------------------------------------------------------------------------------
+# $Id: Makefile.in,v 8.4 1999/07/07 02:47:15 wart Exp $
+#------------------------------------------------------------------------------
+#
+
+#------------------------------------------------------------------------------
+# Common and user-editable defines.
+#
+srcdir = @srcdir@
+@MAKEINCLUDE@ @MAKEQUOTE@@bldbasedir@/unix/Common.mk@MAKEQUOTE@
+
+#------------------------------------------------------------------------------
+
+all: instcopy bldmanhelp cpmanpages cphelpdir
+
+instcopy: ${srcdir}/instcopy.tcl ${srcdir}/buildutil.tcl
+	rm -f instcopy
+	cat ${srcdir}/buildutil.tcl ${srcdir}/instcopy.tcl >instcopy
+
+bldmanhelp: ${srcdir}/bldmanhelp.tcl
+	rm -f bldmanhelp
+	cp ${srcdir}/bldmanhelp.tcl bldmanhelp
+
+cpmanpages: ${srcdir}/cpmanpages.tcl ${srcdir}/buildutil.tcl
+	rm -f cpmanpages
+	cat ${srcdir}/buildutil.tcl ${srcdir}/cpmanpages.tcl >cpmanpages
+
+cphelpdir: ${srcdir}/cphelpdir.sh
+	rm -f cphelpdir
+	echo ":"                           >cphelpdir
+	echo "TOOLS=${bldbasedir}/tools"  >>cphelpdir
+	cat ${srcdir}/cphelpdir.sh        >>cphelpdir
+	chmod a+x cphelpdir
+
+#------------------------------------------------------------------------------
+
+clean:
+	-rm -f instcopy bldmanhelp cpmanpages cphelpdir
+
+#------------------------------------------------------------------------------
+# Restore to the distributed state.
+
+distclean: clean
+	rm -f Makefile
+
+# Disable Sun's parallel make, it doesn't get the dependencies right.
+.NO_PARALLEL:
+
+

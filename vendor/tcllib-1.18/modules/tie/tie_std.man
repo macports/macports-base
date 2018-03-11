@@ -1,0 +1,35 @@
+[manpage_begin tie n 1.1]
+[keywords array]
+[keywords database]
+[keywords file]
+[keywords metakit]
+[keywords persistence]
+[keywords tie]
+[keywords untie]
+[copyright {2008-2015 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Tcl Data Structures}]
+[titledesc {Array persistence, standard data sources}]
+[category  {Programming tools}]
+[require Tcl 8.4]
+[require tie::std::log [opt 1.0]]
+[require tie::std::array [opt 1.0]]
+[require tie::std::rarray [opt 1.0.1]]
+[require tie::std::file [opt 1.0.4]]
+[require tie::std::growfile [opt 1.0]]
+[require tie::std::dsource [opt 1.0]]
+[description]
+
+The packages listed as requirements for this document are internal
+packages providing the standard data sources of package [package tie],
+as described in section [term {STANDARD DATA SOURCE TYPES}] of
+[package tie]'s documentation.
+
+[para]
+
+They are automatically loaded and registered by [package tie] when it
+itself is requested, and as such there is no need to request them on
+their own, although it is possible to do so.
+
+[vset CATEGORY tie]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,11 @@
+a
+b
+c
+[foo bar {a b} \n]
+[fox [bar]]
+[dog \
+	wags "tail\t\
+  ."]
+e
+f
+g

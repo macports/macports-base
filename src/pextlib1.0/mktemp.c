@@ -1,6 +1,5 @@
 /*
  * mktemp.c
- * $Id$
  *
  * Copyright (c) 2009 The MacPorts Project
  * All rights reserved.
@@ -34,12 +33,13 @@
 #include <config.h>
 #endif
 
+#ifndef __APPLE__
 /* required for strdup(3)/mkdtemp(3) on Linux */
+/* hides mkdtemp(3) on OS X */
 #define _XOPEN_SOURCE 700L
 /* required for mktemp(3) if _XOPEN_SOURCE >= 600L on Linux */
 #define _BSD_SOURCE
-/* required for mkdtemp(3) on OS X */
-#define _DARWIN_C_SOURCE
+#endif
 
 #include <errno.h>
 #include <stdlib.h>

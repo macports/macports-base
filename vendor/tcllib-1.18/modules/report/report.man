@@ -1,0 +1,476 @@
+[vset VERSION 0.3.2]
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin report n [vset VERSION]]
+[keywords matrix]
+[keywords report]
+[keywords table]
+[copyright {2002-2014 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Matrix reports}]
+[titledesc {Create and manipulate report objects}]
+[category  {Data structures}]
+[require Tcl 8.2]
+[require report [opt [vset VERSION]]]
+[description]
+[para]
+
+This package provides report objects which can be used by the
+formatting methods of matrix objects to generate tabular reports of
+the matrix in various forms. The report objects defined here break
+each report down into three [sectref REGIONS] and ten classes of
+[term lines] (various separator- and data-lines). See the following
+section for more detailed explanations.
+
+[list_begin definitions]
+
+[call [cmd ::report::report] [arg reportName] [arg columns] [opt "[const style] [arg "style arg..."]"]]
+
+Creates a new report object for a report having [arg columns] columns
+with an associated global Tcl command whose name is
+
+[arg reportName]. This command may be used to invoke various
+configuration operations on the report. It has the following general
+form:
+
+[list_begin definitions]
+
+[call [cmd reportName] [arg option] [opt [arg "arg arg ..."]]]
+
+[arg Option] and the [arg arg]s determine the exact behavior of the
+command. See section [sectref {REPORT METHODS}] for more
+explanations. If no [const style] is specified the report will use
+the builtin style [const plain] as its default configuration.
+
+[list_end]
+
+[call [cmd ::report::defstyle] [arg "styleName arguments script"]]
+
+Defines the new style [arg styleName]. See section [sectref STYLES]
+for more information.
+
+[call [cmd ::report::rmstyle] [arg styleName]]
+
+Deletes the style [arg styleName]. Trying to delete an unknown or
+builtin style will result in an error. Beware, this command will not
+check that there are no other styles depending on the deleted
+one. Deleting a style which is still used by another style FOO will
+result in a runtime error when FOO is applied to a newly instantiated
+report.
+
+[call [cmd ::report::stylearguments] [arg styleName]]
+
+This introspection command returns the list of arguments associated
+with the style [arg styleName].
+
+[call [cmd ::report::stylebody] [arg styleName]]
+
+This introspection command returns the script associated with the
+style [arg styleName].
+
+[call [cmd ::report::styles]]
+
+This introspection command returns a list containing the names of all
+styles known to the package at the time of the call. The order of the
+names in the list reflects the order in which the styles were
+created. In other words, the first item is the predefined style
+[const plain], followed by the first style defined by the user, and
+so on.
+
+[list_end]
+
+[section REGIONS]
+[para]
+
+The three regions are the [term {top caption}],
+
+[term {data area}] and [term {bottom caption}]. These are,
+roughly speaking, the title, the values to report and a title at the
+bottom. The size of the caption regions can be specified by the user
+as the number of rows they occupy in the matrix to format. The size of
+the data area is specified implicitly.
+
+[section LINES]
+[para]
+
+[sectref TEMPLATES] are associated with each of the ten line classes,
+defining the formatting for this kind of line. The user is able to
+enable and disable the separator lines at will, but not the data
+lines. Their usage is solely determined by the number of rows
+contained in the three regions. Data lines and all enabled separators
+must have a template associated with them.
+
+[para]
+
+Note that the data-lines in a report and the rows in the matrix the
+report was generated from are [emph not] in a 1:1 relationship if
+any row in the matrix has a height greater than one.
+
+[para]
+
+The different kinds of lines and the codes used by the report methods
+to address them are:
+
+[list_begin definitions]
+
+[def [const top]]
+
+The topmost line of a report. Separates the report from anything which
+came before it. The user can enable the usage of this line at will.
+
+[def [const topdatasep]]
+
+This line is used to separate the data rows in the top caption region,
+if it contains more than one row and the user enabled its usage.
+
+[def [const topcapsep]]
+
+This line is used to separate the top caption and data regions, if the
+top caption is not empty and the user enabled its usage.
+
+[def [const datasep]]
+
+This line is used to separate the data rows in the data region, if it
+contains more than one row and the user enabled its usage.
+
+[def [const botcapsep]]
+
+This line is used to separate the data and bottom caption regions, if
+the bottom caption is not empty and the user enabled its usage.
+
+[def [const botdatasep]]
+
+This line is used to separate the data rows in the bottom caption
+region, if it contains more than one row and the user enabled its
+usage.
+
+[def [const bottom]]
+
+The bottommost line of a report. Separates the report from anything
+which comes after it. The user can enable the usage of this line at
+will.
+
+[def [const topdata]]
+
+This line defines the format of data lines in the top caption region
+of the report.
+
+[def [const data]]
+
+This line defines the format of data lines in the data region of the
+report.
+
+[def [const botdata]]
+
+This line defines the format of data lines in the bottom caption
+region of the report.
+
+[list_end]
+
+[section TEMPLATES]
+[para]
+
+Each template is a list of strings used to format the line it is
+associated with. For a report containing [var n] columns a template
+for a data line has to contain "[var n]+1" items and a template for a
+separator line "2*[var n]+1" items.
+
+[para]
+
+The items in a data template specify the strings used to separate the
+column information. Together with the corresponding items in the
+separator templates they form the vertical lines in the report.
+
+[para]
+
+[emph Note] that the corresponding items in all defined templates
+have to be of equal length. This will be checked by the report
+object. The first item defines the leftmost vertical line and the last
+item defines the rightmost vertical line. The item at index [var k]
+("1",...,"[var n]-2") separates the information in the columns
+
+"[var k]-1" and "[var k]".
+
+[para]
+
+The items in a separator template having an even-numbered index
+("0","2",...)  specify the column separators. The item at index
+"2*[var k]" ("0","2",...,"2*[var n]") corresponds to the items at
+index "[var k]" in the data templates.
+
+[para]
+
+The items in a separator template having an odd-numbered index
+("1","3",...) specify the strings used to form the horizontal lines in
+the separator lines. The item at index "2*[var k]+1"
+("1","3",...,"2*[var n]+1") corresponds to column "[var k]". When
+generating the horizontal lines the items are replicated to be at
+least as long as the size of their column and then cut to the exact
+size.
+
+[section STYLES]
+[para]
+
+Styles are a way for the user of this package to define common
+configurations for report objects and then use them later during the
+actual instantiation of report objects. They are defined as tcl
+scripts which when executed configure the report object into the
+requested configuration.
+
+[para]
+
+The command to define styles is [cmd ::report::defstyle]. Its last
+argument is the tcl [type script] performing the actual
+reconfiguration of the report object to obtain the requested style.
+
+[para]
+
+In this script the names of all previously defined styles are
+available as commands, as are all commands found in a safe interpreter
+and the configuration methods of report objects. The latter implicitly
+operate on the object currently executing the style script. The
+
+[var arguments] declared here are available in the [type script] as
+variables. When calling the command of a previously declared style all
+the arguments expected by it have to be defined in the call.
+
+[section {REPORT METHODS}]
+[para]
+
+The following commands are possible for report objects:
+
+[list_begin definitions]
+
+[call [arg reportName] [method destroy]]
+
+Destroys the report, including its storage space and associated
+command.
+
+[call [arg reportName] [arg templatecode] [method disable]|[method enable]]
+
+Enables or disables the usage of the template addressed by the
+
+[arg templatecode]. Only the codes for separator lines are allowed
+here. It is not possible to enable or disable data lines.
+
+[para]
+
+Enabling a template causes the report to check all used templates for
+inconsistencies in the definition of the vertical lines (See section
+[sectref TEMPLATES]).
+
+[call [arg reportName] [arg templatecode] [method enabled]]
+
+Returns the whether the template addressed by the [arg templatecode]
+is currently enabled or not.
+
+[call [arg reportName] [arg templatecode] [method get]]
+
+Returns the template currently associated with the kind of line
+addressed by the [arg templatecode]. All known templatecodes are
+allowed here.
+
+[call [arg reportName] [arg templatecode] [method set] [arg templatedata]]
+
+Sets the template associated with the kind of line addressed by the
+[arg templatecode] to the new value in [arg templatedata]. See section
+[sectref TEMPLATES] for constraints on the length of templates.
+
+[call [arg reportName] [method tcaption] [opt [arg size]]]
+
+Specifies the [arg size] of the top caption region as the number rows
+it occupies in the matrix to be formatted. Only numbers greater than
+or equal to zero are allowed. If no [arg size] is specified the
+command will return the current size instead.
+
+[para]
+
+Setting the size of the top caption to a value greater than zero
+enables the corresponding data template and causes the report to check
+all used templates for inconsistencies in the definition of the
+vertical lines (See section [sectref TEMPLATES]).
+
+[call [arg reportName] [method bcaption] [arg size]]
+
+Specifies the [arg size] of the bottom caption region as the number
+rows it occupies in the matrix to be formatted. Only numbers greater
+than or equal to zero are allowed. If no [arg size] is specified the
+command will return the current size instead.
+
+[para]
+
+Setting the size of the bottom caption to a value greater than zero
+enables the corresponding data template and causes the report to check
+all used templates for inconsistencies in the definition of the
+vertical lines (See section [sectref TEMPLATES]).
+
+[call [arg reportName] [cmd size] [arg column] [opt "[arg number]|[const dyn]"]]
+
+Specifies the size of the [arg column] in the output. The value
+[const dyn] means that the columnwidth returned by the matrix to be
+formatted for the specified column shall be used. The formatting of
+the column is dynamic. If a fixed [arg number] is used instead of
+[const dyn] it means that the column has a width of that many
+characters (padding excluded). Only numbers greater than zero are
+allowed here.
+
+[para]
+
+If no size specification is given the command will return the current
+size of the [arg column] instead.
+
+[call [arg reportName] [cmd sizes] [opt [arg size-list]]]
+
+This method allows the user to specify the sizes of all columns in one
+call. Its argument is a list containing the sizes to associate with
+the columns. The first item is associated with column 0, the next with
+column 1, and so on.
+
+[para]
+
+If no [arg size-list] is specified the command will return a list
+containing the currently set sizes instead.
+
+[call [arg reportName] [cmd pad] [arg column] [opt "[const left]|[const right]|[const both] [opt [arg padstring]]"]]
+
+This method allows the user to specify padding on the left, right or
+both sides of a [arg column]. If the [arg padstring] is not specified
+it defaults to a single space character. [emph Note]: An alternative
+way of specifying the padding is to use vertical separator strings
+longer than one character in the templates (See section
+[sectref TEMPLATES]).
+
+[para]
+
+If no pad specification is given at all the command will return the
+current state of padding for the column instead. This will be a list
+containing two elements, the first element the left padding, the
+second describing the right padding.
+
+[call [arg reportName] [cmd justify] [arg column] [opt [const left]|[const right]|[const center]]]
+
+Declares how the cell values for a [arg column] are filled into the
+report given the specified size of a column in the report.
+
+[para]
+
+For [const left] and [const right] justification a cell value
+shorter than the width of the column is bound with its named edge to
+the same edge of the column. The other side is filled with spaces. In
+the case of [const center] the spaces are placed to both sides of the
+value and the left number of spaces is at most one higher than the
+right number of spaces.
+
+[para]
+
+For a value longer than the width of the column the value is cut at
+the named edge. This means for [const left] justification that the
+[emph tail] (i.e. the [const right] part) of the value is made
+visible in the output. For [const center] the value is cut at both
+sides to fit into the column and the number of characters cut at the
+left side of the value is at most one less than the number of
+characters cut from the right side.
+
+[para]
+
+If no justification was specified the command will return the current
+justification for the column instead.
+
+[call [arg reportName] [cmd printmatrix] [arg matrix]]
+
+Formats the [arg matrix] according to the configuration of the report
+and returns the resulting string. The matrix has to have the same
+number of columns as the report. The matrix also has to have enough
+rows so that the top and bottom caption regions do not overlap. The
+data region is allowed to be empty.
+
+[call [arg reportName] [cmd printmatrix2channel] [arg "matrix chan"]]
+
+Formats the [arg matrix] according to the configuration of the report
+and writes the result into the channel [arg chan]. The matrix has to
+have the same number of columns as the report. The matrix also has to
+have enough rows so that the top and bottom caption regions do not
+overlap. The data region is allowed to be empty.
+
+[call [arg reportName] [cmd columns]]
+
+Returns the number of columns in the report.
+
+[list_end]
+
+[para]
+
+The methods [method size], [method pad] and [method justify] all take
+a column index as their first argument. This index is allowed to use
+all the forms of an index as accepted by the [cmd lindex] command. The
+allowed range for indices is
+
+	"0,...,[lb][var reportName] columns[rb]-1".
+
+[section EXAMPLES]
+[para]
+
+Our examples define some generally useful report styles.
+
+[para]
+
+A simple table with lines surrounding all information and vertical
+separators, but without internal horizontal separators.
+
+[para]
+
+[example {
+    ::report::defstyle simpletable {} {
+	data	set [split "[string repeat "| "   [columns]]|"]
+	top	set [split "[string repeat "+ - " [columns]]+"]
+	bottom	set [top get]
+	top	enable
+	bottom	enable
+    }
+}]
+
+[para]
+
+An extension of a [cmd simpletable], see above, with a title area.
+
+[para]
+
+[example {
+    ::report::defstyle captionedtable {{n 1}} {
+	simpletable
+	topdata   set [data get]
+	topcapsep set [top get]
+	topcapsep enable
+	tcaption $n
+    }
+}]
+
+[para]
+
+Given the definitions above now an example which actually formats a
+matrix into a tabular report. It assumes that the matrix actually
+contains useful data.
+
+[para]
+
+[example {
+    % ::struct::matrix m
+    % # ... fill m with data, assume 5 columns
+    % ::report::report r 5 style captionedtable 1
+    % r printmatrix m
+    +---+-------------------+-------+-------+--------+
+    |000|VERSIONS:          |2:8.4a3|1:8.4a3|1:8.4a3%|
+    +---+-------------------+-------+-------+--------+
+    |001|CATCH return ok    |7      |13     |53.85   |
+    |002|CATCH return error |68     |91     |74.73   |
+    |003|CATCH no catch used|7      |14     |50.00   |
+    |004|IF if true numeric |12     |33     |36.36   |
+    |005|IF elseif          |15     |47     |31.91   |
+    |   |true numeric       |       |       |        |
+    +---+-------------------+-------+-------+--------+
+    %
+    % # alternate way of doing the above
+    % m format 2string r
+}]
+
+[vset CATEGORY report]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

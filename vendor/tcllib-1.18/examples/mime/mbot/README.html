@@ -1,0 +1,817 @@
+<html><head><title>The README file: The personal.tcl Mailbot</title>
+<meta http-equiv="Expires" content="Wed, 14 Aug 2002 20:43:57 +0000">
+<STYLE type='text/css'>
+    .title { color: #990000; font-size: 22px; line-height: 22px; font-weight: bold; text-align: right;
+             font-family: helvetica, arial, sans-serif }
+    .filename { color: #666666; font-size: 18px; line-height: 28px; font-weight: bold; text-align: right;
+                  font-family: helvetica, arial, sans-serif }
+    p.copyright { color: #000000; font-size: 10px;
+                  font-family: verdana, charcoal, helvetica, arial, sans-serif }
+    p { margin-left: 2em; margin-right: 2em; }
+    li { margin-left: 3em;  }
+    ol { margin-left: 2em; margin-right: 2em; }
+    ul.text { margin-left: 2em; margin-right: 2em; }
+    pre { margin-left: 3em; color: #333333 }
+    ul.toc { color: #000000; line-height: 16px;
+             font-family: verdana, charcoal, helvetica, arial, sans-serif }
+    H3 { color: #333333; font-size: 16px; line-height: 16px; font-family: helvetica, arial, sans-serif }
+    H4 { color: #000000; font-size: 14px; font-family: helvetica, arial, sans-serif }
+    TD.header { color: #ffffff; font-size: 10px; font-family: arial, helvetica, san-serif; valign: top }
+    TD.author-text { color: #000000; font-size: 10px;
+                     font-family: verdana, charcoal, helvetica, arial, sans-serif }
+    TD.author { color: #000000; font-weight: bold; margin-left: 4em; font-size: 10px; font-family: verdana, charcoal, helvetica, arial, sans-serif }
+     A:link { color: #990000; font-weight: bold;
+              font-family: MS Sans Serif, verdana, charcoal, helvetica, arial, sans-serif }
+     A:visited { color: #333333; font-weight: bold;
+                 font-family: MS Sans Serif, verdana, charcoal, helvetica, arial, sans-serif }
+     A:name { color: #333333; font-weight: bold;
+              font-family: MS Sans Serif, verdana, charcoal, helvetica, arial, sans-serif }
+    .link2 { color:#ffffff; font-weight: bold; text-decoration: none;
+             font-family: monaco, charcoal, geneva, MS Sans Serif, helvetica, monotype, verdana, sans-serif;
+             font-size: 9px }
+    .RFC { color:#666666; font-weight: bold; text-decoration: none;
+           font-family: monaco, charcoal, geneva, MS Sans Serif, helvetica, monotype, verdana, sans-serif;
+           font-size: 9px }
+    .hotText { color:#ffffff; font-weight: normal; text-decoration: none;
+               font-family: charcoal, monaco, geneva, MS Sans Serif, helvetica, monotype, verdana, sans-serif;
+               font-size: 9px }
+</style>
+</head>
+<body bgcolor="#ffffff" text="#000000" alink="#000000" vlink="#666666" link="#990000">
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<table width="66%" border="0" cellpadding="0" cellspacing="0"><tr><td><table width="100%" border="0" cellpadding="2" cellspacing="1">
+<tr valign="top"><td width="33%" bgcolor="#666666" class="header">The README file</td><td width="33%" bgcolor="#666666" class="header">M. Rose</td></tr>
+<tr valign="top"><td width="33%" bgcolor="#666666" class="header">&nbsp;</td><td width="33%" bgcolor="#666666" class="header">Dover Beach Consulting, Inc.</td></tr>
+<tr valign="top"><td width="33%" bgcolor="#666666" class="header">&nbsp;</td><td width="33%" bgcolor="#666666" class="header">February 2002</td></tr>
+</table></td></tr></table>
+<div align="right"><font face="monaco, MS Sans Serif" color="#990000" size="+3"><b><br><span class="title">The personal.tcl Mailbot</span></b></font></div>
+<font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<h3>Abstract</h3>
+
+<p>The personal.tcl mailbot implements a highly-specialized
+filter for personal messages.
+It MUST not be used by people who receive mailing list traffic in
+their personal mailboxes.
+</p><a name="toc"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<h3>Table of Contents</h3>
+<ul compact class="toc">
+<b><a href="#anchor1">1.</a>&nbsp;
+SYNOPSIS<br></b>
+<b><a href="#anchor2">1.1</a>&nbsp;
+Requirements<br></b>
+<b><a href="#anchor3">1.2</a>&nbsp;
+Copyrights<br></b>
+<b><a href="#anchor4">2.</a>&nbsp;
+PHILOSOPHY<br></b>
+<b><a href="#anchor5">2.1</a>&nbsp;
+Guest Lists<br></b>
+<b><a href="#anchor6">3.</a>&nbsp;
+BEHAVIOR<br></b>
+<b><a href="#anchor7">3.1</a>&nbsp;
+Arguments<br></b>
+<b><a href="#actions">3.2</a>&nbsp;
+Actions<br></b>
+<b><a href="#configFile">3.3</a>&nbsp;
+The Configuration File<br></b>
+<b><a href="#options">3.3.1</a>&nbsp;
+Configuration Options<br></b>
+<b><a href="#procs">3.3.2</a>&nbsp;
+Configurable Procedures<br></b>
+<b><a href="#rfc.references1">&#167;</a>&nbsp;
+References<br></b>
+<b><a href="#rfc.authors">&#167;</a>&nbsp;
+Author's Address<br></b>
+<b><a href="#impersonal">A.</a>&nbsp;
+Impersonal Mail<br></b>
+<b><a href="#impersonal.options">A.1</a>&nbsp;
+Configuration Options<br></b>
+<b><a href="#options.foldersDirectory">A.1.1</a>&nbsp;
+foldersDirectory<br></b>
+<b><a href="#options.foldersFile">A.1.2</a>&nbsp;
+foldersFile<br></b>
+<b><a href="#options.announceMailboxes">A.1.3</a>&nbsp;
+announceMailboxes<br></b>
+<b><a href="#options.mappingFile">A.1.4</a>&nbsp;
+mappingFile<br></b>
+<b><a href="#impersonal.procs">A.2</a>&nbsp;
+Configurable Procedures<br></b>
+<b><a href="#procs.impersonalMail">A.2.1</a>&nbsp;
+impersonalMail<br></b>
+<b><a href="#procs.processFolder">A.2.2</a>&nbsp;
+processFolder<br></b>
+<b><a href="#anchor8">B.</a>&nbsp;
+An Example configFile<br></b>
+<b><a href="#anchor9">C.</a>&nbsp;
+Acknowledgements<br></b>
+</ul>
+<br clear="all">
+
+<a name="anchor1"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<a name="rfc.section.1"></a><h3>1.&nbsp;SYNOPSIS</h3>
+
+<p>Create a <a href="#configFile">configuration file</a>
+and add this line to your ".forward" file:
+</p></font><pre>
+    "| LIB/mbot-1.1/personal.tcl -config FILE -user USER"
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>where "LIB" is where the Tcl library lives,
+"FILE" is the name of your configuration file,
+and "USER" is your username.
+</p>
+<a name="rfc.section.1.1"></a><h4><a name="anchor2">1.1</a>&nbsp;Requirements</h4>
+
+<p>This package requires:
+
+<ul class="text">
+<li><a href="http://core.tcl.tk/tcl/">Tcl version 8.3</a>
+or later
+</li>
+<li><a href="http://core.tcl.tk/tcllib/">tcl lib</a>
+</li>
+<li><a href="http://sourceforge.net/projects/tclx/">TclX version 8.0</a>
+or later
+</li>
+</ul><p>
+</p>
+<a name="rfc.section.1.2"></a><h4><a name="anchor3">1.2</a>&nbsp;Copyrights</h4>
+
+<p>(c) 1999-2002 Marshall T. Rose
+</p>
+<p>Hold harmless the author, and any lawful use is allowed.
+</p>
+<a name="anchor4"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<a name="rfc.section.2"></a><h3>2.&nbsp;PHILOSOPHY</h3>
+
+<p>The mailbot's philosophy is simple:
+
+<ul class="text">
+<li>The mailbot receives all of your incoming personal mail.
+</li>
+<li>You ALWAYS copy yourself on every message you send,
+so that the mailbot receives all of your outgoing personal mail.
+</li>
+<li>The mailbot performs six tasks, all optional:
+
+<ul class="text">
+<li>makes audit copies of your incoming and outgoing mail;
+</li>
+<li>performs duplicate supression;
+</li>
+<li>performs originator supression by rejecting messages from people
+who aren't your friends or on a guest list;
+</li>
+<li>performs content supression by rejecting messages that contain
+attachments with extensions on your prohibited list;
+</li>
+<li>sends a textual synopsis to your PDA; and,
+</li>
+<li>sends a copy to your remote mailbox.
+</li>
+</ul><p>
+</li>
+</ul><p>
+</p>
+<p>Do NOT use the personal.tcl mailbot if you receive mailing list
+traffic in your personal mailbox.
+When sending mail to a mailing list,
+either:
+
+<ul class="text">
+<li>use a "From" address that the personal.tcl mailbot will process as
+"impersonal" mail,
+(e.g., "hewes+ietf.general@example.com"); or,
+</li>
+<li>set the "Reply-To" for the message to the mailing list.
+</li>
+</ul><p>
+Consult <a href="#impersonal">Impersonal Mail</a> for information on how
+"impersonal" mail is identified and processed.
+</p>
+<a name="rfc.section.2.1"></a><h4><a name="anchor5">2.1</a>&nbsp;Guest Lists</h4>
+
+<p>Guest lists are an effective mechanism for cutting back on
+excessive mail.
+
+<ul class="text">
+<li>when the mailbot receives a message from you,
+it adds any recipients it finds to a permanent-guest list;
+</li>
+<li>when the mailbot receives a message from someone on a guest list,
+it adds any recipients it finds to a temporary-guest list; but,
+</li>
+<li>when the mailbot receives a message from someone not on any guest
+list,
+they get a rejection notice.
+</li>
+</ul><p>
+Note that in order to promote someone to the permanent-guest list,
+you must send them a message (with a copy to yourself).
+In most cases,
+simply replying to the original message accomplishes this.
+Of course,
+if you don't want to promote someone to the permanent-guest list,
+simply remove that address (or your address) from the list of
+recipients in your reply.
+</p>
+<p>Here are the fine points:
+
+<ul class="text">
+<li>rejection notices contain a passphrase that may be used at most
+once to bypass the guest list mechanism
+(notices also contain the original message to minimize type-in
+by the uninvited);
+</li>
+<li>a flip-flop is used to avoid mail loops; and,
+</li>
+<li>messages originated by an administrative address (e.g.,
+"Postmaster") bypass the guest list mechanism
+(unless the message refers to a previously-rejected message,
+in which case it is supressed).
+</li>
+</ul><p>
+</p>
+<p>The rejection notice should be written carefully to minimize an
+extreme negative reaction on the part of the uninvited.
+Of course,
+by allowing a passphrase,
+this provides something of a CQ test for the uninvited --
+if someone can't pass the test...
+</p>
+<a name="anchor6"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<a name="rfc.section.3"></a><h3>3.&nbsp;BEHAVIOR</h3>
+
+<a name="rfc.section.3.1"></a><h4><a name="anchor7">3.1</a>&nbsp;Arguments</h4>
+
+<p>The mailbot supports the following command line arguments:
+
+<blockquote class="text"><dl>
+<dt>   -config configFile:</dt>
+<dd>
+specifies the name of the configuration file to use;
+</dd>
+<dt>   -debug boolean:</dt>
+<dd>
+enables debug output;
+</dd>
+<dt>   -file messageFile:</dt>
+<dd>
+specifies the name of the file containing the message;
+</dd>
+<dt>   -originator orginatorAddress:</dt>
+<dd>
+specifies the email-address of the originator of the message; and,
+</dd>
+<dt>   -user userName:</dt>
+<dd>
+specifies the user-identity of the recipient.
+</dd>
+</dl></blockquote><p>
+Note that if "-user" is given,
+then the working directory is set to userName's home directory before
+configFile is sourced,
+and the umask is set defensively.
+</p>
+<p>The default values are:
+</p></font><pre>
+    personal.tcl -config     .personal-config.tcl   \
+                 -debug      0                      \
+                 -file       -                      \
+                 -originator "derived from message"
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>Given the default values,
+only "-user" need be specified.
+The reason is that if a message is being delivered to multiple local
+recipients,
+and if any of the ".forward" files are identical in content,
+then sendmail may not deliver the message to all of the local
+recipients.
+</p>
+<p>A few other (sendmail related) tips:
+
+<ul class="text">
+<li>If sendmail is configured with smrsh,
+you'll need to symlink personal.tcl into the
+/usr/libexec/sm.bin/ directory.
+</li>
+<li>Make sure that tclsh8.0 is in the path specified on the third-line
+of personal.tcl.
+</li>
+<li>You should chmod your ".forward" file to 0600.
+</li>
+</ul><p>
+</p>
+<a name="rfc.section.3.2"></a><h4><a name="actions">3.2</a>&nbsp;Actions</h4>
+
+<p>The mailbot begins by parsing its arguments,
+sourcing configFile,
+and then examining the incoming message:
+
+<ol class="text">
+<li>If <a href="#options.auditInFile">auditInFile</a> is set,
+a copy of the message is 
+<a href="#procs.saveMessage">saved</a> there.
+</li>
+<li>If the message contains a previously-encountered "Message-ID",
+processing terminates.
+</li>
+<li>If the message's originator can not be determined,
+a copy of the message is
+<a href="#procs.saveMessage">saved</a> in the
+<a href="#options.defaultMaildrop">defaultMaildrop</a> and
+processing terminates.
+</li>
+<li>The originator's email-address is examined:
+
+<ol class="text">
+<li>If the originator appears to be an
+<a href="#procs.adminP">automated administrative process</a>,
+and if a previously rejected email-address is found in the message,
+processing terminates.
+</li>
+<li>Otherwise,
+if the originator isn't <a href="#procs.ownerP">the user</a>,
+or <a href="#procs.friendP">a friend</a>,
+or a permanent-access guest,
+or a temporary-access guest,
+and if <a href="#options.noticeFile">noticeFile</a> is set,
+then the message is rejected.
+</li>
+<li>Otherwise,
+each recipient email-address in the message's header is added to a guest
+list.
+(If the originator is <a href="#procs.ownerP">the user</a>,
+the permanent-guest list is used instead of the temporary-guest
+list.)
+</li>
+</ol><p>
+</li>
+<li>If the originator is the <a href="#procs.ownerP">the user</a>,
+then:
+
+<ol class="text">
+<li>If <a href="#options.auditOutFile">auditOutFile</a> is set,
+<a href="#procs.saveMessage">saved</a> there.
+</li>
+<li>Regardless, processing terminates.
+</li>
+</ol><p>
+</li>
+<li>If <a href="#options.pdaMailboxes">pdaMailboxes</a> is set,
+and if any plaintext is contained in the message,
+then the plaintext is sent to those email-addresses.
+</li>
+<li>If <a href="#options.remoteMailboxes">remoteMailboxes</a> is set,
+and if the message is successful resent to those email-addresses,
+then processing terminates.
+</li>
+<li>A copy of the message is
+<a href="#procs.saveMessage">saved</a> in the
+<a href="#options.defaultMaildrop">defaultMaildrop</a> and
+processing terminates.
+</li>
+</ol><p>
+</p>
+<a name="rfc.section.3.3"></a><h4><a name="configFile">3.3</a>&nbsp;The Configuration File</h4>
+
+<p>There are two kinds of information that may be defined in configFile:
+<a href="#options">configuration options</a> and
+<a href="#procs">configurable procedures</a>.
+</p>
+<p>Here's a simple example of a configFile for a user named
+"example":
+</p></font><pre>
+    set options(dataDirectory)   .personal
+    set options(defaultMaildrop) /var/mail/example
+    set options(logFile)         [file join .personal personal.log]
+    set options(noticeFile)      [file join .personal notice.txt]
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<a name="rfc.section.3.3.1"></a><h4><a name="options">3.3.1</a>&nbsp;Configuration Options</h4>
+
+<p>configFile must define 
+<a href="#options.dataDirectory">dataDirectory</a>
+and
+<a href="#options.defaultMaildrop">defaultMaildrop</a>.
+All other configuration options are optional.
+</p>
+<a name="rfc.section.3.3.1.1"></a><h4><a name="options.dataDirectory">3.3.1.1</a>&nbsp;dataDirectory</h4>
+
+<p>The directory where the mailbot keeps its databases.
+The subdirectories are:
+
+<blockquote class="text"><dl>
+<dt>   badaddrs:</dt>
+<dd>the directory of rejected email-addresses
+</dd>
+<dt>   inaddrs:</dt>
+<dd>the directory of originator email-addresses
+</dd>
+<dt>   msgids:</dt>
+<dd>the directory of Message-IDs
+</dd>
+<dt>   outaddrs:</dt>
+<dd>the permanent-guest list
+</dd>
+<dt>   phrases:</dt>
+<dd>the directory of at-most-once passphrases
+</dd>
+<dt>   tmpaddrs:</dt>
+<dd>the temporary-guest list
+</dd>
+</dl></blockquote><p>
+If you want to remove someone from a guest list,
+simply go to that directory and delete the corresponding file.
+</p>
+<a name="rfc.section.3.3.1.2"></a><h4><a name="options.defaultMaildrop">3.3.1.2</a>&nbsp;defaultMaildrop</h4>
+
+<p>The filename where messages are 
+<a href="#procs.saveMessage">saved</a> for later viewing by
+your user agent.
+</p>
+<a name="rfc.section.3.3.1.3"></a><h4><a name="options.auditInFile">3.3.1.3</a>&nbsp;auditInFile</h4>
+
+<p>The filename where messages are
+<a href="#procs.saveMessage">saved</a> for audit purposes.
+</p>
+<a name="rfc.section.3.3.1.4"></a><h4><a name="options.auditOutFile">3.3.1.4</a>&nbsp;auditOutFile</h4>
+
+<p>The filename where your outgoing messages are
+<a href="#procs.saveMessage">saved</a> for audit purposes.
+</p>
+<a name="rfc.section.3.3.1.5"></a><h4><a name="options.dropNames">3.3.1.5</a>&nbsp;dropNames</h4>
+
+<p>A list of filename extensions for attachments that automatically
+cause the message to be rejected.
+</p>
+<a name="rfc.section.3.3.1.6"></a><h4><a name="options.friendlyDomains">3.3.1.6</a>&nbsp;friendlyDomains</h4>
+
+<p>A list used by <a href="#procs.friendP">friendP</a> giving
+the domain names where your friends live.
+</p>
+<a name="rfc.section.3.3.1.7"></a><h4><a name="options.friendlyfire">3.3.1.7</a>&nbsp;friendlyfire</h4>
+
+<p>If present and true,
+then someone sending a message both to you and someone you've
+previously sent mail to,
+is considered a friend.
+</p>
+<a name="rfc.section.3.3.1.8"></a><h4><a name="options.logFile">3.3.1.8</a>&nbsp;logFile</h4>
+
+<p>The filename where the mailbot
+<a href="#procs.tclLog">logs</a> its actions.
+</p>
+<a name="rfc.section.3.3.1.9"></a><h4><a name="options.myMailbox">3.3.1.9</a>&nbsp;myMailbox</h4>
+
+<p>Your preferred email-address with commentary text, e.g.,
+</p></font><pre>
+    Arlington Hewes &lt;hewes@example.com>
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<a name="rfc.section.3.3.1.10"></a><h4><a name="options.noticeFile">3.3.1.10</a>&nbsp;noticeFile</h4>
+
+<p>The filename containing the textual notice sent when a message is
+rejected.
+Note that all occurrances of "%passPhrase%" within this file are
+replaced with an at-most-once passphrase allowing the originator to
+bypass the mailbot's filtering.
+Similarly,
+any occurrences of "%subject%" are replaced by the "Subject" of the
+incoming message.
+</p>
+<a name="rfc.section.3.3.1.11"></a><h4><a name="options.pdaMailboxes">3.3.1.11</a>&nbsp;pdaMailboxes</h4>
+
+<p>The email-addresses where a textual synopsis of the incoming message is
+sent.
+</p>
+<a name="rfc.section.3.3.1.12"></a><h4><a name="options.remoteMailboxes">3.3.1.12</a>&nbsp;remoteMailboxes</h4>
+
+<p>The email-addresses where a copy of the incoming message is resent.
+</p>
+<a name="rfc.section.3.3.2"></a><h4><a name="procs">3.3.2</a>&nbsp;Configurable Procedures</h4>
+
+<p>All of these procedures are defined in personal.tcl.
+You may override any of them in configFile.
+</p>
+<a name="rfc.section.3.3.2.1"></a><h4><a name="procs.adminP">3.3.2.1</a>&nbsp;adminP</h4>
+</font><pre>
+    proc adminP {local domain}
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>Returns "1" if the email-address is an automated administrative
+process.
+</p>
+<a name="rfc.section.3.3.2.2"></a><h4><a name="procs.friendP">3.3.2.2</a>&nbsp;friendP</h4>
+</font><pre>
+    proc friendP {local domain}
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>Returns "1" if the email-address is from a
+<a href="#options.friendlyDomains">friendly domain</a> or
+sub-domain.
+</p>
+<a name="rfc.section.3.3.2.3"></a><h4><a name="procs.ownerP">3.3.2.3</a>&nbsp;ownerP</h4>
+</font><pre>
+    proc ownerP {local domain}
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>Returns "1" if the email-address refers to the user
+(as determined by looking at
+<a href="#options.myMailbox">myMailbox</a>,
+<a href="#options.pdaMailboxes">pdaMailboxes</a>, and
+<a href="#options.remoteMailboxes">remoteMailboxes</a>.
+</p>
+<a name="rfc.section.3.3.2.4"></a><h4><a name="procs.saveMessage">3.3.2.4</a>&nbsp;saveMessage</h4>
+</font><pre>
+    proc saveMessage {inF {outF ""}}
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>Saves a copy of the message contained in the file inF.
+If the destination file,
+outF,
+isn't specified,
+it defaults to the
+<a href="#options.defaultMaildrop">defaultMaildrop</a>.
+</p>
+<a name="rfc.section.3.3.2.5"></a><h4><a name="procs.findPhrase">3.3.2.5</a>&nbsp;findPhrase</h4>
+</font><pre>
+    proc findPhrase {subject}
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>Returns "1" if a previously-allocated passphrase is present in the
+subject.
+If so,
+the passphrase is forgotten.
+</p>
+<a name="rfc.section.3.3.2.6"></a><h4><a name="procs.makePhrase">3.3.2.6</a>&nbsp;makePhrase</h4>
+</font><pre>
+    proc makePhrase {}
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>Returns an at-most-once passphrase for use with a rejection notice.
+</p>
+<a name="rfc.section.3.3.2.7"></a><h4><a name="procs.pruneDir">3.3.2.7</a>&nbsp;pruneDir</h4>
+</font><pre>
+    proc pruneDir {dir type}
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>Removes old entries from one of the mailbot's 
+<a href="#options.dataDirectory">databases</a>.
+The second parameter is one of "addr", "msgid", or "phrase".
+</p>
+<a name="rfc.section.3.3.2.8"></a><h4><a name="procs.tclLog">3.3.2.8</a>&nbsp;tclLog</h4>
+</font><pre>
+    proc tclLog {message}
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>Writes a message to the <a href="#options.logFile">logFile</a>.
+</p>
+<a name="rfc.references1"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<h3>References</h3>
+<table width="99%" border="0">
+</table>
+
+<a name="rfc.authors"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<h3>Author's Address</h3>
+<table width="99%" border="0" cellpadding="0" cellspacing="0">
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Marshall T. Rose</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Dover Beach Consulting, Inc.</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">POB 255268</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Sacramento, CA  95865-5268</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">US</td></tr>
+<tr><td class="author" align="right">Phone:&nbsp;</td>
+<td class="author-text">+1 916 483 8878</td></tr>
+<tr><td class="author" align="right">Fax:&nbsp;</td>
+<td class="author-text">+1 916 483 8848</td></tr>
+<tr><td class="author" align="right">EMail:&nbsp;</td>
+<td class="author-text"><a href="mailto:mrose@dbc.mtview.ca.us">mrose@dbc.mtview.ca.us</a></td></tr>
+</table>
+
+<a name="impersonal"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<a name="rfc.section.A"></a><h3>Appendix A.&nbsp;Impersonal Mail</h3>
+
+<p>If <a href="#procs.impersonalMail">impersonalMail</a>
+returns a non-empty string
+then the message is processed differently than the algorithm given in
+<a href="#actions">Actions</a>.
+Specifically:
+
+<ol class="text">
+<li>If the message contains a previously-encountered "Message-ID",
+processing terminates.
+</li>
+<li>If the message's originator can not be determined,
+processing terminates.
+</li>
+<li>The value returned by
+<a href="#procs.impersonalMail">impersonalMail</a>
+is the folder's name and is broken into one or more components
+seperated by dots (".").
+If there aren't at least two components,
+or if any of the components are empty
+(e.g., the folder is named "sys..announce"),
+then the message is bounced.
+</li>
+<li>If <a href="#options.mappingFile">mappingFile</a> exists,
+that file is examined to see if an entry is present for the folder.
+If so,
+the message is processed according to the value present,
+one of:
+
+<blockquote class="text"><dl>
+<dt>     "ignore":</dt>
+<dd>the message is silently ignored;
+</dd>
+<dt>     "bounce":</dt>
+<dd>the message is noisily bounced; or,
+</dd>
+<dt>    otherwise:</dt>
+<dd>the message is resent to the address.
+</dd>
+</dl></blockquote><p>
+Regardless,
+if an entry was present for the folder,
+then processing terminates.
+</li>
+<li>The message is <a href="#procs.saveMessage">saved</a> 
+in a file whose name is constructed by replacing each dot (".") in the
+folder name with a directory seperator
+(e.g., if the folder is named "sys.announce",
+then the file is called "announce" underneath the directory "sys"
+underneath the directory identified by
+<a href="#options.foldersDirectory">foldersDirectory</a>.
+</li>
+<li>Finally,
+the file identified by <a href="#options.foldersFile">foldersFile</a>
+is updated as necessary.
+</li>
+</ol><p>
+</p>
+<a name="rfc.section.A.1"></a><h4><a name="impersonal.options">A.1</a>&nbsp;Configuration Options</h4>
+
+<p>If "impersonal" mail is received,
+then <a href="#options.foldersFile">foldersFile</a> and
+<a href="#options.foldersDirectory">foldersDirectory</a> 
+must exist.
+</p>
+<a name="rfc.section.A.1.1"></a><h4><a name="options.foldersDirectory">A.1.1</a>&nbsp;foldersDirectory</h4>
+
+<p>The directory where the mailbot keeps private folders.
+</p>
+<a name="rfc.section.A.1.2"></a><h4><a name="options.foldersFile">A.1.2</a>&nbsp;foldersFile</h4>
+
+<p>This file contains one line for each private folder.
+</p>
+<a name="rfc.section.A.1.3"></a><h4><a name="options.announceMailboxes">A.1.3</a>&nbsp;announceMailboxes</h4>
+
+<p>The email-addresses where an announcement is sent when a new
+private folder is created.
+</p>
+<a name="rfc.section.A.1.4"></a><h4><a name="options.mappingFile">A.1.4</a>&nbsp;mappingFile</h4>
+
+<p>The file consulted by the mailbot to determine how to process
+"impersonal" messages.
+Each line of the file consists of a folder name and value,
+seperated by a colon (":").
+There are three reserved values: "bounce", "ignore", and "store".
+</p>
+<a name="rfc.section.A.2"></a><h4><a name="impersonal.procs">A.2</a>&nbsp;Configurable Procedures</h4>
+
+<p>All of these procedures are defined in personal.tcl.
+You may override any of them in configFile.
+</p>
+<a name="rfc.section.A.2.1"></a><h4><a name="procs.impersonalMail">A.2.1</a>&nbsp;impersonalMail</h4>
+</font><pre>
+    proc impersonalMail {}
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>If the message is deemed "impersonal",
+return the name of a corresponding private folder;
+otherwise,
+return the empty-string.
+</p>
+<p>Many mail systems have a mechanism of passing additional
+information when performing final delivery using a program.
+With modern versions of sendmail,
+for example,
+if mail is sent to a local user named "user+detail",
+then,
+in the absense of an alias for either "user+detail" or "user+*",
+then the message is delivered to "user".
+The trick is to get sendmail to pass the "detail" part to the mailbot.
+</p>
+<p>At present,
+sendmail passes this information only if procmail is your local
+mailer.
+Here's how I do it:
+</p></font><pre>
+    *** _alias.c    Tue Dec 29 10:42:25 1998
+    --- alias.c     Sat Sep 18 21:51:35 1999
+    ***************
+    *** 813,818 ****
+    --- 813,821 ----
+            define('z', user->q_home, e);
+            define('u', user->q_user, e);
+            define('h', user->q_host, e);
+    + 
+    +       setuserenv("SUFFIX", user->q_host);
+    + 
+            if (ForwardPath == NULL)
+                    ForwardPath = newstr("\201z/.forward");
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>This makes available an environment variable called
+"SUFFIX" which has the "details" part.
+The drawback in this approach is that this information is lost if the
+message is re-queued for delivery
+(what's really needed is an addition to the .forward syntax to allow
+macros such as $h to be passed).
+</p>
+<p>The corresponding impersonalMail procedure is defined as:
+</p></font><pre>
+    proc impersonalMail {} {
+        global env
+
+        return $env(SUFFIX)
+    }
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<a name="rfc.section.A.2.2"></a><h4><a name="procs.processFolder">A.2.2</a>&nbsp;processFolder</h4>
+</font><pre>
+    proc processFolder {folderName mimeT} { return $string }
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>If an entry for the folder exists in the
+<a href="#options.mappingFile">mappingFile</a>,
+and if the value for that entry is "process",
+then this procedure is invoked to return a string indicating what
+action to take
+(cf., <a href="#impersonal">Impersonal Mail</a>).
+</p>
+<a name="anchor8"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<a name="rfc.section.B"></a><h3>Appendix B.&nbsp;An Example configFile</h3>
+
+<p>Here is the ".forward" file for the user "hewes":
+</p></font><pre>
+    "|/usr/pkg/lib/mbot-1.1/personal.tcl 
+         -config .personal/config.tcl -user hewes"
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>(Of course, it's all on one line.)
+</p>
+<p>Here is the user's ".personal/config.tcl" file:
+</p></font><pre>
+    array set options [list                                          \
+        dataDirectory     .personal                                  \
+        defaultMaildrop   /var/mail/hewes                            \
+        auditInFile       [file join .personal INCOMING]             \
+        auditOutFile      [file join .personal OUTGOING]             \
+        friendlyDomains   [list tcp.int example.com]                 \
+        logFile           [file join .personal personal.log]         \
+        myMailbox         "Arlington Hewes &lt;hewes@example.com>"      \
+        pdaMailboxes      hewes.pager@example.com                    \
+        noticeFile        [file join .personal notice.txt]           \
+        foldersDirectory  [file join .personal folders]              \
+        foldersFile       [file join .personal .mailboxlist]         \
+        announceMailboxes hewes+sys.announce@example.com             \
+        mappingFile       [file join .personal mapping]              \
+        friendlyFire      1                                          \
+        dropNames         [list *.bat *.exe *.src *.pif *.wav *.vbs] \
+    ]
+
+    proc impersonalMail {} {
+        global env
+
+        return $env(SUFFIX)
+    }
+</pre><font face="verdana, helvetica, arial, sans-serif" size="2">
+
+<p>Note that because
+<a href="#options.remoteMailboxes">remoteMailboxes</a> isn't
+defined,
+personal messages are ultimately stored in the user's
+<a href="#options.defaultMaildrop">defaultMaildrop</a>.
+</p>
+<a name="anchor9"><br><hr size="1" shade="0"></a>
+<table border="0" cellpadding="0" cellspacing="2" width="30" height="15" align="right"><tr><td bgcolor="#990000" align="center" width="30" height="15"><a href="#toc" CLASS="link2"><font face="monaco, MS Sans Serif" color="#ffffff" size="1"><b>&nbsp;TOC&nbsp;</b></font></a><br></td></tr></table>
+<a name="rfc.section.C"></a><h3>Appendix C.&nbsp;Acknowledgements</h3>
+
+<p>The original version of this mailbot was written by the author in 1994,
+implemented using  the safe-tcl package
+(Borenstein and Rose, circa 1993).
+</p></font></body></html>

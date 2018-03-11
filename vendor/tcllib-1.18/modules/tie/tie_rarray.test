@@ -1,0 +1,331 @@
+# Tests for the tie module.                              -*- tcl -*- 
+#
+# Copyright (c) 2004 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: tie_rarray.test,v 1.7 2006/10/09 21:41:42 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+support {
+    use      snit/snit.tcl snit
+    useLocal tie.tcl       tie
+}
+testing {
+    useLocal tie_rarray.tcl tie::std::rarray
+}
+
+# -------------------------------------------------------------------------
+
+proc mysend {args} {
+    # A fake send command, also local receiver, in a way.
+    # args = options?... id cmd arg...
+    # Options used is -async. Id is irrelevant here.
+
+    set async [expr {[lindex $args 0] eq "-async"}]
+    if {$async} {set args [lrange $args 1 end]}
+    set args [lrange $args 1 end]
+    set cmd [linsert $args 0 uplevel 1]
+    #puts stderr ||<<[join $cmd {>> <<}]>>||
+    set code [catch $cmd msg]
+    if {$async} return
+    return -code $code $msg
+}
+
+# -------------------------------------------------------------------------
+# Creation of remote array data sources
+# Errors: Undefined variable, scalar, local variable
+
+test tie-rarray-1.0 {remote array creation, wrong#args} {
+    catch {tie::std::rarray} msg
+    set msg
+} {Error in constructor: wrong # args: should be "::tie::std::rarray::Snit_constructor type selfns win self rvar cmdpfx id"}
+
+test tie-rarray-1.1 {remote array creation, wrong#args} {
+    catch {tie::std::rarray x} msg
+    set msg
+} {Error in constructor: wrong # args: should be "::tie::std::rarray::Snit_constructor type selfns win self rvar cmdpfx id"}
+
+test tie-rarray-1.2 {remote array creation, wrong#args} {
+    catch {tie::std::rarray x y} msg
+    set msg
+} {Error in constructor: wrong # args: should be "::tie::std::rarray::Snit_constructor type selfns win self rvar cmdpfx id"}
+
+test tie-rarray-1.3 {remote array creation, wrong#args} {
+    catch {tie::std::rarray x y z} msg
+    set msg
+} {Error in constructor: wrong # args: should be "::tie::std::rarray::Snit_constructor type selfns win self rvar cmdpfx id"}
+
+test tie-rarray-1.4 {remote array creation, wrong#args} {
+    catch {tie::std::rarray x y z a b} msg
+    set msg
+} {Error in constructor: wrong # args: should be "::tie::std::rarray::Snit_constructor type selfns win self rvar cmdpfx id"}
+
+
+test tie-rarray-1.5 {remote array creation, fixed name, undefined array acceptable} {
+    catch {tie::std::rarray x y mysend _DUMMY_ID_} msg
+    set msg
+} {Error in constructor: Undefined source array variable "y"}
+
+test tie-rarray-1.6 {remote array creation, bad send command} {
+    unset -nocomplain av ; set av {}
+    catch {tie::std::rarray x av foosend _DUMMY_ID_} msg
+    set msg
+} {Error in constructor: invalid command name "foosend"}
+
+test tie-rarray-1.7 {remote array creation, fixed name, scalar variable} {
+    unset -nocomplain av ; set av SCALAR
+    catch {tie::std::rarray x av mysend _DUMMY_ID_} msg
+    set msg
+} {Error in constructor: Undefined source array variable "av"}
+
+
+test tie-rarray-1.8 {remote array creation, fixed name, array} {
+    unset -nocomplain av ; array set av {}
+    set msg [tie::std::rarray x av mysend _DUMMY_ID_]
+    x destroy
+    set msg
+} {::x}
+
+test tie-rarray-1.9 {remote array creation, %AUTO%} {
+    unset -nocomplain av ; array set av {}
+    set msg [tie::std::rarray %AUTO% av mysend _DUMMY_ID_]
+    $msg destroy
+    set msg
+} {::rarray11}
+
+# -------------------------------------------------------------------------
+## Methods
+
+test tie-rarray-2.0 {remote array get, wrong#args} {
+    unset -nocomplain av ; array set av {b 2 a 1}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    catch {x get a} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::rarray::Snit_methodget type selfns win self"}
+
+test tie-rarray-2.1 {remote array get} {
+    unset -nocomplain av ; array set av {b 2 a 1}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set res [dictsort [x get]]
+    x destroy
+    set res
+} {a 1 b 2}
+
+
+test tie-rarray-3.0 {remote array set, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    catch {x set} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::rarray::Snit_methodset type selfns win self dict"}
+
+test tie-rarray-3.1 {remote array set, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    catch {x set a b} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::rarray::Snit_methodset type selfns win self dict"}
+
+test tie-rarray-3.2 {remote array set} {
+    unset -nocomplain av ; array set av {}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    lappend res [x set {c 3 b 2 a 1}]
+    lappend res [dictsort [array get av]]
+    x destroy
+    set res
+} {{} {a 1 b 2 c 3}}
+
+
+test tie-rarray-4.0 {remote array names, wrong#args} {
+    unset -nocomplain av ; array set av {b 2 a 1}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    catch {x names a} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::rarray::Snit_methodnames type selfns win self"}
+
+test tie-rarray-4.1 {remote array names} {
+    unset -nocomplain av ; array set av {b 2 a 1}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set res [lsort [x names]]
+    x destroy
+    set res
+} {a b}
+
+
+test tie-rarray-5.0 {remote array size, wrong#args} {
+    unset -nocomplain av ; array set av {b 2 a 1}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    catch {x size a} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::rarray::Snit_methodsize type selfns win self"}
+
+test tie-rarray-5.1 {remote array size} {
+    unset -nocomplain av ; array set av {b 2 a 1}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set res [x size]
+    x destroy
+    set res
+} 2
+
+
+test tie-rarray-6.0 {remote array unset, wrong#args} {
+    unset -nocomplain av ; array set av {foo bar fox snarf a 3}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    catch {x unset a b} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::rarray::Snit_methodunset type selfns win self ?pattern?"}
+
+test tie-rarray-6.1 {remote array unset, default pattern} {
+    unset -nocomplain av ; array set av {foo bar fox snarf a 3}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    lappend res [x unset]
+    lappend res [dictsort [array get av]]
+    x destroy
+    set res
+} {{} {}}
+
+test tie-rarray-6.2 {remote array unset, by pattern} {
+    unset -nocomplain av ; array set av {foo bar fox snarf a 3}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    lappend res [x unset f*]
+    lappend res [dictsort [array get av]]
+    x destroy
+    set res
+} {{} {a 3}}
+
+
+test tie-rarray-7.0 {remote array getv, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    catch {x getv} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::rarray::Snit_methodgetv type selfns win self index"}
+
+test tie-rarray-7.1 {remote array getv, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    catch {x getv a b} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::rarray::Snit_methodgetv type selfns win self index"}
+
+test tie-rarray-7.2 {remote array getv} {
+    unset -nocomplain av ; array set av {a 3 b 4}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    lappend res [x getv a]
+    x destroy
+    set res
+} 3
+
+
+test tie-rarray-8.0 {remote array setv, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    catch {x setv} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::rarray::Snit_methodsetv type selfns win self index value"}
+
+test tie-rarray-8.1 {remote array setv, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    catch {x setv a} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::rarray::Snit_methodsetv type selfns win self index value"}
+
+test tie-rarray-8.2 {remote array setv, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    catch {x setv a b c} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::rarray::Snit_methodsetv type selfns win self index value"}
+
+test tie-rarray-8.3 {remote array setv} {
+    unset -nocomplain av ; array set av {}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    lappend res [x setv fox snarf]
+    lappend res [dictsort [array get av]]
+    x destroy
+    set res
+} {{} {fox snarf}}
+
+test tie-rarray-8.4 {remote array setv, value containing space} {
+    unset -nocomplain av ; array set av {}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    lappend res [x setv fox {snarf it}]
+    lappend res [dictsort [array get av]]
+    x destroy
+    set res
+} {{} {fox {snarf it}}}
+
+test tie-rarray-8.5 {remote array setv, varname containing space} {
+    unset -nocomplain {a v} ; array set {a v} {}
+    tie::std::rarray x {a v} mysend _DUMMY_ID_
+    set     res {}
+    lappend res [x setv fox {snarf it}]
+    lappend res [dictsort [array get {a v}]]
+    x destroy
+    set res
+} {{} {fox {snarf it}}}
+
+test tie-rarray-9.0 {remote array unsetv, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    catch {x unsetv} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::rarray::Snit_methodunsetv type selfns win self index"}
+
+test tie-rarray-9.1 {remote array unsetv, wrong#args} {
+    unset -nocomplain av ; array set av {}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    catch {x unsetv a b} msg
+    x destroy
+    set msg
+} {wrong # args: should be "::tie::std::rarray::Snit_methodunsetv type selfns win self index"}
+
+test tie-rarray-9.2 {remote array unsetv} {
+    unset -nocomplain av ; array set av {a 3 b 4}
+    tie::std::rarray x av mysend _DUMMY_ID_
+    set     res {}
+    lappend res [x unsetv a]
+    lappend res [dictsort [array get av]]
+    x destroy
+    set res
+} {{} {b 4}}
+
+testsuiteCleanup
+return

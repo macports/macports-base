@@ -1,0 +1,317 @@
+# -*- tcl -*-
+# rcs.test:  Tests for the RCS utilities.
+#
+# Copyright (c) 2005 by Colin McCormack <coldstore@users.sourceforge.net>
+# Copyright (c) 2005 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: rcs.test,v 1.7 2006/10/09 21:41:41 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+testing {
+    useLocal rcs.tcl rcs
+}
+
+# -------------------------------------------------------------------------
+# Standard data for the tests (2 texts, and one patch for transforming
+# one into the other).
+
+set lao [string map {\t ""} {The Way that can be told of is not the eternal Way;
+	The name that can be named is not the eternal name.
+	The Nameless is the origin of Heaven and Earth;
+	The Named is the mother of all things.
+	Therefore let there always be non-being,
+	so we may see their subtlety,
+	And let there always be being,
+	so we may see their outcome.
+	The two are the same,
+	But after they are produced,
+	they have different names.
+}]
+
+set laodict [list \
+    1 {The Way that can be told of is not the eternal Way;} \
+    2 {The name that can be named is not the eternal name.} \
+    3 {The Nameless is the origin of Heaven and Earth;} \
+    4 {The Named is the mother of all things.} \
+    5 {Therefore let there always be non-being,} \
+    6 {so we may see their subtlety,} \
+    7 {And let there always be being,} \
+    8 {so we may see their outcome.} \
+    9 {The two are the same,} \
+    10 {But after they are produced,} \
+    11 {they have different names.} \
+    12 {}]
+
+
+set tzu [string map {\t ""} {The Nameless is the origin of Heaven and Earth;
+	The named is the mother of all things.
+
+	Therefore let there always be non-being,
+	so we may see their subtlety,
+	And let there always be being,
+	so we may see their outcome.
+	The two are the same,
+	But after they are produced,
+	they have different names.
+	They both may be called deep and profound.
+	Deeper and more profound,
+	The door of all subtleties!
+}]
+
+set tzudict [list \
+	1 {The Nameless is the origin of Heaven and Earth;} \
+	2 {The named is the mother of all things.} \
+	3 {} \
+	4 {Therefore let there always be non-being,} \
+	5 {so we may see their subtlety,} \
+	6 {And let there always be being,} \
+	7 {so we may see their outcome.} \
+	8 {The two are the same,} \
+	9 {But after they are produced,} \
+	10 {they have different names.} \
+	11 {They both may be called deep and profound.} \
+	12 {Deeper and more profound,} \
+	13 {The door of all subtleties!} \
+	14 {}]
+
+set laotzu [string map {\t ""} {d1 2
+	d4 1
+	a4 2
+	The named is the mother of all things.
+
+	a11 3
+	They both may be called deep and profound.
+	Deeper and more profound,
+	The door of all subtleties!
+}]
+
+set laotzuseq [list \
+	{d 1 2} \
+	{d 4 1} \
+	{a 4 {The named is the mother of all things.
+}} \
+	{a 11 {They both may be called deep and profound.
+Deeper and more profound,
+The door of all subtleties!}}]
+
+
+# -------------------------------------------------------------------------
+# Takes a dictionary, returns a list containing the same dictionary,
+# however the keys are sorted alphabetically. This allows for a true
+# comparison of dictionary results.
+
+proc dictsortint {dict} {
+    array set a $dict
+    set out [list]
+    foreach key [lsort -integer [array names a]] {
+	lappend out $key $a($key)
+    }
+    return $out
+}
+
+proc wFile {data fname} {
+    set path [makeFile {} $fname]
+    set c [open $path w]
+    puts -nonewline $c $data
+    close $c
+    return $path
+}
+
+proc rFile {name} {
+    ::tcltest::FillFilesExisted
+    if {[llength [info level 0]] == 2} {
+        set directory [::tcltest::temporaryDirectory]
+    }
+    set fullName [file join $directory $name]
+    set f [open $fullName]
+    set data [read $f]
+    close $f
+    return $data
+}
+
+# -------------------------------------------------------------------------
+
+test rcs-1.0 {text2dict conversion} {
+    catch {::rcs::text2dict} msg
+    set msg
+} [tcltest::wrongNumArgs {::rcs::text2dict} {text} 0]
+
+test rcs-1.1 {text2dict conversion} {
+    catch {::rcs::text2dict {} {}} msg
+    set msg
+} [tcltest::tooManyArgs {::rcs::text2dict} {text}]
+
+test rcs-1.2 {text2dict conversion} {
+    ::rcs::text2dict {}
+} {}
+
+test rcs-1.3 {text2dict conversion} {
+    dictsortint [::rcs::text2dict $lao]
+} $laodict
+
+test rcs-1.4 {text2dict conversion} {
+    dictsortint [::rcs::text2dict $tzu]
+} $tzudict
+
+# -------------------------------------------------------------------------
+
+test rcs-2.0 {dict2text conversion} {
+    catch {::rcs::dict2text} msg
+    set msg
+} [tcltest::wrongNumArgs {::rcs::dict2text} {dict} 0]
+
+test rcs-2.1 {dict2text conversion} {
+    catch {::rcs::dict2text {} {}} msg
+    set msg
+} [tcltest::tooManyArgs {::rcs::dict2text} {dict}]
+
+test rcs-2.2 {dict2text conversion} {
+    ::rcs::dict2text {}
+} {}
+
+test rcs-2.3 {dict2text conversion} {
+    ::rcs::dict2text $laodict
+} $lao
+
+test rcs-2.4 {dict2text conversion} {
+    ::rcs::dict2text $tzudict
+} $tzu
+
+# -------------------------------------------------------------------------
+
+test rcs-3.0 {file2dict conversion} {
+    catch {::rcs::file2dict} msg
+    set msg
+} [tcltest::wrongNumArgs {::rcs::file2dict} {filename} 0]
+
+test rcs-3.1 {file2dict conversion} {
+    catch {::rcs::file2dict {} {}} msg
+    set msg
+} [tcltest::tooManyArgs {::rcs::file2dict} {filename}]
+
+test rcs-3.2 {file2dict conversion} {
+    set res [::rcs::file2dict [wFile {} empty]]
+    removeFile empty
+    set res
+} {}
+
+test rcs-3.3 {file2dict conversion} {
+    set res [dictsortint [::rcs::file2dict [wFile $lao lao]]]
+    removeFile lao
+    set res
+} $laodict
+
+test rcs-3.4 {file2dict conversion} {
+    set res [dictsortint [::rcs::file2dict [wFile $tzu tzu]]]
+    removeFile tzu
+    set res
+} $tzudict
+
+# -------------------------------------------------------------------------
+
+test rcs-4.0 {dict2file conversion} {
+    catch {::rcs::dict2file} msg
+    set msg
+} [tcltest::wrongNumArgs {::rcs::dict2file} {filename dict} 0]
+
+test rcs-4.1 {dict2file conversion} {
+    catch {::rcs::dict2file {}} msg
+    set msg
+} [tcltest::wrongNumArgs {::rcs::dict2file} {filename dict} 1]
+
+test rcs-4.2 {dict2file conversion} {
+    catch {::rcs::dict2file {} {} {}} msg
+    set msg
+} [tcltest::tooManyArgs {::rcs::dict2file} {filename dict}]
+
+test rcs-4.3 {dict2file conversion} {
+    ::rcs::dict2file [wFile {xx} empty.w] {}
+    set res [rFile empty.w]
+    removeFile empty.w
+    set res
+} {}
+
+test rcs-4.4 {dict2file conversion} {
+    ::rcs::dict2file [wFile {xx} lao.w] $laodict
+    set res [rFile lao.w]
+    removeFile lao.w
+    set res
+} $lao
+
+test rcs-4.5 {dict2file conversion} {
+    ::rcs::dict2file [wFile {xx} tzu.w] $tzudict
+    set res [rFile tzu.w]
+    removeFile tzu.w
+    set res
+} $tzu
+
+# -------------------------------------------------------------------------
+
+test rcs-5.0 {decodeRcsPatch conversion} {
+    catch {::rcs::decodeRcsPatch} msg
+    set msg
+} [tcltest::wrongNumArgs {::rcs::decodeRcsPatch} {patch} 0]
+
+test rcs-5.1 {decodeRcsPatch conversion} {
+    catch {::rcs::decodeRcsPatch {} {}} msg
+    set msg
+} [tcltest::tooManyArgs {::rcs::decodeRcsPatch} {patch}]
+
+test rcs-5.2 {decodeRcsPatch conversion} {
+    ::rcs::decodeRcsPatch $laotzu
+} $laotzuseq
+
+# -------------------------------------------------------------------------
+
+test rcs-6.0 {encodeRcsPatch conversion} {
+    catch {::rcs::encodeRcsPatch} msg
+    set msg
+} [tcltest::wrongNumArgs {::rcs::encodeRcsPatch} {patch} 0]
+
+test rcs-6.1 {encodeRcsPatch conversion} {
+    catch {::rcs::encodeRcsPatch {} {}} msg
+    set msg
+} [tcltest::tooManyArgs {::rcs::encodeRcsPatch} {patch}]
+
+test rcs-6.2 {encodeRcsPatch conversion} {
+    ::rcs::encodeRcsPatch $laotzuseq
+} $laotzu
+
+
+# -------------------------------------------------------------------------
+
+test rcs-7.0 {applyRcsPatch} {
+    catch {::rcs::applyRcsPatch} msg
+    set msg
+} [tcltest::wrongNumArgs {::rcs::applyRcsPatch} {text patch} 0]
+
+test rcs-7.1 {applyRcsPatch} {
+    catch {::rcs::applyRcsPatch {}} msg
+    set msg
+} [tcltest::wrongNumArgs {::rcs::applyRcsPatch} {text patch} 1]
+
+test rcs-7.2 {applyRcsPatch} {
+    catch {::rcs::applyRcsPatch {} {} {}} msg
+    set msg
+} [tcltest::tooManyArgs {::rcs::applyRcsPatch} {text patch}]
+
+test rcs-7.3 {applyRcsPatch} {
+    # dictsortint is not suitable, the resulting dict has gaps. It is
+    # not textually identical to tzudict, just semantically. The
+    # textual identity appears only again after converting to a
+    # regular text.
+
+    ::rcs::dict2text [::rcs::applyRcsPatch $laodict $laotzuseq]
+} $tzu
+
+# -------------------------------------------------------------------------
+testsuiteCleanup

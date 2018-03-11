@@ -65,7 +65,7 @@ test worker_init {
 } -setup {
     set name [interp create]
     set portpath $pwd/portpath
-    set porturl http://www.macports.org
+    set porturl https://www.macports.org
     set portbuildpath $pwd/build
     set options {a b}
     set variations {1 2}
@@ -580,7 +580,7 @@ test fetch_port {
 test getprotocol {
     Get protocol unit test.
 } -body {
-    if {[macports::getprotocol http://www.macports.org] ne "http"} {
+    if {[macports::getprotocol https://www.macports.org] ne "https"} {
        return "FAIL: wrong protocol"
     }
     return "Get protocol successful."
@@ -617,7 +617,7 @@ test getportresourcepath {
 } -body {
     set macports::portdbpath $pwd/portdbpath
     set url "http://packages.macports.org/db_select/db_select-0.1_3.darwin_14.noarch.tbz2"
-    set default_path $pwd/portdbpath/sources/rsync.macports.org/release/tarballs/ports/_resources
+    set default_path $pwd/portdbpath/sources/rsync.macports.org/macports/release/tarballs/ports/_resources
     set fallback_path $pwd/portdbpath/sources/packages.macports.org/db_select/db_select-0.1_3.darwin_14.noarch.tbz2/_resources
 
     if {[macports::getportresourcepath $url "" yes] ne $default_path} {
@@ -655,9 +655,9 @@ test getdefaultportresourcepath {
 
 # test mportopen
 
-
+# FIXME way too brittle
 test mporttraverse {
-    Mport traverse unit test. Uses 3rd line of the Portfile.
+    Mport traverse unit test. Uses first line of the Portfile.
 } -setup {
     file mkdir $pwd/porttree
     file mkdir $pwd/porttree/cat1/gcc_select
@@ -669,10 +669,10 @@ test mporttraverse {
     proc test_proc {file} {
        global pwd res
        set fd [open ${pwd}/porttree/${file}/Portfile r]
-       gets $fd
-       gets $fd
        gets $fd line
+       # Assumes this will be "PortSystem 1.0"
        append res [lindex [split $line " "] 1]
+       close $fd
     }
 
     global res
@@ -697,7 +697,6 @@ test mporttraverse {
 # test _mportexec
 # test mportexec
 # test _upgrade_mport_deps
-# test _get_registry_archs
 # test getsourcepath
 # test _source_is_snapshot
 # test getportbuildpath
@@ -725,37 +724,61 @@ test GetVCSUpdateCmd-svn {
     hasSvn
 } -setup {
     set repo [makeDirectory macports-test-svn-repo $tempdir]
-    exec $svnadmin create $repo
+    exec -ignorestderr $svnadmin create $repo
     set wc [makeDirectory macports-test-svn-wc $tempdir]
     # This URL should probably be encoded.
-    exec $svn checkout file://$repo $wc
+    exec -ignorestderr $svn checkout file://$repo $wc
 } -body {
     string map [list $svn SVN $wc WC] [macports::GetVCSUpdateCmd $wc]
 } -cleanup {
     removeDirectory macports-test-svn-wc $tempdir
     removeDirectory macports-test-svn-repo $tempdir
-} -result {Subversion {SVN update --non-interactive WC}}
+} -result {Subversion {SVN update --non-interactive} WC}
 
 
 testConstraint hasGit [expr {![catch {macports::findBinary git} git]}]
+set git_vcsupdate_fixture {
+    set repo [makeDirectory macports-test-git-repo $tempdir]
+    exec -ignorestderr $git init $repo
+    rename exec _save_exec
+
+    proc exec {cmd args} {
+        global gitversion
+        if {$cmd ne [macports::findBinary git] || [lindex $args 0] ne "--version"} {
+            return [_save_exec -ignorestderr $cmd {*}$args]
+        }
+        return "git version $gitversion (Apple Git-23)"
+    }
+}
+set git_vcsupdate_cleanup {
+    removeDirectory macports-test-git-repo $tempdir
+    rename exec ""
+    rename _save_exec exec
+}
 
 test GetVCSUpdateCmd-git {
-    Tests GetVCSUpdateCmd on a valid Git repository
+    Tests GetVCSUpdateCmd on a valid Git repository with Git >= 2.9.0
 } -constraints {
     hasGit
-} -setup {
-    set repo [makeDirectory macports-test-git-repo $tempdir]
-    exec $git init $repo
-} -body {
+} -setup $git_vcsupdate_fixture -body {
+    global gitversion
+    set gitversion "2.10.1"
     string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
-} -cleanup {
-    removeDirectory macports-test-git-repo $tempdir
-} -result {Git {cd REPO && GIT pull --rebase || true}}
+} -cleanup $git_vcsupdate_cleanup -result {Git {GIT pull --rebase --autostash} REPO}
 
+test GetVCSUpdateCmd-git-noautostash {
+    Tests GetVCSUpdateCmd on a valid Git repository with Git < 2.9.0
+} -constraints {
+    hasGit
+} -setup $git_vcsupdate_fixture -body {
+    global giversion
+    set gitversion "1.8.2"
+    string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
+} -cleanup $git_vcsupdate_cleanup -result {Git {GIT pull --rebase} REPO}
 
 testConstraint hasGitSvn [expr {
     ![catch {macports::findBinary git} git] &&
-    [file readable [file join [exec $git --exec-path] git-svn]]
+    [file readable [file join [exec -ignorestderr $git --exec-path] git-svn]]
 }]
 
 test GetVCSUpdateCmd-gitsvn {
@@ -764,12 +787,12 @@ test GetVCSUpdateCmd-gitsvn {
     hasGitSvn
 } -setup {
     set repo [makeDirectory macports-test-git-svn-repo $tempdir]
-    exec $git svn init http://localhost $repo
+    exec -ignorestderr $git svn init http://localhost $repo
 } -body {
     string map [list $git GIT $repo REPO] [macports::GetVCSUpdateCmd $repo]
 } -cleanup {
     removeDirectory macports-test-git-svn-repo $tempdir
-} -result {git-svn {cd REPO && GIT svn rebase || true}}
+} -result {git-svn {GIT svn rebase} REPO}
 
 
 test GetVCSUpdateCmd-none {

@@ -1,0 +1,81 @@
+# -*- tcl -*-
+#Vertices Cover, 2 approximation algorithm - Tests
+#
+#Algorithm searches for the minimum set of vertices such that each edge of the graph
+#is incident to at least one vertex of the set.
+#
+#------------------------------------------------------------------------------------
+#Tests concerning returning right values by algorithm
+
+#Test 1.0 - case when graph is complete - the same degrees and even number of nodes
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-VerticesCover-1.0 { VerticesCover, complete K4 } {
+    SETUP_UNDIRECTED_K4
+    set result [lsort -dict [struct::graph::op::VerticesCover mygraph]]
+    mygraph destroy
+    set result
+} {node1 node2 node3 node4}
+
+#Test 1.1 - case with big degree differences at nodes
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-VerticesCover-1.1 { VerticesCover, graph simulation } {
+    SETUP_VC_1
+    set result [lsort -dict [struct::graph::op::VerticesCover mygraph]]
+    mygraph destroy
+    set result
+} [tmE {node1 node3} {node2 node3}]
+
+#Test 1.2 - another test case testing the improvement given by degree conditions
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-VerticesCover-1.2 { VerticesCover, graph simulation } {
+    SETUP_VC_2
+    set result [lsort -dict [struct::graph::op::VerticesCover mygraph]]
+    mygraph destroy
+    set result
+} {node2 node3 node4 node5}
+
+#Test 1.3 - case when graph is a cycle - degrees are the same for all nodes
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-VerticesCover-1.3 { VerticesCover, cycle C5 } {
+    SETUP_C5
+    set result [lsort -dict [struct::graph::op::VerticesCover mygraph]]
+    mygraph destroy
+    set result
+} [tmE {node2 node3 node4 node5} {node1 node3 node4 node5}]
+# should custom match code verifying that result is a cover.
+
+#Test 1.4 - case when given graph is a K4, but with doubled arcs (directed)
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-VerticesCover-1.4 { VerticesCover, directed K4 } {
+    SETUP_K4
+    set result [lsort -dict [struct::graph::op::VerticesCover mygraph]]
+    mygraph destroy
+    set result
+} {node1 node2 node3 node4}
+
+#Test 1.5 - graph from Test 1.1, but with doubled arcs (directed)
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-VerticesCover-1.5 { VerticesCover, directed, complete } {
+    SETUP_VC_1_2
+    set result [lsort -dict [struct::graph::op::VerticesCover mygraph]]
+    mygraph destroy
+    set result
+} [tmE {node1 node3} {node2 node3}]
+
+#Test 1.6 - graph from Test 1.1, but with some doubled arcs (directed)
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-VerticesCover-1.6 { VerticesCover, directed, uncomplete } {
+    SETUP_VC_1_3
+    set result [lsort -dict [struct::graph::op::VerticesCover mygraph]]
+    mygraph destroy
+    set result
+} [tmE {node1 node3} {node2 node3}]
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-VerticesCover-2.0 { VerticesCover, wrong args, missing } {
+    catch {struct::graph::op::VerticesCover} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::VerticesCover {G} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-VerticesCover-2.1 { VerticesCover, wrong args, too many} {
+    catch {struct::graph::op::VerticesCover G y x} msg
+    set msg
+} [tcltest::tooManyArgs struct::graph::op::VerticesCover {G}]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failure

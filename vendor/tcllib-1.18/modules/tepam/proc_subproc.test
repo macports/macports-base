@@ -1,0 +1,197 @@
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# proc_subproc.test: 
+# This file is part of the enhanced procedure and argument manager's regression
+# test. It validates the declaration and call of the procedure sub commands.
+#
+# Copyright (C) 2009, 2010 Andreas Drollinger
+# 
+# Id: proc_subproc.test
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+source [file join \
+   [file dirname [file dirname [file join [pwd] [info script]]]] \
+   devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 1.0
+
+catch {namespace delete ::tepam}
+testing {
+   useLocal tepam.tcl tepam
+}
+
+######## Main procedure and sub procedures, top-down declaration ########
+
+   # Declaration
+      test tepam-sp.dcl_td.dcl.1 "tepam, sub procedure top-down declaration - main procedure declaration" \
+               -body {tepam::procedure {MainProc1} {} {return Proc1}} \
+               -result "" -output ""
+
+      test tepam-sp.dcl_td.dcl.2 "tepam, sub procedure top-down declaration - first sub procedure declaration" \
+               -body {tepam::procedure {MainProc1 SubProc1} {} {return Proc11}} \
+               -result "" -output ""
+
+      test tepam-sp.dcl_td.dcl.3 "tepam, sub procedure top-down declaration - second sub procedure declaration" \
+               -body {tepam::procedure {MainProc1 SubProc2} {} {return Proc12}} \
+               -result "" -output ""
+
+      test tepam-sp.dcl_td.dcl.4 "tepam, sub procedure top-down declaration - sub sub procedure declaration" \
+               -body {tepam::procedure {MainProc1 SubProc2 SubProc22} {} {return Proc122}} \
+               -result "" -output ""
+
+   # Help
+      test tepam-sp.dcl_td.hlp.1 "tepam, sub procedure top-down declaration - main procedure help" \
+               -body {MainProc1 -help} \
+               -result "" -output {SYNOPSIS\s+MainProc1\s+MainProc1 SubProc1\s+MainProc1 SubProc2\s+MainProc1 SubProc2 SubProc22\s*$} -match regexp 
+
+      test tepam-sp.dcl_td.hlp.2 "tepam, sub procedure top-down declaration - first sub procedure help" \
+               -body {MainProc1 SubProc1 -help} \
+               -result "" -output {SYNOPSIS\s+MainProc1 SubProc1\s+$} -match regexp
+
+      test tepam-sp.dcl_td.hlp.3 "tepam, sub procedure top-down declaration - second sub procedure help" \
+               -body {MainProc1 SubProc2 -help} \
+               -result "" -output {SYNOPSIS\s+MainProc1 SubProc2\s+MainProc1 SubProc2 SubProc22\s*$} -match regexp
+
+      test tepam-sp.dcl_td.hlp.4 "tepam, sub procedure top-down declaration - sub sub procedure help" \
+               -body {MainProc1 SubProc2 SubProc22 -help} \
+               -result "" -output {SYNOPSIS\s+MainProc1 SubProc2 SubProc22\s+$} -match regexp
+
+   # Execution
+      test tepam-sp.dcl_td.exe.1 "tepam, sub procedure top-down declaration - main procedure execution" \
+               -body {MainProc1} \
+               -result "Proc1" -output "" -match exact
+
+      test tepam-sp.dcl_td.exe.2 "tepam, sub procedure top-down declaration - first sub procedure execution" \
+               -body {MainProc1 SubProc1} \
+               -result "Proc11" -output "" -match exact
+
+      test tepam-sp.dcl_td.exe.3 "tepam, sub procedure top-down declaration - second sub procedure execution" \
+               -body {MainProc1 SubProc2} \
+               -result "Proc12" -output "" -match exact
+
+      test tepam-sp.dcl_td.exe.4 "tepam, sub procedure top-down declaration - sub sub procedure execution" \
+               -body {MainProc1 SubProc2 SubProc22} \
+               -result "Proc122" -output "" -match exact
+
+######## Main procedure and sub procedures, buttom-up declaration ########
+
+   # Declaration
+      test tepam-sp.dcl_bu.dcl.1 "tepam, sub procedure buttom-up declaration - sub sub procedure declaration" \
+               -body {tepam::procedure {MainProc2 SubProc2 SubProc22} {} {return Proc222}} \
+               -result "" -output ""
+
+      test tepam-sp.dcl_bu.dcl.2 "tepam, sub procedure buttom-up declaration - second sub procedure declaration" \
+               -body {tepam::procedure {MainProc2 SubProc2} {} {return Proc22}} \
+               -result "" -output ""
+
+      test tepam-sp.dcl_bu.dcl.3 "tepam, sub procedure buttom-up declaration - first sub procedure declaration" \
+               -body {tepam::procedure {MainProc2 SubProc1} {} {return Proc21}} \
+               -result "" -output ""
+
+      test tepam-sp.dcl_bu.dcl.4 "tepam, sub procedure buttom-up declaration - main procedure declaration" \
+               -body {tepam::procedure {MainProc2} {} {return Proc2}} \
+               -result "" -output ""
+
+   # Help
+      test tepam-sp.dcl_bu.hlp.1 "tepam, sub procedure buttom-down declaration - main procedure help" \
+               -body {MainProc2 -help} \
+               -result "" -output {SYNOPSIS\s+MainProc2\s+MainProc2 SubProc1\s+MainProc2 SubProc2\s+MainProc2 SubProc2 SubProc22\s*$} -match regexp 
+
+      test tepam-sp.dcl_bu.hlp.2 "tepam, sub procedure buttom-down declaration - first sub procedure help" \
+               -body {MainProc2 SubProc1 -help} \
+               -result "" -output {SYNOPSIS\s+MainProc2 SubProc1\s+$} -match regexp
+
+      test tepam-sp.dcl_bu.hlp.3 "tepam, sub procedure buttom-down declaration - second sub procedure help" \
+               -body {MainProc2 SubProc2 -help} \
+               -result "" -output {SYNOPSIS\s+MainProc2 SubProc2\s+MainProc2 SubProc2 SubProc22\s*$} -match regexp
+
+      test tepam-sp.dcl_bu.hlp.4 "tepam, sub procedure buttom-down declaration - sub sub procedure help" \
+               -body {MainProc2 SubProc2 SubProc22 -help} \
+               -result "" -output {SYNOPSIS\s+MainProc2 SubProc2 SubProc22\s+$} -match regexp
+
+   # Execution
+      test tepam-sp.dcl_bu.exe.1 "tepam, sub procedure buttom-up declaration - main procedure execution" \
+               -body {MainProc2} \
+               -result "Proc2" -output "" -match exact
+
+      test tepam-sp.dcl_bu.exe.2 "tepam, sub procedure buttom-up declaration - first sub procedure execution" \
+               -body {MainProc2 SubProc1} \
+               -result "Proc21" -output "" -match exact
+
+      test tepam-sp.dcl_bu.exe.3 "tepam, sub procedure buttom-up declaration - second sub procedure execution" \
+               -body {MainProc2 SubProc2} \
+               -result "Proc22" -output "" -match exact
+
+      test tepam-sp.dcl_bu.exe.4 "tepam, sub procedure buttom-up declaration - sub sub procedure execution" \
+               -body {MainProc2 SubProc2 SubProc22} \
+               -result "Proc222" -output "" -match exact
+
+######## Only sub procedures (no main procedure) ########
+
+   # Declaration
+      test tepam-sp.dcl_sc.dcl.1 "tepam, sub procedure without main procedure - first sub procedure declaration" \
+               -body {tepam::procedure {MainProc3 SubProc1} {} {return Proc31}} \
+               -result "" -output ""
+
+      test tepam-sp.dcl_sc.dcl.2 "tepam, sub procedure without main procedure - second sub procedure declaration" \
+               -body {tepam::procedure {MainProc3 SubProc2} {} {return Proc32}} \
+               -result "" -output ""
+
+      test tepam-sp.dcl_sc.dcl.3 "tepam, sub procedure without main procedure - sub sub procedure declaration" \
+               -body {tepam::procedure {MainProc3 SubProc2 SubProc22} {} {return Proc322}} \
+               -result "" -output ""
+
+   # Help
+      test tepam-sp.dcl_sc.hlp.1 "tepam, sub procedure without main procedure - main procedure help" \
+               -body {MainProc3 -help} \
+               -result "" -output {SYNOPSIS\s+MainProc3 SubProc1\s+MainProc3 SubProc2\s+MainProc3 SubProc2 SubProc22\s*$} -match regexp 
+
+      test tepam-sp.dcl_sc.hlp.2 "tepam, sub procedure without main procedure - first sub procedure help" \
+               -body {MainProc3 SubProc1 -help} \
+               -result "" -output {SYNOPSIS\s+MainProc3 SubProc1\s+$} -match regexp
+
+      test tepam-sp.dcl_sc.hlp.3 "tepam, sub procedure without main procedure - second sub procedure help" \
+               -body {MainProc3 SubProc2 -help} \
+               -result "" -output {SYNOPSIS\s+MainProc3 SubProc2\s+MainProc3 SubProc2 SubProc22\s*$} -match regexp
+
+      test tepam-sp.dcl_sc.hlp.4 "tepam, sub procedure without main procedure - sub sub procedure help" \
+               -body {MainProc3 SubProc2 SubProc22 -help} \
+               -result "" -output {SYNOPSIS\s+MainProc3 SubProc2 SubProc22\s+$} -match regexp
+
+   # Execution
+      test tepam-sp.dcl_sc.exe.1 "tepam, sub procedure without main procedure - main procedure execution" \
+               -body {MainProc3} \
+               -returnCodes error -result {'::MainProc3' requires a subcommand} -output "" -match exact
+
+      test tepam-sp.dcl_sc.exe.2 "tepam, sub procedure without main procedure - first sub procedure execution" \
+               -body {MainProc3 SubProc1} \
+               -result "Proc31" -output "" -match exact
+
+      test tepam-sp.dcl_sc.exe.3 "tepam, sub procedure without main procedure - second sub procedure execution" \
+               -body {MainProc3 SubProc2} \
+               -result "Proc32" -output "" -match exact
+
+      test tepam-sp.dcl_sc.exe.4 "tepam, sub procedure without main procedure - sub sub procedure execution" \
+               -body {MainProc3 SubProc2 SubProc22} \
+               -result "Proc322" -output "" -match exact
+
+######## With one unnamed argument ########
+
+######## That's all ########
+
+::tcltest::cleanupTests
+return
+
+##########################################################################
+# Id: proc_subproc.test
+# Modifications:
+#
+# Revision 1.1  2010/02/11 21:50:55  droll
+# * TEPAM module checkin
+##########################################################################

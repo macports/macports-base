@@ -1,0 +1,93 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin nnslog n 1.0]
+[see_also nameserv(n)]
+[see_also nameserv::common(n)]
+[keywords application]
+[keywords client]
+[keywords {name service}]
+[copyright {2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Name service facility}]
+[titledesc {Name service facility, Commandline Logging Client Application}]
+[category  Networking]
+[description]
+[para]
+
+Please read [term {Name service facility, introduction}] first.
+
+[para]
+
+The application described by this document, [syscmd nnslog], is a
+simple command line client for the nano name service facility provided
+by the Tcllib packages [package nameserv], and [package nameserv::server].
+
+[para]
+
+It essentially implements "[syscmd nns] search -continuous *", but
+uses a different output formatting. Instead of continuously showing
+the current contents of the server in the terminal it simply logs all
+received add/remove events to [const stdout].
+
+[para]
+
+This name service facility has nothing to do with the Internet's
+[term {Domain Name System}], otherwise known as [term DNS]. If the
+reader is looking for a package dealing with that please see either of
+the packages [package dns] and [package resolv], both found in Tcllib
+too.
+
+[subsection {USE CASES}]
+
+[syscmd nnslog] was written with the following main use case in mind.
+
+[para]
+[list_begin enumerated]
+[enum]
+Monitoring the name service for all changes and logging them in a text
+terminal.
+[list_end]
+
+[para]
+
+[subsection {COMMAND LINE}]
+
+[list_begin definitions]
+[call [cmd nnslog] \
+     [opt "[option -host] [arg host]"] \
+     [opt "[option -port] [arg port]"]]
+
+The command connects to the specified name service, sets up a search
+for all changes and then prints all received events to stdout, with
+each events on its own line. The command will not exit until it is
+explicitly terminated by the user. It will especially survive the loss
+of the connection to the name service and reestablish the search and
+log when the connection is restored.
+
+[para]
+The options to specify the name service will be explained later, in
+section [sectref OPTIONS].
+
+[list_end]
+
+[subsection OPTIONS]
+
+This section describes all the options available to the user of the
+application
+
+[list_begin options]
+[opt_def -host name|ipaddress]
+
+If this option is not specified it defaults to [const localhost]. It
+specifies the name or ip-address of the host the name service to talk
+to is running on.
+
+[opt_def -port number]
+
+If this option is not specified it defaults to [const 38573]. It
+specifies the TCP port the name service to talk to is listening on for
+requests.
+
+[list_end]
+
+[vset CATEGORY nameserv]
+[include ../modules/doctools2base/include/feedback.inc]
+[manpage_end]

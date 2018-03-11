@@ -1,0 +1,96 @@
+[comment {-*- tcl -*-}]
+[manpage_begin struct::queue n 1.4.5]
+[keywords graph]
+[keywords list]
+[keywords matrix]
+[keywords pool]
+[keywords prioqueue]
+[keywords record]
+[keywords set]
+[keywords skiplist]
+[keywords stack]
+[keywords tree]
+[moddesc   {Tcl Data Structures}]
+[titledesc {Create and manipulate queue objects}]
+[category  {Data structures}]
+[require Tcl 8.4]
+[require struct::queue [opt 1.4.5]]
+[description]
+
+The [namespace ::struct] namespace contains a commands for processing
+finite queues.
+
+[para]
+
+It exports a single command, [cmd ::struct::queue]. All functionality
+provided here can be reached through a subcommand of this command.
+
+[para]
+
+[emph Note:] As of version 1.4.1 of this package a critcl based C
+implementation is available. This implementation however requires Tcl
+8.4 to run.
+
+[para]
+
+The [cmd ::struct::queue] command creates a new queue object with an
+associated global Tcl command whose name is [emph queueName].  This
+command may be used to invoke various operations on the queue.  It has
+the following general form:
+
+[list_begin definitions]
+
+[call [arg queueName] [cmd option] [opt [arg "arg arg ..."]]]
+
+[arg Option] and the [arg arg]s determine the exact behavior of the
+command.  The following commands are possible for queue objects:
+
+[call [arg queueName] [cmd clear]]
+
+Remove all items from the queue.
+
+[call [arg queueName] [cmd destroy]]
+
+Destroy the queue, including its storage space and associated command.
+
+[call [arg queueName] [cmd get] [opt "[arg count]"]]
+
+Return the front [arg count] items of the queue and remove them from
+the queue.  If [arg count] is not specified, it defaults to 1.  If
+[arg count] is 1, the result is a simple string; otherwise, it is a
+list.  If specified, [arg count] must be greater than or equal to 1.
+
+If there are not enough items in the queue to fulfull the request,
+this command will throw an error.
+
+[call [arg queueName] [cmd peek] [opt "[arg count]"]]
+
+Return the front [arg count] items of the queue, without removing them
+from the queue.  If [arg count] is not specified, it defaults to 1.
+If [arg count] is 1, the result is a simple string; otherwise, it is a
+list.  If specified, [arg count] must be greater than or equal to 1.
+
+If there are not enough items in the queue to fulfull the request,
+this command will throw an error.
+
+[call [arg queueName] [cmd put] [arg item] [opt "[arg "item ..."]"]]
+
+Put the [arg item] or items specified into the queue.  If more than
+one [arg item] is given, they will be added in the order they are
+listed.
+
+[call [arg queueName] [cmd unget] [arg item]]
+
+Put the [arg item] into the queue, at the front, i.e. before any other
+items already in the queue. This makes this operation the complement
+to the method [method get].
+
+[call [arg queueName] [cmd size]]
+
+Return the number of items in the queue.
+
+[list_end]
+
+[vset CATEGORY {struct :: queue}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

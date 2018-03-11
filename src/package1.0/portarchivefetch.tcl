@@ -1,5 +1,4 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
-# $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Inc.
 # Copyright (c) 2004 - 2013 The MacPorts Project
@@ -94,9 +93,9 @@ proc portarchivefetch::filter_sites {} {
             continue
         }
         if {$portfetch::mirror_sites::sites($site) ne {} &&
-            $portfetch::mirror_sites::archive_prefix($site) == $prefix &&
-            $portfetch::mirror_sites::archive_frameworks_dir($site) == $frameworks_dir &&
-            $portfetch::mirror_sites::archive_applications_dir($site) == $applications_dir &&
+            $portfetch::mirror_sites::archive_prefix($site) eq $prefix &&
+            $portfetch::mirror_sites::archive_frameworks_dir($site) eq $frameworks_dir &&
+            $portfetch::mirror_sites::archive_applications_dir($site) eq $applications_dir &&
             ![catch {archiveTypeIsSupported $portfetch::mirror_sites::archive_type($site)}]} {
             # using the archive type as a tag
             lappend ret ${site}::$portfetch::mirror_sites::archive_type($site)
@@ -137,7 +136,9 @@ proc portarchivefetch::checkarchivefiles {urls} {
 # returns full path to mirror list file
 proc portarchivefetch::get_full_archive_sites_path {} {
     global archive_sites.listfile archive_sites.listpath porturl
-    return [getportresourcepath $porturl [file join ${archive_sites.listpath} ${archive_sites.listfile}]]
+    # look up archive sites only from this ports tree,
+    # do not fallback to the default
+    return [getportresourcepath $porturl [file join ${archive_sites.listpath} ${archive_sites.listfile}] no]
 }
 
 # Perform the full checksites/checkarchivefiles sequence.
@@ -171,7 +172,7 @@ proc portarchivefetch::fetchfiles {args} {
     }
     set incoming_path [file join [option portdbpath] incoming]
     chownAsRoot $incoming_path
-    if {[info exists elevated] && $elevated == yes} {
+    if {[info exists elevated] && $elevated eq "yes"} {
         dropPrivileges
     }
 
@@ -180,10 +181,10 @@ proc portarchivefetch::fetchfiles {args} {
         lappend fetch_options -u
         lappend fetch_options "${archivefetch.user}:${archivefetch.password}"
     }
-    if {${archivefetch.use_epsv} != "yes"} {
+    if {${archivefetch.use_epsv} ne "yes"} {
         lappend fetch_options "--disable-epsv"
     }
-    if {${archivefetch.ignore_sslcert} != "no"} {
+    if {${archivefetch.ignore_sslcert} ne "no"} {
         lappend fetch_options "--ignore-ssl-cert"
     }
     if {$portverbose eq "yes"} {
@@ -207,7 +208,7 @@ proc portarchivefetch::fetchfiles {args} {
                 return -code error [format [msgcat::mc "%s must be writable"] $incoming_path]
             }
             if {!$sorted} {
-                portfetch::sortsites archivefetch_urls {} archive_sites
+                portfetch::sortsites archivefetch_urls archive_sites
                 set sorted yes
             }
             if {![info exists urlmap($url_var)]} {

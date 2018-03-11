@@ -1,6 +1,5 @@
 /*
  * base32cmd.h
- * $Id$
  *
  * Copyright (c) 2010 The MacPorts Project
  * All rights reserved.

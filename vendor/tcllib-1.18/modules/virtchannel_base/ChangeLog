@@ -1,0 +1,120 @@
+2013-12-17  Andreas Kupries  <andreask@activestate.com>
+
+	* randseed.man: Fixed package name.
+
+2013-11-22  Andreas Kupries  <andreask@activestate.com>
+
+	* memchan.tcl (Events): Ticket [864a0c83e3]. Do not suppress
+	* string.tcl: readable events at end of the channel. Needed
+	* variable.tcl: to signal the eof condition. Like for regular
+	  files, always readable. Versions bumped to 1.0.3, 1.0.2, and
+	  1.0.3 respectively
+
+2013-04-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tclib_fifo2.man: Renamed more manpages, clashing with the
+	* tclib_fifo.man: Memchan package. List are the new names,
+	* tclib_memchan.man: with prefix "tcllib_".
+	* tclib_null.man:
+	* tclib_random.man:
+	* tclib_zero.man:
+
+2013-03-04  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* string.man: Renamed, clashes with Tcl core manpage.
+	* tcllib_string.man: New name.
+
+	* variable.man: Renamed, clashes with Tcl core manpage.
+	* tcllib_variable.man: New name.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2012-10-05  Andreas Kupries <andreask@activestate.com>
+
+	* cat.tcl (read): Fixed bugs in the reader. Bad check of buffer
+	* pkgIndex.tcl: length, and buffer length was not taken into
+	  account for the next read after an incomplete one. Version
+	  bumped to 1.0.2.
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-08-09  Andreas Kupries  <andreask@activestate.com>
+
+	* memchan.tcl: Fixed missing initialization of 'content' instance
+	  variable. Bumped to version 1.0.2.
+
+	* variable.tcl: Fixed missing invokation of superclass
+	  constructor. Fixed missing initialization of linked 'content'
+	  variable, if not existing. Fixed missing import of linked
+	  variable into the event handling. Bumped to version 1.0.2.
+
+	* cat.tcl: Removed bogus invokation of superclass constructor,
+	  there is no such. Bumped to version 1.0.1.
+
+	* facade.tcl: Added missing logger requirements, dropped bogus
+	  call to superclass constructor. Bumped to version 1.0.1.
+
+	* std.tcl: Fixed command scoping issues, and dropped bogus call to
+	  superclass constructor. Bumped to version 1.0.1.
+
+2011-05-31  Andreas Kupries  <andreask@activestate.com>
+
+	* cat.man: New base channels. Concatenation of channels,
+	* cat.tcl: standard channel combining stdin and stdout,
+	* facade.man: and a facade for wrapping around other
+	* facade.tcl: channels.
+	* std.man:
+	* std.tcl:
+	* pkgIndex.tcl:
+
+2011-02-21  Andreas Kupries  <andreask@activestate.com>
+
+	* pkgIndex.tcl: Removed the superfluous [list] command in the
+	  ifneeded script.
+
+2011-02-16  Andreas Kupries  <andreask@activestate.com>
+
+	* memchan.tcl: Fixed constructor chaining, added the missing
+	* pkgIndex.tcl: 'next'. The bug prevented proper initialization
+	* string.tcl: of the event core. All versions bumped to 1.0.1
+	* variable.tcl:
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-07-29  Andreas Kupries  <andreask@activestate.com>
+
+	* fifo.man: New files, documentation for the packages in
+	* fifo2.man: this module.
+	* halfpipe.man:
+	* memchan.man:
+	* null.man:
+	* nullzero.man:
+	* random.man:
+	* randseed.man:
+	* string.man:
+	* textwindow.man:
+	* variable.man:
+	* zero.man:
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-12-01  Andreas Kupries  <andreask@activestate.com>
+
+	* New module 'virtchannel_base', providing classes implementing
+	  various virtual channels aka reflected channels. TclOO based.

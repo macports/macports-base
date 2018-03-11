@@ -1,0 +1,569 @@
+2014-01-22  Andreas Kupries  <aku@hephaistos>
+
+	* pkgIndex.tcl [Ticket 30be135c2a]: Added command 'capEachWord'.
+	* string.tcl: Bumped package version to 0.8. Extended testsuite.
+	* textutil_string.man:
+	* textutil.test:
+	* textutil.tcl:
+	* textutil.man:
+
+2013-12-06  Andreas Kupries  <andreask@activestate.com>
+
+	* expander.man: Ticket [01afa9345d]. Added note about method
+	  'expand' pushing a new and empty context while running.
+
+2013-10-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* expander.man: Ticket [e65df22e92]. Fixed typos.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	*
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	*
+
+2011-12-13  Andreas Kupries  <aku@hephaistos>
+
+	* adjust.tcl (::textutil::adjust::undent): Fixed whitespace regexp
+	* adjust.man: which lost the tab character. Rewritten to make it
+	* pkgIndex.tcl: less likely to happen again. Bumped to 0.7.1.
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	*
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	*
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	*
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	*
+
+2008-10-10  Andreas Kupries  <andreask@activestate.com>
+
+	* string.man: Renamed to textutil_string.man. Avoid clash with core.
+	* split.man:  Renamed to textutil_split.man. Avoid clash with core.
+	  Fix [Bug 2124508].
+
+2008-06-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* textutil_adjust.pcx: New file. Syntax definitions for the public
+	* textutil_repeat.pcx: commands of the textutil packages.
+	* textutil_split.pcx:
+	* textutil_string.pcx:
+	* textutil_tabify.pcx:
+	* textutil_trim.pcx:
+
+2008-03-22  Michael Schlenker <mic42@users.sourceforge.net>
+
+        * string.tcl:   Faster longestCommonPrefixList proc
+	* string.bench: Bench file for ::textutil::string package
+	* string.man:
+        * pkgIndex.tcl: subpackage version to 0.7.1
+
+2008-03-17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* adjust.man: Added documentation for the packages the
+	* repeat.man: textutil bundle consists of.
+	* split.man:
+	* string.man:
+	* tabify.man:
+	* trim.man:
+	* textutil.man: Noted that the bundle package is now deprecated
+	  and will go away in the future.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	*
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* textutil.man: Fixed all warnings due to use of now deprecated
+	* expander.man: commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	*
+
+2006-09-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* textutil.tcl: Bumped version to 0.7.1
+	* textutil.man:
+	* pkgIndex.tcl:
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* expander.man: Bumped version to 1.3.1
+	* expander.tcl:
+	* pkgIndex.tcl:
+
+2006-04-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* adjust.tcl: Reformatted (indentation), removed superfluous
+	  semicolons, braced expressions without.
+
+	* string.tcl:   Moved the remainder of the textutil commands
+	* pkgIndex.tcl: into their sub-package. The main package is
+	                now only a bundle requiring the sub-packages,
+			importing their commands and then re-exporting
+			them.
+
+2006-04-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* adjust.tcl:   Converted each of the subordinate files into its
+	* repeat.tcl:   own package, moved 'repeat' implementation into a
+	* split.tcl:    new file and its own package. The visible API is
+	* tabify.tcl:   unchanged, only the internal structure has changed,
+	* textutil.tcl: and how the main package loads the subordinate
+	* trim.tcl:     functionality.
+	* pkgIndex.tcl: Extended for the additional packages.
+
+	* adjust.test:      All testsuites adapted to properly load all
+	* adjust_hyph.test: needed packages, and changed to use the sub-
+	* repeat.test:      package APIs during testing, instead of the
+	* split.test:       commands exported by the bundle package.
+	* tabify.test:
+	* texttutil.test:
+	* trim.test:
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* expander.test: Fixed duplicate usage of test names.
+	* textutil.test:
+
+2006-01-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* adjust.test: More boilerplate simplified via use of test support.
+	* adjust_hyph.test:
+	* expander.test:
+	* repeat.test:
+	* split.test:
+	* tabify.test:
+	* textutil.test:
+	* trim.test:
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* adjust.test: Hooked into the new common test support code.
+	* adjust_hyph.test:
+	* expander.test:
+	* repeat.test:
+	* split.test:
+	* tabify.test:
+	* textutil.test:
+	* trim.test:
+
+2006-01-10  Andreas Kupries <andreask@activestate.com>
+
+	* expander.tcl (::textutil::expander::Op_cpush): Applied the patch
+	  for [SF Tcllib Bug 1376637], as supplied by Sarnold
+	  <sarnold75@users.sourceforge.net>. Fixes an initialization error
+	  for contexts, where the location data is not set.
+
+	* expander.test: Modified an existing test to fail for the
+	  original error, it does not anymore with the fix applied.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	*
+
+2005-04-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* adjust.tcl (indent): Fixed bug in handling of leading
+	  whitespace. We must not remove it before indentation. We can
+	  remove only trailing whitespace (text, and per line). Did a
+	  little micro-optimization to reduce the size of the bytecode.
+
+	* adjust.test: Added tests which check the non-removal of leading
+	  whitespace by 'indent'.
+
+2005-02-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* split.tcl:   Accepted [SF Tcllib Patch 1063774] and added
+	* splitn.test: the proposed splitn command. The testsuite has
+	* textutil.man: been extended as well, and the documentation
+	  too.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	*
+
+2004-07-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* expander.tcl (LocUpdate): 'regexp -all' is 8.4'ism, and this
+	  package is for 8.2/3 as well. Replaced with a x-version
+	  construct.
+
+	* expander.test: Updated tests of error output to contain line/col
+	  information. Also added test case actually counting the input.
+
+2004-07-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* expander.man: Polished the expander documentation, made use of
+	  subsections, removed superfluous para's, indented examples.
+
+2004-07-22  Andreas Kupries  <andreask@activestate.com>
+
+	* expander.tcl: Bugfix in processing of plaintext. Have to save
+	  the input for location update. Do not use the result of the text
+	  processing.
+
+	* expander.tcl: Extended the method 'expand' to keep track of the
+	  location in the string, in terms of line, column, char
+	  pos. Extended 'HandleError' to report the location the problem
+	  was found at (start position, not end). Added a new method
+	  'where' which allows retrieval of the current location by the
+	  called macros.
+
+2004-07-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* expander.man: Changed the reported filename to include the
+	  namespace.
+
+2004-06-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* trim.tcl: Fixed typo in 'trimEmptyHeading'.
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* textutil.tcl: Updated version number to sync with 1.6.1
+	* textutil.man: release.
+	* pkgIndex.tcl:
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	*
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* textutil.tcl: Rel. engineering. Updated version number
+	* textutil.man: of fileutil to reflect its changes, to 0.6.1.
+	* pkgIndex.tcl:
+
+2004-05-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* adjust.tcl: The last commit of this file, not recorded in here
+	  the ChangeLog :(, not only fixed the bug with the infinite loop
+	  invoked by the tests cases 2.6 and 2.7 :), but also introduced
+	  an error with trivial a fix (usage of wrong variable) and
+	  utterly easy to detect __if the testsuite had been run before
+	  the commit__ :(. Obviously it was not. The rewritten Adjust
+	  procedure returned not only the reformatted input, but prepended
+	  this wanted result with a copy of the original unformatted
+	  input. This has been fixed.
+
+	* adjust.test: Updated the testsuite using the assumption that the
+	  currently returned formatted results are correct as is. As the
+	  tests 2.6 and 2.7 are not running into infinite loop anymore
+	  their tag 'knownBug' has been removed. These two tests are now
+	  regular tests again and will be executed as part of any run of
+	  the testsuite for textutil.
+
+2004-03-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* adjust_hyph.test: Added the example of [Tcllib SF Bug 860753] as
+	  a testcase to textutil. Using tcllib 1.4 the new test
+	  fails. Using the CVS Head (== Tcllib 1.6) the reported problem
+	  could not be reproduced. IOW this problem has been fixed already.
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	*
+
+2004-02-01  Johannes-Heinrich Vogeler <vogeler@users.sourceforge.net>
+
+        * fixed bug 860753 (plain justification does not work with
+          hyphenation). Modified ::textutil::adjust::Justification
+
+2003-08-06  Andreas Kupries  <andreask@activestate.com>
+
+        * expander.tcl (Op_expand): Fixed SF tcllib bug 781973 ... Do not
+          throw a regular error. Using HandleError now to give the user
+          control of the situation, via the defined error mode.
+
+        * pkgIndex.tcl: Expander bumped to version 1.2.1 for this
+          bugfix. Do not bump the version again when doing minor
+          bugfixes. Only bigger bugfixes and major changes warrant a bump
+          before the next release.
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        *
+        * Released and tagged Tcllib 1.4 ========================
+        *
+
+2003-05-01  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+        * split.tcl: Use the old non -start using version for < 8.3
+        * expander.tcl: Avoid use of [array unset] for Tcl 8.2 compat.
+
+2003-04-10  Andreas Kupries  <andreask@activestate.com>
+
+        * pkgIndex.tcl:
+        * expander.man:
+        * expander.tcl: Set version of the package to to 1.2
+
+        * pkgIndex.tcl:
+        * textutil.man:
+        * textutil.tcl: Fixed bug #614591. Set version
+          of the package to to 0.5
+
+2003-03-31  Andreas Kupries  <andreask@activestate.com>
+
+        * tabify.tcl (tabify, untabify): Changed from regsub to string map
+          This closes FR #693194 by David Welton
+          <davidw@users.sourceforge.net>.
+
+2003-03-29  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * expander.man:
+        * expander.tcl: Added method 'ctopandclear' to retrieve data
+          captured in the current context without having to pop the
+          context (and loose state information). User: Plain text
+          formatter in 'doctools'.
+
+2003-03-28  Andreas Kupries  <andreask@activestate.com>
+
+        * adjust.test:
+        * textutil.test: Added testsuite for new commands. Fixed typo bug
+          in yesterday's 'blank' and 'indent'.
+
+        * adjust.tcl: New command 'undent'.
+        * textutil.tcl: New command 'longestCommonPrefix'.
+
+        * textutil.man: documented the new commands.
+
+2003-03-27  Andreas Kupries  <andreask@activestate.com>
+
+        * textutil.man:
+        * adjust.tcl:
+        * trim.tcl:
+        * textutil.tcl: New commands: blank, chop, tail, cap, uncap,
+          indent, trimPrefix, and trimEmptyHeading. Imported from my own
+          Pool library. Also fixed some typos in the manpage: Superfluous
+          closing brackets. ... This closes Tcllib FR #514476.
+
+2003-02-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * textutil.man: Added two new commands,
+        * textutil.tcl: ::textutil::adjust::listPredefined and
+                        ::textutil::adjust::getPredefined to the
+                        package. They allow the user of the package to
+                        find the names and full paths of the hyphenation
+                        files coming with the package itself, making their
+                        use easier.
+
+2003-01-27  Andreas Kupries  <andreask@activestate.com>
+
+        * expander.man: Fixed typo in documentation.
+
+2003-01-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * adjust_hyph.test: Rewrote the file into a proper testsuite.
+
+2003-01-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * expander.man: More semantic markup, less visual one.
+        * textutil.man:
+
+2003-01-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * textutil.tcl: Changed patchlevel in provide to match the
+          ifneeded in pkgIndex.tcl.
+
+2002-08-11  Johannes-Heinrich Vogeler <vogeler@users.sourceforge.net>
+
+        * adjust.tcl: added hyphenation (TeX). Hyphenation has been
+          tested  for german, english, italian and spanish
+
+2002-04-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * expander.man: Fixed typo.
+
+2002-03-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * expander.man: New file, doctools manpage.
+
+2002-03-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * expander.tcl (Op_expand): Fix for SF Bug #530056. Added code
+          checking start and end levels for pushed/popped contexts and
+          alert the caller if the numbers do not match, indicating that
+          the macros pushed more or less contexts than popped.
+
+2002-02-26  Joe English  <jenglish@users.sourceforge.net
+
+        * tabify.tcl, tabify.test: fix for #521590,
+          [tabify2 ""] and [untabify2 ""] raised an error.
+
+2002-02-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * expander.tcl: Frink run.
+
+        * Versions are now 1.0.1 and 0.5 to distinguish this from the code
+          in tcllib release 1.2
+
+2002-01-18  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * Bumped version to 0.4, Expander to 1.0.
+
+2002-01-17  Joe English  <jenglish@users.sourceforge.net>
+
+        * textutil.n, expander.n: Fixed nroff markup errors.
+
+2001-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * expander.n:
+        * expander.ehtml:
+        * expander.html:
+        * expander.tcl: Added 'textcmd' method which is called for all
+          plain text encountered by the processor. Note: The textcmd is
+          run through the evalcmd, i.e. it is treated as a special macro
+          surrounding all plain text. It defaults to empty, meaning
+          'identity'. Also moved the code handling errors in a macro into
+          a separate function to make usage in multiple places
+          easier. This is patch #492156.
+
+2001-12-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * textutil.n:
+        * split.test:
+        * split.tcl: Fixed item #476988, the handling of the empty input
+          string, reported by Glenn Jackman
+          <glennjnn@users.sourceforge.net>. Also added code to detect and
+          handle an empty regular expression. In that case "splitx"
+          degenerates to a simple "split".
+
+2001-12-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * expander.test:
+        * expander.tcl:
+        * expander.n:
+        * expander.ehtml:
+        * expander.html:
+        * expander_notes.txt: Applied update on behalf of William
+          implementing the 'evalcmd' feature, i.e. instead of using
+          'uplevel #0' directly expander objects now have a configurable
+          callback for the execution of macros. The default is still
+          'uplevel #0' but this can be changed.
+
+2001-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * expander.test: Fixed a problem with the expander testsuite. It
+          checked for the wrong namespace and thus did not load the
+          functionality to be tested.
+
+2001-11-28  Reinhard Max  <max@suse.de>
+
+        * split.tcl: Speed improvement by using [regexp -start] instead of
+        repeatedly copying the tail of the string.
+
+2001-11-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * textutil.n:
+        * adjust.tcl:
+        * adjust.tcl: Added code, tests and documentation for option
+          -strictlength as provided by Dan Kuchler <dan@kuchler.net>.
+
+        * expander.tcl:
+        * expander.test:
+        * expander.ehtml:
+        * expander.html:
+        * expander.n:
+        * expander_license.txt:
+        * expander_notes.txt: Documentation, code and testsuite for
+          expander objects; the heart of the expand macro processor by
+          William H. Duquette <will@wjduquette.com> packaged up as a
+          library.
+
+2001-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+        * pkgIndex.tcl:
+        * textutil.n:
+        * textutil.tcl: Version up to 0.3
+
+2001-09-18   Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+        * tabify.tcl (tabifyLine): Documentation of the algorithm
+          expanded. Text provided by Helmut Giese.
+
+2001-09-17    Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+        * tabify.tcl: Added (un)tabify code provided by Helmut Giese
+          <hgiese@ratiosoft.com> which is more editor-like than the
+          existing code. The existing code was not deleted so both
+          behaviours can be used in the future. This fixes [439016].
+
+2001-07-10  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+        * tabify.tcl: Frink 2.2 run, fixed dubious code.
+
+2001-06-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+        * split.tcl:
+        * adjust.tcl:
+        * trim.tcl: Fixed dubious code reported by frink.
+
+2001-03-23 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+        * textutil.tcl: Reworked the implementation of 'StrRepeat', made
+          it much faster (used code from Pool_Base). Renamed to
+          'strRepeat' and exported.
+
+          **Note** that the tcl implementation is one order of magnitude
+          faster than [string repeat] for num >= 1000.
+
+        * textutil.n: Added description of 'strRepeat'.
+        * repeat.test: New file, tests 'strRepeat'.
+
+2000-11-02  Eric Melski  <ericm@ajubasolutions.com>
+
+        * textutil.test:
+        * adjust.test:
+        * split.test:
+        * tabify.test:
+        * trim.test:
+        * adjust.tcl:
+        * split.tcl:
+        * tabify.tcl:
+        * trim.tcl:
+        * textutil.tcl: Added functions from Joel Saunier (adjust, splitx,
+        tabify, trim, trimleft, trimright, untabify).
+
+2000-07-01  Eric Melski  <ericm@ajubasolutions.com>
+
+        * pkgIndex.tcl: Standard package index.
+
+        * textutil.tcl: Added [package provide]; no actual functions yet,
+        just the package stub.

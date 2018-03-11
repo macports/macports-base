@@ -1,0 +1,273 @@
+
+<div class='fossil-doc' data-title='oo::util - Utility commands for TclOO'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">oo::util(n) 1.2.2 tcllib &quot;Utility commands for TclOO&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>oo::util - Utility commands for TclOO</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">AUTHORS</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">TclOO</b></li>
+<li>package require <b class="pkgname">oo::util <span class="opt">?1.2.2?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">mymethod</b> <i class="arg">method</i> <span class="opt">?<i class="arg">arg</i>...?</span></a></li>
+<li><a href="#2"><b class="cmd">classmethod</b> <i class="arg">name</i> <i class="arg">arguments</i> <i class="arg">body</i></a></li>
+<li><a href="#3"><b class="cmd">classvariable</b> <span class="opt">?<i class="arg">arg</i>...?</span></a></li>
+<li><a href="#4"><b class="cmd">link</b> <i class="arg">method</i>...</a></li>
+<li><a href="#5"><b class="cmd">link</b> {<i class="arg">alias</i> <i class="arg">method</i>}...</a></li>
+<li><a href="#6"><b class="cmd">ooutil::singleton</b> <span class="opt">?<i class="arg">arg</i>...?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides a convenience command for the easy specification
+of instance methods as callback commands, like timers, file events, Tk
+bindings, etc.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">mymethod</b> <i class="arg">method</i> <span class="opt">?<i class="arg">arg</i>...?</span></a></dt>
+<dd><p>This command is available within instance methods. It takes a method
+name and, possibly, arguments for the method and returns a command
+prefix which, when executed, will invoke the named method of the
+object we are in, with the provided arguments, and any others supplied
+at the time of actual invokation.</p>
+<p>Note: The command is equivalent to and named after the command
+provided by the OO package <b class="package"><a href="../snit/snit.html">snit</a></b> for the same purpose.</p></dd>
+<dt><a name="2"><b class="cmd">classmethod</b> <i class="arg">name</i> <i class="arg">arguments</i> <i class="arg">body</i></a></dt>
+<dd><p>This command is available within class definitions. It takes a method
+name and, possibly, arguments for the method and creates a method on the
+class, available to a user of the class and of derived classes.</p>
+<p>Note: The command is equivalent to the command <b class="cmd">typemethod</b>
+provided by the OO package <b class="package"><a href="../snit/snit.html">snit</a></b> for the same purpose.</p>
+<p>Example</p>
+<pre class="doctools_example">
+oo::class create ActiveRecord {
+    classmethod find args { puts &quot;[self] called with arguments: $args&quot; }
+}
+oo::class create Table {
+    superclass ActiveRecord
+}
+puts [Table find foo bar]
+# ======
+# which will write
+# ======
+# ::Table called with arguments: foo bar
+</pre>
+</dd>
+<dt><a name="3"><b class="cmd">classvariable</b> <span class="opt">?<i class="arg">arg</i>...?</span></a></dt>
+<dd><p>This command is available within instance methods. It takes a series
+of variable names and makes them available in the method's scope. The
+originating scope for the variables is the class (instance) the object
+instance belongs to. In other words, the referenced variables are shared
+between all instances of their class.</p>
+<p>Note: The command is roughly equivalent to the command
+<b class="cmd">typevariable</b> provided by the OO package <b class="package"><a href="../snit/snit.html">snit</a></b> for the
+same purpose. The difference is that it cannot be used in the class
+definition itself.</p>
+<p>Example:</p>
+<pre class="doctools_example">
+% oo::class create Foo {
+    method bar {z} {
+        classvariable x y
+        return [incr x $z],[incr y]
+    }
+}
+::Foo
+% Foo create a
+::a
+% Foo create b
+::b
+% a bar 2
+2,1
+% a bar 3
+5,2
+% b bar 7
+12,3
+% b bar -1
+11,4
+% a bar 0
+11,5
+</pre>
+</dd>
+<dt><a name="4"><b class="cmd">link</b> <i class="arg">method</i>...</a></dt>
+<dd></dd>
+<dt><a name="5"><b class="cmd">link</b> {<i class="arg">alias</i> <i class="arg">method</i>}...</a></dt>
+<dd><p>This command is available within instance methods. It takes a list of
+method names and/or pairs of alias- and method-name and makes the
+named methods available to all instance methods without requiring the
+<b class="cmd">my</b> command.</p>
+<p>The alias name under which the method becomes available defaults
+to the method name, except where explicitly specified through an
+alias/method pair.</p>
+<p>Examples:</p>
+<pre class="doctools_example">
+    link foo
+    # The method foo is now directly accessible as foo instead of my foo.
+    link {bar foo}
+    # The method foo is now directly accessible as bar.
+    link a b c
+    # The methods a, b, and c all become directly acessible under their
+    # own names.
+</pre>
+<p>The main use of this command is expected to be in instance constructors,
+for convenience, or to set up some methods for use in a mini DSL.</p></dd>
+<dt><a name="6"><b class="cmd">ooutil::singleton</b> <span class="opt">?<i class="arg">arg</i>...?</span></a></dt>
+<dd><p>This command is a meta-class, i.e. a variant of the builtin
+<b class="cmd">oo::class</b> which ensures that it creates only a single
+instance of the classes defined with it.</p>
+<p>Syntax and results are like for <b class="cmd">oo::class</b>.</p>
+<p>Example:</p>
+<pre class="doctools_example">
+% oo::class create example {
+   self mixin singleton
+   method foo {} {self}
+}
+::example
+% [example new] foo
+::oo::Obj22
+% [example new] foo
+::oo::Obj22
+</pre>
+</dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">AUTHORS</a></h2>
+<p>Donal Fellows, Andreas Kupries</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>oo::util</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../snit/snit.html">snit(n)</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key756">TclOO</a>, <a href="../../../../index.html#key539">callback</a>, <a href="../../../../index.html#key757">class methods</a>, <a href="../../../../index.html#key760">class variables</a>, <a href="../../../../index.html#key594">command prefix</a>, <a href="../../../../index.html#key596">currying</a>, <a href="../../../../index.html#key755">method reference</a>, <a href="../../../../index.html#key759">my method</a>, <a href="../../../../index.html#key758">singleton</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Utility</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2011-2015 Andreas Kupries, BSD licensed</p>
+</div>
+</div>

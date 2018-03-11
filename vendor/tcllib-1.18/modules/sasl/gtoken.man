@@ -1,0 +1,27 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin SASL::XGoogleToken n 1.0.1]
+[keywords authentication]
+[keywords SASL XGoogleToken]
+[copyright {2006, Pat Thoyts <patthoyts@users.sourceforge.net>}]
+[moddesc {Simple Authentication and Security Layer (SASL)}]
+[titledesc {Implementation of SASL NTLM mechanism for Tcl}]
+[category  Networking]
+[require Tcl 8.2]
+[require SASL::XGoogleToken [opt 1.0.1]]
+[description]
+[para]
+
+This package provides the XGoogleToken authentication mechanism for
+the Simple Authentication and Security Layer (SASL).
+
+[para] Please read the documentation for package [package sasl]
+for details.
+
+[include ../common-text/tls-security-notes.inc]
+
+[section AUTHORS]
+Pat Thoyts
+
+[vset CATEGORY sasl]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

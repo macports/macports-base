@@ -1,0 +1,36 @@
+# -*- tcl -*-
+# char.test:  tests for the char package.
+#
+# Copyright (c) 2014 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: char.test,v 1.1 2010/03/26 05:07:24 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+}
+testing {
+    useLocal char.tcl char
+}
+
+# -------------------------------------------------------------------------
+
+set mytestdir tests/data
+
+# -------------------------------------------------------------------------
+
+source [localPath tests/char.tests]
+
+#----------------------------------------------------------------------
+
+unset mytestdir
+testsuiteCleanup
+return

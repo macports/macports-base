@@ -1,15 +1,14 @@
 // vim: set et sw=4 ts=8 ft=asciidoc tw=80:
 port-exit(1)
 ============
-$Id$
 
 NAME
 ----
-port-exit - Exit interactive mode
+port-exit - Exit shell mode
 
 SYNOPSIS
 --------
-To be used only in interactive mode:
+To be used only in shell mode:
 
 [cmdsynopsis]
 *exit*
@@ -19,8 +18,8 @@ To be used only in interactive mode:
 
 DESCRIPTION
 -----------
-*exit* or *quit* can only be used in interactive mode of *port* (see
-man:port-interactive[7]). It causes the interactive interpreter to exit.
+*exit* or *quit* can only be used when *port* is running in shell mode (see
+man:port-shell[7]). It causes *port* to exit.
 
 BUGS
 ----
@@ -28,7 +27,7 @@ BUGS
 
 SEE ALSO
 --------
-man:port[1], man:port-interactive[7]
+man:port[1], man:port-shell[7]
 
 AUTHORS
 -------

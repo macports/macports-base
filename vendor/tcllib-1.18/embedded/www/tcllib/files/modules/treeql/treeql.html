@@ -1,0 +1,648 @@
+
+<div class='fossil-doc' data-title='treeql - Tree Query Language'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">treeql(n) 1.3.1 tcllib &quot;Tree Query Language&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>treeql - Query tree objects</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">API</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">TreeQL CLASS API</a></li>
+<li class="doctools_subsection"><a href="#subsection2">TreeQL OBJECT API</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">The Tree Query Language</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection3">TreeQL Concepts</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Structural generators</a></li>
+<li class="doctools_subsection"><a href="#subsection5">Attribute Filters</a></li>
+<li class="doctools_subsection"><a href="#subsection6">Attribute Mutators</a></li>
+<li class="doctools_subsection"><a href="#subsection7">Attribute String Accessors</a></li>
+<li class="doctools_subsection"><a href="#subsection8">Sub-queries</a></li>
+<li class="doctools_subsection"><a href="#subsection9">Node Set Operators</a></li>
+<li class="doctools_subsection"><a href="#subsection10">Node Set Iterators</a></li>
+<li class="doctools_subsection"><a href="#subsection11">Typed node support</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">Examples</a></li>
+<li class="doctools_section"><a href="#section5">References</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">snit</b></li>
+<li>package require <b class="pkgname">struct::list</b></li>
+<li>package require <b class="pkgname">struct::set</b></li>
+<li>package require <b class="pkgname">treeql <span class="opt">?1.3.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">treeql</b> <i class="arg">objectname</i> <b class="option">-tree</b> <i class="arg">tree</i> <span class="opt">?<b class="option">-query</b> <i class="arg">query</i>?</span> <span class="opt">?<b class="option">-nodes</b> <i class="arg">nodes</i>?</span> <span class="opt">?<i class="arg">args</i>...?</span></a></li>
+<li><a href="#2"><i class="arg">qo</i> <b class="method">query</b> <i class="arg">args</i>...</a></li>
+<li><a href="#3"><i class="arg">qo</i> <b class="method">result</b></a></li>
+<li><a href="#4"><i class="arg">qo</i> <b class="method">discard</b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides objects which can be used to query and transform
+tree objects following the API of tree objects created by the package
+<b class="package"><a href="../struct/struct_tree.html">struct::tree</a></b>.</p>
+<p>The tree query and manipulation language used here, TreeQL, is
+inspired by Cost (See section <span class="sectref"><a href="#section5">References</a></span> for more
+information).</p>
+<p><b class="package">treeql</b>, the package, is a fairly thin query facility over
+tree-structured data types.  It implements an ordered set of nodes
+(really a list) which are generated and filtered through the
+application of TreeQL operators to each node in turn.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">API</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">TreeQL CLASS API</a></h3>
+<p>The command <b class="cmd">treeql</b> is a <b class="package"><a href="../snit/snit.html">snit</a></b>::type which implements
+the Treeql Query Language. This means that it follows the API for
+class commands as specified by the package <b class="package"><a href="../snit/snit.html">snit</a></b>.
+Its general syntax is</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">treeql</b> <i class="arg">objectname</i> <b class="option">-tree</b> <i class="arg">tree</i> <span class="opt">?<b class="option">-query</b> <i class="arg">query</i>?</span> <span class="opt">?<b class="option">-nodes</b> <i class="arg">nodes</i>?</span> <span class="opt">?<i class="arg">args</i>...?</span></a></dt>
+<dd><p>The command creates a new tree query object and returns the fully
+qualified name of the object command as its result.
+The API the returned command is following is described in the section
+<span class="sectref"><a href="#subsection2">TreeQL OBJECT API</a></span></p>
+<p>Each query object is associated with a single <i class="arg">tree</i> object. This
+is the object all queries will be run against.</p>
+<p>If the option <b class="option">-nodes</b> was specified then its argument is
+treated as a list of nodes. This list is used to initialize the node
+set. It defaults to the empty list.</p>
+<p>If the option <b class="option">-query</b> was specified then its argument will be
+interpreted as an object, the <i class="term">parent query</i> of this query. It
+defaults to the object itself. All queries will be interpreted in the
+environment of this object.</p>
+<p>Any arguments coming after the options are treated as a query and run
+immediately, after the <i class="term">node set</i> has been initialized. This
+uses the same syntax for the query as the method <b class="method">query</b>.</p>
+<p>The operations of the TreeQL available for this are explained in the
+section about <span class="sectref"><a href="#section3">The Tree Query Language</a></span>. This section also
+explains the term <i class="term">node set</i> used above.</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">TreeQL OBJECT API</a></h3>
+<p>As <b class="package">treeql</b> has been implemented in <b class="package"><a href="../snit/snit.html">snit</a></b> all the
+standard methods of <b class="package"><a href="../snit/snit.html">snit</a></b>-based classes are available to the
+user and therefore not listed here. Please read the documentation for
+<b class="package"><a href="../snit/snit.html">snit</a></b> for what they are and what functionality they provide</p>
+<p>The methods provided by the package <b class="package">treeql</b> itself are listed
+and explained below.</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><i class="arg">qo</i> <b class="method">query</b> <i class="arg">args</i>...</a></dt>
+<dd><p>This method interprets its arguments as a series of TreeQL operators
+and interpretes them from the left to right (i.e. first to last).
+Note that the first operator uses the <i class="term">node set</i> currently
+known to the object to perform its actions.
+In other words, the <i class="term">node set</i> is <em>not</em> cleared, or
+modified in other ways, before the query is run. This allows the user
+to run several queries one after the other and have each use the
+results of the last. Any initialization has to be done by any query
+itself, using TreeQL operators.
+The result of the method is the <i class="term">node set</i> after the last
+operator of the query has been executed.</p>
+<p><em>Note</em> that uncaught errors will leave the <i class="term">node set</i> of
+the object in an intermediate state, per the TreeQL operators which
+were executed successfully before the error occurred.</p>
+<p>The above means in detail that:</p>
+<ol class="doctools_enumerated">
+<li><p>The first argument is interpreted as the name of a query operator, the
+number of arguments required by that operator is then determined, and
+taken from the immediately following arguments.</p>
+<p>Because of this operators cannot have optional arguments, all
+arguments have to be present as defined.  Failure to do this will, at
+least, confuse the query interpreter, but more likely cause errors.</p></li>
+<li><p>The operator is applied to the current node set, yielding a new node
+set, and/or manipulating the tree object the query object is connected
+to.</p></li>
+<li><p>The arguments used (i.e. operator name and arguments) are removed from
+the list of method arguments, and then the whole process is repeated
+from step [1], until the list of arguments is empty or an error
+occurred.</p></li>
+</ol>
+<pre class="doctools_example">
+    # q is the query object.
+    q query root children get data
+    # The above query
+    # - Resets the node set to the root node - root
+    # - Adds the children of root to the set - children
+    # - Replaces the node set with the       - get data
+    #   values for the attribute 'data',
+    #   for all nodes in the set which
+    #   have such an attribute.
+    # - And returns this information.
+    # Below we can see the same query, but rewritten
+    # to show the structure as it is seen by the query
+    # interpreter.
+    q query \\
+	    root \\
+	    children \\
+	    get data
+</pre>
+<p>The operators of the TreeQL language available for this are explained
+in the section about <span class="sectref"><a href="#section3">The Tree Query Language</a></span>. This section
+also explains the term <i class="term">node set</i> used above.</p></dd>
+<dt><a name="3"><i class="arg">qo</i> <b class="method">result</b></a></dt>
+<dd><p>This method returns a list containing the current node set.</p></dd>
+<dt><a name="4"><i class="arg">qo</i> <b class="method">discard</b></a></dt>
+<dd><p>This method returns the current node set (like method
+<b class="method">result</b>), but also destroys the query object (<i class="arg">qo</i>).
+This is useful when constructing and using sub-queries (%AUTO% objects
+immediately destroyed after use).</p></dd>
+</dl>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">The Tree Query Language</a></h2>
+<p>This and the following sections specify the Tree Query Language used
+by the query objects of this package in detail.</p>
+<p>First we explain the general concepts underneath the language which
+are required to comprehend it. This is followed by the specifications
+for all the available query operators. They fall into eight
+categories, and each category has its own section.</p>
+<ol class="doctools_enumerated">
+<li><p><span class="sectref"><a href="#subsection3">TreeQL Concepts</a></span></p></li>
+<li><p><span class="sectref"><a href="#subsection4">Structural generators</a></span></p></li>
+<li><p><span class="sectref"><a href="#subsection5">Attribute Filters</a></span></p></li>
+<li><p><span class="sectref"><a href="#subsection6">Attribute Mutators</a></span></p></li>
+<li><p><span class="sectref"><a href="#subsection7">Attribute String Accessors</a></span></p></li>
+<li><p><span class="sectref"><a href="#subsection8">Sub-queries</a></span></p></li>
+<li><p><span class="sectref"><a href="#subsection9">Node Set Operators</a></span></p></li>
+<li><p><span class="sectref"><a href="#subsection10">Node Set Iterators</a></span></p></li>
+<li><p><span class="sectref"><a href="#subsection11">Typed node support</a></span></p></li>
+</ol>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">TreeQL Concepts</a></h3>
+<p>The main concept which has to be understood is that of the
+<i class="term">node set</i>.
+Each query object maintains exactly one such <i class="term">node set</i>, and
+essentially all operators use it and input argument and for their
+result.
+This structure simply contains the handles of all nodes which are
+currently of interest to the query object.
+To name it a <i class="term"><a href="../../../../index.html#key301">set</a></i> is a bit of a misnomer, because</p>
+<ol class="doctools_enumerated">
+<li><p>A node (handle) can occur in the structure more than once, and</p></li>
+<li><p>the order of nodes in the structure is important as well.
+Whenever an operator processes all nodes in the node set it will do so
+in the order they occur in the structure.</p></li>
+</ol>
+<p>Regarding the possible multiple occurrence of a node, consider a node
+set containing two nodes A and B, both having node P as their
+immediate parent. Application of the TreeQL operator &quot;parent&quot; will
+then add P to the new node set twice, once per node it was parent
+of. I.e. the new node set will then be {P P}.</p>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Structural generators</a></h3>
+<p>All tree-structural operators locate nodes in the tree based on a
+structural relation ship to the nodes currently in the set and then
+replace the current node set with the set of nodes found
+Nodes which fulfill such a relationship multiple times are added to
+the result as often as they fulfill the relationship.</p>
+<p>It is important to note that the found nodes are collected in a
+separate storage area while processing the node set, and are added to
+(or replacing) the current node set only after the current node set
+has been processed completely.
+In other words, the new nodes are <em>not</em> processed by the operator
+as well and do not affect the iteration.</p>
+<p>When describing an operator the variable <b class="variable">N</b> will be used to refer
+to any node in the node set.</p>
+<dl class="doctools_definitions">
+<dt><b class="method">ancestors</b></dt>
+<dd><p>Replaces the current node set with the ancestors for all nodes <b class="variable">N</b>
+in the node set, should <b class="variable">N</b> have a parent. In other words, nodes
+without a parent do not contribute to the new node set. In other
+words, uses all nodes on the path from node <b class="variable">N</b> to root, in this
+order (root last), for all nodes <b class="variable">N</b> in the node set. This
+includes the root, but not the node itself.</p></dd>
+<dt><b class="method">rootpath</b></dt>
+<dd><p>Replaces the current node set with the ancestors for all nodes <b class="variable">N</b>
+in the node set, should <b class="variable">N</b> have a parent. In other words, nodes
+without a parent do not contribute to the new node set.
+In contrast to the operator <b class="method">ancestors</b> the nodes are added in
+reverse order however, i.e. the root node first.</p></dd>
+<dt><b class="method">parent</b></dt>
+<dd><p>Replaces the current node set with the parent of node <b class="variable">N</b>, for all
+nodes <b class="variable">N</b> in the node set, should <b class="variable">N</b> have a parent. In other
+words, nodes without a parent do not contribute to the new node set.</p></dd>
+<dt><b class="method">children</b></dt>
+<dd><p>Replaces the current node set with the immediate children of node
+<b class="variable">N</b>, for all nodes <b class="variable">N</b> in the node set, should <b class="variable">N</b> have
+children. In other words, nodes without children do not contribute to
+the new node set.</p></dd>
+<dt><b class="method">left</b></dt>
+<dd><p>Replaces the current node set with the previous/left sibling for all
+nodes <b class="variable">N</b> in the node set, should <b class="variable">N</b> have siblings to the
+left. In other words, nodes without left siblings do not contribute to
+the new node set.</p></dd>
+<dt><b class="method">right</b></dt>
+<dd><p>Replaces the current node set with the next/right sibling for all
+nodes <b class="variable">N</b> in the node set, should <b class="variable">N</b> have siblings to the
+right. In other words, nodes without right siblings do not contribute
+to the new node set.</p></dd>
+<dt><b class="method">prev</b></dt>
+<dd><p>Replaces the current node set with all previous/left siblings of node
+<b class="variable">N</b>, for all nodes <b class="variable">N</b> in the node set, should <b class="variable">N</b> have
+siblings to the left. In other words, nodes without left siblings are
+ignored. The left sibling adjacent to the node is added first, and the
+leftmost sibling last (reverse tree order).</p></dd>
+<dt><b class="method">esib</b></dt>
+<dd><p>Replaces the current node set with all previous/left siblings of node
+<b class="variable">N</b>, for all nodes <b class="variable">N</b> in the node set, should <b class="variable">N</b> have
+siblings to the left. In other words, nodes without left siblings are
+ignored. The leftmost sibling is added first, and the left sibling
+adjacent to the node last (tree order).</p>
+<p>The method name is a shorthand for <i class="term">Earlier SIBling</i>.</p></dd>
+<dt><b class="method">next</b></dt>
+<dd><p>Replaces the current node set with all next/right siblings of node
+<b class="variable">N</b>, for all nodes <b class="variable">N</b> in the node set, should <b class="variable">N</b> have
+siblings to the right. In other words, nodes without right siblings do
+not contribute to the new node set. The right sibling adjacent to the
+node is added first, and the rightmost sibling last (tree order).</p></dd>
+<dt><b class="method">root</b></dt>
+<dd><p>Replaces the current node set with a node set containing a single
+node, the root of the tree.</p></dd>
+<dt><b class="method">tree</b></dt>
+<dd><p>Replaces the current node set with a node set containing all nodes
+found in the tree. The nodes are added in pre-order (parent first,
+then children, the latter from left to right, first to last).</p></dd>
+<dt><b class="method">descendants</b></dt>
+<dd><p>Replaces the current node set with the nodes in all subtrees rooted at
+node <b class="variable">N</b>, for all nodes <b class="variable">N</b> in the node set, should <b class="variable">N</b>
+have children. In other words, nodes without children do not
+contribute to the new node set.</p>
+<p>This is like the operator <b class="method">children</b>, but covers the children
+of children as well, i.e. all the <i class="term">proper descendants</i>. &quot;Rooted
+at <b class="variable">N</b>&quot; means that <b class="variable">N</b> itself is not added to the new set,
+which is also implied by <i class="term">proper descendants</i>.</p></dd>
+<dt><b class="method">subtree</b></dt>
+<dd><p>Like operator <b class="method">descendants</b>, but includes the node <b class="variable">N</b>. In
+other words:</p>
+<p>Replaces the current node set with the nodes of the subtree of node
+<b class="variable">N</b>, for all nodes <b class="variable">N</b> in the node set, should <b class="variable">N</b> have
+children. In other words, nodes without children do not contribute to
+the new node set. I.e this is like the operator <b class="method">children</b>, but
+covers the children of children, etc. as well. &quot;Of <b class="variable">N</b>&quot; means that
+<b class="variable">N</b> itself is added to the new set.</p></dd>
+<dt><b class="method">forward</b></dt>
+<dd><p>Replaces the current node set with the nodes in the subtrees rooted at
+the right siblings of node <b class="variable">N</b>, for all nodes <b class="variable">N</b> in the node
+set, should <b class="variable">N</b> have right siblings, and they children. In other
+words, nodes without right siblings, and them without children are
+ignored.</p>
+<p>This is equivalent to the operator sequence</p>
+<pre class="doctools_example">next descendants</pre>
+</dd>
+<dt><b class="method">later</b></dt>
+<dd><p>This is an alias for the operator <b class="method">forward</b>.</p></dd>
+<dt><b class="method">backward</b></dt>
+<dd><p>Replaces the current node set with the nodes in the flattened previous
+subtrees, in reverse tree order.</p>
+<p>This is nearly equivalent to the operator sequence</p>
+<pre class="doctools_example">prev descendants</pre>
+<p>The only difference is that this uses the nodes in reverse order.</p></dd>
+<dt><b class="method">earlier</b></dt>
+<dd><p>Replaces the current node set with the nodes in the flattened previous
+subtrees, in tree order.</p>
+<p>This is equivalent to the operator sequence</p>
+<pre class="doctools_example">prev subtree</pre>
+</dd>
+</dl>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">Attribute Filters</a></h3>
+<p>These operators filter the node set by reference to attributes of
+nodes and their properties. Filter means that all nodes not fulfilling
+the criteria are removed from the node set. In other words, the node
+set is replaced by the set of nodes fulfilling the filter criteria.</p>
+<dl class="doctools_definitions">
+<dt><b class="method">hasatt</b> <i class="arg">attr</i></dt>
+<dd><p>Reduces the node set to nodes which have an attribute named
+<i class="arg">attr</i>.</p></dd>
+<dt><b class="method">withatt</b> <i class="arg">attr</i> <i class="arg">value</i></dt>
+<dd><p>Reduces the node set to nodes which have an attribute named
+<i class="arg">attr</i>, and where the value of that attribute is equal to
+<i class="arg">value</i> (The &quot;==&quot; operator is <b class="cmd">string equal -nocase</b>).</p></dd>
+<dt><b class="method">withatt!</b> <i class="arg">attr</i> <i class="arg">val</i></dt>
+<dd><p>This is the same as <b class="method">withatt</b>, but all nodes in the node set
+have to have the attribute, and the &quot;==&quot; operator is
+<b class="cmd">string equal</b>, i.e. no <b class="option">-nocase</b>.
+The operator will fail with an error if they don't have the attribute.</p></dd>
+<dt><b class="method">attof</b> <i class="arg">attr</i> <i class="arg">vals</i></dt>
+<dd><p>Reduces the node set to nodes which which have an attribute named
+<i class="arg">attr</i> and where the value of that attribute is contained in the
+list <i class="arg">vals</i> of legal values. The contained-in operator used here
+does glob matching (using the attribute value as pattern) and ignores
+the case of the attribute value, <em>but not</em> for the elements of
+<i class="arg">vals</i>.</p></dd>
+<dt><b class="method">attmatch</b> <i class="arg">attr</i> <i class="arg">match</i></dt>
+<dd><p>Same as <b class="method">withatt</b>, but <b class="cmd">string match</b> is used as the &quot;==&quot;
+operator, and <i class="arg">match</i> is the pattern checked for.</p>
+<p><em>Note</em> that <i class="arg">match</i> is a interpreted as a partial argument
+<em>list</em> for <b class="cmd">string match</b>. This means that it is
+interpreted as a list containing the pattern, and the pattern element
+can be preceded by options understand by <b class="cmd">string match</b>, like
+<b class="option">-nocase</b>.
+This is especially important should the pattern contain spaces. It has
+to be wrapped into a list for correct interpretation by this operator</p></dd>
+</dl>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">Attribute Mutators</a></h3>
+<p>These operators change node attributes within the underlying tree. In
+other words, all these operators have <i class="term">side effects</i>.</p>
+<dl class="doctools_definitions">
+<dt><b class="method">set</b> <i class="arg">attr</i> <i class="arg">val</i></dt>
+<dd><p>Sets the attribute <i class="arg">attr</i> to the value <i class="arg">val</i>, for all nodes
+<b class="variable">N</b> in the node set.
+The operator will fail if a node does not have an attribute named
+<i class="arg">attr</i>. The tree will be left in a partially modified state.</p></dd>
+<dt><b class="method">unset</b> <i class="arg">attr</i></dt>
+<dd><p>Unsets the attribute <i class="arg">attr</i>, for all nodes <b class="variable">N</b> in the node
+set.
+The operator will fail if a node does not have an attribute named
+<i class="arg">attr</i>. The tree will be left in a partially modified state.</p></dd>
+</dl>
+</div>
+<div id="subsection7" class="doctools_subsection"><h3><a name="subsection7">Attribute String Accessors</a></h3>
+<p>These operators retrieve the values of node attributes from the
+underlying tree. The collected results are stored in the node set, but
+are not actually nodes.</p>
+<p>In other words, they redefine the semantics of the node set stored by
+the query object to contain non-node data after their completion.</p>
+<p>The query interpreter will terminate after it has finished processing
+one of these operators, silently discarding any later query elements.
+It also means that our talk about maintenance of a node set is not
+quite true. It is a node set while the interpreter is processing
+commands, but can be left as an attribute value set at the end of
+query processing.</p>
+<dl class="doctools_definitions">
+<dt><b class="method">string</b> <i class="arg">op</i> <i class="arg">attr</i></dt>
+<dd><p>Applies the string operator <i class="arg">op</i> to the attribute named
+<i class="arg">attr</i>, for all nodes <b class="variable">N</b> in the node set, collects the
+results of that application and places them into the node set.</p>
+<p>The operator will fail if a node does not have an attribute named
+<i class="arg">attr</i>.</p>
+<p>The argument <i class="arg">op</i> is interpreted as partial argument list for the
+builtin command <b class="cmd"><a href="../../../../index.html#key280">string</a></b>.  Its first word has to be any of the
+sub-commands understood by <b class="cmd"><a href="../../../../index.html#key280">string</a></b>.  This has to be followed by
+all arguments required for the subcommand, except the last.  that last
+argument is supplied by the attribute value.</p></dd>
+<dt><b class="method">get</b> <i class="arg">pattern</i></dt>
+<dd><p>For all nodes <b class="variable">N</b> in the node set it determines all their
+attributes with names matching the glob <i class="arg">pattern</i>, then the values
+of these attributes, at last it replaces the node set with the list of
+these attribute values.</p></dd>
+<dt><b class="method">attlist</b></dt>
+<dd><p>This is a convenience definition for the operator
+<b class="method">getvals *</b>. In other words, it replaces the node set with a
+list of the attribute values for all attributes for all nodes <b class="variable">N</b>
+in the node set.</p></dd>
+<dt><b class="method">attrs</b> <i class="arg">glob</i></dt>
+<dd><p>Replaces the current node set with a list of attribute lists, one
+attribute list per for all nodes <b class="variable">N</b> in the node set.</p></dd>
+<dt><b class="method">attval</b> <i class="arg">attname</i></dt>
+<dd><p>Reduces the current node set with the operator <b class="method">hasatt</b>, and
+then replaces it with a list containing the values of the attribute
+named <i class="arg">attname</i> for all nodes <b class="variable">N</b> in the node set.</p></dd>
+</dl>
+</div>
+<div id="subsection8" class="doctools_subsection"><h3><a name="subsection8">Sub-queries</a></h3>
+<p>Sub-queries yield node sets which are then used to augment, reduce or
+replace the current node set.</p>
+<dl class="doctools_definitions">
+<dt><b class="method">andq</b> <i class="arg">query</i></dt>
+<dd><p>Replaces the node set with the set-intersection of the node set
+generated by the sub-query <i class="arg">query</i> and itself.</p>
+<p>The execution of the sub-query uses the current node set as its own
+initial node set.</p></dd>
+<dt><b class="method">orq</b> <i class="arg">query</i></dt>
+<dd><p>Replaces the node set with the set-union of the node set generated by
+the sub-query <i class="arg">query</i> and itself. Duplicate nodes are removed.</p>
+<p>The execution of the sub-query uses the current node set as its own
+initial node set.</p></dd>
+<dt><b class="method">notq</b> <i class="arg">query</i></dt>
+<dd><p>Replaces the node set with the set of nodes generated by the sub-query
+<i class="arg">query</i> which are also not in the current node set. In other word
+the set difference of itself and the node set generated by the
+sub-query.</p>
+<p>The execution of the sub-query uses the current node set as its own
+initial node set.</p></dd>
+</dl>
+</div>
+<div id="subsection9" class="doctools_subsection"><h3><a name="subsection9">Node Set Operators</a></h3>
+<p>These operators change the node set directly, without referring to the
+tree.</p>
+<dl class="doctools_definitions">
+<dt><b class="method">unique</b></dt>
+<dd><p>Removes duplicate nodes from the node set, preserving order. In other
+words, the earliest occurrence of a node handle is preserved, every
+other occurrence is removed.</p></dd>
+<dt><b class="method">select</b></dt>
+<dd><p>Replaces the current node set with a node set containing only the
+first node from the current node set</p></dd>
+<dt><b class="method">transform</b> <i class="arg">query</i> <i class="arg">var</i> <i class="arg">body</i></dt>
+<dd><p>First it interprets the sub-query <i class="arg">query</i>, using the current node
+set as its initial node set.
+Then it iterates over the result of that query, binding the handle of
+each node to the variable named in <i class="arg">var</i>, and executing the script
+<i class="arg">body</i>.
+The collected results of these executions is made the new node set,
+replacing the current one.</p>
+<p>The script <i class="arg">body</i> is executed in the context of the caller.</p></dd>
+<dt><b class="method">map</b> <i class="arg">var</i> <i class="arg">body</i></dt>
+<dd><p>Iterates over the current node set, binding the handle of each node to
+the variable named in <i class="arg">var</i>, and executing the script <i class="arg">body</i>.
+The collected results of these executions is made the new node set,
+replacing the current one.</p>
+<p>The script <i class="arg">body</i> is executed in the context of the caller.</p></dd>
+<dt><b class="method">quote</b> <i class="arg">val</i></dt>
+<dd><p>Appends the literal value <i class="arg">val</i> to the current node set.</p></dd>
+<dt><b class="method">replace</b> <i class="arg">val</i></dt>
+<dd><p>Replaces the current node set with the literal list value <i class="arg">val</i>.</p></dd>
+</dl>
+</div>
+<div id="subsection10" class="doctools_subsection"><h3><a name="subsection10">Node Set Iterators</a></h3>
+<dl class="doctools_definitions">
+<dt><b class="method">foreach</b> <i class="arg">query</i> <i class="arg">var</i> <i class="arg">body</i></dt>
+<dd><p>Interprets the sub-query <i class="arg">query</i>, then performs the equivalent of
+operator <b class="method">over</b> on the nodes in the node set created by that
+query. The current node set is not changed, except through side
+effects from the script <i class="arg">body</i>.</p>
+<p>The script <i class="arg">body</i> is executed in the context of the caller.</p></dd>
+<dt><b class="method">with</b> <i class="arg">query</i> <i class="arg">body</i></dt>
+<dd><p>Interprets the <i class="arg">query</i>, then runs the script <i class="arg">body</i> on the
+node set generated by the query. At last it restores the current node
+set as it was before the execution of the query.</p>
+<p>The script <i class="arg">body</i> is executed in the context of the caller.</p></dd>
+<dt><b class="method">over</b> <i class="arg">var</i> <i class="arg">body</i></dt>
+<dd><p>Executes the script <i class="arg">body</i> for each node in the node set, with the
+variable named by <i class="arg">var</i> bound to the name of the current node.
+The script <i class="arg">body</i> is executed in the context of the caller.</p>
+<p>This is like the builtin <b class="cmd"><a href="../../../../index.html#key218">foreach</a></b>, with the node set as the
+source of the list to iterate over.</p>
+<p>The results of executing the <i class="arg">body</i> are ignored.</p></dd>
+<dt><b class="method">delete</b></dt>
+<dd><p>Deletes all the nodes contained in the current node set from the tree.</p></dd>
+</dl>
+</div>
+<div id="subsection11" class="doctools_subsection"><h3><a name="subsection11">Typed node support</a></h3>
+<p>These filters and accessors assume the existence of an attribute
+called <b class="const">@type</b>, and are short-hand forms useful for cost-like
+tree query, html tree editing, and so on.</p>
+<dl class="doctools_definitions">
+<dt><b class="method">nodetype</b></dt>
+<dd><p>Returns the node type of nodes.
+Attribute string accessor. This is equivalent to</p>
+<pre class="doctools_example">get @type</pre>
+</dd>
+<dt><b class="method">oftype</b> <i class="arg">t</i></dt>
+<dd><p>Reduces the node set to nodes whose type is equal to <i class="arg">t</i>, with
+letter case ignored.</p></dd>
+<dt><b class="method">nottype</b> <i class="arg">t</i></dt>
+<dd><p>Reduces the node set to nodes whose type is not equal to <i class="arg">t</i>, with
+letter case ignored.</p></dd>
+<dt><b class="method">oftypes</b> <i class="arg">attrs</i></dt>
+<dd><p>Reduces set to nodes whose @type is an element in the list <i class="arg">attrs</i>
+of types. The value of @type is used as a glob pattern, and letter
+case is relevant.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Examples</a></h2>
+<p>... TODO ...</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">References</a></h2>
+<ol class="doctools_enumerated">
+<li><p><a href="http://wiki.tcl.tk/COST">COST</a> on the Tcler's Wiki.</p></li>
+<li><p><a href="http://wiki.tcl.tk/treeql">TreeQL</a> on the Tcler's Wiki. Discuss
+this package there.</p></li>
+</ol>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>treeql</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key818">Cost</a>, <a href="../../../../index.html#key815">DOM</a>, <a href="../../../../index.html#key817">TreeQL</a>, <a href="../../../../index.html#key816">XPath</a>, <a href="../../../../index.html#key820">XSLT</a>, <a href="../../../../index.html#key821">structured queries</a>, <a href="../../../../index.html#key300">tree</a>, <a href="../../../../index.html#key819">tree query language</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Data structures</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2004 Colin McCormack &lt;coldstore@users.sourceforge.net&gt;<br>
+Copyright &copy; 2004 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

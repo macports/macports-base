@@ -1,0 +1,286 @@
+
+<html><head>
+<title>yaml - YAML processing</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'yaml.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2008 KATO Kanryu &lt;kanryu6@users.sourceforge.net&gt;
+   -->
+<! -- yaml.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">yaml(n) 0.3.9 tcllib &quot;YAML processing&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>yaml - YAML Format Encoder/Decoder</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">EXAMPLES</a></li>
+<li class="doctools_section"><a href="#section4">LIMITATIONS</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">yaml <span class="opt">?0.3.9?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::yaml::yaml2dict</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">txt</i></a></li>
+<li><a href="#2"><b class="cmd">::yaml::yaml2huddle</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">txt</i></a></li>
+<li><a href="#3"><b class="cmd">::yaml::setOption</b> <span class="opt">?<i class="arg">options</i>?</span></a></li>
+<li><a href="#4"><b class="cmd">::yaml::dict2yaml</b> <i class="arg">dict</i> <span class="opt">?<i class="arg">indent</i>?</span> <span class="opt">?<i class="arg">wordwrap</i>?</span></a></li>
+<li><a href="#5"><b class="cmd">::yaml::list2yaml</b> <i class="arg">list</i> <span class="opt">?<i class="arg">indent</i>?</span> <span class="opt">?<i class="arg">wordwrap</i>?</span></a></li>
+<li><a href="#6"><b class="cmd">::yaml::huddle2yaml</b> <i class="arg">huddle</i> <span class="opt">?<i class="arg">indent</i>?</span> <span class="opt">?<i class="arg">wordwrap</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">yaml</b> package provides a simple Tcl-only library for parsing the
+YAML <a href="http://www.yaml.org/">http://www.yaml.org/</a> data exchange format as specified in
+<a href="http://www.yaml.org/spec/1.1/">http://www.yaml.org/spec/1.1/</a>.</p>
+<p>The <b class="package">yaml</b> package returns
+data as a Tcl <b class="cmd"><a href="../../../../index.html#key704">dict</a></b>.  Either the <b class="package"><a href="../../../../index.html#key704">dict</a></b> package or Tcl 8.5 is
+required for use.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::yaml::yaml2dict</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">txt</i></a></dt>
+<dd></dd>
+<dt><a name="2"><b class="cmd">::yaml::yaml2huddle</b> <span class="opt">?<i class="arg">options</i>?</span> <i class="arg">txt</i></a></dt>
+<dd><p>Parse yaml formatted text <i class="arg">txt</i> into a Tcl dict/huddle and return the value.</p>
+<dl class="doctools_options">
+<dt><b class="option"><b class="const">-file</b></b></dt>
+<dd><p><i class="arg">txt</i> is a filename of YAML-stream.</p></dd>
+<dt><b class="option"><b class="const">-stream</b></b></dt>
+<dd><p><i class="arg">txt</i> is just a YAML-stream.</p></dd>
+<dt><b class="option"><b class="const">-types</b> <i class="arg">list</i></b></dt>
+<dd><p>The <i class="arg">list</i> is a type list for the yaml-scalar types.(e.g. !!str !!timestamp !!integer !!true ...)</p>
+<pre class="doctools_example"> -types {timestamp integer null true false}</pre>
+<p>In this case, if a string matched &quot;timestamp&quot;, converted to the TCL internal timestamp.(e.g. &quot;2001-12-15T02:59:43.1Z&quot; =&gt; 1008385183)</p></dd>
+<dt><b class="option"><b class="const">-m:true</b> <i class="arg">param</i></b></dt>
+<dd><p>The <i class="arg">param</i> is two elements of list for the value of true, and considered strings.</p>
+<pre class="doctools_example"> -m:true {1 {true on + yes y}}</pre>
+<p>In this case, the string &quot;yes&quot; found in YAML Stream, automatically converted 1.</p></dd>
+<dt><b class="option"><b class="const">-m:false</b> <i class="arg">param</i></b></dt>
+<dd><p>The <i class="arg">param</i> is two elements of list for the value of false, and considered strings.</p>
+<pre class="doctools_example"> -m:false {0 {false off - no n}}</pre>
+</dd>
+<dt><b class="option"><b class="const">-m:null</b> <i class="arg">param</i></b></dt>
+<dd><p>The <i class="arg">param</i> is two elements of list for the value of null, and considered strings.</p>
+<pre class="doctools_example"> -m:null {&quot;&quot; {null nil &quot;&quot; ~}}</pre>
+</dd>
+<dt><b class="option"><b class="const">-validate</b></b></dt>
+<dd><p>Experiment,old: Output stream contains YAML's-tag, each node.</p>
+<pre class="doctools_example">% puts [::yaml::load -validate {[aaa, bbb]}]
+=&gt;
+!!seq {{!!str aaa} {!!str bbb}}
+</pre>
+</dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">::yaml::setOption</b> <span class="opt">?<i class="arg">options</i>?</span></a></dt>
+<dd><p>Change implicit options for the library.
+Now, the params are the same as <b class="cmd">::yaml::yaml2dict</b>.
+Arguments of<b class="cmd">::yaml::yaml2dict</b> is more priority than this setting.</p></dd>
+<dt><a name="4"><b class="cmd">::yaml::dict2yaml</b> <i class="arg">dict</i> <span class="opt">?<i class="arg">indent</i>?</span> <span class="opt">?<i class="arg">wordwrap</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="5"><b class="cmd">::yaml::list2yaml</b> <i class="arg">list</i> <span class="opt">?<i class="arg">indent</i>?</span> <span class="opt">?<i class="arg">wordwrap</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="6"><b class="cmd">::yaml::huddle2yaml</b> <i class="arg">huddle</i> <span class="opt">?<i class="arg">indent</i>?</span> <span class="opt">?<i class="arg">wordwrap</i>?</span></a></dt>
+<dd><p>Convert a dict/list/huddle object into YAML stream.</p>
+<dl class="doctools_definitions">
+<dt>indent</dt>
+<dd><p>spaces indent of each block node.
+currently default is 2.</p></dd>
+<dt>wordwrap</dt>
+<dd><p>word wrap for YAML stream.
+currently default is 40.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">EXAMPLES</a></h2>
+<p>An example of a yaml stream converted to Tcl.  A yaml stream is returned as a
+single item with multiple elements.</p>
+<pre class="doctools_example">{
+--- !&lt;tag:clarkevans.com,2002:invoice&gt;
+invoice: 34843
+date   : 2001-01-23
+bill-to: &amp;id001
+    given  : Chris
+    family : Dumars
+    address:
+        lines: |
+            458 Walkman Dr.
+            Suite #292
+        city    : Royal Oak
+        state   : MI
+        postal  : 48046
+ship-to: *id001
+product:
+    - sku         : BL394D
+      quantity    : 4
+      description : Basketball
+      price       : 450.00
+    - sku         : BL4438H
+      quantity    : 1
+      description : Super Hoop
+      price       : 2392.00
+tax  : 251.42
+total: 4443.52
+comments:
+    Late afternoon is best.
+    Backup contact is Nancy
+    Billsmer @ 338-4338.
+}
+=&gt;
+invoice 34843 date 2001-01-23 bill-to {given Chris family Dumars address {lines {458 Walkman Dr.
+Suite #292
+} city {Royal Oak} state MI postal 48046}} ship-to {given Chris family Dumars address {lines {458 Walkman Dr.
+Suite #292
+} city {Royal Oak} state MI postal 48046}} product {{sku BL394D quantity 4 description Basketball price 450.00} {sku BL4438H quantity 1 description {Super Hoop} price 2392.00}} tax 251.42 total 4443.52 comments {Late afternoon is best. Backup contact is Nancy Billsmer @ 338-4338.}</pre>
+<p>An example of a yaml object converted to Tcl.  A yaml object is returned as a
+multi-element list (a dict).</p>
+<pre class="doctools_example">{
+---
+- [name        , hr, avg  ]
+- [Mark McGwire, 65, 0.278]
+- [Sammy Sosa  , 63, 0.288]
+-
+  Mark McGwire: {hr: 65, avg: 0.278}
+  Sammy Sosa: { hr: 63, avg: 0.288}
+}
+=&gt;
+{name hr avg} {{Mark McGwire} 65 0.278} {{Sammy Sosa} 63 0.288} {{Mark McGwire} {hr 65 avg 0.278} {Sammy Sosa} {hr 63 avg 0.288}}
+</pre>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">LIMITATIONS</a></h2>
+<p>tag parser not implemented. currentry, tags are merely ignored.</p>
+<p>Only Anchor =&gt; Aliases ordering. back alias-referring is not supported.</p>
+<p>Too many braces, or too few braces.</p>
+<p>Not enough character set of line feeds. Please use only &quot;\n&quot; as line breaks.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>yaml</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="../base64/base64.html">base64</a>, <a href="huddle.html">huddle</a>, <a href="../json/json.html">json</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key205">data exchange</a>, <a href="../../../../index.html#key587">huddle</a>, <a href="../../../../index.html#key26">parsing</a>, <a href="../../../../index.html#key192">text processing</a>, <a href="../../../../index.html#key588">yaml</a></p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2008 KATO Kanryu &lt;kanryu6@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

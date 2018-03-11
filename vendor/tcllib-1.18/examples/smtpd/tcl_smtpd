@@ -1,0 +1,92 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+# tcl_smtpd - Copyright (C) 2001 Pat Thoyts <patthoyts@users.sourceforge.net>
+#
+# Simple test of the mail server. All incoming messages are displayed to
+# stdout.
+#
+# Usage tk_smtpd 0.0.0.0 8025
+#    or tk_smtpd 127.0.0.1 2525
+#    or tk_smtpd
+# to listen to the default port 25 on all tcp/ip interfaces.
+#
+# -------------------------------------------------------------------------
+# This software is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the file 'license.terms' for
+# more details.
+# -------------------------------------------------------------------------
+
+package require Tcl 8.3
+package require smtpd
+
+# In this example application we just print received mail to stdout.
+proc deliver {sender recipients data} {
+    if {[catch {eval array set saddr [mime::parseaddress $sender]}]} {
+        error "invalid sender address \"$sender\""
+    }
+    set mail "From $saddr(address) [clock format [clock seconds]]"
+    append mail "\n" [join $data "\n"]
+
+    foreach rcpt $recipients {
+        if {! [catch {eval array set addr [mime::parseaddress $rcpt]}]} {
+            puts $mail
+        }
+    }
+}
+
+# Deny only hosts from 192.168.1.*
+proc validate_host {ipnum} {
+    if {[string match "192.168.1.*" $ipnum]} {
+        error "your domain is not allowed to post, Spammers!"
+    }
+}
+
+# Only reject sender 'denied'
+proc validate_sender {address} {
+    eval array set addr [mime::parseaddress $address]
+    if {[string match "denied" $addr(local)]} {
+        error "mailbox $addr(local) denied"
+    }
+    return
+}
+
+# Only reject recipients beginning with 'bogus'
+proc validate_recipient {address} {
+    eval array set addr [mime::parseaddress $address]
+    if {[string match "bogus*" $addr(local)]} {
+        error "mailbox $addr(local) denied"
+    }
+    return
+}
+
+# Set up the server
+smtpd::configure \
+    -deliver            ::deliver \
+    -validate_host      ::validate_host \
+    -validate_recipient ::validate_recipient \
+    -validate_sender    ::validate_sender
+
+# Run the server on the default port 25. For unix change to 
+# a high numbered port eg: 2525 or 8025 etc with
+# smtpd::start 127.0.0.1 8025 or smtpd::start 0.0.0.0 2525
+
+set iface 0.0.0.0
+set port 25
+
+if {$argc > 0} {
+    set iface [lindex $argv 0]
+}
+if {$argc > 1} {
+    set port [lindex $argv 1]
+}
+
+smtpd::start $iface $port
+
+vwait forever
+
+#
+# Local variables:
+#   mode: tcl
+#   indent-tabs-mode: nil
+# End:

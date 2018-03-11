@@ -1,0 +1,3 @@
+Doctools Error in macro at line 2, column 0:
+[sectref S]
+--> (FmtError) Manpage error (bodycmd), "sectref S" : Command not allowed outside of the body of the manpage.

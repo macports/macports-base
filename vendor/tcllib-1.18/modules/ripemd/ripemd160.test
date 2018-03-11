@@ -1,0 +1,229 @@
+# ripemd160.test - Copyright (C) 2003 Pat Thoyts <patthoyts@users.sf.net>
+#
+# $Id: ripemd160.test,v 1.9 2006/10/09 21:41:41 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal ripemd160.tcl ripemd160 ::ripemd::ripemd160
+}
+
+# -------------------------------------------------------------------------
+# Now the package specific tests....
+# -------------------------------------------------------------------------
+
+if {[ripemd::ripemd160::LoadAccelerator cryptkit]} {
+    puts "> cryptkit based"
+}
+if {[::ripemd::ripemd160::LoadAccelerator trf]} {
+    puts "> Trf based"
+}
+puts "> pure Tcl"
+
+# -------------------------------------------------------------------------
+# Handle multiple implementation testing
+#
+
+array set preserve [array get ::ripemd::ripemd160::accel]
+
+proc implementations {} {
+    variable ::ripemd::ripemd160::accel
+    foreach {a v} [array get accel] {if {$v} {lappend r $a}}
+    lappend r tcl; set r
+}
+
+proc select_implementation {impl} {
+    variable ::ripemd::ripemd160::accel
+    foreach e [array names accel] { set accel($e) 0 }
+    if {[string compare "tcl" $impl] != 0} {
+        set accel($impl) 1
+    }
+}
+
+proc reset_implementation {} {
+    variable ::ripemd::ripemd160::accel
+    array set accel [array get ::preserve]
+}
+
+# -------------------------------------------------------------------------
+
+# Test vectors
+#
+set vectors {
+    1 {}    {9c1185a5c5e9fc54612808977ee8f548b2258d31}
+    2 {a}   {0bdc9d2d256b3ee9daae347be6f4dc835a467ffe}
+    3 {abc} {8eb208f7e05d987a9b044a8e98c6b087f15a0bfc}
+    4 {message digest} {5d0689ef49d2fae572b881b123a85ffa21595f36}
+    5 {abcdefghijklmnopqrstuvwxyz} {f71c27109c692c1b56bbdceb5b9d2865b3708dbc}
+    6 {abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq}
+      {12a053384a9c0c88e405a06c27dcf49ada62eb2b}
+    7 {ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789}
+      {b0e20b6e3116640286ed3a87a5713079b21f5189}
+    8 {-} {4c3b58aa82048b1db748e6b816165c87c551e013}
+    9 {-error} {72a9ef23f2af0f88c39f54494347e8c63acd067f}
+}
+lappend vectors \
+    10 [string repeat 1234567890 8] {9b752e45573d4b39f4dbd3323cab82bf63326bfb}
+
+lappend vectors \
+    20 [binary format H* 3627140572635041beaf9c8dfaebd8c9363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636] {5cc1e0793bad0c5208f3903a8230a712887fcabd} \
+    21 [binary format H* 3627140572635041beaf9c8dfaebd8c93636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636] {4ca862aa06c2e42340752534865d20394aea9349} \
+    22 [binary format H* 3627140572635041beaf9c8dfaebd8c936363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636] {64d466ca9798f45a60e2a33d2f5436ffa2b1908a} \
+
+
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n msg hash} $vectors {
+        test ripemd160-$impl-1.$n "RIPEMD-160 test strings ($impl impl)" {
+            list [catch {::ripemd::ripemd160 -hex -- $msg} r] $r
+        } [list 0 $hash]
+    }
+    reset_implementation
+}
+
+# -------------------------------------------------------------------------
+# HMAC test vectors
+
+set key [binary format H* 00112233445566778899aabbccddeeff01234567]
+
+set vectors {
+    1 {}    {cf387677bfda8483e63b57e06c3b5ecd8b7fc055}
+    2 {a}   {0d351d71b78e36dbb7391c810a0d2b6240ddbafc}
+    3 {abc} {f7ef288cb1bbcc6160d76507e0a3bbf712fb67d6}
+    4 {message digest} {f83662cc8d339c227e600fcd636c57d2571b1c34}
+    5 {abcdefghijklmnopqrstuvwxyz} {843d1c4eb880ac8ac0c9c95696507957d0155ddb}
+    6 {abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq}
+      {60f5ef198a2dd5745545c1f0c47aa3fb5776f881}
+    7 {ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789}
+      {e49c136a9e5627e0681b808a3b97e6a6e661ae79}
+    8 {-} {021b4324b528683c60a868f670e89e0ba2b0e743}
+}
+lappend vectors \
+    9 [string repeat 1234567890 8] {31be3cc98cee37b79b0619e3e1c2be4f1aa56e6c}
+
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n msg hash} $vectors {
+        test ripemd160-$impl-2.$n "HMAC RIPEMD-160 test vectors ($impl)" {
+            ::ripemd::hmac160 -hex -key $key -- $msg
+        } $hash
+    }
+    reset_implementation
+}
+
+# -------------------------------------------------------------------------
+# HMAC test vectors - key 2
+
+set key [binary format H* 0123456789abcdeffedcba987654321000112233]
+
+set vectors {
+    1 {}    {fe69a66c7423eea9c8fa2eff8d9dafb4f17a62f5}
+    2 {a}   {85743e899bc82dbfa36faaa7a25b7cfd372432cd}
+    3 {abc} {6e4afd501fa6b4a1823ca3b10bd9aa0ba97ba182}
+    4 {message digest} {2e066e624badb76a184c8f90fba053330e650e92}
+    5 {abcdefghijklmnopqrstuvwxyz} {07e942aa4e3cd7c04dedc1d46e2e8cc4c741b3d9}
+    6 {abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq}
+      {b6582318ddcfb67a53a67d676b8ad869aded629a}
+    7 {ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789}
+      {f1be3ee877703140d34f97ea1ab3a07c141333e2}
+}
+lappend vectors \
+    8 [string repeat 1234567890 8] {85f164703e61a63131be7e45958e0794123904f9}
+
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n msg hash} $vectors {
+        test ripemd160-$impl-3.$n "HMAC RIPEMD-160 test vectors ($impl)" {
+            list [catch {::ripemd::hmac160 -hex -key $key $msg} r] $r
+        } [list 0 $hash]
+    }
+    reset_implementation
+}
+
+# -------------------------------------------------------------------------
+# RFC 2286 has a set of test vectors for HMAC-RIPEMD168 and 128.
+# This is those test vectors...
+# -------------------------------------------------------------------------
+
+set vectors \
+    [list \
+         1 [string repeat \x0b 20] "Hi There" \
+         24cb4bd67d20fc1a5d2ed7732dcc39377f0a5668 \
+         2 "Jefe" "what do ya want for nothing?" \
+         dda6c0213a485a9e24f4742064a7f033b43c4069 \
+         3 [string repeat \xaa 20] [string repeat \xdd 50] \
+         b0b105360de759960ab4f35298e116e295d8e7c1 \
+         4 \
+         [binary format H* 0102030405060708090a0b0c0d0e0f10111213141516171819]\
+         [string repeat \xcd 50] \
+         d5ca862f4d21d5e610e18b4cf1beb97a4365ecf4 \
+         5 [string repeat \x0c 20] "Test With Truncation" \
+         7619693978f91d90539ae786500ff3d8e0518e39 \
+         6 [string repeat \xaa 80] \
+         "Test Using Larger Than Block-Size Key - Hash Key First" \
+         6466ca07ac5eac29e1bd523e5ada7605b791fd8b \
+         7 [string repeat \xaa 80] \
+         "Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data" \
+         69ea60798d71616cce5fd0871e23754cd75d5a0a \
+        ]
+
+foreach impl [implementations] {
+    select_implementation $impl
+    foreach {n key msg hash} $vectors {
+        test ripemd160-$impl-4.$n {RFC2286 test vectors for HMAC-RIPEMD160} {
+            list [catch {::ripemd::hmac160 -hex -key $key -- $msg} r] $r
+        } [list 0 $hash]
+    }
+    reset_implementation
+}
+
+# -------------------------------------------------------------------------
+
+test ripemd160-5.1 {Check hashing data that begins with hyphen} {
+    list [catch {::ripemd::ripemd160 -hex -hello} msg] $msg
+} {0 a99cc21131c4408d468d8c5abb5ca5ce59a27623}
+
+test ripemd160-5.2 {Check hashing data that begins with hyphen} {
+    list [catch {::ripemd::ripemd160 -hex -- -hello} msg] $msg
+} {0 a99cc21131c4408d468d8c5abb5ca5ce59a27623}
+
+test ripemd160-5.3 {Check hashing data that begins with hyphen} {
+    list [catch {::ripemd::ripemd160 -hex --} msg] $msg
+} {0 b79d92cff708a8aed8f7d064fd35caba0f888b13}
+
+test ripemd160-5.4 {Check hashing data that begins with hyphen} {
+    list [catch {::ripemd::ripemd160 -hex -- --} msg] $msg
+} {0 b79d92cff708a8aed8f7d064fd35caba0f888b13}
+
+test ripemd160-6.1 {Check hmac data that begins with hyphen} {
+    list [catch {::ripemd::hmac160 -hex -key "" -hello} msg] $msg
+} {0 ac6726c4136f646e33923ef282f6054558135805}
+
+test ripemd160-6.2 {Check hmac data that begins with hyphen} {
+    list [catch {::ripemd::hmac160 -hex -key "" -- -hello} msg] $msg
+} {0 ac6726c4136f646e33923ef282f6054558135805}
+
+test ripemd160-6.3 {Check hmac data that begins with hyphen} {
+    list [catch {::ripemd::hmac160 -hex -key "" --} msg] $msg
+} {0 e0cfe9bed6759bc2fa0df813092d6220fe94820f}
+
+test ripemd160-6.4 {Check hmac data that begins with hyphen} {
+    list [catch {::ripemd::hmac160 -hex -key "" -- --} msg] $msg
+} {0 e0cfe9bed6759bc2fa0df813092d6220fe94820f}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# -------------------------------------------------------------------------
+# Local Variables:
+#   mode: tcl
+#   indent-tabs-mode: nil
+# End:

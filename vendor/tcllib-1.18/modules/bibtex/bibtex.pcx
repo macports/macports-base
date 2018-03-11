@@ -1,0 +1,85 @@
+# -*- tcl -*- bibtex.pcx
+# Syntax of the commands provided by package bibtex.
+#
+# For use by TclDevKit's static syntax checker (v4.1+).
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the specification of the format of the code in this file.
+#
+
+package require pcx
+pcx::register bibtex
+pcx::tcldep   0.5 needs tcl 8.5
+pcx::tcldep   0.6 needs tcl 8.5
+
+namespace eval ::bibtex {}
+
+pcx::message parseSaxCmdErr {Options -*command and -command exclude each other} err
+
+pcx::check 0.5 std ::bibtex::addStrings \
+    {checkSimpleArgs 2 2 {
+	checkWord
+	checkDict
+    }}
+pcx::check 0.5 std ::bibtex::destroy \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 0.5 std ::bibtex::parse \
+    {checkSimpleArgs 1 -1 {
+	{checkConstrained {
+	    checkSwitches exact {
+		{-recordcommand   {checkSetConstraint sax {checkProcCall 4}}}
+		{-preamblecommand {checkSetConstraint sax {checkProcCall 2}}}
+		{-stringcommand   {checkSetConstraint sax {checkProcCall 2}}}
+		{-commentcommand  {checkSetConstraint sax {checkProcCall 2}}}
+		{-progresscommand {checkSetConstraint sax {checkProcCall 2}}}
+		{-command         {checkSetConstraint cmd {checkProcCall 2}}}
+		{-channel         {checkSetConstraint chan checkChannelID}}
+	    } {checkConstraint {
+		{{chan sax cmd} {warn bibtex::parseSaxCmdErr {} checkAtEnd}}
+		{{sax cmd}      {warn bibtex::parseSaxCmdErr {} {
+		    checkSimpleArgs 1 1 {
+			checkWord
+		    }
+		}}}
+		{chan checkAtEnd}
+	    } {checkSimpleArgs 1 1 {
+		checkWord
+	    }}}
+	}}
+    }}
+pcx::check 0.5 std ::bibtex::wait \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+
+pcx::check 0.6 std ::bibtex::parse \
+    {checkSimpleArgs 1 -1 {
+	{checkConstrained {
+	    checkSwitches exact {
+		{-casesensitivestrings checkBoolean}
+		{-recordcommand        {checkSetConstraint sax {checkProcCall 4}}}
+		{-preamblecommand      {checkSetConstraint sax {checkProcCall 2}}}
+		{-stringcommand        {checkSetConstraint sax {checkProcCall 2}}}
+		{-commentcommand       {checkSetConstraint sax {checkProcCall 2}}}
+		{-progresscommand      {checkSetConstraint sax {checkProcCall 2}}}
+		{-command              {checkSetConstraint cmd {checkProcCall 2}}}
+		{-channel              {checkSetConstraint chan checkChannelID}}
+	    } {checkConstraint {
+		{{chan sax cmd} {warn bibtex::parseSaxCmdErr {} checkAtEnd}}
+		{{sax cmd}      {warn bibtex::parseSaxCmdErr {} {
+		    checkSimpleArgs 1 1 {
+			checkWord
+		    }
+		}}}
+		{chan checkAtEnd}
+	    } {checkSimpleArgs 1 1 {
+		checkWord
+	    }}}
+	}}
+    }}
+
+# Initialization via pcx::init.
+# Use a ::bibtex::init procedure for non-standard initialization.
+pcx::complete

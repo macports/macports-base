@@ -1,0 +1,43 @@
+# -*- tcl -*-
+# treeql.test:  tests for the tree query language
+#
+# Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 1.0
+
+support {
+    use snit/snit.tcl   snit
+    use struct/list.tcl struct::list
+
+    # TODO: Add accel handling
+    use struct/sets.tcl struct::set
+
+    useAccel [useTcllibC] struct/tree.tcl struct::tree
+    TestAccelInit                         struct::tree
+}
+testing {
+    useLocal treeql.tcl treeql
+}
+
+# -------------------------------------------------------------------------
+# The global variable 'impl' is part of the public API the testsuite
+# (in treeql.testsuite) can expect from the environment.
+
+TestAccelDo struct::tree impl {
+    namespace import -force struct::tree
+
+    source [localPath treeql.testsuite]
+}
+
+# -------------------------------------------------------------------------
+TestAccelExit struct::tree
+testsuiteCleanup
+return

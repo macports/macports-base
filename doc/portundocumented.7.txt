@@ -1,7 +1,6 @@
 // vim: set et sw=4 ts=8 ft=asciidoc tw=80:
 portundocumented(7)
 ====================
-$Id$
 
 NAME
 ----
@@ -19,7 +18,7 @@ CONTRIBUTING
 All sort of contributions to MacPorts base, ports and especially the
 documentation you were just looking for are welcome. If you care about MacPorts
 and would like to improve our documentation, please take a look at the source
-code of the man pages https://trac.macports.org/browser/trunk/base/doc[in our
+code of the man pages https://github.com/macports/macports-base/tree/master/doc[in our
 repository] and get in touch with us on our wiki:MailingLists[mailing lists].
 
 

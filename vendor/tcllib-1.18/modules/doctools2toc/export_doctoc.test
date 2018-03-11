@@ -1,0 +1,77 @@
+# -*- tcl -*-
+# toc_export_doctoc.test:  tests for the doctools::toc::export::doctoc package/plugin.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: export_doctoc.test,v 1.2 2009/11/15 05:50:03 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+support {
+    use      fileutil/fileutil.tcl  fileutil      ;# tests/common
+    useLocal structure.tcl      doctools::toc::structure
+}
+testing {
+    package provide doctools::toc::export::plugin 1
+    # The above fakes the export plugin environment.
+
+    useLocal export_doctoc.tcl doctools::toc::export::doctoc
+}
+
+source [tcllibPath doctools2base/tests/common]
+set mytestdir tests/data
+
+# -------------------------------------------------------------------------
+
+# General set of error cases regarding the number of arguments.
+
+test doctools-toc-export-doctoc-1.0 {export, wrong#args} -body {
+    export
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+test doctools-toc-export-doctoc-1.1 {export, wrong#args} -body {
+    export S
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+test doctools-toc-export-doctoc-1.2 {export, wrong#args} -body {
+    export S C XXX
+} -returnCodes error -result {wrong # args: should be "export serial configuration"}
+
+# -------------------------------------------------------------------------
+
+# Testing the generation of doctoc output, from toc serialization,
+# for all possible plugin configurations.
+
+foreach {k nl in al name} {
+    0 0 0 0 ultracompact
+    1 1 0 0 compact
+    2 1 1 0 indented
+    3 1 0 1 aligned
+    4 1 1 1 indalign
+    5 0 1 0 indented
+    6 0 0 1 aligned
+    7 0 1 1 indalign
+} {
+    TestFilesProcess $mytestdir ok serial doctoc-$name -> n label input data expected {
+	test doctools-toc-export-doctoc-2.$k.$n "doctools::toc::export::doctoc, ${label}-$name, ok" -setup {
+	    set configuration [list newlines $nl indented $in aligned $al user _dummy_]
+	} -body {
+	    stripcomments [export $data $configuration]
+	} -cleanup {
+	    unset configuration
+	} -result $expected
+    }
+}
+
+#----------------------------------------------------------------------
+unset n label input data expected
+testsuiteCleanup
+return

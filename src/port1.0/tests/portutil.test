@@ -34,22 +34,18 @@ proc init {} {
 }
 
 proc init_eval_targets {} {
-    global os_platform os_version os_arch macosx_version pwd
-    global version mport portpath portbuildpath
+    global os_platform os_version os_arch macosx_version pwd \
+           version mport portpath portbuildpath macports::portdbpath
 
     set os_platform darwin
     set macosx_version 10.8
     set os_version 11
     set os_arch i386
     set portpath .
-    set portbuildpath ./build
 
     # vars for target_run
-    global portdbpath usealtworkpath
-    set usealtworkpath no
     set portdbpath $pwd/
     set workpath $pwd/work
-    set altprefix ""
 
 
     set mport [mportopen file://.]
@@ -96,7 +92,7 @@ proc mtree {root spec} {
             link {
                 # file link doesn't let you link to files that don't exist
                 # so lets farm out to /bin/ln
-                exec /bin/ln -sf $link $file
+                exec -ignorestderr /bin/ln -sf $link $file
             }
             default {
                 return -code return "Unknown file map type: $typelist"
@@ -470,26 +466,6 @@ test makeuserproc {
 # test lipo -
 
 
-test unobscure_maintainers {
-    Unobscure maintainers unit test.
-} -body {
-    set list { port }
-    if { [unobscure_maintainers $list] != "port@macports.org" } {
-        return "FAIL: invalid maintainer name"
-    }
-    set list { google.com:port }
-    if { [unobscure_maintainers $list] != "port@google.com" } {
-        return "FAIL: invalid maintainer name"
-    }
-
-    set list { port@google.com }
-    if { [unobscure_maintainers $list] != "port@google.com" } {
-        return "FAIL: invalid maintainer name"
-    }
-    return "unobscure_maintainers successful."
-} -result "unobscure_maintainers successful."
-
-
 # test target_run
 # test recursive_collect_deps
 
@@ -522,14 +498,14 @@ test eval_targets {
         return "FAIL: invalid target detected"
     }
     if {[$workername eval eval_targets checksum] != 0} {
+        puts $::errorInfo
         return "FAIL: valid target not detected"
     }
     return "Eval_targets successful."
 
 } -cleanup {
     mportclose $mport
-    file delete -force $filespath
-    file delete -force work
+    file delete -force $filespath ${pwd}/build ${pwd}/distfiles
 
 } -result "Eval_targets successful."
 
@@ -705,17 +681,36 @@ test variant_new {
 test handle_default_variants {
     Handle default variants unit test.
 } -body {
-    array set variations {
-        target.run org.macports.checksum
+    global PortInfo
+    global variations
+
+    array set variations {}
+
+    handle_default_variants "default_variants" "set" {+var -var2}
+
+    # Check that +var was recorded
+    array set vinfo $PortInfo(vinfo)
+    if {![info exists vinfo(var)]} {
+        return "FAIL: PortInfo(vinfo)(var) does not exist after default_variants +var"
+    }
+    array set info $vinfo(var)
+    if {![info exists info(is_default)]} {
+        return "FAIL: PortInfo(vinfo)(var)(is_default) does not exist after default_variants +var"
+    }
+    if {$info(is_default) ne "+"} {
+        return "FAIL: PortInfo(vinfo)(var)(is_default) should be + but is ${info(is_default)}"
     }
 
-    set res [handle_default_variants target set {+org -org2}]
-
-    if {[lindex $PortInfo(vinfo) 0] != "org" || [lindex $PortInfo(vinfo) 1] != "is_default +"} {
-        return "FAIL: default variant not set"
+    # Check that -var2 was recorded
+    if {![info exists vinfo(var2)]} {
+        return "FAIL: PortInfo(vinfo)(var2) does not exist after default_variants -var"
     }
-    if {[lindex $PortInfo(vinfo) 2] != "org2" || [lindex $PortInfo(vinfo) 3] != "is_default -"} {
-        return "FAIL: nondefault variant not set"
+    array set info $vinfo(var2)
+    if {![info exists info(is_default)]} {
+        return "FAIL: PortInfo(vinfo)(var2)(is_default) does not exist after default_variants -var2"
+    }
+    if {$info(is_default) ne "-"} {
+        return "FAIL: PortInfo(vinfo)(var2)(is_default) should be - but is ${info(is_default)}"
     }
 
     return "Handle default variant successful."

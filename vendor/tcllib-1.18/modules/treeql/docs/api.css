@@ -1,0 +1,78 @@
+/* api.css */
+api, p, header, group, method, function, desc, detail { 
+  display: block;
+}
+
+api {
+  background: #F2F0F1;
+  margin-left: 4em;
+  margin-right: 4em;
+  margin-top: 2em;
+  margin-bottom: 2em;
+  font-family: "Gill Sans MT", "Gill sans", "Trebuchet ms", Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif;
+}
+
+title {
+  font-weight: bold;
+  font-size: 2em;
+}
+
+p {
+  text-align: justify;
+  margin-top: 0.5em;
+ }
+
+group { 
+  padding-top: 1.5em;
+}
+
+group > name {
+  display: block;
+  color: gray;
+  font-size: 1.5em;
+  font-weight: bold;
+  padding-bottom: 0.5em;
+}
+
+name[used]:after {
+  content: attr(used);
+}
+
+object, args, arg { 
+  color: #9588EC;
+}
+
+arg:before { content: "$" }
+name {
+  color: blue;
+}
+
+result:before { content: " -- " }
+
+result {
+  display: inline;
+}
+
+group > header { 
+  display: block;
+  padding-bottom: 2em;
+ }
+
+function > detail { 
+  display: block;
+  padding-left: 2em;
+  padding-top: .125em;
+}
+
+method > detail { 
+  display: block;
+  padding-left: 2em;
+  padding-top: .125em;
+}
+
+method, function {
+  padding-left: .25em;
+  padding-top: .25em;
+  padding-bottom: .25em;
+  background: #CEDEF4;
+}

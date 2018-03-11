@@ -4,8 +4,6 @@
  * All rights reserved.
  * Copyright (c) 2006-2013 The MacPorts Project
  *
- * $Id$
- *
  * @APPLE_BSD_LICENSE_HEADER_START@
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +37,6 @@
 #include "darwintrace.h"
 
 #include <stdio.h>
-#include <sys/syscall.h>
 #include <unistd.h>
 
 /**
@@ -51,7 +48,6 @@
  * will be set to the FD to be closed when closing should be allowed.
  */
 static int _dt_close(int fd) {
-#define close(x) syscall(SYS_close, (x))
 	__darwintrace_setup();
 
 	FILE *stream = __darwintrace_sock();
@@ -64,7 +60,6 @@ static int _dt_close(int fd) {
 	}
 
 	return close(fd);
-#undef close
 }
 
 DARWINTRACE_INTERPOSE(_dt_close, close);

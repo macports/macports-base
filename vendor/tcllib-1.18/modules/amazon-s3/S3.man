@@ -1,0 +1,1450 @@
+[vset VERSION 1.0.3]
+[manpage_begin S3 n [vset VERSION]]
+[keywords amazon]
+[keywords cloud]
+[keywords s3]
+[moddesc {Amazon S3 Web Service Utilities}]
+[titledesc {Amazon S3 Web Service Interface}]
+[category  Networking]
+[copyright {Copyright 2006,2008 Darren New. All Rights Reserved. See LICENSE.TXT for terms.}]
+[require Tcl 8.5]
+[require S3 [opt [vset VERSION]]]
+[require sha1 1.0]
+[require md5 2.0]
+[require base64 2.3]
+[require xsxp 1.0]
+[description]
+This package provides access to Amazon's Simple Storage Solution web service.
+
+[para]
+As a quick summary, Amazon Simple Storage Solution
+provides a for-fee web service allowing the storage of arbitrary data as
+"resources" within "buckets" online.
+See [uri http://www.amazonaws.com/] for details on that system.
+Access to the service is via HTTP (SOAP or REST).  Much of this
+documentation will not make sense if you're not familiar with
+the terms and functionality of the Amazon S3 service.
+
+[para]
+This package provides services for reading and writing
+the data items via the REST interface.  It also provides some
+higher-level operations.  Other packages in the same distribution
+provide for even more functionality.
+
+[para]
+Copyright 2006 Darren New. All Rights Reserved.
+NO WARRANTIES OF ANY TYPE ARE PROVIDED.
+COPYING OR USE INDEMNIFIES THE AUTHOR IN ALL WAYS.
+This software is licensed under essentially the same
+terms as Tcl. See LICENSE.txt for the terms.
+
+[section "ERROR REPORTING"]
+
+The error reporting from this package makes use of $errorCode to
+provide more details on what happened than simply throwing an error.
+Any error caught by the S3 package (and we try to catch them all)
+will return with an $errorCode being a list having at least three
+elements. In all cases, the first element will be "S3". The second
+element will take on one of six values, with that element defining
+the value of the third and subsequent elements. S3::REST does not
+throw an error, but rather returns a dictionary with the keys "error",
+"errorInfo", and "errorCode" set. This allows for reliable background
+use. The possible second elements are these:
+
+[list_begin definitions]
+[def usage] The usage of the package is incorrect. For example,
+a command has been invoked which requires the library to be configured
+before the library has been configured, or an invalid combination of
+options has been specified. The third element of $errorCode supplies
+the name of the parameter that was wrong. The fourth usually provides
+the arguments that were actually supplied to the throwing proc, unless
+the usage error isn't confined to a single proc.
+
+[def local] Something happened on the local system which threw
+an error. For example, a request to upload or download a file was made
+and the file permissions denied that sort of access. The third element
+of $errorCode is the original $errorCode.
+
+[def socket] Something happened with the socket. It closed
+prematurely, or some other condition of failure-to-communicate-with-Amazon
+was detected. The third element of $errorCode is the original $errorCode,
+or sometimes the message from fcopy, or ...?
+
+[def remote] The Amazon web service returned an error code outside
+the 2xx range in the HTTP header. In other words, everything went as
+documented, except this particular case was documented not to work.
+The third element is the dictionary returned from [cmd ::S3::REST].
+Note that S3::REST itself never throws this error, but just returns
+the dictionary. Most of the higher-level commands throw for convenience,
+unless an argument indicates they should not. If something is documented
+as "not throwing an S3 remote error", it means a status return is set
+rather than throwing an error if Amazon returns a non-2XX HTTP result code.
+
+[def notyet] The user obeyed the documentation, but the author
+has not yet gotten around to implementing this feature. (Right now,
+only TLS support and sophisticated permissions fall into this category,
+as well as the S3::Acl command.)
+
+[def xml] The service has returned invalid XML, or XML whose
+schema is unexpected. For the high-level commands that accept
+service XML as input for parsing, this may also be thrown.
+
+[list_end]
+
+[section COMMANDS]
+This package provides several separate levels of complexity.
+
+[list_begin itemized]
+[item]
+The lowest level simply takes arguments to be sent to the service,
+sends them, retrieves the result, and provides it to the caller.
+[emph Note:] This layer allows both synchronous and event-driven
+processing. It depends on the MD5 and SHA1 and base64 packages
+from Tcllib (available at [uri http://core.tcl.tk/tcllib/]).
+Note that [cmd S3::Configure] is required for [cmd S3::REST] to
+work due to the authentication portion, so we put that in the "lowest level."
+
+[item]
+The next layer parses the results of calls, allowing for functionality
+such as uploading only changed files, synchronizing directories,
+and so on.  This layer depends on the [package TclXML] package as well as the
+included [package xsxp] package. These packages are package required when
+these more-sophisticated routines are called, so nothing breaks if
+they are not correctly installed.
+
+[item]
+Also included is a separate program that uses the library.
+It provides code to parse $argv0 and $argv from the
+command line, allowing invocation as a tclkit, etc.
+(Not yet implmented.)
+
+[item]
+Another separate program provides a GUI interface allowing drag-and-drop
+and other such functionality. (Not yet implemented.)
+
+[item]
+Also built on this package is the OddJob program. It is
+a separate program designed to allow distribution of
+computational work units over Amazon's Elastic Compute
+Cloud web service.
+
+[list_end]
+
+[para]
+The goal is to have at least the bottom-most layers implemented in
+pure Tcl using only that which comes from widely-available sources,
+such as Tcllib.
+
+[section "LOW LEVEL COMMANDS"]
+These commands do not require any packages not listed above.
+They talk directly to the service, or they are utility or
+configuration routines. Note that the "xsxp" package was
+written to support this package, so it should be available
+wherever you got this package.
+
+[list_begin definitions]
+
+[call [cmd S3::Configure] \
+[opt "[option -reset] [arg boolean]"] \
+[opt "[option -retries] [arg integer]"] \
+[opt "[option -accesskeyid] [arg idstring]"] \
+[opt "[option -secretaccesskey] [arg idstring]"] \
+[opt "[option -service-access-point] [arg FQDN]"] \
+[opt "[option -use-tls] [arg boolean]"] \
+[opt "[option -default-compare] [arg always|never|exists|missing|newer|date|checksum|different]"] \
+[opt "[option -default-separator] [arg string]"] \
+[opt "[option -default-acl] [arg private|public-read|public-read-write|authenticated-read|keep|calc]"] \
+[opt "[option -default-bucket] [arg bucketname]"] \
+]
+
+There is one command for configuration, and that is [cmd S3::Configure].
+If called with no arguments, it returns a
+dictionary of key/value pairs listing all current settings.  If called
+with one argument, it returns the value of that single argument.  If
+called with two or more arguments, it must be called with pairs of
+arguments, and it applies the changes in order.  There is only one set
+of configuration information per interpreter.
+[para]
+The following options are accepted:
+
+[list_begin definitions]
+
+[def "[option -reset] [arg boolean]"]
+By default, false.  If true, any previous changes and any changes on the
+same call before the reset option will be returned to default values.
+
+[def "[option -retries] [arg integer]"]
+Default value is 3.
+If Amazon returns a 500 error, a retry after an exponential
+backoff delay will be tried this many times before finally
+throwing the 500 error. This applies to each call to [cmd S3::REST]
+from the higher-level commands, but not to [cmd S3::REST] itself.
+That is, [cmd S3::REST] will always return httpstatus 500 if that's
+what it receives. Functions like [cmd S3::Put] will retry the PUT call,
+and will also retry the GET and HEAD calls used to do content comparison.
+Changing this to 0 will prevent retries and their associated delays.
+In addition, socket errors (i.e., errors whose errorCode starts with
+"S3 socket") will be similarly retried after backoffs.
+
+[def "[option -accesskeyid] [arg idstring]"]
+[def "[option -secretaccesskey] [arg idstring]"]
+Each defaults to an empty string.
+These must be set before any calls are made. This is your S3 ID.
+Once you sign up for an account, go to [uri http://www.amazonaws.com/],
+sign in, go to the "Your Web Services Account" button, pick "AWS
+Access Identifiers", and your access key ID and secret access keys
+will be available. All [cmd S3::REST] calls are authenticated.
+Blame Amazon for the poor choice of names.
+
+[def "[option -service-access-point] [arg FQDN]"]
+Defaults to "s3.amazonaws.com". This is the fully-qualified domain
+name of the server to contact for [cmd S3::REST] calls. You should
+probably never need to touch this, unless someone else implements
+a compatible service, or you wish to test something by pointing
+the library at your own service.
+
+[def "[option -slop-seconds] [arg integer]"]
+When comparing dates between Amazon and the local machine,
+two dates within this many seconds of each other are considered
+the same. Useful for clock drift correction, processing overhead
+time, and so on.
+
+[def "[option -use-tls] [arg boolean]"]
+Defaults to false. This is not yet implemented. If true, [cmd S3::REST] will
+negotiate a TLS connection to Amazon. If false, unencrypted connections
+are used.
+
+[def "[option -bucket-prefix] [arg string]"]
+Defaults to "TclS3".  This string is used by [cmd S3::SuggestBucketName]
+if that command is passed an empty string as an argument. It is used
+to distinguish different applications using the Amazon service.
+Your application should always set this to keep from interfering with
+the buckets of other users of Amazon S3 or with other buckets of the
+same user.
+
+[def "[option -default-compare] [arg always|never|exists|missing|newer|date|checksum|different]"]
+Defaults to "always." If no -compare is specified on
+[cmd S3::Put], [cmd S3::Get], or [cmd S3::Delete], this comparison is used.
+See those commands for a description of the meaning.
+
+[def "[option -default-separator] [arg string]"]
+Defaults to "/". This is currently unused. It might make sense to use
+this for [cmd S3::Push] and [cmd S3::Pull], but allowing resources to
+have slashes in their names that aren't marking directories would be
+problematic. Hence, this currently does nothing.
+
+[def "[option -default-acl] [arg private|public-read|public-read-write|authenticated-read|keep|calc]"]
+Defaults to an empty string. If no -acl argument is provided to [cmd S3::Put] or
+[cmd S3::Push], this string is used
+(given as the x-amz-acl header if not keep or calc). If this is also
+empty, no x-amz-acl header is generated.
+This is [emph not] used by [cmd S3::REST].
+
+[def "[option -default-bucket] [arg bucketname]"]
+If no bucket is given to [cmd S3::GetBucket], [cmd S3::PutBucket],
+[cmd S3::Get], [cmd S3::Put],
+[cmd S3::Head], [cmd S3::Acl],
+[cmd S3::Delete], [cmd S3::Push],
+[cmd S3::Pull], or [cmd S3::Toss], and if this configuration variable
+is not an empty string (and not simply "/"), then this value
+will be used for the bucket. This is useful if one program does
+a large amount of resource manipulation within a single bucket.
+
+[list_end]
+
+[para]
+
+[call [cmd S3::SuggestBucket] [opt [arg name]]]
+The [cmd S3::SuggestBucket] command accepts an optional string as
+a prefix and returns a valid bucket containing the [arg name] argument
+and the Access Key ID. This makes the name unique to the owner and
+to the application (assuming the application picks a good [arg name] argument).
+If no name is provided,
+the name from [cmd S3::Configure] [arg -bucket-prefix] is used.
+If that too is empty (which is not the default), an error is thrown.
+
+[call [cmd S3::REST] [arg dict]]
+
+The [cmd S3::REST] command takes as an argument a dictionary and
+returns a dictionary.  The return dictionary has the same keys
+as the input dictionary, and includes additional keys as the result.
+The presence or absence of keys in the input dictionary can control
+the behavior of the routine.  It never throws an error directly, but
+includes keys "error", "errorInfo", and "errorCode" if necessary.
+Some keys are required, some optional. The routine can run either
+in blocking or non-blocking mode, based on the presense
+of [option resultvar] in the input dictionary. This requires
+the [arg -accesskeyid] and [arg -secretaccesskey] to be configured via
+[cmd S3::Configure] before being called.
+[para]
+The possible input keys are these:
+[list_begin definitions]
+
+[def "[option verb] [arg GET|PUT|DELETE|HEAD]"]
+This required item indicates the verb to be used.
+
+[def "[option resource] [arg string]"]
+This required item indicates the resource to be accessed.
+A leading / is added if not there already. It will
+be URL-encoded for you if necessary. Do not supply a
+resource name that is already URL-encoded.
+
+[def [opt "[option rtype] [arg torrent|acl]"]]
+This indicates a torrent or acl resource is being manipulated.
+Do not include this in the [option resource] key, or the
+"?" separator will get URL-encoded.
+
+[def [opt "[option parameters] [arg dict]"]]
+This optional dictionary provides parameters added to the URL
+for the transaction. The keys must be in the correct case
+(which is confusing in the Amazon documentation) and the
+values must be valid. This can be an empty dictionary or
+omitted entirely if no parameters are desired. No other
+error checking on parameters is performed.
+
+[def [opt "[option headers] [arg dict]"]]
+This optional dictionary provides headers to be added
+to the HTTP request. The keys must be in [emph "lower case"]
+for the authentication to work. The values must not contain
+embedded newlines or carriage returns. This is primarily
+useful for adding x-amz-* headers. Since authentication
+is calculated by [cmd S3::REST], do not add that header here.
+Since content-type gets its own key, also do not add
+that header here.
+
+[def [opt "[option inbody] [arg contentstring]"]]
+This optional item, if provided, gives the content that will
+be sent. It is sent with a tranfer encoding of binary, and
+only the low bytes are used, so use [lb]encoding convertto utf-8[rb]
+if the string is a utf-8 string. This is written all in one blast,
+so if you are using non-blocking mode and the [option inbody] is
+especially large, you may wind up blocking on the write socket.
+
+[def [opt "[option infile] [arg filename]"]]
+This optional item, if provided, and if [option inbody] is not provided,
+names the file from which the body of the HTTP message will be
+constructed. The file is opened for reading and sent progressively
+by [lb]fcopy[rb], so it should not block in non-blocking mode
+even if the file is very large. The file is transfered in
+binary mode, so the bytes on your disk will match the bytes
+in your resource. Due to HTTP restrictions, it must be possible to
+use [lb]file size[rb] on this file to determine the size at the
+start of the transaction.
+
+[def [opt "[option S3chan] [arg channel]"]]
+This optional item, if provided, indicates the already-open socket
+over which the transaction should be conducted. If not provided,
+a connection is made to the service access point specified via
+[cmd S3::Configure], which is normally s3.amazonaws.com. If this
+is provided, the channel is not closed at the end of the transaction.
+
+[def [opt "[option outchan] [arg channel]"]]
+This optional item, if provided, indicates the already-open channel
+to which the body returned from S3 should be written. That is,
+to retrieve a large resource, open a file, set the translation mode,
+and pass the channel as the value of the key outchan. Output
+will be written to the channel in pieces so memory does not fill
+up unnecessarily. The channel is not closed at the end of the transaction.
+
+[def [opt "[option resultvar] [arg varname]"]]
+This optional item, if provided, indicates that [cmd S3::REST] should
+run in non-blocking mode. The [arg varname] should be fully qualified
+with respect to namespaces and cannot be local to a proc. If provided,
+the result of the [cmd S3::REST] call is assigned to this variable once
+everything has completed; use trace or vwait to know when this has happened.
+If this key is not provided, the result is simply returned from the
+call to [cmd S3::REST] and no calls to the eventloop are invoked from
+within this call.
+
+[def [opt "[option throwsocket] [arg throw|return]"]]
+This optional item, if provided, indicates that [cmd S3::REST] should
+throw an error if throwmode is throw and a socket error is encountered.
+It indicates that [cmd S3::REST] should return the error code in the
+returned dictionary if a socket error is encountered and this is
+set to return. If [option throwsocket] is set to [arg return] or
+if the call is not blocking, then a socket error (i.e., an error
+whose error code starts with "S3 socket" will be returned in the
+dictionary as [option error], [option errorInfo], and [option errorCode].
+If a foreground call is made (i.e., [option resultvar] is not provided),
+and this option is not provided or is set to [arg throw], then
+[cmd error] will be invoked instead.
+
+[list_end]
+
+[para]
+Once the call to [cmd S3::REST] completes, a new dict is returned,
+either in the [arg resultvar] or as the result of execution. This dict is
+a copy of the original dict with the results added as new keys. The possible
+new keys are these:
+[list_begin definitions]
+
+[def "[option error] [arg errorstring]"]
+[def "[option errorInfo] [arg errorstring]"]
+[def "[option errorCode] [arg errorstring]"]
+If an error is caught, these three keys will be set in the result.
+Note that [cmd S3::REST] does [emph not] consider a non-2XX HTTP
+return code as an error. The [option errorCode] value will be
+formatted according to the [sectref "ERROR REPORTING"] description.
+If these are present, other keys described here might not be.
+
+[def "[option httpstatus] [arg threedigits]"]
+The three-digit code from the HTTP transaction. 2XX for good,
+5XX for server error, etc.
+
+[def "[option httpmessage] [arg text]"]
+The textual result after the status code. "OK" or "Forbidden"
+or etc.
+
+[def "[option outbody] [arg contentstring]"]
+If [arg outchan] was not specified, this key will hold a
+reference to the (unencoded) contents of the body returned.
+If Amazon returned an error (a la the httpstatus not a 2XX value),
+the error message will be in [option outbody] or written to
+[option outchan] as appropriate.
+
+[def "[option outheaders] [arg dict]"]
+This contains a dictionary of headers returned by Amazon.
+The keys are always lower case. It's mainly useful for
+finding the x-amz-meta-* headers, if any, although things
+like last-modified and content-type are also useful.
+The keys of this dictionary are always lower case.
+Both keys and values are trimmed of extraneous whitespace.
+
+[list_end]
+[list_end]
+
+[section "HIGH LEVEL COMMANDS"]
+The routines in this section all make use of one or more calls
+to [cmd S3::REST] to do their work, then parse and manage the data
+in a convenient way.  All these commands throw errors
+as described in [sectref "ERROR REPORTING"] unless otherwise noted.
+[para]
+In all these commands, all arguments are presented as name/value pairs,
+in any order. All the argument names start with a hyphen.
+[para]
+There are a few options that are common to many
+of the commands, and those common options are documented here.
+[list_begin definitions]
+[def "[option -blocking] [arg boolean]"]
+If provided and specified as false,
+then any calls to [cmd S3:REST] will be non-blocking,
+and internally these routines will call [lb]vwait[rb] to get
+the results. In other words, these routines will return the
+same value, but they'll have event loops running while waiting
+for Amazon.
+
+[def "[option -parse-xml] [arg xmlstring]"]
+If provided, the routine skips actually communicating with
+Amazon, and instead behaves as if the XML string provided
+was returned as the body of the call. Since several of
+these routines allow the return of data in various formats,
+this argument can be used to parse existing XML to extract
+the bits of information that are needed. It's also helpful
+for testing.
+
+[def "[option -bucket] [arg bucketname]"]
+Almost every high-level command needs to know what bucket
+the resources are in. This option specifies that. (Only the
+command to list available buckets does not require this parameter.)
+This does not need to be URL-encoded, even if it contains
+special or non-ASCII characters. May or may not contain leading
+or trailing spaces - commands normalize the bucket. If this is
+not supplied, the value is taken from [cmd "S3::Configure -default-bucket"]
+if that string isn't empty. Note that spaces and slashes are
+always trimmed from both ends and the rest must leave a valid bucket.
+
+[def "[option -resource] [arg resourcename]"]
+This specifies the resource of interest within the bucket.
+It may or may not start with a slash - both cases are handled.
+This does not need to be URL-encoded, even if it contains
+special or non-ASCII characters.
+
+[def "[option -compare] [arg always|never|exists|missing|newer|date|checksum|different]"]
+When commands copy resources to files or files to resources, the caller may specify that the copy should be skipped if the contents are the same. This argument specifies the conditions under which the files should be copied. If it is not passed, the result of [cmd "S3::Configure -default-compare"] is used, which in turn defaults to "always." The meanings of the various values are these:
+
+[list_begin definitions]
+[def [arg always]]
+Always copy the data. This is the default.
+
+[def [arg never]]
+Never copy the data. This is essentially a no-op, except in [cmd S3::Push] and [cmd S3::Pull] where the -delete flag might make a difference.
+
+[def [arg exists]]
+Copy the data only if the destination already exists.
+
+[def [arg missing]]
+Copy the data only if the destination does not already exist.
+
+[def [arg newer]]
+Copy the data if the destination is missing, or if the date on the source is
+newer than the date on the destination by at
+least [cmd "S3::Configure -slop-seconds"] seconds. If the source is
+Amazon, the date is taken from the Last-Modified header. If the
+source is local, it is taken as the mtime of the file. If the source data
+is specified in a string rather than a file, it is taken as right now,
+via [lb]clock seconds[rb].
+
+[def [arg date]]
+Like [arg newer], except copy if the date is newer [emph or] older.
+
+[def [arg checksum]]
+Calculate the MD5 checksum on the local file or string, ask Amazon for the eTag
+of the resource, and copy the data if they're different. Copy the data
+also if the destination is missing. Note that this can be slow with
+large local files unless the C version of the MD5 support is available.
+
+[def [arg different]]
+Copy the data if the destination does not exist.
+If the destination exists and an actual file name was specified
+(rather than a content string),
+and the date on the file differs from the date on the resource,
+copy the data.
+If the data is provided as a content string, the "date" is treated
+as "right now", so it will likely always differ unless slop-seconds is large.
+If the dates are the same, the MD5 checksums are compared, and the
+data is copied if the checksums differ.
+[list_end]
+
+[para]
+Note that "newer" and "date" don't care about the contents, and "checksum" doesn't care about the dates, but "different" checks both.
+
+[call [cmd S3::ListAllMyBuckets] \
+[opt "[option -blocking] [arg boolean]"] \
+[opt "[option -parse-xml] [arg xmlstring]"] \
+[opt "[option -result-type] [arg REST|xml|pxml|dict|names|owner]"] \
+]
+This routine performs a GET on the Amazon S3 service, which is
+defined to return a list of buckets owned by the account identified
+by the authorization header. (Blame Amazon for the dumb names.)
+
+[list_begin definitions]
+[def "[option -blocking] [arg boolean]"]
+See above for standard definition.
+
+[def "[option -parse-xml] [arg xmlstring]"]
+See above for standard definition.
+
+[def "[option -result-type] [arg REST]"]
+The dictionary returned by [cmd S3::REST] is the return value of [cmd S3::ListAllMyBuckets]. In this case, a non-2XX httpstatus will not throw an error. You may not combine this with [arg -parse-xml].
+
+[def "[option -result-type] [arg xml]"]
+The raw XML of the body is returned as the result (with no encoding applied).
+
+[def "[option -result-type] [arg pxml]"]
+The XML of the body as parsed by [cmd xsxp::parse] is returned.
+
+[def "[option -result-type] [arg dict]"]
+A dictionary of interesting portions of the XML is returned. The dictionary contains the following keys:
+
+[list_begin definitions]
+[def Owner/ID] The Amazon AWS ID (in hex) of the owner of the bucket.
+[def Owner/DisplayName] The Amazon AWS ID's Display Name.
+[def Bucket/Name] A list of names, one for each bucket.
+[def Bucket/CreationDate] A list of dates, one for each bucket,
+in the same order as Bucket/Name, in ISO format (as returned by Amazon).
+[list_end]
+
+[para]
+
+[def "[option -result-type] [arg names]"]
+A list of bucket names is returned with all other information stripped out.
+This is the default result type for this command.
+
+[def "[option -result-type] [arg owner]"]
+A list containing two elements is returned. The first element is
+the owner's ID, and the second is the owner's display name.
+
+[list_end]
+
+[para]
+
+[call [cmd S3::PutBucket] \
+[opt "[option -bucket] [arg bucketname]"] \
+[opt "[option -blocking] [arg boolean]"] \
+[opt "[option -acl] [arg {{}|private|public-read|public-read-write|authenticated-read}]"] \
+]
+This command creates a bucket if it does not already exist. Bucket names are
+globally unique, so you may get a "Forbidden" error from Amazon even if you
+cannot see the bucket in [cmd S3::ListAllMyBuckets]. See [cmd S3::SuggestBucket] for ways to minimize this risk. The x-amz-acl header comes from the [option -acl] option, or from [cmd "S3::Configure -default-acl"] if not specified.
+
+[call [cmd S3::DeleteBucket] \
+[opt "[option -bucket] [arg bucketname]"] \
+[opt "[option -blocking] [arg boolean]"] \
+]
+This command deletes a bucket if it is empty and you have such permission.
+Note that Amazon's list of buckets is a global resource, requiring
+far-flung synchronization. If you delete a bucket, it may be quite
+a few minutes (or hours) before you can recreate it, yielding "Conflict"
+errors until then.
+
+[call [cmd S3::GetBucket] \
+[opt "[option -bucket] [arg bucketname]"] \
+[opt "[option -blocking] [arg boolean]"] \
+[opt "[option -parse-xml] [arg xmlstring]"] \
+[opt "[option -max-count] [arg integer]"] \
+[opt "[option -prefix] [arg prefixstring]" ] \
+[opt "[option -delimiter] [arg delimiterstring]" ] \
+[opt "[option -result-type] [arg REST|xml|pxml|names|dict]"] \
+]
+This lists the contents of a bucket. That is, it returns a directory
+listing of resources within a bucket, rather than transfering any
+user data.
+[list_begin definitions]
+
+[def "[option -bucket] [arg bucketname]"] The standard bucket argument.
+
+[def "[option -blocking] [arg boolean]"] The standard blocking argument.
+
+[def "[option -parse-xml] [arg xmlstring]"] The standard parse-xml argument.
+
+[def "[option -max-count] [arg integer]"]
+If supplied, this is the most number of records to be returned.
+If not supplied, the code will iterate until all records have been found.
+Not compatible with -parse-xml. Note that if this is supplied, only
+one call to [cmd S3::REST] will be made. Otherwise, enough calls
+will be made to exhaust the listing, buffering results in memory,
+so take care if you may have huge buckets.
+
+[def "[option -prefix] [arg prefixstring]"]
+If present, restricts listing to resources with a particular prefix. One
+leading / is stripped if present.
+
+[def "[option -delimiter] [arg delimiterstring]"]
+If present, specifies a delimiter for the listing.
+The presence of this will summarize multiple resources
+into one entry, as if S3 supported directories. See the
+Amazon documentation for details.
+
+[def "[option -result-type] [arg REST|xml|pxml|names|dict]"]
+This indicates the format of the return result of the command.
+
+[list_begin definitions]
+[def REST]
+If [arg -max-count] is specified, the dictionary returned
+from [cmd S3::REST] is returned. If [arg -max-count] is
+not specified, a list of all the dictionaries returned from
+the one or more calls to [cmd S3::REST] is returned.
+
+[def xml]
+If [arg -max-count] is specified, the body returned
+from [cmd S3::REST] is returned. If [arg -max-count] is
+not specified, a list of all the bodies returned from
+the one or more calls to [cmd S3::REST] is returned.
+
+[def pxml]
+If [arg -max-count] is specified, the body returned
+from [cmd S3::REST] is passed throught [cmd xsxp::parse] and then returned.
+If [arg -max-count] is
+not specified, a list of all the bodies returned from
+the one or more calls to [cmd S3::REST] are each passed through
+[cmd xsxp::parse] and then returned.
+
+[def names]
+Returns a list of all names found in either the Contents/Key fields or
+the CommonPrefixes/Prefix fields. If no [arg -delimiter] is specified
+and no [arg -max-count] is specified, this returns a list of all
+resources with the specified [arg -prefix].
+
+[def dict]
+Returns a dictionary. (Returns only one dictionary even if [arg -max-count]
+wasn't specified.) The keys of the dictionary are as follows:
+
+[list_begin definitions]
+[def Name] The name of the bucket (from the final call to [cmd S3::REST]).
+
+[def Prefix] From the final call to [cmd S3::REST].
+[def Marker] From the final call to [cmd S3::REST].
+[def MaxKeys] From the final call to [cmd S3::REST].
+[def IsTruncated] From the final call to [cmd S3::REST], so
+always false if [arg -max-count] is not specified.
+[def NextMarker] Always provided if IsTruncated is true, and
+calculated of Amazon does not provide it. May be empty if IsTruncated is false.
+
+[def Key] A list of names of resources in the bucket matching the [arg -prefix] and [arg -delimiter] restrictions.
+
+[def LastModified] A list of times of resources in the bucket, in the same
+order as Key, in the format returned by Amazon. (I.e., it is not parsed into
+a seconds-from-epoch.)
+
+[def ETag] A list of entity tags (a.k.a. MD5 checksums) in the same order as Key.
+
+[def Size] A list of sizes in bytes of the resources, in the same order as Key.
+
+[def Owner/ID] A list of owners of the resources in the bucket, in the same order as Key.
+
+[def Owner/DisplayName] A list of owners of the resources in the bucket, in the same order as Key. These are the display names.
+
+[def CommonPrefixes/Prefix] A list of prefixes common to multiple entities. This is present only if [arg -delimiter] was supplied.
+
+[list_end]
+
+[list_end]
+
+[list_end]
+
+[call [cmd S3::Put] \
+[opt "[option -bucket] [arg bucketname]"] \
+[option -resource] [arg resourcename] \
+[opt "[option -blocking] [arg boolean]"] \
+[opt "[option -file] [arg filename]"] \
+[opt "[option -content] [arg contentstring]"] \
+[opt "[option -acl] [arg private|public-read|public-read-write|authenticated-read|calc|keep]"] \
+[opt "[option -content-type] [arg contenttypestring]"] \
+[opt "[option -x-amz-meta-*] [arg metadatatext]"] \
+[opt "[option -compare] [arg comparemode]"] \
+]
+
+This command sends data to a resource on Amazon's servers for storage,
+using the HTTP PUT command. It returns 0 if the [option -compare] mode
+prevented the transfer, 1 if the transfer worked, or throws an error
+if the transfer was attempted but failed.
+Server 5XX errors and S3 socket errors are retried
+according to [cmd "S3:Configure -retries"] settings before throwing an error;
+other errors throw immediately.
+
+[list_begin definitions]
+[def [option -bucket]]
+This specifies the bucket into which the resource will be written.
+Leading and/or trailing slashes are removed for you, as are spaces.
+
+[def [option -resource]]
+This is the full name of the resource within the bucket. A single
+leading slash is removed, but not a trailing slash.
+Spaces are not trimmed.
+
+[def [option -blocking]]
+The standard blocking flag.
+
+[def [option -file]]
+If this is specified, the [arg filename] must exist, must be readable,
+and must not be a special or directory file. [lb]file size[rb] must
+apply to it and must not change for the lifetime of the call.  The
+default content-type is calculated based on the name and/or contents
+of the file. Specifying this is an error if [option -content] is
+also specified, but at least one of [option -file] or [option -content] must
+be specified. (The file is allowed to not exist or not be readable if
+[option -compare] [arg never] is specified.)
+
+[def [option -content]]
+If this is specified, the [arg contentstring] is sent as the body
+of the resource. The content-type defaults to "application/octet-string".
+Only the low bytes are sent, so non-ASCII should use the appropriate encoding
+(such as [lb]encoding convertto utf-8[rb]) before passing it
+to this routine, if necessary. Specifying this is an error if [option -file]
+is also specified, but at least one of [option -file] or [option -content] must
+be specified.
+
+[def [option -acl]]
+This defaults to [cmd "S3::Configure -default-acl"] if not specified.
+It sets the x-amz-acl header on the PUT operation.
+If the value provided is [arg calc], the x-amz-acl header is
+calculated based on the I/O permissions of the file to be uploaded;
+it is an error to specify [arg calc] and [option -content].
+If the value provided is [arg keep], the acl of the resource
+is read before the PUT (or the default is used if the
+resource does not exist), then set back to what it
+was after the PUT (if it existed). An error will occur if
+the resource is successfully written but the kept ACL cannot
+be then applied. This should never happen.
+[emph Note:]  [arg calc] is not currently fully implemented.
+
+[def [option -x-amz-meta-*]]
+If any header starts with "-x-amz-meta-", its contents are added to the
+PUT command to be stored as metadata with the resource. Again, no
+encoding is performed, and the metadata should not contain characters
+like newlines, carriage returns, and so on. It is best to stick with
+simple ASCII strings, or to fix the library in several places.
+
+[def [option -content-type]]
+This overrides the content-type calculated by [option -file] or
+sets the content-type for [option -content].
+
+[def [option -compare]]
+This is the standard compare mode argument. [cmd S3::Put] returns
+1 if the data was copied or 0 if the data was skipped due to
+the comparison mode so indicating it should be skipped.
+
+[list_end]
+
+[para]
+
+[call [cmd S3::Get] \
+[opt "[option -bucket] [arg bucketname]"] \
+[option -resource] [arg resourcename] \
+[opt "[option -blocking] [arg boolean]"] \
+[opt "[option -compare] [arg comparemode]"] \
+[opt "[option -file] [arg filename]"] \
+[opt "[option -content] [arg contentvarname]"] \
+[opt "[option -timestamp] [arg aws|now]"] \
+[opt "[option -headers] [arg headervarname]"] \
+]
+This command retrieves data from a resource on Amazon's S3 servers,
+using the HTTP GET command. It returns 0 if the [option -compare] mode
+prevented the transfer, 1 if the transfer worked, or throws an error
+if the transfer was attempted but failed. Server 5XX errors and S3 socket
+errors are are retried
+according to [cmd S3:Configure] settings before throwing an error;
+other errors throw immediately. Note that this is always authenticated
+as the user configured in via [cmd "S3::Configure -accesskeyid"]. Use
+the Tcllib http for unauthenticated GETs.
+[list_begin definitions]
+
+[def [option -bucket]]
+This specifies the bucket from which the resource will be read.
+Leading and/or trailing slashes are removed for you, as are spaces.
+
+[def [option -resource]]
+This is the full name of the resource within the bucket. A single
+leading slash is removed, but not a trailing slash.
+Spaces are not trimmed.
+
+[def [option -blocking]]
+The standard blocking flag.
+
+[def [option -file]]
+If this is specified, the body of the resource will be read into this file,
+incrementally without pulling it entirely into memory first. The parent
+directory must already exist. If the file already exists, it must be
+writable. If an error is thrown part-way through the process and the
+file already existed, it may be clobbered. If an error is thrown part-way
+through the process and the file did not already exist, any partial
+bits will be deleted. Specifying this is an error if [option -content]
+is also specified, but at least one of [option -file] or [option -content] must
+be specified.
+
+[def [option -timestamp]]
+This is only valid in conjunction with [option -file]. It may be specified
+as [arg now] or [arg aws]. The default is [arg now]. If [arg now], the file's
+modification date is left up to the system. If [arg aws], the file's
+mtime is set to match the Last-Modified header on the resource, synchronizing
+the two appropriately for [option -compare] [arg date] or
+[option -compare] [arg newer].
+
+[def [option -content]]
+If this is specified, the [arg contentvarname] is a variable in the caller's
+scope (not necessarily global) that receives the value of the body of
+the resource. No encoding is done, so if the resource (for example) represents
+a UTF-8 byte sequence, use [lb]encoding convertfrom utf-8[rb] to get a valid
+UTF-8 string. If this is specified, the [option -compare] is ignored unless
+it is [arg never], in which case no assignment to [arg contentvarname] is
+performed. Specifying this is an error if [option -file] is also specified,
+but at least one of [option -file] or [option -content] must be specified.
+
+[def [option -compare]]
+This is the standard compare mode argument. [cmd S3::Get] returns
+1 if the data was copied or 0 if the data was skipped due to
+the comparison mode so indicating it should be skipped.
+
+[def [option -headers]]
+If this is specified, the headers resulting from the fetch are stored
+in the provided variable, as a dictionary. This will include content-type
+and x-amz-meta-* headers, as well as the usual HTTP headers, the x-amz-id
+debugging headers, and so on. If no file is fetched (due to [option -compare]
+or other errors), no assignment to this variable is performed.
+
+[list_end]
+
+[para]
+
+[call [cmd S3::Head] \
+[opt "[option -bucket] [arg bucketname]"] \
+[option -resource] [arg resourcename] \
+[opt "[option -blocking] [arg boolean]"] \
+[opt "[option -dict] [arg dictvarname]"] \
+[opt "[option -headers] [arg headersvarname]"] \
+[opt "[option -status] [arg statusvarname]"] \
+]
+This command requests HEAD from the resource.
+It returns whether a 2XX code was returned as a result
+of the request, never throwing an S3 remote error.
+That is, if this returns 1, the resource exists and is
+accessible. If this returns 0, something went wrong, and the
+[option -status] result can be consulted for details.
+
+[list_begin definitions]
+
+[def [option -bucket]]
+This specifies the bucket from which the resource will be read.
+Leading and/or trailing slashes are removed for you, as are spaces.
+
+[def [option -resource]]
+This is the full name of the resource within the bucket. A single
+leading slash is removed, but not a trailing slash.
+Spaces are not trimmed.
+
+[def [option -blocking]]
+The standard blocking flag.
+
+[def [option -dict]]
+If specified, the resulting dictionary from the [cmd S3::REST]
+call is assigned to the indicated (not necessarily global) variable
+in the caller's scope.
+
+[def [option -headers]]
+If specified, the dictionary of headers from the result are assigned
+to the indicated (not necessarily global) variable in the caller's scope.
+
+[def [option -status]]
+If specified, the indicated (not necessarily global) variable in
+the caller's scope is assigned a 2-element list. The first element is
+the 3-digit HTTP status code, while the second element is
+the HTTP message (such as "OK" or "Forbidden").
+
+[list_end]
+
+[call [cmd S3::GetAcl] \
+[opt "[option -blocking] [arg boolean]"] \
+[opt "[option -bucket] [arg bucketname]"] \
+[option -resource] [arg resourcename] \
+[opt "[option -result-type] [arg REST|xml|pxml]"] \
+]
+
+This command gets the ACL of the indicated resource or throws an
+error if it is unavailable.
+
+[list_begin definitions]
+[def "[option -blocking] [arg boolean]"]
+See above for standard definition.
+
+[def [option -bucket]]
+This specifies the bucket from which the resource will be read.
+Leading and/or trailing slashes are removed for you, as are spaces.
+
+[def [option -resource]]
+This is the full name of the resource within the bucket. A single
+leading slash is removed, but not a trailing slash.
+Spaces are not trimmed.
+
+[def "[option -parse-xml] [arg xml]"]
+The XML from a previous GetACL can be passed in to be parsed into
+dictionary form.  In this case, -result-type must be pxml or dict.
+
+[def "[option -result-type] [arg REST]"]
+The dictionary returned by [cmd S3::REST] is the return value of
+[cmd S3::GetAcl].  In this case, a non-2XX httpstatus will not throw an
+error.
+
+[def "[option -result-type] [arg xml]"]
+The raw XML of the body is returned as the result (with no encoding applied).
+
+[def "[option -result-type] [arg pxml]"]
+The XML of the body as parsed by [cmd xsxp::parse] is returned.
+
+[def "[option -result-type] [arg dict]"]
+This fetches the ACL, parses it, and returns a dictionary of two elements.
+
+[para]
+
+The first element has the key "owner" whose value is the canonical ID of the owner of the resource.
+
+[para]
+
+The second element has the key "acl" whose value is a dictionary.  Each
+key in the dictionary is one of Amazon's permissions, namely "READ",
+"WRITE", "READ_ACP", "WRITE_ACP", or "FULL_CONTROL".  Each value of each
+key is a list of canonical IDs or group URLs that have that permission.
+Elements are not in the list in any particular order, and not all keys
+are necessarily present.  Display names are not returned, as they are
+not especially useful; use pxml to obtain them if necessary.
+
+[list_end]
+
+[call [cmd S3::PutAcl] \
+[opt "[option -blocking] [arg boolean]"] \
+[opt "[option -bucket] [arg bucketname]"] \
+[option -resource] [arg resourcename] \
+[opt "[option -acl] [arg new-acl]"] \
+]
+
+This sets the ACL on the indicated resource. It returns the XML written to the ACL, or throws an error if anything went wrong.
+
+[list_begin definitions]
+[def "[option -blocking] [arg boolean]"]
+See above for standard definition.
+
+[def [option -bucket]]
+This specifies the bucket from which the resource will be read.
+Leading and/or trailing slashes are removed for you, as are spaces.
+
+[def [option -resource]]
+This is the full name of the resource within the bucket. A single
+leading slash is removed, but not a trailing slash.
+Spaces are not trimmed.
+
+[def [option -owner]]
+If this is provided, it is assumed to match the owner of the resource.
+Otherwise, a GET may need to be issued against the resource to find
+the owner. If you already have the owner (such as from a call
+to [cmd S3::GetAcl], you can pass the value of the "owner" key
+as the value of this option, and it will be used in the construction
+of the XML.
+
+[def [option -acl]]
+If this option is specified, it provides the ACL the caller wishes
+to write to the resource. If this is not supplied or is empty,
+the value is taken from [cmd "S3::Configure -default-acl"].
+The ACL is written with a PUT to the ?acl resource.
+
+[para]
+
+If the value passed to this option
+starts with "<", it is taken to be a body to be PUT to the ACL resource.
+
+[para]
+
+If the value matches one of the standard Amazon x-amz-acl headers (i.e.,
+a canned access policy), that header is translated to XML and then
+applied. The canned access policies are private, public-read,
+public-read-write, and authenticated-read (in lower case).
+
+[para]
+
+Otherwise, the value is assumed to be a dictionary formatted as the
+"acl" sub-entry within the dict returns by [cmd "S3::GetAcl -result-type dict"].
+The proper XML is generated and applied to the resource.  Note that a
+value containing "//" is assumed to be a group, a value containing "@"
+is assumed to be an AmazonCustomerByEmail, and otherwise the value is
+assumed to be a canonical Amazon ID.
+
+[para]
+
+Note that you cannot change the owner, so calling GetAcl on a resource
+owned by one user and applying it via PutAcl on a resource owned by
+another user may not do exactly what you expect.
+
+[list_end]
+
+[call [cmd S3::Delete] \
+[opt "[option -bucket] [arg bucketname]"] \
+[option -resource] [arg resourcename] \
+[opt "[option -blocking] [arg boolean]"] \
+[opt "[option -status] [arg statusvar]"] \
+]
+This command deletes the specified resource from the specified bucket.
+It returns 1 if the resource was deleted successfully, 0 otherwise.
+It returns 0 rather than throwing an S3 remote error.
+
+[list_begin definitions]
+[def [option -bucket]]
+This specifies the bucket from which the resource will be deleted.
+Leading and/or trailing slashes are removed for you, as are spaces.
+
+[def [option -resource]]
+This is the full name of the resource within the bucket. A single
+leading slash is removed, but not a trailing slash.
+Spaces are not trimmed.
+
+[def [option -blocking]]
+The standard blocking flag.
+
+[def [option -status]]
+If specified, the indicated (not necessarily global) variable
+in the caller's scope is set to a two-element list. The first
+element is the 3-digit HTTP status code. The second element
+is the HTTP message (such as "OK" or "Forbidden"). Note that
+Amazon's DELETE result is 204 on success, that being the
+code indicating no content in the returned body.
+
+[list_end]
+
+[para]
+
+[call [cmd S3::Push] \
+[opt "[option -bucket] [arg bucketname]"] \
+[option -directory] [arg directoryname] \
+[opt "[option -prefix] [arg prefixstring]"] \
+[opt "[option -compare] [arg comparemode]"] \
+[opt "[option -x-amz-meta-*] [arg metastring]"] \
+[opt "[option -acl] [arg aclcode]"] \
+[opt "[option -delete] [arg boolean]"] \
+[opt "[option -error] [arg throw|break|continue]"] \
+[opt "[option -progress] [arg scriptprefix]"] \
+]
+This synchronises a local directory with a remote bucket
+by pushing the differences using [cmd S3::Put]. Note that
+if something has changed in the bucket but not locally,
+those changes could be lost. Thus, this is not a general
+two-way synchronization primitive. (See [cmd S3::Sync]
+for that.) Note too that resource names are case sensitive,
+so changing the case of a file on a Windows machine may lead
+to otherwise-unnecessary transfers.
+Note that only regular files are considered, so devices, pipes, symlinks,
+and directories are not copied.
+
+[list_begin definitions]
+
+[def [option -bucket]]
+This names the bucket into which data will be pushed.
+
+[def [option -directory]]
+This names the local directory from which files will be taken.
+It must exist, be readable via [lb]glob[rb] and so on. If only
+some of the files therein are readable, [cmd S3::Push] will PUT
+those files that are readable and return in its results the list
+of files that could not be opened.
+
+[def [option -prefix]]
+This names the prefix that will be added to all resources.
+That is, it is the remote equivalent of [option -directory].
+If it is not specified, the root of the bucket will be treated
+as the remote directory. An example may clarify.
+[example {
+S3::Push -bucket test -directory /tmp/xyz -prefix hello/world
+}]
+In this example, /tmp/xyz/pdq.html will be stored as
+http://s3.amazonaws.com/test/hello/world/pdq.html in Amazon's servers. Also,
+/tmp/xyz/abc/def/Hello will be stored as
+http://s3.amazonaws.com/test/hello/world/abc/def/Hello in Amazon's servers.
+Without the [option -prefix] option, /tmp/xyz/pdq.html would be stored
+as http://s3.amazonaws.com/test/pdq.html.
+
+[def [option -blocking]]
+This is the standard blocking option.
+
+[def [option -compare]]
+If present, this is passed to each invocation of [cmd S3::Put].
+Naturally, [cmd "S3::Configure -default-compare"] is used
+if this is not specified.
+
+[def [option -x-amz-meta-*]]
+If present, this is passed to each invocation of [cmd S3::Put]. All copied
+files will have the same metadata.
+
+[def [option -acl]]
+If present, this is passed to each invocation of [cmd S3::Put].
+
+[def [option -delete]]
+This defaults to false. If true, resources in the destination that
+are not in the source directory are deleted with [cmd S3::Delete].
+Since only regular files are considered, the existance of a symlink,
+pipe, device, or directory in the local source will [emph not]
+prevent the deletion of a remote resource with a corresponding name.
+
+[def [option -error]]
+This controls the behavior of [cmd S3::Push] in the event that
+[cmd S3::Put] throws an error. Note that
+errors encountered on the local file system or in reading the
+list of resources in the remote bucket always throw errors.
+This option allows control over "partial" errors, when some
+files were copied and some were not. [cmd S3::Delete] is always
+finished up, with errors simply recorded in the return result.
+
+[list_begin definitions]
+
+[def throw]
+The error is rethrown with the same errorCode.
+
+[def break]
+Processing stops without throwing an error, the error is recorded
+in the return value, and the command returns with a normal return.
+The calls to [cmd S3::Delete] are not started.
+
+[def continue]
+This is the default. Processing continues without throwing,
+recording the error in the return result, and resuming with the
+next file in the local directory to be copied.
+
+[list_end]
+
+[def [option -progress]]
+If this is specified and the indicated script prefix is not empty, the
+indicated script prefix will be invoked several times in the caller's
+context with additional arguments at various points in the processing.
+This allows progress reporting without backgrounding.  The provided
+prefix will be invoked with additional arguments, with the first
+additional argument indicating what part of the process is being
+reported on.  The prefix is initially invoked with [arg args] as the
+first additional argument and a dictionary representing the normalized
+arguments to the [cmd S3::Push] call as the second additional argument.
+Then the prefix is invoked with [arg local] as the first additional
+argument and a list of suffixes of the files to be considered as the
+second argument.  Then the prefix is invoked with [arg remote] as the
+first additional argument and a list of suffixes existing in the remote
+bucket as the second additional argument.  Then, for each file in the
+local list, the prefix will be invoked with [arg start] as the first
+additional argument and the common suffix as the second additional
+argument.  When [cmd S3::Put] returns for that file, the prefix will be
+invoked with [arg copy] as the first additional argument, the common
+suffix as the second additional argument, and a third argument that will
+be "copied" (if [cmd S3::Put] sent the resource), "skipped" (if
+[cmd S3::Put] decided not to based on [option -compare]), or the errorCode
+that [cmd S3::Put] threw due to unexpected errors (in which case the
+third argument is a list that starts with "S3"). When all files have
+been transfered, the prefix may be invoked zero or more times with
+[arg delete] as the first additional argument and the suffix of the
+resource being deleted as the second additional argument, with a third
+argument being either an empty string (if the delete worked) or the
+errorCode from [cmd S3::Delete] if it failed. Finally, the prefix
+will be invoked with [arg finished] as the first additional argument
+and the return value as the second additional argument.
+
+[list_end]
+
+The return result from this command is a dictionary. They keys are the
+suffixes (i.e., the common portion of the path after the [option -directory]
+and [option -prefix]), while the values are either "copied", "skipped" (if
+[option -compare] indicated not to copy the file), or the errorCode
+thrown by [cmd S3::Put], as appropriate. If [option -delete] was true,
+there may also be entries for suffixes with the value "deleted" or
+"notdeleted", indicating whether the attempted [cmd S3::Delete]
+worked or not, respectively. There is one additional pair in the return
+result, whose key is the empty string and whose value is a nested dictionary.
+The keys of this nested dictionary include "filescopied" (the number of
+files successfully copied), "bytescopied" (the number of data bytes in
+the files copied, excluding headers, metadata, etc), "compareskipped" (the
+number of files not copied due to [option -compare] mode), "errorskipped"
+(the number of files not copied due to thrown errors), "filesdeleted"
+(the number of resources deleted due to not having corresponding files
+locally, or 0 if [option -delete] is false), and "filesnotdeleted"
+(the number of resources whose deletion was attempted but failed).
+[para]
+Note that this is currently implemented somewhat inefficiently.
+It fetches the bucket listing (including timestamps and eTags),
+then calls [cmd S3::Put], which uses HEAD to find the timestamps
+and eTags again. Correcting this with no API change
+is planned for a future upgrade.
+
+[para]
+
+[call [cmd S3::Pull] \
+[opt "[option -bucket] [arg bucketname]"] \
+[option -directory] [arg directoryname] \
+[opt "[option -prefix] [arg prefixstring]"] \
+[opt "[option -blocking] [arg boolean]"] \
+[opt "[option -compare] [arg comparemode]"] \
+[opt "[option -delete] [arg boolean]"] \
+[opt "[option -timestamp] [arg aws|now]"] \
+[opt "[option -error] [arg throw|break|continue]"] \
+[opt "[option -progress] [arg scriptprefix]"] \
+]
+
+This synchronises a remote bucket with a local directory by pulling the
+differences using [cmd S3::Get] If something has been changed locally but not
+in the bucket, those difference may be lost. This is not a general two-way
+synchronization mechanism. (See [cmd S3::Sync] for that.)
+This creates directories
+if needed; new directories are created with default permissions. Note that
+resource names are case sensitive, so changing the case of a file on a
+Windows machine may lead to otherwise-unnecessary transfers. Also, try not
+to store data in resources that end with a slash, or which are prefixes of
+resources that otherwise would start with a slash; i.e., don't use this if
+you store data in resources whose names have to be directories locally.
+[para]
+Note that this is currently implemented somewhat inefficiently.
+It fetches the bucket listing (including timestamps and eTags),
+then calls [cmd S3::Get], which uses HEAD to find the timestamps
+and eTags again. Correcting this with no API change
+is planned for a future upgrade.
+
+[list_begin definitions]
+
+[def [option -bucket]]
+This names the bucket from which data will be pulled.
+
+[def [option -directory]]
+This names the local directory into which files will be written
+It must exist, be readable via [lb]glob[rb], writable for file creation,
+and so on. If only some of the files therein are writable,
+[cmd S3::Pull] will GET
+those files that are writable and return in its results the list
+of files that could not be opened.
+
+[def [option -prefix]]
+The prefix of resources that will be considered for retrieval.
+See [cmd S3::Push] for more details, examples, etc. (Of course,
+[cmd S3::Pull] reads rather than writes, but the prefix is
+treated similarly.)
+
+[def [option -blocking]]
+This is the standard blocking option.
+
+[def [option -compare]]
+This is passed to each invocation of [cmd S3::Get] if provided.
+Naturally, [cmd "S3::Configure -default-compare"] is
+used if this is not provided.
+
+[def [option -timestamp]]
+This is passed to each invocation of [cmd S3::Get] if provided.
+
+[def [option -delete]]
+If this is specified and true, files that exist in the [option -directory]
+that are not in the [option -prefix] will be deleted after all resources
+have been copied. In addition, empty directories (other than the
+top-level [option -directory]) will be deleted, as
+Amazon S3 has no concept of an empty directory.
+
+[def [option -error]]
+See [cmd S3::Push] for a description of this option.
+
+[def [option -progress]]
+See [cmd S3::Push] for a description of this option.
+It differs slightly in that local directories may be included
+with a trailing slash to indicate they are directories.
+
+[list_end]
+
+The return value from this command is a dictionary. It
+is identical in form and meaning to the description of the
+return result of [cmd S3::Push]. It differs only in that
+directories may be included, with a trailing slash in their name,
+if they are empty and get deleted.
+
+[call [cmd S3::Toss] \
+[opt "[option -bucket] [arg bucketname]"] \
+[option -prefix] [arg prefixstring] \
+[opt "[option -blocking] [arg boolean]"] \
+[opt "[option -error] [arg throw|break|continue]"] \
+[opt "[option -progress] [arg scriptprefix]"] \
+]
+
+This deletes some or all resources within a bucket. It would be
+considered a "recursive delete" had Amazon implemented actual
+directories.
+
+[list_begin options]
+[opt_def -bucket]
+The bucket from which resources will be deleted.
+
+[opt_def [option -blocking]]
+The standard blocking option.
+
+[opt_def [option -prefix]]
+The prefix for resources to be deleted. Any resource that
+starts with this string will be deleted. This is required.
+To delete everything in the bucket, pass an empty string
+for the prefix.
+
+[opt_def [option -error]]
+If this is "throw", [cmd S3::Toss] rethrows any errors
+it encounters.  If this is "break", [cmd S3::Toss] returns
+with a normal return after the first error, recording that
+error in the return result. If this is "continue", which is
+the default, [cmd S3::Toss] continues on and lists all
+errors in the return result.
+
+[opt_def [option -progress]]
+If this is specified and not an empty string, the script
+prefix will be invoked several times in the context of the caller
+with additional arguments appended.  Initially, it will be invoked
+with the first additional argument being [arg args] and the second
+being the processed list of arguments to [cmd S3::Toss]. Then it
+is invoked with [arg remote] as the first additional argument and
+the list of suffixes in the bucket to be deleted as the second
+additional argument. Then it is invoked with the first additional
+argument being [arg delete] and the second additional argument being
+the suffix deleted and the third additional argument being "deleted"
+or "notdeleted" depending on whether [cmd S3::Delete] threw an error.
+Finally, the script prefix is invoked with a first additional argument
+of "finished" and a second additional argument of the return value.
+
+[list_end]
+
+The return value is a dictionary. The keys are the suffixes of files
+that [cmd S3::Toss] attempted to delete, and whose values are either
+the string "deleted" or "notdeleted". There is also one additional
+pair, whose key is the empty string and whose value is an embedded
+dictionary. The keys of this embedded dictionary include
+"filesdeleted" and "filesnotdeleted", each of which has integer values.
+
+[list_end]
+
+[section LIMITATIONS]
+
+[list_begin itemized]
+
+[item] The pure-Tcl MD5 checking is slow. If you are processing
+files in the megabyte range, consider ensuring binary support is available.
+
+[item] The commands [cmd S3::Pull] and [cmd S3::Push] fetch a
+directory listing which includes timestamps and MD5 hashes,
+then invoke [cmd S3::Get] and [cmd S3::Put]. If
+a complex [option -compare] mode is specified, [cmd S3::Get] and
+[cmd S3::Put] will invoke a HEAD operation for each file to fetch
+timestamps and MD5 hashes of each resource again. It is expected that
+a future release of this package will solve this without any API changes.
+
+[item] The commands [cmd S3::Pull] and [cmd S3::Push] fetch a
+directory listing without using [option -max-count]. The entire
+directory is pulled into memory at once. For very large buckets,
+this could be a performance problem. The author, at this time,
+does not plan to change this behavior. Welcome to Open Source.
+
+[item] [cmd S3::Sync] is neither designed nor implemented yet.
+The intention would be to keep changes synchronised, so changes
+could be made to both the bucket and the local directory and
+be merged by [cmd S3::Sync].
+
+[item] Nor is
+[option -compare] [arg calc] fully implemented. This is primarily due to
+Windows not providing a convenient method for distinguishing between
+local files that are "public-read" or "public-read-write". Assistance
+figuring out TWAPI for this would be appreciated. The U**X semantics
+are difficult to map directly as well. See the source for details.
+Note that there are not tests for calc, since it isn't done yet.
+
+[item] The HTTP processing is implemented within the library,
+rather than using a "real" HTTP package. Hence, multi-line headers
+are not (yet) handled correctly. Do not include carriage returns or
+linefeeds in x-amz-meta-* headers, content-type values, and so on.
+The author does not at this time expect to improve this.
+
+[item] Internally, [cmd S3::Push] and [cmd S3::Pull] and [cmd S3::Toss]
+are all very similar and should be refactored.
+
+[item] The idea of using [option -compare] [arg never]
+[option -delete] [arg true] to delete files that have been
+deleted from one place but not the other yet not copying
+changed files is untested.
+
+[list_end]
+
+[section "USAGE SUGGESTIONS"]
+
+To fetch a "directory" out of a bucket, make changes, and store it back:
+[example_begin]
+file mkdir ./tempfiles
+S3::Pull -bucket sample -prefix of/interest -directory ./tempfiles \
+  -timestamp aws
+do_my_process ./tempfiles other arguments
+S3::Push -bucket sample -prefix of/interest -directory ./tempfiles \
+  -compare newer -delete true
+[example_end]
+
+[para]
+To delete files locally that were deleted off of S3 but not otherwise
+update files:
+
+[example_begin]
+S3::Pull -bucket sample -prefix of/interest -directory ./myfiles \
+  -compare never -delete true
+[example_end]
+
+[section "FUTURE DEVELOPMENTS"]
+
+The author intends to work on several additional projects related to
+this package, in addition to finishing the unfinished features.
+
+[para]
+First, a command-line program allowing browsing of buckets and
+transfer of files from shell scripts and command prompts is useful.
+
+[para]
+Second, a GUI-based program allowing visual manipulation of
+bucket and resource trees not unlike Windows Explorer would
+be useful.
+
+[para]
+Third, a command-line (and perhaps a GUI-based) program called
+"OddJob" that will use S3 to synchronize computation amongst
+multiple servers running OddJob. An S3 bucket will be set up
+with a number of scripts to run, and the OddJob program can
+be invoked on multiple machines to run scripts on all the machines,
+each moving on to the next unstarted task as it finishes each.
+This is still being designed, and it is intended primarily
+to be run on Amazon's Elastic Compute Cloud.
+
+[include ../common-text/tls-security-notes.inc]
+
+[vset CATEGORY amazon-s3]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

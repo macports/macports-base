@@ -1,0 +1,107 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin mpexpand n 1.0]
+[see_also expander(n)]
+[see_also format(n)]
+[see_also formatter(n)]
+[keywords conversion]
+[keywords HTML]
+[keywords manpage]
+[keywords markup]
+[keywords nroff]
+[keywords TMML]
+[copyright {2002 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[copyright {2003 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation toolbox}]
+[titledesc {Markup processor}]
+[category  {Documentation tools}]
+[description]
+[para]
+
+This manpage describes a processor / converter for manpages in the
+doctools format as specified in [cmd doctools_fmt]. The processor
+is based upon the package [package doctools].
+
+[list_begin definitions]
+[call [cmd mpexpand] [opt "-module [arg module]"] [arg format] [arg infile]|- [arg outfile]|-]
+
+The processor takes three arguments, namely the code describing which
+formatting to generate as the output, the file to read the markup
+from, and the file to write the generated output into. If the
+[arg infile] is "[const -]" the processor will read from
+[const stdin]. If [arg outfile] is "[const -]" the processor will
+write to [const stdout].
+
+[para]
+
+If the option [arg -module] is present its value overrides the internal
+definition of the module name.
+
+[para]
+
+The currently known output formats are
+
+[list_begin definitions]
+
+[def [const nroff]]
+
+The processor generates *roff output, the standard format for unix
+manpages.
+
+[def [const html]]
+
+The processor generates HTML output, for usage in and display by web
+browsers.
+
+[def [const tmml]]
+
+The processor generates TMML output, the Tcl Manpage Markup Language,
+a derivative of XML.
+
+[def [const latex]]
+
+The processor generates LaTeX output.
+
+[def [const wiki]]
+
+The processor generates Wiki markup as understood by [syscmd wikit].
+
+[def [const list]]
+
+The processor extracts the information provided by [cmd manpage_begin].
+[see_also expander(n)]
+[see_also format(n)]
+[see_also formatter(n)]
+[keywords conversion]
+[keywords HTML]
+[keywords manpage]
+[keywords markup]
+[keywords nroff]
+[keywords TMML]
+
+[def [const null]]
+
+The processor does not generate any output.
+
+[list_end]
+
+[call [cmd mpexpand.all] [opt [arg -verbose]] [opt [arg module]]]
+
+This command uses [syscmd mpexpand] to generate all possible output
+formats for all manpages in the current directory. The manpages are
+recognized through the extension [file .man]. If [arg -verbose] is
+specified the command will list its actions before executing them.
+
+[para]
+
+The [arg module] information is passed to [cmd mpexpand].
+
+[list_end]
+
+[section NOTES]
+[para]
+
+Possible future formats are plain text, pdf and postscript.
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

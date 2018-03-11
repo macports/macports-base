@@ -1,0 +1,223 @@
+# -*- tcl -*-
+# Tests for the 'disjointset' module in the 'struct' library. -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2008 by Alejandro Eduardo Cruz Paz
+# Copyright (c) 2008 by Andreas Kupries (extended for API changes and error conditions)
+#
+# RCS: @(#) $Id: disjointset.testsuite,v 1.1 2008/09/10 16:23:14 andreas_kupries Exp $
+
+#----------------------------------------------------------------------
+
+test disjointset-${impl}-1.0 {disjointset creation} {
+    ::struct::disjointset DS
+    set result [djstate DS]
+    DS destroy
+    set result
+} {{} 0}
+
+test disjointset-${impl}-1.1 {disjointset creation error} {
+    catch {::struct::disjointset DS other} msg
+    set result $msg
+} {wrong # args: should be "::struct::disjointset ?name?"}
+
+#----------------------------------------------------------------------
+
+test disjointset-${impl}-2.0 {disjointset add-partition error, wrong#args, missing} {
+    ::struct::disjointset DS
+    catch {DS add-partition} msg
+    DS destroy
+    set msg
+} [tcltest::wrongNumArgs ::struct::disjointset::_add-partition {name items} 1]
+
+test disjointset-${impl}-2.1 {disjointset add-partition error, wrong#args, too many} {
+    ::struct::disjointset DS
+    catch {DS add-partition x y} msg
+    DS destroy
+    set msg
+} [tcltest::tooManyArgs ::struct::disjointset::_add-partition {name items}]
+
+test disjointset-${impl}-2.2 {disjointset add-partition error, elements already known} {
+    testset
+    catch {DS add-partition {1}} msg
+    DS destroy
+    set msg
+} {The element "1" is already known to the disjoint set ::DS}
+
+test disjointset-${impl}-2.3 {disjointset add-partition, ok} {
+    testset
+    set result [list [DS add-partition {11 14}] [djstate DS]]
+    DS destroy
+    set result
+} {{} {{0 {1 2 3 4} {5 6} {7 10} {8 9} {11 14}} 6}}
+
+#----------------------------------------------------------------------
+
+test disjointset-${impl}-3.0 {disjointset partitions error, wrong#args, too many} {
+    ::struct::disjointset DS
+    catch {DS partitions x} msg
+    DS destroy
+    set msg
+} [tcltest::tooManyArgs ::struct::disjointset::_partitions {name}]
+
+test disjointset-${impl}-3.1 {disjointset partitions, ok} {
+    testset
+    set result [djstate DS]
+    DS destroy
+    set result
+} {{0 {1 2 3 4} {5 6} {7 10} {8 9}} 5}
+
+#----------------------------------------------------------------------
+
+test disjointset-${impl}-4.0 {disjointset equal error, wrong#args, missing} {
+    ::struct::disjointset DS
+    catch {DS equal} msg
+    DS destroy
+    set msg
+} [tcltest::wrongNumArgs ::struct::disjointset::_equal {name a b} 1]
+
+test disjointset-${impl}-4.1 {disjointset equal error, wrong#args, missing} {
+    ::struct::disjointset DS
+    catch {DS equal x} msg
+    DS destroy
+    set msg
+} [tcltest::wrongNumArgs ::struct::disjointset::_equal {name a b} 2]
+
+test disjointset-${impl}-4.2 {disjointset equal error, wrong#args, too many} {
+    ::struct::disjointset DS
+    catch {DS equal x y z} msg
+    DS destroy
+    set msg
+} [tcltest::tooManyArgs ::struct::disjointset::_equal {name a b}]
+
+test disjointset-${impl}-4.3 {disjointset equal error, unknown elements} {
+    testset
+    catch {DS equal x 1} msg
+    DS destroy
+    set msg
+} {The element "x" is not known to the disjoint set ::DS}
+
+test disjointset-${impl}-4.4 {disjointset equal error, unknown elements} {
+    testset
+    catch {DS equal 1 x} msg
+    DS destroy
+    set msg
+} {The element "x" is not known to the disjoint set ::DS}
+
+test disjointset-${impl}-4.5 {disjointset equal ok, unequal elements} {
+    testset
+    set res [DS equal 1 5]
+    DS destroy
+    set res
+} 0
+
+test disjointset-${impl}-4.6 {disjointset equal ok, equal elements} {
+    testset
+    set res [DS equal 4 1]
+    DS destroy
+    set res
+} 1
+
+#----------------------------------------------------------------------
+
+test disjointset-${impl}-5.0 {disjointset merge error, wrong#args, missing} {
+    ::struct::disjointset DS
+    catch {DS merge} msg
+    DS destroy
+    set msg
+} [tcltest::wrongNumArgs ::struct::disjointset::_merge {name a b} 1]
+
+test disjointset-${impl}-5.1 {disjointset merge error, wrong#args, missing} {
+    ::struct::disjointset DS
+    catch {DS merge x} msg
+    DS destroy
+    set msg
+} [tcltest::wrongNumArgs ::struct::disjointset::_merge {name a b} 2]
+
+test disjointset-${impl}-5.2 {disjointset merge error, wrong#args, too many} {
+    ::struct::disjointset DS
+    catch {DS merge x y z} msg
+    DS destroy
+    set msg
+} [tcltest::tooManyArgs ::struct::disjointset::_merge {name a b}]
+
+test disjointset-${impl}-5.3 {disjointset merge error, unknown elements} {
+    testset
+    catch {DS merge x 1} msg
+    DS destroy
+    set msg
+} {The element "x" is not known to the disjoint set ::DS}
+
+test disjointset-${impl}-5.4 {disjointset merge error, unknown elements} {
+    testset
+    catch {DS merge 1 x} msg
+    DS destroy
+    set msg
+} {The element "x" is not known to the disjoint set ::DS}
+
+test disjointset-${impl}-5.5 {disjointset merge ok, different partitions} {
+    testset
+    DS merge 1 5
+    set result [djstate DS]
+    DS destroy
+    set result
+} {{0 {1 2 3 4 5 6} {7 10} {8 9}} 4}
+
+test disjointset-${impl}-5.6 {disjointset merge ok, same partition, no change} {
+    testset
+    DS merge 4 3
+    set result [djstate DS]
+    DS destroy
+    set result
+} {{0 {1 2 3 4} {5 6} {7 10} {8 9}} 5}
+
+#----------------------------------------------------------------------
+
+test disjointset-${impl}-6.0 {disjointset find error, wrong#args, missing} {
+    ::struct::disjointset DS
+    catch {DS find} msg
+    DS destroy
+    set msg
+} [tcltest::wrongNumArgs ::struct::disjointset::_find {name item} 1]
+
+test disjointset-${impl}-6.1 {disjointset find error, wrong#args, too many} {
+    ::struct::disjointset DS
+    catch {DS find x y} msg
+    DS destroy
+    set msg
+} [tcltest::tooManyArgs ::struct::disjointset::_find {name item}]
+
+test disjointset-${impl}-6.2 {disjointset find, unknown element} {
+    testset
+    set result [DS find 11]
+    DS destroy
+    set result
+} {}
+
+test disjointset-${impl}-6.3 {disjointset find, known element} {
+    testset
+    set result [lsort -dict [DS find 3]]
+    DS destroy
+    set result
+} {1 2 3 4}
+
+#----------------------------------------------------------------------
+
+test disjointset-${impl}-7.0 {disjointset num-partitions error, wrong#args, too many} {
+    ::struct::disjointset DS
+    catch {DS num-partitions x} msg
+    DS destroy
+    set msg
+} [tcltest::tooManyArgs ::struct::disjointset::_num-partitions {name}]
+
+test disjointset-${impl}-7.1 {disjointset num-partitions, ok} {
+    testset
+    set result [DS num-partitions]
+    DS destroy
+    set result
+} 5
+
+#----------------------------------------------------------------------

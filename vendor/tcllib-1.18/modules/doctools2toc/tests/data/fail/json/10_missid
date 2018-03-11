@@ -1,0 +1,11 @@
+{
+    "doctools::toc" : {
+        "label"    : ".",
+        "title"    : ".",
+        "items"    : [{ "reference" : {
+	    "a" : ".",
+	    "b" : ".",
+	    "c" : "."
+        }}]
+    }
+}

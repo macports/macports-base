@@ -1,6 +1,5 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # portactivate.tcl
-# $Id$
 #
 # Copyright (c) 2005, 2007, 2009-2011 The MacPorts Project
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -68,11 +67,12 @@ proc portactivate::activate_main {args} {
 }
 
 proc portactivate::activate_finish {args} {
-    global subport startupitem.autostart PortInfo UI_PREFIX
+    global subport startupitem.autostart PortInfo UI_PREFIX startupitem_autostart
 
     # Do this _after_ activate_main, because post-activate hooks might create
     # the files needed for this
-    if {[tbool startupitem.autostart]} {
+    # The option from macports.conf can override the portfile here.
+    if {[tbool startupitem.autostart] && [tbool startupitem_autostart]} {
         ui_notice "$UI_PREFIX [format [msgcat::mc "Loading %s"] $subport]"
         if {[eval_targets "load"]} {
             ui_error [format [msgcat::mc "Failed to load %s"] $subport]

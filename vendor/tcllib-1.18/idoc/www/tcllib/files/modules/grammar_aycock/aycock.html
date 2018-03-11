@@ -1,0 +1,249 @@
+
+<html><head>
+<title>grammar::aycock - Aycock-Horspool-Earley parser generator for Tcl</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'aycock.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2006 by Kevin B. Kenny &lt;kennykb@acm.org&gt;   -- Redistribution permitted under the terms of the Open Publication License &lt;http://www.opencontent.org/openpub/&gt;
+   -->
+<! -- grammar::aycock.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">grammar::aycock(n) 1.0 tcllib &quot;Aycock-Horspool-Earley parser generator for Tcl&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>grammar::aycock - Aycock-Horspool-Earley parser generator for Tcl</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PROCEDURES</a></li>
+<li class="doctools_section"><a href="#section3">OBJECT COMMAND</a></li>
+<li class="doctools_section"><a href="#section4">DESCRIPTION</a></li>
+<li class="doctools_section"><a href="#section5">EXAMPLE</a></li>
+<li class="doctools_section"><a href="#section6">KEYWORDS</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">grammar::aycock <span class="opt">?1.0?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::aycock::parser</b> <i class="arg">grammar</i> <span class="opt">?<b class="option">-verbose</b>?</span></a></li>
+<li><a href="#2"><i class="arg">parserName</i> <b class="method">parse</b> <i class="arg">symList</i> <i class="arg">valList</i> <span class="opt">?<i class="arg">clientData</i>?</span></a></li>
+<li><a href="#3"><i class="arg">parserName</i> <b class="method">destroy</b></a></li>
+<li><a href="#4"><i class="arg">parserName</i> <b class="method">terminals</b></a></li>
+<li><a href="#5"><i class="arg">parserName</i> <b class="method">nonterminals</b></a></li>
+<li><a href="#6"><i class="arg">parserName</i> <b class="method">save</b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">grammar::aycock</b> package
+implements a parser generator for the class of parsers described
+in John Aycock and R. Nigel Horspool. Practical Earley Parsing.
+<em>The Computer Journal,</em> <em>45</em>(6):620-630, 2002.
+<a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.12.4254">http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.12.4254</a></p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PROCEDURES</a></h2>
+<p>The <b class="package">grammar::aycock</b> package exports the single procedure:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::aycock::parser</b> <i class="arg">grammar</i> <span class="opt">?<b class="option">-verbose</b>?</span></a></dt>
+<dd><p>Generates a parser for the given <i class="arg">grammar</i>, and returns its
+name.  If the optional <b class="option">-verbose</b> flag is given, dumps verbose
+information relating to the generated parser to the standard output.
+The returned parser is an object that accepts commands as shown in
+<span class="sectref"><a href="#section3">OBJECT COMMAND</a></span> below.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">OBJECT COMMAND</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="2"><i class="arg">parserName</i> <b class="method">parse</b> <i class="arg">symList</i> <i class="arg">valList</i> <span class="opt">?<i class="arg">clientData</i>?</span></a></dt>
+<dd><p>Invokes a parser returned from <b class="cmd">::aycock::parser</b>. <i class="arg">symList</i> is
+a list of grammar symbols representing the terminals in an input
+string, and <i class="arg">valList</i> is a list of their semantic values. The
+result is the semantic value of the entire string when parsed.</p></dd>
+<dt><a name="3"><i class="arg">parserName</i> <b class="method">destroy</b></a></dt>
+<dd><p>Destroys a parser constructed by <b class="cmd">::aycock::parser</b>.</p></dd>
+<dt><a name="4"><i class="arg">parserName</i> <b class="method">terminals</b></a></dt>
+<dd><p>Returns a list of terminal symbols that may be presented in the
+<i class="arg">symList</i> argument to the <b class="method">parse</b> object command.</p></dd>
+<dt><a name="5"><i class="arg">parserName</i> <b class="method">nonterminals</b></a></dt>
+<dd><p>Returns a list of nonterminal symbols that were defined in the
+parser's grammar.</p></dd>
+<dt><a name="6"><i class="arg">parserName</i> <b class="method">save</b></a></dt>
+<dd><p>Returns a Tcl script that will reconstruct the parser without
+needing all the mechanism of the parser generator at run time.
+The reconstructed parser depends on a set of commands in the
+package <b class="package">grammar::aycock::runtime</b>,
+which is also automatically loaded
+when the <b class="package">grammar::aycock</b> package is loaded.</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">DESCRIPTION</a></h2>
+<p>The <b class="cmd">grammar::aycock::parser</b> command accepts a grammar expressed as
+a Tcl list.  The list must be structured as the concatenation of a set
+of <i class="term">rule</i>s. Each <i class="term">rule</i> comprises a variable number of
+elements in the list:</p>
+<ul class="doctools_itemized">
+<li><p>The name of the nonterminal symbol that the rule reduces.</p></li>
+<li><p>The literal string, <b class="const">::=</b></p></li>
+<li><p>Zero or more names of terminal or nonterminal symbols that
+comprise the right-hand-side of the rule.</p></li>
+<li><p>Finally, a Tcl script to execute when the rule is reduced.
+Within the given script, a variable called <b class="variable">_</b> contains a list of
+the semantic values of the symbols on the right-hand side. The value
+returned by the script is expected to be the semantic value of the
+left-hand side.  If the <i class="arg">clientData</i> parameter was passed to the
+<b class="method">parse</b> method, it is available in a variable called
+<b class="variable">clientData</b>.  It is permissible for the script to be the empty
+string.  In this case, the semantic value of the rule will be the same
+as the semantic value of the first symbol on the right-hand side.  If
+the right-hand side is also empty, the semantic value will be the
+empty string.</p></li>
+</ul>
+<p>Parsing is done with an Earley parser, which is not terribly efficient
+in speed or memory consumption, but which deals effectively with
+ambiguous grammars.  For this reason, the <b class="package">grammar::aycock</b> package is
+perhaps best adapted to natural-language processing or the parsing of
+extraordinarily complex languages in which ambiguity can be tolerated.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">EXAMPLE</a></h2>
+<p>The following code demonstrates a trivial desk calculator, admitting
+only <b class="const">+</b>, <b class="const">*</b> and parentheses as its operators.  It also
+shows the format in which the lexical analyzer is expected to present
+terminal symbols to the parser.</p>
+<pre class="doctools_example">
+set p [aycock::parser {
+    start ::= E {}
+    E ::= E + T {expr {[lindex $_ 0] + [lindex $_ 2]}}
+    E ::= T {}
+    T ::= T * F {expr {[lindex $_ 0] * [lindex $_ 2]}}
+    T ::= F {}
+    F ::= NUMBER {}
+    F ::= ( E ) {lindex $_ 1}
+}]
+puts [$p parse {(  NUMBER +  NUMBER )  *  ( NUMBER +  NUMBER ) }  {{} 2      {} 3      {} {} {} 7     {} 1      {}}]
+$p destroy
+</pre>
+<p>The example, when run, prints <b class="const">40</b>.</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">KEYWORDS</a></h2>
+<p>Aycock, Earley, Horspool, parser, compiler</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key822">ambiguous</a>, <a href="../../../../index.html#key825">aycock</a>, <a href="../../../../index.html#key824">earley</a>, <a href="../../../../index.html#key11">grammar</a>, <a href="../../../../index.html#key823">horspool</a>, <a href="../../../../index.html#key9">parser</a>, <a href="../../../../index.html#key26">parsing</a>, <a href="../../../../index.html#key12">transducer</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Grammars and finite automata</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2006 by Kevin B. Kenny &lt;kennykb@acm.org&gt;<br>
+Redistribution permitted under the terms of the Open Publication License &lt;http://www.opencontent.org/openpub/&gt;</p>
+</div>
+</div></body></html>

@@ -1,0 +1,342 @@
+
+<div class='fossil-doc' data-title='tool - Standardized OO Framework for development'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">tool(n) 0.4.2 tcllib &quot;Standardized OO Framework for development&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>tool - Dictionary Tools</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Keywords</a></li>
+<li class="doctools_section"><a href="#section3">Public Object Methods</a></li>
+<li class="doctools_section"><a href="#section4">Private Object Methods</a></li>
+<li class="doctools_section"><a href="#section5">AUTHORS</a></li>
+<li class="doctools_section"><a href="#section6">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">sha1</b></li>
+<li>package require <b class="pkgname">dicttool</b></li>
+<li>package require <b class="pkgname">oo::meta</b></li>
+<li>package require <b class="pkgname">oo::dialect</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1">tool::define <b class="cmd">class_method</b> <i class="arg">arglist</i> <i class="arg">body</i></a></li>
+<li><a href="#2">tool::define <b class="cmd"><a href="../../../../index.html#key37">array</a></b> <i class="arg">name</i> <i class="arg">contents</i></a></li>
+<li><a href="#3">tool::define <b class="cmd">array_ensemble</b> <i class="arg">methodname</i> <i class="arg">varname</i> <span class="opt">?cases?</span></a></li>
+<li><a href="#4">tool::define <b class="cmd">dict_ensemble</b> <i class="arg">methodname</i> <i class="arg">varname</i> <span class="opt">?cases?</span></a></li>
+<li><a href="#5">tool::define <b class="cmd"><a href="../../../../index.html#key371">method</a></b> <i class="arg">methodname</i> <i class="arg">arglist</i> <i class="arg">body</i></a></li>
+<li><a href="#6">tool::define <b class="cmd">option</b> <i class="arg">name</i> <i class="arg">dictopts</i></a></li>
+<li><a href="#7">tool::define <b class="cmd">property</b> <span class="opt">?branch?</span> <i class="arg">field</i> <i class="arg">value</i></a></li>
+<li><a href="#8">tool::define <b class="cmd">variable</b> <i class="arg">name</i> <i class="arg">value</i></a></li>
+<li><a href="#9"><em>object</em> <b class="cmd">cget</b> <i class="arg">option</i></a></li>
+<li><a href="#10"><em>object</em> <b class="cmd">configure</b> <span class="opt">?keyvaluelist?</span></a></li>
+<li><a href="#11"><em>object</em> <b class="cmd">configure</b> <i class="arg">field</i> <i class="arg">value</i> <span class="opt">?field?</span> <span class="opt">?value?</span> <span class="opt">?...?</span></a></li>
+<li><a href="#12"><em>object</em> <b class="cmd">configurelist</b> <span class="opt">?keyvaluelist?</span></a></li>
+<li><a href="#13"><em>object</em> <b class="cmd">forward</b> <i class="arg">stub</i> <i class="arg">forward</i></a></li>
+<li><a href="#14"><em>object</em> <b class="cmd">graft</b> <i class="arg">stub</i> <i class="arg">forward</i></a></li>
+<li><a href="#15"><em>object</em> <b class="cmd">InitializePublic</b></a></li>
+<li><a href="#16"><em>object</em> <b class="cmd">Eval_Script</b> <span class="opt">?script?</span></a></li>
+<li><a href="#17"><em>object</em> <b class="cmd">Option_Default</b> <i class="arg">field</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This module implements the Tcl Object Oriented Library framework, or <em>TOOL</em>. It is
+intended to be a general purpose framework that is useable in its own right, and
+easily extensible.</p>
+<p>TOOL defines a metaclass with provides several additional keywords to the TclOO
+description langauge, default behaviors for its consituent objects, and
+top-down integration with the capabilities provided by the <b class="package">oo::meta</b> package.</p>
+<p>The TOOL metaclass was build with the <b class="package">oo::dialect</b> package, and thus can
+be used as the basis for additional metaclasses. As a metaclass, TOOL has it's own
+&quot;class&quot; class, &quot;object&quot; class, and define namespace.</p>
+<pre class="doctools_example">
+# tool::class workds just like oo::class
+tool::class create myclass {
+}
+# tool::define works just like oo::define
+tool::define myclass method noop {} {}
+# tool::define and tool::class understand additional keywords
+tool::define myclass array_ensemble mysettings mysettings {}
+# And tool interoperates with oo::define
+oo::define myclass method do_something {} { return something }
+# TOOL and TclOO objects are interchangeable
+oo::class create myooclass {
+  superclass myclass
+}
+</pre>
+<p>Several manual pages go into more detail about specific keywords and methods.</p>
+<dl class="doctools_definitions">
+<dt><b class="package">tool::array_ensemble</b></dt>
+<dd></dd>
+<dt><b class="package"><a href="tool_dict_ensemble.html">tool::dict_ensemble</a></b></dt>
+<dd></dd>
+<dt><b class="package">tool::method_ensemble</b></dt>
+<dd></dd>
+<dt><b class="package">tool::object</b></dt>
+<dd></dd>
+<dt><b class="package">tool::option_handling</b></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Keywords</a></h2>
+<p>TOOL adds new (or modifies) keywords used in the definitions of classes. However,
+the new keywords are only available via calls to <em>tool::class create</em> or <em>tool::define</em></p>
+<dl class="doctools_definitions">
+<dt><a name="1">tool::define <b class="cmd">class_method</b> <i class="arg">arglist</i> <i class="arg">body</i></a></dt>
+<dd><p>Defines a method for the class object itself. This method will be passed on to descendents of the class,
+unlike <b class="cmd">self method</b>.</p></dd>
+<dt><a name="2">tool::define <b class="cmd"><a href="../../../../index.html#key37">array</a></b> <i class="arg">name</i> <i class="arg">contents</i></a></dt>
+<dd><p>Declares a variable <i class="arg">name</i> which will be initialized as an array, populated with <i class="arg">contents</i> for objects of this class, as well as any
+objects for classes which are descendents of this class.</p></dd>
+<dt><a name="3">tool::define <b class="cmd">array_ensemble</b> <i class="arg">methodname</i> <i class="arg">varname</i> <span class="opt">?cases?</span></a></dt>
+<dd><p>Declares a method ensemble <i class="arg">methodname</i> which will control access to variable
+<i class="arg">varname</i>. Cases are a key/value list of method names and bodies which will be
+overlaid on top of the standard template. See <b class="package">tool::array_ensemble</b>.</p>
+<p>One method name is reserved: <b class="cmd">initialize</b>. <b class="cmd">initialize</b> Declares the initial values to be populated in the array, as a key/value list,
+and will not be expressed as a method for the ensemble.</p></dd>
+<dt><a name="4">tool::define <b class="cmd">dict_ensemble</b> <i class="arg">methodname</i> <i class="arg">varname</i> <span class="opt">?cases?</span></a></dt>
+<dd><p>Declares a method ensemble <i class="arg">methodname</i> which will control access to variable
+<i class="arg">varname</i>. Cases are a key/value list of method names and bodies which will be
+overlaid on top of the standard template. See <b class="package"><a href="tool_dict_ensemble.html">tool::dict_ensemble</a></b>.</p>
+<p>One method name is reserved: <b class="cmd">initialize</b>. <b class="cmd">initialize</b> Declares the initial values to be populated in the array, as a key/value list,
+and will not be expressed as a method for the ensemble.</p></dd>
+<dt><a name="5">tool::define <b class="cmd"><a href="../../../../index.html#key371">method</a></b> <i class="arg">methodname</i> <i class="arg">arglist</i> <i class="arg">body</i></a></dt>
+<dd><p>If <i class="arg">methodname</i> contains ::, the method is considered to be
+part of a method ensemble. See <b class="package">tool::method_ensembles</b>. Otherwise
+this command behaves exactly like the standard <b class="namespace">oo::define</b> <b class="cmd"><a href="../../../../index.html#key371">method</a></b>
+command.</p></dd>
+<dt><a name="6">tool::define <b class="cmd">option</b> <i class="arg">name</i> <i class="arg">dictopts</i></a></dt>
+<dd><p>Declares an option. <i class="arg">dictopts</i> is a key/value list defining parameters for the option. See <b class="package">tool::option_handling</b>.</p>
+<pre class="doctools_example">
+tool::class create myclass {
+  option color {
+    post-command: {puts [list %self%'s %field% is now %value%]}
+    default: green
+  }
+}
+myclass create foo
+foo configure color purple
+&gt; foo's color is now purple
+</pre>
+</dd>
+<dt><a name="7">tool::define <b class="cmd">property</b> <span class="opt">?branch?</span> <i class="arg">field</i> <i class="arg">value</i></a></dt>
+<dd><p>Defines a new leaf in the class metadata tree. With no branch, the
+leaf will appear in the <em>const</em> section, accessible by either the
+object's <b class="cmd">property</b> method, or via <b class="cmd">oo::meta::info</b> <em>class</em> <b class="cmd">get const</b> <em>field</em>:</p></dd>
+<dt><a name="8">tool::define <b class="cmd">variable</b> <i class="arg">name</i> <i class="arg">value</i></a></dt>
+<dd><p>Declares a variable <i class="arg">name</i> which will be initialized with the value <i class="arg">value</i> for objects of this class, as well as any
+objects for classes which are descendents of this class.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Public Object Methods</a></h2>
+<p>The TOOL object mother of all classes defines several methods to enforces consistent
+behavior throughout the framework.</p>
+<dl class="doctools_definitions">
+<dt><a name="9"><em>object</em> <b class="cmd">cget</b> <i class="arg">option</i></a></dt>
+<dd><p>Return the value of this object's option <i class="arg">option</i>. If the <b class="cmd">property options_strict</b> is true
+for this class, calling an option which was not declared by the <b class="cmd">option</b> keyword will throw
+an error. In all other cases if the value is present in the object's <em>options</em> array that
+value is returned. If it does not exist, the object will attempt to retrieve a property of the same
+name.</p></dd>
+<dt><a name="10"><em>object</em> <b class="cmd">configure</b> <span class="opt">?keyvaluelist?</span></a></dt>
+<dd></dd>
+<dt><a name="11"><em>object</em> <b class="cmd">configure</b> <i class="arg">field</i> <i class="arg">value</i> <span class="opt">?field?</span> <span class="opt">?value?</span> <span class="opt">?...?</span></a></dt>
+<dd><p>This command will inject new values into the objects <em>options</em> array, according to the rules
+as set forth by the option descriptions. See <b class="package">tool::option_handling</b> for details.
+<b class="cmd">configure</b> will strip leading -'s off of field names, allowing it to behave in a quasi-backward
+compatible manner to tk options.</p></dd>
+<dt><a name="12"><em>object</em> <b class="cmd">configurelist</b> <span class="opt">?keyvaluelist?</span></a></dt>
+<dd><p>This command will inject new values into the objects <em>options</em> array, according to the rules
+as set forth by the option descriptions. This command will perform validation and alternate storage
+rules. It will not invoke trigger rules. See <b class="package">tool::option_handling</b> for details.</p></dd>
+<dt><a name="13"><em>object</em> <b class="cmd">forward</b> <i class="arg">stub</i> <i class="arg">forward</i></a></dt>
+<dd><p>A passthrough to <b class="cmd">oo:objdefine [self] forward</b></p></dd>
+<dt><a name="14"><em>object</em> <b class="cmd">graft</b> <i class="arg">stub</i> <i class="arg">forward</i></a></dt>
+<dd><p>Delegates the <i class="arg">&lt;stub&gt;</i> method to the object or command designated by <i class="arg">forward</i></p>
+<pre class="doctools_example">
+tool::object create A
+tool::object create B
+A graft buddy B
+A configure color red
+B configure color blue
+A cget color
+&gt; red
+A &lt;buddy&gt; cget color
+&gt; blue
+</pre>
+</dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Private Object Methods</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="15"><em>object</em> <b class="cmd">InitializePublic</b></a></dt>
+<dd><p>Consults the metadata for the class to ensure every array, option, and variable
+which has been declared but not initialized is initialized with the default value.
+This method is called by the constructor and the morph method. It is safe to
+invoke multiple times.</p></dd>
+<dt><a name="16"><em>object</em> <b class="cmd">Eval_Script</b> <span class="opt">?script?</span></a></dt>
+<dd><p>Executes a block of text within the namespace of the object. Lines that
+begin with a # are ignored as comments. Commands
+that begin with :: are interpreted as calling a global command. All other
+Tcl commands that lack a &quot;my&quot; prefix are given one, to allow the script
+to exercise internal methods. This method is intended for configuration scripts,
+where the object's methods are intepreting a domain specific language.</p>
+<pre class="doctools_example">
+tool::class myclass {
+  constructor script {
+    my Eval_Script $script
+  }
+  method node {nodename info} {
+    my variable node
+    dict set node $nodename $info
+  }
+  method get {args} {
+    my variable node
+    return [dict get $node $args]
+  }
+}
+myclass create movies {
+  # This block of code is executed by the object
+  node {The Day the Earth Stood Still} {
+    date: 1952
+    characters: {GORT Klatoo}
+  }
+}
+movies get {The Day the Earth Stood Still} date:
+&gt; 1952
+</pre>
+</dd>
+<dt><a name="17"><em>object</em> <b class="cmd">Option_Default</b> <i class="arg">field</i></a></dt>
+<dd><p>Computes the default value for an option. See <b class="package">tool::option_handling</b>.</p></dd>
+</dl>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">AUTHORS</a></h2>
+<p>Sean Woods</p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>tool</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key775">TOOL</a>, <a href="../../../../index.html#key756">TclOO</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Utility</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2015 Sean Woods &lt;yoda@etoyoc.com&gt;</p>
+</div>
+</div>

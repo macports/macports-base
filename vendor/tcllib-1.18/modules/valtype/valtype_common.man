@@ -1,0 +1,110 @@
+[comment {-*- tcl -*- --- doctools ---}]
+[manpage_begin valtype::common n 1]
+[keywords Checking]
+[keywords isA]
+[keywords Testing]
+[keywords {Type checking}]
+[keywords Validation]
+[keywords {Value checking}]
+[copyright {2011 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[titledesc "Validation, common code"]
+[moddesc {Validation types}]
+[category {Validation, Type checking}]
+[require Tcl 8.5]
+[require valtype::common [opt 1]]
+[description]
+
+This package implements a number of common commands used by the
+validation types in this module. These commands essentially
+encapsulate the throwing of validation errors, ensuring that a proper
+[cmd -errorcode] is used. See section [sectref {Error Codes}].
+
+[section API]
+
+[list_begin definitions]
+[comment {==================================================================}]
+[call [cmd valtype::common::reject] [arg code] [arg text]]
+
+The core command of this package it throws an [const INVALID] error
+with the specified [arg text]. The first argument is a list of codes
+extending the [const INVALID] with detail information.
+
+[comment {==================================================================}]
+[call [cmd valtype::common::badchar] [arg code] [opt [arg text]]]
+
+This command throws an [const {INVALID CHAR}] error with the specified
+[arg text]. The first argument is a list of codes providing
+details. These are inserted between the codes [const INVALID] and
+[const CHARACTER].
+
+[comment {==================================================================}]
+[call [cmd valtype::common::badcheck] [arg code] [opt [arg text]]]
+
+This command throws an [const {INVALID CHECK-DIGIT}] error with the
+specified [arg text], if any, extended by the standard text "the check
+digit is incorrect". The first argument is a list of codes providing
+details. These are inserted between the codes [const INVALID] and
+[const CHECK_DIGIT].
+
+[comment {==================================================================}]
+[call [cmd valtype::common::badlength] [arg code] [arg lengths] [opt [arg text]]]
+
+This command throws an [const {INVALID LENGTH}] error with the
+specified [arg text], if any, extended by the standard text "incorrect
+length, expected ... character(s)". The first argument is a list of
+codes providing details.
+
+These are inserted between the codes [const INVALID] and
+[const LENGTH]. The argument [arg lengths] is a list of the input
+lengths which had been expected, i.e. these are the valid lengths.
+
+[comment {==================================================================}]
+[call [cmd valtype::common::badprefix] [arg code] [arg prefixes] [opt [arg text]]]
+
+This command throws an [const {INVALID PREFIX}] error with the
+specified [arg text], if any, extended by the standard text "incorrect
+prefix, expected ...". The first argument is a list of codes providing
+details.
+
+These are inserted between the codes [const INVALID] and
+[const PREFIX]. The argument [arg prefixes] is a list of the input
+prefixes which had been expected, i.e. these are the valid prefixes.
+
+[list_end]
+
+[section {Error Codes}]
+
+The errors thrown by the commands of this package all use the
+[cmd -errorcode] [const INVALID] to distinguish the input validation
+failures they represent from package internal errors.
+
+[para] To provide more detailed information about why the validation
+failed the [cmd -errorCode] goes actually beyond that.
+
+First, it will contain a code detailing the type itself. This is
+supplied by the caller. This is then followed by values detailing the
+reason for the failure. The full set of [cmd -errorCode]s which can be
+thrown by this package are shown below, with [const <>] a placeholder
+for both the caller-supplied type-information, the type description.
+
+[vset CODE [const <>]]
+[vset A a]
+[vset NAME [const <>]]
+[list_begin definitions]
+[def "INVALID [vset CODE] CHARACTER"]
+
+The input value contained one or more bad characters, i.e. characters
+which must not occur in the input for it to be [vset A] [vset NAME].
+
+[def "INVALID [vset CODE] CHECK-DIGIT"]
+
+The check digit of the input value is wrong. This usually signals a
+data-entry error, with digits transposed, forgotten, etc. Of course,
+th input may be an outright fake too.
+
+[include include/c_lenpfx.inc]
+[list_end]
+
+[vset CATEGORY valtype]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

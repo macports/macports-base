@@ -1,0 +1,84 @@
+# ooutil.test - Copyright (c) 2014-2015 Andreas Kupries
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2
+
+testsNeed TclOO 1
+
+testing {
+    useLocal ooutil.tcl oo::util
+}
+
+# -------------------------------------------------------------------------
+
+test ooutil-ticket-b3577ed586 {test scoping of delegation in oo::class.Delegate } -setup {
+    oo::class create animal {}
+    namespace eval ::ooutiltest {
+	oo::class create pet { superclass animal }
+    }
+} -body {
+    namespace eval ::ooutiltest {
+	oo::class create dog { superclass pet }
+    }
+} -cleanup {
+    namespace delete ooutiltest
+    rename animal {}
+} -result {::ooutiltest::dog}
+
+# -------------------------------------------------------------------------
+
+test ooutil-ticket-fe7a0e0a3a {classmethod must not interfere with constructor signatures} -setup {
+    oo::class create TestClass {
+        superclass oo::class
+        self method create {name ignore body} {
+            next $name $body
+        }
+    }
+} -body {
+    TestClass create okay {} {}
+} -cleanup {
+    rename TestClass {}
+} -result {::okay}
+
+# -------------------------------------------------------------------------
+
+test ooutil-classmethod-1 {test ooutil classmethod} -setup {
+    oo::class create ActiveRecord {
+        classmethod find args { puts "[self] called with arguments: $args" }
+    }
+    oo::class create Table {
+        superclass ActiveRecord
+    }
+} -body {
+    Table find foo bar
+} -cleanup {
+    rename ActiveRecord {}
+} -output "::Table called with arguments: foo bar\n"
+
+test ooutil-classmethod-2 {test ooutil classmethod in namespace} -setup {
+    namespace eval testns {
+	oo::class create ActiveRecord {
+	    classmethod find args { puts "[self] called with arguments: $args" }
+	}
+	oo::class create Table {
+	    superclass ActiveRecord
+	}
+    }
+} -body {
+    testns::Table find foo bar
+} -cleanup {
+    namespace delete testns
+} -output "::testns::Table called with arguments: foo bar\n"
+
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

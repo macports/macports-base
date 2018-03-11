@@ -1,0 +1,273 @@
+<! -- -*- tcl -*- doctools manpage
+   -->
+<html><head>
+<title>tpool - Tcl Threading </title>
+</head>
+<! -- Generated from file '' by tcllib/doctools with format 'html'
+   -->
+
+<body>
+<h1> tpool(n) 2.7  &quot;Tcl Threading&quot;</h1>
+<h2><a name="name">NAME</a></h2>
+<p>
+<p> tpool -
+    Part of the Tcl threading extension implementing pools of worker threads.
+
+
+
+
+
+
+<h2><a name="table_of_contents">TABLE OF CONTENTS</a></h2>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#table_of_contents">TABLE OF CONTENTS</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#synopsis">SYNOPSIS</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#description">DESCRIPTION</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#commands">COMMANDS</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#discussion">DISCUSSION</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#see_also">SEE ALSO</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#keywords">KEYWORDS</a><br>
+<h2><a name="synopsis">SYNOPSIS</a></h2>
+<p>
+package require <b>Tcl 8.4</b><br>
+package require <b>Thread ?2.7?</b><br>
+<br><table border=1 width=100% cellspacing=0 cellpadding=0><tr            bgcolor=lightyellow><td bgcolor=lightyellow><table 0 width=100% cellspacing=0 cellpadding=0><tr valign=top ><td ><a href="#1"><b class='cmd'>tpool::create</b> ?options?</a></td></tr>
+<tr valign=top ><td ><a href="#2"><b class='cmd'>tpool::names</b> </a></td></tr>
+<tr valign=top ><td ><a href="#3"><b class='cmd'>tpool::post</b> ?-detached? ?-nowait? <i class='arg'>tpool</i> <i class='arg'>script</i></a></td></tr>
+<tr valign=top ><td ><a href="#4"><b class='cmd'>tpool::wait</b> <i class='arg'>tpool</i> <i class='arg'>joblist</i> ?varname?</a></td></tr>
+<tr valign=top ><td ><a href="#5"><b class='cmd'>tpool::cancel</b> <i class='arg'>tpool</i> <i class='arg'>joblist</i> ?varname?</a></td></tr>
+<tr valign=top ><td ><a href="#6"><b class='cmd'>tpool::get</b> <i class='arg'>tpool</i> <i class='arg'>job</i></a></td></tr>
+<tr valign=top ><td ><a href="#7"><b class='cmd'>tpool::preserve</b> <i class='arg'>tpool</i></a></td></tr>
+<tr valign=top ><td ><a href="#8"><b class='cmd'>tpool::release</b> <i class='arg'>tpool</i></a></td></tr>
+</table></td></tr></table>
+<h2><a name="description">DESCRIPTION</a></h2>
+<p>
+This package creates and manages pools of worker threads. It allows you
+to post jobs to worker threads and wait for their completion. The
+threadpool implementation is Tcl event-loop aware. That means that any
+time a caller is forced to wait for an event (job being completed or
+a worker thread becoming idle or initialized), the implementation will
+enter the event loop and allow for servicing of other pending file or
+timer (or any other supported) events.
+
+<h2><a name="commands">COMMANDS</a></h2>
+<p>
+
+<dl>
+
+<dt><a name="1"><b class='cmd'>tpool::create</b> ?options?</a><dd>
+
+
+This command creates new threadpool. It accepts several options as
+key-value pairs. Options are used to tune some threadpool parameters.
+The command returns the ID of the newly created threadpool.
+<br><br>
+Following options are supported:
+
+<br><br>
+<dl>
+
+<dt>-minworkers number<dd>
+Minimum number of worker threads needed for this threadpool instance.
+During threadpool creation, the implementation will create somany
+worker threads upfront and will keep at least number of them alive
+during the lifetime of the threadpool instance.
+Default value of this parameter is 0 (zero). which means that a newly
+threadpool will have no worker threads initialy. All worker threads
+will be started on demand by callers running <b class='cmd'>tpool::post</b> command
+and posting jobs to the job queue.
+
+<br><br>
+<dt>-maxworkers number<dd>
+Maximum number of worker threads allowed for this threadpool instance.
+If a new job is pending and there are no idle worker threads available,
+the implementation will try to create new worker thread. If the number
+of available worker threads is lower than the given number,
+new worker thread will start. The caller will automatically enter the
+event loop and wait until the worker thread has initialized. If. however,
+the number of available worker threads is equal to the given number,
+the caller will enter the event loop and wait for the first worker thread
+to get idle, thus ready to run the job.
+Default value of this parameter is 4 (four), which means that the
+threadpool instance will allow maximum of 4 worker threads running jobs
+or being idle waiting for new jobs to get posted to the job queue.
+
+
+<br><br>
+<dt>-idletime seconds<dd>
+Time in seconds an idle worker thread waits for the job to get posted
+to the job queue. If no job arrives during this interval and the time
+expires, the worker thread will check the number of currently available
+worker threads and if the number is higher than the number set by the
+<strong>minthreads</strong> option, it will exit.
+If an <strong>exitscript</strong> has been defined, the exiting worker thread
+will first run the script and then exit. Errors from the exit script,
+if any, are ignored.
+<br><br>
+The idle worker thread is not servicing the event loop. If you, however,
+put the worker thread into the event loop, by evaluating the
+<b class='cmd'>vwait</b> or other related Tcl commands, the worker thread
+will not be in the idle state, hence the idle timer will not be
+taken into account.
+Default value for this option is unspecified.
+
+<br><br>
+<dt>-initcmd script<dd>
+
+Sets a Tcl script used to initialize new worker thread. This is usually
+used to load packages and commands in the worker, set default variables,
+create namespaces, and such. If the passed script runs into a Tcl error,
+the worker will not be created and the initiating command (either the
+<b class='cmd'>tpool::create</b> or <b class='cmd'>tpool::post</b>) will throw error.
+Default value for this option is unspecified, hence, the Tcl interpreter of
+the worker thread will contain just the initial set of Tcl commands.
+
+<br><br>
+<dt>-exitcmd script<dd>
+
+Sets a Tcl script run when the idle worker thread exits. This is normaly
+used to cleanup the state of the worker thread, release reserved resources,
+cleanup memory and such.
+Default value for this option is unspecified, thus no Tcl script will run
+on the worker thread exit.
+
+</dl>
+
+<br><br>
+
+<dt><a name="2"><b class='cmd'>tpool::names</b> </a><dd>
+
+
+This command returns a list of IDs of threadpools created with the
+<b class='cmd'>tpool::create</b> command. If no threadpools were found, the
+command will return empty list.
+
+<br><br>
+<dt><a name="3"><b class='cmd'>tpool::post</b> ?-detached? ?-nowait? <i class='arg'>tpool</i> <i class='arg'>script</i></a><dd>
+
+
+This command sends a <i class='arg'>script</i> to the target <i class='arg'>tpool</i> threadpool
+for execution. The script will be executed in the first available idle
+worker thread. If there are no idle worker threads available, the command
+will create new one, enter the event loop and service events until the
+newly created thread is initialized. If the current number of worker
+threads is equal to the maximum number of worker threads, as defined
+during the threadpool creation, the command will enter the event loop and
+service events while waiting for one of the worker threads to become idle.
+If the optional ?-nowait? argument is given, the command will not wait
+for one idle worker. It will just place the job in the pool's job queue
+and return immediately.
+<br><br>
+The command returns the ID of the posted job. This ID is used for subsequent
+<b class='cmd'>tpool::wait</b>, <b class='cmd'>tpool::get</b> and <b class='cmd'>tpool::cancel</b> commands to wait
+for and retrieve result of the posted script, or cancel the posted job
+respectively. If the optional ?-detached? argument is specified, the
+command will post a detached job. A detached job can not be cancelled or
+waited upon and is not identified by the job ID.
+<br><br>
+If the threadpool <i class='arg'>tpool</i> is not found in the list of active
+thread pools, the command will throw error. The error will also be triggered
+if the newly created worker thread fails to initialize.
+
+<br><br>
+<dt><a name="4"><b class='cmd'>tpool::wait</b> <i class='arg'>tpool</i> <i class='arg'>joblist</i> ?varname?</a><dd>
+
+
+This command waits for one or many jobs, whose job IDs are given in the
+<i class='arg'>joblist</i> to get processed by the worker thread(s). If none of the
+specified jobs are ready, the command will enter the event loop, service
+events and wait for the first job to get ready.
+<br><br>
+The command returns the list of completed job IDs. If the optional variable
+?varname? is given, it will be set to the list of jobs in the
+<i class='arg'>joblist</i> which are still pending. If the threadpool <i class='arg'>tpool</i>
+is not found in the list of active thread pools, the command will throw error.
+
+<br><br>
+<dt><a name="5"><b class='cmd'>tpool::cancel</b> <i class='arg'>tpool</i> <i class='arg'>joblist</i> ?varname?</a><dd>
+
+
+This command cancels the previously posted jobs given by the <i class='arg'>joblist</i>
+to the pool <i class='arg'>tpool</i>. Job cancellation succeeds only for job still
+waiting to be processed. If the job is already being executed by one of
+the worker threads, the job will not be cancelled.
+The command returns the list of cancelled job IDs. If the optional variable
+?varname? is given, it will be set to the list of jobs in the
+<i class='arg'>joblist</i> which were not cancelled. If the threadpool <i class='arg'>tpool</i>
+is not found in the list of active thread pools, the command will throw error.
+
+<br><br>
+<dt><a name="6"><b class='cmd'>tpool::get</b> <i class='arg'>tpool</i> <i class='arg'>job</i></a><dd>
+
+
+This command retrieves the result of the previously posted <i class='arg'>job</i>.
+Only results of jobs waited upon with the <b class='cmd'>tpool::wait</b> command
+can be retrieved. If the execution of the script resulted in error,
+the command will throw the error and update the <strong>errorInfo</strong> and
+<strong>errorCode</strong> variables correspondingly. If the pool <i class='arg'>tpool</i>
+is not found in the list of threadpools, the command will throw error.
+If the job <i class='arg'>job</i> is not ready for retrieval, because it is currently
+being executed by the worker thread, the command will throw error.
+
+<br><br>
+<dt><a name="7"><b class='cmd'>tpool::preserve</b> <i class='arg'>tpool</i></a><dd>
+
+
+Each call to this command increments the reference counter of the
+threadpool <i class='arg'>tpool</i> by one (1). Command returns the value of the
+reference counter after the increment.
+By incrementing the reference counter, the caller signalizes that
+he/she wishes to use the resource for a longer period of time.
+
+<br><br>
+<dt><a name="8"><b class='cmd'>tpool::release</b> <i class='arg'>tpool</i></a><dd>
+
+
+Each call to this command decrements the reference counter of the
+threadpool <i class='arg'>tpool</i> by one (1).Command returns the value of the
+reference counter after the decrement.
+When the reference counter reaches zero (0), the threadpool <i class='arg'>tpool</i>
+is marked for termination. You should not reference the threadpool
+after the <b class='cmd'>tpool::release</b> command returns zero. The <i class='arg'>tpool</i>
+handle goes out of scope and should not be used any more. Any following
+reference to the same threadpool handle will result in Tcl error.
+
+</dl>
+
+
+<h2><a name="discussion">DISCUSSION</a></h2>
+<p>
+
+Threadpool is one of the most common threading paradigm when it comes
+to server applications handling a large number of relatively small tasks.
+A very simplistic model for building a server application would be to
+create a new thread each time a request arrives and service the request
+in the new thread. One of the disadvantages of this approach is that
+the overhead of creating a new thread for each request is significant;
+a server that created a new thread for each request would spend more time
+and consume more system resources in creating and destroying threads than
+in processing actual user requests. In addition to the overhead of
+creating and destroying threads, active threads consume system resources.
+Creating too many threads can cause the system to run out of memory or
+trash due to excessive memory consumption.
+<p>
+A thread pool offers a solution to both the problem of thread life-cycle
+overhead and the problem of resource trashing. By reusing threads for
+multiple tasks, the thread-creation overhead is spread over many tasks.
+As a bonus, because the thread already exists when a request arrives,
+the delay introduced by thread creation is eliminated. Thus, the request
+can be serviced immediately. Furthermore, by properly tuning the number
+of threads in the thread pool, resource thrashing may also be eliminated
+by forcing any request to wait until a thread is available to process it.
+
+
+
+
+
+<h2><a name="see_also">SEE ALSO</a></h2>
+<p>
+thread, tsv, ttrace
+<h2><a name="keywords">KEYWORDS</a></h2>
+<p>
+thread, threadpool
+</body></html>
+

@@ -1,8 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portstartupitem.tcl
 #
-# $Id$
-#
 # Copyright (c) 2004-2012 The MacPorts Project
 # Copyright (c) 2006-2007 James D. Berry
 # Copyright (c) 2004,2005 Markus W. Weissman <mww@macports.org>
@@ -20,7 +18,7 @@
 # 3. Neither the name of The MacPorts Project nor the names of its
 #    contributors may be used to endorse or promote products derived from
 #    this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 # LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -57,16 +55,18 @@
 #   startupitem.logfile     logpath
 #       Log to the specified file -- if not specified then output to /dev/null
 #       - for launchd, just set this as the standard out key
-#       - for systemstarter, redirect to this
 #
 #   startupitem.logevents   yes/no
 #       Log events to the log
 #       - for launchd, generate log messages inside daemondo
-#       - for systemstarter, generate log messages in our generated script
+#       - daemondo verbosity is controlled by startupitem.daemondo.verbosity
 #
 #   startupitem.autostart   yes/no
 #       Automatically load the startupitem after activating. Defaults to no.
 #
+#   startupitem.debug       yes/no
+#       Enable additional debug logging
+#       - for launchd, sets the Debug key to true
 
 package provide portstartupitem 1.0
 package require portutil 1.0
@@ -74,348 +74,102 @@ package require portutil 1.0
 namespace eval portstartupitem {
 }
 
+options startupitem.autostart startupitem.debug startupitem.create \
+        startupitem.executable \
+        startupitem.init startupitem.install startupitem.location \
+        startupitem.logevents startupitem.logfile startupitem.name \
+        startupitem.netchange startupitem.pidfile startupitem.plist \
+        startupitem.requires startupitem.restart startupitem.start \
+        startupitem.stop startupitem.type startupitem.uniquename \
+        startupitem.daemondo.verbosity
+
+default startupitem.autostart   no
+default startupitem.debug       no
+default startupitem.executable  ""
+default startupitem.init        ""
+default startupitem.install     {$system_options(startupitem_install)}
+default startupitem.location    LaunchDaemons
+default startupitem.logevents   no
+default startupitem.logfile     ""
+default startupitem.name        {${subport}}
+default startupitem.netchange   no
+default startupitem.pidfile     ""
+default startupitem.plist       {${startupitem.uniquename}.plist}
+default startupitem.requires    ""
+default startupitem.restart     ""
+default startupitem.start       ""
+default startupitem.stop        ""
+default startupitem.type        {[portstartupitem::get_startupitem_type]}
+default startupitem.uniquename  {org.macports.${startupitem.name}}
+
+default startupitem.daemondo.verbosity  1
+
 set_ui_prefix
 
-proc portstartupitem::startupitem_create_rcng {args} {
-    global prefix destroot os.platform \
-           startupitem.name startupitem.requires \
-           startupitem.start startupitem.stop startupitem.restart \
-           startupitem.type
+# Calculate a default value for startupitem.type
+proc portstartupitem::get_startupitem_type {} {
+    global system_options os.platform startupitem.create
 
-    set scriptdir ${destroot}${prefix}/etc/rc.d
-
-    if { ![exists startupitem.requires] } {
-        set startupitem.requires ""
+    if {![tbool startupitem.create]} {
+        return "none"
     }
 
-    # XXX We can't share defaults with startupitem_create_darwin
-    foreach item {startupitem.start startupitem.stop startupitem.restart} {
-        if {![info exists $item]} {
-            return -code error "Missing required option $item"
-        }
-    }
-
-    file mkdir ${destroot} ${scriptdir}
-    set fd [open [file join ${scriptdir} ${startupitem.name}.sh] w 0755]
-
-    puts ${fd} "#!/bin/sh"
-    puts ${fd} "#"
-    puts ${fd} "# MacPorts generated RCng Script"
-    puts ${fd} "#"
-    puts ${fd} ""
-    puts ${fd} "# PROVIDE: ${startupitem.name}"
-    puts ${fd} "# REQUIRE: ${startupitem.requires}"
-    # TODO: Implement BEFORE support
-    puts ${fd} "# BEFORE:"
-    puts ${fd} "# KEYWORD: MacPorts"
-    puts ${fd} ""
-    puts ${fd} ". ${prefix}/etc/rc.subr"
-    puts ${fd} ""
-    puts ${fd} "name=\"${startupitem.name}\""
-    puts ${fd} "start_cmd=\"${startupitem.start}\""
-    puts ${fd} "stop_cmd=\"${startupitem.stop}\""
-    puts ${fd} "restart_cmd=\"${startupitem.restart}\""
-    puts ${fd} ""
-    puts ${fd} "load_rc_config \"${startupitem.name}\""
-    puts ${fd} ""
-    puts ${fd} "run_rc_command \"\$1\""
-    close ${fd}
-}
-
-proc portstartupitem::startupitem_create_darwin_systemstarter {args} {
-    global UI_PREFIX prefix destroot destroot.keepdirs subport os.platform \
-           startupitem.name startupitem.requires startupitem.init \
-           startupitem.start startupitem.stop startupitem.restart startupitem.executable \
-           startupitem.pidfile startupitem.logfile startupitem.logevents \
-           startupitem.autostart
-    
-    set scriptdir ${prefix}/etc/startup
-    
-    set itemname            ${startupitem.name}
-    set uppername           [string toupper ${startupitem.name}]
-    if {[getuid] == 0} {
-        set itemdir         /Library/StartupItems/${itemname}
-    } else {
-        set itemdir         ${prefix}/Library/StartupItems/${itemname}
-    }
-    set startupItemDir      ${destroot}${itemdir}
-    set startupItemScript   ${startupItemDir}/${itemname}
-    set startupItemPlist    ${startupItemDir}/StartupParameters.plist
-    
-    # Interpret the pidfile spec
-    #
-    # There are four cases:
-    #   (1) none (or none specified)
-    #   (2) auto [pidfilename]
-    #   (3) clean [pidfilename]
-    #   (4) manual [pidfilename]
-    #
-    set createPidFile false
-    set deletePidFile false
-    set pidFile ""
-    set pidfileArgCnt [llength ${startupitem.pidfile}]
-    if { ${pidfileArgCnt} > 0 } {
-        if { $pidfileArgCnt == 1 } {
-            set pidFile "${prefix}/var/run/${itemname}.pid"
-            lappend destroot.keepdirs "${destroot}${prefix}/var/run"
-        } else {
-            set pidFile [lindex ${startupitem.pidfile} 1]
-        }
-        if { $pidfileArgCnt > 2 } {
-            ui_error "$UI_PREFIX [msgcat::mc "Invalid parameter count to startupitem.pidfile: 2 expected, %d found" ${pidfileArgCnt}]"
-        }
-        
-        set pidStyle [lindex ${startupitem.pidfile} 0]
-        switch ${pidStyle} {
-            none    { set createPidFile false; set deletePidFile false; set pidFile ""  }
-            auto    { set createPidFile false; set deletePidFile false  }
-            clean   { set createPidFile false; set deletePidFile true   }
-            manual  { set createPidFile true;  set deletePidFile true   }
+    set type $system_options(startupitem_type)
+    if {$type eq "default" || $type eq ""} {
+        switch -- ${os.platform} {
+            darwin {
+                return "launchd"
+            }
             default {
-                ui_error "$UI_PREFIX [msgcat::mc "Unknown pidfile style %s presented to startupitem.pidfile" ${pidStyle}]"
+                return "none"
             }
         }
     }
+    return $type
+}
 
-    if { [llength ${startupitem.executable}] && 
-      ![llength ${startupitem.init}] &&
-      ![llength ${startupitem.start}] &&
-      ![llength ${startupitem.stop}] &&
-      ![llength ${startupitem.restart}] } {
-        # An executable is specified, and there is no init, start, stop, or restart
+# Add user notes regarding any installed startupitem
+proc portstartupitem::add_notes {} {
+    global startupitem.type startupitem.autostart subport startupitem_autostart
+    if {${startupitem.type} eq "none"} {
+        return
+    }
+    if {[exists notes]} {
+        # leave a blank line after the existing notes
+        notes-append ""
+    }
+    # Add some information for the user to the port's notes
+    if {[tbool startupitem.autostart] && [tbool startupitem_autostart]} {
+        notes-append \
+        "A startup item has been generated that will aid in\
+        starting ${subport} with launchd. It will be enabled\
+        automatically on activation. Execute the following\
+        command to manually _disable_ it:
+
+    sudo port unload ${subport}"
     } else {
-        if { ![llength ${startupitem.start} ] } {
-            set startupitem.start [list "sh ${scriptdir}/${subport}.sh start"]
-        }
-        if { ![llength ${startupitem.stop} ] } {
-            set startupitem.stop [list "sh ${scriptdir}/${subport}.sh stop"]
-        }
-    }
-    if { ![llength ${startupitem.requires} ] } {
-        set startupitem.requires [list Disks NFS]
-    }
-    if { ![llength ${startupitem.logfile} ] } {
-        set startupitem.logfile "/dev/null"
-    }
-    
-    ########################
-    # Create the startup item directory
-    file mkdir ${startupItemDir}
-    if {[getuid] == 0} {
-        file attributes ${startupItemDir} -owner root -group wheel
-    }
-    
-    ########################
-    # Generate the startup item script
-    set item [open "${startupItemScript}" w 0755]
-    if {[getuid] == 0} {
-        file attributes "${startupItemScript}" -owner root -group wheel
-    }
-    
-    # Emit the header
-    puts ${item} {#!/bin/sh
-#
-# MacPorts generated StartupItem
-#
+        notes-append \
+        "A startup item has been generated that will aid in\
+        starting ${subport} with launchd. It is disabled\
+        by default. Execute the following command to start it,\
+        and to cause it to launch at startup:
 
-    }
-    puts ${item} "prefix=$prefix"
-    # Source the utilities package and the MacPorts config file
-    puts ${item} {[ -r "/etc/rc.common" ] && . "/etc/rc.common"}
-    puts ${item} {[ -r "${prefix}/etc/rc.conf" ] && . "${prefix}/etc/rc.conf"}
-
-    # Emit the Configuration Section
-    puts ${item} "NAME=${itemname}"
-    puts ${item} "ENABLE_FLAG=\${${uppername}:=-NO-}"
-    puts ${item} "PIDFILE=\"${pidFile}\""
-    puts ${item} "LOGFILE=\"${startupitem.logfile}\""
-    puts ${item} "EXECUTABLE=\"${startupitem.executable}\""
-    puts ${item} ""
-    puts ${item} "HAVE_STARTCMDS=[expr {[llength ${startupitem.start}] ? "true" : "false"}]"
-    puts ${item} "HAVE_STOPCMDS=[expr {[llength ${startupitem.stop}] ? "true" : "false"}]"
-    puts ${item} "HAVE_RESTARTCMDS=[expr {[llength ${startupitem.restart}] ? "true" : "false"}]"
-    puts ${item} "DELETE_PIDFILE=${createPidFile}"
-    puts ${item} "CREATE_PIDFILE=${deletePidFile}"
-    puts ${item} "LOG_EVENTS=[expr {[tbool ${startupitem.logevents}] ? "true" : "false"}]"
-    puts ${item} ""
-
-    # Emit the init lines
-    foreach line ${startupitem.init} { puts ${item} ${line} }
-    puts ${item} ""
-    
-    # Emit the _Cmds
-    foreach kind { start stop restart } {
-        if {[llength [set "startupitem.$kind"]]} {
-            puts ${item} "${kind}Cmds () \{"
-            foreach line [set "startupitem.$kind"] {
-                puts ${item} "\t${line}"
-            }
-            puts ${item} "\}\n"
-        }
-    }
-    
-    # vvvvv START BOILERPLATE vvvvvv
-    # Emit the static boilerplate section
-    puts ${item} {
-IsEnabled () {
-    [ "${ENABLE_FLAG}" = "-YES-" ]
-    return $?
-}
-
-CreatePIDFile () {
-    echo $1 > "$PIDFILE"
-}
-
-DeletePIDFile () {
-    rm -f "$PIDFILE"
-}
-
-ReadPID () {
-    if [ -r "$PIDFILE" ]; then
-        read pid < "$PIDFILE"
-    else
-        pid=0
-    fi
-    echo $pid
-}
-
-CheckPID () {
-    pid=$(ReadPID)
-    if (($pid)); then
-        kill -0 $pid >& /dev/null || pid=0
-    fi
-    echo $pid
-}
-
-NoteEvent () {
-    ConsoleMessage "$1"
-    $LOG_EVENTS && [ -n "$LOGFILE" ] && echo "$(date) $NAME: $1" >> $LOGFILE
-}
-
-StartService () {
-    if IsEnabled; then
-        NoteEvent "Starting $NAME"
-        
-        if $HAVE_STARTCMDS; then
-            startCmds
-        elif [ -n "$EXECUTABLE" ]; then
-            $EXECUTABLE &
-            pid=$!
-            if $CREATE_PIDFILE; then
-                CreatePIDFile $pid
-            fi
-        fi
-        
-    fi
-}
-
-StopService () {
-    NoteEvent "Stopping $NAME"
-    
-    gaveup=false
-    if $HAVE_STOPCMDS; then
-        # If we have stop cmds, use them
-        stopCmds
-    else        
-        # Otherwise, get the pid and try to stop the program
-        echo -n "Stopping $NAME..."
-        
-        pid=$(CheckPID)
-        if (($pid)); then
-            # Try to kill the process with SIGTERM
-            kill $pid
-            
-            # Wait for it to really stop
-            for ((CNT=0; CNT < 15 && $(CheckPID); ++CNT)); do
-                echo -n "."
-                sleep 1
-            done
-            
-            # Report status
-            if (($(CheckPID))); then
-                gaveup=true
-                echo "giving up."
-            else
-                echo "stopped."
-            fi
-        else
-            echo "it's not running."
-        fi
-    fi
-    
-    # Cleanup the pidfile if we've been asked to
-    if ! $gaveup && $DELETE_PIDFILE; then
-        DeletePIDFile
-    fi
-}
-
-RestartService () {
-    if IsEnabled; then
-        NoteEvent "Restarting $NAME"
-        
-        if $HAVE_RESTARTCMDS; then
-            # If we have restart cmds, use them
-            restartCmds
-        else
-            # Otherwise just stop/start it
-            StopService
-            StartService
-        fi
-        
-    fi
-}
-
-RunService "$1"
-    }
-    # ^^^^^^ END BOILERPLATE ^^^^^^
-    
-    close ${item}
-    
-    ########################
-    # Generate the plist
-    set para [open "${startupItemPlist}" w 0644]
-    if {[getuid] == 0} {
-        file attributes "${startupItemPlist}" -owner root -group wheel
-    }
-    
-    puts ${para} "\{"
-    puts ${para} "\tDescription\t= \"${itemname}\";"
-    puts ${para} "\tProvides\t= (\"${itemname}\");"
-    puts -nonewline ${para} "\tRequires\t= ("
-    puts -nonewline ${para} [format {"%s"} [join ${startupitem.requires} {", "}]]
-    puts ${para} ");"
-    puts ${para} "\tOrderPreference\t= \"None\";"
-    puts ${para} "\}"
-    close ${para}
-    
-    # Emit some information for the user
-    if {[tbool startupitem.autostart]} {
-        ui_notice "###########################################################"
-        ui_notice "# A startup item has been generated that will aid in"
-        ui_notice "# starting ${subport} with SystemStarter. It will be"
-        ui_notice "# started automatically on activation."
-        ui_notice "###########################################################"
-    } else {
-        ui_notice "###########################################################"
-        ui_notice "# A startup item has been generated that will aid in"
-        ui_notice "# starting ${subport} with SystemStarter. It is disabled"
-        ui_notice "# by default. Add the following line to /etc/hostconfig"
-        ui_notice "# or ${prefix}/etc/rc.conf to start it at startup:"
-        ui_notice "#"
-        ui_notice "# ${uppername}=-YES-"
-        ui_notice "###########################################################"
+    sudo port load ${subport}"
     }
 }
+
+# Register the above procedure as a callback after Portfile evaluation
+port::register_callback portstartupitem::add_notes
 
 proc portstartupitem::startupitem_create_darwin_launchd {args} {
     global UI_PREFIX prefix destroot destroot.keepdirs subport macosx_deployment_target \
            startupitem.name startupitem.uniquename startupitem.plist startupitem.location \
            startupitem.init startupitem.start startupitem.stop startupitem.restart startupitem.executable \
            startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange \
-           startupitem.install startupitem.autostart
+           startupitem.install startupitem.debug
 
     set scriptdir ${prefix}/etc/startup
-    
+
     set itemname        ${startupitem.name}
     set uniquename      ${startupitem.uniquename}
     set plistname       ${startupitem.plist}
@@ -425,37 +179,37 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
                           "${prefix}/bin/daemondo" \
                           "--label=${itemname}" \
                         ]
-    
+
     file mkdir ${destroot}${itemdir}
     if {[getuid] == 0} {
         file attributes ${destroot}${itemdir} -owner root -group wheel
     }
-        
-    if { [llength ${startupitem.executable}] && 
+
+    if {[llength ${startupitem.executable}] &&
       ![llength ${startupitem.init}] &&
       ![llength ${startupitem.start}] &&
       ![llength ${startupitem.stop}] &&
-      ![llength ${startupitem.restart}] } {
-            
+      ![llength ${startupitem.restart}]} {
+
         # An executable is specified, and there is no init, start, stop, or restart
         # code; so we don't need a wrapper script
         set args [concat $args "--start-cmd" ${startupitem.executable} ";"]
-        
+
     } else {
-    
+
         # No executable was specified, or there was an init, start, stop, or restart
         # option, so we do need a wrapper script
-        
+
         set wrappername     ${itemname}.wrapper
         set wrapper         "${itemdir}/${wrappername}"
 
-        if { ![llength ${startupitem.start}] } {
+        if {![llength ${startupitem.start}]} {
             set startupitem.start [list "sh ${scriptdir}/${subport}.sh start"]
         }
-        if { ![llength ${startupitem.stop}] } {
+        if {![llength ${startupitem.stop}]} {
             set startupitem.stop [list "sh ${scriptdir}/${subport}.sh stop"]
         }
-        if { ![llength ${startupitem.restart}] } {
+        if {![llength ${startupitem.restart}]} {
             set startupitem.restart [list Stop Start]
         }
 
@@ -475,7 +229,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
         puts ${item} "# MacPorts generated daemondo support script"
         puts ${item} "#"
         puts ${item} ""
-        
+
         puts ${item} "#"
         puts ${item} "# Init"
         puts ${item} "#"
@@ -491,7 +245,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
         foreach line ${startupitem.start}   { puts ${item} "\t${line}" }
         puts ${item} "\}"
         puts ${item} ""
-        
+
         puts ${item} "#"
         puts ${item} "# Stop"
         puts ${item} "#"
@@ -500,7 +254,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
         foreach line ${startupitem.stop}    { puts ${item} "\t${line}" }
         puts ${item} "\}"
         puts ${item} ""
-    
+
         puts ${item} "#"
         puts ${item} "# Restart"
         puts ${item} "#"
@@ -532,16 +286,16 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
 
         close ${item}
     }
-    
+
     if {[tbool startupitem.netchange]} {
         lappend args "--restart-netchange"
     }
-    
-    # To log events then tell daemondo to log at verbosity=1
-    if { [tbool startupitem.logevents] } {
-        lappend args "--verbosity=1"
+
+    # To log events then tell daemondo to log at verbosity=n
+    if {[tbool startupitem.logevents]} {
+        lappend args "--verbosity=[option startupitem.daemondo.verbosity]"
     }
-    
+
     # If pidfile was specified, translate it for daemondo.
     #
     # There are four cases:
@@ -551,7 +305,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     #   (4) manual [pidfilename]
     #
     set pidfileArgCnt [llength ${startupitem.pidfile}]
-    if { ${pidfileArgCnt} > 0 } {
+    if {${pidfileArgCnt} > 0} {
         if { $pidfileArgCnt == 1 } {
             set pidFile "${prefix}/var/run/${itemname}.pid"
             lappend destroot.keepdirs "${destroot}${prefix}/var/run"
@@ -559,13 +313,13 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
             set pidFile [lindex ${startupitem.pidfile} 1]
         }
 
-        if { ${pidfileArgCnt} > 2 } {
+        if {${pidfileArgCnt} > 2} {
             ui_error "$UI_PREFIX [msgcat::mc "Invalid parameter count to startupitem.pidfile: 2 expected, %d found" ${pidfileArgCnt}]"
         }
-        
+
         # Translate into appropriate arguments to daemondo
         set pidStyle [lindex ${startupitem.pidfile} 0]
-        switch ${pidStyle} {
+        switch -- ${pidStyle} {
             none    { lappend args "--pid=none" }
             auto    { lappend args "--pid=fileauto" "--pidfile" ${pidFile} }
             clean   { lappend args "--pid=fileclean" "--pidfile" ${pidFile} }
@@ -575,117 +329,99 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
             }
         }
     } else {
-        if { [llength ${startupitem.executable}] } {
+        if {[llength ${startupitem.executable}]} {
             lappend args "--pid=exec"
         } else {
             lappend args "--pid=none"
         }
     }
-    
+
     # Create the plist file
     set plist [open "${destroot}${itemdir}/${plistname}" w 0644]
-    
+
     puts ${plist} "<?xml version='1.0' encoding='UTF-8'?>"
     puts ${plist} "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\""
     puts ${plist} "\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\" >"
     puts ${plist} "<plist version='1.0'>"
     puts ${plist} "<dict>"
-    
+
     puts ${plist} "<key>Label</key><string>${uniquename}</string>"
-    
+
     puts ${plist} "<key>ProgramArguments</key>"
     puts ${plist} "<array>"
     foreach arg ${args} { puts ${plist} "\t<string>${arg}</string>" }
     puts ${plist} "</array>"
-    
-    puts ${plist} "<key>Debug</key><false/>"
+
     puts ${plist} "<key>Disabled</key><true/>"
     if {$macosx_deployment_target ne "10.4"} {
         puts ${plist} "<key>KeepAlive</key><true/>"
     } else {
         puts ${plist} "<key>OnDemand</key><false/>"
     }
-    
-    if { [llength ${startupitem.logfile}] } {
+
+    if {[llength ${startupitem.logfile}]} {
         puts ${plist} "<key>StandardOutPath</key><string>${startupitem.logfile}</string>"
     }
-    
+
+    if {[tbool startupitem.debug]} {
+        puts ${plist} "<key>Debug</key><true/>"
+    }
+
     puts ${plist} "</dict>"
     puts ${plist} "</plist>"
 
     close ${plist}
 
-    if { [getuid] == 0 && 
-      ${startupitem.install} != "no" } {
+    if {[getuid] == 0 &&
+      ${startupitem.install} ne "no"} {
         file mkdir "${destroot}/Library/${daemondest}"
         ln -sf "${itemdir}/${plistname}" "${destroot}/Library/${daemondest}"
     }
-
-    # If launchd is not available, warn the user
-    set haveLaunchd ${portutil::autoconf::have_launchd}
-    if {![tbool haveLaunchd]} {
-        ui_notice "###########################################################"
-        ui_notice "# WARNING:"
-        ui_notice "# We're building a launchd startup item, but launchd wasn't"
-        ui_notice "# found by configure. Are you sure you didn't mess up your"
-        ui_notice "# macports.conf settings?"
-        ui_notice "###########################################################"
-    }
-    
-    # Emit some information for the user
-    if {[tbool startupitem.autostart]} {
-        ui_notice "###########################################################"
-        ui_notice "# A startup item has been generated that will aid in"
-        ui_notice "# starting ${subport} with launchd. It will be enabled"
-        ui_notice "# automatically on activation. Execute the following"
-        ui_notice "# command to manually _disable_ it:"
-        ui_notice "#"
-        ui_notice "# sudo port unload ${subport}"
-        ui_notice "###########################################################"
-    } else {
-        ui_notice "###########################################################"
-        ui_notice "# A startup item has been generated that will aid in"
-        ui_notice "# starting ${subport} with launchd. It is disabled"
-        ui_notice "# by default. Execute the following command to start it,"
-        ui_notice "# and to cause it to launch at startup:"
-        ui_notice "#"
-        ui_notice "# sudo port load ${subport}"
-        ui_notice "###########################################################"
-    }
 }
 
-proc portstartupitem::startupitem_create {args} {
-    global UI_PREFIX startupitem.type os.platform
-    
-    set startupitem.type [string tolower ${startupitem.type}]
-    
-    # Calculate a default value for startupitem.type
-    if {${startupitem.type} == "default" || ${startupitem.type} == ""} {
-        switch -exact ${os.platform} {
-            darwin {
-                set haveLaunchd ${portutil::autoconf::have_launchd}
-                if { [tbool haveLaunchd] } {
-                    set startupitem.type "launchd"
-                } else {
-                    set startupitem.type "systemstarter"
-                }
-            }
-            default {
-                set startupitem.type "rcng"
-            }
-        }
-    }
+proc portstartupitem::startupitem_create {} {
+    global UI_PREFIX startupitem.type
 
-    if { ${startupitem.type} == "none" } {
+    if {${startupitem.type} eq "none"} {
         ui_notice "$UI_PREFIX [msgcat::mc "Skipping creation of control script"]"
     } else {
         ui_notice "$UI_PREFIX [msgcat::mc "Creating ${startupitem.type} control script"]"
 
         switch -- ${startupitem.type} {
             launchd         { startupitem_create_darwin_launchd }
-            systemstarter   { startupitem_create_darwin_systemstarter }
-            rcng            { startupitem_create_rcng }
             default         { ui_error "$UI_PREFIX [msgcat::mc "Unrecognized startupitem type %s" ${startupitem.type}]" }
         }
     }
+}
+
+# Check if this port's startupitem is loaded
+# Returns: 1 if loaded, 0 otherwise
+proc portstartupitem::is_loaded {} {
+    if {[option startupitem.type] eq "launchd"} {
+        set launchctl_path ${portutil::autoconf::launchctl_path}
+        if {$launchctl_path eq ""} {
+            # assuming not loaded if there's no launchctl
+            return 0
+        }
+        global os.major startupitem.uniquename
+        if {${os.major} >= 14} {
+            if {![catch {exec -ignorestderr $launchctl_path print system/${startupitem.uniquename} >&/dev/null}]} {
+                return 1
+            }
+        } else {
+            if {[getuid] == 0} {
+                elevateToRoot "launchctl list"
+                set elevated 1
+            }
+            set ret 0
+            if {![catch {exec -ignorestderr $launchctl_path list ${startupitem.uniquename} >&/dev/null}]} {
+                set ret 1
+            }
+            if {[info exists elevated]} {
+                dropPrivileges
+            }
+            return $ret
+        }
+    }
+    return 0
 }

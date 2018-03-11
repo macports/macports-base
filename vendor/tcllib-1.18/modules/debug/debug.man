@@ -1,0 +1,247 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset PACKAGE_VERSION 1.0.6]
+[manpage_begin debug n [vset PACKAGE_VERSION]]
+[keywords debug]
+[keywords log]
+[keywords narrative]
+[keywords trace]
+[copyright {200?, Colin McCormack, Wub Server Utilities}]
+[copyright {2012-2014, Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc {debug narrative}]
+[titledesc {debug narrative - core}]
+[category  {debugging, tracing, and logging}]
+[require Tcl 8.5]
+[require debug [opt [vset PACKAGE_VERSION]]]
+[description]
+
+Debugging areas of interest are represented by 'tags' which have
+independently settable levels of interest (an integer, higher is more
+detailed).
+
+[section API]
+
+[list_begin definitions]
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug.][var tag] [arg message] [opt [arg level]]]
+
+For each known tag the package creates a command with this signature
+the user can then use to provide the debug narrative of the tag.
+
+The narrative [arg message] is provided as a Tcl script whose value is
+[cmd subst]ed in the caller's scope if and only if the current level of
+interest for the [arg tag] matches or exceeds the call's [arg level]
+of detail.  This is useful, as one can place arbitrarily complex
+narrative in code without unnecessarily evaluating it.
+
+[para] See methods [method level] and [method setting] for querying
+and manipulating the current level of detail for tags.
+
+[para] The actually printed text consists of not only the
+[arg message], but also global and tag-specific prefix and suffix,
+should they exist, with each line in the message having the specified
+headers and trailers.
+
+[para] All these parts are [cmd subst]ableTcl scripts, which are
+substituted once per message before assembly.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method 2array]]
+
+This method returns a dictionary mapping the names of all debug tags
+currently known to the package to their state and log level. The
+latter are encoded in a single numeric value, where a negative number
+indicates an inactive tag at the level given by the absolute value, and
+a positive number is an active tag at that level.
+
+[para] See also method [method settings] below.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method define] [arg tag]]
+
+This method registers the named [arg tag] with the package.  If the
+tag was not known before it is placed in an inactive state. The state
+of an already known tag is left untouched.
+
+[para] The result of the method is the empty string.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method header] [arg text]]
+
+This method defines a global [cmd subst]able Tcl script which provides
+a text printed before each line of output.
+
+[para] Note how this is tag-independent.
+
+[para] Further note that the header substitution happens only once per
+actual printed message, i.e. all lines of the same message will have
+the same actual heading text.
+
+[para] The result of the method is the specified text.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method level] [arg tag] [opt [arg level]] [opt [arg fd]]]
+
+This method sets the detail-[arg level] for the [arg tag], and the
+channel [arg fd] to write the tags narration into.
+
+The level is an integer value >= 0 defaulting to [const 1].
+
+The channel defaults to [const stderr].
+
+[para] The result of the method is the new detail-level for the tag.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method names]]
+
+This method returns a list containing the names of all debug tags
+currently known to the package.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method off] [arg tag]]
+
+This method registers the named [arg tag] with the package and sets it
+inactive.
+
+[para] The result of the method is the empty string.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method on] [arg tag]]
+
+This method registers the named [arg tag] with the package, as active.
+
+[para] The result of the method is the empty string.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method parray] [arg arrayvarname]]
+
+This is a convenience method formatting the named array like the
+builtin command [cmd parray], except it returns the resulting string
+instead of writing it directly to [const stdout].
+
+[para] This makes it suitable for use in debug messages.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method pdict] [arg dict]]
+
+This is a convenience method formatting the dictionary similarly to
+how the builtin command [cmd parray] does for array, and returns the
+resulting string.
+
+[para] This makes it suitable for use in debug messages.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method hexl] [arg data] [opt [arg prefix]]]
+
+This is a convenience method formatting arbitrary data into a hex-dump
+and returns the resulting string.
+
+[para] This makes it suitable for use in debug messages.
+
+[para] Each line of the dump is prefixed with [arg prefix]. This prefix
+defaults to the empty string.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method nl]]
+
+This is a convenience method to insert a linefeed character (ASCII 0x0a)
+into a debug message.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method tab]]
+
+This is a convenience method to insert a TAB character (ASCII 0x09)
+into a debug message.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method prefix] [arg tag] [opt [arg text]]]
+
+This method is similar to the method [method header] above, in that it
+defines [cmd subst]able Tcl script which provides more text for debug
+messages.
+
+[para] In contrast to [method header] the generated text is added to the
+user's message before it is split into lines, making it a per-message
+extension.
+
+[para] Furthermore the script is tag-dependent.
+
+[para] In exception to that, a script for tag [const ::] is applied
+to all messages.
+
+[para] If both global and tag-dependent prefix exist, both are
+applied, with the global prefix coming before the tag-dependent
+prefix.
+
+[para] Note that the prefix substitution happens only once per
+actual printed message.
+
+[para] The result of the method is the empty string.
+
+[para] If the [arg tag] was not known at the time of the call it is
+registered, and set inactive.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method setting] ([arg tag] [arg level]) ... [opt [arg fd]]]
+
+This method is a multi-tag variant of method [method level] above,
+with the functionality of methods [method on], and [method off] also
+folded in.
+
+[para] Each named [arg tag] is set to the detail-[arg level] following
+it, with a negative level deactivating the tag, and a positive level
+activating it.
+
+[para] If the last argument is not followed by a level it is not
+treated as tag name, but as the channel all the named tags should
+print their messages to.
+
+[para] The result of the method is the empty string.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method suffix] [arg tag] [opt [arg text]]]
+
+This method is similar to the method [method trailer] below, in that
+it defines [cmd subst]able Tcl script which provides more text for
+debug messages.
+
+[para] In contrast to [method trailer] the generated text is added to
+the user's message before it is split into lines, making it a
+per-message extension.
+
+[para] Furthermore the script is tag-dependent.
+
+[para] In exception to that, a script for tag [const ::] is applied
+to all messages.
+
+[para] If both global and tag-dependent suffix exist, both are
+applied, with the global suffix coming after the tag-dependent suffix.
+
+[para] Note that the suffix substitution happens only once per actual
+printed message.
+
+[para] The result of the method is the empty string.
+
+[para] If the [arg tag] was not known at the time of the call it is
+registered, and set inactive.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[call [cmd debug] [method trailer] [arg text]]
+
+This method defines a global [cmd subst]able Tcl script which provides
+a text printed after each line of output (before the EOL however).
+
+[para] Note how this is tag-independent.
+
+[para] Further note that the trailer substitution happens only once
+per actual printed message, i.e. all lines of the same message will
+have the same actual trailing text.
+
+[para] The result of the method is the specified text.
+
+[comment {= = == === ===== ======== ============= =====================}]
+[list_end]
+
+[vset CATEGORY debug]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

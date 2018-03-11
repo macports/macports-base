@@ -1,0 +1,11 @@
+Snit Modules
+----------------------------------------------------------------------
+
+snit.tcl             Loader for Snit 1.x
+  main1.tcl          Compiler, runtime for Snit 1.x, Tcl 8.4 and later
+  main1_83.tcl       Compiler, runtime for Snit 1.x, Tcl 8.3
+
+snit2.tcl            Loader for Snit 2.x
+  main2.tcl          Compiler, runtime for Snit 2.x, Tcl 8.5 and later
+
+validate.tcl         Snit validation types, Snit 1.x *and* Snit 2.x

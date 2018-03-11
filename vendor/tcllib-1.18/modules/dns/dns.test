@@ -1,0 +1,73 @@
+# dns.test - Copyright (C) 2002 Pat Thoyts <patthoyts@users.sourceforge.net>
+#
+# Tests for the Tcllib dns package
+#
+# -------------------------------------------------------------------------
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# -------------------------------------------------------------------------
+# RCS: @(#) $Id: dns.test,v 1.6 2006/10/09 21:41:40 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal dns.tcl dns
+}
+
+# -------------------------------------------------------------------------
+# Tests
+# -------------------------------------------------------------------------
+
+# Test the dns uri scheme split and join methods.
+
+set urls {
+    1 dns:www.example.org
+      {class {} nameserver {} port {} query www.example.org scheme dns type {}}
+    2 dns://nameserver/www.example.org
+      {class {} nameserver nameserver port {} query www.example.org scheme dns type {}}
+    3 dns://nameserver:53/www.example.org
+      {class {} nameserver nameserver port 53 query www.example.org scheme dns type {}}
+    4 dns:www.example.org?class=IN
+      {class IN nameserver {} port {} query www.example.org scheme dns type {}}
+    5 dns:www.example.org?type=MX
+      {class {} nameserver {} port {} query www.example.org scheme dns type MX}
+    6 dns:www.example.org?class=IN;type=A
+      {class IN nameserver {} port {} query www.example.org scheme dns type A}
+    7 dns:www.example.org?type=A;class=IN
+      {class IN nameserver {} port {} query www.example.org scheme dns type A}
+}
+
+foreach {ndx url check} $urls {
+    test dns-1.$ndx [list uri::split $url] {
+        if {![catch {uri::split $url} result]} {
+            if {![catch {array set URL $result} result]} {
+                set result [dictsort [array get URL]]
+            }
+        }
+        set result
+    } $check
+}
+
+foreach {ndx url check} $urls {
+    if {$ndx == 6} continue;            # this test is bogus for join.
+    test dns-2.$ndx [list uri::join $url] {
+        catch {eval [list uri::join] $check} result
+        set result
+    } $url
+}
+
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

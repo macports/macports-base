@@ -1,0 +1,3 @@
+Doctools Error in macro at line 4, column 0:
+[comment .c]
+--> (FmtError) Manpage error (nodonecmd), "comment .c" : Command not allowed after [manpage_end].

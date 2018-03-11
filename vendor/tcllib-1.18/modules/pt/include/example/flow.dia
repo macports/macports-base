@@ -1,0 +1,5 @@
+# -*- tcl -*- tcl.tk//DSL diagram//EN//1.0
+
+ellipse "Grammar" ; arrow ; box "PT generate" width [3 cm] ; arrow
+diamond "parser code" height [2 cm] ; down ; arrow ; box "tclsh" ; right
+arrow ; ellipse "AST" ; arrow <- from [last box w] left ; ellipse "Text"

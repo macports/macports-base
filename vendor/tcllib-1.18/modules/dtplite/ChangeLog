@@ -1,0 +1,11 @@
+2013-04-04  Andreas Kupries <andreask@activestate.com>
+
+	* dtplite.man: [Feature 3609342]: Applied Ashok's patch to disable
+	* dtplite.tcl: the keyword index page when the processed
+	* pkgIndex.tcl: documentation does not contain keywords, with
+	  modifications. Version bumped to 1.1.
+
+2013-02-22  Andreas Kupries  <andreask@activestate.com>
+
+	* New module 'dtplite'. dtplite application-as-package.
+

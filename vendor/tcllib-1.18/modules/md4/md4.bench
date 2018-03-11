@@ -1,0 +1,46 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'md4' module.
+# This allow developers to monitor/gauge/track package performance.
+#
+# (c) 2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+# We need at least version 8.2 for the package and thus the
+# benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.2]} {
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+set moddir [file dirname [file dirname [info script]]]
+lappend auto_path $moddir
+
+package forget md4
+catch {namespace delete ::md4}
+source [file join [file dirname [info script]] md4.tcl]
+
+set key "01234567abcdefgh01234567abcdefgh01234567abcdefgh01234567abcdefgh=="
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+foreach n {1 10 100 1000 10000} {
+    bench -desc "MD4 md4_ $n" -pre {
+	set str [string repeat " " $n]
+    } -body {
+	md4::md4 $str
+    }
+
+    bench -desc "MD4 hmac $n" -pre {
+	set str [string repeat " " $n]
+    } -body {
+	md4::hmac -key $key $str
+    }
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete

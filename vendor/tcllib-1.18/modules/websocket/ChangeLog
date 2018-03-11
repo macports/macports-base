@@ -1,0 +1,31 @@
+2013-12-17  Andreas Kupries  <andreask@activestate.com>
+
+	* websocket.man: Added missing reference to the package itself.
+
+2015-01-07  Emmanuel Frecon  <efrecon@gmail.com>
+
+	* pkgIndex.tcl: Bumped up version number to reflect slight API changes.
+	* websocket.tcl: Merging in 24 patches from Adrián Medraño Calvo.
+	  + All errors have the first word in the error code list set to
+	    WEBSOCKET, for easier use with try...catch.
+	  + Add a 'connect' pseudo message type, analogous to
+	    'disconnect', invoked whenever a socket converts into a WebSocket.
+	  + Push connection error to socket
+	  + Pass HTTP token to Timeout handler
+	  + Don't overwrite OPEN with Connection context
+	  + Properly reset socket after informing the handler
+	  + Cancel the timeout on successful connection
+	  + Substitute only the URI schema
+	  + Don't clobber Connection and Upgrade headers
+	  + Improved compliance with RFC and Browsers
+	  + Notify handler on receiving pong frames
+	  + Expose key construction: This is useful for servers that wish
+	    to implement the handshake handling themselves, for example to be
+	    able to use their own dispatching mechanism.
+	  + Factor out handshake validation: Allows users of the websocket
+	    library to be able to use the websocket core without having to use
+	    the ::websocket::live, ::websocket::test and ::websocket::upgrade
+	    functionality. This happens, for example, when the application
+	    already has already accepted and parsed the request.  In addition,
+	    the checks are now more strict for keys and values, and more lax
+	    with regards to case and extra tokens in header fields.

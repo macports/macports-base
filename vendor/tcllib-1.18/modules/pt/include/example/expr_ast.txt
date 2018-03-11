@@ -1,0 +1,9 @@
+                                                           +- Digit 0 0 | 1
+                                                           |            |
+                               +- Term 0 2 --- Number 0 2 -+- Digit 1 1 | 2
+                               |                           |            |
+                               |                           +- Digit 2 2 | 0
+                               |                                        |
+Expression 0 4 --- Factor 0 4 -+----------------------------- AddOp 3 3 | +
+                               |                                        |
+                               +- Term 4 4 --- Number 4 4 --- Digit 4 4 | 5

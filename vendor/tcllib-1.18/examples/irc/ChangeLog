@@ -1,0 +1,29 @@
+2004-09-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mainloop.tcl: Fixed expr without braces.
+
+2003-06-30  David N. Welton  <davidw@dedasys.com>
+
+	* irc_example.tcl: Rework this file to reload mainloop.tcl as
+	needs be.
+
+	* mainloop.tcl: New file: the main code is in here, in order to
+	facilitate creating a system that is reloadable.
+
+2003-05-17  David N. Welton  <davidw@dedasys.com>
+
+	* irc_example.tcl: Changes from Aaron Faupell - now uses irc 0.4.
+	  Use ircclient namespace instead of previous, overly generic
+	  'client'.
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-01-30  David N. Welton  <davidw@dedasys.com>
+
+	* irc_example.tcl (client::connect): Added some more comments,
+	  change the startup features.  Create ChangeLog.
+

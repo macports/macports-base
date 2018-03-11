@@ -1,0 +1,99 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin map::slippy::cache n 0.2]
+[keywords cache]
+[keywords filesystem]
+[keywords location]
+[keywords map]
+[keywords slippy]
+[keywords tile]
+[keywords zoom]
+[moddesc   {Mapping utilities}]
+[titledesc {Management of a tile cache in the local filesystem}]
+[require Tcl 8.4]
+[require Tk 8.4]
+[require img::png]
+[require map::slippy]
+[require map::slippy::cache [opt 0.2]]
+[description]
+
+This package provides a class for managing a cache of tiles for
+slippy-based maps in the local filesystem.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::map::slippy::cache] [arg cacheName] [arg cachedir] [arg provider]]
+
+Creates the cache [arg cacheName] and configures it with both the path
+to the directory contaiing the locally cached tiles ([arg cachedir]),
+and the command prefix from which it will pull tiles asked for and not
+yet known to the cache itself ([arg provider]).
+
+[para]
+
+The result of the command is [arg cacheName].
+
+[list_end]
+
+[subsection Methods]
+
+[list_begin definitions]
+
+[call [arg cacheName] [method valid] [arg tile] [opt [arg msgvar]]]
+
+This method checks the validity of a the given [arg tile] identifier.
+This is a convenience wrapper to [cmd {::map::slippy tile valid}] and
+has the same interface.
+
+[call [arg cacheName] [method exists] [arg tile]]
+
+This methods tests whether the cache contains the specified [arg tile]
+or not. The result is a boolean value, [const true] if the tile is
+known, and [const false] otherwise. The tile is identified by a list
+containing three elements, zoom level, row, and column number, in this
+order.
+
+[call [arg cacheName] [method get] [arg tile] [arg donecmd]]
+
+This is the main method of the cache, retrieving the image for the
+specified [arg tile] from the cache. The tile identifier is a list
+containing three elements, the zoom level, row, and column number of
+the tile, in this order.
+
+[para]
+
+The command refix [arg donecmd] will be invoked when the cache
+either knows the image for the tile or that no image will forthcoming.
+It will be invoked with either 2 or 3 arguments, i.e.
+
+[list_begin enum]
+[enum] The string [const set], the [arg tile], and the image.
+[enum] The string [const unset], and the [arg tile].
+[list_end]
+
+These two possibilities are used to either signal the image for the
+[arg tile], or that the [arg tile] has no image defined for it.
+
+[para]
+
+When the cache has no information about the tile it will invoke the
+[arg provider] command prefix specified during its construction,
+adding three arguments: The string [const get], the [arg tile], and a
+callback into the cache. The latter will be invoked by the provider to
+either transfer the image to the cache, or signal that the tile has no
+image.
+
+[para]
+
+When multiple requests for the same tile are made only one request
+will be issued to the provider.
+
+[list_end]
+
+[section References]
+
+[list_begin enum]
+[enum]	[uri http://wiki.openstreetmap.org/wiki/Main_Page]
+[list_end]
+[manpage_end]

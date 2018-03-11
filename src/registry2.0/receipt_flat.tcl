@@ -1,5 +1,4 @@
 # receipt_flat.tcl
-# $Id$
 #
 # Copyright (c) 2005, 2007-2012 The MacPorts Project
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
@@ -601,12 +600,17 @@ proc open_file_map {{readonly 0}} {
 # open the file map if required.
 #
 # - file	the file to test
+# - cs		boolean value indicating a case-sensitive search
 # return the 0 if the file is not registered, the name of the port otherwise.
 #
-proc file_registered {file} {
+proc file_registered {file cs} {
 	variable file_map
 
 	open_file_map 1
+
+	if {$cs} {
+		ui_warn "Case-sensitive search not implemented."
+	}
 
 	if {[::filemap exists file_map $file]} {
 		return [::filemap get file_map $file]

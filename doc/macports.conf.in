@@ -1,5 +1,3 @@
-# $Id$
-
 # MacPorts system-wide configuration file.
 # Commented-out values are defaults unless otherwise noted.
 
@@ -116,16 +114,14 @@ universal_archs     	@UNIVERSAL_ARCHS@
 # and will be used to verify its integrity. See
 # https://trac.macports.org/wiki/Mirrors#MacPortsSource to find the
 # correct rsync_dir for a particular rsync_server.
-#rsync_dir           	release/tarballs/base.tar
+#rsync_dir           	macports/release/tarballs/base.tar
 
 # Options to pass to rsync when fetching MacPorts base and the ports tree.
-#rsync_options       	-rtzv --delete-after
+#rsync_options       	-rtzvl --delete-after
 
 # Type of generated StartupItems.
 # - launchd: Create StartupItems for use with launchd.
-# - systemstarter: Create StartupItems for use with SystemStarter.
-# - rcng: Create StartupItems for use with the rc.d system.
-# - default: Create StartupItems for launchd on OS X and for rc.d on
+# - default: Create StartupItems for launchd on OS X and none on
 #   other platforms.
 # - none: Disable creation of StartupItems.
 # This setting only applies when building ports from source.
@@ -136,6 +132,12 @@ universal_archs     	@UNIVERSAL_ARCHS@
 # in /Library/LaunchDaemons or /Library/LaunchAgents as appropriate.
 # This setting only applies when building ports from source.
 #startupitem_install	yes
+
+# Whether to allow ports to automatically load their StartupItems.
+# If set to "no", StartupItems will never be loaded unless the user
+# explicitly requests it. If set to "yes" (the default), some ports may
+# automatically load their StartupItems when they are activated.
+#startupitem_autostart  yes
 
 # Extra environment variables to keep. MacPorts sanitizes its
 # environment while processing ports, keeping:

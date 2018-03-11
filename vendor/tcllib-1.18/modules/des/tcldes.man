@@ -1,0 +1,25 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcldes n 1.1]
+[see_also des(n)]
+[keywords 3DES]
+[keywords {block cipher}]
+[keywords {data integrity}]
+[keywords DES]
+[keywords encryption]
+[keywords security]
+[copyright {2005, Pat Thoyts <patthoyts@users.sourceforge.net>}]
+[moddesc {Data Encryption Standard (DES)}]
+[titledesc {Implementation of the DES and triple-DES ciphers}]
+[category  {Hashes, checksums, and encryption}]
+[require Tcl 8.2]
+[require tclDES 1]
+[description]
+[para]
+
+The [package tclDES] package is a helper package for [package des].
+
+[para] Please see the documentation of [package des] for details.
+
+[vset CATEGORY des]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

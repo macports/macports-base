@@ -1,0 +1,104 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+# Generate HTML table from CSV data
+
+package require csv
+package require cmdline
+package require report
+package require struct
+
+# ----------------------------------------------------
+# csv2html ?-sep sepchar? file...
+#
+# Argument processing and checks.
+
+set sepChar ,
+set title   "Title"
+set usage "Usage: $argv0 ?-sep sepchar? ?-title string? file..."
+
+while {[set ok [cmdline::getopt argv {sep.arg title.arg} opt val]] > 0} {
+    #puts stderr "= $opt $val"
+    switch -exact -- $opt {
+	sep   {set sepChar $val}
+	title {set title   $val}
+    }
+}
+if {($ok < 0) || ([llength $argv] < 1)} {
+    #puts stderr "A >>$ok<< >>[llength $argv]<<"
+    puts stderr $usage
+    exit -1
+}
+
+set files $argv
+
+if {[llength $files] == 0} {
+    set files -
+}
+
+# ----------------------------------------------------
+# Actual processing, uses the following information from the
+# commandline:
+#
+# files   - name of the files to read
+# indices - preprocessed indices
+# sepChar - separator character
+
+::report::defstyle html {} {
+    set c  [columns]
+    set cl $c ; incr cl -1
+    data set "<tr> [split [string repeat " " $cl] ""] </tr>"
+    for {set col 0} {$col < $c} {incr col} {
+	pad $col left  "<td>"
+	pad $col right "</td>"
+    }
+    return
+}
+
+set stdin 1
+set first 1
+
+struct::matrix::matrix m
+
+foreach f $files {
+    if {![string compare $f -]} {
+	if {!$stdin} {
+	    puts stderr "Cannot use - (stdin) more than once"
+	    exit -1
+	}
+	set in stdin
+	set stdin 0
+    } else {
+	set in [open $f r]
+    }
+
+    if {$first} {
+	set first 0
+	if {[gets $in line] < 0} {
+	    continue
+	}
+	set data [::csv::split $line $sepChar]
+
+	m add columns [llength $data]
+	m add row $data
+    }
+
+    csv::read2matrix $in m $sepChar
+
+    if {[string compare $f -]} {
+	close $in
+    }
+}
+
+# And writing the accumulated results
+
+report::report r [m columns] style html
+
+puts stdout "<html><head><title>$title</title></head><body>"
+puts stdout "<h1>$title</h1>"
+puts stdout "<p><table border=1>"
+r printmatrix2channel m stdout
+#m format 2chan r stdout
+puts stdout "</table></p></body></html>"
+r destroy
+
+exit

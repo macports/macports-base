@@ -1,0 +1,10 @@
+2007-03-23  Andreas Kupries <andreask@activestate.com>
+
+	* pkgIndex.tcl: Added MD hints.
+
+2004-09-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* impersonal.tcl: Fixed 'expr'essions without braces.
+	* mbox.tcl: 
+	* mutl.tcl: 
+	* personal.tcl: 

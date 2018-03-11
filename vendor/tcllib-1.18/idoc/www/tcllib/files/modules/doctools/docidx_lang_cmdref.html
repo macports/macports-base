@@ -1,0 +1,230 @@
+
+<html><head>
+<title>docidx_lang_cmdref - Documentation tools</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'docidx_lang_cmdref.man' by tcllib/doctools with format 'html'
+   -->
+<! -- Copyright &copy; 2007 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;
+   -->
+<! -- docidx_lang_cmdref.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">docidx_lang_cmdref(n) 1.0 tcllib &quot;Documentation tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>docidx_lang_cmdref - docidx language command reference</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Commands</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd"><a href="../../../../index.html#key155">comment</a></b> <i class="arg">plaintext</i></a></li>
+<li><a href="#2"><b class="cmd">include</b> <i class="arg">filename</i></a></li>
+<li><a href="#3"><b class="cmd">index_begin</b> <i class="arg">text</i> <i class="arg">title</i></a></li>
+<li><a href="#4"><b class="cmd">index_end</b></a></li>
+<li><a href="#5"><b class="cmd">key</b> <i class="arg">text</i></a></li>
+<li><a href="#6"><b class="cmd">lb</b></a></li>
+<li><a href="#7"><b class="cmd"><a href="../../../../index.html#key17">manpage</a></b> <i class="arg">file</i> <i class="arg">text</i></a></li>
+<li><a href="#8"><b class="cmd">rb</b></a></li>
+<li><a href="#9"><b class="cmd"><a href="../../../../index.html#key246">url</a></b> <i class="arg">url</i> <i class="arg">label</i></a></li>
+<li><a href="#10"><b class="cmd">vset</b> <i class="arg">varname</i> <i class="arg">value</i></a></li>
+<li><a href="#11"><b class="cmd">vset</b> <i class="arg">varname</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This document specifies both names and syntax of all the commands
+which together are the docidx markup language, version 1.
+As this document is intended to be a reference the commands are listed
+in alphabetical order, and the descriptions are relatively short.
+A beginner should read the much more informally written
+<i class="term"><a href="docidx_lang_intro.html">docidx language introduction</a></i> first.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Commands</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd"><a href="../../../../index.html#key155">comment</a></b> <i class="arg">plaintext</i></a></dt>
+<dd><p>Index markup. The argument text is marked up as a comment standing
+outside of the actual text of the document. Main use is in free-form
+text.</p></dd>
+<dt><a name="2"><b class="cmd">include</b> <i class="arg">filename</i></a></dt>
+<dd><p>Templating. The contents of the named file are interpreted as text
+written in the docidx markup and processed in the place of the
+include command. The markup in the file has to be self-contained. It
+is not possible for a markup command to cross the file boundaries.</p></dd>
+<dt><a name="3"><b class="cmd">index_begin</b> <i class="arg">text</i> <i class="arg">title</i></a></dt>
+<dd><p>Document structure. The command to start an index. The arguments are a
+label for the whole group of documents the index refers to
+(<i class="arg">text</i>) and the overall title text for the index (<i class="arg">title</i>),
+without markup.</p>
+<p>The label often is the name of the package (or extension) the
+documents belong to.</p></dd>
+<dt><a name="4"><b class="cmd">index_end</b></a></dt>
+<dd><p>Document structure. Command to end an index. Anything in the document
+coming after this command is in error.</p></dd>
+<dt><a name="5"><b class="cmd">key</b> <i class="arg">text</i></a></dt>
+<dd><p>Index structure. This command adds the keyword <i class="arg">text</i> to the
+index.</p></dd>
+<dt><a name="6"><b class="cmd">lb</b></a></dt>
+<dd><p>Text. The command is replaced with a left bracket. Use in free-form
+text. Required to avoid interpretation of a left bracket as the start
+of a markup command. Its usage is restricted to the arguments of other
+markup commands.</p></dd>
+<dt><a name="7"><b class="cmd"><a href="../../../../index.html#key17">manpage</a></b> <i class="arg">file</i> <i class="arg">text</i></a></dt>
+<dd><p>Index structure. This command adds an element to the index which
+refers to a document. The document is specified through the symbolic
+name <i class="arg">file</i>. The <i class="arg">text</i> argument is used to label the
+reference.</p>
+<p>Symbolic names are used to preserve the convertibility of this format
+to any output format. The actual name of the file will be inserted by
+the chosen formatting engine when converting the input. This will be
+based on a mapping from symbolic to actual names given to the engine.</p></dd>
+<dt><a name="8"><b class="cmd">rb</b></a></dt>
+<dd><p>Text. The command is replaced with a right bracket. Use in free-form
+text. Required to avoid interpretation of a right bracket as the end
+of a markup command. Its usage is restricted to the arguments of other
+commands.</p></dd>
+<dt><a name="9"><b class="cmd"><a href="../../../../index.html#key246">url</a></b> <i class="arg">url</i> <i class="arg">label</i></a></dt>
+<dd><p>Index structure. This is the second command to add an element to the
+index. To refer to a document it is not using a symbolic name however,
+but a (possibly format-specific) url describing the exact location of
+the document indexed here.</p></dd>
+<dt><a name="10"><b class="cmd">vset</b> <i class="arg">varname</i> <i class="arg">value</i></a></dt>
+<dd><p>Templating. In this form the command sets the named document variable
+to the specified <i class="arg">value</i>. It does not generate output. I.e. the
+command is replaced by the empty string.</p></dd>
+<dt><a name="11"><b class="cmd">vset</b> <i class="arg">varname</i></a></dt>
+<dd><p>Templating. In this form the command is replaced by the value of the
+named document variable</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>doctools</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="docidx_intro.html">docidx_intro</a>, <a href="docidx_lang_faq.html">docidx_lang_faq</a>, <a href="docidx_lang_intro.html">docidx_lang_intro</a>, <a href="docidx_lang_syntax.html">docidx_lang_syntax</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key367">docidx commands</a>, <a href="../../../../index.html#key370">docidx language</a>, <a href="../../../../index.html#key249">docidx markup</a>, <a href="../../../../index.html#key16">markup</a>, <a href="../../../../index.html#key136">semantic markup</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Documentation tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2007 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div></body></html>

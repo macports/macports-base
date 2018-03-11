@@ -1,0 +1,517 @@
+'\"
+'\" Generated from file 'bench\&.man' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) 2007-2008 Andreas Kupries <andreas_kupries@users\&.sourceforge\&.net>
+'\"
+.TH "bench" n 0\&.4 tcllib "Benchmarking/Performance tools"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+bench \- bench - Processing benchmark suites
+.SH SYNOPSIS
+package require \fBTcl  8\&.2\fR
+.sp
+package require \fBbench  ?0\&.4?\fR
+.sp
+\fB::bench::locate\fR \fIpattern\fR \fIpaths\fR
+.sp
+\fB::bench::run\fR ?\fIoption value\fR\&.\&.\&.? \fIinterp_list\fR \fIfile\fR\&.\&.\&.
+.sp
+\fB::bench::versions\fR \fIinterp_list\fR
+.sp
+\fB::bench::del\fR \fIbench_result\fR \fIcolumn\fR
+.sp
+\fB::bench::edit\fR \fIbench_result\fR \fIcolumn\fR \fInewvalue\fR
+.sp
+\fB::bench::merge\fR \fIbench_result\fR\&.\&.\&.
+.sp
+\fB::bench::norm\fR \fIbench_result\fR \fIcolumn\fR
+.sp
+\fB::bench::out::raw\fR \fIbench_result\fR
+.sp
+.BE
+.SH DESCRIPTION
+This package provides commands for the execution of benchmarks written
+in the bench language, and for the processing of results generated by
+such execution\&.
+.PP
+A reader interested in the bench language itself should start with the
+\fIbench language introduction\fR and proceed from there to the
+formal \fIbench language specification\fR\&.
+.PP
+.SH "PUBLIC API"
+.SS "BENCHMARK EXECUTION"
+.TP
+\fB::bench::locate\fR \fIpattern\fR \fIpaths\fR
+This command locates Tcl interpreters and returns a list containing
+their paths\&. It searches them in the list of \fIpaths\fR specified by
+the caller, using the glob \fIpattern\fR\&.
+.sp
+The command resolves soft links to find the actual executables
+matching the pattern\&. Note that only interpreters which are marked as
+executable and are actually executable on the current platform are put
+into the result\&.
+.TP
+\fB::bench::run\fR ?\fIoption value\fR\&.\&.\&.? \fIinterp_list\fR \fIfile\fR\&.\&.\&.
+This command executes the benchmarks declared in the set of files,
+once per Tcl interpreter specified via the \fIinterp_list\fR, and per
+the configuration specified by the options, and then returns the
+accumulated timing results\&. The format of this result is described in
+section \fBResult format\fR\&.
+.sp
+It is assumed that the contents of the files are written in the bench
+language\&.
+.sp
+The available options are
+.RS
+.TP
+\fB-errors\fR \fIflag\fR
+The argument is a boolean value\&. If set errors in benchmarks are
+propagated to the command, aborting benchmark execution\&. Otherwise
+they are recorded in the timing result via a special result code\&. The
+default is to propagate and abort\&.
+.TP
+\fB-threads\fR \fIn\fR
+The argument is a non-negative integer value declaring the number of
+threads to use while executing the benchmarks\&. The default value is
+\fB0\fR, to not use threads\&.
+.TP
+\fB-match\fR \fIpattern\fR
+The argument is a glob pattern\&. Only benchmarks whose description
+matches the pattern are executed\&. The default is the empty string, to
+execute all patterns\&.
+.TP
+\fB-rmatch\fR \fIpattern\fR
+The argument is a regular expression pattern\&. Only benchmarks whose
+description matches the pattern are executed\&. The default is the empty
+string, to execute all patterns\&.
+.TP
+\fB-iters\fR \fIn\fR
+The argument is positive integer number, the maximal number of
+iterations for any benchmark\&. The default is \fB1000\fR\&. Individual
+benchmarks can override this\&.
+.TP
+\fB-pkgdir\fR \fIpath\fR
+The argument is a path to an existing, readable directory\&. Multiple
+paths can be specified, simply use the option multiple times, each
+time with one of the paths to use\&.
+.sp
+If no paths were specified the system will behave as before\&.
+If one or more paths are specified, say \fBN\fR, each of the specified
+interpreters will be invoked \fBN\fR times, with one of the specified
+paths\&. The chosen path is put into the interpreters' \fBauto_path\fR,
+thus allowing it to find specific versions of a package\&.
+.sp
+In this way the use of \fB-pkgdir\fR allows the user to benchmark
+several different versions of a package, against one or more interpreters\&.
+.sp
+\fINote:\fR The empty string is allowed as a path and causes the system to
+run the specified interpreters with an unmodified \fBauto_path\fR\&. In case
+the package in question is available there as well\&.
+.RE
+.sp
+.TP
+\fB::bench::versions\fR \fIinterp_list\fR
+This command takes a list of Tcl interpreters, identified by their
+path, and returns a dictionary mapping from the interpreters to their
+versions\&. Interpreters which are not actually executable, or fail when
+interrogated, are not put into the result\&. I\&.e the result may contain
+less interpreters than there in the input list\&.
+.sp
+The command uses builtin command \fBinfo patchlevel\fR to determine
+the version of each interpreter\&.
+.PP
+.SS "RESULT MANIPULATION"
+.TP
+\fB::bench::del\fR \fIbench_result\fR \fIcolumn\fR
+This command removes a column, i\&.e\&. all benchmark results for a
+specific Tcl interpreter, from the specified benchmark result and
+returns the modified result\&.
+.sp
+The benchmark results are in the format described in section
+\fBResult format\fR\&.
+.sp
+The column is identified by an integer number\&.
+.TP
+\fB::bench::edit\fR \fIbench_result\fR \fIcolumn\fR \fInewvalue\fR
+This command renames a column in the specified benchmark result and
+returns the modified result\&. This means that the path of the Tcl
+interpreter in the identified column is changed to an arbitrary
+string\&.
+.sp
+The benchmark results are in the format described in section
+\fBResult format\fR\&.
+.sp
+The column is identified by an integer number\&.
+.TP
+\fB::bench::merge\fR \fIbench_result\fR\&.\&.\&.
+This commands takes one or more benchmark results, merges them into
+one big result, and returns that as its result\&.
+.sp
+All benchmark results are in the format described in section
+\fBResult format\fR\&.
+.TP
+\fB::bench::norm\fR \fIbench_result\fR \fIcolumn\fR
+This command normalizes the timing results in the specified benchmark
+result and returns the modified result\&. This means that the cell
+values are not times anymore, but factors showing how much faster or
+slower the execution was relative to the baseline\&.
+.sp
+The baseline against which the command normalizes are the timing
+results in the chosen column\&. This means that after the normalization
+the values in this column are all \fB1\fR, as these benchmarks are
+neither faster nor slower than the baseline\&.
+.sp
+A factor less than \fB1\fR indicates a benchmark which was faster
+than the baseline, whereas a factor greater than \fB1\fR indicates a
+slower execution\&.
+.sp
+The benchmark results are in the format described in section
+\fBResult format\fR\&.
+.sp
+The column is identified by an integer number\&.
+.TP
+\fB::bench::out::raw\fR \fIbench_result\fR
+This command formats the specified benchmark result for output to a
+file, socket, etc\&. This specific command does no formatting at all,
+it passes the input through unchanged\&.
+.sp
+For other formatting styles see the packages \fBbench::out::text\fR
+and \fBbench::out::csv\fR which provide commands to format
+benchmark results for human consumption, or as CSV data importable by
+spread sheets, respectively\&.
+.sp
+Complementary, to read benchmark results from files, sockets etc\&. look
+for the package \fBbench::in\fR and the commands provided by it\&.
+.PP
+.SS "RESULT FORMAT"
+After the execution of a set of benchmarks the raw result returned by
+this package is a Tcl dictionary containing all the relevant
+information\&.
+The dictionary is a compact representation, i\&.e\&. serialization, of a
+2-dimensional table which has Tcl interpreters as columns and
+benchmarks as rows\&. The cells of the table contain the timing
+results\&.
+The Tcl interpreters / columns are identified by their paths\&.
+The benchmarks / rows are identified by their description\&.
+.PP
+The possible keys are all valid Tcl lists of two or three elements and
+have one of the following forms:
+.TP
+{interp *}
+The set of keys matching this glob pattern capture the information
+about all the Tcl interpreters used to run the benchmarks\&. The second
+element of the key is the path to the interpreter\&.
+.sp
+The associated value is the version of the Tcl interpreter\&.
+.TP
+{desc *}
+The set of keys matching this glob pattern capture the information
+about all the benchmarks found in the executed benchmark suite\&. The
+second element of the key is the description of the benchmark, which
+has to be unique\&.
+.sp
+The associated value is irrelevant, and set to the empty string\&.
+.TP
+{usec * *}
+The set of keys matching this glob pattern capture the performance
+information, i\&.e\&. timing results\&. The second element of the key is the
+description of the benchmark, the third element the path of the Tcl
+interpreter which was used to run it\&.
+.sp
+The associated value is either one of several special result codes, or
+the time it took to execute the benchmark, in microseconds\&. The
+possible special result codes are
+.RS
+.TP
+ERR
+Benchmark could not be executed, failed with a Tcl error\&.
+.TP
+BAD_RES
+The benchmark could be executed, however the result from its body did
+not match the declared expectations\&.
+.RE
+.PP
+.SH "BUGS, IDEAS, FEEDBACK"
+This document, and the package it describes, will undoubtedly contain
+bugs and other problems\&.
+Please report such in the category \fIbench\fR of the
+\fITcllib Trackers\fR [http://core\&.tcl\&.tk/tcllib/reportlist]\&.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation\&.
+.SH "SEE ALSO"
+bench_intro, bench_lang_intro, bench_lang_spec, bench_read, bench_wcsv, bench_wtext
+.SH KEYWORDS
+benchmark, merging, normalization, performance, testing
+.SH CATEGORY
+Benchmark tools
+.SH COPYRIGHT
+.nf
+Copyright (c) 2007-2008 Andreas Kupries <andreas_kupries@users\&.sourceforge\&.net>
+
+.fi

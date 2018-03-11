@@ -1,0 +1,39 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-02-21  Andreas Kupries  <andreask@activestate.com>
+
+	* pkgIndex.tcl: Removed the superfluous [list] command in the
+	  ifneeded script.
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-07-28  Andreas Kupries  <andreask@activestate.com>
+
+	* core.man: New files, documentation for the packages in
+	* events.man: this module.
+	* transformcore.man:
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-12-01  Andreas Kupries  <andreask@activestate.com>
+
+	* New module 'virtchannel_core', with core classes for virtual
+	  channels aka reflected channels. TclOO based.

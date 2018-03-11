@@ -1,0 +1,318 @@
+2013-12-06  Andreas Kupries  <andreask@activestate.com>
+
+	* sha1.man: Ticket [444358b66e]. Documented option --.
+	* sha256.man:
+
+2013-10-29  Andreas Kupries  <andreask@activestate.com>
+
+	* sha1.c: Replaced misuse of cheaders for -D... with proper
+	* sha1c.tcl: cflags. Depending on whether critcl v2 or v3
+	* sha256.c: was used the TCL_BYTE_ORDER was not set, allowing
+	* sha256c.tcl: build of tcllibc with code for wrong byte order.
+	  Also added code to detect missing definition, and fail build.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2010-07-06  Andreas Kupries  <andreask@activestate.com>
+
+	* sha256.tcl (::sha2::HMACFinal): [Bug 2986744]: Added code
+	* sha256.man: limiting an intermediate value to int32 to make the
+	* pkgIndex.tcl: code workable for Tcl 8.5 and higher. Bumped
+	  package version to 1.0.3.
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-10-27  Andreas Kupries  <andreask@activestate.com>
+
+	* sha256.h: Made the uint*_t typedef's conditional to prevent
+	  their use on hpux-ia64. There they are in conflict with the
+	  definitions in the system header _inttypes.h.
+
+2009-05-07  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sha1c.tcl:   Fixed object leak in the critcl implementation.
+	* sha256c.tcl:
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-03-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sha256.man: Added documentation for the sha256 package.
+	* sha1.man: Fixed typos.
+
+2008-01-28  Andreas Kupries  <andreask@activestate.com>
+
+	* sha256c.tcl: Disabled the critcl::debug and critcl::cheaders -g
+	  definitions.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-05-03  Andreas Kupries  <andreask@activestate.com>
+
+	* sha1.tcl: Force-define loop variable for accel loader, so
+	* sha256.tcl: that sak will not fail in the unset when looking
+	  for the package version via restricted eval.
+
+2007-03-25  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sha256.c: gcc 4 has decided that assignment to a cast pointer is
+	to be denied. Therefore added work around.
+
+2007-03-23  Andreas Kupries <andreask@activestate.com>
+
+	* sha256.tcl: Added MD hints.
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sha1.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-11-04  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sha256c.tcl: Support MSVC as well as gcc.
+	* sha256.h:    (critcl2 can use gcc and/or msvc on windows)
+	* sha256.c:
+
+2006-10-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pkgIndex.tcl: Bumped versions of sha1, sha256 by a patchlevel
+	* sha1.man:     due to the changes to the package internals.
+	* sha1.tcl:
+	* sha1c.tcl:
+
+	* sha256.c: New files implementing sha256 in C
+	* sha256.h: Based on critcl.
+	* sha256c.tcl:
+
+	* sha256.tcl:  Rewritten to deal with multiple implementations,
+	* sha256.test: i.e. tcl and the new critcl one.
+
+2006-10-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sha1.tcl:  Management of multiple implementations rewritten to
+	* sha1.test: conform to the expections of the testsuite helper
+	  commands. Testsuite rewritten to use the new helpers.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-03-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sha1v1.test: Copies of sha1.{tcl,test} for the v1 line.
+	* sha1v1.tcl:  This duplication allows us to get rid of the package
+	  index hackery for v1, enables the clean conversion of the code
+	  in this directory into Tcl Modules, and allows proper separate
+	  development of the two major versions in the future.
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sha256.test: Fixed use of duplicate test names.
+
+2006-01-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sha1.test: More boilerplate simplified via use of test support.
+	* sha256.test:
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sha1.test: Hooked into the new common test support code.
+	* sha256.test:
+
+2005-10-24  Andreas Kupries <andreask@activestate.com>
+
+	* sha1.bench: New file. Basic benchmarks for SHA hashes.
+	* sha256.bench:
+
+2005-10-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-10-07  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sha1.c:    Fixed the byte order issue a better way and sorted
+	* sha1c.tcl: another problem on OpenBSD concerning headers.
+	* sha1.h:    Added byte-order check to resolve bug #1315688.
+
+2005-09-30  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sha1.tcl: Refactored to permit implementation selection based
+	upon the current interpreter version to try and maximise the speed.
+
+2005-09-30  Andreas Kupries <andreask@activestate.com>
+
+	* sha1.tcl: Applied [SF Tcllib Patch 1301707] to keep the size of
+	  generated numbers within the bounds of 32 bits.
+
+2005-02-24  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sha256.tcl: Speeded up the digest calculation.
+	* sha1.tcl:   Arranged to run all available implementations in the
+	* sha1.test:  tests. Speeded up the calculation.
+
+2005-02-23  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* pkgIndex.tcl: Provide version 1 and version 2
+	* sha1.tcl:     Rationalised the handling of accelerator extensions.
+	* sha1.test:    Tests fixed for the above.
+
+	* sha1.tcl:    Support cryptkit as a possible accellerator.
+	* sha1.test:   Enable testing of cryptkit implementation.
+
+2005-02-22  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sha256.tcl:  Inlined a load of expr calls to speed it up.
+	
+	* sha256.tcl:  SHA-224 and SHA-256 pure-Tcl implementation
+	* sha256.test: Tests from FIPS 180-2 for SHA-224 and SHA-256
+	This is the first version. It is correct (in that it passes the
+	FIPS test vectors) but slow. Speedups to follow.
+
+2005-02-21  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sha1.h: replaced the possibly buggy sample extension implementation
+	* sha1.c: with shiny new code from the NetBSD project.
+
+	* sha1.test: Added some file tests (16K and 81K)
+	* sha1.tcl: Replaced steps 1 and 3 with slightly more efficient
+	but equivalent bit operations. Fixed an error with integer length
+	exposed with tcl8.5. Verified 8.2-8.5
+
+2005-02-20  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sha1c.tcl: Imported the sha1 implementation from the Tcl sample
+	* sample.h:  extension and created a critcl wrapper.
+	* sample.c:  Added to the sak.tcl critcl generation code.
+	
+	* sha1.tcl:  Re-implemented to support hashing data in chunks
+	* sha1.test: Included tests from RFC 2202 for HMAC-SHA1.
+	* sha1.man:  This time we have kept the same API but with optional
+	extensions to use files/channels and to request the result as
+	binary. Now supports token based hashing as in md4, md5 and ripemd.
+	Incremented version to 2.0.0
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-05-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6.1 ========================
+	* 
+
+2004-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.6 ========================
+	* 
+
+2003-05-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.4 ========================
+	* 
+
+2003-04-10  Andreas Kupries  <andreask@activestate.com>
+
+	* pkgIndex.tcl:
+	* sha1.man:
+	* sha1.tcl: Fixed bug #614591. Set version of the package to to
+	  1.0.3
+
+2003-03-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sha1.tcl (sha1::sha1): Applied patch #637770 submitted by Donal
+	  Fellows to fix problems on Mac OS X machines. This possibly
+	  related to 64/32 bit arithmetic. See changes by Don Porter
+	  below.
+
+2003-02-07  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* sha1.tcl: Check that we have a _working_ C implementation.
+
+2003-02-06  David N. Welton  <davidw@dedasys.com>
+
+	* sha1.tcl (sha1::time): Use 'lindex' instead of regexp to fetch
+	  number from 'time' results.
+
+2002-02-20  Don Porter  <dgp@users.sf.net>
+
+	* sha1.tcl (sha1): Force 32-bit register arithmetic so that
+	the right answers are computed even on 64-bit platforms. [446997]
+
+2002-02-20  Donal K. Fellows  <fellowsd@cs.man.ac.uk>
+
+	* sha1.tcl (initK,sha1): Force 32-bit interpretation of constants
+	larger than INT_MAX on 32-bit processors, due to TIP#72.
+
+2002-02-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+	
+	* Version up to 1.0.2 to differentiate development from the
+	  version in the tcllib 1.2 release.
+
+	* sha1.tcl: Adding -- to hex/sha1 commands to prevent
+	  misinterpretation of data if starting with -.
+
+2001-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sha1.n:
+	* sha1.tcl:
+	* pkgIndex.tcl: Version up to 1.0.1
+
+2001-08-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* sha1.test: Fixed broken error messages for 8.4. Using
+	  [tcltest::getErrorMessage] now to get the correct message for
+	  all versions of the core. Bug [440051] reported by Larry Virden.
+
+2001-06-22  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* sha1.tcl: Fixed dubious code reported by frink.
+
+2001-06-21  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* New module, 'sha1'. The code is Don Libes's <libes@nist.gov>
+	  sha1pure, with Donal K. Fellows's patches to speed it up, and
+	  extended with a soft dependency on Trf to allow higher speed if
+	  the environment is right.

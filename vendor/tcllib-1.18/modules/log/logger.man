@@ -1,0 +1,397 @@
+[comment {-*- tcl -*- doctools manpage}]
+[comment {$Id: logger.man,v 1.26 2012/07/10 03:34:47 andreas_kupries Exp $}]
+[vset VERSION 0.9.4]
+[manpage_begin logger n [vset VERSION]]
+[keywords log]
+[keywords {log level}]
+[keywords logger]
+[keywords service]
+[moddesc {Object Oriented logging facility}]
+[titledesc {System to control logging of events.}]
+[category  {Programming tools}]
+[require Tcl 8.2]
+[require logger [opt [vset VERSION]]]
+[description]
+
+[para]
+
+The [package logger] package provides a flexible system for logging messages
+from different services, at priority levels, with different commands.
+
+[para]
+
+To begin using the logger package, we do the following:
+
+[para]
+
+[example {
+    package require logger
+    set log [logger::init myservice]
+    ${log}::notice "Initialized myservice logging"
+
+    ... code ...
+
+    ${log}::notice "Ending myservice logging"
+    ${log}::delete
+}]
+
+[para]
+
+In the above code, after the package is loaded, the following things
+happen:
+
+[list_begin definitions]
+
+[call [cmd logger::init] [arg service]]
+
+Initializes the service [arg service] for logging.  The service names
+are actually Tcl namespace names, so they are separated with '::'.
+The service name may not be the empty string or only ':'s.
+
+When a logger service is initialized, it "inherits" properties from its
+parents.  For instance, if there were a service [term foo], and
+we did a [cmd logger::init] [arg foo::bar] (to create a [term bar]
+service underneath [term foo]), [term bar] would copy the current
+configuration of the [term foo] service, although it would of
+course, also be possible to then separately configure [term bar].
+
+If a logger service is initialized and the parent does not yet exist, the
+parent is also created.
+
+The new logger service is initialized with the default loglevel set
+with [cmd logger::setlevel].
+
+[call [cmd logger::import] [opt [option -all] ] [opt [option -force]] [opt "[option -prefix] [arg prefix]" ] [opt "[option -namespace] [arg namespace]" ] [arg service] ]
+
+Import the logger service commands into the current namespace. Without the [option -all] option
+only the commands corresponding to the log levels are imported. If [option -all] is given,
+all the [cmd \${log}::cmd] style commands are imported. If the import would overwrite a command
+an error is returned and no command is imported. Use the [option -force] option to force the import
+and overwrite existing commands without complaining.
+
+If the [option -prefix] option is given, the commands are imported with the given [arg prefix]
+prepended to their names.
+
+If the [option -namespace] option is given, the commands are imported into the given namespace. If the
+namespace does not exist, it is created. If a namespace without a leading :: is given, it is interpreted as
+a child namespace to the current namespace.
+
+[call [cmd logger::initNamespace] [arg ns] [opt [arg level]]]
+
+Convenience command for setting up a namespace for logging. Creates a
+logger service named after the namespace [arg ns] (a :: prefix is
+stripped), imports all the log commands into the namespace, and sets
+the default logging level, either as specified by [arg level], or
+inherited from a service in the parent namespace, or a hardwired
+default, [const warn].
+
+[call [cmd logger::services]]
+
+Returns a list of all the available services.
+
+[call [cmd logger::enable] [arg level]]
+
+Globally enables logging at and "above" the given level.  Levels are
+[const debug], [const info], [const notice], [const warn], [const error],
+[const critical], [const alert], [const emergency].
+
+[call [cmd logger::disable] [arg level]]
+
+Globally disables logging at and "below" the given level.  Levels are
+those listed above.
+
+[call [cmd logger::setlevel] [arg level]]
+
+Globally enable logging at and "above" the given level. Levels are those
+listed above. This command changes the default loglevel for new loggers
+created with [cmd logger::init].
+
+[call [cmd logger::levels]]
+
+Returns a list of the available log levels (also listed above under [cmd enable]).
+
+[call [cmd logger::servicecmd] [arg service]]
+
+Returns the [cmd \${log}] token created by [cmd logger::init] for this service.
+
+[call [cmd \${log}::debug] [arg message]]
+[call [cmd \${log}::info] [arg message]]
+[call [cmd \${log}::notice] [arg message]]
+[call [cmd \${log}::warn] [arg message]]
+[call [cmd \${log}::error] [arg message]]
+[call [cmd \${log}::critical] [arg message]]
+[call [cmd \${log}::alert] [arg message]]
+[call [cmd \${log}::emergency] [arg message]]
+
+These are the commands called to actually log a message about an
+event.  [var \${log}] is the variable obtained from [cmd logger::init].
+
+[call [cmd \${log}::setlevel] [arg level]]
+
+Enable logging, in the service referenced by [var \${log}], and its
+children, at and above the level specified, and disable logging below
+it.
+
+[call [cmd \${log}::enable] [arg level] ]
+
+Enable logging, in the service referenced by [var \${log}], and its
+children, at and above the level specified.  Note that this does [emph not] disable logging below this level, so you should probably use
+[cmd setlevel] instead.
+
+[call [cmd \${log}::disable] [arg level]]
+
+Disable logging, in the service referenced by [var \${log}], and its
+children, at and below the level specified. Note that this does [emph not] enable logging above this level,
+so you should probably use [cmd setlevel] instead.
+Disabling the loglevel [const emergency] switches logging off for the service and its children.
+
+[call [cmd \${log}::lvlchangeproc] [arg command]]
+[call [cmd \${log}::lvlchangeproc]]
+
+Set the script to call when the log instance in question changes its log level.
+If called without a command it returns the currently registered command. The command gets two arguments
+appended, the old and the new loglevel. The callback is invoked after all changes have been done.
+If child loggers are affected, their callbacks are called before their parents callback.
+
+[example {
+ 	proc lvlcallback {old new} {
+ 	    puts "Loglevel changed from $old to $new"
+ 	}
+ 	${log}::lvlchangeproc lvlcallback
+ }]
+
+[call [cmd \${log}::logproc] [arg level]]
+[call [cmd \${log}::logproc] [arg level] [arg command]]
+[call [cmd \${log}::logproc] [arg level] [arg argname] [arg body]]
+
+This command comes in three forms - the third, older one is deprecated
+and may be removed from future versions of the logger package.
+The current set version takes one argument, a command to be executed when the
+level is called.  The callback command takes on argument, the text to
+be logged. If called only with a valid level [cmd logproc] returns the name of the command
+currently registered as callback command.
+
+[cmd logproc] specifies which command will perform the actual logging
+for a given level.  The logger package ships with default commands for
+all log levels, but with [cmd logproc] it is possible to replace them
+with custom code.  This would let you send your logs over the network,
+to a database, or anything else.  For example:
+
+[example {
+    proc logtoserver {txt} {
+        variable socket
+        puts $socket "Notice: $txt"
+    }
+
+    ${log}::logproc notice logtoserver
+}]
+
+Trace logs are slightly different: instead of a plain text argument,
+the argument provided to the logproc is a dictionary consisting of the
+[const enter] or [const leave] keyword along with another dictionary of
+details about the trace.  These include:
+
+[list_begin itemized]
+
+[item] [const proc] - Name of the procedure being traced.
+
+[item] [const level] - The stack level for the procedure invocation
+(from [cmd info] [cmd level]).
+
+[item] [const script] - The name of the file in which the procedure is
+defined, or an empty string if defined in interactive mode.
+
+[item] [const caller] - The name of the procedure calling the procedure
+being traced, or an empty string if the procedure was called from the
+global scope (stack level 0).
+
+[item] [const procargs] - A dictionary consisting of the names of arguments
+to the procedure paired with values given for those arguments ([const enter]
+traces only).
+
+[item] [const status] - The Tcl return code (e.g. [const ok],
+[const continue], etc.) ([const leave] traces only).
+
+[item] [const result] - The value returned by the procedure ([const leave]
+traces only).
+
+[list_end]
+
+[call [cmd \${log}::services]]
+
+Returns a list of the registered logging services which are children of this service.
+
+[call [cmd \${log}::servicename]]
+
+Returns the name of this service.
+
+[call [cmd \${log}::currentloglevel]]
+
+Returns the currently enabled log level for this service. If no logging is enabled returns [const none].
+
+[call [cmd \${log}::delproc] [arg command]]
+[call [cmd \${log}::delproc]]
+
+Set the script to call when the log instance in question is deleted.
+If called without a command it returns the currently registered command.
+For example:
+
+[example {
+    ${log}::delproc [list closesock $logsock]
+}]
+
+[call [cmd \${log}::delete]]
+
+This command deletes a particular logging service, and its children.
+You must call this to clean up the resources used by a service.
+
+[call [cmd \${log}::trace] [arg command]]
+
+This command controls logging of enter/leave traces for specified procedures.
+It is used to enable and disable tracing, query tracing status, and
+specify procedures are to be traced.  Trace handlers are unregistered when
+tracing is disabled.  As a result, there is not performance impact to a
+library when tracing is disabled, just as with other log level commands.
+
+[example {
+  proc tracecmd { dict } {
+      puts $dict
+  }
+
+  set log [::logger::init example]
+  ${log}::logproc trace tracecmd
+
+  proc foo { args } {
+      puts "In foo"
+      bar 1
+      return "foo_result"
+  }
+
+  proc bar { x } {
+      puts "In bar"
+      return "bar_result"
+  }
+
+  ${log}::trace add foo bar
+  ${log}::trace on
+
+  foo
+
+# Output:
+enter {proc ::foo level 1 script {} caller {} procargs {args {}}}
+In foo
+enter {proc ::bar level 2 script {} caller ::foo procargs {x 1}}
+In bar
+leave {proc ::bar level 2 script {} caller ::foo status ok result bar_result}
+leave {proc ::foo level 1 script {} caller {} status ok result foo_result}
+}]
+
+[call [cmd \${log}::trace] [cmd on]]
+
+Turns on trace logging for procedures registered through the [cmd trace]
+[cmd add] command.  This is similar to the [cmd enable] command for other
+logging levels, but allows trace logging to take place at any level.
+
+The trace logging mechanism takes advantage of the execution trace feature
+of Tcl 8.4 and later.  The [cmd trace] [cmd on] command will return an
+error if called from earlier versions of Tcl.
+
+[call [cmd \${log}::trace] [cmd off]]
+
+Turns off trace logging for procedures registered for trace logging
+through the [cmd trace] [cmd add] command.  This is similar to the
+[cmd disable] command for other logging levels, but allows trace logging
+to take place at any level.
+
+Procedures are not unregistered, so logging for them can be turned back
+on with the [cmd trace] [cmd on] command.  There is no overhead imposed
+by trace registration when trace logging is disabled.
+
+[call [cmd \${log}::trace] [cmd status] [opt procName] [opt ...]]
+
+This command returns a list of the procedures currently registered for
+trace logging, or a flag indicating whether or not a trace is registered
+for one or more specified procedures.
+
+[call [cmd \${log}::trace] [cmd add] [arg procName] [opt ...]]
+[call [cmd \${log}::trace] [cmd add] [opt -ns] [arg nsName] [opt ...]]
+
+This command registers one or more procedures for logging of entry/exit
+traces.  Procedures can be specified via a list of procedure names or
+namespace names (in which case all procedure within the namespace
+are targeted by the operation).  By default, each name is first
+interpreted as a procedure name or glob-style search pattern, and if
+not found its interpreted as a namespace name.  The [arg -ns] option can
+be used to force interpretation of all provided arguments as namespace names.
+
+Procedures must be defined prior to registering them for tracing
+through the [cmd trace] [cmd add] command.  Any procedure or namespace
+names/patterns that don't match any existing procedures will be
+silently ignored.
+
+[call [cmd \${log}::trace] [cmd remove] [arg procName] [opt ...]]
+[call [cmd \${log}::trace] [cmd remove] [opt -ns] [arg nsName] [opt ...]]
+
+This command unregisters one or more procedures so that they will no
+longer have trace logging performed, with the same matching rules as
+that of the [cmd trace] [cmd add] command.
+
+[list_end]
+
+[section IMPLEMENTATION]
+
+The logger package is implemented in such a way as to optimize (for
+Tcl 8.4 and newer) log procedures which are disabled.  They are
+aliased to a proc which has no body, which is compiled to a no op in
+bytecode.  This should make the peformance hit minimal.  If you really
+want to pull out all the stops, you can replace the ${log} token in
+your code with the actual namespace and command (${log}::warn becomes
+::logger::tree::myservice::warn), so that no variable lookup is done.
+This puts the performance of disabled logger commands very close to no
+logging at all.
+
+[para]
+
+The "object orientation" is done through a hierarchy of namespaces.
+Using an actual object oriented system would probably be a better way
+of doing things, or at least provide for a cleaner implementation.
+
+[para]
+
+The service "object orientation" is done with namespaces.
+
+[section {Logprocs and Callstack}]
+
+The logger package takes extra care to keep the logproc out of the call stack.
+This enables logprocs to execute code in the callers scope by using uplevel or
+linking to local variables by using upvar. This may fire traces with all usual
+side effects.
+
+[example {
+     # Print caller and current vars in the calling proc
+     proc log_local_var {txt} {
+          set caller [info level -1]
+          set vars [uplevel 1 info vars]
+          foreach var [lsort $vars] {
+             if {[uplevel 1 [list array exists $var]] == 1} {
+             	lappend val $var <Array>
+             } else {
+             	lappend val $var [uplevel 1 [list set $var]]
+             }
+          }
+          puts "$txt"
+          puts "Caller: $caller"
+          puts "Variables in callers scope:"
+          foreach {var value} $val {
+          	puts "$var = $value"
+          }
+     }
+
+     # install as logproc
+     ${log}::logproc debug log_local_var
+     }
+]
+
+[vset CATEGORY logger]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

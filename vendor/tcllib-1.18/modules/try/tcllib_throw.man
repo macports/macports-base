@@ -1,0 +1,39 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin try n 1]
+[see_also error(n)]
+[keywords error]
+[keywords throw]
+[keywords return]
+
+[copyright {2015 Miguel Martínez López, BSD licensed}]
+[moddesc {Forward compatibility implementation of [throw]}]
+[titledesc {throw - Throw an error exception with a message}]
+[category  Utility]
+[require Tcl 8.5]
+[require throw [opt 1]]
+[description]
+[para]
+
+This package provides a forward-compatibility implementation of Tcl
+8.6's throw command (TIP 329), for Tcl 8.5. The code was
+directly pulled from Tcl 8.6 revision ?, when try/finally was
+implemented as Tcl procedure instead of in C.
+
+[list_begin definitions]
+[comment {- - -- --- ----- -------- ------------- ---------------------}]
+[call [cmd ::throw] [arg error_code] [arg error_message]]
+
+throw is merely a reordering of the arguments of the error command. It throws an error with the indicated 
+error code and error message.
+
+[list_end]
+
+[section EXAMPLES]
+
+[para][example_begin]
+[cmd throw] {MYERROR CODE} "My error message"
+[example_end]
+
+[vset CATEGORY try]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

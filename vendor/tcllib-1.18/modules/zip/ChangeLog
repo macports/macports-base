@@ -1,0 +1,30 @@
+2013-12-17  Andreas Kupries <andreask@activestate.com>
+
+	* decode.man: Documented the zip archive decoder package.
+	* encode.man: Documented the zip archive generator package.
+
+2013-04-05  Andreas Kupries <andreask@activestate.com>
+
+	* encode.tcl: Extended the errors thrown by the packages with
+	* decode.tcl: error codes usable by try/trap. Bumped versions
+	  to 0.4 and 0.3 respectively.
+
+2013-02-14  Andreas Kupries  <andreask@activestate.com>
+
+	* decode.tcl: Bumped zip::decode and -encode to 0.3 and 0.2
+	* encode.tcl: respectively to distinguish properly from the
+	* pkgIndex.tcl: 0.1/2.xxx versions which existed in AS/perforce
+	  before they moved to tcllib/fossil. That should have been done
+	  as part of the move, and was forgotten.
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2013-01-28  Andreas Kupries <andreask@activestate.com>
+
+	* decode.tcl: New module and packages. De- and
+	* encode.tcl: encoding zipfiles.
+	* pkgIndex.tcl: 

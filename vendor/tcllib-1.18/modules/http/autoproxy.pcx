@@ -1,0 +1,62 @@
+# -*- tcl -*- autoproxy.pcx
+# Syntax of the commands provided by package autoproxy.
+
+# For use by TclDevKit's static syntax checker.
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the documentation describing the format of the code contained in this file
+#
+
+package require pcx
+pcx::register autoproxy
+pcx::tcldep   1.5.1 needs tcl 8.2
+
+namespace eval ::autoproxy {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 1.5.1 std ::autoproxy::cget \
+    {checkSimpleArgs 1 1 {
+	checkKeyword 1 {-host -proxy_host -port -proxy_port -no_proxy -basic -authProc}
+    }}
+pcx::check 1.5.1 std ::autoproxy::configure \
+    {checkSimpleArgs 0 -1 {
+	{checkConfigure 1 {
+	    {-host       checkWord}
+	    {-proy_host  checkWord}
+	    {-port       checkWholeNum}
+	    {-proxy_port checkWholeNum}
+	    {-no_proxy   checkList}
+	    {-basic      {checkConfigure 0 {
+		{-username checkWord}
+		{-password checkWord}
+		{-realm    checkWord}
+	    }}}
+	    {-authProc   checkProcName}
+	}}
+    }}
+pcx::check 1.5.1 std ::autoproxy::init \
+    {checkSimpleArgs 0 2 {
+	checkWord
+	checkList
+    }}
+# TODO: Get options/syntax for tls::socket
+pcx::check 1.5.1 std ::autoproxy::tls_connect \
+    {checkSimpleArgs 0 -1 {
+	checkWord
+    }}
+# TODO: Get options/syntax for tls_connect (s.a.)
+pcx::check 1.5.1 std ::autoproxy::tls_socket \
+    {checkSimpleArgs 0 -1 {
+	checkWord
+    }}
+# TODO: Get options/syntax for tls::socket
+pcx::check 1.5.1 std ::autoproxy::tunnel_connect \
+    {checkSimpleArgs 0 -1 {
+	checkWord
+    }}
+
+# Initialization via pcx::init.
+# Use a ::autoproxy::init procedure for non-standard initialization.
+pcx::complete

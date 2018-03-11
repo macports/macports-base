@@ -1,0 +1,31 @@
+2013-12-17  Andreas Kupries  <andreask@activestate.com>
+
+	* debug_heartbeat.man: Fixed missing requirement of the
+	* debug_timestamp.man: package itself.
+
+2013-08-06  Andreas Kupries  <aku@hephaistos>
+
+	* debug.tcl: Fixed bug in 'pdict', access to name of the array
+	* debug.man: this is not about. Version bumped to 1.0.2
+	* pkgIndex.tcl:
+
+2013-07-31  Andreas Kupries  <andreask@activestate.com>
+
+	* debug.tcl: Fixed missing export of 'pdict'. Plus better handling
+	* debug.man: of output channel definition. stderr is default only
+	* pkgIndex.tcl: if nothing is set by the user. This now allows
+	  applications to override the default for all packages not having
+	  their own output settings. Version bumped to 1.0.1
+
+2013-04-08  Andreas Kupries <andreask@activestate.com>
+
+	* debug.man: Added documentation.
+	* debug_caller.man:
+	* debug_heartbeat.man:
+	* debug_timestamp.man:
+
+2013-04-04  Andreas Kupries  <aku@hephaistos>
+
+	* New module and packages for generating a debug
+	  narrative. Adapted from the Wub utility package
+	  Debug, by Colin McCormack.

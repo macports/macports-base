@@ -1,0 +1,56 @@
+[manpage_begin math::numtheory n 1.0]
+[keywords {number theory}]
+[keywords prime]
+[copyright "2010 Lars Hellstr\u00F6m\
+  <Lars dot Hellstrom at residenset dot net>"]
+[moddesc   {Tcl Math Library}]
+[titledesc {Number Theory}]
+[category  Mathematics]
+[require Tcl [opt 8.5]]
+[require math::numtheory [opt 1.0]]
+
+[description]
+[para]
+This package is for collecting various number-theoretic operations,
+though at the moment it only provides that of testing whether an
+integer is a prime.
+
+[list_begin definitions]
+[call [cmd math::numtheory::isprime] [arg N] [
+   opt "[arg option] [arg value] ..."
+]]
+  The [cmd isprime] command tests whether the integer [arg N] is a
+  prime, returning a boolean true value for prime [arg N] and a
+  boolean false value for non-prime [arg N]. The formal definition of
+  'prime' used is the conventional, that the number being tested is
+  greater than 1 and only has trivial divisors.
+  [para]
+
+  To be precise, the return value is one of [const 0] (if [arg N] is
+  definitely not a prime), [const 1] (if [arg N] is definitely a
+  prime), and [const on] (if [arg N] is probably prime); the latter
+  two are both boolean true values. The case that an integer may be
+  classified as "probably prime" arises because the Miller-Rabin
+  algorithm used in the test implementation is basically probabilistic,
+  and may if we are unlucky fail to detect that a number is in fact
+  composite. Options may be used to select the risk of such
+  "false positives" in the test. [const 1] is returned for "small"
+  [arg N] (which currently means [arg N] < 118670087467), where it is
+  known that no false positives are possible.
+  [para]
+
+  The only option currently defined is:
+  [list_begin options]
+  [opt_def -randommr [arg repetitions]]
+    which controls how many times the Miller-Rabin test should be
+    repeated with randomly chosen bases. Each repetition reduces the
+    probability of a false positive by a factor at least 4. The
+    default for [arg repetitions] is 4.
+  [list_end]
+  Unknown options are silently ignored.
+
+[list_end]
+
+[vset CATEGORY {math :: numtheory}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

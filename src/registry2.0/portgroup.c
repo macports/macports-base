@@ -1,6 +1,5 @@
 /*
  * vim:tw=80:expandtab
- * $Id$
  *
  * Copyright (c) 2014 The MacPorts Project
  * All rights reserved.

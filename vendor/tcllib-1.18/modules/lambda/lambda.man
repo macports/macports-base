@@ -1,0 +1,89 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin lambda n 1]
+[see_also apply(n)]
+[see_also proc(n)]
+[keywords {anonymous procedure}]
+[keywords callback]
+[keywords {command prefix}]
+[keywords currying]
+[keywords lambda]
+[keywords {partial application}]
+[keywords proc]
+[copyright {2011 Andreas Kupries, BSD licensed}]
+[moddesc {Utility commands for anonymous procedures}]
+[titledesc {Utility commands for anonymous procedures}]
+[category  Utility]
+[require Tcl 8.5]
+[require lambda [opt 1]]
+[description]
+[para]
+
+This package provides two convenience commands to make the writing of
+anonymous procedures, i.e. lambdas more [cmd proc]-like. Instead of,
+for example, to write
+
+[example {
+     set f {::apply {{x} {
+        ....
+     }}}
+}]
+
+with its deep nesting of braces, or
+
+[example {
+     set f [list ::apply {{x y} {
+        ....
+     }} $value_for_x]
+}]
+
+with a list command to insert some of the arguments of a partial
+application, just write
+
+[example {
+     set f [lambda {x} {
+        ....
+     }]
+}]
+
+and
+
+[example {
+     set f [lambda {x y} {
+        ....
+     } $value_for_x]
+}]
+
+[section {COMMANDS}]
+
+[list_begin definitions]
+[comment {- - -- --- ----- -------- ------------- ---------------------}]
+[call [cmd ::lambda] [arg arguments] [arg body] [opt [arg arg]...]]
+
+The command constructs an anonymous procedure from the list of
+arguments, body script and (optional) predefined argument values and
+returns a command prefix representing this anonymous procedure.
+
+[para] When invoked the [arg body] is run in a new procedure scope
+just underneath the global scope, with the arguments set to the values
+supplied at both construction and invokation time.
+
+[comment {- - -- --- ----- -------- ------------- ---------------------}]
+[call [cmd ::lambda@] [arg namespace] [arg arguments] [arg body] [opt [arg arg]...]]
+
+The command constructs an anonymous procedure from the namespace name,
+list of arguments, body script and (optional) predefined argument
+values and returns a command prefix representing this anonymous
+procedure.
+
+[para] When invoked the [arg body] is run in a new procedure scope in
+the [arg namespace], with the arguments set to the values supplied at
+both construction and invokation time.
+
+[list_end]
+
+[section AUTHORS]
+Andreas Kupries
+
+[vset CATEGORY lambda]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

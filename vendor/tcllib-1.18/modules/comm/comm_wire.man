@@ -1,0 +1,284 @@
+[manpage_begin comm_wire n 3]
+[see_also comm]
+[keywords comm]
+[keywords communication]
+[keywords ipc]
+[keywords message]
+[keywords {remote communication}]
+[keywords {remote execution}]
+[keywords rpc]
+[keywords socket]
+[copyright {2005 Docs. Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Remote communication}]
+[titledesc {The comm wire protocol}]
+[category  {Programming tools}]
+[require comm]
+[description]
+
+[para]
+
+The [package comm] command provides an inter-interpreter remote
+execution facility much like Tk's [cmd send(n)], except that it uses
+sockets rather than the X server for the communication path.  As a
+result, [package comm] works with multiple interpreters, works on
+Windows and Macintosh systems, and provides control over the remote
+execution path.
+
+[para]
+
+This document contains a specification of the various versions of the
+wire protocol used by comm internally for the communication between
+its endpoints. It has no relevance to users of [package comm], only to
+developers who wish to modify the package, write a compatible facility
+in a different language, or some other facility based on the same
+protocol.
+
+[comment {
+    An example of some other facility could be a router layer which is
+    able to get messages for many different endpoints and then routes
+    them to the correct one. Why is this interesting ? Because it
+    allows mesh-routing, i.e. an application fires a command to some
+    other endpoint without having to worry if there is direct
+    connection to this endpoint or not. A secure tunnel then neatly
+    fits into this. Its endpoints are routing agents which take
+    arbitrarily commands, route them through the tunnel and then
+    dispatch them to the correct endpoint on the other side.
+
+    Note: A special case would be to have such a router facility built
+    into the core comm package, making each endpoint a router as
+    well. Like with the ability to listen to for non-local connection
+    this is something the user should be able to disable.
+}]
+
+[comment {
+    Motivation for documenting the protocol
+    ---------------------------------------
+
+    While the comm package allows the transport and execution of arbitrary
+    Tcl scripts a particular application can use the hooks to restrict the
+    scripts to single commands, and the legal commands to a specific set
+    as well.
+
+    If this is done (*) comm becomes more of a transport layer for a
+    regular RPC, and the data transported over the wire is less of a Tcl
+    script and more of a declaration of which remote procedure is wanted,
+    plus arguments.
+
+    At this point it begins to make sense to have implementations in other
+    scripting languages. Because then it becomes irrelevant in what
+    language the server is implemented. The comm protocol becomes a
+    portable RPC protocol, which can also be used for transport Tcl
+    scripts when both sides are Tcl and allowing this.
+
+    (*) And IMHO it should be done 90% of the time, just to get proper
+    security. Note that just using a safe interp is not quite enough, as
+    it still allows arbitrary scripts. The interp has to contains aliases
+    for the wanted commands, and only them for us to get a large security
+    wall.
+}]
+
+[section {Wire Protocol Version 3}]
+[subsection {Basic Layer}]
+
+The basic encoding for [emph all] data is UTF-8. Because of this
+binary data, including the NULL character, can be sent over the wire
+as is, without the need for armoring it.
+
+[subsection {Basic Message Layer}]
+
+On top of the [sectref {Basic Layer}] we have a
+
+[term {message oriented}] exchange of data.
+
+The totality of all characters written to the channel is a Tcl list,
+with each element a separate [term message], each itself a list. The
+messages in the overall list are separated by EOL. Note that EOL
+characters can occur within the list as well. They can be
+distinguished from the message-separating EOL by the fact that the
+data from the beginning up to their location is not a valid Tcl list.
+
+[para]
+
+EOL is signaled through the linefeed character, i.e [const LF], or,
+hex [const 0x0a]. This is following the unix convention for
+line-endings.
+
+[para]
+
+As a list each message is composed of [term words]. Their meaning
+depends on when the message was sent in the overall exchange. This is
+described in the upcoming sections.
+
+[subsection {Negotiation Messages - Initial Handshake} ih]
+
+The command protocol is defined like this:
+
+[list_begin itemized]
+[item]
+
+The first message send by a client to a server, when opening the
+connection, contains two words. The first word is a list as well, and
+contains the versions of the wire protocol the client is willing to
+accept, with the most preferred version first. The second word is the
+TCP port the client is listening on for connections to itself. The
+value [const 0] is used here to signal that the client will not listen
+for connections, i.e. that it is purely for sending commands, and not
+receiving them.
+
+[item]
+
+The first message sent by the server to the client, in response to the
+message above contains only one word. This word is a list, containing
+the string [const vers] as its first element, and the version of the
+wire protocol the server has selected from the offered versions as the
+second.
+
+[comment {
+        NOTE / DANGER
+
+        The terminating EOL for this first response will be the socket
+        specific default EOL (Windows/Internet convention: "\r\n").
+        However all future messages use Unix convention, i.e. "\n",
+        for their EOLs, embedded or terminating.
+
+        Reason: The internal command commNewComm does the common
+                processing for new connections, doing the
+
+                          fconfigure -translation lf
+
+                However the handshake response containing the accepted
+                version is sent before commNewComm is called (in
+                commIncoming).
+
+        NOTE 2:
+
+        This inconsistency has been fixed locally already, but
+        not been committed yet.
+}]
+[list_end]
+
+[subsection {Script/Command Messages}]
+
+All messages coming after the [sectref ih {initial handshake}]
+consist of three words. These are an instruction, a transaction id,
+and the payload. The valid instructions are shown below. The
+transaction ids are used by the client to match any incoming replies
+to the command messages it sent. This means that a server has to copy
+the transaction id from a command message to the reply it sends for
+that message.
+
+[list_begin definitions]
+
+[def [const send]]
+[def [const async]]
+[def [const command]]
+
+The payload is the Tcl script to execute on the server. It is actually
+a list containing the script fragments. These fragment are
+
+[cmd concat]enated together by the server to form the full script to
+execute on the server side.
+
+This emulates the Tcl "eval" semantics.
+
+In most cases it is best to have only one word in the list, a list
+containing the exact command.
+
+[para]
+Examples:
+[para]
+[example {
+    (a)     {send 1 {{array get tcl_platform}}}
+    (b)     {send 1 {array get tcl_platform}}
+    (c)     {send 1 {array {get tcl_platform}}}
+
+    are all valid representations of the same command. They are
+    generated via
+
+    (a')    send {array get tcl_platform}
+    (b')    send array get tcl_platform
+    (c')    send array {get tcl_platform}
+
+    respectively
+}]
+[para]
+
+Note that (a), generated by (a'), is the usual form, if only single
+commands are sent by the client.
+
+For example constructed using [cmd list], if the command contains
+variable arguments. Like
+
+[para]
+[example {
+    send [list array get $the_variable]
+}]
+[para]
+
+These three instructions all invoke the script on the server
+side. Their difference is in the treatment of result values, and thus
+determines if a reply is expected.
+
+[list_begin definitions]
+[def [const send]]
+
+A reply is expected. The sender is waiting for the result.
+
+[def [const async]]
+
+No reply is expected, the sender has no interest in the result and is
+not waiting for any.
+
+[def [const command]]
+
+A reply is expected, but the sender is not waiting for it. It has
+arranged to get a process-internal notification when the result
+arrives.
+
+[list_end]
+
+[def [const reply]]
+
+Like the previous three command, however the tcl script in the payload
+is highly restricted.
+
+It has to be a syntactically valid Tcl [cmd return] command. This
+contains result code, value, error code, and error info.
+
+[para]
+Examples:
+[para]
+[example {
+    {reply 1 {return -code 0 {}}}
+    {reply 1 {return -code 0 {osVersion 2.4.21-99-default byteOrder littleEndian machine i686 platform unix os Linux user andreask wordSize 4}}}
+}]
+
+[list_end]
+
+[comment {
+	 Socket Miscellanea
+	 ------------------
+
+	 It is possible to have two sockets between a client and a
+	 server. This happens if both sides connected to each other at
+	 the same time.
+
+	 Current protocol versions
+	 -------------------------
+
+	 V2
+
+	 V3      This is preferred version and uses UTF 8 encoding.
+
+	         This is actually the only version which will work IIU
+		 the code right. Because the server part of comm will
+		 send the version reply if and only if version 3 was
+		 negotiated.
+
+		 IOW if v2 is used the client will not see a version
+	         reply during the negotiation handshake.
+}]
+
+[vset CATEGORY comm]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

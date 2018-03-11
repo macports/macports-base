@@ -1,4 +1,3 @@
-# $Id$
 # Test file for registry::entry
 # Syntax:
 # tclsh entry.tcl <Pextlib name>
@@ -7,7 +6,7 @@ proc main {pextlibname} {
     load $pextlibname
 
     # totally lame that file delete won't do it
-    exec rm -f {*}[glob -nocomplain test.db*]
+    exec -ignorestderr rm -f {*}[glob -nocomplain test.db*]
 
     # can't create registry in some brain-dead place or in protected place
     test_throws {registry::open /some/brain/dead/place} registry::cannot-init
@@ -72,8 +71,8 @@ proc main {pextlibname} {
         # enough to ignore the zeroes
         test_set {[registry::entry search name vim version 7.1.2]} {$vim2 $vim3}
         test_set {[registry::entry search variants {}]} {$vim2 $zlib}
-        test_set {[registry::entry search -glob name vi*]} {$vim1 $vim2 $vim3}
-        test_set {[registry::entry search -regexp name {zlib|pcre}]} \
+        test_set {[registry::entry search name -glob vi*]} {$vim1 $vim2 $vim3}
+        test_set {[registry::entry search name -regexp {zlib|pcre}]} \
             {$zlib $pcre}
     }
 

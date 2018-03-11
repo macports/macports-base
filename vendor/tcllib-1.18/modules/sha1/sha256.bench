@@ -1,0 +1,52 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'sha2' module.
+# This allow developers to monitor/gauge/track package performance.
+#
+# (c) 2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+# We need at least version 8.2 for the package and thus the
+# benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.2]} {
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+set moddir [file dirname [file dirname [info script]]]
+lappend auto_path $moddir
+
+package forget sha256
+catch {namespace delete ::sha2}
+source [file join [file dirname [info script]] sha256.tcl]
+
+set key "01234567abcdefgh01234567abcdefgh01234567abcdefgh01234567abcdefgh=="
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+foreach n {1 10 100 1000} {
+    bench -desc "SHA256 sha_ $n" -pre {
+	set str [string repeat " " $n]
+    } -body {
+	sha2::sha256 $str
+    }
+
+    bench -desc "SHA224 sha_ $n" -pre {
+	set str [string repeat " " $n]
+    } -body {
+	sha2::sha224 $str
+    }
+
+    bench -desc "SHA256 hmac $n" -pre {
+	set str [string repeat " " $n]
+    } -body {
+	sha2::hmac $key $str
+    }
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete

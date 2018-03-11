@@ -1,0 +1,526 @@
+# Tests for the uri module.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2000 by Zveno Pty Ltd.
+#
+# RCS: @(#) $Id: uri.test,v 1.25 2011/03/23 04:39:54 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal uri.tcl uri
+}
+
+# -------------------------------------------------------------------------
+# Split tests
+
+test uri-1.0 {uri::split - http w/- nested query} {
+    dictsort [uri::split http://test.net/path/path2?query=url?otherquery]
+} {fragment {} host test.net path path/path2 port {} pwd {} query query=url?otherquery scheme http user {}}
+
+test uri-1.1 {uri::split - http w/- query} {
+    dictsort [uri::split http://test.net/path/path2?query]
+} {fragment {} host test.net path path/path2 port {} pwd {} query query scheme http user {}}
+
+test uri-1.2 {uri::split - https w/- query} {
+    dictsort [uri::split https://test.net/path/path2?query]
+} {fragment {} host test.net path path/path2 port {} pwd {} query query scheme https user {}}
+
+test uri-1.3 {uri::split - http w/- port} {
+    dictsort [uri::split http://test.net:8080]
+} {fragment {} host test.net path {} port 8080 pwd {} query {} scheme http user {}}
+
+test uri-1.4 {uri::split - https w/- port} {
+    dictsort [uri::split https://test.net:8888]
+} {fragment {} host test.net path {} port 8888 pwd {} query {} scheme https user {}}
+
+test uri-1.5 {uri::split - ftp} {
+    dictsort [uri::split ftp://ftp.test.net/path/to/resource]
+} {host ftp.test.net path path/to/resource port {} pwd {} scheme ftp type {} user {}}
+
+test uri-1.6 {uri::split - ftp with userinfo} {
+    dictsort [uri::split {ftp://user:passwd@localhost/a/b/c.d}]
+} {host localhost path a/b/c.d port {} pwd passwd scheme ftp type {} user user}
+
+test uri-1.7 {uri::split - ftp with type} {
+    dictsort [uri::split {ftp://localhost/a/b/c.d;type=i}]
+} {host localhost path a/b/c.d port {} pwd {} scheme ftp type i user {}}
+
+test uri-1.8 {uri::split - ftp with port} {
+    dictsort [uri::split {ftp://localhost:21/a/b/c.d}]
+} {host localhost path a/b/c.d port 21 pwd {} scheme ftp type {} user {}}
+
+test uri-1.9 {uri::split - news with message-id} {
+    dictsort [uri::split {news:87lm40t3v7.fsf@dedasys.com}]
+} {message-id 87lm40t3v7.fsf@dedasys.com scheme news}
+
+test uri-1.10 {uri::split - news with newsgroup-name} {
+    dictsort [uri::split {news:comp.lang.tcl}]
+} {newsgroup-name comp.lang.tcl scheme news}
+
+test uri-1.11 {uri::split - ldap simple} {
+    dictsort [uri::split {ldap://ldaphost}]
+} {attrs {} dn {} extensions {} filter {} host ldaphost port {} scheme ldap scope {}}
+
+test uri-1.12 {uri::split - ldaps with port} {
+    dictsort [uri::split {ldaps://h:636/}]
+} {attrs {} dn {} extensions {} filter {} host h port 636 scheme ldaps scope {}}
+
+test uri-1.13 {uri::split - ldap search} {
+    dictsort [uri::split {ldap://ldaphost/o=mycomp?uid,mail?sub?(uid=pda)}]
+} {attrs {uid mail} dn o=mycomp extensions {} filter (uid=pda) host ldaphost port {} scheme ldap scope sub}
+
+test uri-1.14 {uri::split - ldap search with implicit scope an attributes} {
+    dictsort [uri::split {ldap://ldaphost:999/o=mycomp???(uid=pda)}]
+} {attrs {} dn o=mycomp extensions {} filter (uid=pda) host ldaphost port 999 scheme ldap scope {}}
+
+test uri-1.15 {uri::split - https with IPv6} {
+    dictsort [uri::split {https://[2001:db8::7]:8080?foo=bar}]
+} {fragment {} host {[2001:db8::7]} path {} port 8080 pwd {} query foo=bar scheme https user {}}
+
+test uri-1.16 {uri::split - ftp with auth and IPv6} {
+    dictsort [uri::split {ftp://user:pass@[2001:db8::7]/alt}]
+} {host {[2001:db8::7]} path alt port {} pwd pass scheme ftp type {} user user}
+
+test uri-1.17 {uri::split - ldaps IPv6 search with port} {
+    dictsort [uri::split {ldaps://[2001:db8::7]:987/o=mycomp?uid,mail?sub?(uid=pda)}]
+} {attrs {uid mail} dn o=mycomp extensions {} filter (uid=pda) host {[2001:db8::7]} port 987 scheme ldaps scope sub}
+
+# -------------------------------------------------------------------------
+
+test uri-2.1 {uri::join - http} {
+    uri::join scheme http path / host www.w3.org
+} http://www.w3.org/
+
+test uri-2.2 {uri::join - https} {
+    uri::join scheme https path / host www.w3.org
+} https://www.w3.org/
+
+test uri-2.3 {uri::join - http w/- query} {
+    uri::join scheme http query abc=def&ghi=jkl host www.test.net path /path/
+} http://www.test.net/path/?abc=def&ghi=jkl
+
+test uri-2.4 {uri::join - https w/- query} {
+    uri::join scheme https query abc=def&ghi=jkl host www.test.net path /path/
+} https://www.test.net/path/?abc=def&ghi=jkl
+
+test uri-2.5 {uri::join - http w/- port} {
+    uri::join scheme http port 8080 host www.test.net path /path/
+} http://www.test.net:8080/path/
+
+test uri-2.6 {uri::join - https w/- port} {
+    uri::join scheme https port 8888 host www.test.net path /path/
+} https://www.test.net:8888/path/
+
+test uri-2.7 {uri::join - ftp} {
+    uri::join host ftp.test.net path /my/file scheme ftp
+} ftp://ftp.test.net/my/file
+
+test uri-2.8 {uri::join - identity function} {
+    eval uri::join [uri::split http://www.w3.org/XML/?abc=def]
+} http://www.w3.org/XML/?abc=def
+
+test uri-2.9 {uri::join - ftp userinfo check} {
+    eval uri::join scheme ftp host localhost port 21 path /filename user user pwd passwd
+} {ftp://user:passwd@localhost:21/filename}
+
+test uri-2.10 {uri::join - ftp userinfo check with no passwd} {
+    eval uri::join scheme ftp host localhost path /filename user user
+} {ftp://user@localhost/filename}
+
+test uri-2.11 {uri::join - ftp path prefix} {
+    eval uri::join scheme ftp host localhost path a/b/c.d
+} ftp://localhost/a/b/c.d
+
+test uri-2.12 {uri::join - ftp w/- image type} {
+    eval uri::join scheme ftp host localhost path a/b/c.d type i
+} {ftp://localhost/a/b/c.d;type=i}
+
+test uri-2.13 {uri::join - ftp w/- ascii type} {
+    eval uri::join scheme ftp host localhost path a/b/c.d type a
+} {ftp://localhost/a/b/c.d;type=a}
+
+# I am not sure that this shouldn't produce an error. The semi-colon is 
+# reserved so in this case with an invalid suffix the semi-colon should
+# probably be quoted. [PT]
+test uri-2.14 {uri::join - ftp w/- invalid type} {
+    eval uri::join scheme ftp host localhost path a/b/c.d type X
+} {ftp://localhost/a/b/c.d;type=X}
+
+test uri-2.15 {uri::join - news message-id} {
+    eval uri::join scheme news message-id 87lm40t3v7.fsf@dedasys.com
+} {news:87lm40t3v7.fsf@dedasys.com}
+
+test uri-2.16 {uri::join - news newsgroup-name} {
+    eval uri::join scheme news newsgroup-name comp.lang.tcl
+} {news:comp.lang.tcl}
+
+test uri-2.17 {uri::join - ldap simple} {
+    uri::join scheme ldap host ldaphost
+} {ldap://ldaphost}
+
+test uri-2.18 {uri::join - ldaps with default port} {
+    uri::join scheme ldaps host ldaphost port 636
+} {ldaps://ldaphost}
+
+test uri-2.19 {uri::join - ldaps with port} {
+    uri::join scheme ldaps host ldaphost port 999
+} {ldaps://ldaphost:999}
+
+test uri-2.20 {uri::join - ldap search} {
+    # I should use "attrs {uid mail}" and not "attrs uid,mail"
+    # but this is a perverse effect of the "eval" command
+    uri::join attrs uid,mail dn o=mycomp filter (uid=pda) host ldaphost scheme ldap scope sub
+} {ldap://ldaphost/o=mycomp?uid,mail?sub?(uid=pda)}
+
+test uri-2.21 {uri::join - ldap search with implicit scope an attributes} {
+    uri::join dn o=mycomp filter (uid=pda) host ldaphost port 999 scheme ldap
+} {ldap://ldaphost:999/o=mycomp???(uid=pda)}
+
+
+# -------------------------------------------------------------------------
+
+test uri-3.1 {uri::resolve - relative URL, base trailing slash} {
+    uri::resolve http://www.w3.org/path/ test.html
+} http://www.w3.org/path/test.html
+
+test uri-3.2 {uri::resolve - relative URL path, base trailing slash} {
+    uri::resolve http://www.w3.org/path/ relpath/test.html
+} http://www.w3.org/path/relpath/test.html
+
+test uri-3.3 {uri::resolve - relative URL, base no trailing slash} {
+    uri::resolve http://www.w3.org/path test.html
+} http://www.w3.org/test.html
+
+test uri-3.4 {uri::resolve - relative URL path, base no trailing slash} {
+    uri::resolve http://www.w3.org/path relpath/test.html
+} http://www.w3.org/relpath/test.html
+
+test uri-3.5 {uri::resolve - relative URL w/- query} {
+    uri::resolve http://www.w3.org/path/ test.html?abc=def
+} http://www.w3.org/path/test.html?abc=def
+
+test uri-3.6 {uri::resolve - absolute URL} {
+    uri::resolve http://www.w3.org/path/ http://test.net/test.html
+} http://test.net/test.html
+
+test uri-3.7 {uri::resolve - two queries - one sans path} {
+    uri::resolve http://www.example.com/foo/bar.rvt?foo=bar ?shoo=bee
+} http://www.example.com/foo/bar.rvt?shoo=bee
+
+test uri-3.8 {uri::resolve - two queries} {
+    uri::resolve http://www.example.com/baz/?foo=bar ?shoo=bee
+} http://www.example.com/baz/?shoo=bee
+
+test uri-3.9 {uri::resolve - two absolute URL's with queries} {
+    uri::resolve http://www.example.com/?foo=bar http://www.example.com/?shoo=bee
+} http://www.example.com/?shoo=bee
+
+test uri-3.10 {uri::resolve - two queries,
+    one absolute URL, one absolute path} {
+    uri::resolve http://www.example.com/baz?foo=bar /baz?shoo=bee
+} http://www.example.com/baz?shoo=bee
+
+
+test uri-3.11 {uri::resolve - scheme-relative url with authority, rfc3986 4.2} {
+    uri::resolve http://www.foo.com/ //www.bar.com/
+}  http://www.bar.com/
+
+test uri-3.12 {uri::resolve - scheme-relative url with authority, rfc3986 4.2} {
+    uri::resolve https://www.foo.com/ //www.bar.com/
+}  https://www.bar.com/
+
+test uri-3.13 {uri::resolve - scheme-relative url with authority, rfc3986 4.2} {
+    uri::resolve https://www.foo.com/ //www.bar.com
+}  https://www.bar.com/
+
+
+# -------------------------------------------------------------------------
+
+test uri-4.1 {uri::geturl} {
+    set data [info commands]
+    set file [makeFile {} __testdata]
+    set f [open $file w]
+    puts -nonewline $f $data
+    close $f
+
+    set token [uri::geturl file://$file]
+    removeFile __testdata
+    string compare $data [set [subst $token](data)]
+} 0
+
+# -------------------------------------------------------------------------
+
+test uri-5.1-0 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/path1/./remove/../path2/resource
+} http://www.test.net/path1/path2/resource
+
+test uri-5.2-0 {uri::canonicalize infinite loop} {
+    uri::canonicalize http://www.test.net/../path2/resource
+} {http://www.test.net/path2/resource}
+
+test uri-5.3-0 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/./path1/./remove/../path2/../resource
+} http://www.test.net/path1/resource
+
+test uri-5.4-0 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/./././path1/./remove/../path2/../resource
+} http://www.test.net/path1/resource
+
+test uri-5.5-0 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/./././path1/./remove/path2/../../resource
+} http://www.test.net/path1/resource
+
+test uri-5.6-0 {uri::canonicalize infinite loop} {
+    uri::canonicalize http://www.test.net/../../../path2/resource
+} {http://www.test.net/path2/resource}
+
+test uri-5.7-0 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/path1/./remove/../path.html/resource
+} http://www.test.net/path1/path.html/resource
+
+test uri-5.8-0 {uri::canonicalize infinite loop} {
+    uri::canonicalize http://www.test.net/../path.html/resource
+} {http://www.test.net/path.html/resource}
+
+test uri-5.9-0 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/./path1/./remove/../path.html/../resource
+} http://www.test.net/path1/resource
+
+test uri-5.10-0 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/./././path1/./remove/../path.html/../resource
+} http://www.test.net/path1/resource
+
+test uri-5.11-0 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/./././path1/./remove/path.html/../../resource
+} http://www.test.net/path1/resource
+
+test uri-5.12-0 {uri::canonicalize infinite loop} {
+    uri::canonicalize http://www.test.net/../../../path.html/resource
+} {http://www.test.net/path.html/resource}
+
+test uri-5.13-0 {uri::canonicalize} {
+    uri::canonicalize http://www.eldritchpress.org/jc/../help.html
+} {http://www.eldritchpress.org/help.html}
+
+test uri-5.14-0 {uri::canonicalize trailing ..} {
+    uri::canonicalize http://www.example.com/foo/bar/..
+} {http://www.example.com/foo/}
+
+test uri-5.15-0 {uri::canonicalize trailing ..} {
+    uri::canonicalize http://www.example.com/..
+} {http://www.example.com/}
+
+test uri-5.1-1 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/path1/./remove/../path2/resource
+} ftp://ftp.test.net/path1/path2/resource
+
+test uri-5.2-1 {uri::canonicalize infinite loop} {
+    uri::canonicalize ftp://ftp.test.net/../path2/resource
+} {ftp://ftp.test.net/path2/resource}
+
+test uri-5.3-1 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/./path1/./remove/../path2/../resource
+} ftp://ftp.test.net/path1/resource
+
+test uri-5.4-1 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/./././path1/./remove/../path2/../resource
+} ftp://ftp.test.net/path1/resource
+
+test uri-5.5-1 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/./././path1/./remove/path2/../../resource
+} ftp://ftp.test.net/path1/resource
+
+test uri-5.6-1 {uri::canonicalize infinite loop} {
+    uri::canonicalize ftp://ftp.test.net/../../../path2/resource
+} {ftp://ftp.test.net/path2/resource}
+
+test uri-5.7-1 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/path1/./remove/../path.html/resource
+} ftp://ftp.test.net/path1/path.html/resource
+
+test uri-5.8-1 {uri::canonicalize infinite loop} {
+    uri::canonicalize ftp://ftp.test.net/../path.html/resource
+} {ftp://ftp.test.net/path.html/resource}
+
+test uri-5.9-1 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/./path1/./remove/../path.html/../resource
+} ftp://ftp.test.net/path1/resource
+
+test uri-5.10-1 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/./././path1/./remove/../path.html/../resource
+} ftp://ftp.test.net/path1/resource
+
+test uri-5.11-1 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/./././path1/./remove/path.html/../../resource
+} ftp://ftp.test.net/path1/resource
+
+test uri-5.12-1 {uri::canonicalize infinite loop} {
+    uri::canonicalize ftp://ftp.test.net/../../../path.html/resource
+} {ftp://ftp.test.net/path.html/resource}
+
+test uri-5.1-2 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/path1/./remove/../path2/resource
+} file://goo.test.net/path1/path2/resource
+
+test uri-5.2-2 {uri::canonicalize infinite loop} {
+    uri::canonicalize file://goo.test.net/../path2/resource
+} {file://goo.test.net/path2/resource}
+
+test uri-5.3-2 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/./path1/./remove/../path2/../resource
+} file://goo.test.net/path1/resource
+
+test uri-5.4-2 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/./././path1/./remove/../path2/../resource
+} file://goo.test.net/path1/resource
+
+test uri-5.5-2 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/./././path1/./remove/path2/../../resource
+} file://goo.test.net/path1/resource
+
+test uri-5.6-2 {uri::canonicalize infinite loop} {
+    uri::canonicalize file://goo.test.net/../../../path2/resource
+} {file://goo.test.net/path2/resource}
+
+test uri-5.7-2 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/path1/./remove/../path.html/resource
+} file://goo.test.net/path1/path.html/resource
+
+test uri-5.8-2 {uri::canonicalize infinite loop} {
+    uri::canonicalize file://goo.test.net/../path.html/resource
+} {file://goo.test.net/path.html/resource}
+
+test uri-5.9-2 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/./path1/./remove/../path.html/../resource
+} file://goo.test.net/path1/resource
+
+test uri-5.10-2 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/./././path1/./remove/../path.html/../resource
+} file://goo.test.net/path1/resource
+
+test uri-5.11-2 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/./././path1/./remove/path.html/../../resource
+} file://goo.test.net/path1/resource
+
+test uri-5.12-2 {uri::canonicalize infinite loop} {
+    uri::canonicalize file://goo.test.net/../../../path.html/resource
+} {file://goo.test.net/path.html/resource}
+
+test uri-5.1-3 {uri::canonicalize} {
+    uri::canonicalize file:///path1/./remove/../path2/resource
+} file:///path1/path2/resource
+
+test uri-5.2-3 {uri::canonicalize infinite loop} {
+    uri::canonicalize file:///../path2/resource
+} {file:///path2/resource}
+
+test uri-5.3-3 {uri::canonicalize} {
+    uri::canonicalize file:///./path1/./remove/../path2/../resource
+} file:///path1/resource
+
+test uri-5.4-3 {uri::canonicalize} {
+    uri::canonicalize file:///./././path1/./remove/../path2/../resource
+} file:///path1/resource
+
+test uri-5.5-3 {uri::canonicalize} {
+    uri::canonicalize file:///./././path1/./remove/path2/../../resource
+} file:///path1/resource
+
+test uri-5.6-3 {uri::canonicalize infinite loop} {
+    uri::canonicalize file:///../../../path2/resource
+} {file:///path2/resource}
+
+test uri-5.7-3 {uri::canonicalize} {
+    uri::canonicalize file:///path1/./remove/../path.html/resource
+} file:///path1/path.html/resource
+
+test uri-5.8-3 {uri::canonicalize infinite loop} {
+    uri::canonicalize file:///../path.html/resource
+} {file:///path.html/resource}
+
+test uri-5.9-3 {uri::canonicalize} {
+    uri::canonicalize file:///./path1/./remove/../path.html/../resource
+} file:///path1/resource
+
+test uri-5.10-3 {uri::canonicalize} {
+    uri::canonicalize file:///./././path1/./remove/../path.html/../resource
+} file:///path1/resource
+
+test uri-5.11-3 {uri::canonicalize} {
+    uri::canonicalize file:///./././path1/./remove/path.html/../../resource
+} file:///path1/resource
+
+test uri-5.12-3 {uri::canonicalize infinite loop} {
+    uri::canonicalize file:///../../../path.html/resource
+} {file:///path.html/resource}
+
+test uri-6.0 {uri::canonicalize} {
+    uri::canonicalize telnet://goo.test.net/
+} telnet://goo.test.net/
+
+test uri-7.0 {uri::split & uri::join} {
+    set ls [uri::split http://tcl.apache.org/websh/faq.ws3\#generic?foo=bar]
+    eval uri::join $ls
+} {http://tcl.apache.org/websh/faq.ws3#generic?foo=bar}
+
+# -------------------------------------------------------------------------
+
+test uri-8.0 {uri::split bug #676976, ill. char in scheme} {
+    set ls [uri::split ht,tp://tcl.apache.org/websh]
+    eval uri::join $ls
+} {http://ht/,tp://tcl.apache.org/websh}
+
+# -------------------------------------------------------------------------
+
+test uri-9.0 {uri::split bug #936064, user information} {
+    dictsort [uri::split http://foo:bar@baz.com:80/bla/]
+} {fragment {} host baz.com path bla/ port 80 pwd bar query {} scheme http user foo}
+
+# -------------------------------------------------------------------------
+
+test uri-10.0 {uri::split bug #3235340, fragments after queries} {
+    dictsort [uri::split  http://baz.com/foo?bar=baz#quux]
+} {fragment quux host baz.com path foo port {} pwd {} query bar=baz scheme http user {}}
+
+test uri-10.1 {uri::join bug #3235340, fragments after queries} {
+    uri::join fragment quux host baz.com path foo port {} pwd {} query bar=baz scheme http user {}
+} {http://baz.com/foo?bar=baz#quux}
+
+# -------------------------------------------------------------------------
+
+test uri-11.0 {uri::split, case-insensitive schemata, ticket dc50cc65ea} {
+    dictsort [uri::split hTTp://foo:bar@baz.com:80/bla/]
+} {fragment {} host baz.com path bla/ port 80 pwd bar query {} scheme http user foo}
+
+# -------------------------------------------------------------------------
+
+test uri-12.0 {uri::split, host-only without scheme, ticket cfb76ff494} {
+    dictsort [uri::split www.test.de]
+} {fragment {} host www.test.de path {} port {} pwd {} query {} scheme http user {}}
+
+test uri-12.1 {uri::split, host-only without scheme, ticket cfb76ff494} {
+    dictsort [uri::split http://www.test.de]
+} {fragment {} host www.test.de path {} port {} pwd {} query {} scheme http user {}}
+
+# -------------------------------------------------------------------------
+
+
+testsuiteCleanup
+return
+
+# -------------------------------------------------------------------------
+# Local Variables:
+#   mode: tcl
+#   indent-tabs-mode: nil
+# End:

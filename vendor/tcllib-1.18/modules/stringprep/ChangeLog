@@ -1,0 +1,78 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2009-11-02  Andreas Kupries  <andreask@activestate.com>
+
+	* stringprep.man: Updated version numbers in the documentation
+	* stringprep_data.man: as well.
+
+2009-11-02  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* stringprep.tcl: Applied patch from Sergei Golovan to fix
+	* stringprep.test: the failing tests.
+	* stringprep_data.tcl:
+	* tools/gen_stringprep_data.tcl:
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-03-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* unicode.man: Added the standard section about feedback.
+	* stringprep.man: 
+
+	* stringprep_data.man: Wrote documentation for the two helper
+	* unicode_data.man: packages holding the data tables for the main
+	  (public) packages.
+
+2008-03-14  Andreas Kupries  <andreask@activestate.com>
+
+	* stringprep.man: Cleaned up a bit, replaced deprecated [nl] usage
+	  with [para].
+
+2008-03-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* stringprep.test: Marked the tests with known trouble as with
+	  constraint 'knownBug'.
+
+2008-01-29  Andreas Kupries  <andreask@activestate.com>
+
+	* unicode.man: Replaced bad backslash-quoted brackets with proper
+	  [lb], [rb] markup.
+
+	* stringprep.man: Fixed missing closing bracket.
+
+2008-01-29  Pat Thoyts  <patthoyts@users.sourceforge.net>
+
+	* stringprep: Initial import of an RFC 3454 'StringPrep' implementation
+	* unicode:    provided by Sergei Golovan.

@@ -1,8 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl $Id$
 AC_PREREQ(2.63)
 AC_DEFUN([MACPORTS_VERSION_MACRO], [esyscmd(<config/macports_version tr -d '\n')])
-AC_INIT([MacPorts],MACPORTS_VERSION_MACRO,[macports-dev@lists.macosforge.org],[macports])
+AC_INIT([MacPorts],MACPORTS_VERSION_MACRO,[macports-dev@lists.macports.org],[macports])
 AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
 
@@ -33,11 +32,11 @@ case "$MACOSX_VERSION" in
     AC_MSG_ERROR([This version of Mac OS X is not supported
                   Please upgrade at http://store.apple.com/])
     ;;
-  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-7]]|10.7.[[0-4]]|10.8.[[0-4]]|10.9.[[0-4]]|10.10.[[0-3]])
+  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-7]]|10.7.[[0-4]]|10.8.[[0-4]]|10.9.[[0-4]]|10.10.[[0-4]]|10.11.[[0-5]]|10.12.[[0-5]])
     AC_MSG_WARN([This version of Mac OS X is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;
-  10.4*|10.5*|10.6*|10.7*|10.8*|10.9*|10.10*)
+  10.4*|10.5*|10.6*|10.7*|10.8*|10.9*|10.10*|10.11*|10.12*|10.13*)
     dnl Supported version
     ;;
   *)
@@ -87,7 +86,7 @@ case "$XCODE_VERSION" in
     AC_MSG_WARN([This version of Xcode Tools is out of date])
     AC_MSG_WARN([Please consider upgrading as some ports fail compiling])
     ;;
-  2.*|3.*|4.*|5.*|6.*)
+  2.*|3.*|4.*|5.*|6.*|7.*|8.*|9.*)
     dnl Supported version
     ;;
   *)
@@ -174,13 +173,10 @@ AC_PATH_PROG(XCRUN, [xcrun], [])
 AC_PATH_PROG(XZ, [xz], [])
 AC_PATH_PROG(ZIP, [zip])
 
-AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [], [/sbin])
-
 if test "x$MTREE" = "x"; then
     AC_MSG_ERROR([mtree not found])
 fi
 
-MP_SED_EXTENDED_REGEXP
 MP_TAR_FAST_READ
 MP_TAR_NO_SAME_OWNER
 MP_PATCH_GNU_VERSION
@@ -195,12 +191,6 @@ AC_SUBST(CFLAGS_PEDANTIC)
 MP_WERROR
 
 MP_COMPILER_ATTRIBUTE_UNUSED
-MP_COMPILER_ATTRIBUTE_LF_PRIVATE
-
-# Foundation checks
-ACX_PTHREAD
-MP_OBJC_RUNTIME
-MP_OBJC_FOUNDATION
 
 MP_PROG_DAEMONDO
 
@@ -214,7 +204,7 @@ AC_PREFIX_DEFAULT(/opt/local)
 AC_ARG_WITH(
 		unsupported-prefix,
 		AS_HELP_STRING([--with-unsupported-prefix],
-		[Acknowledge that you accept the consequences of using an unsupported prefix.]),
+		[acknowledge that you accept the consequences of using an unsupported prefix]),
 		[with_unsupported_prefix=$withval],
 		[with_unsupported_prefix=no])
 if test x$prefix = x/usr/local -o x$prefix = x/usr && test x$with_unsupported_prefix != xyes; then
@@ -243,27 +233,24 @@ MP_PATH_FRAMEWORKS
 MP_UNIVERSAL_OPTIONS
 
 # Check for standard header files.
-AC_HEADER_STDC
-AC_HEADER_DIRENT
-AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([crt_externs.h err.h fcntl.h libkern/OSAtomic.h libproc.h limits.h paths.h pwd.h \
-	readline/history.h readline/readline.h spawn.h sys/cdefs.h sys/event.h sys/fcntl.h sys/file.h \
-	sys/paths.h sys/socket.h sys/sysctl.h utime.h])
+	readline/history.h readline/readline.h stdatomic.h spawn.h sys/cdefs.h sys/event.h \
+	sys/fcntl.h sys/file.h sys/paths.h sys/socket.h sys/sysctl.h utime.h])
 
 # Checks for library functions.
 AC_CHECK_FUNCS([OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 \
-	OSAtomicCompareAndSwapPtr __getdirentries64 bzero clearenv copyfile fgetln \
-	flock fls kqueue lockf memset posix_spawn setmode strcasecmp strlcat \
-	strlcpy strncasecmp sysctlbyname])
+	OSAtomicCompareAndSwapPtr __getdirentries64 clearenv copyfile fgetln \
+	flock fls kqueue posix_spawn setmode strlcat \
+	strlcpy sysctlbyname])
 AC_SUBST([ac_cv_func_strlcat])
 
-MP_CHECK_READLINK_IS_P1003_1A
+AC_CHECK_DECLS([atomic_compare_exchange_strong_explicit], [], [], [[#include <stdatomic.h>]])
 
 # Check for md5 implementation
 AC_CHECK_HEADER([CommonCrypto/CommonDigest.h], [AC_DEFINE([HAVE_COMMONCRYPTO_COMMONDIGEST_H], [1], [Define if CommonCrypto is available.])], [MP_LIB_MD5])
 
 # Check for readline
-AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[Enable addition of readline support, if readline present.]),
+AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[enable readline support, if readline present]),
 [
 	AC_CHECK_LIB([readline], [readline], [
 				  READLINE_LIBS=-lreadline
@@ -315,9 +302,11 @@ AC_SUBST(prefix_expanded)
 
 # Define a path where our trace mode workaround for SIP-protected binaries on
 # >= 10.11 puts copies
+eval DARWINTRACE_SIP_WORKAROUND_PATH="${prefix}/var/macports/sip-workaround"
+AC_SUBST(DARWINTRACE_SIP_WORKAROUND_PATH)
 AC_DEFINE_UNQUOTED(
 	[DARWINTRACE_SIP_WORKAROUND_PATH],
-	["${prefix}/var/macports/sip-workaround"],
+	["$DARWINTRACE_SIP_WORKAROUND_PATH"],
 	[Absolute path to a directory used by darwintrace to copy SIP-protected files before executing])
 
 # do this twice, since there is a nested variable of
@@ -334,12 +323,8 @@ prefix=$oldprefix
 exec_prefix=$oldexec_prefix
 
 ## Tcl package
-tcl_version=8.5.18
-tcl_thread_version=2.7.3
-tclx_version=8.4.1
-tcllib_version=1.17
-MP_CONFIG_TARBALL([vendor/tcl${tcl_version}-src.tar.gz], [vendor/tcl${tcl_version}/unix], [--prefix=${macports_libexec_dir} --enable-threads])
-VENDOR_TCL_SUBDIR=tcl${tcl_version}/unix
+MP_CONFIG_SUBDIR([vendor/tcl/unix], [--prefix=${macports_libexec_dir} --enable-threads])
+VENDOR_TCL_SUBDIR=tcl/unix
 VENDOR_TCL_INSTALL="install-binaries install-libraries"
 AC_SUBST(VENDOR_TCL_SUBDIR)
 AC_SUBST(VENDOR_TCL_INSTALL)
@@ -351,16 +336,16 @@ AC_SUBST(VENDOR_DESTROOT)
 ## Tcl Thread package
 # Tcl supports Threads internally, but to use threads from Tcl code we need
 # this package
-MP_CONFIG_TARBALL([vendor/thread${tcl_thread_version}.tar.gz], [vendor/thread${tcl_thread_version}], [--prefix=${macports_libexec_dir}])
-VENDOR_TCLTHREAD_SUBDIR=thread${tcl_thread_version}
+MP_CONFIG_SUBDIR([vendor/thread], [--prefix=${macports_libexec_dir}])
+VENDOR_TCLTHREAD_SUBDIR=thread
 VENDOR_TCLTHREAD_INSTALL="install-binaries install-libraries"
 AC_SUBST(VENDOR_TCLTHREAD_SUBDIR)
 AC_SUBST(VENDOR_TCLTHREAD_INSTALL)
 
 ## TclX package
 # TclX is required for signal handling
-MP_CONFIG_TARBALL([vendor/tclx${tclx_version}.tar.bz2], [vendor/tclx8.4], [--prefix=${macports_libexec_dir}])
-VENDOR_TCLX_SUBDIR=tclx8.4
+MP_CONFIG_SUBDIR([vendor/tclx], [--prefix=${macports_libexec_dir}])
+VENDOR_TCLX_SUBDIR=tclx
 VENDOR_TCLX_INSTALL="install-binaries install-libraries"
 AC_SUBST(VENDOR_TCLX_SUBDIR)
 AC_SUBST(VENDOR_TCLX_INSTALL)
@@ -369,8 +354,8 @@ AC_SUBST(VENDOR_TCLX_INSTALL)
 # Note that Tcllib needs a Tcl interpreter during installation; it will *not*
 # be the one we configure above, because that one isn't built yet. That's not
 # a problem, though -- it's only used during installation.
-MP_CONFIG_TARBALL([vendor/tcllib-${tcllib_version}.tar.gz], [vendor/tcllib-${tcllib_version}], [--prefix=${macports_libexec_dir}])
-VENDOR_TCLLIB_SUBDIR=tcllib-${tcllib_version}
+MP_CONFIG_SUBDIR([vendor/tcllib], [--prefix=${macports_libexec_dir}])
+VENDOR_TCLLIB_SUBDIR=tcllib
 VENDOR_TCLLIB_INSTALL="install-libraries"
 AC_SUBST(VENDOR_TCLLIB_SUBDIR)
 AC_SUBST(VENDOR_TCLLIB_INSTALL)
@@ -388,7 +373,7 @@ STLIB_LD=${TCL_STLIB_LD}
 SHLIB_CFLAGS=${TCL_SHLIB_CFLAGS}
 SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
 TCLSH=${TCL_EXEC_PREFIX}/bin/tclsh${TCL_VERSION}
-INTREE_TCLSH=${TCL_BIN_DIR}/tclsh
+INTREE_TCLSH=`(cd vendor; pwd)`/tclsh
 # strip possible whitespace at the end of TCL_PACKAGE_PATH
 eval "TCL_PACKAGE_PATH=${TCL_PACKAGE_PATH}"
 
@@ -401,6 +386,7 @@ AC_SUBST(TCL_VERSION)
 AC_SUBST(TCL_PACKAGE_PATH)
 AC_SUBST(TCL_STUB_LIB_SPEC)
 AC_SUBST(TCL_SRC_DIR)
+AC_SUBST(TCL_BIN_DIR)
 AC_SUBST(TCLSH)
 AC_SUBST(INTREE_TCLSH)
 
@@ -430,6 +416,7 @@ AC_CONFIG_FILES([
 	src/macports1.0/Makefile
 	src/macports1.0/macports_autoconf.tcl
 	src/macports1.0/macports_test_autoconf.tcl
+	src/mpcommon1.0/Makefile
 	src/package1.0/Makefile
 	src/package1.0/package_test_autoconf.tcl
 	src/pextlib1.0/Makefile
@@ -447,6 +434,7 @@ AC_CONFIG_FILES([
 	vendor/Makefile
 ])
 
+AC_CONFIG_FILES([vendor/tclsh], [chmod +x vendor/tclsh])
 AC_CONFIG_FILES([src/dedup_portfiles.tcl], [chmod +x src/dedup_portfiles.tcl])
 AC_CONFIG_FILES([src/images_to_archives.tcl], [chmod +x src/images_to_archives.tcl])
 AC_CONFIG_FILES([src/pkg_mkindex.sh], [chmod +x src/pkg_mkindex.sh])

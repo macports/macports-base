@@ -1,0 +1,115 @@
+# -*- tcl -*-
+# Graph tests - graph/arc/node unset (attribute unset)
+# Copyright (c) 2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: unset.test,v 1.3 2008/03/07 06:51:39 andreas_kupries Exp $
+
+# Syntax: graph      unset      KEY
+# Syntax: graph arc  unset ARC  KEY
+# Syntax: graph node unset NODE KEY
+
+# -------------------------------------------------------------------------
+
+proc Arc  {} {mygraph node insert 0 1 ; mygraph arc insert 0 1 x}
+proc Node {} {mygraph node insert x}
+
+# -------------------------------------------------------------------------
+
+foreach {e ex stem mp mk} {
+    arc   Arc   {mygraph arc}  {arc }  x
+    node  Node  {mygraph node} {node } x
+    graph Graph {mygraph}      {}      {}
+} {
+    if {$mk == {}} {set mk $MY}
+    # CMD = stem, remove existing CMD
+    catch {interp alias {} CMD {}}
+    eval [linsert $stem 0 interp alias {} CMD {}]
+    # To skip tests which do not apply to graph attributes
+    ::tcltest::testConstraint graph [string equal $e graph]
+
+    # CMD is for the testing of wrong#args errors.
+    # XXX$ex are for regular tests, i.e. argument
+    # errors and ok behaviour.
+
+    # -------------------------------------------------------------------------
+    # Wrong # args: Missing, Too many
+
+    test graph-${impl}-${setimpl}-${e}-unset-1.0 "$e unset, wrong # args, missing" {
+	SETUP
+	catch {CMD unset} msg
+	mygraph destroy
+	set msg
+    } [tmWrongA "${mp}unset" "${mp}key" 0] ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-unset-1.1 "$e unset, wrong # args, missing" !graph {
+	SETUP
+	catch {CMD unset a} msg
+	mygraph destroy
+	set msg
+    } [tmWrongA "${mp}unset" "${mp}key" 1] ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-unset-1.2 "$e unset, wrong # args, too many" {
+	SETUP
+	catch {CMD unset a b c} msg
+	mygraph destroy
+	set msg
+    } [tmTooManyA "${mp}unset" "${mp}key"] ; # {}
+
+    # -------------------------------------------------------------------------
+    # Logical arguments checks and failures
+
+    test graph-${impl}-${setimpl}-${e}-unset-2.0 "$e unset, missing $e" !graph {
+	SETUP
+	catch {Unset$ex data} msg
+	mygraph destroy
+	set msg
+    } [Missing$ex $MY x] ; # {}
+
+    # -------------------------------------------------------------------------
+    # Ok arguments.
+
+    test graph-${impl}-${setimpl}-${e}-unset-3.0 "$e unset, no attributes, ok" {
+	SETUP
+	$ex
+	set result [list [catch {Unset$ex bogus} msg] $msg]
+	mygraph destroy
+	set result
+    } {0 {}} ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-unset-3.1 "$e unset, missing key, ok" {
+	SETUP
+	$ex
+	SetW$ex foo ""
+	set result [list [catch {Unset$ex bogus} msg] $msg]
+	mygraph destroy
+	set result
+    } {0 {}} ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-unset-3.2 "$e unset, data is gone" {
+	SETUP
+	$ex
+	set     result {}
+	lappend result [Keyexists$ex foobar]
+	SetW$ex                      foobar foobar
+	lappend result [Keyexists$ex foobar]
+	Unset$ex                     foobar
+	lappend result [Keyexists$ex foobar]
+	mygraph destroy
+	set result
+    } {0 1 0} ; # {}
+
+    test graph-${impl}-${setimpl}-${e}-unset-3.6 "$e unset, then $e delete" !graph {
+	SETUP
+	$ex
+	set result {}
+
+	mygraph $e set    x foo bar
+	mygraph $e unset  x foo
+	mygraph $e delete x
+	set result [mygraph $e exists x]
+	mygraph destroy
+	set result
+    } 0 ; # {}
+}
+
+# -------------------------------------------------------------------------

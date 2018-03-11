@@ -1,0 +1,78 @@
+# -*- tcl -*- cmdline.pcx
+# Syntax of the commands provided by package cmdline.
+
+# For use by TclDevKit's static syntax checker.
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the documentation describing the format of the code contained in this file
+#
+
+package require pcx
+pcx::register cmdline
+pcx::tcldep   1.3 needs tcl 8.2
+
+namespace eval ::cmdline {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 1.3 std ::cmdline::getArgv0 \
+    {checkSimpleArgs 0 0 {}}
+pcx::check 1.3 std ::cmdline::getKnownOpt \
+    {checkSimpleArgs 4 4 {
+	checkVarName
+	checkList
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 1.3 std ::cmdline::getKnownOptions \
+    {checkSimpleArgs 2 3 {
+	checkVarName
+	checkList
+	checkWord
+    }}
+pcx::check 1.3 std ::cmdline::getfiles \
+    {checkSimpleArgs 2 2 {
+	{checkListValues 1 -1 checkPattern}
+	checkBoolean
+    }}
+pcx::check 1.3 std ::cmdline::getopt \
+    {checkSimpleArgs 4 4 {
+	checkVarName
+	checkList
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 1.3 std ::cmdline::getoptions \
+    {checkSimpleArgs 2 3 {
+	checkVarName
+	checkList
+	checkWord
+    }}
+pcx::check 1.3 std ::cmdline::typedGetopt \
+    {checkSimpleArgs 4 4 {
+	checkVarName
+	checkList
+	checkVarNameWrite
+	checkVarNameWrite
+    }}
+pcx::check 1.3 std ::cmdline::typedGetoptions \
+    {checkSimpleArgs 2 3 {
+	checkVarName
+	checkList
+	checkWord
+    }}
+pcx::check 1.3 std ::cmdline::typedUsage \
+    {checkSimpleArgs 1 2 {
+	checkList
+	checkWord
+    }}
+pcx::check 1.3 std ::cmdline::usage \
+    {checkSimpleArgs 1 2 {
+	checkList
+	checkWord
+    }}
+
+# Initialization via pcx::init.
+# Use a ::cmdline::init procedure for non-standard initialization.
+pcx::complete

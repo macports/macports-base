@@ -1,0 +1,126 @@
+# -------------------------------------------------------------------------
+# cc_amex.test -*- tcl -*-
+# (C) 2011 Andreas Kupries. BSD licensed.
+#
+# NOTE: All "creditcard" numbers in this file have been created by
+# randomly hitting the number pad. They are not real.
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    use      snit/snit2.tcl snit            ;# snit v2 fixed, due Tcl 8.5
+    useLocal valtype.tcl    valtype::common
+    useLocal luhn.tcl       valtype::luhn
+}
+testing {
+    useLocal cc_amex.tcl valtype::creditcard::amex
+}
+
+# -------------------------------------------------------------------------
+
+test valtype-creditcard-amex-1.0 {creditcard amex validation wrong\#args} -body {
+    valtype::creditcard::amex validate
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::amex validate value"}
+
+test valtype-creditcard-amex-1.1 {creditcard amex validation wrong\#args} -body {
+    valtype::creditcard::amex validate A B
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::amex validate value"}
+
+# -------------------------------------------------------------------------
+
+test valtype-creditcard-amex-2.0 {creditcard amex validation failure, bad char} -body {
+    valtype::creditcard::amex validate 34A345627491046
+} -returnCodes error \
+    -result {Not a CREDITCARD AMEX number, expected only digits}
+
+foreach {n in} {
+    1  03064061545
+    2  97803064
+} {
+    test valtype-creditcard-amex-2.1.$n {creditcard amex validation failure, bad length} -body {
+    valtype::creditcard::amex validate $in
+    } -returnCodes error \
+        -result {Not a CREDITCARD AMEX number, incorrect length, expected 15 characters}
+}
+
+foreach {n in} {
+    1  340123456789012
+    2  344321098765432
+    3  379927398717559
+    4  371234567812345
+} {
+    test valtype-creditcard-amex-2.2.$n {creditcard amex validation failure, bad check} -body {
+	valtype::creditcard::amex validate $in
+    } -returnCodes error \
+	-result {Not a CREDITCARD AMEX number, the check digit is incorrect}
+}
+
+foreach {n in} {
+    1  977289045892557
+    2  828529847584756
+} {
+    test valtype-creditcard-amex-2.3.$n {creditcard amex validation failure, bad prefix} -body {
+	valtype::creditcard::amex validate $in
+    } -returnCodes error \
+	-result {Not a CREDITCARD AMEX number, incorrect prefix, expected one of 34, or 37}
+}
+
+
+test valtype-creditcard-amex-3.0 {creditcard amex checkdigit wrong\#args} -body {
+    valtype::creditcard::amex checkdigit
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::amex checkdigit value"}
+
+test valtype-creditcard-amex-3.1 {creditcard amex checkdigit wrong\#args} -body {
+    valtype::creditcard::amex checkdigit A B
+} -returnCodes error \
+    -result {wrong # args: should be "valtype::creditcard::amex checkdigit value"}
+
+# -------------------------------------------------------------------------
+
+test valtype-creditcard-amex-5.0 {creditcard amex checkdigit calculation failure, bad char} -body {
+    valtype::creditcard::amex checkdigit 34A01234567894
+} -returnCodes error \
+    -result {Not a CREDITCARD AMEX number, expected only digits}
+
+test valtype-creditcad-amex-5.1 {creditcard amex checkdigit calculation failure, bad length} -body {
+    valtype::creditcard::amex checkdigit 401234
+} -returnCodes error \
+    -result {Not a CREDITCARD AMEX number without checkdigit, incorrect length, expected 14 characters}
+
+test valtype-creditcad-amex-5.2 {creditcard amex checkdigit calculation failure, bad length} -body {
+    valtype::creditcard::amex checkdigit 01234567890124
+} -returnCodes error \
+    -result {Not a CREDITCARD AMEX number without checkdigit, incorrect prefix, expected one of 34, or 37}
+
+foreach {n in check} {
+    1  34012345678901 4
+    2  34109876543210 1
+    3  37992739871753 5
+    4  37123456781234 8
+} {
+    test valtype-creditcard-amex-4.$n {creditcard amex validation} -body {
+	valtype::creditcard::amex validate $in$check
+    } -result $in$check
+
+    test valtype-creditcard-amex-6.$n {creditcard amex checkdigit} -body {
+	valtype::creditcard::amex checkdigit $in
+    } -result $check
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

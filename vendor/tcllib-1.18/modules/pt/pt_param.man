@@ -1,0 +1,490 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin pt::param n 1]
+[keywords {virtual machine}]
+[include include/module.inc]
+[titledesc {PackRat Machine Specification}]
+[description]
+[include include/ref_intro.inc]
+
+Welcome to the PackRat Machine (short: [term PARAM]), a virtual
+machine geared towards the support of recursive descent parsers,
+especially packrat parsers. Towards this end it has features like the
+caching and reuse of partial results, the caching of the encountered
+input, and the ability to backtrack in both input and AST creation.
+
+[para]
+
+This document specifies the machine in terms of its architectural
+state and instruction set.
+
+[section {Architectural State}]
+
+Any PARAM implementation has to manage at least the following state:
+
+[list_begin definitions]
+[def "[term Input] (IN)"]
+
+This is the channel the characters to process are read from.
+[vset INS0 {Input Handling}][include include/param_1is.inc]
+
+[def "[term {Current Character}] (CC)"]
+
+The character from the [term input] currently tested against its
+possible alternatives.
+
+[vset INS0 {Character Processing}][include include/param_1is.inc]
+
+[def "[term {Current Location}] (CL)"]
+
+The location of the [term {current character}] in the [term input], as
+offset relative to the beginning of the input. Character offsets are
+counted from [const 0].
+
+[vset INS0 {Character Processing}]
+[vset INS1 {Location Handling}]
+[vset INS2 {Nonterminal Execution}][include include/param_3is.inc]
+
+[def "[term {Location Stack}] (LS)"]
+
+A stack of locations in the [term input], saved for possible
+backtracking.
+
+[vset INS0 {Character Processing}]
+[vset INS1 {Location Handling}]
+[vset INS2 {Nonterminal Execution}][include include/param_3is.inc]
+
+[def "[term Status] (ST)"]
+
+The status of the last attempt of testing the [term input], indicating
+either success or failure.
+
+[vset INS0 {Status Control}]
+[vset INS1 {Character Processing}]
+[vset INS2 {Nonterminal Execution}][include include/param_3is.inc]
+
+[def "[term {Semantic Value}] (SV)"]
+
+The current semantic value, either empty, or a node for AST
+constructed from the input.
+
+[vset INS0 {Value Construction}]
+[vset INS1 {AST Construction}][include include/param_2is.inc]
+
+[def "[term {AST Reduction Stack}] (ARS)"]
+
+The stack of partial ASTs constructed during the processing of
+nonterminal symbols.
+
+[vset INS0 {Value Construction}]
+[vset INS1 {AST Construction}][include include/param_2is.inc]
+
+[def "[term {AST Stack}] (AS)"]
+
+The stack of reduction stacks, saved for possible backtracking.
+
+[vset INS0 {Value Construction}]
+[vset INS1 {AST Construction}][include include/param_2is.inc]
+
+[def "[term {Error Status}] (ER)"]
+
+The machine's current knowledge of errors. This is either empty, or
+set to a pair of location in the input and the set of messages for
+that location.
+
+[para]
+[emph Note] that this part of the machine's state can be set even if
+the last test of the [term {current character}] was successful. For
+example, the *-operator (matching a sub-expression zero or more times)
+in a PEG is always successful, even if it encounters a problem further
+in the input and has to backtrack. Such problems must not be forgotten
+when continuing the parsing.
+
+[vset INS0 {Error Handling}]
+[vset INS1 {Character Processing}]
+[vset INS2 {Nonterminal Execution}][include include/param_3is.inc]
+
+[def "[term {Error Stack}] (ES)"]
+
+The stack of error stati, saved for backtracking. This enables the
+machine to merge current and older error stati when performing
+backtracking in choices after an failed match.
+
+[vset INS0 {Error Handling}]
+[vset INS1 {Character Processing}]
+[vset INS2 {Nonterminal Execution}][include include/param_3is.inc]
+
+[def "[term {Nonterminal Cache}] (NC)"]
+
+A cache of machine states keyed by pairs name of nonterminal symbol
+and location in the input. Each pair (N, L) is associated with a
+4-tuple holding the values to use for CL, ST, SV, and ER after the
+nonterminal N was parsed starting from the location L.
+
+It is a performance aid for backtracking parsers, allowing them to
+avoid an expensive reparsing of complex nonterminal symbols if they
+have been encountered before at a given location.
+
+[para]
+
+The key location is where machine started the attempt to match the
+named nonterminal symbol, and the location in the saved 4-tuple is
+where machine ended up after the attempt completed, independent of the
+success of the attempt.
+
+[vset INS0 {Nonterminal Execution}][include include/param_1is.inc]
+
+[def "[term {Terminal Cache}] (TC)"]
+
+A cache of characters read from IN, with their location in IN as pair
+of line and column, keyed by the location in IN, this time as
+character offset from the beginning of IN.
+
+It is a performance aid for backtracking parsers, allowing them to
+avoid a possibly expensive rereading of characters from IN, or even
+enabling backtracking at, i.e. in the case of IN not randomly
+seekable.
+
+[vset INS0 {Input Handling}][include include/param_1is.inc]
+
+[list_end]
+
+[section {Instruction Set}]
+
+With the machine's architectural state specified it is now possible to
+specify the instruction set operating on that state and to be
+implemented by any realization of the PARAM. The 37 instructions are
+grouped roughly by the state they influence and/or query during their
+execution.
+
+[subsection {Input Handling}]
+
+The instructions in this section mainly access IN, pulling the
+characters to process into the machine.
+
+[list_begin definitions]
+[def "[cmd input_next] [arg msg]"]
+
+This method reads the next character, i.e. the character after CL,
+from IN. If successful this character becomes CC, CL is advanced by
+one, ES is cleared, and the operation is recorded as a success in ST.
+
+[para]
+
+The operation may read the character from IN if the next character
+is not yet known to TC. If successful the new character is stored in
+TC, with its location (line, column), and the operation otherwise
+behaves as specified above. Future reads from the same location,
+possible due to backtracking, will then be satisfied from TC instead
+of IN.
+
+[para]
+
+If, on the other hand, the end of IN was reached, the operation is
+recorded as failed in ST, CL is left unchanged, and the pair of CL and
+[arg msg] becomes the new ES.
+
+[list_end]
+
+[subsection {Character Processing}]
+
+The instructions in this section mainly access CC, testing it against
+character classes, ranges, and individual characters.
+
+[list_begin definitions]
+
+[def [cmd test_alnum]]
+[vset OP alnum][include include/param_special.inc]
+
+[def [cmd test_alpha]]
+[vset OP alpha][include include/param_special.inc]
+
+[def [cmd test_ascii]]
+[vset OP ascii][include include/param_special.inc]
+
+[def "[cmd test_char] [arg char]"]
+
+This instruction implements the character matching operator, i.e. it
+checks if CC is [arg char].
+[include include/param_okfail.inc]
+
+[def [cmd test_ddigit]]
+[vset OP ddigit][include include/param_special.inc]
+
+[def [cmd test_digit]]
+[vset OP digit][include include/param_special.inc]
+
+[def [cmd test_graph]]
+[vset OP graph][include include/param_special.inc]
+
+[def [cmd test_lower]]
+[vset OP lower][include include/param_special.inc]
+
+[def [cmd test_print]]
+[vset OP print][include include/param_special.inc]
+
+[def [cmd test_punct]]
+[vset OP punct][include include/param_special.inc]
+
+[def "[cmd test_range] [arg chars] [arg chare]"]
+
+This instruction implements the range matching operator, i.e. it
+checks if CC falls into the interval of characters spanned up by the
+two characters from [arg chars] to [arg chare], both inclusive.
+[include include/param_okfail.inc]
+
+[def [cmd test_space]]
+[vset OP space][include include/param_special.inc]
+
+[def [cmd test_upper]]
+[vset OP upper][include include/param_special.inc]
+
+[def [cmd test_wordchar]]
+[vset OP wordchar][include include/param_special.inc]
+
+[def [cmd test_xdigit]]
+[vset OP xdigit][include include/param_special.inc]
+
+[list_end]
+
+[subsection {Error Handling}]
+
+The instructions in this section mainly access ER and ES.
+
+[list_begin definitions]
+
+[def [cmd error_clear]]
+
+This instruction clears ER.
+
+[def [cmd error_push]]
+
+This instruction makes a copy of ER and pushes it on ES.
+
+[def [cmd error_pop_merge]]
+
+This instruction takes the topmost entry of ES and merges the error
+status it contains with ES, making the result the new ES.
+
+[para]
+
+The merge is governed by four rules, with the merge result
+
+[list_begin enumerated][comment {---------------------------- merge rules ---}]
+[enum]
+Empty if both states are empty.
+
+[enum]
+The non-empty state if only one of the two states is non-empty.
+
+[enum]
+The state with the larger location, if the two states specify
+different locations.
+
+[enum]
+The pair of the location shared by the two states, and the set-union
+of their messages for states at the same location.
+
+[list_end][comment {----------------------------------------- merge rules ---}]
+
+[def "[cmd error_nonterminal] [arg symbol]"]
+
+This is a guarded instruction. It does nothing if either ES is empty,
+or if the location in ES is not just past the last location saved in
+LS. Otherwise it sets the pair of that location and the nonterminal
+[arg symbol] as the new ES.
+
+[para]
+[emph Note]: In the above "just past" means "that location plus one",
+or also "the location of the next character after that location".
+
+[list_end]
+
+[subsection {Status Control}]
+
+The instructions in this section directly manipulate ST.
+
+[list_begin definitions]
+
+[def [cmd status_ok]]
+
+This instruction sets ST to [const true], recording a success.
+
+[def [cmd status_fail]]
+
+This instruction sets ST to [const false], recording a failure.
+
+[def [cmd status_negate]]
+
+This instruction negates ST, turning a failure into a success and vice
+versa.
+
+[list_end]
+
+[subsection {Location Handling}]
+
+The instructions in this section access CL and LS.
+
+[list_begin definitions]
+
+[def [cmd loc_push]]
+
+This instruction makes a copy of CL and pushes it on LS.
+
+[def [cmd loc_pop_discard]]
+
+This instructions pops the last saved location from LS.
+
+[def [cmd loc_pop_rewind]]
+
+This instruction pops the last saved location from LS and restores it
+as CL.
+
+[list_end]
+
+[subsection {Nonterminal Execution}]
+
+The instructions in this section access and manipulate NC.
+
+[list_begin definitions]
+
+[def "[cmd symbol_restore] [arg symbol]"]
+
+This instruction checks if NC contains data for the nonterminal
+[arg symbol] at CL, or not. The result of the instruction is a boolean
+flag, with [const True] indicating that data was found in the
+cache. In that case the instruction has further updated the
+architectural state of the machine with the cached information, namely
+CL, ST, ER, and SV.
+
+[para]
+
+The method with which the instruction's result is transformed into
+control flow is left undefined and the responsibility of the
+implementation.
+
+[def "[cmd symbol_save] [arg symbol]"]
+
+This instructions saves the current settings of CL, ST, ER, and SV in
+NC, using the pair of nonterminal [arg symbol] and the last location
+saved in LS as key.
+
+[list_end]
+
+[subsection {Value Construction}]
+
+The instructions in this section manipulate SV.
+
+[list_begin definitions]
+[def [cmd value_clear]]
+
+This instruction clears SV.
+
+[def "[cmd value_leaf] [arg symbol]"]
+
+This instruction constructs an AST node for [arg symbol] covering the
+range of IN from one character after the last location saved on LS to
+CL and stores it in SV. ...
+
+[def "[cmd value_reduce] [arg symbol]"]
+
+This instruction generally behaves like [cmd value_nonterminal_leaf],
+except that it takes all AST nodes on ARS, if any, and makes them the
+children of the new node, with the last node saved on ARS becoming the
+right-most / last child. Note that ARS is not modfied by this
+operation.
+
+[list_end]
+
+[subsection {AST Construction}]
+
+The instructions in this section manipulate ARS and AS.
+
+[list_begin definitions]
+
+[def [cmd ast_value_push]]
+
+This instruction makes a copy of SV and pushes it on ARS.
+
+[def [cmd ast_push]]
+
+This instruction pushes the current state of ARS on AS and then clears
+ARS.
+
+[def [cmd ast_pop_rewind]]
+
+This instruction pops the last entry saved on AS and restores it as
+the new state of ARS.
+
+[def [cmd ast_pop_discard]]
+
+This instruction pops the last entry saved on AS.
+
+[list_end]
+
+[subsection {Control Flow}]
+
+Normally this section would contain the specifications of the control
+flow instructions of the PARAM, i.e. (un)conditional jumps and the
+like. However, this part of the PARAM is intentionally left
+unspecified. This allows the implementations to freely choose how to
+implement control flow.
+
+[para]
+
+The implementation of this machine in Parser Tools, i.e the package
+[package pt::rde], is not only coded in Tcl, but also relies on Tcl
+commands to provide it with control flow (instructions).
+
+[section {Interaction of the Instructions with the Architectural State}]
+
+[comment {-- in lieu of a true table markup --}]
+[example {
+Instruction		Inputs				Outputs
+======================= =======================		====================
+ast_pop_discard		AS			->	AS
+ast_pop_rewind		AS			->	AS, ARS
+ast_push		ARS, AS			->	AS
+ast_value_push		SV, ARS			->	ARS
+======================= =======================		====================
+error_clear		-			->	ER
+error_nonterminal sym	ER, LS			->	ER
+error_pop_merge   	ES, ER			->	ER
+error_push		ES, ER			->	ES
+======================= =======================		====================
+input_next msg		IN			->	TC, CL, CC, ST, ER
+======================= =======================		====================
+loc_pop_discard		LS			->	LS
+loc_pop_rewind		LS			->	LS, CL
+loc_push		CL, LS			->	LS
+======================= =======================		====================
+status_fail		-			->	ST
+status_negate		ST			->	ST
+status_ok		-			->	ST
+======================= =======================		====================
+symbol_restore sym	NC			->	CL, ST, ER, SV
+symbol_save    sym	CL, ST, ER, SV LS	->	NC
+======================= =======================		====================
+test_alnum  		CC			->	ST, ER
+test_alpha		CC			->	ST, ER
+test_ascii		CC			->	ST, ER
+test_char char		CC			->	ST, ER
+test_ddigit		CC			->	ST, ER
+test_digit		CC			->	ST, ER
+test_graph		CC			->	ST, ER
+test_lower		CC			->	ST, ER
+test_print		CC			->	ST, ER
+test_punct		CC			->	ST, ER
+test_range chars chare	CC			->	ST, ER
+test_space		CC			->	ST, ER
+test_upper		CC			->	ST, ER
+test_wordchar		CC			->	ST, ER
+test_xdigit		CC			->	ST, ER
+======================= =======================		====================
+value_clear		-			->	SV
+value_leaf symbol	LS, CL			->	SV
+value_reduce symbol	ARS, LS, CL		->	SV
+======================= =======================		====================
+}]
+
+[include include/feedback.inc]
+[manpage_end]

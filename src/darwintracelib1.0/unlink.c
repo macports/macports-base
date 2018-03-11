@@ -4,8 +4,6 @@
  * All rights reserved.
  * Copyright (c) 2006-2013 The MacPorts Project
  *
- * $Id$
- *
  * @APPLE_BSD_LICENSE_HEADER_START@
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +36,6 @@
 #include "darwintrace.h"
 
 #include <errno.h>
-#include <sys/syscall.h>
 #include <unistd.h>
 #include <unistd.h>
 
@@ -47,7 +44,6 @@
  * of the sandbox and simulate non-existence of the file instead.
  */
 static int _dt_unlink(const char *path) {
-#define unlink(x) syscall(SYS_unlink, (x))
 	__darwintrace_setup();
 
 	int result = 0;
@@ -62,7 +58,6 @@ static int _dt_unlink(const char *path) {
 	debug_printf("unlink(%s) = %d\n", path, result);
 
 	return result;
-#undef unlink
 }
 
 DARWINTRACE_INTERPOSE(_dt_unlink, unlink);

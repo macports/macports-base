@@ -1,0 +1,152 @@
+# -*- tcl -*-
+# md5crypt.test:  tests for the md5crypt commands
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# commands.  Sourcing this file into Tcl runs the tests and generates
+# output for errors.  No output means no errors were found.
+#
+# Copyright (C) 2003 Pat Thoyts <patthoyts@users.sourceforge.net>
+#
+# RCS: @(#) $Id: md5crypt.test,v 1.9 2006/10/09 21:41:41 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal md5crypt.tcl md5crypt
+}
+
+# -------------------------------------------------------------------------
+# Setup any constraints
+
+# Set this true if we have the critcl version.
+
+::tcltest::testConstraint md5crypt_c \
+        [llength [info commands ::md5crypt::md5crypt_c]]
+
+# -------------------------------------------------------------------------
+
+if {[llength [info commands ::md5crypt::md5crypt_c]]} {
+    puts "> critcl based"
+    set impl critcl
+} else {
+    puts "> pure Tcl"
+    set impl tcl
+}
+
+# -------------------------------------------------------------------------
+# Now the package specific tests....
+# -------------------------------------------------------------------------
+# A procedure and a C command generate different error messages.
+
+test md5crypt-1.0 {md5crypt basic usage} {
+    catch {::md5crypt::md5crypt} result
+    if {$impl == "critcl"} {
+        set expected {wrong # args: should be "::md5crypt::md5crypt_c magic pw salt"}
+    } else {
+        set expected [tcltest::wrongNumArgs {*} {pw salt} 0]
+    }
+    string match $expected $result
+} 1
+
+test md5crypt-1.1 {md5crypt basic usage} {
+    catch {::md5crypt::md5crypt pw} result
+    if {$impl == "critcl"} {
+        set expected {wrong # args: should be "::md5crypt::md5crypt_c magic pw salt"}
+    } else {
+        set expected [tcltest::wrongNumArgs {*} {pw salt} 1]
+    }
+    string match $expected $result
+} 1
+
+test md5crypt-1.2 {md5crypt basic usage} {
+    catch {::md5crypt::md5crypt pw salt other} result
+    if {$impl == "critcl"} {
+        set expected {wrong # args: should be "::md5crypt::md5crypt_c magic pw salt"}
+    } else {
+        set expected [tcltest::tooManyArgs {*} {pw salt}]
+    }
+    string match $expected $result
+} 1
+
+# -------------------------------------------------------------------------
+
+foreach {n salt passwd expected} {
+    1    {}          a  {$1$$Ij31LCAysPM23KuPlm1wA/}
+    2    {a}         a  {$1$a$44cUw6Nm5bX0muHWNIwub0}
+    3    {aa}        a  {$1$aa$aM/8fu5RTEKSCJWsk9qH.0}
+    4    {aaa}       a  {$1$aaa$SCk4CXyogLtcfwl2VqfSF0}
+    5    {aaaa}      a  {$1$aaaa$tjZedp/Ch2UpwkJdEKLPm.}
+    6    {aaaaa}     a  {$1$aaaaa$iVkHUcCwuXWk4NaYTbyUa/}
+    7    {aaaaaa}    a  {$1$aaaaaa$MUMWPbGfzrHFCNm7ZHg31.}
+    8    {aaaaaaa}   a  {$1$aaaaaaa$4OzJTk7W1gmppy.1Lu4nr.}
+    9    {aaaaaaaa}  a  {$1$aaaaaaaa$S270EsVIz5M8Y9/k4SSEf.}
+    10   {aaaaaaaaa} a  {$1$aaaaaaaa$S270EsVIz5M8Y9/k4SSEf.}
+    12   {a$aaaaaaa} a  {$1$a$44cUw6Nm5bX0muHWNIwub0}
+    13   {$1$a$junk} a  {$1$a$44cUw6Nm5bX0muHWNIwub0}
+} {
+    test md5passwd-2.${n} [list md5crypt salt check \"$salt\"] {
+        ::md5crypt::md5crypt $passwd $salt
+    } $expected
+    
+    # If the C code is loaded, then we have tested that so now check the
+    # pure-tcl implementation as well.
+    test md5passwd-3.${n}_tcl [list md5crypt salt check \"$salt\"] \
+        {md5crypt_c} {
+            ::md5crypt::md5crypt_tcl {$1$} $passwd $salt
+        } $expected
+}
+
+# -------------------------------------------------------------------------
+
+foreach {n salt passwd expected} [list \
+    1    {a}  {}  {$1$a$8CfZSfErbeskipdhZHtvu.} \
+    2    {a}  {a} {$1$a$44cUw6Nm5bX0muHWNIwub0} \
+    3    {a}  [string repeat a  100] {$1$a$vTAcWEblAgdUlX6KBz0NM.} \
+    4    {a}  [string repeat a  200] {$1$a$kC.K4D6mvUznpkjWJK8Tm0} \
+    5    {a}  [string repeat a  400] {$1$a$nBvNVTsAryOnHlW7L/gzf/} \
+    6    {a}  [string repeat a 1000] {$1$a$yhNnTV4IKHbl8oEB/eJaj0} \
+] {
+    test md5passwd-4.${n} {md5crypt check passwd} {
+        ::md5crypt::md5crypt $passwd $salt
+    } $expected
+    
+    # If the C code is loaded, then we have tested that so now check the
+    # pure-tcl implementation as well.
+    test md5passwd-5.${n}_tcl {md5crypt (pure-Tcl) check passwd} {md5crypt_c} {
+        ::md5crypt::md5crypt_tcl {$1$} $passwd $salt
+    } $expected
+}
+    
+# -------------------------------------------------------------------------
+
+foreach {n salt passwd expected} [list \
+    1    {883.....}  {a}  {$apr1$883.....$wCU4E7Fv9tHAzFEm5D.mp/} \
+    2    {XA3.....}  {a}  {$apr1$XA3.....$kp5j/oX/OCrpKdKhmUqTu1} \
+] {
+    test md5passwd-6.${n} {aprcrypt check passwd} {
+        ::md5crypt::aprcrypt $passwd $salt
+    } $expected
+    
+    # If the C code is loaded, then we have tested that so now check the
+    # pure-tcl implementation as well.
+    test md5passwd-7.${n}_tcl {aprcrypt (pure-Tcl) check passwd} {md5crypt_c} {
+        ::md5crypt::md5crypt_tcl {$apr1$} $passwd $salt
+    } $expected
+}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# -------------------------------------------------------------------------
+# Local variables:
+#   mode: tcl
+#   indent-tabs-mode: nil
+# End:

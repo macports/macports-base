@@ -11,8 +11,10 @@ SHLIB_NAME=	MacPorts${SHLIB_SUFFIX}
 INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_PATH}/macports1.0
 OLDINSTALLDIR= ${datadir}/macports/Tcl
 
-ifeq ($(OBJC_RUNTIME), APPLE_RUNTIME)
+ifeq (@HAVE_FRAMEWORK_COREFOUNDATION@,yes)
+ifeq (@HAVE_FRAMEWORK_SYSTEMCONFIGURATION@,yes)
 	LIBS+= -framework CoreFoundation -framework SystemConfiguration
+endif
 endif
 
 pkgIndex.tcl: $(SRCS)

@@ -1,0 +1,47 @@
+expander notes:
+o   expander.tcl is an objectified version of the expansion algorithm
+    used in expand and Spinster.  Goals
+    -   Multiple expanders can be used at one time
+    -   Handling of batch or incremental input
+    -   Support for user-settable brackets
+    -   Support for context stack.
+o   Next: add and test incremental expansion.
+
+Things done: 11/23/2001
+x   Added the evalcmd command; this allows the application to specify
+    a different means of evaluating macros than the default "uplevel
+    #0".
+
+Things done: 11/3/2001
+x   Added a couple of more tests for the nested expander problem I
+    fixed the other day.
+x   Finished the man page for the current version.
+x   Time to zip it up and send it off to Andreas.
+
+Things done: 10/31/2001
+x   Updated the list of possible error modes to match the list in
+    Expand 2.1
+x   Added tests for each of the error modes to expander.test.
+x   Created a modified version of Expand 2.1 that uses expander; it
+    was able to process the Ex Libris website without error.
+x   Found an error: if an expander is used to expand text which
+    contains a call to another expander, the two get confused--because
+    of the "::expander::This" variable.
+    -   It works for the recordkeeper, because a recordkeeper method
+        can never execute a method for a different recordkeeper.
+    -   What if Methods saved the old This, and restored it at the
+        end?
+    -   Tried it; it works!  All existing tests pass.
+
+Things done: 10/30/2001
+x   Wrote more tests; found and fixed bracket restoration bug in expander.
+
+Things done: 10/25/2001
+x   Wrote tests for the lb, rb, and errmode commands.
+x   Added the reset command.
+x   Wrote tests for the reset command.
+x   Added the context stack commands, and wrote tests for them.
+    
+Things done: 10/24/2001
+x   Copied recordkeeper code and docs as a template.
+x   Implemented the lb, rb, and errmode accessor methods.

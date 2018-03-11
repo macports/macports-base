@@ -1,0 +1,27 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin clock_rfc2822 n 0.1]
+[moddesc   {Date/Time Utilities}]
+[titledesc {Parsing ISO 8601 dates/times}]
+[category  {Text processing}]
+[require Tcl 8.5]
+[require clock::rfc2822 [opt 0.1]]
+[description]
+
+This package provides functionality to parse dates in
+RFC 2822 format.
+
+[para]
+
+[list_begin definitions]
+
+[call [cmd {::clock::rfc2822 parse_date}] [arg date]]
+
+This command parses an RFC2822 date string and returns
+the given date in seconds since epoch. An error is thrown
+if the command is unable to parse the date.
+
+[list_end]
+
+[vset CATEGORY clock::rfc2822]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

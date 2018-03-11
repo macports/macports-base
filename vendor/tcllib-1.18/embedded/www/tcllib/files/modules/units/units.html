@@ -1,0 +1,469 @@
+
+<div class='fossil-doc' data-title='units - Convert and manipulate quantities with units'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">units(n) 1.2 tcllib &quot;Convert and manipulate quantities with units&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>units - unit conversion</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">UNIT STRING FORMAT</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Example Valid Unit Strings</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">SI UNITS</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection2">SI Base Units</a></li>
+<li class="doctools_subsection"><a href="#subsection3">SI Derived Units with Special Names</a></li>
+<li class="doctools_subsection"><a href="#subsection4">SI Prefixes</a></li>
+<li class="doctools_subsection"><a href="#subsection5">Non-SI Units</a></li>
+<li class="doctools_subsection"><a href="#subsection6">Quantities and Derived Units with Special Names</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section5">REFERENCES</a></li>
+<li class="doctools_section"><a href="#section6">AUTHORS</a></li>
+<li class="doctools_section"><a href="#section7">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.1</b></li>
+<li>package require <b class="pkgname">units <span class="opt">?2.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::units::convert</b> <i class="arg">value</i> <i class="arg">targetUnits</i></a></li>
+<li><a href="#2"><b class="cmd">::units::reduce</b> <i class="arg">unitString</i></a></li>
+<li><a href="#3"><b class="cmd">::units::new</b> <i class="arg">name</i> <i class="arg">baseUnits</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This library provides a conversion facility from a variety of
+scientific and engineering shorthand notations into floating point
+numbers.  This allows application developers to easily convert
+values with different units into uniformly scaled numbers.</p>
+<p>The units conversion facility is also able to convert between
+compatible units.  If, for example, a application is expecting a value
+in <em>ohms</em> (Resistance), and the user specifies units of
+<em>milliwebers/femtocoulomb</em>, the conversion routine will
+handle it appropriately.  An error will be generated if an incorrect
+conversion is attempted.</p>
+<p>Values are scaled from one set of units to another by dimensional
+analysis.  Both the value units and the target units are reduced into
+primitive units and a scale factor.  Units are checked for
+compatibility, and the scale factors are applied by multiplication and
+division.  This technique is extremely flexible and quite robust.</p>
+<p>New units and new unit abbreviations can be defined in terms of
+existing units and abbreviations.  It is also possible to define a new
+primitive unit, although that will probably be unnecessary.  New units
+will most commonly be defined to accommodate non-SI measurement
+systems, such as defining the unit <em>inch</em> as <em>2.54 cm</em>.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::units::convert</b> <i class="arg">value</i> <i class="arg">targetUnits</i></a></dt>
+<dd><p>Converts the <i class="arg">value</i> string into a floating point number, scaled to the
+specified <i class="arg">targetUnits</i>.  The <i class="arg">value</i> string may contain a
+number and units.  If units are specified, then they must be
+compatible with the <i class="arg">targetUnits</i>.  If units are not specified
+for the <i class="arg">value</i>, then it will be scaled to the target units.  For
+example,</p>
+<pre class="doctools_example">
+% ::units::convert &quot;2.3 miles&quot; km
+3.7014912
+% ::units::convert 300m/s miles/hour
+671.080887616
+% ::units::convert &quot;1.0 m kg/s^2&quot; newton
+1.0
+% ::units::convert 1.0 millimeter
+1000.0
+</pre>
+</dd>
+<dt><a name="2"><b class="cmd">::units::reduce</b> <i class="arg">unitString</i></a></dt>
+<dd><p>Returns a unit string consisting of a scale factor followed by a space
+separated list of sorted and reduced primitive units.  The reduced
+unit string may include a forward-slash (separated from the
+surrounding primitive subunits by spaces) indicating that the
+remaining subunits are in the denominator.  Generates an error if the
+<i class="arg">unitString</i> is invalid.</p>
+<pre class="doctools_example">
+% ::units::reduce pascal
+1000.0 gram / meter second second
+</pre>
+</dd>
+<dt><a name="3"><b class="cmd">::units::new</b> <i class="arg">name</i> <i class="arg">baseUnits</i></a></dt>
+<dd><p>Creates a new unit conversion with the specified name.  The new unit
+<i class="arg">name</i> must be only alphabetic (upper or lower case) letters.
+The <i class="arg">baseUnits</i> string can consist of any valid units conversion
+string, including constant factors, numerator and denominator parts,
+units with prefixes, and exponents.  The baseUnits may contain any
+number of subunits, but it must reduce to primitive units.  BaseUnits
+could also be the string <em>-primitive</em> to represent a new
+kind of quantity which cannot be derived from other units.  But you
+probably would not do that unless you have discovered some kind of new
+universal property.</p>
+<pre class="doctools_example">
+% ::units::new furlong &quot;220 yards&quot;
+% ::units::new fortnight &quot;14 days&quot;
+% ::units::convert 100m/s furlongs/fortnight
+601288.475303
+</pre>
+</dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">UNIT STRING FORMAT</a></h2>
+<p>Value and unit string format is quite flexible.  It is possible to
+define virtually any combination of units, prefixes, and powers.
+Valid unit strings must conform to these rules.</p>
+<ul class="doctools_itemized">
+<li><p>A unit string consists of an optional scale factor followed by zero or
+more subunits.  The scale factor must be a valid floating point
+number, and may or may not be separated from the subunits.  The scale
+factor could be negative.</p></li>
+<li><p>Subunits are separated form each other by one or more separator
+characters, which are space (&quot; &quot;), hyphen (&quot;-&quot;), asterisk (&quot;*&quot;), and
+forward-slash (&quot;/&quot;).  Sure, go ahead and complain about using a minus
+sign (&quot;-&quot;) to represent multiplication.  It just isn't sound
+mathematics, and, by rights, we should require everyone to use the
+asterisk (&quot;*&quot;) to separate all units.  But the bottom line is that
+complex unit strings like <em>m-kg/s^2</em> are pleasantly
+readable.</p></li>
+<li><p>The forward-slash seperator (&quot;/&quot;) indicates that following subunits are
+in the denominator.  There can be at most one forward-slash separator.</p></li>
+<li><p>Subunits can be floating point scale factors, but with the exception
+of the leading scale factor, they must be surrounded by valid
+separators.  Subunit scale factors cannot be negative. (Remember that
+the hyphen is a unit separator.)</p></li>
+<li><p>Subunits can be valid units or abbreviations.  They may include a
+prefix.  They may include a plural suffix &quot;s&quot; or &quot;es&quot;.  They may also
+include a power string denoted by a circumflex (&quot;^&quot;), followed by a
+integer, after the unit name (or plural suffix, if there is one).
+Negative exponents are not allowed.  (Remember that the hyphen is a
+unit separator.)</p></li>
+</ul>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Example Valid Unit Strings</a></h3>
+<pre class="doctools_example">
+Unit String              Reduced Unit String
+------------------------------------------------------------
+meter                    1.0 meter
+kilometer                1000.0 meter
+km                       1000.0 meter
+km/s                     1000.0 meter / second
+/microsecond             1000000.0 / second
+/us                      1000000.0 / second
+kg-m/s^2                 1000.0 gram meter / second second
+30second                 30.0 second
+30 second                30.0 second
+30 seconds               30.0 second
+200*meter/20.5*second    9.75609756098 meter / second
+</pre>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">SI UNITS</a></h2>
+<p>The standard SI units are predefined according to <em>NIST Special
+Publication 330</em>.  Standard units for both SI Base Units (Table
+1) and SI Derived Units with Special Names (Tables 3a and 3b) are
+included here for reference.  Each standard unit name and abbreviation
+are included in this package.</p>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">SI Base Units</a></h3>
+<pre class="doctools_example">
+Quantity                Unit Name    Abbr.
+---------------------------------------------
+Length                  meter        m
+Mass                    kilogram     kg
+Time                    second       s
+Current                 ampere       A
+Temperature             kelvin       K
+Amount                  mole         mol
+Luminous Intensity      candela      cd
+</pre>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">SI Derived Units with Special Names</a></h3>
+<pre class="doctools_example">
+Quantity                Unit Name    Abbr.   Units     Base Units
+--------------------------------------------------------------------
+plane angle             radian      rad     m/m       m/m
+solid angle             steradian   sr      m^2/m^2   m^2/m^2
+frequency               hertz       Hz                /s
+force                   newton      N                 m-kg/s^2
+pressure                pascal      Pa      N/m^2     kg/m-s^2
+energy, work            joule       J       N-m       m^2-kg/s^2
+power, radiant flux     watt        W       J/s       m^2-kg/s^3
+electric charge         coulomb     C                 s-A
+electric potential      volt        V       W/A       m^2-kg/s^3-A
+capacitance             farad       F       C/V       s^4-A^2/m^2-kg
+electric resistance     ohm                 V/A       m^2-kg/s^3-A^2
+electric conductance    siemens     S       A/V       s^3-A^2/m^2-kg
+magnetic flux           weber       Wb      V-s       m^2-kg/s^2-A
+magnetic flux density   tesla       T       Wb/m^2    kg/s^2-A
+inductance              henry       H       Wb/A      m^2-kg/s^2-A^2
+luminous flux           lumen       lm                cd-sr
+illuminance             lux         lx      lm/m^2    cd-sr/m^2
+activity (of a
+radionuclide)           becquerel   Bq                /s
+absorbed dose           gray        Gy      J/kg      m^2/s^2
+dose equivalent         sievert     Sv      J/kg      m^2/s^2
+</pre>
+<p>Note that the SI unit kilograms is actually implemented as grams
+because 1e-6 kilogram = 1 milligram, not 1 microkilogram.  The
+abbreviation for Electric Resistance (ohms), which is the omega
+character, is not supported.</p>
+<p>Also note that there is no support for Celsius or Farenheit
+temperature.  The units conversion routines can only scale values
+with multiplication and division, so it is not possible to convert
+from thermodynamic temperature (kelvins) to absolute degrees Celsius
+or Farenheit.  Conversion of thermodynamic quantities, such as
+thermal expansion (per unit temperature), however, are easy to add
+to the units library.</p>
+<p>SI Units can have a multiple or sub-multiple prefix.  The prefix or its
+abbreviation should appear before the unit, without spaces.  Compound
+prefixes are not allowed, and a prefix should never be used alone.
+These prefixes are defined in Table 5 of <em>Special Publication
+330</em>.</p>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">SI Prefixes</a></h3>
+<pre class="doctools_example">
+Prefix Name     Abbr.   Factor
+---------------------------------------
+yotta           Y       1e24
+zetta           Z       1e21
+exa             E       1e18
+peta            P       1e15
+tera            T       1e12
+giga            G       1e9
+mega            M       1e6
+kilo            k       1e3
+hecto           h       1e2
+deka            da      1e1
+deca                    1e1
+deci            d       1e-1
+centi           c       1e-2
+milli           m       1e-3
+micro           u       1e-6
+nano            n       1e-9
+pico            p       1e-12
+femto           f       1e-15
+atto            a       1e-18
+zepto           z       1e-21
+yocto           y       1e-24
+</pre>
+<p>Note that we define the same prefix with both the USA (&quot;deka&quot;) and
+non-USA (&quot;deca&quot;) spellings.  Also note that we take the liberty of
+allowing &quot;micro&quot; to be typed as a &quot;u&quot; instead of the Greek character
+mu.</p>
+<p>Many non-SI units are commonly used in applications.  Appendix B.8 of
+<em>NIST Special Publication 811</em> lists many non-SI conversion
+factors.  It is not possible to include all possible unit definitions
+in this package.  In some cases, many different conversion factors
+exist for a given unit, depending on the context. (The appendix lists
+over 40 conversions for British thermal units!)  Application specific
+conversions can always be added using the <b class="cmd">new</b>
+command, but some well known and often used conversions are included
+in this package.</p>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">Non-SI Units</a></h3>
+<pre class="doctools_example">
+Unit Name            Abbr.    Base Units
+--------------------------------------------------
+angstrom                      1.0E-10 m
+astronomicalUnit     AU       1.495979E11 m
+atmosphere                    1.01325E5 Pa
+bar                           1.0E5 Pa
+calorie                       4.1868 J
+curie                         3.7E10 Bq
+day                           8.64E4 s
+degree                        1.745329E-2 rad
+erg                           1.0E-7 J
+faraday                       9.648531 C
+fermi                         1.0E-15 m
+foot                 ft       3.048E-1 m
+gauss                         1.0E-4 T
+gilbert                       7.957747E-1 A
+grain                gr       6.479891E-5 kg
+hectare              ha       1.0E4 m^2
+hour                 h        3.6E3 s
+inch                 in       2.54E-2 m
+lightYear                     9.46073E15 m
+liter                L        1.0E-3 m^3
+maxwell              Mx       1.0E-8 Wb
+mho                           1.0 S
+micron                        1.0E-6 m
+mil                           2.54E-5 m
+mile                 mi       1.609344E3 m
+minute               min      6.0E1 s
+parsec               pc       3.085E16 m
+pica                          4.233333E-3 m
+pound                lb       4.535924E-1 kg
+revolution                    6.283185 rad
+revolutionPerMinute  rpm      1.047198E-1 rad/s
+yard                 yd       9.144E-1 m
+year                          3.1536E7 s
+</pre>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">Quantities and Derived Units with Special Names</a></h3>
+<p>This units conversion package is limited specifically to unit
+reduction, comparison, and scaling.  This package does not consider
+any of the quantity names for either base or derived units.  A similar
+implementation or an extension in a typed or object-oriented language
+might introduce user defined types for the quantities.  Quantity type
+checking could be used, for example, to ensure that all
+<em>length</em> values properly reduced to <em>meters</em>, or
+that all <em>velocity</em> values properly reduced to
+<em>meters/second</em>.</p>
+<p>A C implementation of this package has been created to work in
+conjunction with the Simplified Wrapper Interface Generator
+(<a href="http://www.swig.org/">http://www.swig.org/</a>).  That package (units.i) exploits SWIG's typemap
+system to automatically convert script quantity strings into floating
+point quantities.  Function arguments are specified as quantity types
+(e.g., <em>typedef float Length</em>), and target units (expected
+by the C application code) are specified in an associative array.
+Default units are also defined for each quantity type, and are applied
+to any unit-less quantity strings.</p>
+<p>A units system enhanced with quantity type checking might benefit from
+inclusion of other derived types which are expressed in terms of
+special units, as illustrated in Table 2 of <em>NIST Publication
+330</em>.  The quantity <em>area</em>, for example, could be
+defined as units properly reducing to <em>meter^2</em>, although
+the utility of defining a unit named <em>square meter</em> is
+arguable.</p>
+</div>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">REFERENCES</a></h2>
+<p>The unit names, abbreviations, and conversion values are derived from
+those published by the United States Department of Commerce Technology
+Administration, National Institute of Standards and Technology (NIST)
+in <em>NIST Special Publication 330: The International System of
+Units (SI)</em> and <em>NIST Special Publication 811: Guide for
+the Use of the International System of Units (SI)</em>.  Both of
+these publications are available (as of December 2000) from
+<a href="http://physics.nist.gov/cuu/Reference/contents.html">http://physics.nist.gov/cuu/Reference/contents.html</a></p>
+<p>The ideas behind implementation of this package is based in part on
+code written in 1993 by Adrian Mariano which performed dimensional
+analysis of unit strings using fixed size tables of C structs.  After
+going missing in the late 1990's, Adrian's code has reappeared in the
+GNU Units program at <a href="http://www.gnu.org/software/units/">http://www.gnu.org/software/units/</a></p>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">AUTHORS</a></h2>
+<p>Robert W. Techentin</p>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>units</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key581">angle</a>, <a href="../../../../index.html#key609">constants</a>, <a href="../../../../index.html#key20">conversion</a>, <a href="../../../../index.html#key478">distance</a>, <a href="../../../../index.html#key610">radians</a>, <a href="../../../../index.html#key608">unit</a></p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2000-2005 Mayo Foundation</p>
+</div>
+</div>

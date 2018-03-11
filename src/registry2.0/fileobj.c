@@ -1,7 +1,6 @@
 /*
  * fileobj.c
  * vim:tw=80:expandtab
- * $Id$
  *
  * Copyright (c) 2011 Clemens Lang <cal@macports.org>
  * All rights reserved.
@@ -41,6 +40,7 @@
 #include "util.h"
 
 const char* file_props[] = {
+    "id",
     "path",
     "actual_path",
     "active",

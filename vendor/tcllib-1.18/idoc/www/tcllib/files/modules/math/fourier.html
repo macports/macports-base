@@ -1,0 +1,249 @@
+<html><head>
+<title>math::fourier - Tcl Math Library</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<! -- Generated from file 'fourier.man' by tcllib/doctools with format 'html'
+   -->
+<! -- math::fourier.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+| <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::fourier(n) 1.0.2 tcllib &quot;Tcl Math Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::fourier - Discrete and fast fourier transforms</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">GENERAL INFORMATION</a></li>
+<li class="doctools_section"><a href="#section3">PROCEDURES</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.4</b></li>
+<li>package require <b class="pkgname">math::fourier 1.0.2</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::fourier::dft</b> <i class="arg">in_data</i></a></li>
+<li><a href="#2"><b class="cmd">::math::fourier::inverse_dft</b> <i class="arg">in_data</i></a></li>
+<li><a href="#3"><b class="cmd">::math::fourier::lowpass</b> <i class="arg">cutoff</i> <i class="arg">in_data</i></a></li>
+<li><a href="#4"><b class="cmd">::math::fourier::highpass</b> <i class="arg">cutoff</i> <i class="arg">in_data</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">math::fourier</b> package implements two versions of discrete
+Fourier transforms, the ordinary transform and the fast Fourier
+transform. It also provides a few simple filter procedures as an
+illustrations of how such filters can be implemented.</p>
+<p>The purpose of this document is to describe the implemented procedures
+and provide some examples of their usage. As there is ample literature
+on the algorithms involved, we refer to relevant text books for more
+explanations. We also refer to the original Wiki page on the subject
+which describes some of the considerations behind the current
+implementation.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">GENERAL INFORMATION</a></h2>
+<p>The two top-level procedures defined are</p>
+<ul class="doctools_itemized">
+<li><p>dft data-list</p></li>
+<li><p>inverse_dft data-list</p></li>
+</ul>
+<p>Both take a list of <em>complex numbers</em> and apply a Discrete Fourier
+Transform (DFT) or its inverse respectively to these lists of numbers.
+A &quot;complex number&quot; in this case is either (i) a pair (two element list) of
+numbers, interpreted as the real and imaginary parts of the complex number,
+or (ii) a single number, interpreted as the real part of a complex number
+whose imaginary part is zero. The return value is always in the
+first format. (The DFT generally produces complex results even if the
+input is purely real.) Applying first one and then the other of these
+procedures to a list of complex numbers will (modulo rounding errors
+due to floating point arithmetic) return the original list of numbers.</p>
+<p>If the input length N is a power of two then these procedures will
+utilize the O(N log N) Fast Fourier Transform algorithm. If input
+length is not a power of two then the DFT will instead be computed
+using a the naive quadratic algorithm.</p>
+<p>Some examples:</p>
+<pre class="doctools_example">
+    % dft {1 2 3 4}
+    {10 0.0} {-2.0 2.0} {-2 0.0} {-2.0 -2.0}
+    % inverse_dft {{10 0.0} {-2.0 2.0} {-2 0.0} {-2.0 -2.0}}
+    {1.0 0.0} {2.0 0.0} {3.0 0.0} {4.0 0.0}
+    % dft {1 2 3 4 5}
+    {15.0 0.0} {-2.5 3.44095480118} {-2.5 0.812299240582} {-2.5 -0.812299240582} {-2.5 -3.44095480118}
+    % inverse_dft {{15.0 0.0} {-2.5 3.44095480118} {-2.5 0.812299240582} {-2.5 -0.812299240582} {-2.5 -3.44095480118}}
+    {1.0 0.0} {2.0 8.881784197e-17} {3.0 4.4408920985e-17} {4.0 4.4408920985e-17} {5.0 -8.881784197e-17}
+</pre>
+<p>In the last case, the imaginary parts &lt;1e-16 would have been zero in exact
+arithmetic, but aren't here due to rounding errors.</p>
+<p>Internally, the procedures use a flat list format where every even
+index element of a list is a real part and every odd index element
+is an imaginary part. This is reflected in the variable names by Re_
+and Im_ prefixes.</p>
+<p>The package includes two simple filters. They have an analogue
+equivalent in a simple electronic circuit, a resistor and a capacitance
+in series. Using these filters requires the
+<b class="package"><a href="qcomplex.html">math::complexnumbers</a></b> package.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">PROCEDURES</a></h2>
+<p>The public Fourier transform procedures are:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::fourier::dft</b> <i class="arg">in_data</i></a></dt>
+<dd><p>Determine the <em>Fourier transform</em> of the given list of complex
+numbers. The result is a list of complex numbers representing the
+(complex) amplitudes of the Fourier components.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">in_data</i></dt>
+<dd><p>List of data</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">::math::fourier::inverse_dft</b> <i class="arg">in_data</i></a></dt>
+<dd><p>Determine the <em>inverse Fourier transform</em> of the given list of
+complex numbers (interpreted as amplitudes). The result is a list of
+complex numbers representing the original (complex) data</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">in_data</i></dt>
+<dd><p>List of data (amplitudes)</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">::math::fourier::lowpass</b> <i class="arg">cutoff</i> <i class="arg">in_data</i></a></dt>
+<dd><p>Filter the (complex) amplitudes so that high-frequency components
+are suppressed. The implemented filter is a first-order low-pass filter,
+the discrete equivalent of a simple electronic circuit with a resistor
+and a capacitance.</p>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">cutoff</i></dt>
+<dd><p>Cut-off frequency</p></dd>
+<dt>list <i class="arg">in_data</i></dt>
+<dd><p>List of data (amplitudes)</p></dd>
+</dl></dd>
+<dt><a name="4"><b class="cmd">::math::fourier::highpass</b> <i class="arg">cutoff</i> <i class="arg">in_data</i></a></dt>
+<dd><p>Filter the (complex) amplitudes so that low-frequency components
+are suppressed. The implemented filter is a first-order low-pass filter,
+the discrete equivalent of a simple electronic circuit with a resistor
+and a capacitance.</p>
+<dl class="doctools_arguments">
+<dt>float <i class="arg">cutoff</i></dt>
+<dd><p>Cut-off frequency</p></dd>
+<dt>list <i class="arg">in_data</i></dt>
+<dd><p>List of data (amplitudes)</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>math :: fourier</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key802">FFT</a>, <a href="../../../../index.html#key801">Fourier transform</a>, <a href="../../../../index.html#key796">complex numbers</a>, <a href="../../../../index.html#key628">mathematics</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+</div></body></html>

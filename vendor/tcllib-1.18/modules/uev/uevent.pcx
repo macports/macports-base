@@ -1,0 +1,58 @@
+# -*- tcl -*- uevent.pcx
+# Syntax of the commands provided by package uevent.
+
+# For use by TclDevKit's static syntax checker.
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the documentation describing the format of the code contained in this file
+#
+
+package require pcx
+pcx::register uevent
+pcx::tcldep   0.1.3 needs tcl 8.4
+pcx::tcldep   0.3   needs tcl 8.4
+
+namespace eval ::uevent {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 0.1.3 std ::uevent::bind \
+    {checkSimpleArgs 3 3 {
+	checkWord
+	checkWord
+	checkWord
+    }}
+pcx::check 0.1.3 std ::uevent::generate \
+    {checkSimpleArgs 2 3 {
+	checkWord
+	checkWord
+	checkWord
+    }}
+pcx::check 0.1.3 std ::uevent::unbind \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 0.3 std ::uevent::watch::tag::add \
+    {checkSimpleArgs 2 2 {
+	checkWord
+	checkWord
+    }}
+pcx::check 0.3 std ::uevent::watch::tag::remove \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 0.3 std ::uevent::watch::event::add \
+    {checkSimpleArgs 3 3 {
+	checkWord
+	checkWord
+	checkWord
+    }}
+pcx::check 0.3 std ::uevent::watch::event::remove \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+
+# Initialization via pcx::init.
+# Use a ::uevent::init procedure for non-standard initialization.
+pcx::complete

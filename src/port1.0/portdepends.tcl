@@ -1,6 +1,5 @@
 # et:ts=4
 # portdepends.tcl
-# $Id$
 #
 # Copyright (c) 2005, 2007-2009 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
@@ -55,7 +54,6 @@ option_proc depends portdepends::validate_depends_options_new
 set_ui_prefix
 
 proc portdepends::validate_depends_options {option action {value ""}} {
-    global targets
     switch $action {
         set {
             foreach depspec $value {

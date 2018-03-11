@@ -1,0 +1,274 @@
+[manpage_begin pop3 n 1.9]
+[keywords email]
+[keywords mail]
+[keywords pop]
+[keywords pop3]
+[keywords {rfc 1939}]
+[keywords secure]
+[keywords ssl]
+[keywords tls]
+[comment {-*- tcl -*- doctools manpage}]
+[moddesc   {Tcl POP3 Client Library}]
+[titledesc {Tcl client for POP3 email protocol}]
+[category  Networking]
+[require Tcl  8.4]
+[require pop3 [opt 1.9]]
+[description]
+
+The [package pop3] package provides a simple Tcl-only client library
+for the POP3 email protocol as specified in
+[uri http://www.rfc-editor.org/rfc/rfc1939.txt {RFC 1939}].
+
+It works by opening the standard POP3 socket on the server,
+transmitting the username and password, then providing a Tcl API to
+access the POP3 protocol commands.  All server errors are returned as
+Tcl errors (thrown) which must be caught with the Tcl [cmd catch]
+command.
+
+[include ../common-text/tls-security-notes.inc]
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::pop3::open] \
+	[opt "[option -msex] 0|1"] \
+	[opt "[option -retr-mode] retr|list|slow"] \
+	[opt "[option -socketcmd] cmdprefix"] \
+	[opt "[option -stls] 0|1"] \
+	[opt "[option -tls-callback] stls-callback-command"] \
+	[arg {host username password}] [opt [arg port]]]
+
+Open a socket connection to the server specified by [arg host],
+transmit the [arg username] and [arg password] as login information to
+the server.  The default port number is [const 110], which can be
+overridden using the optional [arg port] argument.  The return value
+is a channel used by all of the other ::pop3 functions.
+
+[para]
+
+The command recognizes three options
+
+[list_begin options]
+
+[opt_def -msex boolean]
+
+Setting this option tells the package that the server we are talking
+to is an MS Exchange server (which has some oddities we have to work
+around). The default is [const False].
+
+[opt_def -retr-mode retr|list|slow]
+
+The retrieval mode determines how exactly messages are read from the
+server.
+
+The allowed values are [const retr], [const list] and [const slow].
+The default is [const retr]. See [cmd ::pop3::retrieve] for more
+information.
+
+[opt_def -socketcmd cmdprefix]
+
+This option allows the user to overide the use of the builtin
+[cmd socket] command with any API-compatible command. The envisioned
+main use is the securing of the new connection via SSL, through the
+specification of the command [cmd tls::socket]. This command is
+specially recognized as well, changing the default port of the
+connection to [const 995].
+
+[opt_def -stls boolean]
+
+Setting this option tells the package to secure the connection using
+SSL or TLS. It performs STARTTLS as described in IETF RFC 2595, it
+first opens a normal, unencrypted connection and then negotiates a
+SSLv3 or TLSv1 connection. If the connection cannot be secured, the
+connection will be closed and an error will be returned
+
+[opt_def -tls-callback stls-callback-command]
+
+This option allows the user to overide the [cmd tls::callback] used during
+the [const -stls] SSL/TLS handshake. See the TLS manual for details on how
+to implement this callback.
+
+[list_end]
+
+[call [cmd ::pop3::config] [arg chan]]
+
+Returns the configuration of the pop3 connection identified by the
+channel handle [arg chan] as a serialized array.
+
+[call [cmd ::pop3::status] [arg chan]]
+
+Query the server for the status of the mail spool.  The status is
+returned as a list containing two elements, the first is the number of
+email messages on the server and the second is the size (in octets, 8
+bit blocks) of the entire mail spool.
+
+[call [cmd ::pop3::last] [arg chan]]
+
+Query the server for the last email message read from the spool.  This
+value includes all messages read from all clients connecting to the
+login account.  This command may not be supported by the email server,
+in which case the server may return 0 or an error.
+
+[call [cmd ::pop3::retrieve] [arg {chan startIndex}] [opt [arg endIndex]]]
+
+Retrieve a range of messages from the server.  If the [arg endIndex]
+is not specified, only one message will be retrieved.  The return
+value is a list containing each message as a separate element.  See
+the [arg startIndex] and [arg endIndex] descriptions below.
+
+[para]
+
+The retrieval mode determines how exactly messages are read from the
+server. The mode [const retr] assumes that the RETR command delivers
+the size of the message as part of the command status and uses this to
+read the message efficiently. In mode [const list] RETR does not
+deliver the size, but the LIST command does and we use this to
+retrieve the message size before the actual retrieval, which can then
+be done efficiently. In the last mode, [const slow], the system is
+unable to obtain the size of the message to retrieve in any manner and
+falls back to reading the message from the server line by line.
+
+[para]
+
+It should also be noted that the system checks upon the configured
+mode and falls back to the slower modes if the above assumptions are
+not true.
+
+[call [cmd ::pop3::delete] [arg {chan startIndex}] [opt [arg endIndex]]]
+
+Delete a range of messages from the server.  If the [arg endIndex] is
+not specified, only one message will be deleted.  Note, the indices
+are not reordered on the server, so if you delete message 1, then the
+first message in the queue is message 2 (message index 1 is no longer
+valid).  See the [arg startIndex] and [arg endIndex] descriptions
+below.
+
+[list_begin definitions]
+
+[def [arg startIndex]]
+
+The [arg startIndex] may be an index of a specific message starting
+with the index 1, or it have any of the following values:
+
+[list_begin definitions]
+
+[def [const start]]
+
+This is a logical value for the first message in the spool, equivalent
+to the value 1.
+
+[def [const next]]
+
+The message immediately following the last message read, see
+[cmd ::pop3::last].
+
+[def [const end]]
+
+The most recent message in the spool (the end of the spool).  This is
+useful to retrieve only the most recent message.
+
+[list_end]
+
+[def [arg endIndex]]
+
+The [arg endIndex] is an optional parameter and defaults to the value
+"-1", which indicates to only retrieve the one message specified by
+
+[arg startIndex].  If specified, it may be an index of a specific
+message starting with the index "1", or it may have any of the
+following values:
+
+[list_begin definitions]
+
+[def [const last]]
+
+The message is the last message read by a POP3 client, see
+[cmd ::pop3::last].
+
+[def [const end]]
+
+The most recent message in the spool (the end of the spool).
+
+[list_end]
+[list_end]
+
+[call [cmd ::pop3::list] [arg chan] [opt [arg msg]]]
+
+Returns the scan listing of the mailbox. If parameter [arg msg] is
+given, then the listing only for that message is returned.
+
+[call [cmd ::pop3::top] [arg chan] [arg msg] [arg n] ]
+
+Optional POP3 command, not all servers may support this.
+
+[cmd ::pop3::top] retrieves headers of a message, specified by
+parameter [arg msg], and number of [arg n] lines from the message
+body.
+
+[call [cmd ::pop3::uidl] [arg chan] [opt [arg msg]]]
+
+Optional POP3 command, not all servers may support this.
+
+[cmd ::pop3::uidl] returns the uid listing of the mailbox. If the
+parameter [arg msg] is specified, then the listing only for that
+message is returned.
+
+[call [cmd ::pop3::capa] [arg chan]]
+
+Optional POP3 command, not all servers may support this.
+
+[cmd ::pop3::capa] returns a list of the capabilities of the server.
+TOP, SASL, UIDL, LOGIN-DELAY and STLS are typical capabilities.
+
+See IETF RFC 2449.
+
+[call [cmd ::pop3::close] [arg chan]]
+
+Gracefully close the connect after sending a POP3 QUIT command down
+the socket.
+
+[list_end]
+
+[section {Secure mail transfer}]
+
+A pop3 connection can be secured with SSL/TLS by requiring the package
+[package TLS] and then using either the option [option -socketcmd] or
+the option [option -stls] of the command [cmd pop3::open].
+
+The first method, option [option -socketcmd], will force the use
+of the [cmd tls::socket] command when opening the connection. This is
+suitable for POP3 servers which expect SSL connections only. These will
+generally be listening on port 995.
+
+[example {
+	package require tls
+	tls::init -cafile /path/to/ca/cert -keyfile ...
+
+	# Create secured pop3 channel
+	pop3::open -socketcmd tls::socket \\
+		$thehost $theuser $thepassword
+
+	...
+}]
+
+The second method, option [option -stls], will connect to the standard POP3
+port and then perform an STARTTLS handshake. This will only work for POP3
+servers which have this capability. The package will confirm that the
+server supports STARTTLS and the handshake was performed correctly before
+proceeding with authentication.
+
+[example {
+	package require tls
+	tls::init -cafile /path/to/ca/cert -keyfile ...
+
+	# Create secured pop3 channel
+	pop3::open -stls 1 \\
+		$thehost $theuser $thepassword
+
+	...
+}]
+
+[vset CATEGORY pop3]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

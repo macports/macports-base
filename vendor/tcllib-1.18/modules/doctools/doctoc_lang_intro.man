@@ -1,0 +1,297 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin doctoc_lang_intro n 1.0]
+[see_also doctoc_intro]
+[see_also doctoc_lang_cmdref]
+[see_also doctoc_lang_syntax]
+[keywords {doctoc commands}]
+[keywords {doctoc language}]
+[keywords {doctoc markup}]
+[keywords {doctoc syntax}]
+[keywords markup]
+[keywords {semantic markup}]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Documentation tools}]
+[titledesc {doctoc language introduction}]
+[category  {Documentation tools}]
+[description]
+[para]
+
+This document is an informal introduction to version 1.1 of the doctoc
+markup language based on a multitude of examples. After reading this a
+writer should be ready to understand the two parts of the formal
+specification, i.e. the [term {doctoc language syntax}] specification
+and the [term {doctoc language command reference}].
+
+[subsection Fundamentals]
+
+While the [term {doctoc markup language}] is quite similar to the
+[term {doctools markup language}], in the broadest terms possible,
+there is one key difference. A table of contents consists essentially
+only of markup commands, with no plain text interspersed between them,
+except for whitespace.
+
+[para]
+
+Each markup command is a Tcl command surrounded by a matching pair of
+[const [lb]] and [const [rb]]. Inside of these delimiters the usual
+rules for a Tcl command apply with regard to word quotation, nested
+commands, continuation lines, etc. I.e.
+
+[para]
+[example {
+    ... [division_start {Appendix 1}] ...
+}]
+
+[example {
+  ... [item thefile \\
+          label {file description}] ...
+}]
+
+[subsection {Basic structure}]
+
+The most simple document which can be written in doctoc is
+
+[example {
+    [toc_begin GROUPTITLE TITLE]
+    [toc_end]
+}]
+
+This also shows us that all doctoc documents consist of only one
+part where we will list [term items] and [term divisions].
+
+[para]
+
+The user is free to mix these as she sees fit. This is a change from
+version 1 of the language, which did not allow this mixing, but only
+the use of either a series of items or a series of divisions.
+
+[para]
+
+We will discuss the commands for each of these two possibilities in
+the next sections.
+
+[subsection Items]
+
+Use the command [cmd item] to put an [term item] into a table of
+contents. This is essentially a reference to a section, subsection,
+etc. in the document, or set of documents, the table of contents is
+for. The command takes three arguments, a symbolic name for the file
+the item is for and two text to label the item and describe the
+referenced section.
+
+[para]
+
+Symbolic names are used to preserve the convertibility of this format
+to any output format. The actual name of any file will be inserted by
+the chosen formatting engine when converting the input, based on a
+mapping from symbolic to actual names given to the engine.
+
+[para]
+
+Here a made up example for a table of contents of this document:
+
+[example_begin]
+[lb]toc_begin Doctoc {Language Introduction}[rb]
+[lb][cmd {item 1 DESCRIPTION}][rb]
+[lb][cmd {item 1.1 {Basic structure}}][rb]
+[lb][cmd {item 1.2 Items}][rb]
+[lb][cmd {item 1.3 Divisions}][rb]
+[lb][cmd {item 2 {FURTHER READING}}][rb]
+[lb]toc_end[rb]
+[example_end]
+
+[subsection Divisions]
+
+One thing of notice in the last example in the previous section is
+that the referenced sections actually had a nested structure,
+something which was expressed in the item labels, by using a common
+prefix for all the sections nested under section 1.
+
+[para]
+
+This kind of structure can be made more explicit in the doctoc
+language by using divisions. Instead of using a series of plain items
+we use a series of divisions for the major references, and then place
+the nested items inside of these.
+
+[para]
+
+Of course, instead of the nested items we can again use divisions and
+thus nest arbitrarily deep.
+
+[para]
+
+A division is marked by two commands instead of one, one to start it,
+the other to close the last opened division. They are:
+
+[list_begin commands]
+[cmd_def division_start]
+
+This command opens a new division. It takes one or two arguments, the
+title of the division, and the symbolic name of the file it refers
+to. The latter is optional.
+
+If the symbolic filename is present then the section title should link
+to the referenced document, if links are supported by the output
+format.
+
+[cmd_def division_end]
+This command closes the last opened and not yet closed division.
+
+[list_end]
+
+[para]
+
+Using this we can recast the last example like this
+
+[example_begin]
+[lb]toc_begin Doctoc {Language Introduction}[rb]
+[lb][cmd {division_start DESCRIPTION}][rb]
+[lb]item 1 {Basic structure}[rb]
+[lb]item 2 Items[rb]
+[lb]item 3 Divisions[rb]
+[lb][cmd {division_end}][rb]
+[lb][cmd {division_start {FURTHER READING}}][rb]
+[lb][cmd {division_end}][rb]
+[lb]toc_end[rb]
+[example_end]
+
+[para]
+
+Or, to demonstrate deeper nesting
+
+[example_begin]
+[lb]toc_begin Doctoc {Language Introduction}[rb]
+[lb][cmd {division_start DESCRIPTION}][rb]
+[lb][cmd {division_start {Basic structure}}][rb]
+[lb]item 1 Do[rb]
+[lb]item 2 Re[rb]
+[lb][cmd {division_end}][rb]
+[lb][cmd {division_start Items}][rb]
+[lb]item a Fi[rb]
+[lb]item b Fo[rb]
+[lb]item c Fa[rb]
+[lb][cmd {division_end}][rb]
+[lb][cmd {division_start Divisions}][rb]
+[lb]item 1 Sub[rb]
+[lb]item 1 Zero[rb]
+[lb][cmd {division_end}][rb]
+[lb][cmd {division_end}][rb]
+[lb][cmd {division_start {FURTHER READING}}][rb]
+[lb][cmd {division_end}][rb]
+[lb]toc_end[rb]
+[example_end]
+
+And do not forget, it is possible to freely mix items and divisions,
+and to have empty divisions.
+
+[example_begin]
+[lb]toc_begin Doctoc {Language Introduction}[rb]
+[lb]item 1 Do[rb]
+[lb][cmd {division_start DESCRIPTION}][rb]
+[lb][cmd {division_start {Basic structure}}][rb]
+[lb]item 2 Re[rb]
+[lb][cmd {division_end}][rb]
+[lb]item a Fi[rb]
+[lb][cmd {division_start Items}][rb]
+[lb]item b Fo[rb]
+[lb]item c Fa[rb]
+[lb][cmd {division_end}][rb]
+[lb][cmd {division_start Divisions}][rb]
+[lb][cmd {division_end}][rb]
+[lb][cmd {division_end}][rb]
+[lb][cmd {division_start {FURTHER READING}}][rb]
+[lb][cmd {division_end}][rb]
+[lb]toc_end[rb]
+[example_end]
+
+[subsection {Advanced structure}]
+
+In all previous examples we fudged a bit regarding the markup actually
+allowed to be used before the [cmd toc_begin] command opening the
+document.
+
+[para]
+
+Instead of only whitespace the two templating commands [cmd include]
+and [cmd vset] are also allowed, to enable the writer to either set
+and/or import configuration settings relevant to the table of
+contents. I.e. it is possible to write
+
+[example_begin]
+[lb][cmd {include FILE}][rb]
+[lb][cmd {vset VAR VALUE}][rb]
+[lb]toc_begin GROUPTITLE TITLE[rb]
+...
+[lb]toc_end[rb]
+[example_end]
+
+Even more important, these two commands are allowed anywhere where a
+markup command is allowed, without regard for any other
+structure.
+
+[example_begin]
+[lb]toc_begin GROUPTITLE TITLE[rb]
+[lb][cmd {include FILE}][rb]
+[lb][cmd {vset VAR VALUE}][rb]
+...
+[lb]toc_end[rb]
+[example_end]
+
+The only restriction [cmd include] has to obey is that the contents of
+the included file must be valid at the place of the inclusion. I.e. a
+file included before [cmd toc_begin] may contain only the templating
+commands [cmd vset] and [cmd include], a file included in a division
+may contain only items or divisions commands, etc.
+
+[subsection Escapes]
+
+Beyond the 6 commands shown so far we have two more available.
+
+However their function is not the marking up of toc structure, but the
+insertion of characters, namely [const [lb]] and [const [rb]].
+
+These commands, [cmd lb] and [cmd rb] respectively, are required
+because our use of [lb] and [rb] to bracket markup commands makes it
+impossible to directly use [lb] and [rb] within the text.
+
+[para]
+
+Our example of their use are the sources of the last sentence in the
+previous paragraph, with some highlighting added.
+
+[example_begin]
+  ...
+  These commands, [lb]cmd lb[rb] and [lb]cmd lb[rb] respectively, are required
+  because our use of [lb][cmd lb][rb] and [lb][cmd rb][rb] to bracket markup commands makes it
+  impossible to directly use [lb][cmd lb][rb] and [lb][cmd rb][rb] within the text.
+  ...
+[example_end]
+
+[section {FURTHER READING}]
+
+Now that this document has been digested the reader, assumed to be a
+[term writer] of documentation should be fortified enough to be able
+to understand the formal [term {doctoc language syntax}]
+specification as well. From here on out the
+[term {doctoc language command reference}] will also serve as the
+detailed specification and cheat sheet for all available commands and
+their syntax.
+
+[para]
+
+To be able to validate a document while writing it, it is also
+recommended to familiarize oneself with Tclapps' ultra-configurable
+[syscmd dtp].
+
+[para]
+
+On the other hand, doctoc is perfectly suited for the automatic
+generation from doctools documents, and this is the route Tcllib's
+easy and simple [syscmd dtplite] goes, creating a table of contents
+for a set of documents behind the scenes, without the writer having to
+do so on their own.
+
+[vset CATEGORY doctools]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

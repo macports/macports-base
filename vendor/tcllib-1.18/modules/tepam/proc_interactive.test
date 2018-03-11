@@ -1,0 +1,402 @@
+# -*- tcl -*-
+##########################################################################
+# TEPAM - Tcl's Enhanced Procedure and Argument Manager
+##########################################################################
+#
+# proc_interactive.test: 
+# This file is part of the enhanced procedure and argument manager's regression
+# test. It validates the interactive procedure calls for the different data and
+# widget types.
+#
+# Copyright (C) 2009, 2010 Andreas Drollinger
+# 
+# Id: proc_interactive.test
+##########################################################################
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+##########################################################################
+
+source [file join \
+   [file dirname [file dirname [file join [pwd] [info script]]]] \
+   devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 1.0
+testsNeed     Tk 8.3
+
+catch {namespace delete ::tepam}
+testing {
+   useLocal tepam.tcl tepam
+}
+
+namespace import tepam::*
+
+######## Check the default values ########
+
+# Evaluate the default font name. Use the 'font actual' command to evaluate the real font
+# names (Tk8.5 uses pseudo font names like 'TkDefaultFont').
+set DefaultFontOrig [[label .lfont] cget -font]
+set DefaultFont [list [font actual $DefaultFontOrig -family] \
+                      [expr [font actual $DefaultFontOrig -size]<6 ? 6 : [font actual $DefaultFontOrig -size]]]
+
+   # Procedure declaration
+   
+      set tepam::interactive_display_format short
+      
+      procedure AllTypeProcedure1Default {
+         -args {
+            {-untyped -default UNTYPED}
+            {-untyped2 -type "" -default UNTYPED2}
+            {-string -type string -default STRING}
+            {-integer -type integer -default 1234}
+            {-alnum -type alnum -default ALNUM}
+            {-alpha -type alpha -default ALPHA}
+            {-ascii -type ascii -default ASCII}
+            {-control -type control -default "\t"}
+            {-boolean -type boolean -default 0}
+            {-digit -type digit -default 9876}
+            {-double -type double -default 1.234}
+            {-graph -type graph -default GRAPH}
+            {-lower -type lower -default lower}
+            {-print -type print -default PRINT}
+            {-punct -type punct -default ..,.}
+            {-space -type space -default "   "}
+            {-upper -type upper -default UPPER}
+            {-wordchar -type wordchar -default WORDCHAR}
+            {-xdigit -type xdigit -default 1234ABCD}
+            {-color -type color -default blue}
+            {-font -type font -default {Arial 13}}
+            {-file -type file -default test_file.log}
+            {-directory -type directory -default my_dir}
+
+            {-integer2 -type integer -choices {1 2 3} -default 2}
+            {-integer3 -type integer -multiple -choices {1 2 3 4 5 6 7 8 9} -default 4}
+            {-none1 -type none -default 0}
+            {-none2 -type none -default 1}
+         }
+      } {
+         set res "Arguments - "
+         append res "untyped:'$untyped' "
+         append res "untyped2:'$untyped2' "
+         append res "string:'$string' "
+         append res "integer:'$integer' "
+         append res "alnum:'$alnum' "
+         append res "alpha:'$alpha' "
+         append res "ascii:'$ascii' "
+         append res "control:'$control' "
+         append res "boolean:'$boolean' "
+         append res "digit:'$digit' "
+         append res "double:'$double' "
+         append res "graph:'$graph' "
+         append res "lower:'$lower' "
+         append res "print:'$print' "
+         append res "punct:'$punct' "
+         append res "space:'$space' "
+         append res "upper:'$upper' "
+         append res "wordchar:'$wordchar' "
+         append res "xdigit:'$xdigit' "
+         append res "color:'$color' "
+         append res "font:'$font' "
+         append res "file:'$file' "
+         append res "directory:'$directory' "
+
+         append res "integer2:'$integer2' "
+         append res "integer3:'$integer3' "
+         append res "none1:'$none1' "
+         append res "none2:'$none2' "
+
+         return $res
+      }
+
+   # Call the procedure without providing any argument. This creates the reference result:
+      set ReferenceDefaultString [AllTypeProcedure1Default]
+
+   # Call the procedure interactively, emulate the activation of the "Cancel" button:
+      set tepam::argument_dialogbox(test,status) cancel
+
+      test tepam-proc.int-call-default.cancel "tepam, interactive procedure call - cancel" \
+               -body {set InteractiveCancelString [AllTypeProcedure1Default -interactive]} \
+               -result "" -output "" -match exact
+
+   # Call the procedure interactively, emulate the activation of the "OK" button:
+      set tepam::argument_dialogbox(test,status) ok
+
+      # Call the procedure interactively and check that a result is returned
+      test tepam-proc.int-call-default.ok "tepam, interactive procedure call - ok  " \
+               -body {set InteractiveDefaultString [AllTypeProcedure1Default -interactive]} \
+               -result "Arguments - *" -output "" -match glob
+
+      # Check now all parts of the previous result string
+
+      foreach {Type Default} {
+            untyped UNTYPED
+            untyped2 UNTYPED2
+            string STRING
+            integer 1234
+            alnum ALNUM
+            alpha ALPHA
+            ascii ASCII
+            control "\t"
+            boolean 0
+            digit 9876
+            double 1.234
+            graph GRAPH
+            lower lower
+            print PRINT
+            punct ..,.
+            space "   "
+            upper UPPER
+            wordchar WORDCHAR
+            xdigit 1234ABCD
+            color blue
+            font {Arial 13}
+            file test_file.log
+            directory my_dir
+
+            integer2 2
+            integer3 4
+            none1 0
+            none2 1
+      } {
+         test tepam-proc.int-call.default.$Type "tepam, interactive procedure call - $Type" \
+                  -body {set InteractiveDefaultString} \
+                  -result "* $Type:'$Default' *" -match glob
+      }
+
+######## Check each data type individually ########
+
+   # Procedure declaration
+   
+      set tepam::interactive_display_format short
+      
+      procedure AllTypeProcedure2 {
+         -args {
+            {-untyped -optional}
+            {-untyped2 -type "" -optional}
+            {-string -type string -optional}
+            {-integer -type integer -optional}
+            {-alnum -type alnum -optional}
+            {-alpha -type alpha -optional}
+            {-ascii -type ascii -optional}
+            {-control -type control -optional}
+            {-boolean -type boolean -optional}
+            {-digit -type digit -optional}
+            {-double -type double -optional}
+            {-graph -type graph -optional}
+            {-lower -type lower -optional}
+            {-print -type print -optional}
+            {-punct -type punct -optional}
+            {-space -type space -optional}
+            {-upper -type upper -optional}
+            {-wordchar -type wordchar -optional}
+            {-xdigit -type xdigit -optional}
+            {-color -type color -optional}
+            {-font -type font -optional}
+            {-file -type file -optional}
+            {-directory -type directory -optional}
+
+            {-integer2 -type integer -choices {1 2 3} -optional}
+            {-integer3 -type integer -multiple -choices {1 2 3 4 5 6 7 8 9} -optional}
+            {-none -type none -optional}
+         }
+      } {
+         set res ""
+         catch {append res " untyped:'$untyped'"}
+         catch {append res " untyped2:'$untyped2'"}
+         catch {append res " string:'$string'"}
+         catch {append res " integer:'$integer'"}
+         catch {append res " alnum:'$alnum'"}
+         catch {append res " alpha:'$alpha'"}
+         catch {append res " ascii:'$ascii'"}
+         catch {append res " control:'$control'"}
+         catch {append res " boolean:'$boolean'"}
+         catch {append res " digit:'$digit'"}
+         catch {append res " double:'$double'"}
+         catch {append res " graph:'$graph'"}
+         catch {append res " lower:'$lower'"}
+         catch {append res " print:'$print'"}
+         catch {append res " punct:'$punct'"}
+         catch {append res " space:'$space'"}
+         catch {append res " upper:'$upper'"}
+         catch {append res " wordchar:'$wordchar'"}
+         catch {append res " xdigit:'$xdigit'"}
+         catch {append res " color:'$color'"}
+         catch {append res " file:'$file'"}
+         catch {append res " directory:'$directory'"}
+
+         catch {append res " integer3:'$integer3'"}
+
+         catch {append res " font:'$font'"}
+         catch {append res " integer2:'$integer2'"}
+         catch {append res " none:'$none'"}
+
+         return [string range $res 1 end]
+      }
+
+   # Call the procedure interactively, emulate the activation of the "Cancel" button:
+      set tepam::argument_dialogbox(test,status) cancel
+
+      test tepam-proc.int-call.cancel "tepam, interactive procedure call - cancel" \
+               -body {set InteractiveCancelString [AllTypeProcedure2 -interactive]} \
+               -result "" -output "" -match exact
+
+   # Call the procedure interactively, emulate the activation of the "OK" button:
+      set tepam::argument_dialogbox(test,status) ok
+
+      # Call the procedure interactively and check that an empty result is returned
+      test tepam-proc.int-call.ok "tepam, interactive procedure call - ok" \
+               -body {AllTypeProcedure2 -interactive} \
+               -result "font:'$DefaultFont' integer2:'1' none:'0'" -output "" -match exact
+
+      # Check now all parts of the previous result string
+
+      set ArgPos 2
+      foreach {Type Value} {
+            untyped UNTYPED
+            untyped2 UNTYPED2
+            string STRING
+            integer 1234
+            alnum ALNUM
+            alpha ALPHA
+            ascii ASCII
+            control "\t"
+            boolean 0
+            digit 9876
+            double 1.234
+            graph GRAPH
+            lower lower
+            print PRINT
+            punct ..,.
+            space "   "
+            upper UPPER
+            wordchar WORDCHAR
+            xdigit 1234ABCD
+            color blue
+            font {Arial 13}
+            file test_file.log
+            directory my_dir
+
+            integer2 2
+            integer3 4
+            none 1
+      } {
+         if {$Type=="integer2"} {
+            set EntryWidget "radiobox"
+         } elseif {$Type=="integer3"} {
+            set EntryWidget "disjointlistbox"
+         } elseif {$Type=="none"} {
+            set EntryWidget "checkbutton"
+         } elseif {[info procs ::tepam::ad_form($Type)]!=""} {
+            set EntryWidget $Type
+         } else {
+            set EntryWidget "entry"
+         }
+
+         switch $Type {
+            "font" {set Result "$Type:'$Value' integer2:'1' none:'0'"}
+            "integer2" {set Result "font:'$DefaultFont' $Type:'$Value' none:'0'"}
+            "none" {set Result "font:'$DefaultFont' integer2:'1' $Type:'$Value'"}
+            default {set Result "$Type:'$Value' font:'$DefaultFont' integer2:'1' none:'0'"}
+         }
+         
+         # Change the value and check that this value is returned:
+         set tepam::argument_dialogbox(test,script) "ad_form($EntryWidget) \$WChild($ArgPos).f set \"$Value\""
+         set tepam::argument_dialogbox(test,status) ok
+         catch {array unset ::tepam::last_parameters}
+
+         test tepam-proc.int-call.$Type "tepam, interactive procedure call - $Type" \
+                  -body {AllTypeProcedure2 -interactive} \
+                  -result $Result -output "" -match exact
+
+#         # Call the procedure again interactively, but keep the previous values:
+#         set tepam::argument_dialogbox(test,script) ""
+#         set tepam::argument_dialogbox(test,status) ok
+
+#         test tepam-proc.int-recall.$Type "tepam, interactive procedure recall - $Type" \
+#                  -body {AllTypeProcedure2 -interactive} \
+#                  -result $Result -output "" -match exact
+
+         incr ArgPos
+      }
+
+######## Check each entry widget individually with and without default value ########
+
+   foreach {name       wtype       default      setvalue    getvalue    procargs} {
+            entry0     entry       {}           {"abcd"}    {abcd}      {}
+            entry1     entry       {123}        {"abcd"}    {abcd}      {-default 123}
+
+            checkbx0   checkbox    {}           {uline}     {uline}     {-multiple -choices {bold ital uline}}
+            checkbx1   checkbox    {ital}       {uline}     {uline}     {-multiple -choices {bold ital uline} -default ital}
+            checkbx2   checkbox    {ital uline} {uline}     {uline}     {-multiple -choices {bold ital uline} -default {ital uline}}
+
+            radiobx0   radiobox    {bold}       {uline}     {uline}     {-choices {bold ital uline}}
+            radiobx1   radiobox    {ital}       {uline}     {uline}     {-choices {bold ital uline} -default ital}
+
+            chkbttn0   checkbutton {0}          {1}         {1}         {-type none}
+            chkbttn1   checkbutton {1}          {0}         {0}         {-type none -default 1}
+
+            listbx0    listbox     {1}          {4}         {4}         {-choices {1 2 3 4 5 6 7 8}}
+            listbx1    listbox     {5}          {4}         {4}         {-choices {1 2 3 4 5 6 7 8} -default 5}
+
+            djlistbx0  disjointlistbox {}       "{4 6 8}"   {4 6 8}     {-multiple -choices {1 2 3 4 5 6 7 8}}
+            djlistbx0  disjointlistbox {2 3}    "{4 6 8}"   {4 6 8}     {-multiple -choices {1 2 3 4 5 6 7 8} -default {2 3}}
+
+            file1      file        {b.log}      {a.log}     {a.log}     {-type file -default b.log}
+            dir1       directory   {mydir}      {yourdir}   {yourdir}   {-type directory -default mydir}
+            color1     color       {red}        {blue}      {blue}      {-type color -default red}
+            font1      font        {Courier 10} "{Arial 12}" {Arial 12} {-type font -default {Courier 10}}
+   } {
+
+      # Procedure declaration
+         set tepam::interactive_display_format short
+
+         procedure test_proc__$name "-args \{ \{par $procargs\} \}" {
+            return "$par"
+         }
+
+      # Accept just the default values
+         set tepam::argument_dialogbox(test,script) ""
+         set tepam::argument_dialogbox(test,status) ok
+         catch {array unset ::tepam::last_parameters}
+
+         test tepam-proc.int-call.$name.default "tepam, interactive procedure call - $name default" \
+                  -body {test_proc__$name -interactive} \
+                  -result "$default" -output "" -match exact
+
+      # Change the values and check that this value is returned:
+         set tepam::argument_dialogbox(test,script)    "ad_form($wtype) \$WChild(2).f set $setvalue; "
+         set tepam::argument_dialogbox(test,status) ok
+
+         test tepam-proc.int-call.$name.change "tepam, interactive procedure call - $name change" \
+                  -body {test_proc__$name -interactive} \
+                  -result "$getvalue" -output "" -match exact
+
+      # Call the procedure again interactively, but keep the previous values:
+         set tepam::argument_dialogbox(test,script) ""
+         set tepam::argument_dialogbox(test,status) ok
+
+         test tepam-proc.int-call.$name.ok "tepam, interactive procedure call - $name OK" \
+                  -body {test_proc__$name -interactive} \
+                  -result "$getvalue" -output "" -match exact
+   }
+
+######## That's all ########
+
+destroy .lfont; # Remove again the label widget to evaluate the default font
+::tcltest::cleanupTests
+return
+
+##########################################################################
+# Id: proc_interactive.test
+# Modifications:
+#
+# Revision 1.2  2011/11/09 05:43:30  andreas_kupries
+#
+#  * adbox_all.test: [Bug 3422990]: Fixed these test files to
+#  * adbox_widgets.test: properly register their need for Tk
+#  * proc_interactive.test: and not execute without it.
+#
+# Revision 1.1  2010/02/11 21:50:55  droll
+# * TEPAM module checkin
+##########################################################################
+

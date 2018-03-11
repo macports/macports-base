@@ -1,5 +1,4 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
-# $Id$
 #
 # Copyright (c) 2012-2013 The MacPorts Project
 #
@@ -42,7 +41,7 @@ default portsandbox_profile {}
 # command line usage would be:
 # sandbox-exec -p '(version 1) (allow default) (deny file-write*) (allow file-write* <filter>)' some-command
 proc portsandbox::set_profile {target} {
-    global os.major portsandbox_profile workpath distpath prefix altprefix \
+    global os.major portsandbox_profile workpath distpath \
         package.destpath configure.ccache ccache_dir
 
     switch $target {
@@ -76,9 +75,7 @@ proc portsandbox::set_profile {target} {
         }
     }
 
-    # TODO: remove altprefix support
-    lappend allow_dirs $workpath $altprefix
-    lappend allow_dirs $prefix/var/macports/sip-workaround
+    lappend allow_dirs $workpath ${portutil::autoconf::trace_sipworkaround_path}
     if {${configure.ccache}} {
         lappend allow_dirs $ccache_dir
     }
@@ -87,15 +84,23 @@ proc portsandbox::set_profile {target} {
 (allow file-write-data (literal \"/dev/null\") (literal \"/dev/zero\") \
 (literal \"/dev/dtracehelper\") (literal \"/dev/tty\") \
 (literal \"/dev/stdin\") (literal \"/dev/stdout\") (literal \"/dev/stderr\") \
+(literal \"/dev/random\") (literal \"/dev/urandom\") \
 (regex #\"^/dev/fd/\")) (allow file-write* \
-(regex #\"^(/private)?(/var)?/tmp/\" #\"^(/private)?/var/folders/\"))"
+(regex #\"^(/private)?(/var)?/tmp/\" #\"^(/private)?/var/folders/\" #\"^(/private)?/var/db/mds/\"))"
+
+    set perms [list file-write*]
+    if {${os.major} >= 17} {
+        lappend perms file-write-setugid
+    }
 
     foreach dir $allow_dirs {
-        append portsandbox_profile " (allow file-write* ("
-        if {${os.major} > 9} {
-            append portsandbox_profile "subpath \"${dir}\"))"
-        } else {
-            append portsandbox_profile "regex #\"^${dir}/\"))"
+        foreach perm $perms {
+            append portsandbox_profile " (allow $perm ("
+            if {${os.major} > 9} {
+                append portsandbox_profile "subpath \"${dir}\"))"
+            } else {
+                append portsandbox_profile "regex #\"^${dir}/\"))"
+            }
         }
     }
 }

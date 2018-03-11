@@ -1,0 +1,96 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin page_util_flow n 1.0]
+[keywords dataflow]
+[keywords {graph walking}]
+[keywords page]
+[keywords {parser generator}]
+[keywords {text processing}]
+[keywords {tree walking}]
+[copyright {2007 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Parser generator tools}]
+[titledesc {page dataflow/treewalker utility}]
+[category  {Page Parser Generator}]
+[require page::util::flow [opt 0.1]]
+[require snit]
+[description]
+[para]
+
+This package provides a single utility command for easy dataflow based
+manipulation of arbitrary data structures, especially abstract syntax
+trees.
+
+[section API]
+
+[list_begin definitions]
+[call [cmd ::page::util::flow] [arg start] [arg flowvar] [arg nodevar] [arg script]]
+
+This command contains the core logic to drive the walking of an
+arbitrary data structure which can partitioned into separate
+parts. Examples of such structures are trees and graphs.
+
+[para]
+
+The command makes no assumptions at all about the API of the structure
+to be walked, except that that its parts, here called [term nodes],
+are identified by strings. These strings are taken as is, from the
+arguments, and the body, and handed back to the body, without
+modification.
+
+[para]
+
+Access to the actual data structure, and all decisions regarding which
+nodes to visit in what order are delegated to the body of the loop,
+i.e. the [arg script].
+
+[para]
+
+The body is invoked first for the nodes in the start-set specified via
+[arg start]), and from then on for the nodes the body has requested to
+be visited. The command stops when the set of nodes to visit becomes
+empty. Note that a node can be visited more than once. The body has
+complete control about this.
+
+[para]
+
+The body is invoked in the context of the caller. The variable named
+by [arg nodevar] will be set to the current node, and the variable
+named by [arg flowvar] will be set to the command of the flow object
+through which the body can request the nodes to visit next. The API
+provided by this object is described in the next section,
+[sectref {FLOW API}].
+
+[para]
+
+Note that the command makes no promises regarding the order in which
+nodes are visited, excpt that the nodes requested to be visited by the
+current iteration will be visited afterward, in some order.
+
+[list_end]
+
+[section {FLOW API}]
+
+This section describes the API provided by the flow object made
+accessible to the body script of [cmd ::page::util::flow].
+
+[list_begin definitions]
+
+[call [arg flow] [method visit] [arg node]]
+
+Invoking this method requests that the node [arg n] is visited after
+the current iteration.
+
+[call [arg flow] [method visitl] [arg nodelist]]
+
+Invoking this method requests that all the nodes found in the list
+[arg nodelist] are visited after the current iteration.
+
+[call [arg flow] [method visita] [arg node]...]
+
+This is the variadic arguments form of the method [method visitl], see
+above.
+
+[list_end]
+
+[vset CATEGORY page]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

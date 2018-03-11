@@ -1,0 +1,329 @@
+
+<div class='fossil-doc' data-title='bench - Benchmarking/Performance tools'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">bench(n) 0.4 tcllib &quot;Benchmarking/Performance tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>bench - bench - Processing benchmark suites</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PUBLIC API</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Benchmark execution</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Result manipulation</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Result format</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">bench <span class="opt">?0.4?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::bench::locate</b> <i class="arg">pattern</i> <i class="arg">paths</i></a></li>
+<li><a href="#2"><b class="cmd">::bench::run</b> <span class="opt">?<i class="arg">option value</i>...?</span> <i class="arg">interp_list</i> <i class="arg">file</i>...</a></li>
+<li><a href="#3"><b class="cmd">::bench::versions</b> <i class="arg">interp_list</i></a></li>
+<li><a href="#4"><b class="cmd">::bench::del</b> <i class="arg">bench_result</i> <i class="arg">column</i></a></li>
+<li><a href="#5"><b class="cmd">::bench::edit</b> <i class="arg">bench_result</i> <i class="arg">column</i> <i class="arg">newvalue</i></a></li>
+<li><a href="#6"><b class="cmd">::bench::merge</b> <i class="arg">bench_result</i>...</a></li>
+<li><a href="#7"><b class="cmd">::bench::norm</b> <i class="arg">bench_result</i> <i class="arg">column</i></a></li>
+<li><a href="#8"><b class="cmd">::bench::out::raw</b> <i class="arg">bench_result</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides commands for the execution of benchmarks written
+in the bench language, and for the processing of results generated by
+such execution.</p>
+<p>A reader interested in the bench language itself should start with the
+<i class="term"><a href="bench_lang_intro.html">bench language introduction</a></i> and proceed from there to the
+formal <i class="term"><a href="bench_lang_spec.html">bench language specification</a></i>.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PUBLIC API</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Benchmark execution</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::bench::locate</b> <i class="arg">pattern</i> <i class="arg">paths</i></a></dt>
+<dd><p>This command locates Tcl interpreters and returns a list containing
+their paths. It searches them in the list of <i class="arg">paths</i> specified by
+the caller, using the glob <i class="arg">pattern</i>.</p>
+<p>The command resolves soft links to find the actual executables
+matching the pattern. Note that only interpreters which are marked as
+executable and are actually executable on the current platform are put
+into the result.</p></dd>
+<dt><a name="2"><b class="cmd">::bench::run</b> <span class="opt">?<i class="arg">option value</i>...?</span> <i class="arg">interp_list</i> <i class="arg">file</i>...</a></dt>
+<dd><p>This command executes the benchmarks declared in the set of files,
+once per Tcl interpreter specified via the <i class="arg">interp_list</i>, and per
+the configuration specified by the options, and then returns the
+accumulated timing results. The format of this result is described in
+section <span class="sectref"><a href="#subsection3">Result format</a></span>.</p>
+<p>It is assumed that the contents of the files are written in the bench
+language.</p>
+<p>The available options are</p>
+<dl class="doctools_options">
+<dt><b class="option">-errors</b> <i class="arg">flag</i></dt>
+<dd><p>The argument is a boolean value. If set errors in benchmarks are
+propagated to the command, aborting benchmark execution. Otherwise
+they are recorded in the timing result via a special result code. The
+default is to propagate and abort.</p></dd>
+<dt><b class="option">-threads</b> <i class="arg">n</i></dt>
+<dd><p>The argument is a non-negative integer value declaring the number of
+threads to use while executing the benchmarks. The default value is
+<b class="const">0</b>, to not use threads.</p></dd>
+<dt><b class="option">-match</b> <i class="arg">pattern</i></dt>
+<dd><p>The argument is a glob pattern. Only benchmarks whose description
+matches the pattern are executed. The default is the empty string, to
+execute all patterns.</p></dd>
+<dt><b class="option">-rmatch</b> <i class="arg">pattern</i></dt>
+<dd><p>The argument is a regular expression pattern. Only benchmarks whose
+description matches the pattern are executed. The default is the empty
+string, to execute all patterns.</p></dd>
+<dt><b class="option">-iters</b> <i class="arg">n</i></dt>
+<dd><p>The argument is positive integer number, the maximal number of
+iterations for any benchmark. The default is <b class="const">1000</b>. Individual
+benchmarks can override this.</p></dd>
+<dt><b class="option">-pkgdir</b> <i class="arg">path</i></dt>
+<dd><p>The argument is a path to an existing, readable directory. Multiple
+paths can be specified, simply use the option multiple times, each
+time with one of the paths to use.</p>
+<p>If no paths were specified the system will behave as before.
+If one or more paths are specified, say <b class="variable">N</b>, each of the specified
+interpreters will be invoked <b class="variable">N</b> times, with one of the specified
+paths. The chosen path is put into the interpreters' <b class="variable">auto_path</b>,
+thus allowing it to find specific versions of a package.</p>
+<p>In this way the use of <b class="option">-pkgdir</b> allows the user to benchmark
+several different versions of a package, against one or more interpreters.</p>
+<p><em>Note:</em> The empty string is allowed as a path and causes the system to
+run the specified interpreters with an unmodified <b class="variable">auto_path</b>. In case
+the package in question is available there as well.</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">::bench::versions</b> <i class="arg">interp_list</i></a></dt>
+<dd><p>This command takes a list of Tcl interpreters, identified by their
+path, and returns a dictionary mapping from the interpreters to their
+versions. Interpreters which are not actually executable, or fail when
+interrogated, are not put into the result. I.e the result may contain
+less interpreters than there in the input list.</p>
+<p>The command uses builtin command <b class="cmd">info patchlevel</b> to determine
+the version of each interpreter.</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Result manipulation</a></h3>
+<dl class="doctools_definitions">
+<dt><a name="4"><b class="cmd">::bench::del</b> <i class="arg">bench_result</i> <i class="arg">column</i></a></dt>
+<dd><p>This command removes a column, i.e. all benchmark results for a
+specific Tcl interpreter, from the specified benchmark result and
+returns the modified result.</p>
+<p>The benchmark results are in the format described in section
+<span class="sectref"><a href="#subsection3">Result format</a></span>.</p>
+<p>The column is identified by an integer number.</p></dd>
+<dt><a name="5"><b class="cmd">::bench::edit</b> <i class="arg">bench_result</i> <i class="arg">column</i> <i class="arg">newvalue</i></a></dt>
+<dd><p>This command renames a column in the specified benchmark result and
+returns the modified result. This means that the path of the Tcl
+interpreter in the identified column is changed to an arbitrary
+string.</p>
+<p>The benchmark results are in the format described in section
+<span class="sectref"><a href="#subsection3">Result format</a></span>.</p>
+<p>The column is identified by an integer number.</p></dd>
+<dt><a name="6"><b class="cmd">::bench::merge</b> <i class="arg">bench_result</i>...</a></dt>
+<dd><p>This commands takes one or more benchmark results, merges them into
+one big result, and returns that as its result.</p>
+<p>All benchmark results are in the format described in section
+<span class="sectref"><a href="#subsection3">Result format</a></span>.</p></dd>
+<dt><a name="7"><b class="cmd">::bench::norm</b> <i class="arg">bench_result</i> <i class="arg">column</i></a></dt>
+<dd><p>This command normalizes the timing results in the specified benchmark
+result and returns the modified result. This means that the cell
+values are not times anymore, but factors showing how much faster or
+slower the execution was relative to the baseline.</p>
+<p>The baseline against which the command normalizes are the timing
+results in the chosen column. This means that after the normalization
+the values in this column are all <b class="const">1</b>, as these benchmarks are
+neither faster nor slower than the baseline.</p>
+<p>A factor less than <b class="const">1</b> indicates a benchmark which was faster
+than the baseline, whereas a factor greater than <b class="const">1</b> indicates a
+slower execution.</p>
+<p>The benchmark results are in the format described in section
+<span class="sectref"><a href="#subsection3">Result format</a></span>.</p>
+<p>The column is identified by an integer number.</p></dd>
+<dt><a name="8"><b class="cmd">::bench::out::raw</b> <i class="arg">bench_result</i></a></dt>
+<dd><p>This command formats the specified benchmark result for output to a
+file, socket, etc. This specific command does no formatting at all,
+it passes the input through unchanged.</p>
+<p>For other formatting styles see the packages <b class="package"><a href="bench_wtext.html">bench::out::text</a></b>
+and <b class="package"><a href="bench_wcsv.html">bench::out::csv</a></b> which provide commands to format
+benchmark results for human consumption, or as CSV data importable by
+spread sheets, respectively.</p>
+<p>Complementary, to read benchmark results from files, sockets etc. look
+for the package <b class="package"><a href="bench_read.html">bench::in</a></b> and the commands provided by it.</p></dd>
+</dl>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Result format</a></h3>
+<p>After the execution of a set of benchmarks the raw result returned by
+this package is a Tcl dictionary containing all the relevant
+information.
+The dictionary is a compact representation, i.e. serialization, of a
+2-dimensional table which has Tcl interpreters as columns and
+benchmarks as rows. The cells of the table contain the timing
+results.
+The Tcl interpreters / columns are identified by their paths.
+The benchmarks / rows are identified by their description.</p>
+<p>The possible keys are all valid Tcl lists of two or three elements and
+have one of the following forms:</p>
+<dl class="doctools_definitions">
+<dt>{interp *}</dt>
+<dd><p>The set of keys matching this glob pattern capture the information
+about all the Tcl interpreters used to run the benchmarks. The second
+element of the key is the path to the interpreter.</p>
+<p>The associated value is the version of the Tcl interpreter.</p></dd>
+<dt>{desc *}</dt>
+<dd><p>The set of keys matching this glob pattern capture the information
+about all the benchmarks found in the executed benchmark suite. The
+second element of the key is the description of the benchmark, which
+has to be unique.</p>
+<p>The associated value is irrelevant, and set to the empty string.</p></dd>
+<dt>{usec * *}</dt>
+<dd><p>The set of keys matching this glob pattern capture the performance
+information, i.e. timing results. The second element of the key is the
+description of the benchmark, the third element the path of the Tcl
+interpreter which was used to run it.</p>
+<p>The associated value is either one of several special result codes, or
+the time it took to execute the benchmark, in microseconds. The
+possible special result codes are</p>
+<dl class="doctools_definitions">
+<dt>ERR</dt>
+<dd><p>Benchmark could not be executed, failed with a Tcl error.</p></dd>
+<dt>BAD_RES</dt>
+<dd><p>The benchmark could be executed, however the result from its body did
+not match the declared expectations.</p></dd>
+</dl></dd>
+</dl>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>bench</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="bench_intro.html">bench_intro</a>, <a href="bench_lang_intro.html">bench_lang_intro</a>, <a href="bench_lang_spec.html">bench_lang_spec</a>, bench_read, bench_wcsv, bench_wtext</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key101">benchmark</a>, <a href="../../../../index.html#key111">merging</a>, <a href="../../../../index.html#key112">normalization</a>, <a href="../../../../index.html#key100">performance</a>, <a href="../../../../index.html#key99">testing</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Benchmark tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2007-2008 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

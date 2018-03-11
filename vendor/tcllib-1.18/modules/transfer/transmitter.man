@@ -1,0 +1,184 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin transfer::transmitter n 0.2]
+[keywords channel]
+[keywords copy]
+[keywords {data source}]
+[keywords secure]
+[keywords ssl]
+[keywords tls]
+[keywords transfer]
+[keywords transmitter]
+[copyright {2006-2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Data transfer facilities}]
+[titledesc {Data source}]
+[category  {Transfer module}]
+[require Tcl                    8.4]
+[require snit                   [opt 1.0]]
+[require transfer::copy         [opt 0.2]]
+[require transfer::data::source [opt 0.2]]
+[require transfer::connect      [opt 0.2]]
+[require transfer::transmitter  [opt 0.2]]
+[description]
+[para]
+
+This package pulls data sources and connection setup together into a
+combined object for the transmission of information over a socket.
+
+These objects understand all the options from objects created
+by the packages [package transfer::data::source] and
+[package transfer::connect].
+
+[section API]
+[subsection {Package commands}]
+
+[list_begin definitions]
+
+[call [cmd transfer::transmitter] \
+	[arg objectName] \
+	[opt [arg options]...]]
+
+This command creates a new transmitter object with an associated Tcl
+command whose name is [arg objectName].
+
+This [term object] command is explained in full detail in the sections
+[sectref {Object command}] and [sectref {Object methods}]. The set of
+supported [arg options] is explained in section [sectref {Options}].
+
+[para]
+
+The object command will be created under the current namespace if the
+[arg objectName] is not fully qualified, and in the specified
+namespace otherwise.
+
+The fully qualified name of the object command is returned as the
+result of the command.
+
+[call [cmd transfer::transmitter] [method {stream channel}] \
+     [arg chan] [arg host] [arg port] [opt [arg arg]...]]
+
+This method creates a fire-and-forget transfer for the data contained
+in the channel [arg chan], starting at the current seek location. The
+channel is configured to use binary translation and encoding for the
+transfer.
+
+The channel is automatically closed when the transfer has completed.
+
+[para]
+
+If both [arg host] and [arg port] are provided an [const active]
+connection to the destination is made. If only a [arg port] is
+specified (with [arg host] the empty string) then a [const passive]
+connection is made instead.
+
+[para]
+
+Any arguments after the port are treated as options and are used to
+configure the internal transmitter object.
+
+See the section [sectref Options] for a list of the supported options
+and their meaning.
+
+[emph Note] however that the signature of the command prefix specified
+for the [option -command] callback differs from the signature for the
+same option of the transmitter object.
+
+This callback is only given the number of bytes and transfered, and
+possibly an error message. No reference to the internally used
+transmitter object is made.
+
+[para]
+[vset RETURNER command]
+[vset OBJECT {if it was set}]
+[vset QUALIFIER {internal transmitter}]
+[include include/connect_result_ref.inc]
+
+[call [cmd transfer::transmitter] [method {stream file}] \
+     [arg path] [arg host] [arg port] [opt [arg arg]...]]
+
+This method is like [method {stream channel}], except that the data
+contained in the file [arg path] is transfered.
+
+[list_end]
+
+[subsection {Object command}]
+
+All objects created by the [cmd ::transfer::transmitter] command have
+the following general form:
+
+[list_begin definitions]
+
+[call [arg objectName] [method method] [opt [arg "arg arg ..."]]]
+
+The method [method method] and its [arg arg]'uments determine the
+exact behavior of the command.
+
+See section [sectref {Object methods}] for the detailed
+specifications.
+
+[list_end]
+
+[subsection {Object methods}]
+
+[list_begin definitions]
+
+[call [arg objectName] [method destroy]]
+
+This method destroys the object. Doing so while a transmission is in
+progress will cause errors later on, when the transmission completes
+and tries to access the now missing data structures of the destroyed
+object.
+
+[call [arg objectName] [method start]]
+
+This method initiates the data transmission, setting up the connection
+first and then copying the information.
+
+The method will throw an error if a transmission is already/still in
+progress.
+
+I.e. it is not possible to run two transmissions in parallel on a
+single object, only in sequence. Multiple transmitter objects are
+needed to manage parallel transfers, one per transmission.
+
+Errors will also be thrown if the configuration of the data source is
+invalid, or if no completion callback was specified.
+
+[para]
+[vset RETURNER method]
+[vset OBJECT {for an object configured}]
+[vset QUALIFIER {}]
+[include include/connect_result_ref.inc]
+
+[call [arg objectName] [method busy]]
+
+This method returns a boolean value telling us whether a transmission
+is in progress ([const True]), or not ([const False]).
+
+[list_end]
+
+[subsection Options]
+
+All transmitter objects support the union of the options supported
+by their connect and data source components, plus two of their own.
+
+See also the documentation for the packages
+[package transfer::data::source] and [package transfer::connect].
+
+[list_begin options]
+[opt_def -blocksize [arg int]]
+
+This option specifies the size of the chunks to be transmitted in one
+block. Usage is optional, its default value is [const 1024].
+
+[vset MODE transmission] [include include/complete.inc]
+
+[include include/connect_options.inc]
+[include include/dsource_options.inc]
+[list_end]
+
+[vset OBJCREATE {transfer::transmitter T}]
+[include include/secure.inc]
+
+[vset CATEGORY transfer]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,168 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin transfer::connect n 0.2]
+[keywords active]
+[keywords channel]
+[keywords connection]
+[keywords passive]
+[keywords secure]
+[keywords ssl]
+[keywords tls]
+[keywords transfer]
+[copyright {2006-2009 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Data transfer facilities}]
+[titledesc {Connection setup}]
+[category  {Transfer module}]
+[require Tcl               8.4]
+[require snit              [opt 1.0]]
+[require transfer::connect [opt 0.2]]
+[description]
+[para]
+
+This package provides objects holding enough information to enable
+them to either actively connect to a counterpart, or to passively wait
+for a connection from said counterpart.
+
+I.e. any object created by this packages is always in one of two
+complementary modes, called [term active] (the object initiates the
+connection) and [term passive] (the object receives the connection).
+
+[para]
+
+Of the two objects in a connecting pair one has to be configured for
+[term active] mode, and the other then has to be configured for
+[term passive] mode. This establishes which of the two partners
+connects to whom (the [term active] to the other), or, who is waiting
+on whom (the [term passive] on the other).
+
+Note that this is completely independent of the direction of any data
+transmission using the connection after it has been established.
+
+An active object can, after establishing the connection, either
+transmit or receive data. Equivalently the passive object can do the
+same after the waiting for its partner has ended.
+
+[section API]
+[subsection {Package commands}]
+
+[list_begin definitions]
+
+[call [cmd transfer::connect] \
+	[arg objectName] \
+	[opt [arg options]...]]
+
+This command creates a new connection object with an associated Tcl
+command whose name is [arg objectName].
+
+This [term object] command is explained in full detail in the sections
+[sectref {Object command}] and [sectref {Object methods}]. The set of
+supported [arg options] is explained in section [sectref {Options}].
+
+[para]
+
+The object command will be created under the current namespace if the
+[arg objectName] is not fully qualified, and in the specified
+namespace otherwise.
+
+The fully qualified name of the object command is returned as the
+result of the command.
+
+[list_end]
+
+[subsection {Object command}]
+
+All objects created by the [cmd ::transfer::connect] command have the
+following general form:
+
+[list_begin definitions]
+
+[call [arg objectName] [method method] [opt [arg "arg arg ..."]]]
+
+The method [method method] and its [arg arg]'uments determine the
+exact behavior of the command.
+
+See section [sectref {Object methods}] for the detailed
+specifications.
+
+[list_end]
+
+[subsection {Object methods}]
+
+[list_begin definitions][comment ----methods]
+
+[call [arg objectName] [method destroy]]
+
+This method destroys the object.
+
+This is safe to do for an [term active] object when a connection has
+been started, as the completion callback is synchronous.
+
+For a [term passive] object currently waiting for its partner to
+establish the connection however this is not safe and will cause
+errors later on, when the connection setup completes and tries to
+access the now missing data structures of the destroyed object.
+
+[call [arg objectName] [method connect] [arg command]]
+
+This method starts the connection setup per the configuration of the
+object. When the connection is established the callback [arg command]
+will be invoked with one additional argument, the channel handle of
+the socket over which data can be transfered.
+
+[para]
+
+The detailed behaviour of the method depends on the configured
+mode.
+
+[list_begin definitions][comment ----mode-behaviour]
+[def [term active]]
+The connection setup is done synchronously. The object waits until the
+connection is established. The method returns the empty string as its
+result.
+
+[def [term passive]]
+
+The connection setup is done asynchronously. The method returns
+immediately after a listening socket has been set up. The connection
+will be established in the background.
+
+The method returns the port number of the listening socket, for use by
+the caller. One important use is the transfer of this information to
+the counterpart so that it knows where it has to connect to.
+
+[para]
+
+This is necessary as the object might have been configured for port
+[const 0], allowing the operating system to choose the actual port it
+will listen on.
+
+[para]
+
+The listening port is closed immediately when the connection was
+established by the partner, to keep the time interval small within
+which a third party can connect to the port too.
+
+Even so it is recommended to use additional measures in the protocol
+outside of the connect and transfer object to ensure that a connection
+is not used with an unidentified/unauthorized partner
+
+One possibility for this is the use of SSL/TLS.
+See the option [option -socketcmd] and section
+[sectref {Secure connections}] for information on how to do this.
+
+[list_end][comment ----mode-behaviour]
+[list_end][comment ----methods]
+
+[subsection Options]
+
+Connection objects support the set of options listed below.
+
+[list_begin options]
+[include include/connect_options.inc]
+[list_end]
+
+[vset OBJCREATE {transfer::connect C}]
+[include include/secure.inc]
+
+[vset CATEGORY transfer]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

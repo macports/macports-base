@@ -1,0 +1,253 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-05-16  Andreas Kupries  <andreask@activestate.com>
+
+	* tie.man: Fixed the sectref argument order issues.
+
+2008-05-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tie.man: Updated to changes in doctools (sub)section reference
+	  handling.
+
+2008-03-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tie_std.man: Added documentation for the internal packages of
+	  this module, to clarify their nature as such.
+
+2008-02-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tie_file.tcl (Replay): Fixed bug in the changes made in the last
+	* pkgIndex.tcl: commit. Tried to use a command (uplevel) removed
+	  from the interp just a few lines above :( This fixes the SF
+	  Tcllib bugs [1892687] and [1897850]. Version updated to
+	  1.0.4. Fixed a second bug, we inadvertently closed our main
+	  channel after replaying the journal.
+
+2008-01-28  Andreas Kupries  <andreask@activestate.com>
+
+	* tie_file.tcl (Replay): Accepted fix for [SF Tcllib Bug 1850838],
+	* pkgIndex.tcl: adding the missing use of the utf8 encoding.
+	  Thanks to Richard Suchenwirth <suchenwi@users.sourceforge.net>
+	  for report and fix. Version updated to 1.0.3.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-08-01  Andreas Kupries  <andreask@activestate.com>
+
+	* tie_rarray_comm.test: Updated to handle new 'snit' dependency in 'comm'.
+
+2007-05-01  Andreas Kupries <andreask@activestate.com>
+
+	* examples/tie/metakit.tcl (get): Updated to use {*} instead of
+	  the deprecated {expand}. [Bug 1710639].
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tie.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-11  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tie_growfile.test: Marked the 8 permission dependent tests as
+	* tie_file.test: ... 'notRoot' as they cannot fail when the
+	  superuser executes the testsuite.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* tie.man: Bumped version to 1.1
+	* tie.tcl:
+	* tie_file.tcl: Bumped version to 1.0.2
+	* pkgIndex.tcl:
+
+2006-09-19  Andreas Kupries <andreask@activestate.com>
+
+	* tie_file.tcl: Invokations of the builtin 'file' changed to
+	  '::file' to ensure use of the builtin. In snit v2 this resolves
+	  to the class itself apparently, choking the construction of an
+	  instance. [Tcllib SF Bug 1560851].
+
+2006-03-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tie_growfile.test: Created a new standard data source, the
+	* tie_growfile.tcl:  ever-growing file, for never-shrinking
+	* pkgIndex.tcl:      arrays. Updated package index, documentation,
+	* tie.man:           extended the testsuite.
+	* tie.tcl:
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tie_file.test: ...... Fixed creation and cleanup of temp. files
+	* tie_rarray_comm.test: by the testsuite.
+
+2006-01-26  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tie.test: More boilerplate simplified via use of test support.
+	* tie_array.test:
+	* tie_file.test:
+	* tie_log.test:
+	* tie_rarray.test:
+	* tie_rarray_comm.test:
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tie.test: Hooked into the new common test support code.
+	* tie_array.test:
+	* tie_file.test:
+	* tie_log.test:
+	* tie_rarray.test:
+	* tie_rarray_comm.test:
+
+2006-01-10  Andreas Kupries <andreask@activestate.com>
+
+	* tie_rarray_comm.test: Disabled the gratuitous puts commands
+	  found in the tests. This unclutteres the output. This fixes the
+	  [SF Tcllib Bug 1316063].
+
+	* tie_file.tcl (Compact): Accepted patch by Anton Osennikov
+	  <wish2@users.sourceforge.net> for [SF Tcllib Patch
+	  1378556]. This fixes a bug in the configuration of the log file
+	  after compaction, on Windows.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-09-26  Andreas Kupries <andreask@activestate.com>
+
+	* tie_file.tcl: Fixed bug in cache invalidation. nothing to do
+	  if the cache is already invalidated.
+
+2005-09-20  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tie.test: Made results of tie-7.1 and -7.2 version-dependent,
+	  using the proper tcltest commands from all.tcl.
+
+2005-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* ../examples/tie/metakit.tcl: Added an example backend for tieing
+	  arrays to a metakit database.
+
+2005-03-02  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tie.man (unsetv): Fixed a small documentation error. The
+	  argument to unsetv is not optional. Thanks to Colin McCormack
+	  <coldstore@users.sourceforge.net> for finding this.
+
+2004-10-05  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.7 ========================
+	* 
+
+2004-09-27  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tie_file.tcl:  Fixed problems with tests and implementation
+	* tie_file.test: on Windows.
+
+2004-09-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pkgIndex.tcl: Fixed mismatch in the names of provided
+	  vs. indexed packages, for the packages implementing the standard
+	  types. Thanks to './sak.tcl validate'.
+
+	* tie_rarray_comm.test: Added code to abort tests when trying
+	* tie_rarray.test:      to run them with a Tcl < 8.4.
+	* tie_array.test:
+	* tie_file.test:
+	* tie_log.test:
+	* tie.test:
+
+2004-09-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tie_rarray_comm.test: Fixed test suite dependencies on
+	* tie_test:             'cmdline', ensuring source of local
+	                        implementation.
+
+2004-09-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* Bumped version to 1.0.
+
+	* tie_rarray.tcl: Fixed propagation of [unset] to use the option
+	  -nocomplain. Required to avoid problems with circular ties.
+
+	* tie_rarray_comm.test: New tests for remote array involving true
+	  remove communication, using [comm].
+
+	* tie_array.test: Updated to surely use the local revision of
+	* tie_file.test:  snit when perfoming the tests.
+	* tie_log.test:   
+	* tie_rarray.test:
+
+2004-09-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pkgIndex.tcl:   Updated, now version 0.9. Proxy renamed
+	* tie.man:        to 'dsource'. Template renamed to .txt.
+	* tie.tcl:        API frozen in simpler form, no -dsource,
+	* tie_array.tcl:  only types. dsource functionality available
+	* tie_array.test: through the dsource/proxy type. Better
+	* tie_file.tcl:   introspection. Untie api changed, always
+	* tie_file.test:  taking a var-name. This allows tieing to
+	* tie_log.tcl:    proc local variables. Full testsuite for
+	* tie_log.test:   basic framework and all types.
+	* tie_dsource.tcl:
+	* tie_rarray.tcl:
+	* tie_rarray.test:
+	* tie_template.txt:
+
+2004-09-08  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* pkgIndex.tcl: Framework for tied array variables.
+	* tie.man:      Documentation, standard data sources.
+	* tie.tcl:
+	* tie_array.tcl:
+	* tie_file.tcl:
+	* tie_log.tcl:
+	* tie_proxy.tcl:
+	* tie_rarray.tcl:
+	* tie_template.tcl:

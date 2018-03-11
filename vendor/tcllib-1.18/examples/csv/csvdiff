@@ -1,0 +1,162 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+# Perform a diff on two CSV files.
+# The result is a CSV file
+
+package require csv
+package require cmdline
+
+# ----------------------------------------------------
+# csvdiff ?-sep sepchar? ?-key LIST? file1 file2
+#
+# Argument processing and checks.
+
+set sepChar ,
+set usage   "Usage: $argv0 ?-n? ?-sep sepchar? ?-key LIST? file1 file2\n\tLIST=idx,...\n\tidx in \{n, -m, n-, n-m\}"
+set keySpec "0-"
+
+# lineout = boolean flag, indicates if linenumbers has to be written
+# as part of the output (1) or not (0). Defaults to 0.
+
+set lineout 0
+while {[set ok [cmdline::getopt argv {sep.arg key.arg n} opt val]] > 0} {
+    #puts stderr "= $opt $val"
+    switch -exact -- $opt {
+	sep   {set sepChar $val}
+	key   {set keySpec $val}
+	n     {set lineout 1}
+    }
+}
+if {($ok < 0) || ([llength $argv] != 2)} {
+    puts stderr $usage
+    exit -1
+}
+
+foreach {fileA fileB} $argv break
+
+
+if {[llength $keySpec] == 0} {
+    #puts stderr >>$keySpec<<
+    #puts stderr B
+    puts stderr $usage
+    exit -1    
+}
+
+set idx [list]
+foreach i $keySpec {
+    if {[regexp -- {[0-9]+-[0-9]+} $i]} {
+	foreach {f t} [split $i -] break
+	lappend idx [list $f $t]
+    } elseif {[regexp -- {[0-9]+-} $i]} {
+	foreach {f t} [split $i -] break
+	lappend idx [list $f end]
+    } elseif {[regexp -- {-[0-9]+} $i]} {
+	foreach {f t} [split $i -] break
+	lappend idx [list 0 $t]
+    } elseif {[regexp -- {[0-9]+} $i]} {
+	lappend idx [list $i $i]
+    } else {
+	#puts stderr >>$idx<<
+	#puts stderr C
+	puts stderr $usage
+	exit -1
+    }
+}
+set keySpec $idx
+
+
+set inA [open $fileA r]
+set inB [open $fileB r]
+
+# ----------------------------------------------------
+# Actual processing, uses the following information from the
+# commandline:
+#
+# inA     - channel for input A
+# inB     - channel for input B
+# sepChar - separator character
+
+# We read file2 completely and then go through the records of
+# file1. For any record we don't find we write a "deleted" record. If
+# we find the matching record we remove it from the internal
+# storage. In a second sweep through the internal array we write
+# "added" records for the remaining data as that was not in file1 but
+# is in file2.
+
+proc keyof {data} {
+    global keySpec
+    set key [list]
+    foreach i $keySpec {
+	foreach {f t} $i break
+	eval lappend key [lrange $data $f $t]
+    }
+    return $key
+}
+
+
+
+set order [list]
+array set map {}
+set linenum 0
+while {![eof $inB]} {
+    if {[gets $inB line] < 0} {
+	continue
+    }
+    incr linenum
+    set  data [::csv::split $line $sepChar]
+    set  key  [keyof $data]
+
+    if {[info exist map($key)]} {
+	puts stderr "warning: $key occurs multiple times in $fileB (lines $linenum and $map($key))"
+    }
+    set map($key) $linenum
+    lappend order $data
+}
+close $inB
+
+set linenum 0
+
+if {$lineout} {
+    array set lmap {}
+}
+
+while {![eof $inA]} {
+    if {[gets $inA line] < 0} {
+	continue
+    }
+    incr linenum
+    set  data [::csv::split $line $sepChar]
+    set  key  [keyof $data]
+
+    if {$lineout} {set lmap($key) $linenum}
+
+    if {[info exists map($key)]} {
+	if {$map($key) < 0} {
+	    puts stderr "warning: $key occurs multiple times\
+		    in $fileA (lines $linenum and [expr {-$map($key)}]"
+	} else {
+	    set map($key) [expr {-$linenum}]
+	}
+	continue
+    }
+
+    if {$lineout} {
+	puts stdout [::csv::join [linsert $data 0 - $linenum] $sepChar]
+    } else {
+	puts stdout [::csv::join [linsert $data 0 -] $sepChar]
+    }
+}
+close $inA
+
+foreach data $order {
+    set key [keyof $data]
+    if {$map($key) > 0} {
+	if {$lineout} {
+	    puts stdout [::csv::join [linsert $data 0 + $lmap($key)] $sepChar]
+	} else {
+	    puts stdout [::csv::join [linsert $data 0 +] $sepChar]
+	}
+    }
+}
+
+exit

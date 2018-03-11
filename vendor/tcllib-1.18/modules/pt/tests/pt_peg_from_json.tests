@@ -1,0 +1,29 @@
+# -*- tcl -*-
+# General set of error cases regarding the number of arguments.
+
+test pt-peg-from-json-1.0 {convert, wrong#args} -body {
+    pt::peg::from::json convert
+} -returnCodes error -result {wrong # args: should be "pt::peg::from::json convert text"}
+
+test pt-peg-from-json-1.1 {convert, wrong#args} -body {
+    pt::peg::from::json convert S XXX
+} -returnCodes error -result {wrong # args: should be "pt::peg::from::json convert text"}
+
+# -------------------------------------------------------------------------
+
+# Testing the processing of json input in various form.
+
+foreach {k section} {
+    0 -ultracompact
+    1 -indented
+    2 -indalign
+} {
+    TestFilesProcess $mytestdir ok peg_json$section peg_serial-canonical -> n label input data expected {
+	test pt-peg-from-json-2.$k.$n "pt::peg::from::json, $label$section, ok :- $input" -body {
+	    pt::peg::from::json convert $data
+	} -result $expected
+    }
+}
+
+#----------------------------------------------------------------------
+unset n label input data expected

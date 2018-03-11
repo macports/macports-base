@@ -1,0 +1,102 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin grammar::fa::dacceptor n 0.1.1]
+[keywords acceptance]
+[keywords acceptor]
+[keywords automaton]
+[keywords {finite automaton}]
+[keywords grammar]
+[keywords parsing]
+[keywords {regular expression}]
+[keywords {regular grammar}]
+[keywords {regular languages}]
+[keywords state]
+[keywords transducer]
+[copyright {2004 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Finite automaton operations and usage}]
+[titledesc {Create and use deterministic acceptors}]
+[category  {Grammars and finite automata}]
+[require Tcl 8.4]
+[require snit]
+[require struct::set]
+[require grammar::fa::dacceptor [opt 0.1.1]]
+[description]
+[para]
+
+This package provides a class for acceptors constructed from
+deterministic [term {finite automatons}] (DFA). Acceptors are objects
+which can be given a string of symbols and tell if the DFA they are
+constructed from would [term accept] that string.
+
+For the actual creation of the DFAs the acceptors are based on we have
+the packages [package grammar::fa] and [package grammar::fa::op].
+
+[para]
+
+[section API]
+
+The package exports the API described here.
+
+[list_begin definitions]
+
+[call [cmd ::grammar::fa::dacceptor] [arg daName] [arg fa] [opt "[option -any] [arg any]"]]
+
+Creates a new deterministic acceptor with an associated global Tcl command
+whose name is [arg daName]. This command may be used to invoke various
+operations on the acceptor. It has the following general form:
+
+[list_begin definitions]
+
+[call [cmd daName] [arg option] [opt [arg "arg arg ..."]]]
+
+[arg Option] and the [arg arg]s determine the exact behavior of the
+command. See section [sectref {ACCEPTOR METHODS}] for more explanations.
+
+[para]
+
+The acceptor will be based on the deterministic finite automaton
+stored in the object [arg fa]. It will keep a copy of the relevant
+data of the FA in its own storage, in a form easy to use for its
+purposes. This also means that changes made to the [arg fa] after the
+construction of the acceptor [emph {will not}] influence the acceptor.
+
+[para]
+
+If [arg any] has been specified, then the acceptor will convert all
+symbols in the input which are unknown to the base FA to that symbol
+before proceeding with the processing.
+
+[list_end]
+[list_end]
+
+[section {ACCEPTOR METHODS}]
+[para]
+
+All acceptors provide the following methods for their manipulation:
+
+[list_begin definitions]
+
+[call [arg daName] [method destroy]]
+
+Destroys the automaton, including its storage space and associated
+command.
+
+[call [arg daName] [method accept?] [arg symbols]]
+
+Takes the list of [arg symbols] and checks if the FA the acceptor is
+based on would accept it. The result is a boolean value. [const True]
+is returned if the symbols are accepted, and [const False]
+otherwise. Note that bogus symbols in the input are either translated
+to the [arg any] symbol (if specified), or cause the acceptance test
+to simply fail. No errors will be thrown. The method will process only
+just that prefix of the input which is enough to fully determine
+(non-)acceptance.
+
+[list_end]
+
+[para]
+
+[section EXAMPLES]
+
+[vset CATEGORY grammar_fa]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,248 @@
+## -*- tcl -*-
+##
+## OO-based Tcl/PARAM implementation of the parsing
+## expression grammar
+##
+##	TEMPLATE
+##
+## Generated from file	TEST
+##            for user  unknown
+##
+# # ## ### ##### ######## ############# #####################
+## Requirements
+
+package require Tcl 8.5
+package require TclOO
+package require pt::rde::oo ; # OO-based implementation of the
+			      # PARAM virtual machine
+			      # underlying the Tcl/PARAM code
+			      # used below.
+
+# # ## ### ##### ######## ############# #####################
+##
+
+oo::class create PARSER {
+    # # ## ### ##### ######## #############
+    ## Public API
+
+    superclass pt::rde::oo ; # TODO - Define this class.
+                             # Or can we inherit from a snit
+                             # class too ?
+
+    method parse {channel} {
+	my reset $channel
+	my MAIN ; # Entrypoint for the generated code.
+	return [my complete]
+    }
+
+    method parset {text} {
+	my reset {}
+	my data $text
+	my MAIN ; # Entrypoint for the generated code.
+	return [my complete]
+    }
+
+    # # ## ### ###### ######## #############
+    ## BEGIN of GENERATED CODE. DO NOT EDIT.
+
+    #
+    # Grammar Start Expression
+    #
+    
+    method MAIN {} {
+        my sym_eos
+        return
+    }
+    
+    #
+    # value Symbol 'eos'
+    #
+    
+    method sym_eos {} {
+        # x
+        #     (ex)
+        #     *
+        #         x
+        #             +
+        #                 <space>
+        #             (ex)
+    
+        my si:value_symbol_start eos
+        my sequence_11
+        my si:reduce_symbol_end eos
+        return
+    }
+    
+    method sequence_11 {} {
+        # x
+        #     (ex)
+        #     *
+        #         x
+        #             +
+        #                 <space>
+        #             (ex)
+    
+        my si:value_state_push
+        my sym_ex
+        my si:valuevalue_part
+        my kleene_9
+        my si:value_state_merge
+        return
+    }
+    
+    method kleene_9 {} {
+        # *
+        #     x
+        #         +
+        #             <space>
+        #         (ex)
+    
+        while {1} {
+            my si:void2_state_push
+        my sequence_7
+            my si:kleene_close
+        }
+        return
+    }
+    
+    method sequence_7 {} {
+        # x
+        #     +
+        #         <space>
+        #     (ex)
+    
+        my si:void_state_push
+        my poskleene_4
+        my si:voidvalue_part
+        my sym_ex
+        my si:value_state_merge
+        return
+    }
+    
+    method poskleene_4 {} {
+        # +
+        #     <space>
+    
+        my i_loc_push
+        my si:next_space
+        my si:kleene_abort
+        while {1} {
+            my si:void2_state_push
+        my si:next_space
+            my si:kleene_close
+        }
+        return
+    }
+    
+    #
+    # value Symbol 'ex'
+    #
+    
+    method sym_ex {} {
+        # x
+        #     +
+        #         x
+        #             !
+        #                 (X)
+        #             [xz]
+        #     ?
+        #         (X)
+    
+        my si:value_symbol_start ex
+        my sequence_25
+        my si:reduce_symbol_end ex
+        return
+    }
+    
+    method sequence_25 {} {
+        # x
+        #     +
+        #         x
+        #             !
+        #                 (X)
+        #             [xz]
+        #     ?
+        #         (X)
+    
+        my si:void_state_push
+        my poskleene_20
+        my si:voidvalue_part
+        my optional_23
+        my si:value_state_merge
+        return
+    }
+    
+    method poskleene_20 {} {
+        # +
+        #     x
+        #         !
+        #             (X)
+        #         [xz]
+    
+        my i_loc_push
+        my sequence_18
+        my si:kleene_abort
+        while {1} {
+            my si:void2_state_push
+        my sequence_18
+            my si:kleene_close
+        }
+        return
+    }
+    
+    method sequence_18 {} {
+        # x
+        #     !
+        #         (X)
+        #     [xz]
+    
+        my si:void_state_push
+        my notahead_15
+        my si:voidvoid_part
+        my si:next_class xz
+        my si:void_state_merge
+        return
+    }
+    
+    method notahead_15 {} {
+        # !
+        #     (X)
+    
+        my si:value_notahead_start
+        my sym_X
+        my si:value_notahead_exit
+        return
+    }
+    
+    method optional_23 {} {
+        # ?
+        #     (X)
+    
+        my si:void2_state_push
+        my sym_X
+        my si:void_state_merge_ok
+        return
+    }
+    
+    #
+    # value Symbol 'X'
+    #
+    
+    method sym_X {} {
+        # 'x'
+    
+        my si:void_symbol_start X
+        my si:next_char x
+        my si:void_leaf_symbol_end X
+        return
+    }
+    
+    ## END of GENERATED CODE. DO NOT EDIT.
+    # # ## ### ###### ######## #############
+}
+
+# # ## ### ##### ######## ############# #####################
+## Ready
+
+package provide OO_PACKAGE 1
+return

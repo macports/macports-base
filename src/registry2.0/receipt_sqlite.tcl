@@ -1,5 +1,4 @@
 # receipt_sqlite.tcl
-# $Id$
 #
 # Copyright (c) 2010-2011 The MacPorts Project
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
@@ -124,10 +123,12 @@ proc entry_exists_for_name {name} {
 #
 # @param file
 #        The full path to the file to be tested.
+# @param cs
+#        Boolean value indicating a case-sensitive check.
 # @return 0 if the file is not registered to any port. The name of the port
 #         otherwise.
-proc file_registered {file} {
-    set port [registry::entry owner $file]
+proc file_registered {file cs} {
+    set port [registry::entry owner $file $cs]
     if {$port ne ""} {
         return [$port name]
     } else {
@@ -233,7 +234,7 @@ proc installed {{name ""} {version ""}} {
         set ports {}
         set possible_ports [registry::entry imaged $name]
         foreach p $possible_ports {
-            if {"[$p version]_[$p revision][$p variants]" == $version || [$p version] == $version} {
+            if {"[$p version]_[$p revision][$p variants]" eq $version || [$p version] eq $version} {
                 lappend ports $p
             }
         }

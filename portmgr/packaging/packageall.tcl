@@ -1,6 +1,5 @@
 #!/usr/bin/env tclsh
 # packageall.tcl
-# $Id$
 #
 # Copyright (c) 2009-2011 The MacPorts Project
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
@@ -121,8 +120,7 @@ proc get_dependencies {portname includeBuildDeps} {
 	set result {}
 
 	if {[catch {set res [mportsearch "^$portname\$"]} error]} {
-		global errorInfo
-		ui_debug "$errorInfo"
+		ui_debug $::errorInfo
 		ui_error "Internal error: port search failed: $error"
 		return {}
 	}
@@ -180,15 +178,13 @@ proc install_binary_if_available {dep basepath} {
 	if {[file readable $pkgpath]} {
 		ui_msg "installing binary: $pkgpath"
 		if {[catch {system "cd / && gunzip -c ${pkgpath}/Contents/Archive.pax.gz | pax -r"} error]} {
-			global errorInfo
-			ui_debug "$errorInfo"
+			ui_debug $::errorInfo
 			ui_error "Internal error: $error"
 		}
 		# Touch the receipt
 		# xxx: use some variable to describe this path
 		if {[catch {system "touch /opt/local/var/db/dports/receipts/${portname}-${portversion}.bz2"} error]} {
-			global errorInfo
-			ui_debug "$errorInfo"
+			ui_debug $::errorInfo
 			ui_error "Internal error: $error"
 		}
 	}
@@ -400,15 +396,13 @@ foreach pname $argv {
 		set options(subport) $name
 		if {[catch {set workername [mportopen $porturl [array get options] [array get variations] yes]} result] ||
 			$result == 1} {
-			global errorInfo
-			ui_debug "$errorInfo"
+			ui_debug $::errorInfo
 			ui_error "Internal error: unable to open port: $result"
 			continue
 		}
 		if {[catch {set result [mportexec $workername pkg]} result] ||
 			$result == 1} {
-			global errorInfo
-			ui_debug "$errorInfo"
+			ui_debug $::errorInfo
 			ui_error "port package failed: $result"
 			mportclose $workername
 			continue

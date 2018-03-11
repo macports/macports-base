@@ -1,0 +1,224 @@
+{
+  "filename": "022_05small.psd",
+  "layers": [
+    {
+      "layer": "トンボ（必ず表示させる",
+      "visible": false,
+      "haschild": false
+    },
+    {
+      "layer": "アタリ線（最終的に消す",
+      "visible": false,
+      "haschild": false
+    },
+    {
+      "layer": "title",
+      "visible": false,
+      "haschild": true,
+      "layers": [
+        {
+          "layer": "title 5.4",
+          "visible": false,
+          "haschild": false
+        }
+      ]
+    },
+    {
+      "layer": "logos",
+      "visible": false,
+      "haschild": true,
+      "layers": [
+        {
+          "layer": "niji_logo",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "+imoto+",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "レイヤー 2",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "nijiura 3",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "Here",
+          "visible": false,
+          "haschild": false
+        }
+      ]
+    },
+    {
+      "layer": "nijiura 2.3",
+      "visible": false,
+      "haschild": true,
+      "layers": [
+        {
+          "layer": "レイヤー 1",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "nijiura cap",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "nijiura 2.2",
+          "visible": false,
+          "haschild": false
+        }
+      ]
+    },
+    {
+      "layer": "name",
+      "visible": false,
+      "haschild": true,
+      "layers": [
+        {
+          "layer": "jal L",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "ana L_3",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "a380 L",
+          "visible": false,
+          "haschild": false
+        }
+      ]
+    },
+    {
+      "layer": "rainbow flash",
+      "visible": false,
+      "haschild": true,
+      "layers": [
+        {
+          "layer": "rainbow 7",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "rainbow 6",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "rainbow 5",
+          "visible": false,
+          "haschild": false
+        }
+      ]
+    },
+    {
+      "layer": "hikari",
+      "visible": false,
+      "haschild": true,
+      "layers": [
+        {
+          "layer": "kousen 6",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "kousen 5",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "kousen 4",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "kousen 3",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "kousen 2",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "kousen 1",
+          "visible": false,
+          "haschild": false
+        }
+      ]
+    },
+    {
+      "layer": "チャンネルミキサー",
+      "visible": true,
+      "haschild": false
+    },
+    {
+      "layer": "original",
+      "visible": true,
+      "haschild": false
+    },
+    {
+      "layer": "チャンネルミキサー 1",
+      "visible": true,
+      "haschild": false
+    },
+    {
+      "layer": "original 2",
+      "visible": true,
+      "haschild": false
+    },
+    {
+      "layer": "white light",
+      "visible": false,
+      "haschild": false
+    },
+    {
+      "layer": "ushiro",
+      "visible": false,
+      "haschild": true,
+      "layers": [
+        {
+          "layer": "色相・彩度1",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "sora 1",
+          "visible": false,
+          "haschild": false
+        },
+        {
+          "layer": "gurade",
+          "visible": false,
+          "haschild": false
+        }
+      ]
+    },
+    {
+      "layer": "背景 のコピー 2",
+      "visible": true,
+      "haschild": false
+    },
+    {
+      "layer": "用紙ゲージ",
+      "visible": false,
+      "haschild": false
+    },
+    {
+      "layer": "背景",
+      "visible": true,
+      "haschild": false
+    }
+  ]
+}

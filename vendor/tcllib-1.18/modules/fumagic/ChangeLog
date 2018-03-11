@@ -1,0 +1,235 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-06-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* fileutil_magic_cfront.pcx: New file. Syntax definitions for the
+	* fileutil_magic_cgen.pcx: public commands of the fileutil::magic
+	* fileutil_magic_filetype.pcx: packages.
+	* fileutil_magic_mimetype.pcx:
+	* fileutil_magic_rt.pcx:
+
+2008-03-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* cfront.man: Fixed typo in the new documentation.
+
+2008-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* rtcore.man: Added documentation for the runtime package
+	* cgen.man: 'fileutil::magic::rt', and the two compiler packages
+	* cfront.man: 'fileutil::magic::cgen' and 'fileutil::magic::cfront'.
+
+	* cfront.tcl: Fixed a typo in the export clause.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-09-12  Andreas Kupries  <andreask@activestate.com>
+
+	* filetypes.man: Fixed typos in the documentation, incomplete
+	* mimetypes.man: command names. Fixes [SF Bug 1791379].
+
+2007-06-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* cfront.tcl: Replaced deprecated {expand} syntax in comments with
+	* cgen.tcl:   {*}.
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* mimetypes.man: Fixed all warnings due to use of now deprecated
+	* filetypes.man: commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-09-27  Andreas Kupries  <andreask@activestate.com>
+
+	* filetypes.tcl: [SF Tcllib Bug 1329207]. Extended commands with
+	* mimetypes.tcl: hardwired check for directory as that cannot be
+	* filetypes.man: done by the generated code. Bumped version to
+	* mimetypes.man: 1.0.2.
+	* filetypes.test:
+	* mimetypes.test:
+	* pkgIndex.tcl:
+
+2006-09-19  Andreas Kupries  <andreask@activestate.com>
+
+	* mimetypes.man: Bumped versions to 1.0.1
+	* mimetypes.tcl: 
+	* filetypes.man: 
+	* filetypes.tcl: 
+	* pkgIndex.tcl:
+
+2006-01-28  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* filetypes.test: Fixed usage of temp. files by the testsuites.
+	* mimetypes.test:
+
+	* fumagic.testsupport: New file, common definitions for the testsuite.
+
+2006-01-22  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* filestypes.test: More boilerplate simplified via use of test support.
+	* mimetypes.test:
+
+	* filetypes.tcl: Added proper set up of the package namespace,
+	* mimetypes.tcl: paranoid code, 'rtcore' should have done it already.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* filetypes.test: Hooked into the new common test support code.
+	* mimetypes.test:
+
+2005-12-09  Andreas Kupries <andreask@activestate.com>
+
+	* mimetypes.man: Corrected package names used in the
+	* filetypes.man: manpage headings.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-09-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* filetypes.test (fumagic.filetype-1.2): Modified test result to
+	* mimetypes.test (fumagic.mimetype-1.2): make it independent of
+	  the exact channel handle listed in the error message. Has
+	  changed with Tcl 8.5.
+
+2005-03-16  Andreas Kupries <andreask@activestate.com>
+
+	* Fixed typos in the manpage headers.
+
+2005-02-17  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* tmc:           Added basic magic compiler, and script to
+	* regenerate.sh: regenerate the recognizers.
+
+	* filetypes.tcl:  Added general recognizer for file types,
+	* filetypes.man:  tests, and documentation for it.
+	* filetypes.test: WARNING. This recognizer is LARGE.
+
+2005-02-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* rtcore.tcl: Added the Nvx, Nx, and Sx commands to handle the
+	  generation of location data for use by the R command for the
+	  handling of relative addressing.
+
+	* cgen.tcl:
+	* rtcore.tcl: Rewritten the intialization of the typemap, fixing
+	  bugs in the definition of the types using native byteorder
+	  instead of explicitly specified big/little endian.
+
+	* mimetypes,man: Added REFERENCES section, and olisted url where
+	  Colin found the sources of file(1) and of the magic files used.
+
+2005-02-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* rtcore.tcl: Added commands I, R, and L to support indirect and
+	  relative adressing.
+
+	* cgen.tcl: Rewrote the whole offset handling in the generator, to
+	  support all types of offsets, i.e relative, indirect and
+	  indirect relative ones. A new stage now parses all offsets into
+	  standard components. The treegen stage then assembles proper
+	  base handling using new rtcore commands (I, R). Also now saving
+	  indicators about which branches actually need saving of field
+	  locations for relative adressing, this is used to optimize usage
+	  of check commands with saving (Nx, Sx, Nvx), and when to
+	  regenerate the level information (L). The latter is an implicit
+	  variable in the generated recognizer procedure, accessed via
+	  'upvar 1' from the runtime commands.
+
+2005-02-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* cfront.tcl: More fixes and 8.5 feature removal for the
+	* cgen.tcl:   compiler packages.
+
+2005-02-10  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* cgen.tcl: Removed usage of catch 8.5 feature.
+	* cfront.tcl: Fixed bad reference to file/scope local
+	  command. Repaced usage 0f 8.5 feature 'lrepeat' with forward
+	  compatibility command provided by 'struct::list'.
+
+	* cgen.tcl: Moved the 'provide' definition to the front, so that
+	* cfront.tcl: sak recognizes it and registers the provision of a
+	* mimetypes.tcl: package when validating the module.
+
+	* mimetypes.man: Basic documentation for the main recognizer
+	  command.
+
+	* mimetypes.test: Copied the filetype tests from fileutil over for
+	  use by the mimetype command, and adapted the results. Only four
+	  places where the result can be said to be bogus
+	* mimetypes.tcl: Added code to remove duplicates from the output
+	  of the low-level recognizer.
+	* rtcore.tcl: Added 'resultv' command which does not stop
+	  processing in the caller as well. Needed by our wrapper.
+
+	* mimetypes.tcl: Moved code in 'magic.tcl' to
+	* magic.tcl:    'mimetypes.tcl'. There is no need for a highlevel
+	  package loading all the different recognizers. Each recognizer
+	  is fully in its own package now. That makes the addition of more
+	  recognizers easier, without causing the wrapper to load more and
+	  more unneeded code. Things are large as they are, no need to
+	  make them larger. Deleted "magic.tcl".
+
+2005-02-09  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* New module 'fumagic'. file(1) magic(5) based file type
+	  recognition, in pure Tcl. Basic packages: runtime core,
+	  mime-type engine, and a command wrapping the functionality for
+	  easy access. The mime-type engine is not exactly so, it is
+	  possible for to produce non-mime strings. We keep it for now
+	  until the compiler has been put into this module as well.
+
+	* rtcore.tcl:     Runtime core.
+	* magic-mime.tcl: Mime engine
+	* magic.tcl:      Wrapper.
+
+	* Compiler packages now present as well
+	
+	* cgen.tcl:   Backend, tree-based code generator
+	* cfront.tcl: Frontend, parsing of magic(5) files.

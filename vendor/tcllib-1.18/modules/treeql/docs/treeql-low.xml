@@ -1,0 +1,103 @@
+<?xml version="1.0" ?>
+<?xml-stylesheet href="api.css" type="text/css" ?>
+<!DOCTYPE api SYSTEM "api.dtd" [
+]>
+  <api>
+  <title>Treeql Low Level API</title>
+  <header>
+    <p>Treeql is a fairly thin query facility over Trees.  It implements an ordered set of nodes which are generated and filtered by application of the treeql query language to each node in turn.</p>
+  </header>
+
+  <group>
+    <name>Tree Transformers</name>
+    <header>These are low level functional transformers which apply operations to the underlying tree via the node set, and generate a new node set.</header>
+    <method>
+      <object><arg>query</arg></object>
+      <name>apply</name>
+      <args><arg>cmd</arg> <arg>args</arg></args>
+      <result>returns the list of results of application</result>
+      <detail>apply [<arg>tree</arg> <arg>$node</arg> {*}<arg>cmd</arg> {*}<arg>args</arg>] form to each node in node set</detail>
+    </method>
+    
+    <method>
+      <object><arg>query</arg></object>
+      <name>sapply</name>
+      <args><arg>cmd</arg> <arg>args</arg></args>
+      <result>returns the concatenated strings of results of application</result>
+      <detail>apply [<arg>tree</arg> <arg>$node</arg> {*}<arg>cmd</arg> {*}<arg>args</arg>] form to each node in node set</detail>
+    </method>
+    
+    <method>
+      <object><arg>query</arg></object>
+      <name>applyself</name>
+      <args><arg>cmd</arg> <arg>args</arg></args>
+      <result>returns the list of results of the application</result>
+      <detail>apply [<arg>query</arg> {*}<arg>cmd</arg> <arg>node</arg> {*}<arg>args</arg>] to each <arg>node</arg>, discarding null results</detail>
+    </method>
+    
+    <method>
+      <object><arg>query</arg></object>
+      <name>mapself</name>
+      <args><arg>cmd</arg></args>
+      <result>returns the list of results of the application</result>
+      <detail>apply [<arg>query</arg> {*}<arg>cmd</arg> <arg>node</arg> {*}<arg>args</arg>] to each node in node set, keeping null results</detail>
+    </method>
+    
+  </group>
+
+
+  <group>
+    <name>Tree Filters</name>
+    <header>These are low level filters, which apply predicates to the underlying tree via the node set, and reduce the nodeset accordingly.</header>
+
+    <method>
+      <object><arg>query</arg></object>
+      <name>filter</name>
+      <args><arg>cmd</arg> <arg>args</arg></args>
+      <result>returns the list of results of application when application is non nil</result>
+      <detail>filter nodes by [<arg>tree</arg> {*}<arg>cmd</arg> {*}<arg>args</arg>]</detail>
+    </method>
+    
+    <method>
+      <object><arg>query</arg></object>
+      <name>bool</name>
+      <args><arg>cmd</arg> <arg>args</arg></args>
+      <result>returns the list of results of application when application is true</result>
+      <detail>filter nodes by the predicate [<arg>tree</arg> {*}<arg>cmd</arg> {*}<arg>args</arg>]</detail>
+    </method>
+    
+    <method>
+      <object><arg>query</arg></object>
+      <name>stringP</name>
+      <args><arg>op</arg> <arg>attr</arg></args>
+      <result>returns the list of nodes for which predicate is true</result>
+      <detail>filter nodes by predicate [string {*}<arg>op</arg>] over attribute <arg>attr</arg></detail>
+    </method>
+    
+    <method>
+      <object><arg>query</arg></object>
+      <name>stringNP</name>
+      <args><arg>op</arg> <arg>attr</arg></args>
+      <result>returns the list of nodes for which predicate is false</result>
+      <detail>filter nodes by negating the predicate [string {*}<arg>op</arg>] over attribute <arg>attr</arg></detail>
+    </method>
+    
+    <method>
+      <object><arg>query</arg></object>
+      <name>exprP</name>
+      <args><arg>op</arg> <arg>attr</arg></args>
+      <result>returns the list of nodes for which predicate is true</result>
+      <detail>filter nodes by predicate [expr {*}<arg>op</arg>] over attribute <arg>attr</arg></detail>
+    </method>
+    
+    <method>
+      <object><arg>query</arg></object>
+      <name>exprNP</name>
+      <args><arg>op</arg> <arg>attr</arg></args>
+      <result>returns the list of nodes for which predicate is false</result>
+      <detail>filter nodes by predicate ![expr {*}<arg>op</arg>] over attribute <arg>attr</arg></detail>
+    </method>
+
+  </group>
+
+</api>

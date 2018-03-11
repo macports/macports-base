@@ -1,0 +1,38 @@
+# -*- tcl -*-
+# Tcl Benchmark File
+#
+# This file contains a number of benchmarks for the 'crc32' module.
+# This allow developers to monitor/gauge/track package performance.
+#
+# (c) 2005 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+# We need at least version 8.2 for the package and thus the
+# benchmarks.
+
+if {![package vsatisfies [package provide Tcl] 8.2]} {
+    return
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Setting up the environment ...
+
+set moddir [file dirname [file dirname [info script]]]
+lappend auto_path $moddir
+
+package forget sum
+catch {namespace delete ::crc}
+source [file join [file dirname [info script]] sum.tcl]
+
+# ### ### ### ######### ######### ######### ###########################
+## Benchmarks.
+
+foreach n {1 10 100 1000 10000} {
+    bench -desc "SUM $n" -pre {
+	set str [string repeat " " $n]
+    } -body {
+	crc::sum $str
+    }
+}
+
+# ### ### ### ######### ######### ######### ###########################
+## Complete

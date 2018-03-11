@@ -1,0 +1,275 @@
+[vset VERSION 1.0.1]
+[comment {-*- text -*- doctools manpage}]
+[manpage_begin pt::pe n [vset VERSION]]
+[include include/module.inc]
+[titledesc {Parsing Expression Serialization}]
+[require pt::pe [opt [vset VERSION]]]
+[require char]
+[description]
+[include include/ref_intro.inc]
+
+This package provides commands to work with the serializations of
+parsing expressions as managed by the Parser Tools, and specified in
+section [sectref {PE serialization format}].
+
+[para]
+
+This is a supporting package in the Core Layer of Parser Tools.
+[para][image arch_core_support][para]
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::pt::pe] [method verify] \
+	[arg serial] [opt [arg canonvar]]]
+
+This command verifies that the content of [arg serial] is a valid
+serialization of a parsing expression and will throw an error if that
+is not the case. The result of the command is the empty string.
+
+[para]
+
+If the argument [arg canonvar] is specified it is interpreted as the
+name of a variable in the calling context. This variable will be
+written to if and only if [arg serial] is a valid regular
+serialization. Its value will be a boolean, with [const True]
+indicating that the serialization is not only valid, but also
+[term canonical]. [const False] will be written for a valid, but
+non-canonical serialization.
+
+[para]
+
+For the specification of serializations see the section
+[sectref {PE serialization format}].
+
+[call [cmd ::pt::pe] [method verify-as-canonical] \
+	[arg serial]]
+
+This command verifies that the content of [arg serial] is a valid
+[term canonical] serialization of a parsing expression and will throw
+an error if that is not the case. The result of the command is the
+empty string.
+
+[para]
+
+For the specification of canonical serializations see the section
+[sectref {PE serialization format}].
+
+[call [cmd ::pt::pe] [method canonicalize] [arg serial]]
+
+This command assumes that the content of [arg serial] is a valid
+[term regular] serialization of a parsing expression and will throw an
+error if that is not the case.
+
+[para]
+
+It will then convert the input into the [term canonical] serialization
+of this parsing expression and return it as its result. If the input
+is already canonical it will be returned unchanged.
+
+[para]
+
+For the specification of regular and canonical serializations see the
+section [sectref {PE serialization format}].
+
+[call [cmd ::pt::pe] [method print] [arg serial]]
+
+This command assumes that the argument [arg serial] contains a valid
+serialization of a parsing expression and returns a string containing
+that PE in a human readable form.
+
+[para]
+
+The exact format of this form is not specified and cannot be relied on
+for parsing or other machine-based activities.
+
+[para]
+
+For the specification of serializations see the section
+[sectref {PE serialization format}].
+
+[call [cmd ::pt::pe] [method bottomup] [arg cmdprefix] [arg pe]]
+
+This command walks the parsing expression [arg pe] from the bottom up
+to the root, invoking the command prefix [arg cmdprefix] for each
+partial expression. This implies that the children of a parsing
+expression PE are handled before PE.
+
+[para]
+
+The command prefix has the signature
+
+[list_begin definitions]
+[call [cmd cmdprefix] [arg pe] [arg op] [arg arguments]]
+
+I.e. it is invoked with the parsing expression [arg pe] the walk is
+currently at, the [arg op]'erator in the [arg pe], and the operator's
+[arg arguments].
+
+[para]
+
+The result returned by the command prefix replaces [arg pe] in the
+parsing expression it was a child of, allowing transformations of the
+expression tree.
+
+[para]
+
+This also means that for all inner parsing expressions the contents of
+[arg arguments] are the results of the command prefix invoked for the
+children of this inner parsing expression.
+
+[list_end]
+
+[call [cmd ::pt::pe] [method topdown] [arg cmdprefix] [arg pe]]
+
+This command walks the parsing expression [arg pe] from the root down
+to the leaves, invoking the command prefix [arg cmdprefix] for each
+partial expression. This implies that the children of a parsing
+expression PE are handled after PE.
+
+[para]
+
+The command prefix has the same signature as for [method bottomup],
+see above.
+
+[para]
+
+The result returned by the command prefix is [emph ignored].
+
+[call [cmd ::pt::pe] [method equal] \
+	[arg seriala] [arg serialb]]
+
+This command tests the two parsing expressions [arg seriala] and
+[arg serialb] for structural equality. The result of the command is a
+boolean value. It will be set to [const true] if the expressions are
+identical, and [const false] otherwise.
+
+[para]
+
+String equality is usable only if we can assume that the two parsing
+expressions are pure Tcl lists.
+
+[call [cmd ::pt::pe] [method epsilon]]
+
+This command constructs the atomic parsing expression for epsilon.
+
+[call [cmd ::pt::pe] [method dot]]
+
+This command constructs the atomic parsing expression for dot.
+
+[call [cmd ::pt::pe] [method alnum]]
+
+This command constructs the atomic parsing expression for alnum.
+
+[call [cmd ::pt::pe] [method alpha]]
+
+This command constructs the atomic parsing expression for alpha.
+
+[call [cmd ::pt::pe] [method ascii]]
+
+This command constructs the atomic parsing expression for ascii.
+
+[call [cmd ::pt::pe] [method control]]
+
+This command constructs the atomic parsing expression for control.
+
+[call [cmd ::pt::pe] [method digit]]
+
+This command constructs the atomic parsing expression for digit.
+
+[call [cmd ::pt::pe] [method graph]]
+
+This command constructs the atomic parsing expression for graph.
+
+[call [cmd ::pt::pe] [method lower]]
+
+This command constructs the atomic parsing expression for lower.
+
+[call [cmd ::pt::pe] [method print]]
+
+This command constructs the atomic parsing expression for print.
+
+[call [cmd ::pt::pe] [method punct]]
+
+This command constructs the atomic parsing expression for punct.
+
+[call [cmd ::pt::pe] [method space]]
+
+This command constructs the atomic parsing expression for space.
+
+[call [cmd ::pt::pe] [method upper]]
+
+This command constructs the atomic parsing expression for upper.
+
+[call [cmd ::pt::pe] [method wordchar]]
+
+This command constructs the atomic parsing expression for wordchar.
+
+[call [cmd ::pt::pe] [method xdigit]]
+
+This command constructs the atomic parsing expression for xdigit.
+
+[call [cmd ::pt::pe] [method ddigit]]
+
+This command constructs the atomic parsing expression for ddigit.
+
+[call [cmd ::pt::pe] [method terminal] [arg t]]
+
+This command constructs the atomic parsing expression for the terminal
+symbol [arg t].
+
+[call [cmd ::pt::pe] [method range] [arg ta] [arg tb]]
+
+This command constructs the atomic parsing expression for the range of
+terminal symbols [arg ta] ... [arg tb].
+
+[call [cmd ::pt::pe] [method nonterminal] [arg nt]]
+
+This command constructs the atomic parsing expression for the
+nonterminal symbol [arg nt].
+
+[call [cmd ::pt::pe] [method choice] [arg pe]...]
+
+This command constructs the parsing expression representing the
+ordered or prioritized choice between the argument parsing
+expressions. The first argument has the highest priority.
+
+[call [cmd ::pt::pe] [method sequence] [arg pe]...]
+
+This command constructs the parsing expression representing the
+sequence of the argument parsing expression. The first argument is the
+first element of the sequence.
+
+[call [cmd ::pt::pe] [method repeat0] [arg pe]]
+
+This command constructs the parsing expression representing the zero
+or more repetition of the argument parsing expression [arg pe], also
+known as the kleene closure.
+
+[call [cmd ::pt::pe] [method repeat1] [arg pe]]
+
+This command constructs the parsing expression representing the one or
+more repetition of the argument parsing expression [arg pe], also
+known as the positive kleene closure.
+
+[call [cmd ::pt::pe] [method optional] [arg pe]]
+
+This command constructs the parsing expression representing the
+optionality of the argument parsing expression [arg pe].
+
+[call [cmd ::pt::pe] [method ahead] [arg pe]]
+
+This command constructs the parsing expression representing the
+positive lookahead of the argument parsing expression [arg pe].
+
+[call [cmd ::pt::pe] [method notahead] [arg pe]]
+
+This command constructs the parsing expression representing the
+negative lookahead of the argument parsing expression [arg pe].
+
+[list_end]
+
+[include include/serial/pexpression.inc]
+[include include/feedback.inc]
+[manpage_end]

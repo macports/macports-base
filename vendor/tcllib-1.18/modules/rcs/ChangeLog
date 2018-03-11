@@ -1,0 +1,99 @@
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	* 
+
+2011-12-13  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.14 ========================
+	* 
+
+2011-01-24  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.13 ========================
+	* 
+
+2009-12-07  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.12 ========================
+	* 
+
+2008-12-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11.1 ========================
+	* 
+
+2008-10-16  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.11 ========================
+	* 
+
+2008-06-14  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* rcs.pcx: New file. Syntax definitions for the public commands of
+	  the rcs package.
+
+2008-05-16  Andreas Kupries  <andreask@activestate.com>
+
+	* rcs.man: Fixed the sectref argument order issues.
+
+2008-05-15  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* rcs.man: Updated to changes in doctools (sub)section reference
+	  handling.
+
+2007-09-12  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.10 ========================
+	* 
+
+2007-03-21  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* rcs.man: Fixed all warnings due to use of now deprecated
+	  commands. Added a section about how to give feedback.
+
+2006-10-03  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.9 ========================
+	* 
+
+2006-01-23  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* rcs.test: More boilerplate simplified via use of test support.
+
+2006-01-19  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	* rcs.test: Hooked into the new common test support code.
+
+2005-10-06  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.8 ========================
+	* 
+
+2005-01-28  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* rcs.tcl:  The module code uses 8.4 features, updated all places
+	* rcs.man:  refering to or checking the version of Tcl in use to
+	* rcs.test: this version.
+
+	* rcs.man: Created the documentation for the package.
+
+2005-01-27  Andreas Kupries <andreas_kupries@users.sourceforge.net>
+
+	* rcs.test: First tests.
+
+	* rcs.tcl: New module providing command related to RCS
+	  operations. Original sources from Colin McCormack's
+	  <coldstore@users.sourceforge.net> Tcl code for acessing CVS
+	  repositories, factored out by myself and rewritten for better
+	  API modularity. Many thanks to Colin for doing the initial hard
+	  work.

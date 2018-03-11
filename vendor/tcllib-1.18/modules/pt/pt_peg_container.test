@@ -1,0 +1,52 @@
+# -*- tcl -*-
+# peg_container.test:  Tests for the pt::peg package.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: pt_peg_container.test,v 1.1 2010/03/26 05:07:24 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2
+
+support {
+    useAccel [useTcllibC] struct/sets.tcl  struct::set
+    TestAccelInit                          struct::set
+
+    use fileutil/fileutil.tcl    fileutil
+    use snit/snit.tcl            snit
+    use pluginmgr/pluginmgr.tcl  pluginmgr
+
+    useLocal pt_pexpression.tcl  pt::pe
+    useLocal pt_pegrammar.tcl    pt::peg
+
+    #useLocal peg_export.tcl     pt::peg::export
+    #useLocal import.tcl         pt::peg::import
+    #use doctools2base/nroff_manmacros.tcl doctools::nroff::man_macros
+
+    source [localPath tests/common]
+}
+testing {
+    useLocalKeep pt_peg_container.tcl pt::peg::container
+}
+
+# -------------------------------------------------------------------------
+
+#setup_plugins
+
+# -------------------------------------------------------------------------
+
+TestAccelDo struct::set setimpl {
+    source [localPath tests/pt_peg_container.tests]
+}
+
+#----------------------------------------------------------------------
+TestAccelExit struct::set
+testsuiteCleanup
+return

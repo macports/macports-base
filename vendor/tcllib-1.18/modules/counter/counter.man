@@ -1,0 +1,250 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin counter n 2.0.4]
+[keywords counting]
+[keywords histogram]
+[keywords statistics]
+[keywords tallying]
+[moddesc   {Counters and Histograms}]
+[titledesc {Procedures for counters and histograms}]
+[category  {Data structures}]
+[require Tcl 8]
+[require counter [opt 2.0.4]]
+[description]
+[para]
+
+The [package counter] package provides a counter facility and can
+compute statistics and histograms over the collected data.
+
+[list_begin definitions]
+
+[call [cmd ::counter::init] [arg {tag args}]]
+
+This defines a counter with the name [arg tag].  The [arg args]
+determines the characteristics of the counter.  The [arg args] are
+
+[list_begin definitions]
+[def "[option -group] [arg name]"]
+
+Keep a grouped counter where the name of the histogram bucket is
+passed into [cmd ::counter::count].
+
+[def "[option -hist] [arg bucketsize]"]
+
+Accumulate the counter into histogram buckets of size
+
+[arg bucketsize].  For example, if the samples are millisecond time
+values and [arg bucketsize] is 10, then each histogram bucket
+represents time values of 0 to 10 msec, 10 to 20 msec, 20 to 30 msec,
+and so on.
+
+[def "[option -hist2x] [arg bucketsize]"]
+
+Accumulate the statistic into histogram buckets.  The size of the
+first bucket is [arg bucketsize], each other bucket holds values 2
+times the size of the previous bucket.  For example, if
+
+[arg bucketsize] is 10, then each histogram bucket represents time
+values of 0 to 10 msec, 10 to 20 msec, 20 to 40 msec, 40 to 80 msec,
+and so on.
+
+[def "[option -hist10x] [arg bucketsize]"]
+
+Accumulate the statistic into histogram buckets.  The size of the
+first bucket is [arg bucketsize], each other bucket holds values 10
+times the size of the previous bucket.  For example, if
+
+[arg bucketsize] is 10, then each histogram bucket represents time
+values of 0 to 10 msec, 10 to 100 msec, 100 to 1000 msec, and so on.
+
+[def "[option -lastn] [arg N]"]
+
+Save the last [arg N] values of the counter to maintain a "running
+average" over the last [arg N] values.
+
+[def "[option -timehist] [arg secsPerMinute]"]
+
+Keep a time-based histogram.  The counter is summed into a histogram
+bucket based on the current time.  There are 60 per-minute buckets
+that have a size determined by [arg secsPerMinute], which is normally
+60, but for testing purposes can be less.  Every "hour" (i.e., 60
+"minutes") the contents of the per-minute buckets are summed into the
+next hourly bucket.  Every 24 "hours" the contents of the per-hour
+buckets are summed into the next daily bucket.  The counter package
+keeps all time-based histograms in sync, so the first
+
+[arg secsPerMinute] value seen by the package is used for all
+subsequent time-based histograms.
+
+[list_end]
+
+[call [cmd ::counter::count] [arg tag] [opt [arg delta]] [opt [arg instance]]]
+
+Increment the counter identified by [arg tag].  The default increment
+is 1, although you can increment by any value, integer or real, by
+specifying [arg delta].  You must declare each counter with
+
+[cmd ::counter::init] to define the characteristics of counter before
+you start to use it.  If the counter type is [option -group], then the
+counter identified by [arg instance] is incremented.
+
+[call [cmd ::counter::start] [arg {tag instance}]]
+
+Record the starting time of an interval.  The [arg tag] is the name of
+the counter defined as a [option -hist] value-based histogram.  The
+[arg instance] is used to distinguish this interval from any other
+intervals that might be overlapping this one.
+
+[call [cmd ::counter::stop] [arg {tag instance}]]
+
+Record the ending time of an interval.  The delta time since the
+corresponding [cmd ::counter::start] call for [arg instance] is
+recorded in the histogram identified by [arg tag].
+
+[call [cmd ::counter::get] [arg {tag args}]]
+
+Return statistics about a counter identified by [arg tag].  The
+
+[arg args] determine what value to return:
+
+[list_begin definitions]
+[def [option -total]]
+
+Return the total value of the counter.  This is the default if
+
+[arg args] is not specified.
+
+[def [option -totalVar]]
+
+Return the name of the total variable.  Useful for specifying with
+-textvariable in a Tk widget.
+
+[def [option -N]]
+
+Return the number of samples accumulated into the counter.
+
+[def [option -avg]]
+
+Return the average of samples accumulated into the counter.
+
+[def [option -avgn]]
+
+Return the average over the last [arg N] samples taken.  The [arg N]
+value is set in the [cmd ::counter::init] call.
+
+[def "[option -hist] [arg bucket]"]
+
+If [arg bucket] is specified, then the value in that bucket of the
+histogram is returned.  Otherwise the complete histogram is returned
+in array get format sorted by bucket.
+
+[def [option -histVar]]
+
+Return the name of the histogram array variable.
+
+[def [option -histHour]]
+
+Return the complete hourly histogram in array get format sorted by
+bucket.
+
+[def [option -histHourVar]]
+
+Return the name of the hourly histogram array variable.
+
+[def [option -histDay]]
+
+Return the complete daily histogram in array get format sorted by
+bucket.
+
+[def [option -histDayVar]]
+
+Return the name of the daily histogram array variable.
+
+[def [option -resetDate]]
+
+Return the clock seconds value recorded when the
+counter was last reset.
+
+[def [option -all]]
+
+Return an array get of the array used to store the counter.  This
+includes the total, the number of samples (N), and any type-specific
+information.  This does not include the histogram array.
+
+[list_end]
+
+[call [cmd ::counter::exists] [arg tag]]
+
+Returns 1 if the counter is defined.
+
+[call [cmd ::counter::names]]
+
+Returns a list of all counters defined.
+
+[call [cmd ::counter::histHtmlDisplay] [arg {tag args}]]
+
+Generate HTML to display a histogram for a counter.  The [arg args]
+control the format of the display.  They are:
+
+[list_begin definitions]
+[def "[option -title] [arg string]"]
+
+Label to display above bar chart
+
+[def "[option -unit] [arg unit]"]
+
+Specify [const minutes], [const hours], or [const days] for the
+time-base histograms.  For value-based histograms, the [arg unit] is
+used in the title.
+
+[def "[option -images] [arg url]"]
+
+URL of /images directory.
+
+[def "[option -gif] [arg filename]"]
+
+Image for normal histogram bars.  The [arg filename] is relative to
+the [option -images] directory.
+
+[def "[option -ongif] [arg filename]"]
+
+Image for the active histogram bar.  The [arg filename] is relative to
+the [option -images] directory.
+
+[def "[option -max] [arg N]"]
+
+Maximum number of value-based buckets to display.
+
+[def "[option -height] [arg N]"]
+
+Pixel height of the highest bar.
+
+[def "[option -width] [arg N]"]
+
+Pixel width of each bar.
+
+[def "[option -skip] [arg N]"]
+
+Buckets to skip when labeling value-based histograms.
+
+[def "[option -format] [arg string]"]
+
+Format used to display labels of buckets.
+
+[def "[option -text] [arg boolean]"]
+
+If 1, a text version of the histogram is dumped, otherwise a graphical
+one is generated.
+
+[list_end]
+
+[call [cmd ::counter::reset] [arg {tag args}]]
+
+Resets the counter with the name [arg tag] to an initial state. The
+[arg args] determine the new characteristics of the counter. They have
+the same meaning as described for [cmd ::counter::init].
+
+[list_end]
+
+[vset CATEGORY counter]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

@@ -1,0 +1,98 @@
+                    Building TclX on Windows 95/NT
+
+This has not been updated for TclX 8.4.
+
+The Win32 port of TclX is a work in progress, and is not yet complete.
+Several features that should work under Windows are not yet ported.
+Many of the tests have not yet been converted to work under Windows,
+either.
+
+TclX on Windows is available in the ActiveTcl binary distribution:
+
+     http://www.activestate.com/Tcl
+
+To build the release:
+
+   o You need Visual C++ 4.0 or above.
+     
+   o Tcl 8.4 should be in a directory adjacent to the tclX8.4 directory or
+     the paths in common.vc need to be changed.
+
+
+MICROSOFT VISUAL C++ BUILD
+
+   o Edit tclX8.4/win/common.vc to set the macro TOOLS32 to the path to the
+     install directory for MS Visual C++ 4.o.  By default, this is c:\msdev.
+
+   o Edit tclX8.4/win/common.vc to set the macro PREFIX to the location
+     you want TclX installed.  This PREFIX's parent directory must exist, all
+     other directories, including PREFIX will be built if they don't exist.
+     The resulting directories that will be used for installation are:
+        $(PREFIX)/bin - Executables and DLLs.
+        $(PREFIX)/lib/tclX8.4 - Runtime Tcl code and help files for TclX.
+        $(PREFIX)/include - Include files.
+
+   o To compile, cd to tclX8.4/win and enter the command:
+
+        nmake -f makefile.vc
+
+   o To run the TclX tests:
+
+        nmake -f makefile.vc test
+
+   o To install:
+
+        nmake -f makefile.vc install
+   
+   o If you want to debug under MS Developer Studio, its easy to wrap a
+     workspace around the existing makefile.vc:
+        o Select File->Open
+        o In the Open dialog:
+            o Set the "Files of Type" field to be "All Files (*.*)"
+            o Set the "Open As" field to be "Makefile"
+            o Now select "tclX8.4/tcl/win/makefile.vc" using the
+              standard open dialog.
+        o A warning dialog will come up asking if you want to wrap a
+          workspace around the makefile.  Answer "Yes'.
+        o A Save As dialog will appear with the "File name" field
+          default to "makefile1.mak".  Change this to be "tclx.mak".
+        o Press "Save".
+        o You can now use File->Open Workspace to open "tclx.mdp".
+
+In this release, the following restrictions apply:
+
+    o Support is only provided for Borland C++ 5.01 and above.
+
+    o The following commands are not supported:
+       o fork
+
+    o The following commands are not yet implemented:
+       o chmod
+       o chown
+       o chgrp
+       o link
+       o nice
+       o alarm
+
+    o The following commands are there, but not tested, since the tests have
+      not been ported.
+        o signal
+        o flock
+
+    o The select command only works on sockets.
+      
+    o The id command is limited, only the host and process options are
+      implemented
+
+    o The dup command does not work on sockets.
+
+    o The profile command only reports elasped real time, CPU time is not
+      available.
+
+    o There are probably problems with using open sockets and pipes with
+      commands that operate on open files.
+    
+    o No 16 bit support.
+
+    o The fork command is not implemented, but the execl command creates a
+      process and returns its process id.

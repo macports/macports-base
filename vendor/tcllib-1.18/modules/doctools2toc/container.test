@@ -1,0 +1,53 @@
+# -*- tcl -*-
+# toc.test:  Tests for the doctools::toc package. ToC management.
+#
+# Copyright (c) 2009 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+#
+# RCS: @(#) $Id: container.test,v 1.3 2009/11/15 05:50:03 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2
+
+support {
+    useAccel [useTcllibC] struct/tree.tcl  struct::tree
+    TestAccelInit                          struct::tree
+
+    use struct/list.tcl          struct::list
+    use snit/snit.tcl            snit
+    use fileutil/fileutil.tcl    fileutil
+    use log/logger.tcl           logger
+    use pluginmgr/pluginmgr.tcl  pluginmgr
+
+    use doctools2base/config.tcl          doctools::config
+    use doctools2base/paths.tcl           doctools::paths
+    useLocal export.tcl      doctools::toc::export
+    useLocal import.tcl      doctools::toc::import
+    use doctools2base/nroff_manmacros.tcl doctools::nroff::man_macros
+
+    source [tcllibPath doctools2base/tests/common]
+}
+testing {
+    useLocalKeep container.tcl doctools::toc
+}
+
+# -------------------------------------------------------------------------
+
+setup_plugins
+
+# -------------------------------------------------------------------------
+
+TestAccelDo struct::tree impl {
+    source [localPath tests/container_main]
+}
+
+#----------------------------------------------------------------------
+TestAccelExit struct::tree
+testsuiteCleanup
+return

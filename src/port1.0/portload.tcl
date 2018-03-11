@@ -1,6 +1,5 @@
 # et:ts=4
 # portload.tcl
-# $Id$
 #
 # Copyright (c) 2007, 2009, 2011 The MacPorts Project
 # Copyright (c) 2007 James D. Berry
@@ -49,7 +48,7 @@ default load.asroot yes
 set_ui_prefix
 
 proc portload::load_main {args} {
-    global startupitem.type startupitem.name startupitem.location startupitem.plist
+    global startupitem.location startupitem.plist
     set launchctl_path ${portutil::autoconf::launchctl_path}
 
     foreach { path } "/Library/${startupitem.location}/${startupitem.plist}" {

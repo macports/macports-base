@@ -1,0 +1,3 @@
+Doctools Error in macro at line 4, column 0:
+[var .v]
+--> (FmtError) Manpage error (nodonecmd), "var .v" : Command not allowed after [manpage_end].

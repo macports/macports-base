@@ -1,0 +1,57 @@
+# -*- tcl -*-
+# Graph ops tests - Dijkstra, distances, eccentricity.
+# Copyright (c) 2008 Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+# RCS: @(#) $Id: eccentricity.test,v 1.2 2009/09/15 19:24:12 andreas_kupries Exp $
+
+# Syntax: struct::graph::op::eccentricity G N ?options?
+
+# -------------------------------------------------------------------------
+# Wrong # args: Missing, Too many
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-eccentricity-1.0 {eccentricity, wrong args, missing} {
+    catch {struct::graph::op::eccentricity} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::eccentricity {g node args} 0]
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-eccentricity-1.1 {eccentricity, wrong args, missing} {
+    catch {struct::graph::op::eccentricity g} msg
+    set msg
+} [tcltest::wrongNumArgs struct::graph::op::eccentricity {g node args} 1]
+
+# -------------------------------------------------------------------------
+# Logical arguments checks and failures
+
+test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-eccentricity-2.0 {eccentricity, bad node} {
+    SETUP
+    catch {struct::graph::op::eccentricity mygraph foo} result
+    mygraph destroy
+    set result
+} {node "foo" does not exist in graph "mygraph"}
+
+# -------------------------------------------------------------------------
+# Ok arguments.
+
+set n 0
+foreach {setup node eccentricity uneccentricity} {
+    SETUP_A 'node0' 6 6
+    SETUP_A 'node6' Inf 7
+} {
+    test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-eccentricity-3.$n "eccentricity, $setup/$node, directed" {
+	$setup
+	set result [struct::graph::op::eccentricity mygraph $node -arcmode directed]
+	mygraph destroy
+	set result
+    } $eccentricity
+
+    test graphop-t${treeimpl}-g${impl}-s${setimpl}-st${stkimpl}-q${queimpl}-eccentricity-4.$n "eccentricity, $setup/$node, undirected" {
+	$setup
+	set result [struct::graph::op::eccentricity mygraph $node -arcmode undirected]
+	mygraph destroy
+	set result
+    } $uneccentricity
+
+    incr n
+}
+
+# ---------------------------------------------------

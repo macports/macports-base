@@ -1,0 +1,18 @@
+#!/usr/bin/env tclsh
+## -*- tcl -*-
+# FTP daemon
+
+package require Tcl 8.3
+if {[catch {package require ftpd}]} {
+    set here [file dirname [info script]]
+    source [file join .. $here ftpd.tcl]
+}
+
+proc bgerror {args} {
+    global errorInfo
+    puts stderr "bgerror: [join $args]"
+    puts stderr $errorInfo
+}
+
+::ftpd::server
+vwait forever

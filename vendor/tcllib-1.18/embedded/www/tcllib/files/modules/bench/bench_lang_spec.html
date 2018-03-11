@@ -1,0 +1,227 @@
+
+<div class='fossil-doc' data-title='bench_lang_spec - Documentation tools'>
+<style>
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+</style>
+ <hr> [
+   <a href="../../../../toc.html">Main Table Of Contents</a>
+| <a href="../../../toc.html">Table Of Contents</a>
+| <a href="../../../../index.html">Keyword Index</a>
+| <a href="../../../../toc0.html">Categories</a>
+| <a href="../../../../toc1.html">Modules</a>
+| <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">bench_lang_spec(n) 1.0 tcllib &quot;Documentation tools&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>bench_lang_spec - bench language specification</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Commands</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">bench_rm</b> <i class="arg">path</i>...</a></li>
+<li><a href="#2"><b class="cmd">bench_tmpfile</b></a></li>
+<li><a href="#3"><b class="cmd"><a href="bench.html">bench</a></b> <i class="arg">options</i>...</a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This document specifies both names and syntax of all the commands
+which together are the bench language, version 1.
+As this document is intended to be a reference the commands are listed
+in alphabetical order, and the descriptions are relatively short.
+A beginner should read the more informally written
+<i class="term"><a href="bench_lang_intro.html">bench language introduction</a></i> first.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Commands</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">bench_rm</b> <i class="arg">path</i>...</a></dt>
+<dd><p>This command silently removes the files specified as its arguments and
+then returns the empty string as its result.
+The command is <em>trusted</em>, there is no checking if the specified
+files are outside of whatever restricted area the benchmarks are run
+in.</p></dd>
+<dt><a name="2"><b class="cmd">bench_tmpfile</b></a></dt>
+<dd><p>This command returns the path to a bench specific unique temporary
+file. The uniqueness means that multiple calls will return different
+paths. While the path may exist from previous runs, the command itself
+does <em>not</em> create aynthing.</p>
+<p>The base location of the temporary files is platform dependent:</p>
+<dl class="doctools_definitions">
+<dt>Unix, and indeterminate platform</dt>
+<dd><p>&quot;<b class="file">/tmp</b>&quot;</p></dd>
+<dt>Windows</dt>
+<dd><p><b class="variable">$TEMP</b></p></dd>
+<dt>Anything else</dt>
+<dd><p>The current working directory.</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd"><a href="bench.html">bench</a></b> <i class="arg">options</i>...</a></dt>
+<dd><p>This command declares a single benchmark. Its result is the empty
+string. All parts of the benchmark are declared via options, and their
+values. The options can occur in any order. The accepted options are:</p>
+<dl class="doctools_options">
+<dt><b class="option">-body</b> script</dt>
+<dd><p>The argument of this option declares the body of the benchmark, the
+Tcl script whose performance we wish to measure. This option, and
+<b class="option">-desc</b>, are the two required parts of each benchmark.</p></dd>
+<dt><b class="option">-desc</b> msg</dt>
+<dd><p>The argument of this option declares the name of the benchmark. It has
+to be unique, or timing data from different benchmarks will be mixed
+together.</p>
+<p><em>Beware!</em> This requirement is not checked when benchmarks are
+executed, and the system will silently produce bogus data. This
+option, and <b class="option">-body</b>, are the two required parts of each
+benchmark.</p></dd>
+<dt><b class="option">-ipost</b> script</dt>
+<dd><p>The argument of this option declares a script which is run immediately
+<em>after</em> each iteration of the body. Its responsibility is to
+release resources created by the body, or <b class="option">-ipre</b>-bodym which
+we do not wish to live into the next iteration.</p></dd>
+<dt><b class="option">-ipre</b> script</dt>
+<dd><p>The argument of this option declares a script which is run immediately
+<em>before</em> each iteration of the body. Its responsibility is to
+create the state of the system expected by the body so that we measure
+the right thing.</p></dd>
+<dt><b class="option">-iterations</b> num</dt>
+<dd><p>The argument of this option declares the maximum number of times to
+run the <b class="option">-body</b> of the benchmark. During execution this and the
+global maximum number of iterations are compared and the smaller of
+the two values is used.</p>
+<p>This option should be used only for benchmarks which are expected or
+known to take a long time per run. I.e. reduce the number of times
+they are run to keep the overall time for the execution of the whole
+benchmark within manageable limits.</p></dd>
+<dt><b class="option">-post</b> script</dt>
+<dd><p>The argument of this option declares a script which is run
+<em>after</em> all iterations of the body have been run. Its
+responsibility is to release resources created by the body,
+or <b class="option">-pre</b>-body.</p></dd>
+<dt><b class="option">-pre</b> script</dt>
+<dd><p>The argument of this option declares a script which is run
+<em>before</em> any of the iterations of the body are run. Its
+responsibility is to create whatever resources are needed by the body
+to run without failing.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>bench</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p><a href="bench_intro.html">bench_intro</a>, <a href="bench_lang_intro.html">bench_lang_intro</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#key98">bench language</a>, <a href="../../../../index.html#key101">benchmark</a>, <a href="../../../../index.html#key100">performance</a>, <a href="../../../../index.html#key659">specification</a>, <a href="../../../../index.html#key99">testing</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Benchmark tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2007 Andreas Kupries &lt;andreas_kupries@users.sourceforge.net&gt;</p>
+</div>
+</div>

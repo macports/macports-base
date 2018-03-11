@@ -1,0 +1,144 @@
+# -*- tcl -*- csv.pcx
+# Syntax of the commands provided by package csv.
+
+# For use by TclDevKit's static syntax checker.
+# See http://www.activestate.com/solutions/tcl/
+# See http://aspn.activestate.com/ASPN/docs/Tcl_Dev_Kit/4.0/Checker.html#pcx_api
+# for the documentation describing the format of the code contained in this file
+#
+
+package require pcx
+pcx::register csv
+pcx::tcldep   0.7 needs tcl 8.3
+pcx::tcldep   0.8 needs tcl 8.4
+
+namespace eval ::csv {}
+
+#pcx::message FOO {... text ...} type
+#pcx::scan <VERSION> <NAME> <RULE>
+
+pcx::check 0.7 std ::csv::iscomplete \
+    {checkSimpleArgs 1 1 {
+	checkWord
+    }}
+pcx::check 0.7 std ::csv::join \
+    {checkSimpleArgs 1 3 {
+	checkList
+	checkWord
+	checkWord
+    }}
+pcx::check 0.8 std ::csv::join \
+    {checkSimpleArgs 1 4 {
+	checkList
+	checkWord
+	checkWord
+	{checkKeyword 1 {auto always}}
+    }}
+pcx::check 0.7 std ::csv::joinlist \
+    {checkSimpleArgs 1 3 {
+	checkList
+	checkWord
+	checkWord
+    }}
+pcx::check 0.8 std ::csv::joinlist \
+    {checkSimpleArgs 1 4 {
+	checkList
+	checkWord
+	checkWord
+	{checkKeyword 1 {auto always}}
+    }}
+pcx::check 0.7 std ::csv::joinmatrix \
+    {checkSimpleArgs 1 3 {
+	checkWord
+	checkWord
+	checkWord
+    }}
+pcx::check 0.8 std ::csv::joinmatrix \
+    {checkSimpleArgs 1 4 {
+	checkWord
+	checkWord
+	checkWord
+	{checkKeyword 1 {auto always}}
+    }}
+pcx::check 0.7 std ::csv::read2matrix \
+    {checkSimpleArgs 2 -1 {
+	{checkSwitches 1 {
+	    -alternate
+	} {checkSimpleArgs 1 4 {
+	    checkChannelID
+	    checkWord
+	    checkWord
+	    {checkKeyword 1 {none empty auto}}
+	}}}
+    }}
+pcx::check 0.7 std ::csv::read2queue \
+    {checkSimpleArgs 2 -1 {
+	{checkSwitches 1 {
+	    -alternate
+	} {checkSimpleArgs 2 3 {
+	    checkChannelID
+	    checkWord
+	    checkWord
+	}}}
+    }}
+pcx::check 0.7 std ::csv::report \
+    {checkSimpleArgs 2 3 {
+	{checkOption {
+	    {printmatrix         {checkSimpleArgs 1 1 {
+		checkWord
+	    }}}
+	    {printmatrix2channel {checkSimpleArgs 2 2 {
+		checkWord
+		checkChannelID
+	    }}}
+	} {}}
+    }}
+pcx::check 0.7 std ::csv::split \
+    {checkSimpleArgs 1 -1 {
+	{checkSwitches 1 {
+	    -alternate
+	} {checkSimpleArgs 1 3 {
+	    checkWord
+	    checkWord
+	    checkWord
+	}}}
+    }}
+pcx::check 0.7 std ::csv::split2matrix \
+    {checkSimpleArgs 2 -1 {
+	{checkSwitches 1 {
+	    -alternate
+	} {checkSimpleArgs 1 4 {
+	    checkChannelID
+	    checkWord
+	    checkWord
+	    {checkKeyword 1 {none empty auto}}
+	}}}
+    }}
+pcx::check 0.7 std ::csv::split2queue \
+    {checkSimpleArgs 2 -1 {
+	{checkSwitches 1 {
+	    -alternate
+	} {checkSimpleArgs 2 3 {
+	    checkChannelID
+	    checkWord
+	    checkWord
+	}}}
+    }}
+pcx::check 0.7 std ::csv::writematrix \
+    {checkSimpleArgs 2 4 {
+	checkWord
+	checkChannelID
+	checkWord
+	checkWord
+    }}
+pcx::check 0.7 std ::csv::writequeue \
+    {checkSimpleArgs 2 4 {
+	checkWord
+	checkChannelID
+	checkWord
+	checkWord
+    }}
+
+# Initialization via pcx::init.
+# Use a ::csv::init procedure for non-standard initialization.
+pcx::complete

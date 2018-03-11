@@ -1,0 +1,384 @@
+# -*- tcl -*- me_util.test
+# ### ### ### ######### ######### #########
+## Suite 1: Values to tree objects.
+
+set tname [expr {$impl eq "critcl" ? "t" : "::t"}]
+
+
+test ast2tree-${impl}-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -body {
+	grammar::me::util::ast2tree
+    } -result {wrong # args: should be "grammar::me::util::ast2tree ast tree ?root?"}
+
+test ast2tree-${impl}-1.1 {Call with to many arguments} \
+    -returnCodes error \
+    -body {
+	grammar::me::util::ast2tree a b c d
+    } -result {wrong # args: should be "grammar::me::util::ast2tree ast tree ?root?"}
+
+test ast2tree-${impl}-1.2 {Call with bad tree object} \
+    -returnCodes error \
+    -body {
+	grammar::me::util::ast2tree {a 1 2} foo
+    } -result {invalid command name "foo"}
+
+test ast2tree-${impl}-1.3 {Call with bad node in tree} \
+    -returnCodes error \
+    -setup {
+	struct::tree t
+    } -cleanup {
+	t destroy
+    } -body {
+	grammar::me::util::ast2tree {a 1 2} t blub
+    } -result "parent node \"blub\" does not exist in tree \"$tname\""
+
+test ast2tree-${impl}-1.4 {Call with bad AST, terminal node with children} \
+    -returnCodes error \
+    -setup {
+	struct::tree t
+    } -cleanup {
+	t destroy
+    } -body {
+	grammar::me::util::ast2tree {{} 1 2 {a 3 4} {c 5 6}} t
+    } -result {Terminal node "{} 1 2" has children}
+
+foreach {n range} {
+    0 {0  a}
+    1 {0 -1}
+    2 {a  0}
+    3 {-1 0}
+    4 {a  b}
+    5 {a -1}
+    6 {-1 b}
+    7 {-1 -1}
+} {
+    test ast2tree-${impl}-1.5.$n {Call with bad AST, bad location information} \
+	-returnCodes error \
+	-setup {
+	    struct::tree t
+	} -cleanup {
+	    t destroy
+	} -body {
+	    grammar::me::util::ast2tree [linsert $range 0 {}] t
+	} -result "Bad range information \"[lrange $range 0 end]\""
+}
+
+foreach {n node} {
+    0 {}
+    1 {{}}
+    2 {{} 0}
+} {
+    test ast2tree-${impl}-1.6.$n {Call with bad AST, node representation too short} \
+	-returnCodes error \
+	-setup {
+	    struct::tree t
+	} -cleanup {
+	    t destroy
+	} -body {
+	    grammar::me::util::ast2tree $node t
+	} -result "Bad node \"[lrange $node 0 end]\", not enough elements"
+}
+
+
+
+test ast2tree-${impl}-2.0 {Regular conversion} \
+    -setup {
+	struct::tree t
+	struct::tree tex deserialize $serial_0
+    } -cleanup {
+	t   destroy
+	tex destroy
+    } -body {
+	grammar::me::util::ast2tree $ast t
+	tree_equal t tex
+    } -result 1
+
+test ast2tree-${impl}-2.1 {Regular conversion under non-root root} \
+    -setup {
+	struct::tree t
+	t insert root end foo
+	struct::tree tex deserialize $serial_1
+    } -cleanup {
+	t   destroy
+	tex destroy
+    } -body {
+	grammar::me::util::ast2tree $ast t foo
+	tree_equal t tex
+    } -result 1
+
+# ### ### ### ######### ######### #########
+## Suite 2: Values to extended tree objects
+
+proc tinfo {cmd args} {
+    # 'tinfo lc 0' is a nice check that things work.
+    switch -exact -- $cmd {
+	lc  {
+	    return [list l[lindex $args 0] c[lindex $args 0]]
+	}
+	tok {
+	    foreach {s e} $args break
+	    set res {}
+	    for {set i $s} {$i <= $e} {incr i} {
+		lappend res [list T$i l$i c$i L$i]
+	    }
+	    return $res
+	}
+    }
+    return -code error BOGUS
+}
+
+test ast2etree-${impl}-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -body {
+	grammar::me::util::ast2etree
+    } -result {wrong # args: should be "grammar::me::util::ast2etree ast mcmd tree ?root?"}
+
+test ast2etree-${impl}-1.1 {Call with to many arguments} \
+    -returnCodes error \
+    -body {
+	grammar::me::util::ast2etree a b c d e
+    } -result {wrong # args: should be "grammar::me::util::ast2etree ast mcmd tree ?root?"}
+
+test ast2etree-${impl}-1.2 {Call with bad tree object} \
+    -returnCodes error \
+    -body {
+	grammar::me::util::ast2etree {a 1 2} tinfo foo
+    } -result {invalid command name "foo"}
+
+test ast2etree-${impl}-1.3 {Call with bad info callback} \
+    -returnCodes error \
+    -setup {
+	struct::tree t
+    } -cleanup {
+	t destroy
+    } -body {
+	grammar::me::util::ast2etree {a 1 2} foo t
+    } -result {invalid command name "foo"}
+
+test ast2etree-${impl}-1.4 {Call with bad node in tree} \
+    -returnCodes error \
+    -setup {
+	struct::tree t
+    } -cleanup {
+	t destroy
+    } -body {
+	grammar::me::util::ast2etree {a 1 2} tinfo t blub
+    } -result "parent node \"blub\" does not exist in tree \"$tname\""
+
+test ast2etree-${impl}-1.6 {Call with bad AST, terminal node with children} \
+    -returnCodes error \
+    -setup {
+	struct::tree t
+    } -cleanup {
+	t destroy
+    } -body {
+	grammar::me::util::ast2etree {{} 1 2 {a 3 4} {c 5 6}} tinfo t
+    } -result {Terminal node "{} 1 2" has children}
+
+foreach {n range} {
+    0 {0  a}
+    1 {0 -1}
+    2 {a  0}
+    3 {-1 0}
+    4 {a  b}
+    5 {a -1}
+    6 {-1 b}
+    7 {-1 -1}
+} {
+    test ast2etree-${impl}-1.7.$n {Call with bad AST, bad location information} \
+	-returnCodes error \
+	-setup {
+	    struct::tree t
+	} -cleanup {
+	    t destroy
+	} -body {
+	    grammar::me::util::ast2etree [linsert $range 0 {}] tinfo t
+	} -result "Bad range information \"[lrange $range 0 end]\""
+}
+
+foreach {n node} {
+    0 {}
+    1 {{}}
+    2 {{} 0}
+} {
+    test ast2tree-${impl}-1.8.$n {Call with bad AST, node representation too short} \
+	-returnCodes error \
+	-setup {
+	    struct::tree t
+	} -cleanup {
+	    t destroy
+	} -body {
+	    grammar::me::util::ast2etree $node tinfo t
+	} -result "Bad node \"[lrange $node 0 end]\", not enough elements"
+}
+
+
+
+test ast2etree-${impl}-2.0 {Regular conversion} \
+    -setup {
+	struct::tree t
+	struct::tree tex deserialize $serial_2
+    } -cleanup {
+	t   destroy
+	tex destroy
+    } -body {
+	grammar::me::util::ast2etree $ast tinfo t
+	tree_equal t tex
+    } -result 1
+
+test ast2etree-${impl}-2.1 {Regular conversion under non-root root} \
+    -setup {
+	struct::tree t
+	t insert root end foo
+	struct::tree tex deserialize $serial_3
+    } -cleanup {
+	t   destroy
+	tex destroy
+    } -body {
+	grammar::me::util::ast2etree $ast tinfo t foo
+	tree_equal t tex
+    } -result 1
+
+# ### ### ### ######### ######### #########
+## Suite 3: Tree objects to values.
+
+test tree2ast-1.0 {Call without enough arguments} \
+    -returnCodes error \
+    -body {
+	grammar::me::util::tree2ast
+    } -result {wrong # args: should be "grammar::me::util::tree2ast tree ?root?"}
+
+test tree2ast-1.1 {Call with to many arguments} \
+    -returnCodes error \
+    -body {
+	grammar::me::util::tree2ast a b c
+    } -result {wrong # args: should be "grammar::me::util::tree2ast tree ?root?"}
+
+test tree2ast-1.2 {Call with bad tree object} \
+    -returnCodes error \
+    -body {
+	grammar::me::util::tree2ast foo
+    } -result {invalid command name "foo"}
+
+test tree2ast-1.3 {Call with bad node in tree} \
+    -returnCodes error \
+    -setup {
+	struct::tree t
+    } -cleanup {
+	t destroy
+    } -body {
+	grammar::me::util::tree2ast t blub
+    } -result "node \"blub\" does not exist in tree \"$tname\""
+
+test tree2ast-1.4 {Call with broken tree, missing type} \
+    -returnCodes error \
+    -setup {
+	struct::tree t deserialize {root {} {range {0 2} detail x}}
+    } -cleanup {
+	t destroy
+    } -body {
+	grammar::me::util::tree2ast t
+    } -result {Bad node "root", type information is missing}
+
+test tree2ast-1.5.0 {Call with broken tree, missing range, nonterminal} \
+    -returnCodes error \
+    -setup {
+	struct::tree t deserialize {root {} {type nonterminal detail x}}
+    } -cleanup {
+	t destroy
+    } -body {
+	grammar::me::util::tree2ast t
+    } -result {Bad node "root", range information is missing}
+
+test tree2ast-1.5.1 {Call with broken tree, missing range, terminal} \
+    -returnCodes error \
+    -setup {
+	struct::tree t deserialize {root {} {type terminal}}
+    } -cleanup {
+	t destroy
+    } -body {
+	grammar::me::util::tree2ast t
+    } -result {Bad node "root", range information is missing}
+
+test tree2ast-1.6 {Call with broken tree, missing detail} \
+    -returnCodes error \
+    -setup {
+	struct::tree t deserialize {root {} {type nonterminal range {0 2}}}
+    } -cleanup {
+	t destroy
+    } -body {
+	grammar::me::util::tree2ast t
+    } -result {Bad node "root", nonterminal detail is missing}
+
+foreach {n range} {
+     0 {0  a}
+     1 {0 -1}
+     2 {a  0}
+     3 {-1 0}
+     4 {a  b}
+     5 {a -1}
+     6 {-1 b}
+     7 {-1 -1}
+     8 {}
+     9 {1}
+    10 {1 2 3}
+} {
+    test tree2ast-1.7.$n {Call with broken tree, bad location, terminal} \
+	-returnCodes error \
+	-setup {
+	    struct::tree t deserialize [list root {} [list type terminal range $range]]
+	} -cleanup {
+	    t destroy
+	} -body {
+	    grammar::me::util::tree2ast t
+	} -result "Bad node \"root\", bad range information \"$range\""
+
+    test tree2ast-1.8.$n {Call with broken tree, bad location, nonterminal} \
+	-returnCodes error \
+	-setup {
+	    struct::tree t deserialize [list root {} [list type nonterminal detail x range $range]]
+	} -cleanup {
+	    t destroy
+	} -body {
+	    grammar::me::util::tree2ast t
+	} -result "Bad node \"root\", bad range information \"$range\""
+}
+
+
+
+test tree2ast-2.0 {Regular conversion} \
+    -setup {
+	struct::tree t deserialize $serial_0a
+    } -cleanup {
+	t destroy
+    } -body {
+	grammar::me::util::tree2ast t
+    } -result $ast
+
+test tree2ast-2.1 {Regular conversion under non-root root} \
+    -setup {
+	struct::tree t deserialize $serial_1
+    } -cleanup {
+	t destroy
+    } -body {
+	grammar::me::util::tree2ast t node0
+    } -result $ast
+
+test tree2ast-2.2 {Regular conversion, of extended tree} \
+    -setup {
+	struct::tree t deserialize $serial_2a
+    } -cleanup {
+	t destroy
+    } -body {
+	grammar::me::util::tree2ast t
+    } -result $ast
+
+test tree2ast-2.3 {Regular conversion under non-root root} \
+    -setup {
+	struct::tree t deserialize $serial_3
+    } -cleanup {
+	t destroy
+    } -body {
+	grammar::me::util::tree2ast t node0
+    } -result $ast

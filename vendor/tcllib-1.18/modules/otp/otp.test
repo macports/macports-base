@@ -1,0 +1,146 @@
+# -*- tcl -*-
+# otp.test:  tests the OTP implementation. Most of the tests are directly
+#            copied from RFC 2289.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2006 Patrick Thoyts
+#
+# RCS: @(#) $Id: otp.test,v 1.2 2006/10/09 21:41:41 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal otp.tcl otp
+}
+
+# -------------------------------------------------------------------------
+
+set tests_md5 {
+    0 "This is a test." "TeSt"  0 "9E876134D90499DD" "INCH SEA ANNE LONG AHEM TOUR"
+    1 "This is a test." "TeSt"  1 "7965E05436F5029F" "EASE OIL FUM CURE AWRY AVIS"
+    2 "This is a test." "TeSt" 99 "50FE1962C4965880" "BAIL TUFT BITS GANG CHEF THY"
+    3 "AbCdEfGhIjK" "alpha1"    0 "87066DD9644BF206" "FULL PEW DOWN ONCE MORT ARC"
+    4 "AbCdEfGhIjK" "alpha1"    1 "7CD34C1040ADD14B" "FACT HOOF AT FIST SITE KENT"
+    5 "AbCdEfGhIjK" "alpha1"   99 "5AA37A81F212146C" "BODE HOP JAKE STOW JUT RAP"
+    6 "OTP's are good" "correct"  0 "F205753943DE4CF9" "ULAN NEW ARMY FUSE SUIT EYED"
+    7 "OTP's are good" "correct"  1 "DDCDAC956F234937" "SKIM CULT LOB SLAM POE HOWL"
+    8 "OTP's are good" "correct" 99 "B203E28FA525BE47" "LONG IVY JULY AJAR BOND LEE"
+}
+
+foreach {ndx pass seed cnt hex wrds} $tests_md5 {
+    test otp-md5-hex-$ndx "otp-md5 check hex result" {
+        list [catch {
+            set res [::otp::otp-md5 -hex -seed $seed -count $cnt $pass]
+            string toupper $res
+        } msg] $msg
+    } [list 0 $hex]
+}
+        
+foreach {ndx pass seed cnt hex wrds} $tests_md5 {
+    test otp-md5-words-$ndx "otp-md5 check words encoding" {
+        list [catch {
+            set res [::otp::otp-md5 -words -seed $seed -count $cnt $pass]
+        } msg] $msg
+    } [list 0 $wrds]
+}
+
+
+set tests_md4 {
+    0 "This is a test." "TeSt"     0  "D1854218EBBB0B51" "ROME MUG FRED SCAN LIVE LACE"
+    1 "This is a test." "TeSt"     1  "63473EF01CD0B444" "CARD SAD MINI RYE COL KIN"
+    2 "This is a test." "TeSt"    99  "C5E612776E6C237A" "NOTE OUT IBIS SINK NAVE MODE"
+    3 "AbCdEfGhIjK"     "alpha1"   0  "50076F47EB1ADE4E" "AWAY SEN ROOK SALT LICE MAP"
+    4 "AbCdEfGhIjK"     "alpha1"   1  "65D20D1949B5F7AB" "CHEW GRIM WU HANG BUCK SAID"
+    5 "AbCdEfGhIjK"     "alpha1"  99  "D150C82CCE6F62D1" "ROIL FREE COG HUNK WAIT COCA"
+    6 "OTP's are good"  "correct"  0  "849C79D4F6F55388" "FOOL STEM DONE TOOL BECK NILE"
+    7 "OTP's are good"  "correct"  1  "8C0992FB250847B1" "GIST AMOS MOOT AIDS FOOD SEEM"
+    8 "OTP's are good"  "correct" 99  "3F3BF4B4145FD74B" "TAG SLOW NOV MIN WOOL KENO"
+}
+
+foreach {ndx pass seed cnt hex wrds} $tests_md4 {
+    test otp-md4-hex-$ndx "otp-md4 check hex result" {
+        list [catch {
+            set res [::otp::otp-md4 -hex -seed $seed -count $cnt $pass]
+            string toupper $res
+        } msg] $msg
+    } [list 0 $hex]
+}
+        
+foreach {ndx pass seed cnt hex wrds} $tests_md4 {
+    test otp-md4-words-$ndx "otp-md4 check words encoding" {
+        list [catch {
+            set res [::otp::otp-md4 -words -seed $seed -count $cnt $pass]
+        } msg] $msg
+    } [list 0 $wrds]
+}
+
+set tests_sha1 {
+    0 "This is a test." "TeSt"     0  "BB9E6AE1979D8FF4" "MILT VARY MAST OK SEES WENT"
+    1 "This is a test." "TeSt"     1  "63D936639734385B" "CART OTTO HIVE ODE VAT NUT"
+    2 "This is a test." "TeSt"    99  "87FEC7768B73CCF9" "GAFF WAIT SKID GIG SKY EYED"
+    3 "AbCdEfGhIjK"     "alpha1"   0  "AD85F658EBE383C9" "LEST OR HEEL SCOT ROB SUIT"
+    4 "AbCdEfGhIjK"     "alpha1"   1  "D07CE229B5CF119B" "RITE TAKE GELD COST TUNE RECK"
+    5 "AbCdEfGhIjK"     "alpha1"  99  "27BC71035AAF3DC6" "MAY STAR TIN LYON VEDA STAN"
+    6 "OTP's are good"  "correct"  0  "D51F3E99BF8E6F0B" "RUST WELT KICK FELL TAIL FRAU"
+    7 "OTP's are good"  "correct"  1  "82AEB52D943774E4" "FLIT DOSE ALSO MEW DRUM DEFY"
+    8 "OTP's are good"  "correct" 99  "4F296A74FE1567EC" "AURA ALOE HURL WING BERG WAIT"
+}
+
+foreach {ndx pass seed cnt hex wrds} $tests_sha1 {
+    test otp-sha1-hex-$ndx "otp-sha1 check hex result" {
+        list [catch {
+            set res [::otp::otp-sha1 -hex -seed $seed -count $cnt $pass]
+            string toupper $res
+        } msg] $msg
+    } [list 0 $hex]
+}
+        
+foreach {ndx pass seed cnt hex wrds} $tests_sha1 {
+    test otp-sha1-words-$ndx "otp-sha1 check words encoding" {
+        list [catch {
+            set res [::otp::otp-sha1 -words -seed $seed -count $cnt $pass]
+        } msg] $msg
+    } [list 0 $wrds]
+}
+
+set tests_rmd160 {
+    0 "This is a test." "TeSt"     0 "3A1BFB10A64B4CCD" "SAG SLUG NICE AMOS LUSH CHUM"
+    1 "This is a test." "TeSt"     1 "39D56BF655E65DE7" "SAC LAVA WORD LEAD CHEW VAST"
+    2 "This is a test." "TeSt"    99 "42F84BA862941033" "UN NAVY THEE NOLL TO HEN"
+    3 "AbCdEfGhIjK"     "alpha1"   0 "726EDD1BB5DB3642" "DENY DREW YEA COVE LOWE JUG"
+    4 "AbCdEfGhIjK"     "alpha1"   1 "46A231C501A1D2CE" "YAW ELY DEBT ARK IDA CLAW"
+    5 "AbCdEfGhIjK"     "alpha1"  99 "848664EF3A300CC9" "FOOL PER SHE DOCK ADD CENT"
+    6 "OTP's are good"  "correct"  0 "F90D03CC969208C8" "WEAN CLUB VALE NOW JOB CASH"
+    7 "OTP's are good"  "correct"  1 "B6F5D25A08A90009" "MANA LIEU HELL ELK GREW AVE"
+    8 "OTP's are good"  "correct" 99 "C890C1F05018BA5F" "ONCE FRAY EROS JADE GINA ONE"
+}
+
+foreach {ndx pass seed cnt hex wrds} $tests_rmd160 {
+    test otp-rmd160-hex-$ndx "otp-rmd160 check hex result" {
+        list [catch {
+            set res [::otp::otp-rmd160 -hex -seed $seed -count $cnt $pass]
+            string toupper $res
+        } msg] $msg
+    } [list 0 $hex]
+}
+
+foreach {ndx pass seed cnt hex wrds} $tests_rmd160 {
+    test otp-rmd160-words-$ndx "otp-rmd160 check words result" {
+        list [catch {
+            set res [::otp::otp-rmd160 -words -seed $seed -count $cnt $pass]
+        } msg] $msg
+    } [list 0 $wrds]
+}
+# -------------------------------------------------------------------------
+
+testsuiteCleanup

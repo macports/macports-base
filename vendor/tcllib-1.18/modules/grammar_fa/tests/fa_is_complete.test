@@ -1,0 +1,60 @@
+# -*- tcl -*-
+# finite_automaton.test:  tests for the grammar::fa container.
+#
+# Copyright (c) 2004-2007 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+#
+# RCS: @(#) $Id: fa_is_complete.test,v 1.5 2007/04/12 03:43:14 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+foreach {n code result} {
+    00 x        1
+    01 x-       1
+    02 xe       1
+    03 xy       1
+    04 xy-     0
+    05 xye      1
+    06 xyee     1
+    07 xye-     1
+    08 xy--     1
+    09 xy-=    0
+    10 xyz/ee   1
+    11 xyz/e-  0
+    12 xyz/--  0
+    13 xyz/-=  0
+    14 xyz|ee   1
+    15 xyz|e-  0
+    16 xyz|--  0
+    17 xyz|-=  0
+    18 xyz+eee  1
+    19 xyz+ee-  1
+    20 xyz+e--  1
+    21 xyz+e-= 0
+    22 xyz+---  1
+    23 xyz+--= 0
+    24 xyz+-=_ 0
+    25 xyz&eee  1
+    26 xyz&ee- 0
+    27 xyz&e-- 0
+    28 xyz&e-= 0
+    29 xyz&--- 0
+    30 xyz&--= 0
+    31 xyz&-=_ 0
+    32 xyz!ee   1
+    33 xyz!e-  0
+    34 xyz!--  0
+    35 xyz!-=  0
+    36 xyz!-e  0
+} {
+    test fa-is-${setimpl}-complete-1.${n}.$code {is complete} {
+	grammar::fa a
+	gen $code
+	set res [a is complete]
+	a destroy
+	set res
+    } $result ;# {}
+}
+
+
+# -------------------------------------------------------------------------
+::tcltest::cleanupTests

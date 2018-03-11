@@ -1,0 +1,133 @@
+[manpage_begin math::fuzzy n 0.2]
+[keywords floating-point]
+[keywords math]
+[keywords rounding]
+[moddesc {Tcl Math Library}]
+[titledesc {Fuzzy comparison of floating-point numbers}]
+[category  Mathematics]
+[require Tcl [opt 8.3]]
+[require math::fuzzy [opt 0.2]]
+[description]
+[para]
+The package Fuzzy is meant to solve common problems with floating-point
+numbers in a systematic way:
+
+[list_begin itemized]
+[item]
+Comparing two numbers that are "supposed" to be identical, like
+1.0 and 2.1/(1.2+0.9) is not guaranteed to give the
+intuitive result.
+
+[item]
+Rounding a number that is halfway two integer numbers can cause
+strange errors, like int(100.0*2.8) != 28 but 27
+[list_end]
+
+[para]
+The Fuzzy package is meant to help sorting out this type of problems
+by defining "fuzzy" comparison procedures for floating-point numbers.
+It does so by allowing for a small margin that is determined
+automatically - the margin is three times the "epsilon" value, that is
+three times the smallest number [emph eps] such that 1.0 and 1.0+$eps
+canbe distinguished. In Tcl, which uses double precision floating-point
+numbers, this is typically 1.1e-16.
+
+[section "PROCEDURES"]
+Effectively the package provides the following procedures:
+
+[list_begin definitions]
+[call [cmd ::math::fuzzy::teq] [arg value1] [arg value2]]
+Compares two floating-point numbers and returns 1 if their values
+fall within a small range. Otherwise it returns 0.
+
+[call [cmd ::math::fuzzy::tne] [arg value1] [arg value2]]
+Returns the negation, that is, if the difference is larger than
+the margin, it returns 1.
+
+[call [cmd ::math::fuzzy::tge] [arg value1] [arg value2]]
+Compares two floating-point numbers and returns 1 if their values
+either fall within a small range or if the first number is larger
+than the second. Otherwise it returns 0.
+
+[call [cmd ::math::fuzzy::tle] [arg value1] [arg value2]]
+Returns 1 if the two numbers are equal according to
+[lb]teq[rb] or if the first is smaller than the second.
+
+[call [cmd ::math::fuzzy::tlt] [arg value1] [arg value2]]
+Returns the opposite of [lb]tge[rb].
+
+[call [cmd ::math::fuzzy::tgt] [arg value1] [arg value2]]
+Returns the opposite of [lb]tle[rb].
+
+[call [cmd ::math::fuzzy::tfloor] [arg value]]
+Returns the integer number that is lower or equal
+to the given floating-point number, within a well-defined
+tolerance.
+[call [cmd ::math::fuzzy::tceil] [arg value]]
+Returns the integer number that is greater or equal to the given
+floating-point number, within a well-defined tolerance.
+
+[call [cmd ::math::fuzzy::tround] [arg value]]
+Rounds the floating-point number off.
+
+[call [cmd ::math::fuzzy::troundn] [arg value] [arg ndigits]]
+Rounds the floating-point number off to the
+specified number of decimals (Pro memorie).
+
+[list_end]
+
+Usage:
+[example_begin]
+if { [lb]teq $x $y[rb] } { puts "x == y" }
+if { [lb]tne $x $y[rb] } { puts "x != y" }
+if { [lb]tge $x $y[rb] } { puts "x >= y" }
+if { [lb]tgt $x $y[rb] } { puts "x > y" }
+if { [lb]tlt $x $y[rb] } { puts "x < y" }
+if { [lb]tle $x $y[rb] } { puts "x <= y" }
+
+set fx      [lb]tfloor $x[rb]
+set fc      [lb]tceil  $x[rb]
+set rounded [lb]tround $x[rb]
+set roundn  [lb]troundn $x $nodigits[rb]
+[example_end]
+
+[section {TEST CASES}]
+The problems that can occur with floating-point numbers are illustrated
+by the test cases in the file "fuzzy.test":
+[list_begin itemized]
+[item]
+Several test case use the ordinary comparisons, and they
+fail invariably to produce understandable results
+
+[item]
+One test case uses [lb]expr[rb] without braces ({ and }). It too
+fails.
+[list_end]
+
+The conclusion from this is that any expression should be surrounded by
+braces, because otherwise very awkward things can happen if you need
+accuracy. Furthermore, accuracy and understandable results are
+enhanced by using these "tolerant" or fuzzy comparisons.
+[para]
+Note that besides the Tcl-only package, there is also a C-based version.
+
+[section REFERENCES]
+Original implementation in Fortran by dr. H.D. Knoble (Penn State
+University).
+[para]
+P. E. Hagerty, "More on Fuzzy Floor and Ceiling,"
+
+APL QUOTE QUAD 8(4):20-24, June 1978. Note that TFLOOR=FL5 took five
+years of refereed evolution (publication).
+[para]
+L. M. Breed, "Definitions for Fuzzy Floor and Ceiling",
+
+APL QUOTE QUAD 8(3):16-23, March 1978.
+[para]
+D. Knuth, Art of Computer Programming,
+
+Vol. 1, Problem 1.2.4-5.
+
+[vset CATEGORY {math :: fuzzy}]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

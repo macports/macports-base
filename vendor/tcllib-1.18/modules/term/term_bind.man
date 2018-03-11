@@ -1,0 +1,124 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin term::receive::bind n 0.1]
+[keywords {character input}]
+[keywords control]
+[keywords dispatcher]
+[keywords listener]
+[keywords receiver]
+[keywords terminal]
+[copyright {2006 Andreas Kupries <andreas_kupries@users.sourceforge.net>}]
+[moddesc   {Terminal control}]
+[titledesc {Keyboard dispatch from terminals}]
+[category  {Terminal control}]
+[require Tcl 8.4]
+[require term::receive::bind [opt 0.1]]
+[description]
+
+This package provides a class for the creation of simple dispatchers
+from character sequences to actions. Internally each dispatcher is in
+essence a deterministic finite automaton with tree structure.
+
+[section {Class API}]
+
+The package exports a single command, the
+class command, enabling the creation of
+dispatcher instances. Its API
+is:
+
+[list_begin definitions]
+
+[call [cmd term::receive::bind] [arg object] [opt [arg map]]]
+
+This command creates a new dispatcher object with the name
+[arg object], initializes it, and returns the fully qualified name of
+the object command as its result.
+
+[para]
+
+The argument is a dictionary mapping from strings, i.e. character
+sequences to the command prefices to invoke when the sequence is found
+in the input stream.
+
+[list_end]
+
+[section {Object API}]
+
+The objects created by the class command provide the methods listed
+below:
+
+[list_begin definitions]
+[call [arg object] [method map] [arg str] [arg cmd]]
+
+This method adds an additional mapping from the string [arg str] to
+the action [arg cmd]. The mapping will take effect immediately
+should the processor be in a prefix of [arg str], or at the next
+reset operation. The action is a command prefix and will be invoked
+with one argument appended to it, the character sequence causing
+the invokation. It is executed in the global namespace.
+
+[call [arg object] [method default] [arg cmd]]
+
+This method defines a default action [arg cmd] which will be invoked
+whenever an unknown character sequence is encountered. The command
+prefix is handled in the same as the regular action defined via
+method [method map].
+
+[call [arg object] [method listen] [opt [arg chan]]]
+
+This methods sets up a filevent listener for the channel with handle
+[arg chan] and invokes the dispatcher object whenever characters have
+been received, or EOF was reached.
+
+[para]
+
+If not specified [arg chan] defaults to [const stdin].
+
+[call [arg object] [method unlisten] [opt [arg chan]]]
+
+This methods removes the filevent listener for the channel with handle
+[arg chan].
+
+[para]
+
+If not specified [arg chan] defaults to [const stdin].
+
+[call [arg object] [method reset]]
+
+This method resets the character processor
+to the beginning of the tree.
+
+[call [arg object] [method next] [arg char]]
+
+This method causes the character processor to process the character
+[arg c]. This may simply advance the internal state, or invoke an
+associated action for a recognized sequence.
+
+[call [arg object] [method process] [arg str]]
+
+This method causes the character processor to process the character
+sequence [arg str], advancing the internal state and invoking action
+as necessary. This is a callback for [method listen].
+
+[call [arg object] [method eof]]
+
+This method causes the character processor to handle EOF on the
+input. This is currently no-op.
+
+This is a callback for [method listen].
+
+[list_end]
+
+[section Notes]
+
+The simplicity of the DFA means that it is not possible to recognize a
+character sequence with has a another recognized character sequence as
+its prefix.
+
+[para]
+
+In other words, the set of recognized strings has to form a
+[term {prefix code}].
+
+[vset CATEGORY term]
+[include ../doctools2base/include/feedback.inc]
+[manpage_end]

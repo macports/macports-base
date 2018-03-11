@@ -1,0 +1,156 @@
+# -*- tcl -*-
+# base32.testsuite:  tests for std base32.
+#
+# Public domain
+#
+# RCS: @(#) $Id: base32.testsuite,v 1.1 2006/05/27 20:44:36 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+::tcltest::testConstraint base32_critcl [string equal $impl critcl]
+
+# -------------------------------------------------------------------------
+
+test base32-${impl}-1.0 {Encode, wrong#args} -body {
+    ::base32::encode
+} -returnCodes error -result {wrong # args: should be "::base32::encode bitstring"}
+
+test base32-${impl}-1.1 {Encode, wrong#args} -body {
+    ::base32::encode a b
+} -returnCodes error -result {wrong # args: should be "::base32::encode bitstring"}
+
+# -------------------------------------------------------------------------
+
+test base32-${impl}-2.0 {Decode, wrong#args} -body {
+    ::base32::decode
+} -returnCodes error -result {wrong # args: should be "::base32::decode estring"}
+
+test base32-${impl}-2.1 {Decode, wrong#args} -body {
+    ::base32::decode a b
+} -returnCodes error -result {wrong # args: should be "::base32::decode estring"}
+
+# -------------------------------------------------------------------------
+# 0 .. 6 are the official test vectors from RFC 3548
+# 7 .. 12 are the vectors I fot previous, non-conforming,
+#         implementation, updated for conformance.
+# 13 ..   are new vectors to cover the whole range of bytes
+
+# 4-0              00100 000
+# 4-0-16-0         00100 00000 10000 0
+# 4-0-16-2-0       00100 00000 10000 00010 0000
+# 4-0-16-2-0-8-0   00100 00000 10000 00010 00000 01000 00
+# 4-0-16-2-0-8-1-0 00100 00000 10000 00010 00000 01000 00001 00000
+
+foreach {n text encoded} {
+    0    {}       {}
+    1    f        MY======
+    2    fo       MZXQ====
+    3    foo      MZXW6===
+    4    foob     MZXW6YQ=
+    5    fooba    MZXW6YTB
+    6    foobar   MZXW6YTBOI======
+    -    -        -
+    7    { }      EA======
+    8    {  }     EAQA====
+    9    {   }    EAQCA===
+    10   {    }   EAQCAIA=
+    11   {     }  EAQCAIBA
+    12   {      } EAQCAIBAEA======
+    -  -    -         -  -    -         -  -    -         -  -    -       
+    20 \000 AA======  28 \010 BA======  36 \020 CA======  44 \030 DA======
+    21 \001 AE======  29 \011 BE======  37 \021 CE======  45 \031 DE======
+    22 \002 AI======  30 \012 BI======  38 \022 CI======  46 \032 DI======
+    23 \003 AM======  31 \013 BM======  39 \023 CM======  47 \033 DM======
+    24 \004 AQ======  32 \014 BQ======  40 \024 CQ======  48 \034 DQ======
+    25 \005 AU======  33 \015 BU======  41 \025 CU======  49 \035 DU======
+    26 \006 AY======  34 \016 BY======  42 \026 CY======  50 \036 DY======
+    27 \007 A4======  35 \017 B4======  43 \027 C4======  51 \037 D4======
+    -  -    -         -  -    -         -  -    -         -  -    -       
+    52 \040 EA======  60 \050 FA======  68 \060 GA======  76 \070 HA======
+    53 \041 EE======  61 \051 FE======  69 \061 GE======  77 \071 HE======
+    54 \042 EI======  62 \052 FI======  70 \062 GI======  78 \072 HI======
+    55 \043 EM======  63 \053 FM======  71 \063 GM======  79 \073 HM======
+    56 \044 EQ======  64 \054 FQ======  72 \064 GQ======  80 \074 HQ======
+    57 \045 EU======  65 \055 FU======  73 \065 GU======  81 \075 HU======
+    58 \046 EY======  66 \056 FY======  74 \066 GY======  82 \076 HY======
+    59 \047 E4======  67 \057 F4======  75 \067 G4======  83 \077 H4======
+    -  -    -         -  -    -         -  -    -         -  -    -       
+    a0 \100 IA======  a8 \110 JA======  b6 \120 KA======  c4 \130 LA======
+    a1 \101 IE======  a9 \111 JE======  b7 \121 KE======  c5 \131 LE======
+    a2 \102 II======  b0 \112 JI======  b8 \122 KI======  c6 \132 LI======
+    a3 \103 IM======  b1 \113 JM======  b9 \123 KM======  c7 \133 LM======
+    a4 \104 IQ======  b2 \114 JQ======  c0 \124 KQ======  c8 \134 LQ======
+    a5 \105 IU======  b3 \115 JU======  c1 \125 KU======  c9 \135 LU======
+    a6 \106 IY======  b4 \116 JY======  c2 \126 KY======  d0 \136 LY======
+    a7 \107 I4======  b5 \117 J4======  c3 \127 K4======  d1 \137 L4======
+    -  -    -         -  -    -         -  -    -         -  -    -       
+    d2 \140 MA======  e0 \150 NA======  e8 \160 OA======  f6 \170 PA======
+    d3 \141 ME======  e1 \151 NE======  e9 \161 OE======  f7 \171 PE======
+    d4 \142 MI======  e2 \152 NI======  f0 \162 OI======  f8 \172 PI======
+    d5 \143 MM======  e3 \153 NM======  f1 \163 OM======  f9 \173 PM======
+    d6 \144 MQ======  e4 \154 NQ======  f2 \164 OQ======  g0 \174 PQ======
+    d7 \145 MU======  e5 \155 NU======  f3 \165 OU======  g1 \175 PU======
+    d8 \146 MY======  e6 \156 NY======  f4 \166 OY======  g2 \176 PY======
+    d9 \147 M4======  e7 \157 N4======  f5 \167 O4======  g3 \177 P4======
+    -  -    -         -  -    -         -  -    -         -  -    -       
+    h0 \200 QA======  h8 \210 RA======  i6 \220 SA======  j4 \230 TA======
+    h1 \201 QE======  h9 \211 RE======  i7 \221 SE======  j5 \231 TE======
+    h2 \202 QI======  i0 \212 RI======  i8 \222 SI======  j6 \232 TI======
+    h3 \203 QM======  i1 \213 RM======  i9 \223 SM======  j7 \233 TM======
+    h4 \204 QQ======  i2 \214 RQ======  j0 \224 SQ======  j8 \234 TQ======
+    h5 \205 QU======  i3 \215 RU======  j1 \225 SU======  j9 \235 TU======
+    h6 \206 QY======  i4 \216 RY======  j2 \226 SY======  k0 \236 TY======
+    h7 \207 Q4======  i5 \217 R4======  j3 \227 S4======  k1 \237 T4======
+    -  -    -         -  -    -         -  -    -         -  -    -       
+    k2 \240 UA======  l0 \250 VA======  l8 \260 WA======  m6 \270 XA======
+    k3 \241 UE======  l1 \251 VE======  l9 \261 WE======  m7 \271 XE======
+    k4 \242 UI======  l2 \252 VI======  m0 \262 WI======  m8 \272 XI======
+    k5 \243 UM======  l3 \253 VM======  m1 \263 WM======  m9 \273 XM======
+    k6 \244 UQ======  l4 \254 VQ======  m2 \264 WQ======  n0 \274 XQ======
+    k7 \245 UU======  l5 \255 VU======  m3 \265 WU======  n1 \275 XU======
+    k8 \246 UY======  l6 \256 VY======  m4 \266 WY======  n2 \276 XY======
+    k9 \247 U4======  l7 \257 V4======  m5 \267 W4======  n3 \277 X4======
+    -  -    -         -  -    -         -  -    -         -  -    -       
+    o0 \300 YA======  o8 \310 ZA======  p6 \320 2A======  q4 \330 3A======
+    o1 \301 YE======  o9 \311 ZE======  p7 \321 2E======  q5 \331 3E======
+    o2 \302 YI======  p0 \312 ZI======  p8 \322 2I======  q6 \332 3I======
+    o3 \303 YM======  p1 \313 ZM======  p9 \323 2M======  q7 \333 3M======
+    o4 \304 YQ======  p2 \314 ZQ======  q0 \324 2Q======  q8 \334 3Q======
+    o5 \305 YU======  p3 \315 ZU======  q1 \325 2U======  q9 \335 3U======
+    o6 \306 YY======  p4 \316 ZY======  q2 \326 2Y======  r0 \336 3Y======
+    o7 \307 Y4======  p5 \317 Z4======  q3 \327 24======  r1 \337 34======
+    -  -    -         -  -    -         -  -    -         -  -    -       
+    r2 \340 4A======  s0 \350 5A======  s8 \360 6A======  t6 \370 7A======
+    r3 \341 4E======  s1 \351 5E======  s9 \361 6E======  t7 \371 7E======
+    r4 \342 4I======  s2 \352 5I======  t0 \362 6I======  t8 \372 7I======
+    r5 \343 4M======  s3 \353 5M======  t1 \363 6M======  t9 \373 7M======
+    r6 \344 4Q======  s4 \354 5Q======  t2 \364 6Q======  u0 \374 7Q======
+    r7 \345 4U======  s5 \355 5U======  t3 \365 6U======  u1 \375 7U======
+    r8 \346 4Y======  s6 \356 5Y======  t4 \366 6Y======  u2 \376 7Y======
+    r9 \347 44======  s7 \357 54======  t5 \367 64======  u3 \377 74======
+} {
+    if {$n == "-"} continue
+    test base32-${impl}-3.$n "Encode \"$text\"" -body {
+	::base32::encode $text
+    } -result $encoded ; # {}
+
+    test base32-${impl}-4.$n "Decode \"$encoded\"" -body {
+	::base32::decode $encoded
+    } -result $text ; # {}
+}
+
+# -------------------------------------------------------------------------
+# Decoder stress testing bad input
+
+foreach {n input message} {
+    0 abcde0aa  {Invalid character at index 5: "0"}
+    1 A         {Length is not a multiple of 8}
+    2 ABCDEFG   {Length is not a multiple of 8}
+    3 A=======  {Invalid padding of length 7}
+    4 ACA=====  {Invalid padding of length 5}
+    5 A=CA====  {Invalid character at index 1: "=" (padding found in the middle of the input)}
+} {
+    test base32-${impl}-5.$n "Decode, bad input \"$input\"" -body {
+	::base32::decode $input
+    } -returnCodes error -result $message ; # {}
+}

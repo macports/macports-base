@@ -1,6 +1,5 @@
 /*
  * fs-traverse.h
- * $Id$
  *
  * Copyright (c) 2002 - 2003 Apple Inc.
  * All rights reserved.

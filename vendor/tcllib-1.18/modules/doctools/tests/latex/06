@@ -1,0 +1,54 @@
+% Generated from file '.FILE.' by tcllib/doctools with format 'latex'
+% Copyright (c) .COPYRIGHT.
+% CVS: @ID@ TEST.z
+\documentclass{article}
+\begin{document}
+\author{@USR@}
+\title{.MODULE. / TEST --  : }
+\maketitle
+\section{Description}\label{section1}
+\begin{itemize}
+%
+\item
+%
+ 1  2  3
+%
+\item
+%
+\begin{enumerate}
+%
+\item
+%
+ a  b  c
+%
+\item
+%
+\begin{itemize}
+%
+\item[] foo
+%
+ snafu
+%
+\item[] bar
+%
+ barf
+%
+\item[] roo
+%
+ gork
+\end{itemize}
+%
+\item
+%
+ a  b  c
+\end{enumerate}
+%
+\item
+%
+ 4  5  6
+\end{itemize}
+\section{Copyright}\label{copyright}
+\begin{flushleft}
+Copyright (c) .COPYRIGHT.\linebreak
+\end{flushleft}
+\end{document}
