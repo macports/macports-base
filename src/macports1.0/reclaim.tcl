@@ -456,20 +456,13 @@ namespace eval reclaim {
             ui_msg "Found no inactive ports."
 
         } else {
-
-            if {[info exists macports::ui_options(questions_multichoice)]} {
-                set retstring [$macports::ui_options(questions_multichoice) "Would you like to uninstall these inactive ports?" "" $inactive_names]
-
-                if {[llength $retstring] > 0} {
-                    foreach i $retstring {
-                        set port [lindex $inactive_ports $i]
-                        set name [lindex $inactive_names $i]
-
-                        ui_msg "Uninstalling: $name"
-
-                        # Note: 'uninstall' takes a name, version, revision, variants and an options list. 
+            if {[info exists macports::ui_options(questions_yesno)]} {
+                set retval [$macports::ui_options(questions_yesno) "Inactive ports found:" "" $inactive_names "y" 0 "Would you like to uninstall them?"]
+                if {${retval} == 0} {
+                    foreach port $inactive_ports {
+                        # Note: 'uninstall' takes a name, version, revision, variants and an options list.
                         try -pass_signal {
-                            registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] {}
+                            registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] {ports_force true}
                         } catch {{*} eCode eMessage} {
                             ui_error "Error uninstalling $name: $eMessage"
                         }
@@ -526,21 +519,14 @@ namespace eval reclaim {
             ui_msg "Found no unrequested ports without requested dependents."
 
         } else {
+            if {[info exists macports::ui_options(questions_yesno)]} {
+                set retval [$macports::ui_options(questions_yesno) "Unrequested ports without requested dependents found:" "" $unnecessary_names "y" 0 "Would you like to uninstall them?"]
 
-            ui_msg "Found unrequested ports without requested dependents: [join $unnecessary_names {, }]."
-            if {[info exists macports::ui_options(questions_multichoice)]} {
-                set retstring [$macports::ui_options(questions_multichoice) "Would you like to uninstall these ports?" "" $unnecessary_names]
-
-                if {[llength $retstring] > 0} {
-                    foreach i $retstring {
-                        set name [lindex $unnecessary_names $i]
-                        set port $ports($name)
-
-                        ui_msg "Uninstalling: $name"
-
-                        # Note: 'uninstall' takes a name, version, revision, variants and an options list. 
+                if {${retval} == 0} {
+                    foreach port $unnecessary_ports {
+                        # Note: 'uninstall' takes a name, version, revision, variants and an options list.
                         try -pass_signal {
-                            registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] {}
+                            registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] {ports_force true}
                         } catch {{*} eCode eMessage} {
                             ui_error "Error uninstalling $name: $eMessage"
                         }
