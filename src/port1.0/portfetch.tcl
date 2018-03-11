@@ -313,7 +313,7 @@ proc portfetch::checkfiles {urls} {
 
 # Perform a bzr fetch
 proc portfetch::bzrfetch {args} {
-    global env 
+    global env
 
     # Behind a proxy bzr will fail with the following error if proxies
     # listed in macports.conf appear in the environment in their
@@ -420,7 +420,7 @@ proc portfetch::svn_proxy_args {url} {
 
 # Perform an svn fetch
 proc portfetch::svnfetch {args} {
-    global svn.args svn.method svn.revision svn.url 
+    global svn.args svn.method svn.revision svn.url
 
     if {[regexp {\s} ${svn.url}]} {
         return -code error [msgcat::mc "Subversion URL cannot contain whitespace"]
