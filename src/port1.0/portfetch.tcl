@@ -685,7 +685,7 @@ proc portfetch::fetch_deletefiles {args} {
 
     switch -- "${fetch.type}" {
         git {
-            if {[git_tarballable] && [file isfile "${distpath}/${git.file}"]} {
+            if {[file isfile "${distpath}/${git.file}"]} {
                 file delete -force "${distpath}/${git.file}"
             }
         }
