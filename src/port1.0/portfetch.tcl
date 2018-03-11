@@ -441,6 +441,27 @@ proc portfetch::svnfetch {args} {
     return 0
 }
 
+# Check if a tarball can be produced for git
+proc portfetch::git_tarballable {args} {
+    global git.branch
+    if {${git.branch} eq ""} {
+        return no
+    } else {
+        return yes
+    }
+}
+
+# Returns true if port is fetched from VCS and can be put into a tarball
+proc portfetch::tarballable {args} {
+    global fetch.type
+    switch -- "${fetch.type}" {
+        git {
+            return [git_tarballable]
+        }
+    }
+    return no
+}
+
 # Returns true if port can be mirrored
 proc portfetch::mirrorable {args} {
     global fetch.type
@@ -450,7 +471,7 @@ proc portfetch::mirrorable {args} {
                 ui_debug "port cannot be mirrored, no checksums for ${fetch.type}"
                 return no
             }
-            if {![git_tarballable]} {
+            if {![tarballable]} {
                 ui_debug "port cannot be mirrored, not tarballable for ${fetch.type}"
                 return no
             }
@@ -460,16 +481,6 @@ proc portfetch::mirrorable {args} {
         default {
             return yes
         }
-    }
-}
-
-# Check if a tarball can be produced for git
-proc portfetch::git_tarballable {args} {
-    global git.branch
-    if {${git.branch} eq ""} {
-        return no
-    } else {
-        return yes
     }
 }
 
