@@ -51,7 +51,7 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 u
     master_sites.mirror_subdir patch_sites.mirror_subdir \
     bzr.url bzr.revision \
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
-    svn.url svn.revision svn.method \
+    svn.url svn.revision svn.method svn.file svn.file_prefix \
     git.cmd git.url git.branch git.file git.file_prefix git.fetch_submodules \
     hg.cmd hg.url hg.tag
 
@@ -92,6 +92,8 @@ default svn.env {}
 default svn.pre_args {"--non-interactive --trust-server-cert"}
 default svn.args ""
 default svn.post_args ""
+default svn.file {${distname}.${fetch.type}.tar.xz}
+default svn.file_prefix {${distname}}
 
 default git.cmd {[portfetch::find_git_path]}
 default git.dir {${workpath}}
@@ -323,6 +325,59 @@ proc compressfile {file} {
     return "${file}.xz"
 }
 
+# Create a reproducible tarball of the contents of a directory
+proc portfetch::mktar {tarfile dir mtime} {
+    set mtreefile "${tarfile}.mtree"
+
+    # write the list of files in sorted order to mtree file with the
+    # permissions and ownership we want
+    set mtreefd [open $mtreefile w]
+    puts $mtreefd "#mtree"
+    puts $mtreefd "/set uname=root uid=0 gname=root gid=0 time=$mtime"
+    fs-traverse -tails f $dir {
+        set fpath [file join $dir $f]
+        if {$f ne "."} {
+            # use user permissions only, ignore the rest
+            set mode [format "%o" [expr [file attributes $fpath -permissions] & 0700]]
+
+            # map type from Tcl to mtree
+            set type [file type $fpath]
+            array set typemap {
+                    file file
+                    directory dir
+                    characterSpecial char
+                    blockSpecial block
+                    fifo fifo
+                    link link
+                    socket socket
+                }
+            if {![info exists typemap($type)]} {
+               return -code error "unknown file type $type"
+            }
+            set type $typemap($type)
+
+            # add entry to mtree output
+            puts $mtreefd "$f type=$type mode=$mode"
+        }
+    }
+    close $mtreefd
+
+    # TODO: add dependency on libarchive, if /usr/bin/tar is not bsdtar
+    set tar [findBinary bsdtar tar]
+    set cmdstring "${tar} -cf $tarfile @$mtreefile 2>&1"
+    if {[catch {system -W $dir $cmdstring} result]} {
+        delete $mtreefile
+        delete $tarfile
+        return -code error [msgcat::mc "Subversion archive creation failed"]
+    }
+
+    delete $mtreefile
+
+
+
+    return 0
+}
+
 # Perform a bzr fetch
 proc portfetch::bzrfetch {args} {
     global env
@@ -432,7 +487,16 @@ proc portfetch::svn_proxy_args {url} {
 
 # Perform an svn fetch
 proc portfetch::svnfetch {args} {
-    global svn.args svn.method svn.revision svn.url
+    global UI_PREFIX \
+           distpath workpath worksrcpath \
+           svn.cmd svn.args svn.method svn.revision svn.url svn.file svn.file_prefix \
+           name distname fetch.type
+
+    set generatedfile "${distpath}/${svn.file}"
+
+    if {[svn_tarballable] && [file isfile "${generatedfile}"]} {
+        return 0
+    }
 
     if {[regexp {\s} ${svn.url}]} {
         return -code error [msgcat::mc "Subversion URL cannot contain whitespace"]
@@ -443,12 +507,42 @@ proc portfetch::svnfetch {args} {
     }
 
     set proxy_args [svn_proxy_args ${svn.url}]
+    set svn.args "${svn.args} ${proxy_args}"
 
-    set svn.args "${svn.method} ${svn.args} ${proxy_args} ${svn.url}"
-
-    if {[catch {command_exec svn "" "2>&1"} result]} {
-        return -code error [msgcat::mc "Subversion check out failed"]
+    ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
+    set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
+    set tmpxprt [file join ${tmppath} export]
+    set cmdstring "${svn.cmd} ${svn.method} ${svn.args} ${svn.url} ${tmpxprt}/${svn.file_prefix} 2>&1"
+    if {[catch {system $cmdstring} result]} {
+        delete ${tmppath}
+        return -code error [msgcat::mc "Subversion checkout failed"]
     }
+
+    if {![svn_tarballable]} {
+        file rename ${tmppath} ${worksrcpath}
+        return 0
+    }
+
+    ui_info "$UI_PREFIX Generating tarball ${svn.file}"
+
+    # get timestamp of latest revision
+    set cmdstring "${svn.cmd} info --show-item last-changed-date ${svn.args} ${proxy_args} ${svn.url} 2>&1"
+    if {[catch {exec -ignorestderr sh -c $cmdstring} result]} {
+        return -code error [msgcat::mc "Subversion info failed"]
+    }
+    set tstamp $result
+    set mtime [clock scan [lindex [split $tstamp "."] 0] -format "%Y-%m-%dT%H:%M:%S" -timezone "UTC"]
+
+    set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
+
+    mktar $tardst $tmpxprt $mtime
+    set compressed [compressfile ${tardst}]
+    file rename -force ${compressed} ${generatedfile}
+
+    ui_debug "Created tarball for fetch.type ${fetch.type} at ${generatedfile}"
+
+    # cleanup
+    delete ${tmppath}
 
     return 0
 }
@@ -463,12 +557,25 @@ proc portfetch::git_tarballable {args} {
     }
 }
 
+# Check if a tarball can be produced for svn
+proc portfetch::svn_tarballable {args} {
+    global svn.revision
+    if {${svn.revision} eq ""} {
+        return no
+    } else {
+        return yes
+    }
+}
+
 # Returns true if port is fetched from VCS and can be put into a tarball
 proc portfetch::tarballable {args} {
     global fetch.type
     switch -- "${fetch.type}" {
         git {
             return [git_tarballable]
+        }
+        svn {
+            return [svn_tarballable]
         }
     }
     return no
@@ -478,7 +585,8 @@ proc portfetch::tarballable {args} {
 proc portfetch::mirrorable {args} {
     global fetch.type
     switch -- "${fetch.type}" {
-        git {
+        git -
+        svn {
             if {[option checksums] eq ""} {
                 ui_debug "port cannot be mirrored, no checksums for ${fetch.type}"
                 return no
@@ -692,7 +800,7 @@ proc portfetch::fetchfiles {args} {
 
 # Utility function to delete fetched files.
 proc portfetch::fetch_deletefiles {args} {
-    global distpath git.file fetch.type
+    global distpath fetch.type svn.file git.file
     variable fetch_urls
     foreach {url_var distfile} $fetch_urls {
         if {[file isfile $distpath/$distfile]} {
@@ -701,6 +809,11 @@ proc portfetch::fetch_deletefiles {args} {
     }
 
     switch -- "${fetch.type}" {
+        svn {
+            if {[file isfile "${distpath}/${svn.file}"]} {
+                file delete -force "${distpath}/${svn.file}"
+            }
+        }
         git {
             if {[file isfile "${distpath}/${git.file}"]} {
                 file delete -force "${distpath}/${git.file}"
@@ -711,7 +824,7 @@ proc portfetch::fetch_deletefiles {args} {
 
 # Utility function to add files to a list of fetched files.
 proc portfetch::fetch_addfilestomap {filemapname} {
-    global distpath fetch.type git.file $filemapname
+    global distpath fetch.type svn.file git.file $filemapname
     variable fetch_urls
     foreach {url_var distfile} $fetch_urls {
         if {[file isfile $distpath/$distfile]} {
@@ -720,6 +833,11 @@ proc portfetch::fetch_addfilestomap {filemapname} {
     }
 
     switch -- "${fetch.type}" {
+        svn {
+            if {[svn_tarballable] && [file isfile "${distpath}/${svn.file}"]} {
+                filemap set $filemapname ${distpath}/${svn.file} 1
+            }
+        }
         git {
             if {[git_tarballable] && [file isfile "${distpath}/${git.file}"]} {
                 filemap set $filemapname ${distpath}/${git.file} 1
@@ -730,12 +848,19 @@ proc portfetch::fetch_addfilestomap {filemapname} {
 
 # Initialize fetch target and call checkfiles.
 proc portfetch::fetch_init {args} {
-    global fetch.type distname git.branch git.file all_dist_files
+    global fetch.type distname all_dist_files \
+           git.file svn.file
     variable fetch_urls
 
     portfetch::checkfiles fetch_urls
 
     switch -- "${fetch.type}" {
+        svn {
+            if {[svn_tarballable]} {
+                lappend all_dist_files ${svn.file}
+                distfiles-append ${svn.file}
+            }
+        }
         git {
             if {[git_tarballable]} {
                 lappend all_dist_files ${git.file}
