@@ -4037,6 +4037,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
     # check if the startupitem is loaded, so we can load again it after upgrading
     # (deactivating the old version will unload the startupitem)
+    set load_startupitem 0
     if {$portname eq $newname} {
         set load_startupitem [$workername eval {portstartupitem::is_loaded}]
     }
@@ -4613,19 +4614,15 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         if {$fancy_output} {
             $revupgrade_progress start
         }
-        registry::write {
-            foreach maybe_port $maybe_cxx_ports {
+        foreach maybe_port $maybe_cxx_ports {
+            registry::write {
                 if {$fancy_output} {
                     $revupgrade_progress update $i $maybe_cxx_len
                 }
                 incr i
-                set portid [$maybe_port id]
                 set binary_files {}
-                foreach maybe_binary [$maybe_port imagefiles] {
-                    set filehandle [registry::file open $portid $maybe_binary]
-                    if {![catch {$filehandle binary} isbinary] && $isbinary} {
-                        lappend binary_files [$filehandle actual_path]
-                    }
+                foreach filehandle [registry::file search id [$maybe_port id] binary 1] {
+                    lappend binary_files [$filehandle actual_path]
                 }
                 $maybe_port cxx_stdlib [get_actual_cxx_stdlib $binary_files]
                 # can't tell after the fact, assume not overridden
