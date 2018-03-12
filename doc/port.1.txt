@@ -288,6 +288,10 @@ port -u uninstall
 port uninstall --follow-dependents python27
 --------
 
+reclaim::
+    Reclaims disk space by uninstalling inactive ports and removing unneeded
+    installation files.
+
 select::
     For a given group, selects a version to be the default by creating
     appropriate symbolic links.  For instance, python might be linked to
