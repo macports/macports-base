@@ -311,6 +311,18 @@ proc portfetch::checkfiles {urls} {
     checkdistfiles fetch_urls
 }
 
+# Compress a file and remove the original
+proc compressfile {file} {
+    set xz [findBinary xz ${portutil::autoconf::xz_path}]
+    set cmdstring "$xz ${file}"
+    if {[catch {system $cmdstring} result]} {
+        delete "${file}"
+        delete "${file}.xz"
+        return -code error "Compression failed"
+    }
+    return "${file}.xz"
+}
+
 # Perform a bzr fetch
 proc portfetch::bzrfetch {args} {
     global env
@@ -573,14 +585,8 @@ proc portfetch::gitfetch {args} {
     }
 
     # compress resulting tarball
-    set xz [findBinary xz ${portutil::autoconf::xz_path}]
-    set cmdstring "$xz ${tardst}"
-    if {[catch {system $cmdstring} result]} {
-        delete "${tardst}"
-        delete "${tardst}.xz"
-        return -code error [msgcat::mc "Git submodule archive creation failed"]
-    }
-    file rename -force "${tardst}.xz" "${generatedfile}"
+    set compressed [compressfile ${tardst}]
+    file rename -force ${compressed} ${generatedfile}
 
     ui_debug "Created tarball for fetch.type ${fetch.type} at ${generatedfile}"
 
