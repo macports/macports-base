@@ -2,6 +2,10 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.4.3 (2018-03-?? by ?)
+    - Fix trace mode on macOS High Sierra 10.13.3
+      (#55575, raimue in 995dde84)
+
 Release 2.4.2 (2017-10-05 by raimue)
     - Sandbox prevented ports to set suid permission bit on High Sierra.
       (#54963, raimue in d72ad486)
