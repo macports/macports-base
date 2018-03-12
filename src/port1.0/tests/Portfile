@@ -1,25 +1,19 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 PortSystem 1.0
 
-name			gcc_select
-version			0.1
-revision		4
-categories		sysutils
-platforms		darwin
-license		BSD
-maintainers		mww
-supported_archs		noarch
-description		Switch the default compiler
-long_description	gcc_select lets you switch the default compiler. \
-			It symlinks the standard compiler executables \
-			in the MacPorts prefix to the selected version.
+name                emptyport
+version             0.2
+categories          sysutils
+platforms           darwin
+license             BSD
+maintainers         nomaintainer
+supported_archs     noarch
+description         Nothing
+long_description    ${description}
 
-homepage		http://svn.macports.org/repository/macports/contrib/select/
-master_sites		http://downloads.sourceforge.net/project/macports/distfiles/select
-fetch.ignore_sslcert yes
-distname		select-${version}
-checksums		sha1 18e1f95c2ddd88210aa52eb696261859af2dc3a4
+homepage            https://github.com/kelseyhightower/nocode
+distfiles
 
-patchfiles
 patch {
     foreach patch $patchfiles {
         set fd [open ${filespath}/${patch} r]
@@ -30,17 +24,16 @@ patch {
         close $fd
     }
 }
-
-configure.args		--mandir=${prefix}/share/man --name=gcc
-
-post-destroot {
-    xinstall -d ${destroot}${prefix}/etc/select/gcc
-    touch ${destroot}${prefix}/etc/select/gcc/base
+configure {}
+build {}
+destroot {
+    install -d -m755 ${destroot}${prefix}/share
+    install -d -m755 ${destroot}${prefix}/share/${name}
+    touch ${destroot}${prefix}/share/${name}/EMPTY
 }
-
 test {
     touch ${worksrcpath}/README
     file delete -force ${worksrcpath}/README
 }
 
-livecheck.type	none
+livecheck.type  none
