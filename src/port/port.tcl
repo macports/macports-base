@@ -5439,7 +5439,7 @@ namespace eval portclient::questions {
         # Print portname or port list suitably
         if {[llength $ports] == 1} {
             puts -nonewline " "
-            puts [string map {@ " @"} $ports]
+            puts [string map {@ " @"} [lindex $ports 0]]
         } elseif {[llength $ports] == 0} {
             puts -nonewline " "
         } else {
