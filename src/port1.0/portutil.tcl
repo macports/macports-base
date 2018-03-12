@@ -590,7 +590,7 @@ proc variant {args} {
     }
     ditem_key $ditem name "[join [ditem_key $ditem provides] -]"
 
-    if {![regexp {^[A-Za-z0-9_]+$} [ditem_key $ditem provides]]} {
+    if {![regexp {^[A-Za-z0-9_.]+$} [ditem_key $ditem provides]]} {
         set name [ditem_key $ditem provides] 
         ditem_delete $ditem
         return -code error "Variant name $name contains invalid characters"
@@ -2223,7 +2223,7 @@ proc handle_default_variants {option action {value ""}} {
             }
             array set vinfo $PortInfo(vinfo)
             foreach v $value {
-                if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant]} {
+                if {[regexp {([-+])([-A-Za-z0-9_.]+)} $v whole val variant]} {
                     # Retrieve the information associated with this variant.
                     if {![info exists vinfo($variant)]} {
                         set vinfo($variant) {}
