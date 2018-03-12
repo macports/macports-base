@@ -17,8 +17,6 @@ customMatch notGlob [lambda {needle haystack} {
 
 test svn-patchsites {
     Regression test for svn-and-patchsites.
-} -constraints {
-    has_svn
 } -body {
 	return [exec -ignorestderr cat $path/$output_file]
 } -result "error*" -match notGlob
