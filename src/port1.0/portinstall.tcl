@@ -34,6 +34,7 @@
 package provide portinstall 1.0
 package require portutil 1.0
 package require registry2 2.0
+package require machista 1.0
 
 set org.macports.install [target_new org.macports.install portinstall::install_main]
 target_provides ${org.macports.install} install
@@ -77,7 +78,9 @@ proc portinstall::install_start {args} {
 
 proc portinstall::create_archive {location archive.type} {
     global workpath destpath portpath subport version revision portvariants \
-           epoch PortInfo installPlist \
+           epoch configure.cxx_stdlib portinstall::actual_cxx_stdlib \
+           portinstall::file_is_binary portinstall::cxx_stdlib_overridden \
+           cxx_stdlib PortInfo installPlist \
            archive.env archive.cmd archive.pre_args archive.args \
            archive.post_args archive.dir depends_lib depends_run
     set archive.env {}
@@ -264,6 +267,8 @@ proc portinstall::create_archive {location archive.type} {
          }
     }
 
+    set have_fileIsBinary [expr {[option os.platform] eq "darwin"}]
+    set binary_files {}
     # also save the contents for our own use later
     set installPlist {}
     set destpathLen [string length $destpath]
@@ -275,11 +280,21 @@ proc portinstall::create_archive {location archive.type} {
         set relpath [string range $fullpath $destpathLen+1 end]
         if {[string index $relpath 0] ne "+"} {
             puts $fd "$relpath"
-            lappend installPlist [file join [file separator] $relpath]
+            set abspath [file join [file separator] $relpath]
+            lappend installPlist $abspath
             if {[file isfile $fullpath]} {
                 ui_debug "checksum file: $fullpath"
                 set checksum [md5 file $fullpath]
                 puts $fd "@comment MD5:$checksum"
+                if {$have_fileIsBinary} {
+                    # test if (mach-o) binary
+                    set is_binary [fileIsBinary $fullpath]
+                    if {$is_binary} {
+                        lappend binary_files $fullpath
+                    }
+                    puts $fd "@comment binary:$is_binary"
+                    set portinstall::file_is_binary($abspath) $is_binary
+                }
             }
         } else {
             lappend control $relpath
@@ -289,6 +304,14 @@ proc portinstall::create_archive {location archive.type} {
         puts $fd "@ignore"
         puts $fd "$relpath"
     }
+    set portinstall::actual_cxx_stdlib [get_actual_cxx_stdlib $binary_files]
+    puts $fd "@cxx_stdlib ${portinstall::actual_cxx_stdlib}"
+    if {${portinstall::actual_cxx_stdlib} ne "none"} {
+        set portinstall::cxx_stdlib_overridden [expr {${configure.cxx_stdlib} ne $cxx_stdlib}]
+    } else {
+        set portinstall::cxx_stdlib_overridden 0
+    }
+    puts $fd "@cxx_stdlib_overridden ${portinstall::cxx_stdlib_overridden}"
     close $fd
 
     # Now create the archive
@@ -311,7 +334,8 @@ proc portinstall::extract_contents {location type} {
 proc portinstall::install_main {args} {
     global subport version portpath depends_run revision user_options \
     portvariants negated_variants depends_lib PortInfo epoch \
-    os.platform os.major portarchivetype installPlist registry.path porturl
+    os.platform os.major portarchivetype installPlist registry.path porturl \
+    portinstall::file_is_binary portinstall::actual_cxx_stdlib portinstall::cxx_stdlib_overridden
 
     set oldpwd [pwd]
     if {$oldpwd eq ""} {
@@ -326,7 +350,12 @@ proc portinstall::install_main {args} {
         file rename -force $archive_path $install_dir
         set location [file join $install_dir [file tail $archive_path]]
         set current_archive_type [string range [file extension $location] 1 end]
-        set installPlist [extract_contents $location $current_archive_type]
+        set contents [extract_contents $location $current_archive_type]
+        set installPlist [lindex $contents 0]
+        array set portinstall::file_is_binary [lindex $contents 1]
+        set cxxinfo [extract_archive_metadata $location $current_archive_type cxx_info]
+        set portinstall::actual_cxx_stdlib [lindex $cxxinfo 0]
+        set portinstall::cxx_stdlib_overridden [lindex $cxxinfo 1]
     } else {
         # throws an error if an unsupported value has been configured
         archiveTypeIsSupported $portarchivetype
@@ -359,6 +388,10 @@ proc portinstall::install_main {args} {
         $regref os_platform ${os.platform}
         $regref os_major ${os.major}
         $regref archs [get_canonical_archs]
+        if {${portinstall::actual_cxx_stdlib} ne ""} {
+            $regref cxx_stdlib ${portinstall::actual_cxx_stdlib}
+            $regref cxx_stdlib_overridden ${portinstall::cxx_stdlib_overridden}
+        }
         # Trick to have a portable GMT-POSIX epoch-based time.
         $regref date [expr {[clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]}]
         if {[info exists negated_variants]} {
@@ -376,6 +409,10 @@ proc portinstall::install_main {args} {
         if {[info exists installPlist]} {
             # register files
             $regref map $installPlist
+            foreach f [array names portinstall::file_is_binary] {
+                set fileref [registry::file open [$regref id] $f]
+                $fileref binary $portinstall::file_is_binary($f)
+            }
         }
 
         # store portfile
