@@ -13,6 +13,9 @@ Release 2.5.0 (????-??-?? by ?)
     - livecheck.regex is matched case-insensitive.
       (khindenburg in 0310feb5)
 
+    - Allow dots in variant names.
+      (#46807, raimue in c3f08731)
+
 Release 2.4.3 (2018-03-?? by ?)
     - Fix trace mode on macOS High Sierra 10.13.3
       (#55575, raimue in 995dde84)
