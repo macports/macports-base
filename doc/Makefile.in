@@ -13,7 +13,7 @@ XSLTPROC=    $(wildcard ${prefix}/bin/xsltproc)
 DOCBOOK_XSL= $(wildcard ${prefix}/share/xsl/docbook-xsl/manpages/docbook.xsl)
 endif
 
-ASCIIDOCFLAGS=	-f asciidoc.conf -a manversion=${MACPORTS_VERSION} -a revdate="$$(git log -1 --date=short --format=format:%ad -- $< || true)"
+ASCIIDOCFLAGS=	-f asciidoc.conf -a manversion=${MACPORTS_VERSION} -a revdate=${MACPORTS_VERSION}
 XSLTFLAGS=	-nonet
 
 MAN1=	\

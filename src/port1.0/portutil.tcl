@@ -2331,7 +2331,7 @@ proc adduser {name args} {
             set failed? 1
         } catch {{CHILDSTATUS *} eCode eMessage} {
             foreach {- pid code} $eCode {
-                ui_error "dscl($pid) termined with an exit status of $code"
+                ui_error "dscl($pid) terminated with an exit status of $code"
                 ui_debug "dscl printed: $eMessage"
             }
             
