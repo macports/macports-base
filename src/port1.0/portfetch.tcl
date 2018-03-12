@@ -583,16 +583,16 @@ proc portfetch::tarballable {args} {
 
 # Returns true if port can be mirrored
 proc portfetch::mirrorable {args} {
-    global fetch.type
+    global fetch.type checksums
     switch -- "${fetch.type}" {
         git -
         svn {
-            if {[option checksums] eq ""} {
-                ui_debug "port cannot be mirrored, no checksums for ${fetch.type}"
+            if {[info exists checksums] && $checksums eq ""} {
+                ui_debug "port cannot be mirrored, no checksums for fetch.type ${fetch.type}"
                 return no
             }
             if {![tarballable]} {
-                ui_debug "port cannot be mirrored, not tarballable for ${fetch.type}"
+                ui_debug "port cannot be mirrored, not tarballable for fetch.type ${fetch.type}"
                 return no
             }
             return yes
