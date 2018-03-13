@@ -2514,6 +2514,14 @@ proc mportsync {{optionslist {}}} {
     set obsoletesvn 0
 
     ui_msg "$macports::ui_prefix Updating the ports tree"
+    if {${macports::os_platform} eq "darwin" &&
+        ((${macports::os_major} >= 13 && ${macports::cxx_stdlib} ne "libc++") ||
+        (${macports::os_major} < 13 && ${macports::cxx_stdlib} ne "libstdc++"))} {
+        set platindex_cxxlib "_[string map {+ x} ${macports::cxx_stdlib}]"
+    } else {
+        set platindex_cxxlib {}
+    }
+    set platindex "PortIndex_${macports::os_platform}_${macports::os_major}${platindex_cxxlib}_${macports::os_arch}/PortIndex"
     foreach source $sources {
         set flags [lrange $source 1 end]
         set source [lindex $source 0]
@@ -2641,7 +2649,7 @@ proc mportsync {{optionslist {}}} {
                     } else {
                         set index_source $source
                     }
-                    set remote_indexfile "${index_source}PortIndex_${macports::os_platform}_${macports::os_major}_${macports::os_arch}/PortIndex"
+                    set remote_indexfile "$index_source$platindex"
                     set rsync_commandline "$macports::autoconf::rsync_path $rsync_options $remote_indexfile $destdir"
                     try -pass_signal {
                         system $rsync_commandline
@@ -2750,7 +2758,6 @@ proc mportsync {{optionslist {}}} {
                     ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
                 }
 
-                set platindex "PortIndex_${macports::os_platform}_${macports::os_major}_${macports::os_arch}/PortIndex"
                 if {[file isfile ${destdir}/$platindex] && [file isfile ${destdir}/${platindex}.quick]} {
                     file rename -force ${destdir}/$platindex ${destdir}/${platindex}.quick $destdir
                 }
