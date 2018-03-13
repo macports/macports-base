@@ -23,7 +23,7 @@ mportinit ui_options global_options global_variations
 # Standard procedures
 proc print_usage args {
     global argv0
-    puts "Usage: $argv0 \[-dfe\] \[-o output directory\] \[-p plat_ver_arch\] \[directory\]"
+    puts "Usage: $argv0 \[-dfe\] \[-o output directory\] \[-p plat_ver_\[cxxlib_\]arch\] \[directory\]"
     puts "-d:\tOutput debugging information"
     puts "-f:\tDo a full re-index instead of updating"
     puts "-e:\tExit code indicates if ports failed to parse"
@@ -199,7 +199,26 @@ for {set i 0} {$i < $argc} {incr i} {
                 set platlist [split [lindex $argv $i] _]
                 set os_platform [lindex $platlist 0]
                 set os_major [lindex $platlist 1]
-                set os_arch [lindex $platlist 2]
+                if {[llength $platlist] > 3} {
+                    set cxx_stdlib [lindex $platlist 2]
+                    switch -- $cxx_stdlib {
+                        libcxx {
+                            set cxx_stdlib libc++
+                        }
+                        libstdcxx {
+                            set cxx_stdlib libstdc++
+                        }
+                        default {
+                            puts stderr "Unknown C++ standard library: $cxx_stdlib (use libcxx or libstdcxx)"
+                            print_usage
+                            exit 1
+                        }
+                    }
+                    lappend port_options cxx_stdlib $cxx_stdlib
+                    set os_arch [lindex $platlist 3]
+                } else {
+                    set os_arch [lindex $platlist 2]
+                }
                 if {$os_platform eq "macosx"} {
                     lappend port_options os.subplatform $os_platform os.universal_supported yes
                     set os_platform darwin
