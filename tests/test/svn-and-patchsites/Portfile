@@ -13,22 +13,17 @@ homepage            https://www.macports.org/
 description         Test port for svn+distant patchfiles functionalities
 long_description    ${description}
 
-# use a MacPorts svn URL so we don't ping a remote SVN server every time the
-# tests are run
-# taken from the mpvim port
+# Set svn.cmd to true to avoid a dependency on the SVN binary, reset
+# depends_fetch to avoid the automatically added SVN dependency
 fetch.type          svn
-svn.url             https://svn.macports.org/repository/macports/contrib/mpvim
+svn.cmd             true
+svn.url             file://[pwd]/svn/repository
+depends_fetch
 
-# use a MacPorts distfiles server to avoid hitting a remote server every time
-# the tests are run (and possibly causing failures when the server is down)
-# taken from the vim port
-patch_sites         http://distfiles.macports.org/vim/7.4
-patchfiles          7.4.001 \
-                    7.4.002 \
-                    7.4.003
-checksums           7.4.001 md5 f234692c9ab5265ba6ba6f55c0f81764 \
-                    7.4.002 md5 a03e1a5ad3722f2011751dda977641af \
-                    7.4.003 md5 e6d070f592bb6da4d8cf2f7f134425e5
+# Use a local file to avoid hitting the network
+patch_sites         file://[pwd]
+patchfiles          patch
+checksums           patch md5 d41d8cd98f00b204e9800998ecf8427e
 
 # disable the patch phase because the patches would never apply
 patch		{}

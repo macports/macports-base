@@ -51,7 +51,12 @@ namespace eval portmirror {
 # It also records the path in a database.
 
 proc portmirror::mirror_main {args} {
-    global fetch.type mirror_filemap portdbpath
+    global fetch.type mirror_filemap portdbpath subport license
+
+    if {[lsearch -exact -nocase $license "nomirror"] >= 0} {
+        ui_info "Not mirroring $subport due to license NoMirror"
+        return
+    }
 
     set mirror_filemap_path [file join $portdbpath distfiles_mirror.db]
     filemap open mirror_filemap $mirror_filemap_path
