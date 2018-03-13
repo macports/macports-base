@@ -92,13 +92,13 @@ default svn.env {}
 default svn.pre_args {"--non-interactive --trust-server-cert"}
 default svn.args ""
 default svn.post_args ""
-default svn.file {${distname}.${fetch.type}.tar.xz}
+default svn.file {${distname}.${fetch.type}.tar.bz2}
 default svn.file_prefix {${distname}}
 
 default git.cmd {[portfetch::find_git_path]}
 default git.dir {${workpath}}
 default git.branch {}
-default git.file {${distname}.${fetch.type}.tar.xz}
+default git.file {${distname}.${fetch.type}.tar.bz2}
 default git.file_prefix {${distname}}
 default git.fetch_submodules "yes"
 
@@ -201,13 +201,19 @@ proc portfetch::set_fetch_type {option action args} {
                     depends_fetch-append port:git
                 }
                 default distname {${name}-${git.branch}}
-                # xz will not be used for non-tarballable fetches,
-                # but we cannot decide this yet, so we just add it anyway
-                use_xz yes
-                depends_fetch-append bin:xz:xz
             }
             hg {
                 depends_fetch-append bin:hg:mercurial
+            }
+        }
+
+        switch $args {
+            svn -
+            git {
+                # bzip2 is needed to create and extract generated tarballs.
+                # It might not be used if the fetch was not tarballable,
+                # but we cannot decide this yet, so we just add it anyway.
+                use_bzip2 yes
             }
         }
     }
@@ -315,14 +321,14 @@ proc portfetch::checkfiles {urls} {
 
 # Compress a file and remove the original
 proc compressfile {file} {
-    set xz [findBinary xz ${portutil::autoconf::xz_path}]
-    set cmdstring "$xz ${file}"
+    set bzip2 [findBinary bzip2 ${portutil::autoconf::bzip2_path}]
+    set cmdstring "$bzip2 ${file}"
     if {[catch {system $cmdstring} result]} {
         delete "${file}"
-        delete "${file}.xz"
+        delete "${file}.bz2"
         return -code error "Compression failed"
     }
-    return "${file}.xz"
+    return "${file}.bz2"
 }
 
 # Create a reproducible tarball of the contents of a directory
