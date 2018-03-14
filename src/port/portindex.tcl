@@ -299,3 +299,7 @@ puts "\nTotal number of ports parsed:\t$stats(total)\
       \nPorts successfully parsed:\t[expr {$stats(total) - $stats(failed)}]\
       \nPorts failed:\t\t\t$stats(failed)\
       \nUp-to-date ports skipped:\t$stats(skipped)\n"
+
+if {$stats(failed) > 0} {
+    exit 1
+}
