@@ -51,7 +51,7 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 u
     master_sites.mirror_subdir patch_sites.mirror_subdir \
     bzr.url bzr.revision \
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
-    svn.url svn.revision svn.method svn.file svn.file_prefix \
+    svn.cmd svn.url svn.revision svn.method svn.pre_args svn.args svn.post_args svn.file svn.file_prefix \
     git.cmd git.url git.branch git.file git.file_prefix git.fetch_submodules \
     hg.cmd hg.url hg.tag
 
@@ -59,7 +59,6 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 u
 # but this is not a user-modifiable command
 commands bzr
 commands cvs
-commands svn
 
 # Defaults
 default extract.suffix .tar.gz
