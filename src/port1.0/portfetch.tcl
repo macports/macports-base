@@ -576,14 +576,11 @@ proc portfetch::svn_tarballable {args} {
 # Returns true if port is fetched from VCS and can be put into a tarball
 proc portfetch::tarballable {args} {
     global fetch.type
-    switch -- "${fetch.type}" {
-        git {
-            return [git_tarballable]
-        }
-        svn {
-            return [svn_tarballable]
-        }
+
+    if {[info commands ${fetch.type}_tarballable] ne ""} {
+        return [${fetch.type}_tarballable]
     }
+
     return no
 }
 
