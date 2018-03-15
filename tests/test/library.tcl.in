@@ -103,10 +103,10 @@ proc port_trace {pwd} {
 }
 
 # Installs new portfile.
-proc port_install {} {
+proc port_install {{name "current"}} {
     global bindir portsrc
 
-    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port install > output 2>@1} ]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port install $name > output 2>@1} ]
     return $result
 }
 
@@ -131,10 +131,10 @@ proc port_destroot {pwd} {
 }
 
 # Uninstalls portfile.
-proc port_uninstall {} {
+proc port_uninstall {{name "current"}} {
     global bindir portsrc
 
-    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port uninstall > output 2>@1} ]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port uninstall $name > output 2>@1} ]
     return $result
 }
 
