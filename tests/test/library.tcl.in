@@ -107,6 +107,7 @@ proc port_install {} {
     global bindir portsrc
 
     set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port install > output 2>@1} ]
+    return $result
 }
 
 # Run configure command.
@@ -114,6 +115,7 @@ proc port_config {pwd} {
     global path bindir portsrc
 
     set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port configure 2>@1} ]
+    return $result
 }
 
 # Run destroot command.
@@ -125,6 +127,7 @@ proc port_destroot {pwd} {
         exec -ignorestderr chown macports ${work_dir}/.macports.statefile-unknown-version.state
     }
     set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port destroot >$output_file 2>@1} ]
+    return $result
 }
 
 # Uninstalls portfile.
@@ -132,6 +135,7 @@ proc port_uninstall {} {
     global bindir portsrc
 
     set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port uninstall > output 2>@1} ]
+    return $result
 }
 
 # Returns the line containint a given string
