@@ -1,6 +1,6 @@
 PortSystem 1.0
 
-name		@name@
+name		casesensitive
 version		1
 categories	test
 maintainers	raimue
