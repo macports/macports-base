@@ -3,10 +3,11 @@ namespace import tcltest::*
 
 source [file dirname $argv0]/../library.tcl
 
+set path [file dirname [file normalize $argv0]]
 makeFile "" "Portfile"
+exec -ignorestderr sed "s/@option@//" $path/Portfile.in > Portfile
 makeFile "" $output_file
 makeDirectory $work_dir
-set path [file dirname [file normalize $argv0]]
 
 # Initial setup
 load_variables $path
