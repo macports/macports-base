@@ -49,7 +49,7 @@ namespace eval portfetch {
 options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg dist_subdir \
     fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
     master_sites.mirror_subdir patch_sites.mirror_subdir \
-    bzr.url bzr.revision \
+    bzr.url bzr.revision bzr.file bzr.file_prefix \
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
     svn.cmd svn.url svn.revision svn.method svn.pre_args svn.args svn.post_args svn.file svn.file_prefix \
     git.cmd git.url git.branch git.file git.file_prefix git.fetch_submodules \
@@ -57,7 +57,6 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 u
 
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
-commands bzr
 commands cvs
 
 # Defaults
@@ -67,9 +66,11 @@ default fetch.type standard
 default bzr.cmd {[findBinary bzr $portutil::autoconf::bzr_path]}
 default bzr.dir {${workpath}}
 default bzr.revision {-1}
-default bzr.pre_args {"--builtin --no-aliases checkout --lightweight --verbose"}
-default bzr.args ""
-default bzr.post_args {"-r ${bzr.revision} ${bzr.url} ${worksrcdir}"}
+default bzr.pre_args {"--builtin --no-aliases"}
+default bzr.args {"checkout --lightweight --verbose"}
+default bzr.post_args {"-r ${bzr.revision}"}
+default bzr.file {${distname}.${fetch.type}.tar.bz2}
+default bzr.file_prefix {${distname}}
 
 default cvs.cmd {[findBinary cvs $portutil::autoconf::cvs_path]}
 default cvs.password ""
@@ -207,6 +208,7 @@ proc portfetch::set_fetch_type {option action args} {
         }
 
         switch $args {
+            bzr -
             svn -
             git {
                 # bzip2 is needed to create and extract generated tarballs.
@@ -385,7 +387,16 @@ proc portfetch::mktar {tarfile dir mtime} {
 
 # Perform a bzr fetch
 proc portfetch::bzrfetch {args} {
-    global env
+    global UI_PREFIX \
+           env distpath worksrcpath \
+           bzr.cmd bzr.pre_args bzr.args bzr.post_args bzr.url bzr.file bzr.file_prefix \
+           name distname fetch.type
+
+    set generatedfile "${distpath}/${bzr.file}"
+
+    if {[bzr_tarballable] && [file isfile "${generatedfile}"]} {
+        return 0
+    }
 
     # Behind a proxy bzr will fail with the following error if proxies
     # listed in macports.conf appear in the environment in their
@@ -406,10 +417,48 @@ proc portfetch::bzrfetch {args} {
         set env(HTTPS_PROXY) http://${orig_https_proxy}/
     }
 
-    try {
-        if {[catch {command_exec bzr "" "2>&1"} result]} {
-            return -code error [msgcat::mc "Bazaar checkout failed"]
+    try -pass_signal {
+        ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
+        set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
+        set tmpxprt [file join ${tmppath} export]
+        file mkdir ${tmpxprt}
+        set cmdstring "${bzr.cmd} ${bzr.pre_args} ${bzr.args} ${bzr.post_args} ${bzr.url} ${tmpxprt}/${bzr.file_prefix} 2>&1"
+        if {[catch {system $cmdstring} result]} {
+            delete ${tmppath}
+            error [msgcat::mc "Bazaar checkout failed"]
         }
+
+        if {![bzr_tarballable]} {
+            file rename ${tmppath} ${worksrcpath}
+            return 0
+        }
+
+        ui_info "$UI_PREFIX Generating tarball ${bzr.file}"
+
+        # get timestamp of latest revision
+        set cmdstring "${bzr.cmd} ${bzr.pre_args} version-info --format=custom --template=\"{date}\" ${tmpxprt}/${bzr.file_prefix} 2>&1"
+        ui_debug "exec: $cmdstring"
+        if {[catch {exec -ignorestderr sh -c $cmdstring} result]} {
+            delete ${tmppath}
+            error [msgcat::mc "Bazaar version-info failed: $result"]
+        }
+        set tstamp $result
+        set mtime [clock scan [lindex [split $tstamp "."] 0] -format "%Y-%m-%d %H:%M:%S %z" -timezone "UTC"]
+
+        set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
+
+        mktar $tardst $tmpxprt $mtime
+        set compressed [compressfile ${tardst}]
+        file rename -force ${compressed} ${generatedfile}
+
+        ui_debug "Created tarball for fetch.type ${fetch.type} at ${generatedfile}"
+
+        # cleanup
+        delete ${tmppath}
+
+        return 0
+    } catch {{*} eCode eMessage} {
+        throw
     } finally {
         if {[info exists orig_http_proxy]} {
             set env(http_proxy) ${orig_http_proxy}
@@ -553,10 +602,10 @@ proc portfetch::svnfetch {args} {
     return 0
 }
 
-# Check if a tarball can be produced for git
-proc portfetch::git_tarballable {args} {
-    global git.branch
-    if {${git.branch} eq "" || ${git.branch} eq "HEAD"} {
+# Check if a tarball can be produced for bzr
+proc portfetch::bzr_tarballable {args} {
+    global bzr.revision
+    if {${bzr.revision} eq "" || ${bzr.revision} eq "-1"} {
         return no
     } else {
         return yes
@@ -567,6 +616,16 @@ proc portfetch::git_tarballable {args} {
 proc portfetch::svn_tarballable {args} {
     global svn.revision
     if {${svn.revision} eq "" || ${svn.revision} eq "HEAD"} {
+        return no
+    } else {
+        return yes
+    }
+}
+
+# Check if a tarball can be produced for git
+proc portfetch::git_tarballable {args} {
+    global git.branch
+    if {${git.branch} eq "" || ${git.branch} eq "HEAD"} {
         return no
     } else {
         return yes
@@ -588,8 +647,9 @@ proc portfetch::tarballable {args} {
 proc portfetch::mirrorable {args} {
     global fetch.type checksums
     switch -- "${fetch.type}" {
-        git -
-        svn {
+        bzr -
+        svn -
+        git {
             if {[info exists checksums] && $checksums eq ""} {
                 ui_debug "port cannot be mirrored, no checksums for fetch.type ${fetch.type}"
                 return no
@@ -853,25 +913,15 @@ proc portfetch::fetch_addfilestomap {filemapname} {
 
 # Initialize fetch target and call checkfiles.
 proc portfetch::fetch_init {args} {
-    global fetch.type distname all_dist_files \
-           git.file svn.file
+    global fetch.type distname all_dist_files
     variable fetch_urls
 
     portfetch::checkfiles fetch_urls
 
-    switch -- "${fetch.type}" {
-        svn {
-            if {[svn_tarballable]} {
-                lappend all_dist_files ${svn.file}
-                distfiles-append ${svn.file}
-            }
-        }
-        git {
-            if {[git_tarballable]} {
-                lappend all_dist_files ${git.file}
-                distfiles-append ${git.file}
-            }
-        }
+    if {[tarballable]} {
+        global ${fetch.type}.file
+        lappend all_dist_files [set ${fetch.type}.file]
+        distfiles-append [set ${fetch.type}.file]
     }
 }
 
