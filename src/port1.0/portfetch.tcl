@@ -555,7 +555,7 @@ proc portfetch::svnfetch {args} {
 # Check if a tarball can be produced for git
 proc portfetch::git_tarballable {args} {
     global git.branch
-    if {${git.branch} eq ""} {
+    if {${git.branch} eq "" || ${git.branch} eq "HEAD"} {
         return no
     } else {
         return yes
@@ -565,7 +565,7 @@ proc portfetch::git_tarballable {args} {
 # Check if a tarball can be produced for svn
 proc portfetch::svn_tarballable {args} {
     global svn.revision
-    if {${svn.revision} eq ""} {
+    if {${svn.revision} eq "" || ${svn.revision} eq "HEAD"} {
         return no
     } else {
         return yes
