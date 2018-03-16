@@ -533,6 +533,7 @@ proc portfetch::svnfetch {args} {
     # get timestamp of latest revision
     set cmdstring "${svn.cmd} info --show-item last-changed-date ${svn.args} ${proxy_args} ${svn.url} 2>&1"
     if {[catch {exec -ignorestderr sh -c $cmdstring} result]} {
+        delete ${tmppath}
         return -code error [msgcat::mc "Subversion info failed"]
     }
     set tstamp $result
@@ -671,6 +672,7 @@ proc portfetch::gitfetch {args} {
     set cmdstring "${git.cmd} archive --format=tar --prefix=\"${git.file_prefix}/\" --output=${tardst} ${git.branch} 2>&1"
     if {[catch {system -W $tmppath $cmdstring} result]} {
         delete $tardst
+        delete $tmppath
         return -code error [msgcat::mc "Git archive creation failed"]
     }
 
@@ -690,6 +692,7 @@ proc portfetch::gitfetch {args} {
             "' 2>&1"] ""]
         if {[catch {system -W $tmppath $cmdstring} result]} {
             delete $tardst
+            delete $tmppath
             return -code error [msgcat::mc "Git submodule archive creation failed"]
         }
     }
