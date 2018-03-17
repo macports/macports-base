@@ -181,6 +181,7 @@ proc portfetch::set_fetch_type {option action args} {
         switch $args {
             bzr {
                 depends_fetch-append bin:bzr:bzr
+                default distname {${name}-${bzr.revision}}
             }
             cvs {
                 depends_fetch-append bin:cvs:cvs
@@ -192,6 +193,7 @@ proc portfetch::set_fetch_type {option action args} {
                 } else {
                     depends_fetch-append port:subversion
                 }
+                default distname {${name}-${svn.revision}}
             }
             git {
                 # Mavericks is the first OS X version whose git supports modern TLS cipher suites.
