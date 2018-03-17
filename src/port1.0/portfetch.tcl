@@ -53,7 +53,7 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 u
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
     svn.cmd svn.url svn.revision svn.method svn.pre_args svn.args svn.post_args svn.file svn.file_prefix \
     git.cmd git.url git.branch git.file git.file_prefix git.fetch_submodules \
-    hg.cmd hg.url hg.tag
+    hg.cmd hg.url hg.tag hg.file hg.file_prefix
 
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
@@ -105,6 +105,8 @@ default git.fetch_submodules "yes"
 default hg.cmd {[findBinary hg $portutil::autoconf::hg_path]}
 default hg.dir {${workpath}}
 default hg.tag {tip}
+default hg.file {${distname}.${fetch.type}.tar.bz2}
+default hg.file_prefix {${distname}}
 
 # Set distfiles
 default distfiles {[list [portfetch::suffix $distname]]}
@@ -206,13 +208,15 @@ proc portfetch::set_fetch_type {option action args} {
             }
             hg {
                 depends_fetch-append bin:hg:mercurial
+                default distname {${name}-${hg.tag}}
             }
         }
 
         switch $args {
             bzr -
             svn -
-            git {
+            git -
+            hg {
                 # bzip2 is needed to create and extract generated tarballs.
                 # It might not be used if the fetch was not tarballable,
                 # but we cannot decide this yet, so we just add it anyway.
@@ -632,6 +636,16 @@ proc portfetch::git_tarballable {args} {
     }
 }
 
+# Check if a tarball can be produced for hg
+proc portfetch::hg_tarballable {args} {
+    global hg.tag
+    if {${hg.tag} eq "" || ${hg.tag} eq "tip"} {
+        return no
+    } else {
+        return yes
+    }
+}
+
 # Returns true if port is fetched from VCS and can be put into a tarball
 proc portfetch::tarballable {args} {
     global fetch.type
@@ -649,7 +663,8 @@ proc portfetch::mirrorable {args} {
     switch -- "${fetch.type}" {
         bzr -
         svn -
-        git {
+        git -
+        hg {
             if {[info exists checksums] && $checksums eq ""} {
                 ui_debug "port cannot be mirrored, no checksums for fetch.type ${fetch.type}"
                 return no
@@ -771,19 +786,57 @@ proc portfetch::gitfetch {args} {
 
 # Perform a mercurial fetch.
 proc portfetch::hgfetch {args} {
-    global worksrcpath prefix_frozen hg.url hg.tag hg.cmd \
-           fetch.ignore_sslcert
+    global UI_PREFIX \
+           distpath worksrcpath \
+           hg.cmd hg.url hg.tag hg.file hg.file_prefix \
+           name distname fetch.type fetch.ignore_sslcert
+
+    set generatedfile "${distpath}/${hg.file}"
+
+    if {[hg_tarballable] && [file isfile "${generatedfile}"]} {
+        return 0
+    }
+
+    ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
 
     set insecureflag ""
     if {${fetch.ignore_sslcert}} {
         set insecureflag " --insecure"
     }
 
-    set cmdstring "${hg.cmd} clone${insecureflag} --rev \"${hg.tag}\" ${hg.url} ${worksrcpath} 2>&1"
-    ui_debug "Executing: $cmdstring"
+    set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
+    set tmpxprt [file join ${tmppath} export]
+    set cmdstring "${hg.cmd} clone${insecureflag} --rev \"${hg.tag}\" ${hg.url} ${tmpxprt}/${hg.file_prefix} 2>&1"
     if {[catch {system $cmdstring} result]} {
+        delete ${tmppath}
         return -code error [msgcat::mc "Mercurial clone failed"]
     }
+
+    if {![hg_tarballable]} {
+        file rename ${tmpxprt}/${hg.file_prefix} ${worksrcpath}
+        return 0
+    }
+
+    ui_info "$UI_PREFIX Generating tarball ${hg.file}"
+
+    # get timestamp of latest revision
+    set cmdstring "${hg.cmd} log -r ${hg.tag} --template=\"{date}\"i -R ${tmpxprt}/${hg.file_prefix}"
+    if {[catch {exec -ignorestderr sh -c $cmdstring} result]} {
+        delete ${tmppath}
+        return -code error [msgcat::mc "Mercurial log failed"]
+    }
+    set mtime $result
+
+    set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
+
+    mktar $tardst $tmpxprt $mtime
+    set compressed [compressfile ${tardst}]
+    file rename -force ${compressed} ${generatedfile}
+
+    ui_debug "Created tarball for fetch.type ${fetch.type} at ${generatedfile}"
+
+    # cleanup
+    delete ${tmppath}
 
     return 0
 }
