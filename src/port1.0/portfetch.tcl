@@ -377,7 +377,7 @@ proc portfetch::mktar {tarfile dir mtime} {
     if {[catch {system -W $dir $cmdstring} result]} {
         delete $mtreefile
         delete $tarfile
-        return -code error [msgcat::mc "Subversion archive creation failed"]
+        return -code error [msgcat::mc "tarball creation failed"]
     }
 
     delete $mtreefile
