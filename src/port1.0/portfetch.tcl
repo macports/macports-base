@@ -429,7 +429,7 @@ proc portfetch::bzrfetch {args} {
         }
 
         if {![bzr_tarballable]} {
-            file rename ${tmppath} ${worksrcpath}
+            file rename ${tmppath}/${bzr.file_prefix} ${worksrcpath}
             return 0
         }
 
@@ -573,7 +573,7 @@ proc portfetch::svnfetch {args} {
     }
 
     if {![svn_tarballable]} {
-        file rename ${tmppath} ${worksrcpath}
+        file rename ${tmpxprt}/${svn.file_prefix} ${worksrcpath}
         return 0
     }
 
