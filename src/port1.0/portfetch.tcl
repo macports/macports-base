@@ -436,7 +436,7 @@ proc portfetch::bzrfetch {args} {
         ui_info "$UI_PREFIX Generating tarball ${bzr.file}"
 
         # get timestamp of latest revision
-        set cmdstring "${bzr.cmd} ${bzr.pre_args} version-info --format=custom --template=\"{date}\" ${tmpxprt}/${bzr.file_prefix} 2>&1"
+        set cmdstring "${bzr.cmd} ${bzr.pre_args} version-info --format=custom --template=\"{date}\" ${tmpxprt}/${bzr.file_prefix}"
         ui_debug "exec: $cmdstring"
         if {[catch {exec -ignorestderr sh -c $cmdstring} result]} {
             delete ${tmppath}
@@ -580,7 +580,7 @@ proc portfetch::svnfetch {args} {
     ui_info "$UI_PREFIX Generating tarball ${svn.file}"
 
     # get timestamp of latest revision
-    set cmdstring "${svn.cmd} info --show-item last-changed-date ${svn.args} ${proxy_args} ${svn.url} 2>&1"
+    set cmdstring "${svn.cmd} info --show-item last-changed-date ${svn.args} ${proxy_args} ${svn.url}"
     if {[catch {exec -ignorestderr sh -c $cmdstring} result]} {
         delete ${tmppath}
         return -code error [msgcat::mc "Subversion info failed"]
