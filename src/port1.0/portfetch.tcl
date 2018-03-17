@@ -382,8 +382,6 @@ proc portfetch::mktar {tarfile dir mtime} {
 
     delete $mtreefile
 
-
-
     return 0
 }
 
