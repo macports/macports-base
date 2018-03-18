@@ -81,7 +81,7 @@ default cvs.file_prefix {${distname}}
 default svn.cmd {[portfetch::find_svn_path]}
 default svn.revision ""
 default svn.env {}
-default svn.pre_args {"--non-interactive --trust-server-cert"}
+default svn.pre_args {"--non-interactive"}
 default svn.args ""
 default svn.post_args ""
 default svn.file {${distname}.${fetch.type}.tar.bz2}
