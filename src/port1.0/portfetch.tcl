@@ -50,14 +50,10 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 u
     fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
     master_sites.mirror_subdir patch_sites.mirror_subdir \
     bzr.url bzr.revision bzr.file bzr.file_prefix \
-    cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
+    cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.file cvs.file_prefix \
     svn.cmd svn.url svn.revision svn.method svn.pre_args svn.args svn.post_args svn.file svn.file_prefix \
     git.cmd git.url git.branch git.file git.file_prefix git.fetch_submodules \
     hg.cmd hg.url hg.tag hg.file hg.file_prefix
-
-# XXX we use the command framework to buy us some useful features,
-# but this is not a user-modifiable command
-commands cvs
 
 # Defaults
 default extract.suffix .tar.gz
@@ -75,14 +71,14 @@ default bzr.file_prefix {${distname}}
 default cvs.cmd {[findBinary cvs $portutil::autoconf::cvs_path]}
 default cvs.password ""
 default cvs.dir {${workpath}}
-default cvs.method {export}
 default cvs.module {$distname}
 default cvs.tag ""
 default cvs.date ""
-default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
 default cvs.pre_args {"-z9 -f -d ${cvs.root}"}
 default cvs.args ""
 default cvs.post_args {"${cvs.module}"}
+default cvs.file {${distname}.${fetch.type}.tar.bz2}
+default cvs.file_prefix {${distname}}
 
 default svn.cmd {[portfetch::find_svn_path]}
 default svn.dir {${workpath}}
@@ -187,6 +183,7 @@ proc portfetch::set_fetch_type {option action args} {
             }
             cvs {
                 depends_fetch-append bin:cvs:cvs
+                default distname {${name}-${cvs.tag}${cvs.date}}
             }
             svn {
                 # Sierra is the first macOS version whose svn supports modern TLS cipher suites.
@@ -212,6 +209,7 @@ proc portfetch::set_fetch_type {option action args} {
 
         switch $args {
             bzr -
+            cvs -
             svn -
             git -
             hg {
@@ -476,12 +474,18 @@ proc portfetch::bzrfetch {args} {
 # Perform a CVS login and fetch, storing the CVS login
 # information in a custom .cvspass file
 proc portfetch::cvsfetch {args} {
-    global workpath cvs.env cvs.cmd cvs.args cvs.post_args \
-           cvs.root cvs.date cvs.tag cvs.method cvs.password
-           patch_sites filespath
+    global UI_PREFIX \
+           env distpath workpath worksrcpath \
+           cvs.cmd cvs.pre_args cvs.args cvs.post_args cvs.root cvs.tag cvs.date cvs.password cvs.file cvs.file_prefix \
+           name distname fetch.type \
 
-    set cvs.args "${cvs.method} ${cvs.args}"
-    if {${cvs.method} eq "export" && ![string length ${cvs.tag}] && ![string length ${cvs.date}]} {
+    set generatedfile "${distpath}/${cvs.file}"
+
+    if {[cvs_tarballable] && [file isfile "${generatedfile}"]} {
+        return 0
+    }
+
+    if {![string length ${cvs.tag}] && ![string length ${cvs.date}]} {
         set cvs.tag "HEAD"
     }
     if {[string length ${cvs.tag}]} {
@@ -492,25 +496,65 @@ proc portfetch::cvsfetch {args} {
         set cvs.args "${cvs.args} -D ${cvs.date}"
     }
 
-    if {[regexp ^:pserver: ${cvs.root}]} {
-        set savecmd ${cvs.cmd}
-        set saveargs ${cvs.args}
-        set savepost_args ${cvs.post_args}
-        set cvs.cmd "echo ${cvs.password} | ${cvs.cmd}"
-        set cvs.args login
-        set cvs.post_args ""
-        if {[catch {command_exec cvs -notty "" "2>&1"} result]} {
-            return -code error [msgcat::mc "CVS login failed"]
-        }
-        set cvs.cmd ${savecmd}
-        set cvs.args ${saveargs}
-        set cvs.post_args ${savepost_args}
-    } else {
-        set env(CVS_RSH) ssh
-    }
+    ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
 
-    if {[catch {command_exec cvs "" "2>&1"} result]} {
-        return -code error [msgcat::mc "CVS check out failed"]
+    array set orig_env [array get env]
+
+    # create an empty passfile to suppress warnings from CVS
+    close [open "$env(HOME)/.cvspass" w]
+
+    try -pass_signal {
+        if {[regexp ^:pserver: ${cvs.root}]} {
+            set cmdstring "echo ${cvs.password} | ${cvs.cmd} ${cvs.pre_args} login 2>&1"
+            if {[catch {system -notty $cmdstring} result]} {
+                error [msgcat::mc "CVS login failed: $result"]
+            }
+        } else {
+            set env(CVS_RSH) ssh
+        }
+
+        set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
+        set tmpxprt [file join ${tmppath} export]
+        file mkdir ${tmpxprt}
+        set cmdstring "${cvs.cmd} ${cvs.pre_args} export -d ${cvs.file_prefix} ${cvs.args} ${cvs.post_args} 2>&1"
+        if {[catch {system -notty -W ${tmpxprt} $cmdstring} result]} {
+            delete ${tmppath}
+            error [msgcat::mc "CVS checkout failed"]
+        }
+
+        if {![cvs_tarballable]} {
+            file rename ${tmpxprt}/${svn.file_prefix} ${worksrcpath}
+            return 0
+        }
+
+        ui_info "$UI_PREFIX Generating tarball ${cvs.file}"
+
+        # get timestamp by looking for the newest file in the exported source
+        set mtime 0
+        fs-traverse f ${tmpxprt}/${cvs.file_prefix} {
+            if {![file isdirectory $f]} {
+                set ft [file mtime $f]
+                if {$ft > $mtime} {
+                    set mtime $ft
+                }
+            }
+        }
+
+        set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
+
+        mktar $tardst $tmpxprt $mtime
+        set compressed [compressfile ${tardst}]
+        file rename -force ${compressed} ${generatedfile}
+
+        ui_debug "Created tarball for fetch.type ${fetch.type} at ${generatedfile}"
+    } catch {{*} ecode emessage} {
+        throw
+    } finally {
+        # cleanup
+        delete ${tmppath}
+
+        array unset env *
+        array set env [array get orig_env]
     }
 
     return 0
@@ -614,6 +658,16 @@ proc portfetch::bzr_tarballable {args} {
     }
 }
 
+# Check if a tarball can be produced for cvs
+proc portfetch::cvs_tarballable {args} {
+    global cvs.tag cvs.date
+    if {${cvs.tag} ni {"HEAD" ""} || ${cvs.date} ne ""} {
+        return yes
+    } else {
+        return no
+    }
+}
+
 # Check if a tarball can be produced for svn
 proc portfetch::svn_tarballable {args} {
     global svn.revision
@@ -660,6 +714,7 @@ proc portfetch::mirrorable {args} {
     global fetch.type checksums
     switch -- "${fetch.type}" {
         bzr -
+        cvs -
         svn -
         git -
         hg {
