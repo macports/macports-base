@@ -51,7 +51,7 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 u
     master_sites.mirror_subdir patch_sites.mirror_subdir \
     bzr.url bzr.revision bzr.file bzr.file_prefix \
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.file cvs.file_prefix \
-    svn.cmd svn.url svn.revision svn.method svn.pre_args svn.args svn.post_args svn.file svn.file_prefix \
+    svn.cmd svn.url svn.revision svn.pre_args svn.args svn.post_args svn.file svn.file_prefix \
     git.cmd git.url git.branch git.file git.file_prefix git.fetch_submodules \
     hg.cmd hg.url hg.tag hg.file hg.file_prefix
 
@@ -82,7 +82,6 @@ default cvs.file_prefix {${distname}}
 
 default svn.cmd {[portfetch::find_svn_path]}
 default svn.dir {${workpath}}
-default svn.method {export}
 default svn.revision ""
 default svn.env {}
 default svn.pre_args {"--non-interactive --trust-server-cert"}
@@ -589,7 +588,7 @@ proc portfetch::svn_proxy_args {url} {
 proc portfetch::svnfetch {args} {
     global UI_PREFIX \
            distpath workpath worksrcpath \
-           svn.cmd svn.args svn.method svn.revision svn.url svn.file svn.file_prefix \
+           svn.cmd svn.args svn.revision svn.url svn.file svn.file_prefix \
            name distname fetch.type
 
     set generatedfile "${distpath}/${svn.file}"
@@ -612,7 +611,7 @@ proc portfetch::svnfetch {args} {
     ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
     set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
     set tmpxprt [file join ${tmppath} export]
-    set cmdstring "${svn.cmd} ${svn.method} ${svn.args} ${svn.url} ${tmpxprt}/${svn.file_prefix} 2>&1"
+    set cmdstring "${svn.cmd} export ${svn.args} ${svn.url} ${tmpxprt}/${svn.file_prefix} 2>&1"
     if {[catch {system $cmdstring} result]} {
         delete ${tmppath}
         return -code error [msgcat::mc "Subversion checkout failed"]
