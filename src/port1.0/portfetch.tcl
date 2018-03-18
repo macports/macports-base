@@ -60,7 +60,6 @@ default extract.suffix .tar.gz
 default fetch.type standard
 
 default bzr.cmd {[findBinary bzr $portutil::autoconf::bzr_path]}
-default bzr.dir {${workpath}}
 default bzr.revision {-1}
 default bzr.pre_args {"--builtin --no-aliases"}
 default bzr.args {"checkout --lightweight --verbose"}
@@ -70,7 +69,6 @@ default bzr.file_prefix {${distname}}
 
 default cvs.cmd {[findBinary cvs $portutil::autoconf::cvs_path]}
 default cvs.password ""
-default cvs.dir {${workpath}}
 default cvs.module {$distname}
 default cvs.tag ""
 default cvs.date ""
@@ -81,7 +79,6 @@ default cvs.file {${distname}.${fetch.type}.tar.bz2}
 default cvs.file_prefix {${distname}}
 
 default svn.cmd {[portfetch::find_svn_path]}
-default svn.dir {${workpath}}
 default svn.revision ""
 default svn.env {}
 default svn.pre_args {"--non-interactive --trust-server-cert"}
@@ -91,14 +88,12 @@ default svn.file {${distname}.${fetch.type}.tar.bz2}
 default svn.file_prefix {${distname}}
 
 default git.cmd {[portfetch::find_git_path]}
-default git.dir {${workpath}}
 default git.branch {}
 default git.file {${distname}.${fetch.type}.tar.bz2}
 default git.file_prefix {${distname}}
 default git.fetch_submodules "yes"
 
 default hg.cmd {[findBinary hg $portutil::autoconf::hg_path]}
-default hg.dir {${workpath}}
 default hg.tag {tip}
 default hg.file {${distname}.${fetch.type}.tar.bz2}
 default hg.file_prefix {${distname}}
