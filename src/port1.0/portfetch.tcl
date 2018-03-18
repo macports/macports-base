@@ -198,12 +198,10 @@ proc portfetch::set_fetch_type {option action args} {
                 default distname {${name}-${svn.revision}}
             }
             git {
-                # Mavericks is the first OS X version whose git supports modern TLS cipher suites.
-                if {${os.major} >= 13 || ${os.platform} ne "darwin"} {
-                    depends_fetch-append bin:git:git
-                } else {
-                    depends_fetch-append port:git
-                }
+                # Always use the git port and not /usr/bin/git.
+                # The output format changed with git @1.8.1.1 due to a bugfix.
+                # https://github.com/git/git/commit/22f0dcd9634a818a0c83f23ea1a48f2d620c0546
+                depends_fetch-append port:git
                 default distname {${name}-${git.branch}}
             }
             hg {
