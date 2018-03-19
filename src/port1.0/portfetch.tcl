@@ -333,9 +333,6 @@ proc portfetch::mktar {tarfile dir mtime} {
     fs-traverse -tails f $dir {
         set fpath [file join $dir $f]
         if {$f ne "."} {
-            # use user permissions only, ignore the rest
-            set mode [format "%o" [expr [file attributes $fpath -permissions] & 0700]]
-
             # map type from Tcl to mtree
             set type [file type $fpath]
             array set typemap {
@@ -351,6 +348,13 @@ proc portfetch::mktar {tarfile dir mtime} {
                return -code error "unknown file type $type"
             }
             set type $typemap($type)
+
+            if {$type eq "link"} {
+                set mode 0777
+            } else {
+                # use user permissions only, ignore the rest
+                set mode [format "%o" [expr [file attributes $fpath -permissions] & 0700]]
+            }
 
             # add entry to mtree output
             puts $mtreefd "$f type=$type mode=$mode"
