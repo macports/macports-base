@@ -49,9 +49,9 @@ namespace eval portfetch {
 options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg dist_subdir \
     fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
     master_sites.mirror_subdir patch_sites.mirror_subdir \
-    bzr.url bzr.revision bzr.file bzr.file_prefix \
-    cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.file cvs.file_prefix \
-    svn.cmd svn.url svn.revision svn.pre_args svn.args svn.post_args svn.file svn.file_prefix \
+    bzr.cmd bzr.url bzr.revision bzr.file bzr.file_prefix \
+    cvs.cmd cvs.root cvs.password cvs.module cvs.tag cvs.date cvs.file cvs.file_prefix \
+    svn.cmd svn.url svn.revision svn.file svn.file_prefix \
     git.cmd git.url git.branch git.file git.file_prefix git.fetch_submodules \
     hg.cmd hg.url hg.tag hg.file hg.file_prefix
 
@@ -61,34 +61,27 @@ default fetch.type standard
 
 default bzr.cmd {[findBinary bzr $portutil::autoconf::bzr_path]}
 default bzr.revision {-1}
-default bzr.pre_args {"--builtin --no-aliases"}
-default bzr.args {"checkout --lightweight --verbose"}
-default bzr.post_args {"-r ${bzr.revision}"}
 default bzr.file {${distname}.${fetch.type}.tar.bz2}
 default bzr.file_prefix {${distname}}
 
 default cvs.cmd {[findBinary cvs $portutil::autoconf::cvs_path]}
+default cvs.root ""
 default cvs.password ""
 default cvs.module {$distname}
 default cvs.tag ""
 default cvs.date ""
-default cvs.pre_args {"-z9 -f -d ${cvs.root}"}
-default cvs.args ""
-default cvs.post_args {"${cvs.module}"}
 default cvs.file {${distname}.${fetch.type}.tar.bz2}
 default cvs.file_prefix {${distname}}
 
 default svn.cmd {[portfetch::find_svn_path]}
+default svn.url ""
 default svn.revision ""
-default svn.env {}
-default svn.pre_args {"--non-interactive"}
-default svn.args ""
-default svn.post_args ""
 default svn.file {${distname}.${fetch.type}.tar.bz2}
 default svn.file_prefix {${distname}}
 
 default git.cmd {[portfetch::find_git_path]}
-default git.branch {}
+default git.url ""
+default git.branch ""
 default git.file {${distname}.${fetch.type}.tar.bz2}
 default git.file_prefix {${distname}}
 default git.fetch_submodules "yes"
@@ -383,7 +376,7 @@ proc portfetch::mktar {tarfile dir mtime} {
 proc portfetch::bzrfetch {args} {
     global UI_PREFIX \
            env distpath worksrcpath \
-           bzr.cmd bzr.pre_args bzr.args bzr.post_args bzr.url bzr.file bzr.file_prefix \
+           bzr.cmd bzr.url bzr.revision bzr.file bzr.file_prefix \
            name distname fetch.type
 
     set generatedfile "${distpath}/${bzr.file}"
@@ -416,7 +409,7 @@ proc portfetch::bzrfetch {args} {
         set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
         set tmpxprt [file join ${tmppath} export]
         file mkdir ${tmpxprt}
-        set cmdstring "${bzr.cmd} ${bzr.pre_args} ${bzr.args} ${bzr.post_args} ${bzr.url} ${tmpxprt}/${bzr.file_prefix} 2>&1"
+        set cmdstring "${bzr.cmd} --builtin --no-aliases checkout --lightweight --verbose -r ${bzr.revision} ${bzr.url} ${tmpxprt}/${bzr.file_prefix} 2>&1"
         if {[catch {system $cmdstring} result]} {
             delete ${tmppath}
             error [msgcat::mc "Bazaar checkout failed"]
@@ -430,7 +423,7 @@ proc portfetch::bzrfetch {args} {
         ui_info "$UI_PREFIX Generating tarball ${bzr.file}"
 
         # get timestamp of latest revision
-        set cmdstring "${bzr.cmd} ${bzr.pre_args} version-info --format=custom --template=\"{date}\" ${tmpxprt}/${bzr.file_prefix}"
+        set cmdstring "${bzr.cmd} --builtin --no-aliases version-info --format=custom --template=\"{date}\" ${tmpxprt}/${bzr.file_prefix}"
         ui_debug "exec: $cmdstring"
         if {[catch {exec -ignorestderr sh -c $cmdstring} result]} {
             delete ${tmppath}
@@ -470,7 +463,7 @@ proc portfetch::bzrfetch {args} {
 proc portfetch::cvsfetch {args} {
     global UI_PREFIX \
            env distpath workpath worksrcpath \
-           cvs.cmd cvs.pre_args cvs.args cvs.post_args cvs.root cvs.tag cvs.date cvs.password cvs.file cvs.file_prefix \
+           cvs.cmd cvs.root cvs.tag cvs.date cvs.password cvs.file cvs.file_prefix \
            name distname fetch.type \
 
     set generatedfile "${distpath}/${cvs.file}"
@@ -499,7 +492,7 @@ proc portfetch::cvsfetch {args} {
 
     try -pass_signal {
         if {[regexp ^:pserver: ${cvs.root}]} {
-            set cmdstring "echo ${cvs.password} | ${cvs.cmd} ${cvs.pre_args} login 2>&1"
+            set cmdstring "echo ${cvs.password} | ${cvs.cmd} -z9 -f -d ${cvs.root} login 2>&1"
             if {[catch {system -notty $cmdstring} result]} {
                 error [msgcat::mc "CVS login failed: $result"]
             }
@@ -510,7 +503,7 @@ proc portfetch::cvsfetch {args} {
         set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
         set tmpxprt [file join ${tmppath} export]
         file mkdir ${tmpxprt}
-        set cmdstring "${cvs.cmd} ${cvs.pre_args} export -d ${cvs.file_prefix} ${cvs.args} ${cvs.post_args} 2>&1"
+        set cmdstring "${cvs.cmd} -z9 -f -d ${cvs.root} export -d ${cvs.file_prefix} ${cvs.args} ${cvs.module} 2>&1"
         if {[catch {system -notty -W ${tmpxprt} $cmdstring} result]} {
             delete ${tmppath}
             error [msgcat::mc "CVS checkout failed"]
@@ -601,12 +594,11 @@ proc portfetch::svnfetch {args} {
     }
 
     set proxy_args [svn_proxy_args ${svn.url}]
-    set svn.args "${svn.args} ${proxy_args}"
 
     ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
     set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
     set tmpxprt [file join ${tmppath} export]
-    set cmdstring "${svn.cmd} export ${svn.args} ${svn.url} ${tmpxprt}/${svn.file_prefix} 2>&1"
+    set cmdstring "${svn.cmd} --non-interactive ${proxy_args} export ${svn.url} ${tmpxprt}/${svn.file_prefix} 2>&1"
     if {[catch {system $cmdstring} result]} {
         delete ${tmppath}
         return -code error [msgcat::mc "Subversion checkout failed"]
@@ -620,7 +612,7 @@ proc portfetch::svnfetch {args} {
     ui_info "$UI_PREFIX Generating tarball ${svn.file}"
 
     # get timestamp of latest revision
-    set cmdstring "${svn.cmd} info --show-item last-changed-date ${svn.args} ${proxy_args} ${svn.url}"
+    set cmdstring "${svn.cmd} --non-interactive ${proxy_args} info --show-item last-changed-date ${svn.url}"
     if {[catch {exec -ignorestderr sh -c $cmdstring} result]} {
         delete ${tmppath}
         return -code error [msgcat::mc "Subversion info failed"]
