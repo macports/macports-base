@@ -3560,8 +3560,8 @@ proc macports::_deptypes_for_target {target workername} {
     switch -- $target {
         fetch       -
         checksum    {return depends_fetch}
-        extract     -
-        patch       {return "depends_fetch depends_extract"}
+        extract     {return "depends_fetch depends_extract"}
+        patch       {return "depends_fetch depends_extract depends_patch"}
         configure   -
         build       {return "depends_fetch depends_extract depends_build depends_lib"}
         test        {return "depends_fetch depends_extract depends_build depends_lib depends_run depends_test"}
