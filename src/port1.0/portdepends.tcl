@@ -37,12 +37,13 @@ namespace eval portdepends {
 }
 
 # define options
-options depends_fetch depends_extract depends_build depends_run depends_lib depends_test depends
+options depends_fetch depends_extract depends_patch depends_build depends_run depends_lib depends_test depends
 # Export options via PortInfo
-options_export depends_fetch depends_extract depends_build depends_lib depends_run depends_test
+options_export depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test
 
 option_proc depends_fetch portdepends::validate_depends_options
 option_proc depends_extract portdepends::validate_depends_options
+option_proc depends_patch portdepends::validate_depends_options
 option_proc depends_build portdepends::validate_depends_options
 option_proc depends_run portdepends::validate_depends_options
 option_proc depends_lib portdepends::validate_depends_options

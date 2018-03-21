@@ -266,7 +266,8 @@ if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
 set tempportindex [mktemp "/tmp/mports.portindex.XXXXXXXX"]
 set fd [open $tempportindex w]
 set save_prefix ${macports::prefix}
-foreach key {categories depends_fetch depends_extract depends_build \
+foreach key {categories depends_fetch depends_extract depends_patch \
+             depends_build \
              depends_lib depends_run depends_test description epoch homepage \
              long_description maintainers name platforms revision variants \
              version portdir replaced_by license installs_libs conflicts} {

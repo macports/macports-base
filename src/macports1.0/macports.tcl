@@ -3558,12 +3558,12 @@ proc macports::_deptypes_for_target {target workername} {
     switch -- $target {
         fetch       -
         checksum    {return depends_fetch}
-        extract     -
-        patch       {return "depends_fetch depends_extract"}
+        extract     {return "depends_fetch depends_extract"}
+        patch       {return "depends_fetch depends_extract depends_patch"}
         configure   -
-        build       {return "depends_fetch depends_extract depends_build depends_lib"}
-        test        {return "depends_fetch depends_extract depends_build depends_lib depends_run depends_test"}
-        destroot    {return "depends_fetch depends_extract depends_build depends_lib depends_run"}
+        build       {return "depends_fetch depends_extract depends_patch depends_build depends_lib"}
+        test        {return "depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test"}
+        destroot    {return "depends_fetch depends_extract depends_patch depends_build depends_lib depends_run"}
         dmg         -
         pkg         -
         mdmg        -
@@ -3572,7 +3572,7 @@ proc macports::_deptypes_for_target {target workername} {
                 (![global_option_isset ports_source_only] && [$workername eval {_archive_available}])} {
                 return "depends_lib depends_run"
             } else {
-                return "depends_fetch depends_extract depends_build depends_lib depends_run"
+                return "depends_fetch depends_extract depends_patch depends_build depends_lib depends_run"
             }
         }
         install     -
@@ -3583,7 +3583,7 @@ proc macports::_deptypes_for_target {target workername} {
                 || (![global_option_isset ports_source_only] && [$workername eval {_archive_available}])} {
                 return "depends_lib depends_run"
             } else {
-                return "depends_fetch depends_extract depends_build depends_lib depends_run"
+                return "depends_fetch depends_extract depends_patch depends_build depends_lib depends_run"
             }
         }
     }

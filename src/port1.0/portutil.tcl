@@ -1405,18 +1405,18 @@ proc target_run {ditem} {
                     switch $target {
                         fetch       -
                         checksum    { set deptypes "depends_fetch" }
-                        extract     -
-                        patch       { set deptypes "depends_fetch depends_extract" }
+                        extract     { set deptypes "depends_fetch depends_extract" }
+                        patch       { set deptypes "depends_fetch depends_extract depends_patch" }
                         configure   -
-                        build       { set deptypes "depends_fetch depends_extract depends_lib depends_build" }
-                        test        { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run depends_test" }
+                        build       { set deptypes "depends_fetch depends_extract depends_patch depends_lib depends_build" }
+                        test        { set deptypes "depends_fetch depends_extract depends_patch depends_lib depends_build depends_run depends_test" }
                         destroot    -
                         dmg         -
                         pkg         -
                         portpkg     -
                         mpkg        -
                         mdmg        -
-                        ""          { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run" }
+                        ""          { set deptypes "depends_fetch depends_extract depends_patch depends_lib depends_build depends_run" }
 
                         # install may be run given an archive, which means
                         # depends_fetch, _extract, _build dependencies have
