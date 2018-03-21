@@ -603,7 +603,7 @@ proc portfetch::svnfetch {args} {
     ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
     set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
     set tmpxprt [file join ${tmppath} export]
-    if {![info exists svn.subdirs]} {
+    if {${svn.subdirs} eq ""} {
         set cmdstring "${svn.cmd} --non-interactive ${proxy_args} export ${svn.url} ${tmpxprt}/${svn.file_prefix} 2>&1"
         if {[catch {system $cmdstring} result]} {
             delete ${tmppath}
