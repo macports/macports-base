@@ -2038,8 +2038,6 @@ proc _mportexec {target mport} {
         macports::pop_log
         return 0
     } else {
-        # An error occurred.
-        ui_debug $::errorInfo
         if {[info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
             ui_error "See $::debuglogname for details."
         }
