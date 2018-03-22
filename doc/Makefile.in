@@ -175,9 +175,10 @@ man: ${MAN} ${MAN:%=%.gz}
 
 %.xml %.html: | %.txt
 	@echo "* In order to modify and generate output from these source files,"
-	@echo "* please install asciidoc and xsltproc (port libxslt) and docbook-xsl or use"
-	@echo "*   $(MAKE) ASCIIDOC=.../bin/asciidoc XSLTPROC=../bin/xsltproc DOCBOOK_XSL=nonempty"
-	@echo "* with appropriate paths for asciidoc and xsltproc."
+	@echo "* please install the required tools into ${prefix} with"
+	@echo "*   sudo ${prefix}/bin/port install asciidoc libxslt docbook-xsl"
+	@echo "* or as an alternative, specify external paths for the tools"
+	@echo "*   make ASCIIDOC=.../bin/asciidoc XSLTPROC=../bin/xsltproc DOCBOOK_XSL=installed"
 	@exit 1
 endif
 
