@@ -24,6 +24,15 @@ Release 2.4.3 (2018-03-?? by ?)
     - Fix trace mode on macOS High Sierra 10.13.3
       (#55575, raimue in 995dde84)
 
+    - Using subport= with a nonexistent subport causes an error.
+      (#34619, jmr in 9c48520c)
+
+    - Sandbox allows read/write access to /dev/{u,}random.
+      (jmr in c8c1565f)
+
+    - Sandbox allows write access to /var/db/mds.
+      (#50469, cal in 1f765222)
+
 Release 2.4.2 (2017-10-05 by raimue)
     - Sandbox prevented ports to set suid permission bit on High Sierra.
       (#54963, raimue in d72ad486)
