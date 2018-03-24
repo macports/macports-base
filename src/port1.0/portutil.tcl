@@ -3157,6 +3157,17 @@ proc check_supported_archs {} {
     return 1
 }
 
+# check that this port is supported on current platform
+proc check_supported_platforms {} {
+    global os.platform platforms subport
+
+    if {[lsearch $platforms ${os.platform}] == -1} {
+        ui_error "$subport cannot be installed on this platform '${os.platform}' because it only supports '$platforms'."
+        return 1
+    }
+    return 0
+}
+
 # check if the installed xcode version is new enough
 proc _check_xcode_version {} {
     global os.subplatform macosx_version xcodeversion
