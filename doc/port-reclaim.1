@@ -28,7 +28,7 @@ port-reclaim \- Reclaims disk space\&.
 
 .sp
 .nf
-\fBport\fR [\fB\-vd\fR] \fBreclaim\fR
+\fBport\fR [\fB\-vdNy\fR] \fBreclaim\fR
     [\-\-enable\-reminders] [\-\-disable\-reminders]
 .fi
 .sp
@@ -68,6 +68,26 @@ Disable reminders to run
 
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
+
+
+.PP
+\fB\-N\fR
+.RS 4
+
+
+
+Non\-interactive mode, uninstall ports and remove distfiles without asking for confirmation\&.
+
+.RE
+.PP
+\fB\-y\fR
+.RS 4
+
+
+
+Perform a dry run\&. No ports will be uninstalled and distfiles will not be removed from disk, even if confirmed by the user\&.
+
+.RE
 
 .SH "SEE ALSO"
 
