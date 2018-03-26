@@ -56,7 +56,7 @@ namespace eval macports {
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
         master_site_local patch_site_local archive_site_local buildfromsource \
         revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds \
-        host_blacklist preferred_hosts sandbox_enable delete_la_files cxx_stdlib \
+        host_blacklist preferred_hosts sandbox_enable sandbox_network delete_la_files cxx_stdlib \
         packagemaker_path default_compilers pkg_post_unarchive_deletions ui_interactive"
     variable user_options {}
     variable portinterp_options "\
@@ -68,7 +68,7 @@ namespace eval macports {
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
         os_arch os_endian os_version os_major os_minor os_platform macosx_version macosx_sdk_version macosx_deployment_target \
-        packagemaker_path default_compilers sandbox_enable delete_la_files cxx_stdlib \
+        packagemaker_path default_compilers sandbox_enable sandbox_network delete_la_files cxx_stdlib \
         pkg_post_unarchive_deletions $user_options"
 
     # deferred options are only computed when needed.
@@ -1071,6 +1071,10 @@ match macports.conf.default."
 
     if {![info exists macports::sandbox_enable]} {
         set macports::sandbox_enable yes
+    }
+
+    if {![info exists macports::sandbox_network]} {
+        set macports::sandbox_network no
     }
 
     # make tools we run operate in UTF-8 mode

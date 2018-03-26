@@ -42,7 +42,8 @@ default portsandbox_profile {}
 # sandbox-exec -p '(version 1) (allow default) (deny file-write*) (allow file-write* <filter>)' some-command
 proc portsandbox::set_profile {target} {
     global os.major portsandbox_profile workpath distpath \
-        package.destpath configure.ccache ccache_dir
+        package.destpath configure.ccache ccache_dir \
+        sandbox_network configure.distcc
 
     switch $target {
         activate -
@@ -100,6 +101,16 @@ proc portsandbox::set_profile {target} {
                 append portsandbox_profile "subpath \"${dir}\"))"
             } else {
                 append portsandbox_profile "regex #\"^${dir}/\"))"
+            }
+        }
+    }
+
+    if {${sandbox_network}} {
+        if {$target ne "fetch" && $target ne "mirror"} {
+            if {${configure.distcc}} {
+                ui_warn "Sandbox will not deny network access due to distcc"
+            } else {
+                append portsandbox_profile " (deny network*)"
             }
         }
     }
