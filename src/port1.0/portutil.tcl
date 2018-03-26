@@ -2510,12 +2510,11 @@ proc set_ui_prefix {} {
 proc PortGroup {group version} {
     global porturl PortInfo _portgroup_search_dirs
 
-    lappend PortInfo(portgroups) [list $group $version]
-
     if {[info exists _portgroup_search_dirs]} {
         foreach dir $_portgroup_search_dirs {
             set groupFile ${dir}/${group}-${version}.tcl
             if {[file exists $groupFile]} {
+                lappend PortInfo(portgroups) [list $group $version $groupFile]
                 uplevel "source $groupFile"
                 ui_debug "Sourcing PortGroup $group $version from $groupFile"
                 return
@@ -2526,9 +2525,11 @@ proc PortGroup {group version} {
     set groupFile [getportresourcepath $porturl "port1.0/group/${group}-${version}.tcl"]
 
     if {[file exists $groupFile]} {
+        lappend PortInfo(portgroups) [list $group $version $groupFile]
         uplevel "source $groupFile"
         ui_debug "Sourcing PortGroup $group $version from $groupFile"
     } else {
+        lappend PortInfo(portgroups) [list $group $version ""]
         ui_warn "PortGroup ${group} ${version} could not be located. ${group}-${version}.tcl does not exist."
     }
 }

@@ -433,7 +433,7 @@ proc portinstall::install_main {args} {
             foreach pg $PortInfo(portgroups) {
                 set pgname [lindex $pg 0]
                 set pgversion [lindex $pg 1]
-                set groupFile [getportresourcepath $porturl "port1.0/group/${pgname}-${pgversion}.tcl"]
+                set groupFile [lindex $pg 2]
                 if {[file isfile $groupFile]} {
                     set pgsha256 [sha256 file $groupFile]
                     set pgsize [file size $groupFile]
