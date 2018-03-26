@@ -288,12 +288,13 @@ proc portfetch::get_full_mirror_sites_path {} {
 # Perform the full checksites/checkpatchfiles/checkdistfiles sequence.
 # This method is used by distcheck target.
 proc portfetch::checkfiles {urls} {
-    global global_mirror_site ports_fetch_no-mirrors
+    global global_mirror_site ports_fetch_no-mirrors license
     upvar $urls fetch_urls
 
     set sites [list patch_sites {} \
                     master_sites {}]
-    if {![info exists ports_fetch_no-mirrors] || ${ports_fetch_no-mirrors} eq "no"} {
+    if {(![info exists ports_fetch_no-mirrors] || ${ports_fetch_no-mirrors} eq "no") \
+            && [lsearch -exact -nocase $license "nomirror"] == -1} {
         set sites [list patch_sites [list $global_mirror_site PATCH_SITE_LOCAL] \
                         master_sites [list $global_mirror_site MASTER_SITE_LOCAL]]
     }
