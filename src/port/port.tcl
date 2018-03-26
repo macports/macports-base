@@ -350,6 +350,7 @@ proc url_to_portname { url {quiet 0} } {
     set savedir [pwd]
     set portname ""
     if {[catch {set ctx [mportopen $url]} result]} {
+        ui_debug "$::errorInfo"
         if {!$quiet} {
             ui_msg "Can't map the URL '$url' to a port description file (\"${result}\")."
             ui_msg "Please verify that the directory and portfile syntax are correct."
