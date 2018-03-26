@@ -10,6 +10,13 @@ Release 2.5.0 (????-??-?? by ?)
     - 'port reclaim' will automatically run 'port rev-upgrade' at the end.
       (danchr in eed6ffce)
 
+    - 'port reclaim' will only remove all unrequested ports as manual
+      selection of a subset could break dependents.
+      (g5pw in 3578400b)
+
+    - 'port reclaim' respects -N for non-interactive and -y for dry run mode.
+      (#53857, raimue in 08d0a695)
+
     - New flag 'port fetch --no-mirrors' which will only fetch from URLs
       in master_sites.
       (raimue in 0cf1faf2)
