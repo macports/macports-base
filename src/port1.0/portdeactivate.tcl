@@ -56,12 +56,11 @@ proc portdeactivate::deactivate_start {args} {
 }
 
 proc portdeactivate::deactivate_main {args} {
-    global subport version revision portvariants user_options UI_PREFIX
+    global subport version revision portvariants user_options
 
-    if {[portstartupitem::is_loaded]} {
-        ui_notice "$UI_PREFIX [format [msgcat::mc "Unloading startupitem for %s"] $subport]"
+    if {[portstartupitem::loaded] ne ""} {
         if {[eval_targets "unload"]} {
-            ui_warn [format [msgcat::mc "Failed to unload startupitem for %s (continuing anyway)"] $subport]
+            ui_warn [format [msgcat::mc "Failed to unload startupitem(s) for %s (continuing anyway)"] $subport]
         }
     }
 

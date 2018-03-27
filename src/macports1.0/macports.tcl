@@ -4039,9 +4039,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
     # check if the startupitem is loaded, so we can load again it after upgrading
     # (deactivating the old version will unload the startupitem)
-    set load_startupitem 0
+    set loaded_startupitems {}
     if {$portname eq $newname} {
-        set load_startupitem [$workername eval {portstartupitem::is_loaded}]
+        set loaded_startupitems [$workername eval {portstartupitem::loaded}]
     }
 
     # are we installing an existing version due to force or epoch override?
@@ -4108,9 +4108,13 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             catch {mportclose $mport}
             return 1
         }
-        if {$load_startupitem && [catch {mportexec $mport load} result]} {
-            ui_debug $::errorInfo
-            ui_warn "Error loading startupitem for ${newname}: $result"
+        if {$loaded_startupitems ne ""} {
+            $workername eval "set ::portstartupitem::load_only [list $loaded_startupitems]"
+            if {[catch {mportexec $mport load} result]} {
+                ui_debug $::errorInfo
+                ui_warn "Error loading startupitem(s) for ${newname}: $result"
+            }
+            $workername eval "unset ::portstartupitem::load_only"
         }
     }
 
