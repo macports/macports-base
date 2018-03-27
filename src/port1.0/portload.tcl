@@ -43,7 +43,6 @@ namespace eval portload {
 }
 
 options load.asroot
-default load.asroot yes
 
 set_ui_prefix
 

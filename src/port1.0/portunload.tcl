@@ -43,7 +43,6 @@ namespace eval portunload {
 }
 
 options unload.asroot
-default unload.asroot yes
 
 set_ui_prefix
 

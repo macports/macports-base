@@ -42,7 +42,6 @@ namespace eval portreload {
 }
 
 options reload.asroot
-default reload.asroot yes
 
 set_ui_prefix
 
