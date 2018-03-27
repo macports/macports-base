@@ -33,6 +33,7 @@ set distcheck_fixture_setup {
     set master_sites $porturl
     set extract.suffix .tar.gz
     set fetch.type standard
+    set license ""
 
     # replace curl with a mock
     rename curl _save_curl
