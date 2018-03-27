@@ -28,6 +28,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package provide portsandbox 1.0
+package require porttrace 1.0
 
 namespace eval portsandbox {
 }
@@ -43,7 +44,7 @@ default portsandbox_profile {}
 proc portsandbox::set_profile {target} {
     global os.major portsandbox_profile workpath distpath \
         package.destpath configure.ccache ccache_dir \
-        sandbox_network configure.distcc
+        sandbox_network configure.distcc porttrace
 
     switch $target {
         activate -
@@ -111,6 +112,11 @@ proc portsandbox::set_profile {target} {
                 ui_warn "Sandbox will not deny network access due to distcc"
             } else {
                 append portsandbox_profile " (deny network*)"
+                if {$porttrace} {
+                    # allow accessing the darwintrace fifo in trace mode
+                    set template [string trimright ${porttrace::fifo_mktemp_template} "X"]
+                    append portsandbox_profile " (allow network-outbound (to unix-socket) (regex #\"^${template}\"))"
+                }
             }
         }
     }
