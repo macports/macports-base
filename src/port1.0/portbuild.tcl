@@ -173,7 +173,11 @@ proc portbuild::build_getjobsarg {args} {
         return ""
     }
 
-    if {![exists build.jobs] || !([string match "*make*" [option build.cmd]] || [string match "*ninja*" [option build.cmd]] || [string match "*scons*" [option build.cmd]])} {
+    if {![exists build.jobs] || \
+            !([string match "*make*" [option build.cmd]] || \
+              [string match "*ninja*" [option build.cmd]] || \
+              [string match "*scons*" [option build.cmd]] || \
+              [string match "*cargo*" [option build.cmd]])} {
         return ""
     }
     set jobs [option build.jobs]
