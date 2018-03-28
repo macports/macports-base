@@ -196,9 +196,6 @@ MP_PROG_DAEMONDO
 
 AC_SUBST(EXTRA_PROGS)
 
-# set default ports-directory
-PORTS_DIR_DEFAULT=`pwd | sed -e "s/base/ports/"`
-
 # Check for paths
 AC_PREFIX_DEFAULT(/opt/local)
 AC_ARG_WITH(
@@ -212,7 +209,6 @@ if test x$prefix = x/usr/local -o x$prefix = x/usr && test x$with_unsupported_pr
 you understand this and wish to do so anyway, pass --with-unsupported-prefix \
 to configure.])
 fi
-MP_PATH_PORTSDIR([$PORTS_DIR_DEFAULT])
 MP_PATH_MPCONFIGDIR
 
 # Check whether to install without root privileges

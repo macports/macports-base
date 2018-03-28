@@ -681,7 +681,6 @@ RUNUSR
 DSTGRP
 DSTUSR
 MPCONFIGDIR
-PORTSDIR
 EXTRA_PROGS
 HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER
 HAVE_FRAMEWORK_IOKIT
@@ -832,7 +831,6 @@ with_xar
 with_xz
 enable_werror
 with_unsupported_prefix
-with_ports_dir
 with_no_root_privileges
 with_install_user
 with_install_group
@@ -1503,7 +1501,6 @@ Optional Packages:
   --with-unsupported-prefix
                           acknowledge that you accept the consequences of
                           using an unsupported prefix
-  --with-ports-dir=DIR    specify alternate ports directory
   --with-no-root-privileges
                           specify that MacPorts should be installed in your
                           home directory
@@ -6414,9 +6411,6 @@ $as_echo "${result}" >&6; }
 
 
 
-# set default ports-directory
-PORTS_DIR_DEFAULT=`pwd | sed -e "s/base/ports/"`
-
 # Check for paths
 
 
@@ -6432,44 +6426,6 @@ if test x$prefix = x/usr/local -o x$prefix = x/usr && test x$with_unsupported_pr
 you understand this and wish to do so anyway, pass --with-unsupported-prefix \
 to configure." "$LINENO" 5
 fi
-
-
-
-
-# Check whether --with-ports-dir was given.
-if test "${with_ports_dir+set}" = set; then :
-  withval=$with_ports_dir;  portsdir="$withval"
-fi
-
-
-
- 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ports tree" >&5
-$as_echo_n "checking for ports tree... " >&6; }
- 	if test "x$portsdir" != "x" ; then
- 	  if test -d "$portsdir" -a -e "$portsdir/PortIndex" ; then
- 		:
- 	  else
- 		as_fn_error $? "$portsdir not a valid ports tree" "$LINENO" 5
- 	  fi
- 	else
- 		 		if test "x$PORTS_DIR_DEFAULT" != "x" ; then
- 		  if test -d "$PORTS_DIR_DEFAULT" -a -e "$PORTS_DIR_DEFAULT/PortIndex" ; then
- 			portsdir=$PORTS_DIR_DEFAULT
- 		  fi
- 		fi
- 	fi
-
- 	if test "x$portsdir" != "x" ; then
- 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $portsdir" >&5
-$as_echo "$portsdir" >&6; }
- 		PORTSDIR="$portsdir"
-
- 	else
- 		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: No ports tree found" >&5
-$as_echo "$as_me: WARNING: No ports tree found" >&2;}
- 	fi
-
-
 
 
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for MacPorts config directory" >&5
