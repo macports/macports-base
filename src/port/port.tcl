@@ -1761,7 +1761,7 @@ proc action_get_usage { action } {
         set needed [action_needs_portlist $action]
         if {[ACTION_ARGS_STRINGS] == $needed} {
             set args " <arguments>"
-        } elseif {[ACTION_ARGS_STRINGS] == $needed} {
+        } elseif {[ACTION_ARGS_PORTS] == $needed} {
             set args " <portlist>"
         }
 
