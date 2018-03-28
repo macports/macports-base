@@ -673,6 +673,7 @@ GREP
 CPP
 UNIVERSAL_ARCHFLAGS
 UNIVERSAL_ARCHS
+startupitem_install
 MPFRAMEWORKSDIR
 MPAPPLICATIONSDIR
 DSTMODE
@@ -840,6 +841,7 @@ with_directory_mode
 with_shared_directory
 with_applications_dir
 with_frameworks_dir
+with_startupitems
 with_universal_archs
 enable_readline
 with_curlprefix
@@ -1517,6 +1519,7 @@ Optional Packages:
   --with-shared-directory use 0775 permissions for installed directories
   --with-applications-dir applications installation directory
   --with-frameworks-dir   frameworks installation directory
+  --without-startupitems  set "startupitem_install no" in macports.conf
   --with-universal-archs="CPU"
                           universal CPU architectures (space separated)
   --with-curlprefix       base directory for the curl install ('/usr', '/usr/local', ...)
@@ -6691,6 +6694,29 @@ $as_echo_n "checking for Frameworks installation directory... " >&6; }
 $as_echo "$MPFRAMEWORKSDIR" >&6; }
 
 	prefix=$oldprefix
+
+
+
+# Check whether --with-startupitems was given.
+if test "${with_startupitems+set}" = set; then :
+  withval=$with_startupitems; with_startupitems=$withval
+else
+  with_startupitems=yes
+fi
+
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for startupitem_install" >&5
+$as_echo_n "checking for startupitem_install... " >&6; }
+
+	if test "x$with_startupitems" != "xno" ; then
+		startupitem_install="#startupitem_install	yes"
+	else
+		startupitem_install="startupitem_install	no"
+	fi
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $with_startupitems" >&5
+$as_echo "$with_startupitems" >&6; }
+
 
 
 # Check for universal options

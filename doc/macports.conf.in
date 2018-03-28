@@ -131,7 +131,7 @@ universal_archs     	@UNIVERSAL_ARCHS@
 # "no", symlinks will not be created; otherwise, symlinks will be placed
 # in /Library/LaunchDaemons or /Library/LaunchAgents as appropriate.
 # This setting only applies when building ports from source.
-#startupitem_install	yes
+@startupitem_install@
 
 # Whether to allow ports to automatically load their StartupItems.
 # If set to "no", StartupItems will never be loaded unless the user
