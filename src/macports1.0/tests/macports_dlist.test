@@ -18,11 +18,11 @@ source ../macports_dlist.tcl
 test dlist_match_multi {
     Dlist match multi unit test.
 } -setup {
-    set mport [mportopen file://.]
-    set crit {
-       provides gcc_select
-       porturl file://.
-    }
+    set mport [mportopen file://[pwd]]
+    set crit [list \
+       provides gcc_select \
+       porturl file://[pwd] \
+    ]
     set crit2 { provides fondu2 }
 
 } -body {

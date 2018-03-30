@@ -1734,6 +1734,15 @@ proc macports::getdefaultportresourcepath {{path {}}} {
 proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
     global macports::portdbpath macports::portconf macports::open_mports auto_path
 
+    # normalize porturl for local files
+    if {[regexp {^file://(.*)} $porturl -> path]} {
+        set realporturl "file://[file normalize $path]"
+        if {$porturl ne $realporturl} {
+            set porturl $realporturl
+            ui_debug "Using normalized porturl $porturl"
+        }
+    }
+
     # Look for an already-open MPort with the same URL.
     # if found, return the existing reference and bump the refcount.
     if {$nocache ne ""} {
