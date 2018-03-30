@@ -214,16 +214,22 @@ for {set i 0} {$i < $argc} {incr i} {
                             exit 1
                         }
                     }
-                    lappend port_options cxx_stdlib $cxx_stdlib
                     set os_arch [lindex $platlist 3]
                 } else {
+                    if {$os_platform eq "macosx"} {
+                        if {$os_major < 13} {
+                            set cxx_stdlib libstdc++
+                        } else {
+                            set cxx_stdlib libc++
+                        }
+                    }
                     set os_arch [lindex $platlist 2]
                 }
+                lappend port_options os.platform $os_platform os.major $os_major os.arch $os_arch
                 if {$os_platform eq "macosx"} {
-                    lappend port_options os.subplatform $os_platform os.universal_supported yes
+                    lappend port_options os.subplatform $os_platform os.universal_supported yes cxx_stdlib $cxx_stdlib
                     set os_platform darwin
                 }
-                lappend port_options os.platform $os_platform os.major $os_major os.arch $os_arch
             } elseif {$arg eq "-f"} { # Completely rebuild index
                 set full_reindex 1
             } elseif {$arg eq "-e"} { # Non-zero exit code on errors
