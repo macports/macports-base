@@ -2762,9 +2762,10 @@ proc action_reclaim { action portlist opts } {
     if {$status == 0 &&
         ![info exists options(ports_upgrade_no-rev-upgrade)] &&
         ${macports::revupgrade_autorun}} {
-        return [action_revupgrade $action $portlist $opts]
+        set status [action_revupgrade $action $portlist $opts]
     }
 
+    return $status
 }
 
 
