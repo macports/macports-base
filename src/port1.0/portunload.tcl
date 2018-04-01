@@ -43,15 +43,16 @@ namespace eval portunload {
 }
 
 options unload.asroot
-default unload.asroot yes
 
 set_ui_prefix
 
 proc portunload::unload_main {args} {
-    global startupitem.location startupitem.plist
+    global UI_PREFIX subport
     set launchctl_path ${portutil::autoconf::launchctl_path}
 
-    foreach { path } "/Library/${startupitem.location}/${startupitem.plist}" {
+    portstartupitem::foreach_startupitem {
+        ui_notice "$UI_PREFIX [format [msgcat::mc "Unloading startupitem '%s' for %s"] $si_name $subport]"
+        set path /Library/${si_location}/${si_plist}
         if {$launchctl_path eq ""} {
             return -code error [format [msgcat::mc "launchctl command was not found by configure"]]
         } elseif {![file exists $path]} {
@@ -60,6 +61,6 @@ proc portunload::unload_main {args} {
             exec -ignorestderr $launchctl_path unload -w $path
         }
     }
-    
+
     return
 }

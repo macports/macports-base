@@ -18,9 +18,7 @@ source ./library.tcl
 macports_worker_init
 
 
-test distcheck_main {
-    Distcheck main unit test.
-} -setup {
+set distcheck_fixture_setup {
     set portpath $pwd
     set filespath $pwd/files
 
@@ -34,20 +32,41 @@ test distcheck_main {
     set porturl "http://distfiles.macports.org/gcc_select/"
     set master_sites $porturl
     set extract.suffix .tar.gz
-
-} -body {
     set fetch.type standard
-    set distcheck.type moddate
-    if {[portdistcheck::distcheck_main] != ""} {
-        return "FAIL: unable to download or check file, type moddate"
-    }
-    set distcheck.type filesize
-    if {[portdistcheck::distcheck_main] != ""} {
-        return "FAIL: unable to download or check file, type filesize"
-    }
+    set license ""
 
-    return "Distcheck main successful."
-} -result "Distcheck main successful."
+    # replace curl with a mock
+    rename curl _save_curl
+    proc curl {operation args} {
+        global _test_isnewer
+        switch $operation {
+            isnewer {
+                return ${_test_isnewer}
+            }
+        }
+    }
+}
+set distcheck_fixture_cleanup {
+    # restore original curl
+    rename curl ""
+    rename _save_curl curl
+}
+
+test distcheck_moddate_newer {
+    Check that files on servers that are newer than the Portfile cause a warning.
+} -setup $distcheck_fixture_setup -cleanup $distcheck_fixture_cleanup -body {
+    set distcheck.type moddate
+    set _test_isnewer 1
+    return [portdistcheck::distcheck_main]
+} -errorOutput "Warning: port gcc_select: .* is newer than Portfile" -match regexp
+
+test distcheck_moddate_not_newer {
+    Check that files on server that are not newer than the Portfile do not cause a warning
+} -setup $distcheck_fixture_setup -cleanup $distcheck_fixture_cleanup -body {
+    set distcheck.type moddate
+    set _test_isnewer 0
+    return [portdistcheck::distcheck_main]
+} -errorOutput ""
 
 
 cleanupTests

@@ -43,23 +43,27 @@ namespace eval portload {
 }
 
 options load.asroot
-default load.asroot yes
 
 set_ui_prefix
 
 proc portload::load_main {args} {
-    global startupitem.location startupitem.plist
+    global UI_PREFIX subport
     set launchctl_path ${portutil::autoconf::launchctl_path}
 
-    foreach { path } "/Library/${startupitem.location}/${startupitem.plist}" {
-        if {$launchctl_path eq ""} {
-            return -code error [format [msgcat::mc "launchctl command was not found by configure"]]
-        } elseif {![file exists $path]} {
-            return -code error [format [msgcat::mc "Launchd plist %s was not found"] $path]
-        } else {
-            exec -ignorestderr $launchctl_path load -w $path
+    portstartupitem::foreach_startupitem {
+        if {(![info exists ::portstartupitem::load_only] || $si_name in ${::portstartupitem::load_only})
+            && (![info exists ::portstartupitem::autostart_only] || !$::portstartupitem::autostart_only || $si_autostart)} {
+            ui_notice "$UI_PREFIX [format [msgcat::mc "Loading startupitem '%s' for %s"] $si_name $subport]"
+            set path /Library/${si_location}/${si_plist}
+            if {$launchctl_path eq ""} {
+                return -code error [format [msgcat::mc "launchctl command was not found by configure"]]
+            } elseif {![file exists $path]} {
+                return -code error [format [msgcat::mc "Launchd plist %s was not found"] $path]
+            } else {
+                exec -ignorestderr $launchctl_path load -w $path
+            }
         }
     }
-    
+
     return
 }

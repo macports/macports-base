@@ -62,74 +62,6 @@ proc print_usage {{verbose 1}} {
     }
 }
 
-proc print_help {args} {
-    global action_array
-
-    print_usage 0
-
-    # Generate and format the command list from the action_array
-    set cmds ""
-    set lineLen 0
-    foreach cmd [lsort [array names action_array]] {
-        if {$lineLen > 65} {
-            set cmds "$cmds,\n"
-            set lineLen 0
-        }
-        if {$lineLen == 0} {
-            set new "$cmd"
-        } else {
-            set new ", $cmd"
-        }
-        incr lineLen [string length $new]
-        set cmds "$cmds$new"
-    }
-
-    set cmdText "Supported actions
-------------------
-$cmds
-"
-
-    set text {
-Pseudo-portnames
-----------------
-Pseudo-portnames are words that may be used in place of a portname, and
-which expand to some set of ports. The common pseudo-portnames are:
-all, current, active, inactive, actinact, installed, uninstalled, outdated,
-obsolete, requested, unrequested and leaves.
-These pseudo-portnames expand to the set of ports named.
-
-Pseudo-portnames starting with variants:, variant:, description:, depends:,
-depends_lib:, depends_run:, depends_build:, depends_fetch:, depends_extract:,
-depends_test:,
-portdir:, homepage:, epoch:, platforms:, platform:, name:, long_description:,
-maintainers:, maintainer:, categories:, category:, version:, revision:, and
-license: each select a set of ports based on a regex search of metadata
-about the ports. In all such cases, a standard regex pattern following
-the colon will be used to select the set of ports to which the
-pseudo-portname expands.
-
-Pseudo-portnames starting with depof:, rdepof:, rdepends:, dependentof:, and
-rdependentof: select ports that are direct or recursive dependencies or
-dependents of the following portname, respectively.
-
-Portnames that contain standard glob characters will be expanded to the
-set of ports matching the glob pattern.
-
-Port expressions
-----------------
-Portnames, port glob patterns, and pseudo-portnames may be logically
-combined using expressions consisting of and, or, not, !, (, and ).
-
-For more information
---------------------
-See man pages: port(1), macports.conf(5), portfile(7), portgroup(7),
-porthier(7), portstyle(7). Also, see https://www.macports.org.
-    }
-
-    puts "$cmdText$text"
-}
-
-
 # Produce error message and exit
 proc fatal s {
     global argv0
@@ -350,6 +282,7 @@ proc url_to_portname { url {quiet 0} } {
     set savedir [pwd]
     set portname ""
     if {[catch {set ctx [mportopen $url]} result]} {
+        ui_debug "$::errorInfo"
         if {!$quiet} {
             ui_msg "Can't map the URL '$url' to a port description file (\"${result}\")."
             ui_msg "Please verify that the directory and portfile syntax are correct."
@@ -996,7 +929,7 @@ proc get_rdepends_ports {portname} {
     if {![info exists ::portDependenciesArray]} {
         # make an associative array of all the port names and their (reverse) dependencies
         # much faster to build this once than to call mportsearch thousands of times
-        set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run depends_test}
+        set deptypes {depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test}
         foreach {pname pinfolist} [mportlistall] {
             array unset pinfo
             array set pinfo $pinfolist
@@ -1353,6 +1286,7 @@ proc element { resname } {
         ^(depends_run):(.*)      -
         ^(depends_extract):(.*)  -
         ^(depends_fetch):(.*)    -
+        ^(depends_patch):(.*)    -
         ^(depends_test):(.*)     -
         ^(replaced_by):(.*)      -
         ^(revision):(.*)         -
@@ -1381,6 +1315,7 @@ proc element { resname } {
             add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_run"]
             add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_extract"]
             add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_fetch"]
+            add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_patch"]
             add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_test"]
 
             set el 1
@@ -1782,7 +1717,7 @@ proc action_get_usage { action } {
         set needed [action_needs_portlist $action]
         if {[ACTION_ARGS_STRINGS] == $needed} {
             set args " <arguments>"
-        } elseif {[ACTION_ARGS_STRINGS] == $needed} {
+        } elseif {[ACTION_ARGS_PORTS] == $needed} {
             set args " <portlist>"
         }
 
@@ -2049,6 +1984,7 @@ proc action_info { action portlist opts } {
             categories      {", "  ", "  ","}
             depends_fetch   {", "  ", "  ","}
             depends_extract {", "  ", "  ","}
+            depends_patch   {", "  ", "  ","}
             depends_build   {", "  ", "  ","}
             depends_lib     {", "  ", "  ","}
             depends_run     {", "  ", "  ","}
@@ -2067,6 +2003,7 @@ proc action_info { action portlist opts } {
             variants    Variants
             depends_fetch "Fetch Dependencies"
             depends_extract "Extract Dependencies"
+            depends_patch "Patch Dependencies"
             depends_build "Build Dependencies"
             depends_run "Runtime Dependencies"
             depends_lib "Library Dependencies"
@@ -2091,6 +2028,7 @@ proc action_info { action portlist opts } {
             variants 22
             depends_fetch 22
             depends_extract 22
+            depends_patch 22
             depends_build 22
             depends_run 22
             depends_lib 22
@@ -2111,6 +2049,7 @@ proc action_info { action portlist opts } {
             array unset options ports_info_depends
             set options(ports_info_depends_fetch) yes
             set options(ports_info_depends_extract) yes
+            set options(ports_info_depends_patch) yes
             set options(ports_info_depends_build) yes
             set options(ports_info_depends_lib) yes
             set options(ports_info_depends_run) yes
@@ -2165,7 +2104,9 @@ proc action_info { action portlist opts } {
                 ports_info_skip_line
                 ports_info_long_description ports_info_homepage
                 ports_info_skip_line ports_info_depends_fetch
-                ports_info_depends_extract ports_info_depends_build
+                ports_info_depends_extract
+                ports_info_depends_patch
+                ports_info_depends_build
                 ports_info_depends_lib ports_info_depends_run
                 ports_info_depends_test
                 ports_info_conflicts
@@ -2821,9 +2762,10 @@ proc action_reclaim { action portlist opts } {
     if {$status == 0 &&
         ![info exists options(ports_upgrade_no-rev-upgrade)] &&
         ${macports::revupgrade_autorun}} {
-        return [action_revupgrade $action $portlist $opts]
+        set status [action_revupgrade $action $portlist $opts]
     }
 
+    return $status
 }
 
 
@@ -3088,7 +3030,7 @@ proc action_deps { action portlist opts } {
         set deplist {}
         set deps_output {}
         set ndeps 0
-        array set labeldict {depends_fetch Fetch depends_extract Extract depends_build Build depends_lib Library depends_run Runtime depends_test Test}
+        array set labeldict {depends_fetch Fetch depends_extract Extract depends_patch Patch depends_build Build depends_lib Library depends_run Runtime depends_test Test}
         # get list of direct deps
         foreach type $deptypes {
             if {[info exists portinfo($type)]} {
@@ -3729,6 +3671,7 @@ proc action_search { action portlist opts } {
         array unset options ports_search_depends
         set options(ports_search_depends_fetch) yes
         set options(ports_search_depends_extract) yes
+        set options(ports_search_depends_patch) yes
         set options(ports_search_depends_build) yes
         set options(ports_search_depends_lib) yes
         set options(ports_search_depends_run) yes
@@ -4435,6 +4378,7 @@ proc action_needs_portlist { action } {
 array set cmd_opts_array {
     edit        {{editor 1}}
     info        {category categories conflicts depends_fetch depends_extract
+                 depends_patch
                  depends_build depends_lib depends_run depends_test
                  depends description epoch fullname heading homepage index license
                  line long_description
@@ -4445,7 +4389,8 @@ array set cmd_opts_array {
     rdeps       {index no-build full}
     rdependents {full}
     search      {case-sensitive category categories depends_fetch
-                 depends_extract depends_build depends_lib depends_run depends_test
+                 depends_extract depends_patch
+                 depends_build depends_lib depends_run depends_test
                  depends description epoch exact glob homepage line
                  long_description maintainer maintainers name platform
                  platforms portdir regex revision variant variants version}
@@ -5439,7 +5384,7 @@ namespace eval portclient::questions {
         # Print portname or port list suitably
         if {[llength $ports] == 1} {
             puts -nonewline " "
-            puts [string map {@ " @"} $ports]
+            puts [string map {@ " @"} [lindex $ports 0]]
         } elseif {[llength $ports] == 0} {
             puts -nonewline " "
         } else {

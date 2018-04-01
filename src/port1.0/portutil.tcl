@@ -590,7 +590,7 @@ proc variant {args} {
     }
     ditem_key $ditem name "[join [ditem_key $ditem provides] -]"
 
-    if {![regexp {^[A-Za-z0-9_]+$} [ditem_key $ditem provides]]} {
+    if {![regexp {^[A-Za-z0-9_.]+$} [ditem_key $ditem provides]]} {
         set name [ditem_key $ditem provides] 
         ditem_delete $ditem
         return -code error "Variant name $name contains invalid characters"
@@ -1405,18 +1405,18 @@ proc target_run {ditem} {
                     switch $target {
                         fetch       -
                         checksum    { set deptypes "depends_fetch" }
-                        extract     -
-                        patch       { set deptypes "depends_fetch depends_extract" }
+                        extract     { set deptypes "depends_fetch depends_extract" }
+                        patch       { set deptypes "depends_fetch depends_extract depends_patch" }
                         configure   -
-                        build       { set deptypes "depends_fetch depends_extract depends_lib depends_build" }
-                        test        { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run depends_test" }
+                        build       { set deptypes "depends_fetch depends_extract depends_patch depends_lib depends_build" }
+                        test        { set deptypes "depends_fetch depends_extract depends_patch depends_lib depends_build depends_run depends_test" }
                         destroot    -
                         dmg         -
                         pkg         -
                         portpkg     -
                         mpkg        -
                         mdmg        -
-                        ""          { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run" }
+                        ""          { set deptypes "depends_fetch depends_extract depends_patch depends_lib depends_build depends_run" }
 
                         # install may be run given an archive, which means
                         # depends_fetch, _extract, _build dependencies have
@@ -2223,7 +2223,7 @@ proc handle_default_variants {option action {value ""}} {
             }
             array set vinfo $PortInfo(vinfo)
             foreach v $value {
-                if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant]} {
+                if {[regexp {([-+])([-A-Za-z0-9_.]+)} $v whole val variant]} {
                     # Retrieve the information associated with this variant.
                     if {![info exists vinfo($variant)]} {
                         set vinfo($variant) {}
@@ -2331,7 +2331,7 @@ proc adduser {name args} {
             set failed? 1
         } catch {{CHILDSTATUS *} eCode eMessage} {
             foreach {- pid code} $eCode {
-                ui_error "dscl($pid) termined with an exit status of $code"
+                ui_error "dscl($pid) terminated with an exit status of $code"
                 ui_debug "dscl printed: $eMessage"
             }
             
@@ -2510,12 +2510,11 @@ proc set_ui_prefix {} {
 proc PortGroup {group version} {
     global porturl PortInfo _portgroup_search_dirs
 
-    lappend PortInfo(portgroups) [list $group $version]
-
     if {[info exists _portgroup_search_dirs]} {
         foreach dir $_portgroup_search_dirs {
             set groupFile ${dir}/${group}-${version}.tcl
             if {[file exists $groupFile]} {
+                lappend PortInfo(portgroups) [list $group $version $groupFile]
                 uplevel "source $groupFile"
                 ui_debug "Sourcing PortGroup $group $version from $groupFile"
                 return
@@ -2526,9 +2525,11 @@ proc PortGroup {group version} {
     set groupFile [getportresourcepath $porturl "port1.0/group/${group}-${version}.tcl"]
 
     if {[file exists $groupFile]} {
+        lappend PortInfo(portgroups) [list $group $version $groupFile]
         uplevel "source $groupFile"
         ui_debug "Sourcing PortGroup $group $version from $groupFile"
     } else {
+        lappend PortInfo(portgroups) [list $group $version ""]
         ui_warn "PortGroup ${group} ${version} could not be located. ${group}-${version}.tcl does not exist."
     }
 }

@@ -126,15 +126,13 @@ proc portdestroot::destroot_main {args} {
 }
 
 proc portdestroot::destroot_finish {args} {
-    global UI_PREFIX destroot prefix subport startupitem.create destroot.violate_mtree \
+    global UI_PREFIX destroot prefix subport destroot.violate_mtree \
            applications_dir frameworks_dir destroot.keepdirs destroot.delete_la_files \
            os.platform os.version
     variable oldmask
 
     # Create startup-scripts/items
-    if {[tbool startupitem.create]} {
-        portstartupitem::startupitem_create
-    }
+    portstartupitem::startupitem_create
 
     foreach fileToDelete {share/info/dir lib/charset.alias} {
         if {[file exists "${destroot}${prefix}/${fileToDelete}"]} {

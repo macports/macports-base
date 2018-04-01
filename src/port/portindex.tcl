@@ -8,6 +8,7 @@ package require Pextlib
 
 # Globals
 set full_reindex 0
+set permit_error 0
 set stats(total) 0
 set stats(failed) 0
 set stats(skipped) 0
@@ -22,9 +23,10 @@ mportinit ui_options global_options global_variations
 # Standard procedures
 proc print_usage args {
     global argv0
-    puts "Usage: $argv0 \[-df\] \[-o output directory\] \[-p plat_ver_arch\] \[directory\]"
+    puts "Usage: $argv0 \[-dfe\] \[-o output directory\] \[-p plat_ver_arch\] \[directory\]"
     puts "-d:\tOutput debugging information"
     puts "-f:\tDo a full re-index instead of updating"
+    puts "-e:\tExit code indicates if ports failed to parse"
     puts "-o:\tOutput all files to specified directory"
     puts "-p:\tPretend to be on another platform"
 }
@@ -205,6 +207,8 @@ for {set i 0} {$i < $argc} {incr i} {
                 lappend port_options os.platform $os_platform os.major $os_major os.arch $os_arch
             } elseif {$arg eq "-f"} { # Completely rebuild index
                 set full_reindex 1
+            } elseif {$arg eq "-e"} { # Non-zero exit code on errors
+                set permit_error 1
             } else {
                 puts stderr "Unknown option: $arg"
                 print_usage
@@ -266,7 +270,8 @@ if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
 set tempportindex [mktemp "/tmp/mports.portindex.XXXXXXXX"]
 set fd [open $tempportindex w]
 set save_prefix ${macports::prefix}
-foreach key {categories depends_fetch depends_extract depends_build \
+foreach key {categories depends_fetch depends_extract depends_patch \
+             depends_build \
              depends_lib depends_run depends_test description epoch homepage \
              long_description maintainers name platforms revision variants \
              version portdir replaced_by license installs_libs conflicts} {
@@ -299,3 +304,7 @@ puts "\nTotal number of ports parsed:\t$stats(total)\
       \nPorts successfully parsed:\t[expr {$stats(total) - $stats(failed)}]\
       \nPorts failed:\t\t\t$stats(failed)\
       \nUp-to-date ports skipped:\t$stats(skipped)\n"
+
+if {${permit_error} && $stats(failed) > 0} {
+    exit 1
+}

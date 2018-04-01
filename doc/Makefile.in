@@ -13,7 +13,7 @@ XSLTPROC=    $(wildcard ${prefix}/bin/xsltproc)
 DOCBOOK_XSL= $(wildcard ${prefix}/share/xsl/docbook-xsl/manpages/docbook.xsl)
 endif
 
-ASCIIDOCFLAGS=	-f asciidoc.conf -a manversion=${MACPORTS_VERSION} -a revdate="$$(git log -1 --date=short --format=format:%ad -- $< || true)"
+ASCIIDOCFLAGS=	-f asciidoc.conf -a manversion=${MACPORTS_VERSION} -a revdate=${MACPORTS_VERSION}
 XSLTFLAGS=	-nonet
 
 MAN1=	\
@@ -175,9 +175,10 @@ man: ${MAN} ${MAN:%=%.gz}
 
 %.xml %.html: | %.txt
 	@echo "* In order to modify and generate output from these source files,"
-	@echo "* please install asciidoc and xsltproc (port libxslt) and docbook-xsl or use"
-	@echo "*   $(MAKE) ASCIIDOC=.../bin/asciidoc XSLTPROC=../bin/xsltproc DOCBOOK_XSL=nonempty"
-	@echo "* with appropriate paths for asciidoc and xsltproc."
+	@echo "* please install the required tools into ${prefix} with"
+	@echo "*   sudo ${prefix}/bin/port install asciidoc libxslt docbook-xsl"
+	@echo "* or as an alternative, specify external paths for the tools"
+	@echo "*   make ASCIIDOC=.../bin/asciidoc XSLTPROC=../bin/xsltproc DOCBOOK_XSL=installed"
 	@exit 1
 endif
 

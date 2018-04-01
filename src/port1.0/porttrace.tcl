@@ -42,6 +42,15 @@ namespace eval porttrace {
     variable fifo
 
     ##
+    # The mktemp(3) template used to generate a filename for the fifo.
+    # Note that Unix sockets are limited to 109 characters and that the
+    # macports user must be able to connect to the socket (and in case of
+    # non-root installations, the current user, too). We're not prefixing the
+    # path in /tmp with a separate macports-specific directory, because this
+    # might not be writable by all users.
+    variable fifo_mktemp_template "/tmp/macports-trace-XXXXXX"
+
+    ##
     # The Tcl thread that runs the server side of trace mode and deals with
     # requests from traced processes.
     variable thread
@@ -126,20 +135,16 @@ namespace eval porttrace {
             portpath prefix
 
         variable fifo
+        variable fifo_mktemp_template
 
         if {[catch {package require Thread} error]} {
             ui_warn "Trace mode requires Tcl Thread package ($error)"
             return 0
         }
 
-        # Select a name for the socket to be used to communicate with the
-        # processes being traced. Note that Unix sockets are limited to 109
-        # characters and that the macports user must be able to connect to
-        # the socket (and in case of non-root installations, the current user,
-        # too). We're not prefixing the path in /tmp with a separate
-        # macports-specific directory, because this might not be writable by all
-        # users.
-        set fifo "/tmp/macports-trace-[pid]-[expr {int(rand() * 10000)}]"
+        # Generate a name for the socket to be used to communicate with the
+        # processes being traced.
+        set fifo [mktemp $fifo_mktemp_template]
 
         # Make sure the socket doesn't exist yet (this would cause errors
         # later)

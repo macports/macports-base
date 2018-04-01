@@ -9,7 +9,7 @@ port-reclaim -  Reclaims disk space.
 SYNOPSIS
 --------
 [cmdsynopsis]
-*port* [*-vd*] *reclaim*
+*port* [*-vdNy*] *reclaim*
     [--enable-reminders] [--disable-reminders]
 
 DESCRIPTION
@@ -28,6 +28,14 @@ Disable reminders to run *port reclaim*. Using this option will only
 update the configuration; the reclaim process will not be run.
 
 include::global-flags.txt[]
+
+*-N*::
+Non-interactive mode, uninstall ports and remove distfiles without asking for
+confirmation.
+
+*-y*::
+Perform a dry run. No ports will be uninstalled and distfiles will not be
+removed from disk, even if confirmed by the user.
 
 SEE ALSO
 --------

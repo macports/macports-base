@@ -56,7 +56,7 @@ namespace eval macports {
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
         master_site_local patch_site_local archive_site_local buildfromsource \
         revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds \
-        host_blacklist preferred_hosts sandbox_enable delete_la_files cxx_stdlib \
+        host_blacklist preferred_hosts sandbox_enable sandbox_network delete_la_files cxx_stdlib \
         packagemaker_path default_compilers pkg_post_unarchive_deletions ui_interactive"
     variable user_options {}
     variable portinterp_options "\
@@ -68,7 +68,7 @@ namespace eval macports {
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
         os_arch os_endian os_version os_major os_minor os_platform macosx_version macosx_sdk_version macosx_deployment_target \
-        packagemaker_path default_compilers sandbox_enable delete_la_files cxx_stdlib \
+        packagemaker_path default_compilers sandbox_enable sandbox_network delete_la_files cxx_stdlib \
         pkg_post_unarchive_deletions $user_options"
 
     # deferred options are only computed when needed.
@@ -1073,6 +1073,10 @@ match macports.conf.default."
         set macports::sandbox_enable yes
     }
 
+    if {![info exists macports::sandbox_network]} {
+        set macports::sandbox_network no
+    }
+
     # make tools we run operate in UTF-8 mode
     set env(LANG) en_US.UTF-8
 
@@ -1730,6 +1734,15 @@ proc macports::getdefaultportresourcepath {{path {}}} {
 proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
     global macports::portdbpath macports::portconf macports::open_mports auto_path
 
+    # normalize porturl for local files
+    if {[regexp {^file://(.*)} $porturl -> path]} {
+        set realporturl "file://[file normalize $path]"
+        if {$porturl ne $realporturl} {
+            set porturl $realporturl
+            ui_debug "Using normalized porturl $porturl"
+        }
+    }
+
     # Look for an already-open MPort with the same URL.
     # if found, return the existing reference and bump the refcount.
     if {$nocache ne ""} {
@@ -2038,8 +2051,6 @@ proc _mportexec {target mport} {
         macports::pop_log
         return 0
     } else {
-        # An error occurred.
-        ui_debug $::errorInfo
         if {[info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
             ui_error "See $::debuglogname for details."
         }
@@ -3560,12 +3571,12 @@ proc macports::_deptypes_for_target {target workername} {
     switch -- $target {
         fetch       -
         checksum    {return depends_fetch}
-        extract     -
-        patch       {return "depends_fetch depends_extract"}
+        extract     {return "depends_fetch depends_extract"}
+        patch       {return "depends_fetch depends_extract depends_patch"}
         configure   -
-        build       {return "depends_fetch depends_extract depends_build depends_lib"}
-        test        {return "depends_fetch depends_extract depends_build depends_lib depends_run depends_test"}
-        destroot    {return "depends_fetch depends_extract depends_build depends_lib depends_run"}
+        build       {return "depends_fetch depends_extract depends_patch depends_build depends_lib"}
+        test        {return "depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test"}
+        destroot    {return "depends_fetch depends_extract depends_patch depends_build depends_lib depends_run"}
         dmg         -
         pkg         -
         mdmg        -
@@ -3574,7 +3585,7 @@ proc macports::_deptypes_for_target {target workername} {
                 (![global_option_isset ports_source_only] && [$workername eval {_archive_available}])} {
                 return "depends_lib depends_run"
             } else {
-                return "depends_fetch depends_extract depends_build depends_lib depends_run"
+                return "depends_fetch depends_extract depends_patch depends_build depends_lib depends_run"
             }
         }
         install     -
@@ -3585,7 +3596,7 @@ proc macports::_deptypes_for_target {target workername} {
                 || (![global_option_isset ports_source_only] && [$workername eval {_archive_available}])} {
                 return "depends_lib depends_run"
             } else {
-                return "depends_fetch depends_extract depends_build depends_lib depends_run"
+                return "depends_fetch depends_extract depends_patch depends_build depends_lib depends_run"
             }
         }
     }
@@ -4037,9 +4048,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
     # check if the startupitem is loaded, so we can load again it after upgrading
     # (deactivating the old version will unload the startupitem)
-    set load_startupitem 0
+    set loaded_startupitems {}
     if {$portname eq $newname} {
-        set load_startupitem [$workername eval {portstartupitem::is_loaded}]
+        set loaded_startupitems [$workername eval {portstartupitem::loaded}]
     }
 
     # are we installing an existing version due to force or epoch override?
@@ -4106,9 +4117,13 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             catch {mportclose $mport}
             return 1
         }
-        if {$load_startupitem && [catch {mportexec $mport load} result]} {
-            ui_debug $::errorInfo
-            ui_warn "Error loading startupitem for ${newname}: $result"
+        if {$loaded_startupitems ne ""} {
+            $workername eval "set ::portstartupitem::load_only [list $loaded_startupitems]"
+            if {[catch {mportexec $mport load} result]} {
+                ui_debug $::errorInfo
+                ui_warn "Error loading startupitem(s) for ${newname}: $result"
+            }
+            $workername eval "unset ::portstartupitem::load_only"
         }
     }
 

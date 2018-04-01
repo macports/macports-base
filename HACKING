@@ -71,5 +71,11 @@
  *  All other files (documentation, etc) SHOULD NOT use a modeline as it
     is probably meant for human consumption.
 
- -  When adding new features, always add test cases.
-    See "https://trac.macports.org/wiki/Tests".
+
+# Documentation and Testing
+
+ *  Additional documentation can be found in the MacPorts Guide:
+    https://guide.macports.org/#internals
+
+ *  When adding new features, always add test cases.
+    https://guide.macports.org/#internals.tests

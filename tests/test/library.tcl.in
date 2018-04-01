@@ -9,10 +9,6 @@ set work_dir "work"
 # constraint indicating whether the platform supports trace mode
 ::tcltest::testConstraint tracemode_support [expr {@TRACEMODE_SUPPORT@ != 0}]
 
-# constraint for tests that use svn
-# system svn can't be used on darwin < 10
-::tcltest::testConstraint has_svn [expr {"@SVN@" ne "" && (@OS_MAJOR@ >= 10 || "@OS_PLATFORM@" ne "darwin")}]
-
 # Set of procs used for testing.
 
 # Sets $bindir variable from autoconf
@@ -107,10 +103,11 @@ proc port_trace {pwd} {
 }
 
 # Installs new portfile.
-proc port_install {} {
+proc port_install {{name "current"}} {
     global bindir portsrc
 
-    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port install > output 2>@1} ]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port install $name > output 2>@1} ]
+    return $result
 }
 
 # Run configure command.
@@ -118,6 +115,7 @@ proc port_config {pwd} {
     global path bindir portsrc
 
     set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port configure 2>@1} ]
+    return $result
 }
 
 # Run destroot command.
@@ -129,13 +127,15 @@ proc port_destroot {pwd} {
         exec -ignorestderr chown macports ${work_dir}/.macports.statefile-unknown-version.state
     }
     set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port destroot >$output_file 2>@1} ]
+    return $result
 }
 
 # Uninstalls portfile.
-proc port_uninstall {} {
+proc port_uninstall {{name "current"}} {
     global bindir portsrc
 
-    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port uninstall > output 2>@1} ]
+    set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port uninstall $name > output 2>@1} ]
+    return $result
 }
 
 # Returns the line containint a given string

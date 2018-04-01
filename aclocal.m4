@@ -508,52 +508,11 @@ AC_DEFUN(MP_CHECK_FRAMEWORK_IOKIT, [
 	AC_SUBST(HAVE_FRAMEWORK_IOKIT, [$mp_cv_have_framework_iokit])
 ])
 
-
-dnl This macro checks if the user specified a ports tree
-dnl explicitly. If not, search for it
-
-# MP_PATH_PORTSDIR(DEFAULT_PORTSDIR)
-#---------------------------------------
- AC_DEFUN([MP_PATH_PORTSDIR],[
- 	dnl For ease of reading, run after gcc has been found/configured
- 	AC_REQUIRE([AC_PROG_CC])
-
- 	AC_ARG_WITH(ports-dir, [AS_HELP_STRING([--with-ports-dir=DIR],[specify alternate ports directory])], [ portsdir="$withval" ] )
-
-
- 	AC_MSG_CHECKING([for ports tree])
- 	if test "x$portsdir" != "x" ; then
- 	  if test -d "$portsdir" -a -e "$portsdir/PortIndex" ; then
- 		:
- 	  else
- 		AC_MSG_ERROR([$portsdir not a valid ports tree])
- 	  fi
- 	else
- 		dnl If the user didn't give a path, look for default
- 		if test "x$1" != "x" ; then
- 		  if test -d "$1" -a -e "$1/PortIndex" ; then
- 			portsdir=$1
- 		  fi
- 		fi
- 	fi
-
- 	if test "x$portsdir" != "x" ; then
- 		AC_MSG_RESULT($portsdir)
- 		PORTSDIR="$portsdir"
- 		AC_SUBST(PORTSDIR)
- 	else
- 		AC_MSG_WARN([No ports tree found])
- 	fi
-
-         ])
-
-
 # MP_PATH_MPCONFIGDIR
 #---------------------------------------
 AC_DEFUN([MP_PATH_MPCONFIGDIR],[
 	dnl if the user actually specified --prefix, shift
 	dnl mpconfigdir to $prefix/etc/macports
-	dnl 	AC_REQUIRE([MP_PATH_PORTSDIR])
 	
         AC_MSG_CHECKING([for MacPorts config directory])
 
@@ -765,6 +724,26 @@ AC_DEFUN([MP_PATH_FRAMEWORKS],[
 	AC_SUBST(MPFRAMEWORKSDIR)
 	prefix=$oldprefix
 ])
+
+# MP_CHECK_STARTUPITEMS
+#-------------------------------------------------
+AC_DEFUN([MP_CHECK_STARTUPITEMS],[
+	dnl if the user specifies --without-startupitems,
+	dnl set "startupitem_install no" in macports.conf
+	AC_ARG_WITH(startupitems, [AS_HELP_STRING([--without-startupitems],[set "startupitem_install no" in macports.conf])], [with_startupitems=$withval], [with_startupitems=yes] )
+
+	AC_MSG_CHECKING([for startupitem_install])
+
+	if test "x$with_startupitems" != "xno" ; then
+		startupitem_install="#startupitem_install	yes"
+	else
+		startupitem_install="startupitem_install	no"
+	fi
+
+	AC_MSG_RESULT([$with_startupitems])
+	AC_SUBST(startupitem_install)
+])
+
 
 # MP_UNIVERSAL_OPTIONS
 #---------------------------------------

@@ -42,15 +42,16 @@ namespace eval portreload {
 }
 
 options reload.asroot
-default reload.asroot yes
 
 set_ui_prefix
 
 proc portreload::reload_main {args} {
-    global startupitem.location startupitem.plist
+    global UI_PREFIX subport
     set launchctl_path ${portutil::autoconf::launchctl_path}
 
-    foreach { path } "/Library/${startupitem.location}/${startupitem.plist}" {
+    portstartupitem::foreach_startupitem {
+        ui_notice "$UI_PREFIX [format [msgcat::mc "Reloading startupitem '%s' for %s"] $si_name $subport]"
+        set path /Library/${si_location}/${si_plist}
         if {$launchctl_path eq ""} {
             return -code error [format [msgcat::mc "launchctl command was not found by configure"]]
         } elseif {![file exists $path]} {
