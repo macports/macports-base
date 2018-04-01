@@ -298,20 +298,11 @@ proc url_to_portname { url {quiet 0} } {
 
 
 # Supply a default porturl/portname if the portlist is empty
-proc require_portlist { nameportlist {is_upgrade "no"} } {
+proc require_portlist { nameportlist } {
     global private_options
     upvar $nameportlist portlist
 
     if {[llength $portlist] == 0 && (![info exists private_options(ports_no_args)] || $private_options(ports_no_args) eq "no")} {
-        if {${is_upgrade} eq "yes"} {
-            # $> port upgrade outdated
-            # Error: No ports matched the given expression
-            # is not very user friendly - if we're in the special case of
-            # "upgrade", let's print a message that's a little easier to
-            # understand and less alarming.
-            ui_msg "Nothing to upgrade."
-            return 1
-        }
         ui_error "No ports matched the given expression"
         return 1
     }
@@ -2770,8 +2761,15 @@ proc action_reclaim { action portlist opts } {
 
 
 proc action_upgrade { action portlist opts } {
-    if {[require_portlist portlist "yes"] || (![macports::global_option_isset ports_dryrun] && [prefix_unwritable])} {
+    global private_options
+
+    if {(![macports::global_option_isset ports_dryrun] && [prefix_unwritable])} {
         return 1
+    }
+
+    if {[llength $portlist] == 0 && (![info exists private_options(ports_no_args)] || $private_options(ports_no_args) eq "no")} {
+        ui_msg "Nothing to upgrade."
+        return 0
     }
 
     # shared depscache for all ports in the list
