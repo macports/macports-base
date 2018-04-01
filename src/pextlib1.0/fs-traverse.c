@@ -126,7 +126,13 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         }
 
         entries = calloc(lobjc+1, sizeof(char *));
-        iter = (char **)entries;
+        if (!entries) {
+            Tcl_SetErrno(errno);
+            Tcl_ResetResult(interp);
+            Tcl_AppendResult(interp, "malloc: ", (char *)Tcl_PosixError(interp), NULL);
+            return TCL_ERROR;
+        }
+        iter = entries;
         while (lobjc > 0) {
             *iter++ = Tcl_GetString(*lobjv);
             --lobjc, ++lobjv;
