@@ -2767,15 +2767,34 @@ proc action_upgrade { action portlist opts } {
         return 1
     }
 
-    if {[llength $portlist] == 0 && (![info exists private_options(ports_no_args)] || $private_options(ports_no_args) eq "no")} {
-        ui_msg "Nothing to upgrade."
-        return 0
+    if {[llength $portlist] == 0} {
+        if {[info exists private_options(ports_no_args)] && $private_options(ports_no_args) eq "no"} {
+            # arguments given, but expanded to an empty portlist
+            ui_msg "Nothing to upgrade."
+            return 0
+        } else {
+            # no arguments given
+            if {[file isfile Portfile]} {
+                # assume user was trying to upgrade with this Portfile
+                ui_error "port upgrade does not work with the 'current' pseudo-port"
+            } else {
+                ui_error "port upgrade needs at least one port name or pseudo-port, try 'port upgrade outdated'"
+            }
+            return 1
+        }
     }
 
     # shared depscache for all ports in the list
     array set depscache {}
     set status 0
     foreachport $portlist {
+        if {$porturl eq "file://."} {
+            ui_error "port upgrade does not work with the 'current' pseudo-port"
+            set status 3
+            if {![macports::ui_isset ports_processall]} {
+                break
+            }
+        }
         if {![info exists depscache(port:$portname)]} {
             set status [macports::upgrade $portname "port:$portname" [array get requested_variations] [array get options] depscache]
             # status 2 means the port was not found in the index,
