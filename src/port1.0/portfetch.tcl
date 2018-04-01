@@ -469,7 +469,7 @@ proc portfetch::bzrfetch {args} {
 proc portfetch::cvsfetch {args} {
     global UI_PREFIX \
            env distpath workpath worksrcpath \
-           cvs.cmd cvs.root cvs.tag cvs.date cvs.password cvs.file cvs.file_prefix \
+           cvs.cmd cvs.root cvs.password cvs.module cvs.tag cvs.date cvs.file cvs.file_prefix \
            name distname fetch.type \
 
     set generatedfile "${distpath}/${cvs.file}"
@@ -478,15 +478,15 @@ proc portfetch::cvsfetch {args} {
         return 0
     }
 
+    set cvs.args ""
     if {![string length ${cvs.tag}] && ![string length ${cvs.date}]} {
         set cvs.tag "HEAD"
     }
     if {[string length ${cvs.tag}]} {
-        set cvs.args "${cvs.args} -r ${cvs.tag}"
+        append cvs.args " -r ${cvs.tag}"
     }
-
     if {[string length ${cvs.date}]} {
-        set cvs.args "${cvs.args} -D ${cvs.date}"
+        append cvs.args " -D ${cvs.date}"
     }
 
     ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
@@ -516,7 +516,7 @@ proc portfetch::cvsfetch {args} {
         }
 
         if {![cvs_tarballable]} {
-            file rename ${tmpxprt}/${svn.file_prefix} ${worksrcpath}
+            file rename ${tmpxprt}/${cvs.file_prefix} ${worksrcpath}
             return 0
         }
 
