@@ -49,18 +49,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fnmatch.h>
 
 #include <tcl.h>
 
 #include "fs-traverse.h"
 
-static int do_traverse(Tcl_Interp *interp, int flags, char * const *targets, Tcl_Obj *varname, Tcl_Obj *body);
+static int do_traverse(Tcl_Interp *interp, int flags, const char * const *excludes, char * const *targets, Tcl_Obj *varname, Tcl_Obj *body);
 
 #define F_DEPTH 0x1
 #define F_IGNORE_ERRORS 0x2
 #define F_TAILS 0x4
 
-/* fs-traverse ?-depth? ?-ignoreErrors? ?-tails? ?--? varname target-list body */
+/* fs-traverse ?-depth? ?-ignoreErrors? ?-tails? ?-exclude path-list? ?--? varname target-list body */
 int
 FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
@@ -70,6 +71,7 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     int rval = TCL_OK;
     Tcl_Obj *listPtr;
     Tcl_Obj *CONST *objv_orig = objv;
+    const char **excludes = NULL;
     int lobjc;
     Tcl_Obj **lobjv;
 
@@ -94,6 +96,41 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             ++objv, --objc;
             continue;
         }
+        if (!strcmp(arg, "-exclude")) {
+            /* free previous list, can happen if specified multiple times */
+            free(excludes);
+            excludes = NULL;
+
+            ++objv, --objc;
+            if (objc == 0) {
+                Tcl_WrongNumArgs(interp, 1, objv, "-exclude path-list");
+                return TCL_ERROR;
+            }
+
+            int lexcc = 0;
+            Tcl_Obj **lexcv = NULL;
+            const char **iter;
+
+            if ((rval = Tcl_ListObjGetElements(interp, *objv, &lexcc, &lexcv)) != TCL_OK) {
+                return rval;
+            }
+            ++objv, --objc;
+
+            excludes = calloc(lexcc + 1, sizeof(char *));
+            if (excludes == NULL) {
+                Tcl_SetErrno(errno);
+                Tcl_ResetResult(interp);
+                Tcl_AppendResult(interp, "malloc: ", (char *) Tcl_PosixError(interp), NULL);
+                return TCL_ERROR;
+            }
+            iter = excludes;
+            while (lexcc > 0) {
+                *iter++ = Tcl_GetString(*lexcv);
+                --lexcc, ++lexcv;
+            }
+            *iter = NULL;
+            continue;
+        }
         if (!strcmp(arg, "--")) {
             ++objv, --objc;
             break;
@@ -103,7 +140,8 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     
     /* Parse remaining args */
     if (objc != 3) {
-        Tcl_WrongNumArgs(interp, 1, objv_orig, "?-depth? ?-ignoreErrors? ?-tails? ?--? varname target-list body");
+        Tcl_WrongNumArgs(interp, 1, objv_orig, "?-depth? ?-ignoreErrors? ?-tails? ?-exclude path-list? ?--? varname target-list body");
+        free(excludes);
         return TCL_ERROR;
     }
     
@@ -122,6 +160,8 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         if (flags & F_TAILS && lobjc > 1) {
             /* result would be ambiguous with multiple paths, so we do not allow this */
             Tcl_SetResult(interp, "-tails cannot be used with multiple paths", TCL_STATIC);
+
+            free(excludes);
             return TCL_ERROR;
         }
 
@@ -138,9 +178,11 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             --lobjc, ++lobjv;
         }
         *iter = NULL;
-        rval = do_traverse(interp, flags, entries, varname, body);
+        rval = do_traverse(interp, flags, excludes, entries, varname, body);
         free(entries);
     }
+
+    free(excludes);
     return rval;
 }
 
@@ -170,7 +212,7 @@ do_compare(const FTSENT **a, const FTSENT **b)
 }
 
 static int
-do_traverse(Tcl_Interp *interp, int flags, char * const *targets, Tcl_Obj *varname, Tcl_Obj *body)
+do_traverse(Tcl_Interp *interp, int flags, const char * const *excludes, char * const *targets, Tcl_Obj *varname, Tcl_Obj *body)
 {
     int rval = TCL_OK;
     FTS *root_fts;
@@ -179,6 +221,22 @@ do_traverse(Tcl_Interp *interp, int flags, char * const *targets, Tcl_Obj *varna
     root_fts = fts_open(targets, FTS_PHYSICAL /*| FTS_COMFOLLOW */| FTS_NOCHDIR | FTS_XDEV, &do_compare);
     
     while ((ent = fts_read(root_fts)) != NULL) {
+        /* match path against excludes */
+        const char * const *iter = excludes;
+        int is_excluded = 0;
+        while (iter != NULL && *iter != NULL) {
+            const char *xpath = extract_tail(targets[0], ent->fts_path);
+            if (fnmatch(*iter, xpath, FNM_PATHNAME) == 0) {
+                is_excluded = 1;
+                break;
+            }
+            iter++;
+        }
+        if (is_excluded) {
+            fts_set(root_fts, ent, FTS_SKIP);
+            continue;
+        }
+
         switch (ent->fts_info) {
             case FTS_D:  /* directory in pre-order */
             case FTS_DP: /* directory in post-order*/

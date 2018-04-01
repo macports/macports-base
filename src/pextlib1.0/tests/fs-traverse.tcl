@@ -61,6 +61,27 @@ proc main {pextlibname} {
         }
         check_output $output $trees(4)
         
+        # Test -exclude (simple)
+        set output [list]
+        fs-traverse -exclude b file $root {
+            lappend output $file
+        }
+        check_output $output $trees(sub3)
+        
+        # Test -exclude (complex)
+        set output [list]
+        fs-traverse -exclude {a/c b/a */*/b b/c/} file $root {
+            lappend output $file
+        }
+        check_output $output $trees(sub4)
+        
+        # Test empty -exclude
+        set output [list]
+        fs-traverse -exclude {} file $root {
+            lappend output $file
+        }
+        check_output $output $trees(1)
+        
         # Error raised for traversing directory that does not exist
         if {![catch {fs-traverse file $root/does_not_exist {}}]} {
             error "fs-traverse did not raise an error for a missing directory"
@@ -263,6 +284,41 @@ proc setup_trees {root} {
         $root/a/c/a/b   {link ../../b/a}
         $root/a/c/a/c   directory
         $root/a/c/a/d   file
+    "
+
+    set trees(sub3) "
+        $root           directory
+        $root/a         directory
+        $root/a/a       file
+        $root/a/b       file
+        $root/a/c       directory
+        $root/a/c/a     {link ../d}
+        $root/a/c/b     file
+        $root/a/c/c     directory
+        $root/a/c/d     file
+        $root/a/d       directory
+        $root/a/d/a     file
+        $root/a/d/b     {link ../../b/a}
+        $root/a/d/c     directory
+        $root/a/d/d     file
+        $root/a/e       file
+    "
+
+    set trees(sub4) "
+        $root           directory
+        $root/a         directory
+        $root/a/a       file
+        $root/a/b       file
+        $root/a/d       directory
+        $root/a/d/a     file
+        $root/a/d/c     directory
+        $root/a/d/d     file
+        $root/a/e       file
+        $root/b         directory
+        $root/b/b       directory
+        $root/b/c       directory
+        $root/b/c/a     file
+        $root/b/c/c     file
     "
     
     set trees(2) "
