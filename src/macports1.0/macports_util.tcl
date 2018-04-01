@@ -168,7 +168,8 @@ proc lpush {varName args} {
 proc lshift {varName} {
     upvar 1 $varName var
     set element [lindex $var 0]
-    set var [lrange $var 1 end]
+    # the [set] in the index argument ensures the list is not shared
+    set var [lreplace $var [set var 0] 0]
     return $element
 }
 
@@ -180,7 +181,8 @@ proc lunshift {varName args} {
     if {![info exists var]} {
         set var {}
     }
-    set var [list {*}$args {*}$var]
+    # the [set] in the index argument ensures the list is not shared
+    set var [lreplace $var [set var -1] -1 {*}$args]
 }
 
 
