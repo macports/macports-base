@@ -54,7 +54,7 @@
 
 #include "fs-traverse.h"
 
-static int do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varname, Tcl_Obj *body);
+static int do_traverse(Tcl_Interp *interp, int flags, char * const *targets, Tcl_Obj *varname, Tcl_Obj *body);
 
 #define F_DEPTH 0x1
 #define F_IGNORE_ERRORS 0x2
@@ -170,7 +170,7 @@ do_compare(const FTSENT **a, const FTSENT **b)
 }
 
 static int
-do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varname, Tcl_Obj *body)
+do_traverse(Tcl_Interp *interp, int flags, char * const *targets, Tcl_Obj *varname, Tcl_Obj *body)
 {
     int rval = TCL_OK;
     FTS *root_fts;
