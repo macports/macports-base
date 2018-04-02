@@ -26,6 +26,9 @@ OBJS = $(SRCS:%.c=%.o)
 ifneq ($(HAVE_STRLCAT),yes)
 COMPAT_OBJS+= $(srcdir)/../compat/strlcat.o
 endif
+ifneq ($(HAVE_STRLCPY),yes)
+COMPAT_OBJS+= $(srcdir)/../compat/strlcpy.o
+endif
 
 CPPFLAGS+= -I../compat
 LIBS+= $(COMPAT_OBJS)
