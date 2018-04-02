@@ -436,8 +436,7 @@ proc portfetch::bzrfetch {args} {
         set tstamp $result
         set mtime [clock scan [lindex [split $tstamp "."] 0] -format "%Y-%m-%d %H:%M:%S %z" -timezone "UTC"]
 
-        set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
-
+        set tardst "${distpath}/${distname}.${fetch.type}.TMP.tar"
         mktar $tardst $exportpath $mtime [list "${bzr.file_prefix}/.bzr"]
         set compressed [compressfile ${tardst}]
         file rename -force ${compressed} ${generatedfile}
@@ -529,8 +528,7 @@ proc portfetch::cvsfetch {args} {
             }
         }
 
-        set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
-
+        set tardst "${distpath}/${distname}.${fetch.type}.TMP.tar"
         mktar $tardst $exportpath $mtime
         set compressed [compressfile ${tardst}]
         file rename -force ${compressed} ${generatedfile}
@@ -633,8 +631,7 @@ proc portfetch::svnfetch {args} {
     set tstamp $result
     set mtime [clock scan [lindex [split $tstamp "."] 0] -format "%Y-%m-%dT%H:%M:%S" -timezone "UTC"]
 
-    set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
-
+    set tardst "${distpath}/${distname}.${fetch.type}.TMP.tar"
     mktar $tardst $exportpath $mtime [list "${svn.file_prefix}/.svn"]
     set compressed [compressfile ${tardst}]
     file rename -force ${compressed} ${generatedfile}
@@ -792,7 +789,7 @@ proc portfetch::gitfetch {args} {
     ui_info "$UI_PREFIX Generating tarball ${git.file}"
 
     # generate main tarball
-    set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
+    set tardst "${distpath}/${distname}.${fetch.type}.TMP.tar"
     set cmdstring "${git.cmd} archive --format=tar --prefix=\"${git.file_prefix}/\" --output=${tardst} ${git.branch} 2>&1"
     if {[catch {system -W $exportpath $cmdstring} result]} {
         delete $tardst
@@ -871,8 +868,7 @@ proc portfetch::hgfetch {args} {
     }
     set mtime $result
 
-    set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
-
+    set tardst "${distpath}/${distname}.${fetch.type}.TMP.tar"
     mktar $tardst $exportpath $mtime [list "${hg.file_prefix}/.hg"]
     set compressed [compressfile ${tardst}]
     file rename -force ${compressed} ${generatedfile}
