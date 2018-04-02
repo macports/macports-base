@@ -7127,7 +7127,7 @@ done
 
 # Checks for library functions.
 for ac_func in OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 \
-	OSAtomicCompareAndSwapPtr __getdirentries64 clearenv copyfile fgetln \
+	OSAtomicCompareAndSwapPtr __getdirentries64 clearenv copyfile getline getdelim \
 	flock fls kqueue posix_spawn setmode strlcat \
 	strlcpy sysctlbyname
 do :

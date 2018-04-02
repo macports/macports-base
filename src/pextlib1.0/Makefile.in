@@ -8,7 +8,8 @@ OBJS= \
 	adv-flock.o \
 	base32cmd.o \
 	curl.o \
-	fgetln.o \
+	getdelim.o \
+	getline.o \
 	filemap.o \
 	fs-traverse.o \
 	md5cmd.o \

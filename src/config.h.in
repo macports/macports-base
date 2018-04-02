@@ -50,9 +50,6 @@
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
-/* Define to 1 if you have the `fgetln' function. */
-#undef HAVE_FGETLN
-
 /* Define to 1 if you have the `flock' function. */
 #undef HAVE_FLOCK
 
@@ -71,6 +68,12 @@
 /* Define if function CFNotificationCenterGetDarwinNotifyCenter in
    CoreFoundation framework */
 #undef HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER
+
+/* Define to 1 if you have the `getdelim' function. */
+#undef HAVE_GETDELIM
+
+/* Define to 1 if you have the `getline' function. */
+#undef HAVE_GETLINE
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H

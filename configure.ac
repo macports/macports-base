@@ -236,7 +236,7 @@ AC_CHECK_HEADERS([crt_externs.h err.h fcntl.h libkern/OSAtomic.h libproc.h limit
 
 # Checks for library functions.
 AC_CHECK_FUNCS([OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 \
-	OSAtomicCompareAndSwapPtr __getdirentries64 clearenv copyfile fgetln \
+	OSAtomicCompareAndSwapPtr __getdirentries64 clearenv copyfile getline getdelim \
 	flock fls kqueue posix_spawn setmode strlcat \
 	strlcpy sysctlbyname])
 AC_SUBST([ac_cv_func_strlcat])

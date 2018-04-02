@@ -37,7 +37,6 @@
 
 #ifndef __APPLE__
 /* required for fdopen(3)/seteuid(2), among others */
-/* hides fgetln(3) on OS X */
 #define _XOPEN_SOURCE 600
 #endif
 
@@ -72,8 +71,8 @@
 extern char **environ;
 #endif
 
-#if !HAVE_FGETLN
-char *fgetln(FILE *stream, size_t *len);
+#if !HAVE_GETLINE
+#include "getline.h"
 #endif
 
 #ifndef _PATH_DEVNULL
