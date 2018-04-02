@@ -47,9 +47,6 @@
 # Implement a hash-map, or multidimensional array for ease of port info keeping. Write it yourself if you have to.
 # Figure out what the hell is going on with "port clean all" vs "port clean installed" the 'clean' target is provided by this package
 
-# XXX: all prompts for the user need to use the ui_ask_* API
-#      (definitely required for GUI support)
-
 package provide reclaim 1.0
 
 package require registry_uninstall 2.0
