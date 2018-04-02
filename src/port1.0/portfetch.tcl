@@ -582,6 +582,7 @@ proc portfetch::svnfetch {args} {
     global UI_PREFIX \
            distpath workpath worksrcpath \
            svn.cmd svn.url svn.revision svn.subdirs svn.ignore_keywords svn.file svn.file_prefix \
+           fetch.user fetch.password \
            name distname fetch.type
 
     set generatedfile "${distpath}/${svn.file}"
@@ -598,30 +599,38 @@ proc portfetch::svnfetch {args} {
         append svn.url "@${svn.revision}"
     }
 
-    set proxy_args [svn_proxy_args ${svn.url}]
-
-    set args ""
+    set exportargs ""
     if {${svn.ignore_keywords}} {
         if {${svn.subdirs} ne ""} {
             error "svn.ignore_keywords cannot be used together with svn.subdirs"
         }
-        append args " --ignore-keywords"
+        append exportargs " --ignore-keywords"
+    }
+
+    set connectargs ""
+    append connectargs [svn_proxy_args ${svn.url}]
+
+    if {${fetch.user} ne ""} {
+        append connectargs " --username ${fetch.user}"
+    }
+    if {${fetch.password} ne ""} {
+        append connectargs " --password ${fetch.password}"
     }
 
     ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
     set exportpath [file join ${workpath} export]
     if {${svn.subdirs} eq ""} {
-        set cmdstring "${svn.cmd} --non-interactive ${proxy_args} export ${args} ${svn.url} ${exportpath}/${svn.file_prefix} 2>&1"
+        set cmdstring "${svn.cmd} --non-interactive ${connectargs} export ${exportargs} ${svn.url} ${exportpath}/${svn.file_prefix} 2>&1"
         if {[catch {system $cmdstring} result]} {
             return -code error [msgcat::mc "Subversion checkout failed"]
         }
     } else {
-        set cmdstring "${svn.cmd} --non-interactive ${proxy_args} checkout --depth empty ${svn.url} ${exportpath}/${svn.file_prefix} 2>&1"
+        set cmdstring "${svn.cmd} --non-interactive ${connectargs} checkout --depth empty ${svn.url} ${exportpath}/${svn.file_prefix} 2>&1"
         if {[catch {system $cmdstring} result]} {
             return -code error [msgcat::mc "Subversion checkout failed"]
         }
         foreach dir ${svn.subdirs} {
-            set cmdstring "${svn.cmd} --non-interactive ${proxy_args} update --depth infinity ${exportpath}/${svn.file_prefix}/${dir} 2>&1"
+            set cmdstring "${svn.cmd} --non-interactive ${connectargs} update --depth infinity ${exportpath}/${svn.file_prefix}/${dir} 2>&1"
             if {[catch {system $cmdstring} result]} {
                 return -code error [msgcat::mc "Subversion update for subdir $dir failed"]
             }
@@ -637,7 +646,7 @@ proc portfetch::svnfetch {args} {
     ui_info "$UI_PREFIX Generating tarball ${svn.file}"
 
     # get timestamp of latest revision
-    set cmdstring "${svn.cmd} --non-interactive ${proxy_args} info --show-item last-changed-date ${svn.url}"
+    set cmdstring "${svn.cmd} --non-interactive ${connectargs} info --show-item last-changed-date ${svn.url}"
     if {[catch {exec -ignorestderr sh -c $cmdstring} result]} {
         return -code error [msgcat::mc "Subversion info failed"]
     }
