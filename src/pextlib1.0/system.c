@@ -80,13 +80,6 @@ char *fgetln(FILE *stream, size_t *len);
 #define _PATH_DEVNULL "/dev/null"
 #endif
 
-#define CBUFSIZ 30
-
-struct linebuf {
-    size_t len;
-    char *line;
-};
-
 static int check_sandboxing(Tcl_Interp *interp, char **sandbox_exec_path, char **profilestr)
 {
     Tcl_Obj *tcl_result;
@@ -121,7 +114,6 @@ static void handle_sigint(int s) {
 int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     char *buf;
-    struct linebuf circbuf[CBUFSIZ];
     size_t linelen;
     char *args[7];
     char *cmdstring;
@@ -130,7 +122,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     char *profilestr = NULL;
     FILE *pdes;
     int fdset[2], nullfd;
-    int fline, pos, ret;
+    int ret;
     int osetsid = 0;
     int odup = 1; /* redirect stdin/stdout/stderr by default */
     int oniceval = INT_MAX; /* magic value indicating no change */
@@ -296,8 +288,6 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 
         /* read from simulated popen() pipe */
         read_failed = 0;
-        pos = 0;
-        memset(circbuf, 0, sizeof(circbuf));
         pdes = fdopen(fdset[0], "r");
         if (pdes) {
             while ((buf = fgetln(pdes, &linelen)) != NULL) {
@@ -313,12 +303,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
                 else
                     slen = linelen + 1;
 
-                if (circbuf[pos].len == 0)
-                    sbuf = malloc(slen);
-                else {
-                    sbuf = realloc(circbuf[pos].line, slen);
-                }
-
+                sbuf = malloc(slen);
                 if (sbuf == NULL) {
                     read_failed = 1;
                     break;
@@ -328,14 +313,8 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
                 /* terminate line with '\0',replacing '\n' if it exists */
                 sbuf[slen - 1] = '\0';
 
-                circbuf[pos].line = sbuf;
-                circbuf[pos].len = slen;
-
-                if (pos++ == CBUFSIZ - 1) {
-                    pos = 0;
-                }
-
                 ui_info(interp, "%s", sbuf);
+                free(sbuf);
             }
             fclose(pdes);
         } else {
@@ -396,11 +375,6 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     if (odup) {
         /* Cleanup. */
         close(fdset[0]);
-        for (fline = 0; fline < CBUFSIZ; fline++) {
-            if (circbuf[fline].len != 0) {
-                free(circbuf[fline].line);
-            }
-        }
     }
 
     return status;
