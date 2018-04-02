@@ -22,6 +22,8 @@
 
 #ifndef HAVE_STRLCAT
 
+#include "strlcat.h"
+
 size_t strlcat(char *dst, const char *src, size_t size)
 {
     size_t used, length, copy;
