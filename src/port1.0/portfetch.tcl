@@ -324,7 +324,7 @@ proc compressfile {file} {
 }
 
 # Create a reproducible tarball of the contents of a directory
-proc portfetch::mktar {tarfile dir mtime} {
+proc portfetch::mktar {tarfile dir mtime {excludes {}}} {
     set mtreefile "${tarfile}.mtree"
 
     # write the list of files in sorted order to mtree file with the
@@ -332,7 +332,7 @@ proc portfetch::mktar {tarfile dir mtime} {
     set mtreefd [open $mtreefile w]
     puts $mtreefd "#mtree"
     puts $mtreefd "/set uname=root uid=0 gname=root gid=0 time=$mtime"
-    fs-traverse -tails f $dir {
+    fs-traverse -tails -exclude $excludes f $dir {
         set fpath [file join $dir $f]
         if {$f ne "."} {
             # map type from Tcl to mtree
@@ -440,7 +440,7 @@ proc portfetch::bzrfetch {args} {
 
         set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
 
-        mktar $tardst $tmpxprt $mtime
+        mktar $tardst $tmpxprt $mtime [list "${bzr.file_prefix}/.bzr"]
         set compressed [compressfile ${tardst}]
         file rename -force ${compressed} ${generatedfile}
 
@@ -644,7 +644,7 @@ proc portfetch::svnfetch {args} {
 
     set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
 
-    mktar $tardst $tmpxprt $mtime
+    mktar $tardst $tmpxprt $mtime [list "${svn.file_prefix}/.svn"]
     set compressed [compressfile ${tardst}]
     file rename -force ${compressed} ${generatedfile}
 
@@ -890,7 +890,7 @@ proc portfetch::hgfetch {args} {
 
     set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
 
-    mktar $tardst $tmpxprt $mtime
+    mktar $tardst $tmpxprt $mtime [list "${hg.file_prefix}/.hg"]
     set compressed [compressfile ${tardst}]
     file rename -force ${compressed} ${generatedfile}
 
