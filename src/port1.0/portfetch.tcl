@@ -422,7 +422,7 @@ proc portfetch::bzrfetch {args} {
         }
 
         if {![bzr_tarballable]} {
-            file rename ${tmppath}/${bzr.file_prefix} ${worksrcpath}
+            file rename ${tmpxprt}/${bzr.file_prefix} ${worksrcpath}
             return 0
         }
 
