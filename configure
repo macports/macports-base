@@ -667,7 +667,9 @@ OS_MAJOR
 OS_PLATFORM
 READLINE_LIBS
 MD5_LIBS
-ac_cv_func_strlcat
+HAVE_STRLCAT
+HAVE_GETLINE
+HAVE_GETDELIM
 EGREP
 GREP
 CPP
@@ -7127,8 +7129,8 @@ done
 
 # Checks for library functions.
 for ac_func in OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 \
-	OSAtomicCompareAndSwapPtr __getdirentries64 clearenv copyfile getline getdelim \
-	flock fls kqueue posix_spawn setmode strlcat \
+	OSAtomicCompareAndSwapPtr __getdirentries64 clearenv copyfile \
+	flock fls kqueue posix_spawn setmode \
 	strlcpy sysctlbyname
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
@@ -7141,6 +7143,25 @@ _ACEOF
 fi
 done
 
+
+# Check for library functions, replacements are in pextlib1.0/compat/
+for ac_func in getline getdelim strlcat
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+HAVE_GETDELIM=$ac_cv_func_getdelim
+
+HAVE_GETLINE=$ac_cv_func_getline
+
+HAVE_STRLCAT=$ac_cv_func_strlcat
 
 
 ac_fn_c_check_decl "$LINENO" "atomic_compare_exchange_strong_explicit" "ac_cv_have_decl_atomic_compare_exchange_strong_explicit" "#include <stdatomic.h>

@@ -8,8 +8,6 @@ OBJS= \
 	adv-flock.o \
 	base32cmd.o \
 	curl.o \
-	getdelim.o \
-	getline.o \
 	filemap.o \
 	fs-traverse.o \
 	md5cmd.o \
@@ -32,8 +30,15 @@ OBJS= \
 ifeq (@TRACEMODE_SUPPORT@,1)
 OBJS+=sip_copy_proc.o
 endif
-ifneq (@ac_cv_func_strlcat@,yes)
-OBJS+=strlcat.o
+
+ifneq ($(HAVE_GETDELIM),yes)
+OBJS+= strlcat.o
+endif
+ifneq ($(HAVE_GETLINE),yes)
+OBJS+= getline.o
+endif
+ifneq ($(HAVE_STRLCAT),yes)
+OBJS+= strlcat.o
 endif
 
 SHLIB_NAME= Pextlib${SHLIB_SUFFIX}
