@@ -381,7 +381,7 @@ proc portfetch::mktar {tarfile dir mtime {excludes {}}} {
 # Perform a bzr fetch
 proc portfetch::bzrfetch {args} {
     global UI_PREFIX \
-           env distpath worksrcpath \
+           env distpath workpath worksrcpath \
            bzr.cmd bzr.url bzr.revision bzr.file bzr.file_prefix \
            name distname fetch.type
 
@@ -412,27 +412,25 @@ proc portfetch::bzrfetch {args} {
 
     try -pass_signal {
         ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
-        set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
-        set tmpxprt [file join ${tmppath} export]
-        file mkdir ${tmpxprt}
-        set cmdstring "${bzr.cmd} --builtin --no-aliases checkout --lightweight --verbose -r ${bzr.revision} ${bzr.url} ${tmpxprt}/${bzr.file_prefix} 2>&1"
+        set exportpath [file join ${workpath} export]
+        file mkdir ${exportpath}
+        set cmdstring "${bzr.cmd} --builtin --no-aliases checkout --lightweight --verbose -r ${bzr.revision} ${bzr.url} ${exportpath}/${bzr.file_prefix} 2>&1"
         if {[catch {system $cmdstring} result]} {
-            delete ${tmppath}
             error [msgcat::mc "Bazaar checkout failed"]
         }
 
         if {![bzr_tarballable]} {
-            file rename ${tmpxprt}/${bzr.file_prefix} ${worksrcpath}
+            file rename ${exportpath}/${bzr.file_prefix} ${worksrcpath}
+            delete ${exportpath}
             return 0
         }
 
         ui_info "$UI_PREFIX Generating tarball ${bzr.file}"
 
         # get timestamp of latest revision
-        set cmdstring "${bzr.cmd} --builtin --no-aliases version-info --format=custom --template=\"{date}\" ${tmpxprt}/${bzr.file_prefix}"
+        set cmdstring "${bzr.cmd} --builtin --no-aliases version-info --format=custom --template=\"{date}\" ${exportpath}/${bzr.file_prefix}"
         ui_debug "exec: $cmdstring"
         if {[catch {exec -ignorestderr sh -c $cmdstring} result]} {
-            delete ${tmppath}
             error [msgcat::mc "Bazaar version-info failed: $result"]
         }
         set tstamp $result
@@ -440,14 +438,14 @@ proc portfetch::bzrfetch {args} {
 
         set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
 
-        mktar $tardst $tmpxprt $mtime [list "${bzr.file_prefix}/.bzr"]
+        mktar $tardst $exportpath $mtime [list "${bzr.file_prefix}/.bzr"]
         set compressed [compressfile ${tardst}]
         file rename -force ${compressed} ${generatedfile}
 
         ui_debug "Created tarball for fetch.type ${fetch.type} at ${generatedfile}"
 
         # cleanup
-        delete ${tmppath}
+        delete ${exportpath}
 
         return 0
     } catch {{*} eCode eMessage} {
@@ -506,17 +504,15 @@ proc portfetch::cvsfetch {args} {
             set env(CVS_RSH) ssh
         }
 
-        set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
-        set tmpxprt [file join ${tmppath} export]
-        file mkdir ${tmpxprt}
+        set exportpath [file join ${workpath} export]
+        file mkdir ${exportpath}
         set cmdstring "${cvs.cmd} -z9 -f -d ${cvs.root} export -d ${cvs.file_prefix} ${cvs.args} ${cvs.module} 2>&1"
-        if {[catch {system -notty -W ${tmpxprt} $cmdstring} result]} {
-            delete ${tmppath}
+        if {[catch {system -notty -W ${exportpath} $cmdstring} result]} {
             error [msgcat::mc "CVS checkout failed"]
         }
 
         if {![cvs_tarballable]} {
-            file rename ${tmpxprt}/${cvs.file_prefix} ${worksrcpath}
+            file rename ${exportpath}/${cvs.file_prefix} ${worksrcpath}
             return 0
         }
 
@@ -524,7 +520,7 @@ proc portfetch::cvsfetch {args} {
 
         # get timestamp by looking for the newest file in the exported source
         set mtime 0
-        fs-traverse f ${tmpxprt}/${cvs.file_prefix} {
+        fs-traverse f ${exportpath}/${cvs.file_prefix} {
             if {![file isdirectory $f]} {
                 set ft [file mtime $f]
                 if {$ft > $mtime} {
@@ -535,17 +531,17 @@ proc portfetch::cvsfetch {args} {
 
         set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
 
-        mktar $tardst $tmpxprt $mtime
+        mktar $tardst $exportpath $mtime
         set compressed [compressfile ${tardst}]
         file rename -force ${compressed} ${generatedfile}
 
         ui_debug "Created tarball for fetch.type ${fetch.type} at ${generatedfile}"
+
+        # cleanup
+        delete ${exportpath}
     } catch {{*} ecode emessage} {
         throw
     } finally {
-        # cleanup
-        delete ${tmppath}
-
         array unset env *
         array set env [array get orig_env]
     }
@@ -602,32 +598,28 @@ proc portfetch::svnfetch {args} {
     set proxy_args [svn_proxy_args ${svn.url}]
 
     ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
-    set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
-    set tmpxprt [file join ${tmppath} export]
+    set exportpath [file join ${workpath} export]
     if {${svn.subdirs} eq ""} {
-        set cmdstring "${svn.cmd} --non-interactive ${proxy_args} export ${svn.url} ${tmpxprt}/${svn.file_prefix} 2>&1"
+        set cmdstring "${svn.cmd} --non-interactive ${proxy_args} export ${svn.url} ${exportpath}/${svn.file_prefix} 2>&1"
         if {[catch {system $cmdstring} result]} {
-            delete ${tmppath}
             return -code error [msgcat::mc "Subversion checkout failed"]
         }
     } else {
-        set cmdstring "${svn.cmd} --non-interactive ${proxy_args} checkout --depth empty ${svn.url} ${tmpxprt}/${svn.file_prefix} 2>&1"
+        set cmdstring "${svn.cmd} --non-interactive ${proxy_args} checkout --depth empty ${svn.url} ${exportpath}/${svn.file_prefix} 2>&1"
         if {[catch {system $cmdstring} result]} {
-            delete ${tmppath}
             return -code error [msgcat::mc "Subversion checkout failed"]
         }
         foreach dir ${svn.subdirs} {
-            set cmdstring "${svn.cmd} --non-interactive ${proxy_args} update --depth infinity ${tmpxprt}/${svn.file_prefix}/${dir} 2>&1"
+            set cmdstring "${svn.cmd} --non-interactive ${proxy_args} update --depth infinity ${exportpath}/${svn.file_prefix}/${dir} 2>&1"
             if {[catch {system $cmdstring} result]} {
-                delete ${tmppath}
                 return -code error [msgcat::mc "Subversion update for subdir $dir failed"]
             }
         }
-        file delete -force ${tmpxprt}/${svn.file_prefix}/.svn
+        file delete -force ${exportpath}/${svn.file_prefix}/.svn
     }
 
     if {![svn_tarballable]} {
-        file rename ${tmpxprt}/${svn.file_prefix} ${worksrcpath}
+        file rename ${exportpath}/${svn.file_prefix} ${worksrcpath}
         return 0
     }
 
@@ -636,7 +628,6 @@ proc portfetch::svnfetch {args} {
     # get timestamp of latest revision
     set cmdstring "${svn.cmd} --non-interactive ${proxy_args} info --show-item last-changed-date ${svn.url}"
     if {[catch {exec -ignorestderr sh -c $cmdstring} result]} {
-        delete ${tmppath}
         return -code error [msgcat::mc "Subversion info failed"]
     }
     set tstamp $result
@@ -644,14 +635,14 @@ proc portfetch::svnfetch {args} {
 
     set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
 
-    mktar $tardst $tmpxprt $mtime [list "${svn.file_prefix}/.svn"]
+    mktar $tardst $exportpath $mtime [list "${svn.file_prefix}/.svn"]
     set compressed [compressfile ${tardst}]
     file rename -force ${compressed} ${generatedfile}
 
     ui_debug "Created tarball for fetch.type ${fetch.type} at ${generatedfile}"
 
     # cleanup
-    delete ${tmppath}
+    delete ${exportpath}
 
     return 0
 }
@@ -768,10 +759,9 @@ proc portfetch::gitfetch {args} {
     #append options " --branch ${git.branch}"
 
     ui_info "$UI_PREFIX Cloning ${fetch.type} repository"
-    set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
-    set cmdstring "${git.cmd} clone -q $options ${git.url} ${tmppath} 2>&1"
+    set exportpath [file join ${workpath} export]
+    set cmdstring "${git.cmd} clone -q $options ${git.url} ${exportpath} 2>&1"
     if {[catch {system $cmdstring} result]} {
-        delete ${tmppath}
         return -code error [msgcat::mc "Git clone failed"]
     }
 
@@ -780,24 +770,22 @@ proc portfetch::gitfetch {args} {
     if {${git.branch} ne ""} {
         ui_debug "Checking out branch ${git.branch}"
         set cmdstring "${git.cmd} checkout -q ${git.branch} 2>&1"
-        if {[catch {system -W $tmppath $cmdstring} result]} {
-            delete $tmppath
+        if {[catch {system -W $exportpath $cmdstring} result]} {
             return -code error [msgcat::mc "Git checkout failed"]
         }
     }
 
     # fetch all submodules
-    if {[file isfile "$tmppath/.gitmodules"] && [tbool git.fetch_submodules]} {
+    if {[file isfile "$exportpath/.gitmodules"] && [tbool git.fetch_submodules]} {
         ui_info "$UI_PREFIX Cloning git submodules"
         set cmdstring "${git.cmd} submodule -q update --init --recursive 2>&1"
-        if {[catch {system -W $tmppath $cmdstring} result]} {
-            delete ${tmppath}
+        if {[catch {system -W $exportpath $cmdstring} result]} {
             return -code error [msgcat::mc "Git submodule init failed"]
         }
     }
 
     if {![git_tarballable]} {
-        file rename ${tmppath} ${worksrcpath}
+        file rename ${exportpath} ${worksrcpath}
         return 0
     }
 
@@ -806,18 +794,17 @@ proc portfetch::gitfetch {args} {
     # generate main tarball
     set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
     set cmdstring "${git.cmd} archive --format=tar --prefix=\"${git.file_prefix}/\" --output=${tardst} ${git.branch} 2>&1"
-    if {[catch {system -W $tmppath $cmdstring} result]} {
+    if {[catch {system -W $exportpath $cmdstring} result]} {
         delete $tardst
-        delete $tmppath
         return -code error [msgcat::mc "Git archive creation failed"]
     }
 
     # generate tarballs for submodules and merge them into the main tarball
-    if {[file isfile "$tmppath/.gitmodules"] && [tbool git.fetch_submodules]} {
+    if {[file isfile "$exportpath/.gitmodules"] && [tbool git.fetch_submodules]} {
         set xz [findBinary xz ${portutil::autoconf::xz_path}]
         # TODO: add dependency on libarchive, if /usr/bin/tar is not bsdtar
         set tar [findBinary bsdtar tar]
-        # determine tmppath again in shell, as the real path might be different
+        # determine exportpath again in shell, as the real path might be different
         # due to symlinks (/tmp vs. /private/tmp), pass it as MPTOPDIR in
         # environment
         set cmdstring [join [list \
@@ -826,9 +813,8 @@ proc portfetch::gitfetch {args} {
             "${git.cmd} archive --format=tar --prefix=\"${git.file_prefix}/\${PWD#\$MPTOPDIR/}/\" \$sha1 " \
             "| tar -uf ${tardst} @-" \
             "' 2>&1"] ""]
-        if {[catch {system -W $tmppath $cmdstring} result]} {
+        if {[catch {system -W $exportpath $cmdstring} result]} {
             delete $tardst
-            delete $tmppath
             return -code error [msgcat::mc "Git submodule archive creation failed"]
         }
     }
@@ -840,7 +826,7 @@ proc portfetch::gitfetch {args} {
     ui_debug "Created tarball for fetch.type ${fetch.type} at ${generatedfile}"
 
     # cleanup
-    delete ${tmppath}
+    delete ${exportpath}
 
     return 0
 }
@@ -848,7 +834,7 @@ proc portfetch::gitfetch {args} {
 # Perform a mercurial fetch.
 proc portfetch::hgfetch {args} {
     global UI_PREFIX \
-           distpath worksrcpath \
+           distpath workpath worksrcpath \
            hg.cmd hg.url hg.tag hg.file hg.file_prefix \
            name distname fetch.type fetch.ignore_sslcert
 
@@ -865,39 +851,36 @@ proc portfetch::hgfetch {args} {
         set insecureflag " --insecure"
     }
 
-    set tmppath [mkdtemp "/tmp/macports.portfetch.${name}.XXXXXXXX"]
-    set tmpxprt [file join ${tmppath} export]
-    set cmdstring "${hg.cmd} clone${insecureflag} --rev \"${hg.tag}\" ${hg.url} ${tmpxprt}/${hg.file_prefix} 2>&1"
+    set exportpath [file join ${workpath} export]
+    set cmdstring "${hg.cmd} clone${insecureflag} --rev \"${hg.tag}\" ${hg.url} ${exportpath}/${hg.file_prefix} 2>&1"
     if {[catch {system $cmdstring} result]} {
-        delete ${tmppath}
         return -code error [msgcat::mc "Mercurial clone failed"]
     }
 
     if {![hg_tarballable]} {
-        file rename ${tmpxprt}/${hg.file_prefix} ${worksrcpath}
+        file rename ${exportpath}/${hg.file_prefix} ${worksrcpath}
         return 0
     }
 
     ui_info "$UI_PREFIX Generating tarball ${hg.file}"
 
     # get timestamp of latest revision
-    set cmdstring "${hg.cmd} log -r ${hg.tag} --template=\"{date}\"i -R ${tmpxprt}/${hg.file_prefix}"
+    set cmdstring "${hg.cmd} log -r ${hg.tag} --template=\"{date}\"i -R ${exportpath}/${hg.file_prefix}"
     if {[catch {exec -ignorestderr sh -c $cmdstring} result]} {
-        delete ${tmppath}
         return -code error [msgcat::mc "Mercurial log failed"]
     }
     set mtime $result
 
     set tardst [join [list [mktemp "/tmp/macports.portfetch.${name}.XXXXXXXX"] ".tar"] ""]
 
-    mktar $tardst $tmpxprt $mtime [list "${hg.file_prefix}/.hg"]
+    mktar $tardst $exportpath $mtime [list "${hg.file_prefix}/.hg"]
     set compressed [compressfile ${tardst}]
     file rename -force ${compressed} ${generatedfile}
 
     ui_debug "Created tarball for fetch.type ${fetch.type} at ${generatedfile}"
 
     # cleanup
-    delete ${tmppath}
+    delete ${exportpath}
 
     return 0
 }
