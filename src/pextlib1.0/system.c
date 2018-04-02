@@ -113,8 +113,6 @@ static void handle_sigint(int s) {
 /* usage: system ?-notty? ?-nodup? ?-nice value? ?-W path? command */
 int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-    char *buf;
-    size_t linelen;
     char *args[7];
     char *cmdstring;
     int sandbox = 0;
@@ -290,32 +288,19 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         read_failed = 0;
         pdes = fdopen(fdset[0], "r");
         if (pdes) {
-            while ((buf = fgetln(pdes, &linelen)) != NULL) {
-                char *sbuf;
-                size_t slen;
+            char *line = NULL;
+            size_t linesz = 0;
+            ssize_t linelen;
 
-                /*
-                * Allocate enough space to insert a terminating
-                * '\0' if the line is not terminated with a '\n'
-                */
-                if (buf[linelen - 1] == '\n')
-                    slen = linelen;
-                else
-                    slen = linelen + 1;
-
-                sbuf = malloc(slen);
-                if (sbuf == NULL) {
-                    read_failed = 1;
-                    break;
+            while ((linelen = getline(&line, &linesz, pdes)) > 0) {
+                /* replace '\n' if it exists */
+                if (line[linelen - 1] == '\n') {
+                    line[linelen - 1] = '\0';
                 }
 
-                memcpy(sbuf, buf, linelen);
-                /* terminate line with '\0',replacing '\n' if it exists */
-                sbuf[slen - 1] = '\0';
-
-                ui_info(interp, "%s", sbuf);
-                free(sbuf);
+                ui_info(interp, "%s", line);
             }
+            free(line);
             fclose(pdes);
         } else {
             read_failed = 1;
