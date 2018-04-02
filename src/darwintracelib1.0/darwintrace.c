@@ -82,8 +82,6 @@ size_t strlcpy(char *dst, const char *src, size_t size) {
 }
 #endif
 
-#include "../pextlib1.0/strlcat.c"
-
 // Global Variables
 /**
  * PID of the process darwintrace was last used in. This is used to detect

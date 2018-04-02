@@ -22,6 +22,11 @@ SRCS = \
 	unlink.c
 
 OBJS = $(SRCS:%.c=%.o)
+
+ifneq ($(HAVE_STRLCAT),yes)
+OBJS+= ../pextlib1.0/strlcat.o
+endif
+
 SHLIB_NAME = darwintrace$(SHLIB_SUFFIX)
 INSTALLDIR = $(DESTDIR)$(TCL_PACKAGE_PATH)/darwintrace1.0
 
