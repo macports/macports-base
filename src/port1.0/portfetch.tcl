@@ -327,53 +327,57 @@ proc compressfile {file} {
 proc portfetch::mktar {tarfile dir mtime {excludes {}}} {
     set mtreefile "${tarfile}.mtree"
 
-    # write the list of files in sorted order to mtree file with the
-    # permissions and ownership we want
-    set mtreefd [open $mtreefile w]
-    puts $mtreefd "#mtree"
-    puts $mtreefd "/set uname=root uid=0 gname=root gid=0 time=$mtime"
-    fs-traverse -tails -exclude $excludes f $dir {
-        set fpath [file join $dir $f]
-        if {$f ne "."} {
-            # map type from Tcl to mtree
-            set type [file type $fpath]
-            array set typemap {
-                    file file
-                    directory dir
-                    characterSpecial char
-                    blockSpecial block
-                    fifo fifo
-                    link link
-                    socket socket
+    # not try -pass_signal, we want to catch interrupts
+    try {
+        # write the list of files in sorted order to mtree file with the
+        # permissions and ownership we want
+        set mtreefd [open $mtreefile w]
+        puts $mtreefd "#mtree"
+        puts $mtreefd "/set uname=root uid=0 gname=root gid=0 time=$mtime"
+        fs-traverse -tails -exclude $excludes f $dir {
+            set fpath [file join $dir $f]
+            if {$f ne "."} {
+                # map type from Tcl to mtree
+                set type [file type $fpath]
+                array set typemap {
+                        file file
+                        directory dir
+                        characterSpecial char
+                        blockSpecial block
+                        fifo fifo
+                        link link
+                        socket socket
+                    }
+                if {![info exists typemap($type)]} {
+                    error "unknown file type $type"
                 }
-            if {![info exists typemap($type)]} {
-               return -code error "unknown file type $type"
-            }
-            set type $typemap($type)
+                set type $typemap($type)
 
-            if {$type eq "link"} {
-                set mode 0777
-            } else {
-                # use user permissions only, ignore the rest
-                set mode [format "%o" [expr [file attributes $fpath -permissions] & 0700]]
-            }
+                if {$type eq "link"} {
+                    set mode 0777
+                } else {
+                    # use user permissions only, ignore the rest
+                    set mode [format "%o" [expr [file attributes $fpath -permissions] & 0700]]
+                }
 
-            # add entry to mtree output
-            puts $mtreefd "$f type=$type mode=$mode"
+                # add entry to mtree output
+                puts $mtreefd "$f type=$type mode=$mode"
+            }
         }
-    }
-    close $mtreefd
+        close $mtreefd
 
-    # TODO: add dependency on libarchive, if /usr/bin/tar is not bsdtar
-    set tar [findBinary bsdtar tar]
-    set cmdstring "${tar} -cf $tarfile @$mtreefile 2>&1"
-    if {[catch {system -W $dir $cmdstring} result]} {
-        delete $mtreefile
+        # TODO: add dependency on libarchive, if /usr/bin/tar is not bsdtar
+        set tar [findBinary bsdtar tar]
+        set cmdstring "${tar} -cf $tarfile @$mtreefile 2>&1"
+        if {[catch {system -W $dir $cmdstring} result]} {
+            error [msgcat::mc "tarball creation failed"]
+        }
+    } catch {{*} eCode eMessage} {
         delete $tarfile
-        return -code error [msgcat::mc "tarball creation failed"]
+        throw
+    } finally {
+        delete $mtreefile
     }
-
-    delete $mtreefile
 
     return 0
 }
