@@ -190,9 +190,9 @@ namespace eval reclaim {
                 set patchfiles {}
             }
 
-            mportclose $mport
-
-            foreach distfile [concat $distfiles $patchfiles] {
+            foreach file [concat $distfiles $patchfiles] {
+                # split distfile into filename and disttag
+                set distfile [$workername eval "getdistname $file"]
                 set root_path [file join $root_dist $dist_subdir $distfile]
                 set home_path [file join $home_dist $dist_subdir $distfile]
 
@@ -206,6 +206,8 @@ namespace eval reclaim {
                     lappend files_in_use $home_path
                 }
             }
+
+            mportclose $mport
 
             $progress update $i $port_count
             incr i
