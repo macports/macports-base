@@ -490,25 +490,30 @@ proc portstartupitem::loaded {} {
         return {}
     }
     set ret {}
-    global os.major
+    global os.major sudo_user
     foreach_startupitem {
         if {$si_type ne "launchd"} {
             continue
         }
+        if {$si_location eq "LaunchDaemons" && [getuid] == 0} {
+            set uid 0
+        } elseif {[info exists sudo_user]} {
+            set uid [name_to_uid $sudo_user]
+        } else {
+            set uid [getuid]
+        }
         if {${os.major} >= 14} {
-            if {![catch {exec -ignorestderr $launchctl_path print system/${si_uniquename} >&/dev/null}]} {
+            if {$si_location eq "LaunchDaemons"} {
+                set domain system
+            } else {
+                set domain gui/${uid}
+            }
+            if {![catch {exec -ignorestderr $launchctl_path print ${domain}/${si_uniquename} >&/dev/null}]} {
                 lappend ret $si_name
             }
         } else {
-            if {[getuid] == 0} {
-                elevateToRoot "launchctl list"
-                set elevated 1
-            }
-            if {![catch {exec -ignorestderr $launchctl_path list ${si_uniquename} >&/dev/null}]} {
+            if {![catch {exec_as_uid $uid {system "$launchctl_path list ${si_uniquename}"}}]} {
                 lappend ret $si_name
-            }
-            if {[info exists elevated]} {
-                dropPrivileges
             }
         }
     }

@@ -2995,6 +2995,37 @@ proc validate_macportsuser {} {
     }
 }
 
+# run code as a specified user
+proc exec_as_uid {uid code} {
+    global macportsuser
+    set elevated 0
+    if {[geteuid] != $uid} {
+        elevateToRoot "exec_as_uid"
+        if {$uid == 0} {
+            set elevated 1
+        } else {
+            setegid [uname_to_gid [uid_to_name $uid]]
+            seteuid $uid
+            ui_debug "dropping privileges: euid changed to [geteuid], egid changed to [getegid]."
+        }
+    }
+
+    set retcode ok
+    if {[catch {uplevel 1 $code} result]} {
+        set retcode error
+    }
+
+    if {!$elevated && [getuid] == 0 && [geteuid] != [name_to_uid $macportsuser]} {
+        # have to change to $macportsuser via root
+        elevateToRoot "exec_as_uid"
+        set elevated 1
+    }
+    if {$elevated} {
+        dropPrivileges
+    }
+    return -code $retcode $result
+}
+
 # dependency analysis helpers
 
 ### _libtest is private; subject to change without notice

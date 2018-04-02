@@ -46,24 +46,46 @@ options reload.asroot
 set_ui_prefix
 
 proc portreload::reload_main {args} {
-    global UI_PREFIX subport
+    global UI_PREFIX subport sudo_user
     set launchctl_path ${portutil::autoconf::launchctl_path}
 
     portstartupitem::foreach_startupitem {
-        ui_notice "$UI_PREFIX [format [msgcat::mc "Reloading startupitem '%s' for %s"] $si_name $subport]"
         set path /Library/${si_location}/${si_plist}
         if {$launchctl_path eq ""} {
             return -code error [format [msgcat::mc "launchctl command was not found by configure"]]
         } elseif {![file exists $path]} {
             return -code error [format [msgcat::mc "Launchd plist %s was not found"] $path]
         } else {
-            # Basically run port unload; port load.
-            exec -ignorestderr $launchctl_path unload -w $path
-            # Let's wait a second. #36054 suggests some ports have problems
-            # when they are re-started too quickly, and I hope the second
-            # doesn't hurt too much.
-            after 1000
-            exec -ignorestderr $launchctl_path load -w $path
+            set skip 0
+            if {$si_location eq "LaunchDaemons"} {
+                if {[getuid] == 0} {
+                    set uid 0
+                } else {
+                    ui_warn [format [msgcat::mc "Skipping reload of startupitem '%s' for %s, root privileges required"] $si_name $subport]
+                    set skip 1
+                }
+            } elseif {[getuid] == 0} {
+                if {[info exists sudo_user]} {
+                    set uid [name_to_uid $sudo_user]
+                } else {
+                    ui_warn [format [msgcat::mc "Skipping reload of per-user startupitem '%s' for %s (running as root)"] $si_name $subport]
+                    set skip 1
+                }
+            } else {
+                set uid [getuid]
+            }
+            if {!$skip} {
+                ui_notice "$UI_PREFIX [format [msgcat::mc "Reloading startupitem '%s' for %s"] $si_name $subport]"
+                # Basically run port unload; port load.
+                exec_as_uid $uid {
+                    system "$launchctl_path unload -w $path"
+                    # Let's wait a second. #36054 suggests some ports have problems
+                    # when they are re-started too quickly, and I hope the second
+                    # doesn't hurt too much.
+                    after 1000
+                    system "$launchctl_path load -w $path"
+                }
+            }
         }
     }
 
