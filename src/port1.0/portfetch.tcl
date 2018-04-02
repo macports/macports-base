@@ -51,7 +51,7 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 u
     master_sites.mirror_subdir patch_sites.mirror_subdir \
     bzr.cmd bzr.url bzr.revision bzr.file bzr.file_prefix \
     cvs.cmd cvs.root cvs.password cvs.module cvs.tag cvs.date cvs.file cvs.file_prefix \
-    svn.cmd svn.url svn.revision svn.subdirs svn.file svn.file_prefix \
+    svn.cmd svn.url svn.revision svn.subdirs svn.ignore_keywords svn.file svn.file_prefix \
     git.cmd git.url git.branch git.file git.file_prefix git.fetch_submodules \
     hg.cmd hg.url hg.tag hg.file hg.file_prefix
 
@@ -77,6 +77,7 @@ default svn.cmd {[portfetch::find_svn_path]}
 default svn.url ""
 default svn.revision ""
 default svn.subdirs ""
+default svn.ignore_keywords no
 default svn.file {${distname}.${fetch.type}.tar.bz2}
 default svn.file_prefix {${distname}}
 
@@ -580,7 +581,7 @@ proc portfetch::svn_proxy_args {url} {
 proc portfetch::svnfetch {args} {
     global UI_PREFIX \
            distpath workpath worksrcpath \
-           svn.cmd svn.args svn.revision svn.url svn.subdirs svn.file svn.file_prefix \
+           svn.cmd svn.url svn.revision svn.subdirs svn.ignore_keywords svn.file svn.file_prefix \
            name distname fetch.type
 
     set generatedfile "${distpath}/${svn.file}"
@@ -599,10 +600,18 @@ proc portfetch::svnfetch {args} {
 
     set proxy_args [svn_proxy_args ${svn.url}]
 
+    set args ""
+    if {${svn.ignore_keywords}} {
+        if {${svn.subdirs} ne ""} {
+            error "svn.ignore_keywords cannot be used together with svn.subdirs"
+        }
+        append args " --ignore-keywords"
+    }
+
     ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
     set exportpath [file join ${workpath} export]
     if {${svn.subdirs} eq ""} {
-        set cmdstring "${svn.cmd} --non-interactive ${proxy_args} export ${svn.url} ${exportpath}/${svn.file_prefix} 2>&1"
+        set cmdstring "${svn.cmd} --non-interactive ${proxy_args} export ${args} ${svn.url} ${exportpath}/${svn.file_prefix} 2>&1"
         if {[catch {system $cmdstring} result]} {
             return -code error [msgcat::mc "Subversion checkout failed"]
         }
