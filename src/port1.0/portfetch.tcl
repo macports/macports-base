@@ -733,7 +733,7 @@ proc portfetch::mirrorable {args} {
 
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
-    global UI_PREFIX \
+    global UI_PREFIX portverbose \
            distpath workpath worksrcpath \
            git.url git.branch git.fetch_submodules git.file git.file_prefix git.cmd \
            name distname fetch.type
@@ -744,7 +744,10 @@ proc portfetch::gitfetch {args} {
         return 0
     }
 
-    set options "--progress"
+    set options ""
+    if {$portverbose} {
+        set options "--progress"
+    }
     if {${git.branch} eq ""} {
         # If we're just using HEAD, we can make a shallow repo. In other cases,
         # it might cause a failure for some repos if the requested sha1 is not
@@ -757,7 +760,7 @@ proc portfetch::gitfetch {args} {
 
     ui_info "$UI_PREFIX Cloning ${fetch.type} repository"
     set exportpath [file join ${workpath} export]
-    set cmdstring "${git.cmd} clone -q $options ${git.url} ${exportpath} 2>&1"
+    set cmdstring "${git.cmd} clone $options ${git.url} ${exportpath} 2>&1"
     if {[catch {system $cmdstring} result]} {
         return -code error [msgcat::mc "Git clone failed"]
     }
