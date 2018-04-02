@@ -413,6 +413,7 @@ AC_CONFIG_FILES([
 	setupenv.bash
 	src/Makefile
 	src/cregistry/Makefile
+	src/compat/Makefile
 	src/darwintracelib1.0/Makefile
 	src/machista1.0/Makefile
 	src/macports1.0/Makefile

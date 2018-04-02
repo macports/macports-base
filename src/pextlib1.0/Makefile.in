@@ -32,14 +32,17 @@ OBJS+=sip_copy_proc.o
 endif
 
 ifneq ($(HAVE_GETDELIM),yes)
-OBJS+= strlcat.o
+COMPAT_OBJS+= ../compat/strlcat.o
 endif
 ifneq ($(HAVE_GETLINE),yes)
-OBJS+= getline.o
+COMPAT_OBJS+= ../compat/getline.o
 endif
 ifneq ($(HAVE_STRLCAT),yes)
-OBJS+= strlcat.o
+COMPAT_OBJS+= ../compat/strlcat.o
 endif
+
+CPPFLAGS+= -I../compat
+LIBS+= $(COMPAT_OBJS)
 
 SHLIB_NAME= Pextlib${SHLIB_SUFFIX}
 INSTALLDIR= ${DESTDIR}${TCL_PACKAGE_PATH}/pextlib1.0

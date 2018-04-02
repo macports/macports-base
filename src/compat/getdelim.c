@@ -1,5 +1,5 @@
-/*	$NetBSD: getline.c,v 1.2 2015/12/25 20:12:46 joerg Exp $	*/
-/*	NetBSD-src: getline.c,v 1.2 2014/09/16 17:23:50 christos Exp	*/
+/*	$NetBSD: getdelim.c,v 1.2 2015/12/25 20:12:46 joerg Exp $	*/
+/*	NetBSD-src: getline.c,v 1.2 2014/09/16 17:23:50 christos Exp 	*/
 
 /*-
  * Copyright (c) 2011 The NetBSD Foundation, Inc.
@@ -31,19 +31,57 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
-#if !HAVE_GETLINE
-
-#if !HAVE_GETDELIM
-#include "getdelim.h"
+#if HAVE_CONFIG_H
+#include <config.h>
 #endif
 
-#include "getline.h"
+#if !HAVE_GETDELIM
+
+#include "getdelim.h"
 
 ssize_t
-getline(char **buf, size_t *bufsiz, FILE *fp)
+getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp)
 {
-	return getdelim(buf, bufsiz, '\n', fp);
+	char *ptr, *eptr;
+
+
+	if (*buf == NULL || *bufsiz == 0) {
+		*bufsiz = BUFSIZ;
+		if ((*buf = malloc(*bufsiz)) == NULL)
+			return -1;
+	}
+
+	for (ptr = *buf, eptr = *buf + *bufsiz;;) {
+		int c = fgetc(fp);
+		if (c == -1) {
+			if (feof(fp)) {
+				ssize_t diff = (ssize_t)(ptr - *buf);
+				if (diff != 0) {
+					*ptr = '\0';
+					return diff;
+				}
+			}
+			return -1;
+		}
+		*ptr++ = c;
+		if (c == delimiter) {
+			*ptr = '\0';
+			return ptr - *buf;
+		}
+		if (ptr + 2 >= eptr) {
+			char *nbuf;
+			size_t nbufsiz = *bufsiz * 2;
+			ssize_t d = ptr - *buf;
+			if ((nbuf = realloc(*buf, nbufsiz)) == NULL)
+				return -1;
+			*buf = nbuf;
+			*bufsiz = nbufsiz;
+			eptr = nbuf + nbufsiz;
+			ptr = nbuf + d;
+		}
+	}
 }
 
 #endif

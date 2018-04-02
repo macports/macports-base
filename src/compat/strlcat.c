@@ -13,14 +13,14 @@
 **  of space remaining.
 */
 
+#include <stddef.h>
+#include <string.h>
+
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #ifndef HAVE_STRLCAT
-
-#include <stddef.h>
-#include <string.h>
 
 size_t strlcat(char *dst, const char *src, size_t size)
 {
