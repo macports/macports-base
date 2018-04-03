@@ -32,7 +32,7 @@ OBJS+=sip_copy_proc.o
 endif
 
 ifneq ($(HAVE_GETDELIM),yes)
-COMPAT_OBJS+= ../compat/strlcat.o
+COMPAT_OBJS+= ../compat/getdelim.o
 endif
 ifneq ($(HAVE_GETLINE),yes)
 COMPAT_OBJS+= ../compat/getline.o

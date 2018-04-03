@@ -4,7 +4,7 @@ VPATH  = @srcdir@
 include ../../Mk/macports.autoconf.mk
 
 ifneq ($(HAVE_GETDELIM),yes)
-OBJS+= strlcat.o
+OBJS+= getdelim.o
 endif
 ifneq ($(HAVE_GETLINE),yes)
 OBJS+= getline.o
