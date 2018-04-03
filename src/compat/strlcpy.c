@@ -35,7 +35,7 @@
 
 #ifndef HAVE_STRLCPY
 
-#include "strlcopy.h"
+#include "strlcpy.h"
 
 /* Define strlcpy if it's not available. */
 size_t strlcpy(char * restrict dst, const char * restrict src, size_t size) {
