@@ -170,14 +170,9 @@ proc macports::push_log {mport} {
         }
     }
     if {$::logenabled} {
-        if {[getuid] == 0 && [geteuid] != 0} {
-            seteuid 0; setegid 0
+        if {[macports::init_logging $mport] == 0} {
+            lappend ::logstack [list $::debuglog $::debuglogname]
         }
-        if {[catch {macports::ch_logging $mport} err]} {
-            ui_debug "Logging disabled, error opening log file: $err"
-            return
-        }
-        lappend ::logstack [list $::debuglog $::debuglogname]
     }
 }
 
