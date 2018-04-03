@@ -141,8 +141,10 @@ proc macports::init_logging {mport} {
         ui_debug "Logging disabled, error opening log file: $err"
         return 1
     }
+    macports::_log_sysinfo
     return 0
 }
+
 proc macports::ch_logging {mport} {
     set portname [_mportkey $mport subport]
     set portpath [_mportkey $mport portpath]
@@ -159,6 +161,48 @@ proc macports::ch_logging {mport} {
     set ::debuglog [open $::debuglogname a]
     puts $::debuglog version:1
 }
+
+# log platform information
+proc macports::_log_sysinfo {} {
+    global macports::current_phase
+    global macports::os_platform macports::os_subplatform \
+           macports::os_version macports::os_major macports::os_minor \
+           macports::os_endian macports::os_arch \
+           macports::macosx_version macports::macosx_sdk_version macports::macosx_deployment_target \
+           macports::xcodeversion
+    global tcl_platform
+
+    set previous_phase ${macports::current_phase}
+    set macports::current_phase "sysinfo"
+
+    if {$os_platform eq "darwin"} {
+        if {$os_subplatform eq "macosx"} {
+            if {[vercmp $macosx_version 10.12] >= 0} {
+                set os_version_string "macOS ${macosx_version}"
+            } elseif {[vercmp $macosx_version 10.8] >= 0} {
+                set os_version_string "OS X ${macosx_version}"
+            } else {
+                set os_version_string "Mac OS X ${macosx_version}"
+            }
+        } else {
+            set os_version_string "PureDarwin ${os_version}"
+        }
+    } else {
+        # use capitalized platform name
+        set os_version_string "$tcl_platform(os) ${os_version}"
+    }
+
+    ui_debug "$os_version_string ($os_platform/$os_version) arch $os_arch"
+    ui_debug "MacPorts [macports::version]"
+    if {$os_platform eq "darwin" && $os_subplatform eq "macosx"} {
+        ui_debug "Xcode ${xcodeversion}"
+        ui_debug "SDK ${macosx_sdk_version}"
+        ui_debug "MACOSX_DEPLOYMENT_TARGET: ${macosx_deployment_target}"
+    }
+
+    set macports::current_phase $previous_phase
+}
+
 proc macports::push_log {mport} {
     if {![info exists ::logenabled]} {
         if {[macports::init_logging $mport] == 0} {
