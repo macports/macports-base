@@ -20,6 +20,8 @@ endif
 PKGINDEX=
 INSTALLTARGET=
 
+all:: $(OBJS)
+
 include $(srcdir)/../../Mk/macports.tea.mk
 
 test::
