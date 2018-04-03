@@ -811,9 +811,7 @@ static char* get_mntpoint(const char *path) {
     struct statfs f = { 0 };
 
     if (-1 != statfs(path, &f)) {
-        if (f.f_mntonname) {
-            ret = strdup(f.f_mntonname);
-        }
+        ret = strdup(f.f_mntonname);
     }
 #else
     /*
