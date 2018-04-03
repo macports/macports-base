@@ -122,6 +122,7 @@ default install.group {${portutil::autoconf::install_group}}
 
 # Platform Settings
 default os.platform {$os_platform}
+default os.subplatform {$os_subplatform}
 default os.version {$os_version}
 default os.major {$os_major}
 default os.minor {$os_minor}
@@ -136,18 +137,10 @@ ui_debug "OS [option os.platform]/[option os.version] ${macosx_version_text}arch
 
 default universal_variant {${use_configure}}
 
-# sub-platforms of darwin
-if {[option os.platform] eq "darwin"} {
-    if {[file isdirectory /System/Library/Frameworks/Carbon.framework]} {
-        default os.subplatform macosx
-        # we're on Mac OS X and can therefore build universal
-        default os.universal_supported yes
-    } else {
-        default os.subplatform puredarwin
-        default os.universal_supported no
-    }
+if {[option os.platform] eq "darwin" && [option os.subplatform] eq "macosx"} {
+    # we're on Mac OS X and can therefore build universal
+    default os.universal_supported yes
 } else {
-    default os.subplatform {}
     default os.universal_supported no
 }
 

@@ -67,7 +67,7 @@ namespace eval macports {
         place_worksymlink macportsuser sudo_user \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
-        os_arch os_endian os_version os_major os_minor os_platform macosx_version macosx_sdk_version macosx_deployment_target \
+        os_arch os_endian os_version os_major os_minor os_platform os_subplatform macosx_version macosx_sdk_version macosx_deployment_target \
         packagemaker_path default_compilers sandbox_enable sandbox_network delete_la_files cxx_stdlib \
         pkg_post_unarchive_deletions $user_options"
 
@@ -609,6 +609,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::os_major \
         macports::os_minor \
         macports::os_platform \
+        macports::os_subplatform \
         macports::macosx_version \
         macports::macosx_sdk_version \
         macports::macosx_deployment_target \
@@ -640,13 +641,22 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     set os_platform [string tolower $tcl_platform(os)]
     # Remove trailing "Endian"
     set os_endian [string range $tcl_platform(byteOrder) 0 end-6]
+    set os_subplatform {}
     set macosx_version {}
-    if {$os_platform eq "darwin" && [file executable /usr/bin/sw_vers]} {
-
-        try -pass_signal {
-            set macosx_version [exec /usr/bin/sw_vers -productVersion | cut -f1,2 -d.]
-        } catch {* ec result} {
-            ui_debug "sw_vers exists but running it failed: $result"
+    if {$os_platform eq "darwin"} {
+        if {[file isdirectory /System/Library/Frameworks/Carbon.framework]} {
+            # macOS
+            set os_subplatform macosx
+            if {[file executable /usr/bin/sw_vers]} {
+                try -pass_signal {
+                    set macosx_version [exec /usr/bin/sw_vers -productVersion | cut -f1,2 -d.]
+                } catch {* ec result} {
+                    ui_debug "sw_vers exists but running it failed: $result"
+                }
+            }
+        } else {
+            # PureDarwin
+            set os_subplatform puredarwin
         }
     }
 
