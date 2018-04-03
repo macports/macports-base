@@ -31,6 +31,7 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 
 #if HAVE_CONFIG_H
 #include <config.h>
