@@ -50,7 +50,7 @@ package require Pextlib 1.0
 proc print_usage {{verbose 1}} {
     global cmdname
     set syntax {
-        [-bcdfknopqRstuvy] [-D portdir] [-F cmdfile] action [actionflags]
+        [-bcdfknNopqRstuvy] [-D portdir] [-F cmdfile] action [actionflags]
         [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
     }
 
