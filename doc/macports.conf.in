@@ -180,11 +180,11 @@ universal_archs     	@UNIVERSAL_ARCHS@
 # has no default value.
 #proxy_skip          	host1, host2, host3
 
-# Space-delimited lists of download hosts that MacPorts should not use
-# and that MacPorts should prefer, respectively, overriding the usual
-# ping time checks. These have no default values.
+# Space-delimited lists of glob patterns matched against download hosts
+# that MacPorts should not use and that MacPorts should prefer, respectively,
+# overriding the usual ping time checks. These have no default values.
 #host_blacklist      	badhost1 badhost2
-#preferred_hosts     	preferredhost1 preferredhost2
+#preferred_hosts     	preferredhost1 preferredhost2 *.de.*.macports.org
 
 # Whether MacPorts should automatically run rev-upgrade after upgrading
 # ports.

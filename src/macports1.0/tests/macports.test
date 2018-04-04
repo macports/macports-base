@@ -957,9 +957,8 @@ test get_pingtime {
 } -setup {
     set time [expr [clock seconds] - 86300]
     set macports::ping_cache(macports.org) [list MacPorts $time]
-    set macports::host_blacklisted(macports_blacklist) [list black $time]
-    set macports::host_preferred(macports_pref) [list pref $time]
-
+    set macports::host_blacklist macports_blacklist
+    set macports::preferred_hosts macports_pref
 } -body {
     if {[macports::get_pingtime macports.org] ne "MacPorts"} {
        return "FAIL: wrong ping time"
