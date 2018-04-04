@@ -244,7 +244,7 @@ In order to make the release version available through selfupdate, the
 [`config/RELEASE_URL`][RELEASE_URL] file in the base repository needs to be
 updated with the tag of the release to distribute. This file is read by the
 cron job that makes the code available via rsync. See
-[`jobs/mprsyncup`][mprsyncup] in the macports-infra repository.
+[`jobs/mprsyncup`][mprsyncup] in the macports-infrastructure repository.
 
 
 ### Make the Release Available for Pull Request Checks on Travis CI ###
