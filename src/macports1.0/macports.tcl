@@ -654,8 +654,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::macosx_deployment_target \
         macports::archivefetch_pubkeys \
         macports::ping_cache \
-        macports::host_blacklisted \
-        macports::host_preferred \
+        macports::host_cache \
         macports::delete_la_files \
         macports::cxx_stdlib
 
@@ -1266,17 +1265,13 @@ match macports.conf.default."
             close $pingfile
         }
     }
-    # set up arrays of blacklisted and preferred hosts
-    if {[info exists macports::host_blacklist]} {
-        foreach host $macports::host_blacklist {
-            set macports::host_blacklisted($host) 1
-        }
+    if {![info exists macports::host_blacklist]} {
+        set macports::host_blacklist {}
     }
-    if {[info exists macports::preferred_hosts]} {
-        foreach host $macports::preferred_hosts {
-            set macports::host_preferred($host) 1
-        }
+    if {![info exists macports::preferred_hosts]} {
+        set macports::preferred_hosts {}
     }
+    array set macports::host_cache {}
 
     # load the quick index
     _mports_load_quickindex
@@ -5219,12 +5214,25 @@ proc macports::revupgrade_buildgraph {port stackname adjlistname revadjlistname 
 
 # get cached ping time for host, modified by blacklist and preferred list
 proc macports::get_pingtime {host} {
-    global macports::ping_cache macports::host_blacklisted macports::host_preferred
-    if {[info exists host_blacklisted($host)]} {
-        return -1
-    } elseif {[info exists host_preferred($host)]} {
-        return 1
-    } elseif {[info exists ping_cache($host)]} {
+    global macports::ping_cache macports::host_cache \
+           macports::host_blacklist macports::preferred_hosts
+
+    if {[info exists host_cache($host)]} {
+        return $host_cache($host)
+    }
+    foreach pattern $macports::host_blacklist {
+        if {[string match -nocase $pattern $host]} {
+            set host_cache($host) -1
+            return -1
+        }
+    }
+    foreach pattern $macports::preferred_hosts {
+        if {[string match -nocase $pattern $host]} {
+            set host_cache($host) 1
+            return 1
+        }
+    }
+    if {[info exists ping_cache($host)]} {
         # expire entries after 1 day
         if {[clock seconds] - [lindex $ping_cache($host) 1] <= 86400} {
             return [lindex $ping_cache($host) 0]
