@@ -9,7 +9,7 @@ port - Command line interface for MacPorts
 SYNOPSIS
 --------
 [cmdsynopsis]
-*port* [*-bcdfknNopqRstuvy*] [*-D* 'portdir'] [*-F* 'cmdfile'] ['action'] ['actionflags']
+*port* [*-bcdfknNopqRstuvy*] [*-D* 'portdir'|'portname'] [*-F* 'cmdfile'] ['action'] ['actionflags']
      [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
      [['@version'] [+/-variant ...] ... [option=value ...]]
 
@@ -191,8 +191,11 @@ The port command recognizes several global flags and options.
 -f::
     Force mode, ignore state file
 
--D 'portdir'::
-    Specfiy 'portdir'
+-D 'portdir'|'portname'::
+    Specify a directory to which the port command should change to before
+    processing any actions. If the specified value does not contain any slashes,
+    the value is used to look up a port and the current working directory is set
+    to the corresponding port directory.
 
 -F 'cmdfile'::
     Read and process the 'file' of commands specified by the argument. If the
