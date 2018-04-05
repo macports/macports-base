@@ -437,10 +437,20 @@ proc portconfigure::configure_get_universal_archflags {} {
     global configure.universal_archs
     set flags ""
     foreach arch ${configure.universal_archs} {
-        if {$flags eq ""} {
-            set flags "-arch $arch"
+        set option ""
+        # passthrough custom options
+        if {[string match "-*" $arch]} {
+            set option " $arch "
+        } elseif {[string match "bitcode" $arch]} {
+            set option " -fembed-bitcode "
         } else {
-            append flags " -arch $arch"
+            set option " -arch $arch "
+        }
+
+        if {$flags eq ""} {
+            set flags $option
+        } else {
+            append flags $option
         }
     }
     return $flags
