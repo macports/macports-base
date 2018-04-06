@@ -498,6 +498,25 @@ T}
 
 .RE
 .PP
+startupitem_install
+.RS 4
+
+
+
+Create system\-level symlinks to generated StartupItems\&. If set to "no", symlinks will not be created; otherwise, symlinks will be placed in /Library/LaunchDaemons or /Library/LaunchAgents as appropriate\&. This setting only applies when building ports from source\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
+yes
+T}
+.TE
+.sp 1
+
+.RE
+.PP
 destroot_umask
 .RS 4
 
