@@ -142,6 +142,13 @@ startupitem_type::
     *Supported types:*;; none, launchd, default.
     *Default:*;; default
 
+startupitem_install::
+    Create system-level symlinks to generated StartupItems. If set to
+    "no", symlinks will not be created; otherwise, symlinks will be placed
+    in /Library/LaunchDaemons or /Library/LaunchAgents as appropriate.
+    This setting only applies when building ports from source.
+    *Default:*;; yes
+
 destroot_umask::
     Umask value to use during the destrooting of a port.
     *Default:*;; 022
