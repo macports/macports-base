@@ -237,16 +237,16 @@
         ..
     ..
     var
-      cache
-      ..
-      db
-      ..
-      log
-      ..
-      run
-      ..
-      spool
-      ..
+        cache
+        ..
+        db
+        ..
+        log
+        ..
+        run
+        ..
+        spool
+        ..
     ..
     www
     ..
