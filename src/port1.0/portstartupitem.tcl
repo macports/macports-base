@@ -463,6 +463,8 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
     if {[getuid] == 0 && $si(install)} {
         file mkdir "${destroot}/Library/${daemondest}"
         ln -sf "${itemdir}/${plistname}" "${destroot}/Library/${daemondest}"
+    } else {
+        ln -sf ${itemdir}/${plistname} ${destroot}${prefix}/etc/${daemondest}
     }
 }
 
