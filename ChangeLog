@@ -9,6 +9,9 @@ Release 2.4.3 (2018-03-?? by ?)
     - Using subport= with a nonexistent subport causes an error.
       (#34619, jmr in 9c48520c)
 
+    - livecheck.regex is matched case-insensitive.
+      (khindenburg in 0310feb5)
+
     - Sandbox allows read/write access to /dev/{u,}random.
       (jmr in c8c1565f)
 
