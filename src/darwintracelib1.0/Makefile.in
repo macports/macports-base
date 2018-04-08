@@ -30,7 +30,7 @@ ifneq ($(HAVE_STRLCPY),yes)
 COMPAT_OBJS+= $(srcdir)/../compat/strlcpy.o
 endif
 
-CPPFLAGS+= -I../compat
+CPPFLAGS+= -I$(srcdir)/../compat
 LIBS+= $(COMPAT_OBJS)
 
 SHLIB_NAME = darwintrace$(SHLIB_SUFFIX)

@@ -59,9 +59,20 @@ proc portactivate::activate_start {args} {
 }
 
 proc portactivate::activate_main {args} {
-    global subport version revision portvariants user_options PortInfo
+    global subport version revision portvariants prefix user_options
 
-    registry_activate $subport $version $revision $portvariants [array get user_options]
+    set optionlist [array get user_options]
+    set renames {}
+    portstartupitem::foreach_startupitem {
+        if {$si_install} {
+            lappend renames ${prefix}/etc/${si_location}/${si_plist} /Library/${si_location}/${si_plist}
+        } else {
+            lappend renames /Library/${si_location}/${si_plist} ${prefix}/etc/${si_location}/${si_plist}
+        }
+    }
+    lappend optionlist portactivate_rename_files $renames
+
+    registry_activate $subport $version $revision $portvariants $optionlist
 
     return 0
 }

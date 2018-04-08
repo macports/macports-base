@@ -47,11 +47,15 @@ options unload.asroot
 set_ui_prefix
 
 proc portunload::unload_main {args} {
-    global UI_PREFIX subport sudo_user
+    global UI_PREFIX prefix subport sudo_user
     set launchctl_path ${portutil::autoconf::launchctl_path}
 
     portstartupitem::foreach_startupitem {
-        set path /Library/${si_location}/${si_plist}
+        if {$si_install} {
+            set path /Library/${si_location}/${si_plist}
+        } else {
+            set path ${prefix}/etc/${si_location}/${si_plist}
+        }
         if {$launchctl_path eq ""} {
             return -code error [format [msgcat::mc "launchctl command was not found by configure"]]
         } elseif {![file exists $path]} {

@@ -41,7 +41,7 @@ ifneq ($(HAVE_STRLCAT),yes)
 COMPAT_OBJS+= ../compat/strlcat.o
 endif
 
-CPPFLAGS+= -I../compat
+CPPFLAGS+= -I$(srcdir)/../compat
 LIBS+= $(COMPAT_OBJS)
 
 SHLIB_NAME= Pextlib${SHLIB_SUFFIX}
