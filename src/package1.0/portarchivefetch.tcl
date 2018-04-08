@@ -65,10 +65,13 @@ default archive.subdir {${subport}}
 
 proc portarchivefetch::filter_sites {} {
     global prefix frameworks_dir applications_dir porturl \
+        cxx_stdlib delete_la_files \
         portfetch::mirror_sites::sites portfetch::mirror_sites::archive_type \
         portfetch::mirror_sites::archive_prefix \
         portfetch::mirror_sites::archive_frameworks_dir \
-        portfetch::mirror_sites::archive_applications_dir
+        portfetch::mirror_sites::archive_applications_dir \
+        portfetch::mirror_sites::archive_cxx_stdlib \
+        portfetch::mirror_sites::archive_delete_la_files
 
     # get defaults from ports tree resources
     set mirrorfile [get_full_archive_sites_path]
@@ -83,7 +86,7 @@ proc portarchivefetch::filter_sites {} {
     set ret {}
     foreach site [array names portfetch::mirror_sites::archive_prefix] {
         set missing 0
-        foreach var {archive_frameworks_dir archive_applications_dir archive_type} {
+        foreach var {archive_frameworks_dir archive_applications_dir archive_type archive_cxx_stdlib archive_delete_la_files} {
             if {![info exists portfetch::mirror_sites::${var}($site)]} {
                 ui_warn "no $var configured for site '$site'"
                 set missing 1
@@ -96,6 +99,8 @@ proc portarchivefetch::filter_sites {} {
             $portfetch::mirror_sites::archive_prefix($site) eq $prefix &&
             $portfetch::mirror_sites::archive_frameworks_dir($site) eq $frameworks_dir &&
             $portfetch::mirror_sites::archive_applications_dir($site) eq $applications_dir &&
+            $portfetch::mirror_sites::archive_cxx_stdlib($site) eq $cxx_stdlib &&
+            $portfetch::mirror_sites::archive_delete_la_files($site) eq $delete_la_files &&
             ![catch {archiveTypeIsSupported $portfetch::mirror_sites::archive_type($site)}]} {
             # using the archive type as a tag
             lappend ret ${site}::$portfetch::mirror_sites::archive_type($site)

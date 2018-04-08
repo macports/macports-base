@@ -5253,9 +5253,15 @@ proc macports::get_archive_sites_conf_values {} {
     if {![info exists archive_sites_conf_values]} {
         set archive_sites_conf_values {}
         set all_names {}
-        array set defaults {applications_dir /Applications/MacPorts prefix /opt/local type tbz2}
+        set defaults_list {applications_dir /Applications/MacPorts prefix /opt/local type tbz2}
+        if {$macports::os_platform eq "darwin" && $macports::os_major <= 12} {
+            lappend defaults_list cxx_stdlib libstdc++ delete_la_files no
+        } else {
+            lappend defaults_list cxx_stdlib libc++ delete_la_files yes
+        }
+        array set defaults $defaults_list
         set conf_file ${macports_conf_path}/archive_sites.conf
-        set conf_options {applications_dir frameworks_dir name prefix type urls}
+        set conf_options {applications_dir cxx_stdlib delete_la_files frameworks_dir name prefix type urls}
         if {[file isfile $conf_file]} {
             set fd [open $conf_file r]
             while {[gets $fd line] >= 0} {
