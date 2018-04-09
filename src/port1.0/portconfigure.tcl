@@ -526,6 +526,7 @@ proc portconfigure::get_compiler_fallback {} {
             if {[string match *10.4u* ${configure.sdkroot}]} {
                 return {gcc-4.0}
             }
+            # No return here. 3.2.x with newer SDKs than 10.4u is handled below.
         } elseif {[vercmp $xcodeversion 3.0] >= 0} {
             return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-clang-3.4 macports-clang-3.3}
         } else {
@@ -543,6 +544,7 @@ proc portconfigure::get_compiler_fallback {} {
     } elseif {[vercmp $xcodeversion 4.0] >= 0} {
         lappend compilers llvm-gcc-4.2 clang
     } else {
+        # 3.2.x
         lappend compilers gcc-4.2 clang llvm-gcc-4.2
     }
 
