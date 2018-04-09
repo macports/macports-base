@@ -487,14 +487,31 @@ proc portconfigure::get_compiler_fallback {} {
 
     # Legacy cases
     if {[vercmp $xcodeversion 4.0] < 0} {
+        set canonical_archs [get_canonical_archs]
         if {[vercmp $xcodeversion 3.2] >= 0} {
             if {[string match *10.4u* ${configure.sdkroot}]} {
                 return {gcc-4.0}
             }
         } elseif {[vercmp $xcodeversion 3.0] >= 0} {
-            return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-clang-3.4 macports-clang-3.3}
+            if {"ppc" in $canonical_archs || "ppc64" in $canonical_archs} {
+                return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-gcc-6 macports-gcc-7}
+            } else {
+                return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-clang-3.4 macports-clang-3.3}
+            }
         } else {
-            return {apple-gcc-4.2 gcc-4.0 gcc-3.3 macports-clang-3.3}
+            # Xcode 2.x (Tiger)
+            if {"ppc" in $canonical_archs || "ppc64" in $canonical_archs} {
+                if {"i386" in $canonical_archs} {
+                    # universal
+                    return {apple-gcc-4.2 gcc-4.0 macports-gcc-6 macports-gcc-7}
+                } else {
+                    # ppc only
+                    return {apple-gcc-4.2 gcc-4.0 gcc-3.3 macports-gcc-6 macports-gcc-7}
+                }
+            } else {
+                # i386 only
+                return {apple-gcc-4.2 gcc-4.0 macports-clang-3.3}
+            }
         }
     }
 
