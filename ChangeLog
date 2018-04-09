@@ -24,6 +24,10 @@ Release 2.5.0 (????-??-?? by ?)
     - Allow dots in variant names.
       (#46807, raimue in c3f08731)
 
+    - New option use_tar for ports that use uncompressed tar archives
+      as distfile.
+      (ryandesign in f10e0e37)
+
 Release 2.4.3 (2018-04-?? by ?)
     - Fix trace mode on macOS High Sierra 10.13.3
       (#55575, raimue in 995dde84)
