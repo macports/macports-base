@@ -5707,7 +5707,7 @@ if {[info exists global_options(ports_dir)]} {
             exit 1
         }
         array set portinfo [lindex $result 1]
-        set dir $portinfo(portdir)
+        set dir [macports::getportdir $portinfo(porturl)]
     }
     if {[catch {cd $dir} result]} {
         ui_debug "cd $dir: $::errorCode"
