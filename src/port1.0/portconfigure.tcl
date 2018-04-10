@@ -473,7 +473,7 @@ proc portconfigure::configure_get_default_compiler {} {
 
 # internal function to choose compiler fallback list based on platform
 proc portconfigure::get_compiler_fallback {} {
-    global xcodeversion macosx_deployment_target default_compilers configure.sdkroot configure.cxx_stdlib os.major configure.build_arch
+    global xcodeversion macosx_deployment_target default_compilers configure.sdkroot configure.cxx_stdlib os.major
 
     # Check our override
     if {[info exists default_compilers]} {
@@ -492,17 +492,9 @@ proc portconfigure::get_compiler_fallback {} {
                 return {gcc-4.0}
             }
         } elseif {[vercmp $xcodeversion 3.0] >= 0} {
-            if {${configure.build_arch} eq "ppc" || ${configure.build_arch} eq "ppc64"} {
-                return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-gcc-6 macports-gcc-7}
-            } else {
-                return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-clang-3.4 macports-clang-3.3}
-            }
+            return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-clang-3.4 macports-clang-3.3}
         } else {
-            if {${configure.build_arch} eq "ppc" || ${configure.build_arch} eq "ppc64"} {
-                return {apple-gcc-4.2 gcc-4.0 macports-gcc-6 macports-gcc-7}
-            } else {
-                return {apple-gcc-4.2 gcc-4.0 macports-clang-3.3}
-            }
+            return {apple-gcc-4.2 gcc-4.0 gcc-3.3 macports-clang-3.3}
         }
     }
 
