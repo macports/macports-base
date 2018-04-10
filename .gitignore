@@ -19,7 +19,6 @@ portmgr/dmg/postflight
 
 src/*
 !src/*/
-src/*/*.dylib
 src/*/*_autoconf.tcl
 src/cregistry/macports.sqlext
 src/darwintracelib1.0/*.d
@@ -28,7 +27,10 @@ src/machista1.0/tests/libmachista-test
 src/port/*
 !src/port/*.tcl
 src/programs/daemondo/build/
-src/**/*.[ao]
+src/**/*.o
+src/**/*.a
+src/**/*.dylib
+src/**/*.dSYM
 
 tests/test.tcl
 tests/test/library.tcl
@@ -39,6 +41,7 @@ vendor/tclsh
 vendor/**/*.o
 vendor/**/*.a
 vendor/**/*.dylib
+vendor/**/*.dSYM
 vendor/**/config.log
 vendor/**/config.status
 vendor/tcl8.*/unix/Tcl-Info.plist
