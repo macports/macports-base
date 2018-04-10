@@ -1,6 +1,6 @@
 # Test file for registry::entry dependencies
 # Syntax:
-# tclsh depends.tcl <Pextlib name>
+# tclsh depends.tcl registry.dylib
 
 proc main {pextlibname} {
     load $pextlibname
