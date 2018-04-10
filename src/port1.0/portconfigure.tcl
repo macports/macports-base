@@ -76,9 +76,16 @@ proc portconfigure::should_add_stdlib {} {
     set is_clang [string match *clang* [option configure.cxx]]
     return [expr {$has_stdlib && $is_clang}]
 }
+proc portconfigure::should_add_cxx_abi {} {
+    set is_oldos [expr {[option os.platform] eq "darwin" && [option os.major] < 10}]
+    set is_mp_gcc [string match *g++-mp-* [option configure.cxx]]
+    return [expr {$is_oldos && $is_mp_gcc}]
+}
 proc portconfigure::construct_cxxflags {flags} {
     if {[portconfigure::should_add_stdlib]} {
         lappend flags -stdlib=[option configure.cxx_stdlib]
+    } elseif {[portconfigure::should_add_cxx_abi]} {
+        lappend flags -D_GLIBCXX_USE_CXX11_ABI=0
     }
     return $flags
 }
