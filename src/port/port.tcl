@@ -50,7 +50,7 @@ package require Pextlib 1.0
 proc print_usage {{verbose 1}} {
     global cmdname
     set syntax {
-        [-bcdfknNopqRstuvy] [-D portdir] [-F cmdfile] action [actionflags]
+        [-bcdfknNopqRstuvy] [-D portdir|portname] [-F cmdfile] action [actionflags]
         [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
     }
 
@@ -4573,7 +4573,7 @@ proc parse_options { action ui_options_name global_options_name } {
                     D {
                         advance
                         if {[moreargs]} {
-                            cd [lookahead]
+                            set global_options(ports_dir) [lookahead]
                         }
                         break
                     }
@@ -5691,6 +5691,29 @@ if { [llength $remaining_args] == 0 && ![info exists ui_options(ports_commandfil
 if {[catch {mportinit ui_options global_options global_variations} result]} {
     puts $::errorInfo
     fatal "Failed to initialize MacPorts, $result"
+}
+
+# Change to port directory if requested
+if {[info exists global_options(ports_dir)]} {
+    set dir $global_options(ports_dir)
+    if {[string first "/" $dir] == -1} {
+        set portname $dir
+        if {[catch {mportlookup $portname} result]} {
+            ui_debug $::errorInfo
+            fatal "lookup of portname $portname failed: $result"
+        }
+        if {[llength $result] < 2} {
+            ui_error "port -D failed to look up $portname: no such port"
+            exit 1
+        }
+        array set portinfo [lindex $result 1]
+        set dir [macports::getportdir $portinfo(porturl)]
+    }
+    if {[catch {cd $dir} result]} {
+        ui_debug "cd $dir: $::errorCode"
+        ui_error "port -D could not change directory to $dir: [lindex $::errorCode 2]"
+        exit 1
+    }
 }
 
 # Set up some global state for our code
