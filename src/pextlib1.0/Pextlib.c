@@ -100,6 +100,7 @@
 #include "system.h"
 #include "mktemp.h"
 #include "realpath.h"
+#include "statfs.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -1131,6 +1132,12 @@ int Pextlib_Init(Tcl_Interp *interp)
     Tcl_CreateObjCommand(interp, "set_max_open_files", SetMaxOpenFilesCmd, NULL, NULL);
 
     Tcl_CreateObjCommand(interp, "fs_case_sensitive", FSCaseSensitiveCmd, NULL, NULL);
+
+/* X-Macro to create TCL commands for statfs accessors. */
+#define X(_MEMB_, _FNAME_) \
+    Tcl_CreateObjCommand(interp, #_FNAME_, _MEMB_##Cmd, NULL, NULL);
+STATFS_ALL
+#undef X
 
     if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
         return TCL_ERROR;
