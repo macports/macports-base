@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.4.3 (2018-03-?? by ?)
+Release 2.4.3 (2018-04-11 by jmr)
     - Fix trace mode on macOS High Sierra 10.13.3
       (#55575, raimue in 995dde84)
 
