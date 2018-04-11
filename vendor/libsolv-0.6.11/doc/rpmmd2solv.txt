@@ -1,0 +1,30 @@
+rpmmd2solv(1)
+=============
+:man manual: LIBSOLV
+:man source: libsolv
+
+
+Name
+----
+rpmmd2solv - convert files in rpm-md format into a solv file
+
+Synopsis
+--------
+*rpmmd2solv* ['OPTIONS']
+
+Description
+-----------
+The rpmmd2solv tool reads rpm-md xml data from stdin, and writes
+it as solv file to standard output. It understands the *primary*,
+*filelist*, *other*, and *susedata* format.
+
+*-X*::
+Autoexpand SUSE pattern and product provides into packages.
+
+See Also
+--------
+repomdxml2solv(1), mergesolv(1), createrepo(8)
+
+Author
+------
+Michael Schroeder <mls@suse.de>

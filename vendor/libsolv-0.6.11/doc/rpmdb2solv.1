@@ -1,0 +1,95 @@
+'\" t
+.\"     Title: rpmdb2solv
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.78.0 <http://docbook.sf.net/>
+.\"      Date: 09/25/2014
+.\"    Manual: LIBSOLV
+.\"    Source: libsolv
+.\"  Language: English
+.\"
+.TH "RPMDB2SOLV" "1" "09/25/2014" "libsolv" "LIBSOLV"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+rpmdb2solv \- convert the rpm database into a solv file
+.SH "SYNOPSIS"
+.sp
+\fBrpmdb2solv\fR [\fIOPTIONS\fR] [\fIREFFILE\&.solv\fR]
+.SH "DESCRIPTION"
+.sp
+The rpmdb2solv tool reads rpm\(cqs installed packages database and writes it in solv file format to standard output\&. You can make use of an old version of the database by specifying a \fIREFFILE\&.solv\fR file\&.
+.PP
+\fB\-o\fR \fIOUTFILE\fR
+.RS 4
+Write the generated solv to
+\fIOUTFILE\fR
+instead of standard output\&.
+.RE
+.PP
+\fB\-P\fR
+.RS 4
+Print percentages as packages are being read in\&. The output format is like rpm\(cqs \-\-percent option\&.
+.RE
+.PP
+\fB\-r\fR \fIROOTDIR\fR
+.RS 4
+Use
+\fIROOTDIR\fR
+as root directory\&.
+.RE
+.PP
+\fB\-k\fR
+.RS 4
+Read pubkeys from the rpm database instead of installed packages\&. Note that many distributions stopped storing pubkeys in the database but use a directory like
+\fB/var/lib/rpm/pubkeys\fR
+instead\&.
+.RE
+.PP
+\fB\-A\fR
+.RS 4
+Also scan the
+\fB/usr/share/appdata\fR
+for installed appdata files and create pseudo packages for each file\&.
+.RE
+.PP
+\fB\-p\fR \fIPRODDIR\fR
+.RS 4
+Also read SUSE product files from directory
+\fIPRODDIR\fR\&. The standard directory is
+\fB/etc/products\&.d\fR\&.
+.RE
+.PP
+\fB\-n\fR
+.RS 4
+Do not read any packages from the rpm database\&. This is useful together with
+\fB\-p\fR
+to only convert SUSE products\&.
+.RE
+.PP
+\fB\-X\fR
+.RS 4
+Autoexpand SUSE pattern and product provides into packages\&.
+.RE
+.SH "SEE ALSO"
+.sp
+rpms2solv(1)
+.SH "AUTHOR"
+.sp
+Michael Schroeder <mls@suse\&.de>

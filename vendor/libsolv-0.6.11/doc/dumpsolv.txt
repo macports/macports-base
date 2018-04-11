@@ -1,0 +1,26 @@
+dumpsolv(1)
+===========
+:man manual: LIBSOLV
+:man source: libsolv
+
+
+Name
+----
+dumpsolv - print a solv file into a human readable format
+
+Synopsis
+--------
+*dumpsolv* ['OPTIONS'] ['FILE.solv']
+
+Description
+-----------
+The dumpsolv tool reads a solv files and writes its contents
+to standard output. If no input file is given, it reads the
+solv file from standard input.
+
+*-j*::
+Write the contents in JSON format.
+
+Author
+------
+Michael Schroeder <mls@suse.de>

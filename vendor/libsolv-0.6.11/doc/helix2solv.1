@@ -1,0 +1,40 @@
+'\" t
+.\"     Title: helix2solv
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.78.0 <http://docbook.sf.net/>
+.\"      Date: 09/24/2014
+.\"    Manual: LIBSOLV
+.\"    Source: libsolv
+.\"  Language: English
+.\"
+.TH "HELIX2SOLV" "1" "09/24/2014" "libsolv" "LIBSOLV"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+helix2solv \- convert legacy helixcode format into a solv file
+.SH "SYNOPSIS"
+.sp
+\fBhelix2solv\fR
+.SH "DESCRIPTION"
+.sp
+The helix format was a metadata format used in the RedCarpet package manager\&. It\(cqs still used in libzypp testcases\&. The helix2solv tool reads data in helix format from standhard input and write it in solv file format to standard output\&.
+.SH "AUTHOR"
+.sp
+Michael Schroeder <mls@suse\&.de>

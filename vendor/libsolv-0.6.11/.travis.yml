@@ -1,0 +1,5 @@
+language: C
+before_script: sudo apt-get install cmake
+script: mkdir build && cd build && cmake -DDEBIAN=1 -DMULTI_SEMANTICS=1 .. && make && make test
+
+

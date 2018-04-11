@@ -1,0 +1,24 @@
+helix2solv(1)
+=============
+:man manual: LIBSOLV
+:man source: libsolv
+
+
+Name
+----
+helix2solv - convert legacy helixcode format into a solv file
+
+Synopsis
+--------
+*helix2solv*
+
+Description
+-----------
+The helix format was a metadata format used in the RedCarpet
+package manager. It's still used in libzypp testcases.
+The helix2solv tool reads data in helix format from standhard
+input and write it in solv file format to standard output.
+
+Author
+------
+Michael Schroeder <mls@suse.de>

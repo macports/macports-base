@@ -1,0 +1,7 @@
+
+Having the same key in multiple repodatas of a repo does not work
+- searching will return both entries
+- repo_write will write a broken solv file
+Fixing the search so that it only returns the last entry will also
+fix repo_write.
+

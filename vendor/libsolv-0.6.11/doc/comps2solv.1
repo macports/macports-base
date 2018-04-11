@@ -1,0 +1,43 @@
+'\" t
+.\"     Title: comps2solv
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.78.0 <http://docbook.sf.net/>
+.\"      Date: 09/25/2014
+.\"    Manual: LIBSOLV
+.\"    Source: libsolv
+.\"  Language: English
+.\"
+.TH "COMPS2SOLV" "1" "09/25/2014" "libsolv" "LIBSOLV"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+comps2solv \- convert rpm\-md comps\&.xml file into a solv file
+.SH "SYNOPSIS"
+.sp
+\fBcomps2solv\fR [\fIOPTIONS\fR]
+.SH "DESCRIPTION"
+.sp
+The comps\&.xml file is Fedora\(cqs way to implement package groups\&. The comps2solv tool reads the comps xml file from stdin and writes the parsed data as solv file to standard output\&. The parser will create \fBgroup:\fR and \fBcategory:\fR pseudo packages for each comps entry\&.
+.SH "SEE ALSO"
+.sp
+mergesolv(1), createrepo(8)
+.SH "AUTHOR"
+.sp
+Michael Schroeder <mls@suse\&.de>

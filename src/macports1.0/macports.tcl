@@ -39,6 +39,7 @@ package require diagnose 1.0
 package require reclaim 1.0
 package require selfupdate 1.0
 package require Tclx
+package require macports_libsolv 1.0
 
 # catch wrapper shared with port1.0
 package require mpcommon 1.0
@@ -2103,6 +2104,31 @@ proc _mportexec {target mport} {
     }
 }
 
+# mportinstall
+# Execute when libsolv is used for installing packages.
+proc mportinstall {portlist target} {
+    if {[macports::_target_needs_deps $target]} {
+        set dep_res [macports::libsolv::dep_calc $portlist]
+        ## Install each port. First use mportopen and then _mportexec.
+        if {[info exists dep_res]} {
+            set dlist [list]
+            foreach port $dep_res {
+                set portsolv [lindex $port 0]
+                set portname [$portsolv cget -name]
+                set porturl [lindex $port 1]
+                set options(subport) $portname
+                set mport [mportopen $porturl [list subport $portname]]
+                lappend dlist $mport
+            }
+            set result [dlist_eval $dlist _mportactive [list _mportexec activate]]
+            if {[info exists result]} {
+                return $result
+            }
+        }
+        return {}
+    }
+}
+
 # mportexec
 # Execute the specified target of the given mport.
 proc mportexec {mport target} {
@@ -2886,104 +2912,116 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
     set matches [list]
     set easy [expr {$field eq "name"}]
 
-    set found 0
-    foreach source $sources {
-        set source [lindex $source 0]
-        set protocol [macports::getprotocol $source]
-        try -pass_signal {
-            set fd [open [macports::getindex $source] r]
-
+    ## Use libsolv search if -l is passed
+    if {[info exists macports::global_options(ports_depengine)]} {
+        if {$macports::global_options(ports_depengine) eq "libsolv"} {
+            # macports::libsolv::print
+            set search_res [macports::libsolv::search $pattern \
+            $case_sensitive $matchstyle $field]
+            # macports::libsolv::create_installed_pool
+            return $search_res
+        }
+    } else {
+        ## Use builtin search algorithm.
+        set found 0
+        foreach source $sources {
+            set source [lindex $source 0]
+            set protocol [macports::getprotocol $source]
             try -pass_signal {
-                incr found 1
-                while {[gets $fd line] >= 0} {
-                    array unset portinfo
-                    set name [lindex $line 0]
-                    set len  [lindex $line 1]
-                    set line [read $fd $len]
+            	set fd [open [macports::getindex $source] r]
+                
+            	try -pass_signal {
+                    incr found 1
+                    while {[gets $fd line] >= 0} {
+                        array unset portinfo
+                        set name [lindex $line 0]
+                        set len  [lindex $line 1]
+                        set line [read $fd $len]
 
-                    if {$easy} {
-                        set target $name
-                    } else {
-                        array set portinfo $line
-                        if {![info exists portinfo($field)]} {
-                            continue
-                        }
-                        set target $portinfo($field)
-                    }
-
-                    switch -- $matchstyle {
-                        exact {
-                            if {$case_sensitive} {
-                                set compres [string compare $pattern $target]
-                            } else {
-                                set compres [string compare -nocase $pattern $target]
-                            }
-                            set matchres [expr {0 == $compres}]
-                        }
-                        glob {
-                            if {$case_sensitive} {
-                                set matchres [string match $pattern $target]
-                            } else {
-                                set matchres [string match -nocase $pattern $target]
-                            }
-                        }
-                        regexp {
-                            if {$case_sensitive} {
-                                set matchres [regexp -- $pattern $target]
-                            } else {
-                                set matchres [regexp -nocase -- $pattern $target]
-                            }
-                        }
-                        default {
-                            return -code error "mportsearch: Unsupported matching style: ${matchstyle}."
-                        }
-                    }
-
-                    if {$matchres == 1} {
                         if {$easy} {
+                            set target $name
+                        } else {
                             array set portinfo $line
-                        }
-                        switch -- $protocol {
-                            rsync {
-                                # Rsync files are local
-                                set source_url file://[macports::getsourcepath $source]
+                            if {![info exists portinfo($field)]} {
+                                continue
                             }
-                            https -
-                            http -
-                            ftp {
-                                # daily snapshot tarball
-                                set source_url file://[macports::getsourcepath $source]
+                            set target $portinfo($field)
+                        }
+
+                        switch -- $matchstyle {
+                            exact {
+                                if {$case_sensitive} {
+                                    set compres [string compare $pattern $target]
+                                } else {
+                                    set compres [string compare -nocase $pattern $target]
+                                }
+                                set matchres [expr {0 == $compres}]
+                            }
+                            glob {
+                                if {$case_sensitive} {
+                                    set matchres [string match $pattern $target]
+                                } else {
+                                    set matchres [string match -nocase $pattern $target]
+                                }
+                            }
+                            regexp {
+                                if {$case_sensitive} {
+                                    set matchres [regexp -- $pattern $target]
+                                } else {
+                                    set matchres [regexp -nocase -- $pattern $target]
+                                }
                             }
                             default {
-                                set source_url $source
+                                return -code error "mportsearch: Unsupported matching style: ${matchstyle}."
                             }
                         }
-                        if {[info exists portinfo(portdir)]} {
-                            set porturl ${source_url}/$portinfo(portdir)
-                            lappend line porturl $porturl
-                            ui_debug "Found port in $porturl"
-                        } else {
-                            ui_debug "Found port info: $line"
+
+                        if {$matchres == 1} {
+                            if {$easy} {
+                                array set portinfo $line
+                            }
+                            switch -- $protocol {
+                                rsync {
+                                    # Rsync files are local
+                                    set source_url file://[macports::getsourcepath $source]
+                                }
+                                https -
+                                http -
+                                ftp {
+                                    # daily snapshot tarball
+                                    set source_url file://[macports::getsourcepath $source]
+                                }
+                                default {
+                                    set source_url $source
+                                }
+                            }
+                            if {[info exists portinfo(portdir)]} {
+                                set porturl ${source_url}/$portinfo(portdir)
+                                lappend line porturl $porturl
+                                ui_debug "Found port in $porturl"
+                            } else {
+                                ui_debug "Found port info: $line"
+                            }
+                            lappend matches $name
+                            lappend matches $line
                         }
-                        lappend matches $name
-                        lappend matches $line
                     }
+                } catch * {
+                    ui_warn "It looks like your PortIndex file for $source may be corrupt."
+                    throw
+                } finally {
+                    close $fd
                 }
-            } catch * {
-                ui_warn "It looks like your PortIndex file for $source may be corrupt."
-                throw
-            } finally {
-                close $fd
+            }  catch {*} {
+                ui_warn "Can't open index file for source: $source"
             }
-        } catch {*} {
-            ui_warn "Can't open index file for source: $source"
+            if {!$found} {
+                return -code error "No index(es) found! Have you synced your port definitions? Try running 'port selfupdate'."
+            }
+
+            return $matches
         }
     }
-    if {!$found} {
-        return -code error "No index(es) found! Have you synced your port definitions? Try running 'port selfupdate'."
-    }
-
-    return $matches
 }
 
 ##

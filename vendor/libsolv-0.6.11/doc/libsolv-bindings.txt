@@ -1,0 +1,3410 @@
+Libsolv-Bindings(3)
+===================
+:man manual: LIBSOLV
+:man source: libsolv
+
+
+Name
+----
+libsolv-bindings - access libsolv from perl/python/ruby
+
+
+Description
+-----------
+Libsolv's language bindings offer an abstract, object orientated interface
+to the library. The supported languages are currently perl, python, and ruby.
+All example code (except in the specifics sections, of course) lists first
+the ``C-ish'' interface, then the syntax for perl, python, and ruby (in that
+order).
+
+
+Perl Specifics
+--------------
+Libsolv's perl bindings can be loaded with the following statement:
+
+	use solv;
+
+Objects are either created by calling the new() method on a class or they
+are returned by calling methods on other objects.
+
+	my $pool = solv::Pool->new();
+	my $repo = $pool->add_repo("my_first_repo");
+
+Swig encapsulates all objects as tied hashes, thus the attributes can be
+accessed by treating the object as standard hash reference:
+
+	$pool->{appdata} = 42;
+	printf "appdata is %d\n", $pool->{appdata};
+
+A special exception to this are iterator objects, they are encapsulated as
+tied arrays so that it is possible to iterate with a for() statement:
+
+	my $iter = $pool->solvables_iter();
+	for my $solvable (@$iter) { ... };
+
+As a downside of this approach, iterator objects cannot have attributes.
+
+If an array needs to be passed to a method it is usually done by reference,
+if a method returns an array it returns it on the stack:
+
+	my @problems = $solver->solve(\@jobs);
+
+Due to a bug in swig, stringification does not work for libsolv's objects.
+Instead, you have to call the object's str() method.
+
+	print $dep->str() . "\n";
+
+Swig implements all constants as numeric variables (instead of the more
+natural constant subs), so don't forget the leading ``$'' when accessing a
+constant. Also do not forget to prepend the namespace of the constant:
+
+	$pool->set_flag($solv::Pool::POOL_FLAG_OBSOLETEUSESCOLORS, 1);
+	
+
+Python Specifics
+----------------
+The python bindings can be loaded with:
+
+	import solv
+
+Objects are either created by calling the constructor method for a class or they
+are returned by calling methods on other objects.
+
+	pool = solv.Pool()
+	repo = pool.add_repo("my_first_repo")
+
+Attributes can be accessed as usual:
+
+	pool.appdata = 42
+	print "appdata is %d" % (pool.appdata)
+
+Iterators also work as expected:
+
+	for solvable in pool.solvables_iter():
+
+Arrays are passed and returned as list objects:
+
+	jobs = []
+	problems = solver.solve(jobs)
+
+The bindings define stringification for many classes, some also have a
+__repr__ method to ease debugging.
+
+	print dep
+	print repr(repo)
+
+Constants are attributes of the classes:
+
+	pool.set_flag(solv.Pool.POOL_FLAG_OBSOLETEUSESCOLORS, 1);
+
+
+Ruby Specifics
+--------------
+The ruby bindings can be loaded with:
+
+	require 'solv'
+
+Objects are either created by calling the new method on a class or they
+are returned by calling methods on other objects. Note that all classes start
+with an uppercase letter in ruby, so the class is called ``Solv''.
+
+	pool = Solv::Pool.new
+	repo = pool.add_repo("my_first_repo")
+
+Attributes can be accessed as usual:
+
+	pool.appdata = 42
+	puts "appdata is #{pool.appdata}"
+
+Iterators also work as expected:
+
+	for solvable in pool.solvables_iter() do ...
+
+Arrays are passed and returned as array objects:
+
+	jobs = []
+	problems = solver.solve(jobs)
+
+Most classes define a to_s method, so objects can be easily stringified.
+Many also define an inspect() method.
+
+	puts dep
+	puts repo.inspect
+
+Constants live in the namespace of the class they belong to:
+
+	pool.set_flag(Solv::Pool::POOL_FLAG_OBSOLETEUSESCOLORS, 1);
+
+Note that boolean methods have an added trailing ``?'', to be consistent with
+other ruby modules:
+
+	puts "empty" if repo.isempty?
+
+
+The Solv Class
+--------------
+This is the main namespace of the library, you cannot create objects of this
+type but it contains some useful constants.
+
+=== CONSTANTS ===
+
+Relational flag constants, the first three can be or-ed together
+
+*REL_LT*::
+the ``less than'' bit
+
+*REL_EQ*::
+the ``equals to'' bit
+
+*REL_GT*::
+the ``greater then'' bit
+
+*REL_ARCH*::
+used for relations that describe an extra architecture filter, the
+version part of the relation is interpreted as architecture.
+
+Special Solvable Ids
+
+*SOLVID_META*::
+Access the meta section of a repository or repodata area. This is
+like an extra Solvable that has the Id SOLVID_META.
+
+*SOLVID_POS*::
+Use the data position stored inside of the pool instead of accessing
+some solvable by Id. The bindings have the Datapos objects as an
+abstraction mechanism, so you do not need this constant.
+
+Constant string Ids
+  
+*ID_NULL*::
+Always zero
+
+*ID_EMPTY*::
+Always one, describes the empty string
+
+*SOLVABLE_NAME*::
+The keyname Id of the name of the solvable.
+
+*...*::
+see the libsolv-constantids manpage for a list of fixed Ids.
+
+
+The Pool Class
+--------------
+The pool is libsolv's central resource manager. A pool consists of Solvables,
+Repositories, Dependencies, each indexed by Ids.
+
+=== CLASS METHODS ===
+
+	Pool *Pool()
+	my $pool = solv::Pool->new();
+	pool = solv.Pool()
+	pool = Solv::Pool.new()
+
+Create a new pool instance. In most cases you just need one pool.
+Note that the returned object "owns" the pool, i.e. if the object is 
+freed, the pool is also freed. You can use the disown method to
+break this ownership relation.
+
+=== ATTRIBUTES ===
+
+	void *appdata;			/* read/write */
+	$pool->{appdata}
+	pool.appdata
+	pool.appdata
+
+Application specific data that may be used in any way by the code using the
+pool.
+
+	Solvable solvables[];		/* read only */
+	my $solvable = $pool->{solvables}->[$solvid];
+	solvable = pool.solvables[solvid]
+	solvable = pool.solvables[solvid]
+
+Look up a Solvable by its id.
+
+	Repo repos[];			/* read only */
+	my $repo = $pool->{repos}->[$repoid];
+	repo = pool.repos[repoid]
+	repo = pool.repos[repoid]
+
+Look up a Repository by its id.
+
+	Repo *installed;		/* read/write */
+	$pool->{installed} = $repo;
+	pool.installed = repo
+	pool.installed = repo
+
+Define which repository contains all the installed packages.
+
+	const char *errstr;		/* read only */
+	my $err = $pool->{errstr};
+	err = pool.errstr
+	err = pool.errstr
+
+Return the last error string that was stored in the pool.
+
+=== CONSTANTS ===
+
+*POOL_FLAG_PROMOTEEPOCH*::
+Promote the epoch of the providing dependency to the requesting
+dependency if it does not contain an epoch. Used at some time
+in old rpm versions, modern systems should never need this.
+
+*POOL_FLAG_FORBIDSELFCONFLICTS*::
+Disallow the installation of packages that conflict with themselves.
+Debian always allows self-conflicting packages, rpm used to forbid
+them but switched to also allowing them recently.
+
+*POOL_FLAG_OBSOLETEUSESPROVIDES*::
+Make obsolete type dependency match against provides instead of
+just the name and version of packages. Very old versions of rpm
+used the name/version, then it got switched to provides and later
+switched back again to just name/version.
+
+*POOL_FLAG_IMPLICITOBSOLETEUSESPROVIDES*::
+An implicit obsoletes is the internal mechanism to remove the
+old package on an update. The default is to remove all packages
+with the same name, rpm-5 switched to also removing packages
+providing the same name.
+
+*POOL_FLAG_OBSOLETEUSESCOLORS*::
+Rpm's multilib implementation (used in RedHat and Fedora)
+distinguishes between 32bit and 64bit packages (the terminology
+is that they have a different color). If obsoleteusescolors is
+set, packages with different colors will not obsolete each other.
+
+*POOL_FLAG_IMPLICITOBSOLETEUSESCOLORS*::
+Same as POOL_FLAG_OBSOLETEUSESCOLORS, but used to find out if
+packages of the same name can be installed in parallel. For
+current Fedora systems, POOL_FLAG_OBSOLETEUSESCOLORS should be
+false and POOL_FLAG_IMPLICITOBSOLETEUSESCOLORS should be true
+(this is the default if FEDORA is defined when libsolv is compiled).
+
+*POOL_FLAG_NOINSTALLEDOBSOLETES*::
+New versions of rpm consider the obsoletes of installed packages
+when checking for dependency, thus you may not install a package
+that is obsoleted by some other installed package, unless you
+also erase the other package.
+
+*POOL_FLAG_HAVEDISTEPOCH*::
+Mandriva added a new field called distepoch that gets checked in
+version comparison if the epoch/version/release of two packages
+are the same.
+
+*POOL_FLAG_NOOBSOLETESMULTIVERSION*::
+If a package is installed in multiversionmode, rpm used to ignore
+both the implicit obsoletes and the obsolete dependency of a
+package. This was changed to ignoring just the implicit obsoletes,
+thus you may install multiple versions of the same name, but
+obsoleted packages still get removed.
+
+*POOL_FLAG_ADDFILEPROVIDESFILTERED*::
+Make the addfileprovides method only add files from the standard
+locations (i.e. the ``bin'' and ``etc'' directories). This is
+useful if you have only few packages that use non-standard file
+dependencies, but you still wand the fast speed that addfileprovides()
+generates.
+
+=== METHODS ===
+
+	void free()
+	$pool->free();
+	pool.free()
+	pool.free()
+
+Force a free of the pool. After this call, you must not access any object
+that still references the pool.
+
+	void disown()
+	$pool->disown();
+	pool.disown()
+	pool.disown()
+
+Break the ownership relation betwen the binding object and the pool. After
+this call, the pool will not get freed even if the object goes out of
+scope. This also means that you must manually call the free method to free
+the pool data.
+
+	void setdebuglevel(int level)
+	$pool->setdebuglevel($level);
+	pool.setdebuglevel(level)
+	pool.setdebuglevel(level)
+
+Set the debug level. A value of zero means no debug output, the higher the
+value, the more output is generated.
+
+	int set_flag(int flag, int value)
+	my $oldvalue = $pool->set_flag($flag, $value);
+	oldvalue = pool.set_flag(flag, value)
+	oldvalue = pool.set_flag(flag, value)
+
+	int get_flag(int flag)
+	my $value = $pool->get_flag($flag);
+	value = pool.get_flag(flag)
+	value = pool.get_flag(flag)
+
+Set/get a pool specific flag. The flags define how the system works, e.g. how
+the package manager treats obsoletes. The default flags should be sane for most
+applications, but in some cases you may want to tweak a flag, for example if
+you want to solv package dependencies for some other system than yours.
+
+	void set_rootdir(const char *rootdir)
+	$pool->set_rootdir(rootdir);
+	pool.set_rootdir(rootdir)
+	pool.set_rootdir(rootdir)
+
+	const char *get_rootdir()
+	my $rootdir = $pool->get_rootdir();
+	rootdir = pool.get_rootdir()
+	rootdir = pool.get_rootdir()
+
+Set/get the rootdir to use. This is useful if you want package management
+to work only in some directory, for example if you want to setup a chroot
+jail. Note that the rootdir will only be prepended to file paths if the
+*REPO_USE_ROOTDIR* flag is used.
+
+	void setarch(const char *arch = 0)
+	$pool->setarch();
+	pool.setarch()
+	pool.setarch()
+
+Set the architecture for your system. The architecture is used to determine
+which packages are installable. It defaults to the result of ``uname -m''.
+
+	Repo add_repo(const char *name)
+	$repo = $pool->add_repo($name);
+	repo = pool.add_repo(name)
+	repo = pool.add_repo(name)
+
+Add a Repository with the specified name to the pool. The repository is empty
+on creation, use the repository methods to populate it with packages.
+
+	Repoiterator repos_iter()
+	for my $repo (@{$pool->repos_iter()})
+	for repo in pool.repos_iter():
+	for repo in pool.repos_iter()
+
+Iterate over the existing repositories.
+
+	Solvableiterator solvables_iter()
+	for my $solvable (@{$pool->solvables_iter()})
+	for solvable in pool.solvables_iter():
+	for solvable in pool.solvables_iter()
+
+Iterate over the existing solvables.
+
+	Dep Dep(const char *str, bool create = 1)
+	my $dep = $pool->Dep($string);
+	dep = pool.Dep(string)
+	dep = pool.Dep(string)
+
+Create an object describing a string or dependency. If the string is currently
+not in the pool and _create_ is false, *undef*/*None*/*nil* is returned.
+
+	void addfileprovides()
+	$pool->addfileprovides();
+	pool.addfileprovides()
+	pool.addfileprovides()
+
+	Id *addfileprovides_queue()
+	my @ids = $pool->addfileprovides_queue();
+	ids = pool.addfileprovides_queue()
+	ids = pool.addfileprovides_queue()
+
+Some package managers like rpm allow dependencies on files contained in other
+packages. To allow libsolv to deal with those dependencies in an efficient way,
+you need to call the addfileprovides method after creating and reading all
+repositories. This method will scan all dependency for file names and than scan
+all packages for matching files. If a filename has been matched, it will be
+added to the provides list of the corresponding package. The
+addfileprovides_queue variant works the same way but returns an array
+containing all file dependencies. This information can be stored in the
+meta section of the repositories to speed up the next time the
+repository is loaded and addfileprovides is called.
+
+	void createwhatprovides()
+	$pool->createwhatprovides();
+	pool.createwhatprovides()
+	pool.createwhatprovides()
+
+Create the internal ``whatprovides'' hash over all of the provides of all
+packages. This method must be called before doing any lookups on provides.
+It's encouraged to do it right after all repos are set up, usually right after
+the call to addfileprovides().
+
+	Solvable *whatprovides(DepId dep)
+	my @solvables = $pool->whatprovides($dep);
+	solvables = pool.whatprovides(dep)
+	solvables = pool.whatprovides(dep)
+
+Return all solvables that provide the specified dependency. You can use either
+a Dep object or an simple Id as argument.
+
+	Id *matchprovidingids(const char *match, int flags)
+	my @ids = $pool->matchprovidingids($match, $flags);
+	ids = pool.matchprovidingids(match, flags)
+	ids = pool.matchprovidingids(match, flags)
+
+Search the names of all provides and return the ones matching the specified
+string. See the Dataiterator class for the allowed flags.
+
+	Id towhatprovides(Id *ids)
+	my $offset = $pool->towhatprovides(\@ids);
+	offset = pool.towhatprovides(ids)
+	offset = pool.towhatprovides(ids)
+
+``Internalize'' an array containing Ids. The returned value can be used to
+create solver jobs working on a specific set of packages. See the Solver class
+for more information.
+
+	bool isknownarch(DepId id)
+	my $bool = $pool->isknownarch($id);
+	bool = pool.isknownarch(id)
+	bool = pool.isknownarch?(id)
+
+Return true if the specified Id describes a known architecture.
+
+	Solver Solver()
+	my $solver = $pool->Solver();
+	solver = pool.Solver()
+	solver = pool.Solver()
+
+Create a new solver object.
+
+	Job Job(int how, Id what)
+	my $job = $pool->Job($how, $what);
+	job = pool.Job(how, what)
+	job = pool.Job(how, what)
+
+Create a new Job object. Kind of low level, in most cases you would use a
+Selection or Dep job constructor instead.
+
+	Selection Selection()
+	my $sel = $pool->Selection();
+	sel = pool.Selection()
+	sel = pool.Selection()
+
+Create an empty selection. Useful as a starting point for merging other
+selections.
+
+	Selection Selection_all()
+	my $sel = $pool->Selection_all();
+	sel = pool.Selection_all()
+	sel = pool.Selection_all()
+	
+Create a selection containing all packages. Useful as starting point for
+intersecting other selections or for update/distupgrade jobs.
+
+	Selection select(const char *name, int flags)
+	my $sel = $pool->select($name, $flags);
+	sel = pool.select(name, flags)
+	sel = pool.select(name, flags)
+
+Create a selection by matching packages against the specified string. See the
+Selection class for a list of flags and how to create solver jobs from a
+selection.
+
+	void setpooljobs(Jobs *jobs)
+	$pool->setpooljobs(\@jobs);
+	pool.setpooljobs(jobs)
+	pool.setpooljobs(jobs)
+
+	Job *getpooljobs()
+	@jobs = $pool->getpooljobs();
+	jobs = pool.getpooljobs()
+	jobs = pool.getpooljobs()
+
+Get/Set fixed jobs stored in the pool. Those jobs are automatically appended to
+all solver jobs, they are meant for fixed configurations like which packages
+can be multiversion installed, which packages were userinstalled or must not be
+erased.
+
+	void set_loadcallback(Callable *callback)
+	$pool->setloadcallback(\&callbackfunction);
+	pool.setloadcallback(callbackfunction)
+	pool.setloadcallback { |repodata| ... }
+
+Set the callback function called when repository metadata needs to be loaded on
+demand. To make use of this feature, you need to create repodata stubs that
+tell the library which data is available but not loaded. If later on the data
+needs to be accessed, the callback function is called with a repodata argument.
+You can then load the data (maybe fetching it first from an remote server).
+The callback should return true if the data has been made available.
+
+=== DATA RETRIEVAL METHODS ===
+
+In the following functions, the _keyname_ argument describes what to retrieve.
+For the standard cases you can use the available Id constants. For example,
+
+	$solv::SOLVABLE_SUMMARY
+	solv.SOLVABLE_SUMMARY
+	Solv::SOLVABLE_SUMMARY
+
+selects the ``Summary'' entry of a solvable. The _solvid_ argument selects the
+desired solvable by Id.
+
+	const char *lookup_str(Id solvid, Id keyname)
+	my $string = $pool->lookup_str($solvid, $keyname);
+	string = pool.lookup_str(solvid, keyname)
+	string = pool.lookup_str(solvid, keyname)
+
+	Id lookup_id(Id solvid, Id keyname)
+	my $id = $pool->lookup_id($solvid, $keyname);
+	id = pool.lookup_id(solvid, keyname)
+	id = pool.lookup_id(solvid, keyname)
+
+	unsigned long long lookup_num(Id solvid, Id keyname, unsigned long long notfound = 0)
+	my $num = $pool->lookup_num($solvid, $keyname);
+	num = pool.lookup_num(solvid, keyname)
+	num = pool.lookup_num(solvid, keyname)
+
+	bool lookup_void(Id solvid, Id keyname)
+	my $bool = $pool->lookup_void($solvid, $keyname);
+	bool = pool.lookup_void(solvid, keyname)
+	bool = pool.lookup_void(solvid, keyname)
+
+	Id *lookup_idarray(Id solvid, Id keyname)
+	my @ids = $pool->lookup_idarray($solvid, $keyname);
+	ids = pool.lookup_idarray(solvid, keyname)
+	ids = pool.lookup_idarray(solvid, keyname)
+
+	Chksum lookup_checksum(Id solvid, Id keyname)
+	my $chksum = $pool->lookup_checksum($solvid, $keyname);
+	chksum = pool.lookup_checksum(solvid, keyname)
+	chksum = pool.lookup_checksum(solvid, keyname)
+
+Lookup functions. Return the data element stored in the specified solvable.
+You should probably use the methods of the Solvable class instead.
+
+	Dataiterator Dataiterator(Id keyname, const char *match = 0, int flags = 0)
+	my $di = $pool->Dataiterator($keyname, $match, $flags);
+	di = pool.Dataiterator(keyname, match, flags)
+	di = pool.Dataiterator(keyname, match, flags)
+
+	Dataiterator Dataiterator_solvid(Id solvid, Id keyname, const char *match = 0, int flags = 0)
+	my $di = $pool->Dataiterator($solvid, $keyname, $match, $flags);
+	di = pool.Dataiterator(solvid, keyname, match, flags)
+	di = pool.Dataiterator(solvid, keyname, match, flags)
+
+	for my $d (@$di)
+	for d in di:
+	for d in di
+
+Iterate over the matching data elements. See the Dataiterator class for more
+information. The Dataiterator method iterates over all solvables in the pool,
+whereas the Dataiterator_solvid only iterates over the specified solvable.
+
+=== ID METHODS ===
+
+The following methods deal with Ids, i.e. integers representing objects in the
+pool. They are considered ``low level'', in most cases you would not use them
+but instead the object orientated methods.
+
+	Repo id2repo(Id id)
+	$repo = $pool->id2repo($id);
+	repo = pool.id2repo(id)
+	repo = pool.id2repo(id)
+
+Lookup an existing Repository by id. You can also do this by using the *repos*
+attribute.
+
+	Solvable id2solvable(Id id)
+	$solvable = $pool->id2solvable($id);
+	solvable = pool.id2solvable(id)
+	solvable = pool.id2solvable(id)
+
+Lookup an existing Repository by id. You can also do this by using the
+*solvables* attribute.
+
+	const char *solvid2str(Id id)
+	my $str = $pool->solvid2str($id);
+	str = pool.solvid2str(id)
+	str = pool.solvid2str(id)
+
+Return a string describing the Solvable with the specified id. The string
+consists of the name, version, and architecture of the Solvable.
+
+	Id str2id(const char *str, bool create = 1)
+	my $id = pool->str2id($string);
+	id = pool.str2id(string)
+	id = pool.str2id(string)
+
+	const char *id2str(Id id)
+	$string = pool->id2str($id);
+	string = pool.id2str(id)
+	string = pool.id2str(id)
+
+Convert a string into an Id and back. If the string is currently not in the
+pool and _create_ is false, zero is returned.
+
+	Id rel2id(Id name, Id evr, int flags, bool create = 1)
+	my $id = pool->rel2id($nameid, $evrid, $flags);
+	id = pool.rel2id(nameid, evrid, flags)
+	id = pool.rel2id(nameid, evrid, flags)
+
+Create a ``relational'' dependency. Such dependencies consist of a name part,
+the _flags_ describing the relation, and a version part. The flags are:
+
+	$solv::REL_EQ | $solv::REL_GT | $solv::REL_LT
+	solv.REL_EQ | solv.REL_GT | solv.REL_LT
+	Solv::REL_EQ | Solv::REL_GT | Solv::REL_LT
+
+Thus, if you want a ``\<='' relation, you would use *REL_LT | REL_EQ*.
+
+	Id id2langid(Id id, const char *lang, bool create = 1)
+	my $id = $pool->id2langid($id, $language);
+	id = pool.id2langid(id, language)
+	id = pool.id2langid(id, language)
+
+Create a language specific Id from some other id. This function simply converts
+the id into a string, appends a dot and the specified language to the string
+and converts the result back into an Id.
+
+	const char *dep2str(Id id)
+	$string = pool->dep2str($id);
+	string = pool.dep2str(id)
+	string = pool.dep2str(id)
+
+Convert a dependency id into a string. If the id is just a string, this
+function has the same effect as id2str(). For relational dependencies, the
+result is the correct ``name relation evr'' string.
+
+
+The Dependency Class
+--------------------
+The dependency class is an object orientated way to work with strings and
+dependencies. Internally, dependencies are represented as Ids, i.e. simple
+numbers. Dependency objects can be constructed by using the Pool's Dep()
+method.
+
+=== ATTRIBUTES ===
+
+	Pool *pool;		/* read only */
+	$dep->{pool}
+	dep.pool
+	dep.pool
+
+Back reference to the pool this dependency belongs to.
+
+	Id id;		/* read only */
+	$dep->{id}
+	dep.id
+	dep.id
+
+The id of this dependency.
+
+== Methods ==
+
+	Dep Rel(int flags, DepId evrid, bool create = 1)
+	my $reldep = $dep->Rel($flags, $evrdep);
+	reldep = dep.Rel(flags, evrdep)
+	reldep = dep.Rel(flags, evrdep)
+
+Create a relational dependency from to string dependencies and a flags
+argument. See the pool's rel2id method for a description of the flags.
+
+	Selection Selection_name(int setflags = 0)
+	my $sel = $dep->Selection_name();
+	sel = dep.Selection_name()
+	sel = dep.Selection_name()
+
+Create a Selection from a dependency. The selection consists of all packages
+that have a name equal to the dependency. If the dependency is of a relational
+type, the packages version must also fulfill the dependency.
+
+	Selection Selection_provides(int setflags = 0)
+	my $sel = $dep->Selection_provides();
+	sel = dep.Selection_provides()
+	sel = dep.Selection_provides()
+
+Create a Selection from a dependency. The selection consists of all packages
+that have at least one provides matching the dependency.
+
+	const char *str()
+	my $str = $dep->str();
+	str = $dep.str()
+	str = $dep.str()
+
+Return a string describing the dependency.
+
+	<stringification>
+	my $str = $dep->str;
+	str = str(dep)
+	str = dep.to_s
+
+Same as calling the str() method.
+
+	<equality>
+	if ($dep1 == $dep2)
+	if dep1 == dep2:
+	if dep1 == dep2
+
+The dependencies are equal if they are part of the same pool and have the same
+ids.
+
+
+The Repository Class
+--------------------
+A Repository describes a group of packages, normally coming from the same
+source. Repositories are created by the Pool's add_repo() method.
+
+=== ATTRIBUTES ===
+
+	Pool *pool;			/* read only */
+	$repo->{pool}
+	repo.pool
+	repo.pool
+
+Back reference to the pool this dependency belongs to.
+
+	Id id;				/* read only */
+	$repo->{id}
+	repo.id
+	repo.id
+
+The id of the repository.
+
+	const char *name;		/* read/write */
+	$repo->{name}
+	repo.name
+	repo.name
+	
+The repositories name. To libsolv, the name is just a string with no specific
+meaning.
+
+	int priority;			/* read/write */
+	$repo->{priority}
+	repo.priority
+	repo.priority
+
+The priority of the repository. A higher number means that packages of this
+repository will be chosen over other repositories, even if they have a greater
+package version.
+
+	int subpriority;		/* read/write */
+	$repo->{subpriority}
+	repo.subpriority
+	repo.subpriority
+
+The sub-priority of the repository. This value is compared when the priorities
+of two repositories are the same. It is useful to make the library prefer
+on-disk repositories to remote ones.
+
+	int nsolvables;			/* read only */
+	$repo->{nsolvables}
+	repo.nsolvables
+	repo.nsolvables
+
+The number of solvables in this repository.
+
+	void *appdata;			/* read/write */
+	$repo->{appdata}
+	repo.appdata
+	repo.appdata
+
+Application specific data that may be used in any way by the code using the
+repository.
+
+	Datapos *meta;			/* read only */
+	$repo->{meta}
+	repo.meta
+	repo.meta
+
+Return a Datapos object of the repodata's metadata. You can use the lookup
+methods of the Datapos class to lookup metadata attributes, like the repository
+timestamp.
+
+=== CONSTANTS ===
+
+*REPO_REUSE_REPODATA*::
+Reuse the last repository data area (``repodata'') instead of creating a
+new one.
+
+*REPO_NO_INTERNALIZE*::
+Do not internalize the added repository data. This is useful if
+you plan to add more data because internalization is a costly
+operation.
+
+*REPO_LOCALPOOL*::
+Use the repodata's pool for Id storage instead of the global pool. Useful
+if you don't want to pollute the global pool with many unneeded ids, like
+when storing the filelist.
+
+*REPO_USE_LOADING*::
+Use the repodata that is currently being loaded instead of creating a new
+one. This only makes sense if used in a load callback.
+
+*REPO_EXTEND_SOLVABLES*::
+Do not create new solvables for the new data, but match existing solvables
+and add the data to them. Repository metadata is often split into multiple
+parts, with one primary file describing all packages and other parts
+holding information that is normally not needed, like the changelog.
+
+*REPO_USE_ROOTDIR*::
+Prepend the pool's rootdir to the path when doing file operations.
+
+*REPO_NO_LOCATION*::
+Do not add a location element to the solvables. Useful if the solvables
+are not in the final position, so you can add the correct location later
+in your code.
+
+*SOLV_ADD_NO_STUBS*::
+Do not create stubs for repository parts that can be downloaded on demand.
+
+*SUSETAGS_RECORD_SHARES*::
+This is specific to the add_susetags() method. Susetags allows to refer to
+already read packages to save disk space. If this data sharing needs to
+work over multiple calls to add_susetags, you need to specify this flag so
+that the share information is made available to subsequent calls.
+
+=== METHODS ===
+
+	void free(bool reuseids = 0)
+	$repo->free();
+	repo.free()
+	repo.free()
+
+Free the repository and all solvables it contains. If _reuseids_ is set to
+true, the solvable ids and the repository id may be reused by the library when
+added new solvables. Thus you should leave it false if you are not sure that
+somebody holds a reference.
+
+	void empty(bool reuseids = 0)
+	$repo->empty();
+	repo.empty()
+	repo.empty()
+
+Free all the solvables in a repository. The repository will be empty after this
+call. See the free() method for the meaning of _reuseids_.
+
+	bool isempty()
+	$repo->isempty()
+	repo.empty()
+	repo.empty?
+
+Return true if there are no solvables in this repository.
+
+	void internalize()
+	$repo->internalize();
+	repo.internalize()
+	repo.internalize()
+
+Internalize added data. Data must be internalized before it is available to the
+lookup and data iterator functions.
+
+	bool write(FILE *fp)
+	$repo->write($fp)
+	repo.write(fp)
+	repo.write(fp)
+
+Write a repo as a ``solv'' file. These files can be read very fast and thus are
+a good way to cache repository data. Returns false if there was some error
+writing the file.
+
+	Solvableiterator solvables_iter()
+	for my $solvable (@{$repo->solvables_iter()})
+	for solvable in repo.solvables_iter():
+	for solvable in repo.solvables_iter()
+
+Iterate over all solvables in a repository.
+
+	Repodata add_repodata(int flags = 0)
+	my $repodata = $repo->add_repodata();
+	repodata = repo.add_repodata()
+	repodata = repo.add_repodata()
+
+Add a new repodata area to the repository. This is normally automatically
+done by the repo_add methods, so you need this method only in very
+rare circumstances.
+
+	void create_stubs()
+	$repo->create_stubs();
+	repo.create_stubs()
+	repo.create_stubs()
+
+Calls the create_stubs() repodata method for the last repodata of the
+repository.
+
+	bool iscontiguous()
+	$repo->iscontiguous()
+	repo.iscontiguous()
+	repo.iscontiguous?
+
+Return true if the solvables of this repository are all in a single block with
+no holes, i.e. they have consecutive ids.
+
+	Repodata first_repodata()
+	my $repodata = $repo->first_repodata();
+	repodata = repo.first_repodata()
+	repodata = repo.first_repodata()
+
+Checks if all repodatas but the first repodata are extensions, and return the
+first repodata if this is the case. Useful if you want to do a store/retrieve
+sequence on the repository to reduce the memory using and enable paging, as
+this does not work if the repository contains multiple non-extension repodata
+areas.
+
+	Selection Selection(int setflags = 0)
+	my $sel = $repo->Selection();
+	sel = repo.Selection()
+	sel = repo.Selection()
+
+Create a Selection consisting of all packages in the repository.
+
+	Dataiterator Dataiterator(Id key, const char *match = 0, int flags = 0)
+	my $di = $repo->Dataiterator($keyname, $match, $flags);
+	di = repo.Dataiterator(keyname, match, flags)
+	di = repo.Dataiterator(keyname, match, flags)
+
+	Dataiterator Dataiterator_meta(Id key, const char *match = 0, int flags = 0)
+	my $di = $repo->Dataiterator_meta($keyname, $match, $flags);
+	di = repo.Dataiterator_meta(keyname, match, flags)
+	di = repo.Dataiterator_meta(keyname, match, flags)
+
+	for my $d (@$di)
+	for d in di:
+	for d in di
+
+Iterate over the matching data elements in this repository. See the
+Dataiterator class for more information. The Dataiterator() method
+iterates over all solvables in a repository, whereas the Dataiterator_meta
+method only iterates over the repository's meta data.
+
+	<stringification>
+	my $str = $repo->str;
+	str = str(repo)
+	str = repo.to_s
+
+Return the name of the repository, or "Repo#<id>" if no name is set.
+
+	<equality>
+	if ($repo1 == $repo2)
+	if repo1 == repo2:
+	if repo1 == repo2
+
+Two repositories are equal if they belong to the same pool and have the same id.
+
+=== DATA ADD METHODS ===
+
+	Solvable add_solvable()
+	$repo->add_solvable();
+	repo.add_solvable()
+	repo.add_solvable()
+
+Add a single empty solvable to the repository. Returns a Solvable object, see
+the Solvable class for more information.
+
+	bool add_solv(const char *name, int flags = 0)
+	$repo->add_solv($name);
+	repo.add_solv(name)
+	repo.add_solv(name)
+
+	bool add_solv(FILE *fp, int flags = 0)
+	$repo->add_solv($fp);
+	repo.add_solv(fp)
+	repo.add_solv(fp)
+
+Read a ``solv'' file and add its contents to the repository. These files can be
+written with the write() method and are normally used as fast cache for
+repository metadata.
+
+	bool add_rpmdb(int flags = 0)
+	$repo->add_rpmdb();
+	repo.add_rpmdb()
+	repo.add_rpmdb()
+
+	bool add_rpmdb_reffp(FILE *reffp, int flags = 0)
+	$repo->add_rpmdb_reffp($reffp);
+	repo.add_rpmdb_reffp(reffp)
+	repo.add_rpmdb_reffp(reffp)
+
+Add the contents of the rpm database to the repository. If a solv file
+containing an old version of the database is available, it can be passed as
+reffp to speed up reading.
+
+	Solvable add_rpm(const char *filename, int flags = 0)
+	my $solvable = $repo->add_rpm($filename);
+	solvable = repo.add_rpm(filename)
+	solvable = repo.add_rpm(filename)
+
+Add the metadata of a single rpm package to the repository.
+
+	bool add_rpmdb_pubkeys(int flags = 0)
+	$repo->add_rpmdb_pubkeys();
+	repo.add_rpmdb_pubkeys()
+	repo.add_rpmdb_pubkeys()
+
+Add all pubkeys contained in the rpm database to the repository. Note that
+newer rpm versions also allow to store the pubkeys in some directory instead
+of the rpm database.
+
+	Solvable add_pubkey(const char *keyfile, int flags = 0)
+	my $solvable = $repo->add_pubkey($keyfile);
+	solvable = repo.add_pubkey(keyfile)
+	solvable = repo.add_pubkey(keyfile)
+
+Add a pubkey from a file to the repository.
+
+	bool add_rpmmd(FILE *fp, const char *language, int flags = 0)
+	$repo->add_rpmmd($fp, undef);
+	repo.add_rpmmd(fp, None)
+	repo.add_rpmmd(fp, nil)
+
+Add metadata stored in the "rpm-md" format (i.e. from files in the ``repodata''
+directory) to a repository. Supported files are "primary", "filelists",
+"other", "suseinfo". Do not forget to specify the *REPO_EXTEND_SOLVABLES* for
+extension files like "filelists" and "other". Use the _language_ parameter if
+you have language extension files, otherwise simply use a *undef*/*None*/*nil*
+parameter.
+
+	bool add_repomdxml(FILE *fp, int flags = 0)
+	$repo->add_repomdxml($fp);
+	repo.add_repomdxml(fp)
+	repo.add_repomdxml(fp)
+
+Add the repomd.xml meta description from the "rpm-md" format to the repository.
+This file contains information about the repository like keywords, and also a
+list of all database files with checksums. The data is added the the "meta"
+section of the repository, i.e. no package gets created.
+
+	bool add_updateinfoxml(FILE *fp, int flags = 0)
+	$repo->add_updateinfoxml($fp);
+	repo.add_updateinfoxml(fp)
+	repo.add_updateinfoxml(fp)
+
+Add the updateinfo.xml file containing available maintenance updates to the
+repository. All updates are created as special packages that have a "patch:"
+prefix in their name.
+
+	bool add_deltainfoxml(FILE *fp, int flags = 0)
+	$repo->add_deltainfoxml($fp);
+	repo.add_deltainfoxml(fp)
+	repo.add_deltainfoxml(fp)
+
+Add the deltainfo.xml file (also called prestodelta.xml) containing available
+delta-rpms to the repository. The data is added to the "meta" section, i.e. no
+package gets created.
+
+	bool add_debdb(int flags = 0)
+	$repo->add_debdb();
+	repo.add_debdb()
+	repo.add_debdb()
+
+Add the contents of the debian installed package database to the repository.
+
+	bool add_debpackages(FILE *fp, int flags = 0)
+	$repo->add_debpackages($fp);
+	repo.add_debpackages($fp)
+	repo.add_debpackages($fp)
+
+Add the contents of the debian repository metadata (the "packages" file)
+to the repository.
+
+	Solvable add_deb(const char *filename, int flags = 0)
+	my $solvable = $repo->add_deb($filename);
+	solvable = repo.add_deb(filename)
+	solvable = repo.add_deb(filename)
+
+Add the metadata of a single deb package to the repository.
+
+	bool add_mdk(FILE *fp, int flags = 0)
+	$repo->add_mdk($fp);
+	repo.add_mdk(fp)
+	repo.add_mdk(fp)
+
+Add the contents of the mageia/mandriva repository metadata (the
+"synthesis.hdlist" file) to the repository.
+
+	bool add_mdk_info(FILE *fp, int flags = 0)
+	$repo->add_mdk($fp);
+	repo.add_mdk(fp)
+	repo.add_mdk(fp)
+
+Extend the packages from the synthesis file with the info.xml and files.xml
+data. Do not forget to specify *REPO_EXTEND_SOLVABLES*.
+
+	bool add_arch_repo(FILE *fp, int flags = 0)
+	$repo->add_arch_repo($fp);
+	repo.add_arch_repo(fp)
+	repo.add_arch_repo(fp)
+
+Add the contents of the archlinux repository metadata (the ".db.tar" file) to
+the repository.
+
+	bool add_arch_local(const char *dir, int flags = 0)
+	$repo->add_arch_local($dir);
+	repo.add_arch_local(dir)
+	repo.add_arch_local(dir)
+
+Add the contents of the archlinux installed package database to the repository.
+The _dir_ parameter is usually set to "/var/lib/pacman/local".
+
+	bool add_content(FILE *fp, int flags = 0)
+	$repo->add_content($fp);
+	repo.add_content(fp)
+	repo.add_content(fp)
+
+Add the ``content'' meta description from the susetags format to the repository.
+This file contains information about the repository like keywords, and also
+a list of all database files with checksums. The data is added the the "meta"
+section of the repository, i.e. no package gets created.
+
+	bool add_susetags(FILE *fp, Id defvendor, const char *language, int flags = 0)
+	$repo->add_susetags($fp, $defvendor, $language);
+	repo.add_susetags(fp, defvendor, language)
+	repo.add_susetags(fp, defvendor, language)
+
+Add repository metadata in the susetags format to the repository. Like with
+add_rpmmd, you can specify a language if you have language extension files. The
+_defvendor_ parameter provides a default vendor for packages with missing
+vendors, it is usually provided in the content file.
+
+	bool add_products(const char *dir, int flags = 0)
+	$repo->add_products($dir);
+	repo.add_products(dir)
+	repo.add_products(dir)
+
+Add the installed SUSE products database to the repository. The _dir_ parameter
+is usually "/etc/products.d".
+
+
+The Solvable Class
+------------------
+A solvable describes all the information of one package. Each solvable
+belongs to one repository, it can be added and filled manually but in
+most cases solvables will get created by the repo_add methods.
+
+=== ATTRIBUTES ===
+
+	Repo *repo;			/* read only */
+	$solvable->{repo}
+	solvable.repo
+	solvable.repo
+
+The repository this solvable belongs to.
+
+	Pool *pool;			/* read only */
+	$solvable->{pool}
+	solvable.pool
+	solvable.pool
+
+The pool this solvable belongs to, same as the pool of the repo.
+
+	Id id;				/* read only */
+	$solvable->{id}
+	solvable.id
+	solvable.id
+
+The specific id of the solvable.
+
+	char *name;			/* read/write */
+	$solvable->{name}
+	solvable.name
+	solvable.name
+
+	char *evr;			/* read/write */
+	$solvable->{evr}
+	solvable.evr
+	solvable.evr
+
+	char *arch;			/* read/write */
+	$solvable->{arch}
+	solvable.arch
+	solvable.arch
+
+	char *vendor;			/* read/write */
+	$solvable->{vendor}
+	solvable.vendor
+	solvable.vendor
+
+Easy access to often used attributes of solvables. They are
+internally stored as Ids.
+
+	Id nameid;			/* read/write */
+	$solvable->{nameid}
+	solvable.nameid
+	solvable.nameid
+
+	Id evrid;			/* read/write */
+	$solvable->{evrid}
+	solvable.evrid
+	solvable.evrid
+
+	Id archid;			/* read/write */
+	$solvable->{archid}
+	solvable.archid
+	solvable.archid
+
+	Id vendorid;			/* read/write */
+	$solvable->{vendorid}
+	solvable.vendorid
+	solvable.vendorid
+
+Raw interface to the ids. Useful if you want to search for
+a specific id and want to avoid the string compare overhead.
+
+=== METHODS ===
+
+	const char *lookup_str(Id keyname)
+	my $string = $solvable->lookup_str($keyname);
+	string = solvable.lookup_str(keyname)
+	string = solvable.lookup_str(keyname)
+
+	Id lookup_id(Id keyname)
+	my $id = $solvable->lookup_id($keyname);
+	id = solvable.lookup_id(solvid)
+	id = solvable.lookup_id(solvid)
+
+	unsigned long long lookup_num(Id solvid, Id keyname, unsigned long long notfound = 0)
+	my $num = $solvable->lookup_num($keyname);
+	num = solvable.lookup_num(keyname)
+	num = solvable.lookup_num(keyname)
+
+	bool lookup_void(Id keyname)
+	my $bool = $solvable->lookup_void($keyname);
+	bool = solvable.lookup_void(keyname)
+	bool = solvable.lookup_void(keyname)
+
+	Chksum lookup_checksum(Id keyname)
+	my $chksum = $solvable->lookup_checksum($keyname);
+	chksum = solvable.lookup_checksum(keyname)
+	chksum = solvable.lookup_checksum(keyname)
+
+	Id *lookup_idarray(Id keyname, Id marker = -1)
+	my @ids = $solvable->lookup_idarray($keyname);
+	ids = solvable.lookup_idarray(keyname)
+	ids = solvable.lookup_idarray(keyname)
+
+	Dep *lookup_deparray(Id keyname, Id marker = -1)
+	my @deps = $solvable->lookup_deparray($keyname);
+	deps = solvable.lookup_deparray(keyname)
+	deps = solvable.lookup_deparray(keyname)
+	
+Generic lookup methods. Retrieve data stored for the specific keyname.
+The lookup_idarray() method will return an array of Ids, use
+lookup_deparray if you want an array of Dependency objects instead.
+Some Id arrays contain two parts of data divided by a specific marker,
+for example the provides array uses the SOLVABLE_FILEMARKER id to
+store both the ids provided by the package and the ids added by
+the addfileprovides method. The default, -1, translates to the
+correct marker for the keyname and returns the first part of the
+array, use 1 to select the second part or 0 to retrieve all ids
+including the marker.
+
+	const char *lookup_location(unsigned int *OUTPUT);
+	my ($location, $medianr) = $solvable->lookup_location();
+	location, medianr = solvable.lookup_location()
+	location, medianr = solvable.lookup_location()
+
+Return a tuple containing the on-media location and an optional
+media number for multi-part repositories (e.g. repositories
+spawning multiple DVDs).
+
+	Dataiterator Dataiterator(Id keyname, const char *match = 0, int flags = 0)
+	my $di = $solvable->Dataiterator($keyname, $match, $flags);
+	di = solvable.Dataiterator(keyname, match, flags)
+	di = solvable.Dataiterator(keyname, match, flags)
+
+	for my $d (@$di)
+	for d in di:
+	for d in di
+
+Iterate over the matching data elements. See the Dataiterator class for more
+information.
+
+	void add_deparray(Id keyname, DepId dep, Id marker = -1);
+	$solvable->add_deparray($keyname, $dep);
+	solvable.add_deparray(keyname, dep)
+	solvable.add_deparray(keyname, dep)
+
+Add a new dependency to the attributes stored in keyname.
+
+	void unset(Id keyname);
+	$solvable->unset($keyname);
+	solvable.unset(keyname)
+	solvable.unset(keyname)
+
+Delete data stored for the specific keyname.
+
+	bool installable();
+	$solvable->installable()
+	solvable.installable()
+	solvable.installable?
+
+Return true if the solvable is installable on the system. Solvables
+are not installable if the system does not support their architecture.
+
+	bool isinstalled();
+	$solvable->isinstalled()
+	solvable.isinstalled()
+	solvable.isinstalled?
+
+Return true if the solvable is installed on the system.
+
+	bool identical(Solvable *other)
+	$solvable->identical($other)
+	$solvable.identical(other)
+	$solvable.identical?(other)
+
+Return true if the two solvables are identical.
+
+	int evrcmp(Solvable *other)
+	$solvable->evrcmp(other)
+	$solvable.evrcmp(other)
+	$solvable.evrcmp(other)
+
+Returns -1 if the epoch/version/release of the solvable is less then the
+one from the other solvable, 1 if it is greater, and 0 if they are equal.
+Note that "equal" does not mean that the evr is identical.
+
+	Selection Selection(int setflags = 0)
+	my $sel = $solvable->Selection();
+	sel = solvable.Selection()
+	sel = solvable.Selection()
+
+Create a Selection containing just the single solvable.
+
+	const char *str()
+	my $str = $solvable->str();
+	str = $solvable.str()
+	str = $solvable.str()
+
+Return a string describing the solvable. The string consists of the name,
+version, and architecture of the Solvable.
+
+	<stringification>
+	my $str = $solvable->str;
+	str = str(solvable)
+	str = solvable.to_s
+
+Same as calling the str() method.
+
+	<equality>
+	if ($solvable1 == $solvable2)
+	if solvable1 == solvable2:
+	if solvable1 == solvable2
+
+Two solvables are equal if they are part of the same pool and have the same
+ids.
+
+
+The Dataiterator Class
+----------------------
+Dataiterators can be used to do complex string searches or
+to iterate over arrays. They can be created via the
+constructors in the Pool, Repo, and Solvable classes. The
+Repo and Solvable constructors will limit the search to
+the repository or the specific package.
+
+=== CONSTANTS ===
+
+*SEARCH_STRING*::
+Return a match if the search string matches the value.
+
+*SEARCH_STRINGSTART*::
+Return a match if the value starts with the search string.
+
+*SEARCH_STRINGEND*::
+Return a match if the value ends with the search string.
+
+*SEARCH_SUBSTRING*::
+Return a match if the search string can be matched somewhere in the value.
+
+*SEARCH_GLOB*::
+Do a glob match of the search string against the value.
+
+*SEARCH_REGEX*::
+Do a regular expression match of the search string against the value.
+
+*SEARCH_NOCASE*::
+Ignore case when matching strings. Works for all the above match types.
+
+*SEARCH_FILES*::
+Match the complete filenames of the file list, not just the base name.
+
+*SEARCH_COMPLETE_FILELIST*::
+When matching the file list, check every file of the package not just the
+subset from the primary metadata.
+
+*SEARCH_CHECKSUMS*::
+Allow the matching of checksum entries.
+
+=== METHODS ===
+
+	void prepend_keyname(Id keyname);
+	$di->prepend_keyname($keyname);
+	di.prepend_keyname(keyname)
+	di.prepend_keyname(keyname)
+
+Do a sub-search in the array stored in keyname.
+
+	void skip_solvable();
+	$di->kip_solvable();
+	di.skip_solvable()
+	di.skip_solvable()
+
+Stop matching the current solvable and advance to the next
+one.
+
+	<iteration>
+	for my $d (@$di)
+	for d in di:
+	for d in di
+
+Iterate through the matches. If there is a match, the object
+in d will be of type Datamatch.
+
+The Datamatch Class
+-------------------
+Objects of this type will be created for every value matched
+by a dataiterator.
+
+=== ATTRIBUTES ===
+
+	Pool *pool;				/* read only */
+	$d->{pool}
+	d.pool
+	d.pool
+
+Back pointer to pool.
+
+	Repo *repo;				/* read only */
+	$d->{repo}
+	d.repo
+	d.repo
+
+The repository containing the matched object.
+
+	Solvable *solvable;			/* read only */
+	$d->{solvable}
+	d.solvable
+	d.solvable
+
+The solvable containing the value that was matched.
+
+	Id solvid;				/* read only */
+	$d->{solvid}
+	d.solvid
+	d.solvid
+
+The id of the solvable that matched.
+
+	Id key_id;
+	$d->{key_id}
+	d.key_id
+	d.key_id
+
+	const char *key_idstr;
+	$d->{key_idstr}
+	d.key_idstr
+	d.key_idstr
+
+The keyname that matched, either as id or string.
+
+	Id type_id;
+	$d->{type_id}
+	d.type_id
+	d.type_id
+
+	const char *type_idstr;
+	$d->{type_idstr};
+	d.type_idstr
+	d.type_idstr
+
+The key type of the value that was matched, either as id or string.
+
+	Id id;
+	$d->{id}
+	d.id
+	d.id
+
+	Id idstr;
+	$d->{idstr}
+	d.idstr
+	d.idstr
+
+The Id of the value that was matched (only valid for id types),
+either as id or string.
+
+	const char *str;
+	$d->{str}
+	d.str
+	d.str
+
+The string value that was matched (only valid for string types).
+
+	unsigned long long num;
+	$d->{num}
+	d.num
+	d.num
+
+The numeric value that was matched (only valid for numeric types).
+
+	unsigned int num2;
+	$d->{num2}
+	d.num2
+	d.num2
+
+The secondary numeric value that was matched (only valid for types
+containing two values).
+
+	unsigned int binary;
+	$d->{binary}
+	d.binary
+	d.binary
+
+The value in binary form, useful for checksums and other data
+that cannot be represented as a string.
+
+=== METHODS ===
+
+	Datapos pos();
+	my $pos = $d->pos();
+	pos = d.pos()
+	pos = d.pos()
+
+The position object of the current match. It can be used to do
+sub-searches starting at the match (if it is of an array type).
+See the Datapos class for more information.
+
+	Datapos parentpos();
+	my $pos = $d->parentpos();
+	pos = d.parentpos()
+	pos = d.parentpos()
+
+The position object of the array containing the current match.
+It can be used to do sub-searches, see the Datapos class for more
+information.
+
+	<stringification>
+	my $str = $d->str;
+	str = str(d)
+	str = d.to_s
+
+Return the stringification of the matched value. Stringification
+depends on the search flags, for file list entries it will return
+just the base name unless SEARCH_FILES is used, for checksums
+it will return an empty string unless SEARCH_CHECKSUMS is used.
+Numeric values are currently stringified to an empty string.
+
+
+The Selection Class
+-------------------
+Selections are a way to easily deal with sets of packages.
+There are multiple constructors to create them, the most useful
+is probably the select() method in the Pool class.
+
+=== CONSTANTS ===
+
+*SELECTION_NAME*::
+Create the selection by matching package names.
+
+*SELECTION_PROVIDES*::
+Create the selection by matching package provides.
+
+*SELECTION_FILELIST*::
+Create the selection by matching package files.
+
+*SELECTION_CANON*::
+Create the selection by matching the canonical representation
+of the package. This is normally a combination of the name,
+the version, and the architecture of a package.
+
+*SELECTION_DOTARCH*::
+Allow an ``.<architecture>'' suffix when matching names or
+provides.
+ 
+*SELECTION_REL*::
+Allow the specification of a relation when matching names
+or provides, e.g. "name >= 1.2".
+
+*SELECTION_INSTALLED_ONLY*::
+Limit the package search to installed packages.
+
+*SELECTION_SOURCE_ONLY*::
+Limit the package search to source packages only.
+
+*SELECTION_WITH_SOURCE*::
+Extend the package search to also match source packages. The default is
+only to match binary packages.
+
+*SELECTION_GLOB*::
+Allow glob matching for package names, package provides, and file names.
+
+*SELECTION_NOCASE*::
+Ignore case when matching package names, package provides, and file names.
+
+*SELECTION_FLAT*::
+Return only one selection element describing the selected packages.
+The default is to create multiple elements for all globbed packages.
+Multiple elements are useful if you want to turn the selection into
+an install job, in that case you want an install job for every
+globbed package.
+
+=== ATTRIBUTES ===
+
+	Pool *pool;				/* read only */
+	$d->{pool}
+	d.pool
+	d.pool
+
+Back pointer to pool.
+
+=== METHODS ===
+
+	int flags();
+	my $flags = $sel->flags();
+	flags = sel.flags()
+	flags = sel.flags()
+
+Return the result flags of the selection. The flags are a subset
+of the ones used when creating the selection, they describe which
+method was used to get the result. For example, if you create the
+selection with ``SELECTION_NAME | SELECTION_PROVIDES'', the resulting
+flags will either be SELECTION_NAME or SELECTION_PROVIDES depending
+if there was a package that matched the name or not. If there was
+no match at all, the flags will be zero.
+
+	bool isempty();
+	$sel->isempty()
+	sel.isempty()
+	sel.isempty?
+
+Return true if the selection is empty, i.e. no package could be matched.
+
+	void filter(Selection *other)
+	$sel->filter($other);
+	sel.filter(other)
+	sel.filter(other)
+
+Intersect two selections. Packages will only stay in the selection if there
+are also included in the other selecting. Does an in-place modification.
+
+	void add(Selection *other)
+	$sel->add($other);
+	sel.add(other)
+	sel.add(other)
+
+Build the union of two selections. All packages of the other selection will
+be added to the set of packages of the selection object. Does an in-place
+modification. Note that the selection flags are no longer meaningful after the
+add operation.
+
+	void add_raw(Id how, Id what)
+	$sel->add_raw($how, $what);
+	sel.add_raw(how, what)
+	sel.add_raw(how, what)
+
+Add a raw element to the selection. Check the Job class for information about
+the how and what parameters.
+
+	Job *jobs(int action)
+	my @jobs = $sel->jobs($action);
+	jobs = sel.jobs(action)
+	jobs = sel.jobs(action)
+
+Convert a selection into an array of Job objects. The action parameter is or-ed
+to the ``how'' part of the job, it describes the type of job (e.g. install,
+erase). See the Job class for the action and action modifier constants.
+
+	Solvable *solvables()
+	my @solvables = $sel->solvables();
+	solvables = sel.solvables()
+	solvables = sel.solvables()
+
+Convert a selection into an array of Solvable objects.
+
+	<stringification>
+	my $str = $sel->str;
+	str = str(sel)
+	str = sel.to_s
+
+Return a string describing the selection.
+
+The Job Class
+-------------
+Jobs are the way to specify to the dependency solver what to do.
+Most of the times jobs will get created by calling the jobs() method
+on a Selection object, but there is also a Job() constructor in the
+Pool class.
+
+=== CONSTANTS ===
+
+Selection constants:
+
+*SOLVER_SOLVABLE*::
+The ``what'' part is the id of a solvable.
+
+*SOLVER_SOLVABLE_NAME*::
+The ``what'' part is the id of a package name.
+
+*SOLVER_SOLVABLE_PROVIDES*::
+The ``what'' part is the id of a package provides.
+
+*SOLVER_SOLVABLE_ONE_OF*::
+The ``what'' part is an offset into the ``whatprovides'' data, created
+by calling the towhatprovides() pool method.
+
+*SOLVER_SOLVABLE_REPO*::
+The ``what'' part is the id of a repository.
+
+*SOLVER_SOLVABLE_ALL*::
+The ``what'' part is ignored, all packages are selected.
+
+*SOLVER_SOLVABLE_SELECTMASK*::
+A mask containing all the above selection bits.
+
+Action constants:
+
+*SOLVER_NOOP*::
+Do nothing.
+
+*SOLVER_INSTALL*::
+Install a package of the specified set of packages. It tries to install
+the best matching package (i.e. the highest version of the packages from
+the repositories with the highest priority).
+
+*SOLVER_ERASE*::
+Erase all of the packages from the specified set. If a package is not
+installed, erasing it will keep it from getting installed.
+
+*SOLVER_UPDATE*::
+Update the matching installed packages to their best version. If none
+of the specified packages are installed, try to update the installed
+packages to the specified versions. See the section about targeted
+updates about more information.
+ 
+*SOLVER_WEAKENDEPS*::
+Allow to break the dependencies of the matching packages. Handle with care.
+
+*SOLVER_MULTIVERSION*::
+Mark the matched packages for multiversion install. If they get to be
+installed because of some other job, the installation will keep the old
+version of the package installed (for rpm this is done by using ``-i''
+instead of ``-U'').
+
+*SOLVER_LOCK*::
+Do not change the state of the matched packages, i.e. when they are
+installed they stay installed, if not they are not selected for
+installation.
+
+*SOLVER_DISTUPGRADE*::
+Update the matching installed packages to the best version included in one
+of the repositories. After this operation, all come from one of the available
+repositories except orphaned packages. Orphaned packages are packages that
+have no relation to the packages in the repositories, i.e. no package in the
+repositories have the same name or obsolete the orphaned package.
+This action brings the installed packages in sync with the ones in the
+repository. By default it also turns of arch/vendor/version locking for the
+affected packages to simulate a fresh installation. This means that distupgrade can
+actually downgrade packages if only lower versions of a package are available
+in the repositories. You can tweak this behavior with the SOLVER_FLAG_DUP_
+solver flags.
+
+*SOLVER_DROP_ORPHANED*::
+Erase all the matching installed packages if they are orphaned. This only makes
+sense if there is a ``distupgrade all packages'' job. The default is to erase
+orphaned packages only if they block the installation of other packages.
+
+*SOLVER_VERIFY*::
+Fix dependency problems of matching installed packages. The default is to ignore
+dependency problems for installed packages.
+
+*SOLVER_USERINSTALLED*::
+The matching installed packages are considered to be installed by a user,
+thus not installed to fulfill some dependency. This is needed input for
+the calculation of unneeded packages for jobs that have the
+SOLVER_CLEANDEPS flag set.
+
+*SOLVER_JOBMASK*::
+A mask containing all the above action bits.
+
+Action modifier constants:
+
+*SOLVER_WEAK*::
+Makes the job a weak job. The solver tries to fulfill weak jobs, but does
+not report a problem if it is not possible to do so.
+
+*SOLVER_ESSENTIAL*::
+Makes the job an essential job. If there is a problem with the job, the
+solver will not propose to remove the job as one solution (unless all
+other solutions are also to remove essential jobs).
+
+*SOLVER_CLEANDEPS*::
+The solver will try to also erase all packages dragged in through
+dependencies when erasing the package. This needs SOLVER_USERINSTALLED
+jobs to maximize user satisfaction.
+
+*SOLVER_FORCEBEST*::
+Insist on the best package for install, update, and distupgrade jobs. If
+this flag is not used, the solver will use the second-best package if the
+best package cannot be installed for some reason. When this flag is used,
+the solver will generate a problem instead.
+
+*SOLVER_TARGETED*::
+Forces targeted operation update and distupgrade jobs. See the section
+about targeted updates about more information.
+
+Set constants.
+
+*SOLVER_SETEV*::
+The job specified the exact epoch and version of the package set.
+
+*SOLVER_SETEVR*::
+The job specified the exact epoch, version, and release of the package set.
+
+*SOLVER_SETARCH*::
+The job specified the exact architecture of the packages from the set.
+
+*SOLVER_SETVENDOR*::
+The job specified the exact vendor of the packages from the set.
+
+*SOLVER_SETREPO*::
+The job specified the exact repository of the packages from the set.
+
+*SOLVER_SETNAME*::
+The job specified the exact name of the packages from the set.
+
+*SOLVER_NOAUTOSET*::
+Turn of automatic set flag generation for SOLVER_SOLVABLE jobs.
+
+*SOLVER_SETMASK*::
+A mask containing all the above set bits.
+
+See the section about set bits for more information.
+
+=== ATTRIBUTES ===
+
+	Pool *pool;				/* read only */
+	$job->{pool}
+	d.pool
+	d.pool
+
+Back pointer to pool.
+
+	Id how;					/* read/write */
+	$job->{how}
+	d.how
+	d.how
+
+Union of the selection, action, action modifier, and set flags.
+The selection part describes the semantics of the ``what'' Id.
+
+	Id what;				/* read/write */
+	$job->{what}
+	d.what
+	d.what
+
+Id describing the set of packages, the meaning depends on the
+selection part of the ``how'' attribute.
+
+=== METHODS ===
+
+	Solvable *solvables()
+	my @solvables = $job->solvables();
+	solvables = job.solvables()
+	solvables = job.solvables()
+
+Return the set of solvables of the job as an array of Solvable
+objects.
+
+	bool isemptyupdate();
+	$job->isemptyupdate()
+	job.isemptyupdate()
+	job.isemptyupdate?
+
+Convenience function to find out if the job describes an update
+job with no matching packages, i.e. a job that does nothing.
+Some package managers like ``zypper'' like to turn those jobs
+into install jobs, i.e. an update of a not-installed package
+will result into the installation of the package.
+
+	<stringification>
+	my $str = $job->str;
+	str = str(job)
+	str = job.to_s
+
+Return a string describing the job.
+
+	<equality>
+	if ($job1 == $job2)
+	if job1 == job2:
+	if job1 == job2
+
+Two jobs are equal if they belong to the same pool and both the
+``how'' and the ``what'' attributes are the same.
+
+=== TARGETED UPDATES ===
+Libsolv has two modes for upgrades and distupgrade: targeted and
+untargeted. Untargeted mode means that the installed packages from
+the specified set will be updated to the best version. Targeted means
+that packages that can be updated to a package in the specified set
+will be updated to the best package of the set.
+
+Here's an example to explain the subtle difference. Suppose that
+you have package A installed in version "1.1", "A-1.2" is available
+in one of the repositories and there is also package "B" that
+obsoletes package A.
+
+An untargeted update of "A" will update the installed "A-1.1" to
+package "B", because that is the newest version (B obsoletes A and
+is thus newer).
+
+A targeted update of "A" will update "A-1.1" to "A-1.2", as the
+set of packages contains both "A-1.1" and "A-1.2", and "A-1.2" is
+the newer one.
+
+An untargeted update of "B" will do nothing, as "B" is not installed.
+
+An targeted update of "B" will update "A-1.1" to "B".
+
+Note that the default is to do "auto-targeting", thus if the specified
+set of packages does not include an installed package, the solver
+will assume targeted operation even if SOLVER_TARGETED is not used.
+
+This mostly matches the intent of the user, with one exception: In
+the example above, an update of "A-1.2" will update "A-1.1" to
+"A-1.2" (targeted mode), but a second update of "A-1.2" will suddenly
+update to "B", as untargeted mode is chosen because "A-1.2" is now
+installed.
+
+If you want to have full control over when targeting mode is chosen,
+turn off auto-targeting with the SOLVER_FLAG_NO_AUTOTARGET solver option.
+In that case, all updates are considered to be untargeted unless they
+include the SOLVER_TARGETED flag.
+
+=== SET BITS ===
+Set bits specify which parts of the specified packages where specified
+by the user. It is used by the solver when checking if an operation is
+allowed or not. For example, the solver will normally not allow the
+downgrade of an installed package. But it will not report a problem if
+the SOLVER_SETEVR flag is used, as it then assumes that the user specified
+the exact version and thus knows what he is doing.
+
+So if a package "screen-1-1" is installed for the x86_64 architecture and
+version "2-1" is only available for the i586 architecture, installing
+package "screen-2.1" will ask the user for confirmation because of the
+different architecture. When using the Selection class to create jobs
+the set bits are automatically added, e.g. selecting ``screen.i586'' will
+automatically add SOLVER_SETARCH, and thus no problem will be reported.
+
+The Solver Class
+----------------
+Dependency solving is what this library is about. A solver object is needed
+for solving to store the result of the solver run. The solver object can be
+used multiple times for different jobs, reusing it allows the solver to
+re-use the dependency rules it already computed.
+
+=== CONSTANTS ===
+
+Flags to modify some of the solver's behavior:
+
+*SOLVER_FLAG_ALLOW_DOWNGRADE*::
+Allow the solver to downgrade packages without asking for confirmation
+(i.e. reporting a problem).
+
+*SOLVER_FLAG_ALLOW_ARCHCHANGE*::
+Allow the solver to change the architecture of an installed package
+without asking for confirmation. Note that changes to/from noarch
+are always considered to be allowed.
+  
+*SOLVER_FLAG_ALLOW_VENDORCHANGE*::
+Allow the solver to change the vendor of an installed package
+without asking for confirmation. Each vendor is part of one or more
+vendor equivalence classes, normally installed packages may only
+change their vendor if the new vendor shares at least one equivalence
+class.
+
+*SOLVER_FLAG_ALLOW_NAMECHANGE*::
+Allow the solver to change the name of an installed package, i.e.
+install a package with a different name that obsoletes the installed
+package. This option is on by default.
+
+*SOLVER_FLAG_ALLOW_UNINSTALL*::
+Allow the solver to erase installed packages to fulfill the jobs.
+This flag also includes the above flags. You may want to set this
+flag if you only have SOLVER_ERASE jobs, as in that case it's
+better for the user to check the transaction overview instead of
+approving every single package that needs to be erased.
+
+*SOLVER_FLAG_DUP_ALLOW_DOWNGRADE*::
+Like SOLVER_FLAG_ALLOW_DOWNGRADE, but used in distupgrade mode.
+
+*SOLVER_FLAG_DUP_ALLOW_ARCHCHANGE*::
+Like SOLVER_FLAG_ALLOW_ARCHCHANGE, but used in distupgrade mode.
+
+*SOLVER_FLAG_DUP_ALLOW_VENDORCHANGE*::
+Like SOLVER_FLAG_ALLOW_VENDORCHANGE, but used in distupgrade mode.
+
+*SOLVER_FLAG_DUP_ALLOW_NAMECHANGE*::
+Like SOLVER_FLAG_ALLOW_NAMECHANGE, but used in distupgrade mode.
+
+*SOLVER_FLAG_NO_UPDATEPROVIDE*::
+If multiple packages obsolete an installed package, the solver checks
+the provides of every such package and ignores all packages that
+do not provide the installed package name. Thus, you can have an
+official update candidate that provides the old name, and other
+packages that also obsolete the package but are not considered for
+updating. If you cannot use this feature, you can turn it off
+by setting this flag.
+
+*SOLVER_FLAG_SPLITPROVIDES*::
+Make the solver aware of special provides of the form
+``<packagename>:<path>'' used in SUSE systems to support package
+splits.
+
+*SOLVER_FLAG_IGNORE_RECOMMENDED*::
+Do not process optional (aka weak) dependencies.
+
+*SOLVER_FLAG_ADD_ALREADY_RECOMMENDED*::
+Install recommended or supplemented packages even if they have no
+connection to the current transaction. You can use this feature
+to implement a simple way for the user to install new recommended
+packages that were not available in the past.
+  
+*SOLVER_FLAG_NO_INFARCHCHECK*::
+Turn off the inferior architecture checking that is normally done
+by the solver. Normally, the solver allows only the installation
+of packages from the "best" architecture if a package is available
+for multiple architectures.
+
+*SOLVER_FLAG_BEST_OBEY_POLICY*::
+Make the SOLVER_FORCEBEST job option consider only packages that
+meet the policies for installed packages, i.e. no downgrades,
+no architecture change, no vendor change (see the first flags
+of this section). If the flag is not specified, the solver will
+enforce the installation of the best package ignoring the
+installed packages, which may conflict with the set policy.
+
+*SOLVER_FLAG_NO_AUTOTARGET*::
+Do not enable auto-targeting up update and distupgrade jobs. See
+the section on targeted updates for more information.
+
+*SOLVER_FLAG_KEEP_ORPHANS*::
+Do not allow orphaned packages to be deinstalled if they get
+in the way of resolving other packages.
+
+*SOLVER_FLAG_BREAK_ORPHANS*::
+Ignore dependencies of orphaned packages that get in the way
+of resolving non-orphaned ones. Setting the flag might result
+in no longer working packages in case they are orphaned.
+
+*SOLVER_FLAG_FOCUS_INSTALLED*::
+Resolve installed packages before resolving the given job.
+Setting this flag means that the solver will prefer picking
+a package version that fits the other installed packages
+over updating installed packages.
+
+Basic rule types:
+
+*SOLVER_RULE_UNKNOWN*::
+A rule of an unknown class. You should never encounter those.
+
+*SOLVER_RULE_PKG*::
+A package dependency rule.
+
+*SOLVER_RULE_UPDATE*::
+A rule to implement the update policy of installed packages. Every
+installed package has an update rule that consists of the packages
+that may replace the installed package.
+
+*SOLVER_RULE_FEATURE*::
+Feature rules are fallback rules used when a update rule is disabled. They
+include all packages that may replace the installed package ignoring the
+update policy, i.e. they contain downgrades, arch changes and so on.
+Without them, the solver would simply erase installed packages if their
+update rule gets disabled.
+
+*SOLVER_RULE_JOB*::
+Job rules implement the job given to the solver.
+
+*SOLVER_RULE_DISTUPGRADE*::
+This are simple negative assertions that make sure that only packages
+are kept that are also available in one of the repositories.
+
+*SOLVER_RULE_INFARCH*::
+Infarch rules are also negative assertions, they disallow the installation
+of packages when there are packages of the same name but with a better
+architecture.
+
+*SOLVER_RULE_CHOICE*::
+Choice rules are used to make sure that the solver prefers updating to
+installing different packages when some dependency is provided by
+multiple packages with different names. The solver may always break
+choice rules, so you will not see them when a problem is found.
+
+*SOLVER_RULE_LEARNT*::
+These rules are generated by the solver to keep it from running into
+the same problem multiple times when it has to backtrack. They are
+the main reason why a sat solver is faster then other dependency solver
+implementations.
+
+Special dependency rule types:
+
+*SOLVER_RULE_PKG_NOT_INSTALLABLE*::
+This rule was added to prevent the installation of a package of an
+architecture that does not work on the system.
+
+*SOLVER_RULE_PKG_NOTHING_PROVIDES_DEP*::
+The package contains a required dependency which was not provided by
+any package.
+
+*SOLVER_RULE_PKG_REQUIRES*::
+Similar to SOLVER_RULE_PKG_NOTHING_PROVIDES_DEP, but in this case
+some packages provided the dependency but none of them could be
+installed due to other dependency issues.
+
+*SOLVER_RULE_PKG_SELF_CONFLICT*::
+The package conflicts with itself. This is not allowed by older rpm
+versions.
+
+*SOLVER_RULE_PKG_CONFLICTS*::
+To fulfill the dependencies two packages need to be installed, but
+one of the packages contains a conflict with the other one.
+
+*SOLVER_RULE_PKG_SAME_NAME*::
+The dependencies can only be fulfilled by multiple versions of
+a package, but installing multiple versions of the same package
+is not allowed.
+
+*SOLVER_RULE_PKG_OBSOLETES*::
+To fulfill the dependencies two packages need to be installed, but
+one of the packages obsoletes the other one.
+
+*SOLVER_RULE_PKG_IMPLICIT_OBSOLETES*::
+To fulfill the dependencies two packages need to be installed, but
+one of the packages has provides a dependency that is obsoleted
+by the other one. See the POOL_FLAG_IMPLICITOBSOLETEUSESPROVIDES
+flag.
+
+*SOLVER_RULE_PKG_INSTALLED_OBSOLETES*::
+To fulfill the dependencies a package needs to be installed that is
+obsoleted by an installed package. See the POOL_FLAG_NOINSTALLEDOBSOLETES
+flag.
+
+*SOLVER_RULE_JOB_NOTHING_PROVIDES_DEP*::
+The user asked for installation of a package providing a specific
+dependency, but no available package provides it.
+
+*SOLVER_RULE_JOB_UNKNOWN_PACKAGE*::
+The user asked for installation of a package with a specific name,
+but no available package has that name.
+
+*SOLVER_RULE_JOB_PROVIDED_BY_SYSTEM*::
+The user asked for the erasure of a dependency that is provided by the
+system (i.e. for special hardware or language dependencies), this
+cannot be done with a job.
+
+*SOLVER_RULE_JOB_UNSUPPORTED*::
+The user asked for something that is not yet implemented, e.g. the
+installation of all packages at once.
+
+Policy error constants
+
+*POLICY_ILLEGAL_DOWNGRADE*::
+The solver ask for permission before downgrading packages.
+
+*POLICY_ILLEGAL_ARCHCHANGE*::
+The solver ask for permission before changing the architecture of installed
+packages.
+
+*POLICY_ILLEGAL_VENDORCHANGE*::
+The solver ask for permission before changing the vendor of installed
+packages.
+
+*POLICY_ILLEGAL_NAMECHANGE*::
+The solver ask for permission before replacing an installed packages with
+a package that has a different name.
+
+Solution element type constants
+
+*SOLVER_SOLUTION_JOB*::
+The problem can be solved by removing the specified job.
+
+*SOLVER_SOLUTION_POOLJOB*::
+The problem can be solved by removing the specified job that is defined
+in the pool.
+
+*SOLVER_SOLUTION_INFARCH*::
+The problem can be solved by allowing the installation of the specified
+package with an inferior architecture.
+
+*SOLVER_SOLUTION_DISTUPGRADE*::
+The problem can be solved by allowing to keep the specified package
+installed.
+
+*SOLVER_SOLUTION_BEST*::
+The problem can be solved by allowing to install the specified package
+that is not the best available package.
+
+*SOLVER_SOLUTION_ERASE*::
+The problem can be solved by allowing to erase the specified package.
+
+*SOLVER_SOLUTION_REPLACE*::
+The problem can be solved by allowing to replace the package with some
+other package.
+
+*SOLVER_SOLUTION_REPLACE_DOWNGRADE*::
+The problem can be solved by allowing to replace the package with some
+other package that has a lower version.
+
+*SOLVER_SOLUTION_REPLACE_ARCHCHANGE*::
+The problem can be solved by allowing to replace the package with some
+other package that has a different architecture.
+
+*SOLVER_SOLUTION_REPLACE_VENDORCHANGE*::
+The problem can be solved by allowing to replace the package with some
+other package that has a different vendor.
+
+*SOLVER_SOLUTION_REPLACE_NAMECHANGE*::
+The problem can be solved by allowing to replace the package with some
+other package that has a different name.
+
+
+Reason constants
+
+*SOLVER_REASON_UNRELATED*::
+The package status did not change as it was not related to any job.
+
+*SOLVER_REASON_UNIT_RULE*::
+The package was installed/erased/kept because of a unit rule, i.e. a rule
+where all literals but one were false.
+
+*SOLVER_REASON_KEEP_INSTALLED*::
+The package was chosen when trying to keep as many packages installed as
+possible.
+
+*SOLVER_REASON_RESOLVE_JOB*::
+The decision happened to fulfill a job rule.
+
+*SOLVER_REASON_UPDATE_INSTALLED*::
+The decision happened to fulfill a package update request.
+
+*SOLVER_REASON_CLEANDEPS_ERASE*::
+The package was erased when cleaning up dependencies from other erased
+packages.
+
+*SOLVER_REASON_RESOLVE*::
+The package was installed to fulfill package dependencies.
+
+*SOLVER_REASON_WEAKDEP*::
+The package was installed because of a weak dependency (Recommends or
+Supplements).
+
+*SOLVER_REASON_RESOLVE_ORPHAN*::
+The decision about the package was made when deciding the fate of orphaned
+packages.
+
+*SOLVER_REASON_RECOMMENDED*::
+This is a special case of SOLVER_REASON_WEAKDEP.
+
+*SOLVER_REASON_SUPPLEMENTED*::
+This is a special case of SOLVER_REASON_WEAKDEP.
+
+
+=== ATTRIBUTES ===
+
+	Pool *pool;				/* read only */
+	$job->{pool}
+	d.pool
+	d.pool
+
+Back pointer to pool.
+
+=== METHODS ===
+
+	int set_flag(int flag, int value)
+	my $oldvalue = $solver->set_flag($flag, $value);
+	oldvalue = solver.set_flag(flag, value)
+	oldvalue = solver.set_flag(flag, value)
+
+	int get_flag(int flag)
+	my $value = $solver->get_flag($flag);
+	value = solver.get_flag(flag)
+	value = solver.get_flag(flag)
+
+Set/get a solver specific flag. The flags define the policies the solver has
+to obey. The flags are explained in the CONSTANTS section of this class.
+
+	Problem *solve(Job *jobs)
+	my @problems = $solver->solve(\@jobs);
+	problems = solver.solve(jobs)
+	problems = solver.solve(jobs)
+
+Solve a problem specified in the job list (plus the jobs defined in the pool).
+Returns an array of problems that need user interaction, or an empty array
+if no problems were encountered. See the Problem class on how to deal with
+problems.
+
+	Transaction transaction()
+	my $trans = $solver->transaction();
+	trans = solver.transaction()
+	trans = solver.transaction()
+
+Return the transaction to implement the calculated package changes. A transaction
+is available even if problems were found, this is useful for interactive user
+interfaces that show both the job result and the problems.
+
+	int reason = describe_decision(Solvable *s, Rule *OUTPUT)
+	my ($reason, $rule) = $solver->describe_decision($solvable);
+	(reason, rule) = solver.describe_decision(solvable)
+	(reason, rule) = solver.describe_decision(solvable)
+
+Return the reason why a specific solvable was installed or erased. For most of
+the reasons the rule that triggered the decision is also returned.
+
+The Problem Class
+-----------------
+Problems are the way of the solver to interact with the user. You can simply list
+all problems and terminate your program, but a better way is to present solutions to
+the user and let him pick the ones he likes.
+
+=== ATTRIBUTES ===
+
+	Solver *solv;				/* read only */
+	$problem->{solv}
+	problem.solv
+	problem.solv
+
+Back pointer to solver object.
+
+	Id id;					/* read only */
+	$problem->{id}
+	problem.id
+	problem.id
+
+Id of the problem. The first problem has Id 1, they are numbered consecutively.
+
+=== METHODS ===
+
+	Rule findproblemrule()
+	my $probrule = $problem->findproblemrule();
+	probrule = problem.findproblemrule()
+	probrule = problem.findproblemrule()
+
+Return the rule that caused the problem. Of course in most situations there is no
+single responsible rule, but many rules that interconnect with each created the
+problem. Nevertheless, the solver uses some heuristic approach to find a rule
+that somewhat describes the problem best to the user.
+
+	Rule *findallproblemrules(bool unfiltered = 0)
+	my @probrules = $problem->findallproblemrules();
+	probrules = problem.findallproblemrule()
+	probrules = problem.findallproblemrule()
+
+Return all rules responsible for the problem. The returned set of rules contains
+all the needed information why there was a problem, but it's hard to present
+them to the user in a sensible way. The default is to filter out all update and
+job rules (unless the returned rules only consist of those types).
+
+	Solution *solutions()
+	my @solutions = $problem->solutions();
+	solutions = problem.solutions()
+	solutions = problem.solutions()
+
+Return an array containing multiple possible solutions to fix the problem. See
+the solution class for more information.
+
+	int solution_count()
+	my $cnt = $problem->solution_count();
+	cnt = problem.solution_count()
+	cnt = problem.solution_count()
+
+Return the number of solutions without creating solution objects.
+
+	<stringification>
+	my $str = $problem->str;
+	str = str(problem)
+	str = problem.to_s
+
+Return a string describing the problem. This is a convenience function, it is
+a shorthand for calling findproblemrule(), then ruleinfo() on the problem
+rule and problemstr() on the ruleinfo object.
+
+The Rule Class
+--------------
+Rules are the basic block of sat solving. Each package dependency gets translated
+into one or multiple rules.
+
+=== ATTRIBUTES ===
+
+	Solver *solv;				/* read only */
+	$rule->{solv}
+	rule.solv
+	rule.solv
+
+Back pointer to solver object.
+
+	Id id;					/* read only */
+	$rule->{id}
+	rule.id
+	rule.id
+
+The id of the rule.
+
+	int type;				/* read only */
+	$rule->{type}
+	rule.type
+	rule.type
+
+The basic type of the rule. See the constant section of the solver class for the type list.
+
+=== METHODS ===
+
+	Ruleinfo info()
+	my $ruleinfo = $rule->info();
+	ruleinfo = rule.info()
+	ruleinfo = rule.info()
+
+Return a Ruleinfo object that contains information about why the rule was created. But
+see the allinfos() method below.
+
+	Ruleinfo *allinfos()
+	my @ruleinfos = $rule->allinfos();
+	ruleinfos = rule.allinfos()
+	ruleinfos = rule.allinfos()
+
+As the same dependency rule can get created because of multiple dependencies, one
+Ruleinfo is not enough to describe the reason. Thus the allinfos() method returns
+an array of all infos about a rule.
+
+	<equality>
+	if ($rule1 == $rule2)
+	if rule1 == rule2:
+	if rule1 == rule2
+
+Two rules are equal if they belong to the same solver and have the same id.
+
+The Ruleinfo Class
+------------------
+A Ruleinfo describes one reason why a rule was created.
+
+=== ATTRIBUTES ===
+
+	Solver *solv;				/* read only */
+	$ruleinfo->{solv}
+	ruleinfo.solv
+	ruleinfo.solv
+
+Back pointer to solver object.
+
+	int type;				/* read only */
+	$ruleinfo->{type}
+	ruleinfo.type
+	ruleinfo.type
+
+The type of the ruleinfo. See the constant section of the solver class for the
+rule type list and the special type list.
+
+	Dep *dep;				/* read only */
+	$ruleinfo->{dep}
+	ruleinfo.dep
+	ruleinfo.dep
+
+The dependency leading to the creation of the rule.
+
+	Dep *dep_id;				/* read only */
+	$ruleinfo->{'dep_id'}
+	ruleinfo.dep_id
+	ruleinfo.dep_id
+
+The Id of the dependency leading to the creation of the rule, or zero.
+
+	Solvable *solvable;			/* read only */
+	$ruleinfo->{solvable}
+	ruleinfo.solvable
+	ruleinfo.solvable
+
+The involved Solvable, e.g. the one containing the dependency.
+
+	Solvable *othersolvable;		/* read only */
+	$ruleinfo->{othersolvable}
+	ruleinfo.othersolvable
+	ruleinfo.othersolvable
+
+The other involved Solvable (if any), e.g. the one containing providing
+the dependency for conflicts.
+
+	const char *problemstr();
+	my $str = $ruleinfo->problemstr();
+	str = ruleinfo.problemstr()
+	str = ruleinfo.problemstr()
+
+A string describing the ruleinfo from a problem perspective. This probably
+only makes sense if the rule is part of a problem.
+
+The Solution Class
+------------------
+A solution solves one specific problem. It consists of multiple solution elements
+that all need to be executed.
+
+=== ATTRIBUTES ===
+
+	Solver *solv;				/* read only */
+	$solution->{solv}
+	solution.solv
+	solution.solv
+
+Back pointer to solver object.
+
+	Id problemid;				/* read only */
+	$solution->{problemid}
+	solution.problemid
+	solution.problemid
+
+Id of the problem the solution solves.
+
+	Id id;					/* read only */
+	$solution->{id}
+	solution.id
+	solution.id
+
+Id of the solution. The first solution has Id 1, they are numbered consecutively.
+
+=== METHODS ===
+
+	Solutionelement *elements(bool expandreplaces = 0)
+	my @solutionelements = $solution->elements();
+	solutionelements = solution.elements()
+	solutionelements = solution.elements()
+
+Return an array containing the elements describing what needs to be done to
+implement the specific solution. If expandreplaces is true, elements of type
+SOLVER_SOLUTION_REPLACE will be replaced by one or more elements replace
+elements describing the policy mismatches.
+
+	int element_count()
+	my $cnt = $solution->solution_count();
+	cnt = solution.element_count()
+	cnt = solution.element_count()
+
+Return the number of solution elements without creating objects. Note that the
+count does not match the number of objects returned by the elements() method
+of expandreplaces is set to true.
+
+
+The Solutionelement Class
+-------------------------
+A solution element describes a single action of a solution. The action is always
+either to remove one specific job or to add a new job that installs or erases
+a single specific package.
+
+=== ATTRIBUTES ===
+
+	Solver *solv;				/* read only */
+	$solutionelement->{solv}
+	solutionelement.solv
+	solutionelement.solv
+
+Back pointer to solver object.
+
+	Id problemid;				/* read only */
+	$solutionelement->{problemid}
+	solutionelement.problemid
+	solutionelement.problemid
+
+Id of the problem the element (partly) solves.
+
+	Id solutionid;				/* read only */
+	$solutionelement->{solutionid}
+	solutionelement.solutionid
+	solutionelement.solutionid
+
+Id of the solution the element is a part of.
+
+	Id id;					/* read only */
+	$solutionelement->{id}
+	solutionelement.id
+	solutionelement.id
+
+Id of the solution element. The first element has Id 1, they are numbered consecutively.
+
+	Id type;				/* read only */
+	$solutionelement->{type}
+	solutionelement.type
+	solutionelement.type
+
+Type of the solution element. See the constant section of the solver class for the
+existing types.
+
+	Solvable *solvable;			/* read only */
+	$solutionelement->{solvable}
+	solutionelement.solvable
+	solutionelement.solvable
+
+The installed solvable that needs to be replaced for replacement elements.
+
+	Solvable *replacement;			/* read only */
+	$solutionelement->{replacement}
+	solutionelement.replacement
+	solutionelement.replacement
+
+The solvable that needs to be installed to fix the problem.
+
+	int jobidx;				/* read only */
+	$solutionelement->{jobidx}
+	solutionelement.jobidx
+	solutionelement.jobidx
+
+The index of the job that needs to be removed to fix the problem, or -1 if the
+element is of another type. Note that it's better to change the job to SOLVER_NOOP
+type so that the numbering of other elements does not get disturbed. This
+method works both for types SOLVER_SOLUTION_JOB and SOLVER_SOLUTION_POOLJOB.
+
+=== METHODS ===
+
+	Solutionelement *replaceelements()
+	my @solutionelements = $solutionelement->replaceelements();
+	solutionelements = solutionelement.replaceelements()
+	solutionelements = solutionelement.replaceelements()
+
+If the solution element is of type SOLVER_SOLUTION_REPLACE, return an array of
+elements describing the policy mismatches, otherwise return a copy of the
+element. See also the ``expandreplaces'' option in the solution's elements()
+method.
+
+	int illegalreplace()
+	my $illegal = $solutionelement->illegalreplace();
+	illegal = solutionelement.illegalreplace()
+	illegal = solutionelement.illegalreplace()
+
+Return an integer that contains the policy mismatch bits or-ed together, or
+zero if there was no policy mismatch. See the policy error constants in
+the solver class.
+
+	Job Job()
+	my $job = $solutionelement->Job();
+	illegal = solutionelement.Job()
+	illegal = solutionelement.Job()
+
+Create a job that implements the solution element. Add this job to the array
+of jobs for all elements of type different to SOLVER_SOLUTION_JOB and
+SOLVER_SOLUTION_POOLJOB. For the later two, a SOLVER_NOOB Job is created,
+you should replace the old job with the new one.
+
+	const char *str()
+	my $str = $solutionelement->str();
+	str = solutionelement.str()
+	str = solutionelement.str()
+
+A string describing the change the solution element consists of.
+
+The Transaction Class
+---------------------
+Transactions describe the output of a solver run. A transaction contains
+a number of transaction elements, each either the installation of a new
+package or the removal of an already installed package. The Transaction
+class supports a classify() method that puts the elements into different
+groups so that a transaction can be presented to the user in a meaningful
+way.
+
+=== CONSTANTS ===
+
+Transaction element types, both active and passive
+
+*SOLVER_TRANSACTION_IGNORE*::
+This element does nothing. Used to map element types that do not match
+the view mode.
+
+*SOLVER_TRANSACTION_INSTALL*::
+This element installs a package.
+
+*SOLVER_TRANSACTION_ERASE*::
+This element erases a package.
+
+*SOLVER_TRANSACTION_MULTIINSTALL*::
+This element installs a package with a different version keeping the other
+versions installed.
+
+*SOLVER_TRANSACTION_MULTIREINSTALL*::
+This element reinstalls a installed package keeping the other versions
+installed.
+
+Transaction element types, active view
+
+*SOLVER_TRANSACTION_REINSTALL*::
+This element re-installs a package, i.e. installs the same package again.
+
+*SOLVER_TRANSACTION_CHANGE*::
+This element installs a package with same name, version, architecture but
+different content.
+
+*SOLVER_TRANSACTION_UPGRADE*::
+This element installs a newer version of an installed package.
+
+*SOLVER_TRANSACTION_DOWNGRADE*::
+This element installs a older version of an installed package.
+
+*SOLVER_TRANSACTION_OBSOLETES*::
+This element installs a package that obsoletes an installed package.
+
+Transaction element types, passive view
+
+*SOLVER_TRANSACTION_REINSTALLED*::
+This element re-installs a package, i.e. installs the same package again.
+
+*SOLVER_TRANSACTION_CHANGED*::
+This element replaces an installed package with one of the same name,
+version, architecture but different content.
+
+*SOLVER_TRANSACTION_UPGRADED*::
+This element replaces an installed package with a new version.
+
+*SOLVER_TRANSACTION_DOWNGRADED*::
+This element replaces an installed package with an old version.
+
+*SOLVER_TRANSACTION_OBSOLETED*::
+This element replaces an installed package with a package that obsoletes
+it.
+
+Pseudo element types for showing extra information used by classify()
+
+*SOLVER_TRANSACTION_ARCHCHANGE*::
+This element replaces an installed package with a package of a different
+architecture.
+
+*SOLVER_TRANSACTION_VENDORCHANGE*::
+This element replaces an installed package with a package of a different
+vendor.
+
+Transaction mode flags
+
+*SOLVER_TRANSACTION_SHOW_ACTIVE*::
+Filter for active view types. The default is to return passive view type,
+i.e. to show how the installed packages get changed.
+
+*SOLVER_TRANSACTION_SHOW_OBSOLETES*::
+Do not map the obsolete view type into INSTALL/ERASE elements.
+
+*SOLVER_TRANSACTION_SHOW_ALL*::
+If multiple packages replace an installed package, only the best of them
+is kept as OBSOLETE element, the other ones are mapped to INSTALL/ERASE
+elements. This is because most applications want to show just one package
+replacing the installed one. The SOLVER_TRANSACTION_SHOW_ALL makes the
+library keep all OBSOLETE elements.
+
+*SOLVER_TRANSACTION_SHOW_MULTIINSTALL*::
+The library maps MULTIINSTALL elements to simple INSTALL elements. This
+flag can be used to disable the mapping.
+
+*SOLVER_TRANSACTION_CHANGE_IS_REINSTALL*::
+Use this flag if you want to map CHANGE elements to the REINSTALL type.
+
+*SOLVER_TRANSACTION_OBSOLETE_IS_UPGRADE*::
+Use this flag if you want to map OBSOLETE elements to the UPGRADE type.
+
+*SOLVER_TRANSACTION_MERGE_ARCHCHANGES*::
+Do not add extra categories for every architecture change, instead cumulate
+them in one category.
+  
+*SOLVER_TRANSACTION_MERGE_VENDORCHANGES*::
+Do not add extra categories for every vendor change, instead cumulate
+them in one category.
+
+*SOLVER_TRANSACTION_RPM_ONLY*::
+Special view mode that just returns IGNORE, ERASE, INSTALL, MULTIINSTALL
+elements. Useful if you want to find out what to feed to the underlying
+package manager.
+
+Transaction order flags
+
+*SOLVER_TRANSACTION_KEEP_ORDERDATA*::
+Do not throw away the dependency graph used for ordering the transaction.
+This flag is needed if you want to do manual ordering.
+
+=== ATTRIBUTES ===
+
+	Pool *pool;				/* read only */
+	$trans->{pool}
+	trans.pool
+	trans.pool
+
+Back pointer to pool.
+
+=== METHODS ===
+
+	bool isempty();
+	$trans->isempty()
+	trans.isempty()
+	trans.isempty?
+
+Returns true if the transaction does not do anything, i.e. has no elements.
+
+	Solvable *newsolvables();
+	my @newsolvables = $trans->newsolvables();
+	newsolvables = trans.newsolvables()
+	newsolvables = trans.newsolvables()
+
+Return all packages that are to be installed by the transaction. This are
+the packages that need to be downloaded from the repositories.
+
+	Solvable *keptsolvables();
+	my @keptsolvables = $trans->keptsolvables();
+	keptsolvables = trans.keptsolvables()
+	keptsolvables = trans.keptsolvables()
+
+Return all installed packages that the transaction will keep installed.
+
+	Solvable *steps();
+	my @steps = $trans->steps();
+	steps = trans.steps()
+	steps = trans.steps()
+
+Return all solvables that need to be installed (if the returned solvable
+is not already installed) or erased (if the returned solvable is installed).
+A step is also called a transaction element.
+
+	int steptype(Solvable *solvable, int mode)
+	my $type = $trans->steptype($solvable, $mode);
+	type = trans.steptype(solvable, mode)
+	type = trans.steptype(solvable, mode)
+
+Return the transaction type of the specified solvable. See the CONSTANTS
+sections for the mode argument flags and the list of returned types.
+
+	TransactionClass *classify(int mode = 0)
+	my @classes = $trans->classify();
+	classes = trans.classify()
+	classes = trans.classify()
+
+Group the transaction elements into classes so that they can be displayed
+in a structured way. You can use various mapping mode flags to tweak
+the result to match your preferences, see the mode argument flag in
+the CONSTANTS section. See the TransactionClass class for how to deal
+with the returned objects.
+
+	Solvable othersolvable(Solvable *solvable);
+	my $other = $trans->othersolvable($solvable);
+	other = trans.othersolvable(solvable)
+	other = trans.othersolvable(solvable)
+
+Return the ``other'' solvable for a given solvable. For installed packages
+the other solvable is the best package with the same name that replaces
+the installed package, or the best package of the obsoleting packages if
+the package does not get replaced by one with the same name.
+
+For to be installed packages, the ``other'' solvable is the best installed
+package with the same name that will be replaced, or the best packages
+of all the packages that are obsoleted if the new package does not replace
+a package with the same name.
+
+Thus, the ``other'' solvable is normally the package that is also shown
+for a given package.
+
+	Solvable *allothersolvables(Solvable *solvable);
+	my @others = $trans->allothersolvables($solvable);
+	others = trans.allothersolvables(solvable)
+	others = trans.allothersolvables(solvable)
+
+For installed packages, returns all of the packages that replace us. For to
+be installed packages, returns all of the packages that the new package
+replaces. The special ``other'' solvable is always the first entry of the
+returned array.
+
+	int calc_installsizechange();
+	my $change = $trans->calc_installsizechange();
+	change = trans.calc_installsizechange()
+	change = trans.calc_installsizechange()
+
+Return the size change of the installed system in kilobytes (kibibytes).
+
+	void order(int flags = 0);
+	$trans->order();
+	trans.order()
+	trans.order()
+
+Order the steps in the transactions so that dependant packages are updated
+before packages that depend on them. For rpm, you can also use rpmlib's
+ordering functionality, debian's dpkg does not provide a way to order a
+transaction.
+
+=== ACTIVE/PASSIVE VIEW ===
+
+Active view list what new packages get installed, while passive view shows
+what happens to the installed packages. Most often there's not much
+difference between the two modes, but things get interesting of multiple
+package get replaced by one new package. Say you have installed package
+A-1-1 and B-1-1, and now install A-2-1 with has a new dependency that
+obsoletes B. The transaction elements will be
+
+  updated   A-1-1 (other: A-2-1)
+  obsoleted B-1-1 (other: A-2-1)
+
+in passive mode, but
+
+  update A-2-1 (other: A-1-1)
+  erase  B
+
+in active mode. If the mode contains SOLVER_TRANSACTION_SHOW_ALL, the 
+passive mode list will be unchanged but the active mode list will just
+contain A-2-1.
+
+The Transactionclass Class
+--------------------------
+Objects of this type are returned by the classify() Transaction method.
+
+=== ATTRIBUTES ===
+
+	Transaction *transaction;		/* read only */
+	$class->{transaction}
+	class.transaction
+	class.transaction
+
+Back pointer to transaction object.
+
+	int type;				/* read only */
+	$class->{type}
+	class.type
+	class.type
+
+The type of the transaction elements in the class.
+
+	int count;				/* read only */
+	$class->{count}
+	class.count
+	class.count
+
+The number of elements in the class.
+
+	const char *fromstr;
+	$class->{fromstr}
+	class.fromstr
+	class.fromstr
+
+The old vendor or architecture.
+
+	const char *tostr;
+	$class->{tostr}
+	class.tostr
+	class.tostr
+
+The new vendor or architecture.
+
+	Id fromid;
+	$class->{fromid}
+	class.fromid
+	class.fromid
+
+The id of the old vendor or architecture.
+
+	Id toid;
+	$class->{toid}
+	class.toid
+	class.toid
+
+The id of the new vendor or architecture.
+
+=== METHODS ===
+
+	void solvables();
+	my @solvables = $class->solvables();
+	solvables = class.solvables()
+	solvables = class.solvables()
+
+Return the solvables for all transaction elements in the class.
+
+Checksums
+---------
+Checksums (also called hashes) are used to make sure that downloaded data is
+not corrupt and also as a fingerprint mechanism to check if data has changed.
+
+=== CLASS METHODS ===
+
+	Chksum Chksum(Id type)
+	my $chksum = solv::Chksum->new($type);
+	chksum = solv.Chksum(type)
+	chksum = Solv::Chksum.new(type)
+
+Create a checksum object. Currently the following types are supported:
+
+	REPOKEY_TYPE_MD5
+	REPOKEY_TYPE_SHA1
+	REPOKEY_TYPE_SHA256
+
+These keys are constants in the *solv* class.
+
+	Chksum Chksum(Id type, const char *hex)
+	my $chksum = solv::Chksum->new($type, $hex);
+	chksum = solv.Chksum(type, hex)
+	chksum = Solv::Chksum.new(type, hex)
+
+Create an already finalized checksum object.
+
+=== ATTRIBUTES ===
+
+	Id type;			/* read only */
+	$chksum->{type}
+	chksum.type
+	chksum.type
+
+Return the type of the checksum object.
+
+=== METHODS ===
+
+	void add(const char *str)
+	$chksum->add($str);
+	chksum.add(str)
+	chksum.add(str)
+
+Add a string to the checksum.
+
+	void add_fp(FILE *fp)
+	$chksum->add_fp($file);
+	chksum.add_fp(file)
+	chksum.add_fp(file)
+
+Add the contents of a file to the checksum.
+	
+	void add_stat(const char *filename)
+	$chksum->add_stat($filename);
+	chksum.add_stat(filename)
+	chksum.add_stat(filename)
+
+Stat the file and add the dev/ino/size/mtime member to the checksum. If the
+stat fails, the members are zeroed.
+
+	void add_fstat(int fd)
+	$chksum->add_fstat($fd);
+	chksum.add_fstat(fd)
+	chksum.add_fstat(fd)
+
+Same as add_stat, but instead of the filename a file descriptor is used.
+
+	unsigned char *raw()
+	my $raw = $chksum->raw();
+	raw = chksum.raw()
+	raw = chksum.raw()
+
+Finalize the checksum and return the result as raw bytes. This means that the
+result can contain NUL bytes or unprintable characters.
+
+	const char *hex()
+	my $raw = $chksum->hex();
+	raw = chksum.hex()
+	raw = chksum.hex()
+
+Finalize the checksum and return the result as hex string.
+
+	const char *typestr()
+	my $typestr = $chksum->typestr();
+	typestr = chksum.typestr
+	typestr = chksum.typestr
+
+Return the type of the checksum as a string, e.g. "sha256".
+
+	<equality>
+	if ($chksum1 == $chksum2)
+	if chksum1 == chksum2:
+	if chksum1 == chksum2
+
+Checksums are equal if they are of the same type and the finalized results are
+the same.
+
+	<stringification>
+	my $str = $chksum->str;
+	str = str(chksum)
+	str = chksum.to_s
+
+If the checksum is finished, the checksum is returned as "<type>:<hex>" string.
+Otherwise "<type>:unfinished" is returned.
+
+
+File Management
+---------------
+This functions were added because libsolv uses standard *FILE* pointers to
+read/write files, but languages like perl have their own implementation of
+files. The libsolv functions also support decompression and compression, the
+algorithm is selected by looking at the file name extension.
+
+	FILE *xfopen(char *fn, char *mode = "r")
+	my $file = solv::xfopen($path);
+	file = solv.xfopen(path)
+	file = Solv::xfopen(path)
+
+Open a file at the specified path. The `mode` argument is passed on to the
+stdio library.
+
+	FILE *xfopen_fd(char *fn, int fileno)
+	my $file = solv::xfopen_fd($path, $fileno);
+	file = solv.xfopen_fd(path, fileno)
+	file = Solv::xfopen_fd(path, fileno)
+
+Create a file handle from the specified file descriptor. The path argument is
+only used to select the correct (de-)compression algorithm, use an empty path
+if you want to make sure to read/write raw data.
+
+=== METHODS ===
+
+	int fileno()
+	my $fileno = $file->fileno();
+	fileno = file.fileno()
+	fileno = file.fileno()
+
+Return file file descriptor of the file. If the file is not open, `-1` is
+returned.
+
+	int dup()
+	my $fileno = $file->dup();
+	fileno = file.dup()
+	fileno = file.dup()
+
+Return a copy of the descriptor of the file. If the file is not open, `-1` is
+returned.
+
+	bool flush()
+	$file->flush();
+	file.flush()
+	file.flush()
+
+Flush the file. Returns false if there was an error. Flushing a closed file
+always returns true.
+
+	bool close()
+	$file->close();
+	file.close()
+	file.close()
+
+Close the file. This is needed for languages like Ruby, that do not destruct
+objects right after they are no longer referenced. In that case, it is good
+style to close open files so that the file descriptors are freed right away.
+Returns false if there was an error.
+
+
+The Repodata Class
+------------------
+The Repodata stores attributes for packages and the repository itself, each
+repository can have multiple repodata areas. You normally only need to
+directly access them if you implement lazy downloading of repository data.
+Repodata areas are created by calling the repository's add_repodata() method 
+or by using repo_add methods without the REPO_REUSE_REPODATA or REPO_USE_LOADING
+flag.
+
+=== ATTRIBUTES ===
+
+	Repo *repo;			/* read only */
+	$data->{repo}
+	data.repo
+	data.repo
+
+Back pointer to repository object.
+
+	Id id;					/* read only */
+	$data->{id}
+	data.id
+	data.id
+
+The id of the repodata area. Repodata ids of different repositories overlap.
+
+=== METHODS ===
+
+	internalize();
+	$data->internalize();
+	data.internalize()
+	data.internalize()
+
+Internalize newly added data. The lookup functions will only see the new data
+after it has been internalized.
+
+	bool write(FILE *fp);
+	$data->write($fp);
+	data.write(fp)
+	data.write(fp)
+
+Write the contents of the repodata area as solv file.
+
+	bool add_solv(FILE *fp, int flags = 0);
+	$data->add_solv($fp);
+	data.add_solv(fp)
+	data.add_solv(fp)
+
+Replace a stub repodata object with the data from a solv file. This method
+automatically adds the REPO_USE_LOADING flag. It should only be used from
+a load callback.
+
+	void create_stubs();
+	$data->create_stubs()
+	data.create_stubs()
+	data.create_stubs()
+
+Create stub repodatas from the information stored in the repodata meta
+area.
+
+	void extend_to_repo();
+	$data->extend_to_repo();
+	data.extend_to_repo()
+	data.extend_to_repo()
+
+Extend the repodata so that it has the same size as the repo it belongs to.
+This method is only needed when switching to a just written repodata extension
+to make the repodata match the written extension (which is always of the
+size of the repo).
+
+	<equality>
+	if ($data1 == $data2)
+	if data1 == data2:
+	if data1 == data2
+
+Two repodata objects are equal if they belong to the same repository and have
+the same id.
+
+=== DATA RETRIEVAL METHODS ===
+
+	const char *lookup_str(Id solvid, Id keyname)
+	my $string = $data->lookup_str($solvid, $keyname);
+	string = data.lookup_str(solvid, keyname)
+	string = data.lookup_str(solvid, keyname)
+
+	Id *lookup_idarray(Id solvid, Id keyname)
+	my @ids = $data->lookup_idarray($solvid, $keyname);
+	ids = data.lookup_idarray(solvid, keyname)
+	ids = data.lookup_idarray(solvid, keyname)
+
+	Chksum lookup_checksum(Id solvid, Id keyname)
+	my $chksum = $data->lookup_checksum($solvid, $keyname);
+	chksum = data.lookup_checksum(solvid, keyname)
+	chksum = data.lookup_checksum(solvid, keyname)
+
+Lookup functions. Return the data element stored in the specified solvable.
+The methods probably only make sense to retrieve data from the special
+SOLVID_META solvid that stores repodata meta information.
+
+=== DATA STORAGE METHODS ===
+
+	void set_id(Id solvid, Id keyname, DepId id);
+	$data->set_id($solvid, $keyname, $id);
+	data.set_id(solvid, keyname, id)
+	data.set_id(solvid, keyname, id)
+
+	void set_str(Id solvid, Id keyname, const char *str);
+	$data->set_str($solvid, $keyname, $str);
+	data.set_str(solvid, keyname, str)
+	data.set_str(solvid, keyname, str)
+
+	void set_poolstr(Id solvid, Id keyname, const char *str);
+	$data->set_poolstr($solvid, $keyname, $str);
+	data.set_poolstr(solvid, keyname, str)
+	data.set_poolstr(solvid, keyname, str)
+
+	void set_checksum(Id solvid, Id keyname, Chksum *chksum);
+	$data->set_checksum($solvid, $keyname, $chksum);
+	data.set_checksum(solvid, keyname, chksum)
+	data.set_checksum(solvid, keyname, chksum)
+
+	void add_idarray(Id solvid, Id keyname, DepId id);
+	$data->add_idarray($solvid, $keyname, $id);
+	data.add_idarray(solvid, keyname, id)
+	data.add_idarray(solvid, keyname, id)
+
+	Id new_handle();
+	my $handle = $data->new_handle();
+	handle = data.new_handle()
+	handle = data.new_handle()
+
+	void add_flexarray(Id solvid, Id keyname, Id handle);
+	$data->add_flexarray($solvid, $keyname, $handle);
+	data.add_flexarray(solvid, keyname, handle)
+	data.add_flexarray(solvid, keyname, handle)
+
+Data storage methods. Probably only useful to store data in the special
+SOLVID_META solvid that stores repodata meta information. Note that
+repodata areas can have their own Id pool (see the REPO_LOCALPOOL flag),
+so be careful if you need to store ids. Arrays are created by calling
+the add function for every element. A flexarray is an array of
+sub-structures, call new_handle to create a new structure, use the
+handle as solvid to fill the structure with data and call add_flexarray
+to put the structure in an array.
+
+
+The Datapos Class
+-----------------
+Datapos objects describe a specific position in the repository data area.
+Thus they are only valid until the repository is modified in some way.
+Datapos objects can be created by the pos() and parentpos() methods of
+a Datamatch object or by accessing the ``meta'' attribute of a repository.
+
+=== ATTRIBUTES ===
+
+	Repo *repo;			/* read only */
+	$data->{repo}
+	data.repo
+	data.repo
+
+Back pointer to repository object.
+
+=== METHODS ===
+
+	Dataiterator(Id keyname, const char *match, int flags)
+	my $di = $datapos->Dataiterator($keyname, $match, $flags);
+	di = datapos.Dataiterator(keyname, match, flags)
+	di = datapos.Dataiterator(keyname, match, flags)
+
+Create a Dataiterator at the position of the datapos object.
+
+	const char *lookup_deltalocation(unsigned int *OUTPUT);
+	my ($location, $medianr) = $datapos->lookup_deltalocation();
+	location, medianr = datapos.lookup_deltalocation()
+	location, medianr = datapos.lookup_deltalocation()
+
+Return a tuple containing the on-media location and an optional media number
+for a delta rpm. This obviously only works if the data position points to
+structure describing a delta rpm.
+
+	const char *lookup_deltaseq();
+	my $seq = $datapos->lookup_deltaseq();
+	seq = datapos.lookup_deltaseq();
+	seq = datapos.lookup_deltaseq();
+
+Return the delta rpm sequence from the structure describing a delta rpm.
+
+=== DATA RETRIEVAL METHODS ===
+
+	const char *lookup_str(Id keyname)
+	my $string = $datapos->lookup_str($keyname);
+	string = datapos.lookup_str(keyname)
+	string = datapos.lookup_str(keyname)
+
+	Id lookup_id(Id solvid, Id keyname)
+	my $id = $datapos->lookup_id($keyname);
+	id = datapos.lookup_id(keyname)
+	id = datapos.lookup_id(keyname)
+
+	unsigned long long lookup_num(Id keyname, unsigned long long notfound = 0)
+	my $num = $datapos->lookup_num($keyname);
+	num = datapos.lookup_num(keyname)
+	num = datapos.lookup_num(keyname)
+
+	bool lookup_void(Id keyname)
+	my $bool = $datapos->lookup_void($keyname);
+	bool = datapos.lookup_void(keyname)
+	bool = datapos.lookup_void(keyname)
+
+	Id *lookup_idarray(Id keyname)
+	my @ids = $datapos->lookup_idarray($keyname);
+	ids = datapos.lookup_idarray(keyname)
+	ids = datapos.lookup_idarray(keyname)
+
+	Chksum lookup_checksum(Id keyname)
+	my $chksum = $datapos->lookup_checksum($keyname);
+	chksum = datapos.lookup_checksum(keyname)
+	chksum = datapos.lookup_checksum(keyname)
+
+Lookup functions. Note that the returned Ids are always translated into
+the Ids of the global pool even if the repodata area contains its own pool.
+
+	Dataiterator Dataiterator(Id keyname, const char *match = 0, int flags = 0)
+	my $di = $datapos->Dataiterator($keyname, $match, $flags);
+	di = datapos.Dataiterator(keyname, match, flags)
+	di = datapos.Dataiterator(keyname, match, flags)
+
+	for my $d (@$di)
+	for d in di:
+	for d in di
+
+Iterate over the matching data elements. See the Dataiterator class for more
+information.
+
+Author
+------
+Michael Schroeder <mls@suse.de>
+

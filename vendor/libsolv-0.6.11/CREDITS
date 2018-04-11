@@ -1,0 +1,25 @@
+
+Klaus Kaempf
+  - old language bindings
+
+Duncan Mac-Vicar Prett
+  - cmake support
+  - old ruby bindings
+  - many of the xml parsers
+
+Michael Matz
+  - repodata storage
+  - repopage compression
+  - dataiterator code
+
+Michael Schroeder
+  - overall design
+  - pool & solver implementation
+  - new language
+  - debian support
+  - mandriva/mageia support
+  - archlinux support
+
+Ingo Weinhold
+  - haiku support
+

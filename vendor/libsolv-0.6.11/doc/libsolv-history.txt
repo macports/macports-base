@@ -1,0 +1,113 @@
+Libsolv-History(3)
+==================
+:man manual: LIBSOLV
+:man source: libsolv
+
+Name
+----
+libsolv-history - how the libsolv library came into existence
+
+History
+-------
+This project was started in May 2007 when the zypp folks decided to switch
+to a database to speed up installation. As I am not a big fan of databases,
+I (mls) wondered if there would be really some merit of using one for solving,
+as package dependencies of all packages have to be read in anyway.
+
+Back in 2002, I researched that using a dictionary approach for storing
+dependencies can reduce the packages file to 1/3 of its size. Extending
+this idea a bit more, I decided to store all strings and relations
+as unique 32-bit numbers. This has three big advantages:
+
+- because of the unification, testing whether two strings are equal is the
+  same as testing the equality of two numbers, thus very fast
+- much space is saved, as numbers do not take up as much space as strings
+  the internal memory representation does not take more space on a
+  64-bit system where a pointer is twice the size of a 32-bit number
+
+Thus, the solv format was created, which stores a repository as a string
+dictionary, a relation dictionary and then all packages dependencies.
+Tests showed that reading and merging multiple solv repositories takes
+just some milliseconds.
+
+=== Early solver experiments ===
+Having a new repository format was one big step, but the other area
+where libzypp needed improvement was the solver. Libzypp's solver was
+a port from the Red Carpet solver, which was written to update packages
+in an already installed system. Using it for the complete installation
+progress brought it to its limits. Also, the added extensions like
+support for weak dependencies and patches made it fragile and
+unpredictable.
+
+As I was not very pleased with the way the solver worked, I looked at
+other solver algorithms. I checked smart, yum and apt, but could not
+find a convincing algorithm. My own experiments also were not very
+convincing, they worked fine for some problems but failed miserably
+for other corner cases.
+
+=== Using SAT for solving ===
+SUSE's hack week at the end of June 2007 turned out to be a turning point
+for the solver. Googling for solver algorithms, I stumbled over some note
+saying that some people are trying to use SAT algorithms to improve
+solving on Debian. Looking at the SAT entry in Wikipedia, it was easy
+to see that this indeed was the missing piece: SAT algorithms are well
+researched and there are quite some open source implementations.
+I decided to look at the minisat code, as it is one of the fastest
+solvers while consisting of too many lines of code.
+
+Of course, directly using minisat would not work, as a package solver
+does not need to find just one correct solution, but it also has to
+optimize some metrics, i.e. keep as many packages installed as possible.
+Thus, I needed to write my own solver incorporation the ideas and
+algorithms used in minisat. This wasn't very hard, and at the end of
+the hack week the solver calculated the first right solutions.
+
+=== Selling it to libzypp ===
+With those encouraging results, I went to Klaus Kaempf, the system
+management architect at SUSE. We spoke about how to convince the
+team to make libzypp switch to the new solver. Fortunately, libzypp comes
+with a plethora of solver test cases, so we decided to make the solver pass
+most of the test cases first. Klaus wrote a "deptestomatic" implementation
+to check the test cases. Together with Stephan Kulow, who is responsible for the
+openSUSE distribution, we tweaked and extended the solver until most of
+the test cases looked good.
+
+Duncan Mac-Vicar Prett, the team lead of the YaST team, also joined
+development by creating Ruby bindings for the solver. Later, Klaus
+improved the bindings and ported them to some other languages.
+
+=== The attribute store ===
+The progress with the repository format and the solver attracted another
+hacker to the project: Michael Matz from the compiler team. He started
+with improving the repository parsers so that patches and content files
+also generate solvables. After that, he concentrated on storing all
+of the other metadata of the repositories that are not used for solving,
+like the package summaries and descriptions. At the end of October, a first
+version of this "attribute store" was checked in. Its design goals were:
+
+- space efficient storage of attributes
+- paging/on demand loading of data
+- page compression
+
+The first version of the attribute store used a different format for
+storing information, we later merged this format with the solv file
+format.
+
+=== libzypp integration ===
+Integration of the sat-solver into libzypp also started in October 2007 by
+Stefan Schubert and Michael Andres from the YaST team. The first
+versions supported both the old solver and the new one by using the
+old repository read functions and converting the old package data
+in-memory into a sat solver pool. Solvers could be switched with
+the environment variable ZYPP_SAT_SOLVER. The final decision to
+move to the new solver was made in January of 2008, first just by
+making the new solver the default one, later by completely throwing out
+the old solver code. This had the advantage that the internal solvable
+storage could also be done by using the solver pool, something Michael
+Matz already played with in a proof of concept implementation showing
+some drastic speed gains. The last traces of the old database code
+were removed in February.
+
+Author
+------
+Michael Schroeder <mls@suse.de>

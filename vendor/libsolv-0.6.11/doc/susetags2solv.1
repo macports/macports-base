@@ -1,0 +1,66 @@
+'\" t
+.\"     Title: susetags2solv
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.78.0 <http://docbook.sf.net/>
+.\"      Date: 09/24/2014
+.\"    Manual: LIBSOLV
+.\"    Source: libsolv
+.\"  Language: English
+.\"
+.TH "SUSETAGS2SOLV" "1" "09/24/2014" "libsolv" "LIBSOLV"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+susetags2solv \- convert the susetags repository format into a solv file
+.SH "SYNOPSIS"
+.sp
+\fBsusetags2solv\fR [\fIOPTIONS\fR]
+.SH "DESCRIPTION"
+.sp
+The susetags format is most as repository format on most products created by SUSE\&. The susetags2solv reads data from standard input, converts the format into a solv file, and writes it to standard output\&.
+.PP
+\fB\-c\fR \fICONTENTFILE\fR
+.RS 4
+Also parse the specified content file containing meta information about the repository\&.
+.RE
+.PP
+\fB\-q\fR \fIWHAT\fR
+.RS 4
+Data query mode: instead of writing a solv file, select the
+\fIWHAT\fR
+element in the input data and write it to standard output\&. An example for
+\fIWHAT\fR
+is
+\fBdefaultvendor\fR
+to get a default vendor for the repository\&.
+.RE
+.PP
+\fB\-M\fR \fIMERGEFILE\&.solv\fR
+.RS 4
+Merge the content of the specified solv file into the output\&.
+.RE
+.PP
+\fB\-X\fR
+.RS 4
+Autoexpand SUSE pattern and product provides into packages\&.
+.RE
+.SH "AUTHOR"
+.sp
+Michael Schroeder <mls@suse\&.de>

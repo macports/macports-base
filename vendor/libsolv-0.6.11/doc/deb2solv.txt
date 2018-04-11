@@ -1,0 +1,35 @@
+deb2solv(1)
+============
+:man manual: LIBSOLV
+:man source: libsolv
+
+
+Name
+----
+deb2solv - convert one or more Debian package files into a solv file
+
+Synopsis
+--------
+*deb2solv* ['OPTIONS'] 'PKG1.deb' ...
+
+Description
+-----------
+The deb2solv tool converts the meta data from one or more
+Debian packages into the solv file written to standard output.
+
+*-m* 'MANIFESTFILE'::
+Read the rpm file names from the specified 'MANIFESTFILE'. You can
+use *-* to read the manifest from standard input.
+
+*-0*::
+Use a null byte as line terminator for manifest files instead of
+a newline. This is useful if the file names can contain newlines.
+See also the *-print0* option in *find*.
+
+See Also
+--------
+deb(5), dpkg-deb(1)
+
+Author
+------
+Michael Schroeder <mls@suse.de>

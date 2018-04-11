@@ -10,13 +10,16 @@ TCLX_TARGETS=		@VENDOR_TCLX_INSTALL@
 TCLLIB_SUBDIR=		@VENDOR_TCLLIB_SUBDIR@
 TCLLIB_TARGETS= 	@VENDOR_TCLLIB_INSTALL@
 
+LIBSOLV_SUBDIR=		@VENDOR_LIBSOLV_SUBDIR@
+LIBSOLV_TARGETS=	@VENDOR_LIBSOLV_INSTALL@
+
 PREFIX=			@prefix@
 DESTROOT=   		@abs_top_builddir@/vendor/vendor-destroot
 
 .PHONY: all clean distclean install destroot test
-.PHONY: destroot-tcl destroot-tcllthread destroot-tclx destroot-tcllib
-.PHONY: install-tcl install-tcllthread install-tclx install-tcllib
-.PHONY: %-tcl %-tcllthread %-tclx %-tcllib
+.PHONY: destroot-tcl destroot-tcllthread destroot-tclx destroot-tcllib destroot-libsolv
+.PHONY: install-tcl install-tcllthread install-tclx install-tcllib install-libsolv
+.PHONY: %-tcl %-tcllthread %-tclx %-tcllib %-libsolv
 
 # for make all, run destroot (where destroot will depend on all of each
 # subpackage)
@@ -47,7 +50,11 @@ all-tclx: all-tcl
 # tcllib requires a working tclsh
 all-tcllib: all-tcl
 
-destroot: destroot-tcl destroot-tclthread destroot-tclx destroot-tcllib
+%-libsolv:
+	@echo ===\> making $(@:%-libsolv=%) in ${DIRPRFX}@VENDOR_LIBSOLV_SUBDIR@
+	@umask 0022; $(MAKE) -C @VENDOR_LIBSOLV_SUBDIR@ $(@:%-libsolv=%)
+
+destroot: destroot-tcl destroot-tclthread destroot-tclx destroot-tcllib destroot-libsolv
 destroot-tcl: all-tcl
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCL_INSTALL@
@@ -65,7 +72,11 @@ destroot-tcllib: all-tcllib
 	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ DESTDIR=${DESTROOT} TCLSH_PROG=@INTREE_TCLSH@ @VENDOR_TCLLIB_INSTALL@
 	@chmod -R ugo+rX ${DESTROOT}${PREFIX}/libexec/macports/lib/tcllib*
 
-install: install-tcl install-tclthread install-tclx install-tcllib
+destroot-libsolv: all-libsolv
+	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_LIBSOLV_SUBDIR@
+	@umask 0022; $(MAKE) -C @VENDOR_LIBSOLV_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_LIBSOLV_INSTALL@
+
+install: install-tcl install-tclthread install-tclx install-tcllib install-libsolv
 
 TCL_PACKAGE_PATH=@TCL_PACKAGE_PATH@
 OLD_TCL_FILES=  $(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.4/http-2.7.12.tm \
@@ -92,12 +103,17 @@ install-tcllib:
 	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ @VENDOR_TCLLIB_INSTALL@
 	@chmod -R ugo+rX $(DESTDIR)${PREFIX}/libexec/macports/lib/tcllib*
 
+install-libsolv:
+	@echo ===\> making $(@:%-libsolv=%) in ${DIRPRFX}@VENDOR_LIBSOLV_SUBDIR@
+	@umask 0022; $(MAKE) -C @VENDOR_LIBSOLV_SUBDIR@ @VENDOR_LIBSOLV_INSTALL@
+
 test:
 
-clean: clean-tcl clean-tcllib clean-tclx clean-tclthread
+clean: clean-tcl clean-tcllib clean-tclx clean-tclthread clean-libsolv
 	rm -rf ${DESTROOT}
 
-distclean: distclean-tcl distclean-tcllib distclean-tclx distclean-tclthread
+distclean: distclean-tcl distclean-tcllib distclean-tclx distclean-tclthread distclean-libsolv
 	rm -f Makefile
 	rm -rf vendor-destroot
 	rm -f tclsh
+	rm -f libsolv/bindings/tcl/solv-0.6.11.tm

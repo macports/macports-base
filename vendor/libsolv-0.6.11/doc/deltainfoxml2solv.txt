@@ -1,0 +1,29 @@
+deltainfoxml2solv(1)
+====================
+:man manual: LIBSOLV
+:man source: libsolv
+
+
+Name
+----
+deltainfoxml2solv - convert rpm-md's deltainfo format into a solv file
+
+Synopsis
+--------
+*deltainfoxml2solv* ['OPTIONS']
+
+Description
+-----------
+The deltainfoxml2solv tool reads rpm-md's *deltainfo.xml* data from stdin,
+and writes it as solv file to standard output. Some distributions name
+the input *prestodelta.xml* instead. Each delta rpm element is converted
+and added as *repository:deltainfo* element to the meta section of the
+solv file.
+
+See Also
+--------
+mergesolv(1), createrepo(8)
+
+Author
+------
+Michael Schroeder <mls@suse.de>
