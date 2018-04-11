@@ -28,6 +28,12 @@ Release 2.5.0 (????-??-?? by ?)
       as distfile.
       (ryandesign in f10e0e37)
 
+    - Add depends_patch to handle the patch dependencies of ports
+      (#52445, khindenburg in a74c159d)
+
+    - Add the ability to handle xz patch files
+      (#52445, khindenburg in 5a142fd2)
+
 Release 2.4.3 (2018-04-11 by jmr)
     - Fix trace mode on macOS High Sierra 10.13.3
       (#55575, raimue in 995dde84)
