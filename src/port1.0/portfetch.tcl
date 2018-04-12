@@ -49,22 +49,20 @@ namespace eval portfetch {
 options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg dist_subdir \
     fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
     master_sites.mirror_subdir patch_sites.mirror_subdir \
-    bzr.cmd bzr.url bzr.revision bzr.file bzr.file_prefix \
-    cvs.cmd cvs.root cvs.password cvs.module cvs.tag cvs.date cvs.file cvs.file_prefix \
-    svn.cmd svn.url svn.revision svn.subdirs svn.ignore_keywords svn.file svn.file_prefix \
-    git.cmd git.url git.branch git.file git.file_prefix git.fetch_submodules \
-    hg.cmd hg.url hg.tag hg.file hg.file_prefix
+    bzr.url bzr.revision bzr.file bzr.file_prefix \
+    cvs.root cvs.password cvs.module cvs.tag cvs.date cvs.file cvs.file_prefix \
+    svn.url svn.revision svn.subdirs svn.ignore_keywords svn.file svn.file_prefix \
+    git.url git.branch git.file git.file_prefix git.fetch_submodules \
+    hg.url hg.tag hg.file hg.file_prefix
 
 # Defaults
 default extract.suffix .tar.gz
 default fetch.type standard
 
-default bzr.cmd {[findBinary bzr $portutil::autoconf::bzr_path]}
 default bzr.revision {-1}
 default bzr.file {${distname}.${fetch.type}.tar.bz2}
 default bzr.file_prefix {${distname}}
 
-default cvs.cmd {[findBinary cvs $portutil::autoconf::cvs_path]}
 default cvs.root ""
 default cvs.password ""
 default cvs.module {$distname}
@@ -73,7 +71,6 @@ default cvs.date ""
 default cvs.file {${distname}.${fetch.type}.tar.bz2}
 default cvs.file_prefix {${distname}}
 
-default svn.cmd {[portfetch::find_svn_path]}
 default svn.url ""
 default svn.revision ""
 default svn.subdirs ""
@@ -81,14 +78,12 @@ default svn.ignore_keywords no
 default svn.file {${distname}.${fetch.type}.tar.bz2}
 default svn.file_prefix {${distname}}
 
-default git.cmd {${prefix}/bin/git}
 default git.url ""
 default git.branch ""
 default git.file {${distname}.${fetch.type}.tar.bz2}
 default git.file_prefix {${distname}}
 default git.fetch_submodules "yes"
 
-default hg.cmd {[findBinary hg $portutil::autoconf::hg_path]}
 default hg.tag {tip}
 default hg.file {${distname}.${fetch.type}.tar.bz2}
 default hg.file_prefix {${distname}}
@@ -377,7 +372,7 @@ proc portfetch::mktar {tarfile dir mtime {excludes {}}} {
 proc portfetch::bzrfetch {args} {
     global UI_PREFIX \
            env distpath workpath worksrcpath \
-           bzr.cmd bzr.url bzr.revision bzr.file bzr.file_prefix \
+           bzr.url bzr.revision bzr.file bzr.file_prefix \
            name distname fetch.type
 
     set generatedfile "${distpath}/${bzr.file}"
@@ -385,6 +380,8 @@ proc portfetch::bzrfetch {args} {
     if {[bzr_tarballable] && [file isfile "${generatedfile}"]} {
         return 0
     }
+
+    set bzr.cmd [findBinary bzr $portutil::autoconf::bzr_path]
 
     # Behind a proxy bzr will fail with the following error if proxies
     # listed in macports.conf appear in the environment in their
@@ -461,7 +458,7 @@ proc portfetch::bzrfetch {args} {
 proc portfetch::cvsfetch {args} {
     global UI_PREFIX \
            env distpath workpath worksrcpath \
-           cvs.cmd cvs.root cvs.password cvs.module cvs.tag cvs.date cvs.file cvs.file_prefix \
+           cvs.root cvs.password cvs.module cvs.tag cvs.date cvs.file cvs.file_prefix \
            name distname fetch.type \
 
     set generatedfile "${distpath}/${cvs.file}"
@@ -469,6 +466,8 @@ proc portfetch::cvsfetch {args} {
     if {[cvs_tarballable] && [file isfile "${generatedfile}"]} {
         return 0
     }
+
+    set cvs.cmd [findBinary cvs $portutil::autoconf::cvs_path]
 
     set cvs.args ""
     if {![string length ${cvs.tag}] && ![string length ${cvs.date}]} {
@@ -571,7 +570,7 @@ proc portfetch::svn_proxy_args {url} {
 proc portfetch::svnfetch {args} {
     global UI_PREFIX \
            distpath workpath worksrcpath \
-           svn.cmd svn.url svn.revision svn.subdirs svn.ignore_keywords svn.file svn.file_prefix \
+           svn.url svn.revision svn.subdirs svn.ignore_keywords svn.file svn.file_prefix \
            fetch.user fetch.password \
            name distname fetch.type
 
@@ -580,6 +579,8 @@ proc portfetch::svnfetch {args} {
     if {[svn_tarballable] && [file isfile "${generatedfile}"]} {
         return 0
     }
+
+    set svn.cmd [portfetch::find_svn_path]
 
     if {[regexp {\s} ${svn.url}]} {
         return -code error [msgcat::mc "Subversion URL cannot contain whitespace"]
@@ -747,7 +748,7 @@ proc portfetch::mirrorable {args} {
 proc portfetch::gitfetch {args} {
     global UI_PREFIX portverbose \
            distpath workpath worksrcpath prefix \
-           git.url git.branch git.fetch_submodules git.file git.file_prefix git.cmd \
+           git.url git.branch git.fetch_submodules git.file git.file_prefix \
            name distname fetch.type
 
     set generatedfile "${distpath}/${git.file}"
@@ -755,6 +756,8 @@ proc portfetch::gitfetch {args} {
     if {[git_tarballable] && [file isfile "${generatedfile}"]} {
         return 0
     }
+
+    set git.cmd ${prefix}/bin/git
 
     set options ""
     if {$portverbose} {
@@ -847,7 +850,7 @@ proc portfetch::gitfetch {args} {
 proc portfetch::hgfetch {args} {
     global UI_PREFIX \
            distpath workpath worksrcpath \
-           hg.cmd hg.url hg.tag hg.file hg.file_prefix \
+           hg.url hg.tag hg.file hg.file_prefix \
            name distname fetch.type fetch.ignore_sslcert
 
     set generatedfile "${distpath}/${hg.file}"
@@ -855,6 +858,8 @@ proc portfetch::hgfetch {args} {
     if {[hg_tarballable] && [file isfile "${generatedfile}"]} {
         return 0
     }
+
+    set hg.cmd [findBinary hg $portutil::autoconf::hg_path]
 
     ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
 
