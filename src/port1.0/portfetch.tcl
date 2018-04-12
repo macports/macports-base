@@ -81,7 +81,7 @@ default svn.ignore_keywords no
 default svn.file {${distname}.${fetch.type}.tar.bz2}
 default svn.file_prefix {${distname}}
 
-default git.cmd {[portfetch::find_git_path]}
+default git.cmd {${prefix}/bin/git}
 default git.url ""
 default git.branch ""
 default git.file {${distname}.${fetch.type}.tar.bz2}
@@ -218,16 +218,6 @@ proc portfetch::find_svn_path {args} {
         return [findBinary svn $portutil::autoconf::svn_path]
     } else {
         return ${prefix}/bin/svn
-    }
-}
-
-proc portfetch::find_git_path {args} {
-    global prefix os.platform os.major
-    # Mavericks is the first OS X version whose git supports modern TLS cipher suites.
-    if {${os.major} >= 13 || ${os.platform} ne "darwin"} {
-        return [findBinary git $portutil::autoconf::git_path]
-    } else {
-        return ${prefix}/bin/git
     }
 }
 
@@ -756,7 +746,7 @@ proc portfetch::mirrorable {args} {
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
     global UI_PREFIX portverbose \
-           distpath workpath worksrcpath \
+           distpath workpath worksrcpath prefix \
            git.url git.branch git.fetch_submodules git.file git.file_prefix git.cmd \
            name distname fetch.type
 
