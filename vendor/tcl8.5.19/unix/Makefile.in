@@ -1150,7 +1150,7 @@ tclPkg.o: $(GENERIC_DIR)/tclPkg.c
 # every path can be configured separately we do not remember one general
 # prefix/exec_prefix but all the different paths individually.
 
-tclPkgConfig.o: $(GENERIC_DIR)/tclPkgConfig.c
+tclPkgConfig.o: Makefile $(GENERIC_DIR)/tclPkgConfig.c
 	$(CC) -c $(CC_SWITCHES)					\
 		-DCFG_INSTALL_LIBDIR="\"$(LIB_INSTALL_DIR)\"" \
 		-DCFG_INSTALL_BINDIR="\"$(BIN_INSTALL_DIR)\"" \
