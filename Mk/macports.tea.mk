@@ -1,4 +1,4 @@
-.c.o:
+%.o: %.c
 	${CC} -c -DUSE_TCL_STUBS -DTCL_NO_DEPRECATED ${CFLAGS} ${CPPFLAGS} ${SHLIB_CFLAGS} $< -o $@
 
 PKGINDEX ?= pkgIndex.tcl
