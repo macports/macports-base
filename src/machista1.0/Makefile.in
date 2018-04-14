@@ -33,7 +33,7 @@ else
 	@exit 1
 endif
 
-${SWIG_OBJS}:: ${SWIG_SRCS}
+${SWIG_OBJS}: ${SWIG_SRCS}
 
 ${PKG_INDEX}:: ${SWIG_SHLIB}
 	$(SILENT) ../pkg_mkindex.sh $< || ( rm -rf $@ && exit 1 )
