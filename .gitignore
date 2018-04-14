@@ -28,6 +28,7 @@ src/port/*
 !src/port/*.tcl
 src/programs/daemondo/build/
 src/**/*.o
+src/**/*.d
 src/**/*.a
 src/**/*.dylib
 src/**/*.dSYM
