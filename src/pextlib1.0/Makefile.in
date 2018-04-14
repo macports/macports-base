@@ -6,7 +6,6 @@ include ../../Mk/macports.autoconf.mk
 OBJS= \
 	Pextlib.o \
 	adv-flock.o \
-	base32cmd.o \
 	curl.o \
 	filemap.o \
 	fs-traverse.o \
