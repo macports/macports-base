@@ -1072,16 +1072,19 @@ proc portfetch::fetch_addfilestomap {filemapname} {
 
 # Initialize fetch target and call checkfiles.
 proc portfetch::fetch_init {args} {
-    global fetch.type distname all_dist_files
+    global fetch.type distname all_dist_files global_mirror_site ports_fetch_no-mirrors license
     variable fetch_urls
-
-    portfetch::checkfiles fetch_urls
 
     if {[tarballable]} {
         global ${fetch.type}.file
-        lappend all_dist_files [set ${fetch.type}.file]
         distfiles-append [set ${fetch.type}.file]
+        if {(![info exists ports_fetch_no-mirrors] || ${ports_fetch_no-mirrors} eq "no") \
+                && [lsearch -exact -nocase $license "nomirror"] == -1} {
+            master_sites-append $global_mirror_site
+        }
     }
+
+    portfetch::checkfiles fetch_urls
 }
 
 proc portfetch::fetch_start {args} {
@@ -1125,16 +1128,20 @@ proc portfetch::fetch_main {args} {
         return 0
     }
 
-    # Fetch the files
-    switch -- "${fetch.type}" {
-        bzr     { bzrfetch }
-        cvs     { cvsfetch }
-        svn     { svnfetch }
-        git     { gitfetch }
-        hg      { hgfetch }
+    if {[catch {portfetch::fetchfiles} result erropts]} {
+        if {![tarballable]} {
+            return -options $erropts
+        }
     }
 
-    if {${fetch.type} eq "standard" || ${fetch.type} eq "default" || [info exists patchfiles]} {
-        return [portfetch::fetchfiles]
+    # Fetch the files from VCS
+    switch -- "${fetch.type}" {
+        bzr     { set result [bzrfetch] }
+        cvs     { set result [cvsfetch] }
+        svn     { set result [svnfetch] }
+        git     { set result [gitfetch] }
+        hg      { set result [hgfetch] }
     }
+
+    return $result
 }
