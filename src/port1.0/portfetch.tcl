@@ -392,6 +392,7 @@ proc portfetch::bzrfetch {args} {
     global UI_PREFIX \
            env distpath workpath worksrcpath \
            bzr.url bzr.revision bzr.file bzr.file_prefix \
+           fetch.ignore_sslcert \
            name distname fetch.type
 
     set generatedfile "${distpath}/${bzr.file}"
@@ -421,11 +422,16 @@ proc portfetch::bzrfetch {args} {
         set env(HTTPS_PROXY) http://${orig_https_proxy}/
     }
 
+    set connectargs ""
+    if {${fetch.ignore_sslcert}} {
+        append connectargs " -Ossl.cert_reqs=none"
+    }
+
     try -pass_signal {
         ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
         set exportpath [file join ${workpath} export]
         file mkdir ${exportpath}
-        set cmdstring "${bzr.cmd} --builtin --no-aliases checkout --lightweight --verbose -r ${bzr.revision} ${bzr.url} ${exportpath}/${bzr.file_prefix}"
+        set cmdstring "${bzr.cmd} --builtin --no-aliases ${connectargs} checkout --lightweight --verbose -r ${bzr.revision} ${bzr.url} ${exportpath}/${bzr.file_prefix}"
         if {[catch {system $cmdstring} result]} {
             error [msgcat::mc "Bazaar checkout failed"]
         }
@@ -439,7 +445,7 @@ proc portfetch::bzrfetch {args} {
         ui_info "$UI_PREFIX Generating tarball ${bzr.file}"
 
         # get timestamp of latest revision
-        set cmdstring "${bzr.cmd} --builtin --no-aliases version-info --format=custom --template=\"{date}\" ${exportpath}/${bzr.file_prefix}"
+        set cmdstring "${bzr.cmd} --builtin --no-aliases ${connectargs} version-info --format=custom --template=\"{date}\" ${exportpath}/${bzr.file_prefix}"
         if {[catch {system -o out -e err $cmdstring} result]} {
             ui_error $err
             error [msgcat::mc "Bazaar version-info failed: $result"]
@@ -594,7 +600,7 @@ proc portfetch::svnfetch {args} {
     global UI_PREFIX \
            distpath workpath worksrcpath \
            svn.url svn.revision svn.subdirs svn.ignore_keywords svn.file svn.file_prefix \
-           fetch.user fetch.password \
+           fetch.user fetch.password fetch.ignore_sslcert \
            name distname fetch.type
 
     set generatedfile "${distpath}/${svn.file}"
@@ -629,6 +635,9 @@ proc portfetch::svnfetch {args} {
     }
     if {${fetch.password} ne ""} {
         append connectargs " --password ${fetch.password}"
+    }
+    if {${fetch.ignore_sslcert}} {
+        append connectargs " --trust-server-cert"
     }
 
     ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
@@ -777,6 +786,7 @@ proc portfetch::gitfetch {args} {
     global UI_PREFIX portverbose \
            distpath workpath worksrcpath prefix \
            git.url git.branch git.fetch_submodules git.file git.file_prefix \
+           fetch.ignore_sslcert \
            name distname fetch.type
 
     set generatedfile "${distpath}/${git.file}"
@@ -786,6 +796,11 @@ proc portfetch::gitfetch {args} {
     }
 
     set git.cmd ${prefix}/bin/git
+
+    set connectargs ""
+    if {${fetch.ignore_sslcert}} {
+        append connectargs " -c http.sslVerify=false"
+    }
 
     set options ""
     if {$portverbose} {
@@ -803,7 +818,7 @@ proc portfetch::gitfetch {args} {
 
     ui_info "$UI_PREFIX Cloning ${fetch.type} repository"
     set exportpath [file join ${workpath} export]
-    set cmdstring "${git.cmd} clone $options ${git.url} ${exportpath}"
+    set cmdstring "${git.cmd} ${connectargs} clone $options ${git.url} ${exportpath}"
     if {[catch {system $cmdstring} result]} {
         return -code error [msgcat::mc "Git clone failed"]
     }
@@ -821,7 +836,7 @@ proc portfetch::gitfetch {args} {
     # fetch all submodules
     if {[file isfile "$exportpath/.gitmodules"] && [tbool git.fetch_submodules]} {
         ui_info "$UI_PREFIX Cloning git submodules"
-        set cmdstring "${git.cmd} submodule -q update --init --recursive"
+        set cmdstring "${git.cmd} ${connectargs} submodule -q update --init --recursive"
         if {[catch {system -W $exportpath $cmdstring} result]} {
             return -code error [msgcat::mc "Git submodule init failed"]
         }
@@ -889,13 +904,13 @@ proc portfetch::hgfetch {args} {
 
     ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
 
-    set insecureflag ""
+    set connectargs ""
     if {${fetch.ignore_sslcert}} {
-        set insecureflag " --insecure"
+        append connectargs " --insecure"
     }
 
     set exportpath [file join ${workpath} export]
-    set cmdstring "${hg.cmd} clone${insecureflag} --rev \"${hg.tag}\" ${hg.url} ${exportpath}/${hg.file_prefix}"
+    set cmdstring "${hg.cmd} clone ${connectargs} --rev \"${hg.tag}\" ${hg.url} ${exportpath}/${hg.file_prefix}"
     if {[catch {system $cmdstring} result]} {
         return -code error [msgcat::mc "Mercurial clone failed"]
     }
