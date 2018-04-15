@@ -39,7 +39,7 @@ package require portchecksum 1.0
 
 set org.macports.mirror [target_new org.macports.mirror portmirror::mirror_main]
 target_runtype ${org.macports.mirror} always
-target_state ${org.macports.mirror} no
+target_state ${org.macports.mirror} yes
 target_provides ${org.macports.mirror} mirror
 target_requires ${org.macports.mirror} main
 
@@ -64,9 +64,6 @@ proc portmirror::mirror_main {args} {
     }
     set ports_fetch_no-mirrors yes
 
-    set mirror_filemap_path [file join $portdbpath distfiles_mirror.db]
-    filemap open mirror_filemap $mirror_filemap_path
-
     # Check the distfiles if it's a regular fetch phase.
     if {[portfetch::mirrorable]} {
         # fetch the files.
@@ -79,13 +76,18 @@ proc portmirror::mirror_main {args} {
             # delete the files.
             portfetch::fetch_deletefiles $args
         } else {
+            elevateToRoot "mirror"
+            set mirror_filemap_path [file join $portdbpath distfiles_mirror.db]
+            filemap open mirror_filemap $mirror_filemap_path
+
             # add the list of files.
             portfetch::fetch_addfilestomap mirror_filemap
+
+            # close the filemap.
+            filemap close mirror_filemap
+            dropPrivileges
         }
     }
-
-    # close the filemap.
-    filemap close mirror_filemap
 
     # restore original value
     if {[info exists ports_fetch_no-mirrors.orig]} {
