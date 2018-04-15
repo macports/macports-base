@@ -498,6 +498,25 @@ T}
 
 .RE
 .PP
+startupitem_install
+.RS 4
+
+
+
+Create system\-level symlinks to generated StartupItems\&. If set to "no", symlinks will not be created; otherwise, symlinks will be placed in /Library/LaunchDaemons or /Library/LaunchAgents as appropriate\&. This setting only applies when building ports from source\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
+yes
+T}
+.TE
+.sp 1
+
+.RE
+.PP
 destroot_umask
 .RS 4
 
@@ -721,7 +740,7 @@ host_blacklist
 
 
 
-Space separated list of download hosts that should not be used\&.
+Space separated list of glob patterns\&. Any download host matching one of these patterns will not be used\&.
 .TS
 tab(:);
 lt lt.
@@ -740,7 +759,7 @@ preferred_hosts
 
 
 
-Space separated list of download hosts that should be used preferentially\&.
+Space separated list of glob patterns\&. Any download host matching one of these patterns will be preferred\&.
 .TS
 tab(:);
 lt lt.

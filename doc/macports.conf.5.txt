@@ -142,6 +142,13 @@ startupitem_type::
     *Supported types:*;; none, launchd, default.
     *Default:*;; default
 
+startupitem_install::
+    Create system-level symlinks to generated StartupItems. If set to
+    "no", symlinks will not be created; otherwise, symlinks will be placed
+    in /Library/LaunchDaemons or /Library/LaunchAgents as appropriate.
+    This setting only applies when building ports from source.
+    *Default:*;; yes
+
 destroot_umask::
     Umask value to use during the destrooting of a port.
     *Default:*;; 022
@@ -207,11 +214,13 @@ proxy_skip::
     *Default:*;; none
 
 host_blacklist::
-    Space separated list of download hosts that should not be used.
+    Space separated list of glob patterns. Any download host matching one of
+    these patterns will not be used.
     *Default:*;; none
 
 preferred_hosts::
-    Space separated list of download hosts that should be used preferentially.
+    Space separated list of glob patterns. Any download host matching one of
+    these patterns will be preferred.
     *Default:*;; none
 
 revupgrade_autorun::

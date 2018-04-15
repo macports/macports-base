@@ -1,6 +1,6 @@
 # Test file for registry::entry
 # Syntax:
-# tclsh entry.tcl <Pextlib name>
+# tclsh entry.tcl registry.dylib
 
 proc main {pextlibname} {
     load $pextlibname

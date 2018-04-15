@@ -28,7 +28,7 @@ port \- Command line interface for MacPorts
 
 .sp
 .nf
-\fBport\fR [\fB\-bcdfknNopqRstuvy\fR] [\fB\-D\fR \fIportdir\fR] [\fB\-F\fR \fIcmdfile\fR] [\fIaction\fR] [\fIactionflags\fR]
+\fBport\fR [\fB\-bcdfknNopqRstuvy\fR] [\fB\-D\fR \fIportdir\fR|\fIportname\fR] [\fB\-F\fR \fIcmdfile\fR] [\fIaction\fR] [\fIactionflags\fR]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
      [[\fI@version\fR] [+/\-variant \&...] \&... [option=value \&...]]
 .fi
@@ -652,13 +652,12 @@ Force mode, ignore state file
 
 .RE
 .PP
-\-D \fIportdir\fR
+\-D \fIportdir\fR|\fIportname\fR
 .RS 4
 
 
 
-Specfiy
-\fIportdir\fR
+Specify a directory to which the port command should change to before processing any actions\&. If the specified value does not contain any slashes, the value is used to look up a port and the current working directory is set to the corresponding port directory\&.
 
 .RE
 .PP

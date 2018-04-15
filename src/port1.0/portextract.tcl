@@ -1,7 +1,7 @@
 # et:ts=4
 # portextract.tcl
 #
-# Copyright (c) 2005, 2007-2011, 2013 The MacPorts Project
+# Copyright (c) 2005, 2007-2011, 2013-2014, 2016, 2018 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
 # Copyright (c) 2007 Markus W. Weissmann <mww@macports.org>
 # All rights reserved.
@@ -74,7 +74,7 @@ proc portextract::disttagclean {list} {
 }
 
 proc portextract::extract_start {args} {
-    global UI_PREFIX extract.dir extract.mkdir use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg
+    global UI_PREFIX extract.dir extract.mkdir use_tar use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option subport]]"
 
@@ -88,7 +88,11 @@ proc portextract::extract_start {args} {
         file mkdir ${worksrcpath}
         set extract.dir ${worksrcpath}
     }
-    if {[tbool use_bzip2]} {
+    if {[tbool use_tar]} {
+        option extract.cmd [findBinary tar ${portutil::autoconf::tar_command}]
+        option extract.pre_args -xf
+        option extract.post_args ""
+    } elseif {[tbool use_bzip2]} {
         if {![catch {findBinary lbzip2} result]} {
             option extract.cmd $result
         } else {

@@ -2429,7 +2429,7 @@ proc addgroup {name args} {
             set failed? 1
         } catch {{CHILDSTATUS *} eCode eMessage} {
             foreach {- pid code} $eCode {
-                ui_error "dscl($pid) termined with an exit status of $code"
+                ui_error "dscl($pid) terminated with an exit status of $code"
                 ui_debug "dscl printed: $eMessage"
             }
             
@@ -2995,6 +2995,37 @@ proc validate_macportsuser {} {
     }
 }
 
+# run code as a specified user
+proc exec_as_uid {uid code} {
+    global macportsuser
+    set elevated 0
+    if {[geteuid] != $uid} {
+        elevateToRoot "exec_as_uid"
+        if {$uid == 0} {
+            set elevated 1
+        } else {
+            setegid [uname_to_gid [uid_to_name $uid]]
+            seteuid $uid
+            ui_debug "dropping privileges: euid changed to [geteuid], egid changed to [getegid]."
+        }
+    }
+
+    set retcode ok
+    if {[catch {uplevel 1 $code} result]} {
+        set retcode error
+    }
+
+    if {!$elevated && [getuid] == 0 && [geteuid] != [name_to_uid $macportsuser]} {
+        # have to change to $macportsuser via root
+        elevateToRoot "exec_as_uid"
+        set elevated 1
+    }
+    if {$elevated} {
+        dropPrivileges
+    }
+    return -code $retcode $result
+}
+
 # dependency analysis helpers
 
 ### _libtest is private; subject to change without notice
@@ -3207,12 +3238,17 @@ proc _check_xcode_version {} {
             10.12 {
                 set min 8.0
                 set ok 8.0
-                set rec 8.2.1
+                set rec 9.2
+            }
+            10.13 {
+                set min 9.0
+                set ok 9.0
+                set rec 9.3
             }
             default {
-                set min 8.0
-                set ok 8.0
-                set rec 8.2.1
+                set min 9.0
+                set ok 9.0
+                set rec 9.3
             }
         }
         if {$xcodeversion eq "none"} {

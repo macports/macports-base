@@ -10,6 +10,7 @@ all::
 		( cd $$subdir && $(MAKE) DIRPRFX=${DIRPRFX}$$subdir/ $@) || exit 1; \
 	done
 
+distclean:: clean
 clean distclean::
 	@for subdir in $(SUBDIR); do\
 		echo ===\> making $@ in ${DIRPRFX}$$subdir; \

@@ -64,10 +64,10 @@ namespace eval macports {
         registry.path registry.format user_home user_path user_ssh_auth_sock \
         portarchivetype archivefetch_pubkeys portautoclean porttrace keeplogs portverbose destroot_umask \
         rsync_server rsync_options rsync_dir startupitem_autostart startupitem_type startupitem_install \
-        place_worksymlink macportsuser \
+        place_worksymlink macportsuser sudo_user \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
-        os_arch os_endian os_version os_major os_minor os_platform macosx_version macosx_sdk_version macosx_deployment_target \
+        os_arch os_endian os_version os_major os_minor os_platform os_subplatform macosx_version macosx_sdk_version macosx_deployment_target \
         packagemaker_path default_compilers sandbox_enable sandbox_network delete_la_files cxx_stdlib \
         pkg_post_unarchive_deletions $user_options"
 
@@ -141,8 +141,10 @@ proc macports::init_logging {mport} {
         ui_debug "Logging disabled, error opening log file: $err"
         return 1
     }
+    macports::_log_sysinfo
     return 0
 }
+
 proc macports::ch_logging {mport} {
     set portname [_mportkey $mport subport]
     set portpath [_mportkey $mport portpath]
@@ -159,6 +161,48 @@ proc macports::ch_logging {mport} {
     set ::debuglog [open $::debuglogname a]
     puts $::debuglog version:1
 }
+
+# log platform information
+proc macports::_log_sysinfo {} {
+    global macports::current_phase
+    global macports::os_platform macports::os_subplatform \
+           macports::os_version macports::os_major macports::os_minor \
+           macports::os_endian macports::os_arch \
+           macports::macosx_version macports::macosx_sdk_version macports::macosx_deployment_target \
+           macports::xcodeversion
+    global tcl_platform
+
+    set previous_phase ${macports::current_phase}
+    set macports::current_phase "sysinfo"
+
+    if {$os_platform eq "darwin"} {
+        if {$os_subplatform eq "macosx"} {
+            if {[vercmp $macosx_version 10.12] >= 0} {
+                set os_version_string "macOS ${macosx_version}"
+            } elseif {[vercmp $macosx_version 10.8] >= 0} {
+                set os_version_string "OS X ${macosx_version}"
+            } else {
+                set os_version_string "Mac OS X ${macosx_version}"
+            }
+        } else {
+            set os_version_string "PureDarwin ${os_version}"
+        }
+    } else {
+        # use capitalized platform name
+        set os_version_string "$tcl_platform(os) ${os_version}"
+    }
+
+    ui_debug "$os_version_string ($os_platform/$os_version) arch $os_arch"
+    ui_debug "MacPorts [macports::version]"
+    if {$os_platform eq "darwin" && $os_subplatform eq "macosx"} {
+        ui_debug "Xcode ${xcodeversion}"
+        ui_debug "SDK ${macosx_sdk_version}"
+        ui_debug "MACOSX_DEPLOYMENT_TARGET: ${macosx_deployment_target}"
+    }
+
+    set macports::current_phase $previous_phase
+}
+
 proc macports::push_log {mport} {
     if {![info exists ::logenabled]} {
         if {[macports::init_logging $mport] == 0} {
@@ -170,14 +214,9 @@ proc macports::push_log {mport} {
         }
     }
     if {$::logenabled} {
-        if {[getuid] == 0 && [geteuid] != 0} {
-            seteuid 0; setegid 0
+        if {[macports::init_logging $mport] == 0} {
+            lappend ::logstack [list $::debuglog $::debuglogname]
         }
-        if {[catch {macports::ch_logging $mport} err]} {
-            ui_debug "Logging disabled, error opening log file: $err"
-            return
-        }
-        lappend ::logstack [list $::debuglog $::debuglogname]
     }
 }
 
@@ -609,13 +648,13 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::os_major \
         macports::os_minor \
         macports::os_platform \
+        macports::os_subplatform \
         macports::macosx_version \
         macports::macosx_sdk_version \
         macports::macosx_deployment_target \
         macports::archivefetch_pubkeys \
         macports::ping_cache \
-        macports::host_blacklisted \
-        macports::host_preferred \
+        macports::host_cache \
         macports::delete_la_files \
         macports::cxx_stdlib
 
@@ -640,13 +679,22 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     set os_platform [string tolower $tcl_platform(os)]
     # Remove trailing "Endian"
     set os_endian [string range $tcl_platform(byteOrder) 0 end-6]
+    set os_subplatform {}
     set macosx_version {}
-    if {$os_platform eq "darwin" && [file executable /usr/bin/sw_vers]} {
-
-        try -pass_signal {
-            set macosx_version [exec /usr/bin/sw_vers -productVersion | cut -f1,2 -d.]
-        } catch {* ec result} {
-            ui_debug "sw_vers exists but running it failed: $result"
+    if {$os_platform eq "darwin"} {
+        if {[file isdirectory /System/Library/Frameworks/Carbon.framework]} {
+            # macOS
+            set os_subplatform macosx
+            if {[file executable /usr/bin/sw_vers]} {
+                try -pass_signal {
+                    set macosx_version [exec /usr/bin/sw_vers -productVersion | cut -f1,2 -d.]
+                } catch {* ec result} {
+                    ui_debug "sw_vers exists but running it failed: $result"
+                }
+            }
+        } else {
+            # PureDarwin
+            set os_subplatform puredarwin
         }
     }
 
@@ -1217,17 +1265,13 @@ match macports.conf.default."
             close $pingfile
         }
     }
-    # set up arrays of blacklisted and preferred hosts
-    if {[info exists macports::host_blacklist]} {
-        foreach host $macports::host_blacklist {
-            set macports::host_blacklisted($host) 1
-        }
+    if {![info exists macports::host_blacklist]} {
+        set macports::host_blacklist {}
     }
-    if {[info exists macports::preferred_hosts]} {
-        foreach host $macports::preferred_hosts {
-            set macports::host_preferred($host) 1
-        }
+    if {![info exists macports::preferred_hosts]} {
+        set macports::preferred_hosts {}
     }
+    array set macports::host_cache {}
 
     # load the quick index
     _mports_load_quickindex
@@ -5170,12 +5214,25 @@ proc macports::revupgrade_buildgraph {port stackname adjlistname revadjlistname 
 
 # get cached ping time for host, modified by blacklist and preferred list
 proc macports::get_pingtime {host} {
-    global macports::ping_cache macports::host_blacklisted macports::host_preferred
-    if {[info exists host_blacklisted($host)]} {
-        return -1
-    } elseif {[info exists host_preferred($host)]} {
-        return 1
-    } elseif {[info exists ping_cache($host)]} {
+    global macports::ping_cache macports::host_cache \
+           macports::host_blacklist macports::preferred_hosts
+
+    if {[info exists host_cache($host)]} {
+        return $host_cache($host)
+    }
+    foreach pattern $macports::host_blacklist {
+        if {[string match -nocase $pattern $host]} {
+            set host_cache($host) -1
+            return -1
+        }
+    }
+    foreach pattern $macports::preferred_hosts {
+        if {[string match -nocase $pattern $host]} {
+            set host_cache($host) 1
+            return 1
+        }
+    }
+    if {[info exists ping_cache($host)]} {
         # expire entries after 1 day
         if {[clock seconds] - [lindex $ping_cache($host) 1] <= 86400} {
             return [lindex $ping_cache($host) 0]
@@ -5196,9 +5253,15 @@ proc macports::get_archive_sites_conf_values {} {
     if {![info exists archive_sites_conf_values]} {
         set archive_sites_conf_values {}
         set all_names {}
-        array set defaults {applications_dir /Applications/MacPorts prefix /opt/local type tbz2}
+        set defaults_list {applications_dir /Applications/MacPorts prefix /opt/local type tbz2}
+        if {$macports::os_platform eq "darwin" && $macports::os_major <= 12} {
+            lappend defaults_list cxx_stdlib libstdc++ delete_la_files no
+        } else {
+            lappend defaults_list cxx_stdlib libc++ delete_la_files yes
+        }
+        array set defaults $defaults_list
         set conf_file ${macports_conf_path}/archive_sites.conf
-        set conf_options {applications_dir frameworks_dir name prefix type urls}
+        set conf_options {applications_dir cxx_stdlib delete_la_files frameworks_dir name prefix type urls}
         if {[file isfile $conf_file]} {
             set fd [open $conf_file r]
             while {[gets $fd line] >= 0} {

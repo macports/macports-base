@@ -10,7 +10,6 @@ OBJS = registry.o util.o \
 	entry.o entryobj.o \
 	file.o fileobj.o \
 	portgroup.o portgroupobj.o
-	#graph.o graphobj.o
 
 SHLIB_NAME= registry${SHLIB_SUFFIX}
 INSTALLDIR= ${DESTDIR}${TCL_PACKAGE_PATH}/registry2.0

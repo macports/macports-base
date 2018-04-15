@@ -88,6 +88,10 @@ proc activate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
     if {[info exists options(ports_activate_no-exec)]} {
         set noexec $options(ports_activate_no-exec)
     }
+    set rename_list {}
+    if {[info exists options(portactivate_rename_files)]} {
+        set rename_list $options(portactivate_rename_files)
+    }
     if {![info exists registry_open]} {
         registry::open [::file join ${macports::registry.path} registry registry.db]
         set registry_open yes
@@ -132,7 +136,7 @@ proc activate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $specifier]"
 
-    _activate_contents $requested
+    _activate_contents $requested $rename_list
 }
 
 # takes a composite version spec rather than separate version,revision,variants
@@ -439,7 +443,7 @@ proc extract_archive_to_tmpdir {location} {
 }
 
 ## Activates the contents of a port
-proc _activate_contents {port {imagefiles {}} {location {}}} {
+proc _activate_contents {port {rename_list {}}} {
     variable force
     variable noexec
 
@@ -543,6 +547,15 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
         # We don't have to do this as mentioned above, but it makes the
         # debug output of activate make more sense.
         set files [lsort -increasing -unique $files]
+        # handle files that are to be renamed
+        set confirmed_rename_list {}
+        foreach {src dest} $rename_list {
+            set index [lsearch -exact -sorted $files $src]
+            if {$index != -1} {
+                set files [lreplace $files $index $index]
+                lappend confirmed_rename_list $src $dest
+            }
+        }
         set rollback_filelist {}
 
         registry::write {
@@ -552,6 +565,13 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
                 foreach file $files {
                     if {[_activate_file "${extracted_dir}${file}" $file] == 1} {
                         lappend rollback_filelist $file
+                    }
+                }
+                foreach {src dest} $confirmed_rename_list {
+                    $port deactivate [list $src]
+                    $port activate [list $src] [list $dest]
+                    if {[_activate_file ${extracted_dir}${src} $dest] == 1} {
+                        lappend rollback_filelist $dest
                     }
                 }
 

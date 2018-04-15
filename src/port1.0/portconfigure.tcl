@@ -76,9 +76,16 @@ proc portconfigure::should_add_stdlib {} {
     set is_clang [string match *clang* [option configure.cxx]]
     return [expr {$has_stdlib && $is_clang}]
 }
+proc portconfigure::should_add_cxx_abi {} {
+    set is_oldos [expr {[option os.platform] eq "darwin" && [option os.major] < 10}]
+    set is_mp_gcc [string match *g++-mp-* [option configure.cxx]]
+    return [expr {$is_oldos && $is_mp_gcc}]
+}
 proc portconfigure::construct_cxxflags {flags} {
     if {[portconfigure::should_add_stdlib]} {
         lappend flags -stdlib=[option configure.cxx_stdlib]
+    } elseif {[portconfigure::should_add_cxx_abi]} {
+        lappend flags -D_GLIBCXX_USE_CXX11_ABI=0
     }
     return $flags
 }
@@ -508,7 +515,7 @@ proc portconfigure::configure_get_default_compiler {} {
 
 # internal function to choose compiler fallback list based on platform
 proc portconfigure::get_compiler_fallback {} {
-    global xcodeversion macosx_deployment_target default_compilers configure.sdkroot configure.cxx_stdlib os.major configure.build_arch
+    global xcodeversion macosx_deployment_target default_compilers configure.sdkroot configure.cxx_stdlib os.major
 
     # Check our override
     if {[info exists default_compilers]} {
@@ -522,20 +529,30 @@ proc portconfigure::get_compiler_fallback {} {
 
     # Legacy cases
     if {[vercmp $xcodeversion 4.0] < 0} {
+        set canonical_archs [get_canonical_archs]
         if {[vercmp $xcodeversion 3.2] >= 0} {
             if {[string match *10.4u* ${configure.sdkroot}]} {
                 return {gcc-4.0}
             }
+            # No return here. 3.2.x with newer SDKs than 10.4u is handled below.
         } elseif {[vercmp $xcodeversion 3.0] >= 0} {
-            if {${configure.build_arch} eq "ppc" || ${configure.build_arch} eq "ppc64"} {
+            if {"ppc" in $canonical_archs || "ppc64" in $canonical_archs} {
                 return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-gcc-6 macports-gcc-7}
             } else {
                 return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-clang-3.4 macports-clang-3.3}
             }
         } else {
-            if {${configure.build_arch} eq "ppc" || ${configure.build_arch} eq "ppc64"} {
-                return {apple-gcc-4.2 gcc-4.0 macports-gcc-6 macports-gcc-7}
+            # Xcode 2.x (Tiger)
+            if {"ppc" in $canonical_archs || "ppc64" in $canonical_archs} {
+                if {"i386" in $canonical_archs} {
+                    # universal
+                    return {apple-gcc-4.2 gcc-4.0 macports-gcc-6 macports-gcc-7}
+                } else {
+                    # ppc only
+                    return {apple-gcc-4.2 gcc-4.0 gcc-3.3 macports-gcc-6 macports-gcc-7}
+                }
             } else {
+                # i386 only
                 return {apple-gcc-4.2 gcc-4.0 macports-clang-3.3}
             }
         }
@@ -551,6 +568,7 @@ proc portconfigure::get_compiler_fallback {} {
     } elseif {[vercmp $xcodeversion 4.0] >= 0} {
         lappend compilers llvm-gcc-4.2 clang
     } else {
+        # 3.2.x
         lappend compilers gcc-4.2 clang llvm-gcc-4.2
     }
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 #
-# Copyright (c) 2004 - 2014, 2016 The MacPorts Project
+# Copyright (c) 2004 - 2014, 2016-2018 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
@@ -46,7 +46,8 @@ namespace eval portfetch {
 }
 
 # define options: distname master_sites
-options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg dist_subdir \
+options master_sites patch_sites extract.suffix distfiles patchfiles use_tar \
+    use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg dist_subdir \
     fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
     master_sites.mirror_subdir patch_sites.mirror_subdir \
     bzr.url bzr.revision bzr.file bzr.file_prefix \
@@ -107,6 +108,7 @@ default mirror_sites.listfile {"mirror_sites.tcl"}
 default mirror_sites.listpath {"port1.0/fetch"}
 
 # Option-executed procedures
+option_proc use_tar   portfetch::set_extract_type
 option_proc use_bzip2 portfetch::set_extract_type
 option_proc use_lzma  portfetch::set_extract_type
 option_proc use_xz    portfetch::set_extract_type
@@ -121,6 +123,9 @@ proc portfetch::set_extract_type {option action args} {
     global extract.suffix
     if {[string equal ${action} "set"] && [tbool args]} {
         switch $option {
+            use_tar {
+                set extract.suffix .tar
+            }
             use_bzip2 {
                 set extract.suffix .tar.bz2
                 if {![catch {findBinary lbzip2} result]} {

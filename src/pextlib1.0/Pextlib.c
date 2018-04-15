@@ -808,12 +808,10 @@ static char* get_mntpoint(const char *path) {
     char *ret = NULL;
 
 #if defined(__APPLE__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__)
-    struct statfs f = { 0 };
+    struct statfs f;
 
     if (-1 != statfs(path, &f)) {
-        if (f.f_mntonname) {
-            ret = strdup(f.f_mntonname);
-        }
+        ret = strdup(f.f_mntonname);
     }
 #else
     /*
@@ -865,9 +863,10 @@ int fs_case_sensitive_darwin(Tcl_Interp *interp, const char *path, mount_cs_cach
         }
     }
 
-    struct attrlist attrlist = { 0 };
-    volcaps_t volcaps = { 0 };
+    struct attrlist attrlist;
+    volcaps_t volcaps;
 
+    memset(&attrlist, 0, sizeof(attrlist));
     attrlist.bitmapcount = ATTR_BIT_MAP_COUNT;
     attrlist.volattr = ATTR_VOL_CAPABILITIES;
 
@@ -953,9 +952,9 @@ int fs_case_sensitive_fallback(Tcl_Interp *interp, const char *path, mount_cs_ca
         *tmp_ptr_up  = toupper(*tmp_ptr_up);
     }
 
-    struct stat path_stat = { 0 },
-           lowercase_path_stat = { 0 },
-           uppercase_path_stat = { 0 };
+    struct stat path_stat,
+           lowercase_path_stat,
+           uppercase_path_stat;
 
     if (-1 == lstat(path, &path_stat)) {
         free(lowercase_path);

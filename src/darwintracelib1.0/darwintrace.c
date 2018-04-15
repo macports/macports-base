@@ -66,24 +66,6 @@
 #define LSTATSYSNUM SYS_lstat
 #endif
 
-#ifndef HAVE_STRLCPY
-/* Define strlcpy if it's not available. */
-size_t strlcpy(char *dst, const char *src, size_t size) {
-	size_t result = strlen(src);
-	if (size > 0) {
-		size_t copylen = size - 1;
-		if (copylen > result) {
-			copylen = result;
-		}
-		memcpy(dst, src, copylen);
-		dst[copylen] = 0;
-	}
-	return result;
-}
-#endif
-
-#include "../pextlib1.0/strlcat.c"
-
 // Global Variables
 /**
  * PID of the process darwintrace was last used in. This is used to detect

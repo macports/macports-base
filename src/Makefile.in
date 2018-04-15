@@ -9,7 +9,7 @@ TCLPKG=		cregistry \
 			pextlib1.0 \
 			machista1.0 \
 			mpcommon1.0
-SUBDIR=		${TCLPKG} port programs
+SUBDIR=		compat ${TCLPKG} port programs
 
 ifeq (@TRACEMODE_SUPPORT@,1)
 TCLPKG+= darwintracelib1.0

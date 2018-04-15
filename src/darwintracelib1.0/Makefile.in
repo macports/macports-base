@@ -22,6 +22,17 @@ SRCS = \
 	unlink.c
 
 OBJS = $(SRCS:%.c=%.o)
+
+ifneq ($(HAVE_STRLCAT),yes)
+COMPAT_OBJS+= $(srcdir)/../compat/strlcat.o
+endif
+ifneq ($(HAVE_STRLCPY),yes)
+COMPAT_OBJS+= $(srcdir)/../compat/strlcpy.o
+endif
+
+CPPFLAGS+= -I$(srcdir)/../compat
+LIBS+= $(COMPAT_OBJS)
+
 SHLIB_NAME = darwintrace$(SHLIB_SUFFIX)
 INSTALLDIR = $(DESTDIR)$(TCL_PACKAGE_PATH)/darwintrace1.0
 

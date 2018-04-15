@@ -47,9 +47,6 @@
 # Implement a hash-map, or multidimensional array for ease of port info keeping. Write it yourself if you have to.
 # Figure out what the hell is going on with "port clean all" vs "port clean installed" the 'clean' target is provided by this package
 
-# XXX: all prompts for the user need to use the ui_ask_* API
-#      (definitely required for GUI support)
-
 package provide reclaim 1.0
 
 package require registry_uninstall 2.0
@@ -193,9 +190,9 @@ namespace eval reclaim {
                 set patchfiles {}
             }
 
-            mportclose $mport
-
-            foreach distfile [concat $distfiles $patchfiles] {
+            foreach file [concat $distfiles $patchfiles] {
+                # split distfile into filename and disttag
+                set distfile [$workername eval "getdistname $file"]
                 set root_path [file join $root_dist $dist_subdir $distfile]
                 set home_path [file join $home_dist $dist_subdir $distfile]
 
@@ -209,6 +206,8 @@ namespace eval reclaim {
                     lappend files_in_use $home_path
                 }
             }
+
+            mportclose $mport
 
             $progress update $i $port_count
             incr i

@@ -1,6 +1,6 @@
 .\" portfile.7
 .\"
-.\" Copyright (c) 2004-2014 The MacPorts Project
+.\" Copyright (c) 2004-2015, 2017-2018 The MacPorts Project
 .\" Copyright (c) 2002-2003 Apple Inc.
 .\" All rights reserved.
 .\"
@@ -873,6 +873,20 @@ Sets extract.cmd to: lzma
 .br
 .Sy Example:
 .Dl use_lzma yes
+.It Ic use_tar
+Use an uncompressed tar archive.
+.br
+Sets extract.suffix to: .tar
+.br
+Sets extract.cmd to: tar
+.br
+Sets extract.pre_args to: -xf
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl use_tar yes
 .It Ic use_xz
 Use xz.
 .br

@@ -667,7 +667,10 @@ OS_MAJOR
 OS_PLATFORM
 READLINE_LIBS
 MD5_LIBS
-ac_cv_func_strlcat
+HAVE_STRLCPY
+HAVE_STRLCAT
+HAVE_GETLINE
+HAVE_GETDELIM
 EGREP
 GREP
 CPP
@@ -7135,9 +7138,9 @@ done
 
 # Checks for library functions.
 for ac_func in OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 \
-	OSAtomicCompareAndSwapPtr __getdirentries64 clearenv copyfile fgetln \
-	flock fls kqueue posix_spawn setmode strlcat \
-	strlcpy sysctlbyname
+	OSAtomicCompareAndSwapPtr __getdirentries64 clearenv copyfile \
+	flock fls kqueue posix_spawn setmode \
+	sysctlbyname
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -7149,6 +7152,27 @@ _ACEOF
 fi
 done
 
+
+# Check for library functions, replacements are in pextlib1.0/compat/
+for ac_func in getline getdelim strlcat strlcpy
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+HAVE_GETDELIM=$ac_cv_func_getdelim
+
+HAVE_GETLINE=$ac_cv_func_getline
+
+HAVE_STRLCAT=$ac_cv_func_strlcat
+
+HAVE_STRLCPY=$ac_cv_func_strlcpy
 
 
 ac_fn_c_check_decl "$LINENO" "atomic_compare_exchange_strong_explicit" "ac_cv_have_decl_atomic_compare_exchange_strong_explicit" "#include <stdatomic.h>
@@ -9281,7 +9305,7 @@ $as_echo "yes" >&6; }
 
 
 # Output
-ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/dmg/postflight setupenv.bash src/Makefile src/cregistry/Makefile src/darwintracelib1.0/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/mpcommon1.0/Makefile src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/port/Makefile src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile tests/test.tcl tests/test/library.tcl tests/test/trace/test.tcl vendor/Makefile"
+ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/dmg/postflight setupenv.bash src/Makefile src/cregistry/Makefile src/compat/Makefile src/darwintracelib1.0/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/mpcommon1.0/Makefile src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/port/Makefile src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile tests/test.tcl tests/test/library.tcl tests/test/trace/test.tcl vendor/Makefile"
 
 
 ac_config_files="$ac_config_files vendor/tclsh"
@@ -10000,6 +10024,7 @@ do
     "setupenv.bash") CONFIG_FILES="$CONFIG_FILES setupenv.bash" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/cregistry/Makefile") CONFIG_FILES="$CONFIG_FILES src/cregistry/Makefile" ;;
+    "src/compat/Makefile") CONFIG_FILES="$CONFIG_FILES src/compat/Makefile" ;;
     "src/darwintracelib1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/darwintracelib1.0/Makefile" ;;
     "src/machista1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/machista1.0/Makefile" ;;
     "src/macports1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/macports1.0/Makefile" ;;

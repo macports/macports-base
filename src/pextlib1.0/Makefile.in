@@ -8,7 +8,6 @@ OBJS= \
 	adv-flock.o \
 	base32cmd.o \
 	curl.o \
-	fgetln.o \
 	filemap.o \
 	fs-traverse.o \
 	md5cmd.o \
@@ -31,9 +30,19 @@ OBJS= \
 ifeq (@TRACEMODE_SUPPORT@,1)
 OBJS+=sip_copy_proc.o
 endif
-ifneq (@ac_cv_func_strlcat@,yes)
-OBJS+=strlcat.o
+
+ifneq ($(HAVE_GETDELIM),yes)
+COMPAT_OBJS+= ../compat/getdelim.o
 endif
+ifneq ($(HAVE_GETLINE),yes)
+COMPAT_OBJS+= ../compat/getline.o
+endif
+ifneq ($(HAVE_STRLCAT),yes)
+COMPAT_OBJS+= ../compat/strlcat.o
+endif
+
+CPPFLAGS+= -I$(srcdir)/../compat
+LIBS+= $(COMPAT_OBJS)
 
 SHLIB_NAME= Pextlib${SHLIB_SUFFIX}
 INSTALLDIR= ${DESTDIR}${TCL_PACKAGE_PATH}/pextlib1.0
@@ -59,6 +68,7 @@ test:: ${SHLIB_NAME}
 	${TCLSH} $(srcdir)/tests/filemap.tcl ./${SHLIB_NAME}
 	${TCLSH} $(srcdir)/tests/fs-traverse.tcl ./${SHLIB_NAME}
 	${TCLSH} $(srcdir)/tests/symlink.tcl ./${SHLIB_NAME}
+	${TCLSH} $(srcdir)/tests/system.tcl ./${SHLIB_NAME}
 	${TCLSH} $(srcdir)/tests/unsetenv.tcl ./${SHLIB_NAME}
 	${TCLSH} $(srcdir)/tests/vercomp.tcl ./${SHLIB_NAME}
 

@@ -47,18 +47,42 @@ options unload.asroot
 set_ui_prefix
 
 proc portunload::unload_main {args} {
-    global UI_PREFIX subport
+    global UI_PREFIX prefix subport sudo_user
     set launchctl_path ${portutil::autoconf::launchctl_path}
 
     portstartupitem::foreach_startupitem {
-        ui_notice "$UI_PREFIX [format [msgcat::mc "Unloading startupitem '%s' for %s"] $si_name $subport]"
-        set path /Library/${si_location}/${si_plist}
+        if {$si_install} {
+            set path /Library/${si_location}/${si_plist}
+        } else {
+            set path ${prefix}/etc/${si_location}/${si_plist}
+        }
         if {$launchctl_path eq ""} {
             return -code error [format [msgcat::mc "launchctl command was not found by configure"]]
         } elseif {![file exists $path]} {
             return -code error [format [msgcat::mc "Launchd plist %s was not found"] $path]
         } else {
-            exec -ignorestderr $launchctl_path unload -w $path
+            set skip 0
+            if {$si_location eq "LaunchDaemons"} {
+                if {[getuid] == 0} {
+                    set uid 0
+                } else {
+                    ui_warn [format [msgcat::mc "Skipping unload of startupitem '%s' for %s, root privileges required"] $si_name $subport]
+                    set skip 1
+                }
+            } elseif {[getuid] == 0} {
+                if {[info exists sudo_user]} {
+                    set uid [name_to_uid $sudo_user]
+                } else {
+                    ui_warn [format [msgcat::mc "Unloading per-user startupitem '%s' for %s as root"] $si_name $subport]
+                    set uid 0
+                }
+            } else {
+                set uid [getuid]
+            }
+            if {!$skip} {
+                ui_notice "$UI_PREFIX [format [msgcat::mc "Unloading startupitem '%s' for %s"] $si_name $subport]"
+                exec_as_uid $uid {system "$launchctl_path unload -w $path"}
+            }
         }
     }
 
