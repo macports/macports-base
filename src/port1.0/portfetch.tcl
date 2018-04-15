@@ -825,7 +825,7 @@ proc portfetch::gitfetch {args} {
             "MPTOPDIR=\$PWD " \
             "${git.cmd} submodule -q foreach --recursive '" \
             "${git.cmd} archive --format=tar --prefix=\"${git.file_prefix}/\${PWD#\$MPTOPDIR/}/\" \$sha1 " \
-            "| tar -uf ${tardst} @-" \
+            "| ${tar} -uf ${tardst} @-" \
             "' 2>&1"] ""]
         if {[catch {system -W $exportpath $cmdstring} result]} {
             delete $tardst
