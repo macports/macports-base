@@ -816,7 +816,6 @@ proc portfetch::gitfetch {args} {
 
     # generate tarballs for submodules and merge them into the main tarball
     if {[file isfile "$exportpath/.gitmodules"] && [tbool git.fetch_submodules]} {
-        set xz [findBinary xz ${portutil::autoconf::xz_path}]
         # TODO: add dependency on libarchive, if /usr/bin/tar is not bsdtar
         set tar [findBinary bsdtar tar]
         # determine exportpath again in shell, as the real path might be different
