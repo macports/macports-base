@@ -63,3 +63,9 @@ proc macports_worker_init {} {
     # We don't need to handle portinterp_deferred_options, they're
     # automatically handled correctly.
 }
+
+# Provide a stub for the port callback mechanism
+namespace eval port {
+    proc register_callback {args} {}
+    proc run_callbacks {args} {}
+}

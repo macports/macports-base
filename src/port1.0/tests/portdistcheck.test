@@ -13,8 +13,8 @@ array set ui_options {}
 #set ui_options(ports_verbose) yes
 mportinit ui_options
 
-package require portdistcheck 1.0
 source ./library.tcl
+package require portdistcheck 1.0
 macports_worker_init
 
 

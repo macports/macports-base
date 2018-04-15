@@ -13,12 +13,7 @@ array set ui_options {}
 #set ui_options(ports_verbose) yes
 mportinit ui_options
 
-# Provide a stub for the port callback mechanism
-namespace eval port {
-    proc register_callback {args} {}
-    proc run_callbacks {args} {}
-}
-
+source ./library.tcl
 package require portbuild 1.0
 
 set build_getjobs_fixture_setup {
