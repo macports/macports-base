@@ -440,11 +440,15 @@ proc portfetch::bzrfetch {args} {
 
         # get timestamp of latest revision
         set cmdstring "${bzr.cmd} --builtin --no-aliases version-info --format=custom --template=\"{date}\" ${exportpath}/${bzr.file_prefix}"
-        ui_debug "exec: $cmdstring"
-        if {[catch {exec -ignorestderr sh -c $cmdstring} result]} {
+        if {[catch {system -o out -e err $cmdstring} result]} {
+            ui_error $err
             error [msgcat::mc "Bazaar version-info failed: $result"]
         }
-        set tstamp $result
+        if {$err ne ""} {
+            set err [string trim $err]
+            ui_info "Continuing despite error output: $err"
+        }
+        set tstamp $out
         set mtime [clock scan [lindex [split $tstamp "."] 0] -format "%Y-%m-%d %H:%M:%S %z" -timezone "UTC"]
 
         set tardst "${distpath}/${distname}.${fetch.type}.TMP.tar"
@@ -657,10 +661,15 @@ proc portfetch::svnfetch {args} {
 
     # get timestamp of latest revision
     set cmdstring "${svn.cmd} --non-interactive ${connectargs} info --show-item last-changed-date ${svn.url}"
-    if {[catch {exec -ignorestderr sh -c $cmdstring} result]} {
-        return -code error [msgcat::mc "Subversion info failed"]
+    if {[catch {system -o out -e err $cmdstring} result]} {
+        ui_error $err
+        return -code error [msgcat::mc "Subversion info failed: $result"]
     }
-    set tstamp $result
+    if {$err ne ""} {
+        set err [string trim $err]
+        ui_info "Continuing despite error output: $err"
+    }
+    set tstamp $out
     set mtime [clock scan [lindex [split $tstamp "."] 0] -format "%Y-%m-%dT%H:%M:%S" -timezone "UTC"]
 
     set tardst "${distpath}/${distname}.${fetch.type}.TMP.tar"
@@ -900,10 +909,15 @@ proc portfetch::hgfetch {args} {
 
     # get timestamp of latest revision
     set cmdstring "${hg.cmd} log -r ${hg.tag} --template=\"{date}\"i -R ${exportpath}/${hg.file_prefix}"
-    if {[catch {exec -ignorestderr sh -c $cmdstring} result]} {
-        return -code error [msgcat::mc "Mercurial log failed"]
+    if {[catch {system -o out -e err $cmdstring} result]} {
+        ui_error $err
+        return -code error [msgcat::mc "Mercurial log failed: $result"]
     }
-    set mtime $result
+    if {$err ne ""} {
+        set err [string trim $err]
+        ui_info "Continuing despite error output: $err"
+    }
+    set mtime $out
 
     set tardst "${distpath}/${distname}.${fetch.type}.TMP.tar"
     mktar $tardst $exportpath $mtime [list "${hg.file_prefix}/.hg"]
