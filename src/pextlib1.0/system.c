@@ -207,7 +207,8 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     switch (pid) {
     case -1: /* error */
         Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
-        return TCL_ERROR;
+        status = TCL_ERROR;
+        goto cleanup;
         /*NOTREACHED*/
     case 0: /* child */
         if (odup) {
@@ -352,6 +353,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         }
     }
 
+cleanup:
     /* restore original signal handling */
     sigaction(SIGINT, &old_sa_int, NULL);
     sigaction(SIGQUIT, &old_sa_quit, NULL);
