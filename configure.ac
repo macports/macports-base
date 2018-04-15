@@ -108,6 +108,7 @@ dnl their own name as default flags and will fail if it is set to a path. For
 dnl example, these include BZIP2 and GZIP, which is the reason why they are
 dnl named with a _BIN suffix here.
 MP_TOOL_PATH(BSDMAKE, [bsdmake/pmake])
+MP_TOOL_PATH(BSDTAR, [bsdtar])
 MP_TOOL_PATH(BZIP2_BIN, [bzip2])
 MP_TOOL_PATH(CVS, [cvs])
 MP_TOOL_PATH(GNUMAKE, [gnumake])
@@ -127,6 +128,7 @@ MP_TOOL_PATH(XZ, [xz])
 
 # Search for tool paths. Any set above (via --with-pkg=PATH) will be retained
 AC_PATH_PROGS(BSDMAKE, [bsdmake pmake], [])
+AC_PATH_PROG(BSDTAR, [bsdtar])
 AC_PATH_PROG(BZIP2_BIN, [bzip2], [])
 AC_PATH_PROG(BZR, [bzr], [])
 AC_PATH_PROG(CHOWN, [chown], [], [$PATH:/usr/sbin])
