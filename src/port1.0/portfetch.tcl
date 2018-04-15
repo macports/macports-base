@@ -373,7 +373,7 @@ proc portfetch::mktar {tarfile dir mtime {excludes {}}} {
         close $mtreefd
 
         set tar [findBinary bsdtar ${portutil::autoconf::bsdtar_path}]
-        set cmdstring "${tar} -cf $tarfile @$mtreefile 2>&1"
+        set cmdstring "${tar} -cf $tarfile @$mtreefile"
         if {[catch {system -W $dir $cmdstring} result]} {
             error [msgcat::mc "tarball creation failed"]
         }
@@ -425,7 +425,7 @@ proc portfetch::bzrfetch {args} {
         ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
         set exportpath [file join ${workpath} export]
         file mkdir ${exportpath}
-        set cmdstring "${bzr.cmd} --builtin --no-aliases checkout --lightweight --verbose -r ${bzr.revision} ${bzr.url} ${exportpath}/${bzr.file_prefix} 2>&1"
+        set cmdstring "${bzr.cmd} --builtin --no-aliases checkout --lightweight --verbose -r ${bzr.revision} ${bzr.url} ${exportpath}/${bzr.file_prefix}"
         if {[catch {system $cmdstring} result]} {
             error [msgcat::mc "Bazaar checkout failed"]
         }
@@ -512,7 +512,7 @@ proc portfetch::cvsfetch {args} {
 
     try -pass_signal {
         if {[regexp ^:pserver: ${cvs.root}]} {
-            set cmdstring "echo ${cvs.password} | ${cvs.cmd} -z9 -f -d ${cvs.root} login 2>&1"
+            set cmdstring "echo ${cvs.password} | ${cvs.cmd} -z9 -f -d ${cvs.root} login"
             if {[catch {system -notty $cmdstring} result]} {
                 error [msgcat::mc "CVS login failed: $result"]
             }
@@ -522,7 +522,7 @@ proc portfetch::cvsfetch {args} {
 
         set exportpath [file join ${workpath} export]
         file mkdir ${exportpath}
-        set cmdstring "${cvs.cmd} -z9 -f -d ${cvs.root} export -d ${cvs.file_prefix} ${cvs.args} ${cvs.module} 2>&1"
+        set cmdstring "${cvs.cmd} -z9 -f -d ${cvs.root} export -d ${cvs.file_prefix} ${cvs.args} ${cvs.module}"
         if {[catch {system -notty -W ${exportpath} $cmdstring} result]} {
             error [msgcat::mc "CVS checkout failed"]
         }
@@ -634,17 +634,17 @@ proc portfetch::svnfetch {args} {
     ui_info "$UI_PREFIX Checking out ${fetch.type} repository"
     set exportpath [file join ${workpath} export]
     if {${svn.subdirs} eq ""} {
-        set cmdstring "${svn.cmd} --non-interactive ${connectargs} export ${exportargs} ${svn.url} ${exportpath}/${svn.file_prefix} 2>&1"
+        set cmdstring "${svn.cmd} --non-interactive ${connectargs} export ${exportargs} ${svn.url} ${exportpath}/${svn.file_prefix}"
         if {[catch {system $cmdstring} result]} {
             return -code error [msgcat::mc "Subversion checkout failed"]
         }
     } else {
-        set cmdstring "${svn.cmd} --non-interactive ${connectargs} checkout --depth empty ${svn.url} ${exportpath}/${svn.file_prefix} 2>&1"
+        set cmdstring "${svn.cmd} --non-interactive ${connectargs} checkout --depth empty ${svn.url} ${exportpath}/${svn.file_prefix}"
         if {[catch {system $cmdstring} result]} {
             return -code error [msgcat::mc "Subversion checkout failed"]
         }
         foreach dir ${svn.subdirs} {
-            set cmdstring "${svn.cmd} --non-interactive ${connectargs} update --depth infinity ${exportpath}/${svn.file_prefix}/${dir} 2>&1"
+            set cmdstring "${svn.cmd} --non-interactive ${connectargs} update --depth infinity ${exportpath}/${svn.file_prefix}/${dir}"
             if {[catch {system $cmdstring} result]} {
                 return -code error [msgcat::mc "Subversion update for subdir $dir failed"]
             }
@@ -803,7 +803,7 @@ proc portfetch::gitfetch {args} {
 
     ui_info "$UI_PREFIX Cloning ${fetch.type} repository"
     set exportpath [file join ${workpath} export]
-    set cmdstring "${git.cmd} clone $options ${git.url} ${exportpath} 2>&1"
+    set cmdstring "${git.cmd} clone $options ${git.url} ${exportpath}"
     if {[catch {system $cmdstring} result]} {
         return -code error [msgcat::mc "Git clone failed"]
     }
@@ -812,7 +812,7 @@ proc portfetch::gitfetch {args} {
     # required to have the right version of .gitmodules
     if {${git.branch} ne ""} {
         ui_debug "Checking out branch ${git.branch}"
-        set cmdstring "${git.cmd} checkout -q ${git.branch} 2>&1"
+        set cmdstring "${git.cmd} checkout -q ${git.branch}"
         if {[catch {system -W $exportpath $cmdstring} result]} {
             return -code error [msgcat::mc "Git checkout failed"]
         }
@@ -821,7 +821,7 @@ proc portfetch::gitfetch {args} {
     # fetch all submodules
     if {[file isfile "$exportpath/.gitmodules"] && [tbool git.fetch_submodules]} {
         ui_info "$UI_PREFIX Cloning git submodules"
-        set cmdstring "${git.cmd} submodule -q update --init --recursive 2>&1"
+        set cmdstring "${git.cmd} submodule -q update --init --recursive"
         if {[catch {system -W $exportpath $cmdstring} result]} {
             return -code error [msgcat::mc "Git submodule init failed"]
         }
@@ -836,7 +836,7 @@ proc portfetch::gitfetch {args} {
 
     # generate main tarball
     set tardst "${distpath}/${distname}.${fetch.type}.TMP.tar"
-    set cmdstring "${git.cmd} archive --format=tar --prefix=\"${git.file_prefix}/\" --output=${tardst} ${git.branch} 2>&1"
+    set cmdstring "${git.cmd} archive --format=tar --prefix=\"${git.file_prefix}/\" --output=${tardst} ${git.branch}"
     if {[catch {system -W $exportpath $cmdstring} result]} {
         delete $tardst
         return -code error [msgcat::mc "Git archive creation failed"]
@@ -853,7 +853,7 @@ proc portfetch::gitfetch {args} {
             "${git.cmd} submodule -q foreach --recursive '" \
             "${git.cmd} archive --format=tar --prefix=\"${git.file_prefix}/\${PWD#\$MPTOPDIR/}/\" \$sha1 " \
             "| ${tar} -uf ${tardst} @-" \
-            "' 2>&1"] ""]
+            "'"] ""]
         if {[catch {system -W $exportpath $cmdstring} result]} {
             delete $tardst
             return -code error [msgcat::mc "Git submodule archive creation failed"]
@@ -895,7 +895,7 @@ proc portfetch::hgfetch {args} {
     }
 
     set exportpath [file join ${workpath} export]
-    set cmdstring "${hg.cmd} clone${insecureflag} --rev \"${hg.tag}\" ${hg.url} ${exportpath}/${hg.file_prefix} 2>&1"
+    set cmdstring "${hg.cmd} clone${insecureflag} --rev \"${hg.tag}\" ${hg.url} ${exportpath}/${hg.file_prefix}"
     if {[catch {system $cmdstring} result]} {
         return -code error [msgcat::mc "Mercurial clone failed"]
     }
