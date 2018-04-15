@@ -190,21 +190,36 @@ proc portfetch::set_fetch_type {option action args} {
                 default distname {${name}-${hg.tag}}
             }
         }
+    }
+}
 
-        switch $args {
-            bzr -
-            cvs -
-            svn -
-            git -
-            hg {
-                # bzip2 is needed to create and extract generated tarballs.
-                # It might not be used if the fetch was not tarballable,
-                # but we cannot decide this yet, so we just add it anyway.
+# bsdtar and bzip2 are needed to create and extract generated tarballs.
+# We cannot add these dependencies earlier, as we cannot decide whether
+# the fetch would be tarballable until we have seen all options.
+proc portfetch::add_automatic_fetch_dependencies {} {
+    global fetch.type fetch.type.add_deps
+    if {!${fetch.type.add_deps}} {
+        return
+    }
+
+    switch ${fetch.type} {
+        bzr -
+        cvs -
+        svn -
+        git -
+        hg {
+            if {[tarballable]} {
                 use_bzip2 yes
+                depends_fetch-append bin:bsdtar:libarchive
             }
         }
     }
 }
+# Register the above procedure as a callback after Portfile evaluation
+port::register_callback portfetch::add_automatic_fetch_dependencies
+# and an option to turn it off if required
+options fetch.type.add_deps
+default fetch.type.add_deps yes
 
 proc portfetch::find_svn_path {args} {
     global prefix os.platform os.major
@@ -352,8 +367,7 @@ proc portfetch::mktar {tarfile dir mtime {excludes {}}} {
         }
         close $mtreefd
 
-        # TODO: add dependency on libarchive, if /usr/bin/tar is not bsdtar
-        set tar [findBinary bsdtar tar]
+        set tar [findBinary bsdtar ${portutil::autoconf::bsdtar_path}]
         set cmdstring "${tar} -cf $tarfile @$mtreefile 2>&1"
         if {[catch {system -W $dir $cmdstring} result]} {
             error [msgcat::mc "tarball creation failed"]
@@ -816,8 +830,7 @@ proc portfetch::gitfetch {args} {
 
     # generate tarballs for submodules and merge them into the main tarball
     if {[file isfile "$exportpath/.gitmodules"] && [tbool git.fetch_submodules]} {
-        # TODO: add dependency on libarchive, if /usr/bin/tar is not bsdtar
-        set tar [findBinary bsdtar tar]
+        set tar [findBinary bsdtar ${portutil::autoconf::bsdtar_path}]
         # determine exportpath again in shell, as the real path might be different
         # due to symlinks (/tmp vs. /private/tmp), pass it as MPTOPDIR in
         # environment
