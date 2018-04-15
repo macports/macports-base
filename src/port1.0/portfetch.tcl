@@ -1024,7 +1024,7 @@ proc portfetch::fetchfiles {args} {
 
 # Utility function to delete fetched files.
 proc portfetch::fetch_deletefiles {args} {
-    global distpath fetch.type svn.file git.file
+    global distpath fetch.type
     variable fetch_urls
     foreach {url_var distfile} $fetch_urls {
         if {[file isfile $distpath/$distfile]} {
@@ -1033,14 +1033,14 @@ proc portfetch::fetch_deletefiles {args} {
     }
 
     switch -- "${fetch.type}" {
-        svn {
-            if {[file isfile "${distpath}/${svn.file}"]} {
-                file delete -force "${distpath}/${svn.file}"
-            }
-        }
-        git {
-            if {[file isfile "${distpath}/${git.file}"]} {
-                file delete -force "${distpath}/${git.file}"
+        bzr -
+        cvs -
+        svn -
+        git -
+        hg {
+            global ${fetch.type}.file
+            if {[file isfile "${distpath}/[set ${fetch.type}.file]"]} {
+                file delete -force "${distpath}/[set ${fetch.type}.file]"
             }
         }
     }
@@ -1048,7 +1048,7 @@ proc portfetch::fetch_deletefiles {args} {
 
 # Utility function to add files to a list of fetched files.
 proc portfetch::fetch_addfilestomap {filemapname} {
-    global distpath fetch.type svn.file git.file $filemapname
+    global distpath fetch.type $filemapname
     variable fetch_urls
     foreach {url_var distfile} $fetch_urls {
         if {[file isfile $distpath/$distfile]} {
@@ -1057,14 +1057,14 @@ proc portfetch::fetch_addfilestomap {filemapname} {
     }
 
     switch -- "${fetch.type}" {
-        svn {
-            if {[svn_tarballable] && [file isfile "${distpath}/${svn.file}"]} {
-                filemap set $filemapname ${distpath}/${svn.file} 1
-            }
-        }
-        git {
-            if {[git_tarballable] && [file isfile "${distpath}/${git.file}"]} {
-                filemap set $filemapname ${distpath}/${git.file} 1
+        bzr -
+        cvs -
+        svn -
+        git -
+        hg {
+            global ${fetch.type}.file
+            if {[${fetch.type}_tarballable] && [file isfile "${distpath}/[set ${fetch.type}.file]"]} {
+                filemap set $filemapname ${distpath}/[set ${fetch.type}.file] 1
             }
         }
     }
