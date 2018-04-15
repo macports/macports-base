@@ -3,7 +3,7 @@ srcdir      = @srcdir@
 VPATH       = @srcdir@
 
 PATH		= @PATH_CLEANED@
-SUBDIR		= vendor doc src tests
+SUBDIR		= vendor src tests doc
 DISTDIR		= dist
 DISTVER		=
 DISTTAG		= v${DISTVER}
