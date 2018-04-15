@@ -6,6 +6,8 @@ dnl	to configure the system for the local environment.
 AC_INIT([tcl],[8.5])
 AC_PREREQ(2.59)
 
+m4_define(SC_USE_CONFIG_HEADERS)
+
 dnl This is only used when included from macosx/configure.ac
 m4_ifdef([SC_USE_CONFIG_HEADERS], [
     AC_CONFIG_HEADERS([tclConfig.h:../unix/tclConfig.h.in])
