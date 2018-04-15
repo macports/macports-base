@@ -70,6 +70,24 @@ proc main {pextlibname} {
         check [string trim $output] "/usr"
     }
 
+    test_system -o out "echo stdout" {out} {
+        check [string trim $out] "stdout"
+    }
+
+    test_system -o out "echo stdout; echo stderr >&2" {out} {
+        check [string trim $out] "stdout\nstderr"
+    }
+
+    test_system -e err "echo stdout; echo stderr >&2" {err} {
+        check [string trim $output] "stdout"
+        check [string trim $err] "stderr"
+    }
+
+    test_system -o out -e err "echo stdout; echo stderr >&2" {out err} {
+        check [string trim $out] "stdout"
+        check [string trim $err] "stderr"
+    }
+
     if {$failures > 0} {
         exit 1
     }

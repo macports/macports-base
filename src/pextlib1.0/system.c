@@ -56,6 +56,7 @@
 #include <limits.h>
 #include <errno.h>
 #include <signal.h>
+#include <poll.h>
 
 #include "system.h"
 #include "Pextlib.h"
@@ -109,7 +110,7 @@ static void handle_sigint(int s) {
     interrupted_by = s;
 }
 
-/* usage: system ?-notty? ?-nodup? ?-nice value? ?-W path? command */
+/* usage: system ?-o outvar? ?-e errvar? ?-notty? ?-nodup? ?-nice value? ?-W path? command */
 int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     char *args[7];
@@ -117,10 +118,11 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     int sandbox = 0;
     char *sandbox_exec_path = NULL;
     char *profilestr = NULL;
-    FILE *pdes;
-    int fdset[2], nullfd;
+    int fdseto[2], fdsete[2], nullfd;
     int ret;
     int osetsid = 0;
+    Tcl_Obj *ograb = NULL; /* != NULL, grab output from stdout */
+    Tcl_Obj *egrab = NULL; /* != NULL, grab output from stderr */
     int odup = 1; /* redirect stdin/stdout/stderr by default */
     int oniceval = INT_MAX; /* magic value indicating no change */
     const char *path = NULL;
@@ -140,7 +142,13 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 
     for (i = 1; i < objc - 1; i++) {
         char *arg = Tcl_GetString(objv[i]);
-        if (strcmp(arg, "-notty") == 0) {
+        if (strcmp(arg, "-o") == 0) {
+            i++;
+            ograb = objv[i];
+        } else if (strcmp(arg, "-e") == 0) {
+            i++;
+            egrab = objv[i];
+        } else if (strcmp(arg, "-notty") == 0) {
             osetsid = 1;
         } else if (strcmp(arg, "-nodup") == 0) {
             odup = 0;
@@ -171,6 +179,11 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         ui_debug(interp, "system: %s", cmdstring);
     }
 
+    if ((ograb || egrab) && !odup) {
+        Tcl_SetResult(interp, "-o or -e cannot be used together with -nodup", TCL_STATIC);
+        return TCL_ERROR;
+    }
+
     /* check if and how we should use sandbox-exec */
     sandbox = check_sandboxing(interp, &sandbox_exec_path, &profilestr);
 
@@ -179,9 +192,15 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
      * popen() itself is not used because stderr is also desired.
      */
     if (odup) {
-        if (pipe(fdset) != 0) {
+        if (pipe(fdseto) != 0) {
             Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
             return TCL_ERROR;
+        }
+        if (egrab) {
+            if (pipe(fdsete) != 0) {
+                Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
+                return TCL_ERROR;
+            }
         }
     }
 
@@ -212,13 +231,20 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         /*NOTREACHED*/
     case 0: /* child */
         if (odup) {
-            close(fdset[0]);
+            close(fdseto[0]);
+            if (egrab) {
+                close(fdsete[0]);
+            }
 
             if ((nullfd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
                 _exit(1);
             dup2(nullfd, STDIN_FILENO);
-            dup2(fdset[1], STDOUT_FILENO);
-            dup2(fdset[1], STDERR_FILENO);
+            dup2(fdseto[1], STDOUT_FILENO);
+            if (!egrab) {
+                dup2(fdseto[1], STDERR_FILENO);
+            } else {
+                dup2(fdsete[1], STDERR_FILENO);
+            }
         }
         /* drop the controlling terminal if requested */
         if (osetsid) {
@@ -282,29 +308,112 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     }
 
     if (odup) {
-        close(fdset[1]);
+        close(fdseto[1]);
+        if (egrab) {
+            close(fdsete[1]);
+        }
 
-        /* read from simulated popen() pipe */
+        FILE *fpout = NULL;
+        FILE *fperr = NULL;
+
         read_failed = 0;
-        pdes = fdopen(fdset[0], "r");
-        if (pdes) {
+        fpout = fdopen(fdseto[0], "r");
+        if (!fpout) {
+            read_failed = 1;
+            Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
+        }
+        if (egrab) {
+            fperr = fdopen(fdsete[0], "r");
+            if (!fperr) {
+                read_failed = 1;
+                Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
+            }
+        }
+
+        if (!read_failed) {
             char *line = NULL;
             size_t linesz = 0;
             ssize_t linelen;
 
-            while ((linelen = getline(&line, &linesz, pdes)) > 0) {
-                /* replace '\n' if it exists */
-                if (line[linelen - 1] == '\n') {
-                    line[linelen - 1] = '\0';
+            struct pollfd fds[2];
+            FILE **fps[2];
+            struct Tcl_Obj *tclobjs[2] = { NULL, NULL };
+            int nfds = 1;
+
+            fds[0].fd = fileno(fpout);
+            fds[0].events = POLLIN;
+            fps[0] = &fpout;
+            if (ograb) {
+                tclobjs[0] = Tcl_NewStringObj("", -1);
+            }
+            if (fperr != NULL) {
+                fds[1].fd = fileno(fperr);
+                fds[1].events = POLLIN;
+                fps[1] = &fperr;
+                if (egrab) {
+                    tclobjs[1] = Tcl_NewStringObj("", -1);
+                }
+                nfds++;
+            }
+
+            /* read from stdout/stderr pipes */
+            while (read_failed == 0 && (fpout != NULL || fperr != NULL)) {
+                if (poll(fds, nfds, 0) < 0) {
+                    if (errno == EINTR) {
+                        continue;
+                    }
+                    read_failed = 1;
+                    Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
+                    break;
                 }
 
-                ui_info(interp, "%s", line);
+                for (i = 0; i < nfds; i++) {
+                    if ((fds[i].revents & ~(POLLIN|POLLHUP)) != 0) {
+                        read_failed = 1;
+                        Tcl_Obj *result = Tcl_ObjPrintf("system: poll: unexpected revent %d", fds[i].revents);
+                        Tcl_SetObjResult(interp, result);
+                        break;
+                    }
+                    if ((fds[i].revents & (POLLIN|POLLHUP)) != 0) {
+                        /* if the event is POLLHUP, another read will also give us EOF */
+                        linelen = getline(&line, &linesz, *fps[i]);
+                        if (linelen > 0) {
+                            if (tclobjs[i] != NULL) {
+                                Tcl_AppendToObj(tclobjs[i], line, linelen);
+                            } else {
+                                /* replace '\n' if it exists */
+                                if (line[linelen - 1] == '\n') {
+                                    line[linelen - 1] = '\0';
+                                }
+                                ui_info(interp, "%s", line);
+                            }
+                        } else {
+                            /* EOF */
+                            fclose(*fps[i]);
+                            *fps[i] = NULL;
+                            fds[i].events &= ~POLLIN;
+                        }
+                    }
+                }
             }
+
+            /* cleanup */
+            if (fpout != NULL) {
+                fclose(fpout);
+            }
+            if (fperr != NULL) {
+                fclose(fperr);
+            }
+
+            /* assign output variables */
+            if (ograb) {
+                Tcl_ObjSetVar2(interp, ograb, NULL, tclobjs[0], 0);
+            }
+            if (egrab) {
+                Tcl_ObjSetVar2(interp, egrab, NULL, tclobjs[1], 0);
+            }
+
             free(line);
-            fclose(pdes);
-        } else {
-            read_failed = 1;
-            Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
         }
     }
 
@@ -360,7 +469,10 @@ cleanup:
 
     if (odup) {
         /* Cleanup. */
-        close(fdset[0]);
+        close(fdseto[0]);
+        if (egrab) {
+            close(fdsete[0]);
+        }
     }
 
     return status;
