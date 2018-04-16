@@ -34,6 +34,25 @@ Release 2.5.0 (????-??-?? by ?)
     - Add the ability to handle xz patch files
       (#52445, khindenburg in 5a142fd2)
 
+Release 2.4.4 (2018-??-?? by ?)
+    - Use subversion port instead of /usr/bin/svn in fetch phase
+      on OS X 10.11 El Capitan and earlier.
+      (#55933, ryandesign in 8a3b73d263, c8fd1a3098, 62e07cae09)
+
+    - Use git port instead of /usr/bin/git in fetch phase
+      on OS X 10.8 Mountain Lion and earlier.
+      (#55989, ryandesign in 78990c5ab7, e6eedb05dd)
+
+    - 'port reclaim' works correctly with distfiles with tags.
+      (#55939, raimue in 3ad97625)
+
+    - Trace mode with ccache enabled works correctly when the ccache-devel
+      port is installed.
+      (#55680, raimue in 64c60f29)
+
+    - Add 'size' to the set of default checksums.
+      (ryandesign in 95a153e6)
+
 Release 2.4.3 (2018-04-11 by jmr)
     - Fix trace mode on macOS High Sierra 10.13.3
       (#55575, raimue in 995dde84)
