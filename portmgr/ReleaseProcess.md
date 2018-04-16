@@ -231,7 +231,7 @@ and that the pkg contained therein properly starts up Installer.app when it's
 double-clicked.
 
 
-## Create Release on GitHub ##
+### Create Release on GitHub ###
 
 All of our distfiles should also be available as downloads from a new GitHub
 release. Create a new release matching the previously created tag on GitHub
@@ -266,6 +266,13 @@ Verify that the new release has been built successfully on
 Add the new version to the list of released versions on Trac. Edit the list
 using the [web admin interface](https://trac.macports.org/admin/ticket/versions)
 on our Trac installation.
+
+
+### Verify That the Public Rsync Server Has Updated ###
+
+Verify that the MacPorts version on the public rsync server has been updated:
+
+    $ curl -s http://nue.de.rsync.macports.org/macports/release/base/config/macports_version
 
 
 ### Notify the Public of the Release ###
