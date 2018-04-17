@@ -184,10 +184,12 @@ proc portfetch::set_fetch_type {option action args} {
                 default distname {${name}-${svn.revision}}
             }
             git {
-                # Always use the git port and not /usr/bin/git.
-                # The output format changed with git @1.8.1.1 due to a bugfix.
-                # https://github.com/git/git/commit/22f0dcd9634a818a0c83f23ea1a48f2d620c0546
-                depends_fetch-append port:git
+                # Mavericks is the first OS X version whose git supports modern TLS cipher suites.
+                if {${os.major} >= 13 || ${os.platform} ne "darwin"} {
+                    depends_fetch-append bin:git:git
+                } else {
+                    depends_fetch-append port:git
+                }
                 default distname {${name}-${git.branch}}
             }
             hg {
@@ -233,6 +235,16 @@ proc portfetch::find_svn_path {args} {
         return [findBinary svn $portutil::autoconf::svn_path]
     } else {
         return ${prefix}/bin/svn
+    }
+}
+
+proc portfetch::find_git_path {args} {
+    global prefix os.platform os.major
+    # Mavericks is the first OS X version whose git supports modern TLS cipher suites.
+    if {${os.major} >= 13 || ${os.platform} ne "darwin"} {
+        return [findBinary git $portutil::autoconf::git_path]
+    } else {
+        return ${prefix}/bin/git
     }
 }
 
@@ -795,7 +807,7 @@ proc portfetch::gitfetch {args} {
         return 0
     }
 
-    set git.cmd ${prefix}/bin/git
+    set git.cmd [portfetch::find_git_path]
 
     set connectargs ""
     if {${fetch.ignore_sslcert}} {
