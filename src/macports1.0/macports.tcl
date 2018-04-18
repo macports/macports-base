@@ -47,7 +47,7 @@ namespace eval macports {
     namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
     variable bootstrap_options "\
         portdbpath binpath auto_path extra_env sources_conf prefix portdbformat \
-        portarchivetype portautoclean \
+        portarchivetype hfscompression portautoclean \
         porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_autostart startupitem_type startupitem_install \
         place_worksymlink xcodeversion xcodebuildcmd \
@@ -656,7 +656,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::ping_cache \
         macports::host_cache \
         macports::delete_la_files \
-        macports::cxx_stdlib
+        macports::cxx_stdlib \
+        macports::hfscompression
 
     # Set the system encoding to utf-8
     encoding system utf-8
@@ -967,6 +968,11 @@ Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarbal
         set macports::portarchivetype tbz2
     } else {
         set macports::portarchivetype [lindex $portarchivetype 0]
+    }
+
+    # Enable HFS+ compression by default
+    if {![info exists macports::hfscompression]} {
+        set macports::hfscompression yes
     }
 
     # Set rync options

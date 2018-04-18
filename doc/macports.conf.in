@@ -50,6 +50,12 @@ variants_conf       	@MPCONFIGDIR_EXPANDED@/variants.conf
 # cpio, tar, tbz, tbz2, tgz, tlz, txz, xar, zip.
 #portarchivetype     	tbz2
 
+# Apply transparent filesystem compression to files on activation.
+# Requires bsdtar with support for --hfsCompression in binpath, which can be
+# provided by installing the libarchive port. This will work with HFS+ or APFS
+# volumes only and will be ignored on other filesystems.
+#hfscompression      	yes
+
 # CPU architecture to target. Supported values are "ppc", "ppc64",
 # "i386", and "x86_64". Defaults to:
 # - OS X 10.5 and earlier: "ppc" on PowerPC, otherwise "i386".

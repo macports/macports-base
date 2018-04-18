@@ -350,9 +350,11 @@ proc extract_archive_to_tmpdir {location} {
                 }
             }
             t(ar|bz|lz|xz|gz) {
+                global macports::hfscompression
                 # Opportunistic HFS compression. bsdtar will automatically
                 # disable this if filesystem does not support compression.
-                if {![catch {macports::binaryInPath bsdtar}] &&
+                if {${macports::hfscompression} &&
+                        ![catch {macports::binaryInPath bsdtar}] &&
                         ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]} {
                     ui_debug "Using bsdtar with HFS+ compression (if valid)"
                     set unarchive.cmd "bsdtar"
