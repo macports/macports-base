@@ -350,46 +350,57 @@ proc extract_archive_to_tmpdir {location} {
                 }
             }
             t(ar|bz|lz|xz|gz) {
-                set tar "tar"
-                if {[catch {set tar [macports::findBinary $tar ${macports::autoconf::tar_path}]} errmsg] == 0} {
+                global macports::hfscompression
+                # Opportunistic HFS compression. bsdtar will automatically
+                # disable this if filesystem does not support compression.
+                if {${macports::hfscompression} &&
+                        ![catch {macports::binaryInPath bsdtar}] &&
+                        ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]} {
+                    ui_debug "Using bsdtar with HFS+ compression (if valid)"
+                    set unarchive.cmd "bsdtar"
+                    set unarchive.pre_args {-xvp --hfsCompression -f}
+                } else {
+                    set tar "tar"
+                    if {[catch {set tar [macports::findBinary $tar ${macports::autoconf::tar_path}]} errmsg]} {
+                        ui_debug $errmsg
+                        throw MACPORTS "No '$tar' was found on this system!"
+                    }
                     ui_debug "Using $tar"
                     set unarchive.cmd "$tar"
                     set unarchive.pre_args {-xvpf}
-                    if {[regexp {z2?$} ${unarchive.type}]} {
-                        set unarchive.args {-}
-                        if {[regexp {bz2?$} ${unarchive.type}]} {
-                            if {![catch {macports::binaryInPath lbzip2}]} {
-                                set gzip "lbzip2"
-                            } elseif {![catch {macports::binaryInPath pbzip2}]} {
-                                set gzip "pbzip2"
-                            } else {
-                                set gzip "bzip2"
-                            }
-                        } elseif {[regexp {lz$} ${unarchive.type}]} {
-                            set gzip "lzma"
-                        } elseif {[regexp {xz$} ${unarchive.type}]} {
-                            set gzip "xz"
+                }
+
+                if {[regexp {z2?$} ${unarchive.type}]} {
+                    set unarchive.args {-}
+                    if {[regexp {bz2?$} ${unarchive.type}]} {
+                        if {![catch {macports::binaryInPath lbzip2}]} {
+                            set gzip "lbzip2"
+                        } elseif {![catch {macports::binaryInPath pbzip2}]} {
+                            set gzip "pbzip2"
                         } else {
-                            set gzip "gzip"
+                            set gzip "bzip2"
                         }
-                        if {[info exists macports::autoconf::${gzip}_path]} {
-                            set hint [set macports::autoconf::${gzip}_path]
-                        } else {
-                            set hint ""
-                        }
-                        if {[catch {set gzip [macports::findBinary $gzip $hint]} errmsg] == 0} {
-                            ui_debug "Using $gzip"
-                            set unarchive.pipe_cmd "$gzip -d -c ${location} |"
-                        } else {
-                            ui_debug $errmsg
-                            throw MACPORTS "No '$gzip' was found on this system!"
-                        }
+                    } elseif {[regexp {lz$} ${unarchive.type}]} {
+                        set gzip "lzma"
+                    } elseif {[regexp {xz$} ${unarchive.type}]} {
+                        set gzip "xz"
                     } else {
-                        set unarchive.args "${location}"
+                        set gzip "gzip"
+                    }
+                    if {[info exists macports::autoconf::${gzip}_path]} {
+                        set hint [set macports::autoconf::${gzip}_path]
+                    } else {
+                        set hint ""
+                    }
+                    if {[catch {set gzip [macports::findBinary $gzip $hint]} errmsg] == 0} {
+                        ui_debug "Using $gzip"
+                        set unarchive.pipe_cmd "$gzip -d -c ${location} |"
+                    } else {
+                        ui_debug $errmsg
+                        throw MACPORTS "No '$gzip' was found on this system!"
                     }
                 } else {
-                    ui_debug $errmsg
-                    throw MACPORTS "No '$tar' was found on this system!"
+                    set unarchive.args "${location}"
                 }
             }
             xar {
