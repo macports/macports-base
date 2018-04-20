@@ -4909,22 +4909,23 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         set num_broken_files [llength $broken_files]
         set s [expr {$num_broken_files == 1 ? "" : "s"}]
 
+        set broken_ports {}
         if {$num_broken_files == 0} {
             ui_msg "$macports::ui_prefix No broken files found."
-            return 0
-        }
-        ui_msg "$macports::ui_prefix Found $num_broken_files broken file${s}, matching files to ports"
-        set broken_ports {}
-        set broken_files [lsort -unique $broken_files]
-        foreach file $broken_files {
-            set port [registry::entry owner $file]
-            if {$port ne ""} {
-                lappend broken_ports $port
-                lappend broken_files_by_port($port) $file
-            } else {
-                ui_error "Broken file $file doesn't belong to any port."
+        } else {
+            ui_msg "$macports::ui_prefix Found $num_broken_files broken file${s}, matching files to ports"
+            set broken_files [lsort -unique $broken_files]
+            foreach file $broken_files {
+                set port [registry::entry owner $file]
+                if {$port ne ""} {
+                    lappend broken_ports $port
+                    lappend broken_files_by_port($port) $file
+                } else {
+                    ui_error "Broken file $file doesn't belong to any port."
+                }
             }
         }
+
         # check for mismatched cxx_stdlib
         if {${macports::cxx_stdlib} eq "libc++"} {
             set wrong_stdlib libstdc++
@@ -4936,6 +4937,11 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
             ui_info "[$cxx_port name] is using $wrong_stdlib (this installation is configured to use ${macports::cxx_stdlib})"
         }
         set broken_ports [lsort -unique [concat $broken_ports $broken_cxx_ports]]
+
+        if {[llength $broken_ports] == 0} {
+            ui_msg "$macports::ui_prefix No broken ports found."
+            return 0
+        }
 
         if {$macports::revupgrade_mode eq "rebuild"} {
             # don't try to rebuild ports that don't exist in the tree
