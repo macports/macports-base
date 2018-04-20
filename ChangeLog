@@ -24,7 +24,7 @@ Release 2.5.0 (????-??-?? by ?)
     - Apply HFS+ compression on activation when bsdtar is available and
       supports --hfsCompression. Used automatically when libarchive is
       installed.
-      (eborisch, raimue in 829557e2)
+      (#36560, eborisch, raimue in 829557e2)
 
     - Allow dots in variant names.
       (#46807, raimue in c3f08731)
