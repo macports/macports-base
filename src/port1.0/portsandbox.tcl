@@ -90,6 +90,11 @@ proc portsandbox::set_profile {target} {
 (regex #\"^/dev/fd/\")) (allow file-write* \
 (regex #\"^(/private)?(/var)?/tmp/\" #\"^(/private)?/var/folders/\" #\"^(/private)?/var/db/mds/\"))"
 
+    # allow access to ptys
+    append portsandbox_profile "\
+(allow file-write-data (regex #\"^/dev/ttys\") (literal \"/dev/ptmx\")) \
+(allow file-write-mode (regex #\"^/dev/ttys\"))"
+
     set perms [list file-write*]
     if {${os.major} >= 17} {
         lappend perms file-write-setugid
