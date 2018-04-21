@@ -306,5 +306,5 @@ puts "\nTotal number of ports parsed:\t$stats(total)\
       \nUp-to-date ports skipped:\t$stats(skipped)\n"
 
 if {${permit_error} && $stats(failed) > 0} {
-    exit 1
+    exit 2
 }
