@@ -1096,7 +1096,11 @@ match macports.conf.default."
     }
 
     if {![info exists macports::revupgrade_autorun]} {
-        set macports::revupgrade_autorun yes
+        if {$os_platform eq "darwin"} {
+            set macports::revupgrade_autorun yes
+        } else {
+            set macports::revupgrade_autorun no
+        }
     }
     if {![info exists macports::revupgrade_mode]} {
         set macports::revupgrade_mode rebuild
