@@ -2807,6 +2807,8 @@ proc mportsync {{optionslist {}}} {
                 set platindex "PortIndex_${macports::os_platform}_${macports::os_major}_${macports::os_arch}/PortIndex"
                 if {[file isfile ${destdir}/$platindex] && [file isfile ${destdir}/${platindex}.quick]} {
                     file rename -force ${destdir}/$platindex ${destdir}/${platindex}.quick $destdir
+                } else {
+                    set needs_portindex true
                 }
 
                 file delete $tarpath
