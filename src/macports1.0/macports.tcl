@@ -2380,7 +2380,7 @@ proc macports::getsourcepath {url} {
     set source_path [split $url ://]
 
     if {[_source_is_snapshot $url]} {
-        # daily snapshot tarball
+        # snapshot tarball
         return [file join $portdbpath sources [join [lrange $source_path 3 end-1] /] ports]
     }
 
@@ -2388,7 +2388,7 @@ proc macports::getsourcepath {url} {
 }
 
 ##
-# Checks whether a supplied source URL is for a daily snapshot tarball
+# Checks whether a supplied source URL is for a snapshot tarball
 # (private)
 #
 # @param url source URL to check
@@ -2747,7 +2747,7 @@ proc mportsync {{optionslist {}}} {
                     incr numfailed
                     continue
                 }
-                # sync a daily port snapshot tarball
+                # sync a port snapshot tarball
                 set indexfile [macports::getindex $source]
                 set destdir [file dirname $indexfile]
                 set tarpath [file join [file normalize [file join $destdir ..]] $filename]
@@ -2961,7 +2961,7 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                             https -
                             http -
                             ftp {
-                                # daily snapshot tarball
+                                # snapshot tarball
                                 set source_url file://[macports::getsourcepath $source]
                             }
                             default {
