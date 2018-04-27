@@ -29,6 +29,9 @@ Release 2.5.0 (????-??-?? by ?)
     - Allow dots in variant names.
       (#46807, raimue in c3f08731)
 
+    - Sandbox allows access to /dev/ptmx and /dev/ttys*
+      (ryandesign in 8765c142)
+
     - New option use_tar for ports that use uncompressed tar archives
       as distfile.
       (ryandesign in f10e0e37)
