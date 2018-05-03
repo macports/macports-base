@@ -86,7 +86,7 @@ code:
         make -C doc/ clean all \
             ASCIIDOC=/opt/local/bin/asciidoc \
             XSLTPROC=/opt/local/bin/xsltproc \
-            DOCBOOK_XSL=/opt/local/share/xsl/docbook-xsl/manpages/docbook.xsl
+            DOCBOOK_XSL=/opt/local/share/xsl/docbook-xsl-nons/manpages/docbook.xsl
 
 *   Make sure that these and any other changes or bug fixes are made on and/or
     merged between the release branch and master as needed. For instance, if

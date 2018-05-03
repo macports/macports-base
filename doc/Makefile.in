@@ -10,7 +10,7 @@ XSLTPROC=
 else
 ASCIIDOC=    $(wildcard ${prefix}/bin/asciidoc)
 XSLTPROC=    $(wildcard ${prefix}/bin/xsltproc)
-DOCBOOK_XSL= $(wildcard ${prefix}/share/xsl/docbook-xsl/manpages/docbook.xsl)
+DOCBOOK_XSL= $(wildcard ${prefix}/share/xsl/docbook-xsl-nons/manpages/docbook.xsl)
 endif
 
 ASCIIDOCFLAGS=	-f asciidoc.conf -a manversion=${MACPORTS_VERSION} -a revdate=${MACPORTS_VERSION}
@@ -171,12 +171,12 @@ ifneq ($(and $(ASCIIDOC),$(XSLTPROC),$(DOCBOOK_XSL)),)
 else
 man: ${MAN} ${MAN:%=%.gz}
 	@echo "* Warning: Using pre-generated man pages only."
-	@echo "* asciidoc, xsltproc (port libxslt) and docbook-xsl are required to generate man pages from source."
+	@echo "* asciidoc, xsltproc (port libxslt) and docbook-xsl-nons are required to generate man pages from source."
 
 %.xml %.html: | %.txt
 	@echo "* In order to modify and generate output from these source files,"
 	@echo "* please install the required tools into ${prefix} with"
-	@echo "*   sudo ${prefix}/bin/port install asciidoc libxslt docbook-xsl"
+	@echo "*   sudo ${prefix}/bin/port install asciidoc libxslt docbook-xsl-nons"
 	@echo "* or as an alternative, specify external paths for the tools"
 	@echo "*   make ASCIIDOC=.../bin/asciidoc XSLTPROC=../bin/xsltproc DOCBOOK_XSL=installed"
 	@exit 1
