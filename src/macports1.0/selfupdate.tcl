@@ -180,22 +180,17 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
                 append configure_args " --enable-readline"
             } else {
                 ui_warn "Disabling readline support due to readline in /usr/local"
+                append configure_args " --disable-readline"
             }
 
             if {$prefix eq "/usr/local" || $prefix eq "/usr"} {
                 append configure_args " --with-unsupported-prefix"
             }
 
-            # Choose a sane compiler
-            set cc_arg {}
-            if {$::macports::os_platform eq "darwin"} {
-                set cc_arg "CC=/usr/bin/cc "
-            }
-
             # do the actual configure, build and installation of new base
             ui_msg "Installing new MacPorts release in $prefix as ${owner}:${group}; permissions ${perms}\n"
             try {
-                system -W $mp_source_path "${cc_arg}./configure $configure_args && make SELFUPDATING=1 && make install SELFUPDATING=1"
+                system -W $mp_source_path "./standard_configure.sh $configure_args && make SELFUPDATING=1 && make install SELFUPDATING=1"
             } catch {{*} eCode eMessage} {
                 return -code error "Error installing new MacPorts base: $eMessage"
             }
