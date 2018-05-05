@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.4.4 (2018-??-?? by ?)
+Release 2.4.4 (2018-05-06 by jmr)
     - Use subversion port instead of /usr/bin/svn in fetch phase
       on OS X 10.11 El Capitan and earlier.
       (#55933, ryandesign in 8a3b73d263, c8fd1a3098, 62e07cae09)
@@ -20,6 +20,12 @@ Release 2.4.4 (2018-??-?? by ?)
 
     - Add 'size' to the set of default checksums.
       (ryandesign in 95a153e6)
+
+    - An error will be raised immediately if the revision or epoch options
+      are set to something that is not an integer. (#26486, jmr in 387cd8c)
+
+    - 'port mirror' will skip ports that have the special keyword 'NoMirror'
+      in their license option. (raimue in fae17c2)
 
 Release 2.4.3 (2018-04-11 by jmr)
     - Fix trace mode on macOS High Sierra 10.13.3
