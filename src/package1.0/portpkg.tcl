@@ -458,7 +458,7 @@ proc portpkg::write_distribution {dfile portname portversion portrevision} {
 # [1] https://developer.apple.com/library/mac/#documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html#//apple_ref/doc/uid/TP40009249-SW1
 # [2] https://developer.apple.com/library/mac/#documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html#//apple_ref/doc/uid/TP40009249-SW1
 # [3] https://groups.google.com/d/msg/munki-dev/-DCERUz6rrM/zMbY6iimIGwJ
-# [4] http://lists.macosforge.org/pipermail/macports-dev/2013-January/021477.html
+# [4] https://lists.macports.org/pipermail/macports-dev/2013-January/021477.html
 proc portpkg::mp_version_to_apple_version {portepoch portversion portrevision} {
     # Assume that portepoch and portrevision are non-negative integers
     # so they do not need to be specially handled like the upstream
