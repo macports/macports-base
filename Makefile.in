@@ -95,6 +95,8 @@ ifeq ($(DESTDIR),)
 # Convert image directories (and direct mode installs) to image archives
 	$(TCLSH) $(srcdir)/src/images_to_archives.tcl
 	$(TCLSH) $(srcdir)/src/dedup_portfiles.tcl
+# Set cxx_stdlib_overridden for known ports so they don't appear broken
+	$(TCLSH) $(srcdir)/src/cxx_stdlib_overridden.tcl
 endif
 ifndef SELFUPDATING
 	@echo ""; echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, add ${prefix}/bin to your PATH and run:"; echo ""

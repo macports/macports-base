@@ -439,6 +439,7 @@ AC_CONFIG_FILES([
 ])
 
 AC_CONFIG_FILES([vendor/tclsh], [chmod +x vendor/tclsh])
+AC_CONFIG_FILES([src/cxx_stdlib_overridden.tcl], [chmod +x src/cxx_stdlib_overridden.tcl])
 AC_CONFIG_FILES([src/dedup_portfiles.tcl], [chmod +x src/dedup_portfiles.tcl])
 AC_CONFIG_FILES([src/images_to_archives.tcl], [chmod +x src/images_to_archives.tcl])
 AC_CONFIG_FILES([src/pkg_mkindex.sh], [chmod +x src/pkg_mkindex.sh])

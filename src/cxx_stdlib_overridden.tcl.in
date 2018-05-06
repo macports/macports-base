@@ -1,0 +1,50 @@
+#!@TCLSH@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+
+# Tell the registry about some ports that are known to override
+# configure.cxx_stdlib, so rev-upgrade won't consider them broken after
+# upgrading from < 2.5.0.
+
+package require macports 1.0
+package require registry2 2.0
+
+mportinit
+
+if {${macports::os_platform} ne "darwin"} {
+    exit 0
+}
+
+if {[info exists macports::ui_options(progress_generic)]} {
+    macports::revupgrade_update_binary yes $macports::ui_options(progress_generic)
+} else {
+    macports::revupgrade_update_binary no
+}
+
+set known_ports [list arm-elf-gcc capnproto clang-3.7 clang-3.8 clang-3.9 \
+clang-4.0 clang-5.0 clang-6.0 clang-devel cmake cmake-devel dibbler duck \
+gcc5 gcc6 gcc7 gcc8 gcc43 gcc44 gcc45 gcc46 gcc47 gcc48 gcc49 geant4.10.2 \
+geant4.10.3 geant4.10.4 giza-pp gmp gromacs gromacs-plumed \
+i686-w64-mingw32-crt i686-w64-mingw32-winpthreads ld64-latest libgcc \
+libgcc-devel libgcc6 libgcc45 libxl lldb-4.0 lldb-5.0 lldb-6.0 lldb-devel \
+llvm-3.5 llvm-3.7 llvm-3.8 llvm-3.9 llvm-4.0 llvm-5.0 llvm-6.0 llvm-devel \
+mongodb root6 textmate2 tripwire x86_64-w64-mingw32-crt \
+x86_64-w64-mingw32-winpthreads xrootd]
+
+foreach portname $known_ports {
+    set entries [registry::entry search name $portname state installed cxx_stdlib -null]
+    if {[llength $entries] > 0} {
+        ui_msg "$macports::ui_prefix Setting C++ stdlib usage for $portname"
+        foreach entry $entries {
+            registry::write {
+                set binary_files {}
+                foreach filehandle [registry::file search id [$entry id] binary 1] {
+                    lappend binary_files [$filehandle actual_path]
+                }
+                $entry cxx_stdlib [macports::get_actual_cxx_stdlib $binary_files]
+                $entry cxx_stdlib_overridden 1
+            }
+        }
+    }
+}
+
+exit 0

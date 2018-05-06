@@ -21,7 +21,7 @@ distclean::
 	rm -f config.h
 	rm -f Makefile
 	rm -f pkg_mkindex.sh
-	rm -f dedup_portfiles.tcl images_to_archives.tcl upgrade_sources_conf_default.tcl
+	rm -f cxx_stdlib_overridden.tcl dedup_portfiles.tcl images_to_archives.tcl upgrade_sources_conf_default.tcl
 
 test::
 
