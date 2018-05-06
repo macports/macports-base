@@ -4596,31 +4596,17 @@ proc macports::revupgrade {opts} {
 }
 
 ##
-# Helper function for rev-upgrade. Do not consider this to be part of public
-# API. Use macports::revupgrade instead.
+# Helper function for rev-upgrade. Sets the 'binary' flag to the appropriate
+# value for files in the registry that don't have it set.
 #
-# @param broken_port_counts_name
-#        The name of a Tcl array that's being used to store the number of times
-#        a port has been rebuilt so far.
-# @param opts
-#        A serialized version of a Tcl array that contains options for
-#        MacPorts. Options used by this method are
-#        ports_rev-upgrade_id-loadcmd-check, a boolean indicating whether the
-#        ID loadcommand of binaries should also be checked during rev-upgrade
-#        and ports_dryrun, a boolean indicating whether no action should be
-#        taken.
-# @return 1 if ports were rebuilt and this function should be called again,
-#         0 otherwise.
-proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
-    upvar $broken_port_counts_name broken_port_counts
-    array set options $opts
-
+# @param fancy_output
+#        Boolean, whether to use a progress display callback
+# @param revupgrade_progress
+#        Progress display callback name
+proc macports::revupgrade_update_binary {fancy_output {revupgrade_progress ""}} {
     set files [registry::file search active 1 binary -null]
     set files_count [llength $files]
-    set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists macports::ui_options(progress_generic)]}]
-    if {$fancy_output} {
-        set revupgrade_progress $macports::ui_options(progress_generic)
-    }
+
     if {$files_count > 0} {
         registry::write {
             try {
@@ -4674,6 +4660,36 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
             $revupgrade_progress finish
         }
     }
+}
+
+##
+# Helper function for rev-upgrade. Do not consider this to be part of public
+# API. Use macports::revupgrade instead.
+#
+# @param broken_port_counts_name
+#        The name of a Tcl array that's being used to store the number of times
+#        a port has been rebuilt so far.
+# @param opts
+#        A serialized version of a Tcl array that contains options for
+#        MacPorts. Options used by this method are
+#        ports_rev-upgrade_id-loadcmd-check, a boolean indicating whether the
+#        ID loadcommand of binaries should also be checked during rev-upgrade
+#        and ports_dryrun, a boolean indicating whether no action should be
+#        taken.
+# @return 1 if ports were rebuilt and this function should be called again,
+#         0 otherwise.
+proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
+    upvar $broken_port_counts_name broken_port_counts
+    array set options $opts
+
+    set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists macports::ui_options(progress_generic)]}]
+    if {$fancy_output} {
+        set revupgrade_progress $macports::ui_options(progress_generic)
+    } else {
+        set revupgrade_progress ""
+    }
+
+    revupgrade_update_binary $fancy_output $revupgrade_progress
 
     set maybe_cxx_ports [registry::entry search state installed cxx_stdlib -null]
     set maybe_cxx_len [llength $maybe_cxx_ports]
