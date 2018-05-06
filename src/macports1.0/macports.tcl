@@ -5024,8 +5024,10 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
             ui_msg "$macports::ui_prefix Found $num_broken_ports broken port${s}:"
             foreach port $broken_ports {
                 ui_msg "     [$port name] @[$port version] [$port variants][$port negated_variants]"
-                foreach f $broken_files_by_port($port) {
-                    ui_msg "         $f"
+                if {[info exists broken_files_by_port($port)]} {
+                    foreach f $broken_files_by_port($port) {
+                        ui_msg "         $f"
+                    }
                 }
             }
             return 0
