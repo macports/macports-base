@@ -7951,6 +7951,16 @@ $as_echo "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
 	as_fn_append mp_sub_configure_args " $mp_arg"
 
 
+			mp_arg="CC=$CC"
+					case $mp_arg in
+		*\'*)
+			mp_arg=$($as_echo "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
+		;;
+	esac
+	mp_arg="'$mp_arg'"
+	as_fn_append mp_sub_configure_args " $mp_arg"
+
+
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: running $SHELL $ac_srcdir/configure $mp_sub_configure_args in $ac_dir" >&5
 $as_echo "$as_me: running $SHELL $ac_srcdir/configure $mp_sub_configure_args in $ac_dir" >&6;}
 			eval "\$SHELL \$ac_srcdir/configure $mp_sub_configure_args" || as_fn_error $? "configure failed for $ac_dir" "$LINENO" 5
@@ -8250,6 +8260,16 @@ $as_echo "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
 
 
 			mp_arg="--srcdir=$ac_srcdir"
+					case $mp_arg in
+		*\'*)
+			mp_arg=$($as_echo "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
+		;;
+	esac
+	mp_arg="'$mp_arg'"
+	as_fn_append mp_sub_configure_args " $mp_arg"
+
+
+			mp_arg="CC=$CC"
 					case $mp_arg in
 		*\'*)
 			mp_arg=$($as_echo "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
@@ -8562,6 +8582,16 @@ $as_echo "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
 	as_fn_append mp_sub_configure_args " $mp_arg"
 
 
+			mp_arg="CC=$CC"
+					case $mp_arg in
+		*\'*)
+			mp_arg=$($as_echo "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
+		;;
+	esac
+	mp_arg="'$mp_arg'"
+	as_fn_append mp_sub_configure_args " $mp_arg"
+
+
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: running $SHELL $ac_srcdir/configure $mp_sub_configure_args in $ac_dir" >&5
 $as_echo "$as_me: running $SHELL $ac_srcdir/configure $mp_sub_configure_args in $ac_dir" >&6;}
 			eval "\$SHELL \$ac_srcdir/configure $mp_sub_configure_args" || as_fn_error $? "configure failed for $ac_dir" "$LINENO" 5
@@ -8858,6 +8888,16 @@ $as_echo "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
 
 
 			mp_arg="--srcdir=$ac_srcdir"
+					case $mp_arg in
+		*\'*)
+			mp_arg=$($as_echo "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
+		;;
+	esac
+	mp_arg="'$mp_arg'"
+	as_fn_append mp_sub_configure_args " $mp_arg"
+
+
+			mp_arg="CC=$CC"
 					case $mp_arg in
 		*\'*)
 			mp_arg=$($as_echo "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
