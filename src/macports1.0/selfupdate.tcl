@@ -189,7 +189,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
             # Choose a sane compiler
             set cc_arg {}
             if {$::macports::os_platform eq "darwin"} {
-                set cc_arg "CC=/usr/bin/cc OBJC=/usr/bin/cc "
+                set cc_arg "CC=/usr/bin/cc "
             }
 
             # do the actual configure, build and installation of new base
