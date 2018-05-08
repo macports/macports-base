@@ -270,6 +270,9 @@ AC_DEFUN([MP_CONFIG_SUBDIR], [
 			mp_arg="--srcdir=$ac_srcdir"
 			_MP_LIST_APPEND_QUOTED([mp_sub_configure_args], [mp_arg])
 
+			mp_arg="CC=$CC"
+			_MP_LIST_APPEND_QUOTED([mp_sub_configure_args], [mp_arg])
+
 			AC_MSG_NOTICE([running $SHELL $ac_srcdir/configure $mp_sub_configure_args in $ac_dir])
 			eval "\$SHELL \$ac_srcdir/configure $mp_sub_configure_args" || AC_MSG_ERROR([configure failed for $ac_dir])
 		else
