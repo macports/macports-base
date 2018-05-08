@@ -98,7 +98,6 @@ AC_PROG_CC([clang cc gcc])
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_PROG_OBJC([clang cc gcc])
 
 # Check for user-supplied paths before searching
 
