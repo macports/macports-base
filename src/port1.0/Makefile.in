@@ -3,7 +3,7 @@ VPATH  = @srcdir@
 
 include ../../Mk/macports.autoconf.mk
 
-INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_PATH}/port1.0
+INSTALLDIR=	${TCL_PACKAGE_PATH}/port1.0
 
 SRCS_AUTOCONF= port_autoconf.tcl
 SRCS=	port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
@@ -31,14 +31,14 @@ distclean:: clean
 	rm -f Makefile
 
 install:: all
-	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${INSTALLDIR}"
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${INSTALLDIR}"
 	$(SILENT)set -x; for file in ${SRCS}; do \
-		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$(srcdir)/$$file" "${INSTALLDIR}"; \
+		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$(srcdir)/$$file" "${DESTDIR}${INSTALLDIR}"; \
 	done
 	$(SILENT)set -x; for file in ${SRCS_AUTOCONF}; do \
-		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$$file" "${INSTALLDIR}"; \
+		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$$file" "${DESTDIR}${INSTALLDIR}"; \
 	done
-	$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 pkgIndex.tcl "${INSTALLDIR}"
+	$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 pkgIndex.tcl "${DESTDIR}${INSTALLDIR}"
 
 test::
 	$(TCLSH) $(srcdir)/../tests/test.tcl -nocolor

@@ -3,7 +3,7 @@ VPATH  = @srcdir@
 
 include ../../Mk/macports.autoconf.mk
 
-INSTALLDIR=	${DESTDIR}${prefix}
+INSTALLDIR=	${prefix}
 TOPSRCDIR=	../..
 SCRIPTS=	portmirror portindex port
 
@@ -23,8 +23,8 @@ port: port.tcl ../../Mk/macports.autoconf.mk
 	${edit} $(srcdir)/port.tcl > $@
 
 mkdirs:
-	< ../../doc/prefix.mtree $(MTREE) -U -d -e -p ${INSTALLDIR} > /dev/null
-	< ../../doc/base.mtree $(MTREE) -U -d -e -p ${INSTALLDIR} > /dev/null
+	< ../../doc/prefix.mtree $(MTREE) -U -d -e -p "${DESTDIR}${INSTALLDIR}" > /dev/null
+	< ../../doc/base.mtree $(MTREE) -U -d -e -p "${DESTDIR}${INSTALLDIR}" > /dev/null
 
 clean:
 	rm -f ${SCRIPTS}
@@ -35,13 +35,13 @@ distclean: clean
 	rm -f Makefile
 
 install: all mkdirs
-	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${INSTALLDIR}/bin"
-	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${INSTALLDIR}/var/macports"
-	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 555 port portindex portmirror "${INSTALLDIR}/bin/"
-	cd "${INSTALLDIR}/bin" && $(LN_S) -f port portf
-	cd "${INSTALLDIR}/bin" && $(LN_S) -f "${TCLSH}" port-tclsh
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${INSTALLDIR}/bin"
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${INSTALLDIR}/var/macports"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 555 port portindex portmirror "${DESTDIR}${INSTALLDIR}/bin/"
+	cd "${DESTDIR}${INSTALLDIR}/bin" && $(LN_S) -f port portf
+	cd "${DESTDIR}${INSTALLDIR}/bin" && $(LN_S) -f "${TCLSH}" port-tclsh
 ifneq (,$(findstring darwin,@build_os@))
 ifneq (8,@OS_MAJOR@)
-	chmod -h 555 "${INSTALLDIR}/bin/portf" "${INSTALLDIR}/bin/port-tclsh"
+	chmod -h 555 "${DESTDIR}${INSTALLDIR}/bin/portf" "${DESTDIR}${INSTALLDIR}/bin/port-tclsh"
 endif
 endif

@@ -106,7 +106,7 @@ MANXML=		${MANTXT:.txt=.xml}
 MANHTML=	${MANTXT:.txt=.html} ${MANSOELIM:.soelim=.html}
 
 CONF=		archive_sites.conf macports.conf pubkeys.conf sources.conf variants.conf
-INSTALLDIR=	${DESTDIR}${prefix}
+INSTALLDIR=	${prefix}
 TOPSRCDIR=	..
 
 ifneq ($(MAKECMDGOALS),distclean)
@@ -183,16 +183,16 @@ man: ${MAN} ${MAN:%=%.gz}
 endif
 
 install: all
-	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${INSTALLDIR}"
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${INSTALLDIR}"
 	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${mpconfigdir}"
 
-	< prefix.mtree $(MTREE) -U -e -p "${INSTALLDIR}" > /dev/null
-	< base.mtree $(MTREE) -U -e -p "${INSTALLDIR}" > /dev/null
+	< prefix.mtree $(MTREE) -U -e -p "${DESTDIR}${INSTALLDIR}" > /dev/null
+	< base.mtree $(MTREE) -U -e -p "${DESTDIR}${INSTALLDIR}" > /dev/null
 ifneq (,$(findstring darwin,@build_os@))
 ifneq (8,@OS_MAJOR@)
 # Tiger's chmod doesn't accept -h
 # mtree with umask 0077 doesn't get the permissions of the symlink right
-	chmod -h 755 "${INSTALLDIR}/man"
+	chmod -h 755 "${DESTDIR}${INSTALLDIR}/man"
 endif
 endif
 
@@ -205,15 +205,15 @@ endif
 	done
 
 	# delete old uncompressed man pages if they exist
-	for m in ${MAN1}; do rm -f "${INSTALLDIR}/share/man/man1/$$m" ; done
-	for m in ${MAN5}; do rm -f "${INSTALLDIR}/share/man/man5/$$m" ; done
-	for m in ${MAN7}; do rm -f "${INSTALLDIR}/share/man/man7/$$m" ; done
+	for m in ${MAN1}; do rm -f "${DESTDIR}${INSTALLDIR}/share/man/man1/$$m" ; done
+	for m in ${MAN5}; do rm -f "${DESTDIR}${INSTALLDIR}/share/man/man5/$$m" ; done
+	for m in ${MAN7}; do rm -f "${DESTDIR}${INSTALLDIR}/share/man/man7/$$m" ; done
 
-	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${INSTALLDIR}/share/macports/install"
-	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 644 base.mtree "${INSTALLDIR}/share/macports/install/"
-	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 644 prefix.mtree "${INSTALLDIR}/share/macports/install/"
-	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 644 macosx.mtree "${INSTALLDIR}/share/macports/install/"
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${INSTALLDIR}/share/macports/install"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 644 base.mtree "${DESTDIR}${INSTALLDIR}/share/macports/install/"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 644 prefix.mtree "${DESTDIR}${INSTALLDIR}/share/macports/install/"
+	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 644 macosx.mtree "${DESTDIR}${INSTALLDIR}/share/macports/install/"
 
 	for page in ${MAN1} ${MAN5} ${MAN7}; do \
-		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$${page}.gz" "${INSTALLDIR}/share/man/man$$(echo $$page | sed -e 's/.*\.//')"; \
+		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$${page}.gz" "${DESTDIR}${INSTALLDIR}/share/man/man$$(echo $$page | sed -e 's/.*\.//')"; \
 	done
