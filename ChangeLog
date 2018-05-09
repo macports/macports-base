@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.5.0 (????-??-?? by ?)
+Release 2.5.0 (2018-??-?? by ?)
     - New pseudo-portname 'rleaves', matching installed ports that are
       unrequested and that no requested ports depend on.
       (danchr in b042c0e7)
@@ -44,6 +44,37 @@ Release 2.5.0 (????-??-?? by ?)
 
     - Add the ability to handle xz patch files
       (#52445, khindenburg in 5a142fd2)
+
+    - The cxx_stdlib and delete_la_files settings are taken into account when
+      determining which archive sites can be used. (#56053, jmr in cbbc31e)
+
+    - New options startupitem.debug and startupitem.daemondo.verbosity
+      (#22471, jmr in fd19a71)
+
+    - StartupItems installed by a port are unloaded when the port is
+      deactivated, and reloaded after it is upgraded.
+      (#23677, jmr in 738e5f5)
+
+    - The message about how to load a port's StartupItem is now part of the
+      notes, and will thus be displayed when ports are installed from a
+      binary archive, and can be reviewed later with 'port notes'.
+      (#31798, jmr in 6faf3f8)
+
+    - startupitem_autostart macports.conf setting allows autostart to be
+      disabled for all ports. (#40074, jmr in 85ffdc7)
+
+    - Ports can install more than one StartupItem using the 'startupitems'
+      option. (#44295, jmr in 99d5fb3)
+
+    - Having a different startupitem.install setting than was used when
+      a binary archive was built now works. (#44496, jmr in 3dde77d)
+
+    - 'port load' will now attempt to load launchd plists even if they have
+      not been installed in /Library. (#44497, jmr in ec4ae2d)
+
+    - StartupItems installed as LaunchAgents can be loaded for the current
+      user with 'port load'. Loading LaunchDaemons still requires root.
+      (jmr in 190bf96)
 
 Release 2.4.4 (2018-05-06 by jmr)
     - Use subversion port instead of /usr/bin/svn in fetch phase
