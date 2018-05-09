@@ -41,6 +41,9 @@ INSTALLDIR = $(TCL_PACKAGE_PATH)/darwintrace1.0
 CFLAGS_PEDANTIC =
 CFLAGS += -fPIC $(UNIVERSAL_ARCHFLAGS)
 SHLIB_LDFLAGS += $(UNIVERSAL_ARCHFLAGS)
+ifeq ($(shell uname),Darwin)
+SHLIB_LDFLAGS += -install_name $(INSTALLDIR)/$(SHLIB_NAME)
+endif
 
 # Generate dependency information
 %.d : %.c

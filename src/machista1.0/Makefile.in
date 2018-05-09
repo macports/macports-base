@@ -20,6 +20,9 @@ TESTS = ./tests/libmachista-test
 include $(srcdir)/../../Mk/macports.tea.mk
 
 CFLAGS+= -fPIC
+ifeq ($(shell uname),Darwin)
+SHLIB_LDFLAGS+= -install_name ${INSTALLDIR}/${SHLIB_NAME}
+endif
 
 ${SWIG_SRCS}:: ${SWIG_IFACE}
 ifdef SWIG
