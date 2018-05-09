@@ -34,7 +34,7 @@ CPPFLAGS+= -I$(srcdir)/../compat
 LIBS+= $(COMPAT_OBJS)
 
 SHLIB_NAME = darwintrace$(SHLIB_SUFFIX)
-INSTALLDIR = $(DESTDIR)$(TCL_PACKAGE_PATH)/darwintrace1.0
+INSTALLDIR = $(TCL_PACKAGE_PATH)/darwintrace1.0
 
 # Yes, we know having $ signs in identifiers is not a very good idea; in the
 # case of darwintrace we still need them, though.
@@ -70,8 +70,8 @@ distclean:: clean
 	rm -f Makefile
 
 install:: all
-	$(INSTALL) -d -o "$(DSTUSR)" -g "$(DSTGRP)" -m "$(DSTMODE)" "$(INSTALLDIR)"
-	$(INSTALL)    -o "$(DSTUSR)" -g "$(DSTGRP)" -m 444 "$(SHLIB_NAME)" "$(INSTALLDIR)"
+	$(INSTALL) -d -o "$(DSTUSR)" -g "$(DSTGRP)" -m "$(DSTMODE)" "$(DESTDIR)$(INSTALLDIR)"
+	$(INSTALL)    -o "$(DSTUSR)" -g "$(DSTGRP)" -m 444 "$(SHLIB_NAME)" "$(DESTDIR)$(INSTALLDIR)"
 
 test::
 

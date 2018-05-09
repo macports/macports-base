@@ -3,7 +3,7 @@ VPATH  = @srcdir@
 
 include ../../Mk/macports.autoconf.mk
 
-INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_PATH}/package1.0
+INSTALLDIR=	${TCL_PACKAGE_PATH}/package1.0
 
 SRCS=	package.tcl portdmg.tcl portmdmg.tcl portmpkg.tcl portpkg.tcl \
 	portunarchive.tcl \
@@ -25,8 +25,8 @@ test::
 	$(TCLSH) $(srcdir)/../tests/test.tcl -nocolor
 
 install:: all
-	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${INSTALLDIR}"
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${INSTALLDIR}"
 	$(SILENT)set -x; for file in ${SRCS}; do \
-		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$(srcdir)/$$file" "${INSTALLDIR}"; \
+		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$(srcdir)/$$file" "${DESTDIR}${INSTALLDIR}"; \
 	done
-	$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 pkgIndex.tcl "${INSTALLDIR}"
+	$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 pkgIndex.tcl "${DESTDIR}${INSTALLDIR}"
