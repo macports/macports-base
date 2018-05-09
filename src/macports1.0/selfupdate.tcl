@@ -145,7 +145,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
     set comp [vercmp $macports_version_new $macports::autoconf::macports_version]
 
     # syncing ports tree.
-    if {![info exists options(ports_selfupdate_nosync)] || !$options(ports_selfupdate_nosync)} {
+    if {![info exists options(ports_selfupdate_no-sync)] || !$options(ports_selfupdate_no-sync)} {
         if {$comp > 0} {
             # updated portfiles potentially need new base to parse - tell sync to try to
             # use prefabricated PortIndex files and signal if it couldn't
@@ -218,7 +218,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
         return -code error "Couldn't change permissions of the MacPorts sources at $mp_source_path to ${sources_owner}: $eMessage"
     }
 
-    if {![info exists options(ports_selfupdate_nosync)] || !$options(ports_selfupdate_nosync)} {
+    if {![info exists options(ports_selfupdate_no-sync)] || !$options(ports_selfupdate_no-sync)} {
         if {[info exists needed_portindex]} {
             ui_msg "Not all sources could be fully synced using the old version of MacPorts."
             ui_msg "Please run selfupdate again now that MacPorts base has been updated."

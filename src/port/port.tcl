@@ -2701,7 +2701,12 @@ proc action_selfupdate { action portlist opts } {
     if {[prefix_unwritable]} {
         return 1
     }
-    if { [catch {macports::selfupdate [array get global_options] base_updated} result ] } {
+    array set options [array get global_options]
+    if {[info exists options(ports_${action}_nosync)] && $options(ports_${action}_nosync) eq "yes"} {
+        ui_warn "port selfupdate --nosync is deprecated, use --no-sync instead"
+        set options(ports_${action}_no-sync) $options(ports_${action}_nosync)
+    }
+    if { [catch {macports::selfupdate [array get options] base_updated} result ] } {
         ui_debug $::errorInfo
         ui_error $result
         if {![macports::ui_isset ports_verbose]} {
@@ -4394,7 +4399,7 @@ array set cmd_opts_array {
                  depends description epoch exact glob homepage line
                  long_description maintainer maintainers name platform
                  platforms portdir regex revision variant variants version}
-    selfupdate  {nosync}
+    selfupdate  {no-sync nosync}
     space       {{units 1} total}
     activate    {no-exec}
     deactivate  {no-exec}
