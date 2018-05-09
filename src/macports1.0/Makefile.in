@@ -19,6 +19,10 @@ endif
 
 pkgIndex.tcl: $(SRCS)
 
+ifeq ($(shell uname),Darwin)
+SHLIB_LDFLAGS+= -install_name ${INSTALLDIR}/${SHLIB_NAME}
+endif
+
 test::
 	$(TCLSH) $(srcdir)/../tests/test.tcl -nocolor
 
