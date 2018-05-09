@@ -4670,6 +4670,44 @@ proc macports::revupgrade_update_binary {fancy_output {revupgrade_progress ""}} 
 }
 
 ##
+# Helper function for rev-upgrade. Sets the 'cxx_stdlib' flag to the
+# appropriate value for ports in the registry that don't have it set.
+#
+# @param fancy_output
+#        Boolean, whether to use a progress display callback
+# @param revupgrade_progress
+#        Progress display callback name
+proc macports::revupgrade_update_cxx_stdlib {fancy_output {revupgrade_progress ""}} {
+    set maybe_cxx_ports [registry::entry search state installed cxx_stdlib -null]
+    set maybe_cxx_len [llength $maybe_cxx_ports]
+    if {$maybe_cxx_len > 0} {
+        ui_msg "$macports::ui_prefix Updating database of C++ stdlib usage"
+        set i 1
+        if {$fancy_output} {
+            $revupgrade_progress start
+        }
+        foreach maybe_port $maybe_cxx_ports {
+            registry::write {
+                if {$fancy_output} {
+                    $revupgrade_progress update $i $maybe_cxx_len
+                }
+                incr i
+                set binary_files {}
+                foreach filehandle [registry::file search id [$maybe_port id] binary 1] {
+                    lappend binary_files [$filehandle actual_path]
+                }
+                $maybe_port cxx_stdlib [get_actual_cxx_stdlib $binary_files]
+                # can't tell after the fact, assume not overridden
+                $maybe_port cxx_stdlib_overridden 0
+            }
+        }
+        if {$fancy_output} {
+            $revupgrade_progress finish
+        }
+    }
+}
+
+##
 # Helper function for rev-upgrade. Do not consider this to be part of public
 # API. Use macports::revupgrade instead.
 #
@@ -4698,33 +4736,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
 
     revupgrade_update_binary $fancy_output $revupgrade_progress
 
-    set maybe_cxx_ports [registry::entry search state installed cxx_stdlib -null]
-    set maybe_cxx_len [llength $maybe_cxx_ports]
-    if {$maybe_cxx_len > 0} {
-        ui_msg "$macports::ui_prefix Updating database of C++ stdlib usage"
-        set i 1
-        if {$fancy_output} {
-            $revupgrade_progress start
-        }
-        foreach maybe_port $maybe_cxx_ports {
-            registry::write {
-                if {$fancy_output} {
-                    $revupgrade_progress update $i $maybe_cxx_len
-                }
-                incr i
-                set binary_files {}
-                foreach filehandle [registry::file search id [$maybe_port id] binary 1] {
-                    lappend binary_files [$filehandle actual_path]
-                }
-                $maybe_port cxx_stdlib [get_actual_cxx_stdlib $binary_files]
-                # can't tell after the fact, assume not overridden
-                $maybe_port cxx_stdlib_overridden 0
-            }
-        }
-        if {$fancy_output} {
-            $revupgrade_progress finish
-        }
-    }
+    revupgrade_update_cxx_stdlib $fancy_output $revupgrade_progress
 
     set broken_files {}
     set binaries [registry::file search active 1 binary 1]

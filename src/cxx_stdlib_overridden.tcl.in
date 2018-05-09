@@ -47,4 +47,11 @@ foreach portname $known_ports {
     }
 }
 
+# Update all other ports in case the user turned off revupgrade_autorun
+if {[info exists macports::ui_options(progress_generic)]} {
+    macports::revupgrade_update_cxx_stdlib yes $macports::ui_options(progress_generic)
+} else {
+    macports::revupgrade_update_cxx_stdlib no
+}
+
 exit 0
