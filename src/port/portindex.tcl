@@ -120,24 +120,28 @@ proc pindex {portdir} {
             set mtime [file mtime $portfile]
             if {$oldmtime >= $mtime} {
                 lassign [_read_index $qname] name len line
-                _write_index $name $len $line
-                incr stats(skipped)
-
-                if {[info exists ui_options(ports_debug)]} {
-                    puts "Reusing existing entry for $portdir"
-                }
-
-                # also reuse the entries for its subports
                 array set portinfo $line
-                if {![info exists portinfo(subports)]} {
+
+                # reuse entry if it was made from the same portdir
+                if {[info exists portinfo(portdir)] && $portinfo(portdir) eq $portdir} {
+                    _write_index $name $len $line
+                    incr stats(skipped)
+
+                    if {[info exists ui_options(ports_debug)]} {
+                        puts "Reusing existing entry for $portdir"
+                    }
+
+                    # also reuse the entries for its subports
+                    if {![info exists portinfo(subports)]} {
+                        return
+                    }
+                    foreach sub $portinfo(subports) {
+                        _write_index {*}[_read_index [string tolower $sub]]
+                        incr stats(skipped)
+                    }
+
                     return
                 }
-                foreach sub $portinfo(subports) {
-                    _write_index {*}[_read_index [string tolower $sub]]
-                    incr stats(skipped)
-                }
-
-                return
             }
         } catch {{*} eCode eMessage} {
             ui_warn "Failed to open old entry for ${portdir}, making a new one"
