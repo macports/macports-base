@@ -255,6 +255,10 @@ proc setup_trees {root} {
 
     set trees(sub1) "
         $root/a/c/a     {link ../d}
+        $root/a/c/a/a   file
+        $root/a/c/a/b   {link ../../b/a}
+        $root/a/c/a/c   directory
+        $root/a/c/a/d   file
     "
 
     set trees(sub2) "
