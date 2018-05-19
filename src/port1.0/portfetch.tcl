@@ -49,7 +49,7 @@ namespace eval portfetch {
 options master_sites patch_sites extract.suffix distfiles patchfiles use_tar \
     use_bzip2 use_lzma use_xz use_zip use_7z use_lzip use_dmg dist_subdir \
     fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
-    master_sites.mirror_subdir patch_sites.mirror_subdir \
+    fetch.user_agent master_sites.mirror_subdir patch_sites.mirror_subdir \
     bzr.url bzr.revision \
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
     svn.url svn.revision svn.method \
@@ -115,6 +115,7 @@ default fetch.use_epsv "yes"
 default fetch.ignore_sslcert "no"
 # Use remote timestamps
 default fetch.remote_time "no"
+default fetch.user_agent ""
 
 default global_mirror_site "macports_distfiles"
 default mirror_sites.listfile {"mirror_sites.tcl"}
@@ -510,7 +511,7 @@ proc portfetch::hgfetch {args} {
 proc portfetch::fetchfiles {args} {
     global distpath all_dist_files UI_PREFIX \
            fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time \
-           portverbose
+           fetch.user_agent portverbose
     variable fetch_urls
     variable urlmap
 
@@ -527,6 +528,10 @@ proc portfetch::fetchfiles {args} {
     }
     if {${fetch.remote_time} ne "no"} {
         lappend fetch_options "--remote-time"
+    }
+    if {${fetch.user_agent} ne ""} {
+        lappend fetch_options "--user-agent"
+        lappend fetch_options "${fetch.user_agent}"
     }
     if {$portverbose eq "yes"} {
         lappend fetch_options "--progress"
