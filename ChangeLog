@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.5.0 (2018-??-?? by ?)
+Release 2.5.0 (2018-05-28 by jmr)
     - New pseudo-portname 'rleaves', matching installed ports that are
       unrequested and that no requested ports depend on.
       (danchr in b042c0e7)
