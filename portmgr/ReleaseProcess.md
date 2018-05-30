@@ -257,7 +257,7 @@ merging the newly tagged release into it.
     $ git merge v2.0.0
     $ git push origin travis-ci
 
-Verify that the new release has been built successfully on
+Verify that the new release has been built and deployed successfully on
 [Travis CI](https://travis-ci.org/macports/macports-base/branches).
 
 
