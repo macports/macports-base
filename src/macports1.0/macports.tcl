@@ -4697,8 +4697,10 @@ proc macports::revupgrade_update_cxx_stdlib {fancy_output {revupgrade_progress "
                     lappend binary_files [$filehandle actual_path]
                 }
                 $maybe_port cxx_stdlib [get_actual_cxx_stdlib $binary_files]
-                # can't tell after the fact, assume not overridden
-                $maybe_port cxx_stdlib_overridden 0
+                if {[catch {$maybe_port cxx_stdlib_overridden}]} {
+                    # can't tell after the fact, assume not overridden
+                    $maybe_port cxx_stdlib_overridden 0
+                }
             }
         }
         if {$fancy_output} {

@@ -391,6 +391,10 @@ proc portinstall::install_main {args} {
         if {${portinstall::actual_cxx_stdlib} ne ""} {
             $regref cxx_stdlib ${portinstall::actual_cxx_stdlib}
             $regref cxx_stdlib_overridden ${portinstall::cxx_stdlib_overridden}
+        } else {
+            # no info in the archive
+            global configure.cxx_stdlib cxx_stdlib
+            $regref cxx_stdlib_overridden [expr {${configure.cxx_stdlib} ne $cxx_stdlib}]
         }
         # Trick to have a portable GMT-POSIX epoch-based time.
         $regref date [expr {[clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]}]
