@@ -99,8 +99,8 @@ proc portconfigure::stdlib_trace {opt action args} {
     return
 }
 proc portconfigure::configure_get_cxx_stdlib {} {
-    global cxx_stdlib configure.compiler
-    if {![string match macports-gcc-* ${configure.compiler}]} {
+    global cxx_stdlib configure.cxx
+    if {![string match *g++-mp-* ${configure.cxx}]} {
         return $cxx_stdlib
     } else {
         return macports-libstdc++
