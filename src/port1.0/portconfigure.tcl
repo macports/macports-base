@@ -56,7 +56,7 @@ options configure.cxx \
 
 default configure.cxx                   {[portconfigure::configure_get_compiler cxx]}
 default configure.cxx_archflags         {[portconfigure::configure_get_archflags cxx]}
-default configure.cxx_stdlib            {$cxx_stdlib}
+default configure.cxx_stdlib            {[portconfigure::configure_get_cxx_stdlib]}
 default configure.cxxflags \
         {[portconfigure::construct_cxxflags ${configure.optflags}]}
 default configure.objcxx                {[portconfigure::configure_get_compiler objcxx]}
@@ -97,6 +97,14 @@ proc portconfigure::stdlib_trace {opt action args} {
         $opt-append -stdlib=[option configure.cxx_stdlib]
     }
     return
+}
+proc portconfigure::configure_get_cxx_stdlib {} {
+    global cxx_stdlib configure.compiler
+    if {![string match macports-gcc-* ${configure.compiler}]} {
+        return $cxx_stdlib
+    } else {
+        return macports-libstdc++
+    }
 }
 
 # ********** END C++ / OBJECTIVE-C++ **********
