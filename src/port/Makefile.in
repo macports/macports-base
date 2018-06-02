@@ -38,8 +38,8 @@ install: all mkdirs
 	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${INSTALLDIR}/bin"
 	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${INSTALLDIR}/var/macports"
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 555 port portindex portmirror "${DESTDIR}${INSTALLDIR}/bin/"
-	cd "${DESTDIR}${INSTALLDIR}/bin" && $(LN_S) -f port portf
-	cd "${DESTDIR}${INSTALLDIR}/bin" && $(LN_S) -f "${TCLSH}" port-tclsh
+	$(LN_S) -f port "${DESTDIR}${INSTALLDIR}/bin/portf"
+	$(LN_S) -f "${TCLSH}" "${DESTDIR}${INSTALLDIR}/bin/port-tclsh"
 ifneq (,$(findstring darwin,@build_os@))
 ifneq (8,@OS_MAJOR@)
 	chmod -h 555 "${DESTDIR}${INSTALLDIR}/bin/portf" "${DESTDIR}${INSTALLDIR}/bin/port-tclsh"
