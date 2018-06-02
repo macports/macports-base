@@ -61,6 +61,8 @@ proc portdistfiles::distfiles_main {args} {
         return 0
     }
 
+    uplevel #0 upvar #0 ports_distfiles_no-mirrors ports_fetch_no-mirrors
+
     # from portfetch... process the sites, files and patches
     set fetch_urls {}
     portfetch::checkfiles fetch_urls
