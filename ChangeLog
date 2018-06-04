@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.5.1 (2018-??-?? by ?)
+Release 2.5.1 (2018-06-04 by jmr)
     - Set the default value of configure.cxx_stdlib to macports-libstdc++ when
       using macports-gcc-* compilers. (jmr in feaba00)
 
