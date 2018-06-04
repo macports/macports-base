@@ -523,7 +523,9 @@ proc portconfigure::configure_get_default_compiler {} {
 
 # internal function to choose compiler fallback list based on platform
 proc portconfigure::get_compiler_fallback {} {
-    global xcodeversion macosx_deployment_target default_compilers configure.sdkroot configure.cxx_stdlib os.major
+    global xcodeversion macosx_deployment_target default_compilers \
+           configure.sdkroot configure.cxx_stdlib cxx_stdlib os.major \
+           option_defaults
 
     # Check our override
     if {[info exists default_compilers]} {
@@ -581,7 +583,16 @@ proc portconfigure::get_compiler_fallback {} {
     }
 
     # Determine which versions of clang we prefer
-    if {${configure.cxx_stdlib} eq "libc++"} {
+    # There is a recursion trap here: the default value of configure.cxx_stdlib
+    # is determined by a proc that may end up calling us to find out which
+    # compiler is being used. So, bypass that if the option hasn't already
+    # been set to a particular value.
+    if {![info exists option_defaults(configure.cxx_stdlib)]} {
+        set our_stdlib ${configure.cxx_stdlib}
+    } else {
+        set our_stdlib $cxx_stdlib
+    }
+    if {$our_stdlib eq "libc++"} {
         # clang-3.5+ require libc++
         lappend compilers macports-clang-5.0 macports-clang-4.0
 
@@ -781,8 +792,7 @@ proc portconfigure::configure_main {args} {
            configure.perl configure.python configure.ruby configure.install configure.awk configure.bison \
            configure.pkg_config configure.pkg_config_path \
            configure.ccache configure.distcc configure.cpp configure.javac configure.sdkroot \
-           configure.march configure.mtune configure.cxx_stdlib \
-           os.platform os.major
+           configure.march configure.mtune os.platform os.major
     foreach tool {cc cxx objc objcxx f77 f90 fc ld} {
         global configure.${tool} configure.${tool}_archflags
     }
