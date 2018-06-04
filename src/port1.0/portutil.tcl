@@ -472,7 +472,7 @@ proc default {option val} {
     if {[info exists option_defaults($option)]} {
         ui_debug "Re-registering default for $option"
         # remove the old trace
-        trace vdelete $option rwu default_check
+        trace remove variable $option {read write unset} default_check
     } else {
         # If option is already set and we did not set it
         # do not reset the value
@@ -482,7 +482,7 @@ proc default {option val} {
     }
     set option_defaults($option) $val
     set $option $val
-    trace variable $option rwu default_check
+    trace add variable $option {read write unset} default_check
 }
 
 # default_check
@@ -491,19 +491,19 @@ proc default {option val} {
 proc default_check {optionName index op} {
     global option_defaults $optionName
     switch $op {
-        w {
+        write {
             unset option_defaults($optionName)
-            trace vdelete $optionName rwu default_check
+            trace remove variable $optionName {read write unset} default_check
             return
         }
-        r {
+        read {
             upvar $optionName option
             uplevel #0 set $optionName $option_defaults($optionName)
             return
         }
-        u {
+        unset {
             unset option_defaults($optionName)
-            trace vdelete $optionName rwu default_check
+            trace remove variable $optionName {read write unset} default_check
             return
         }
     }
