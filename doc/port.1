@@ -526,7 +526,7 @@ Honor state files even if the Portfile was modified\&. This flag is called \-o b
 .PP
 \-t
 .RS 4
-Enable trace mode debug facilities on platforms that support it, currently only Mac OS X\&.
+Enable trace mode debug facilities on platforms that support it, currently only macOS\&.
 
 This feature is two\-folded\&. It consists in automatically detecting and reporting undeclared dependencies based on what files the port reads or what programs the port executes\&. In verbose mode, it will also report unused dependencies for each stage of the port installation\&. It also consists in forbidding and reporting file creation and file writes outside allowed directories (temporary directories and ${workpath})\&.
 .RE
@@ -1258,26 +1258,26 @@ There are also actions for producing installable packages of ports:
 .PP
 pkg
 .RS 4
-Creates an OS X installer package of
+Creates a macOS installer package of
 \fIportname\fR\&.
 .RE
 .PP
 mpkg
 .RS 4
-Creates an OS X installer metapackage of
+Creates a macOS installer metapackage of
 \fIportname\fR
 and its dependencies\&.
 .RE
 .PP
 dmg
 .RS 4
-Creates an internet\-enabled disk image containing an OS X package of
+Creates an Internet\-enabled disk image containing a macOS package of
 \fIportname\fR\&.
 .RE
 .PP
 mdmg
 .RS 4
-Creates an internet\-enabled disk image containing an OS X metapackage of
+Creates an Internet\-enabled disk image containing a macOS metapackage of
 \fIportname\fR
 and its dependencies\&.
 .RE

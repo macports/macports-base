@@ -208,7 +208,7 @@ Declares which platforms are supported by the port.
 .Dl platforms darwin
 .It Ic supported_archs
 The CPU architectures for which this port can be built. Archs currently
-supported by Mac OS X are: i386, ppc, ppc64, x86_64. If this option is not set,
+supported by macOS are: i386, ppc, ppc64, x86_64. If this option is not set,
 it is assumed that the port can build for all archs. If a port does not install
 any architecture-specific files, use the special value noarch.
 .br
@@ -632,7 +632,7 @@ Group for MacPorts installation (e.g.
 .Sy Type:
 .Em read-only
 .It Ic applications_dir
-Absolute path to the final location to install Mac OS X application
+Absolute path to the final location to install macOS application
 bundles (.app directories).
 .br
 .Sy Type:
@@ -641,7 +641,7 @@ bundles (.app directories).
 .Sy Default:
 .Em /Applications/MacPorts
 .It Ic frameworks_dir
-Absolute path to the final location to install Mac OS X framework
+Absolute path to the final location to install macOS framework
 bundles (.framework directories).
 .br
 .Sy Type:
@@ -1276,7 +1276,7 @@ use the vanilla compiler suites installed via MacPorts.
 .Sy Example:
 .Dl configure.compiler llvm-gcc-4.2
 .It Ic configure.sdk_version
-Mac OS X SDK version to build against.
+macOS SDK version to build against.
 .br 
 .Sy Type:
 .Em optional
@@ -1492,7 +1492,7 @@ Test target to pass to
 .El
 .Sh STARTUPITEM OPTIONS
 If a port needs to run on system startup, it can use MacPorts
-startupitem keywords to install native OS X startup scripts.
+startupitem keywords to install native macOS startup scripts.
 Startup scripts require user interaction after port installation
 to activate them and instructions are given during port installs.
 .Bl -tag -width lc
@@ -1827,7 +1827,7 @@ value lists which variants are enabled by default.
 .Sy Example:
 .Dl default_variants +ssl +tcpd
 .It Ic universal_variant
-When using MacPorts on Mac OS X, a universal variant is defined and
+When using MacPorts on macOS, a universal variant is defined and
 the default behavior is to configure ports with universal flags
 (see the
 .Ic UNIVERSAL TARGET HOOKS

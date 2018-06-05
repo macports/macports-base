@@ -1,7 +1,7 @@
 /*
  * entry.c
  *
- * Copyright (c) 2010-2011, 2014, 2017 The MacPorts Project
+ * Copyright (c) 2010-2011, 2014, 2017-2018 The MacPorts Project
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
 #include <config.h>
 #endif
 
-/* required for asprintf(3) on OS X */
+/* required for asprintf(3) on macOS */
 #define _DARWIN_C_SOURCE
 /* required for asprintf(3) on Linux */
 #define _GNU_SOURCE

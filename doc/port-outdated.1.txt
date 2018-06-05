@@ -23,7 +23,7 @@ could be
  - due to an epoch increase (used in situations where the version number
    decreased, but the port still is newer than the previous one), or
  - due to an OS upgrade. MacPorts will consider ports built on a previous
-   version of OS X outdated.
+   version of macOS outdated.
     
 The ports listed in *port outdated* are the ports that will be upgraded when you
 run

@@ -27,11 +27,11 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-These commands create OS X-native binary archives of a given port. Depending on
+These commands create macOS-native binary archives of a given port. Depending on
 the command, one of a .dmg disk image file, a .pkg, or .mpkg installer package
 is created.
 
-*port pkg* creates an OS X installer package that installs all files that belong
+*port pkg* creates a macOS installer package that installs all files that belong
 to a given port. *port dmg* wraps this installer package in a disk image. In
 most cases you probably want to package a port and all its library and runtime
 dependencies in a single package suitable for binary distribution. *port pkg*

@@ -1,8 +1,8 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portmain.tcl
 #
-# Copyright (c) 2004 - 2005, 2007 - 2012 The MacPorts Project
-# Copyright (c) 2002 - 2003 Apple Inc.
+# Copyright (c) 2004-2005, 2007-2018 The MacPorts Project
+# Copyright (c) 2002-2003 Apple Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -138,7 +138,7 @@ ui_debug "OS [option os.platform]/[option os.version] ${macosx_version_text}arch
 default universal_variant {${use_configure}}
 
 if {[option os.platform] eq "darwin" && [option os.subplatform] eq "macosx"} {
-    # we're on Mac OS X and can therefore build universal
+    # we're on macOS and can therefore build universal
     default os.universal_supported yes
 } else {
     default os.universal_supported no

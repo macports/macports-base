@@ -1,8 +1,8 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portpkg.tcl
 #
-# Copyright (c) 2005, 2007 - 2013, 2016 The MacPorts Project
-# Copyright (c) 2002 - 2003 Apple Inc.
+# Copyright (c) 2005, 2007-2014, 2016-2018 The MacPorts Project
+# Copyright (c) 2002-2003 Apple Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -351,7 +351,7 @@ proc portpkg::write_welcome_html {filename portname portversion portrevision lon
     <title>Install ${portname}</title>
 </head>
 <body>
-<font face=\"Helvetica\"><b>Welcome to the ${portname} for Mac OS X Installer</b></font>
+<font face=\"Helvetica\"><b>Welcome to the ${portname} for macOS Installer</b></font>
 <p>
 <font face=\"Helvetica\">${long_description}</font>
 <p>"
@@ -360,7 +360,7 @@ proc portpkg::write_welcome_html {filename portname portversion portrevision lon
         puts $fd "<font face=\"Helvetica\"><a href=\"${homepage}\">${homepage}</a></font><p>"
     }
 
-    puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portversion}${portrevision_str} for Mac OS X. To get started, click Continue.</font>
+    puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portversion}${portrevision_str} for macOS. To get started, click Continue.</font>
 </body>
 </html>"
 

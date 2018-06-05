@@ -19,8 +19,8 @@ DESCRIPTION
 command line. Variants allow users to select certain features when installing
 a certain port. For example, the +gtk3+ port provides two conflicting variants
 '+quartz' and '+x11' that select whether Gtk uses the X11 backend (which
-requires an X server) or the OS X-native Quartz backend (which attempts to
-provide a more native OS X look and feel). In addition, many ports feature an
+requires an X server) or the macOS-native Quartz backend (which attempts to
+provide a more native macOS look and feel). In addition, many ports feature an
 '+universal' variant that enables building of universal (i.e. multi-arch)
 binaries.
 
@@ -53,7 +53,7 @@ variants. The +gtk3+ port can serve as a good example:
 ----
 $> port variants gtk3 -universal
 gtk3 has the variants:
-(+)quartz: Support for native Mac OS X graphics
+(+)quartz: Enable native macOS graphics support
      * conflicts with x11
   -universal: Build for multiple architectures
 [+]x11: Enable X11 support

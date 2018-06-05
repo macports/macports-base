@@ -2746,8 +2746,8 @@ fi
 
 
 if test "x$SW_VERS" != "x"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking Mac OS X version" >&5
-$as_echo_n "checking Mac OS X version... " >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking macOS version" >&5
+$as_echo_n "checking macOS version... " >&6; }
   MACOSX_VERSION=`$SW_VERS -productVersion`
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $MACOSX_VERSION" >&5
 $as_echo "$MACOSX_VERSION" >&6; }

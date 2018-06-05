@@ -22,7 +22,7 @@ AC_PATH_PROG(DEFAULTS, defaults)
 AC_PATH_PROG(XCODE_SELECT, xcode-select)
 
 if test "x$SW_VERS" != "x"; then
-  AC_MSG_CHECKING(Mac OS X version)
+  AC_MSG_CHECKING(macOS version)
   MACOSX_VERSION=`$SW_VERS -productVersion`
   AC_MSG_RESULT([$MACOSX_VERSION])
 fi

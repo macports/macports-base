@@ -26,7 +26,7 @@ section for an explanation of the active/inactive state.
 include::global-flags.txt[]
 
 *-v*::
-    Print the platform at install time (i.e., your OS X version) and the
+    Print the platform at install time (i.e., your macOS version) and the
     architecture(s) of the installed port.
 
 *-q*::
