@@ -2,6 +2,10 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.5.2 (2018-06-05 by jmr)
+    - Fixed expression used to check for g++-mp-* when choosing default
+      configure.cx_stdlib (#56605, jmr in 3e430f1)
+
 Release 2.5.1 (2018-06-04 by jmr)
     - Set the default value of configure.cxx_stdlib to macports-libstdc++ when
       using macports-gcc-* compilers. (jmr in feaba00)
