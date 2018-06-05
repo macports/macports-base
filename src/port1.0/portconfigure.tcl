@@ -78,7 +78,7 @@ proc portconfigure::should_add_stdlib {} {
 }
 proc portconfigure::should_add_cxx_abi {} {
     set is_oldos [expr {[option os.platform] eq "darwin" && [option os.major] < 10}]
-    set is_mp_gcc [string match *g++-mp-* [option configure.cxx]]
+    set is_mp_gcc [regexp {(^|/)g\+\+-mp-.*} [option configure.cxx]]
     return [expr {$is_oldos && $is_mp_gcc}]
 }
 proc portconfigure::construct_cxxflags {flags} {
@@ -100,7 +100,7 @@ proc portconfigure::stdlib_trace {opt action args} {
 }
 proc portconfigure::configure_get_cxx_stdlib {} {
     global cxx_stdlib configure.cxx
-    if {![string match *g++-mp-* ${configure.cxx}]} {
+    if {![regexp {(^|/)g\+\+-mp-.*} ${configure.cxx}]} {
         return $cxx_stdlib
     } else {
         return macports-libstdc++
