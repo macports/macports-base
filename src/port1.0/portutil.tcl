@@ -3257,10 +3257,10 @@ proc _check_xcode_version {} {
                 ui_warn "You downloaded Xcode from the Mac App Store but didn't install it. Run \"Install Xcode\" in the /Applications folder."
             }
         } elseif {[vercmp $xcodeversion $min] < 0} {
-            ui_error "The installed version of Xcode (${xcodeversion}) is too old to use on the installed OS version. Version $rec or later is recommended on Mac OS X ${macosx_version}."
+            ui_error "The installed version of Xcode (${xcodeversion}) is too old to use on the installed OS version. Version $rec or later is recommended on macOS ${macosx_version}."
             return 1
         } elseif {[vercmp $xcodeversion $ok] < 0} {
-            ui_warn "The installed version of Xcode (${xcodeversion}) is known to cause problems. Version $rec or later is recommended on Mac OS X ${macosx_version}."
+            ui_warn "The installed version of Xcode (${xcodeversion}) is known to cause problems. Version $rec or later is recommended on macOS ${macosx_version}."
         }
 
         # Xcode 4.3 and above requires the command-line utilities package to be installed. 
