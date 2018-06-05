@@ -8,7 +8,7 @@
 function InstallationCheck () {
     if (system.compareVersions(system.version.ProductVersion, "__XVERS__") < 0
         || system.compareVersions(system.version.ProductVersion, "__NEXT_XVERS__") >= 0) {
-        my.result.message = "This package is meant to be installed on Mac OS X __XVERS__.";
+        my.result.message = "This package is meant to be installed on macOS __XVERS__.";
         my.result.type = 'Fatal';
         return false;
     }
