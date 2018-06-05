@@ -23,7 +23,7 @@ proc xcode_binpath {} {
 }
 
 test envvariables {
-    Regression test for XCode version.
+    Regression test for Xcode version.
 } -constraints {
     darwin
 } -body {
@@ -31,7 +31,7 @@ test envvariables {
 } -result "xcodeversion >= 2.1"
 
 test xcode_path {
-    Regression test for XCode path.
+    Regression test for Xcode path.
 } -constraints {
     darwin
 } -body {

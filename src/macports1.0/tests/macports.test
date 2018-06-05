@@ -387,7 +387,7 @@ test getoption {
 
 
 test setxcodeinfo {
-    Set XCode info unit test.
+    Set Xcode info unit test.
 } -constraints {
     root
 } -setup {
@@ -399,8 +399,8 @@ test setxcodeinfo {
     if {![info exists macports::xcodeversion]} {
        return "FAIL: xcodeversion unset"
     }
-    return "Set XCode version successful."
-} -result "Set XCode version successful."
+    return "Set Xcode version successful."
+} -result "Set Xcode version successful."
 
 
 test set_developer_dir {
