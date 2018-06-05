@@ -2,7 +2,7 @@
  * -*- coding: utf-8; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=c:et:sw=4:ts=4:sts=4:tw=100
  * libmachista.c
  *
- * Copyright (c) 2011 The MacPorts Project
+ * Copyright (c) 2011-2012, 2014, 2016-2018 The MacPorts Project
  * Copyright (c) 2011 Landon Fuller <landonf@macports.org>
  * Copyright (c) 2011 Clemens Lang <cal@macports.org>
  * All rights reserved.
@@ -33,7 +33,7 @@
 #include <config.h>
 #endif
 
-/* required for asprintf(3) on OS X */
+/* required for asprintf(3) on macOS */
 #define _DARWIN_C_SOURCE
 /* required for asprintf(3) on Linux */
 #define _GNU_SOURCE

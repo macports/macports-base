@@ -10,7 +10,7 @@
 #include <config.h>
 #endif
 
-/* required for strdup(3) on Linux and OS X */
+/* required for strdup(3) on Linux and macOS */
 #define _XOPEN_SOURCE 600L
 
 #include <stdio.h>

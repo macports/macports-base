@@ -33,7 +33,7 @@ for Xcode-based software. A minimum Portfile using the *xcode PortGroup* class
 only defines the fetch and the checksum phases.
 
 Using *PortGroup xcode* is a way to make your port more robust to Xcode version
-updates as the PortGroup is tested against all supported Mac OS X and Xcode
+updates as the PortGroup is tested against all supported macOS and Xcode
 versions.
 
 XCODE PORTGROUP SUGAR

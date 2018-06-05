@@ -1,7 +1,7 @@
 /*
  * mktemp.c
  *
- * Copyright (c) 2009 The MacPorts Project
+ * Copyright (c) 2009, 2014, 2016-2018 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 
 #ifndef __APPLE__
 /* required for strdup(3)/mkdtemp(3) on Linux */
-/* hides mkdtemp(3) on OS X */
+/* hides mkdtemp(3) on macOS */
 #define _XOPEN_SOURCE 700L
 /* required for mktemp(3) if _XOPEN_SOURCE >= 600L on Linux */
 #define _BSD_SOURCE

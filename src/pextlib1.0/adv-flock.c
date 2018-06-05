@@ -1,7 +1,7 @@
 /*
  * adv-flock.c
  *
- * Copyright (c) 2009 The MacPorts Project
+ * Copyright (c) 2009, 2014-2018 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 
 #ifndef __APPLE__
 /* needed to get struct sigaction on some platforms, but
-  hides flock on OS X */
+  hides flock on macOS */
 #define _XOPEN_SOURCE 500L
 #endif
 

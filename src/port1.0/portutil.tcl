@@ -3,7 +3,7 @@
 # Copyright (c) 2002-2003 Apple Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2006-2007 Markus W. Weissmann <mww@macports.org>
-# Copyright (c) 2004-2017 The MacPorts Project
+# Copyright (c) 2004-2018 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -2538,7 +2538,7 @@ proc PortGroup {group version} {
 proc get_portimage_name {} {
     global subport version revision portvariants os.platform os.major portarchivetype
     set ret "${subport}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"
-    # should really look up NAME_MAX here, but it's 255 for all OS X so far
+    # should really look up NAME_MAX here, but it's 255 for all macOS so far
     # (leave 10 chars for an extension like .rmd160 on the sig file)
     if {[string length $ret] > 245 && ${portvariants} ne ""} {
         # try hashing the variants

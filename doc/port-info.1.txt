@@ -88,7 +88,7 @@ The rest of the options affect which fields will be given in the output:
 
 *--platform*, *--platforms*::
     List the platforms supported by a port. This field exists for historical
-    reasons only. In modern MacPorts, this is always 'darwin', i.e., OS X.
+    reasons only. In modern MacPorts, this is always 'darwin', i.e., macOS.
 
 *--portdir*::
     Print the path to a port's directory relative to the port tree root.

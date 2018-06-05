@@ -1,10 +1,10 @@
 /*
  * Pextlib.c
  *
- * Copyright (c) 2002 - 2003 Apple Inc.
- * Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
+ * Copyright (c) 2002-2003 Apple Inc.
+ * Copyright (c) 2004-2005 Paul Guyot <pguyot@kallisys.net>
  * Copyright (c) 2004 Landon Fuller <landonf@macports.org>
- * Copyright (c) 2007 - 2017 The MacPorts Project
+ * Copyright (c) 2007-2018 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@
 /* required for vasprintf(3) on Linux */
 #define _GNU_SOURCE
 #endif
-/* required for clearenv(3)/setenv(3)/unsetenv(3) on OS X */
+/* required for clearenv(3)/setenv(3)/unsetenv(3) on macOS */
 #define _DARWIN_C_SOURCE
 
 #include <sys/resource.h>
@@ -268,7 +268,7 @@ int ExistsgroupCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 }
 
 /* Find the first unused UID > 500
-   UIDs > 500 are visible on the login screen of OS X,
+   UIDs > 500 are visible on the macOS login screen,
    but UIDs < 500 are reserved by Apple */
 int NextuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, Tcl_Obj *CONST objv[] UNUSED)
 {

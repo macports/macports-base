@@ -11,7 +11,7 @@ SQLEXT_OBJS = sqlext.o vercomp.o
 
 include ../../Mk/macports.autoconf.mk
 
-# required for strdup(3) on Linux and OS X
+# required for strdup(3) on Linux and macOS
 CPPFLAGS+=-D_XOPEN_SOURCE=600
 
 all:: ${STLIB_NAME} ${SQLEXT_NAME}

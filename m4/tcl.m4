@@ -733,7 +733,7 @@ AC_DEFUN(SC_CONFIG_MANPAGES, [
 #  TK_SHLIB_LD_EXTRAS   for the build of Tcl and Tk, but not recorded in the
 #                       tclConfig.sh, since they are only used for the build
 #                       of Tcl and Tk. 
-#                       Examples: MacOS X records the library version and
+#                       Examples: macOS records the library version and
 #                       compatibility version in the shared library.  But
 #                       of course the Tcl version of this is only used for Tcl.
 #       LIB_SUFFIX -    Specifies everything that comes after the "libfoo"

@@ -130,7 +130,7 @@
 
 #include "strsed.h"
 
-/* required for strdup(3) on Linux and OS X */
+/* required for strdup(3) on Linux and macOS */
 #define _XOPEN_SOURCE 600L
 /* we're using this on raw strings, no escape sequences allowed */
 #define ESCAPED_STRING

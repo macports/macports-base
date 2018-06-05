@@ -127,7 +127,7 @@ universal_archs     	@UNIVERSAL_ARCHS@
 
 # Type of generated StartupItems.
 # - launchd: Create StartupItems for use with launchd.
-# - default: Create StartupItems for launchd on OS X and none on
+# - default: Create StartupItems for launchd on macOS and none on
 #   other platforms.
 # - none: Disable creation of StartupItems.
 # This setting only applies when building ports from source.

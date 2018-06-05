@@ -178,7 +178,7 @@ The port command recognizes several global flags and options.
 
 -t::
     Enable trace mode debug facilities on platforms that support it, currently
-    only Mac OS X.
+    only macOS.
     +
     This feature is two-folded. It consists in automatically detecting and
     reporting undeclared dependencies based on what files the port reads or what
@@ -650,17 +650,17 @@ PACKAGING ACTIONS
 There are also actions for producing installable packages of ports:
 
 pkg::
-    Creates an OS X installer package of 'portname'.
+    Creates a macOS installer package of 'portname'.
 
 mpkg::
-    Creates an OS X installer metapackage of 'portname' and its dependencies.
+    Creates a macOS installer metapackage of 'portname' and its dependencies.
 
 dmg::
-    Creates an internet-enabled disk image containing an OS X package of
+    Creates an Internet-enabled disk image containing a macOS package of
     'portname'.
 
 mdmg::
-    Creates an internet-enabled disk image containing an OS X metapackage of
+    Creates an Internet-enabled disk image containing a macOS metapackage of
     'portname' and its dependencies.
 
 

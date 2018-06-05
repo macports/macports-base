@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2005 Apple Inc. All rights reserved.
  * Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
+ * Copyright (c) 2006-2018 The MacPorts Project
  * All rights reserved.
- * Copyright (c) 2006-2015 The MacPorts Project
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  *
@@ -210,7 +210,7 @@ static inline int check_interpreter(const char *restrict path) {
 	char buffer[MAXPATHLEN + 1 + 2];
 	ssize_t bytes_read;
 
-	/* Read the file for the interpreter. Fortunately, on OS X:
+	/* Read the file for the interpreter. Fortunately, on macOS:
 	 *   The system guarantees to read the number of bytes requested if
 	 *   the descriptor references a normal file that has that many
 	 *   bytes left before the end-of-file, but in no other case.
