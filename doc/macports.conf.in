@@ -58,13 +58,13 @@ variants_conf       	@MPCONFIGDIR_EXPANDED@/variants.conf
 
 # CPU architecture to target. Supported values are "ppc", "ppc64",
 # "i386", and "x86_64". Defaults to:
-# - OS X 10.5 and earlier: "ppc" on PowerPC, otherwise "i386".
-# - OS X 10.6 and later: "x86_64" on Intel 64, otherwise "i386".
+# - Mac OS X 10.5 and earlier: "ppc" on PowerPC, otherwise "i386".
+# - Mac OS X 10.6 and later: "x86_64" on 64-bit Intel, otherwise "i386".
 #build_arch          	i386
 
 # Space-delimited list of CPU architectures to target when building
-# universal. Defaults to "i386 ppc" on OS X 10.5 and earlier and
-# "x86_64 i386" on OS X 10.6 and later.
+# universal. Defaults to "i386 ppc" on Mac OS X 10.5 and earlier and
+# "x86_64 i386" on Mac OS X 10.6 and later.
 universal_archs     	@UNIVERSAL_ARCHS@
 
 # Use ccache, a compiler cache for C, C++, Objective-C, and
@@ -158,7 +158,7 @@ universal_archs     	@UNIVERSAL_ARCHS@
 # - COLUMNS, LINES
 # Variables listed in extra_env are added to this list. This has no
 # default value; setting it is intended for advanced users and is
-# unsupported. (Note that sudo(8) sanitizes its environment on OS X 10.5
+# unsupported. (Note that sudo(8) sanitizes its environment on Mac OS X 10.5
 # and later, so it may have to be configured to pass the desired
 # variables to MacPorts.)
 #extra_env           	KEEP_THIS THIS_TOO
@@ -169,7 +169,7 @@ universal_archs     	@UNIVERSAL_ARCHS@
 # "yes", MacPorts uses proxy_*, then Network Preferences, then the
 # environment. (Note that Network Preferences does not have a setting
 # for rsync proxies. Also note that sudo(8) sanitizes its environment on
-# OS X 10.5 and later, so it may have to be configured to pass desired
+# Mac OS X 10.5 and later, so it may have to be configured to pass desired
 # variables to MacPorts.)
 #proxy_override_env  	no
 

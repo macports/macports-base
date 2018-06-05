@@ -19,9 +19,9 @@ wiki:Migration[] instructions.
 
 Since MacPorts picks up a number of paths at configure-time and uses them later
 on, changes in the operating system can break a MacPorts installation. For
-example, this happened when Apple removed ``/usr/bin/gnutar'' from OS X with the
-release of Mavericks. Since MacPorts keeps the path to its tar command in
-a file, this change required rebuilding MacPorts.
+example, this happened when Apple removed ``/usr/bin/gnutar'' with the release
+of OS X Mavericks. Since MacPorts keeps the path to its tar command in a file,
+this change required rebuilding MacPorts.
 
 
 include::global-flags.txt[]
