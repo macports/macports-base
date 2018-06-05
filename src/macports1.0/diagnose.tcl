@@ -1,11 +1,11 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # diagnose.tcl
 #
-# Copyright (c) 2002 - 2003 Apple Inc.
-# Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
-# Copyright (c) 2004 - 2006 Ole Guldberg Jensen <olegb@opendarwin.org>.
-# Copyright (c) 2004 - 2005 Robert Shaw <rshaw@opendarwin.org>
-# Copyright (c) 2004 - 2014 The MacPorts Project
+# Copyright (c) 2002-2003 Apple Inc.
+# Copyright (c) 2004-2005 Paul Guyot, <pguyot@kallisys.net>.
+# Copyright (c) 2004-2006 Ole Guldberg Jensen <olegb@opendarwin.org>.
+# Copyright (c) 2004-2005 Robert Shaw <rshaw@opendarwin.org>
+# Copyright (c) 2004-2014, 2016-2018 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -492,7 +492,7 @@ namespace eval diagnose {
         #           None
 
         if {${macports::macosx_version} eq "10.6"} {
-            output "X11.app on OS X 10.6 systems"
+            output "X11.app on Mac OS X 10.6 systems"
 
             if {[file exists /Applications/X11.app]} {
                 ui_error "it seems you have Mac OS X 10.6 installed, and are using X11 from \"X11.app\". This has been known to cause issues. \

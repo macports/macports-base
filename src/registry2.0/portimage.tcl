@@ -1,7 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # portimage.tcl
 #
-# Copyright (c) 2004-2005, 2007-2011, 2014 The MacPorts Project
+# Copyright (c) 2004-2005, 2007-2018 The MacPorts Project
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2002 Apple Inc.
 # All rights reserved.
@@ -700,7 +700,7 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
             # match and activate will say that some file exists but doesn't
             # belong to any port.
             # The custom realpath proc is necessary because file normalize
-            # does not resolve symlinks on OS X < 10.6
+            # does not resolve symlinks on Mac OS X < 10.6
             set directory [realpath [::file dirname $file]]
             lappend files [::file join $directory [::file tail $file]]
 

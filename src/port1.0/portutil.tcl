@@ -2306,7 +2306,7 @@ proc adduser {name args} {
         try {
             exec -ignorestderr $dscl . -create /Users/${name} UniqueID ${uid}
 
-            # These are implicitly added on Mac OSX Lion.  AuthenticationAuthority
+            # These are implicitly added on Mac OS X Lion.  AuthenticationAuthority
             # causes the user to be visible in the Users & Groups Preference Pane,
             # and the others are just noise, so delete them.
             # https://trac.macports.org/ticket/30168

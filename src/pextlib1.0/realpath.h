@@ -1,7 +1,7 @@
 /*
  * realpath.h
  *
- * Copyright (c) 2009 The MacPorts Project.
+ * Copyright (c) 2009-2010, 2016, 2018 The MacPorts Project.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@
  * realpath path
  *	Normalize path like file normalize does.
  *  Fixes a problem with Tcl installations affected by not defining HAVE_REALPATH (this is
- *	the case with the Tcl in OS X shipped prior to 10.6)
+ *  the case with the Tcl in Mac OS X prior to 10.6)
  */
 int RealpathCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 
