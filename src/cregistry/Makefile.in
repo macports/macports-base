@@ -32,6 +32,6 @@ clean::
 distclean:: clean
 	rm -f Makefile
 
-test:
+test: all
 
 install:: all
