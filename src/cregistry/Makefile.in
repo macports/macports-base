@@ -14,6 +14,9 @@ include ../../Mk/macports.autoconf.mk
 # required for strdup(3) on Linux and macOS
 CPPFLAGS+=-D_XOPEN_SOURCE=600
 
+CFLAGS+= ${SQLITE3_CFLAGS}
+LIBS+= ${SQLITE3_LIBS}
+
 all:: ${STLIB_NAME} ${SQLEXT_NAME}
 
 .c.o:
