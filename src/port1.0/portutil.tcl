@@ -3245,10 +3245,15 @@ proc _check_xcode_version {} {
                 set ok 9.0
                 set rec 9.3
             }
+            10.14 {
+                set min 10.0
+                set ok 10.0
+                set rec 10.0
+            }
             default {
-                set min 9.0
-                set ok 9.0
-                set rec 9.3
+                set min 10.0
+                set ok 10.0
+                set rec 10.0
             }
         }
         if {$xcodeversion eq "none"} {
