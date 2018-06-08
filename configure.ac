@@ -40,7 +40,7 @@ case "$MACOSX_VERSION" in
     AC_MSG_WARN([This version of OS X is out of date])
     AC_MSG_WARN([Please use the Mac App Store to update it])
     ;;
-  10.12.[[0-5]])
+  10.12.[[0-5]]|10.13.[[0-4]])
     AC_MSG_WARN([This version of macOS is out of date])
     AC_MSG_WARN([Please use the Mac App Store to update it])
     ;;
