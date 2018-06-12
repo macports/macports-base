@@ -1062,7 +1062,9 @@ match macports.conf.default."
             set macports::universal_archs {i386 ppc}
         }
     } elseif {[llength $macports::universal_archs] < 2} {
-        ui_warn "invalid universal_archs configured (should contain at least 2 archs)"
+        if {$os_major < 18} {
+            ui_warn "invalid universal_archs configured (should contain at least 2 archs)"
+        }
     }
 
     # Default arch to build for
