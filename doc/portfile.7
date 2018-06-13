@@ -1514,7 +1514,7 @@ Choose whether or not to generate a startup item.
 Select the type of startupitem to generate. By default, a startupitem
 will be generated that is of the appropriate type for the OS.
 For macOS this is always launchd.
-A global default may be specified with the startupitem_type preference in ports.conf.
+A global default may be specified with the startupitem_type preference in macports.conf.
 .br
 .Sy Type:
 .Em optional
@@ -1523,9 +1523,9 @@ A global default may be specified with the startupitem_type preference in ports.
 .Em default
 .br
 .Sy Values:
-.Em launchd default
+.Em launchd default none
 .br
-.Sy Example
+.Sy Example:
 .Dl startupitem.type launchd
 .It Ic startupitem.name
 Displayed name of the startup item.
@@ -1535,6 +1535,34 @@ Displayed name of the startup item.
 .br
 .Sy Example:
 .Dl startupitem.name OpenSSH
+.It Ic startupitem.autostart
+Whether to automatically load the StartupItem after activating the port.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em no
+.br
+.Sy Values:
+.Em yes|no
+.br
+.Sy Example:
+.Dl startupitem.autostart yes
+.It Ic startupitem.debug
+Enable additional debug logging.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em no
+.br
+.Sy Values:
+.Em yes|no
+.br
+.Sy Example:
+.Dl startupitem.debug yes
 .It Ic startupitem.executable
 The name of the daemon to be run in the background. This is
 the preferred type of startup item rather than any of
@@ -1564,6 +1592,38 @@ startupitem.start, startupitem.stop and startupitem.restart.
 .br
 .Sy Example:
 .Dl startupitem.init FOO=start
+.It Ic startupitem.install
+Whether to install a link to the StartupItem in the appropriate
+subdirectory of /Library.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em yes
+.br
+.Sy Values:
+.Em yes|no
+.br
+.Sy Example:
+.Dl startupitem.install no
+.It Ic startupitem.location
+Chooses the subdirectory in which to install the StartupItem. Also
+affects how it will be loaded: LaunchDaemons must be loaded as root,
+and only one instance will run for the whole system. LaunchAgents are
+loaded as a normal user, and one instance per user can run.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em LaunchDaemons
+.br
+.Sy Values:
+.Em LaunchDaemons|LaunchAgents
+.br
+.Sy Example:
+.Dl startupitem.location LaunchAgents
 .It Ic startupitem.start
 Shell code executed to start the daemon.
 .br
@@ -1667,6 +1727,33 @@ machine's network state is detected.
 .br
 .Sy Example:
 .Dl startupitem.netchange yes
+.It Ic startupitems
+Used when a port needs to install more than one StartupItem, this
+option consists of a list where alternating elements represent keys
+and values. Each key corresponds to one of the startupitem.* options,
+and the following value is associated with it. Each StartupItem
+defined in the list must specify at least a name. Each other key/value
+pair is associated with the StartupItem named most recently in the
+list. Any keys that are not defined for a given StartupItem will use
+the value of the corresponding startupitem.* option.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none (empty)
+.br
+.Sy Values:
+.Em List of keys and values
+.br
+.Sy Example:
+.Dl
+startupitems        name        myport-system \\
+                    location    LaunchDaemons \\
+                    executable  ${prefix}/sbin/myportd \\
+                    name        myport-session \\
+                    location    LaunchAgents \\
+                    executable  ${prefix}/bin/myport-agent
 .El
 .Sh DISTCHECK AND LIVECHECK OPTIONS
 MacPorts can automatically check if the software has been updated
