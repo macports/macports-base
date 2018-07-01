@@ -2,6 +2,17 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.5.3 (2018-?-? by ?)
+    - Fixed failures due to insufficient privileges on older OS versions.
+      (#56721, jmr in 4b36e60)
+
+    - Fixed 'port reclaim' failing when installed ports have circular
+      dependencies. (#56730, jmr in f4affba)
+
+    - Fixed 'port provides' on Tiger. (#56620, jmr in 6ba4c34)
+
+    - Fixed os.platform value set by portindex -p. (jmr in e45ab90)
+
 Release 2.5.2 (2018-06-05 by jmr)
     - Fixed expression used to check for g++-mp-* when choosing default
       configure.cx_stdlib (#56605, jmr in 3e430f1)
