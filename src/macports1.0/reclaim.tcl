@@ -511,23 +511,28 @@ namespace eval reclaim {
 
         ui_msg "$macports::ui_prefix Checking for unnecessary unrequested ports"
 
-        array set ports {}
-
         foreach port [sort_portlist_by_dependendents [registry::entry imaged]] {
-            set isrequested([$port name]) [registry::property_retrieve $port requested]
-            set ports([$port name]) $port
-            if {$isrequested([$port name]) == 0} {
+            set portname [$port name]
+            if {![info exists isrequested($portname)] || $isrequested($portname) == 0} {
+                set isrequested($portname) [$port requested]
+            }
+            if {$isrequested($portname) == 0} {
                 foreach dependent [$port dependents] {
-                    if {$isrequested([$dependent name]) != 0} {
-                        ui_debug "[$port name] is requested by [$dependent name]"
-                        set isrequested([$port name]) 1
+                    set dname [$dependent name]
+                    if {![info exists isrequested($dname)]} {
+                        ui_debug "$portname appears to have a circular dependency involving $dname"
+                        set isrequested($portname) 1
+                        break
+                    } elseif {$isrequested($dname) != 0} {
+                        ui_debug "$portname is requested by $dname"
+                        set isrequested($portname) 1
                         break
                     }
                 }
 
-                if {$isrequested([$port name]) == 0} {
+                if {$isrequested($portname) == 0} {
                     lappend unnecessary_ports $port
-                    lappend unnecessary_names [$port name]
+                    lappend unnecessary_names "$portname @[$port version]_[$port revision][$port variants]"
                     incr unnecessary_count
                 }
             }
