@@ -4,7 +4,7 @@ SHELL			= @SHELL@
 
 CC			= @CC@
 CFLAGS			= @CFLAGS@ -std=c99 $(CFLAGS_QUICHEEATERS) $(CFLAGS_PEDANTIC) $(CFLAGS_WERROR)
-CPPFLAGS		= @CPPFLAGS@ @DEFS@ -I@abs_top_builddir@/src -I@abs_top_srcdir@/src -I. -I@abs_top_builddir@/@VENDOR_DESTROOT@/@TCL_PREFIX@/include
+CPPFLAGS		= @CPPFLAGS@ @DEFS@ -I@abs_top_builddir@/src -I@abs_top_srcdir@/src -I. -I@abs_top_builddir@/@VENDOR_DESTROOT@@TCL_PREFIX@/include
 CFLAGS_QUICHEEATERS	= @CFLAGS_QUICHEEATERS@
 CFLAGS_PEDANTIC		= @CFLAGS_PEDANTIC@
 CFLAGS_WERROR		= @CFLAGS_WERROR@
