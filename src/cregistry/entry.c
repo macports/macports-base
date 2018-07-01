@@ -534,7 +534,11 @@ int reg_entry_owner(reg_registry* reg, char* path, int cs, reg_entry** entry,
     char *query = NULL;
 
     asprintf(&query, "SELECT id FROM registry.files WHERE (actual_path = ? %s) AND active",
+#if SQLITE_VERSION_NUMBER >= 3003013
              cs ? "" : "COLLATE NOCASE");
+#else
+             "");
+#endif
 
     if (!query) {
         return 0;
@@ -592,7 +596,11 @@ sqlite_int64 reg_entry_owner_id(reg_registry* reg, char* path, int cs) {
     char *query = NULL;
 
     asprintf(&query, "SELECT id FROM registry.files WHERE (actual_path = ? %s) AND active",
+#if SQLITE_VERSION_NUMBER >= 3003013
              cs ? "" : "COLLATE NOCASE");
+#else
+             "");
+#endif
 
     if (!query) {
         return 0;
