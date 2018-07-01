@@ -2998,12 +2998,12 @@ proc validate_macportsuser {} {
 # run code as a specified user
 proc exec_as_uid {uid code} {
     global macportsuser
-    set elevated 0
-    if {[geteuid] != $uid} {
-        elevateToRoot "exec_as_uid"
-        if {$uid == 0} {
-            set elevated 1
-        } else {
+    set oldeuid [geteuid]
+    if {$oldeuid != $uid} {
+        if {$oldeuid != 0} {
+            elevateToRoot "exec_as_uid"
+        }
+        if {$uid != 0} {
             setegid [uname_to_gid [uid_to_name $uid]]
             seteuid $uid
             ui_debug "dropping privileges: euid changed to [geteuid], egid changed to [getegid]."
@@ -3015,14 +3015,15 @@ proc exec_as_uid {uid code} {
         set retcode error
     }
 
-    if {!$elevated && [getuid] == 0 && [geteuid] != [name_to_uid $macportsuser]} {
-        # have to change to $macportsuser via root
-        elevateToRoot "exec_as_uid"
-        set elevated 1
+    if {$oldeuid != $uid} {
+        if {$uid != 0} {
+            elevateToRoot "exec_as_uid"
+        }
+        if {$oldeuid != 0} {
+            dropPrivileges
+        }
     }
-    if {$elevated} {
-        dropPrivileges
-    }
+
     return -code $retcode $result
 }
 
