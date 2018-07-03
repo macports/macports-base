@@ -513,8 +513,12 @@ proc portstartupitem::loaded {} {
             if {![catch {exec -ignorestderr $launchctl_path print ${domain}/${si_uniquename} >&/dev/null}]} {
                 lappend ret $si_name
             }
+        } elseif {${os.major} >= 9} {
+            if {![catch {exec_as_uid $uid {system "$launchctl_path list ${si_uniquename} > /dev/null"}}]} {
+                lappend ret $si_name
+            }
         } else {
-            if {![catch {exec_as_uid $uid {system "$launchctl_path list ${si_uniquename}"}}]} {
+            if {![catch {exec_as_uid $uid {system "$launchctl_path list | grep -F ${si_uniquename} > /dev/null"}}]} {
                 lappend ret $si_name
             }
         }
