@@ -267,6 +267,7 @@ int ReadlineCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 		add line
 		read filename
 		write filename
+		append filename
 		stifle max
 		unstifle
 */
@@ -277,6 +278,7 @@ int RLHistoryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl
 	char* s = NULL;
 	int i = 0;
 	Tcl_Obj *tcl_result;
+	FILE *hist_file;
 #endif
 
 	if (objc < 2) {
@@ -309,6 +311,16 @@ int RLHistoryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl
 		}
 		s = Tcl_GetString(objv[2]);
 		write_history(s);
+	}  else if (0 == strcmp("append", action)) {
+		if (objc != 3) {
+			Tcl_WrongNumArgs(interp, 1, objv, "append filename");
+			return TCL_ERROR;
+		}
+		s = Tcl_GetString(objv[2]);
+
+		hist_file = fopen(s, "a");
+		fprintf(hist_file, "%s\n", current_history()->line);
+		fclose(hist_file);
 	} else if (0 == strcmp("stifle", action)) {
 		if (objc != 3) {
 			Tcl_WrongNumArgs(interp, 1, objv, "stifle maxlines");
