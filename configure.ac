@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ(2.63)
+AC_PREREQ([2.63])
 AC_DEFUN([MACPORTS_VERSION_MACRO], [esyscmd(<config/macports_version tr -d '\n')])
-AC_INIT([MacPorts],MACPORTS_VERSION_MACRO,[macports-dev@lists.macports.org],[macports])
+AC_INIT([MacPorts],[MACPORTS_VERSION_MACRO],[macports-dev@lists.macports.org],[macports])
 AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
 
