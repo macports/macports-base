@@ -192,7 +192,7 @@ namespace eval reclaim {
 
             foreach file [concat $distfiles $patchfiles] {
                 # split distfile into filename and disttag
-                set distfile [$workername eval "getdistname $file"]
+                set distfile [$workername eval [list getdistname $file]]
                 set root_path [file join $root_dist $dist_subdir $distfile]
                 set home_path [file join $home_dist $dist_subdir $distfile]
 
