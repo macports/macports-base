@@ -100,7 +100,6 @@ typedef enum _copy_needed_return_t {
  *    SUID or SGID.
  *
  * @param path The absolute path of the binary to be executed
- * @param argc The number of arguments passed in \a argv
  * @param argv The arguments to be passed to the file to be executed
  * @param outargv Pointer to a modified array of arguments. Only valid if \c
  *                copy_is_needed is returned. May be \c NULL, in which case no

@@ -243,7 +243,7 @@ static pid_t peerpid_list_get(int sock, const char **progname) {
  * Walk the current list of (socket, peer PID) pairs and call a callback
  * function for each pair.
  *
- * @param func Callback function to call for each tuple of socket, peer PID and
+ * @param callback Callback function to call for each tuple of socket, peer PID and
  *             peer command line. The function should take an integer (the
  *             socket), a pid_t (the peer's PID) and a const char * (the peer's
  *             command line) and return a boolean (true, if the element should
