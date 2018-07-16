@@ -208,7 +208,9 @@ namespace eval porttrace {
         }
 
         # Allow access to SDK if it's not inside the Developer folder.
-        allow trace_sandbox "${configure.sdkroot}"
+        if {${configure.sdkroot} ne ""} {
+            allow trace_sandbox "${configure.sdkroot}"
+        }
 
         # Allow access to some Xcode specifics
         allow trace_sandbox "/var/db/xcode_select_link"
