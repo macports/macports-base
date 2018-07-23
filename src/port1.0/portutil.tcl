@@ -3281,8 +3281,7 @@ proc _check_xcode_version {} {
             }
 
             # Check whether /usr/include and /usr/bin/make exist and tell users to install the command line tools, if they don't
-            if {   ![file isdirectory [file join $cltpath usr include]]
-                || ![file executable  [file join $cltpath usr bin make]]} {
+            if {[vercmp $xcodeversion 9.3] < 0 && (![file isdirectory [file join $cltpath usr include]] || ![file executable  [file join $cltpath usr bin make]])} {
                 ui_warn "System headers do not appear to be installed. Most ports should build correctly, but if you experience problems due to a port depending on system headers, please file a ticket at https://trac.macports.org."
                 if {[vercmp $macosx_version 10.9] >= 0} {
                     ui_warn "You can install them as part of the Xcode Command Line Tools package by running `xcode-select --install'."
