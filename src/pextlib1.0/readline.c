@@ -11,7 +11,7 @@
 #endif
 
 /* required for strdup(3) on Linux and macOS */
-#define _XOPEN_SOURCE 600L
+#define _BSD_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,6 +23,10 @@
 
 #ifdef HAVE_READLINE_HISTORY_H
 #include <readline/history.h>
+#endif
+
+#if HAVE_SYS_FILE_H
+#include <sys/file.h>
 #endif
 
 #include <tcl.h>
@@ -317,9 +321,12 @@ int RLHistoryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl
 			return TCL_ERROR;
 		}
 		s = Tcl_GetString(objv[2]);
-
 		hist_file = fopen(s, "a");
+
+		flock(fileno(hist_file), LOCK_EX);
 		fprintf(hist_file, "%s\n", current_history()->line);
+		flock(fileno(hist_file), LOCK_UN);
+
 		fclose(hist_file);
 	} else if (0 == strcmp("stifle", action)) {
 		if (objc != 3) {
