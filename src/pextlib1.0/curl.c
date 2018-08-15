@@ -178,6 +178,9 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		};
 		char* effectiveURL = NULL;
 		char* userAgent = PACKAGE_NAME "/" PACKAGE_VERSION " libcurl/" LIBCURL_VERSION;
+		const int MAXHTTPHEADERS = 100;
+		int numHTTPHeaders = 0;
+		const char* httpHeaders[MAXHTTPHEADERS];
 		int optioncrsr;
 		int lastoption;
 		const char* theURL;
@@ -236,6 +239,26 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				} else {
 					Tcl_SetResult(interp,
 						"curl fetch: --user-agent option requires a parameter",
+						TCL_STATIC);
+					theResult = TCL_ERROR;
+					break;
+				}
+			} else if (strcmp(theOption, "--append-http-header") == 0) {
+				/* check we also have the parameter */
+				if (optioncrsr < lastoption) {
+					optioncrsr++;
+					if ( numHTTPHeaders < MAXHTTPHEADERS ) {
+					  httpHeaders[numHTTPHeaders++] = Tcl_GetString(objv[optioncrsr]);
+					} else {
+					  Tcl_SetResult(interp,
+					    "curl fetch: Too many --append-http-header options",
+					    TCL_STATIC);
+					  theResult = TCL_ERROR;
+					  break;
+					}
+				} else {
+					Tcl_SetResult(interp,
+						"curl fetch: --append-http-header option requires a parameter",
 						TCL_STATIC);
 					theResult = TCL_ERROR;
 					break;
@@ -466,6 +489,10 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 
 		/* Clear the Pragma: no-cache header */
 		headers = curl_slist_append(headers, "Pragma:");
+		/* Append any optional headers */
+ 		for ( int iH = 0; iH < numHTTPHeaders; ++iH ) {
+		  headers = curl_slist_append(headers, httpHeaders[iH]);
+		}
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_HTTPHEADER, headers);
 		if (theCurlCode != CURLE_OK) {
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
