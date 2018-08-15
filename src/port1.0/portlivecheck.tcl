@@ -45,7 +45,7 @@ namespace eval portlivecheck {
 }
 
 # define options
-options livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version livecheck.ignore_sslcert
+options livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version livecheck.ignore_sslcert livecheck.curloptions
 
 # defaults
 default livecheck.url {$homepage}
@@ -56,10 +56,12 @@ default livecheck.name default
 default livecheck.distname default
 default livecheck.version {$version}
 default livecheck.ignore_sslcert no
+default livecheck.curloptions {{ "--append-http-header" "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" }}
 
 proc portlivecheck::livecheck_main {args} {
     global livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version \
            livecheck.ignore_sslcert \
+           livecheck.curloptions \
            homepage portpath workpath \
            master_sites name subport distfiles
 
@@ -75,7 +77,7 @@ proc portlivecheck::livecheck_main {args} {
 
     ui_debug "Port (livecheck) version is ${livecheck.version}"
 
-    set curl_options {}
+    set curl_options ${livecheck.curloptions}
     if {[tbool livecheck.ignore_sslcert]} {
         lappend curl_options "--ignore-ssl-cert"
     }
@@ -144,6 +146,7 @@ proc portlivecheck::livecheck_main {args} {
         "regexm" {
             # single and multiline regex
             ui_debug "Fetching ${livecheck.url}"
+            ui_debug "Using CURL options ${curl_options}"
             set updated -1
             if {[catch {curl fetch {*}$curl_options ${livecheck.url} $tempfile} error]} {
                 ui_error "cannot check if $subport was updated ($error)"
