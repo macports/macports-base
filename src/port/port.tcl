@@ -4802,7 +4802,7 @@ proc attempt_completion { text word start end } {
 }
 
 
-proc get_next_cmdline { in out use_readline prompt linename } {
+proc get_next_cmdline { in out use_readline prompt linename history_file } {
     upvar $linename line
 
     set line ""
@@ -4828,7 +4828,19 @@ proc get_next_cmdline { in out use_readline prompt linename } {
         set line [string trim $line]
 
         if { $use_readline && $line ne "" } {
+            # Create macports user directory if it does not exist yet
+            if {![file isdirectory $macports::macports_user_dir]} {
+                file mkdir $macports::macports_user_dir
+
+                # Also write the history file if this is the case (this sets
+                # the cookie at the top of the file and perhaps other things)
+                rl_history write $history_file
+            }
+
+            # Add history item to memory...
             rl_history add $line
+            # ... and then append that item to the history file
+            rl_history append $history_file
         }
     }
 
@@ -4870,7 +4882,7 @@ proc process_command_file { in } {
         }
 
         # Get a command line
-        if { [get_next_cmdline $in stdout $use_readline $prompt line] <= 0  } {
+        if { [get_next_cmdline $in stdout $use_readline $prompt line $history_file] <= 0  } {
             puts ""
             break
         }
@@ -4883,15 +4895,6 @@ proc process_command_file { in } {
             set exit_status 0
             break
         }
-    }
-
-    # Create macports user directory if it does not exist yet
-    if {$use_readline && ![file isdirectory $macports::macports_user_dir]} {
-        file mkdir $macports::macports_user_dir
-    }
-    # Save readine history
-    if {$use_readline && [file isdirectory $macports::macports_user_dir]} {
-        rl_history write $history_file
     }
 
     # Say goodbye

@@ -11,11 +11,12 @@
 #endif
 
 /* required for strdup(3) on Linux and macOS */
-#define _XOPEN_SOURCE 600L
+#define _BSD_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #ifdef HAVE_READLINE_READLINE_H
 #include <readline/readline.h>
@@ -23,6 +24,10 @@
 
 #ifdef HAVE_READLINE_HISTORY_H
 #include <readline/history.h>
+#endif
+
+#if HAVE_SYS_FILE_H
+#include <sys/file.h>
 #endif
 
 #include <tcl.h>
@@ -267,6 +272,7 @@ int ReadlineCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 		add line
 		read filename
 		write filename
+		append filename
 		stifle max
 		unstifle
 */
@@ -277,6 +283,7 @@ int RLHistoryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl
 	char* s = NULL;
 	int i = 0;
 	Tcl_Obj *tcl_result;
+	FILE *hist_file;
 #endif
 
 	if (objc < 2) {
@@ -309,6 +316,37 @@ int RLHistoryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl
 		}
 		s = Tcl_GetString(objv[2]);
 		write_history(s);
+	}  else if (0 == strcmp("append", action)) {
+		/* Begin code for history appension
+		 *
+		 * This action is a bit more convoluted than the others, so I think it
+		 * will benefit from some comments */
+
+		/* Just like the other cases, make sure the arg count in Tcl is correct */
+		if (objc != 3) {
+			Tcl_WrongNumArgs(interp, 1, objv, "append filename");
+			return TCL_ERROR;
+		}
+
+		/* Open the file supplied in Tcl; return an error if it fails */
+		s = Tcl_GetString(objv[2]);
+		if (NULL == (hist_file = fopen(s, "a"))) {
+			Tcl_AppendResult(interp, "fopen(", s, "): ", strerror(errno), NULL);
+			return TCL_ERROR;
+		}
+
+		/* Lock the history file, write the line to a buffer (catching errors),
+		 * flush it, unlock the file and close it */
+		flock(fileno(hist_file), LOCK_EX);
+		if (fprintf(hist_file, "%s\n", current_history()->line) < 0) {
+			Tcl_AppendResult(interp, "fprintf(", current_history()->line, "): ", strerror(errno), NULL);
+			return TCL_ERROR;
+		}
+		fflush(hist_file);
+		flock(fileno(hist_file), LOCK_UN);
+		fclose(hist_file);
+
+		/* End code for history appension */
 	} else if (0 == strcmp("stifle", action)) {
 		if (objc != 3) {
 			Tcl_WrongNumArgs(interp, 1, objv, "stifle maxlines");
