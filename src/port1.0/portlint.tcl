@@ -556,6 +556,13 @@ proc portlint::lint_main {args} {
         }
     }
 
+    if {[info exists checksums]} {
+        if {![regexp {size\s+(\d+)} $checksums]} {
+            ui_warn "Checksum(s) should include the 'size' field"
+            incr warnings
+        }
+    }
+
     if {[info exists conflicts]} {
         foreach cport $conflicts {
             if {[regexp {[^[:alnum:]_.-]} $cport]} {
