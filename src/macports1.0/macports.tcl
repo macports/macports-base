@@ -2088,7 +2088,8 @@ proc _mportexec {target mport} {
     # xxx: set the work path?
     set workername [ditem_key $mport workername]
     $workername eval {validate_macportsuser}
-    if {![catch {$workername eval "check_variants $target"} result] && $result == 0 &&
+    if {![catch {$workername eval {check_supported_platforms}} result] && $result == 0 &&
+        ![catch {$workername eval "check_variants $target"} result] && $result == 0 &&
         ![catch {$workername eval {check_supported_archs}} result] && $result == 0 &&
         ![catch {$workername eval "eval_targets $target"} result] && $result == 0} {
         # If auto-clean mode, clean-up after dependency install
@@ -2137,6 +2138,13 @@ proc mportexec {mport target} {
     # build and will therefore need to check Xcode version and
     # supported_archs.
     if {[macports::_target_needs_deps $target]} {
+        # error out if current platform is not supported by this port
+        if {[$workername eval {check_supported_platforms}] != 0} {
+            if {$log_needs_pop} {
+                macports::pop_log
+            }
+            return 1
+        }
         # possibly warn or error out depending on how old xcode is
         if {[$workername eval {_check_xcode_version}] != 0} {
             if {$log_needs_pop} {
