@@ -128,7 +128,7 @@ namespace eval reclaim {
                         # not deleted after destroot.
                         # .DS_Store files are created by the OS that stores custom attributes of
                         # its containing folder,
-                        #Treat those files as if they were not there.
+                        # Treat those files as if they were not there.
                         continue
                     }
                     if {[lsearch -exact -sorted $files_in_use $currentPath] == -1} {
