@@ -365,18 +365,53 @@ test delete {
 test touch {
     Touch unit test.
 } -setup {
+    set dir "/tmp"
+    set file "macports-portutil-touch"
+    set file2 "macports-portutil-touch2"
     set root "/tmp/macports-portutil-touch"
+    set root2 "/tmp/macports-portutil-touch2"
     file delete -force $root
+    file delete -force $root2
 } -body {
+    # -c: do not create file
     touch -c $root
+    if {[file exists $root]} { return "FAIL: touch unsuccessful" }
+
+    touch -c -W $dir $file
+    if {[file exists $root]} { return "FAIL: touch unsuccessful" }
+
+    touch -W $dir -c $file
     if {[file exists $root]} { return "FAIL: touch unsuccessful" }
 
     touch $root
     if {![file exists $root]} { return "FAIL: touch unsuccessful" }
+    file delete -force $root
+
+    touch -W $dir $root
+    if {![file exists $root]} { return "FAIL: touch unsuccessful" }
+    file delete -force $root
+
+    touch -W $dir $file
+    if {![file exists $root]} { return "FAIL: touch unsuccessful" }
+    file delete -force $root
+
+    touch -W $dir $root $root2
+    if {![file exists $root]} { return "FAIL: touch unsuccessful" }
+    file delete -force $root
+    if {![file exists $root2]} { return "FAIL: touch unsuccessful" }
+    file delete -force $root2
+
+    touch -W $dir $file $file2
+    if {![file exists $root]} { return "FAIL: touch unsuccessful" }
+    file delete -force $root
+    if {![file exists $root2]} { return "FAIL: touch unsuccessful" }
+    file delete -force $root2
+
     return "Files successfully touched."
 
 } -cleanup {
     file delete -force $root
+    file delete -force $root2
 } -result "Files successfully touched."
 
 
