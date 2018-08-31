@@ -1055,6 +1055,8 @@ proc delete {args} {
 # touch
 # mimics the BSD touch command
 proc touch {args} {
+    global worksrcpath
+    set dir ${worksrcpath}
     while {[string match "-*" [lindex $args 0]]} {
         set arg [string range [lindex $args 0] 1 end]
         set args [lrange $args 1 end]
@@ -1071,6 +1073,10 @@ proc touch {args} {
                 }
                 set options($arg) $narg
                 set options(rt) $arg ;# later option overrides earlier
+            }
+            W {
+                set dir [lindex $args 0]
+                set args [lrange $args 1 end]
             }
             - break
             default {return -code error "touch: illegal option -- $arg"}
@@ -1123,10 +1129,14 @@ proc touch {args} {
     # do we have any files to process?
     if {[llength $args] == 0} {
         # print usage
-        return -code error {usage: touch [-a] [-c] [-m] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file ...}
+        return -code error {usage: touch [-a] [-c] [-m] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] [-W dir] file ...}
     }
 
     foreach file $args {
+        # if $file is an absolute path already, file join will just
+        # return the absolute path, otherwise it is $dir/$file
+        set file [file join $dir $file]
+
         if {![file exists $file]} {
             if {[info exists options(c)]} {
                 continue
