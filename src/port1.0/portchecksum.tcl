@@ -40,6 +40,13 @@ target_requires ${org.macports.checksum} main fetch
 target_prerun ${org.macports.checksum} portchecksum::checksum_start
 
 namespace eval portchecksum {
+
+    # The list of the types of checksums we know.
+    variable checksum_types [list md5 sha1 rmd160 sha256 size]
+
+    # types to recommend if none are specified in the portfile
+    variable default_checksum_types [list rmd160 sha256 size]
+
 }
 
 # Options
@@ -51,14 +58,43 @@ default checksum.skip false
 
 set_ui_prefix
 
-# The list of the types of checksums we know.
-set checksum_types [list md5 sha1 rmd160 sha256 size]
+# verify_checksum_format
+#
+# Given a checksum type as string and the actual checksum:
+#
+# - return 1  if the value has the expected format
+# - return 0  if the value does not look as expected
+# - return -1 if the checksum type is unrecognized
+proc portchecksum::verify_checksum_format {type value} {
+    set result 0
+
+    switch [string tolower $type] {
+        sha256 {
+          set result [regexp {^\w{64}$} $value]
+        }
+        rmd160 {
+          set result [regexp {^\w{40}$} $value]
+        }
+        sha1 {
+          set result [regexp {^\w{40}$} $value]
+        }
+        md5 {
+          set result [regexp {^\w{32}$} $value]
+        }
+        size {
+          set result [regexp {^\d+$} $value]
+        }
+        default {
+          # unrecognized checksum type
+          set result -1
+        }
+    }
+
+    return $result
+}
 
 # The number of types we know.
-set checksum_types_count [llength $checksum_types]
-
-# types to recommend if none are specified in the portfile
-set default_checksum_types [list rmd160 sha256 size]
+set checksum_types_count [llength $portchecksum::checksum_types]
 
 # Using global all_dist_files, parse the checksums and store them into the
 # global array checksums_array.
@@ -70,12 +106,12 @@ set default_checksum_types [list rmd160 sha256 size]
 # Portfile is in format #1 if:
 # (1) There is only one distfile.
 # (2) There are an even number of words in checksums (i.e. "md5 cksum sha1 cksum" = 4 words).
-# (3) There are no more than $checksum_types_count checksums specified.
+# (3) There are no more than $portchecksum::checksum_types_count checksums specified.
 # (4) first word is one of the checksums types.
 #
 # return yes if the syntax was correct, no if there was a problem.
 proc portchecksum::parse_checksums {checksums_str} {
-    global checksums_array all_dist_files checksum_types checksum_types_count
+    global checksums_array all_dist_files checksum_types_count
 
     # Parse the string of checksums.
     set nb_checksum [llength $checksums_str]
@@ -83,7 +119,7 @@ proc portchecksum::parse_checksums {checksums_str} {
     if {[llength $all_dist_files] == 1
         && [expr {$nb_checksum % 2}] == 0
         && [expr {$nb_checksum / 2}] <= $checksum_types_count
-        && [lindex $checksums_str 0] in $checksum_types} {
+        && [lindex $checksums_str 0] in $portchecksum::checksum_types} {
         # Convert to format #2
         set checksums_str [linsert $checksums_str 0 [lindex $all_dist_files 0]]
         # We increased the size.
@@ -112,7 +148,7 @@ proc portchecksum::parse_checksums {checksums_str} {
             incr ix_checksum
             while {1} {
                 set checksum_type [lindex $checksums_str $ix_checksum]
-                if {$checksum_type in $checksum_types} {
+                if {$checksum_type in $portchecksum::checksum_types} {
                     # append the type and the value.
                     incr ix_checksum
                     set checksum_value [lindex $checksums_str $ix_checksum]
@@ -207,8 +243,7 @@ proc portchecksum::checksum_start {args} {
 # Target main procedure. Verifies the checksums of all distfiles.
 #
 proc portchecksum::checksum_main {args} {
-    global UI_PREFIX all_dist_files checksum_types checksums_array portverbose checksum.skip \
-           default_checksum_types
+    global UI_PREFIX all_dist_files checksums_array portverbose checksum.skip
 
     # If no files have been downloaded, there is nothing to checksum.
     if {![info exists all_dist_files]} {
@@ -317,7 +352,7 @@ proc portchecksum::checksum_main {args} {
                     lappend sums $distfile
                 }
 
-                set missing_types $default_checksum_types
+                set missing_types $portchecksum::default_checksum_types
 
                 # Append the string for the calculated types and note any of
                 # our default types that were already calculated
