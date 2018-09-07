@@ -93,9 +93,6 @@ proc portchecksum::verify_checksum_format {type value} {
     return $result
 }
 
-# The number of types we know.
-set checksum_types_count [llength $portchecksum::checksum_types]
-
 # Using global all_dist_files, parse the checksums and store them into the
 # global array checksums_array.
 #
@@ -106,19 +103,19 @@ set checksum_types_count [llength $portchecksum::checksum_types]
 # Portfile is in format #1 if:
 # (1) There is only one distfile.
 # (2) There are an even number of words in checksums (i.e. "md5 cksum sha1 cksum" = 4 words).
-# (3) There are no more than $portchecksum::checksum_types_count checksums specified.
+# (3) There are no more checksums specified than $portchecksum::checksum_types contains.
 # (4) first word is one of the checksums types.
 #
 # return yes if the syntax was correct, no if there was a problem.
 proc portchecksum::parse_checksums {checksums_str} {
-    global checksums_array all_dist_files checksum_types_count
+    global checksums_array all_dist_files
 
     # Parse the string of checksums.
     set nb_checksum [llength $checksums_str]
 
     if {[llength $all_dist_files] == 1
         && [expr {$nb_checksum % 2}] == 0
-        && [expr {$nb_checksum / 2}] <= $checksum_types_count
+        && [expr {$nb_checksum / 2}] <= [llength $portchecksum::checksum_types]
         && [lindex $checksums_str 0] in $portchecksum::checksum_types} {
         # Convert to format #2
         set checksums_str [linsert $checksums_str 0 [lindex $all_dist_files 0]]
