@@ -30,6 +30,7 @@
 
 package provide portlint 1.0
 package require portutil 1.0
+package require portchecksum 1.0
 
 set org.macports.lint [target_new org.macports.lint portlint::lint_main]
 target_runtype ${org.macports.lint} always
@@ -115,6 +116,137 @@ proc portlint::seems_utf8 {str} {
     return true
 }
 
+# lint_checksum_types
+#
+# Given a list of checksum types, return a list of strings which are warnings
+# about deprecated checksum types, or missing recommended types.
+#
+# Returns an empty list if no issues are found.
+proc portlint::lint_checksum_type_list {types} {
+    set issues [list]
+    set using_recc false
+
+    foreach preferred $portchecksum::default_checksum_types {
+        if {$preferred in $types} {
+            set using_recc true
+        }
+
+        if {$preferred ni $types} {
+            lappend issues "missing recommended checksum type: $preferred"
+        }
+    }
+
+    if {!$using_recc} {
+        foreach type $types {
+            if {$type ni $portchecksum::default_checksum_types} {
+                lappend issues "checksum type is deprecated: $type"
+            }
+        }
+    }
+
+    return $issues
+}
+
+# lint_checksum
+#
+# Checks a given Portfile checksum string.  Returns a list of lists.
+# The first member list is a list of error strings.
+# The second member list is a list of warning strings.
+#
+# Returns a list containing two empty lists if no issues are found.
+proc portlint::lint_checksum {checksum_string} {
+    set errors [list]
+    set warnings [list]
+
+    set is_error false
+    set ctr_start 0
+
+    set filename ""
+    set pfx ""
+    set has_filenames false
+
+    set types [list]
+
+    # List of all tokens in the checksum string
+    set checksum_tokens [regexp -all -inline {\S+} $checksum_string]
+
+    if {[lindex $checksum_tokens 0] eq "checksum"} {
+        incr ctr_start
+    }
+
+    for {set ctr $ctr_start} \
+        {($ctr < [llength $checksum_tokens]) && !$is_error} \
+        {} {
+
+        set current [lindex $checksum_tokens $ctr]
+
+        if {$current in $portchecksum::checksum_types} {
+            set c_type  $current
+            set c_value [lindex $checksum_tokens $ctr+1]
+
+            switch [portchecksum::verify_checksum_format $c_type $c_value] {
+                1 {
+                    # checksum type recognized, and checksum looks good
+                    incr ctr 2
+                    lappend types $c_type
+                }
+
+                0 {
+                    # checksum type recognized, but checksum looks bad
+                    lappend errors "${pfx}checksum type $c_type, but\
+                                    checksum is invalid: $c_value"
+                    incr ctr 2
+                }
+
+                -1 {
+                    # checksum type not recognized
+                    lappend errors "${pfx}invalid checksum type: $c_type\
+                                    $c_value"
+                    set is_error true
+                    continue
+                }
+            }
+
+        } elseif {($ctr > $ctr_start) && !$has_filenames} {
+            lappend errors "invalid checksum field: $current"
+            set is_error true
+            continue
+        } else {
+            if {$ctr == $ctr_start} {
+                set has_filenames true
+            } elseif {($ctr == ([llength $checksum_tokens] - 1)) || \
+                         ([portchecksum::verify_checksum_format \
+                            [lindex $checksum_tokens $ctr-2] \
+                            [lindex $checksum_tokens $ctr-1] \
+                          ] != 1)} {
+                lappend errors "invalid checksum field: $current"
+                set is_error true
+                continue
+            }
+
+            if {[llength $types] > 0} {
+                set types_lint [portlint::lint_checksum_type_list $types]
+                foreach lint_issue $types_lint {
+                    lappend warnings "${pfx}${lint_issue}"
+                }
+            }
+
+            set filename $current
+            set pfx "$filename - "
+            set types [list]
+            incr ctr
+        }
+    }
+
+    if {[llength $types] > 0} {
+        set types_lint [portlint::lint_checksum_type_list $types]
+        foreach lint_issue $types_lint {
+            lappend warnings "${pfx}${lint_issue}"
+        }
+    }
+
+    return [list $errors $warnings]
+}
 
 proc portlint::lint_start {args} {
     global UI_PREFIX subport
@@ -557,8 +689,15 @@ proc portlint::lint_main {args} {
     }
 
     if {[info exists checksums]} {
-        if {![regexp {size\s+(\d+)} $checksums]} {
-            ui_warn "Checksum(s) should include the 'size' field"
+        set checksum_lint [portlint::lint_checksum $checksums]
+
+        foreach err [lindex $checksum_lint 0] {
+            ui_error $err
+            incr errors
+        }
+
+        foreach warning [lindex $checksum_lint 1] {
+            ui_warn $warning
             incr warnings
         }
     }

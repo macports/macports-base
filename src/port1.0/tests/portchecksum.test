@@ -105,6 +105,57 @@ test calc_sha256 {
     file delete -force $pwd/file
 } -result "Calc sha256 successful."
 
+test verify_checksum_format_md5 {
+    Test that we properly verify an MD5 checksum
+} -body {
+    set checksum "9f70ecc1095ff10df81be6b5f218328d"
+    if {[portchecksum::verify_checksum_format "md5" $checksum] != 1} {
+        return "FAIL: did not verify $checksum as MD5"
+    }
+    return "Verify MD5 successful"
+} -result "Verify MD5 successful"
+
+test verify_checksum_format_sha1 {
+    Test that we properly verify an SHA1 checksum
+} -body {
+    set checksum "5560df60ff202ca8b8c3dcf51ad650b78e859261"
+    if {[portchecksum::verify_checksum_format "sha1" $checksum] != 1} {
+        return "FAIL: did not verify $checksum as SHA1"
+    }
+    return "Verify SHA1 successful"
+} -result "Verify SHA1 successful"
+
+test verify_checksum_format_rmd160 {
+    Test that we properly verify an rmd160 checksum
+} -body {
+    set checksum "5aee5d12fe536e2e288e9f1daafd84f1bc17c3e6"
+    if {[portchecksum::verify_checksum_format "rmd160" $checksum] != 1} {
+        return "FAIL: did not verify $checksum as rmd160"
+    }
+    return "Verify rmd160 successful"
+} -result "Verify rmd160 successful"
+
+test verify_checksum_format_sha256 {
+    Test that we properly verify an SHA256 checksum
+} -body {
+    set checksum "2f686816f2a80e8efcc4ef40ac4e898d27ce4205a61ee422d56f8c5e8b46612e"
+    if {[portchecksum::verify_checksum_format "sha256" $checksum] != 1} {
+        return "FAIL: did not verify $checksum as sha256"
+    }
+    return "Verify sha256 successful"
+} -result "Verify sha256 successful"
+
+test verify_unknown_checksum_format {
+    Test that we respond as expected to an unknown checksum format
+} -body {
+    set checksum "thisisnotread"
+    if {[portchecksum::verify_checksum_format "lol22" $checksum] != -1} {
+        return "FAIL: did not respond as expected to an unknown checksum"
+    }
+    return "Verify unknown successful"
+} -result "Verify unknown successful"
+
+
 
 # test checksum_start
 
