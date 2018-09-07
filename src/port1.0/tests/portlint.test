@@ -47,7 +47,7 @@ test test_lint_checksum_type_list_missing_recommended {
 } -result "lint_checksum_type_list_missing_recommended passed"
 
 test test_lint_checksum_type_list_deprecated_md5 {
-    Verify that we are warned about MD5 being a deprecated checksum type
+    Verify that we are warned about MD5 being an insecure checksum type
 } -body {
     set preferred_checksum_types [list md5]
     set results [portlint::lint_checksum_type_list $preferred_checksum_types]
@@ -56,7 +56,7 @@ test test_lint_checksum_type_list_deprecated_md5 {
         return "FAIL: unexpectedly encountered no results"
     }
 
-    if {[lsearch -regexp $results {deprecated.+md5}] == -1} {
+    if {[lsearch -regexp $results {insecure.+md5}] == -1} {
         resturn "FAIL: expecting deprecation warning for using MD5 solely"
     }
 
@@ -69,7 +69,7 @@ test test_lint_checksum_type_list_deprecated_md5 {
 } -result "lint_checksum_type_list_deprecated_md5 passed"
 
 test test_lint_checksum_type_list_deprecated_sha1 {
-    Verify that we are warned about SHA1 being a deprecated checksum type
+    Verify that we are warned about SHA1 being an insecure checksum type
 } -body {
     set preferred_checksum_types [list sha1]
     set results [portlint::lint_checksum_type_list $preferred_checksum_types]
@@ -78,7 +78,7 @@ test test_lint_checksum_type_list_deprecated_sha1 {
         return "FAIL: unexpected results: no results returned"
     }
 
-    if {[lsearch -regexp $results {deprecated.+sha1}] == -1} {
+    if {[lsearch -regexp $results {insecure.+sha1}] == -1} {
         return "FAIL: no mention of the deprecated sha1 field"
     }
 
