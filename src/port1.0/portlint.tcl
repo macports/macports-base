@@ -124,22 +124,20 @@ proc portlint::seems_utf8 {str} {
 # Returns an empty list if no issues are found.
 proc portlint::lint_checksum_type_list {types} {
     set issues [list]
-    set using_recc false
+    set using_secure false
 
     foreach preferred $portchecksum::default_checksum_types {
-        if {$preferred in $types} {
-            set using_recc true
-        }
-
         if {$preferred ni $types} {
             lappend issues "missing recommended checksum type: $preferred"
+        } elseif {$preferred in $portchecksum::secure_checksum_types} {
+            set using_secure true
         }
     }
 
-    if {!$using_recc} {
+    if {!$using_secure} {
         foreach type $types {
             if {$type ni $portchecksum::default_checksum_types} {
-                lappend issues "checksum type is deprecated: $type"
+                lappend issues "checksum type is insecure on its own: $type"
             }
         }
     }

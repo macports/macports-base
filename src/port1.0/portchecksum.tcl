@@ -47,6 +47,8 @@ namespace eval portchecksum {
     # types to recommend if none are specified in the portfile
     variable default_checksum_types [list rmd160 sha256 size]
 
+    # types that are considered secure
+    variable secure_checksum_types [list rmd160 sha256]
 }
 
 # Options
