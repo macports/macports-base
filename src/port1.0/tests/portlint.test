@@ -57,7 +57,7 @@ test test_lint_checksum_type_list_deprecated_md5 {
     }
 
     if {[lsearch -regexp $results {insecure.+md5}] == -1} {
-        resturn "FAIL: expecting deprecation warning for using MD5 solely"
+        return "FAIL: expecting deprecation warning for using MD5 solely"
     }
 
     if {[lsearch -regexp $results {missing.+recommended}] == -1} {
