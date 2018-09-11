@@ -59,8 +59,8 @@ default archivefetch.ignore_sslcert no
 default archivefetch.pubkeys {$archivefetch_pubkeys}
 
 default archive_sites {[portarchivefetch::filter_sites]}
-default archive_sites.listfile {"archive_sites.tcl"}
-default archive_sites.listpath {"port1.0/fetch"}
+default archive_sites.listfile archive_sites.tcl
+default archive_sites.listpath port1.0/fetch
 default archive.subdir {${subport}}
 
 proc portarchivefetch::filter_sites {} {

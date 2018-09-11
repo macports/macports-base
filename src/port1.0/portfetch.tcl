@@ -68,10 +68,10 @@ default fetch.type standard
 
 default bzr.cmd {[findBinary bzr $portutil::autoconf::bzr_path]}
 default bzr.dir {${workpath}}
-default bzr.revision {-1}
-default bzr.pre_args {"--builtin --no-aliases checkout --lightweight --verbose"}
+default bzr.revision -1
+default bzr.pre_args "--builtin --no-aliases checkout --lightweight --verbose"
 default bzr.args ""
-default bzr.post_args {"-r ${bzr.revision} ${bzr.url} ${worksrcdir}"}
+default bzr.post_args {-r ${bzr.revision} ${bzr.url} ${worksrcdir}}
 
 default cvs.cmd {[findBinary cvs $portutil::autoconf::cvs_path]}
 default cvs.password ""
@@ -81,16 +81,16 @@ default cvs.module {$distname}
 default cvs.tag ""
 default cvs.date ""
 default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
-default cvs.pre_args {"-z9 -f -d ${cvs.root}"}
+default cvs.pre_args {-z9 -f -d ${cvs.root}}
 default cvs.args ""
-default cvs.post_args {"${cvs.module}"}
+default cvs.post_args {${cvs.module}}
 
 default svn.cmd {[portfetch::find_svn_path]}
 default svn.dir {${workpath}}
 default svn.method {export}
 default svn.revision ""
 default svn.env {}
-default svn.pre_args {"--non-interactive --trust-server-cert"}
+default svn.pre_args "--non-interactive --trust-server-cert"
 default svn.args ""
 default svn.post_args ""
 
@@ -100,25 +100,25 @@ default git.branch {}
 
 default hg.cmd {[findBinary hg $portutil::autoconf::hg_path]}
 default hg.dir {${workpath}}
-default hg.tag {tip}
+default hg.tag tip
 
 # Set distfiles
-default distfiles {[list [portfetch::suffix $distname]]}
+default distfiles {[portfetch::suffix $distname]}
 default dist_subdir {${name}}
 
 # user name & password
 default fetch.user ""
 default fetch.password ""
 # Use EPSV for FTP transfers
-default fetch.use_epsv "yes"
+default fetch.use_epsv yes
 # Ignore SSL certificate
-default fetch.ignore_sslcert "no"
+default fetch.ignore_sslcert no
 # Use remote timestamps
-default fetch.remote_time "no"
+default fetch.remote_time no
 
-default global_mirror_site "macports_distfiles"
-default mirror_sites.listfile {"mirror_sites.tcl"}
-default mirror_sites.listpath {"port1.0/fetch"}
+default global_mirror_site macports_distfiles
+default mirror_sites.listfile mirror_sites.tcl
+default mirror_sites.listpath port1.0/fetch
 
 # Option-executed procedures
 option_proc use_tar   portfetch::set_extract_type
