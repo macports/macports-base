@@ -55,7 +55,7 @@ default extract.only {[portextract::disttagclean $distfiles]}
 default extract.dir {${workpath}}
 default extract.cmd {[findBinary gzip ${portutil::autoconf::gzip_path}]}
 default extract.pre_args -dc
-default extract.post_args {"| ${portutil::autoconf::tar_command} -xf -"}
+default extract.post_args {| ${portutil::autoconf::tar_command} -xf -}
 default extract.mkdir no
 
 set_ui_prefix

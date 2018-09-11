@@ -119,11 +119,11 @@ default configure.cmd       ./configure
 default configure.nice      {${buildnicevalue}}
 default configure.dir       {${worksrcpath}}
 default autoreconf.dir      {${worksrcpath}}
-default autoreconf.args     {{--install --verbose}}
+default autoreconf.args     "--install --verbose"
 default autoconf.dir        {${worksrcpath}}
-default autoconf.args       {--verbose}
+default autoconf.args       --verbose
 default automake.dir        {${worksrcpath}}
-default automake.args       {--verbose}
+default automake.args       --verbose
 default xmkmf.cmd           xmkmf
 default xmkmf.dir           {${worksrcpath}}
 default use_configure       yes
@@ -206,11 +206,11 @@ options configure.optflags \
         configure.fflags configure.f90flags configure.fcflags \
         configure.classpath
 # compiler flags section
-default configure.optflags      {-Os}
+default configure.optflags      -Os
 default configure.cflags        {${configure.optflags}}
 default configure.objcflags     {${configure.optflags}}
 default configure.cppflags      {-I${prefix}/include}
-default configure.ldflags       {"-L${prefix}/lib -Wl,-headerpad_max_install_names"}
+default configure.ldflags       {-L${prefix}/lib -Wl,-headerpad_max_install_names}
 default configure.libs          {}
 default configure.fflags        {${configure.optflags}}
 default configure.f90flags      {${configure.optflags}}
@@ -246,7 +246,7 @@ options configure.universal_archs configure.universal_args \
         configure.universal_objcflags \
         configure.universal_cppflags configure.universal_ldflags
 default configure.universal_archs       {[portconfigure::choose_supported_archs ${universal_archs}]}
-default configure.universal_args        {--disable-dependency-tracking}
+default configure.universal_args        --disable-dependency-tracking
 default configure.universal_cflags      {[portconfigure::configure_get_universal_cflags]}
 default configure.universal_objcflags   {${configure.universal_cflags}}
 default configure.universal_cppflags    {}

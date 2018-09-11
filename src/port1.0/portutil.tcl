@@ -497,8 +497,7 @@ proc default_check {optionName index op} {
             return
         }
         read {
-            upvar $optionName option
-            uplevel #0 set $optionName $option_defaults($optionName)
+            uplevel #0 [list set $optionName] [subst -nocommands {[subst {$option_defaults($optionName)}]}]
             return
         }
         unset {
