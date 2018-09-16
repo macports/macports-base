@@ -16,7 +16,7 @@
 # 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -806,19 +806,19 @@ proc portconfigure::configure_main {args} {
     foreach flags {cflags cppflags cxxflags objcflags objcxxflags ldflags fflags f90flags fcflags} {
         global configure.${flags} configure.universal_${flags}
     }
-    
+
     if {[tbool use_autoreconf]} {
         if {[catch {command_exec autoreconf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] autoreconf $result]"
         }
     }
-    
+
     if {[tbool use_automake]} {
         if {[catch {command_exec automake} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] automake $result]"
         }
     }
-    
+
     if {[tbool use_autoconf]} {
         if {[catch {command_exec autoconf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] autoconf $result]"
