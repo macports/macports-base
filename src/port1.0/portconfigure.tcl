@@ -268,6 +268,25 @@ default compiler.fallback       {[portconfigure::get_compiler_fallback]}
 default compiler.blacklist      {}
 default compiler.whitelist      {}
 
+# Compiler Restrictions
+#   compiler.c_standard            Standard for the C programming language (1989, 1999, 2011, etc.)
+#   compiler.cxx_standard          Standard for the C++ programming language (1998, 2011, 2014, 2017, etc.)
+#   compiler.openmp_version        Version of OpenMP required (blank, 2.5, 3.0, 3.1, 4.0, 4.5, etc.)
+#   compiler.mpi                   MacPorts port that provides MPI (blank, mpich, openmpi)
+#   compiler.thread_local_storage  Is thread local storage required, e.g. __thread, _Thread_local, std::thread_local (yes, no)
+options                            \
+    compiler.c_standard            \
+    compiler.cxx_standard          \
+    compiler.openmp_version        \
+    compiler.mpi                   \
+    compiler.thread_local_storage
+
+default compiler.c_standard            1989
+default compiler.cxx_standard          1998
+default compiler.openmp_version        {}
+default compiler.mpi                   {}
+default compiler.thread_local_storage  no
+
 set_ui_prefix
 
 proc portconfigure::configure_start {args} {
@@ -546,11 +565,302 @@ proc portconfigure::configure_get_default_compiler {} {
     return [lindex [option compiler.fallback] 0]
 }
 
+#
+# internal utility procedure to get a version larger than any compiler version
+proc portconfigure::max_compiler_version {} {
+    return 999999999999999999999.0
+}
+#
+# https://releases.llvm.org/3.1/docs/ClangReleaseNotes.html#cchanges
+# https://gcc.gnu.org/c99status.html
+# https://gcc.gnu.org/wiki/C11Status
+# https://trac.macports.org/wiki/XcodeVersionInfo
+#--------------------------------------------------------------------
+#|  C Standard  |   Clang   |  Xcode Clang  |   Xcode   |    GCC    |
+#|------------------------------------------------------------------|
+#| 1989 (C89)   |     -     |        -      |     -     |     -     |
+#| 1999 (C99)   |     -     |    211.10.1   |    4.2    |    4.5    |
+#| 2011 (C11)   |    3.1    |    318.0.61   |    4.3    |    4.9    |
+#--------------------------------------------------------------------
+#
+# https://clang.llvm.org/cxx_status.html
+# https://gcc.gnu.org/projects/cxx-status.html
+# https://en.cppreference.com/w/cpp/compiler_support
+# Xcode release notes
+# https://trac.macports.org/wiki/XcodeVersionInfo
+#--------------------------------------------------------------------
+#| C++ Standard |   Clang   |  Xcode Clang  |   Xcode   |    GCC    |
+#|--------------------------------=---------------------------------|
+#| 1998 (C++98) |     -     |       -       |     -     |     -     |
+#| 2011 (C++11) |    3.3    |   500.2.75    |    5.0    |   4.8.1   |
+#| 2014 (C++14) |    3.4    |   600.0.54    |    6.1    |     5     |
+#| 2017 (C++17) |    5.0    |   902.0.39.1  |    9.3    |     7     |
+#--------------------------------------------------------------------
+#
+# https://openmp.llvm.org
+# https://gcc.gnu.org/wiki/openmp
+# https://trac.macports.org/wiki/XcodeVersionInfo
+#----------------------------------------------------------------
+#| OpenMP Version |  Clang  |  Xcode Clang  |  Xcode  |   GCC   |
+#|---------------------------------------------------------------
+#|      2.5       |   3.8   |    Future?    | Future? |   4.2   |
+#|      3.0       |   3.8   |    Future?    | Future? |   4.4   |
+#|      3.1       |   3.8   |    Future?    | Future? |   4.7   |
+#|      4.0       | Partial |    Future?    | Future? |   4.9   |
+#|      4.5       | Partial |    Future?    | Future? |   ???   |
+#----------------------------------------------------------------
+#
+# utility procedure: get minimum command line compilers version based on restrictions
+proc portconfigure::get_min_command_line {compiler} {
+    global compiler.c_standard compiler.cxx_standard compiler.openmp_version compiler.thread_local_storage os.major
+    set min_values 1.0
+    switch ${compiler} {
+        clang {
+            if {${compiler.c_standard} >= 2011} {
+                lappend min_values 318.0.61
+            } elseif {${compiler.c_standard} >= 1999} {
+                lappend min_values 211.10.1
+            }
+            if {${compiler.cxx_standard} >= 2017} {
+                lappend min_values 902.0.39.1
+            } elseif {${compiler.cxx_standard} >= 2014} {
+                lappend min_values 600.0.54
+            } elseif {${compiler.cxx_standard} >= 2011} {
+                lappend min_values 500.2.75
+            }
+            if {[option configure.cxx_stdlib] eq "libc++"} {
+                set cxx [lindex [split [portconfigure::configure_get_compiler cxx ${compiler}] /] end]
+                if {${cxx} ne "clang++"} {
+                    # 3.2 <= Xcode < 4.0 does not provide clang++
+                    lappend min_values [max_compiler_version]
+                }
+            }
+        }
+        llvm-gcc-4.2 -
+        gcc-4.2 -
+        gcc-4.0 -
+        apple-gcc-4.2 {
+            if {${compiler.c_standard} >= 1999} {
+                lappend min_values [max_compiler_version]
+            }
+            if {${compiler.cxx_standard} >= 2011} {
+                lappend min_values [max_compiler_version]
+            }
+            if {[option configure.cxx_stdlib] eq "libc++"} {
+                lappend min_values [max_compiler_version]
+            }
+        }
+        default {
+            return -code error "don't recognize compiler \"${compiler}\""
+        }
+    }
+    if {${compiler.openmp_version} ne ""} {
+        lappend min_values [max_compiler_version]
+    }
+    if {${compiler.thread_local_storage}} {
+        # thread-local storage only works on Mac OS X Lion and above
+        # GCC & MacPorts Clang emulate thread-local storage
+        if {${os.major} < 11} {
+            lappend min_values [max_compiler_version]
+        }
+    }
+    if {[option configure.cxx_stdlib] eq "macports-libstdc++"} {
+        lappend min_values [max_compiler_version]
+    }
+    return [lindex [lsort -decreasing -command vercmp ${min_values}] 0]
+}
+# utility procedure: get minimum Clang version based on restrictions
+proc portconfigure::get_min_clang {} {
+    global compiler.c_standard compiler.cxx_standard compiler.openmp_version compiler.thread_local_storage
+    set min_values 1.0
+    if {${compiler.c_standard} >= 2011} {
+        lappend min_values 3.1
+    }
+    if {${compiler.cxx_standard} >= 2017} {
+        lappend min_values 5.0
+    } elseif {${compiler.cxx_standard} >= 2014} {
+        lappend min_values 3.4
+    } elseif {${compiler.cxx_standard} >= 2011} {
+        lappend min_values 3.3
+    }
+    if {[vercmp ${compiler.openmp_version} 4.0] >= 0} {
+        lappend min_values 6.0
+    } elseif {[vercmp ${compiler.openmp_version} 2.5] >= 0} {
+        lappend min_values 3.8
+    }
+    if {${compiler.thread_local_storage}} {
+        # MacPorts patches certain versions of Clang to emulate thread-local storage
+        lappend min_values 5.0
+    }
+    return [lindex [lsort -decreasing -command vercmp ${min_values}] 0]
+}
+# utility procedure: get minimum GCC version based on restrictions
+proc portconfigure::get_min_gcc {} {
+    global compiler.c_standard compiler.cxx_standard compiler.openmp_version compiler.thread_local_storage
+    set min_values 1.0
+    if {${compiler.c_standard} >= 2011} {
+        lappend min_values 4.3
+    }  elseif {${compiler.c_standard} >= 1999} {
+        lappend min_values 4.2
+    }
+    if {${compiler.cxx_standard} >= 2017} {
+        lappend min_values 7.0
+    } elseif {${compiler.cxx_standard} >= 2014} {
+        lappend min_values 5.0
+    } elseif {${compiler.cxx_standard} >= 2011} {
+        lappend min_values 4.8.1
+    }
+    if {[vercmp ${compiler.openmp_version} 4.5] >= 0} {
+        lappend min_values 8.1
+    } elseif {[vercmp ${compiler.openmp_version} 4.0] >= 0} {
+        lappend min_values 4.9
+    } elseif {[vercmp ${compiler.openmp_version} 3.1] >= 0} {
+        lappend min_values 4.7
+    } elseif {[vercmp ${compiler.openmp_version} 3.0] >= 0} {
+        lappend min_values 4.4
+    } elseif {[vercmp ${compiler.openmp_version} 2.5] >= 0} {
+        lappend min_values 4.4
+    }
+    if {${compiler.thread_local_storage}} {
+        # GCC emulates thread-local storage, but it seems to be broken on older versions of GCC
+        lappend min_values 4.5
+    }
+    if {[option configure.cxx_stdlib] ne "" && [option configure.cxx_stdlib] ne "macports-libstdc++"} {
+        lappend min_values [max_compiler_version]
+    }
+    return [lindex [lsort -decreasing -command vercmp ${min_values}] 0]
+}
+# utility procedure: get Apple compilers based on Xcode version
+proc portconfigure::get_apple_compilers_xcode_version {} {
+    global xcodeversion
+    # https://developer.apple.com/library/content/releasenotes/DeveloperTools/RN-Xcode/Chapters/Introduction.html
+    # https://developer.apple.com/library/content/documentation/CompilerTools/Conceptual/LLVMCompilerOverview/index.html
+    # Xcode 3.2 relase notes (Link?)
+    # About Xcode 3.1 Tools (about_xcode_tools_3.1.pdf, Link?)
+    # About Xcode 3.2 (about_xcode_3.2.pdf, Link?)
+    #
+    # Xcode 5 does not support use of the LLVM-GCC compiler and the GDB debugger.
+    # From Xcode 4.2, Clang is the default compiler for Mac OS X.
+    # llvm-gcc4.2 is now the default system compiler in Xcode 4.
+    # The LLVM compiler is the next-generation compiler, introduced in Xcode 3.2
+    # GCC 4.0 has been removed from Xcode 4.
+    #
+    # attempt to include all available compilers except gcc-3*
+    # attempt to have the default compilers first
+    if {[vercmp ${xcodeversion} 5] >= 0} {
+        set compilers {clang}
+    } elseif {[vercmp ${xcodeversion} 4.3] >= 0} {
+        set compilers {clang llvm-gcc-4.2}
+    } elseif {[vercmp ${xcodeversion} 4.2] >= 0} {
+        # llvm-gcc is more reliable
+        # see https://github.com/macports/macports-base/commit/10d62cb51b1f0f9703a873173bac468eee69d01a
+        set compilers {llvm-gcc-4.2 clang}
+    } elseif {[vercmp ${xcodeversion} 4.0] >= 0} {
+        set compilers {llvm-gcc-4.2 clang gcc-4.2}
+    } else {
+        # Legacy Cases
+        if {[string match *10.4u* [option configure.sdkroot]]} {
+            # from Xcode 3.2 release notes:
+            #    GCC 4.2 cannot be used with the Mac OS X 10.4u SDK.
+            #    If you want to build targets using the 10.4u SDK on Xcode 3.2, you must set the Compiler Version to GCC 4.0
+            set compilers {gcc-4.0}
+        } else {
+            if {[vercmp ${xcodeversion} 3.2] >= 0} {
+                # from about_xcode_3.2.pdf:
+                #    GCC 4.2 is the primary system compiler for the 10.6 SDK
+                # clang does *not* provide clang++, but configure.cxx will fall back to llvm-g++-4.2
+                set compilers {gcc-4.2 llvm-gcc-4.2 clang gcc-4.0}
+            } elseif {[vercmp ${xcodeversion} 3.1] >= 0} {
+                # from about_xcode_tools_3.1.pdf:
+                #     GCC 4.2 & LLVM GCC 4.2 optional compilers
+                # assume they exist
+                set compilers {gcc-4.2 llvm-gcc-4.2 apple-gcc-4.2 gcc-4.0}
+            } elseif {[vercmp ${xcodeversion} 3.0] >= 0} {
+                set compilers {apple-gcc-4.2 gcc-4.0}
+            } else {
+                set compilers {apple-gcc-4.2 gcc-4.0}
+            }
+        }
+    }
+    return $compilers
+}
+# utility procedure: get Clang compilers based on os.major
+proc portconfigure::get_clang_compilers {} {
+    global os.major porturl
+    set compilers ""
+    set compiler_file [getportresourcepath $porturl "port1.0/compilers/clang_compilers.tcl"]
+    if {[file exists ${compiler_file}]} {
+        source ${compiler_file}
+    } else {
+        ui_error "Clang compilers file not found"
+        return -code error "${compiler_file} does not exist"
+    }
+    return ${compilers}
+}
+# utility procedure: get GCC compilers based on os.major
+proc portconfigure::get_gcc_compilers {} {
+    global os.major porturl
+    set compilers ""
+    set compiler_file [getportresourcepath $porturl "port1.0/compilers/gcc_compilers.tcl"]
+    if {[file exists ${compiler_file}]} {
+        source ${compiler_file}
+    } else {
+        ui_error "GCC compilers file not found"
+        return -code error "${compiler_file} does not exist"
+    }
+    return ${compilers}
+}
+# utility procedure: get MPI wrapper for a given compiler
+proc portconfigure::get_mpi_wrapper {mpi compiler} {
+    set parts [split ${compiler} -]
+    if {[lindex ${parts} 0] ne "macports"} {
+        return macports-${mpi}-default
+    } else {
+        set type [lindex ${parts} 1]
+        set ver  [lindex ${parts} 2]
+        if {${type} eq "clang" && [vercmp ${ver} 3.3] < 0} {
+            return ""
+        }
+        if {${type} eq "gcc" && [vercmp ${ver} 4.3] < 0} {
+            return ""
+        }
+        if {${type} eq "g95"} {
+            return ""
+        }
+        return macports-${mpi}-${type}-${ver}
+    }
+}
+# utility procedure: get system compiler version by running it
+proc compiler.command_line_tools_version {compiler} {
+    switch ${compiler} {
+        clang {
+            set re {clang(?:_.*)?-([0-9.]+)}
+        }
+        llvm-gcc-4.2 {
+            set re {LLVM build ([0-9.]+)}
+        }
+        gcc-4.2 {
+            set re {build ([0-9.]+)}
+        }
+        gcc-4.0 -
+        apple-gcc-4.2 {
+            set re {build ([0-9.]+)}
+        }
+        default {
+            return -code error "don't know how to determine build number of compiler \"${compiler}\""
+        }
+    }
+    set cc [portconfigure::configure_get_compiler cc ${compiler}]
+    if {![file executable ${cc}]} return
+    if {[catch {regexp ${re} [exec ${cc} -v 2>@1] -> compiler_version}]} return
+    if {![info exists compiler_version]} {
+        return -code error "couldn't determine build number of compiler \"${compiler}\""
+    }
+    return ${compiler_version}
+}
 # internal function to choose compiler fallback list based on platform
 proc portconfigure::get_compiler_fallback {} {
-    global xcodeversion macosx_deployment_target default_compilers \
-           configure.sdkroot configure.cxx_stdlib cxx_stdlib os.major \
-           option_defaults
+    global default_compilers xcodeversion
 
     # Check our override
     if {[info exists default_compilers]} {
@@ -562,82 +872,53 @@ proc portconfigure::get_compiler_fallback {} {
         return {cc}
     }
 
-    # Legacy cases
-    if {[vercmp $xcodeversion 4.0] < 0} {
-        set canonical_archs [get_canonical_archs]
-        if {[vercmp $xcodeversion 3.2] >= 0} {
-            if {[string match *10.4u* ${configure.sdkroot}]} {
-                return {gcc-4.0}
-            }
-            # No return here. 3.2.x with newer SDKs than 10.4u is handled below.
-        } elseif {[vercmp $xcodeversion 3.0] >= 0} {
-            if {"ppc" in $canonical_archs || "ppc64" in $canonical_archs} {
-                return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-gcc-6 macports-gcc-7}
-            } else {
-                return {gcc-4.2 apple-gcc-4.2 gcc-4.0 macports-clang-3.4 macports-clang-3.3}
-            }
-        } else {
-            # Xcode 2.x (Tiger)
-            if {"ppc" in $canonical_archs || "ppc64" in $canonical_archs} {
-                if {"i386" in $canonical_archs} {
-                    # universal
-                    return {apple-gcc-4.2 gcc-4.0 macports-gcc-6 macports-gcc-7}
-                } else {
-                    # ppc only
-                    return {apple-gcc-4.2 gcc-4.0 gcc-3.3 macports-gcc-6 macports-gcc-7}
-                }
-            } else {
-                # i386 only
-                return {apple-gcc-4.2 gcc-4.0 macports-clang-3.3}
-            }
+    set available_apple_compilers [portconfigure::get_apple_compilers_xcode_version]
+    set system_compilers ""
+    foreach c ${available_apple_compilers} {
+        set v    [compiler.command_line_tools_version $c]
+        set vmin [portconfigure::get_min_command_line $c]
+        if {[vercmp ${vmin} $v] <= 0} {
+            lappend system_compilers $c
         }
     }
-
-    set compilers {}
-
-    # Set our preferred Xcode-provided compilers
-    if {[vercmp $xcodeversion 5.0] >= 0} {
-        lappend compilers clang
-    } elseif {[vercmp $xcodeversion 4.3] >= 0} {
-        lappend compilers clang llvm-gcc-4.2
-    } elseif {[vercmp $xcodeversion 4.0] >= 0} {
-        lappend compilers llvm-gcc-4.2 clang
+    set clang_compilers ""
+    foreach c [portconfigure::get_clang_compilers] {
+        set v    [lindex [split $c -] 2]
+        set vmin [join [lrange [split [portconfigure::get_min_clang] .] 0 1] .]
+        if {[vercmp ${vmin} $v] <= 0} {
+            lappend clang_compilers $c
+        }
+    }
+    set gcc_compilers ""
+    foreach c [portconfigure::get_gcc_compilers] {
+        set v    [lindex [split $c -] 2]
+        set vmin [join [lrange [split [portconfigure::get_min_gcc] .] 0 0] .]
+        if {[vercmp ${vmin} $v] <= 0} {
+            lappend gcc_compilers $c
+        }
+    }
+    set compilers ""
+    lappend compilers {*}${system_compilers}
+    # when building for PowerPC architectures, prefer GCC to Clang
+    if {[option configure.build_arch] eq "ppc" || [option configure.build_arch] eq "ppc64"} {
+        lappend compilers {*}${gcc_compilers}
+        lappend compilers {*}${clang_compilers}
     } else {
-        # 3.2.x
-        lappend compilers gcc-4.2 clang llvm-gcc-4.2
+        lappend compilers {*}${clang_compilers}
+        lappend compilers {*}${gcc_compilers}
     }
-
-    # Determine which versions of clang we prefer
-    # There is a recursion trap here: the default value of configure.cxx_stdlib
-    # is determined by a proc that may end up calling us to find out which
-    # compiler is being used. So, bypass that if the option hasn't already
-    # been set to a particular value.
-    if {![info exists option_defaults(configure.cxx_stdlib)]} {
-        set our_stdlib ${configure.cxx_stdlib}
+    # generate list of MPI wrappers of current compilers
+    if {[option compiler.mpi] eq ""} {
+        return $compilers
     } else {
-        set our_stdlib $cxx_stdlib
-    }
-    if {$our_stdlib eq "libc++"} {
-        # clang-3.5+ require libc++
-        lappend compilers macports-clang-5.0 macports-clang-4.0
-
-        if {${os.major} < 17} {
-            # The High Sierra SDK requires a toolchain that can apply nullability to uuid_t
-            lappend compilers macports-clang-3.9
+        set mpi_compilers ""
+        foreach mpi [option compiler.mpi] {
+            foreach c ${compilers} {
+                lappend mpi_compilers {*}[portconfigure::get_mpi_wrapper $mpi $c]
+            }
         }
-
-        if {${os.major} < 16} {
-            # The Sierra SDK requires a toolchain that supports class properties
-            lappend compilers macports-clang-3.7
-        }
+        return $mpi_compilers
     }
-
-    if {${os.major} < 16} {
-        # We dropped support for these compilers on Sierra
-        lappend compilers macports-clang-3.4 macports-llvm-gcc-4.2 apple-gcc-4.2
-    }
-
-    return $compilers
 }
 
 # Find a developer tool
