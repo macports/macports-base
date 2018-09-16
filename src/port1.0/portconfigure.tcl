@@ -291,6 +291,19 @@ proc portconfigure::configure_start {args} {
         {^macports-gcc$}                    {MacPorts GCC (port select)}
         {^macports-gcc-(\d+(?:\.\d+)?)$}    {MacPorts GCC %s}
         {^macports-llvm-gcc-4\.2$}          {MacPorts LLVM-GCC 4.2}
+        {^macports-g95$}                    {MacPorts G95}
+        {^macports-mpich-default$}          {MacPorts MPICH Wrapper for MacPorts' Default C/C++ Compiler}
+        {^macports-openmpi-default$}        {MacPorts Open MPI Wrapper for MacPorts' Default C/C++ Compiler}
+        {^macports-mpich-clang$}            {MacPorts MPICH Wrapper for Xcode Clang}
+        {^macports-openmpi-clang$}          {MacPorts Open MPI Wrapper for Xcode Clang}
+        {^macports-mpich-clang-(\d+\.\d+)$}
+            {MacPorts MPICH Wrapper for Clang %s}
+        {^macports-openmpi-clang-(\d+\.\d+)$}
+            {MacPorts Open MPI Wrapper for Clang %s}
+        {^macports-mpich-gcc-(\d+(?:\.\d+)?)$}
+            {MacPorts MPICH Wrapper for GCC %s}
+        {^macports-openmpi-gcc-(\d+(?:\.\d+)?)$}
+            {MacPorts Open MPI Wrapper for GCC %s}
     }
     foreach {re fmt} $valid_compilers {
         if {[set matches [regexp -inline $re $compiler]] ne ""} {
@@ -489,6 +502,11 @@ proc portconfigure::compiler_port_name {compiler} {
         {^macports-clang-(\d+\.\d+)$}                       {clang-%s}
         {^macports-dragonegg-(\d+\.\d+)(-gcc-\d+\.\d+)?$}   {dragonegg-%s%s}
         {^macports-(llvm-)?gcc-(\d+)(?:\.(\d+))?$}          {%sgcc%s%s}
+        {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-default$}                {%s-default}
+        {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang$}                  {%s-clang}
+        {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang-(\d+)\.(\d+)$}     {%s-clang%s%s}
+        {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-gcc-(\d+)(?:\.(\d+))?$}  {%s-gcc%s%s}
+        {^macports-g95$}                                    {g95}
     }
     foreach {re fmt} $valid_compiler_ports {
         if {[set matches [regexp -inline $re $compiler]] ne ""} {
@@ -740,6 +758,47 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             cxx     -
             objcxx  { return ${prefix}/bin/llvm-g++-4.2 }
             cpp     { return ${prefix}/bin/llvm-cpp-4.2 }
+        }
+    } elseif {[regexp {^macports-g95$} $compiler]} {
+        switch $type {
+            fc      -
+            f77     -
+            f90     { return ${prefix}/bin/g95 }
+        }
+    } elseif {[regexp {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang$} $compiler -> mpi]} {
+        switch $type {
+            cc      -
+            objc    { return ${prefix}/bin/mpicc-${mpi}-clang }
+            cxx     -
+            objcxx  { return ${prefix}/bin/mpicxx-${mpi}-clang }
+        }
+    } elseif {[regexp {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang-(\d+\.\d+)$} $compiler -> mpi version]} {
+        set suffix [join [split ${version} .] ""]
+        switch $type {
+            cc      -
+            objc    { return ${prefix}/bin/mpicc-${mpi}-clang${suffix} }
+            cxx     -
+            objcxx  { return ${prefix}/bin/mpicxx-${mpi}-clang${suffix} }
+            cpp     { return ${prefix}/bin/clang-cpp-mp-${version} }
+        }
+    } elseif {[regexp {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-gcc-(\d+(?:\.\d+)?)$} $compiler -> mpi version]} {
+        set suffix [join [split ${version} .] ""]
+        switch $type {
+            cc      -
+            objc    { return ${prefix}/bin/mpicc-${mpi}-gcc${suffix} }
+            cxx     -
+            objcxx  { return ${prefix}/bin/mpicxx-${mpi}-gcc${suffix} }
+            cpp     { return ${prefix}/bin/cpp-mp-${version} }
+            fc      -
+            f77     -
+            f90     { return ${prefix}/bin/mpifort-${mpi}-gcc${suffix} }
+        }
+    } elseif {[regexp {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-default$} $compiler -> mpi]} {
+        switch $type {
+            cc      -
+            objc    { return ${prefix}/bin/mpicc-${mpi}-mp }
+            cxx     -
+            objcxx  { return ${prefix}/bin/mpicxx-${mpi}-mp }
         }
     }
     # Fallbacks
