@@ -116,7 +116,9 @@ proc portconfigure::stdlib_trace {opt action args} {
 # helper function to set configure.cxx_stdlib
 proc portconfigure::configure_get_cxx_stdlib {} {
     global cxx_stdlib compiler.cxx_standard
-    if {${cxx_stdlib} eq "libstdc++" && ${compiler.cxx_standard} >= 2011} {
+    if {${compiler.cxx_standard} eq ""} {
+        return ""
+    } elseif {${cxx_stdlib} eq "libstdc++" && ${compiler.cxx_standard} >= 2011} {
         return macports-libstdc++
     } else {
         return ${cxx_stdlib}
