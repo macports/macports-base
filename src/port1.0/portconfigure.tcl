@@ -712,7 +712,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             objcxx  { return [find_developer_tool llvm-g++-4.2] }
             cpp     { return [find_developer_tool llvm-cpp-4.2] }
         }
-    } elseif {[regexp {^macports-clang(-\d+\.\d+)?$} $compiler -> suffix]} {
+    } elseif {[regexp {^macports-clang(-[0-3]\.\d+)?$} $compiler -> suffix]} {
         if {$suffix ne ""} {
             set suffix "-mp${suffix}"
         }
@@ -721,6 +721,15 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             objc    { return ${prefix}/bin/clang${suffix} }
             cxx     -
             objcxx  { return ${prefix}/bin/clang++${suffix} }
+        }
+    } elseif {[regexp {^macports-clang(-\d+\.\d+)$} $compiler -> suffix]} {
+        set suffix "-mp${suffix}"
+        switch $type {
+            cc      -
+            objc    { return ${prefix}/bin/clang${suffix} }
+            cxx     -
+            objcxx  { return ${prefix}/bin/clang++${suffix} }
+            cpp     { return ${prefix}/bin/clang-cpp${suffix} }
         }
     } elseif {[regexp {^macports-dragonegg(-\d+\.\d+)(?:-gcc(-\d+\.\d+))?$} $compiler \
                 -> infix suffix]} {
