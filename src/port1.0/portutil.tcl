@@ -2106,6 +2106,14 @@ proc universal_setup {args} {
         ui_debug "OS doesn't support universal builds, so not adding the default universal variant"
     } elseif {[llength [option supported_archs]] == 1} {
         ui_debug "only one arch supported, so not adding the default universal variant"
+    } elseif {
+              [regexp {^macports-gcc-(\d+(?:\.\d+)?)?$} [option configure.compiler] -> gcc_version]
+              ||
+              [regexp {^macports-(mpich|openmpi)-gcc-(\d+(?:\.\d+)?)?$} [option configure.compiler] -> gcc_version]
+              ||
+              [regexp {^macports-dragonegg-(\d+\.\d+)(?:-gcc-(\d+\.\d+))?$} [option configure.compiler] -> llvm_version gcc_version]
+          } {
+        ui_debug "Compiler doesn't support universal builds, so not adding the default universal variant"
     } else {
         ui_debug "adding the default universal variant"
         variant universal {}
