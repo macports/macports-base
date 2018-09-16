@@ -77,14 +77,22 @@ proc portconfigure::should_add_stdlib {} {
     return [expr {$has_stdlib && $is_clang}]
 }
 proc portconfigure::should_add_cxx_abi {} {
-    set is_oldos [expr {[option os.platform] eq "darwin" && [option os.major] < 10}]
-    set is_mp_gcc [regexp {(^|/)g\+\+-mp-.*} [option configure.cxx]]
-    return [expr {$is_oldos && $is_mp_gcc}]
+    # prior to OS X Mavericks, libstdc++ was the default C++ runtime, so
+    #    assume MacPorts libstdc++ must be ABI compatible with system libstdc++
+    # for OS X Mavericks and above, users must select libstdc++, so
+    #    assume they want default ABI compatibility
+    # see https://gcc.gnu.org/onlinedocs/gcc-5.2.0/libstdc++/manual/manual/using_dual_abi.html
+    return [expr {
+                  [option configure.cxx_stdlib] eq "macports-libstdc++" &&
+                  [option os.platform] eq "darwin"                      &&
+                  [option os.major] < 13
+              }]
 }
 proc portconfigure::construct_cxxflags {flags} {
     if {[portconfigure::should_add_stdlib]} {
         lappend flags -stdlib=[option configure.cxx_stdlib]
-    } elseif {[portconfigure::should_add_cxx_abi]} {
+    }
+    if {[portconfigure::should_add_cxx_abi]} {
         lappend flags -D_GLIBCXX_USE_CXX11_ABI=0
     }
     return $flags
@@ -93,17 +101,25 @@ proc portconfigure::stdlib_trace {opt action args} {
     foreach flag [lsearch -all -inline [option $opt] -stdlib=*] {
         $opt-delete $flag
     }
-    if {$action eq "read" && [portconfigure::should_add_stdlib]} {
-        $opt-append -stdlib=[option configure.cxx_stdlib]
+    foreach flag [lsearch -all -inline [option $opt] -D_GLIBCXX_USE_CXX11_ABI=0] {
+        $opt-delete $flag
     }
-    return
+    if {$action eq "read"} {
+        if {[portconfigure::should_add_stdlib]} {
+            $opt-append -stdlib=[option configure.cxx_stdlib]
+        }
+        if {[portconfigure::should_add_cxx_abi]} {
+            $opt-append -D_GLIBCXX_USE_CXX11_ABI=0
+        }
+    }
 }
+# helper function to set configure.cxx_stdlib
 proc portconfigure::configure_get_cxx_stdlib {} {
-    global cxx_stdlib configure.cxx
-    if {![regexp {(^|/)g\+\+-mp-.*} ${configure.cxx}]} {
-        return $cxx_stdlib
-    } else {
+    global cxx_stdlib compiler.cxx_standard
+    if {${cxx_stdlib} eq "libstdc++" && ${compiler.cxx_standard} >= 2011} {
         return macports-libstdc++
+    } else {
+        return ${cxx_stdlib}
     }
 }
 
