@@ -784,6 +784,30 @@ proc portconfigure::get_apple_compilers_xcode_version {} {
     }
     return $compilers
 }
+# utility procedure: get compilers created by Apple based on OS version
+proc portconfigure::get_apple_compilers_os_version {} {
+    global os.major
+    if {${os.major} >= 13} {
+        # 5.0.1 <= Xcode
+        set test_compilers {clang}
+    } elseif {${os.major} >= 12} {
+        # 4.4 <= Xcode <= 5.1.1
+        set test_compilers {clang llvm-gcc-4.2}
+    } elseif {${os.major} >= 11} {
+        # 4.1 <= Xcode <= 4.6.3
+        set test_compilers {clang llvm-gcc-4.2 gcc-4.2}
+    } else {
+        # Command Line Tools is only available for Mac OS X 10.7 Lion and above
+        set test_compilers ""
+    }
+    set compilers ""
+    foreach cc ${test_compilers} {
+        if {[file executable [find_developer_tool $cc]]} {
+            lappend compilers $cc
+        }
+    }
+    return $compilers
+}
 # utility procedure: get Clang compilers based on os.major
 proc portconfigure::get_clang_compilers {} {
     global os.major porturl
@@ -869,10 +893,10 @@ proc portconfigure::get_compiler_fallback {} {
 
     # Check for platforms without Xcode
     if {$xcodeversion eq "none" || $xcodeversion eq ""} {
-        return {cc}
+        set available_apple_compilers [portconfigure::get_apple_compilers_os_version]
+    } else {
+        set available_apple_compilers [portconfigure::get_apple_compilers_xcode_version]
     }
-
-    set available_apple_compilers [portconfigure::get_apple_compilers_xcode_version]
     set system_compilers ""
     foreach c ${available_apple_compilers} {
         set v    [compiler.command_line_tools_version $c]
