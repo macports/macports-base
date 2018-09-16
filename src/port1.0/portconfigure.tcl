@@ -125,6 +125,13 @@ proc portconfigure::configure_get_cxx_stdlib {} {
 
 # ********** END C++ / OBJECTIVE-C++ **********
 
+# ********** Begin Fortran **********
+options                            \
+    compiler.require_fortran       \
+    compiler.fortran_fallback
+default compiler.require_fortran      no
+default compiler.fortran_fallback    {[portconfigure::get_fortran_fallback]}
+# ********** End Fortran **********
 
 # define options
 commands configure autoreconf automake autoconf xmkmf
@@ -590,6 +597,34 @@ proc portconfigure::configure_get_default_compiler {} {
     return [lindex [option compiler.fallback] 0]
 }
 
+# internal function to determine the Fortran compiler
+proc portconfigure::configure_get_fortran_compiler {} {
+    global configure.compiler
+    set compiler [subst ${configure.compiler}]
+    if {[portconfigure::configure_get_compiler fc ${compiler}] ne ""} {
+        return ${compiler}
+    }
+
+    set search_list [option compiler.fortran_fallback]
+    foreach compiler $search_list {
+        set allowed yes
+        foreach pattern [option compiler.blacklist] {
+            if {[string match $pattern $compiler]} {
+                set allowed no
+                break
+            }
+        }
+        if {$allowed &&
+            ([file executable [configure_get_compiler fc $compiler]] ||
+             [compiler_is_port $compiler])
+        } then {
+            return $compiler
+        }
+    }
+    ui_warn "All Fortran compilers are either blacklisted or unavailable; defaulting to first fallback option"
+    return [lindex [option compiler.fortran_fallback] 0]
+}
+
 #
 # internal utility procedure to get a version larger than any compiler version
 proc portconfigure::max_compiler_version {} {
@@ -754,6 +789,40 @@ proc portconfigure::get_min_gcc {} {
         lappend min_values [max_compiler_version]
     }
     return [lindex [lsort -decreasing -command vercmp ${min_values}] 0]
+}
+# utility procedure: get minimum Gfortran version based on restrictions
+proc portconfigure::get_min_gfortran {} {
+    global compiler.openmp_version compiler.thread_local_storage
+    set min_values 1.0
+    if {[vercmp ${compiler.openmp_version} 4.5] >= 0} {
+        lappend min_values 8.1
+    } elseif {[vercmp ${compiler.openmp_version} 4.0] >= 0} {
+        lappend min_values 4.9
+    } elseif {[vercmp ${compiler.openmp_version} 3.1] >= 0} {
+        lappend min_values 4.7
+    } elseif {[vercmp ${compiler.openmp_version} 3.0] >= 0} {
+        lappend min_values 4.4
+    } elseif {[vercmp ${compiler.openmp_version} 2.5] >= 0} {
+        lappend min_values 4.4
+    }
+    if {${compiler.thread_local_storage}} {
+        # GCC emulates thread-local storage, but it seems to be broken on older versions of GCC
+        lappend min_values 4.5
+    }
+    return [lindex [lsort -decreasing -command vercmp ${min_values}] 0]
+}
+#
+proc portconfigure::g95_ok {} {
+    global compiler.openmp_version os.platform xcodeversion
+    if {${os.platform} eq "darwin" && ([vercmp $xcodeversion 9.0] > 0)} {
+        # see https://github.com/macports/macports-ports/commit/6b905efc9d5586366ac498ed78d6ac51c120d33f
+        return no
+    }
+    if {${compiler.openmp_version} ne ""} {
+        # G95 does not support OpenMP
+        return no
+    }
+    return yes
 }
 # utility procedure: get Apple compilers based on Xcode version
 proc portconfigure::get_apple_compilers_xcode_version {} {
@@ -969,6 +1038,32 @@ proc portconfigure::get_compiler_fallback {} {
         return $mpi_compilers
     }
 }
+#
+proc portconfigure::get_fortran_fallback {} {
+    set compilers ""
+    foreach c [portconfigure::get_gcc_compilers] {
+        set v    [lindex [split $c -] 2]
+        set vmin [join [lrange [split [portconfigure::get_min_gfortran] .] 0 0] .]
+        if {[vercmp ${vmin} $v] <= 0} {
+            lappend compilers $c
+        }
+    }
+    if {[portconfigure::g95_ok]} {
+        lappend compilers macports-g95
+    }
+    # generate list of MPI wrappers of current compilers
+    if {[option compiler.mpi] eq ""} {
+        return $compilers
+    } else {
+        set mpi_compilers ""
+        foreach mpi [option compiler.mpi] {
+            foreach c ${compilers} {
+                lappend mpi_compilers {*}[portconfigure::get_mpi_wrapper $mpi $c]
+            }
+        }
+        return $mpi_compilers
+    }
+}
 
 # Find a developer tool
 proc portconfigure::find_developer_tool {name} {
@@ -998,7 +1093,20 @@ proc portconfigure::find_developer_tool {name} {
 proc portconfigure::configure_get_compiler {type {compiler {}}} {
     global configure.compiler prefix
     if {$compiler eq ""} {
-        set compiler ${configure.compiler}
+        if {[option compiler.require_fortran]} {
+            switch $type {
+                fc   -
+                f77  -
+                f90  {
+                    set compiler [portconfigure::configure_get_fortran_compiler]
+                }
+                default {
+                    set compiler ${configure.compiler}
+                }
+            }
+        } else {
+            set compiler ${configure.compiler}
+        }
     }
     # Tcl 8.4's switch doesn't support -matchvar.
     if {[regexp {^apple-gcc(-4\.[02])$} $compiler -> suffix]} {
@@ -1166,6 +1274,12 @@ proc portconfigure::add_automatic_compiler_dependencies {} {
     if {[compiler_is_port $compiler]} {
         ui_debug "Chosen compiler ${compiler} is provided by a port, adding dependency"
         portconfigure::add_compiler_port_dependencies ${compiler}
+    }
+
+    if {[option compiler.require_fortran] && [portconfigure::configure_get_compiler fc ${compiler}] eq ""} {
+        # Fortran is required, but compiler does not provide it
+        ui_debug "Adding Fortran compiler dependency"
+        portconfigure::add_compiler_port_dependencies [portconfigure::configure_get_fortran_compiler]
     }
 }
 # Register the above procedure as a callback after Portfile evaluation
