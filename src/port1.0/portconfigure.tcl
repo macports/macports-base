@@ -1147,25 +1147,9 @@ proc portconfigure::add_automatic_compiler_dependencies {} {
 
     # The default value requires substitution before use.
     set compiler [subst ${configure.compiler}]
-    if {![compiler_is_port $compiler]} {
-        return
-    }
-
-    ui_debug "Chosen compiler ${compiler} is provided by a port, adding dependency"
-
-    set compiler_port [portconfigure::compiler_port_name ${compiler}]
-    set deptype "build"
-    if {[string first "macports-gcc-" $compiler] == 0} {
-        set deptype "lib"
-    }
-    ui_debug "Adding depends_${deptype} port:$compiler_port"
-    depends_${deptype}-delete port:$compiler_port
-    depends_${deptype}-append port:$compiler_port
-
-    if {[arch_flag_supported $compiler]} {
-        ui_debug "Adding depends_skip_archcheck $compiler_port"
-        depends_skip_archcheck-delete $compiler_port
-        depends_skip_archcheck-append $compiler_port
+    if {[compiler_is_port $compiler]} {
+        ui_debug "Chosen compiler ${compiler} is provided by a port, adding dependency"
+        portconfigure::add_compiler_port_dependencies ${compiler}
     }
 }
 # Register the above procedure as a callback after Portfile evaluation
@@ -1173,6 +1157,80 @@ port::register_callback portconfigure::add_automatic_compiler_dependencies
 # and an option to turn it off if required
 options configure.compiler.add_deps
 default configure.compiler.add_deps yes
+# helper function to add dependencies for a given compiler
+proc portconfigure::add_compiler_port_dependencies {compiler} {
+    global os.major porturl
+
+    set compiler_port [portconfigure::compiler_port_name ${compiler}]
+    if {[regexp {^apple-gcc-(4\.0)$} $compiler -> gcc_version]} {
+        # compiler links against ${prefix}/lib/apple-gcc40/lib/libgcc_s.1.dylib
+        ui_debug "Adding depends_lib port:$compiler_port"
+        depends_lib-delete port:$compiler_port
+        depends_lib-append port:$compiler_port
+    } elseif {[regexp {^macports-(mpich|openmpi)-(default|clang|gcc)(?:-(\d+(?:\.\d+)?))?$} $compiler -> mpi clang_or_gcc version]} {
+        # MPI compilers link against MPI libraries
+        ui_debug "Adding depends_lib port:$compiler_port"
+        if {${mpi} eq "openmpi"} {
+            set pkgname ompi.pc
+        } else {
+            set pkgname ${mpi}.pc
+        }
+        depends_lib-delete "path:lib/$compiler_port/pgkconfig/${pkgname}:${compiler_port}"
+        depends_lib-append "path:lib/$compiler_port/pkgconfig/${pkgname}:${compiler_port}"
+    } else {
+        ui_debug "Adding depends_build port:$compiler_port"
+        depends_build-delete port:$compiler_port
+        depends_build-append port:$compiler_port
+
+        # add C++ runtime dependency if necessary
+        if {
+            [regexp {^macports-gcc-(\d+(?:\.\d+)?)?$} ${compiler} -> gcc_version]
+            ||
+            [regexp {^macports-dragonegg-(\d+\.\d+)(?:-gcc-(\d+\.\d+))?$} ${compiler} -> llvm_version gcc_version]
+        } {
+            if {[info exists llvm_version] && ${gcc_version} eq ""} {
+                # port dragonegg-3.4 defaults to GCC version 4.6
+                set gcc_version 4.6
+            }
+            set libgccs ""
+            set dependencies_file [getportresourcepath $porturl "port1.0/compilers/gcc_dependencies.tcl"]
+            if {[file exists ${dependencies_file}]} {
+                source ${dependencies_file}
+            } else {
+                ui_error "GCC dependencies file not found"
+                return -code error "${dependencies_file} does not exist"
+            }
+            ui_debug "Adding depends_build port:$compiler_port"
+            depends_build-delete port:$compiler_port
+            depends_build-append port:$compiler_port
+            foreach libgcc_dep $libgccs {
+                ui_debug "Adding depends_lib $libgcc_dep"
+                depends_lib-delete $libgcc_dep
+                depends_lib-append $libgcc_dep
+            }
+        } elseif {[regexp {^macports-clang(?:-(\d+\.\d+))$} $compiler -> clang_version]} {
+            if {[option configure.cxx_stdlib] eq "macports-libstdc++"} {
+                # see https://trac.macports.org/ticket/54766
+                ui_debug "Adding depends_lib path:lib/libgcc/libgcc_s.1.dylib:libgcc"
+                depends_lib-delete "path:lib/libgcc/libgcc_s.1.dylib:libgcc"
+                depends_lib-append "path:lib/libgcc/libgcc_s.1.dylib:libgcc"
+            } elseif {[option configure.cxx_stdlib] eq "libc++"} {
+                if {${os.major} < 11 } {
+                    # libc++ does not exist on these systems
+                    ui_debug "Adding depends_lib libcxx"
+                    depends_lib-delete "port:libcxx"
+                    depends_lib-append "port:libcxx"
+                }
+            }
+        }
+    }
+
+    if {[arch_flag_supported $compiler]} {
+        ui_debug "Adding depends_skip_archcheck $compiler_port"
+        depends_skip_archcheck-delete $compiler_port
+        depends_skip_archcheck-append $compiler_port
+    }
+}
 
 proc portconfigure::configure_main {args} {
     global [info globals]
