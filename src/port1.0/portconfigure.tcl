@@ -511,8 +511,17 @@ proc portconfigure::configure_get_universal_ldflags {} {
 }
 
 # internal proc to determine if the compiler supports -arch
-proc portconfigure::arch_flag_supported {compiler} {
-    return [regexp {^gcc-4|llvm|apple|clang} $compiler]
+proc portconfigure::arch_flag_supported {compiler {multiple_arch_flags no}} {
+    if {${multiple_arch_flags}} {
+        return [regexp {^gcc-4|llvm|apple|clang} ${compiler}]
+    } else {
+        # GCC prior to 4.7 does not accept -arch flag
+        if {[regexp {^macports(?:-[^-]+)?-gcc-4\.[0-6]} ${compiler}]} {
+            return no
+        } else {
+            return yes
+        }
+    }
 }
 
 proc portconfigure::compiler_port_name {compiler} {
