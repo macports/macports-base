@@ -664,6 +664,10 @@ proc variant {args} {
 proc variant_isset {name} {
     global variations
 
+    if {$name eq "universal" && [llength [option configure.universal_archs]] < 2} {
+        return 0
+    }
+
     if {[info exists variations($name)] && $variations($name) eq "+"} {
         return 1
     }
