@@ -1056,7 +1056,9 @@ match macports.conf.default."
 
     # Default mp universal options
     if {![info exists macports::universal_archs]} {
-        if {$os_major >= 10} {
+        if {$os_major >= 18} {
+            set macports::universal_archs {x86_64}
+        } elseif {$os_major >= 10} {
             set macports::universal_archs {x86_64 i386}
         } else {
             set macports::universal_archs {i386 ppc}
