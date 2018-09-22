@@ -2,6 +2,13 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.5.4 (2018-??-?? by ?)
+    - Fixed a reclaim failure when the distfiles option contains a list
+      of one or more empty strings. (#56786, jmr in 8a67087)
+
+    - Changed the 'default' command to not require overquoting of the
+      default value that is being set. (jmr in 8434c0e)
+
 Release 2.5.3 (2018-07-05 by jmr)
     - Fixed failures due to insufficient privileges on older OS versions.
       (#56721, jmr in 4b36e60)
