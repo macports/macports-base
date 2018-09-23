@@ -122,10 +122,13 @@ namespace eval reclaim {
                     walk_files $currentPath $files_in_use unused
                 }
                 file {
-                    if {$item eq ".turd_MacPorts"} {
+                    if {$item eq ".turd_MacPorts" || $item eq ".DS_Store"} {
                         # .turd_MacPorts files are created by MacPorts when creating the MacPorts
                         # installer packages from the MacPorts port so that empty directories are
-                        # not deleted after destroot. Treat those files as if they were not there.
+                        # not deleted after destroot.
+                        # .DS_Store files are created by the OS that stores custom attributes of
+                        # its containing folder,
+                        # Treat those files as if they were not there.
                         continue
                     }
                     if {[lsearch -exact -sorted $files_in_use $currentPath] == -1} {
