@@ -45,10 +45,10 @@ as utilization of TCL's extensive functionality.
 are encoded in UTF-8.
 .Pp
 The
-\.Nm MacPorts System
-uses a target dependency system based on a
-depends/provides model, allowing for targets to be registered and
-executed in the correct order based on their individual requirements.
+.Nm MacPorts System
+uses a target dependency system based on a depends/provides model, allowing
+for targets to be registered and executed in the correct order based on their
+individual requirements.
 .Pp
 A
 .Nm
@@ -84,11 +84,13 @@ Upstream version of software.
 If a port's version numbering changes such that a newer version looks
 older than the previous version, the
 .Ic epoch
-should be increased. Some
+should be increased.
+Some
 .Nm Portfile
 authors have used large
 .Ic epoch
-values that look like a date, but there is no reason to do so. The
+values that look like a date, but there is no reason to do so.
+The
 .Ic epoch
 is simply an unsigned integer, and the only requirement is that it never be
 decreased.
@@ -102,42 +104,57 @@ decreased.
 .Sy Example:
 .Dl epoch 1
 .It Ic description
-One line description of the software and what it does.  To appear in the
-description, brackets and semi-colons need to be escaped with a backslash (i.e.
-they must be written as "\\[", "\\]" and "\\;").  The escape sequences listed in
+One-line description of the software and what it does.
+To appear in the description, brackets and semi-colons need to be escaped with
+a backslash (i.e., they must be written as
+.Ql \e[ ,
+.Ql \e]
+and
+.Ql \e; ) .
+The escape sequences listed in
 .Xr re_syntax n
-may also be used, with the exception of \\n, \\r and \\f.
+may also be used, with the exception of
+.Ql \en ,
+.Ql \er
+and
+.Ql \ef .
 .br
 .Sy Type:
 .Em required
 .br
 .Sy Example:
-.Dl description Dictionary Server Protocol (RFC2229) client
+.Dl description IMAP email checker
 .It Ic long_description
-A verbose description of the software and what it does.  To appear in the
-description, brackets and semi-colons need to be escaped with a backslash (i.e.
-they must be written as "\\[", "\\]" and "\\;").  The escape sequences listed in
+A verbose description of the software and what it does.
+To appear in the description, brackets and semi-colons need to be escaped with
+a backslash (i.e., they must be written as
+.Ql \e[ ,
+.Ql \e]
+and
+.Ql \e; ) .
+The escape sequences listed in
 .Xr re_syntax n
-may also be used, with the exception of \\n, \\r and \\f.
+may also be used, with the exception of
+.Ql \en ,
+.Ql \er
+and
+.Ql \ef .
 .br
 .Sy Type:
 .Em required
 .br
 .Sy Example:
 .Bd -literal -offset indent -compact
-long_description The GNU Image Manipulation Program \e\
-
-    (GIMP) is a powerful tool for the preparation and \e\
-
-    manipulation of digital images. The GIMP provides \e\
-
-    the user with a wide variety of image manipulation, \e\
-
-    painting, processing, and rendering tools.
+long_description The GNU Image Manipulation \e
+    Program (GIMP) is a powerful tool for the \e
+    preparation and manipulation of digital \e
+    images. The GIMP provides the user with a \e
+    wide variety of image manipulation, painting, \e
+    processing, and rendering tools.
 .Ed
 .It Ic notes
-Notes for setup and use of the port.  This is shown after the port is
-activated and anytime the
+Notes for setup and use of the port.
+This is shown after the port is activated and anytime the
 .Ic notes
 command is used; for example:
 .Pp
@@ -149,7 +166,8 @@ instead of
 .Ic ui_msg
 is that it can be queried after a port is installed but
 .Ic ui_msg
-is only printed during an install.  Therefore
+is only printed during an install.
+Therefore
 .Ic notes
 is good for any information which may be needed anytime after an install.
 .br
@@ -158,13 +176,13 @@ is good for any information which may be needed anytime after an install.
 .br
 .Sy Example:
 .Bd -literal -offset indent -compact
-notes To fully complete your installation and make python \e\
+notes "
+To fully complete your installation and make\e
+python ${branch} the default, please run:
 
-   ${branch} the default, please run: \e\
-
-   sudo port install python_select \e\
-
-   sudo python_select ${name}
+  sudo port install python_select
+  sudo python_select ${name}
+"
 .Ed
 .It Ic revision
 Local revision number of
@@ -207,14 +225,31 @@ Declares which platforms are supported by the port.
 .Sy Example:
 .Dl platforms darwin
 .It Ic supported_archs
-The CPU architectures for which this port can be built. Archs currently
-supported by macOS are: i386, ppc, ppc64, x86_64. If this option is not set,
-it is assumed that the port can build for all archs. If a port does not install
-any architecture-specific files, use the special value noarch.
+The CPU architectures for which this port can be built.
+Archs currently supported by macOS are:
+.Em i386 ,
+.Em ppc ,
+.Em ppc64 ,
+and
+.Em x86_64 .
+If this option is not set, it is assumed that the port can build for all
+archs.
+If a port does not install any architecture-specific files, use the special
+value noarch.
 .br
-If the building architecture isn't among supported_archs, port fails with an
-error message except when building on x86_64 (or ppc64) and supported_archs
-contains i386 (or ppc). In this case, the port will be built in 32-bit mode.
+If the building architecture isn't among
+.Ic supported_archs ,
+port fails with an error message except when building on
+.Em x86_64
+(or
+.Em ppc64 )
+and
+.Ic supported_archs
+contains
+.Em i386
+(or
+.Em ppc ) .
+In this case, the port will be built in 32-bit mode.
 .br
 .Sy Type:
 .Em optional
@@ -239,17 +274,16 @@ Project homepage for the port.
 .It Ic master_sites
 List of sites to fetch
 .Ic distfiles
-from or a predefined mirror site
-list. If set to a predefined mirror site, without a subdirectory being
-defined, the portname is used as the name of the subdirectory.
+from or a predefined mirror site list.
+If set to a predefined mirror site, without a subdirectory being defined, the
+portname is used as the name of the subdirectory.
 .br
 .Sy Type:
 .Em required
 .br
 .Sy Example:
 .Bd -literal -offset indent -compact
-master_sites ftp://ftp.cdrom.com/pub/magic \e\
-
+master_sites ftp://ftp.cdrom.com/pub/magic \e
     sourceforge
 .Ed
 .It Ic worksrcdir
@@ -284,7 +318,8 @@ List of checksums for the
 .Ic distfiles .
 The checksum
 .Ar type
-can currently be md5, sha1, rmd160, sha256 or size. The
+can currently be md5, sha1, rmd160, sha256 or size.
+The
 .Ar filename
 can be omitted if there is only one distfile.
 .br
@@ -293,28 +328,30 @@ can be omitted if there is only one distfile.
 .br
 .Sy Example:
 .Bd -literal -offset indent -compact
-checksums dictd-1.7.1.tar.gz md5 81317b86ea0a5df0163900ad2e6bb12c \e\ 
-	magic-words-1.7.1.tar.gz md5 897a005182928613eadd30c267ce9c5b
+checksums dictd-1.7.1.tar.gz md5 81317b86ea0a5df0163900ad2e6bb12c \e
+          magic-words-1.7.1.tar.gz md5 897a005182928613eadd30c267ce9c5b
 .Ed
 .br
 .Sy Example (ledit 1.11):
 .Bd -literal -offset indent -compact
-checksums md5 a2d38ba641682509c1e964ad699a9dd2 \e\ 
-	sha1 1fb6443b5fdf3c83787953f06282d256477c1288
+checksums md5 a2d38ba641682509c1e964ad699a9dd2 \e
+          sha1 1fb6443b5fdf3c83787953f06282d256477c1288
 .Ed
 .br
 .Sy Example (ssldump 0.9b3):
 .Bd -literal -offset indent -compact
-checksums md5 ac8c28fe87508d6bfb06344ec496b1dd \e\ 
-	sha1 a633a9a811a138eac5ed440d583473b644135ef5 \e\ 
-	rmd160 941cf8f2ef8459ec4f9ce65772e134505d46566
+checksums md5 ac8c28fe87508d6bfb06344ec496b1dd \e
+          sha1 a633a9a811a138eac5ed440d583473b644135ef5 \e
+          rmd160 941cf8f2ef8459ec4f9ce65772e134505d46566
 .Ed
 .It Ic macosx_deployment_target
-Value for MACOSX_DEPLOYMENT_TARGET environment variable when invoking the configure script.
-.br 
+Value for
+.Ev MACOSX_DEPLOYMENT_TARGET
+environment variable when invoking the configure script.
+.br
 .Sy Type:
 .Em optional
-.br 
+.br
 .Sy Default:
 .Em (current OS version)
 .br
@@ -322,8 +359,9 @@ Value for MACOSX_DEPLOYMENT_TARGET environment variable when invoking the config
 .Dl macosx_deployment_target 10.8
 .It Ic use_parallel_build
 If set to yes (and the user has enabled buildmakejobs in
-.Pa macports.conf
-), the port can be built using more than one job.
+.Pa macports.conf ) ,
+the port can be built using more than one job.
+.br
 .Sy Type:
 .Em optional
 .br
@@ -377,7 +415,7 @@ target to configure the build.
 .Sy Example:
 .Dl use_configure no
 .It Ic copy_log_files Ar path/to/logfile1 Ar path/to/logfile2 Ar ...
-Copy specific log files from the workdir to the main macports log dir
+Copy specific log files from the workdir to the main MacPorts log dir.
 .br
 .Sy Type:
 .Em optional
@@ -411,27 +449,32 @@ in the deprecated port and list the new one to be used.
 .Sy Example:
 .Dl replaced_by xorg-renderproto
 .It Ic add_users
-Consists of a list of usernames and settings. At appropriate times during the
-port installation process, a user will be created for each username with the
-corresponding settings. Settings are of the form name=value. A setting
-applies to the username that appeared most recently before it in the list.
-.sp
+Consists of a list of usernames and settings.
+At appropriate times during the port installation process, a user will be
+created for each username with the corresponding settings.
+Settings are of the form name=value.
+A setting applies to the username that appeared most recently before it in the
+list.
+.Pp
 Applicable options are: group, gid (may be used instead of group), passwd,
 realname, home, and shell.
-.sp
+.Pp
 .Sy Type:
 .Em optional
 .br
 .Sy Default:
 .Em none (empty)
 .br
-.Sy Example:
-.Dl add_users squid group=squid realname=Squid\e Proxy home=${prefix}/var/squid
-.sp
-.Dl add_users user1 group=mygroup user2 group=mygroup
+.Sy Examples:
+.Bd -literal -offset indent -compact
+add_users squid group=squid realname=Squid\e Proxy \e
+    home=${prefix}/var/squid
+add_users user1 group=mygroup user2 group=mygroup
+.Ed
 .It Ic installs_libs
 By default, it is assumed that ports may install libraries or headers that can
-be incorporated into their dependents. If this is not the case, set
+be incorporated into their dependents.
+If this is not the case, set
 .Cm installs_libs
 to
 .Em no .
@@ -451,11 +494,12 @@ linking in its dependents.
 .Dl installs_libs no
 .It Ic license_noconflict
 By default, it is assumed that ports may use libraries or headers from their
-dependencies and thus form a derivative work. A dependency with an
-incompatible license thus prevents the port from being distributed in binary
-form. If a dependency with an incompatible license is not used in such a way
-that a derivative work is formed, or should not prevent binary distribution
-for any other reason, add its name to this list.
+dependencies and thus form a derivative work.
+A dependency with an incompatible license thus prevents the port from being
+distributed in binary form.
+If a dependency with an incompatible license is not used in such a way that a
+derivative work is formed, or should not prevent binary distribution for any
+other reason, add its name to this list.
 .br
 .Sy Type:
 .Em optional
@@ -471,7 +515,8 @@ for any other reason, add its name to this list.
 A number of hooks are available for customizing many of the standard
 targets that
 .Xr port 1
-executes. The targets supporting these hooks are
+executes.
+The targets supporting these hooks are
 .Cm fetch ,
 .Cm automake ,
 .Cm autoconf ,
@@ -483,7 +528,7 @@ and
 The hooks are:
 .Bl -tag -width lc
 .It Va target Ns Ic .asroot
-Run the 
+Run the
 .Va target
 with root privileges.
 .br
@@ -498,12 +543,15 @@ Directory in which to run the
 .It Va target Ns Ic .env
 Change the environment the
 .Va target
-is run in. This is often overridden on a per
+is run in.
+This is often overridden on a per
 .Nm
 basis.
 .br
 .Sy Example:
-.Dl build.env CC="${configure.cc} [get_canonical_archflags]"
+.Bd -literal -offset indent -compact
+build.env CC="${configure.cc} [get_canonical_archflags]"
+.Ed
 .It Va target Ns Ic .pre_args
 Additional arguments passed before the main arguments.
 .br
@@ -528,7 +576,7 @@ Additional arguments passed after the main arguments.
 Read-only access to the MacPorts configuration is provided.
 .Bl -tag -width lc
 .It Ic prefix
-Install prefix
+Install prefix.
 .br
 .Sy Type:
 .Em optional
@@ -590,50 +638,57 @@ Location to store downloaded distfiles.
 .Sy Default:
 .Em ${portdbpath}/distfiles/${dist_subdir}/
 .It Ic os.arch
-Identifies hardware type (e.g. "powerpc").
+Identifies hardware type (e.g.,
+.Dq powerpc ) .
 .br
 .Sy Type:
 .Em read-only
 .It Ic os.version
-Version number of operating system (e.g. "7.0").
+Version number of operating system (e.g.,
+.Dq 7.0 ) .
 .br
 .Sy Type:
 .Em read-only
 .It Ic os.major
-Major version number of operating system (e.g. "7").
+Major version number of operating system (e.g.,
+.Dq 7 ) .
 .br
 .Sy Type:
 .Em read-only
 .It Ic os.endian
-Endianness of the processor (e.g. "big").
+Endianness of the processor (e.g.,
+.Dq big ) .
 .br
 .Sy Type:
 .Em read-only
 .It Ic os.platform
-Operating system name (e.g. "darwin").
+Operating system name (e.g.,
+.Dq darwin ) .
 .br
 .Sy Type:
 .Em read-only
 .It Ic os.subplatform
-Name of specific operating system variant (e.g. "macosx").
+Name of specific operating system variant (e.g.,
+.Dq macosx ) .
 .br
 .Sy Type:
 .Em read-only
 .It Ic install.user
-User for MacPorts installation (e.g.
-.Pa root )
+User for MacPorts installation (e.g.,
+.Dq root ) .
 .br
 .Sy Type:
 .Em read-only
 .It Ic install.group
-Group for MacPorts installation (e.g.
-.Pa wheel )
+Group for MacPorts installation (e.g.,
+.Dq wheel ) .
 .br
 .Sy Type:
 .Em read-only
 .It Ic applications_dir
-Absolute path to the final location to install macOS application
-bundles (.app directories).
+Absolute path to the final location to install macOS application bundles
+.Pf ( Pa .app
+directories).
 .br
 .Sy Type:
 .Em read-only
@@ -641,8 +696,9 @@ bundles (.app directories).
 .Sy Default:
 .Em /Applications/MacPorts
 .It Ic frameworks_dir
-Absolute path to the final location to install macOS framework
-bundles (.framework directories).
+Absolute path to the final location to install macOS framework bundles
+.Pf ( Pa .framework
+directories).
 .br
 .Sy Type:
 .Em read-only
@@ -654,27 +710,34 @@ bundles (.framework directories).
 Port dependencies should refer to other MacPorts ports
 whenever possible, therefore each dependency should be
 expressed in the format:
-.Bl -tag -width ls
-.It port: Ns Ao port Ac
+.Bl -tag -width ls -offset indent
+.It Li port: Ns Aq port
 .El
 .Pp
-Where 
-.Ao port Ac represents the name of an existing MacPorts
+Where
+.Aq port
+represents the name of an existing MacPorts
 .Nm port .
 If satisfying a dependency with a MacPorts port is not
 practical and it is likely that a dependency must be met
 by an Apple optional install, then the alternative dependency
 format:
-.Bl -tag -width lc
-.It Ar type Ns : Ns Ao filename Ac Ns : Ns Ao port Ac
+.Bl -tag -width lc -offset indent
+.It Ar type Ns Li \&: Ns Ao filename Ac Ns Li \&: Ns Aq port
 .El
 .Pp
-may be used. Where
+may be used.
+Where
 .Ar type
-is "bin" if
-.Ao filename Ac
-is a program, "lib" if it is a library, or "path" if it is a path to an
-installed file.
+is
+.Dq bin
+if
+.Aq filename
+is a program,
+.Dq lib
+if it is a library, or
+.Dq path
+if it is a path to an installed file.
 .br
 .Sy Example:
 .Dl lib:libX11.6:XFree86
@@ -736,8 +799,9 @@ List of dependencies to check before
 .Cm install
 and
 .Cm package
-targets. Will be recorded in the registry as being required by the dependent
-port when it is installed.
+targets.
+Will be recorded in the registry as being required by the dependent port when
+it is installed.
 .br
 .Sy Type:
 .Em optional
@@ -752,8 +816,9 @@ List of dependencies to check before
 .Cm install ,
 and
 .Cm package
-targets. Will be recorded in the registry as being required by the dependent
-port when it is installed.
+targets.
+Will be recorded in the registry as being required by the dependent port when
+it is installed.
 .br
 .Sy Type:
 .Em optional
@@ -766,7 +831,7 @@ Fetch all distribution files and patches.
 .Bl -tag -width lc
 .It Ic master_sites.mirror_subdir
 Subdirectory to append to all mirror sites for any list specified in
-master_sites.
+.Ic master_sites .
 .br
 .Sy Type:
 .Em optional
@@ -788,7 +853,9 @@ from or a predefined mirror site list.
 .Em ${master_sites}
 .br
 .Sy Example:
-.Dl patch_sites ftp://ftp.patchcityrepo.com/pub/magic/patches
+.Bd -literal -offset indent -compact
+patch_sites ftp://ftp.patchcityrepo.com/pub/magic/patches
+.Ed
 .It Ic patch_sites.mirror_subdir
 Subdirectory to append to all mirror sites for any list specified in
 .Ic patch_sites .
@@ -836,13 +903,25 @@ List of patches to fetch and apply.
 .It Ic use_zip
 Use zip.
 .br
-Sets extract.suffix to: .zip
+Sets
+.Ic extract.suffix
+to
+.Dq .zip .
 .br
-Sets extract.cmd to: unzip
+Sets
+.Ic extract.cmd
+to
+.Dq unzip .
 .br
-Sets extract.pre_args to: -q
+Sets
+.Ic extract.pre_args
+to
+.Dq -q .
 .br
-Sets extract.post_args to: "-d ${workpath}"
+Sets
+.Ic extract.post_args
+to
+.Dq -d ${workpath} .
 .br
 .Sy Type:
 .Em optional
@@ -852,9 +931,15 @@ Sets extract.post_args to: "-d ${workpath}"
 .It Ic use_bzip2
 Use bzip2.
 .br
-Sets extract.suffix to: .bz2
+Sets
+.Ic extract.suffix
+to
+.Dq .bz2 .
 .br
-Sets extract.cmd to: bzip2
+Sets
+.Ic extract.cmd
+to
+.Dq bzip2 .
 .br
 .Sy Type:
 .Em optional
@@ -864,9 +949,15 @@ Sets extract.cmd to: bzip2
 .It Ic use_lzma
 Use lzma.
 .br
-Sets extract.suffix to: .lzma
+Sets
+.Ic extract.suffix
+to
+.Dq .lzma .
 .br
-Sets extract.cmd to: lzma
+Sets
+.Ic extract.cmd
+to
+.Dq lzma .
 .br
 .Sy Type:
 .Em optional
@@ -876,11 +967,20 @@ Sets extract.cmd to: lzma
 .It Ic use_tar
 Use an uncompressed tar archive.
 .br
-Sets extract.suffix to: .tar
+Sets
+.Ic extract.suffix
+to
+.Dq .tar .
 .br
-Sets extract.cmd to: tar
+Sets
+.Ic extract.cmd
+to
+.Dq tar .
 .br
-Sets extract.pre_args to: -xf
+Sets
+.Ic extract.pre_args
+to
+.Dq -xf .
 .br
 .Sy Type:
 .Em optional
@@ -890,9 +990,15 @@ Sets extract.pre_args to: -xf
 .It Ic use_xz
 Use xz.
 .br
-Sets extract.suffix to: .xz
+Sets
+.Ic extract.suffix
+to
+.Dq .xz .
 .br
-Sets extract.cmd to: xz
+Sets
+.Ic extract.cmd
+to
+.Dq xz .
 .br
 .Sy Type:
 .Em optional
@@ -902,9 +1008,15 @@ Sets extract.cmd to: xz
 .It Ic use_7z
 Use 7z (7zip).
 .br
-Sets extract.suffix to: .7z
+Sets
+.Ic extract.suffix
+to
+.Dq .7z .
 .br
-Sets extract.cmd to: 7za
+Sets
+.Ic extract.cmd
+to
+.Dq 7za .
 .br
 .Sy Type:
 .Em optional
@@ -940,7 +1052,9 @@ HTTP or FTP password to fetch the resource.
 .Sy Type:
 .Em optional
 .It Ic fetch.use_epsv
-Whether to use EPSV command for FTP transfers.
+Whether to use
+.Li EPSV
+command for FTP transfers.
 .br
 .Sy Type:
 .Em optional
@@ -959,9 +1073,10 @@ Whether to ignore the host SSL certificate (for HTTPS).
 .br
 .El
 .Ss FETCHING FROM CVS
-As an alternative to fetching distribution files, pulling the sources
-from a CVS repository is supported. Use of CVS can give rise to
-non-reproducible builds, so it is strongly discouraged.
+As an alternative to fetching distribution files, pulling the sources from a
+CVS repository is supported.
+Use of CVS can give rise to non-reproducible builds, so it is strongly
+discouraged.
 .Bl -tag -width lc
 .It Ic cvs.root
 Specify the address to a CVS repository from which to checkout files.
@@ -973,7 +1088,9 @@ Specify the address to a CVS repository from which to checkout files.
 .Em none
 .br
 .Sy Example:
-.Dl cvs.root :pserver:anonymous@cvs.sv.gnu.org:/sources/emacs
+.Bd -literal -offset indent -compact
+cvs.root :pserver:anonymous@cvs.sv.gnu.org:/sources/emacs
+.Ed
 .It Ic cvs.tag
 Specify a CVS tag identifying the code to checkout.
 .br
@@ -1009,9 +1126,10 @@ A CVS module from which to check out the code.
 .Dl cvs.module Sources
 .El
 .Ss FETCHING FROM SUBVERSION
-As an alternative to fetching distribution files, pulling the sources
-from a subversion repository is supported. Use of subversion can give
-rise to non-reproducible builds, so it is strongly discouraged.
+As an alternative to fetching distribution files, pulling the sources from a
+subversion repository is supported.
+Use of subversion can give rise to non-reproducible builds, so it is strongly
+discouraged.
 .Bl -tag -width lc
 .It Ic svn.url
 Specify the url from which to fetch files.
@@ -1022,15 +1140,19 @@ Specify the url from which to fetch files.
 .Sy Default:
 .Em none
 .br
-.Sy Example:
-.Dl svn.url https://www.example.com/svn/project/tags/1.2.3
-      svn.url svn://www.example.com/svn/project/tags/1.2.3
+.Sy Examples:
+.Bd -literal -offset indent -compact
+svn.url https://www.example.com/svn/project/tags/1.2.3
+svn.url svn://www.example.com/svn/project/tags/1.2.3
+.Ed
 .It Ic svn.revision
-Specify a tag from which svn should fetch files. This
-corresponds to the -r option to the svn cli.  Note that you
-will need to use backslashes to escape characters that have
-meaning to the Tcl interpreter, such as braces and double
-quotes.
+Specify a tag from which svn should fetch files.
+This
+corresponds to the
+.Fl r
+option to the svn cli.
+Note that you will need to use backslashes to escape characters that have
+meaning to the Tcl interpreter, such as braces and double quotes.
 .br
 .Sy Type:
 .Em optional
@@ -1038,17 +1160,20 @@ quotes.
 .Sy Default:
 .Em none
 .br
-.Sy Example:
-.Dl svn.revision 37192
-      svn.revision \\{\\"2006-02-17 15:30 +0230\\"\\}
+.Sy Examples:
+.Bd -literal -offset indent -compact
+svn.revision 37192
+svn.revision {"2006-02-17 15:30 +0230"}
+.Ed
 .El
 .Ss FETCHING FROM GIT
-As an alternative to fetching distribution files, pulling the sources
-from a git repository is supported. Use of git can give rise to
-non-reproducible builds, so it is strongly discouraged.
+As an alternative to fetching distribution files, pulling the sources from a
+git repository is supported.
+Use of git can give rise to non-reproducible builds, so it is strongly
+discouraged.
 .Bl -tag -width lc
 .It Ic git.url
-Specify the url from which to fetch files
+Specify the url from which to fetch files.
 .br
 .Sy Type:
 .Em required
@@ -1056,12 +1181,15 @@ Specify the url from which to fetch files
 .Sy Default:
 .Em none
 .br
-.Sy Example:
-.Dl git.url git://git.kernel.org/pub/scm/git/git.git
-      git.url http://www.kernel.org/pub/scm/git/git.git
+.Sy Examples:
+.Bd -literal -offset indent -compact
+git.url git://git.kernel.org/pub/scm/git/git.git
+git.url http://www.kernel.org/pub/scm/git/git.git
+.Ed
 .It Ic git.branch
 Specify a branch (or other commit-ish) that git should checkout.
-Note that any branch besides HEAD should be prefixed by origin/.
+Note that any branch besides HEAD should be prefixed by
+.Pa origin/ .
 .br
 .Sy Type:
 .Em optional
@@ -1069,9 +1197,11 @@ Note that any branch besides HEAD should be prefixed by origin/.
 .Sy Default:
 .Em none
 .br
-.Sy Example:
-.Dl git.branch 72bf1c8
-      git.branch origin/next
+.Sy Examples:
+.Bd -literal -offset indent -compact
+git.branch 72bf1c8
+git.branch origin/next
+.Ed
 .El
 .Sh EXTRACT OPTIONS
 Extract all compressed/archived files.
@@ -1115,7 +1245,12 @@ working directory instead of a subdirectory.
 .Dl extract.mkdir yes
 .El
 .Sh CONFIGURE OPTIONS
-MacPorts provide special support for configure flags (CFLAGS, LDFLAGS, CPPFLAGS, CXXFLAGS, CC, CXX, CPP, FC, F77, F90). Please note that the previous way to alter these flags (using configure.env) may become deprecated at some point. The following options are defined:
+MacPorts provide special support for configure flags (CFLAGS, LDFLAGS,
+CPPFLAGS, CXXFLAGS, CC, CXX, CPP, FC, F77, F90).
+Please note that the previous way to alter these flags (using
+.Ic configure.env )
+may become deprecated at some point.
+The following options are defined:
 .Bl -tag -width lc
 .It Ic configure.optflags
 Flags to use for optimization.
@@ -1129,7 +1264,9 @@ Flags to use for optimization.
 .Sy Example:
 .Dl configure.optflags -O3
 .It Ic configure.cflags
-Flags to put in the CFLAGS environment variable when invoking the configure script.
+Flags to put in the
+.Ev CFLAGS
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
@@ -1140,7 +1277,9 @@ Flags to put in the CFLAGS environment variable when invoking the configure scri
 .Sy Example:
 .Dl configure.cflags-append -DHAS_LRINTF
 .It Ic configure.cppflags
-Flags to put in the CPPFLAGS environment variable when invoking the configure script.
+Flags to put in the
+.Ev CPPFLAGS
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
@@ -1148,7 +1287,9 @@ Flags to put in the CPPFLAGS environment variable when invoking the configure sc
 .Sy Default:
 .Em -I${prefix}/include
 .It Ic configure.cxxflags
-Flags to put in the CXXFLAGS environment variable when invoking the configure script.
+Flags to put in the
+.Ev CXXFLAGS
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
@@ -1156,7 +1297,9 @@ Flags to put in the CXXFLAGS environment variable when invoking the configure sc
 .Sy Default:
 .Em ${configure.optflags}
 .It Ic configure.objcflags
-Flags to put in the OBJCFLAGS environment variable when invoking the configure script.
+Flags to put in the
+.Ev OBJCFLAGS
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
@@ -1164,7 +1307,9 @@ Flags to put in the OBJCFLAGS environment variable when invoking the configure s
 .Sy Default:
 .Em ${configure.optflags}
 .It Ic configure.ldflags
-Flags to put in the LDFLAGS environment variable when invoking the configure script.
+Flags to put in the
+.Ev LDFLAGS
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
@@ -1172,36 +1317,46 @@ Flags to put in the LDFLAGS environment variable when invoking the configure scr
 .Sy Default:
 .Em -L${prefix}/lib -Wl,-headerpad_max_install_names
 .It Ic configure.fflags
-Flags to put in the FFLAGS environment variable when invoking the configure script.
-.br 
+Flags to put in the
+.Ev FFLAGS
+environment variable when invoking the configure script.
+.br
 .Sy Type:
 .Em optional
 .br
 .Sy Default:
 .Em ${configure.optflags}
 .It Ic configure.f90flags
-Flags to put in the F90FLAGS environment variable when invoking the configure script.
-.br 
+Flags to put in the
+.Ev F90FLAGS
+environment variable when invoking the configure script.
+.br
 .Sy Type:
 .Em optional
 .br
 .Sy Default:
 .Em ${configure.optflags}
 .It Ic configure.fcflags
-Flags to put in the FCFLAGS environment variable when invoking the configure script.
-.br 
+Flags to put in the
+.Ev FCFLAGS
+environment variable when invoking the configure script.
+.br
 .Sy Type:
 .Em optional
 .br
 .Sy Default:
 .Em ${configure.optflags}
 .It Ic configure.classpath
-Flags to put in the CLASSPATH environment variable when invoking the configure script.
-.br 
+Flags to put in the
+.Ev CLASSPATH
+environment variable when invoking the configure script.
+.br
 .Sy Type:
 .Em optional
 .It Ic configure.cc
-C-compiler to put in the CC environment variable when invoking the configure script.
+C\~compiler to put in the
+.Ev CC
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
@@ -1209,17 +1364,23 @@ C-compiler to put in the CC environment variable when invoking the configure scr
 .Sy Example:
 .Dl configure.cc /usr/bin/gcc
 .It Ic configure.cpp
-C-preprocessor to put in the CPP environment variable when invoking the configure script.
+C\~preprocessor to put in the
+.Ev CPP
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
 .It Ic configure.cxx
-C++-compiler to put in the CXX environment variable when invoking the configure script.
+C++ compiler to put in the
+.Ev CXX
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
 .It Ic configure.objc
-Objective-C-compiler to put in the OBJC environment variable when invoking the configure script.
+Objective\~C compiler to put in the
+.Ev OBJC
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
@@ -1227,36 +1388,72 @@ Objective-C-compiler to put in the OBJC environment variable when invoking the c
 .Sy Example:
 .Dl configure.objc ${prefix}/bin/gcc-mp-4.1
 .It Ic configure.fc
-Fortran-compiler to put in the FC environment variable when invoking the configure script.
+Fortran compiler to put in the
+.Ev FC
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
 .It Ic configure.f77
-Fortran-77-compiler to put in the F77 environment variable when invoking the configure script.
+Fortran\~77 compiler to put in the
+.Ev F77
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
 .It Ic configure.f90
-Fortran-90-compiler to put in the F90 environment variable when invoking the configure script.
+Fortran\~90 compiler to put in the
+.Ev F90
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
 .It Ic configure.javac
-Java compiler to put in the JAVAC environment variable when invoking the configure script.
+Java compiler to put in the
+.Ev JAVAC
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
 .It Ic configure.compiler
-Selects a complete compiler suite to use. This option will override the compiler environment variable for all compilers the named suite features. Please note that this option will intentionally not set any dependencies on the selected compiler suite!
+Selects a complete compiler suite to use.
+This option will override the compiler environment variable for all compilers
+the named suite features.
+Please note that this option will intentionally not set any dependencies on
+the selected compiler suite!
+.Em gcc-3.3 ,
+.Em gcc-4.0 ,
+.Em gcc-4.2 ,
+.Em llvm-gcc-4.2 ,
+and
+.Em clang
+use the standard Xcode compiler suites,
+.Em apple-gcc-4.0
+and
+.Em apple-gcc-4.2
+use Apple's gcc suite installed via MacPorts,
+.Em macports-gcc-4.2 ,
+.Em macports-gcc-4.3 ,
+.Em macports-gcc-4.4 ,
+.Em macports-gcc-4.5 ,
+.Em macports-gcc-4.6 ,
+.Em macports-gcc-4.7 ,
+.Em macports-gcc-4.8 ,
+and
+.Em macports-llvm-gcc-4.2
+use the vanilla compiler suites installed via MacPorts.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Values:
 .Em gcc-3.3
 .Em gcc-4.0
 .Em gcc-4.2
 .Em llvm-gcc-4.2
 .Em clang
-use the standard Xcode compiler suites,
 .Em apple-gcc-4.0
 .Em apple-gcc-4.2
-use Apple's gcc suite installed via MacPorts,
 .Em macports-gcc-4.2
 .Em macports-gcc-4.3
 .Em macports-gcc-4.4
@@ -1265,22 +1462,15 @@ use Apple's gcc suite installed via MacPorts,
 .Em macports-gcc-4.7
 .Em macports-gcc-4.8
 .Em macports-llvm-gcc-4.2
-use the vanilla compiler suites installed via MacPorts.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Values:
-.Em gcc-3.3 gcc-4.0 gcc-4.2 llvm-gcc-4.2 clang apple-gcc-4.0 apple-gcc-4.2 macports-gcc-4.2 macports-gcc-4.3 macports-gcc-4.4 macports-gcc-4.5 macports-gcc-4.6 macports-gcc-4.7 macports-gcc-4.8 macports-llvm-gcc-4.2
 .br
 .Sy Example:
 .Dl configure.compiler llvm-gcc-4.2
 .It Ic configure.sdk_version
 macOS SDK version to build against.
-.br 
+.br
 .Sy Type:
 .Em optional
-.br 
+.br
 .Sy Default:
 .Em (current OS version)
 .br
@@ -1289,7 +1479,11 @@ macOS SDK version to build against.
 .\" FOOBAR
 .El
 .Ss UNIVERSAL TARGET HOOKS
-For universal builds of configure-based ports, we also define specific target hooks. These can be overridden for specific ports. Please note that these hooks are used by the default universal variant and redefining the variant will make them useless.
+For universal builds of configure-based ports, we also define specific target
+hooks.
+These can be overridden for specific ports.
+Please note that these hooks are used by the default universal variant and
+redefining the variant will make them useless.
 .Bl -tag -width lc
 .It Ic configure.universal_args
 Arguments appended to the configure script to build the port universal.
@@ -1300,7 +1494,9 @@ Arguments appended to the configure script to build the port universal.
 .Sy Default:
 .Em --disable-dependency-tracking
 .It Ic configure.universal_cflags
-Additional flags to put in the CFLAGS environment variable when invoking the configure script.
+Additional flags to put in the
+.Ev CFLAGS
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
@@ -1308,12 +1504,16 @@ Additional flags to put in the CFLAGS environment variable when invoking the con
 .Sy Default:
 .Em -isysroot/Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc
 .It Ic configure.universal_cppflags
-Additional flags to put in the CPPFLAGS environment variable when invoking the configure script.
+Additional flags to put in the
+.Ev CPPFLAGS
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
 .It Ic configure.universal_cxxflags
-Additional flags to put in the CXXFLAGS environment variable when invoking the configure script.
+Additional flags to put in the
+.Ev CXXFLAGS
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
@@ -1321,7 +1521,9 @@ Additional flags to put in the CXXFLAGS environment variable when invoking the c
 .Sy Default:
 .Em -isysroot/Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc
 .It Ic configure.universal_ldflags
-Additional flags to put in the LDFLAGS environment variable when invoking the configure script.
+Additional flags to put in the
+.Ev LDFLAGS
+environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
@@ -1345,13 +1547,22 @@ Make command to run relative to
 .Sy Example:
 .Dl build.cmd scons
 .It Ic build.type
-Defines which 'make' is required, either 'gnu' or 'bsd'. Can also choose 'xcode'
-(or the deprecated synonym 'pbx'), however you should generally use
-the xcode PortGroup rather than setting this directly.
+Defines which
+.Xr make 1
+program is required, either
+.Dq gnu
+or
+.Dq bsd .
+Can also choose
+.Dq xcode
+(or the deprecated synonym
+.Dq pbx ) ,
+however you should generally use the xcode PortGroup rather than setting this
+directly.
 Sets
 .Ic build.cmd
 to either
-.Pa gnumake,
+.Pa gnumake ,
 .Pa bsdmake
 or
 .Pa xcodebuild
@@ -1380,7 +1591,8 @@ Target passed to
 .El
 .Sh DESTROOT OPTIONS
 Execute necessary commands to install into a temporary destination root
-("destroot") staging area.
+.Pf ( Dq destroot )
+staging area.
 .Bl -tag -width lc
 .It Ic destroot.cmd
 Install command to run relative to
@@ -1442,7 +1654,10 @@ completion.
 .Sy Example:
 .Dl destroot.keepdirs ${destroot}${prefix}/var/log/mysql
 .It Ic destroot.violate_mtree
-Indicates if a port will violate the common directory structure. Enables or disables tests for violations of mtree (e. g. non-standard directories in ${prefix}). The standard mtree can be found in
+Indicates if a port will violate the common directory structure.
+Enables or disables tests for violations of mtree (e.g., non-standard
+directories in ${prefix}).
+The standard mtree can be found in
 .Xr porthier 7 .
 .br
 .Sy Type:
@@ -1491,10 +1706,10 @@ Test target to pass to
 .Dl test.target checks
 .El
 .Sh STARTUPITEM OPTIONS
-If a port needs to run on system startup, it can use MacPorts
-startupitem keywords to install native macOS startup scripts.
-Startup scripts require user interaction after port installation
-to activate them and instructions are given during port installs.
+If a port needs to run on system startup, it can use MacPorts startupitem
+keywords to install native macOS startup scripts.
+Startup scripts require user interaction after port installation to activate
+them and instructions are given during port installs.
 .Bl -tag -width lc
 .It Ic startupitem.create
 Choose whether or not to generate a startup item.
@@ -1511,10 +1726,15 @@ Choose whether or not to generate a startup item.
 .Sy Example:
 .Dl startupitem.create yes
 .It Ic startupitem.type
-Select the type of startupitem to generate. By default, a startupitem
-will be generated that is of the appropriate type for the OS.
-For macOS this is always launchd.
-A global default may be specified with the startupitem_type preference in macports.conf.
+Select the type of startupitem to generate.
+By default, a startupitem will be generated that is of the appropriate type
+for the OS.
+For macOS this is always
+.Pa launchd .
+A global default may be specified with the
+.Ic startupitem_type
+preference in
+.Pa macports.conf .
 .br
 .Sy Type:
 .Em optional
@@ -1536,7 +1756,7 @@ Displayed name of the startup item.
 .Sy Example:
 .Dl startupitem.name OpenSSH
 .It Ic startupitem.autostart
-Whether to automatically load the StartupItem after activating the port.
+Whether to automatically load the startupitem after activating the port.
 .br
 .Sy Type:
 .Em optional
@@ -1564,13 +1784,18 @@ Enable additional debug logging.
 .Sy Example:
 .Dl startupitem.debug yes
 .It Ic startupitem.executable
-The name of the daemon to be run in the background. This is
-the preferred type of startup item rather than any of
-startupitem.init, startupitem.start, startupitem.stop, or
-startupitem.restart, and may not be used together with any
-of these options.  This option may contain multiple
-arguments, but they must be appropriate for a call to exec; they
-may not contain arbitrary shell code.
+The name of the daemon to be run in the background.
+This is the preferred type of startupitem rather than any of
+.Ic startupitem.init ,
+.Ic startupitem.start ,
+.Ic startupitem.stop ,
+or
+.Ic startupitem.restart ,
+and may not be used together with any of these options.
+This option may contain multiple arguments, but they must be appropriate for a
+call to
+.Li exec ;
+they may not contain arbitrary shell code.
 .br
 .Sy Type:
 .Em optional
@@ -1582,7 +1807,10 @@ may not contain arbitrary shell code.
 .Dl startupitem.executable ${prefix}/bin/wonka
 .It Ic startupitem.init
 Shell code that will be executed prior to any of the options
-startupitem.start, startupitem.stop and startupitem.restart.
+.Ic startupitem.start ,
+.Ic startupitem.stop
+and
+.Ic startupitem.restart .
 .br
 .Sy Type:
 .Em optional
@@ -1593,8 +1821,9 @@ startupitem.start, startupitem.stop and startupitem.restart.
 .Sy Example:
 .Dl startupitem.init FOO=start
 .It Ic startupitem.install
-Whether to install a link to the StartupItem in the appropriate
-subdirectory of /Library.
+Whether to install a link to the startupitem in the appropriate subdirectory
+of
+.Pa /Library .
 .br
 .Sy Type:
 .Em optional
@@ -1608,10 +1837,12 @@ subdirectory of /Library.
 .Sy Example:
 .Dl startupitem.install no
 .It Ic startupitem.location
-Chooses the subdirectory in which to install the StartupItem. Also
-affects how it will be loaded: LaunchDaemons must be loaded as root,
-and only one instance will run for the whole system. LaunchAgents are
-loaded as a normal user, and one instance per user can run.
+Chooses the subdirectory in which to install the startupitem.
+Also affects how it will be loaded:
+.Li LaunchDaemons
+must be loaded as root, and only one instance will run for the whole system.
+.Li LaunchAgents
+are loaded as a normal user, and one instance per user can run.
 .br
 .Sy Type:
 .Em optional
@@ -1620,7 +1851,8 @@ loaded as a normal user, and one instance per user can run.
 .Em LaunchDaemons
 .br
 .Sy Values:
-.Em LaunchDaemons|LaunchAgents
+.Em LaunchDaemons
+.Em LaunchAgents
 .br
 .Sy Example:
 .Dl startupitem.location LaunchAgents
@@ -1634,7 +1866,9 @@ Shell code executed to start the daemon.
 .Em sh code
 .br
 .Sy Example:
-.Dl startupitem.start ${prefix}/share/mysql/mysql.server start
+.Bd -literal -offset indent -compact
+startupitem.start ${prefix}/share/mysql/mysql.server start
+.Ed
 .It Ic startupitem.stop
 Shell code executed to stop the daemon.
 .br
@@ -1645,11 +1879,13 @@ Shell code executed to stop the daemon.
 .Em sh code
 .br
 .Sy Example:
-.Dl startupitem.stop ${prefix}/share/mysql/mysql.server stop
+.Bd -literal -offset indent -compact
+startupitem.stop ${prefix}/share/mysql/mysql.server stop
+.Ed
 .It Ic startupitem.restart
-Shell code executed to restart the daemon. In the absence
-of this key, the daemon will be restarted by taking the
-stop action, followed by taking the start action.
+Shell code executed to restart the daemon.
+In the absence of this key, the daemon will be restarted by taking the stop
+action, followed by taking the start action.
 .br
 .Sy Type:
 .Em optional
@@ -1658,16 +1894,25 @@ stop action, followed by taking the start action.
 .Em sh code
 .br
 .Sy Example:
-.Dl startupitem.restart ${prefix}/share/mysql/mysql.server restart
+.Bd -literal -offset indent -compact
+startupitem.restart ${prefix}/share/mysql/mysql.server restart
+.Ed
 .It Ic startupitem.pidfile
-Specification for pidfile handling. This is particularly useful
-in conjunction with the startupitem.executable key, because it is
-important that the startupitem know how to track the executable.
-This specifies whether the daemon generates its own pidfile (auto),
-whether it generates its own but forgets to delete it, so that the
-startupitem should delete it (clean), or whether it never generates
-one, in which case the startupitem should manage the pidfile on its
-own (manual), or whether no pidfile should be used at all (none).
+Specification for pidfile handling.
+This is particularly useful in conjunction with the
+.Ic startupitem.executable
+key, because it is important that the startupitem knows how to track the
+executable.
+This specifies whether the daemon generates its own pidfile
+.Pf ( Dq auto ) ,
+whether it generates its own but forgets to delete it, so that the startupitem
+should delete it
+.Pf ( Dq clean ) ,
+or whether it never generates one, in which case the startupitem should manage
+the pidfile on its own
+.Pf ( Dq manual ) ,
+or whether no pidfile should be used at all
+.Pf  ( Dq none ) .
 .br
 .Sy Type:
 .Em optional
@@ -1676,15 +1921,25 @@ own (manual), or whether no pidfile should be used at all (none).
 .Em none "${prefix}/var/run/${name}.pid"
 .br
 .Sy Values:
-.Em none|auto|manual|clean [/path/to/pidfile]
+.Po
+.Em none
+|
+.Em auto
+|
+.Em manual
+|
+.Em clean
+.Pc
+.Bq Pa /path/to/pidfile
 .br
 .Sy Example:
-.Dl startupitem.pidfile auto ${prefix}/var/run/${name}.pidfile
+.Bd -literal -offset indent -compact
+startupitem.pidfile auto ${prefix}/var/run/${name}.pidfile
+.Ed
 .It Ic startupitem.logfile
-Path to a logfile for logging events about the lifetime of the
-startupitem. Depending on the type of startupitem, and the manner
-in which it is started, standard output from the daemon may also be
-directed to the logfile.
+Path to a logfile for logging events about the lifetime of the startupitem.
+Depending on the type of startupitem, and the manner in which it is started,
+standard output from the daemon may also be directed to the logfile.
 .br
 .Sy Type:
 .Em optional
@@ -1698,8 +1953,8 @@ directed to the logfile.
 .Sy Example:
 .Dl startupitem.logfile ${prefix}/var/log/mydaemon.log
 .It Ic startupitem.logevents
-Control whether or not to log events to the log file. If logevents
-is set, events with timestamps are logged to the logfile.
+Control whether or not to log events to the log file.
+If this option is set, events with timestamps are logged to the logfile.
 .br
 .Sy Type:
 .Em optional
@@ -1728,14 +1983,18 @@ machine's network state is detected.
 .Sy Example:
 .Dl startupitem.netchange yes
 .It Ic startupitems
-Used when a port needs to install more than one StartupItem, this
-option consists of a list where alternating elements represent keys
-and values. Each key corresponds to one of the startupitem.* options,
-and the following value is associated with it. Each StartupItem
-defined in the list must specify at least a name. Each other key/value
-pair is associated with the StartupItem named most recently in the
-list. Any keys that are not defined for a given StartupItem will use
-the value of the corresponding startupitem.* option.
+Used when a port needs to install more than one startupitem, this option
+consists of a list where alternating elements represent keys and values.
+Each key corresponds to one of the
+.Ic startupitem.*
+options, and the following value is associated with it.
+Each startupitem defined in the list must specify at least a name.
+Each other key/value pair is associated with the startupitem named most
+recently in the list.
+Any keys that are not defined for a given startupitem will use the value of
+the corresponding
+.Ic startupitem.*
+option.
 .br
 .Sy Type:
 .Em optional
@@ -1747,29 +2006,34 @@ the value of the corresponding startupitem.* option.
 .Em List of keys and values
 .br
 .Sy Example:
-.Dl
-startupitems        name        myport-system \\
-                    location    LaunchDaemons \\
-                    executable  ${prefix}/sbin/myportd \\
-                    name        myport-session \\
-                    location    LaunchAgents \\
-                    executable  ${prefix}/bin/myport-agent
+.Bd -literal -offset indent -compact
+startupitems name        myport-system \e
+             location    LaunchDaemons \e
+             executable  ${prefix}/sbin/myportd \e
+             name        myport-session \e
+             location    LaunchAgents \e
+             executable  ${prefix}/bin/myport-agent
+.Ed
 .El
 .Sh DISTCHECK AND LIVECHECK OPTIONS
-MacPorts can automatically check if the software has been updated
-since the Portfile was modified and if some external changes require
-an update to the Portfile. This helps maintainers have up-to-date
-and working Portfiles.
-.br
-Two checks are available. With distcheck, MacPorts can check that the
-distfile(s) are still downloadable and did not change since the portfile
-was modified.
-With livecheck, MacPorts can query a resource to determine if a newer
-version of the software is available.
+MacPorts can automatically check if the software has been updated since the
+Portfile was modified and if some external changes require an update to the
+Portfile.
+This helps maintainers have up-to-date and working Portfiles.
+.Pp
+Two checks are available.
+With
+.Dq distcheck ,
+MacPorts can check that the distfile(s) are still downloadable and did not
+change since the Portfile was modified.
+With
+.Dq livecheck ,
+MacPorts can query a resource to determine if a newer version of the software
+is available.
 .Bl -tag -width lc
 .It Ic distcheck.check
-This option can be used to disable distcheck. It specifies what kind
-of check should be performed on distfiles:
+This option can be used to disable distcheck.
+It specifies what kind of check should be performed on distfiles:
 .Em moddate
 (check if the Portfile is older than the distfile) or
 .Em none
@@ -1787,7 +2051,9 @@ of check should be performed on distfiles:
 What kind of check to perform to figure out if the software has been updated.
 Can be
 .Em freecode
-(uses the date_updated tag of the freecode XML file),
+(uses the
+.Li date_updated
+tag of the freecode XML file),
 .Em sourceforge
 (uses the version of the latest file release of the project),
 .Em googlecode
@@ -1810,7 +2076,9 @@ Can be
 .Em sourceforge
 or
 .Em googlecode
-if the master_sites is one of these, else
+if the
+.Ic master_sites
+is one of these, else
 .Em freecode
 .br
 .Sy Values:
@@ -1823,12 +2091,16 @@ Name of the project for live checks (used for freecode, sourceforge, and googlec
 .br
 .Sy Default:
 .Em ${name}
-or the sourceforge/freecode/googlecode project name if it can be guessed by looking at the master_sites.
+or the sourceforge/freecode/googlecode project name if it can be guessed by
+looking at
+.Ic master_sites .
 .It Ic livecheck.distname
 Name of the file release (used for sourceforge and googlecode checks).
 For sourceforge releases use the name of the package release.
-For googlecode releases use the name of the file download, including extension.
-Replace the version part of the name with "(.*)".
+For googlecode releases use the name of the file download, including
+extension.
+Replace the version part of the name with
+.Dq Li (.*) .
 .br
 .Sy Type:
 .Em optional
@@ -1885,11 +2157,12 @@ allowing for user-customization of a software's build-time settings.
 .Xc
 The value is usually a TCL script which modifies one or more
 .Nm
-variables. Dependencies and conflicts with other variants in the same
-port can be expressed with
+variables.
+Dependencies and conflicts with other variants in the same port can be
+expressed with
 .Cm requires
 and
-.Cm conflicts . 
+.Cm conflicts .
 .Cm description
 provides a means to supply a description of the variant for the user.
 .br
@@ -1897,11 +2170,13 @@ provides a means to supply a description of the variant for the user.
 .Em optional
 .br
 .Sy Example:
-Add a "gnome" variant to a port.
+Add a
+.Dq gnome
+variant to a port.
 .Bd -literal -offset indent -compact
-variant gnome requires glib { configure.args-append --with-gnome \e\
-
-    depends_lib-append port:gnome-session }
+variant gnome requires glib \e
+    { configure.args-append --with-gnome \e
+      depends_lib-append port:gnome-session }
 .Ed
 .It Ic default_variants
 If variants are defined, then the
@@ -1918,10 +2193,11 @@ When using MacPorts on macOS, a universal variant is defined and
 the default behavior is to configure ports with universal flags
 (see the
 .Ic UNIVERSAL TARGET HOOKS
-section above). The variant can be
-overridden if the default code does not work. It can also be
-suppressed if having a universal variant for the port does not make
-sense. To suppress it, use the
+section above).
+The variant can be overridden if the default code does not work.
+It can also be suppressed if having a universal variant for the port does not
+make sense.
+To suppress it, use the
 .Ic universal_variant
 option.
 .br
@@ -1949,35 +2225,43 @@ versions of the same platform.
 .Ar body
 .Xc
 The body is executed if the given platform/version/arch combination matches
-os.platform or os.subplatform and/or os.major and/or os.arch.
-The following examples are from the lang/php5, audio/flac and sysutils/getopt
-.Nm Portfiles
+.Ic os.platform
+or
+.Ic os.subplatform
+and/or
+.Ic os.major
+and/or
+.Ic os.arch .
+The following examples are from the
+.Pa lang/php5 ,
+.Pa audio/flac
+and
+.Pa sysutils/getopt
+.Nm Portfiles ,
 respectively.
 .br
 .Sy Type:
 .Em optional
 .br
-.Sy Example:
+.Sy Examples:
 .Bd -literal -offset indent -compact
-platform darwin 10 { configure.env-append LIBS=-lresolv }
-.Ed
-.br
-.Sy Example:
-.Bd -literal -offset indent -compact
-platform darwin i386 { configure.args-append --disable-asm-optimizations }
-.Ed
-.br
-.Sy Example:
-.Bd -literal -offset indent -compact
-platform darwin 8 powerpc { configure.universal_ldflags-append -liconv }
+platform darwin 10 \e
+    { configure.env-append LIBS=-lresolv }
+platform darwin i386 \e
+    { configure.args-append --disable-asm-optimizations }
+platform darwin 8 powerpc \e
+    { configure.universal_ldflags-append -liconv }
 .Ed
 .El
 .Sh PORTGROUP
 To factorize the work with similar ports, MacPorts provides the notion of
 .Nm PortGroup
-that can be used to load definitions for a given class or group of ports. See
+that can be used to load definitions for a given class or group of ports.
+See
 .Xr portgroup 7
-for more details on the various PortGroup classes.
+for more details on the various
+.Nm PortGroup
+classes.
 .Sh TCL EXTENSIONS
 A number of TCL extensions are available for use in
 .Nm Portfiles .
@@ -2019,8 +2303,8 @@ A number of TCL extensions are available for use in
 .Op Fl W Ar dir
 .Ar directory
 .Xc
-Install file(s) to a target file or directory. The options are
-intended to be compatible with
+Install file(s) to a target file or directory.
+The options are intended to be compatible with
 .Xr install 1 :
 .Bl -tag -width indent
 .It Fl b
@@ -2047,9 +2331,11 @@ Specify the group.
 Disable use of
 .Xr mmap 2 .
 .It Fl m
-Specify an alternate mode. The default is 0755. See
+Specify an alternate mode.
+The default is 0755.
+See
 .Xr chmod 1
-for defails.
+for details.
 .It Fl p
 Preserve the modification time.
 .It Fl S
@@ -2077,9 +2363,11 @@ and execute
 .Ar body
 for each found file/directory.
 .Va varname
-is set to the path of the file/directory. If
+is set to the path of the file/directory.
+If
 .Ic break
-is called during execution, the filesystem traversal is stopped. If
+is called during execution, the filesystem traversal is stopped.
+If
 .Ic continue
 is called during execution, the current file and any children are skipped
 and traversal continues with the next file/directory.
@@ -2102,8 +2390,8 @@ to ignore any permissions/read errors encountered during processing.
 .Pp
 If
 .Nm fs-traverse
-is called directly on a symbolic link, the link will be followed. All other
-links encountered during traversal will not be followed.
+is called directly on a symbolic link, the link will be followed.
+All other links encountered during traversal will not be followed.
 .Pp
 .Nm fs-traverse
 will not descend into directories that have a different device number than
@@ -2136,18 +2424,19 @@ is newer than
 .It Xo
 .Ic adduser
 .Ar username
-.Op Cm uid Ns = Ns uid
-.Op Cm gid Ns = Ns gid
-.Op Cm passwd Ns = Ns passwd
-.Op Cm realname Ns = Ns realname
-.Op Cm home Ns = Ns home
-.Op Cm shell Ns = Ns shell
+.Op Cm uid Ns = Ns Ar uid
+.Op Cm gid Ns = Ns Ar gid
+.Op Cm passwd Ns = Ns Ar passwd
+.Op Cm realname Ns = Ns Ar realname
+.Op Cm home Ns = Ns Ar home
+.Op Cm shell Ns = Ns Ar shell
 .Xc
-Add a new local user to the system with the specified uid, gid,
-password, real name, home directory and login shell. Note that it is usually
-preferable to set the add_users option rather than call adduser directly,
-since it may need to be called in multiple places to handle all cases (e.g.
-installing from a binary archive).
+Add a new local user to the system with the specified uid, gid, password, real
+name, home directory and login shell.
+Note that it is usually preferable to set the
+.Ic add_users
+option rather than call adduser directly, since it may need to be called in
+multiple places to handle all cases (e.g., installing from a binary archive).
 .It Ic existsuser Ar username
 Check if a local user exists.
 .It Ic nextuid
@@ -2155,17 +2444,18 @@ Returns the highest used uid plus one.
 .It Xo
 .Ic addgroup
 .Ar group
-.Op Cm gid Ns = Ns gid
-.Op Cm passwd Ns = Ns passwd
-.Op Cm realname Ns = Ns realname
-.Op Cm users Ns = Ns users
+.Op Cm gid Ns = Ns Ar gid
+.Op Cm passwd Ns = Ns Ar passwd
+.Op Cm realname Ns = Ns Ar realname
+.Op Cm users Ns = Ns Ar users
 .Xc
 Add a new local group to the system, with the specified gid, password,
 real name, and with a list users as members.
 .It Ic existsgroup Ar group
-Check if a local group exists and return the corresponding gid. This can be used
-with adduser:
-.Dl addgroup foo 
+Check if a local group exists and return the corresponding gid.
+This can be used with
+.Ic adduser :
+.Dl addgroup foo
 .Dl adduser foo gid=[existsgroup foo]
 .It Ic nextgid
 Returns the highest used gid plus one.
@@ -2178,8 +2468,10 @@ Returns the highest used gid plus one.
 Provide in-place
 .Xr sed 1
 like editing of a file.
-The -E flag does the same thing as in
-.Xr sed 1
+The
+.Fl E
+flag does the same thing as in
+.Xr sed 1 .
 .br
 .Sy Example:
 .Dl reinplace \*qs|/usr/local|${prefix}|g\*q doc/manpage.1
@@ -2188,13 +2480,16 @@ Standard TCL command to manipulate file names and attributes, recommended if you
 resource forks when destrooting ports.
 Use
 .Nm xinstall
-to also preserve Extended Attributes (i.e. Access Control Lists). See
+to also preserve Extended Attributes (i.e., Access Control Lists).
+See
 .Xr file n
 for more information on this command.
 .It Ic copy
-Built-in shorthand alternative to "file copy".
+Built-in shorthand alternative to
+.Dq file copy .
 .It Ic move
-Built-in shorthand alternative to "file rename".
+Built-in shorthand alternative to
+.Dq file rename .
 .It Ic delete Ar
 Deletes each of the given files/directories.
 Behaves identically to
@@ -2209,13 +2504,14 @@ Built-in command mimicking the BSD ln command.
 .Op Fl W Ar dir
 .Ar commandline
 .Xc
-Execute a program. See
+Execute a program.
+See
 .Xr system 3 .
 For calls to
 .Xr install 1
 please use
 .Nm xinstall .
-For calls to 
+For calls to
 .Xr mv 1 ,
 .Xr cp 1 ,
 .Xr rm 1
@@ -2255,9 +2551,9 @@ from the
 Return the list of elements in a
 .Ar directory ,
 excluding
-.Pa \&.
+.Dq Pa \&.
 and
-.Pa \&.. .
+.Dq Pa \&.. .
 .It Ic strsed Ar string Ar pattern
 Perform
 .Xr ed 1 Ns / Ns
@@ -2281,12 +2577,19 @@ See
 .It Ic md5 Ar
 Compute the MD5 hashes of the file(s).
 .It Ic vercmp Ar versionA Ar versionB
-Compare two EVR-format versions for equality.  The return value is like
-strcmp(), returning -1, 0, or 1 when versionA is earlier, equal to, or
-later than versionB, respectively.  Note that some comparisons featuring
-floating-point notation may compare incorrectly, e.g. 2.101 is considered
-later than 2.2 (101 is larger than 2) which may be incorrect per some
-projects versioning methods (see ticket #11873).
+Compare two EVR-format versions for equality.
+The return value is like
+.Xr strcmp 3 ,
+returning -1, 0, or\~1 when
+.Ar versionA
+is earlier, equal to, or
+later than
+.Ar versionB ,
+respectively.
+Note that some comparisons featuring floating-point notation may compare
+incorrectly, e.g., 2.101 is considered later than 2.2 (101 is larger than\~2)
+which may be incorrect per some projects versioning methods (see ticket
+#11873).
 .It Xo
 .Ic lpush
 .Ar varName
@@ -2296,7 +2599,8 @@ Treats the variable given by
 .Ar varName
 as a list and appends each of the
 .Ar value
-arguments to that list as a separate element. If
+arguments to that list as a separate element.
+If
 .Ar varName
 doesn't exist, it is created as a list with elements
 given by the
@@ -2307,8 +2611,9 @@ Really just an alias for
 .It Ic lpop Ar varName
 Removes the last element from the list given by
 .Ar varName
-and returns it. If there are no elements in the list,
-the empty string is returned. If
+and returns it.
+If there are no elements in the list, the empty string is returned.
+If
 .Ar varName
 doesn't exist, an exception is raised.
 .It Xo
@@ -2320,7 +2625,8 @@ Treats the variable given by
 .Ar varName
 as a list and prepends each of the
 .Ar value
-arguments to that list as a separate element. If
+arguments to that list as a separate element.
+If
 .Ar varName
 doesn't exist, it is created as a list with elements
 given by the
@@ -2329,8 +2635,9 @@ arguments.
 .It Ic lshift Ar varName
 Removes the first element from the list given by
 .Ar varName
-and returns it. If there are no elements in the list,
-the empty string is returned. If
+and returns it.
+If there are no elements in the list, the empty string is returned.
+If
 .Ar varName
 doesn't exist, an exception is raised.
 .It Xo
@@ -2342,7 +2649,8 @@ Treats the variable given by
 .Ar varName
 as a list and removes the element pointed to by the sequence of
 .Ar index
-arguments and returns it. If no
+arguments and returns it.
+If no
 .Ar index
 arguments are provided,
 .Ar varName
@@ -2404,7 +2712,8 @@ try {
 .Op Ar message
 .Op Ar info
 .Xc
-Throws an exception. If given arguments, works just like
+Throws an exception.
+If given arguments, works just like
 .Ic error
 .Ar message
 .Ar info
@@ -2425,7 +2734,7 @@ Display a
 to the user, at various different levels.
 .br
 .Sy Example:
-.Dl ui_msg \*qAdd each user to the system using the clamav command\*q
+.Dl ui_msg \*qThis build may take a very long time\*q
 .El
 .Sh SEE ALSO
 .Xr port 1 ,
