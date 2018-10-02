@@ -19,7 +19,7 @@
  * 3. Neither the name of Apple Inc. nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -100,21 +100,21 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         }
         break;
     }
-    
+
     /* Parse remaining args */
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 1, objv_orig, "?-depth? ?-ignoreErrors? ?-tails? ?--? varname target-list body");
         return TCL_ERROR;
     }
-    
+
     varname = *objv;
     ++objv, --objc;
-    
+
     listPtr = *objv;
     ++objv, --objc;
-    
+
     body = *objv;
-    
+
     if ((rval = Tcl_ListObjGetElements(interp, listPtr, &lobjc, &lobjv)) == TCL_OK) {
         char **entries;
         char **iter;
@@ -169,9 +169,9 @@ do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varna
     int rval = TCL_OK;
     FTS *root_fts;
     FTSENT *ent;
-    
+
     root_fts = fts_open(targets, FTS_PHYSICAL /*| FTS_COMFOLLOW */| FTS_NOCHDIR | FTS_XDEV, &do_compare);
-    
+
     while ((ent = fts_read(root_fts)) != NULL) {
         switch (ent->fts_info) {
             case FTS_D:  /* directory in pre-order */
@@ -244,7 +244,7 @@ do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varna
                 if (!(flags & F_IGNORE_ERRORS)) {
                     Tcl_SetErrno(ent->fts_errno);
                     Tcl_ResetResult(interp);
-                    Tcl_AppendResult(interp, ent->fts_path, ": ", (char *)Tcl_PosixError(interp), NULL); 
+                    Tcl_AppendResult(interp, ent->fts_path, ": ", (char *)Tcl_PosixError(interp), NULL);
                     fts_close(root_fts);
                     return TCL_ERROR;
                 }

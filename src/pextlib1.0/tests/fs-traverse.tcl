@@ -5,18 +5,18 @@
 
 proc main {pextlibname} {
     global trees errorInfo
-    
+
     load $pextlibname
-    
+
     set root "/tmp/macports-pextlib-fs-traverse"
-    
+
     file delete -force $root
-    
+
     setup_trees $root
-    
+
     # make the directory root structure
     make_root
-    
+
     # perform tests
     set result [catch {
         # Basic fs-traverse test
@@ -25,52 +25,52 @@ proc main {pextlibname} {
             lappend output $file
         }
         check_output $output $trees(1)
-        
+
         # Test starting with a symlink
         set output [list]
         fs-traverse file $root/a/c/a {
             lappend output $file
         }
         check_output $output $trees(sub1)
-        
+
         # Test starting with a slash-ended symlink
         set output [list]
         fs-traverse file $root/a/c/a/ {
             lappend output [string map {// /} $file]
         }
         check_output $output $trees(sub2)
-        
+
         # Test -depth
         set output [list]
         fs-traverse -depth file $root {
             lappend output $file
         }
         check_output $output $trees(2)
-        
+
         # Test multiple sources
         set output [list]
         fs-traverse file [list $root/a $root/b] {
             lappend output $file
         }
         check_output $output $trees(3)
-        
+
         # Test multiple sources with -depth
         set output [list]
         fs-traverse -depth file [list $root/a $root/b] {
             lappend output $file
         }
         check_output $output $trees(4)
-        
+
         # Error raised for traversing directory that does not exist
         if {![catch {fs-traverse file $root/does_not_exist {}}]} {
             error "fs-traverse did not raise an error for a missing directory"
         }
-        
+
         # Test -ignoreErrors
         if {[catch {fs-traverse -ignoreErrors file $root/does_not_exist {}}]} {
             error "fs-traverse raised an error despite -ignoreErrors"
         }
-        
+
         # Test -ignoreErrors with multiple sources, make sure it still gets the sources after the error
         if {[catch {
             set output [list]
@@ -81,7 +81,7 @@ proc main {pextlibname} {
         }]} {
             error "fs-traverse raised an error despite -ignoreErrors"
         }
-        
+
         # Test skipping parts of the tree
         set output [list]
         fs-traverse file $root {
@@ -91,21 +91,21 @@ proc main {pextlibname} {
             lappend output $file
         }
         check_output $output $trees(5)
-        
+
         # Test -tails option
         set output [list]
         fs-traverse -tails file $root {
             lappend output $file
         }
         check_output $output $trees(6) $root
-        
+
         # Test -tails option with trailing slash
         set output [list]
         fs-traverse -tails file $root/ {
             lappend output $file
         }
         check_output $output $trees(6) $root
-        
+
         # Test -tails option with multiple paths
         # It should error out
         if {![catch {
@@ -113,7 +113,7 @@ proc main {pextlibname} {
         }]} {
             error "fs-traverse did not error when using multiple paths with -tails"
         }
-        
+
         # Test cutting the traversal short
         set output [list]
         fs-traverse file $root {
@@ -122,7 +122,7 @@ proc main {pextlibname} {
                 break
             }
         }
-        
+
         # Test using an array variable as varname
         # It should error out
         if {![catch {
@@ -131,7 +131,7 @@ proc main {pextlibname} {
         }]} {
             error "fs-traverse did not error when setting the variable"
         }
-        
+
         # Same test with -ignoreErrors
         if {[catch {
             array set aryvar {}
@@ -139,24 +139,24 @@ proc main {pextlibname} {
         }]} {
             error "fs-traverse errored out when setting the variable despite -ignoreErrors"
         }
-        
+
         # Test using a malformed target list
         if {![catch {fs-traverse file "$root/a \{$root/b" {}}]} {
             error "fs-traverse did not error with malformed target list"
         }
-        
+
         # Test again with -ignoreErrors - this is the one case where it should still error
         if {![catch {fs-traverse -ignoreErrors file "$root/a \{$root/b" {}}]} {
             error "fs-traverse did not error with malformed target list using -ignoreErrors"
         }
-        
+
         # Test wacky variable name called -depth
         set output [list]
         fs-traverse -- -depth $root {
             lappend output ${-depth}
         }
         check_output $output $trees(1)
-        
+
         # NOTE: This should be the last test performed, as it modifies the file tree
         # Test to make sure deleting files during traversal works as expected
         set output [list]
@@ -171,10 +171,10 @@ proc main {pextlibname} {
         check_output $output $trees(5)
     } errMsg]
     set savedInfo $errorInfo
-    
+
     # Clean up
     file delete -force $root
-    
+
     # Re-raise error if one occurred in the test block
     if {$result} {
         error $errMsg $savedInfo
@@ -222,9 +222,9 @@ proc make_root {} {
 
 proc setup_trees {root} {
     global trees
-    
+
     array set trees {}
-    
+
     set trees(1) "
         $root           directory
         $root/a         directory
@@ -252,11 +252,11 @@ proc setup_trees {root} {
         $root/b/c/b     file
         $root/b/c/c     file
     "
-    
+
     set trees(sub1) "
         $root/a/c/a     {link ../d}
     "
-    
+
     set trees(sub2) "
         $root/a/c/a/     {link ../d}
         $root/a/c/a/a   file
@@ -264,7 +264,7 @@ proc setup_trees {root} {
         $root/a/c/a/c   directory
         $root/a/c/a/d   file
     "
-    
+
     set trees(2) "
         $root/a/a       file
         $root/a/b       file
@@ -292,7 +292,7 @@ proc setup_trees {root} {
         $root/b         directory
         $root           directory
     "
-    
+
     set trees(3) "
         $root/a         directory
         $root/a/a       file
@@ -319,7 +319,7 @@ proc setup_trees {root} {
         $root/b/c/b     file
         $root/b/c/c     file
     "
-    
+
     set trees(4) "
         $root/a/a       file
         $root/a/b       file
@@ -346,7 +346,7 @@ proc setup_trees {root} {
         $root/b/c       directory
         $root/b         directory
     "
-    
+
     set trees(5) "
         $root           directory
         $root/b         directory
@@ -355,7 +355,7 @@ proc setup_trees {root} {
         $root/b/c/b     file
         $root/b/c/c     file
     "
-    
+
     set trees(6) "
         .         directory
         a         directory
