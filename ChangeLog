@@ -9,6 +9,9 @@ Release 2.5.4 (2018-??-?? by ?)
     - Changed the 'default' command to not require overquoting of the
       default value that is being set. (jmr in 8434c0e)
 
+    - Indicate that i386 is not supported by the macOS 10.14 SDK.
+      (jmr in 60544ce)
+
 Release 2.5.3 (2018-07-05 by jmr)
     - Fixed failures due to insufficient privileges on older OS versions.
       (#56721, jmr in 4b36e60)
