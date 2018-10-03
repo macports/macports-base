@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.5.4 (2018-??-?? by ?)
+Release 2.5.4 (2018-10-03 by jmr)
     - Fixed a reclaim failure when the distfiles option contains a list
       of one or more empty strings. (#56786, jmr in 8a67087)
 
