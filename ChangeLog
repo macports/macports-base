@@ -6,7 +6,7 @@ Release 2.6.0 (????-??-?? by ?)
     - Extend the touch command to take a -W directory parameter.
       (#53730, khindenburg in a90c4b29)
 
-Release 2.5.4 (2018-??-?? by ?)
+Release 2.5.4 (2018-10-03 by jmr)
     - Fixed a reclaim failure when the distfiles option contains a list
       of one or more empty strings. (#56786, jmr in 8a67087)
 
