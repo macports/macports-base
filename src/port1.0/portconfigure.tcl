@@ -904,6 +904,10 @@ proc portconfigure::configure_main {args} {
             set env_var [string toupper $tool]FLAGS
             append_to_environment_value configure $env_var {*}$flags
         }
+        if {![catch {get_canonical_archflags fc} flags]} {
+            set env_var FFLAGS
+            append_to_environment_value configure $env_var {*}$flags
+        }
         if {[variant_exists universal] && [variant_isset universal]} {
             configure.pre_args-append {*}${configure.universal_args}
         } else {
