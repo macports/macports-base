@@ -897,7 +897,10 @@ proc portconfigure::configure_main {args} {
 
         # add extra flags that are conditional on whether we're building universal
         append_to_environment_value configure CFLAGS {*}[get_canonical_archflags cc]
-        foreach tool {cxx objc objcxx cpp f77 f90 fc ld} {
+        if {![catch {get_canonical_archflags f77} flags]} {
+            append_to_environment_value configure FFLAGS {*}$flags
+        }
+        foreach tool {cxx objc objcxx cpp f90 fc ld} {
             if {[catch {get_canonical_archflags $tool} flags]} {
                 continue
             }
