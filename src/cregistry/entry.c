@@ -533,11 +533,16 @@ int reg_entry_owner(reg_registry* reg, char* path, int cs, reg_entry** entry,
     int lower_bound = 0;
     char *query = NULL;
 
-    asprintf(&query, "SELECT id FROM registry.files WHERE (actual_path = ? %s) AND active",
+    asprintf(&query, "SELECT id FROM registry.files %s WHERE (actual_path = ? %s) AND active",
 #if SQLITE_VERSION_NUMBER >= 3003013
+#if SQLITE_VERSION_NUMBER >= 3006004
+             cs ? "INDEXED BY file_actual" : "INDEXED BY file_actual_nocase",
+#else
+             "",
+#endif
              cs ? "" : "COLLATE NOCASE");
 #else
-             "");
+             "", "");
 #endif
 
     if (!query) {
@@ -595,11 +600,16 @@ sqlite_int64 reg_entry_owner_id(reg_registry* reg, char* path, int cs) {
     sqlite_int64 result = 0;
     char *query = NULL;
 
-    asprintf(&query, "SELECT id FROM registry.files WHERE (actual_path = ? %s) AND active",
+    asprintf(&query, "SELECT id FROM registry.files %s WHERE (actual_path = ? %s) AND active",
 #if SQLITE_VERSION_NUMBER >= 3003013
+#if SQLITE_VERSION_NUMBER >= 3006004
+             cs ? "INDEXED BY file_actual" : "INDEXED BY file_actual_nocase",
+#else
+             "",
+#endif
              cs ? "" : "COLLATE NOCASE");
 #else
-             "");
+             "", "");
 #endif
 
     if (!query) {
