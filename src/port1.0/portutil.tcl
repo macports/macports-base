@@ -3188,14 +3188,33 @@ proc check_supported_archs {} {
     } elseif {[variant_exists universal] && [variant_isset universal]} {
         if {[llength ${configure.universal_archs}] > 1 || $universal_archs eq ${configure.universal_archs}} {
             return 0
-        } else {
+        }
+        set unsupported ""
+        if {$supported_archs ne ""} {
+            foreach arch $universal_archs {
+                if {$arch ni $supported_archs} {
+                    set unsupported $arch
+                    break
+                }
+            }
+        }
+        if {$unsupported ne ""} {
             ui_error "$subport cannot be installed for the configured universal_archs '$universal_archs' because it only supports the arch(s) '$supported_archs'."
-            return 1
+        } else {
+            foreach arch $universal_archs {
+                if {$arch ni ${configure.universal_archs}} {
+                    lappend unsupported $arch
+                }
+            }
+            ui_error "$subport cannot be installed for the configured universal_archs '$universal_archs' because the arch(s) '$unsupported' are not supported."
         }
     } elseif {$build_arch eq "" || ${configure.build_arch} ne ""} {
         return 0
+    } elseif {$supported_archs ne "" && $build_arch ni $supported_archs} {
+        ui_error "$subport cannot be installed for the configured build_arch '$build_arch' because it only supports the arch(s) '$supported_archs'."
+    } else {
+        ui_error "$subport cannot be installed for the configured build_arch '$build_arch' because it is not supported."
     }
-    ui_error "$subport cannot be installed for the configured build_arch '$build_arch' because it only supports the arch(s) '$supported_archs'."
     return 1
 }
 
