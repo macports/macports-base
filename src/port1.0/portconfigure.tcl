@@ -892,6 +892,7 @@ proc portconfigure::configure_main {args} {
             foreach env_var {CPPFLAGS CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS} {
                 append_to_environment_value configure $env_var -isysroot${configure.sdkroot}
             }
+            append_to_environment_value configure "LDFLAGS" -Wc,-isysroot,${configure.sdkroot}
             append_to_environment_value configure "LDFLAGS" -Wl,-syslibroot,${configure.sdkroot}
         }
 
