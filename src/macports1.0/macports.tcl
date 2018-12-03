@@ -1783,7 +1783,7 @@ proc macports::getdefaultportresourcepath {{path {}}} {
 #                \li is a MacPorts binary archive, where the Portfile is in
 #                    a file called \c +PORTFILE.
 # @param options an optional array (in list format) of options
-# @param variations an optional array (ist list format) of variations, passed
+# @param variations an optional array (in list format) of variations, passed
 #                   to \c eval_variants after running the Portfile
 # @param nocache a non-empty string, if port information caching should be
 #                avoided.
@@ -1800,7 +1800,7 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
     }
 
     # Look for an already-open MPort with the same URL.
-    # if found, return the existing reference and bump the refcount.
+    # If found, return the existing reference and bump the refcount.
     if {$nocache ne ""} {
         set mport ""
     } else {
@@ -1931,7 +1931,7 @@ proc mporttraverse {func {root .}} {
                     $func [file join $category $port]
 
                     # Restore the current directory because some
-                    # functions changes it.
+                    # functions change it.
                     cd $pathToRoot
                 }
             }
@@ -2019,7 +2019,7 @@ proc _portnameactive {portname} {
 # and active.
 # We actually start with the registry (faster?)
 #
-# mport     the port declaring the dep (context in which to evaluate $prefix etc)
+# mport     the port declaring the dep (context in which to evaluate $prefix etc.)
 # depspec   the dependency test specification (path, bin, lib, etc.)
 proc _mportispresent {mport depspec} {
     set portname [lindex [split $depspec :] end]
@@ -2093,9 +2093,9 @@ proc _mportexec {target mport} {
         ![catch {$workername eval "eval_targets $target"} result] && $result == 0} {
         # If auto-clean mode, clean-up after dependency install
         if {$macports::portautoclean} {
-            # Make sure we are back in the port path before clean
-            # otherwise if the current directory had been changed to
-            # inside the port,  the next port may fail when trying to
+            # Make sure we are back in the port path before clean.
+            # Otherwise, if the current directory had been changed to
+            # inside the port, the next port may fail when trying to
             # install because [pwd] will return a "no file or directory"
             # error since the directory it was in is now gone.
             set portpath [ditem_key $mport portpath]
@@ -2137,7 +2137,7 @@ proc mportexec {mport target} {
     # build and will therefore need to check Xcode version and
     # supported_archs.
     if {[macports::_target_needs_deps $target]} {
-        # possibly warn or error out depending on how old xcode is
+        # possibly warn or error out depending on how old Xcode is
         if {[$workername eval {_check_xcode_version}] != 0} {
             if {$log_needs_pop} {
                 macports::pop_log
@@ -2183,7 +2183,7 @@ proc mportexec {mport target} {
         }
 
         # Select out the dependents along the critical path,
-        # but exclude this mport, we might not be installing it.
+        # but exclude this mport; we might not be installing it.
         set dlist [dlist_append_dependents $macports::open_mports $mport {}]
 
         dlist_delete dlist $mport
@@ -2242,7 +2242,7 @@ proc mportexec {mport target} {
             return 1
         }
 
-        # Close the dependencies, we're done installing them.
+        # Close the dependencies; we're done installing them.
         foreach ditem $dlist {
             mportclose $ditem
         }
@@ -2624,7 +2624,7 @@ proc mportsync {{optionslist {}}} {
                     if {[string index $source end] ne "/"} {
                         append source /
                     }
-                    # don't sync PortIndex yet; we grab the platform specific one afterwards
+                    # don't sync PortIndex yet; we grab the platform-specific one afterwards
                     set exclude_option '--exclude=/PortIndex*'
                     set include_option {}
                     set srcstr $source
