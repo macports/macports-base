@@ -1,7 +1,7 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 #
-# Copyright (c) 2002 - 2003 Apple Inc.
-# Copyright (c) 2004 - 2013 The MacPorts Project
+# Copyright (c) 2002-2003 Apple Inc.
+# Copyright (c) 2004-2014, 2016-2018 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -201,7 +201,7 @@ proc portfetch::checksites {sitelists mirrorfile} {
                     set site_list [concat $site_list [mirror_sites $sglobal $tag "" $mirrorfile]]
                 }
                 if {[info exists env($senv)]} {
-                    set site_list [concat [list $env($senv)] $site_list]
+                    set site_list [concat $env($senv) $site_list]
                 }
                 set extras_added($tag) yes
             }
