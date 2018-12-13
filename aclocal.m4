@@ -752,10 +752,10 @@ AC_DEFUN([MP_UNIVERSAL_OPTIONS],[
 
 	if test "x$UNIVERSAL_ARCHS" = "x"; then
 		case "$MACOSX_VERSION" in
-			10.1[[0-3]]*)
+			10.1[[0-4]]*)
 				UNIVERSAL_ARCHS="x86_64 i386"
 			;;
-			10.1[[4-9]]*)
+			10.1[[5-9]]*)
 				UNIVERSAL_ARCHS="x86_64"
 			;;
 			10.[[0-5]]*)
@@ -771,6 +771,12 @@ AC_DEFUN([MP_UNIVERSAL_OPTIONS],[
 	for arch in $UNIVERSAL_ARCHS; do
 		UNIVERSAL_ARCHFLAGS="$UNIVERSAL_ARCHFLAGS -arch $arch"
 	done
+
+	case "$MACOSX_VERSION" in
+			10.14*)
+				UNIVERSAL_ARCHFLAGS="$UNIVERSAL_ARCHFLAGS -Wl,-syslibroot,/"
+			;;
+	esac
 
 	AC_MSG_CHECKING([for Universal CPU architectures])
 	AC_MSG_RESULT([$UNIVERSAL_ARCHS])
