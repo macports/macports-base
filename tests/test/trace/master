@@ -13,9 +13,9 @@ Command failed: rm ../tracetesttmp/delete-trace
 Exit code: 1
 system "rm ../tracetesttmp/delete-trace" failed as expected
 ln: ../tracetesttmp/link-trace: No such file or directory
-Command failed: ln -s /usr/include/ ../tracetesttmp/link-trace
+Command failed: ln -s /usr/share/ ../tracetesttmp/link-trace
 Exit code: 1
-system "ln -s /usr/include/ ../tracetesttmp/link-trace" failed as expected
+system "ln -s /usr/share/ ../tracetesttmp/link-trace" failed as expected
 mkdir: ../tracetesttmp: No such file or directory
 Command failed: mkdir ../tracetesttmp/mkdir-trace
 Exit code: 1

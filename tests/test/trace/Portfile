@@ -32,7 +32,7 @@ test {
     # created, deleted or symlinked into place here
     fails {system "touch ../tracetesttmp/create-trace"}
     fails {system "rm ../tracetesttmp/delete-trace"}
-    fails {system "ln -s /usr/include/ ../tracetesttmp/link-trace"}
+    fails {system "ln -s /usr/share/ ../tracetesttmp/link-trace"}
     # we also don't want mkdir or rmdir here
     fails {system "mkdir ../tracetesttmp/mkdir-trace"}
     fails {system "rmdir ../tracetesttmp/rmdir-trace"}
