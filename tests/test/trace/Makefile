@@ -16,7 +16,7 @@ test:
 	@([ "`id -u`" == "0" ] && sudo -u $(RUNUSR) touch ../tracetesttmp/rename-trace) || touch ../tracetesttmp/rename-trace
 	@([ "`id -u`" == "0" ] && sudo -u $(RUNUSR) mkdir -p ../tracetesttmp/rmdir-trace) || mkdir -p ../tracetesttmp/rmdir-trace
 	@rm -f /tmp/hello-trace
-	@ln -sf /usr/include/unistd.h /tmp/link-trace2
+	@ln -sf /usr/share/man/man1/awk.1 /tmp/link-trace2
 	@-[ "`id -u`" == "0" ] && chown -h $(RUNUSR) /tmp/link-trace2
 	@PORTSRC=$(PORTSRC) $(bindir)/port -vt test > output 2>&1 || (cat output; exit 1)
 	@rm -f /tmp/link-trace2

@@ -24,7 +24,7 @@ proc test_trace {} {
 
     file delete -force /tmp/hello-trace
     file delete -force /tmp/link-trace2
-    file link -symbolic /tmp/link-trace2 /usr/include/unistd.h
+    file link -symbolic /tmp/link-trace2 /usr/share/man/man1/awk.1
 
     makeDirectory ../tracetesttmp
     if {[getuid] == 0} {
