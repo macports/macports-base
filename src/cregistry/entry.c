@@ -397,8 +397,8 @@ static int reg_all_entries(reg_registry* reg, char* query, int query_len,
  * @param [out] errPtr   on error, a description of the error that occurred
  * @return               the number of entries if success; false if failure
  */
-int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
-        int *strategies, reg_entry*** entries, reg_error* errPtr) {
+int reg_entry_search(reg_registry* reg, const char** keys, const char** vals,
+        int key_count, int *strategies, reg_entry*** entries, reg_error* errPtr) {
     int i;
     char* kwd = " WHERE ";
     char* query;
