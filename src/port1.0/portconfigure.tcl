@@ -912,8 +912,24 @@ proc portconfigure::get_clang_compilers {} {
     if {[file exists ${compiler_file}]} {
         source ${compiler_file}
     } else {
-        ui_error "Clang compilers file not found"
-        return -code error "${compiler_file} does not exist"
+        ui_debug "clang_compilers.tcl not found in ports tree, using built-in selections"
+        lappend compilers macports-clang-7.0 macports-clang-6.0 macports-clang-5.0
+        if {${os.major} < 18} {
+            # see https://github.com/macports/macports-ports/commit/d387f4e4a47b298b1775ea8bf61772e2c2e6cd8b
+            lappend compilers macports-clang-4.0
+            if {${os.major} < 17} {
+                # The High Sierra SDK requires a toolchain that can apply nullability to uuid_t
+                lappend compilers macports-clang-3.9
+                if {${os.major} < 16} {
+                    # The Sierra SDK requires a toolchain that supports class properties
+                    lappend compilers macports-clang-3.7
+                    lappend compilers macports-clang-3.4
+                    if {${os.major} < 9} {
+                        lappend compilers macports-clang-3.3
+                    }
+                }
+            }
+        }
     }
     return ${compilers}
 }
@@ -925,8 +941,12 @@ proc portconfigure::get_gcc_compilers {} {
     if {[file exists ${compiler_file}]} {
         source ${compiler_file}
     } else {
-        ui_error "GCC compilers file not found"
-        return -code error "${compiler_file} does not exist"
+        ui_debug "gcc_compilers.tcl not found in ports tree, using built-in selections"
+        if {${os.major} >= 10} {
+            # see https://trac.macports.org/ticket/57135
+            lappend compilers macports-gcc-8
+        }
+        lappend compilers macports-gcc-7 macports-gcc-6 macports-gcc-5
     }
     return ${compilers}
 }
@@ -1329,8 +1349,17 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
             if {[file exists ${dependencies_file}]} {
                 source ${dependencies_file}
             } else {
-                ui_error "GCC dependencies file not found"
-                return -code error "${dependencies_file} does not exist"
+                ui_debug "gcc_dependencies.tcl not found in ports tree, using built-in data"
+                # compiler links against libraries in libgcc\d* and/or libgcc-devel
+                if {[vercmp ${gcc_version} 4.6] < 0} {
+                    set libgccs "path:lib/libgcc/libgcc_s.1.dylib:libgcc port:libgcc7 port:libgcc6 port:libgcc45"
+                } elseif {[vercmp ${gcc_version} 7] < 0} {
+                    set libgccs "path:lib/libgcc/libgcc_s.1.dylib:libgcc port:libgcc7 port:libgcc6"
+                } elseif {[vercmp ${gcc_version} 8] < 0} {
+                    set libgccs "path:lib/libgcc/libgcc_s.1.dylib:libgcc port:libgcc7"
+                } else {
+                    set libgccs "path:lib/libgcc/libgcc_s.1.dylib:libgcc"
+                }
             }
             ui_debug "Adding depends_build port:$compiler_port"
             depends_build-delete port:$compiler_port
