@@ -74,6 +74,9 @@ proc main {pextlibname} {
         test_set {[registry::entry search name -glob vi*]} {$vim1 $vim2 $vim3}
         test_set {[registry::entry search name -regexp {zlib|pcre}]} \
             {$zlib $pcre}
+
+        # test that passing in confusing arguments doesn't crash
+        test {[catch {registry::entry search name vim1 --}] == 1}
     }
 
     # try mapping files and checking their owners

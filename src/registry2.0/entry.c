@@ -248,116 +248,92 @@ static strategy_type strategies[] = {
  * Can be given an option of -exact, -glob, -regexp or -null to specify the
  * matching strategy; defaults to exact.
  */
-static int entry_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
-    int i, j;
-    reg_registry* reg = registry_for(interp, reg_attached);
-    if (reg == NULL) {
+static int entry_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST *objv) {
+    reg_registry *reg = registry_for(interp, reg_attached);
+    if (!reg) {
         return TCL_ERROR;
+    }
+    const char **keys = malloc(objc * sizeof(char *));
+    const char **vals = malloc(objc * sizeof(char *));
+    int *strats = malloc(objc * sizeof(int));
+    if (!keys || !vals || !strats) {
+        goto cleanup_error;
+    }
+    int key_count = 0;
+
+    /* Skip the "registry::entry" "search" bit */
+    objv += 2;
+    objc -= 2;
+
+    for (int i = 0; i < objc; ++key_count /* i in incremented in the loop */) {
+        int key_index, strategy_index;
+
+        /* Grab the key */
+        if (Tcl_GetIndexFromObj(interp, objv[i], entry_props, "search key",
+            0, &key_index) != TCL_OK) {
+            goto cleanup_error;
+        }
+        keys[key_count] = entry_props[key_index];
+        if (objc <= ++i) {
+            goto wrong_num_args; /* We're missing a strategy or value */
+        }
+
+        /* Set the default strategy, in case we don't find one */
+        strats[key_count] = reg_strategy_exact;
+        /* Try to grab the strategy */
+        if (Tcl_GetIndexFromObjStruct(interp, objv[i], strategies,
+                sizeof(strategy_type), "option", 0, &strategy_index) !=
+                TCL_ERROR) {
+            strats[key_count] = strategies[strategy_index].strategy;
+            if (objc <= ++i && strats[key_count] != reg_strategy_null) {
+                goto wrong_num_args;
+            } else if (strats[key_count] == reg_strategy_null) {
+                /* This doesn't take a value, so start from the top */
+                continue;
+            }
+        }
+
+        /* Grab the value */
+        if (!(vals[key_count] = Tcl_GetString(objv[i++]))) {
+            goto wrong_num_args; /* We're missing a value */
+        }
+    }
+
+    reg_entry **entries;
+    reg_error error;
+    int entry_count;
+    entry_count = reg_entry_search(reg, keys, vals, key_count, strats, &entries,
+        &error);
+    free(keys);
+    free(vals);
+    free(strats);
+
+    if (entry_count >= 0) {
+        int retval;
+        Tcl_Obj* resultObj;
+        Tcl_Obj** objs;
+        if (list_entry_to_obj(interp, &objs, entries, entry_count, &error)){
+            resultObj = Tcl_NewListObj(entry_count, objs);
+            Tcl_SetObjResult(interp, resultObj);
+            free(objs);
+            retval = TCL_OK;
+        } else {
+            retval = registry_failed(interp, &error);
+        }
+        free(entries);
+        return retval;
     } else {
-        char** keys;
-        char** vals;
-        int* strats;
-        int key_count = 0;
-        reg_entry** entries;
-        reg_error error;
-        int entry_count;
-        for (i = 2; i < objc;) {
-            int index, strat_index, val_length;
-            if (Tcl_GetIndexFromObj(interp, objv[i], entry_props, "search key",
-                        0, &index) != TCL_OK) {
-                return TCL_ERROR;
-            }
-
-            /* we ate the key value */
-            i++;
-
-            /* check whether there's a strategy */
-            if (Tcl_GetString(objv[i])[0] == '-'
-                    && Tcl_GetIndexFromObjStruct(interp, objv[i], strategies,
-                        sizeof(strategy_type), "option", 0, &strat_index)
-                    != TCL_ERROR) {
-                /* this key has a strategy specified, eat the strategy parameter */
-                i++;
-
-                if (strategies[strat_index].strategy != reg_strategy_null) {
-                    /* this key must also have a value */
-
-                    if (Tcl_GetStringFromObj(objv[i], &val_length) == NULL) {
-                        Tcl_WrongNumArgs(interp, 2, objv,
-                                "search ?key ?options? value ...?");
-                        return TCL_ERROR;
-                    }
-
-                    i++;
-                }
-            } else {
-                /* this key must also have a value */
-
-                if (Tcl_GetStringFromObj(objv[i], &val_length) == NULL) {
-                    Tcl_WrongNumArgs(interp, 2, objv,
-                            "search ?key ?options? value ...?");
-                    return TCL_ERROR;
-                }
-
-                i++;
-            }
-
-            key_count++;
-        }
-
-        keys = malloc(key_count * sizeof(char*));
-        vals = malloc(key_count * sizeof(char*));
-        strats = malloc(key_count * sizeof(int));
-        if (!keys || !vals || !strats) {
-            return TCL_ERROR;
-        }
-        for (i = 2, j = 0; i < objc && j < key_count; j++) {
-            int strat_index;
-
-            keys[j] = Tcl_GetString(objv[i++]);
-
-            /* try to get the strategy */
-            if (Tcl_GetString(objv[i])[0] == '-'
-                    && Tcl_GetIndexFromObjStruct(interp, objv[i], strategies,
-                        sizeof(strategy_type), "option", 0, &strat_index)
-                    != TCL_ERROR) {
-                /* this key has a strategy specified */
-                i++;
-
-                strats[j] = strategies[strat_index].strategy;
-            } else {
-                /* use default strategy */
-                strats[j] = reg_strategy_exact;
-            }
-
-            if (strats[j] != reg_strategy_null) {
-                vals[j] = Tcl_GetString(objv[i++]);
-            } else {
-                vals[j] = NULL;
-            }
-        }
-        entry_count = reg_entry_search(reg, keys, vals, key_count,
-                strats, &entries, &error);
-        free(keys);
-        free(vals);
-        free(strats);
-        if (entry_count >= 0) {
-            int retval;
-            Tcl_Obj* resultObj;
-            Tcl_Obj** objs;
-            if (list_entry_to_obj(interp, &objs, entries, entry_count, &error)){
-                resultObj = Tcl_NewListObj(entry_count, objs);
-                Tcl_SetObjResult(interp, resultObj);
-                free(objs);
-                retval = TCL_OK;
-            } else {
-                retval = registry_failed(interp, &error);
-            }
-            free(entries);
-            return retval;
-        }
         return registry_failed(interp, &error);
     }
+
+wrong_num_args:
+    Tcl_WrongNumArgs(interp, 2, objv,
+            "search ?key ?options? value ...?");
+cleanup_error:
+    free(keys);
+    free(vals);
+    free(strats);
+    return TCL_ERROR;
 }
 
 /*
