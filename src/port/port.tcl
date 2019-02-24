@@ -1912,8 +1912,7 @@ proc action_log { action portlist opts } {
 
 
 proc action_info { action portlist opts } {
-    global global_variations
-    global ui_options
+    global global_options global_variations
 
     set status 0
     if {[require_portlist portlist]} {
@@ -2096,7 +2095,20 @@ proc action_info { action portlist opts } {
 
         # Spin through action options, emitting information for any found
         set fields {}
-        set opts_todo $ui_options(options_info_order)
+
+        # This contains the display fields in random order
+        set opts_info [array names options ports_info_*]
+        # This contains all parameters in order given on command line
+        set opts_action $global_options(options_${action}_order)
+        # Get the display fields in order provided on command line
+        #  ::struct::set intersect does not keep order of items
+        set opts_todo {}
+        foreach elem $opts_action {
+            if {$elem in $opts_info} {
+                lappend opts_todo $elem
+            }
+        }
+
         set fields_tried {}
         if {![llength $opts_todo]} {
             set opts_todo {ports_info_heading
@@ -4470,7 +4482,7 @@ proc parse_options { action ui_options_name global_options_name } {
     upvar $ui_options_name ui_options
     upvar $global_options_name global_options
 
-    set options_info_order {}
+    set options_order(${action}) {}
 
     while {[moreargs]} {
         set arg [lookahead]
@@ -4499,9 +4511,7 @@ proc parse_options { action ui_options_name global_options_name } {
                     set kargc [lindex $kopts 0 1]
                     if {$kargc == 0} {
                         set global_options(ports_${action}_${key}) yes
-                        if {${action} eq "info"} {
-                            lappend options_info_order ports_${action}_${key}
-                        }
+                        lappend options_order(${action}) ports_${action}_${key}
                     } else {
                         set args {}
                         while {[moreargs] && $kargc > 0} {
@@ -4598,7 +4608,7 @@ proc parse_options { action ui_options_name global_options_name } {
 
         advance
     }
-    set ui_options(options_info_order) $options_info_order
+    set global_options(options_${action}_order) $options_order(${action})
 }
 
 # acquire exclusive registry lock for actions that need it
