@@ -6167,6 +6167,8 @@ $as_echo "$mpconfigdir" >&6; }
 # Check whether --with-no-root-privileges was given.
 if test "${with_no_root_privileges+set}" = set; then :
   withval=$with_no_root_privileges; ROOTPRIVS=$withval
+  # with-no-root-privileges implies without-startupitems
+  with_startupitems=no
 fi
 
 
