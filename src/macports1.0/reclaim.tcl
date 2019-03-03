@@ -72,7 +72,7 @@ namespace eval reclaim {
             write_last_run_file disabled
             return
         }
-
+        ui_msg "$macports::ui_prefix Initializing Reclaim"
         uninstall_unrequested
         uninstall_inactive
         remove_distfiles
@@ -339,7 +339,7 @@ namespace eval reclaim {
         set fd -1
         try -pass_signal {
             set fd [open $path w]
-            puts $fd $contents
+            ui_msg " $fd $contents"
         } catch {*} {
             # Ignore error silently
         } finally {
