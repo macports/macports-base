@@ -820,12 +820,14 @@ proc parse_environment {command} {
     global ${command}.env ${command}.env_array
 
     if {[info exists ${command}.env]} {
-        # Flatten the environment string.
-        set the_environment [join [set ${command}.env]]
-
-        while {[regexp "^(?: *)(\[^= \]+)=(\"|'|)(\[^\"'\]*?)\\2(?: +|$)(.*)$" ${the_environment} matchVar key delimiter value remaining]} {
-            set the_environment ${remaining}
-            set ${command}.env_array(${key}) ${value}
+        foreach assignment [set ${command}.env] {
+            set equals_pos [string first = $assignment]
+            if {$equals_pos == -1} {
+                ui_debug "parse_environment: skipping invalid entry: '$assignment'"
+                continue
+            }
+            set key [string range $assignment 0 $equals_pos-1]
+            set ${command}.env_array(${key}) [string range $assignment $equals_pos+1 end]
         }
     } else {
         array set ${command}.env_array {}
@@ -839,8 +841,6 @@ proc append_to_environment_value {command key args} {
         if {$value eq {}} {
             continue
         }
-        # Parse out any delimiters. Is this even necessary anymore?
-        regexp {^(['"])(.*)\1$} $value -> delim value
 
         append env_key " $value"
     }
