@@ -376,7 +376,7 @@ namespace eval porttrace {
         # Create the thread.
         set thread [macports_create_thread]
 
-        # The slave thred needs this file and macports 1.0
+        # The slave thread needs this file and macports 1.0
         thread::send $thread "package require porttrace 1.0"
         thread::send $thread "package require macports 1.0"
 
