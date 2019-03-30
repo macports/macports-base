@@ -1075,7 +1075,11 @@ match macports.conf.default."
 
     # Default mp universal options
     if {![info exists macports::universal_archs]} {
-        if {$os_major >= 10} {
+        if {$os_major >= 20} {
+            set macports::universal_archs {arm64 x86_64}
+        } elseif {$os_major >= 19} {
+            set macports::universal_archs {x86_64}
+        } elseif {$os_major >= 10} {
             set macports::universal_archs {x86_64 i386}
         } else {
             set macports::universal_archs {i386 ppc}
@@ -1089,7 +1093,13 @@ match macports.conf.default."
     # Default arch to build for
     if {![info exists macports::build_arch]} {
         if {$os_platform eq "darwin"} {
-            if {$os_major >= 10} {
+            if {$os_major >= 20} {
+                if {$os_arch eq "arm64"} {
+                    set macports::build_arch arm64
+                } else {
+                    set macports::build_arch x86_64
+                }
+            } elseif {$os_major >= 10} {
                 if {[sysctl hw.cpu64bit_capable] == 1} {
                     set macports::build_arch x86_64
                 } else {
