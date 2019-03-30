@@ -405,14 +405,7 @@ proc portconfigure::configure_start {args} {
 # universal_archs
 proc portconfigure::choose_supported_archs {archs} {
     global supported_archs configure.sdk_version
-    # macOS 10.14 SDK only supports one arch, x86_64
-    if {${configure.sdk_version} ne "" && [vercmp ${configure.sdk_version} 10.14] >= 0} {
-        if {"x86_64" in $archs && ($supported_archs eq "" || "x86_64" in $supported_archs)} {
-            return x86_64
-        } else {
-            return ""
-        }
-    } elseif {$supported_archs eq ""} {
+    if {$supported_archs eq ""} {
         return $archs
     }
     set ret {}
@@ -420,6 +413,9 @@ proc portconfigure::choose_supported_archs {archs} {
         if {$arch in $supported_archs} {
             set add_arch $arch
         } elseif {$arch eq "x86_64" && "i386" in $supported_archs} {
+            if {${configure.sdk_version} ne "" && [vercmp ${configure.sdk_version} 10.14] >= 0} {
+                continue
+            }
             set add_arch "i386"
         } elseif {$arch eq "ppc64" && "ppc" in $supported_archs} {
             set add_arch "ppc"
