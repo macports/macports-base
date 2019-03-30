@@ -6420,8 +6420,11 @@ fi
 			10.[0-5]*)
 				UNIVERSAL_ARCHS="i386 ppc"
 			;;
-			*)
+			10.[6-9]*)
 				UNIVERSAL_ARCHS="x86_64 i386"
+			;;
+			*)
+				UNIVERSAL_ARCHS="arm64 x86_64"
 			;;
 		esac
 	fi
