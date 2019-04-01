@@ -4319,6 +4319,7 @@ array set action_array [list \
     lint        [list action_target         [ACTION_ARGS_PORTS]] \
     livecheck   [list action_target         [ACTION_ARGS_PORTS]] \
     distcheck   [list action_target         [ACTION_ARGS_PORTS]] \
+    bump        [list action_target         [ACTION_ARGS_PORTS]] \
     load        [list action_target         [ACTION_ARGS_PORTS]] \
     unload      [list action_target         [ACTION_ARGS_PORTS]] \
     reload      [list action_target         [ACTION_ARGS_PORTS]] \
@@ -4430,6 +4431,7 @@ array set cmd_opts_array {
     diagnose    {quiet}
     reclaim     {enable-reminders disable-reminders}
     fetch       {no-mirrors}
+    bump        {patch}
 }
 
 ##

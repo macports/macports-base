@@ -83,6 +83,7 @@ package require porttrace 1.0
 package require portdistcheck 1.0
 package require portlivecheck 1.0
 package require portmirror 1.0
+package require portbump 1.0
 
 package require portstartupitem 1.0
 package require portload 1.0
