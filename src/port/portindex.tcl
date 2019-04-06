@@ -9,6 +9,7 @@ package require Pextlib
 # Globals
 set full_reindex 0
 set permit_error 0
+set index_changes 0
 set stats(total) 0
 set stats(failed) 0
 set stats(skipped) 0
@@ -29,6 +30,7 @@ proc print_usage args {
     puts "-e:\tExit code indicates if ports failed to parse"
     puts "-o:\tOutput all files to specified directory"
     puts "-p:\tPretend to be on another platform"
+    puts "-c:\tAlso generate an index of ports changed since last indexing"
 }
 
 proc _read_index {idx} {
@@ -45,15 +47,19 @@ proc _read_index {idx} {
     return [list $name $len $line]
 }
 
-proc _write_index {name len line} {
-    global fd
+proc _write_index {name len line write_to_changedports_file} {
+    global fd index_changes changesfd
+    if {$index_changes == 1 && $write_to_changedports_file == 1 } {
+        puts $changesfd [list $name $len]
+        puts $changesfd $line
+    }
 
     puts $fd [list $name $len]
     puts $fd $line
 }
 
 proc _write_index_from_portinfo {portinfoname {is_subport no}} {
-    global keepkeys
+    global keepkeys index_changes
 
     upvar $portinfoname portinfo
 
@@ -75,7 +81,11 @@ proc _write_index_from_portinfo {portinfoname {is_subport no}} {
 
     set output [array get keep_portinfo]
     set len [expr {[string length $output] + 1}]
-    _write_index $portinfo(name) $len $output
+    if {$index_changes == 1} {
+        _write_index $portinfo(name) $len $output 1
+    } else {
+        _write_index $portinfo(name) $len $output 0
+    }
 }
 
 proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}} {
@@ -124,7 +134,7 @@ proc pindex {portdir} {
 
                 # reuse entry if it was made from the same portdir
                 if {[info exists portinfo(portdir)] && $portinfo(portdir) eq $portdir} {
-                    _write_index $name $len $line
+                    _write_index $name $len $line 0
                     incr stats(skipped)
 
                     if {[info exists ui_options(ports_debug)]} {
@@ -136,7 +146,8 @@ proc pindex {portdir} {
                         return
                     }
                     foreach sub $portinfo(subports) {
-                        _write_index {*}[_read_index [string tolower $sub]]
+                        lassign [_read_index [string tolower $sub]] sname slen sline
+                        _write_index $sname $slen $sline 0
                         incr stats(skipped)
                     }
 
@@ -238,6 +249,8 @@ for {set i 0} {$i < $argc} {incr i} {
                 set full_reindex 1
             } elseif {$arg eq "-e"} { # Non-zero exit code on errors
                 set permit_error 1
+            } elseif {$arg eq "-c"} { # Generate one more file along with PortIndex that will contain only changes.
+                set index_changes 1
             } else {
                 puts stderr "Unknown option: $arg"
                 print_usage
@@ -280,6 +293,9 @@ if {[info exists outdir]} {
 
 puts "Creating port index in $outdir"
 set outpath [file join $outdir PortIndex]
+if {$index_changes == 1} {
+    set changesoutpath [file join $outdir ChangedPorts]
+}
 # open old index for comparison
 if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
     set oldmtime [file mtime $outpath]
@@ -298,6 +314,10 @@ if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
 
 set tempportindex [mktemp "/tmp/mports.portindex.XXXXXXXX"]
 set fd [open $tempportindex w]
+if {$index_changes == 1} {
+    set tempchangedports [mktemp "/tmp/mports.changedports.XXXXXXX"]
+    set changesfd [open $tempchangedports w]
+}
 set save_prefix ${macports::prefix}
 foreach key {categories depends_fetch depends_extract depends_patch \
              depends_build \
@@ -321,12 +341,18 @@ try {
         close $oldfd
     }
     close $fd
+    if {$index_changes == 1} {
+        close $changesfd
+    }
 }
 if {$exit_fail} {
     exit 1
 }
 
 file rename -force $tempportindex $outpath
+if {$index_changes == 1} {
+    file rename -force $tempchangedports $changesoutpath
+}
 file mtime $outpath $newest
 mports_generate_quickindex $outpath
 puts "\nTotal number of ports parsed:\t$stats(total)\
