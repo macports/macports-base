@@ -771,7 +771,7 @@ static int TracelibRunCmd(Tcl_Interp *in) {
         /* kevent(2) on EV_RECEIPT: When passed as input, it forces EV_ERROR to
          * always be returned. When a filter is successfully added, the data field
          * will be zero. */
-        if ((kev.flags & EV_ERROR) == 0 || ((kev.flags & EV_ERROR) > 0 && kev.data != 0)) {
+        if ((kev.flags & EV_ERROR) == 0 || (kev.data != 0)) {
             error2tcl("kevent (listen socket receipt): ", kev.data, in);
             goto error_locked;
         }
@@ -801,7 +801,7 @@ static int TracelibRunCmd(Tcl_Interp *in) {
         /* kevent(2) on EV_RECEIPT: When passed as input, it forces EV_ERROR to
          * always be returned. When a filter is successfully added, the data field
          * will be zero. */
-        if ((kev.flags & EV_ERROR) == 0 || ((kev.flags & EV_ERROR) > 0 && kev.data != 0)) {
+        if ((kev.flags & EV_ERROR) == 0 || (kev.data != 0)) {
             error2tcl("kevent (selfpipe receipt): ", kev.data, in);
             goto error_locked;
         }
@@ -892,7 +892,7 @@ static int TracelibRunCmd(Tcl_Interp *in) {
                 /* kevent(2) on EV_RECEIPT: When passed as input, it forces EV_ERROR to
                  * always be returned. When a filter is successfully added, the data field
                  * will be zero. */
-                if ((kev.flags & EV_ERROR) == 0 || ((kev.flags & EV_ERROR) > 0 && kev.data != 0)) {
+                if ((kev.flags & EV_ERROR) == 0 || (kev.data != 0)) {
                     ui_warn(interp, "tracelib: error adding socket to kqueue (receipt)");
                     close(s);
                     continue;
