@@ -310,7 +310,7 @@ proc require_portlist { nameportlist {is_upgrade "no"} } {
             # "upgrade", let's print a message that's a little easier to
             # understand and less alarming.
             ui_msg "Nothing to upgrade."
-            return 1
+            return 0
         }
         ui_error "No ports matched the given expression"
         return 1
