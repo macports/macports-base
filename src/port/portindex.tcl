@@ -9,7 +9,8 @@ package require Pextlib
 # Globals
 set full_reindex 0
 set permit_error 0
-set index_changes 0
+set index_diff 0
+set diff_status NA
 set stats(total) 0
 set stats(failed) 0
 set stats(skipped) 0
@@ -30,7 +31,7 @@ proc print_usage args {
     puts "-e:\tExit code indicates if ports failed to parse"
     puts "-o:\tOutput all files to specified directory"
     puts "-p:\tPretend to be on another platform"
-    puts "-c:\tAlso generate an index of ports changed since last indexing"
+    puts "-diff:\tGenerate an index of ports changed since last indexing"
 }
 
 proc _read_index {idx} {
@@ -47,11 +48,20 @@ proc _read_index {idx} {
     return [list $name $len $line]
 }
 
-proc _write_index {name len line write_to_changedports_file} {
-    global fd index_changes changesfd
-    if {$index_changes == 1 && $write_to_changedports_file == 1 } {
-        puts $changesfd [list $name $len]
-        puts $changesfd $line
+proc _write_index {name len line write_diff} {
+    global fd index_diff diff_fd diff_status
+    if {$index_diff == 1 && $write_diff == 1 } {
+        # Convert the received list back to array
+        array set temp_line $line
+
+        #Set the status of difference (U/A)
+        set temp_line(status) $diff_status
+
+        #Convert the temporary array back to list that can be written to differences file
+        set diff_line [array get temp_line]
+        set difflen [expr {[string length $diff_line] + 1}]
+        puts $diff_fd [list $name $difflen]
+        puts $diff_fd $diff_line
     }
 
     puts $fd [list $name $len]
@@ -59,7 +69,7 @@ proc _write_index {name len line write_to_changedports_file} {
 }
 
 proc _write_index_from_portinfo {portinfoname {is_subport no}} {
-    global keepkeys index_changes
+    global keepkeys index_diff
 
     upvar $portinfoname portinfo
 
@@ -81,7 +91,7 @@ proc _write_index_from_portinfo {portinfoname {is_subport no}} {
 
     set output [array get keep_portinfo]
     set len [expr {[string length $output] + 1}]
-    if {$index_changes == 1} {
+    if {$index_diff == 1} {
         _write_index $portinfo(name) $len $output 1
     } else {
         _write_index $portinfo(name) $len $output 0
@@ -119,7 +129,7 @@ proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}
 
 proc pindex {portdir} {
     global oldmtime newest qindex directory stats full_reindex \
-           ui_options port_options
+           ui_options port_options diff_status
 
     set qname [string tolower [file tail $portdir]]
     set absportdir [file join $directory $portdir]
@@ -167,6 +177,11 @@ proc pindex {portdir} {
         _open_port portinfo $portdir $absportdir port_options
         puts "Adding port $portdir"
 
+        if {[info exists qindex($qname)]} {
+            set diff_status U
+        } else {
+            set diff_status A
+        }
         _write_index_from_portinfo portinfo
         set mtime [file mtime $portfile]
         if {$mtime > $newest} {
@@ -249,8 +264,8 @@ for {set i 0} {$i < $argc} {incr i} {
                 set full_reindex 1
             } elseif {$arg eq "-e"} { # Non-zero exit code on errors
                 set permit_error 1
-            } elseif {$arg eq "-c"} { # Generate one more file along with PortIndex that will contain only changes.
-                set index_changes 1
+            } elseif {$arg eq "-diff"} { # Generate one more file along with PortIndex that will contain only changes.
+                set index_diff 1
             } else {
                 puts stderr "Unknown option: $arg"
                 print_usage
@@ -293,8 +308,8 @@ if {[info exists outdir]} {
 
 puts "Creating port index in $outdir"
 set outpath [file join $outdir PortIndex]
-if {$index_changes == 1} {
-    set changesoutpath [file join $outdir ChangedPorts]
+if {$index_diff == 1} {
+    set diffoutpath [file join $outdir ChangedPorts]
 }
 # open old index for comparison
 if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
@@ -314,9 +329,9 @@ if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
 
 set tempportindex [mktemp "/tmp/mports.portindex.XXXXXXXX"]
 set fd [open $tempportindex w]
-if {$index_changes == 1} {
+if {$index_diff == 1} {
     set tempchangedports [mktemp "/tmp/mports.changedports.XXXXXXX"]
-    set changesfd [open $tempchangedports w]
+    set diff_fd [open $tempchangedports w]
 }
 set save_prefix ${macports::prefix}
 foreach key {categories depends_fetch depends_extract depends_patch \
@@ -341,8 +356,8 @@ try {
         close $oldfd
     }
     close $fd
-    if {$index_changes == 1} {
-        close $changesfd
+    if {$index_diff == 1} {
+        close $diff_fd
     }
 }
 if {$exit_fail} {
@@ -350,8 +365,8 @@ if {$exit_fail} {
 }
 
 file rename -force $tempportindex $outpath
-if {$index_changes == 1} {
-    file rename -force $tempchangedports $changesoutpath
+if {$index_diff == 1} {
+    file rename -force $tempchangedports $diffoutpath
 }
 file mtime $outpath $newest
 mports_generate_quickindex $outpath
