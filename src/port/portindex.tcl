@@ -18,6 +18,7 @@ array set ui_options        [list ports_no_old_index_warning 1]
 array set global_options    [list]
 array set global_variations [list]
 set port_options            [list]
+set list_of_parsed_ports    [list]
 
 # Pass global options into mportinit
 mportinit ui_options global_options global_variations
@@ -49,8 +50,8 @@ proc _read_index {idx} {
 }
 
 proc _write_index {name len line write_diff} {
-    global fd index_diff diff_fd diff_status
-    if {$index_diff == 1 && $write_diff == 1 } {
+    global fd index_diff diff_fd diff_status list_of_parsed_ports
+    if {$index_diff == 1 && $write_diff != 0 } {
         # Convert the received list back to array
         array set temp_line $line
 
@@ -64,8 +65,11 @@ proc _write_index {name len line write_diff} {
         puts $diff_fd $diff_line
     }
 
-    puts $fd [list $name $len]
-    puts $fd $line
+    if {$write_diff != 2} {
+        lappend list_of_parsed_ports [string tolower $name]
+        puts $fd [list $name $len]
+        puts $fd $line
+    }
 }
 
 proc _write_index_from_portinfo {portinfoname {is_subport no}} {
@@ -125,6 +129,25 @@ proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}
     mportclose $interp
 
     set portinfo(portdir) $portdir
+}
+
+proc write_deleted_ports {} {
+    global qindex list_of_parsed_ports diff_status
+    foreach port [array names qindex] {
+        if {[lsearch -exact $list_of_parsed_ports $port] == -1 && [info exists qindex($port)] && [string trim $port] != ""} {
+            try -pass_signal {
+                lassign [_read_index $port] name len line
+                array set portinfo $line
+                set diff_status D
+                _write_index $name $len $line 2
+            } catch {{*} eCode eMessage} {
+                ui_warn "Failed to open old entry for deleted port: ${port}"
+                if {[info exists ui_options(ports_debug)]} {
+                    puts "$::errorInfo"
+                }
+            }
+        }
+    }
 }
 
 proc pindex {portdir} {
@@ -345,6 +368,9 @@ foreach key {categories depends_fetch depends_extract depends_patch \
 set exit_fail 0
 try {
     mporttraverse pindex $directory
+    if {$index_diff == 1} {
+        write_deleted_ports
+    }
 } catch {{POSIX SIG SIGINT} eCode eMessage} {
     puts stderr "SIGINT received, terminating."
     set exit_fail 1
