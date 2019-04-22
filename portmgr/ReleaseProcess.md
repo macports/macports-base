@@ -182,8 +182,19 @@ Name each pkg/dmg appropriately, and then sign the pkgs with a Developer ID
     mv MacPorts-2.0.0.pkg unsigned/MacPorts-2.0.0-10.7-Lion.pkg
     productsign --sign "Developer ID Installer: John Doe" unsigned/MacPorts-2.0.0-10.7-Lion.pkg MacPorts-2.0.0-10.7-Lion.pkg
 
-After signing, generate checksums, which will need to be added to the existing
-checksums file in the downloads directory:
+For macOS 10.14 Mojave and later, the pkg should also be submitted for
+notarization after signing:
+
+    xcrun altool --notarize-app --primary-bundle-id org.macports.base \
+        --username <your-apple-id> --password @keychain:altool \
+        --file MacPorts-2.0.0-10.14-Mojave.pkg
+
+After notification of successful notarization is received:
+
+    xcrun stapler staple MacPorts-2.5.4-10.14-Mojave.pkg
+
+After signing (and notarizing if applicable), generate checksums, which will
+need to be added to the existing checksums file in the downloads directory:
 
     for type in -md5 -sha1 -ripemd160 -sha256; do
       openssl dgst $type MacPorts-2.0.0-*.{pkg,dmg} >> MacPorts-2.0.0.chk.txt
