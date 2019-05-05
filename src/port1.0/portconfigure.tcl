@@ -972,31 +972,8 @@ proc portconfigure::get_mpi_wrapper {mpi compiler} {
 }
 # utility procedure: get system compiler version by running it
 proc compiler.command_line_tools_version {compiler} {
-    switch ${compiler} {
-        clang {
-            set re {clang(?:_.*)?-([0-9.]+)}
-        }
-        llvm-gcc-4.2 {
-            set re {LLVM build ([0-9.]+)}
-        }
-        gcc-4.2 {
-            set re {build ([0-9.]+)}
-        }
-        gcc-4.0 -
-        apple-gcc-4.2 {
-            set re {build ([0-9.]+)}
-        }
-        default {
-            return -code error "don't know how to determine build number of compiler \"${compiler}\""
-        }
-    }
     set cc [portconfigure::configure_get_compiler cc ${compiler}]
-    if {![file executable ${cc}]} return
-    if {[catch {regexp ${re} [exec ${cc} -v 2>@1] -> compiler_version}]} return
-    if {![info exists compiler_version]} {
-        return -code error "couldn't determine build number of compiler \"${compiler}\""
-    }
-    return ${compiler_version}
+    return [get_compiler_version ${cc}]
 }
 # internal function to choose compiler fallback list based on platform
 proc portconfigure::get_compiler_fallback {} {
@@ -1089,25 +1066,19 @@ proc portconfigure::get_fortran_fallback {} {
 
 # Find a developer tool
 proc portconfigure::find_developer_tool {name} {
-	global developer_dir
+    global developer_dir
 
-    # first try /usr/bin since this doesn't move around
-    set toolpath "/usr/bin/${name}"
-    if {[file executable $toolpath]} {
+    set toolpath [get_tool_path $name]
+    if {$toolpath ne ""} {
         return $toolpath
     }
 
-	# Use xcode's xcrun to find the named tool.
-	if {![catch {exec [findBinary xcrun $portutil::autoconf::xcrun_path] -find ${name}} toolpath]} {
-		return ${toolpath}
-	}
-
-	# If xcrun failed to find the tool, return a path from
-	# the developer_dir.
-	# The tool may not be there, but we'll leave it up to
-	# the invoking code to figure out that it doesn't have
-	# a valid compiler
-	return "${developer_dir}/usr/bin/${name}"
+    # If we failed to find the tool, return a path from
+    # the developer_dir.
+    # The tool may not be there, but we'll leave it up to
+    # the invoking code to figure out that it doesn't have
+    # a valid compiler
+    return "${developer_dir}/usr/bin/${name}"
 }
 
 

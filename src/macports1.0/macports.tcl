@@ -1470,6 +1470,11 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     # archive_sites.conf handling
     $workername alias get_archive_sites_conf_values macports::get_archive_sites_conf_values
 
+    # compiler version cache
+    $workername alias get_compiler_version macports::get_compiler_version
+    # tool path cache
+    $workername alias get_tool_path macports::get_tool_path
+
     foreach opt $portinterp_options {
         if {![info exists $opt]} {
             global macports::$opt
@@ -5302,6 +5307,68 @@ proc macports::get_pingtime {host} {
 proc macports::set_pingtime {host ms} {
     global macports::ping_cache
     set ping_cache($host) [list $ms [clock seconds]]
+}
+
+# get the version of a compiler (memoized)
+proc macports::get_compiler_version {compiler} {
+    global macports::compiler_version_cache
+
+    if {[info exists compiler_version_cache($compiler)]} {
+        return $compiler_version_cache($compiler)
+    }
+
+    if {![file executable ${compiler}]} {
+        set compiler_version_cache($compiler) ""
+        return ""
+    }
+
+    switch [file tail ${compiler}] {
+        clang {
+            set re {clang(?:_.*)?-([0-9.]+)}
+        }
+        llvm-gcc-4.2 {
+            set re {LLVM build ([0-9.]+)}
+        }
+        gcc-4.2 -
+        gcc-4.0 -
+        apple-gcc-4.2 {
+            set re {build ([0-9.]+)}
+        }
+        default {
+            return -code error "don't know how to determine build number of compiler \"${compiler}\""
+        }
+    }
+
+    if {[catch {regexp ${re} [exec ${compiler} -v 2>@1] -> compiler_version}]} {
+        set compiler_version_cache($compiler) ""
+        return ""
+    }
+    if {![info exists compiler_version]} {
+        return -code error "couldn't determine build number of compiler \"${compiler}\""
+    }
+    set compiler_version_cache($compiler) $compiler_version
+    return $compiler_version
+}
+
+# check availability and location of tool
+proc macports::get_tool_path {tool} {
+    global macports::tool_path_cache
+
+    if {[info exists tool_path_cache($tool)]} {
+        return $tool_path_cache($tool)
+    }
+
+    # first try /usr/bin since this doesn't move around
+    set toolpath "/usr/bin/${tool}"
+    if {![file executable $toolpath]} {
+        # Use xcode's xcrun to find the named tool.
+        if {[catch {exec [findBinary xcrun $portutil::autoconf::xcrun_path] -find ${tool}} toolpath]} {
+            set toolpath ""
+        }
+    }
+
+    set tool_path_cache($tool) $toolpath
+    return $toolpath
 }
 
 # read and cache archive_sites.conf (called from port1.0 code)
