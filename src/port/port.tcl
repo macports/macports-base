@@ -4545,6 +4545,8 @@ proc parse_options { action ui_options_name global_options_name } {
                         set ui_options(ports_quiet) yes
                         # quiet implies noninteractive
                         set ui_options(ports_noninteractive) yes
+                        # quiet implies no warning for outdated PortIndex
+                        set ui_options(ports_no_old_index_warning) 1
                     }
                     p {
                         # Ignore errors while processing within a command
