@@ -1,0 +1,36 @@
+// vim: set et sw=4 ts=8 ft=asciidoc tw=80:
+port-bump(1)
+============
+
+NAME
+----
+port-bump - Update the outdated checksums of a Portfile
+
+SYNOPSIS
+--------
+[cmdsynopsis]
+*port* [*-vd*] [*-D* 'portdir'] *bump*
+     [--patch]
+     [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
+
+DESCRIPTION
+-----------
+
+*port bump* updates the checksums of a Portfile if they are outdated or
+different than the current version's checksums. Additionally, the revision
+number will be reset. *port bump* is useful for maintainers to automatically
+bump the checksums after updating the version number of a port.
+
+include::global-flags.txt[]
+
+*--patch*::
+    Create a Portfile.patch file instead of directly overwriting the Portfile.
+
+SEE ALSO
+--------
+man:port[1], man:port-fetch[1], man:port-install[1], man:portfile[7]
+
+AUTHORS
+-------
+ (C) 2019 The MacPorts Project
+ Satryaji Aulia <satraul@macports.org>
