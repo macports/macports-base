@@ -10,7 +10,6 @@ package require Pextlib
 set full_reindex 0
 set permit_error 0
 set index_diff 0
-set diff_status NA
 set stats(total) 0
 set stats(failed) 0
 set stats(skipped) 0
@@ -49,30 +48,27 @@ proc _read_index {idx} {
     return [list $name $len $line]
 }
 
-proc _write_index {name len line write_diff} {
-    global fd index_diff diff_fd diff_status list_of_parsed_ports
-    if {$index_diff == 1 && $write_diff != 0 } {
-        # Convert the received list back to array
-        array set temp_line $line
-
-        #Set the status of difference (U/A)
-        set temp_line(status) $diff_status
-
-        #Convert the temporary array back to list that can be written to differences file
-        set diff_line [array get temp_line]
-        set difflen [expr {[string length $diff_line] + 1}]
-        puts $diff_fd [list $name $difflen]
-        puts $diff_fd $diff_line
-    }
-
-    if {$write_diff != 2} {
-        lappend list_of_parsed_ports [string tolower $name]
-        puts $fd [list $name $len]
-        puts $fd $line
-    }
+proc _write_index {name len line} {
+    global fd list_of_parsed_ports
+    lappend list_of_parsed_ports [string tolower $name]
+    puts $fd [list $name $len]
+    puts $fd $line
 }
 
-proc _write_index_from_portinfo {portinfoname {is_subport no}} {
+proc _write_diff_index {name len line diff_status} {
+    global diff_fd
+
+    array set temp_line $line
+    set temp_line(status) $diff_status
+
+    #Convert the temporary array back to list that can be written to differences file
+    set line [array get temp_line]
+    set len [expr {[string length $line] + 1}]
+    puts $diff_fd [list $name $len]
+    puts $diff_fd $line
+}
+
+proc _write_index_from_portinfo {diff_status portinfoname {is_subport no}} {
     global keepkeys index_diff
 
     upvar $portinfoname portinfo
@@ -95,10 +91,12 @@ proc _write_index_from_portinfo {portinfoname {is_subport no}} {
 
     set output [array get keep_portinfo]
     set len [expr {[string length $output] + 1}]
+
+    # First write to the Full Portindex without the key "status"
+    _write_index $portinfo(name) $len $output
+
     if {$index_diff == 1} {
-        _write_index $portinfo(name) $len $output 1
-    } else {
-        _write_index $portinfo(name) $len $output 0
+        _write_diff_index $portinfo(name) $len $output $diff_status
     }
 }
 
@@ -132,14 +130,13 @@ proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}
 }
 
 proc write_deleted_ports {} {
-    global qindex list_of_parsed_ports diff_status
+    global qindex list_of_parsed_ports
     foreach port [array names qindex] {
         if {[lsearch -exact $list_of_parsed_ports $port] == -1 && [info exists qindex($port)] && [string trim $port] != ""} {
             try -pass_signal {
                 lassign [_read_index $port] name len line
                 array set portinfo $line
-                set diff_status D
-                _write_index $name $len $line 2
+                _write_diff_index $name $len $line D
             } catch {{*} eCode eMessage} {
                 ui_warn "Failed to open old entry for deleted port: ${port}"
                 if {[info exists ui_options(ports_debug)]} {
@@ -152,7 +149,7 @@ proc write_deleted_ports {} {
 
 proc pindex {portdir} {
     global oldmtime newest qindex directory stats full_reindex \
-           ui_options port_options diff_status
+           ui_options port_options
 
     set qname [string tolower [file tail $portdir]]
     set absportdir [file join $directory $portdir]
@@ -167,7 +164,7 @@ proc pindex {portdir} {
 
                 # reuse entry if it was made from the same portdir
                 if {[info exists portinfo(portdir)] && $portinfo(portdir) eq $portdir} {
-                    _write_index $name $len $line 0
+                    _write_index $name $len $line
                     incr stats(skipped)
 
                     if {[info exists ui_options(ports_debug)]} {
@@ -179,8 +176,7 @@ proc pindex {portdir} {
                         return
                     }
                     foreach sub $portinfo(subports) {
-                        lassign [_read_index [string tolower $sub]] sname slen sline
-                        _write_index $sname $slen $sline 0
+                        _write_index {*}[_read_index [string tolower $sub]]
                         incr stats(skipped)
                     }
 
@@ -205,7 +201,7 @@ proc pindex {portdir} {
         } else {
             set diff_status A
         }
-        _write_index_from_portinfo portinfo
+        _write_index_from_portinfo $diff_status portinfo
         set mtime [file mtime $portfile]
         if {$mtime > $newest} {
             set newest $mtime
@@ -221,7 +217,7 @@ proc pindex {portdir} {
                 _open_port portinfo $portdir $absportdir port_options $sub
                 puts "Adding subport $sub"
 
-                _write_index_from_portinfo portinfo yes
+                _write_index_from_portinfo $diff_status portinfo
             } catch {{*} eCode eMessage} {
                 puts stderr "Failed to parse file $portdir/Portfile with subport '${sub}': $eMessage"
                 incr stats(failed)
