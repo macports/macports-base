@@ -9,7 +9,7 @@ port-selfupdate - Upgrade MacPorts itself and update the port definition files.
 SYNOPSIS
 --------
 [cmdsynopsis]
-*port* [*-qvdf*] *selfupdate* [--nosync]
+*port* [*-qvdf*] *selfupdate* [--no-sync]
 
 DESCRIPTION
 -----------
@@ -25,7 +25,7 @@ features.
 OPTIONS
 -------
 
-*--nosync*::
+*--no-sync*::
     Only check for updates - and install if available - for MacPorts itself. Do
     not update the ports tree.
 
