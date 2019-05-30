@@ -17,7 +17,7 @@ array set ui_options        [list ports_no_old_index_warning 1]
 array set global_options    [list]
 array set global_variations [list]
 set port_options            [list]
-set list_of_parsed_ports    [list]
+array set parsed_ports      [list]
 
 # Pass global options into mportinit
 mportinit ui_options global_options global_variations
@@ -49,8 +49,9 @@ proc _read_index {idx} {
 }
 
 proc _write_index {name len line} {
-    global fd list_of_parsed_ports
-    lappend list_of_parsed_ports [string tolower $name]
+    global fd parsed_ports
+    set qname [string tolower $name]
+    set parsed_ports($qname) $qname
     puts $fd [list $name $len]
     puts $fd $line
 }
@@ -129,10 +130,10 @@ proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}
     set portinfo(portdir) $portdir
 }
 
-proc write_deleted_ports {} {
-    global qindex list_of_parsed_ports
+proc _write_deleted_ports {} {
+    global qindex parsed_ports
     foreach port [array names qindex] {
-        if {[lsearch -exact $list_of_parsed_ports $port] == -1 && [info exists qindex($port)] && [string trim $port] != ""} {
+        if {![info exists parsed_ports($port)] && [string trim $port] != ""} {
             try -pass_signal {
                 lassign [_read_index $port] name len line
                 array set portinfo $line
@@ -329,6 +330,7 @@ puts "Creating port index in $outdir"
 set outpath [file join $outdir PortIndex]
 if {$index_diff == 1} {
     set diffoutpath [file join $outdir ChangedPorts]
+    set diff_fd [open $diffoutpath w]
 }
 # open old index for comparison
 if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
@@ -348,10 +350,6 @@ if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
 
 set tempportindex [mktemp "/tmp/mports.portindex.XXXXXXXX"]
 set fd [open $tempportindex w]
-if {$index_diff == 1} {
-    set tempchangedports [mktemp "/tmp/mports.changedports.XXXXXXX"]
-    set diff_fd [open $tempchangedports w]
-}
 set save_prefix ${macports::prefix}
 foreach key {categories depends_fetch depends_extract depends_patch \
              depends_build \
@@ -365,7 +363,7 @@ set exit_fail 0
 try {
     mporttraverse pindex $directory
     if {$index_diff == 1} {
-        write_deleted_ports
+        _write_deleted_ports
     }
 } catch {{POSIX SIG SIGINT} eCode eMessage} {
     puts stderr "SIGINT received, terminating."
@@ -387,9 +385,6 @@ if {$exit_fail} {
 }
 
 file rename -force $tempportindex $outpath
-if {$index_diff == 1} {
-    file rename -force $tempchangedports $diffoutpath
-}
 file mtime $outpath $newest
 mports_generate_quickindex $outpath
 puts "\nTotal number of ports parsed:\t$stats(total)\
