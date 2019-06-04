@@ -38,6 +38,7 @@ set org.macports.archivefetch [target_new org.macports.archivefetch portarchivef
 #target_init ${org.macports.archivefetch} portarchivefetch::archivefetch_init
 target_provides ${org.macports.archivefetch} archivefetch
 target_requires ${org.macports.archivefetch} main
+target_runtype ${org.macports.archivefetch} always
 target_prerun ${org.macports.archivefetch} portarchivefetch::archivefetch_start
 
 namespace eval portarchivefetch {
@@ -295,7 +296,7 @@ proc portarchivefetch::fetchfiles {args} {
     if {[info exists archive_exists]} {
         # modify state file to skip remaining phases up to destroot
         global target_state_fd
-        foreach target {fetch checksum extract patch configure build destroot} {
+        foreach target {archivefetch fetch checksum extract patch configure build destroot} {
             write_statefile target "org.macports.${target}" $target_state_fd
         }
         return 0
