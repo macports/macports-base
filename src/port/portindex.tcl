@@ -329,7 +329,8 @@ if {[info exists outdir]} {
 puts "Creating port index in $outdir"
 set outpath [file join $outdir PortIndex]
 if {$index_diff == 1} {
-    set diffoutpath [file join $outdir ChangedPorts]
+    set diff_filename ChangedPorts-[clock format [clock seconds] -format {%Y%m%dT%H%M%S}]
+    set diffoutpath [file join $outdir $diff_filename]
     set diff_fd [open $diffoutpath w]
 }
 # open old index for comparison
