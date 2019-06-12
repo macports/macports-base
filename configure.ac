@@ -28,23 +28,23 @@ if test "x$SW_VERS" != "x"; then
 fi
 
 case "$MACOSX_VERSION" in
-  10.0*|10.1|10.1.*|10.2*|10.3*)
+  10.0|10.0.*|10.1|10.1.*|10.2|10.2.*|10.3|10.3.*)
     AC_MSG_ERROR([This version of Mac OS X is not supported
                   Please upgrade at http://store.apple.com/])
     ;;
-  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-7]]|10.7.[[0-4]])
+  10.4|10.4.[[1-9]]|10.4.10|10.5|10.5.[[1-7]]|10.6|10.6.[[1-7]]|10.7|10.7.[[1-4]])
     AC_MSG_WARN([This version of Mac OS X is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;
-  10.8.[[0-4]]|10.9.[[0-4]]|10.10.[[0-4]]|10.11.[[0-5]])
+  10.8|10.8.[[1-4]]|10.9|10.9.[[1-4]]|10.10|10.10.[[1-4]]|10.11|10.11.[[1-5]])
     AC_MSG_WARN([This version of OS X is out of date])
     AC_MSG_WARN([Please use the Mac App Store to update it])
     ;;
-  10.12.[[0-5]]|10.13.[[0-4]])
+  10.12|10.12.[[1-5]]|10.13|10.13.[[1-4]])
     AC_MSG_WARN([This version of macOS is out of date])
     AC_MSG_WARN([Please use the Mac App Store to update it])
     ;;
-  10.4*|10.5*|10.6*|10.7*|10.8*|10.9*|10.10*|10.11*|10.12*|10.13*)
+  10.4.*|10.5.*|10.6.*|10.7.*|10.8.*|10.9.*|10.10.*|10.11.*|10.12.*|10.13.*)
     dnl Supported version
     ;;
   *)
