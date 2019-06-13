@@ -1588,6 +1588,19 @@ Target passed to
 .br
 .Sy Example:
 .Dl build.target all-src
+.It Ic use_xcode
+Specifies dependency on Xcode compilers. Restricts Xcode compilers on trace
+mode when set to no. The default changes to yes when build.type is set to
+Xcode (e.g., xcode 1.0 PortGroup).
+.br
+.Sy Type:
+.Em yes no
+.br
+.Sy Default:
+.Em no
+.br
+.Sy Example:
+.Dl use_xcode yes
 .El
 .Sh DESTROOT OPTIONS
 Execute necessary commands to install into a temporary destination root
