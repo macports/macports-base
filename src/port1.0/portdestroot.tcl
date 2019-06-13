@@ -52,6 +52,7 @@ commands destroot
 
 # Set defaults
 default destroot.asroot no
+default destroot.env {[get_default_env]}
 default destroot.dir {${build.dir}}
 default destroot.cmd {${build.cmd}}
 default destroot.pre_args {[portdestroot::destroot_getargs]}

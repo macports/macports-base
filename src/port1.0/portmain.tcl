@@ -56,7 +56,7 @@ options prefix name version revision epoch categories maintainers \
         supported_archs depends_skip_archcheck installs_libs \
         license_noconflict copy_log_files \
         compiler.cpath compiler.library_path \
-        add_users
+        add_users use_xcode
 
 proc portmain::check_option_integer {option action args} {
     if {$action eq "set" && ![string is wideinteger -strict $args]} {
@@ -153,6 +153,14 @@ set egid [getegid]
 
 default worksymlink {[file normalize [file join $portpath work]]}
 default distpath {[file normalize [file join $portdbpath distfiles ${dist_subdir}]]}
+
+default use_xcode {[portmain::get_default_use_xcode]}
+proc portmain::get_default_use_xcode {} {
+    if {[option build.type] eq "xcode"} {
+        return yes
+    }
+    return no
+}
 
 proc portmain::main {args} {
     return 0

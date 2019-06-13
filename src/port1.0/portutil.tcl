@@ -508,6 +508,17 @@ proc default_check {optionName index op} {
     }
 }
 
+# get_default_env
+# Unless port is Xcode dependent, returns env which sets developer_dir to
+# Command Line Tools
+proc get_default_env {} {
+    global use_xcode
+    if {$use_xcode eq "yes"} {
+        return ""
+    }
+    return "DEVELOPER_DIR=/Library/Developer/CommandLineTools"
+}
+
 ##
 # Filter options which take strings removing indent to ease Portfile writing
 proc handle_option_string {option action args} {
