@@ -138,7 +138,7 @@ default compiler.fortran_fallback    {[portconfigure::get_fortran_fallback]}
 # define options
 commands configure autoreconf automake autoconf xmkmf
 # defaults
-default configure.env       ""
+default configure.env       {[get_default_env]}
 default configure.pre_args  {--prefix=${prefix}}
 default configure.cmd       ./configure
 default configure.nice      {${buildnicevalue}}

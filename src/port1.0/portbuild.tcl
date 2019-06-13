@@ -48,6 +48,7 @@ options build.asroot \
         use_parallel_build
 commands build
 # defaults
+default build.env {[get_default_env]}
 default build.asroot no
 default build.dir {${worksrcpath}}
 default build.cmd {[portbuild::build_getmaketype]}

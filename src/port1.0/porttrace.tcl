@@ -132,7 +132,7 @@ namespace eval porttrace {
     proc trace_start {workpath} {
         global \
             developer_dir distpath env macportsuser os.platform configure.sdkroot \
-            portpath prefix
+            portpath prefix use_xcode
 
         variable fifo
         variable fifo_mktemp_template
@@ -213,10 +213,11 @@ namespace eval porttrace {
         }
 
         # Allow access to some Xcode specifics
-        allow trace_sandbox "/var/db/xcode_select_link"
-        allow trace_sandbox "/var/db/mds"
-        allow trace_sandbox [file normalize ~${macportsuser}/Library/Preferences/com.apple.dt.Xcode.plist]
-        allow trace_sandbox "$env(HOME)/Library/Preferences/com.apple.dt.Xcode.plist"
+        set xcode_paths {}
+        lappend xcode_paths "/var/db/xcode_select_link"
+        lappend xcode_paths "/var/db/mds"
+        lappend xcode_paths [file normalize ~${macportsuser}/Library/Preferences/com.apple.dt.Xcode.plist]
+        lappend xcode_paths "$env(HOME)/Library/Preferences/com.apple.dt.Xcode.plist"
 
         # Allow access to developer_dir; however, if it ends with /Contents/Developer, strip
         # that. If it doesn't leave that in place to avoid allowing access to "/"!
@@ -224,7 +225,17 @@ namespace eval porttrace {
         if {[llength $ddsplit] > 2 && [lindex $ddsplit end-1] eq "Contents" && [lindex $ddsplit end] eq "Developer"} {
             set ddsplit [lrange $ddsplit 0 end-2]
         }
-        allow trace_sandbox [file join {*}$ddsplit]
+        lappend xcode_paths [file join {*}$ddsplit]
+
+        if {$use_xcode eq "no"} {
+            foreach xcode_path $xcode_paths {
+                deny trace_sandbox $xcode_path
+            }
+        } else {
+            foreach xcode_path $xcode_paths {
+                allow trace_sandbox $xcode_path
+            }
+        }
 
         # Allow launchd.db access to avoid failing on port-load(1)/port-unload(1)/port-reload(1)
         allow trace_sandbox "/var/db/launchd.db"
