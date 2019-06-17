@@ -227,13 +227,13 @@ namespace eval porttrace {
         }
         lappend xcode_paths [file join {*}$ddsplit]
 
-        if {$use_xcode eq "no"} {
+        if {[tbool use_xcode]} {
             foreach xcode_path $xcode_paths {
-                deny trace_sandbox $xcode_path
+                allow trace_sandbox $xcode_path
             }
         } else {
             foreach xcode_path $xcode_paths {
-                allow trace_sandbox $xcode_path
+                deny trace_sandbox $xcode_path
             }
         }
 

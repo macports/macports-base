@@ -154,13 +154,7 @@ set egid [getegid]
 default worksymlink {[file normalize [file join $portpath work]]}
 default distpath {[file normalize [file join $portdbpath distfiles ${dist_subdir}]]}
 
-default use_xcode {[portmain::get_default_use_xcode]}
-proc portmain::get_default_use_xcode {} {
-    if {[option build.type] eq "xcode"} {
-        return yes
-    }
-    return no
-}
+default use_xcode {[expr {[option build.type] eq "xcode"}]}
 
 proc portmain::main {args} {
     return 0

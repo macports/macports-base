@@ -513,7 +513,7 @@ proc default_check {optionName index op} {
 # Command Line Tools
 proc get_default_env {} {
     global use_xcode
-    if {$use_xcode eq "yes"} {
+    if {[tbool use_xcode]} {
         return ""
     }
     return "DEVELOPER_DIR=/Library/Developer/CommandLineTools"
@@ -3247,7 +3247,7 @@ proc check_supported_archs {} {
 
 # check if the installed xcode version is new enough
 proc _check_xcode_version {} {
-    global os.subplatform macosx_version xcodeversion
+    global os.subplatform macosx_version xcodeversion use_xcode
 
     if {${os.subplatform} eq "macosx"} {
         switch $macosx_version {
@@ -3313,6 +3313,9 @@ proc _check_xcode_version {} {
             }
         }
         if {$xcodeversion eq "none"} {
+            if {[tbool use_xcode]} {
+                return -code error "This port requires Xcode, which was not found on your system."
+            }
             ui_warn "Xcode does not appear to be installed; most ports will likely fail to build."
             if {[file exists "/Applications/Install Xcode.app"]} {
                 ui_warn "You downloaded Xcode from the Mac App Store but didn't install it. Run \"Install Xcode\" in the /Applications folder."
