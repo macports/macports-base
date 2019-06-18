@@ -138,7 +138,7 @@ default compiler.fortran_fallback    {[portconfigure::get_fortran_fallback]}
 # define options
 commands configure autoreconf automake autoconf xmkmf
 # defaults
-default configure.env       {[get_default_env]}
+default configure.env       ""
 default configure.pre_args  {--prefix=${prefix}}
 default configure.cmd       ./configure
 default configure.nice      {${buildnicevalue}}
@@ -256,11 +256,13 @@ default configure.pkg_config        {}
 default configure.pkg_config_path   {}
 
 options configure.build_arch configure.ld_archflags \
-        configure.sdk_version configure.sdkroot
+        configure.sdk_version configure.sdkroot \
+        configure.developer_dir
 default configure.build_arch    {[portconfigure::choose_supported_archs ${build_arch}]}
 default configure.ld_archflags  {[portconfigure::configure_get_ld_archflags]}
 default configure.sdk_version   {$macosx_sdk_version}
 default configure.sdkroot       {[portconfigure::configure_get_sdkroot ${configure.sdk_version}]}
+default configure.developer_dir {[portconfigure::configure_get_developer_dir]}
 foreach tool {cc objc f77 f90 fc} {
     options configure.${tool}_archflags
     default configure.${tool}_archflags  "\[portconfigure::configure_get_archflags $tool\]"
@@ -509,6 +511,15 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
 
     ui_error "Unable to determine location of a macOS SDK."
     return -code error "Unable to determine location of a macOS SDK."
+}
+
+# internal function to determine developer_dir according to Xcode dependency
+proc portconfigure::configure_get_developer_dir {} {
+    global use_xcode developer_dir
+    if {[tbool use_xcode]} {
+        return ""
+    }
+    return "/Library/Developer/CommandLineTools"
 }
 
 # internal function to determine the "-arch xy" flags for the compiler
@@ -1442,6 +1453,7 @@ proc portconfigure::configure_main {args} {
             CFLAGS CPPFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS \
             FFLAGS F90FLAGS FCFLAGS LDFLAGS LIBS CLASSPATH \
             PERL PYTHON RUBY INSTALL AWK BISON PKG_CONFIG \
+            DEVELOPER_DIR \
         } {
             set value [option configure.[string tolower $env_var]]
             append_to_environment_value configure $env_var {*}$value
