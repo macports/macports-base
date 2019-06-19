@@ -513,13 +513,19 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
     return -code error "Unable to determine location of a macOS SDK."
 }
 
-# internal function to determine developer_dir according to Xcode dependency
+# internal function to determine DEVELOPER_DIR according to Xcode dependency
 proc portconfigure::configure_get_developer_dir {} {
-    global use_xcode developer_dir
-    if {[tbool use_xcode]} {
+    global use_xcode macosx_version
+    if {[vercmp $macosx_version 10.9] >= 0} {
+        set cltpath "/Library/Developer/CommandLineTools"
+    } else {
+        set cltpath "/"
+    }
+    # if use_xcode or CLT not installed, do not set DEVELOPER_DIR
+    if {[tbool use_xcode] || (![file isdirectory [file join $cltpath usr include]] || ![file executable [file join $cltpath usr bin make]])} {
         return ""
     }
-    return "/Library/Developer/CommandLineTools"
+    return ${cltpath}
 }
 
 # internal function to determine the "-arch xy" flags for the compiler
