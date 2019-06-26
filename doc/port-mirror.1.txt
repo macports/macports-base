@@ -28,6 +28,9 @@ downloaded files are stored in a custom database in
 man:macports.conf[5]. This database can be deleted and re-created from scratch
 using the *--new* option.
 
+[NOTE]
+Ports that have NoMirror in their license field will not be mirrored.
+
 OPTIONS
 -------
 *--new*::
