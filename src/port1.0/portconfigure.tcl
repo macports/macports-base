@@ -515,17 +515,16 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
 
 # internal function to determine DEVELOPER_DIR according to Xcode dependency
 proc portconfigure::configure_get_developer_dir {} {
-    global use_xcode macosx_version
-    if {[vercmp $macosx_version 10.9] >= 0} {
-        set cltpath "/Library/Developer/CommandLineTools"
+    global use_xcode developer_dir
+    set cltpath "/Library/Developer/CommandLineTools"
+    # Assume that the existence of libxcselect indiciates the earliest version of
+    # macOS that places CLT in /Library/Developer/CommandLineTools
+    # If port is Xcode-dependent or CommandLineTools directory is invalid, set to developer_dir
+    if {[tbool use_xcode] || ![file exists /usr/lib/libxcselect.dylib] || ![file executable [file join $cltpath usr bin make]]} {
+        return ${developer_dir}
     } else {
-        set cltpath "/"
+        return ${cltpath}
     }
-    # if use_xcode or CLT not installed, do not set DEVELOPER_DIR
-    if {[tbool use_xcode] || (![file isdirectory [file join $cltpath usr include]] || ![file executable [file join $cltpath usr bin make]])} {
-        return ""
-    }
-    return ${cltpath}
 }
 
 # internal function to determine the "-arch xy" flags for the compiler
