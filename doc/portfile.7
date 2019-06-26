@@ -946,6 +946,34 @@ to
 .br
 .Sy Example:
 .Dl use_bzip2 yes
+.It Ic use_lzip
+Use lzip.
+.br
+Sets
+.Ic extract.suffix
+to
+.Dq .tar.lz .
+.br
+Sets
+.Ic extract.cmd
+to
+.Dq lzip .
+.br
+Sets
+.Ic extract.pre_args
+to
+.Dq -dc .
+.br
+Sets
+.Ic extract.post_args
+to
+.Dq | tar -xf - .
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl use_lzip yes
 .It Ic use_lzma
 Use lzma.
 .br
