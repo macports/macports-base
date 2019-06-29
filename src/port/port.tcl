@@ -155,10 +155,10 @@ proc composite_version {version variations {emptyVersionOkay 0}} {
     return $composite_version
 }
 
-
+set port_split_variants_re {([-+])([[:alpha:]_]+[\w\.]*)}
 proc split_variants {variants} {
     set result {}
-    set l [regexp -all -inline -- {([-+])([[:alpha:]_]+[\w\.]*)} $variants]
+    set l [regexp -all -inline -- $::port_split_variants_re $variants]
     foreach { match sign variant } $l {
         lappend result $variant $sign
     }
@@ -1895,8 +1895,8 @@ proc action_log { action portlist opts } {
             } else {
                 set prefix "\[a-z\]*"
             }
+            set exp "^:($prefix|any):($phase|any) (.*)$"
             foreach line $data {
-                set exp "^:($prefix|any):($phase|any) (.*)$"
                 if {[regexp $exp $line -> lpriority lphase lmsg] == 1} {
                     puts "[macports::ui_prefix_default $lpriority]$lmsg"
                 }
@@ -5553,10 +5553,11 @@ namespace eval portclient::questions {
             set selected_opt []
 
             set err_flag 1
+            set range_re {(\d+)-(\d+)}
             foreach num $input {
                 if {[string is wideinteger -strict $num] && $num <= [llength $ports] && $num > 0} {
                     lappend selected_opt [expr {$num -1}]
-                } elseif {[regexp {(\d+)-(\d+)} $input _ start end]
+                } elseif {[regexp $range_re $input _ start end]
                           && $start <= [llength $ports]
                           && $start > 0
                           && $end <= [llength $ports]

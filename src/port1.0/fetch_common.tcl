@@ -97,6 +97,7 @@ proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
     }
 
     set ret [list]
+    set name_re {\$(?:name\y|\{name\})}
     foreach element $portfetch::mirror_sites::sites($mirrors) {
 
         # here we have the chance to take a look at tags, that possibly
@@ -113,7 +114,6 @@ proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
             set mirror_tag ""
         }
 
-        set name_re {\$(?:name\y|\{name\})}
         # if the URL has $name embedded, kill any mirror_tag that may have been added
         # since a mirror_tag and $name are incompatible
         if {[regexp $name_re $element]} {
@@ -153,6 +153,8 @@ proc portfetch::mirror_sites {mirrors tag subdir mirrorfile} {
 proc portfetch::checksites {sitelists mirrorfile} {
     global env
     variable urlmap
+    set url_re {([a-zA-Z]+://.+)}
+    set tagged_url_re {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$}
 
     foreach {listname extras} $sitelists {
         upvar #0 $listname $listname
@@ -175,7 +177,7 @@ proc portfetch::checksites {sitelists mirrorfile} {
 
         set site_list [list]
         foreach site $full_list {
-            if {[regexp {([a-zA-Z]+://.+)} $site match site]} {
+            if {[regexp $url_re $site match site]} {
                 set site_list [concat $site_list $site]
             } else {
                 set splitlist [split $site :]
@@ -194,7 +196,7 @@ proc portfetch::checksites {sitelists mirrorfile} {
 
         # add in the global and user-defined mirrors for each tag
         foreach site $site_list {
-            if {[regexp {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$} $site match site tag] && ![info exists extras_added($tag)]} {
+            if {[regexp $tagged_url_re $site match site tag] && ![info exists extras_added($tag)]} {
                 if {$sglobal ne ""} {
                     set site_list [concat $site_list [mirror_sites $sglobal $tag "" $mirrorfile]]
                 }
@@ -206,7 +208,7 @@ proc portfetch::checksites {sitelists mirrorfile} {
         }
 
         foreach site $site_list {
-        if {[regexp {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$} $site match site tag]} {
+        if {[regexp $tagged_url_re $site match site tag]} {
                 lappend urlmap($tag) $site
             } else {
                 lappend urlmap($listname) $site
@@ -220,6 +222,7 @@ proc portfetch::sortsites {urls default_listvar} {
     global $default_listvar
     upvar $urls fetch_urls
     variable urlmap
+    set hostregex {[a-zA-Z]+://([a-zA-Z0-9\.\-_]+)}
 
     foreach {url_var distfile} $fetch_urls {
         if {![info exists urlmap($url_var)]} {
@@ -232,7 +235,6 @@ proc portfetch::sortsites {urls default_listvar} {
         }
         set urllist $urlmap($url_var)
         set hosts {}
-        set hostregex {[a-zA-Z]+://([a-zA-Z0-9\.\-_]+)}
 
         if {[llength $urllist] <= 1} {
             # there is only one mirror, no need to ping or sort

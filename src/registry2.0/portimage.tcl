@@ -464,6 +464,7 @@ proc _activate_contents {port {rename_list {}}} {
     set location [$port location]
     set imagefiles [$port imagefiles]
     set extracted_dir [extract_archive_to_tmpdir $location]
+    set replaced_by_re "(?i)^[$port name]\$"
 
     set backups [list]
     # This is big and hairy and probably could be done better.
@@ -493,7 +494,7 @@ proc _activate_contents {port {rename_list {}}} {
                     set result [mportlookup [$owner name]]
                     array unset portinfo
                     array set portinfo [lindex $result 1]
-                    if {[info exists portinfo(replaced_by)] && [lsearch -regexp $portinfo(replaced_by) "(?i)^[$port name]\$"] != -1} {
+                    if {[info exists portinfo(replaced_by)] && [lsearch -regexp $portinfo(replaced_by) $replaced_by_re] != -1} {
                         # we'll deactivate the owner later, but before activating our files
                         set todeactivate($owner) yes
                         set owner "replaced"

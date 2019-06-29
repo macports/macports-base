@@ -747,12 +747,13 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     # Process all configuration files we find on conf_files list
+    set conf_option_re {^(\w+)([ \t]+(.*))?$}
     foreach file $conf_files {
         if {[file exists $file]} {
             set portconf $file
             set fd [open $file r]
             while {[gets $fd line] >= 0} {
-                if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
+                if {[regexp $conf_option_re $line match option ignore val] == 1} {
                     if {$option in $bootstrap_options} {
                         set macports::$option [string trim $val]
                         global macports::$option
@@ -768,7 +769,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {[file exists $per_user]} {
         set fd [open $per_user r]
         while {[gets $fd line] >= 0} {
-            if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
+            if {[regexp $conf_option_re $line match option ignore val] == 1} {
                 if {$option in $user_options} {
                     set macports::$option $val
                     global macports::$option
@@ -781,11 +782,13 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {![info exists sources_conf]} {
         return -code error "sources_conf must be set in ${macports_conf_path}/macports.conf or in your ${macports_user_dir}/macports.conf file"
     }
+    set sources_conf_comment_re {^\s*#|^$}
+    set sources_conf_source_re {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$}
     set fd [open $sources_conf r]
     while {[gets $fd line] >= 0} {
         set line [string trimright $line]
-        if {![regexp {^\s*#|^$} $line]} {
-            if {[regexp {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$} $line _ url flags]} {
+        if {![regexp $sources_conf_comment_re $line]} {
+            if {[regexp $sources_conf_source_re $line _ url flags]} {
                 set flags [split $flags ,]
                 foreach flag $flags {
                     if {$flag ni [list nosync default]} {
@@ -825,14 +828,17 @@ Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarbal
         set sources_default [lindex $sources end]
     }
 
+    # regex also used by pubkeys.conf
+    set variants_conf_comment_re {^[\ \t]*#.*$|^$}
     if {[info exists variants_conf]} {
         if {[file exists $variants_conf]} {
+            set variants_conf_setting_re {^([-+])([-A-Za-z0-9_+\.]+)$}
             set fd [open $variants_conf r]
             while {[gets $fd line] >= 0} {
                 set line [string trimright $line]
-                if {![regexp {^[\ \t]*#.*$|^$} $line]} {
+                if {![regexp $variants_conf_comment_re $line]} {
                     foreach arg [split $line " \t"] {
-                        if {[regexp {^([-+])([-A-Za-z0-9_+\.]+)$} $arg match sign opt] == 1} {
+                        if {[regexp $variants_conf_setting_re $arg match sign opt] == 1} {
                             if {![info exists variations($opt)]} {
                                 set variations($opt) $sign
                             }
@@ -856,7 +862,7 @@ Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarbal
         set fd [open [file join $macports_conf_path pubkeys.conf] r]
         while {[gets $fd line] >= 0} {
             set line [string trim $line]
-            if {![regexp {^[\ \t]*#.*$|^$} $line]} {
+            if {![regexp $variants_conf_comment_re $line]} {
                 lappend macports::archivefetch_pubkeys $line
             }
         }
@@ -1665,8 +1671,9 @@ proc macports::fetch_port {url {local 0}} {
     return [file join $fetchdir $portname]
 }
 
+set macports::getprotocol_re {(?x)([^:]+)://.+}
 proc macports::getprotocol {url} {
-    if {[regexp {(?x)([^:]+)://.+} $url match protocol] == 1} {
+    if {[regexp $::macports::getprotocol_re $url match protocol] == 1} {
         return $protocol
     } else {
         return -code error "Can't parse url $url"
@@ -1771,6 +1778,8 @@ proc macports::getdefaultportresourcepath {{path {}}} {
 }
 
 
+set macports::file_porturl_re {^file://(.*)}
+
 ##
 # Opens a MacPorts portfile specified by a URL. The URL can be local (starting
 # with file://), or remote (http, https, or ftp). In the local case, the URL
@@ -1796,7 +1805,7 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
     global macports::portdbpath macports::portconf macports::open_mports auto_path
 
     # normalize porturl for local files
-    if {[regexp {^file://(.*)} $porturl -> path]} {
+    if {[regexp $::macports::file_porturl_re $porturl -> path]} {
         set realporturl "file://[file normalize $path]"
         if {$porturl ne $realporturl} {
             set porturl $realporturl
@@ -2394,6 +2403,7 @@ proc macports::getsourcepath {url} {
     return [file join $portdbpath sources [lindex $source_path 3] [lindex $source_path 4] [lindex $source_path 5]]
 }
 
+set macports::source_is_snapshot_re {^((?:https?|ftp|rsync)://.+/)(.+\.(tar\.gz|tar\.bz2|tar))$}
 ##
 # Checks whether a supplied source URL is for a snapshot tarball
 # (private)
@@ -2407,7 +2417,7 @@ proc _source_is_snapshot {url {filename {}} {extension {}} {rooturl {}}} {
     upvar $filename myfilename
     upvar $extension myextension
 
-    if {[regexp {^((?:https?|ftp|rsync)://.+/)(.+\.(tar\.gz|tar\.bz2|tar))$} $url -> u f e]} {
+    if {[regexp $::macports::source_is_snapshot_re $url -> u f e]} {
         set myrooturl $u
         set myfilename $f
         set myextension $e
@@ -5386,10 +5396,11 @@ proc macports::get_archive_sites_conf_values {} {
         array set defaults $defaults_list
         set conf_file ${macports_conf_path}/archive_sites.conf
         set conf_options {applications_dir cxx_stdlib delete_la_files frameworks_dir name prefix type urls}
+        set line_re {^(\w+)([ \t]+(.*))?$}
         if {[file isfile $conf_file]} {
             set fd [open $conf_file r]
             while {[gets $fd line] >= 0} {
-                if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
+                if {[regexp $line_re $line match option ignore val] == 1} {
                     if {$option in $conf_options} {
                         if {$option eq "name"} {
                             set cur_name $val

@@ -207,25 +207,30 @@ proc portdestroot::destroot_finish {args} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Compressing man pages for %s"] ${subport}]"
         set found 0
         set manlinks [list]
+        set mandir_re {^(cat|man)(.)$}
+
         foreach mandir [readdir "${manpath}"] {
-            if {![regexp {^(cat|man)(.)$} ${mandir} match ignore manindex]} { continue }
+            if {![regexp ${mandir_re} ${mandir} match ignore manindex]} { continue }
+            set gzfile_re "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$"
+            set bz2file_re "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$"
+            set normalfile_re "\[.\]${manindex}\[a-z\]*\$"
             set mandirpath [file join ${manpath} ${mandir}]
             if {[file isdirectory ${mandirpath}] && [file type ${mandirpath}] eq "directory"} {
                 ui_debug "Scanning ${mandir}"
                 foreach manfile [readdir ${mandirpath}] {
                     set manfilepath [file join ${mandirpath} ${manfile}]
                     if {[file isfile ${manfilepath}] && [file type ${manfilepath}] eq "file"} {
-                        if {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$" ${manfile} gzfile manfile]} {
+                        if {[regexp ${gzfile_re} ${manfile} gzfile manfile]} {
                             set found 1
                             system -W ${manpath} \
                             "$gunzip -f [file join ${mandir} ${gzfile}] && \
                             $gzip -9vnf [file join ${mandir} ${manfile}]"
-                        } elseif {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$" ${manfile} bz2file manfile]} {
+                        } elseif {[regexp ${bz2file_re} ${manfile} bz2file manfile]} {
                             set found 1
                             system -W ${manpath} \
                             "$bunzip2 -f [file join ${mandir} ${bz2file}] && \
                             $gzip -9vnf [file join ${mandir} ${manfile}]"
-                        } elseif {[regexp "\[.\]${manindex}\[a-z\]*\$" ${manfile}]} {
+                        } elseif {[regexp ${normalfile_re} ${manfile}]} {
                             set found 1
                             system -W ${manpath} \
                             "$gzip -9vnf [file join ${mandir} ${manfile}]"
@@ -248,11 +253,12 @@ proc portdestroot::destroot_finish {args} {
         }
         if {$found == 1} {
             # check man page links and rename/repoint them if necessary
+            set gzext_re "\[.\]gz\$"
             foreach manlink $manlinks {
                 set manlinkpath [file join $manpath $manlink]
                 # if link destination is not gzipped, check it
                 set manlinksrc [file readlink $manlinkpath]
-                if {![regexp "\[.\]gz\$" ${manlinksrc}]} {
+                if {![regexp ${gzext_re} ${manlinksrc}]} {
                     set mandir [file dirname $manlink]
                     set mandirpath [file join $manpath $mandir]
                     set pwd [pwd]
@@ -268,7 +274,7 @@ proc portdestroot::destroot_finish {args} {
                     # if gzipped destination exists, fix link
                     if {[file isfile ${mls_check}.gz]} {
                         # if actual link name does not end with gz, rename it
-                        if {![regexp "\[.\]gz\$" ${manlink}]} {
+                        if {![regexp ${gzext_re} ${manlink}]} {
                             ui_debug "renaming link: $manlink to ${manlink}.gz"
                             file rename $manlinkpath ${manlinkpath}.gz
                             set manlink ${manlink}.gz
