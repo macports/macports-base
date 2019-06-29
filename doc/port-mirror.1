@@ -33,6 +33,22 @@ port-mirror \- Fetch distfiles for a port
 \fBport mirror\fR creates or updates a local mirror of source archives (called \fIdistfiles\fR in MacPorts lingo) for the ports given on the command line\&. It will download any file that can be fetched using the standard \fBlibcurl\fR(3) download method and ignore ports that fetch from version control systems such as Subversion or Git\&.
 .sp
 Downloaded files will be checked for consistency and deleted if the checksums don\(cqt match those specified in the \fIPortfile\fR\&. Additionally, successfully downloaded files are stored in a custom database in \fI$portdbpath/distfiles_mirror\&.db\fR, where \fI$portdbpath\fR can be configured in \fBmacports.conf\fR(5)\&. This database can be deleted and re\-created from scratch using the \fB\-\-new\fR option\&.
+.if n \{\
+.sp
+.\}
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBNote\fR
+.ps -1
+.br
+.sp
+Ports that have NoMirror in their license field will not be mirrored\&.
+.sp .5v
+.RE
 .SH "OPTIONS"
 .PP
 \fB\-\-new\fR
