@@ -39,7 +39,7 @@ install: all mkdirs
 	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "${DESTDIR}${INSTALLDIR}/var/macports"
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 555 port portindex portmirror "${DESTDIR}${INSTALLDIR}/bin/"
 	$(LN_S) -f port "${DESTDIR}${INSTALLDIR}/bin/portf"
-	$(LN_S) -f "${TCLSH}" "${DESTDIR}${INSTALLDIR}/bin/port-tclsh"
+	$(LN_S) -f $(shell perl -MFile::Spec -e 'print File::Spec->abs2rel(@ARGV)' "${TCLSH}" "${INSTALLDIR}/bin") "${DESTDIR}${INSTALLDIR}/bin/port-tclsh"
 ifneq (,$(findstring darwin,@build_os@))
 ifneq (8,@OS_MAJOR@)
 	chmod -h 555 "${DESTDIR}${INSTALLDIR}/bin/portf" "${DESTDIR}${INSTALLDIR}/bin/port-tclsh"
