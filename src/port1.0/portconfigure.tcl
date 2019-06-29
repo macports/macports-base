@@ -331,9 +331,6 @@ proc portconfigure::configure_start {args} {
         {^llvm-gcc-4\.2$}                   {Xcode LLVM-GCC 4.2}
         {^macports-clang$}                  {MacPorts Clang (port select)}
         {^macports-clang-(\d+\.\d+)$}       {MacPorts Clang %s}
-        {^macports-dragonegg-(\d+\.\d+)$}   {MacPorts DragonEgg %s}
-        {^macports-dragonegg-(\d+\.\d+)-gcc-(\d+\.\d+)$}
-            {MacPorts DragonEgg %s with GCC %s}
         {^macports-gcc$}                    {MacPorts GCC (port select)}
         {^macports-gcc-(\d+(?:\.\d+)?)$}    {MacPorts GCC %s}
         {^macports-llvm-gcc-4\.2$}          {MacPorts LLVM-GCC 4.2}
@@ -569,7 +566,6 @@ proc portconfigure::compiler_port_name {compiler} {
     set valid_compiler_ports {
         {^apple-gcc-(\d+)\.(\d+)$}                          {apple-gcc%s%s}
         {^macports-clang-(\d+\.\d+)$}                       {clang-%s}
-        {^macports-dragonegg-(\d+\.\d+)(-gcc-\d+\.\d+)?$}   {dragonegg-%s%s}
         {^macports-(llvm-)?gcc-(\d+)(?:\.(\d+))?$}          {%sgcc%s%s}
         {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-default$}                {%s-default}
         {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang$}                  {%s-clang}
@@ -1178,21 +1174,6 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             objcxx  { return ${prefix}/bin/clang++${suffix} }
             cpp     { return ${prefix}/bin/clang-cpp${suffix} }
         }
-    } elseif {[regexp {^macports-dragonegg(-\d+\.\d+)(?:-gcc(-\d+\.\d+))?$} $compiler \
-                -> infix suffix]} {
-        if {$suffix ne ""} {
-            set suffix "-mp${suffix}"
-        }
-        switch $type {
-            cc      -
-            objc    { return ${prefix}/bin/dragonegg${infix}-gcc${suffix} }
-            cxx     -
-            objcxx  { return ${prefix}/bin/dragonegg${infix}-g++${suffix} }
-            cpp     { return ${prefix}/bin/dragonegg${infix}-cpp${suffix} }
-            fc      -
-            f77     -
-            f90     { return ${prefix}/bin/dragonegg${infix}-gfortran${suffix} }
-        }
     } elseif {[regexp {^macports-gcc(-\d+(?:\.\d+)?)?$} $compiler -> suffix]} {
         if {$suffix ne ""} {
             set suffix "-mp${suffix}"
@@ -1322,15 +1303,7 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
         depends_build-append port:$compiler_port
 
         # add C++ runtime dependency if necessary
-        if {
-            [regexp {^macports-gcc-(\d+(?:\.\d+)?)?$} ${compiler} -> gcc_version]
-            ||
-            [regexp {^macports-dragonegg-(\d+\.\d+)(?:-gcc-(\d+\.\d+))?$} ${compiler} -> llvm_version gcc_version]
-        } {
-            if {[info exists llvm_version] && ${gcc_version} eq ""} {
-                # port dragonegg-3.4 defaults to GCC version 4.6
-                set gcc_version 4.6
-            }
+        if {[regexp {^macports-gcc-(\d+(?:\.\d+)?)?$} ${compiler} -> gcc_version]} {
             set libgccs ""
             set dependencies_file [getportresourcepath $porturl "port1.0/compilers/gcc_dependencies.tcl"]
             if {[file exists ${dependencies_file}]} {

@@ -2115,8 +2115,6 @@ proc universal_setup {args} {
               [regexp {^macports-gcc-(\d+(?:\.\d+)?)?$} [option configure.compiler] -> gcc_version]
               ||
               [regexp {^macports-(mpich|openmpi)-gcc-(\d+(?:\.\d+)?)?$} [option configure.compiler] -> gcc_version]
-              ||
-              [regexp {^macports-dragonegg-(\d+\.\d+)(?:-gcc-(\d+\.\d+))?$} [option configure.compiler] -> llvm_version gcc_version]
           } {
         ui_debug "Compiler doesn't support universal builds, so not adding the default universal variant"
     } else {
