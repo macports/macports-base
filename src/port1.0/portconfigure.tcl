@@ -521,7 +521,7 @@ proc portconfigure::configure_get_developer_dir {} {
     # Assume that the existence of libxcselect indiciates the earliest version of
     # macOS that places CLT in /Library/Developer/CommandLineTools
     # If port is Xcode-dependent or CommandLineTools directory is invalid, set to developer_dir
-    if {[tbool use_xcode] || ![file exists /usr/lib/libxcselect.dylib] || ![file executable [file join $cltpath usr bin make]]} {
+    if {[tbool use_xcode]} {
         return ${developer_dir}
     } else {
         return ${cltpath}

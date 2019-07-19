@@ -228,7 +228,7 @@ namespace eval porttrace {
         lappend xcode_paths [file join {*}$ddsplit]
 
         set cltpath "/Library/Developer/CommandLineTools"
-        if {[tbool use_xcode] || ![file exists /usr/lib/libxcselect.dylib] || ![file executable [file join $cltpath usr bin make]]} {
+        if {[tbool use_xcode]} {
             foreach xcode_path $xcode_paths {
                 allow trace_sandbox $xcode_path
             }
