@@ -455,7 +455,7 @@ proc portconfigure::configure_get_ld_archflags {} {
 }
 
 proc portconfigure::configure_get_sdkroot {sdk_version} {
-    global developer_dir macosx_version xcodeversion os.arch os.platform
+    global developer_dir macosx_version xcodeversion os.arch os.platform use_xcode
 
     # This is only relevant for macOS
     if {${os.platform} ne "darwin"} {
@@ -470,6 +470,23 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
     # Use the DevSDK (eg: /usr/include) if present and the requested SDK version matches the host version
     if {$sdk_version eq $macosx_version && [file exists /usr/include]} {
         return {}
+    }
+
+    # Check CLT first if Xcode shouldn't be used
+    if {![tbool use_xcode]} {
+        set cltpath "/Library/Developer/CommandLineTools"
+        set sdk ${cltpath}/SDKs/MacOSX${sdk_version}.sdk
+        if {[file exists $sdk]} {
+            return $sdk
+        }
+        if {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx${sdk_version} --show-sdk-path 2> /dev/null} sdk]} {
+            return $sdk
+        }
+        # Fallback on "macosx"
+        if {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk]} {
+            ui_warn "macOS ${sdk_version} SDK not found, using default macOS SDK found in CommandLineTools."
+            return $sdk
+        }
     }
 
     if {[vercmp $xcodeversion 4.3] < 0} {
