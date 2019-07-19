@@ -1471,6 +1471,8 @@ proc target_run {ditem} {
                     if {[llength $deptypes] > 0} {tracelib setdeps $deplist}
                 }
 
+                # For {} blocks in the Portfile, export DEVELOPER_DIR to prevent Xcode binaries if shouldn't be used
+                set ::env(DEVELOPER_DIR) [option configure.developer_dir]
                 if {$result == 0} {
                     foreach pre [ditem_key $ditem pre] {
                         ui_debug "Executing $pre"
@@ -1500,6 +1502,8 @@ proc target_run {ditem} {
                         if {$result != 0} { break }
                     }
                 }
+                # Keep the environment clean by unsetting DEVELOPER_DIR
+                unset -nocomplain ::env(DEVELOPER_DIR)
 
                 # Check dependencies & file creations outside workpath.
                 if {[tbool ports_trace]
