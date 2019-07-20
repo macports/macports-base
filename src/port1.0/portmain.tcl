@@ -154,8 +154,7 @@ set egid [getegid]
 default worksymlink {[file normalize [file join $portpath work]]}
 default distpath {[file normalize [file join $portdbpath distfiles ${dist_subdir}]]}
 
-set cltpath "/Library/Developer/CommandLineTools"
-default use_xcode {[expr {[option build.type] eq "xcode" || ![file exists /usr/lib/libxcselect.dylib] || ![file executable [file join $cltpath usr bin make]]}]}
+default use_xcode {[expr {[option build.type] eq "xcode" || ![file exists /usr/lib/libxcselect.dylib] || ![file executable /Library/Developer/CommandLineTools/usr/bin/make]}]}
 
 proc portmain::main {args} {
     return 0
