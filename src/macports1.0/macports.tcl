@@ -462,7 +462,6 @@ proc macports::setxcodeinfo {name1 name2 op} {
                     }
                 }
             } catch {*} {
-                ui_warn "xcodebuild exists but failed to execute"
                 set macports::xcodeversion none
             }
         }
