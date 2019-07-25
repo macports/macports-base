@@ -3309,7 +3309,7 @@ proc _check_xcode_version {} {
                 ui_warn "You downloaded Xcode from the Mac App Store but didn't install it. Run \"Install Xcode\" in the /Applications folder."
             }
             if {[tbool use_xcode]} {
-                return -code error "This port requires Xcode, which was not found on your system."
+                return -code error "This port requires the full Xcode installation, which was not found on your system. You can install Xcode from the Mac App Store or https://developer.apple.com/xcode/"
             }
         } elseif {[vercmp $xcodeversion $min] < 0} {
             ui_error "The installed version of Xcode (${xcodeversion}) is too old to use on the installed OS version. Version $rec or later is recommended on macOS ${macosx_version}."
