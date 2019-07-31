@@ -606,8 +606,28 @@ proc portconfigure::compiler_is_port {compiler} {
     return [expr {[portconfigure::compiler_port_name ${compiler}] ne ""}]
 }
 
+# configure_get_default_compiler is fairly expensive, so cache the result
+set ::portconfigure::recompute_default_compiler 1
+set ::portconfigure::cached_default_compiler {}
+
+# changing these options will invalidate the cache
+foreach varname {compiler.whitelist compiler.fallback compiler.blacklist
+    compiler.c_standard compiler.cxx_standard compiler.openmp_version
+    compiler.mpi compiler.thread_local_storage configure.cxx_stdlib} {
+        trace add variable $varname write portconfigure::recompute_default_compiler_proc
+}
+
+proc portconfigure::recompute_default_compiler_proc {varname unused op} {
+    set ::portconfigure::recompute_default_compiler 1
+}
+
 # internal function to determine the default compiler
 proc portconfigure::configure_get_default_compiler {} {
+    if {!$::portconfigure::recompute_default_compiler} {
+        return $::portconfigure::cached_default_compiler
+    }
+    set ::portconfigure::recompute_default_compiler 0
+
     if {[option compiler.whitelist] ne ""} {
         set search_list [option compiler.whitelist]
     } else {
@@ -625,23 +645,23 @@ proc portconfigure::configure_get_default_compiler {} {
             ([file executable [configure_get_compiler cc $compiler]] ||
              [compiler_is_port $compiler])
         } then {
+            set ::portconfigure::cached_default_compiler $compiler
             return $compiler
         }
     }
     ui_warn "All compilers are either blacklisted or unavailable; defaulting to first fallback option"
-    return [lindex [option compiler.fallback] 0]
+    set ::portconfigure::cached_default_compiler [lindex [option compiler.fallback] 0]
+    return $::portconfigure::cached_default_compiler
 }
 
 # internal function to determine the Fortran compiler
 proc portconfigure::configure_get_fortran_compiler {} {
     global configure.compiler
-    set compiler [subst ${configure.compiler}]
-    if {[portconfigure::configure_get_compiler fc ${compiler}] ne ""} {
-        return ${compiler}
+    if {[portconfigure::configure_get_compiler fc ${configure.compiler}] ne ""} {
+        return ${configure.compiler}
     }
 
-    set search_list [option compiler.fortran_fallback]
-    foreach compiler $search_list {
+    foreach compiler [option compiler.fortran_fallback] {
         set allowed yes
         foreach pattern [option compiler.blacklist] {
             if {[string match $pattern $compiler]} {
@@ -1272,14 +1292,12 @@ proc portconfigure::add_automatic_compiler_dependencies {} {
         return
     }
 
-    # The default value requires substitution before use.
-    set compiler [subst ${configure.compiler}]
-    if {[compiler_is_port $compiler]} {
-        ui_debug "Chosen compiler ${compiler} is provided by a port, adding dependency"
-        portconfigure::add_compiler_port_dependencies ${compiler}
+    if {[compiler_is_port ${configure.compiler}]} {
+        ui_debug "Chosen compiler ${configure.compiler} is provided by a port, adding dependency"
+        portconfigure::add_compiler_port_dependencies ${configure.compiler}
     }
 
-    if {[option compiler.require_fortran] && [portconfigure::configure_get_compiler fc ${compiler}] eq ""} {
+    if {[option compiler.require_fortran] && [portconfigure::configure_get_compiler fc ${configure.compiler}] eq ""} {
         # Fortran is required, but compiler does not provide it
         ui_debug "Adding Fortran compiler dependency"
         portconfigure::add_compiler_port_dependencies [portconfigure::configure_get_fortran_compiler]
