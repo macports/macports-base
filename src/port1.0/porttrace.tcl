@@ -207,6 +207,9 @@ namespace eval porttrace {
             }
         }
 
+        # Allow timezone info
+        allow trace_sandbox "/var/db/timezone/zoneinfo/"
+
         # Allow access to SDK if it's not inside the Developer folder.
         if {${configure.sdkroot} ne ""} {
             allow trace_sandbox "${configure.sdkroot}"
