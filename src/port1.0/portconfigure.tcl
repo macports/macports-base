@@ -1151,7 +1151,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             }
             cpp     { return ${prefix}/bin/cpp-apple${suffix} }
         }
-    } elseif {[regexp {^clang$} $compiler]} {
+    } elseif {$compiler eq "clang"} {
         switch $type {
             cc      -
             objc    { return [find_developer_tool clang] }
@@ -1172,7 +1172,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             objcxx  { return [find_developer_tool "g++${suffix}"] }
             cpp     { return [find_developer_tool "cpp${suffix}"] }
         }
-    } elseif {[regexp {^llvm-gcc-4\.2$} $compiler]} {
+    } elseif {$compiler eq "llvm-gcc-4.2"} {
         switch $type {
             cc      -
             objc    { return [find_developer_tool llvm-gcc-4.2] }
@@ -1213,7 +1213,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             f77     -
             f90     { return ${prefix}/bin/gfortran${suffix} }
         }
-    } elseif {[regexp {^macports-llvm-gcc-4\.2$} $compiler]} {
+    } elseif {$compiler eq "macports-llvm-gcc-4.2"} {
         switch $type {
             cc      -
             objc    { return ${prefix}/bin/llvm-gcc-4.2 }
@@ -1221,7 +1221,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             objcxx  { return ${prefix}/bin/llvm-g++-4.2 }
             cpp     { return ${prefix}/bin/llvm-cpp-4.2 }
         }
-    } elseif {[regexp {^macports-g95$} $compiler]} {
+    } elseif {$compiler eq "macports-g95"} {
         switch $type {
             fc      -
             f77     -
@@ -1305,7 +1305,7 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
     global os.major porturl
 
     set compiler_port [portconfigure::compiler_port_name ${compiler}]
-    if {[regexp {^apple-gcc-(4\.0)$} $compiler -> gcc_version]} {
+    if {$compiler eq "apple-gcc-4.0"} {
         # compiler links against ${prefix}/lib/apple-gcc40/lib/libgcc_s.1.dylib
         ui_debug "Adding depends_lib port:$compiler_port"
         depends_lib-delete port:$compiler_port
