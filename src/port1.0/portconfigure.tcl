@@ -671,9 +671,13 @@ proc portconfigure::configure_get_fortran_compiler {} {
 }
 
 #
-# internal utility procedure to get a version larger than any compiler version
-proc portconfigure::max_compiler_version {} {
-    return 999999999999999999999.0
+# internal utility procedure to return the greater of two versions
+proc portconfigure::max_version {verA verB} {
+    if {[vercmp $verA $verB] >= 0} {
+        return $verA
+    } else {
+        return $verB
+    }
 }
 #
 # https://releases.llvm.org/3.1/docs/ClangReleaseNotes.html#cchanges
@@ -718,141 +722,137 @@ proc portconfigure::max_compiler_version {} {
 # utility procedure: get minimum command line compilers version based on restrictions
 proc portconfigure::get_min_command_line {compiler} {
     global compiler.c_standard compiler.cxx_standard compiler.openmp_version compiler.thread_local_storage os.major
-    set min_values 1.0
+    set min_value 1.0
+
+    if {${compiler.openmp_version} ne ""} {
+        return none
+    }
+    if {${compiler.thread_local_storage} && ${os.major} < 11} {
+        # thread-local storage only works on Mac OS X Lion and above
+        # GCC & MacPorts Clang emulate thread-local storage
+        return none
+    }
+    if {[option configure.cxx_stdlib] eq "macports-libstdc++"} {
+        return none
+    }
+
     switch ${compiler} {
         clang {
-            if {${compiler.c_standard} >= 2011} {
-                lappend min_values 318.0.61
-            }
-            if {${compiler.cxx_standard} >= 2017} {
-                lappend min_values 902.0.39.1
-            } elseif {${compiler.cxx_standard} >= 2014} {
-                lappend min_values 600.0.54
-            } elseif {${compiler.cxx_standard} >= 2011} {
-                lappend min_values 500.2.75
-            }
             if {[option configure.cxx_stdlib] eq "libc++"} {
-                set cxx [lindex [split [portconfigure::configure_get_compiler cxx ${compiler}] /] end]
+                set cxx [file tail [portconfigure::configure_get_compiler cxx ${compiler}]]
                 if {${cxx} ne "clang++"} {
                     # 3.2 <= Xcode < 4.0 does not provide clang++
-                    lappend min_values [max_compiler_version]
+                    return none
                 }
+            }
+            if {${compiler.c_standard} >= 2011} {
+                set min_value [max_version $min_value 318.0.61]
+            }
+            if {${compiler.cxx_standard} >= 2017} {
+                set min_value [max_version $min_value 902.0.39.1]
+            } elseif {${compiler.cxx_standard} >= 2014} {
+                set min_value [max_version $min_value 600.0.54]
+            } elseif {${compiler.cxx_standard} >= 2011} {
+                set min_value [max_version $min_value 500.2.75]
             }
         }
         llvm-gcc-4.2 -
         gcc-4.2 -
         gcc-4.0 -
         apple-gcc-4.2 {
-            if {${compiler.c_standard} > 1999} {
-                lappend min_values [max_compiler_version]
-            }
-            if {${compiler.cxx_standard} >= 2011} {
-                lappend min_values [max_compiler_version]
-            }
-            if {[option configure.cxx_stdlib] eq "libc++"} {
-                lappend min_values [max_compiler_version]
+            if {${compiler.c_standard} > 1999 || ${compiler.cxx_standard} >= 2011 || [option configure.cxx_stdlib] eq "libc++"} {
+                return none
             }
         }
         default {
             return -code error "don't recognize compiler \"${compiler}\""
         }
     }
-    if {${compiler.openmp_version} ne ""} {
-        lappend min_values [max_compiler_version]
-    }
-    if {${compiler.thread_local_storage}} {
-        # thread-local storage only works on Mac OS X Lion and above
-        # GCC & MacPorts Clang emulate thread-local storage
-        if {${os.major} < 11} {
-            lappend min_values [max_compiler_version]
-        }
-    }
-    if {[option configure.cxx_stdlib] eq "macports-libstdc++"} {
-        lappend min_values [max_compiler_version]
-    }
-    return [lindex [lsort -decreasing -command vercmp ${min_values}] 0]
+
+    return ${min_value}
 }
 # utility procedure: get minimum Clang version based on restrictions
 proc portconfigure::get_min_clang {} {
     global compiler.c_standard compiler.cxx_standard compiler.openmp_version compiler.thread_local_storage
-    set min_values 1.0
+    set min_value 1.0
     if {${compiler.c_standard} >= 2011} {
-        lappend min_values 3.1
+        set min_value [max_version $min_value 3.1]
     }
     if {${compiler.cxx_standard} >= 2017} {
-        lappend min_values 5.0
+        set min_value [max_version $min_value 5.0]
     } elseif {${compiler.cxx_standard} >= 2014} {
-        lappend min_values 3.4
+        set min_value [max_version $min_value 3.4]
     } elseif {${compiler.cxx_standard} >= 2011} {
-        lappend min_values 3.3
+        set min_value [max_version $min_value 3.3]
     }
     if {[vercmp ${compiler.openmp_version} 4.0] >= 0} {
-        lappend min_values 6.0
+        set min_value [max_version $min_value 6.0]
     } elseif {[vercmp ${compiler.openmp_version} 2.5] >= 0} {
-        lappend min_values 3.8
+        set min_value [max_version $min_value 3.8]
     }
     if {${compiler.thread_local_storage}} {
         # MacPorts patches certain versions of Clang to emulate thread-local storage
-        lappend min_values 5.0
+        set min_value [max_version $min_value 5.0]
     }
-    return [lindex [lsort -decreasing -command vercmp ${min_values}] 0]
+    return ${min_value}
 }
 # utility procedure: get minimum GCC version based on restrictions
 proc portconfigure::get_min_gcc {} {
     global compiler.c_standard compiler.cxx_standard compiler.openmp_version compiler.thread_local_storage
-    set min_values 1.0
+
+    if {[option configure.cxx_stdlib] ne "" && [option configure.cxx_stdlib] ne "macports-libstdc++"} {
+        return none
+    }
+
+    set min_value 1.0
     if {${compiler.c_standard} >= 2011} {
-        lappend min_values 4.3
+        set min_value [max_version $min_value 4.3]
     }  elseif {${compiler.c_standard} >= 1999} {
-        lappend min_values 4.0
+        set min_value [max_version $min_value 4.0]
     }
     if {${compiler.cxx_standard} >= 2017} {
-        lappend min_values 7.0
+        set min_value [max_version $min_value 7.0]
     } elseif {${compiler.cxx_standard} >= 2014} {
-        lappend min_values 5.0
+        set min_value [max_version $min_value 5.0]
     } elseif {${compiler.cxx_standard} >= 2011} {
-        lappend min_values 4.8.1
+        set min_value [max_version $min_value 4.8.1]
     }
     if {[vercmp ${compiler.openmp_version} 4.5] >= 0} {
-        lappend min_values 8.1
+        set min_value [max_version $min_value 8.1]
     } elseif {[vercmp ${compiler.openmp_version} 4.0] >= 0} {
-        lappend min_values 4.9
+        set min_value [max_version $min_value 4.9]
     } elseif {[vercmp ${compiler.openmp_version} 3.1] >= 0} {
-        lappend min_values 4.7
+        set min_value [max_version $min_value 4.7]
     } elseif {[vercmp ${compiler.openmp_version} 3.0] >= 0} {
-        lappend min_values 4.4
+        set min_value [max_version $min_value 4.4]
     } elseif {[vercmp ${compiler.openmp_version} 2.5] >= 0} {
-        lappend min_values 4.4
+        set min_value [max_version $min_value 4.4]
     }
     if {${compiler.thread_local_storage}} {
         # GCC emulates thread-local storage, but it seems to be broken on older versions of GCC
-        lappend min_values 4.5
+        set min_value [max_version $min_value 4.5]
     }
-    if {[option configure.cxx_stdlib] ne "" && [option configure.cxx_stdlib] ne "macports-libstdc++"} {
-        lappend min_values [max_compiler_version]
-    }
-    return [lindex [lsort -decreasing -command vercmp ${min_values}] 0]
+
+    return ${min_value}
 }
 # utility procedure: get minimum Gfortran version based on restrictions
 proc portconfigure::get_min_gfortran {} {
     global compiler.openmp_version compiler.thread_local_storage
-    set min_values 1.0
+    set min_value 1.0
     if {[vercmp ${compiler.openmp_version} 4.5] >= 0} {
-        lappend min_values 8.1
+        set min_value [max_version $min_value 8.1]
     } elseif {[vercmp ${compiler.openmp_version} 4.0] >= 0} {
-        lappend min_values 4.9
+        set min_value [max_version $min_value 4.9]
     } elseif {[vercmp ${compiler.openmp_version} 3.1] >= 0} {
-        lappend min_values 4.7
-    } elseif {[vercmp ${compiler.openmp_version} 3.0] >= 0} {
-        lappend min_values 4.4
+        set min_value [max_version $min_value 4.7]
     } elseif {[vercmp ${compiler.openmp_version} 2.5] >= 0} {
-        lappend min_values 4.4
+        set min_value [max_version $min_value 4.4]
     }
     if {${compiler.thread_local_storage}} {
         # GCC emulates thread-local storage, but it seems to be broken on older versions of GCC
-        lappend min_values 4.5
+        set min_value [max_version $min_value 4.5]
     }
-    return [lindex [lsort -decreasing -command vercmp ${min_values}] 0]
+    return ${min_value}
 }
 #
 proc portconfigure::g95_ok {} {
@@ -1025,26 +1025,30 @@ proc portconfigure::get_compiler_fallback {} {
     }
     set system_compilers ""
     foreach c ${available_apple_compilers} {
-        set v    [compiler.command_line_tools_version $c]
         set vmin [portconfigure::get_min_command_line $c]
-        if {[vercmp ${vmin} $v] <= 0} {
-            lappend system_compilers $c
+        if {$vmin ne "none"} {
+            set v [compiler.command_line_tools_version $c]
+            if {[vercmp ${vmin} $v] <= 0} {
+                lappend system_compilers $c
+            }
         }
     }
     set clang_compilers ""
+    set vmin [portconfigure::get_min_clang]
     foreach c [portconfigure::get_clang_compilers] {
         set v    [lindex [split $c -] 2]
-        set vmin [join [lrange [split [portconfigure::get_min_clang] .] 0 1] .]
         if {[vercmp ${vmin} $v] <= 0} {
             lappend clang_compilers $c
         }
     }
     set gcc_compilers ""
-    foreach c [portconfigure::get_gcc_compilers] {
-        set v    [lindex [split $c -] 2]
-        set vmin [join [lrange [split [portconfigure::get_min_gcc] .] 0 0] .]
-        if {[vercmp ${vmin} $v] <= 0} {
-            lappend gcc_compilers $c
+    set vmin [portconfigure::get_min_gcc]
+    if {$vmin ne "none"} {
+        foreach c [portconfigure::get_gcc_compilers] {
+            set v    [lindex [split $c -] 2]
+            if {[vercmp ${vmin} $v] <= 0} {
+                lappend gcc_compilers $c
+            }
         }
     }
     set compilers ""
@@ -1064,7 +1068,7 @@ proc portconfigure::get_compiler_fallback {} {
         set mpi_compilers ""
         foreach mpi [option compiler.mpi] {
             foreach c ${compilers} {
-                lappend mpi_compilers {*}[portconfigure::get_mpi_wrapper $mpi $c]
+                lappend mpi_compilers [portconfigure::get_mpi_wrapper $mpi $c]
             }
         }
         return $mpi_compilers
@@ -1073,9 +1077,9 @@ proc portconfigure::get_compiler_fallback {} {
 #
 proc portconfigure::get_fortran_fallback {} {
     set compilers ""
+    set vmin [portconfigure::get_min_gfortran]
     foreach c [portconfigure::get_gcc_compilers] {
         set v    [lindex [split $c -] 2]
-        set vmin [join [lrange [split [portconfigure::get_min_gfortran] .] 0 0] .]
         if {[vercmp ${vmin} $v] <= 0} {
             lappend compilers $c
         }
@@ -1090,7 +1094,7 @@ proc portconfigure::get_fortran_fallback {} {
         set mpi_compilers ""
         foreach mpi [option compiler.mpi] {
             foreach c ${compilers} {
-                lappend mpi_compilers {*}[portconfigure::get_mpi_wrapper $mpi $c]
+                lappend mpi_compilers [portconfigure::get_mpi_wrapper $mpi $c]
             }
         }
         return $mpi_compilers
