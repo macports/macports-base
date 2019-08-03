@@ -684,7 +684,7 @@ proc portconfigure::max_compiler_version {} {
 #|  C Standard  |   Clang   |  Xcode Clang  |   Xcode   |    GCC    |
 #|------------------------------------------------------------------|
 #| 1989 (C89)   |     -     |        -      |     -     |     -     |
-#| 1999 (C99)   |     -     |    211.10.1   |    4.2    |    4.5    |
+#| 1999 (C99)   |     -     |        -      |     -     |    4.0    |
 #| 2011 (C11)   |    3.1    |    318.0.61   |    4.3    |    4.9    |
 #--------------------------------------------------------------------
 #
@@ -723,8 +723,6 @@ proc portconfigure::get_min_command_line {compiler} {
         clang {
             if {${compiler.c_standard} >= 2011} {
                 lappend min_values 318.0.61
-            } elseif {${compiler.c_standard} >= 1999} {
-                lappend min_values 211.10.1
             }
             if {${compiler.cxx_standard} >= 2017} {
                 lappend min_values 902.0.39.1
@@ -745,7 +743,7 @@ proc portconfigure::get_min_command_line {compiler} {
         gcc-4.2 -
         gcc-4.0 -
         apple-gcc-4.2 {
-            if {${compiler.c_standard} >= 1999} {
+            if {${compiler.c_standard} > 1999} {
                 lappend min_values [max_compiler_version]
             }
             if {${compiler.cxx_standard} >= 2011} {
@@ -806,7 +804,7 @@ proc portconfigure::get_min_gcc {} {
     if {${compiler.c_standard} >= 2011} {
         lappend min_values 4.3
     }  elseif {${compiler.c_standard} >= 1999} {
-        lappend min_values 4.2
+        lappend min_values 4.0
     }
     if {${compiler.cxx_standard} >= 2017} {
         lappend min_values 7.0
