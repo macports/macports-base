@@ -63,7 +63,7 @@ default configure.objcxx                {[portconfigure::configure_get_compiler 
 default configure.objcxx_archflags      {[portconfigure::configure_get_archflags objcxx]}
 # No current reason for OBJCXXFLAGS to differ from CXXFLAGS.
 default configure.objcxxflags           {${configure.cxxflags}}
-default configure.universal_cxxflags    {[portconfigure::configure_get_universal_cflags]}
+default configure.universal_cxxflags    {[portconfigure::configure_get_universal_archflags]}
 default configure.universal_objcxxflags {${configure.universal_cxxflags}}
 
 # Don't let Portfiles trash "-stdlib"; if they want to remove it, they
@@ -274,10 +274,10 @@ options configure.universal_archs configure.universal_args \
         configure.universal_cppflags configure.universal_ldflags
 default configure.universal_archs       {[portconfigure::choose_supported_archs ${universal_archs}]}
 default configure.universal_args        --disable-dependency-tracking
-default configure.universal_cflags      {[portconfigure::configure_get_universal_cflags]}
+default configure.universal_cflags      {[portconfigure::configure_get_universal_archflags]}
 default configure.universal_objcflags   {${configure.universal_cflags}}
 default configure.universal_cppflags    {}
-default configure.universal_ldflags     {[portconfigure::configure_get_universal_ldflags]}
+default configure.universal_ldflags     {[portconfigure::configure_get_universal_archflags]}
 
 # Select a distinct compiler (C, C preprocessor, C++)
 options configure.ccache configure.distcc configure.pipe configure.cc \
@@ -557,16 +557,6 @@ proc portconfigure::configure_get_universal_archflags {} {
         }
     }
     return $flags
-}
-
-# internal function to determine the CFLAGS for the compiler
-proc portconfigure::configure_get_universal_cflags {} {
-    return [configure_get_universal_archflags]
-}
-
-# internal function to determine the LDFLAGS for the compiler
-proc portconfigure::configure_get_universal_ldflags {} {
-    return [configure_get_universal_archflags]
 }
 
 # internal proc to determine if the compiler supports -arch
