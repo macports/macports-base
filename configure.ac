@@ -281,8 +281,9 @@ AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[enable readline supp
 AC_SUBST(READLINE_LIBS)
 
 # Lowest non-system-reserved uid and gid (Apple claims <500)
-AC_DEFINE([MIN_USABLE_UID], [500], [Lowest non-system-reserved UID.])
-AC_DEFINE([MIN_USABLE_GID], [500], [Lowest non-system-reserved GID.])
+# The first user on the system is 501 so let's start there too
+AC_DEFINE([MIN_USABLE_UID], [501], [Lowest non-system-reserved UID.])
+AC_DEFINE([MIN_USABLE_GID], [501], [Lowest non-system-reserved GID.])
 
 # Substitute platform for base compatibility check
 MP_PLATFORM

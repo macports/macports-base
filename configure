@@ -7255,11 +7255,12 @@ fi
 
 
 # Lowest non-system-reserved uid and gid (Apple claims <500)
+# The first user on the system is 501 so let's start there too
 
-$as_echo "#define MIN_USABLE_UID 500" >>confdefs.h
+$as_echo "#define MIN_USABLE_UID 501" >>confdefs.h
 
 
-$as_echo "#define MIN_USABLE_GID 500" >>confdefs.h
+$as_echo "#define MIN_USABLE_GID 501" >>confdefs.h
 
 
 # Substitute platform for base compatibility check
