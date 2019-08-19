@@ -105,6 +105,7 @@ ifndef SELFUPDATING
 else
 	@echo ""; echo "Congratulations, you have successfully upgraded the MacPorts system."; echo ""
 endif
+	@echo "Installing the \"mpstats\" port will enable submission of anonymous information about your system and installed ports to our database for statistical purposes: <https://ports.macports.org/>"; echo ""
 
 group::
 	@echo "creating a macports group..." && sudo dseditgroup -o create -n . macports && echo "done! use './configure --with-install-group=macports --with-shared-directory' if you haven't already"
