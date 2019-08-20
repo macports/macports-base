@@ -2,9 +2,47 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.6.0 (????-??-?? by ?)
+Release 2.6.0 (2019-??-?? by ?)
     - Extend the touch command to take a -W directory parameter.
       (#53730, khindenburg in a90c4b29)
+
+    - Added fetch.user_agent option to allow working around servers
+      that don't like our default User-Agent string.
+      (slewsys in e5a420c)
+
+    - Enabled sending custom headers in livecheck. (jonesc in 84f97ca)
+
+    - Improved explanatory message when a port cannot be built with
+      +universal on macOS 10.14. (#57245, jmr in 918c347)
+
+    - Overhauled compiler selection logic. Ports can now specify that
+      they require a particular C or C++ standard (e.g. C++11),
+      Fortran, OpenMP, MPI, or TLS, and a suitable compiler will be
+      chosen based on all these criteria. (mcalhoun in 5e17a69)
+
+    - Rewrote handling of *.env options. This should fix cases where
+      environment variables were not being set because the old code
+      silently failed to parse something and skipped all remaining
+      variables in the list. This change requires different quoting in
+      some cases: each list element now needs to contain a single
+      assignment (like VAR=value). (jmr in 9313be5)
+
+    - 'port info' with multiple field options now outputs the fields
+      in the order they were given. (#57003, khindenburg in e115b59)
+
+    - Added 'bump' action to assist in updating ports to new upstream
+      versions. (satraul in 9c91a29)
+
+    - Added use_xcode option which indicates that a port requires a
+      full Xcode installation to build (as opposed to just the Command
+      Line Tools). This should allow MacPorts to only complain about
+      Xcode not being installed when it's really needed.
+      (#58016, satraul in 057ce2b)
+
+    - Allow using the 'macosx' SDK when the SDK for the current OS
+      version is not present. This comes with its own problems, but
+      it's better than not being able to build anything.
+      (#57143, jmr in 8caac19)
 
 Release 2.5.4 (2018-10-03 by jmr)
     - Fixed a reclaim failure when the distfiles option contains a list
