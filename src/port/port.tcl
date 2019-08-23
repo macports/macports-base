@@ -774,9 +774,17 @@ proc get_outdated_ports {} {
                 set regref [registry::open_entry $portname $installed_version $installed_revision $installed_variants $installed_epoch]
                 set os_platform_installed [registry::property_retrieve $regref os_platform]
                 set os_major_installed [registry::property_retrieve $regref os_major]
-                if {$os_platform_installed ne "" && $os_platform_installed != 0
+                set cxx_stdlib_installed [registry::property_retrieve $regref cxx_stdlib]
+                set cxx_stdlib_overridden [registry::property_retrieve $regref cxx_stdlib_overridden]
+                if {${macports::cxx_stdlib} eq "libc++"} {
+                    set wrong_stdlib libstdc++
+                } else {
+                    set wrong_stdlib libc++
+                }
+                if {($os_platform_installed ne "" && $os_platform_installed != 0
                     && $os_major_installed ne "" && $os_major_installed != 0
-                    && ($os_platform_installed != ${macports::os_platform} || $os_major_installed != ${macports::os_major})} {
+                    && ($os_platform_installed != ${macports::os_platform} || $os_major_installed != ${macports::os_major}))
+                    || ($cxx_stdlib_overridden == 0 && $cxx_stdlib_installed eq $wrong_stdlib)} {
                     set comp_result -1
                 }
             }
@@ -3413,6 +3421,18 @@ proc action_outdated { action portlist opts } {
                     && ($os_platform_installed != ${macports::os_platform} || $os_major_installed != ${macports::os_major})} {
                     set comp_result -1
                     set reason { (platform $os_platform_installed $os_major_installed != ${macports::os_platform} ${macports::os_major})}
+                } else {
+                    set cxx_stdlib_installed [registry::property_retrieve $regref cxx_stdlib]
+                    set cxx_stdlib_overridden [registry::property_retrieve $regref cxx_stdlib_overridden]
+                    if {${macports::cxx_stdlib} eq "libc++"} {
+                        set wrong_stdlib libstdc++
+                    } else {
+                        set wrong_stdlib libc++
+                    }
+                    if {$cxx_stdlib_overridden == 0 && $cxx_stdlib_installed eq $wrong_stdlib} {
+                        set comp_result -1
+                        set reason { (C++ stdlib $cxx_stdlib_installed != ${macports::cxx_stdlib})}
+                    }
                 }
             }
 

@@ -3896,6 +3896,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     set requestedflag [registry::property_retrieve $regref requested]
     set os_platform_installed [registry::property_retrieve $regref os_platform]
     set os_major_installed [registry::property_retrieve $regref os_major]
+    set cxx_stdlib_installed [registry::property_retrieve $regref cxx_stdlib]
+    set cxx_stdlib_overridden [registry::property_retrieve $regref cxx_stdlib_overridden]
 
     # Before we do
     # dependencies, we need to figure out the final variants,
@@ -4008,6 +4010,10 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                   && ([_mportkey $mport os.platform] ne $os_platform_installed
                   || [_mportkey $mport os.major] != $os_major_installed)} {
             ui_debug "platform mismatch ... upgrading!"
+            set build_override 1
+        } elseif {$cxx_stdlib_overridden == 0 && ($cxx_stdlib_installed eq "libstdc++" || $cxx_stdlib_installed eq "libc++")
+                  && [_mportkey $mport configure.cxx_stdlib] ne $cxx_stdlib_installed} {
+            ui_debug "cxx_stdlib mismatch ... upgrading!"
             set build_override 1
         } elseif {$is_revupgrade_second_run} {
             ui_debug "rev-upgrade override ... upgrading (from source)!"
