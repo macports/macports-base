@@ -104,6 +104,10 @@ ifndef SELFUPDATING
 	@echo "Please read \"man port\", the MacPorts guide at https://guide.macports.org/ and Wiki at https://trac.macports.org/ for full documentation."; echo ""
 else
 	@echo ""; echo "Congratulations, you have successfully upgraded the MacPorts system."; echo ""
+	@if [ "@OS_PLATFORM@" = "darwin" -a "@OS_MAJOR@" -ge 10 -a "@OS_MAJOR@" -le 12 ] ; then \
+	    echo "The default C++ standard library for your platform changed in MacPorts 2.6.0. It is recommended to run 'sudo port rev-upgrade' to reinstall any C++-based ports that are currently using the old version."; \
+	    echo ""; \
+	fi
 endif
 	@echo "Installing the \"mpstats\" port will enable submission of anonymous information about your system and installed ports to our database for statistical purposes: <https://ports.macports.org/>"; echo ""
 
