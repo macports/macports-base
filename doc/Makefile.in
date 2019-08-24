@@ -189,7 +189,7 @@ install: all
 
 	< prefix.mtree $(MTREE) -U -e -p "${DESTDIR}${INSTALLDIR}" > /dev/null
 	< base.mtree $(MTREE) -U -e -p "${DESTDIR}${INSTALLDIR}" > /dev/null
-ifneq (,$(findstring darwin,@build_os@))
+ifeq (darwin,@OS_PLATFORM@)
 ifneq (8,@OS_MAJOR@)
 # Tiger's chmod doesn't accept -h
 # mtree with umask 0077 doesn't get the permissions of the symlink right

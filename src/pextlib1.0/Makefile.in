@@ -53,7 +53,7 @@ tracelib.o: ../darwintracelib1.0/sandbox_actions.h
 
 CFLAGS+= ${CURL_CFLAGS} ${MD5_CFLAGS} ${READLINE_CFLAGS}
 LIBS+= ${CURL_LIBS} ${MD5_LIBS} ${READLINE_LIBS}
-ifeq ($(shell uname),Darwin)
+ifeq (darwin,@OS_PLATFORM@)
 LIBS+= ../registry2.0/registry${SHLIB_SUFFIX}
 SHLIB_LDFLAGS+= -install_name ${INSTALLDIR}/${SHLIB_NAME}
 ${SHLIB_NAME}: ../registry2.0/registry${SHLIB_SUFFIX}

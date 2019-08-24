@@ -22,7 +22,7 @@ pkgIndex.tcl: $(SRCS) $(SRCS_AUTOCONF)
 
 CFLAGS+=	${SQLITE3_CFLAGS}
 LIBS+=	${SQLITE3_LIBS} ../cregistry/cregistry.a
-ifeq ($(shell uname),Darwin)
+ifeq (darwin,@OS_PLATFORM@)
 SHLIB_LDFLAGS+= -install_name @loader_path/../registry2.0/${SHLIB_NAME}
 endif
 
