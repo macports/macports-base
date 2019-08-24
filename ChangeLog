@@ -44,6 +44,10 @@ Release 2.6.0 (2019-??-?? by ?)
       it's better than not being able to build anything.
       (#57143, jmr in 8caac19)
 
+    - The default cxx_stdlib for 10.6-10.8 is now libc++. It is
+      recommended that users on these OS versions run rev-upgrade to
+      rebuild any ports using libstdc++. (jmr in 6b7846a)
+
 Release 2.5.4 (2018-10-03 by jmr)
     - Fixed a reclaim failure when the distfiles option contains a list
       of one or more empty strings. (#56786, jmr in 8a67087)
