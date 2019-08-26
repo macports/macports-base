@@ -3237,10 +3237,6 @@ proc check_supported_archs {} {
 proc _check_xcode_version {} {
     global os.subplatform macosx_version xcodeversion use_xcode subport
 
-    if {[_archive_available]} {
-        return 0
-    }
-
     if {${os.subplatform} eq "macosx"} {
         switch $macosx_version {
             10.4 {

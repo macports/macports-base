@@ -2101,8 +2101,12 @@ proc _mportexec {target mport} {
     # xxx: set the work path?
     set workername [ditem_key $mport workername]
     $workername eval {validate_macportsuser}
+
+    # If the target doesn't need a toolchain (e.g. because an archive is
+    # available and we're not going to build it), don't check for the Xcode
+    # version (and presence for use_xcode yes ports).
     if {![catch {$workername eval "check_variants $target"} result] && $result == 0 &&
-        ![catch {$workername eval {_check_xcode_version}} result] && $result == 0 &&
+        (![macports::_target_needs_toolchain $workername $target] || (![catch {$workername eval {_check_xcode_version}} result] && $result == 0)) &&
         ![catch {$workername eval {check_supported_archs}} result] && $result == 0 &&
         ![catch {$workername eval "eval_targets $target"} result] && $result == 0} {
         # If auto-clean mode, clean-up after dependency install
@@ -2147,10 +2151,9 @@ proc mportexec {mport target} {
         set log_needs_pop yes
     }
 
-    # Use _target_needs_deps as a proxy for whether we're going to
-    # build and will therefore need to check Xcode version and
-    # supported_archs.
-    if {[macports::_target_needs_deps $target]} {
+    # Use _target_needs_toolchain as a proxy for whether we're going to build
+    # and will therefore need to check Xcode version and supported_archs.
+    if {[macports::_target_needs_toolchain $workername $target]} {
         # possibly warn or error out depending on how old Xcode is
         if {[$workername eval {_check_xcode_version}] != 0} {
             if {$log_needs_pop} {
@@ -3641,6 +3644,44 @@ proc macports::_target_needs_deps {target} {
         pkg -
         mpkg {return 1}
         default {return 0}
+    }
+}
+
+##
+# Determine if the given target of the given port needs a toolchain. Returns
+# true iff the target will require a compiler (or a different part of
+# a standard toolchain) to successfully execute.
+#
+# Returns false otherwise, in which case it can be assumed that no toolchain is
+# required for the successful execution of this task.
+#
+# @param workername A reference to the port interpreter of the port for which
+#                   this function should check whether a toolchain is needed.
+# @param target The target that will be run for this port
+# @return true iff a toolchain is needed for this port, false otherwise
+proc macports::_target_needs_toolchain {workername target} {
+    switch -- $target {
+        configure -
+        build -
+        test -
+        destroot {
+            return yes
+        }
+
+        install -
+        activate -
+        dmg -
+        mdmg -
+        pkg -
+        mpkg {
+            # check if an archive is available; if there isn't we'll need
+            # a toolchain for these
+            return [expr {![$workername eval _archive_available]}]
+        }
+
+        default {
+            return no
+        }
     }
 }
 
