@@ -8,6 +8,8 @@ maintainers         cal
 description         Test port for current statefiles, version 2
 homepage            https://www.macports.org/
 platforms           darwin
+supported_archs     noarch
+configure.cxx_stdlib
 
 long_description    ${description}
 

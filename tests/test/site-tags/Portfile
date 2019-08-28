@@ -7,6 +7,8 @@ maintainers	kallisys.net:pguyot
 description	Test port for site:tags functionalities
 homepage	https://www.macports.org/
 platforms	darwin
+supported_archs	noarch
+configure.cxx_stdlib
 
 long_description ${description}
 

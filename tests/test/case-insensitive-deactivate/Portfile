@@ -7,6 +7,8 @@ maintainers	raimue
 description	Test port for case sensitive port uninstalls
 homepage	https://www.macports.org/
 platforms	darwin
+supported_archs	noarch
+configure.cxx_stdlib
 
 long_description ${description}
 

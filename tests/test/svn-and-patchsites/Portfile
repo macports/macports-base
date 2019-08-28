@@ -8,6 +8,8 @@ version             2
 categories          test
 maintainers         nomaintainer
 platforms           darwin
+supported_archs     noarch
+configure.cxx_stdlib
 
 homepage            https://www.macports.org/
 description         Test port for svn+distant patchfiles functionalities

@@ -8,6 +8,8 @@ categories          test
 maintainers         nomaintainer
 homepage            https://www.macports.org/
 platforms           darwin
+supported_archs     noarch
+configure.cxx_stdlib
 
 description         Test for the setuid bit
 long_description    ${description}
