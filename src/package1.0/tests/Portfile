@@ -28,6 +28,10 @@ post-patch {
     reinplace "s|^CFLAGS = -g \$(WFLAGS)|CFLAGS = -g \$(WFLAGS) ${configure.cppflags} ${configure.cflags} ${configure.ldflags} [get_canonical_archflags]|g" ${worksrcpath}/Makefile.in
 }
 
+# Avoid dependencies on libcxx and a macports-clang compiler, because
+# the mpkg test is fragile and assumes no dependencies.
+configure.cxx_stdlib
+
 configure.args          --bindir=${prefix}/bin \
                         --mandir=${prefix}/share/man
 
