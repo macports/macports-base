@@ -1781,10 +1781,9 @@ proc open_statefile {args} {
             if {$result eq "EAGAIN"} {
                 ui_notice "Waiting for lock on $statefile"
                 adv-flock $fd -exclusive
-            } elseif {$result eq "EOPNOTSUPP"} {
-                # Locking not supported, just return
-                return $fd
-            } else {
+            } elseif {$result ne "EOPNOTSUPP"} {
+                # We can continue without locking if it's not supported,
+                # but other errors are likely a genuine problem.
                 return -code error "$result obtaining lock on $statefile"
             }
         }
