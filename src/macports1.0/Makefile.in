@@ -48,3 +48,6 @@ install:: all
 
 
 include $(srcdir)/../../Mk/macports.tea.mk
+
+codesign:: $(SHLIB_NAME)
+	../codesign.sh $?

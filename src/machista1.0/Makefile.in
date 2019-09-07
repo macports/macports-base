@@ -55,3 +55,5 @@ test:: ${TESTS}
 tests/libmachista-test: tests/libmachista-test.c libmachista.h libmachista.o hashmap.o
 	$(CC) $(CFLAGS) -D_POSIX_SOURCE -o $@ -I. $< libmachista.o hashmap.o
 
+codesign:: $(SHLIB_NAME)
+	../codesign.sh $?

@@ -37,3 +37,6 @@ install: daemondo
 	${INSTALL} -o "${DSTUSR}" -g "${DSTGRP}" -m 555 "${PROGRAM}" "${DESTDIR}${bindir}"
 
 test:
+
+codesign:: ${PROGRAM}
+	../../codesign.sh $?
