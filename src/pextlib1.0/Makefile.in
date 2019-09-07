@@ -59,7 +59,7 @@ SHLIB_LDFLAGS+= -install_name ${INSTALLDIR}/${SHLIB_NAME}
 ${SHLIB_NAME}: ../registry2.0/registry${SHLIB_SUFFIX}
 endif
 
-.PHONY: test
+.PHONY: test codesign
 
 test:: ${SHLIB_NAME}
 	${TCLSH} $(srcdir)/tests/checksums.tcl ./${SHLIB_NAME}
@@ -73,3 +73,6 @@ test:: ${SHLIB_NAME}
 
 distclean::
 	rm -f Makefile
+
+codesign:: $(SHLIB_NAME)
+	../codesign.sh $?

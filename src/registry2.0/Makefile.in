@@ -28,7 +28,7 @@ endif
 
 ${SHLIB_NAME}: ../cregistry/cregistry.a
 
-.PHONY: test
+.PHONY: test codesign
 
 test:: ${SHLIB_NAME}
 	${TCLSH} $(srcdir)/tests/entry.tcl ./${SHLIB_NAME}
@@ -48,3 +48,6 @@ install:: all $(SHLIB_NAME)
 		$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 "$$file" "${DESTDIR}${INSTALLDIR}/$$file"; \
 	done
 	$(INSTALL) -o "${DSTUSR}" -g "${DSTGRP}" -m 444 pkgIndex.tcl "${DESTDIR}${INSTALLDIR}"
+
+codesign:: $(SHLIB_NAME)
+	../codesign.sh $?

@@ -152,4 +152,13 @@ docs:
 
 test::
 
-.PHONY: dist _gettag _pkgdist _dopkg docs
+# Order of subdirs is important, e.g. pextlib depends on registry. We don't
+# want things getting rebuilt after they're signed just because a dependency
+# has a later mtime because it was also signed.
+codesign::
+	@for subdir in vendor src/darwintracelib1.0 src/machista1.0 src/macports1.0 src/registry2.0 src/pextlib1.0 src/programs/daemondo ; do\
+		echo ===\> making $@ in ${DIRPRFX}$$subdir; \
+		( cd $$subdir && $(MAKE) DIRPRFX=${DIRPRFX}$$subdir/ $@) || exit 1; \
+	done
+
+.PHONY: dist _gettag _pkgdist _dopkg docs codesign
