@@ -998,7 +998,7 @@ proc get_dep_ports {portname recursive} {
 
     # gather its deps
     set results {}
-    set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run depends_test}
+    set deptypes {depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test}
 
     set deplist {}
     foreach type $deptypes {
@@ -2982,7 +2982,7 @@ proc action_deps { action portlist opts } {
         if {[info exists options(ports_${action}_no-build)] && [string is true -strict $options(ports_${action}_no-build)]} {
             set deptypes {depends_lib depends_run}
         } else {
-            set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run depends_test}
+            set deptypes {depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test}
         }
 
         array unset portinfo
