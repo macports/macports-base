@@ -633,6 +633,9 @@ lint::
     Verifies Portfile for portname. To nitpick about whitespace and patchfile
     names, use *--nitpick*.
 
+bump::
+    Update 'portname's' checksums and revision for a new version.
+
 distcheck::
     Check if the distfiles haven't changed and can be fetched.
 
