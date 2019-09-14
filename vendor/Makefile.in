@@ -102,5 +102,5 @@ distclean: distclean-tcl distclean-tcllib distclean-tclx distclean-tclthread
 	rm -rf vendor-destroot
 	rm -f tclsh
 
-codesign:: tcl/unix/tclsh tcl/unix/libtcl8.5.dylib thread/libthread2.7.3.dylib tclx/libtclx8.4.dylib
+codesign:: tcl/unix/libtcl8.5.dylib tcl/unix/tclsh thread/libthread2.7.3.dylib tclx/libtclx8.4.dylib
 	../src/codesign.sh $?

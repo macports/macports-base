@@ -10,7 +10,7 @@ if [ -z "$CODESIGN_ID" ]; then
 fi
 
 if [ `id -u` -eq 0 -a -n "$SUDO_USER" ]; then
-    SUDO=sudo -u "$SUDO_USER"
+    SUDO="sudo -u $SUDO_USER"
 else
     SUDO=
 fi
