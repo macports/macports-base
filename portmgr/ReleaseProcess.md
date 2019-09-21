@@ -182,6 +182,9 @@ Name each pkg/dmg appropriately, and then sign the pkgs with a Developer ID
     mv MacPorts-2.0.0.pkg unsigned/MacPorts-2.0.0-10.7-Lion.pkg
     productsign --sign "Developer ID Installer: John Doe" unsigned/MacPorts-2.0.0-10.7-Lion.pkg MacPorts-2.0.0-10.7-Lion.pkg
 
+(Note that packages signed with Xcode 10 appear to be incompatible with
+Mac OS X 10.6.)
+
 For macOS 10.14 Mojave and later, the pkg should also be submitted for
 notarization after signing:
 
