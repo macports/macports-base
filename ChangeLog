@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.6.0 (2019-??-?? by ?)
+Release 2.6.0 (2019-09-21 by jmr)
     - Extend the touch command to take a -W directory parameter.
       (#53730, khindenburg in a90c4b29)
 
