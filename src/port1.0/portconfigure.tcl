@@ -1477,6 +1477,8 @@ proc portconfigure::configure_main {args} {
                 append_to_environment_value configure $env_var -isysroot${configure.sdkroot}
             }
             append_to_environment_value configure "LDFLAGS" -Wl,-syslibroot,${configure.sdkroot}
+            ui_debug "setting configure SDKROOT to ${configure.sdkroot}"
+            append_to_environment_value configure "SDKROOT" ${configure.sdkroot}
         }
 
         # add extra flags that are conditional on whether we're building universal

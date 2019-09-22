@@ -195,6 +195,12 @@ proc portbuild::build_start {args} {
 proc portbuild::build_main {args} {
     global build.cmd
 
+    global configure.sdkroot
+    if { ${configure.sdkroot} ne "" } {
+        ui_debug "setting build SDKROOT to ${configure.sdkroot}"
+        build.env-append "SDKROOT=${configure.sdkroot}"
+    }
+
     set jobs_suffix [build_getjobsarg]
 
     set realcmd ${build.cmd}

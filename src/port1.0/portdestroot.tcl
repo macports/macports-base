@@ -121,6 +121,13 @@ proc portdestroot::destroot_start {args} {
 }
 
 proc portdestroot::destroot_main {args} {
+
+    global configure.sdkroot
+    if { ${configure.sdkroot} ne "" } {
+        ui_debug "setting destroot SDKROOT to ${configure.sdkroot}"
+        destroot.env-append "SDKROOT=${configure.sdkroot}"
+    }
+
     command_exec destroot
     return 0
 }
