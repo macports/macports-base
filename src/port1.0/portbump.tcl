@@ -152,6 +152,8 @@ proc portbump::bump_main {args} {
         ui_notice "The file has been moved to: $htmlfile_path"
         
         return -code error "[msgcat::mc "Unable to verify file checksums"]"
+    } elseif {![info exists both_checksums]} {
+        return -code error "[msgcat::mc "No checksums found in Portfile"]"
     } else {
         # Show the desired checksum line for easy cut-paste
         # based on the previously calculated values, plus our default types
