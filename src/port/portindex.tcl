@@ -221,7 +221,7 @@ for {set i 0} {$i < $argc} {incr i} {
                     set os_arch [lindex $platlist 3]
                 } else {
                     if {$os_platform eq "macosx"} {
-                        if {$os_major < 13} {
+                        if {$os_major < 10} {
                             set cxx_stdlib libstdc++
                         } else {
                             set cxx_stdlib libc++
