@@ -472,9 +472,9 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         return {}
     }
 
+    set cltpath /Library/Developer/CommandLineTools
     # Check CLT first if Xcode shouldn't be used
     if {![tbool use_xcode]} {
-        set cltpath "/Library/Developer/CommandLineTools"
         set sdk ${cltpath}/SDKs/MacOSX${sdk_version}.sdk
         if {[file exists $sdk]} {
             return $sdk
@@ -483,8 +483,11 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
             return $sdk
         }
         # Fallback on "macosx"
+        set sdk ${cltpath}/SDKs/MacOSX.sdk
+        if {[file exists $sdk]} {
+            return $sdk
+        }
         if {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk]} {
-            ui_warn "macOS ${sdk_version} SDK not found, using default macOS SDK found in CommandLineTools."
             return $sdk
         }
     }
@@ -509,7 +512,12 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         return $sdk
     }
 
-    set sdk /Library/Developer/CommandLineTools/SDKs/MacOSX${sdk_version}.sdk
+    set sdk ${cltpath}/SDKs/MacOSX${sdk_version}.sdk
+    if {[file exists $sdk]} {
+        return $sdk
+    }
+
+    set sdk ${sdks_dir}/MacOSX.sdk
     if {[file exists $sdk]} {
         return $sdk
     }
@@ -523,7 +531,6 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
     # /usr/include, that means not having this fallback would cause great breakage.
     # See <https://trac.macports.org/ticket/57143>
     if {![catch {exec xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk]} {
-        ui_warn "Unable to determine location of the macOS ${sdk_version} SDK.  Using the default macOS SDK."
         return $sdk
     }
 
