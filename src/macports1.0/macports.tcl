@@ -5387,8 +5387,7 @@ proc macports::get_compiler_version {compiler} {
             set re {LLVM build ([0-9.]+)}
         }
         gcc-4.2 -
-        gcc-4.0 -
-        apple-gcc-4.2 {
+        gcc-4.0 {
             set re {build ([0-9.]+)}
         }
         default {
