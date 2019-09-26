@@ -739,9 +739,8 @@ proc portconfigure::get_min_command_line {compiler} {
     switch ${compiler} {
         clang {
             if {[option configure.cxx_stdlib] eq "libc++"} {
-                set cxx [file tail [portconfigure::configure_get_compiler cxx ${compiler}]]
-                if {${cxx} ne "clang++"} {
-                    # 3.2 <= Xcode < 4.0 does not provide clang++
+                if {${os.major} < 11} {
+                    # no Xcode clang can build against libc++ on < 10.7
                     return none
                 }
             }
