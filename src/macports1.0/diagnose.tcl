@@ -166,7 +166,7 @@ namespace eval diagnose {
 
         } else {
 
-            set xcode_select [exec xcode-select -p]
+            set xcode_select [exec xcode-select -print-path]
 
             if {$xcode_select eq ""} {
 
