@@ -368,33 +368,55 @@ proc command_string {command} {
 }
 
 # Given a command name, execute it with the options.
-# command_exec command [-notty] [-varprefix variable_prefix] [command_prefix [command_suffix]]
+# command_exec [-notty] [-callback proc] [-varprefix variable_prefix] command [command_prefix [command_suffix]]
 # command           name of the command
 # variable_prefix   name of the variable prefix to use (defaults to command)
 # command_prefix    additional command prefix (typically pipe command)
 # command_suffix    additional command suffix (typically redirection)
-proc command_exec {command args} {
-    set varprefix "${command}"
+proc command_exec {args} {
+    set callback ""
     set notty ""
     set command_prefix ""
     set command_suffix ""
 
-    if {[llength $args] > 0} {
-        if {[lindex $args 0] eq "-notty"} {
-            set notty "-notty"
-            set args [lrange $args 1 end]
-        }
-
-        if {[lindex $args 0] eq "-varprefix"} {
-            set varprefix [lindex $args 1]
-            set args [lrange $args 2 end]
-        }
-
-        if {[llength $args] > 0} {
-            set command_prefix [lindex $args 0]
-            if {[llength $args] > 1} {
-                set command_suffix [lindex $args 1]
+    while {[llength $args] > 0} {
+        switch -glob -- [lindex $args 0] {
+            -notty {
+                set notty "-notty"
+                set args [lrange $args 1 end]
             }
+            -callback {
+                set callback [lrange $args 0 1]
+                set args [lrange $args 2 end]
+            }
+            -varprefix {
+                set varprefix [lindex $args 1]
+                set args [lrange $args 2 end]
+            }
+            -* {
+                return -code error "unknown option [lindex $args 0]"
+            }
+            -- {
+                set args [lrange $args 1 end]
+                break
+            }
+            default {
+                break
+            }
+        }
+    }
+
+    if {[llength $args] == 0} {
+        return -code error "Missing command argument"
+    }
+
+    set command [lindex $args 0]
+    set varprefix "${command}"
+
+    if {[llength $args] > 1} {
+        set command_prefix [lindex $args 1]
+        if {[llength $args] > 2} {
+            set command_suffix [lindex $args 2]
         }
     }
 
@@ -448,7 +470,7 @@ proc command_exec {command args} {
     # Call the command.
     set fullcmdstring "$command_prefix $cmdstring $command_suffix"
     ui_info "Executing: $fullcmdstring"
-    set code [catch {system {*}$notty {*}$nice $fullcmdstring} result]
+    set code [catch {system {*}$notty {*}$callback {*}$nice $fullcmdstring} result]
     # Save variables in order to re-throw the same error code.
     set errcode $::errorCode
     set errinfo $::errorInfo

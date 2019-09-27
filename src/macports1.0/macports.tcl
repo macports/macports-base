@@ -1409,9 +1409,13 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     foreach priority $macports::ui_priorities {
         $workername alias ui_$priority ui_$priority
     }
-    # add the UI progress call-back
-    if {[info exists macports::ui_options(progress_download)]} {
-        $workername alias ui_progress_download $macports::ui_options(progress_download)
+    # add the UI progress call-backs (or a no-op alias, if unavailable)
+    foreach pname {progress_download progress_generic} {
+        if {[info exists macports::ui_options($pname)]} {
+            $workername alias ui_$pname $macports::ui_options($pname)
+        } else {
+            $workername alias ui_$pname return -level 0
+        }
     }
 
     # notifications callback

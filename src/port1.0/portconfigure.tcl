@@ -32,6 +32,7 @@
 
 package provide portconfigure 1.0
 package require portutil 1.0
+package require portprogress 1.0
 
 set org.macports.configure [target_new org.macports.configure portconfigure::configure_main]
 target_provides ${org.macports.configure} configure
@@ -1404,32 +1405,34 @@ proc portconfigure::configure_main {args} {
         global configure.${flags} configure.universal_${flags}
     }
 
+    set callback [list "-callback" portprogress::system_progress_callback]
+
     if {[tbool use_autoreconf]} {
-        if {[catch {command_exec autoreconf} result]} {
+        if {[catch {command_exec {*}${callback} autoreconf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] autoreconf $result]"
         }
     }
 
     if {[tbool use_automake]} {
-        if {[catch {command_exec automake} result]} {
+        if {[catch {command_exec {*}${callback} automake} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] automake $result]"
         }
     }
 
     if {[tbool use_autoconf]} {
-        if {[catch {command_exec autoconf} result]} {
+        if {[catch {command_exec {*}${callback} autoconf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] autoconf $result]"
         }
     }
 
     if {[tbool use_xmkmf]} {
         parse_environment xmkmf
-        if {[catch {command_exec xmkmf} result]} {
+        if {[catch {command_exec {*}${callback} xmkmf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] xmkmf $result]"
         }
 
         parse_environment xmkmf
-        if {[catch {command_exec "cd ${worksrcpath} && make Makefiles" -varprefix xmkmf} result]} {
+        if {[catch {command_exec {*}${callback} "cd ${worksrcpath} && make Makefiles" -varprefix xmkmf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] "make Makefiles" $result]"
         }
     } elseif {[tbool use_configure]} {
@@ -1519,7 +1522,7 @@ proc portconfigure::configure_main {args} {
         }
 
         # Execute the command (with the new environment).
-        if {[catch {command_exec configure} result]} {
+        if {[catch {command_exec {*}${callback} configure} result]} {
             global configure.dir
             if {[file exists ${configure.dir}/config.log]} {
                 ui_error "[format [msgcat::mc "Failed to configure %s, consult %s/config.log"] [option subport] ${configure.dir}]"
