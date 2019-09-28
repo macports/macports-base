@@ -1335,6 +1335,7 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
         ui_debug "Adding depends_build port:$compiler_port"
         depends_build-delete port:$compiler_port
         depends_build-append port:$compiler_port
+        license_noconflict-append $compiler_port
 
         # add C++ runtime dependency if necessary
         if {[regexp {^macports-gcc-(\d+(?:\.\d+)?)?$} ${compiler} -> gcc_version]} {
