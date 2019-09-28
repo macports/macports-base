@@ -308,8 +308,8 @@ options                            \
     compiler.mpi                   \
     compiler.thread_local_storage
 
-default compiler.c_standard            1989
-default compiler.cxx_standard          1998
+default compiler.c_standard            {[expr {$supported_archs ne "noarch" ? 1989 : ""}]}
+default compiler.cxx_standard          {[expr {$supported_archs ne "noarch" ? 1998 : ""}]}
 default compiler.openmp_version        {}
 default compiler.mpi                   {}
 default compiler.thread_local_storage  no
