@@ -1357,9 +1357,6 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
                     set libgccs "path:lib/libgcc/libgcc_s.1.dylib:libgcc"
                 }
             }
-            ui_debug "Adding depends_build port:$compiler_port"
-            depends_build-delete port:$compiler_port
-            depends_build-append port:$compiler_port
             foreach libgcc_dep $libgccs {
                 ui_debug "Adding depends_lib $libgcc_dep"
                 depends_lib-delete $libgcc_dep
@@ -1371,13 +1368,11 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
                 ui_debug "Adding depends_lib path:lib/libgcc/libgcc_s.1.dylib:libgcc"
                 depends_lib-delete "path:lib/libgcc/libgcc_s.1.dylib:libgcc"
                 depends_lib-append "path:lib/libgcc/libgcc_s.1.dylib:libgcc"
-            } elseif {[option configure.cxx_stdlib] eq "libc++"} {
-                if {${os.major} < 11 } {
-                    # libc++ does not exist on these systems
-                    ui_debug "Adding depends_lib libcxx"
-                    depends_lib-delete "port:libcxx"
-                    depends_lib-append "port:libcxx"
-                }
+            } elseif {[option configure.cxx_stdlib] eq "libc++" && ${os.major} < 11} {
+                # libc++ does not exist on these systems
+                ui_debug "Adding depends_lib libcxx"
+                depends_lib-delete "port:libcxx"
+                depends_lib-append "port:libcxx"
             }
         }
     }
