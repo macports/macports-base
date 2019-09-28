@@ -1031,13 +1031,13 @@ proc portconfigure::get_compiler_fallback {} {
     }
     set system_compilers ""
     foreach c ${available_apple_compilers} {
-        if {$c eq "apple-gcc-4.2"} {
-            # provided by a port, should be the latest version
-            lappend system_compilers $c
-            continue
-        }
         set vmin [portconfigure::get_min_command_line $c]
         if {$vmin ne "none"} {
+            if {$c eq "apple-gcc-4.2"} {
+                # provided by a port, should be the latest version
+                lappend system_compilers $c
+                continue
+            }
             set v [compiler.command_line_tools_version $c]
             if {[vercmp ${vmin} $v] <= 0} {
                 lappend system_compilers $c
