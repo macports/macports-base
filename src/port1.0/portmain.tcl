@@ -48,7 +48,7 @@ set_ui_prefix
 # define options
 options prefix name version revision epoch categories maintainers \
         long_description description homepage notes license \
-        provides conflicts replaced_by \
+        provides conflicts replaced_by known_fail \
         worksrcdir filesdir distname portdbpath libpath distpath sources_conf \
         os.platform os.subplatform os.version os.major os.minor os.arch os.endian \
         platforms default_variants install.user install.group \
@@ -75,7 +75,10 @@ option_proc epoch portmain::check_option_integer
 option_proc revision portmain::check_option_integer
 
 # Export options via PortInfo
-options_export name version revision epoch categories maintainers platforms description long_description notes homepage license provides conflicts replaced_by installs_libs license_noconflict patchfiles
+options_export name version revision epoch categories maintainers \
+               platforms description long_description notes homepage \
+               license provides conflicts replaced_by installs_libs \
+               license_noconflict patchfiles known_fail
 
 default subport {[portmain::get_default_subport]}
 proc portmain::get_default_subport {} {
