@@ -479,16 +479,35 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         if {[file exists $sdk]} {
             return $sdk
         }
-        if {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx${sdk_version} --show-sdk-path 2> /dev/null} sdk]} {
+
+        if {[info exists ::portconfigure::sdkroot_cache(macosx${sdk_version})]} {
+            if {$::portconfigure::sdkroot_cache(macosx${sdk_version}) ne ""} {
+                return $::portconfigure::sdkroot_cache(macosx${sdk_version})
+            }
+            # negative result cached, do nothing here
+        } elseif {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx${sdk_version} --show-sdk-path 2> /dev/null} sdk]} {
+            set ::portconfigure::sdkroot_cache(macosx${sdk_version}) $sdk
             return $sdk
+        } else {
+            set ::portconfigure::sdkroot_cache(macosx${sdk_version}) ""
         }
+
         # Fallback on "macosx"
         set sdk ${cltpath}/SDKs/MacOSX.sdk
         if {[file exists $sdk]} {
             return $sdk
         }
-        if {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk]} {
+
+        if {[info exists ::portconfigure::sdkroot_cache(macosx)]} {
+            if {$::portconfigure::sdkroot_cache(macosx) ne ""} {
+                return $::portconfigure::sdkroot_cache(macosx)
+            }
+            # negative result cached, do nothing here
+        } elseif {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk]} {
+            set ::portconfigure::sdkroot_cache(macosx) $sdk
             return $sdk
+        } else {
+            set ::portconfigure::sdkroot_cache(macosx) ""
         }
     }
 
@@ -508,8 +527,16 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         return $sdk
     }
 
-    if {![catch {exec xcrun --sdk macosx${sdk_version} --show-sdk-path 2> /dev/null} sdk]} {
+    if {[info exists ::portconfigure::sdkroot_cache(macosx${sdk_version},noclt)]} {
+        if {$::portconfigure::sdkroot_cache(macosx${sdk_version},noclt) ne ""} {
+            return $::portconfigure::sdkroot_cache(macosx${sdk_version},noclt)
+        }
+        # negative result cached, do nothing here
+    } elseif {![catch {exec xcrun --sdk macosx${sdk_version} --show-sdk-path 2> /dev/null} sdk]} {
+        set ::portconfigure::sdkroot_cache(macosx${sdk_version},noclt) $sdk
         return $sdk
+    } else {
+        set ::portconfigure::sdkroot_cache(macosx${sdk_version},noclt) ""
     }
 
     set sdk ${cltpath}/SDKs/MacOSX${sdk_version}.sdk
@@ -530,7 +557,11 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
     # to run on 10.x but only include an SDK for 10.x+1. Combined with the disappearance of
     # /usr/include, that means not having this fallback would cause great breakage.
     # See <https://trac.macports.org/ticket/57143>
-    if {![catch {exec xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk]} {
+    if {[info exists ::portconfigure::sdkroot_cache(macosx,noclt)]} {
+        # no negative-cached case here because that would mean overall failure
+        return $::portconfigure::sdkroot_cache(macosx,noclt)
+    } elseif {![catch {exec xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk]} {
+        set ::portconfigure::sdkroot_cache(macosx,noclt) $sdk
         return $sdk
     }
 
