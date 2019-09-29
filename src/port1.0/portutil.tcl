@@ -426,6 +426,9 @@ proc command_exec {command args} {
         set ${varprefix}.env_array(LIBRARY_PATH) [join [option compiler.library_path] :]
     }
     set ${varprefix}.env_array(DEVELOPER_DIR) [option configure.developer_dir]
+    if {[option configure.sdkroot] ne ""} {
+        set ${varprefix}.env_array(SDKROOT) [option configure.sdkroot]
+    }
 
     # Debug that.
     ui_debug "Environment: [environment_array_to_string ${varprefix}.env_array]"
