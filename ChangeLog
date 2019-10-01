@@ -2,6 +2,21 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.6.1 (unreleased)
+    - Fixed error on older OS versions that use apple-gcc-4.2.
+      (#59089, jmr in a3a71b5)
+
+    - Fixed 'port diagnose' check for command line tools on some older
+      OS versions. (kencu in c2a1872)
+
+    - Silenced some SDK-related warnings that were repeatedly printed
+      when using Xcode 11. (jmr in 73ee4b4)
+
+    - Improved performance with Xcode 11. (jmr in 3768efd)
+
+    - Fixed C++ compiler selection with Xcode 4.x on Snow Leopard.
+      (kencu in 37c7cfe)
+
 Release 2.6.0 (2019-09-21 by jmr)
     - Extend the touch command to take a -W directory parameter.
       (#53730, khindenburg in a90c4b29)
