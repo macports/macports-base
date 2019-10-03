@@ -18,7 +18,7 @@ Release 2.6.1 (unreleased)
       (kencu in 37c7cfe)
 
     - Fixed 'port info --depends' printing the wrong set of fields.
-      (jmr in e62716c)
+      (#59149, jmr in e62716c)
 
 Release 2.6.0 (2019-09-21 by jmr)
     - Extend the touch command to take a -W directory parameter.
