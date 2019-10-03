@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.6.1 (unreleased)
+Release 2.6.1 (2019-10-03 by jmr)
     - Fixed error on older OS versions that use apple-gcc-4.2.
       (#59089, jmr in a3a71b5)
 
