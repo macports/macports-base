@@ -837,8 +837,12 @@ proc portconfigure::get_min_clang {} {
 proc portconfigure::get_min_gcc {} {
     global compiler.c_standard compiler.cxx_standard compiler.openmp_version compiler.thread_local_storage
 
+    # on Intel systems configured to libstdc++ or libc++, return "none"
+    # on PowerPC systems, gcc is the best option available, so allow it to be returned
     if {[option configure.cxx_stdlib] ne "" && [option configure.cxx_stdlib] ne "macports-libstdc++"} {
-        return none
+        if {[option configure.build_arch] eq "i386" || [option configure.build_arch] eq "x86_64"} {
+            return none
+        }
     }
 
     set min_value 1.0
