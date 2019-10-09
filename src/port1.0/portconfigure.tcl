@@ -776,11 +776,9 @@ proc portconfigure::get_min_command_line {compiler} {
 
     switch ${compiler} {
         clang {
-            if {[option configure.cxx_stdlib] eq "libc++"} {
-                if {${os.major} < 11} {
-                    # no Xcode clang can build against libc++ on < 10.7
-                    return none
-                }
+            if {[option configure.cxx_stdlib] eq "libc++" && ${os.major} < 11} {
+                # no Xcode clang can build against libc++ on < 10.7
+                return none
             }
             if {${compiler.c_standard} >= 2011} {
                 set min_value [max_version $min_value 318.0.61]
@@ -837,7 +835,11 @@ proc portconfigure::get_min_clang {} {
 proc portconfigure::get_min_gcc {} {
     global compiler.c_standard compiler.cxx_standard compiler.openmp_version compiler.thread_local_storage
 
-    if {[option configure.cxx_stdlib] ne "" && [option configure.cxx_stdlib] ne "macports-libstdc++"} {
+    # Technically these only support macports-libstdc++, but if all the
+    # options that use the system libstdc++ have been blacklisted, we
+    # still need to use something. So only skip them entirely when
+    # using libc++.
+    if {[option configure.cxx_stdlib] eq "libc++"} {
         return none
     }
 
