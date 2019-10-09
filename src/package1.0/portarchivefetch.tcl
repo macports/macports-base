@@ -65,7 +65,7 @@ default archive_sites.listpath port1.0/fetch
 default archive.subdir {${subport}}
 
 proc portarchivefetch::filter_sites {} {
-    global prefix frameworks_dir applications_dir porturl \
+    global prefix_frozen frameworks_dir applications_dir porturl \
         cxx_stdlib delete_la_files \
         portfetch::mirror_sites::sites portfetch::mirror_sites::archive_type \
         portfetch::mirror_sites::archive_prefix \
@@ -97,7 +97,7 @@ proc portarchivefetch::filter_sites {} {
             continue
         }
         if {$portfetch::mirror_sites::sites($site) ne {} &&
-            $portfetch::mirror_sites::archive_prefix($site) eq $prefix &&
+            $portfetch::mirror_sites::archive_prefix($site) eq $prefix_frozen &&
             $portfetch::mirror_sites::archive_frameworks_dir($site) eq $frameworks_dir &&
             $portfetch::mirror_sites::archive_applications_dir($site) eq $applications_dir &&
             $portfetch::mirror_sites::archive_cxx_stdlib($site) eq $cxx_stdlib &&
