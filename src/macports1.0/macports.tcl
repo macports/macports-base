@@ -1364,7 +1364,7 @@ proc macports::copy_xcode_plist {target_homedir} {
     global macports::user_home macports::macportsuser
     set user_plist "${user_home}/Library/Preferences/com.apple.dt.Xcode.plist"
     set target_dir "${target_homedir}/Library/Preferences"
-    file delete -force "${target_dir}/com.apple.dt.Xcode.plist"
+    catch { file delete -force "${target_dir}/com.apple.dt.Xcode.plist" }
     if {[file isfile $user_plist]} {
         if {![file isdirectory $target_dir]} {
             try -pass_signal {

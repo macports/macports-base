@@ -1,0 +1,26 @@
+{
+    "package": {
+        "name": "auto-upload",
+        "repo": "macports-base",
+        "subject": "macports-ci-bot",
+        "desc": "Prebuilt binaries of MacPorts base for use in MacPorts pull request CI",
+        "website_url": "https://www.macports.org/",
+        "vcs_url": "https://github.com/macports/macports-base",
+        "licenses": ["BSD 3-Clause"],
+        "public_download_numbers": false,
+        "public_stats": false
+    },
+
+    "version": {
+        "name": "2.6r0",
+        "desc": "",
+        "released": "2018-01-01",
+        "gpgSign": false
+    },
+
+    "files":
+        [{ "includePattern": "MacPorts-OS_MAJOR.tar.bz2", "uploadPattern": "2.6r0/MacPorts-OS_MAJOR.tar.bz2",
+            "matrixParams": { "override": 1 }
+        }],
+    "publish": true
+}
