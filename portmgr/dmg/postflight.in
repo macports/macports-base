@@ -243,6 +243,12 @@ case "${USHELL}" in
             CONF_FILE=profile
         fi
         ;;
+    */zsh)
+        echo "Detected the zsh shell."
+        ENV_COMMAND="export"
+        ASSIGN="="
+        CONF_FILE="zprofile"
+        ;;
     *)
         echo "Unknown shell ($USHELL)! Please set your MacPorts compatible environment manually."
         update_macports
