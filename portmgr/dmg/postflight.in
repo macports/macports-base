@@ -221,7 +221,6 @@ USHELL=${USHELL#*shell: }
 case "${USHELL}" in
     */tcsh)
         echo "Detected the tcsh shell."
-        LOGIN_FLAG=""
         ENV_COMMAND="setenv"
         ASSIGN=" "
         if [[ -f "${HOME}/.tcshrc" ]]; then
@@ -234,7 +233,6 @@ case "${USHELL}" in
         ;;
     */bash)
         echo "Detected the bash shell."
-        LOGIN_FLAG="-l"
         ENV_COMMAND="export"
         ASSIGN="="
         if [[ -f "${HOME}/.bash_profile" ]]; then
