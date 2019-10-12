@@ -2578,6 +2578,16 @@ from the
 .br
 .Sy Example:
 .Dl configure.args-delete --with-gnomedb
+.It Va variable Ns - Ns Ic replace Ar old_item new_item
+Replace
+.Ar old_item
+with
+.Ar new_item
+in the
+.Va variable .
+.br
+.Sy Example:
+.Dl configure.args-replace --with-gnomedb --without-gnomedb
 .It Ic readdir Ar directory
 Return the list of elements in a
 .Ar directory ,
