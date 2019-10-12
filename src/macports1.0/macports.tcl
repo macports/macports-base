@@ -587,6 +587,10 @@ proc macports::_is_valid_developer_dir {dir} {
 
 
 proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
+    # Disable unknown(n)'s behavior of running unknown commands in the system
+    # shell
+    set ::auto_noexec yes
+
     if {$up_ui_options eq {}} {
         array set macports::ui_options {}
     } else {
