@@ -66,8 +66,9 @@ namespace eval macports {
         rsync_server rsync_options rsync_dir startupitem_autostart startupitem_type startupitem_install \
         place_worksymlink macportsuser sudo_user \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
-        os_arch os_endian os_version os_major os_minor os_platform os_subplatform macosx_version macosx_sdk_version macosx_deployment_target \
+        applications_dir applications_dir_frozen current_phase frameworks_dir frameworks_dir_frozen \
+        developer_dir universal_archs build_arch os_arch os_endian os_version os_major os_minor \
+        os_platform os_subplatform macosx_version macosx_sdk_version macosx_deployment_target \
         packagemaker_path default_compilers sandbox_enable sandbox_network delete_la_files cxx_stdlib \
         pkg_post_unarchive_deletions $user_options"
 
@@ -634,6 +635,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::prefix \
         macports::macportsuser \
         macports::prefix_frozen \
+        macports::applications_dir_frozen \
+        macports::frameworks_dir_frozen \
         macports::xcodebuildcmd \
         macports::xcodeversion \
         macports::configureccache \
@@ -947,6 +950,13 @@ Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarbal
 
     if {![info exists macports::applications_dir]} {
         set macports::applications_dir /Applications/MacPorts
+    }
+    set macports::applications_dir_frozen ${macports::applications_dir}
+
+    if {[info exists macports::frameworks_dir]} {
+        set macports::frameworks_dir_frozen ${macports::frameworks_dir}
+    } else {
+        set macports::frameworks_dir_frozen ${macports::prefix_frozen}/Library/Frameworks
     }
 
     # Export verbosity.
