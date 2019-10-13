@@ -238,6 +238,9 @@ namespace eval restore {
             foreach port $new_list {
                 foreach {name variants active} $port break
 
+                # Ensure active versions are installed after inactive versions.
+                # Skip this port if it is active and all the inactive versions have
+                # not been added to the operation_list.
                 if {$active && $port_installed($name) < ($port_in_list($name) - 1)} {
                     continue
                 }
