@@ -3237,7 +3237,7 @@ proc check_supported_archs {} {
 
 # check if the installed xcode version is new enough
 proc _check_xcode_version {} {
-    global os.subplatform macosx_version xcodeversion use_xcode subport
+    global os.subplatform os.major macosx_version xcodeversion use_xcode subport
 
     if {${os.subplatform} eq "macosx"} {
         switch $macosx_version {
