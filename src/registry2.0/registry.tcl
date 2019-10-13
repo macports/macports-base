@@ -133,7 +133,7 @@ proc property_retrieve {ref property} {
 }
 
 # If only one version of the port is installed, this process returns that
-# version's parts.  Otherwise, it lists the versions installed and exists.
+# version's parts.  Otherwise, it lists the versions installed and exits.
 proc installed {{name ""} {version ""}} {
 	global macports::registry.format
 
