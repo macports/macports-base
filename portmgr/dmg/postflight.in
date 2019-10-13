@@ -34,7 +34,7 @@
 #set -x
 
 # Script identification:
-VERSION=2.4
+VERSION=2.6
 
 # Abstraction variables:
 PREFIX="@prefix@"
