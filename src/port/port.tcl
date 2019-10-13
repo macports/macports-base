@@ -2797,18 +2797,27 @@ proc action_reclaim { action portlist opts } {
 }
 
 proc action_snapshot { action portlist opts } {
+    if {[prefix_unwritable]} {
+        return 1
+    }
     if {[catch {macports::snapshot_main $opts} result]} {
-        ui_debug $::errorInfo
+        ui_error $::errorInfo
         return 1
     }
 	return 0
 }
 
 proc action_restore { action portlist opts } {
+    if {[prefix_unwritable]} {
+        return 1
+    }
     return [macports::restore_main $opts]
 }
 
 proc action_migrate { action portlist opts } {
+    if {[prefix_unwritable]} {
+        return 1
+    }
     set result [macports::migrate_main $opts]
     if {$result == -999} {
         # MacPorts base was upgraded, re-execute migrate with the --continue flag
