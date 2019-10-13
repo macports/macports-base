@@ -1164,7 +1164,7 @@ proc portconfigure::find_developer_tool {name} {
 
 # internal function to find correct compilers
 proc portconfigure::configure_get_compiler {type {compiler {}}} {
-    global configure.compiler prefix
+    global configure.compiler prefix_frozen
     if {$compiler eq ""} {
         if {[option compiler.require_fortran]} {
             switch $type {
@@ -1185,14 +1185,14 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
     if {[regexp {^apple-gcc(-4\.[02])$} $compiler -> suffix]} {
         switch $type {
             cc      -
-            objc    { return ${prefix}/bin/gcc-apple${suffix} }
+            objc    { return ${prefix_frozen}/bin/gcc-apple${suffix} }
             cxx     -
             objcxx  {
                 if {$suffix eq "-4.2"} {
-                    return ${prefix}/bin/g++-apple${suffix}
+                    return ${prefix_frozen}/bin/g++-apple${suffix}
                 }
             }
-            cpp     { return ${prefix}/bin/cpp-apple${suffix} }
+            cpp     { return ${prefix_frozen}/bin/cpp-apple${suffix} }
         }
     } elseif {$compiler eq "clang"} {
         switch $type {
@@ -1229,18 +1229,18 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
         }
         switch $type {
             cc      -
-            objc    { return ${prefix}/bin/clang${suffix} }
+            objc    { return ${prefix_frozen}/bin/clang${suffix} }
             cxx     -
-            objcxx  { return ${prefix}/bin/clang++${suffix} }
+            objcxx  { return ${prefix_frozen}/bin/clang++${suffix} }
         }
     } elseif {[regexp {^macports-clang(-\d+\.\d+)$} $compiler -> suffix]} {
         set suffix "-mp${suffix}"
         switch $type {
             cc      -
-            objc    { return ${prefix}/bin/clang${suffix} }
+            objc    { return ${prefix_frozen}/bin/clang${suffix} }
             cxx     -
-            objcxx  { return ${prefix}/bin/clang++${suffix} }
-            cpp     { return ${prefix}/bin/clang-cpp${suffix} }
+            objcxx  { return ${prefix_frozen}/bin/clang++${suffix} }
+            cpp     { return ${prefix_frozen}/bin/clang-cpp${suffix} }
         }
     } elseif {[regexp {^macports-gcc(-\d+(?:\.\d+)?)?$} $compiler -> suffix]} {
         if {$suffix ne ""} {
@@ -1248,62 +1248,62 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
         }
         switch $type {
             cc      -
-            objc    { return ${prefix}/bin/gcc${suffix} }
+            objc    { return ${prefix_frozen}/bin/gcc${suffix} }
             cxx     -
-            objcxx  { return ${prefix}/bin/g++${suffix} }
-            cpp     { return ${prefix}/bin/cpp${suffix} }
+            objcxx  { return ${prefix_frozen}/bin/g++${suffix} }
+            cpp     { return ${prefix_frozen}/bin/cpp${suffix} }
             fc      -
             f77     -
-            f90     { return ${prefix}/bin/gfortran${suffix} }
+            f90     { return ${prefix_frozen}/bin/gfortran${suffix} }
         }
     } elseif {$compiler eq "macports-llvm-gcc-4.2"} {
         switch $type {
             cc      -
-            objc    { return ${prefix}/bin/llvm-gcc-4.2 }
+            objc    { return ${prefix_frozen}/bin/llvm-gcc-4.2 }
             cxx     -
-            objcxx  { return ${prefix}/bin/llvm-g++-4.2 }
-            cpp     { return ${prefix}/bin/llvm-cpp-4.2 }
+            objcxx  { return ${prefix_frozen}/bin/llvm-g++-4.2 }
+            cpp     { return ${prefix_frozen}/bin/llvm-cpp-4.2 }
         }
     } elseif {$compiler eq "macports-g95"} {
         switch $type {
             fc      -
             f77     -
-            f90     { return ${prefix}/bin/g95 }
+            f90     { return ${prefix_frozen}/bin/g95 }
         }
     } elseif {[regexp {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang$} $compiler -> mpi]} {
         switch $type {
             cc      -
-            objc    { return ${prefix}/bin/mpicc-${mpi}-clang }
+            objc    { return ${prefix_frozen}/bin/mpicc-${mpi}-clang }
             cxx     -
-            objcxx  { return ${prefix}/bin/mpicxx-${mpi}-clang }
+            objcxx  { return ${prefix_frozen}/bin/mpicxx-${mpi}-clang }
         }
     } elseif {[regexp {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang-(\d+\.\d+)$} $compiler -> mpi version]} {
         set suffix [join [split ${version} .] ""]
         switch $type {
             cc      -
-            objc    { return ${prefix}/bin/mpicc-${mpi}-clang${suffix} }
+            objc    { return ${prefix_frozen}/bin/mpicc-${mpi}-clang${suffix} }
             cxx     -
-            objcxx  { return ${prefix}/bin/mpicxx-${mpi}-clang${suffix} }
-            cpp     { return ${prefix}/bin/clang-cpp-mp-${version} }
+            objcxx  { return ${prefix_frozen}/bin/mpicxx-${mpi}-clang${suffix} }
+            cpp     { return ${prefix_frozen}/bin/clang-cpp-mp-${version} }
         }
     } elseif {[regexp {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-gcc-(\d+(?:\.\d+)?)$} $compiler -> mpi version]} {
         set suffix [join [split ${version} .] ""]
         switch $type {
             cc      -
-            objc    { return ${prefix}/bin/mpicc-${mpi}-gcc${suffix} }
+            objc    { return ${prefix_frozen}/bin/mpicc-${mpi}-gcc${suffix} }
             cxx     -
-            objcxx  { return ${prefix}/bin/mpicxx-${mpi}-gcc${suffix} }
-            cpp     { return ${prefix}/bin/cpp-mp-${version} }
+            objcxx  { return ${prefix_frozen}/bin/mpicxx-${mpi}-gcc${suffix} }
+            cpp     { return ${prefix_frozen}/bin/cpp-mp-${version} }
             fc      -
             f77     -
-            f90     { return ${prefix}/bin/mpifort-${mpi}-gcc${suffix} }
+            f90     { return ${prefix_frozen}/bin/mpifort-${mpi}-gcc${suffix} }
         }
     } elseif {[regexp {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-default$} $compiler -> mpi]} {
         switch $type {
             cc      -
-            objc    { return ${prefix}/bin/mpicc-${mpi}-mp }
+            objc    { return ${prefix_frozen}/bin/mpicc-${mpi}-mp }
             cxx     -
-            objcxx  { return ${prefix}/bin/mpicxx-${mpi}-mp }
+            objcxx  { return ${prefix_frozen}/bin/mpicxx-${mpi}-mp }
         }
     }
     # Fallbacks
