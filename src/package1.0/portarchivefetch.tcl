@@ -109,7 +109,7 @@ proc portarchivefetch::filter_sites {} {
     }
 
     # check if porturl itself points to an archive
-    if {[file rootname [file tail $porturl]] eq [file rootname [get_portimage_name]] && [file extension $porturl] ne ""} {
+    if {![catch {get_portimage_name} portimage_name] && [file rootname [file tail $porturl]] eq [file rootname $portimage_name] && [file extension $porturl] ne ""} {
         lappend ret [string range $porturl 0 end-[string length [file tail $porturl]]]:[string range [file extension $porturl] 1 end]
         archive.subdir
     }
