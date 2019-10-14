@@ -203,32 +203,14 @@ for {set i 0} {$i < $argc} {incr i} {
                 set platlist [split [lindex $argv $i] _]
                 set os_platform [lindex $platlist 0]
                 set os_major [lindex $platlist 1]
-                if {[llength $platlist] > 3} {
-                    set cxx_stdlib [lindex $platlist 2]
-                    switch -- $cxx_stdlib {
-                        libcxx {
-                            set cxx_stdlib libc++
-                        }
-                        libstdcxx {
-                            set cxx_stdlib libstdc++
-                        }
-                        default {
-                            puts stderr "Unknown C++ standard library: $cxx_stdlib (use libcxx or libstdcxx)"
-                            print_usage
-                            exit 1
-                        }
+                if {$os_platform eq "macosx"} {
+                    if {$os_major < 10} {
+                        set cxx_stdlib libstdc++
+                    } else {
+                        set cxx_stdlib libc++
                     }
-                    set os_arch [lindex $platlist 3]
-                } else {
-                    if {$os_platform eq "macosx"} {
-                        if {$os_major < 10} {
-                            set cxx_stdlib libstdc++
-                        } else {
-                            set cxx_stdlib libc++
-                        }
-                    }
-                    set os_arch [lindex $platlist 2]
                 }
+                set os_arch [lindex $platlist 2]
                 if {$os_platform eq "macosx"} {
                     lappend port_options os.subplatform $os_platform os.universal_supported yes cxx_stdlib $cxx_stdlib
                     set os_platform darwin
