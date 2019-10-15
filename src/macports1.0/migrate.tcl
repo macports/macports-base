@@ -94,16 +94,12 @@ namespace eval migrate {
         if {$snapshot == 0} {
             return -1
         }
-        set id [$snapshot id]
-        set note [$snapshot note]
-        set datetime [$snapshot created_at]
-        ui_msg "Done: Snapshot '$id' : '$note' created at $datetime"
 
         ui_msg "Uninstalling all ports..."
         uninstall_installed
 
         ui_msg "Restoring ports..."
-        return [restore_snapshot]
+        return [restore_snapshot [$snapshot id]]
     }
 
     ##
@@ -137,14 +133,12 @@ namespace eval migrate {
     }
 
     ##
-    # Restore the list of ports from the latest snapshot using the equivalent
-    # of 'port restore --last'
+    # Restore the list of ports from the snapshot created above by migrate.
     #
     # @return 0 on success, an error on failure
-    proc restore_snapshot {} {
+    proc restore_snapshot {id} {
         array set options {}
-        set options(ports_restore_last) yes
-
+        set options(ports_restore_snapshot-id) $id
         return [restore::main [array get options]]
     }
 

@@ -61,6 +61,7 @@ namespace eval restore {
 
         if {[info exists options(ports_restore_snapshot-id)]} {
             # use the specified snapshot
+            puts "snapshotid : $options(ports_restore_snapshot-id)"
             set snapshot [fetch_snapshot $options(ports_restore_snapshot-id)]
             ui_msg "Deactivating all ports installed.."
             deactivate_all

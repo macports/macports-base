@@ -77,6 +77,10 @@ namespace eval snapshot {
             set snapshot [registry::snapshot create $note]
             # TODO: catch
         }
+        set id [$snapshot id]
+        set note [$snapshot note]
+        set datetime [$snapshot created_at]
+        ui_msg "Done: Snapshot '$note' created with id: $id at $datetime."
         return $snapshot
     }
 }
