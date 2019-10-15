@@ -2797,10 +2797,16 @@ proc action_reclaim { action portlist opts } {
 }
 
 proc action_snapshot { action portlist opts } {
-    if {[prefix_unwritable]} {
-        return 1
+    array set options $opts
+    if {[info exists options(ports_snapshot_list)]} {
+        set snapshots [registry::snapshot get_all]
+        puts $snapshots
+        foreach snapshot $snapshots {
+            puts "[$snapshot note], created at [$snapshot created_at] (ID: [$snapshot id])"
+        }
+        return 0
     }
-    if {[catch {macports::snapshot_main $opts} result]} {
+    if {![prefix_unwritable] && [catch {macports::snapshot_main $opts} result]} {
         ui_error $::errorInfo
         return 1
     }
@@ -4492,7 +4498,7 @@ array set cmd_opts_array {
     reclaim     {enable-reminders disable-reminders}
     fetch       {no-mirrors}
     bump        {patch}
-    snapshot    {{note 1}}
+    snapshot    {{note 1} list}
     restore     {{snapshot-id 1} last}
     migrate     {continue}
 }
