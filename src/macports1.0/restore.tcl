@@ -61,7 +61,6 @@ namespace eval restore {
 
         if {[info exists options(ports_restore_snapshot-id)]} {
             # use the specified snapshot
-            puts "snapshotid : $options(ports_restore_snapshot-id)"
             set snapshot_id $options(ports_restore_snapshot-id)
             set snapshot [registry::snapshot get_by_id $snapshot_id]
             ui_msg "Deactivating all ports installed.."
@@ -262,7 +261,7 @@ namespace eval restore {
         array set portinfo [lindex $port_search_result 1]
         if {[catch {set mport [mportopen $portinfo(porturl) [list subport $portinfo(name)] $variant_info]} result]} {
             global errorInfo
-            puts stderr "$errorInfo"
+            ui_error "$errorInfo"
             return -code error "Unable to open port '$portname': $result"
         }
         array unset portinfo
@@ -310,10 +309,10 @@ namespace eval restore {
 
             if {!$active} {
                 set target install
-                ui_msg "Installing (not activating): $name $variants $requested"
+                ui_msg "Installing (not activating): $name $variants"
             } else {
                 set target activate
-                ui_msg "Installing (and activating): $name $variants $requested"
+                ui_msg "Installing (and activating): $name $variants"
             }
 
             if {[catch {set res [mportlookup $name]} result]} {
@@ -334,14 +333,14 @@ namespace eval restore {
 
             if {[catch {set workername [mportopen $porturl [array get options] $variants]} result]} {
                 global errorInfo
-                puts stderr "$errorInfo"
+                ui_error "$errorInfo"
                 return -code error "Unable to open port '$name': $result"
             }
 
             if {[catch {set result [mportexec $workername $target]} result]} {
                 global errorInfo
                 mportclose $workername
-                ui_msg "$errorInfo"
+                ui_error "$errorInfo"
                 return -code error "Unable to execute target 'install' for port '$name': $result"
             } else {
                 mportclose $workername
