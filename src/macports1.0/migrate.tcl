@@ -127,7 +127,7 @@ namespace eval migrate {
     # @return void on success, raises an error on failure
     proc uninstall_installed {} {
         set options {}
-        set portlist [restore::portlist_sort_dependencies_later [registry::entry imaged]]
+        set portlist [restore::sort_portlist_dependencies_later [registry::entry imaged]]
         foreach port $portlist {
             ui_msg "Uninstalling: [$port name]"
             if {![registry::run_target $port uninstall $options]} {

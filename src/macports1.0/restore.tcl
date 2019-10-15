@@ -91,7 +91,7 @@ namespace eval restore {
         set snapshot_portlist [$snapshot ports]
 
         ui_msg "Restoring the selected snapshot.."
-        restore_state [$snapshot ports]
+        restore_state $snapshot_portlist
 
         return 0
     }
@@ -108,7 +108,7 @@ namespace eval restore {
         return [registry::snapshot get_all]
     }
 
-    proc portlist_sort_dependencies_later {portlist} {
+    proc sort_portlist_dependencies_later {portlist} {
 
         # Sorts a list of port references such that ports come before
         # their dependencies. Ideal for uninstalling a port.
@@ -132,12 +132,12 @@ namespace eval restore {
         }
         set ret {}
         foreach port $portlist {
-            portlist_sort_dependencies_later_helper $port entries dependents seen ret
+            sort_portlist_dependencies_later_helper $port entries dependents seen ret
         }
         return $ret
     }
 
-    proc portlist_sort_dependencies_later_helper {port up_entries up_dependents up_seen up_retlist} {
+    proc sort_portlist_dependencies_later_helper {port up_entries up_dependents up_seen up_retlist} {
         upvar 1 $up_seen seen
         if {![info exists seen($port)]} {
             set seen($port) 1
@@ -146,7 +146,7 @@ namespace eval restore {
             foreach dependent $dependents($name) {
                 if {[info exists entries($dependent)]} {
                     foreach entry $entries($dependent) {
-                        portlist_sort_dependencies_later_helper $entry entries dependents seen retlist
+                        sort_portlist_dependencies_later_helper $entry entries dependents seen retlist
                     }
                 }
             }
@@ -155,7 +155,7 @@ namespace eval restore {
     }
 
     proc deactivate_all {} {
-        set portlist [portlist_sort_dependencies_later [registry::entry imaged]]
+        set portlist [sort_portlist_dependencies_later [registry::entry imaged]]
         foreach port $portlist {
             ui_msg "Deactivating: [$port name]"
             if {[$port state] eq "installed"} {
@@ -166,7 +166,7 @@ namespace eval restore {
         }
     }
 
-    proc portlist_sort_dependencies_first {portlist} {
+    proc sort_portlist_dependencies_first {portlist} {
 
         # Sorts a list of port references such that ports appear after
         # their dependencies. Ideal for installing a port.
@@ -222,7 +222,7 @@ namespace eval restore {
             }
 
             if {![info exists port_deps(${name},${variants})]} {
-                set port_deps(${name},${variants}) [portlist_sort_dependencies_first_helper $name $variants]
+                set port_deps(${name},${variants}) [sort_portlist_dependencies_first_helper $name $variants]
             }
             lappend new_list [list $name $variants $active]
         }
@@ -261,7 +261,7 @@ namespace eval restore {
         return $operation_list
     }
 
-    proc portlist_sort_dependencies_first_helper {portname variant_info} {
+    proc sort_portlist_dependencies_first_helper {portname variant_info} {
         set dependency_list [list]
         set port_search_result [mportlookup $portname]
         if {[llength $port_search_result] < 2} {
@@ -280,9 +280,13 @@ namespace eval restore {
         set dependency_types { depends_fetch depends_extract depends_build depends_lib depends_run }
         foreach dependency_type $dependency_types {
             if {[info exists portinfo($dependency_type)] && [string length $portinfo($dependency_type)] > 0} {
+                puts "==="
+                puts "dependencies for $portname:"
                 foreach dependency $portinfo($dependency_type) {
-                    lappend dependency_list [lindex [split $dependency:] end]
+                    puts [lindex [split $dependency :] end]
+                    lappend dependency_list [lindex [split $dependency :] end]
                 }
+                puts "==="
             }
         }
         return $dependency_list
@@ -297,7 +301,8 @@ namespace eval restore {
             # 1: requested (0/1)
             # 2: state (imaged/installed, i.e. inactive/active)
             # 3: variants
-            if {[lindex $port 1] == 1} {
+            set requested [lindex $port 1]
+            if {$requested} {
                 # Hide unrequested ports
                 if {[lindex $port 2] eq "installed"} {
                     ui_msg "   [lindex $port 0] [lindex $port 3]"
@@ -307,7 +312,9 @@ namespace eval restore {
             }
         }
 
-        set sorted_snapshot_portlist [portlist_sort_dependencies_first $snapshot_portlist]
+        set sorted_snapshot_portlist [sort_portlist_dependencies_first $snapshot_portlist]
+
+        puts $sorted_snapshot_portlist
         foreach port $sorted_snapshot_portlist {
 
             set name [string trim [lindex $port 0]]
@@ -328,7 +335,7 @@ namespace eval restore {
                 return -code error "lookup of port $name failed: $result"
             }
             if {[llength $res] < 2} {
-                # not in the index, but we already warned about that earlier
+                # not in the portindex, but we already warned about that earlier
                 continue
             }
             array unset portinfo
