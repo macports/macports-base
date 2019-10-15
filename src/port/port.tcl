@@ -3927,6 +3927,161 @@ proc action_echo { action portlist opts } {
     return 0
 }
 
+proc offer_clone {} {
+    global macports::os_platform macports::os_major macports::os_arch \
+        macports::sources macports::autoconf::rsync_path \
+        macports:rsync_options macports::getindex macports::sources_default \
+        macports::sudo_user macports::prefix macports::portdbpath
+
+    # CHECK IF SOURCES.CONF IS STILL DEFAULT (INDICATING THAT USER IS FIRST TIME CONTRIBUTOR)
+    set confpath "${macports::prefix}/etc/macports/sources.conf"
+    if {[catch {exec [macports::findBinary diff] "-q" $confpath "$confpath.default"} _]} {
+        set tempfd [open "${macports::portdbpath}/contrib" w]
+        close $tempfd
+        return 0
+    }
+
+    # OFFER GIT-BASED SOURCE AND ASK FOR PATH
+    set retvalue [$macports::ui_options(questions_yesno) "You do not seem have a working copy of the macports-ports git repository, which is required to contribute this change." "clone" {} {y} 0 "Create one now?"]
+    if {$retvalue == 1} {
+        # quit as user answered 'no'
+        set tempfd [open "${macports::portdbpath}/contrib" w]
+        close $tempfd
+        return 0
+    }
+
+    set path [$macports::ui_options(questions_input) "Where do you want to create your working copy?" [file join ~ macports-ports] 0]
+
+    # SWITCH TO SUDO_USER UID AND GID
+    set oldeuid [geteuid]
+    set oldgid [getgid]
+    if {[info exists macports::sudo_user]} {
+        set username ${macports::sudo_user}
+    } else {
+        set username [exec id -un]
+    }
+    set useruid [name_to_uid $username]
+    set usergid [uname_to_gid $username]
+    if {$oldeuid == 0} {
+        setegid $usergid
+        seteuid $useruid
+    }
+
+    # Make sure that folder is empty
+    set temp [file normalize $path]
+    if {[file exists $temp]} {
+        set len 0
+        fs-traverse _ $temp {
+            if {$len == 1} {
+                return -code error "path: $temp already exists and is not an empty directory."
+            }
+            incr len
+        }
+    }
+
+    # WALK DOWN FROM PATH TO ROOT AND ASK FOR GROUP X PERMISSIONS IF NEEDED
+    set paths {}
+    while {$temp ne [file normalize /]} {
+        if {![file exists $temp]} {
+            file mkdir $temp
+        }
+        if {[expr {[string index [file attributes $path -permissions] end] & 1}] == 0} {
+            lappend paths $temp
+        }
+        set temp [file dirname $temp]
+    }
+
+    if {[llength $paths] > 0} {
+        set allow [$macports::ui_options(questions_yesno) "The 'macports' user needs search access to $path to use ports in
+this directory. The following directories will be changed to include 'x'
+permissions for group and others:\n" "allow" $paths {y} 0 "Do you want to allow this?"]
+        if {$allow == 1} {
+            # quit as user answered 'no'
+            set tempfd [open "${macports::portdbpath}/contrib" w]
+            close $tempfd
+            return 0
+        }
+        foreach path $paths {
+            file attributes $path -permissions [expr {[file attributes $path -permissions] | 1}]
+        }
+    }
+
+    # CREATE GIT SOURCE BY CLONING MACPORTS-PORTS
+    # The small depth is for performance (it also implies --single-branch)
+    set url https://github.com/macports/macports-ports.git
+    if {[catch {system -nodup "[macports::findBinary git] clone --depth 1 $url $path"} result]} {
+        ui_debug $::errorInfo
+        ui_error "git clone: $result"
+        return 1
+    }
+
+    # COPY INDEXFILE FROM OLD SOURCE TO GIT SOURCE
+    set default_source_url [lindex $sources_default 0]
+    set indexfile [macports::getindex $default_source_url]
+
+    if {[catch {file copy -force $indexfile $path} error]} {
+        ui_debug $::errorInfo
+        ui_error "file copy: $error"
+        return -code error "Copying PortIndex to new git-based source failed"
+    }
+
+    # EDIT SOURCES.CONF TO USE GIT SOURCE
+    if {![file exists $temp]} {
+        return -code error "sources.conf not found in $confpath"
+    }
+
+    # Construct sed command
+    set cmdline "[macports::findBinary sed] -E s/(^rsync)/#\1/g"
+    if {[catch {set tmpfile [mkstemp "/tmp/sources.conf.sed.XXXXXX"]} error]} {
+        ui_debug $::errorInfo
+        ui_error "mkstemp: $error"
+        return -code error "mkstemp failed"
+    }
+    set tmpfd [lindex $tmpfile 0]
+    set tmpfile [join [lrange $tmpfile 1 end]]
+    set attributes [file attributes $confpath]
+    lappend cmdline "<${confpath}" ">@$tmpfd"
+    # Comment out the rsync line
+    if {[catch {exec -ignorestderr -- {*}$cmdline} error]} {
+        ui_debug $::errorInfo
+        ui_error "sed: $error"
+        file delete "$tmpfile"
+        close $tmpfd
+        return -code error "sed sed(1) failed"
+    }
+
+    # Write the new source
+    puts $tmpfd "file://[file normalize $path] \[default\]"
+
+    if {[geteuid] != [getuid]} {
+        seteuid $oldeuid
+        setegid $oldgid
+    }
+
+    # Replace the old sources.conf with the new one
+    if {[catch {file rename -force $tmpfile $confpath} error]} {
+        ui_debug $::errorInfo
+        ui_error "move: $error"
+        file delete "$tmpfile"
+        return -code error "sources.conf overwrite failed"
+    }
+
+    # Restore sources.conf attributes
+    file attributes $confpath {*}$attributes
+
+    # Update the ports tree
+    try {
+        mportsync
+    } catch {{*} eCode eMessage} {
+        return -code error "Couldn't sync the ports tree: $eMessage"
+    }
+
+    ui_msg "Your /opt/local/etc/macports/sources.conf has been updated to use the git repository."
+
+    set tempfd [open "${macports::portdbpath}/contrib" w]
+    close $tempfd
+    return "[file dirname $indexfile] [file normalize $path]"
+}
 
 proc action_portcmds { action portlist opts } {
     # Operations on the port's directory and Portfile
@@ -3983,6 +4138,15 @@ proc action_portcmds { action portlist opts } {
                     array unset env_save; array set env_save [array get env]
                     array unset env *
                     array set env [array get boot_env]
+
+                    # Offer setting up switch to git-based source for first time contributors
+                    if {![file exists ${macports::portdbpath}/contrib]} {
+                        # Offer clone will return the old source path and new source path. Redirect portfile to new one
+                        set result [offer_clone]
+                        if {[llength $result] > 1} {
+                            regsub [lindex $result 0] $portfile [lindex $result 1] portfile
+                        }
+                    }
 
                     # Find an editor to edit the portfile
                     set editor ""
