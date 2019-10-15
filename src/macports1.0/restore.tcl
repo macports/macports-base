@@ -176,6 +176,7 @@ namespace eval restore {
         foreach port $portlist {
 
             set name [lindex $port 0]
+            set requested [lindex $port 1]
             set active 0
             if {[lindex $port 2] eq "installed"} {
                 set active 1
@@ -214,7 +215,7 @@ namespace eval restore {
             if {![info exists port_deps(${name},${variants})]} {
                 set port_deps(${name},${variants}) [sort_portlist_dependencies_first_helper $name $variants]
             }
-            lappend new_list [list $name $variants $active]
+            lappend new_list [list $name $requested $variants $active]
         }
 
         set operation_list [list]
@@ -222,7 +223,7 @@ namespace eval restore {
 
             set oldLen [llength $new_list]
             foreach port $new_list {
-                foreach {name variants active} $port break
+                foreach {name requested variants active} $port break
 
                 # Ensure active versions are installed after inactive versions.
                 # Skip this port if it is active and all the inactive versions have
@@ -238,9 +239,9 @@ namespace eval restore {
                     }
                 }
                 if {$installable} {
-                    lappend operation_list [list $name $variants $active]
+                    lappend operation_list [list $name $requested $variants $active]
                     incr port_installed($name)
-                    set index [lsearch $new_list [list $name $variants $active]]
+                    set index [lsearch $new_list [list $name $requested $variants $active]]
                     set new_list [lreplace $new_list $index $index]
                 }
             }
@@ -300,19 +301,19 @@ namespace eval restore {
 
         set sorted_snapshot_portlist [sort_portlist_dependencies_first $snapshot_portlist]
 
-        puts $sorted_snapshot_portlist
         foreach port $sorted_snapshot_portlist {
 
             set name [string trim [lindex $port 0]]
-            set variations [lindex $port 1]
-            set active [lindex $port 2]
+            set requested [lindex $port 1]
+            set variants [lindex $port 2]
+            set active [lindex $port 3]
 
             if {!$active} {
                 set target install
-                ui_msg "Installing (not activating): $name $variations"
+                ui_msg "Installing (not activating): $name $variants $requested"
             } else {
                 set target activate
-                ui_msg "Installing (and activating): $name $variations"
+                ui_msg "Installing (and activating): $name $variants $requested"
             }
 
             if {[catch {set res [mportlookup $name]} result]} {
@@ -328,10 +329,10 @@ namespace eval restore {
             array set portinfo [lindex $res 1]
             set porturl $portinfo(porturl)
 
-            set options(ports_requested) 1
+            set options(ports_requested) $requested
             set options(subport) $portinfo(name)
 
-            if {[catch {set workername [mportopen $porturl [array get options] $variations]} result]} {
+            if {[catch {set workername [mportopen $porturl [array get options] $variants]} result]} {
                 global errorInfo
                 puts stderr "$errorInfo"
                 return -code error "Unable to open port '$name': $result"
