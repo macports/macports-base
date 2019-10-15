@@ -62,13 +62,14 @@ namespace eval restore {
         if {[info exists options(ports_restore_snapshot-id)]} {
             # use the specified snapshot
             puts "snapshotid : $options(ports_restore_snapshot-id)"
-            set snapshot [fetch_snapshot $options(ports_restore_snapshot-id)]
+            set snapshot_id $options(ports_restore_snapshot-id)
+            set snapshot [registry::snapshot get_by_id $snapshot_id]
             ui_msg "Deactivating all ports installed.."
             deactivate_all
         } elseif {[info exists options(ports_restore_last)]} {
-            set snapshot [fetch_snapshot_last]
+            set snapshot [registry::snapshot get_last]
         } else {
-            set snapshots [list_snapshots]
+            set snapshots [registry::snapshot get_all]
             set human_readable_snapshots {}
             foreach snapshot $snapshots {
                 lappend human_readable_snapshots "[$snapshot note], created at [$snapshot created_at] (ID: [$snapshot id])"
@@ -95,18 +96,6 @@ namespace eval restore {
         restore_state $snapshot_portlist
 
         return 0
-    }
-
-    proc fetch_snapshot {snapshot_id} {
-        return [registry::snapshot get_by_id $snapshot_id]
-    }
-
-    proc fetch_snapshot_last {} {
-        return [registry::snapshot get_last]
-    }
-
-    proc list_snapshots {} {
-        return [registry::snapshot get_all]
     }
 
     proc sort_portlist_dependencies_later {portlist} {
@@ -281,13 +270,9 @@ namespace eval restore {
         set dependency_types { depends_fetch depends_extract depends_build depends_lib depends_run }
         foreach dependency_type $dependency_types {
             if {[info exists portinfo($dependency_type)] && [string length $portinfo($dependency_type)] > 0} {
-                puts "==="
-                puts "dependencies for $portname:"
                 foreach dependency $portinfo($dependency_type) {
-                    puts [lindex [split $dependency :] end]
                     lappend dependency_list [lindex [split $dependency :] end]
                 }
-                puts "==="
             }
         }
         return $dependency_list

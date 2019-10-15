@@ -2800,7 +2800,6 @@ proc action_snapshot { action portlist opts } {
     array set options $opts
     if {[info exists options(ports_snapshot_list)]} {
         set snapshots [registry::snapshot get_all]
-        puts $snapshots
         foreach snapshot $snapshots {
             puts "[$snapshot note], created at [$snapshot created_at] (ID: [$snapshot id])"
         }
