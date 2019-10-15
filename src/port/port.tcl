@@ -5405,6 +5405,42 @@ namespace eval portclient::questions {
     }
 
     ##
+    # Displays a question with prompt to input anything.
+    # Waits for user input indefinitely unless a timeout is specified.
+    # Shows the list of port passed to it without any numbers.
+    #
+    # @param msg
+    #        The question specific message that is to be printed before asking the question.
+    # @param def
+    #        The default answer to the question.
+    # @param timeout
+    #          The amount of time for which a timeout is to occur.
+    proc ui_ask_input {msg def {timeout 0}} {
+        # Check for the default and print accordingly
+        puts -nonewline "${msg} \[$def\]: "
+        flush stdout
+
+        # User input (probably requires some input error checking code)
+        while 1 {
+            signal error {TERM INT}
+            try {
+                set input [gets stdin]
+            } catch {*} {
+                # An error occurred, print a newline so the error message
+                # doesn't occur on the prompt line and re-throw
+                puts ""
+                throw
+            }
+            signal -restart error {TERM INT}
+            if {$input eq ""} {
+                return $def
+            } else {
+                return $input
+            }
+        }
+    }
+
+    ##
     # Displays a question with 'yes' and 'no' as options.
     # Waits for user input indefinitely unless a timeout is specified.
     # Shows the list of port passed to it without any numbers.
@@ -5717,6 +5753,7 @@ if {[isatty stdin]
     && [isatty stdout]
     && (![info exists ui_options(ports_quiet)] || $ui_options(ports_quiet) ne "yes")
     && (![info exists ui_options(ports_noninteractive)] || $ui_options(ports_noninteractive) ne "yes")} {
+    set ui_options(questions_input) portclient::questions::ui_ask_input
     set ui_options(questions_yesno) portclient::questions::ui_ask_yesno
     set ui_options(questions_singlechoice) portclient::questions::ui_ask_singlechoice
     set ui_options(questions_multichoice) portclient::questions::ui_ask_multichoice
