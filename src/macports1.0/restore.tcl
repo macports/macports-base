@@ -186,10 +186,6 @@ namespace eval restore {
         foreach port $portlist {
 
             set name [lindex $port 0]
-            set requested [lindex $port 1]
-            if {$requested eq 0} {
-                continue
-            }
             set active 0
             if {[lindex $port 2] eq "installed"} {
                 set active 1
