@@ -51,6 +51,7 @@
 #include <sys/resource.h>
 #include <assert.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -104,7 +105,7 @@ extern char **environ;
 
 typedef struct SystemCmd_Callback {
     Tcl_Interp  *interp;            /**< interpreter */
-    Tcl_Obj     *proc;              /**< callback proc */
+    Tcl_Obj     *procs;             /**< list of callback proc(s) */
     Tcl_Obj     *pid;               /**< child process pid, or NULL if child has not yet been executed */
 
     /* Commonly used event keys and values */
@@ -139,7 +140,7 @@ static int check_sandboxing(Tcl_Interp *interp, char **sandbox_exec_path, char *
     return 1;
 }
 
-static int SystemCmd_Callback_Create(Tcl_Interp *interp, Tcl_Obj *callbackProc, SystemCmd_Callback **cb)
+static int SystemCmd_Callback_Create(Tcl_Interp *interp, SystemCmd_Callback **cb)
 {
     SystemCmd_Callback *result;
 
@@ -150,7 +151,7 @@ static int SystemCmd_Callback_Create(Tcl_Interp *interp, Tcl_Obj *callbackProc, 
 
     *result = (struct SystemCmd_Callback) {
         .interp = interp,
-        .proc = callbackProc,
+        .procs = Tcl_NewListObj(0, NULL),
         .type_key = Tcl_NewStringObj(SYSEVENT_TYPE_KEY, -1),
         .pid_key = Tcl_NewStringObj(SYSEVENT_PID_KEY, -1),
         .pid = NULL,
@@ -158,7 +159,7 @@ static int SystemCmd_Callback_Create(Tcl_Interp *interp, Tcl_Obj *callbackProc, 
         .stdin_line_key = Tcl_NewStringObj(SYSEVENT_STDIN_LINE_KEY, -1)
     };
 
-    Tcl_IncrRefCount(result->proc);
+    Tcl_IncrRefCount(result->procs);
     Tcl_IncrRefCount(result->type_key);
     Tcl_IncrRefCount(result->pid_key);
     Tcl_IncrRefCount(result->stdin_type);
@@ -170,7 +171,7 @@ static int SystemCmd_Callback_Create(Tcl_Interp *interp, Tcl_Obj *callbackProc, 
 
 static void SystemCmd_Callback_Free(SystemCmd_Callback *cb)
 {
-    Tcl_DecrRefCount(cb->proc);
+    Tcl_DecrRefCount(cb->procs);
     Tcl_DecrRefCount(cb->type_key);
     Tcl_DecrRefCount(cb->pid_key);
     Tcl_DecrRefCount(cb->stdin_type);
@@ -180,6 +181,29 @@ static void SystemCmd_Callback_Free(SystemCmd_Callback *cb)
         Tcl_DecrRefCount(cb->pid);
 
     free(cb);
+}
+
+static int SystemCmd_Callback_Append(SystemCmd_Callback *cb, Tcl_Obj *callbackProc)
+{
+    return Tcl_ListObjAppendElement(cb->interp, cb->procs, callbackProc);
+}
+
+static int SystemCmd_Callback_NumProcs(SystemCmd_Callback *cb)
+{
+    int status;
+    int len;
+
+    if ((status = Tcl_ListObjLength(cb->interp, cb->procs, &len)) != TCL_OK) {
+        /* We allocate this explicitly as a list; the type should not change */
+        Tcl_Panic("SystemCmd: callbacks has non-list type");
+    }
+
+    return len;
+}
+
+static bool SystemCmd_Callback_Enabled(SystemCmd_Callback *cb)
+{
+    return (SystemCmd_Callback_NumProcs(cb) > 0);
 }
 
 static void SystemCmd_Callback_SetPid(SystemCmd_Callback *cb, pid_t pid)
@@ -193,8 +217,20 @@ static void SystemCmd_Callback_SetPid(SystemCmd_Callback *cb, pid_t pid)
 
 static int SystemCmd_Callback_Invoke(SystemCmd_Callback *cb, Tcl_Obj *event)
 {
-    Tcl_Obj *objv[] = { cb->proc, event };
-    return Tcl_EvalObjv(cb->interp, (sizeof(objv)/sizeof(objv[0])), objv, TCL_EVAL_GLOBAL);
+    Tcl_Obj **procs;
+    int numProcs;
+
+    Tcl_ListObjGetElements(cb->interp, cb->procs, &numProcs, &procs);
+    for (int i = 0; i < numProcs; i++) {
+        Tcl_Obj *objv[] = { procs[i], event };
+        int status;
+
+        status = Tcl_EvalObjv(cb->interp, (sizeof(objv)/sizeof(objv[0])), objv, TCL_EVAL_GLOBAL);
+        if (status != TCL_OK)
+            return status;
+    }
+
+    return TCL_OK;
 }
 
 static Tcl_Obj *SystemCmd_Event_Create(SystemCmd_Callback *cb, Tcl_Obj *type)
@@ -266,7 +302,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     pid_t pid;
     uid_t euid;
     Tcl_Obj *tcl_result;
-    SystemCmd_Callback *callback = NULL;
+    SystemCmd_Callback *callback;
     int read_failed = 0;
     int status;
     int i;
@@ -276,6 +312,9 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         return TCL_ERROR;
     }
 
+    if ((status = SystemCmd_Callback_Create(interp, &callback)) != TCL_OK)
+        return status;
+
     cmdstring = Tcl_GetString(objv[objc - 1]);
 
     for (i = 1; i < objc - 1; i++) {
@@ -283,11 +322,14 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         if (strcmp(arg, "-callback") == 0) {
             if (++i >= objc) {
                 Tcl_WrongNumArgs(interp, 1, objv, "proc");
+                SystemCmd_Callback_Free(callback);
                 return TCL_ERROR;
             }
 
-            if ((status = SystemCmd_Callback_Create(interp, objv[i], &callback)) != TCL_OK)
+            if ((status = SystemCmd_Callback_Append(callback, objv[i])) != TCL_OK) {
+                SystemCmd_Callback_Free(callback);
                 return status;
+            }
         } else if (strcmp(arg, "-notty") == 0) {
             osetsid = 1;
         } else if (strcmp(arg, "-nodup") == 0) {
@@ -295,21 +337,25 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         } else if (strcmp(arg, "-nice") == 0) {
             if (++i >= objc) {
                 Tcl_WrongNumArgs(interp, 1, objv, "value");
+                SystemCmd_Callback_Free(callback);
                 return TCL_ERROR;
             }
 
             if (Tcl_GetIntFromObj(interp, objv[i], &oniceval) != TCL_OK) {
                 Tcl_SetResult(interp, "invalid value for -nice", TCL_STATIC);
+                SystemCmd_Callback_Free(callback);
                 return TCL_ERROR;
             }
         } else if (strcmp(arg, "-W") == 0) {
             if (++i >= objc) {
                 Tcl_WrongNumArgs(interp, 1, objv, "path");
+                SystemCmd_Callback_Free(callback);
                 return TCL_ERROR;
             }
 
             if ((path = Tcl_GetString(objv[i])) == NULL) {
                 Tcl_SetResult(interp, "invalid value for -W", TCL_STATIC);
+                SystemCmd_Callback_Free(callback);
                 return TCL_ERROR;
             }
         } else if (strcmp(arg, "--") == 0) {
@@ -318,6 +364,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             tcl_result = Tcl_NewStringObj("bad option ", -1);
             Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(arg, -1));
             Tcl_SetObjResult(interp, tcl_result);
+            SystemCmd_Callback_Free(callback);
             return TCL_ERROR;
         }
     }
@@ -339,6 +386,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     if (odup) {
         if (pipe(fdset) != 0) {
             Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
+            SystemCmd_Callback_Free(callback);
             return TCL_ERROR;
         }
     }
@@ -437,16 +485,13 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         exit(128);
         /*NOTREACHED*/
     default: /* parent */
-        if (callback != NULL) {
-            /* Must be done before creating any events from the callback context */
-            SystemCmd_Callback_SetPid(callback, pid);
-        }
-
+        /* Must be done before creating any events from the callback context */
+        SystemCmd_Callback_SetPid(callback, pid);
         break;
     }
 
     /* Inform the callback of our exec event */
-    if (callback != NULL) {
+    if (SystemCmd_Callback_Enabled(callback)) {
         Tcl_Obj *event;
 
         event = SystemCmd_Event_Create(callback, Tcl_NewStringObj(SYSEVENT_TYPE_EXEC,-1));
@@ -477,7 +522,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
                 }
 
                 /* Provide the line event to our callback */
-                if (callback != NULL) {
+                if (SystemCmd_Callback_Enabled(callback)) {
                     Tcl_Obj *event = SystemCmd_Event_Create(callback, callback->stdin_type);
 
                     SystemCmd_Event_SetLine(callback, event, Tcl_NewStringObj(line,linelen));
@@ -500,7 +545,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             int error = errno;
 
             /* Provide the exit event to our callback */
-            if (callback != NULL) {
+            if (SystemCmd_Callback_Enabled(callback)) {
                 Tcl_Obj *event = SystemCmd_Event_Create(callback, Tcl_NewStringObj(SYSEVENT_EXITED,-1));
 
                 SystemCmd_Event_SetExitType(callback, event, SYSEVENT_IOERR);
@@ -524,7 +569,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         Tcl_Obj *event = NULL;
 
         /* Populate common exit event fields */
-        if (callback != NULL) {
+        if (SystemCmd_Callback_Enabled(callback)) {
             /* Determine the exit status type */
             const char *exit_type = NULL;
             if (WIFEXITED(ret)) {
@@ -545,8 +590,8 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 
         /* Normal exit, and reading from the pipe didn't fail. */
         if (WIFEXITED(ret) && WEXITSTATUS(ret) == 0) {
-            /* Report the exit to our callback */
-            if (callback != NULL) {
+            /* Report the exit event to our callback */
+            if (event != NULL) {
                 status = SystemCmd_Callback_Invoke(callback, event);
                 SystemCmd_Event_Release(event);
                 if (status != TCL_OK)
@@ -589,8 +634,8 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
                 tcl_result = Tcl_NewStringObj("command execution failed", -1);
             }
 
-            /* Report the exit to our callback */
-            if (callback != NULL) {
+            /* Report the exit event to our callback */
+            if (event != NULL) {
                 status = SystemCmd_Callback_Invoke(callback, event);
                 SystemCmd_Event_Release(event);
                 if (status != TCL_OK)
@@ -625,8 +670,6 @@ cleanup:
     if (fdset[1] >= 0)
         close(fdset[1]);
 
-    if (callback != NULL)
-        SystemCmd_Callback_Free(callback);
-
+    SystemCmd_Callback_Free(callback);
     return status;
 }
