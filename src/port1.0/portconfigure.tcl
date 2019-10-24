@@ -992,10 +992,26 @@ proc portconfigure::get_clang_compilers {} {
         source ${compiler_file}
     } else {
         ui_debug "clang_compilers.tcl not found in ports tree, using built-in selections"
-        lappend compilers macports-clang-8.0 macports-clang-7.0 macports-clang-6.0 macports-clang-5.0
+        # clang 9.0 and older build on 10.6+ (darwin 10)
+        # clang 7.0 and older build on 10.5+ (darwin 9)
+        # clang 3.4 and older build on 10.4+ (darwin 8)
+        if {${os.major} >= 10} {
+            lappend compilers macports-clang-9.0 \
+                macports-clang-8.0
+        }
+
+        if {${os.major} >= 9} {
+            lappend compilers macports-clang-7.0 \
+                macports-clang-6.0 \
+                macports-clang-5.0
+        }
+
         if {${os.major} < 16} {
             # The Sierra SDK requires a toolchain that supports class properties
-            lappend compilers macports-clang-3.7 macports-clang-3.4
+            if {${os.major} >= 9} {
+                lappend compilers macports-clang-3.7
+            }
+            lappend compilers macports-clang-3.4
             if {${os.major} < 9} {
                 lappend compilers macports-clang-3.3
             }
