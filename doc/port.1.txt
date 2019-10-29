@@ -518,6 +518,10 @@ list::
     If no argument is given, display a list of the latest version of all
     available ports. If portname(s) are given as arguments, display a list of
     the latest version of each port.
+    +
+    Note that virtually all use cases involving the *list* action with one or
+    more arguments would now be better served by a different action, such as
+    *installed*, *echo*, *info* or *outdated*.
 
 mirror::
     Create/update a local mirror of distfiles used for ports given on the
