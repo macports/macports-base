@@ -438,8 +438,26 @@ proc macports::setxcodeinfo {name1 name2 op} {
                 } elseif {[regexp {DevToolsCore-(.*);} $xcodebuildversion - devtoolscore_v] == 1} {
                     if {$devtoolscore_v >= 1809.0} {
                         set macports::xcodeversion 3.2.6
+                    } elseif {$devtoolscore_v >= 1763.0} {
+                        set macports::xcodeversion 3.2.5
+                    } elseif {$devtoolscore_v >= 1705.0} {
+                        set macports::xcodeversion 3.2.4
+                    } elseif {$devtoolscore_v >= 1691.0} {
+                        set macports::xcodeversion 3.2.3
+                    } elseif {$devtoolscore_v >= 1648.0} {
+                        set macports::xcodeversion 3.2.2
+                    } elseif {$devtoolscore_v >= 1614.0} {
+                        set macports::xcodeversion 3.2.1
+                    } elseif {$devtoolscore_v >= 1608.0} {
+                        set macports::xcodeversion 3.2
                     } elseif {$devtoolscore_v >= 1204.0} {
                         set macports::xcodeversion 3.1.4
+                    } elseif {$devtoolscore_v >= 1192.0} {
+                        set macports::xcodeversion 3.1.3
+                    } elseif {$devtoolscore_v >= 1148.0} {
+                        set macports::xcodeversion 3.1.2
+                    } elseif {$devtoolscore_v >= 1114.0} {
+                        set macports::xcodeversion 3.1.1
                     } elseif {$devtoolscore_v >= 1100.0} {
                         set macports::xcodeversion 3.1
                     } elseif {$devtoolscore_v >= 921.0} {
@@ -450,8 +468,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
                         set macports::xcodeversion 2.4.1
                     } elseif {$devtoolscore_v >= 757.0} {
                         set macports::xcodeversion 2.4
-                    } elseif {$devtoolscore_v > 650.0} {
-                        # XXX find actual version corresponding to 2.3
+                    } elseif {$devtoolscore_v >= 747.0} {
                         set macports::xcodeversion 2.3
                     } elseif {$devtoolscore_v >= 650.0} {
                         set macports::xcodeversion 2.2.1
