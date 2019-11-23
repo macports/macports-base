@@ -803,7 +803,7 @@ proc portconfigure::get_min_command_line {compiler} {
         gcc-4.2 -
         gcc-4.0 -
         apple-gcc-4.2 {
-            if {${compiler.c_standard} > 1999 || ${compiler.cxx_standard} >= 2011 || [option configure.cxx_stdlib] eq "libc++"} {
+            if {${compiler.c_standard} > 1999 || ${compiler.cxx_standard} >= 2011 || [option configure.cxx_stdlib] eq "libc++" || ${compiler.thread_local_storage}} {
                 return none
             }
         }
