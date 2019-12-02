@@ -739,7 +739,7 @@ proc portconfigure::max_version {verA verB} {
 #|--------------------------------=---------------------------------|
 #| 1998 (C++98) |     -     |       -       |     -     |     -     |
 #| 2011 (C++11) |    3.3    |   500.2.75    |    5.0    |   4.8.1   |
-#| 2014 (C++14) |    3.4    |   600.0.54    |    6.1    |     5     |
+#| 2014 (C++14) |    3.4    |   602         |    6.3    |     5     |
 #| 2017 (C++17) |    5.0    |   902.0.39.1  |    9.3    |     7     |
 #--------------------------------------------------------------------
 #
@@ -785,7 +785,7 @@ proc portconfigure::get_min_command_line {compiler} {
             if {${compiler.cxx_standard} >= 2017} {
                 set min_value [max_version $min_value 902.0.39.1]
             } elseif {${compiler.cxx_standard} >= 2014} {
-                set min_value [max_version $min_value 600.0.54]
+                set min_value [max_version $min_value 602]
             } elseif {${compiler.cxx_standard} >= 2011} {
                 set min_value [max_version $min_value 500.2.75]
             }
