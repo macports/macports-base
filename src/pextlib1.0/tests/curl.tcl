@@ -32,14 +32,32 @@ proc main {pextlibname} {
 	#curl fetch -u "I accept www.opensource.org/licenses/cpl:." http://www.research.att.com/~gsf/download/tgz/sfio.2005-02-01.tgz $tempfile
 	#test {[md5 file $tempfile] == "48f45c7c77c23ab0ccca48c22b3870de"}
 	
+	curl fetch https://www.whatsmyip.org/http-compression-test/ $tempfile
+	grepper $tempfile {gz_yes}
+
+	curl fetch --disable-compression https://www.whatsmyip.org/http-compression-test/ $tempfile
+	grepper $tempfile {gz_no}
+
 	file delete -force $tempfile
 }
 
 proc test {args} {
-    if {[catch {uplevel 1 expr $args} result] || !$result} {
-        puts "[uplevel 1 subst -nocommands $args] == $result"
-        exit 1
-    }
+	if {[catch {uplevel 1 expr $args} result] || !$result} {
+		puts "[uplevel 1 subst -nocommands $args] == $result"
+		exit 1
+	}
+}
+
+proc grepper {filepath regex} {
+	set hasMatch 0
+	set fd [open $filepath]
+	while {[gets $fd line] != -1} {
+		if {[regexp $regex $line all]} {
+			set hasMatch 1
+		}
+	}
+	close $fd
+	test {$hasMatch == 1}
 }
 
 main $argv
