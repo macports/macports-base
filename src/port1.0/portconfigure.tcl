@@ -234,8 +234,24 @@ options configure.optflags \
 default configure.optflags      -Os
 default configure.cflags        {${configure.optflags}}
 default configure.objcflags     {${configure.optflags}}
-default configure.cppflags      {-I${prefix}/include}
-default configure.ldflags       {-L${prefix}/lib -Wl,-headerpad_max_install_names}
+default configure.cppflags      {[portconfigure::configure_get_cppflags]}
+proc portconfigure::configure_get_cppflags {} {
+    global prefix
+    if {[option compiler.limit_flags]} {
+        return ""
+    } else {
+        return -I${prefix}/include
+    }
+}
+default configure.ldflags       {[portconfigure::configure_get_ldflags]}
+proc portconfigure::configure_get_ldflags {} {
+    global prefix
+    if {[option compiler.limit_flags]} {
+        return -Wl,-headerpad_max_install_names
+    } else {
+        return "-L${prefix}/lib -Wl,-headerpad_max_install_names"
+    }
+}
 default configure.libs          {}
 default configure.fflags        {${configure.optflags}}
 default configure.f90flags      {${configure.optflags}}
@@ -737,7 +753,7 @@ proc portconfigure::max_version {verA verB} {
 # https://trac.macports.org/wiki/XcodeVersionInfo
 #--------------------------------------------------------------------
 #| C++ Standard |   Clang   |  Xcode Clang  |   Xcode   |    GCC    |
-#|--------------------------------=---------------------------------|
+#|------------------------------------------------------------------|
 #| 1998 (C++98) |     -     |       -       |     -     |     -     |
 #| 2011 (C++11) |    3.3    |   500.2.75    |    5.0    |   4.8.1   |
 #| 2014 (C++14) |    3.4    |   602         |    6.3    |     5     |
@@ -756,6 +772,21 @@ proc portconfigure::max_version {verA verB} {
 #|      4.0       | Partial |    Future?    | Future? |   4.9   |
 #|      4.5       | Partial |    Future?    | Future? |   ???   |
 #----------------------------------------------------------------
+#
+# https://trac.macports.org/wiki/CompilerEnvironmentVariables
+# https://trac.macports.org/wiki/CompilerSelection#EnvironmentVariables
+#--------------------------------------------------------------------
+#|   Environment Variable   | Xcode Clang | Xcode GCC | Clang | GCC |
+#|------------------------------------------------------------------|
+#| CPATH                    |   318.0.4   |    all    |  all  | all |
+#| LIBRARY_PATH             |  421.0.57   |    all    |  all  | all |
+#| MACOSX_DEPLOYMENT_TARGET |     all     |    all    |  all  | all |
+#| SDKROOT                  | OS X 10.9*  |   none    |  all  |  7  |
+#| DEVELOPER_DIR            | OS X 10.9*  |    N/A    |  N/A  | N/A |
+#| CC_PRINT_OPTIONS         |     all     |    all    |  all  | all |
+#| CC_PRINT_OPTIONS_FILE    |     all     |    all    |  all  | all |
+#--------------------------------------------------------------------
+# * /usr/lib/libxcselect.dylib exists
 #
 # utility procedure: get minimum command line compilers version based on restrictions
 proc portconfigure::get_min_command_line {compiler} {
@@ -798,12 +829,25 @@ proc portconfigure::get_min_command_line {compiler} {
                     set min_value [max_version $min_value 500.2.75]
                 }
             }
+            if {[option compiler.limit_flags] || [option compiler.support_environment_paths]} {
+                set min_value [max_version $min_value 421.0.57]
+            }
+            if {
+                ([option compiler.limit_flags] || [option compiler.support_environment_sdkroot]) &&
+                [option configure.sdkroot] ne "" &&
+                ![file exists /usr/lib/libxcselect.dylib]
+            } {
+                return none
+            }
         }
         llvm-gcc-4.2 -
         gcc-4.2 -
         gcc-4.0 -
         apple-gcc-4.2 {
             if {${compiler.c_standard} > 1999 || ${compiler.cxx_standard} >= 2011 || [option configure.cxx_stdlib] eq "libc++" || ${compiler.thread_local_storage}} {
+                return none
+            }
+            if {([option compiler.limit_flags] || [option compiler.support_environment_sdkroot]) && [option configure.sdkroot] ne ""} {
                 return none
             }
         }
@@ -879,7 +923,12 @@ proc portconfigure::get_min_gcc {} {
         # GCC emulates thread-local storage, but it seems to be broken on older versions of GCC
         set min_value [max_version $min_value 4.5]
     }
-
+    if {
+        ([option compiler.limit_flags] || [option compiler.support_environment_sdkroot]) &&
+        [option configure.sdkroot] ne ""
+    } {
+        set min_value [max_version $min_value 7.0]
+    }
     return ${min_value}
 }
 # utility procedure: get minimum Gfortran version based on restrictions
@@ -899,6 +948,12 @@ proc portconfigure::get_min_gfortran {} {
         # GCC emulates thread-local storage, but it seems to be broken on older versions of GCC
         set min_value [max_version $min_value 4.5]
     }
+    if {
+        ([option compiler.limit_flags] || [option compiler.support_environment_sdkroot]) &&
+        [option configure.sdkroot] ne ""
+    } {
+        set min_value [max_version $min_value 7.0]
+    }
     return ${min_value}
 }
 #
@@ -910,6 +965,12 @@ proc portconfigure::g95_ok {} {
     }
     if {${compiler.openmp_version} ne ""} {
         # G95 does not support OpenMP
+        return no
+    }
+    if {
+        ([option compiler.limit_flags] || [option compiler.support_environment_sdkroot]) &&
+        [option configure.sdkroot] ne ""
+    } {
         return no
     }
     return yes
@@ -1543,7 +1604,7 @@ proc portconfigure::configure_main {args} {
         }
 
         # add SDK flags if cross-compiling (or universal on ppc tiger)
-        if {${configure.sdkroot} ne ""} {
+        if {${configure.sdkroot} ne "" && ![option compiler.limit_flags]} {
             foreach env_var {CPPFLAGS CFLAGS CXXFLAGS OBJCFLAGS OBJCXXFLAGS} {
                 append_to_environment_value configure $env_var -isysroot${configure.sdkroot}
             }
