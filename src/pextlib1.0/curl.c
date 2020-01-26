@@ -44,6 +44,8 @@
 #include <sys/select.h>
 #include <utime.h>
 
+#include <AvailabilityMacros.h>
+
 #include <curl/curl.h>
 
 #include <tcl.h>
@@ -59,10 +61,15 @@
 #define _CURL_MINIMUM_XFER_TIMEOUT	((long)(60))		/* 1 minute */
 #define _CURL_MINIMUM_PROGRESS_INTERVAL ((double)(0.2)) /* 0.2 seconds */
 
+/* pre-10.8 curl does not appear to support compression out of the box */
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_8
+
 #if defined CURLOPT_ACCEPT_ENCODING
 #define _CURL_ENCODING CURLOPT_ACCEPT_ENCODING
 #elif defined CURLOPT_ENCODING
 #define _CURL_ENCODING CURLOPT_ENCODING
+#endif
+
 #endif
 
 /* ========================================================================= **
