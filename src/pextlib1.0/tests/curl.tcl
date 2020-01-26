@@ -12,16 +12,16 @@ proc main {pextlibname} {
 	curl fetch --ignore-ssl-cert $dummyroot/dummy $tempfile
 	
 	# check the md5 sum of the file.
-	test {[md5 file $tempfile] == "5421fb0f76c086a1e14bf33d25b292d4"}
+	test "md5sum" {[md5 file $tempfile] == "5421fb0f76c086a1e14bf33d25b292d4"}
 
 	# check we indeed get a 404 a dummy file over HTTP.
-	test {[catch {curl fetch --ignore-ssl-cert $dummyroot/404 $tempfile}]}
+	test "dummy404" {[catch {curl fetch --ignore-ssl-cert $dummyroot/404 $tempfile}]}
 	
 	# check the modification date of the dummy file.
 	set seconds [clock scan 2007-06-16Z]
-	test {[curl isnewer --ignore-ssl-cert $dummyroot/dummy [clock scan 2007-06-16Z]]}
+	test "mtime1" {[curl isnewer --ignore-ssl-cert $dummyroot/dummy [clock scan 2007-06-16Z]]}
 	set seconds [clock scan 2007-06-17Z]
-	test {![curl isnewer --ignore-ssl-cert $dummyroot/dummy [clock scan 2007-06-17Z]]}
+	test "mtime2" {![curl isnewer --ignore-ssl-cert $dummyroot/dummy [clock scan 2007-06-17Z]]}
 	
 	# use --disable-epsv
 	#curl fetch --disable-epsv ftp://ftp.cup.hp.com/dist/networking/benchmarks/netperf/archive/netperf-2.2pl5.tar.gz $tempfile
@@ -41,9 +41,9 @@ proc main {pextlibname} {
 	file delete -force $tempfile
 }
 
-proc test {args} {
+proc test {test_name args} {
 	if {[catch {uplevel 1 expr $args} result] || !$result} {
-		puts "[uplevel 1 subst -nocommands $args] == $result"
+		puts "test $test_name failed: [uplevel 1 subst -nocommands $args] == $result"
 		exit 1
 	}
 }
@@ -57,7 +57,7 @@ proc grepper {filepath regex} {
 		}
 	}
 	close $fd
-	test {$hasMatch == 1}
+	test "grepper $regex" {$hasMatch == 1}
 }
 
 main $argv
