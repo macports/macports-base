@@ -1423,6 +1423,11 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
                 depends_lib-delete "port:libcxx"
                 depends_lib-append "port:libcxx"
             }
+            if {[option compiler.openmp_version] ne ""} {
+                ui_debug "Adding depends_lib port:libomp"
+                depends_lib-delete "port:libomp"
+                depends_lib-append "port:libomp"
+            }
         }
     }
 
