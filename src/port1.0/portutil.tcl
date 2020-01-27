@@ -417,8 +417,10 @@ proc command_exec {command args} {
     if {[option macosx_deployment_target] ne ""} {
         set ${varprefix}.env_array(MACOSX_DEPLOYMENT_TARGET) [option macosx_deployment_target]
     }
-    set ${varprefix}.env_array(CC_PRINT_OPTIONS) "YES"
-    set ${varprefix}.env_array(CC_PRINT_OPTIONS_FILE) [file join [option workpath] ".CC_PRINT_OPTIONS"]
+    if {[option compiler.log_verbose_output]} {
+        set ${varprefix}.env_array(CC_PRINT_OPTIONS) "YES"
+        set ${varprefix}.env_array(CC_PRINT_OPTIONS_FILE) [file join [option workpath] ".CC_PRINT_OPTIONS"]
+    }
     if {[option compiler.cpath] ne ""} {
         set ${varprefix}.env_array(CPATH) [join [option compiler.cpath] :]
     }
