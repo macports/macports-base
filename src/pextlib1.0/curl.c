@@ -290,7 +290,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 					theResult = TCL_ERROR;
 					break;
 				}
-         } else if (strcmp(theOption, "--enable-compression") == 0) {
+			} else if (strcmp(theOption, "--enable-compression") == 0) {
 				acceptEncoding = "";
 			} else {
 				Tcl_ResetResult(interp);
