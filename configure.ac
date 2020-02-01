@@ -195,9 +195,11 @@ MP_PATCH_GNU_VERSION
 # Quiche eaters options.
 if test x$GCC = xyes; then
 	CFLAGS_QUICHEEATERS='-Wextra -Wall'
+	CFLAGS_DEADSTRIP='-Wl,-dead_strip,-bind_at_load'
 	CFLAGS_PEDANTIC='-pedantic'
 fi
 AC_SUBST(CFLAGS_QUICHEEATERS)
+AC_SUBST(CFLAGS_DEADSTRIP)
 AC_SUBST(CFLAGS_PEDANTIC)
 MP_WERROR
 
