@@ -61,7 +61,7 @@
 
 #if defined CURLOPT_ACCEPT_ENCODING
 #define _CURL_ENCODING CURLOPT_ACCEPT_ENCODING
-#elif defined CURLOPT_ENCODING
+#else
 #define _CURL_ENCODING CURLOPT_ENCODING
 #endif
 
@@ -156,7 +156,7 @@ SetResultFromCurlMErrorCode(Tcl_Interp *interp, CURLMcode inErrorCode)
 /**
  * curl fetch subcommand entry point.
  *
- * syntax: curl fetch [--disable-epsv] [--ignore-ssl-cert] [--remote-time] [-u userpass] [--effective-url lasturlvar] [--progress "builtin"|callback] [--disable-compression] url filename
+ * syntax: curl fetch [--disable-epsv] [--ignore-ssl-cert] [--remote-time] [-u userpass] [--effective-url lasturlvar] [--progress "builtin"|callback] [--enable-compression] url filename
  *
  * @param interp		current interpreter
  * @param objc			number of parameters
@@ -197,7 +197,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		struct curl_slist *headers = NULL;
 		struct CURLMsg *info = NULL;
 		int running; /* number of running transfers */
-		char* acceptEncoding = "";
+		char* acceptEncoding = NULL;
 
 		/* we might have options and then the url and the file */
 		/* let's process the options first */
@@ -283,8 +283,8 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 					theResult = TCL_ERROR;
 					break;
 				}
-         } else if (strcmp(theOption, "--disable-compression") == 0) {
-				acceptEncoding = NULL;
+			} else if (strcmp(theOption, "--enable-compression") == 0) {
+				acceptEncoding = "";
 			} else {
 				Tcl_ResetResult(interp);
 				Tcl_AppendResult(interp, "curl fetch: unknown option ", theOption, NULL);
@@ -496,8 +496,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			}
 		}
 
-		/* we want compression by default, but can optionally disable it.
-		 * a CURLOPT_ACCEPT_ENCODING of "" means to let cURL write the
+		/* a CURLOPT_ACCEPT_ENCODING of "" means to let cURL write the
 		 * Accept-Encoding header for you, based on what the library
 		 * was compiled to support.
 		 * A value of NULL disables all attemps at decompressing responses.

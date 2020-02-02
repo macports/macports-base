@@ -45,7 +45,7 @@ namespace eval portlivecheck {
 }
 
 # define options
-options livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version livecheck.ignore_sslcert livecheck.curloptions
+options livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version livecheck.ignore_sslcert livecheck.compression livecheck.curloptions
 
 # defaults
 default livecheck.url {$homepage}
@@ -56,11 +56,13 @@ default livecheck.name default
 default livecheck.distname default
 default livecheck.version {$version}
 default livecheck.ignore_sslcert no
+default livecheck.compression yes
 default livecheck.curloptions {"--append-http-header" "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"}
 
 proc portlivecheck::livecheck_main {args} {
     global livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version \
            livecheck.ignore_sslcert \
+           livecheck.compression \
            livecheck.curloptions \
            homepage portpath workpath \
            master_sites name subport distfiles
@@ -80,6 +82,9 @@ proc portlivecheck::livecheck_main {args} {
     set curl_options ${livecheck.curloptions}
     if {[tbool livecheck.ignore_sslcert]} {
         lappend curl_options "--ignore-ssl-cert"
+    }
+    if {[tbool livecheck.compression]} {
+        lappend curl_options "--enable-compression"
     }
 
     # Check _resources/port1.0/livecheck for available types.
