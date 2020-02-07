@@ -1,0 +1,36 @@
+srcdir = @srcdir@
+VPATH  = @srcdir@
+
+include $(srcdir)/../../../Mk/macports.autoconf.mk
+
+SRCS = shm_alloc.c
+
+OBJS = $(SRCS:%.c=%.o)
+
+STLIB = libshm_alloc.a
+
+CFLAGS += -fPIC
+
+all:: $(STLIB)
+
+%.d : %.c
+	$(CC) -MM -MP $(CPPFLAGS) $< > $@
+
+$(STLIB): $(OBJS)
+	$(STLIB_LD) $@ $(OBJS)
+
+install::
+
+clean::
+	rm -f $(OBJS) $(STLIB) $(SRCS:%.c=%.d)
+
+distclean::
+	rm -f Makefile
+
+ifeq (,$(findstring clean,$(MAKECMDGOALS)))
+# Include dependency information
+-include $(SRCS:%.c=%.d)
+endif
+
+codesign:: $(SHLIB_NAME)
+	../../../codesign.sh $?
