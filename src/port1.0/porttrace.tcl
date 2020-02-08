@@ -213,6 +213,9 @@ namespace eval porttrace {
         set tracesandbox_tree_root [darwintrace_share_trace_sandbox_new]
         set env(TRACESANDBOX_TREE_ROOT) $tracesandbox_tree_root
 
+        set darwintrace_cache_tree_root [darwintrace_share_new_cache_tree]
+        set env(DARWINTRACE_CACHE_TREE_ROOT) $darwintrace_cache_tree_root
+
 
         # Allow work-, port-, and distpath
         allow $tracesandbox_tree_root $workpath
