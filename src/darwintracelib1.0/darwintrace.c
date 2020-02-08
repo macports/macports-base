@@ -608,13 +608,15 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 		if (__env_tracesandbox_tree_root != NULL) {
 			trace_sandbox = ( shm_offt )strtoumax(__env_tracesandbox_tree_root, NULL, 10);
 		} else {
-			DT_PRINT("__env_tracesandbox_tree_root NULL %s", path);
+			/* Happens when path is /AppleInternal */
 			return true;
 		}
 	}
 
+	/*
+	 * Fence isn't set, no need to do checking, just return true
+	 */
 	if (trace_sandbox_is_fence_set(trace_sandbox) == false) {
-		DT_PRINT("FENCE NOT SET %s", path);
 		return true;
 	}
 
