@@ -46,7 +46,6 @@
  * FDs are numbered in ascending order.
  */
 static int _dt_dup2(int filedes, int filedes2) {
-	__darwintrace_setup();
 
 	FILE *stream = __darwintrace_sock();
 	if (stream && filedes2 == fileno(stream)) {

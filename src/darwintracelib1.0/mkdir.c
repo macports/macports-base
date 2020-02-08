@@ -51,7 +51,6 @@
  * outside the sandbox that already exist.
  */
 static int _dt_mkdir(const char *path, mode_t mode) {
-	__darwintrace_setup();
 
 	int result = 0;
 

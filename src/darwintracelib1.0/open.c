@@ -46,7 +46,6 @@
  * when attempting to create a file, i.e., when \c O_CREAT is set.
  */
 static int _dt_open(const char *path, int flags, ...) {
-	__darwintrace_setup();
 	int result = 0;
 
 	if (!__darwintrace_is_in_sandbox(path, DT_REPORT | DT_ALLOWDIR | DT_FOLLOWSYMS)) {

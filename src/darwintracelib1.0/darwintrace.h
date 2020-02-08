@@ -91,13 +91,6 @@ enum {
 extern FILE *__darwintrace_stderr;
 
 /**
- * Initializer function, ensures darwintrace has been properly set up and check
- * whether this process was fork(2)'d or clone(2)'d since the last call. Call
- * this before calling any other functions from this library.
- */
-void __darwintrace_setup();
-
-/**
  * Close the darwintrace socket and set it to \c NULL. Since this uses \c
  * fclose(3), which internally calls \c close(2), which is intercepted by this
  * library and this library prevents closing the socket to MacPorts, we use \c

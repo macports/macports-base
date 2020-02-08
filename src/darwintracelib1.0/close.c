@@ -48,7 +48,6 @@
  * will be set to the FD to be closed when closing should be allowed.
  */
 static int _dt_close(int fd) {
-	__darwintrace_setup();
 
 	FILE *stream = __darwintrace_sock();
 	if (stream) {
