@@ -33,18 +33,12 @@
  * @APPLE_BSD_LICENSE_HEADER_END@
  */
 
+#include <sys/mman.h>
+
 #define DARWINTRACE_USE_PRIVATE_API 1
 #include "darwintrace.h"
-#include "sandbox_actions.h"
 
-#ifdef HAVE_STDATOMIC_H
-#include <stdatomic.h>
-#endif
-
-#ifdef HAVE_LIBKERN_OSATOMIC_H
-#include <libkern/OSAtomic.h>
-#endif
-
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -57,6 +51,8 @@
 #include <sys/types.h>
 #include <sys/un.h>
 #include <unistd.h>
+
+#include "darwintrace_share/darwintrace_share.h"
 
 #if __DARWIN_64_BIT_INO_T
 #define STATSYSNUM SYS_stat64
@@ -88,6 +84,8 @@ volatile int __darwintrace_close_sock = -1;
 FILE *__darwintrace_stderr = NULL;
 
 static inline void __darwintrace_log_op(const char *op, const char *path);
+
+static void __darwintrace_setup_shared_memory() __attribute__((constructor));
 static void __darwintrace_setup_tls() __attribute__((constructor));
 static char *__send(const char *buf, uint32_t len, int answer);
 
@@ -99,27 +97,24 @@ static pthread_key_t tid_key;
 // The sock key is needed in close(2) and dup2(2)
 pthread_key_t sock_key;
 
+static shm_offt trace_sandbox = SHM_NULL;
+
+/*
+ * Flags associates with every path being checked
+ */
+enum path_flags_t {
+	EMPTY                         = 1 << 0,
+	DARWINTRACE_ALLOW_PATH        = 1 << 1,
+	DARWINTRACE_DENY_PATH         = 1 << 2,
+	DARWINTRACE_DO_LOGGING        = 1 << 3,
+	DARWINTRACE_SANDBOX_VIOLATION = 1 << 4,
+	DARWINTRACE_SANDBOX_UNKNOWN   = 1 << 5
+};
+
 /**
  * size of the communication buffer
  */
 #define BUFFER_SIZE 4096
-
-/**
- * Variable holding the sandbox bounds in the following format:
- *  <filemap>       :: (<spec> '\0')+ '\0'
- *  <spec>          :: <path> '\0' <operation> <additional_data>?
- *  <operation>     :: '0' | '1' | '2'
- * where
- *  0: allow
- *  1: map the path to the one given in additional_data (currently unsupported)
- *  2: check for a dependency using the socket
- *  3: deny access to the path and stop processing
- */
-#ifdef HAVE_STDATOMIC_H
-static _Atomic(char *) filemap;
-#else
-static char *filemap;
-#endif
 
 static void __darwintrace_sock_destructor(FILE *dtsock) {
 	__darwintrace_close_sock = fileno(dtsock);
@@ -143,14 +138,23 @@ static void __darwintrace_setup_tls() {
 	}
 }
 
+
 /**
- * Convenience getter function for the thread ID
+ * set_shared_memory() can handle being called between multiple threads,
+ * but it makes a call to shm_init() which calls mmap(2) which is not defined async-safe.
+ * So it is called as a constructor.
  */
-/*
-static inline pthread_t __darwintrace_tid() {
-	return (pthread_t) pthread_getspecific(tid_key);
+static void __darwintrace_setup_shared_memory() {
+	bool retval;
+
+	retval = set_shared_memory(getenv("SHM_FILE"));
+
+	if (retval == false) {
+		fprintf(stderr, "darwintrace: set_shared_memory() failed\n");
+		abort();
+	}
 }
-*/
+
 
 /**
  * Convenience setter function for the thread-local darwintrace socket
@@ -160,163 +164,6 @@ static inline void __darwintrace_tid_set() {
 		perror("darwintrace: pthread_setspecific");
 		abort();
 	}
-}
-
-/**
- * Return false if str doesn't begin with prefix, true otherwise. Note that
- * this is not a simple string comparison, but works on a path component level.
- * A prefix of /var/tmp will not match a string of /var/tmpfoo.
- */
-static inline bool __darwintrace_pathbeginswith(const char *str, const char *prefix) {
-	char s;
-	char p;
-
-	/* '/' is the allow all wildcard */
-	if (prefix[0] == '\0' || (prefix[0] == '/' && prefix[1] == '\0')) {
-		return 1;
-	}
-
-	do {
-		s = *str++;
-		p = *prefix++;
-	} while (p && (p == s));
-	return (p == '\0' && (s == '/' || s == '\0'));
-}
-
-/*
- * Data structures and functions to iterate over the filemap received from
- * tracelib code.
- */
-
-/**
- * \c filemap_iterator_t is an (opaque) iterator type that keeps the state
- * required to iterate through the filemap. Create a new filemap_iterator_t on
- * stack, initialize it using \c __darwintrace_filemap_iterator_init and pass
- * it to \c __darwintrace_filemap_iter to iterate over the filemap.
- */
-typedef struct filemap_iterator {
-	char *next;
-} filemap_iterator_t;
-
-/**
- * Initialize a given \c filemap_iterator_t. Calling this function again will
- * rewind the iterator.
- *
- * \param[in] it pointer to the iterator to be initialized
- */
-static inline void __darwintrace_filemap_iterator_init(filemap_iterator_t *it) {
-	it->next = filemap;
-}
-
-/**
- * Iterate through the filemap passed from tracelib code. Call this multiple
- * times with the same iterator object until it returns \c NULL to iterate
- * through the filemap.
- *
- * \param[out] command location for the command specified for this filemap
- *                     entry
- * \param[in]  it pointer to a \c filemap_iterator_t keeping the state of this
- *                iteration
- * \return string containing the path this filemap entry corresponds to, or \c
- *         NULL if the end of the filemap was reached
- */
-static inline char *__darwintrace_filemap_iter(char *command, filemap_iterator_t *it) {
-	enum { PATH, COMMAND, DONE } state = PATH;
-	char *t;
-	char *path;
-
-	if (it == NULL || it->next == NULL || *it->next == '\0') {
-		return NULL;
-	}
-
-	path = t = it->next;
-
-	/* advance the cursor: if the number after the string is not 1, there's no
-	 * path behind it and we can advance by strlen(t) + 3. If it is 1, make
-	 * sure to skip the path, too.
-	 */
-	state = PATH;
-	while (state != DONE) {
-		switch (state) {
-			case DONE:
-				/* unreachable */
-				break;
-			case PATH:
-				if (*t == '\0') {
-					state = COMMAND;
-				}
-				break;
-			case COMMAND:
-				*command = *t;
-				if (*t == 1) {
-					fprintf(stderr, "darwintrace: unsupported state REPLACEPATH in dfa in " __FILE__ ":%d\n", __LINE__);
-					abort();
-				}
-				state = DONE;
-				/* the byte after the status code is '\0', if the status code
-				 * isn't 1 (which is no longer supported) */
-				t++;
-				break;
-		}
-		t++;
-	}
-
-	it->next = t;
-	return path;
-}
-
-/**
- * Request sandbox boundaries from tracelib (the MacPorts base-controlled side
- * of the trace setup) and store it.
- */
-static void __darwintrace_get_filemap() {
-	char *newfilemap;
-#if DARWINTRACE_DEBUG && 0
-	filemap_iterator_t it;
-	char *path, command;
-#endif
-
-#if HAVE_DECL_ATOMIC_COMPARE_EXCHANGE_STRONG_EXPLICIT   /* HAVE_DECL_* is always defined and set to 1 or 0 */
-#	define CAS(old, new, mem) atomic_compare_exchange_strong_explicit(mem, old, new, memory_order_relaxed, memory_order_relaxed)
-#elif defined(HAVE_OSATOMICCOMPAREANDSWAPPTR)
-#	define CAS(old, new, mem) OSAtomicCompareAndSwapPtr(*old, new, (void * volatile *) (mem))
-#elif defined(__LP64__)
-#	ifdef HAVE_OSATOMICCOMPAREANDSWAP64
-#		define CAS(old, new, mem) OSAtomicCompareAndSwap64((int64_t) (*old), (int64_t) (new), (volatile int64_t *) (mem))
-#	else
-#		error "No 64-bit compare and swap primitive available on 64-bit OS."
-#	endif
-#else
-#	ifdef HAVE_OSATOMICCOMPAREANDSWAP32
-#		define CAS(old, new, mem) OSAtomicCompareAndSwap32((int32_t) (*old), (int32_t) (new), (volatile int32_t *) (mem))
-#	else
-#		error "No 32-bit compare and swap primitive available."
-#	endif
-#endif
-
-	/*
-	 * ensure we have a filemap present; this might be called simultanously
-	 * from multiple threads and needs to work without leaking and in a way
-	 * that ensures a filemap has been set before any of the calls return. We
-	 * achieve that by using non-blocking synchronization. Blocking
-	 * synchronization might be a bad idea, because we never know where this
-	 * code is actually called in an application.
-	 */
-	newfilemap = NULL;
-	char *nullpointer = NULL;
-	do {
-		free(newfilemap);
-		if (filemap != NULL)
-			break;
-		newfilemap = __send("filemap\t", 8, 1);
-	} while (!CAS(&nullpointer, newfilemap, &filemap));
-
-#if DARWINTRACE_DEBUG && 0
-	for (__darwintrace_filemap_iterator_init(&it);
-	        (path = __darwintrace_filemap_iter(&command, &it));) {
-		debug_printf("filemap: {cmd=%d, path=%s}\n", command, path);
-	}
-#endif
 }
 
 /**
@@ -341,7 +188,7 @@ void __darwintrace_close() {
  * called after \c fork(2), i.e. when the current PID doesn't match the one
  * stored when the function was called last.
  */
-void __darwintrace_setup() {
+void __darwintrace_socket_setup() {
 	/*
 	 * Check whether this is a child process and we've inherited the socket. We
 	 * want to avoid race conditions with our parent process when communicating
@@ -426,9 +273,6 @@ void __darwintrace_setup() {
 
 		/* store FILE * into thread local storage for the socket */
 		__darwintrace_sock_set(stream);
-
-		/* request sandbox bounds */
-		__darwintrace_get_filemap();
 	}
 }
 
@@ -444,6 +288,8 @@ static inline void __darwintrace_log_op(const char *op, const char *path) {
 	uint32_t size;
 	char logbuffer[BUFFER_SIZE];
 
+	__darwintrace_socket_setup();
+
 	size = snprintf(logbuffer, sizeof(logbuffer), "%s\t%s", op, path);
 	// Check if the buffer was short. If it was, discard the message silently,
 	// assuming it isn't important enough to error out.
@@ -455,27 +301,32 @@ static inline void __darwintrace_log_op(const char *op, const char *path) {
 /**
  * Check whether the port currently being installed declares a dependency on
  * a given file. Communicates with MacPorts tracelib, which uses the registry
- * database to answer this question. Returns 1, if a dependency was declared,
- * 0, if the file belongs to a port and no dependency was declared and -1 if
+ * database to answer this question. tracelib Returns '+', if a dependency was declared,
+ * '!', if the file belongs to a port and no dependency was declared and '?' if
  * the file isnt't registered to any port.
  *
  * \param[in] path the path to send to MacPorts for dependency info
- * \return 1, if access should be granted, 0, if access should be denied, and
- *         -1 if MacPorts doesn't know about the file.
+ * \return a path_flags_t type after setting appropriate flags
  */
-static int dependency_check(const char *path) {
+static enum path_flags_t dependency_check(const char *path) {
 	char buffer[BUFFER_SIZE], *p;
 	uint32_t len;
-	int result = 0;
+	enum path_flags_t path_flags;
 	struct stat st;
 
+	path_flags = EMPTY;
+
 	if (-1 == lstat(path, &st)) {
-		return 1;
+		path_flags |= DARWINTRACE_ALLOW_PATH;
+		return (path_flags);
 	}
 	if (S_ISDIR(st.st_mode)) {
 		debug_printf("%s is directory\n", path);
-		return 1;
+		path_flags |= DARWINTRACE_ALLOW_PATH;
+		return (path_flags);
 	}
+
+	__darwintrace_socket_setup();
 
 	len = snprintf(buffer, sizeof(buffer), "dep_check\t%s", path);
 	if (len >= sizeof(buffer)) {
@@ -489,25 +340,34 @@ static int dependency_check(const char *path) {
 	}
 
 	switch (*p) {
+
 		case '+':
-			result = 1;
+			path_flags |= DARWINTRACE_ALLOW_PATH;
+			break;
+
+		case '?':
+			// if the file isn't known to MacPorts, allow
+			// access anyway, but report a sandbox violation.
+			// TODO find a better solution
+			path_flags |= DARWINTRACE_ALLOW_PATH;
+			path_flags |= DARWINTRACE_SANDBOX_UNKNOWN;
+
 			break;
 		case '!':
-			result = 0;
+			path_flags |= DARWINTRACE_DENY_PATH;
+			path_flags |= DARWINTRACE_SANDBOX_VIOLATION;
 			break;
-		case '?':
-			result = -1;
-			break;
+
 		default:
 			fprintf(stderr, "darwintrace: unexpected answer from tracelib: '%c' (0x%x)\n", *p, *p);
 			abort();
 			/*NOTREACHED*/
 	}
 
-	debug_printf("dependency_check: %s returned %d\n", path, result);
+	debug_printf("dependency_check: %s returned %d\n", path, path_flags);
 
 	free(p);
-	return result;
+	return (path_flags);
 }
 
 /**
@@ -609,29 +469,37 @@ static char *__send(const char *buf, uint32_t len, int answer) {
 	return recv_buf;
 }
 
-/**
- * Check a fully normalized path against the current sandbox. Helper function
- * for __darwintrace_is_in_sandbox; do not use directly.
- *
- * \param[in] path the path to be checked; must be absolute and normalized.
- * \param[in] flags A binary or combination of the following flags:
- *                  - DT_REPORT: If access to this path is being denied, report
- *                    it as sandbox violation. Set this for all operations that
- *                    read file contents or check file attributes. Omit this
- *                    flag for operations that might only attempt to access
- *                    a file by chance, such as readdir(3).
- *                  - DT_ALLOWDIR: Whether to always allow access if the given
- *                    path references an existing directory. Set this for
- *                    read operations such as stat(2), omit this for operations
- *                    that modify directories like rmdir(2) and mkdir(2).
- * \return \c true if the file is within sandbox bounds, \c false if access
- *         should be denied
- */
-static inline bool __darwintrace_sandbox_check(const char *path, int flags) {
-	filemap_iterator_t filemap_it;
+void __darwintrace_do_logging(const char *path, enum path_flags_t path_flags)
+{
+	if (path_flags & DARWINTRACE_DO_LOGGING) {
 
-	char command = -1;
-	char *t;
+		if (path_flags & DARWINTRACE_SANDBOX_UNKNOWN) {
+			__darwintrace_log_op("sandbox_unknown", path);
+		}
+
+		if (path_flags & DARWINTRACE_SANDBOX_VIOLATION) {
+			__darwintrace_log_op("sandbox_violation", path);
+		}
+	}
+}
+
+
+enum path_flags_t __darwintrace_ask_server(const char *path)
+{
+	enum path_flags_t path_flags;
+
+	path_flags = EMPTY;
+
+	/* the actual server calling func */
+	path_flags = dependency_check(path);
+
+	return (path_flags);
+}
+
+static inline bool __darwintrace_sandbox_check(const char *path, int flags) {
+
+	uint8_t permission;
+	enum path_flags_t path_flags;
 
 	if (path[0] == '/' && path[1] == '\0') {
 		// Always allow access to /. Strange things start to happen if you deny this.
@@ -645,50 +513,50 @@ static inline bool __darwintrace_sandbox_check(const char *path, int flags) {
 		}
 	}
 
-	// Iterate over the sandbox bounds and try to find a directive matching this path
-	for (__darwintrace_filemap_iterator_init(&filemap_it);
-	        (t = __darwintrace_filemap_iter(&command, &filemap_it));) {
-		if (__darwintrace_pathbeginswith(path, t)) {
-			switch (command) {
-				case FILEMAP_ALLOW:
-					return true;
-				case FILEMAP_ASK:
-					// ask the socket whether this file is OK
-					switch (dependency_check(path)) {
-						case 1:
-							return true;
-						case -1:
-							// if the file isn't known to MacPorts, allow
-							// access anyway, but report a sandbox violation.
-							// TODO find a better solution
-							if ((flags & DT_REPORT) > 0) {
-								__darwintrace_log_op("sandbox_unknown", path);
-							}
-							return true;
-						case 0:
-							// file belongs to a foreign port, deny access
-							if ((flags & DT_REPORT) > 0) {
-								__darwintrace_log_op("sandbox_violation", path);
-							}
-							return false;
-					}
-				case FILEMAP_DENY:
-					if ((flags & DT_REPORT) > 0) {
-						__darwintrace_log_op("sandbox_violation", path);
-					}
-					return false;
-				default:
-					fprintf(stderr, "darwintrace: error: unexpected byte in file map: `%x'\n", *t);
-					abort();
-			}
+	path_flags = EMPTY;
+
+	if (is_path_in_sandbox(trace_sandbox, path, &permission)) {
+
+		switch (permission) {
+
+			case TRACE_SANDBOX_ALLOW:
+
+				path_flags |= DARWINTRACE_ALLOW_PATH;
+				break;
+
+			case TRACE_SANDBOX_ASK_SERVER:
+
+				path_flags |= __darwintrace_ask_server(path);
+				break;
+
+			case TRACE_SANDBOX_DENY:
+
+				path_flags |= DARWINTRACE_DENY_PATH;
+				path_flags |= DARWINTRACE_SANDBOX_VIOLATION;
+				break;
+
+			default:
+				fprintf(stderr, "darwintrace: error: invalid permission\n");
+				abort();
 		}
+	} else {
+		path_flags |= DARWINTRACE_DENY_PATH;
+		path_flags |= DARWINTRACE_SANDBOX_VIOLATION;
 	}
 
 	if ((flags & DT_REPORT) > 0) {
-		__darwintrace_log_op("sandbox_violation", path);
+		path_flags |= DARWINTRACE_DO_LOGGING;
 	}
-	return false;
+
+	__darwintrace_do_logging(path, path_flags);
+
+	if (path_flags & DARWINTRACE_ALLOW_PATH) {
+		return (true);
+	}
+
+	return (false);
 }
+
 
 /**
  * Check a path against the current sandbox
@@ -708,7 +576,18 @@ static inline bool __darwintrace_sandbox_check(const char *path, int flags) {
  *         should be denied
  */
 bool __darwintrace_is_in_sandbox(const char *path, int flags) {
-	if (!filemap) {
+
+	if (trace_sandbox == SHM_NULL) {
+		if (__env_tracesandbox_tree_root != NULL) {
+			trace_sandbox = ( shm_offt )strtoumax(__env_tracesandbox_tree_root, NULL, 10);
+		} else {
+			DT_PRINT("__env_tracesandbox_tree_root NULL %s", path);
+			return true;
+		}
+	}
+
+	if (trace_sandbox_is_fence_set(trace_sandbox) == false) {
+		DT_PRINT("FENCE NOT SET %s", path);
 		return true;
 	}
 
@@ -737,7 +616,7 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 		/*
 		 * The path isn't absolute, start by populating pathcomponents with the
 		 * current working directory.
-		 * 
+		 *
 		 * However, we avoid getcwd(3) if we can and use getattrlist(2) with
 		 * ATTR_CMN_FULLPATH instead, because getcwd(3) will open all parent
 		 * directories, read them, search for the current component using its
