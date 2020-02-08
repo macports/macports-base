@@ -427,6 +427,10 @@ AC_CONFIG_FILES([
 	src/Makefile
 	src/cregistry/Makefile
 	src/compat/Makefile
+	src/darwintrace_share/Makefile
+	src/darwintrace_share/shm_alloc/Makefile
+	src/darwintrace_share/ctrie/Makefile
+	src/darwintrace_share/trace_sandbox/Makefile
 	src/darwintracelib1.0/Makefile
 	src/machista1.0/Makefile
 	src/macports1.0/Makefile
