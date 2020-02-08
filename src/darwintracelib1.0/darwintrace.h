@@ -150,6 +150,18 @@ extern pid_t __darwintrace_pid;
 extern char *__env_darwintrace_log;
 
 /**
+ * Copy of the DARWINTRACE_CACHE_TREE_ROOT environment variable to restore it in execve(2).
+ * Contains the root of cache tree.
+ */
+extern char *__env_darwintrace_cache_tree_root;
+
+/**
+ * Copy of the TRACESANDBOX_TREE_ROOT environment variable to restore it in execve(2).
+ * Contains the root of sandbox tree.
+ */
+extern char *__env_tracesandbox_tree_root;
+
+/**
  * Helper variable containing the number of the darwintrace socket, iff the
  * close(2) syscall should be allowed to close it. Used by \c
  * __darwintrace_close.

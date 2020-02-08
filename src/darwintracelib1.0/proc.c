@@ -52,6 +52,10 @@
 #include <spawn.h>
 #endif
 
+/*
+ * Copy the environment variables, if they're defined. This is run as
+ * a constructor at startup.
+ */
 static void store_env() __attribute__((constructor));
 
 /**
@@ -80,10 +84,36 @@ char *__env_darwintrace_log;
 static char *__env_full_darwintrace_log;
 
 /**
- * Copy the environment variables, if they're defined. This is run as
- * a constructor at startup.
+ * Copy of DARWINTRACE_STDERR environment variable to restore it in execve(2).
  */
-static void store_env() {
+char *__env_darwintrace_stderr;
+static char *__env_full_darwintrace_stderr;
+
+/**
+ * Copy of the DARWINTRACE_CACHE_TREE_ROOT environment variable to restore it in execve(2).
+ */
+char *__env_darwintrace_cache_tree_root;
+static char *__env_full_darwintrace_cache_tree_root;
+
+/**
+ * Copy of the TRACESANDBOX_TREE_ROOT environment variable to restore it in execve(2).
+ */
+char *__env_tracesandbox_tree_root;
+static char *__env_full_tracesandbox_tree_root;
+
+/**
+ * Copy of the SHM_FILE environment variable to restore it in execve(2).
+ */
+char *__env_shm_file;
+static char *__env_full_shm_file;
+
+
+/**
+ * Copy the environment variables, if they're defined. This is run in
+ * a constructor at startup from darwintrace.c.
+ */
+
+void store_env() {
 #define COPYENV(name, variable, valuevar) do {\
 		char *val;\
 		if (NULL != (val = getenv(#name))) {\
@@ -106,9 +136,13 @@ static void store_env() {
 	COPYENV(DYLD_INSERT_LIBRARIES, __env_full_dyld_insert_libraries, __env_dyld_insert_libraries);
 	COPYENV(DYLD_FORCE_FLAT_NAMESPACE, __env_full_dyld_force_flat_namespace, __env_dyld_force_flat_namespace);
 	COPYENV(DARWINTRACE_LOG, __env_full_darwintrace_log, __env_darwintrace_log);
+	COPYENV(DARWINTRACE_STDERR, __env_full_darwintrace_stderr, __env_darwintrace_stderr);
+	COPYENV(DARWINTRACE_CACHE_TREE_ROOT, __env_full_darwintrace_cache_tree_root, __env_darwintrace_cache_tree_root);
+	COPYENV(TRACESANDBOX_TREE_ROOT, __env_full_tracesandbox_tree_root, __env_tracesandbox_tree_root);
+	COPYENV(SHM_FILE, __env_full_shm_file, __env_shm_file);
 #undef COPYENV
 
-	char *debugpath = getenv("DARWINTRACE_DEBUG");
+	char *debugpath = __env_darwintrace_stderr;
 	if (debugpath) {
 		__darwintrace_stderr = fopen(debugpath, "a+");
 	} else {
@@ -140,6 +174,10 @@ static inline char **restore_env(char *const envp[]) {
 	char *dyld_insert_libraries_ptr     = __env_full_dyld_insert_libraries;
 	char *dyld_force_flat_namespace_ptr = __env_full_dyld_force_flat_namespace;
 	char *darwintrace_log_ptr           = __env_full_darwintrace_log;
+	char *darwintrace_cache_tree_root_ptr = __env_full_darwintrace_cache_tree_root;
+	char *tracesandbox_tree_root_ptr = __env_full_tracesandbox_tree_root;
+	char *darwintrace_stderr_ptr = __env_full_darwintrace_stderr;
+	char *shm_file_ptr = __env_full_shm_file;
 
 	char *const *enviter = envp;
 	size_t envlen = 0;
@@ -168,7 +206,22 @@ static inline char **restore_env(char *const envp[]) {
 		} else if (__darwintrace_strbeginswith(val, "DARWINTRACE_LOG=")) {
 			val = darwintrace_log_ptr;
 			darwintrace_log_ptr = NULL;
+		} else if (__darwintrace_strbeginswith(val, "DARWINTRACE_CACHE_TREE_ROOT=")) {
+			val = darwintrace_cache_tree_root_ptr;
+			darwintrace_cache_tree_root_ptr = NULL;
+		} else if (__darwintrace_strbeginswith(val, "TRACESANDBOX_TREE_ROOT=")) {
+			val = tracesandbox_tree_root_ptr;
+			tracesandbox_tree_root_ptr = NULL;
+		} else if (__darwintrace_strbeginswith(val, "DARWINTRACE_STDERR=")) {
+			val = darwintrace_stderr_ptr;
+			darwintrace_stderr_ptr = NULL;
+		}  else if (__darwintrace_strbeginswith(val, "SHM_FILE=")) {
+			val = shm_file_ptr;
+			shm_file_ptr = NULL;
 		}
+
+
+
 
 		if (val) {
 			*copyiter++ = val;
@@ -185,6 +238,21 @@ static inline char **restore_env(char *const envp[]) {
 	}
 	if (darwintrace_log_ptr) {
 		*copyiter++ = darwintrace_log_ptr;
+	}
+	if (darwintrace_cache_tree_root_ptr) {
+		*copyiter++ = darwintrace_cache_tree_root_ptr;
+	}
+
+	if (tracesandbox_tree_root_ptr) {
+		*copyiter++ = tracesandbox_tree_root_ptr;
+	}
+
+	if (darwintrace_stderr_ptr) {
+		*copyiter++ = darwintrace_stderr_ptr;
+	}
+
+	if (shm_file_ptr) {
+		*copyiter++ = shm_file_ptr;
 	}
 
 	*copyiter = 0;
