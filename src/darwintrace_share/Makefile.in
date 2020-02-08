@@ -26,6 +26,8 @@ all:: $(STLIB)
 
 install::
 
+test::
+
 ifeq (,$(findstring clean,$(MAKECMDGOALS)))
 # Include dependency information
 -include $(SRCS:%.c=%.d)
