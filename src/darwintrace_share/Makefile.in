@@ -1,0 +1,42 @@
+srcdir = @srcdir@
+VPATH  = @srcdir@
+
+include $(srcdir)/../../Mk/macports.autoconf.mk
+
+CFLAGS += -fPIC
+
+SRCS = \
+	$(srcdir)/shm_alloc/shm_alloc.c \
+	$(srcdir)/ctrie/ctrie.c \
+	$(srcdir)/trace_sandbox/trie.c \
+	darwintrace_share.c
+
+OBJS = $(SRCS:%.c=%.o)
+
+
+%.d : %.c
+	$(CC) -MM -MP $(CPPFLAGS) $< > $@
+
+STLIB = darwintrace_share.a
+
+$(STLIB): $(OBJS)
+	$(STLIB_LD) $@ $(OBJS)
+
+all:: $(STLIB)
+
+install::
+
+ifeq (,$(findstring clean,$(MAKECMDGOALS)))
+# Include dependency information
+-include $(SRCS:%.c=%.d)
+endif
+
+
+clean::
+	rm -f $(OBJS) $(SRCS:%.c=%.d) $(STLIB)
+
+distclean::
+	rm -f Makefile
+
+codesign:: $(SHLIB_NAME)
+	../../codesign.sh $?
