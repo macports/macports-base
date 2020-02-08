@@ -6,6 +6,7 @@ include ../../Mk/macports.autoconf.mk
 OBJS= \
 	Pextlib.o \
 	adv-flock.o \
+	darwintrace_cache.o \
 	curl.o \
 	filemap.o \
 	fs-traverse.o \
@@ -19,9 +20,11 @@ OBJS= \
 	setmode.o \
 	sha1cmd.o \
 	sha256cmd.o \
+	shared_memory.o \
 	strsed.o \
 	system.o \
 	tracelib.o \
+	tracesandbox.o \
 	tty.o \
 	uid.o \
 	vercomp.o \
@@ -53,6 +56,13 @@ tracelib.o: ../darwintracelib1.0/sandbox_actions.h
 
 CFLAGS+= ${CURL_CFLAGS} ${MD5_CFLAGS} ${READLINE_CFLAGS}
 LIBS+= ${CURL_LIBS} ${MD5_LIBS} ${READLINE_LIBS}
+
+# The library that contains code shared among pextlib1.0 and darwintracelib1.0
+DARWINTRACE_SHARE_LIB = $(srcdir)/../darwintrace_share/darwintrace_share.a
+LIBS+= $(DARWINTRACE_SHARE_LIB)
+$(SHLIB_NAME): $(DARWINTRACE_SHARE_LIB)
+
+
 ifeq (darwin,@OS_PLATFORM@)
 LIBS+= ../registry2.0/registry${SHLIB_SUFFIX}
 SHLIB_LDFLAGS+= -install_name ${INSTALLDIR}/${SHLIB_NAME}
