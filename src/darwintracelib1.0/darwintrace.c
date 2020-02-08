@@ -99,9 +99,6 @@ pthread_key_t sock_key;
 
 static shm_offt trace_sandbox = SHM_NULL;
 
-/*
- * Flags associates with every path being checked
- */
 enum path_flags_t {
 	EMPTY                         = 1 << 0,
 	DARWINTRACE_ALLOW_PATH        = 1 << 1,
@@ -488,10 +485,40 @@ enum path_flags_t __darwintrace_ask_server(const char *path)
 {
 	enum path_flags_t path_flags;
 
+	bool cache_lookup_res;
+	static shm_offt cache_root = SHM_NULL;
+	/*
+	 * Get cache root
+	 */
+	if (cache_root == SHM_NULL) {
+		if (__env_darwintrace_cache_tree_root != NULL) {
+			errno = 0;
+			cache_root = (shm_offt)strtoumax(__env_darwintrace_cache_tree_root, NULL, 10);
+			if (errno != 0) {
+				cache_root = SHM_NULL;
+				DT_ERR("strtoumax() failed for __env_darwintrace_cache_tree_root");
+			}
+		}
+	}
+
+	assert(cache_root != SHM_NULL);
+
+	path_flags = EMPTY;
+
+	/*
+	 * Search the cache
+	 */
+	cache_lookup_res = search_cache(cache_root, path, &path_flags);
+	if (cache_lookup_res == true) {
+		return (path_flags);
+	}
+
 	path_flags = EMPTY;
 
 	/* the actual server calling func */
 	path_flags = dependency_check(path);
+
+	add_to_cache(cache_root, path, path_flags);
 
 	return (path_flags);
 }
