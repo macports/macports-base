@@ -51,6 +51,23 @@ namespace eval porttrace {
     variable fifo_mktemp_template "/tmp/macports-trace-XXXXXX"
 
     ##
+    # Template used to create the shared memory file
+    # that is used by sandbox trie and ctrie cache
+    variable shm_file_mktemp_template "/tmp/macports-shmfile-XXXXXX"
+
+    ##
+    # The filename constructed by shm_file_template
+    variable shm_file
+
+
+    ##
+    # The root of trace sandbox tree.
+    # This variable just stores the root
+    # as it is in string form
+    variable tracesandbox_tree_root
+
+
+    ##
     # The Tcl thread that runs the server side of trace mode and deals with
     # requests from traced processes.
     variable thread
@@ -65,16 +82,7 @@ namespace eval porttrace {
     # unknown to MacPorts that were used by the current trace session.
     variable sandbox_unknown_list [list]
 
-    proc appendEntry {sandbox path action} {
-        upvar 2 $sandbox sndbxlst
-
-        set mapping {}
-        # Escape backslashes with backslashes
-        lappend mapping "\\" "\\\\"
-        # Escape colons with \:
-        lappend mapping ":" "\\:"
-        # Escape equal signs with \=
-        lappend mapping "=" "\\="
+    proc appendEntry {root path action} {
 
         # file normalize will leave symlinks as the very last
         # path component intact. This will, for instance, prevent /tmp from
@@ -85,41 +93,43 @@ namespace eval porttrace {
         if {![catch {file type $normalizedPath}]} {
             set normalizedPath [realpath $normalizedPath]
         }
-        lappend sndbxlst "[string map $mapping $path]=$action"
+
+        darwintrace_share_trace_sandbox_add $root $path $action
+
         if {$normalizedPath ne $path} {
-            lappend sndbxlst "[string map $mapping $normalizedPath]=$action"
+            darwintrace_share_trace_sandbox_add $root $normalizedPath $action
         }
     }
 
     ##
     # Append a trace sandbox entry suitable for allowing access to
-    # a directory to a given sandbox list.
+    # a directory to a given sandbox tree root.
     #
-    # @param sandbox The name of the sandbox list variable
+    # @param root Sandbox tree root
     # @param path The path that should be permitted
-    proc allow {sandbox path} {
-        appendEntry $sandbox $path "+"
+    proc allow {root path} {
+        appendEntry $root $path "+"
     }
 
     ##
     # Append a trace sandbox entry suitable for denying access to a directory
-    # (and stopping processing of the sandbox) to a given sandbox list.
+    # (and stopping processing of the sandbox) to a given sandbox tree root.
     #
-    # @param sandbox The name of the sandbox list variable
+    # @param root Sandbox tree root
     # @param path The path that should be denied
-    proc deny {sandbox path} {
-        appendEntry $sandbox $path "-"
+    proc deny {root path} {
+        appendEntry $root $path "-"
     }
 
     ##
     # Append a trace sandbox entry suitable for deferring the access decision
-    # back to MacPorts to query for dependencies to a given sandbox list.
+    # back to MacPorts to query for dependencies to a given sandbox tree.
     #
-    # @param sandbox The name of the sandbox list variable
+    # @param root Sandbox tree root
     # @param path The path that should be handed back to MacPorts for further
     #             processing.
-    proc ask {sandbox path} {
-        appendEntry $sandbox $path "?"
+    proc ask {root path} {
+        appendEntry $root $path "?"
     }
 
     ##
@@ -132,10 +142,14 @@ namespace eval porttrace {
     proc trace_start {workpath} {
         global \
             developer_dir distpath env macportsuser os.platform configure.sdkroot \
-            portpath prefix use_xcode
+            portpath prefix use_xcode subport
 
         variable fifo
         variable fifo_mktemp_template
+
+        variable shm_file
+        variable shm_file_mktemp_template
+        variable tracesandbox_tree_root
 
         if {[catch {package require Thread} error]} {
             ui_warn "Trace mode requires Tcl Thread package ($error)"
@@ -150,6 +164,14 @@ namespace eval porttrace {
         # later)
         file delete -force $fifo
 
+        # Generate a name for the shm_file to be used to share data with the
+        # processes being traced.
+        set shm_file [mktemp $shm_file_mktemp_template]
+
+        # Make sure the file doesn't exist yet
+        file delete -force $shm_file
+
+
         # Create the server-side of the trace socket; this will handle requests
         # from the traced processed.
         create_slave $workpath $fifo
@@ -163,57 +185,79 @@ namespace eval porttrace {
         } else {
             set env(DYLD_INSERT_LIBRARIES) ${darwintracepath}
         }
+
         # Tell traced processes where to find their communication socket back
         # to this code.
         set env(DARWINTRACE_LOG) $fifo
 
-        # The sandbox is limited to:
-        set trace_sandbox [list]
+        # TODO: setup a reasonalble place for darwintrace logs.
+        #
+        # Darwintraced processes can't use stderr as it may conflict with
+        # the processes of installing a port and cause build failure or
+        # undefined behaviour. e.g., if a build process was writing to
+        # stderr and some other process was reading stderr and suddenly
+        # darwintrace code writes to stderr, that will be an unexpected read for
+        # that build process. So we keep a separate log for darwintrace prints
+        #set logpath [getportlogpath $portpath]
+        #set darwintrace_logpath [file join $logpath $subport "darwintrace.log"]
+        #
+        set env(DARWINTRACE_STDERR) "/tmp/macports-dtstderr.log"
+
+        # Set the env SHM_FILE so that traced processes can know
+        # where is the shared memory file
+        set env(SHM_FILE) $shm_file
+
+        # Setup shared memory
+        darwintrace_share_set_shared_memory "$shm_file"
+
+        set tracesandbox_tree_root [darwintrace_share_trace_sandbox_new]
+        set env(TRACESANDBOX_TREE_ROOT) $tracesandbox_tree_root
+
 
         # Allow work-, port-, and distpath
-        allow trace_sandbox $workpath
-        allow trace_sandbox $portpath
-        allow trace_sandbox $distpath
+        allow $tracesandbox_tree_root $workpath
+        allow $tracesandbox_tree_root $portpath
+        allow $tracesandbox_tree_root $distpath
 
         # Allow standard system directories
-        allow trace_sandbox "/bin"
-        allow trace_sandbox "/sbin"
-        allow trace_sandbox "/dev"
-        allow trace_sandbox "/usr/bin"
-        allow trace_sandbox "/usr/sbin"
-        allow trace_sandbox "/usr/include"
-        allow trace_sandbox "/usr/lib"
-        allow trace_sandbox "/usr/libexec"
-        allow trace_sandbox "/usr/share"
-        allow trace_sandbox "/System/Library"
+        allow $tracesandbox_tree_root "/bin"
+        allow $tracesandbox_tree_root "/sbin"
+        allow $tracesandbox_tree_root "/dev"
+        allow $tracesandbox_tree_root "/usr/bin"
+        allow $tracesandbox_tree_root "/usr/sbin"
+        allow $tracesandbox_tree_root "/usr/include"
+        allow $tracesandbox_tree_root "/usr/lib"
+        allow $tracesandbox_tree_root "/usr/libexec"
+        allow $tracesandbox_tree_root "/usr/share"
+        allow $tracesandbox_tree_root "/System/Library"
         # Deny /Library/Frameworks, third parties install there
-        deny  trace_sandbox "/Library/Frameworks"
+        deny  $tracesandbox_tree_root "/Library/Frameworks"
         # But allow the rest of /Library
-        allow trace_sandbox "/Library"
+        allow $tracesandbox_tree_root "/Library"
 
         # Allow a few configuration files
-        allow trace_sandbox "/etc"
+        allow $tracesandbox_tree_root "/etc"
 
         # Allow temporary locations
-        allow trace_sandbox "/tmp"
-        allow trace_sandbox "/var/tmp"
-        allow trace_sandbox "/var/folders"
-        allow trace_sandbox "/var/empty"
-        allow trace_sandbox "/var/run"
+        allow $tracesandbox_tree_root "/tmp"
+        allow $tracesandbox_tree_root "/var/tmp"
+        allow $tracesandbox_tree_root "/var/folders"
+        allow $tracesandbox_tree_root "/var/empty"
+        allow $tracesandbox_tree_root "/var/run"
         if {[info exists env(TMPDIR)]} {
             set tmpdir [string trim $env(TMPDIR)]
             if {$tmpdir ne ""} {
-                allow trace_sandbox $tmpdir
+                allow $tracesandbox_tree_root $tmpdir
             }
         }
 
         # Allow timezone info & access to system certificates
-        allow trace_sandbox "/var/db/timezone/zoneinfo"
-        allow trace_sandbox "/var/db/mds/system"
+        allow $tracesandbox_tree_root "/var/db/timezone/zoneinfo"
+        allow $tracesandbox_tree_root "/var/db/mds/system"
 
         # Allow access to SDK if it's not inside the Developer folder.
         if {${configure.sdkroot} ne ""} {
-            allow trace_sandbox "${configure.sdkroot}"
+            allow $tracesandbox_tree_root "${configure.sdkroot}"
         }
 
         # Allow access to some Xcode specifics
@@ -234,38 +278,30 @@ namespace eval porttrace {
         set cltpath "/Library/Developer/CommandLineTools"
         if {[tbool use_xcode]} {
             foreach xcode_path $xcode_paths {
-                allow trace_sandbox $xcode_path
+                allow $tracesandbox_tree_root $xcode_path
             }
         } else {
             foreach xcode_path $xcode_paths {
-                deny trace_sandbox $xcode_path
+                deny $tracesandbox_tree_root $xcode_path
             }
         }
 
         # Allow launchd.db access to avoid failing on port-load(1)/port-unload(1)/port-reload(1)
-        allow trace_sandbox "/var/db/launchd.db"
+        allow $tracesandbox_tree_root "/var/db/launchd.db"
 
         # Deal with ccache
-        allow trace_sandbox "$env(HOME)/.ccache"
+        allow $tracesandbox_tree_root "$env(HOME)/.ccache"
         if {[info exists env(CCACHE_DIR)]} {
             set ccachedir [string trim $env(CCACHE_DIR)]
             if {$ccachedir ne ""} {
-                allow trace_sandbox $ccachedir
+                allow $tracesandbox_tree_root $ccachedir
             }
         }
 
         # Grant access to the directory we use to mirror binaries under SIP
-        allow trace_sandbox ${portutil::autoconf::trace_sipworkaround_path}
-        # Defer back to MacPorts for dependency checks inside $prefix. This must be at the end,
-        # or it'll be used instead of more specific rules.
-        ask trace_sandbox $prefix
-
-        ui_debug "Tracelib Sandbox is:"
-        foreach trace_entry $trace_sandbox {
-            ui_debug "\t$trace_entry"
-        }
-
-        tracelib setsandbox [join $trace_sandbox :]
+        allow $tracesandbox_tree_root ${portutil::autoconf::trace_sipworkaround_path}
+        # Defer back to MacPorts for dependency checks inside $prefix.
+        ask $tracesandbox_tree_root $prefix
     }
 
     ##
@@ -278,16 +314,25 @@ namespace eval porttrace {
             macosx_version
 
         variable fifo
+        variable shm_file
 
-        foreach var {DYLD_INSERT_LIBRARIES DARWINTRACE_LOG} {
+        foreach var {DYLD_INSERT_LIBRARIES DARWINTRACE_LOG DARWINTRACE_STDERR SHM_FILE TRACESANDBOX_TREE_ROOT DARWINTRACE_CACHE_TREE_ROOT} {
             array unset env $var
         }
 
         # Kill socket
         tracelib closesocket
         tracelib clean
+
+        trace_disable_fence
+        # release resources held by current process for shared memory
+        darwintrace_share_unset_shared_memory
+
         # Delete the socket file
         file delete -force $fifo
+
+        # Delete the shm file
+        file delete -force $shm_file
 
         # Delete the slave.
         delete_slave
@@ -297,7 +342,13 @@ namespace eval porttrace {
     # Enable the sandbox. This is only called for targets that should be run
     # inside the sandbox.
     proc trace_enable_fence {} {
-        tracelib enablefence
+        variable tracesandbox_tree_root
+        darwintrace_share_trace_sandbox_set_fence $tracesandbox_tree_root
+    }
+
+    proc trace_disable_fence {} {
+        variable tracesandbox_tree_root
+        darwintrace_share_trace_sandbox_unset_fence $tracesandbox_tree_root
     }
 
     ##
