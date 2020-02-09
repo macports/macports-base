@@ -13,14 +13,13 @@ SRCS = \
 
 OBJS = $(SRCS:%.c=%.o)
 
-
 %.d : %.c
 	$(CC) -MM -MP $(CPPFLAGS) $< > $@
 
 STLIB = darwintrace_share.a
 
 $(STLIB): $(OBJS)
-	$(STLIB_LD) $@ $(OBJS)
+	$(STLIB_LD) -s $@ $(OBJS)
 
 all:: $(STLIB)
 
