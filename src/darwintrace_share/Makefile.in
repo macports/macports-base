@@ -3,7 +3,7 @@ VPATH  = @srcdir@
 
 include $(srcdir)/../../Mk/macports.autoconf.mk
 
-CFLAGS += -fPIC
+CFLAGS += -fPIC $(UNIVERSAL_ARCHFLAGS)
 
 SRCS = \
 	$(srcdir)/shm_alloc/shm_alloc.c \
