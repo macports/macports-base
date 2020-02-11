@@ -45,9 +45,9 @@ namespace eval portprogress {
     variable indeterminate             yes
 }
 
-# A SystemCmd callback that parses common progress formats to display
+# A SystemCmd callback that parses common target progress formats to display
 # a progress bar
-proc portprogress::system_progress_callback {event} {
+proc portprogress::target_progress_callback {event} {
     global portverbose
     variable indeterminate
     variable indeterminate_timer

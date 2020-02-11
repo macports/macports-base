@@ -1405,7 +1405,7 @@ proc portconfigure::configure_main {args} {
         global configure.${flags} configure.universal_${flags}
     }
 
-    set callback [list "-callback" portprogress::system_progress_callback]
+    set callback [list "-callback" portprogress::target_progress_callback]
 
     if {[tbool use_autoreconf]} {
         if {[catch {command_exec {*}${callback} autoreconf} result]} {

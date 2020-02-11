@@ -33,7 +33,7 @@ proc porttest::test_start {args} {
 proc porttest::test_main {args} {
     global subport test.run
     if {[tbool test.run]} {
-        command_exec -callback portprogress::system_progress_callback test
+        command_exec -callback portprogress::target_progress_callback test
     } else {
     return -code error [format [msgcat::mc "%s has no tests turned on. see 'test.run' in portfile(7)"] $subport]
     }

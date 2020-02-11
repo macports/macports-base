@@ -200,7 +200,7 @@ proc portbuild::build_main {args} {
 
     set realcmd ${build.cmd}
     set build.cmd "${build.cmd}$jobs_suffix"
-    command_exec -callback portprogress::system_progress_callback build
+    command_exec -callback portprogress::target_progress_callback build
     set build.cmd ${realcmd}
     return 0
 }
