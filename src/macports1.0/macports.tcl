@@ -66,8 +66,9 @@ namespace eval macports {
         rsync_server rsync_options rsync_dir startupitem_autostart startupitem_type startupitem_install \
         place_worksymlink macportsuser sudo_user \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
-        os_arch os_endian os_version os_major os_minor os_platform os_subplatform macosx_version macosx_sdk_version macosx_deployment_target \
+        applications_dir applications_dir_frozen current_phase frameworks_dir frameworks_dir_frozen \
+        developer_dir universal_archs build_arch os_arch os_endian os_version os_major os_minor \
+        os_platform os_subplatform macosx_version macosx_sdk_version macosx_deployment_target \
         packagemaker_path default_compilers sandbox_enable sandbox_network delete_la_files cxx_stdlib \
         pkg_post_unarchive_deletions $user_options"
 
@@ -437,8 +438,26 @@ proc macports::setxcodeinfo {name1 name2 op} {
                 } elseif {[regexp {DevToolsCore-(.*);} $xcodebuildversion - devtoolscore_v] == 1} {
                     if {$devtoolscore_v >= 1809.0} {
                         set macports::xcodeversion 3.2.6
+                    } elseif {$devtoolscore_v >= 1763.0} {
+                        set macports::xcodeversion 3.2.5
+                    } elseif {$devtoolscore_v >= 1705.0} {
+                        set macports::xcodeversion 3.2.4
+                    } elseif {$devtoolscore_v >= 1691.0} {
+                        set macports::xcodeversion 3.2.3
+                    } elseif {$devtoolscore_v >= 1648.0} {
+                        set macports::xcodeversion 3.2.2
+                    } elseif {$devtoolscore_v >= 1614.0} {
+                        set macports::xcodeversion 3.2.1
+                    } elseif {$devtoolscore_v >= 1608.0} {
+                        set macports::xcodeversion 3.2
                     } elseif {$devtoolscore_v >= 1204.0} {
                         set macports::xcodeversion 3.1.4
+                    } elseif {$devtoolscore_v >= 1192.0} {
+                        set macports::xcodeversion 3.1.3
+                    } elseif {$devtoolscore_v >= 1148.0} {
+                        set macports::xcodeversion 3.1.2
+                    } elseif {$devtoolscore_v >= 1114.0} {
+                        set macports::xcodeversion 3.1.1
                     } elseif {$devtoolscore_v >= 1100.0} {
                         set macports::xcodeversion 3.1
                     } elseif {$devtoolscore_v >= 921.0} {
@@ -449,8 +468,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
                         set macports::xcodeversion 2.4.1
                     } elseif {$devtoolscore_v >= 757.0} {
                         set macports::xcodeversion 2.4
-                    } elseif {$devtoolscore_v > 650.0} {
-                        # XXX find actual version corresponding to 2.3
+                    } elseif {$devtoolscore_v >= 747.0} {
                         set macports::xcodeversion 2.3
                     } elseif {$devtoolscore_v >= 650.0} {
                         set macports::xcodeversion 2.2.1
@@ -587,6 +605,10 @@ proc macports::_is_valid_developer_dir {dir} {
 
 
 proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
+    # Disable unknown(n)'s behavior of running unknown commands in the system
+    # shell
+    set ::auto_noexec yes
+
     if {$up_ui_options eq {}} {
         array set macports::ui_options {}
     } else {
@@ -630,6 +652,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::prefix \
         macports::macportsuser \
         macports::prefix_frozen \
+        macports::applications_dir_frozen \
+        macports::frameworks_dir_frozen \
         macports::xcodebuildcmd \
         macports::xcodeversion \
         macports::configureccache \
@@ -699,7 +723,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     # Check that the current platform is the one we were configured for, otherwise need to do migration
-    if {($os_platform ne $macports::autoconf::os_platform) || ($os_major != $macports::autoconf::os_major)} {
+    if {($os_platform ne $macports::autoconf::os_platform) || ($os_platform eq "darwin" && $os_major != $macports::autoconf::os_major)} {
         ui_error "Current platform \"$os_platform $os_major\" does not match expected platform \"$macports::autoconf::os_platform $macports::autoconf::os_major\""
         ui_error "If you upgraded your OS, please follow the migration instructions: https://trac.macports.org/wiki/Migration"
         return -code error "OS platform mismatch"
@@ -943,6 +967,13 @@ Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarbal
 
     if {![info exists macports::applications_dir]} {
         set macports::applications_dir /Applications/MacPorts
+    }
+    set macports::applications_dir_frozen ${macports::applications_dir}
+
+    if {[info exists macports::frameworks_dir]} {
+        set macports::frameworks_dir_frozen ${macports::frameworks_dir}
+    } else {
+        set macports::frameworks_dir_frozen ${macports::prefix_frozen}/Library/Frameworks
     }
 
     # Export verbosity.

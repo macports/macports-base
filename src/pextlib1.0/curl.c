@@ -59,6 +59,12 @@
 #define _CURL_MINIMUM_XFER_TIMEOUT	((long)(60))		/* 1 minute */
 #define _CURL_MINIMUM_PROGRESS_INTERVAL ((double)(0.2)) /* 0.2 seconds */
 
+#if defined CURLOPT_ACCEPT_ENCODING
+#define _CURL_ENCODING CURLOPT_ACCEPT_ENCODING
+#else
+#define _CURL_ENCODING CURLOPT_ENCODING
+#endif
+
 /* ========================================================================= **
  * Definitions
  * ========================================================================= */
@@ -150,7 +156,7 @@ SetResultFromCurlMErrorCode(Tcl_Interp *interp, CURLMcode inErrorCode)
 /**
  * curl fetch subcommand entry point.
  *
- * syntax: curl fetch [--disable-epsv] [--ignore-ssl-cert] [--remote-time] [-u userpass] [--effective-url lasturlvar] [--progress "builtin"|callback] url filename
+ * syntax: curl fetch [--disable-epsv] [--ignore-ssl-cert] [--remote-time] [-u userpass] [--effective-url lasturlvar] [--progress "builtin"|callback] [--enable-compression] url filename
  *
  * @param interp		current interpreter
  * @param objc			number of parameters
@@ -191,6 +197,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		struct curl_slist *headers = NULL;
 		struct CURLMsg *info = NULL;
 		int running; /* number of running transfers */
+		char* acceptEncoding = NULL;
 
 		/* we might have options and then the url and the file */
 		/* let's process the options first */
@@ -276,6 +283,8 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 					theResult = TCL_ERROR;
 					break;
 				}
+			} else if (strcmp(theOption, "--enable-compression") == 0) {
+				acceptEncoding = "";
 			} else {
 				Tcl_ResetResult(interp);
 				Tcl_AppendResult(interp, "curl fetch: unknown option ", theOption, NULL);
@@ -486,6 +495,19 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				break;
 			}
 		}
+
+		/* a CURLOPT_ACCEPT_ENCODING of "" means to let cURL write the
+		 * Accept-Encoding header for you, based on what the library
+		 * was compiled to support.
+		 * A value of NULL disables all attemps at decompressing responses.
+		*/
+#ifdef _CURL_ENCODING
+		theCurlCode = curl_easy_setopt(theHandle, _CURL_ENCODING, acceptEncoding);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+#endif
 
 		/* Clear the Pragma: no-cache header */
 		headers = curl_slist_append(headers, "Pragma:");

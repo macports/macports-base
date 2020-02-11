@@ -34,7 +34,7 @@
 #set -x
 
 # Script identification:
-VERSION=2.4
+VERSION=2.6
 
 # Abstraction variables:
 PREFIX="@prefix@"
@@ -221,7 +221,6 @@ USHELL=${USHELL#*shell: }
 case "${USHELL}" in
     */tcsh)
         echo "Detected the tcsh shell."
-        LOGIN_FLAG=""
         ENV_COMMAND="setenv"
         ASSIGN=" "
         if [[ -f "${HOME}/.tcshrc" ]]; then
@@ -234,7 +233,6 @@ case "${USHELL}" in
         ;;
     */bash)
         echo "Detected the bash shell."
-        LOGIN_FLAG="-l"
         ENV_COMMAND="export"
         ASSIGN="="
         if [[ -f "${HOME}/.bash_profile" ]]; then
@@ -244,6 +242,12 @@ case "${USHELL}" in
         else
             CONF_FILE=profile
         fi
+        ;;
+    */zsh)
+        echo "Detected the zsh shell."
+        ENV_COMMAND="export"
+        ASSIGN="="
+        CONF_FILE="zprofile"
         ;;
     *)
         echo "Unknown shell ($USHELL)! Please set your MacPorts compatible environment manually."

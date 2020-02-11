@@ -2056,13 +2056,16 @@ proc action_info { action portlist opts } {
         # Interpret a convenient field abbreviation
         if {[info exists options(ports_info_depends)] && $options(ports_info_depends) eq "yes"} {
             array unset options ports_info_depends
-            set options(ports_info_depends_fetch) yes
-            set options(ports_info_depends_extract) yes
-            set options(ports_info_depends_patch) yes
-            set options(ports_info_depends_build) yes
-            set options(ports_info_depends_lib) yes
-            set options(ports_info_depends_run) yes
-            set options(ports_info_depends_test) yes
+            set all_depends_options [list ports_info_depends_fetch ports_info_depends_extract \
+                ports_info_depends_patch ports_info_depends_build ports_info_depends_lib \
+                ports_info_depends_run ports_info_depends_test]
+            foreach depends_option $all_depends_options {
+                set options($depends_option) yes
+            }
+            # insert the expanded options into the ordering info
+            set order_pos [lsearch -exact $global_options(options_${action}_order) ports_info_depends]
+            set global_options(options_${action}_order) [lreplace $global_options(options_${action}_order) \
+                $order_pos $order_pos {*}$all_depends_options]
         }
 
         # Set up our field separators
@@ -2104,15 +2107,13 @@ proc action_info { action portlist opts } {
         # Spin through action options, emitting information for any found
         set fields {}
 
-        # This contains the display fields in random order
-        set opts_info [array names options ports_info_*]
         # This contains all parameters in order given on command line
         set opts_action $global_options(options_${action}_order)
         # Get the display fields in order provided on command line
         #  ::struct::set intersect does not keep order of items
         set opts_todo {}
         foreach elem $opts_action {
-            if {$elem in $opts_info} {
+            if {[info exists options($elem)]} {
                 lappend opts_todo $elem
             }
         }

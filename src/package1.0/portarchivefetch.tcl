@@ -65,7 +65,7 @@ default archive_sites.listpath port1.0/fetch
 default archive.subdir {${subport}}
 
 proc portarchivefetch::filter_sites {} {
-    global prefix frameworks_dir applications_dir porturl \
+    global prefix_frozen frameworks_dir_frozen applications_dir_frozen porturl \
         cxx_stdlib delete_la_files \
         portfetch::mirror_sites::sites portfetch::mirror_sites::archive_type \
         portfetch::mirror_sites::archive_prefix \
@@ -97,9 +97,9 @@ proc portarchivefetch::filter_sites {} {
             continue
         }
         if {$portfetch::mirror_sites::sites($site) ne {} &&
-            $portfetch::mirror_sites::archive_prefix($site) eq $prefix &&
-            $portfetch::mirror_sites::archive_frameworks_dir($site) eq $frameworks_dir &&
-            $portfetch::mirror_sites::archive_applications_dir($site) eq $applications_dir &&
+            $portfetch::mirror_sites::archive_prefix($site) eq $prefix_frozen &&
+            $portfetch::mirror_sites::archive_frameworks_dir($site) eq $frameworks_dir_frozen &&
+            $portfetch::mirror_sites::archive_applications_dir($site) eq $applications_dir_frozen &&
             $portfetch::mirror_sites::archive_cxx_stdlib($site) eq $cxx_stdlib &&
             $portfetch::mirror_sites::archive_delete_la_files($site) eq $delete_la_files &&
             ![catch {archiveTypeIsSupported $portfetch::mirror_sites::archive_type($site)}]} {
@@ -109,7 +109,7 @@ proc portarchivefetch::filter_sites {} {
     }
 
     # check if porturl itself points to an archive
-    if {[file rootname [file tail $porturl]] eq [file rootname [get_portimage_name]] && [file extension $porturl] ne ""} {
+    if {![catch {get_portimage_name} portimage_name] && [file rootname [file tail $porturl]] eq [file rootname $portimage_name] && [file extension $porturl] ne ""} {
         lappend ret [string range $porturl 0 end-[string length [file tail $porturl]]]:[string range [file extension $porturl] 1 end]
         archive.subdir
     }

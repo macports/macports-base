@@ -2,6 +2,38 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.6.2 (2019-10-20 by jmr)
+    - Added support for zsh to the pkg installer's PATH setup code.
+      (cal in f9a3b2d)
+
+    - Allow individual ports to change prefix without disabling binary
+      distribution for them. (jmr in d840f25)
+
+    - Added warning to install the Command Line Tools when using
+      Xcode 10 or later and headers corresponding to the current OS
+      version are not available. (jmr in 8a7d604)
+
+    - Always try macports-gcc on ppc systems if system compilers are
+      blacklisted. (jmr in 42b36f4)
+
+Release 2.6.1 (2019-10-03 by jmr)
+    - Fixed error on older OS versions that use apple-gcc-4.2.
+      (#59089, jmr in a3a71b5)
+
+    - Fixed 'port diagnose' check for command line tools on some older
+      OS versions. (kencu in c2a1872)
+
+    - Silenced some SDK-related warnings that were repeatedly printed
+      when using Xcode 11. (jmr in 73ee4b4)
+
+    - Improved performance with Xcode 11. (jmr in 3768efd)
+
+    - Fixed C++ compiler selection with Xcode 4.x on Snow Leopard.
+      (kencu in 37c7cfe)
+
+    - Fixed 'port info --depends' printing the wrong set of fields.
+      (#59149, jmr in e62716c)
+
 Release 2.6.0 (2019-09-21 by jmr)
     - Extend the touch command to take a -W directory parameter.
       (#53730, khindenburg in a90c4b29)
