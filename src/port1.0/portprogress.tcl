@@ -1,7 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 #
-# Copyright (c) 2002-2003 Apple Inc.
-# Copyright (c) 2004-2014, 2016-2019 The MacPorts Project
+# Copyright (c) 2019-2020 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,14 +34,14 @@ package require Pextlib 1.0
 namespace eval portprogress {
     # The time in milliseconds to wait before we switch our progress bar from
     # determinate to indeterminate
-    variable indeterminate_threshold   3000
+    variable indeterminate_threshold    10000
 
     # The time (in milliseconds since epoch) since our progress callback last
     # produced a determinate progress update.
-    variable indeterminate_timer       0
+    variable indeterminate_timer        0
 
     # If our progress callback should issue indeterminate progress updates
-    variable indeterminate             yes
+    variable indeterminate              yes
 
     # ninja ([<completed tasks>/<pending tasks>])
     variable ninja_line_re              {^\[([1-9][0-9]*)/([1-9][0-9]*)\].*}
