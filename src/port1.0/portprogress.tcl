@@ -43,6 +43,12 @@ namespace eval portprogress {
 
     # If our progress callback should issue indeterminate progress updates
     variable indeterminate             yes
+
+    # ninja ([<completed tasks>/<pending tasks>])
+    variable ninja_line_re              {^\[([1-9][0-9]*)/([1-9][0-9]*)\].*}
+
+    # cmake makefiles ([<percentage>%])
+    variable cmake_line_re              {^\[\s*([1-9][0-9]*)%\].*}
 }
 
 # A SystemCmd callback that parses common target progress formats to display
@@ -52,6 +58,8 @@ proc portprogress::target_progress_callback {event} {
     variable indeterminate
     variable indeterminate_timer
     variable indeterminate_threshold
+    variable ninja_line_re
+    variable cmake_line_re
 
     if {${portverbose}} {
         return
@@ -72,11 +80,11 @@ proc portprogress::target_progress_callback {event} {
             set total 0
 
             # ninja ([<completed tasks>/<pending tasks>])
-            if {[regexp {^\[([1-9][0-9]*)/([1-9][0-9]*)\].*} ${line} -> cur total]} {
+            if {[regexp $ninja_line_re ${line} -> cur total]} {
                 set determinate_match yes
 
             # cmake makefiles ([<percentage>%])
-            } elseif {[regexp {^\[\s*([1-9][0-9]*)%\].*} ${line} -> cur]} {
+            } elseif {[regexp $cmake_line_re ${line} -> cur]} {
                 set total 100
                 set determinate_match yes
 
