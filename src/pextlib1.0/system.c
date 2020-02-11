@@ -49,7 +49,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/resource.h>
+#include <assert.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -79,6 +81,40 @@ extern char **environ;
 #define _PATH_DEVNULL "/dev/null"
 #endif
 
+#define SYSEVENT_TYPE_KEY               "type"
+#define SYSEVENT_PID_KEY                "pid"
+
+#define SYSEVENT_TYPE_EXEC              "exec"
+#define SYSEVENT_TYPE_EXIT              "exit"
+#define SYSEVENT_TYPE_STDIN             "stdin"
+
+#define SYSEVENT_STDIN_LINE_KEY         "line"
+
+#define SYSEVENT_EXIT_STATUS_KEY        "exit_status"
+
+#define SYSEVENT_SIGNALED               "signaled"
+#define SYSEVENT_SIGNAL_ID_KEY          "signal_id"
+#define SYSEVENT_SIGNAL_MSG_KEY         "signal_msg"
+
+#define SYSEVENT_EXITED                 "exited"
+#define SYSEVENT_EXITED_CODE_KEY        "exit_code"
+
+#define SYSEVENT_IOERR                  "ioerr"
+#define SYSEVENT_EXIT_IOERR_ERRNO_KEY   "io_errno"
+#define SYSEVENT_EXIT_IOERR_MSG_KEY     "io_message"
+
+typedef struct SystemCmd_Callback {
+    Tcl_Interp  *interp;            /**< interpreter */
+    Tcl_Obj     *procs;             /**< list of callback proc(s) */
+    Tcl_Obj     *pid;               /**< child process pid, or NULL if child has not yet been executed */
+
+    /* Commonly used event keys and values */
+    Tcl_Obj     *type_key;          /**< cached event type dictionary key */
+    Tcl_Obj     *pid_key;           /**< cached event pid dictionary key */
+    Tcl_Obj     *stdin_type;        /**< cached stdin event type */
+    Tcl_Obj     *stdin_line_key;    /**< cached stdin line dictionary key */
+} SystemCmd_Callback;
+
 static int check_sandboxing(Tcl_Interp *interp, char **sandbox_exec_path, char **profilestr)
 {
     Tcl_Obj *tcl_result;
@@ -104,12 +140,150 @@ static int check_sandboxing(Tcl_Interp *interp, char **sandbox_exec_path, char *
     return 1;
 }
 
+static int SystemCmd_Callback_Create(Tcl_Interp *interp, SystemCmd_Callback **cb)
+{
+    SystemCmd_Callback *result;
+
+    if ((result = malloc(sizeof(*result))) == NULL) {
+            Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
+            return TCL_ERROR;
+    }
+
+    *result = (struct SystemCmd_Callback) {
+        .interp = interp,
+        .procs = Tcl_NewListObj(0, NULL),
+        .type_key = Tcl_NewStringObj(SYSEVENT_TYPE_KEY, -1),
+        .pid_key = Tcl_NewStringObj(SYSEVENT_PID_KEY, -1),
+        .pid = NULL,
+        .stdin_type = Tcl_NewStringObj(SYSEVENT_TYPE_STDIN, -1),
+        .stdin_line_key = Tcl_NewStringObj(SYSEVENT_STDIN_LINE_KEY, -1)
+    };
+
+    Tcl_IncrRefCount(result->procs);
+    Tcl_IncrRefCount(result->type_key);
+    Tcl_IncrRefCount(result->pid_key);
+    Tcl_IncrRefCount(result->stdin_type);
+    Tcl_IncrRefCount(result->stdin_line_key);
+
+    *cb = result;
+    return TCL_OK;
+}
+
+static void SystemCmd_Callback_Free(SystemCmd_Callback *cb)
+{
+    Tcl_DecrRefCount(cb->procs);
+    Tcl_DecrRefCount(cb->type_key);
+    Tcl_DecrRefCount(cb->pid_key);
+    Tcl_DecrRefCount(cb->stdin_type);
+    Tcl_DecrRefCount(cb->stdin_line_key);
+
+    if (cb->pid != NULL)
+        Tcl_DecrRefCount(cb->pid);
+
+    free(cb);
+}
+
+static int SystemCmd_Callback_Append(SystemCmd_Callback *cb, Tcl_Obj *callbackProc)
+{
+    return Tcl_ListObjAppendElement(cb->interp, cb->procs, callbackProc);
+}
+
+static int SystemCmd_Callback_NumProcs(SystemCmd_Callback *cb)
+{
+    int status;
+    int len;
+
+    if ((status = Tcl_ListObjLength(cb->interp, cb->procs, &len)) != TCL_OK) {
+        /* We allocate this explicitly as a list; the type should not change */
+        Tcl_Panic("SystemCmd: callbacks has non-list type");
+    }
+
+    return len;
+}
+
+static bool SystemCmd_Callback_Enabled(SystemCmd_Callback *cb)
+{
+    return (SystemCmd_Callback_NumProcs(cb) > 0);
+}
+
+static void SystemCmd_Callback_SetPid(SystemCmd_Callback *cb, pid_t pid)
+{
+    if (cb->pid != NULL)
+        Tcl_DecrRefCount(cb->pid);
+
+    cb->pid = Tcl_NewWideIntObj(pid);
+    Tcl_IncrRefCount(cb->pid);
+}
+
+static int SystemCmd_Callback_Invoke(SystemCmd_Callback *cb, Tcl_Obj *event)
+{
+    Tcl_Obj **procs;
+    int numProcs;
+
+    Tcl_ListObjGetElements(cb->interp, cb->procs, &numProcs, &procs);
+    for (int i = 0; i < numProcs; i++) {
+        Tcl_Obj *objv[] = { procs[i], event };
+        int status;
+
+        status = Tcl_EvalObjv(cb->interp, (sizeof(objv)/sizeof(objv[0])), objv, TCL_EVAL_GLOBAL);
+        if (status != TCL_OK)
+            return status;
+    }
+
+    return TCL_OK;
+}
+
+static Tcl_Obj *SystemCmd_Event_Create(SystemCmd_Callback *cb, Tcl_Obj *type)
+{
+    Tcl_Obj *event = Tcl_NewDictObj();
+
+    assert(cb->pid != NULL);
+
+    Tcl_DictObjPut(cb->interp, event, cb->type_key, type);
+    Tcl_DictObjPut(cb->interp, event, cb->pid_key, cb->pid);
+
+    Tcl_IncrRefCount(event);
+    return event;
+}
+
+static void SystemCmd_Event_Release(Tcl_Obj *event)
+{
+    Tcl_DecrRefCount(event);
+}
+
+static void SystemCmd_Event_SetExitType(SystemCmd_Callback *cb, Tcl_Obj *event, const char *exit_type)
+{
+    Tcl_DictObjPut(cb->interp, event, Tcl_NewStringObj(SYSEVENT_EXIT_STATUS_KEY,-1),        Tcl_NewStringObj(exit_type, -1));
+}
+
+static void SystemCmd_Event_SetExitCode(SystemCmd_Callback *cb, Tcl_Obj *event, int exit_code)
+{
+    Tcl_DictObjPut(cb->interp, event, Tcl_NewStringObj(SYSEVENT_EXITED_CODE_KEY,-1),        Tcl_NewIntObj(exit_code));
+}
+
+static void SystemCmd_Event_SetLine(SystemCmd_Callback *cb, Tcl_Obj *event, Tcl_Obj *line)
+{
+    Tcl_DictObjPut(cb->interp, event, cb->stdin_line_key, line);
+}
+
+static void SystemCmd_Event_SetIOError(SystemCmd_Callback *cb, Tcl_Obj *event, int error)
+{
+    Tcl_DictObjPut(cb->interp, event, Tcl_NewStringObj(SYSEVENT_EXIT_IOERR_ERRNO_KEY, -1),  Tcl_NewIntObj(error));
+    Tcl_DictObjPut(cb->interp, event, Tcl_NewStringObj(SYSEVENT_EXIT_IOERR_MSG_KEY, -1),    Tcl_NewStringObj(strerror(error), -1));
+}
+
+static void SystemCmd_Event_SetSignaled(SystemCmd_Callback *cb, Tcl_Obj *event, int signal)
+{
+    Tcl_DictObjPut(cb->interp, event, Tcl_NewStringObj(SYSEVENT_SIGNAL_ID_KEY,-1),          Tcl_NewStringObj(Tcl_SignalId(signal), -1));
+    Tcl_DictObjPut(cb->interp, event, Tcl_NewStringObj(SYSEVENT_SIGNAL_MSG_KEY,-1),         Tcl_NewStringObj(Tcl_SignalMsg(signal), -1));
+}
+
 static volatile sig_atomic_t interrupted_by = 0;
 static void handle_sigint(int s) {
     interrupted_by = s;
 }
 
-/* usage: system ?-notty? ?-nodup? ?-nice value? ?-W path? command */
+/* usage: system ?-callback proc? ?-notty? ?-nodup? ?-nice value? ?-W path? command */
 int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     char *args[7];
@@ -118,7 +292,8 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     char *sandbox_exec_path = NULL;
     char *profilestr = NULL;
     FILE *pdes;
-    int fdset[2], nullfd;
+    int fdset[2] = { -1, -1 };
+    int nullfd;
     int ret;
     int osetsid = 0;
     int odup = 1; /* redirect stdin/stdout/stderr by default */
@@ -127,39 +302,69 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     pid_t pid;
     uid_t euid;
     Tcl_Obj *tcl_result;
+    SystemCmd_Callback *callback;
     int read_failed = 0;
     int status;
     int i;
 
     if (objc < 2) {
-        Tcl_WrongNumArgs(interp, 1, objv, "?-notty? ?-nice value? ?-W path? command");
+        Tcl_WrongNumArgs(interp, 1, objv, "?-callback proc? ?-notty? ?-nice value? ?-W path? command");
         return TCL_ERROR;
     }
+
+    if ((status = SystemCmd_Callback_Create(interp, &callback)) != TCL_OK)
+        return status;
 
     cmdstring = Tcl_GetString(objv[objc - 1]);
 
     for (i = 1; i < objc - 1; i++) {
         char *arg = Tcl_GetString(objv[i]);
-        if (strcmp(arg, "-notty") == 0) {
+        if (strcmp(arg, "-callback") == 0) {
+            if (++i >= objc) {
+                Tcl_WrongNumArgs(interp, 1, objv, "proc");
+                SystemCmd_Callback_Free(callback);
+                return TCL_ERROR;
+            }
+
+            if ((status = SystemCmd_Callback_Append(callback, objv[i])) != TCL_OK) {
+                SystemCmd_Callback_Free(callback);
+                return status;
+            }
+        } else if (strcmp(arg, "-notty") == 0) {
             osetsid = 1;
         } else if (strcmp(arg, "-nodup") == 0) {
             odup = 0;
         } else if (strcmp(arg, "-nice") == 0) {
-            i++;
+            if (++i >= objc) {
+                Tcl_WrongNumArgs(interp, 1, objv, "value");
+                SystemCmd_Callback_Free(callback);
+                return TCL_ERROR;
+            }
+
             if (Tcl_GetIntFromObj(interp, objv[i], &oniceval) != TCL_OK) {
                 Tcl_SetResult(interp, "invalid value for -nice", TCL_STATIC);
+                SystemCmd_Callback_Free(callback);
                 return TCL_ERROR;
             }
         } else if (strcmp(arg, "-W") == 0) {
-            i++;
-            if ((path = Tcl_GetString(objv[i])) == NULL) {
-                Tcl_SetResult(interp, "invalid value for -W", TCL_STATIC);
+            if (++i >= objc) {
+                Tcl_WrongNumArgs(interp, 1, objv, "path");
+                SystemCmd_Callback_Free(callback);
                 return TCL_ERROR;
             }
+
+            if ((path = Tcl_GetString(objv[i])) == NULL) {
+                Tcl_SetResult(interp, "invalid value for -W", TCL_STATIC);
+                SystemCmd_Callback_Free(callback);
+                return TCL_ERROR;
+            }
+        } else if (strcmp(arg, "--") == 0) {
+            break;
         } else {
             tcl_result = Tcl_NewStringObj("bad option ", -1);
             Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(arg, -1));
             Tcl_SetObjResult(interp, tcl_result);
+            SystemCmd_Callback_Free(callback);
             return TCL_ERROR;
         }
     }
@@ -181,6 +386,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     if (odup) {
         if (pipe(fdset) != 0) {
             Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
+            SystemCmd_Callback_Free(callback);
             return TCL_ERROR;
         }
     }
@@ -213,6 +419,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     case 0: /* child */
         if (odup) {
             close(fdset[0]);
+            fdset[0] = -1;
 
             if ((nullfd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
                 _exit(1);
@@ -278,11 +485,26 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         exit(128);
         /*NOTREACHED*/
     default: /* parent */
+        /* Must be done before creating any events from the callback context */
+        SystemCmd_Callback_SetPid(callback, pid);
         break;
+    }
+
+    /* Inform the callback of our exec event */
+    if (SystemCmd_Callback_Enabled(callback)) {
+        Tcl_Obj *event;
+
+        event = SystemCmd_Event_Create(callback, Tcl_NewStringObj(SYSEVENT_TYPE_EXEC,-1));
+        status = SystemCmd_Callback_Invoke(callback, event);
+        SystemCmd_Event_Release(event);
+
+        if (status != TCL_OK)
+            goto cleanup;
     }
 
     if (odup) {
         close(fdset[1]);
+        fdset[1] = -1;
 
         /* read from simulated popen() pipe */
         read_failed = 0;
@@ -292,30 +514,133 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             size_t linesz = 0;
             ssize_t linelen;
 
+            status = TCL_OK;
             while ((linelen = getline(&line, &linesz, pdes)) > 0) {
                 /* replace '\n' if it exists */
                 if (line[linelen - 1] == '\n') {
                     line[linelen - 1] = '\0';
                 }
 
+                /* Provide the line event to our callback */
+                if (SystemCmd_Callback_Enabled(callback)) {
+                    Tcl_Obj *event = SystemCmd_Event_Create(callback, callback->stdin_type);
+
+                    SystemCmd_Event_SetLine(callback, event, Tcl_NewStringObj(line,linelen));
+                    status = SystemCmd_Callback_Invoke(callback, event);
+                    SystemCmd_Event_Release(event);
+
+                    if (status != TCL_OK) {
+                        free(line);
+                        fclose(pdes);
+                        goto cleanup;
+                    }
+                }
+
                 ui_info(interp, "%s", line);
             }
+
             free(line);
             fclose(pdes);
         } else {
+            int error = errno;
+
+            /* Provide the exit event to our callback */
+            if (SystemCmd_Callback_Enabled(callback)) {
+                Tcl_Obj *event = SystemCmd_Event_Create(callback, Tcl_NewStringObj(SYSEVENT_EXITED,-1));
+
+                SystemCmd_Event_SetExitType(callback, event, SYSEVENT_IOERR);
+                SystemCmd_Event_SetIOError(callback, event, error);
+
+                status = SystemCmd_Callback_Invoke(callback, event);
+                SystemCmd_Event_Release(event);
+
+                if (status != TCL_OK)
+                    goto cleanup;
+            }
+
+            Tcl_SetResult(interp, strerror(error), TCL_STATIC);
             read_failed = 1;
-            Tcl_SetResult(interp, strerror(errno), TCL_STATIC);
+            status = TCL_ERROR;
         }
     }
 
     status = TCL_ERROR;
-
     if (wait(&ret) == pid && (WIFEXITED(ret) || WIFSIGNALED(ret)) && !read_failed) {
+        Tcl_Obj *event = NULL;
+
+        /* Populate common exit event fields */
+        if (SystemCmd_Callback_Enabled(callback)) {
+            /* Determine the exit status type */
+            const char *exit_type = NULL;
+            if (WIFEXITED(ret)) {
+                exit_type = SYSEVENT_EXITED;
+            } else if (WIFSIGNALED(ret) || interrupted_by != 0) {
+                exit_type = SYSEVENT_SIGNALED;
+            } else {
+                Tcl_SetObjResult(interp, Tcl_ObjPrintf("unhandled exit status: %d", ret));
+                status = TCL_ERROR;
+                goto cleanup;
+            }
+
+            /* Populate a new exit event with exit_status and exit_code */
+            event = SystemCmd_Event_Create(callback, Tcl_NewStringObj(SYSEVENT_TYPE_EXIT,-1));
+            SystemCmd_Event_SetExitType(callback, event, exit_type);
+            SystemCmd_Event_SetExitCode(callback, event, WEXITSTATUS(ret));
+        }
+
         /* Normal exit, and reading from the pipe didn't fail. */
         if (WIFEXITED(ret) && WEXITSTATUS(ret) == 0) {
+            /* Report the exit event to our callback */
+            if (event != NULL) {
+                status = SystemCmd_Callback_Invoke(callback, event);
+                SystemCmd_Event_Release(event);
+                if (status != TCL_OK)
+                    goto cleanup;
+            }
+
             status = TCL_OK;
         } else {
-            Tcl_Obj* errorCode;
+            Tcl_Obj *errorCode = Tcl_NewListObj(0, NULL);
+            Tcl_IncrRefCount(errorCode);
+
+            if (interrupted_by != 0) {
+                /* Add signal keys to our exit event */
+                if (event != NULL)
+                    SystemCmd_Event_SetSignaled(callback, event, interrupted_by);
+
+                /* set errorCode [list POSIX SIG <SIGNAME> <signal descripton>] */
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("POSIX", -1));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("SIG", -1));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalId(interrupted_by), -1));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalMsg(interrupted_by), -1));
+                tcl_result = Tcl_NewStringObj("interrupted by signal", -1);
+            } else if (WIFEXITED(ret)) {
+                /* set errorCode [list CHILDSTATUS <pid> <code>] */
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewWideIntObj(pid));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
+                Tcl_SetObjErrorCode(interp, errorCode);
+                tcl_result = Tcl_NewStringObj("command execution failed", -1);
+            } else if (WIFSIGNALED(ret)) {
+                /* Add signal keys to our exit event */
+                if (event != NULL)
+                    SystemCmd_Event_SetSignaled(callback, event, WTERMSIG(ret));
+
+                /* set errorCode [list CHILDKILLED <pid> <SIGNAME> <signal descripton>] */
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDKILLED", -1));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewWideIntObj(pid));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalId(WTERMSIG(ret)), -1));
+                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalMsg(WTERMSIG(ret)), -1));
+                tcl_result = Tcl_NewStringObj("command execution failed", -1);
+            }
+
+            /* Report the exit event to our callback */
+            if (event != NULL) {
+                status = SystemCmd_Callback_Invoke(callback, event);
+                SystemCmd_Event_Release(event);
+                if (status != TCL_OK)
+                    goto cleanup;
+            }
 
             /* print error */
             ui_info(interp, "Command failed: %s", cmdstring);
@@ -325,31 +650,11 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
                 ui_info(interp, "Killed by signal: %d", WTERMSIG(ret));
             }
 
-            errorCode = Tcl_NewListObj(0, NULL);
-            if (interrupted_by != 0) {
-                /* set errorCode [list POSIX SIG <SIGNAME> <signal descripton>] */
-                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("POSIX", -1));
-                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("SIG", -1));
-                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalId(interrupted_by), -1));
-                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalMsg(interrupted_by), -1));
-                Tcl_SetObjErrorCode(interp, errorCode);
-                Tcl_SetObjResult(interp, Tcl_NewStringObj("interrupted by signal", -1));
-            } else if (WIFEXITED(ret)) {
-                /* set errorCode [list CHILDSTATUS <pid> <code>] */
-                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
-                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
-                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
-                Tcl_SetObjErrorCode(interp, errorCode);
-                Tcl_SetObjResult(interp, Tcl_NewStringObj("command execution failed", -1));
-            } else if (WIFSIGNALED(ret)) {
-                /* set errorCode [list CHILDKILLED <pid> <SIGNAME> <signal descripton>] */
-                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDKILLED", -1));
-                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
-                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalId(WTERMSIG(ret)), -1));
-                Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalMsg(WTERMSIG(ret)), -1));
-                Tcl_SetObjErrorCode(interp, errorCode);
-                Tcl_SetObjResult(interp, Tcl_NewStringObj("command execution failed", -1));
-            }
+            /* Set the error result */
+            Tcl_SetObjErrorCode(interp, errorCode);
+            Tcl_SetObjResult(interp, tcl_result);
+            Tcl_DecrRefCount(errorCode);
+            status = TCL_ERROR;
         }
     }
 
@@ -358,10 +663,13 @@ cleanup:
     sigaction(SIGINT, &old_sa_int, NULL);
     sigaction(SIGQUIT, &old_sa_quit, NULL);
 
-    if (odup) {
-        /* Cleanup. */
+    /* Cleanup. */
+    if (fdset[0] >= 0)
         close(fdset[0]);
-    }
 
+    if (fdset[1] >= 0)
+        close(fdset[1]);
+
+    SystemCmd_Callback_Free(callback);
     return status;
 }

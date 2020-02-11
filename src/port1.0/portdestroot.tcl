@@ -121,7 +121,7 @@ proc portdestroot::destroot_start {args} {
 }
 
 proc portdestroot::destroot_main {args} {
-    command_exec destroot
+    command_exec -callback portprogress::target_progress_callback destroot
     return 0
 }
 

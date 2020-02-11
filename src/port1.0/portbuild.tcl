@@ -32,6 +32,7 @@
 
 package provide portbuild 1.0
 package require portutil 1.0
+package require portprogress 1.0
 
 set org.macports.build [target_new org.macports.build portbuild::build_main]
 target_provides ${org.macports.build} build
@@ -199,7 +200,7 @@ proc portbuild::build_main {args} {
 
     set realcmd ${build.cmd}
     set build.cmd "${build.cmd}$jobs_suffix"
-    command_exec build
+    command_exec -callback portprogress::target_progress_callback build
     set build.cmd ${realcmd}
     return 0
 }

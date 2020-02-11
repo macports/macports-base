@@ -196,7 +196,7 @@ proc portarchivefetch::fetchfiles {args} {
     if {$portverbose eq "yes"} {
         lappend fetch_options "--progress"
         lappend fetch_options "builtin"
-    } elseif {[llength [info commands ui_progress_download]] > 0} {
+    } else {
         lappend fetch_options "--progress"
         lappend fetch_options "ui_progress_download"
     }

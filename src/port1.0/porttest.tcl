@@ -3,6 +3,7 @@
 
 package provide porttest 1.0
 package require portutil 1.0
+package require portprogress 1.0
 
 set org.macports.test [target_new org.macports.test porttest::test_main]
 target_provides ${org.macports.test} test
@@ -32,7 +33,7 @@ proc porttest::test_start {args} {
 proc porttest::test_main {args} {
     global subport test.run
     if {[tbool test.run]} {
-        command_exec test
+        command_exec -callback portprogress::target_progress_callback test
     } else {
     return -code error [format [msgcat::mc "%s has no tests turned on. see 'test.run' in portfile(7)"] $subport]
     }
