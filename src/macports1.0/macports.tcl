@@ -1478,6 +1478,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias _mportsearchpath _mportsearchpath
     $workername alias _portnameactive _portnameactive
     $workername alias get_actual_cxx_stdlib macports::get_actual_cxx_stdlib
+    $workername alias shellescape macports::shellescape
 
     # New Registry/Receipts stuff
     $workername alias registry_new registry::new_entry
