@@ -150,13 +150,13 @@ proc portunarchive::unarchive_command_setup {args} {
                     set gzip "gzip"
                     if {[catch {set gzip [findBinary $gzip ${portutil::autoconf::gzip_path}]} errmsg] == 0} {
                         ui_debug "Using $gzip"
-                        set unarchive.pipe_cmd "$gzip -d -c ${unarchive.path} |"
+                        set unarchive.pipe_cmd "$gzip -d -c [shellescape ${unarchive.path}] |"
                     } else {
                         ui_debug $errmsg
                         return -code error "No '$gzip' was found on this system!"
                     }
                 } else {
-                    set unarchive.args "-f ${unarchive.path} ."
+                    set unarchive.args "-f [shellescape ${unarchive.path}] ."
                 }
             } else {
                 ui_debug $errmsg
@@ -193,13 +193,13 @@ proc portunarchive::unarchive_command_setup {args} {
                     }
                     if {[catch {set gzip [findBinary $gzip $hint]} errmsg] == 0} {
                         ui_debug "Using $gzip"
-                        set unarchive.pipe_cmd "$gzip -d -c ${unarchive.path} |"
+                        set unarchive.pipe_cmd "$gzip -d -c [shellescape ${unarchive.path}] |"
                     } else {
                         ui_debug $errmsg
                         return -code error "No '$gzip' was found on this system!"
                     }
                 } else {
-                    set unarchive.args "${unarchive.path}"
+                    set unarchive.args [shellescape ${unarchive.path}]
                 }
             } else {
                 ui_debug $errmsg
@@ -212,7 +212,7 @@ proc portunarchive::unarchive_command_setup {args} {
                 ui_debug "Using $xar"
                 set unarchive.cmd "$xar"
                 set unarchive.pre_args {-xvpf}
-                set unarchive.args "${unarchive.path}"
+                set unarchive.args [shellescape ${unarchive.path}]
             } else {
                 ui_debug $errmsg
                 return -code error "No '$xar' was found on this system!"
@@ -228,7 +228,7 @@ proc portunarchive::unarchive_command_setup {args} {
                 } else {
                     set unarchive.pre_args {-o}
                 }
-                set unarchive.args "${unarchive.path} -d ."
+                set unarchive.args "[shellescape ${unarchive.path}] -d ."
             } else {
                 ui_debug $errmsg
                 return -code error "No '$unzip' was found on this system!"
