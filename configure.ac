@@ -40,15 +40,15 @@ case "$MACOSX_VERSION" in
     AC_MSG_WARN([This version of OS X is out of date])
     AC_MSG_WARN([Please use the Mac App Store to update it])
     ;;
-  10.12|10.12.[[1-5]]|10.13|10.13.[[1-4]])
+  10.12|10.12.[[1-5]]|10.13|10.13.[[1-5]])
     AC_MSG_WARN([This version of macOS is out of date])
     AC_MSG_WARN([Please use the Mac App Store to update it])
     ;;
-  10.14|10.14.[[1-4]])
+  10.14|10.14.[[1-5]]|10.15|10.15.[[1-3]])
     AC_MSG_WARN([This version of macOS is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;
-  10.4.*|10.5.*|10.6.*|10.7.*|10.8.*|10.9.*|10.10.*|10.11.*|10.12.*|10.13.*|10.14.*)
+  10.4.*|10.5.*|10.6.*|10.7.*|10.8.*|10.9.*|10.10.*|10.11.*|10.12.*|10.13.*|10.14.*|10.15.*)
     dnl Supported version
     ;;
   *)

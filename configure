@@ -2770,19 +2770,19 @@ $as_echo "$as_me: WARNING: This version of OS X is out of date" >&2;}
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Please use the Mac App Store to update it" >&5
 $as_echo "$as_me: WARNING: Please use the Mac App Store to update it" >&2;}
     ;;
-  10.12|10.12.[1-5]|10.13|10.13.[1-4])
+  10.12|10.12.[1-5]|10.13|10.13.[1-5])
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: This version of macOS is out of date" >&5
 $as_echo "$as_me: WARNING: This version of macOS is out of date" >&2;}
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Please use the Mac App Store to update it" >&5
 $as_echo "$as_me: WARNING: Please use the Mac App Store to update it" >&2;}
     ;;
-  10.14|10.14.[1-4])
+  10.14|10.14.[1-5]|10.15|10.15.[1-3])
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: This version of macOS is out of date" >&5
 $as_echo "$as_me: WARNING: This version of macOS is out of date" >&2;}
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Please run Software Update to update it" >&5
 $as_echo "$as_me: WARNING: Please run Software Update to update it" >&2;}
     ;;
-  10.4.*|10.5.*|10.6.*|10.7.*|10.8.*|10.9.*|10.10.*|10.11.*|10.12.*|10.13.*|10.14.*)
+  10.4.*|10.5.*|10.6.*|10.7.*|10.8.*|10.9.*|10.10.*|10.11.*|10.12.*|10.13.*|10.14.*|10.15.*)
         ;;
   *)
     ;;
