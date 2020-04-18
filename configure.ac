@@ -98,7 +98,7 @@ case "$XCODE_VERSION" in
     AC_MSG_WARN([This version of Xcode Tools is out of date])
     AC_MSG_WARN([Please consider upgrading as some ports fail compiling])
     ;;
-  2.*|3.*|4.*|5.*|6.*|7.*|8.*|9.*|10.*)
+  2.*|3.*|4.*|5.*|6.*|7.*|8.*|9.*|10.*|11.*)
     dnl Supported version
     ;;
   *)
