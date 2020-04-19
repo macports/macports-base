@@ -2580,7 +2580,7 @@ proc PortGroup {group version} {
         ui_debug "Sourcing PortGroup $group $version from $groupFile"
     } else {
         ui_error "${subport}: PortGroup ${group} ${version} could not be located. ${group}-${version}.tcl does not exist."
-        return -code error "Invalid PortGroup found"
+        return -code error "PortGroup not found"
     }
 }
 
