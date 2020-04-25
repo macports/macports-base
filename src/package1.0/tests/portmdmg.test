@@ -30,8 +30,8 @@ test package_mdmg {
 } -constraints {
     darwin
 } -setup {
-    set os.major 10
-    set os.arch i386
+    set os.major ${macports::os_major}
+    set os.arch ${macports::os_arch}
 
     set subport fondu
     set version 060102
