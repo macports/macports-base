@@ -92,7 +92,8 @@ proc portdmg::package_dmg {portname portversion portrevision} {
     if {[system "$hdiutil convert ${tmp_image} -format UDCO -o ${final_image} -quiet"] ne ""} {
         return -code error [format [msgcat::mc "Failed to convert to final image: %s"] ${final_image}]
     }
-    if {[system "$hdiutil internet-enable -quiet -yes ${final_image}"] ne ""} {
+    # internet-enable verb removed from hdiutil in Catalina
+    if {${os.major} < 19 && [system "$hdiutil internet-enable -quiet -yes ${final_image}"] ne ""} {
         return -code error [format [msgcat::mc "Failed to internet-enable: %s"] ${final_image}]
     }
     file delete -force "${tmp_image}"
