@@ -347,7 +347,7 @@ proc portconfigure::configure_start {args} {
         {^gcc-(3\.3|4\.[02])$}              {Xcode GCC %s}
         {^llvm-gcc-4\.2$}                   {Xcode LLVM-GCC 4.2}
         {^macports-clang$}                  {MacPorts Clang (port select)}
-        {^macports-clang-(\d+\.\d+)$}       {MacPorts Clang %s}
+        {^macports-clang-(\d+(?:\.\d+)*)$}  {MacPorts Clang %s}
         {^macports-gcc$}                    {MacPorts GCC (port select)}
         {^macports-gcc-(\d+(?:\.\d+)?)$}    {MacPorts GCC %s}
         {^macports-llvm-gcc-4\.2$}          {MacPorts LLVM-GCC 4.2}
@@ -631,7 +631,7 @@ proc portconfigure::arch_flag_supported {compiler {multiple_arch_flags no}} {
 proc portconfigure::compiler_port_name {compiler} {
     set valid_compiler_ports {
         {^apple-gcc-(\d+)\.(\d+)$}                          {apple-gcc%s%s}
-        {^macports-clang-(\d+\.\d+)$}                       {clang-%s}
+        {^macports-clang-(\d+(?:\.\d+)*)$}                  {clang-%s}
         {^macports-(llvm-)?gcc-(\d+)(?:\.(\d+))?$}          {%sgcc%s%s}
         {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-default$}                {%s-default}
         {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang$}                  {%s-clang}
@@ -1319,7 +1319,7 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             cxx     -
             objcxx  { return ${prefix_frozen}/bin/clang++${suffix} }
         }
-    } elseif {[regexp {^macports-clang(-\d+\.\d+)$} $compiler -> suffix]} {
+    } elseif {[regexp {^macports-clang(-\d+(?:\.\d+)*)$} $compiler -> suffix]} {
         set suffix "-mp${suffix}"
         switch $type {
             cc      -
@@ -1481,7 +1481,7 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
                 depends_lib-delete $libgcc_dep
                 depends_lib-append $libgcc_dep
             }
-        } elseif {[regexp {^macports-clang(?:-(\d+\.\d+))$} $compiler -> clang_version]} {
+        } elseif {[regexp {^macports-clang(?:-(\d+(?:\.\d+)*))$} $compiler -> clang_version]} {
             if {[option configure.cxx_stdlib] eq "macports-libstdc++"} {
                 # see https://trac.macports.org/ticket/54766
                 ui_debug "Adding depends_lib path:lib/libgcc/libgcc_s.1.dylib:libgcc"
