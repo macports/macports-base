@@ -360,6 +360,7 @@ proc portconfigure::configure_start {args} {
         {^macports-openmpi-clang-(\d+(?:\.\d+)?)$} {MacPorts Open MPI Wrapper for Clang %s}
         {^macports-mpich-gcc-(\d+(?:\.\d+)?)$}     {MacPorts MPICH Wrapper for GCC %s}
         {^macports-openmpi-gcc-(\d+(?:\.\d+)?)$}   {MacPorts Open MPI Wrapper for GCC %s}
+        {^macports-(clang|gcc)-devel$}             {MacPorts %s Development}
     }
     foreach {re fmt} $valid_compilers {
         if {[set matches [regexp -inline $re $compiler]] ne ""} {
@@ -626,15 +627,16 @@ proc portconfigure::arch_flag_supported {compiler {multiple_arch_flags no}} {
 
 proc portconfigure::compiler_port_name {compiler} {
     set valid_compiler_ports {
-        {^apple-gcc-(\d+)\.(\d+)$}                          {apple-gcc%s%s}
-        {^macports-clang-(\d+(?:\.\d+)?)$}                  {clang-%s}
-        {^macports-(llvm-)?gcc-(\d+)(?:\.(\d+))?$}          {%sgcc%s%s}
+        {^apple-gcc-(\d+)\.(\d+)$}                                                    {apple-gcc%s%s}
+        {^macports-clang-(\d+(?:\.\d+)?)$}                                            {clang-%s}
+        {^macports-(llvm-)?gcc-(\d+)(?:\.(\d+))?$}                                    {%sgcc%s%s}
         {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-default$}                {%s-default}
         {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang$}                  {%s-clang}
         {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang-(\d+)\.(\d+)$}     {%s-clang%s%s}
         {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-clang-(\d+)$}            {%s-clang%s}
         {^macports-(mpich|openmpi|mpich-devel|openmpi-devel)-gcc-(\d+)(?:\.(\d+))?$}  {%s-gcc%s%s}
-        {^macports-g95$}                                    {g95}
+        {^macports-g95$}                                                              {g95}
+        {^macports-(clang|gcc)-devel$}                                                {%s-devel}
     }
     foreach {re fmt} $valid_compiler_ports {
         if {[set matches [regexp -inline $re $compiler]] ne ""} {
@@ -1338,6 +1340,28 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             fc      -
             f77     -
             f90     { return ${prefix_frozen}/bin/gfortran${suffix} }
+        }
+    } elseif {[regexp {^macports-(clang|gcc)-devel$} $compiler -> comp]} {
+        set suffix "-mp-devel"
+        if { $comp eq "clang" } {
+            switch $type {
+                cc      -
+                objc    { return ${prefix_frozen}/bin/clang${suffix} }
+                cxx     -
+                objcxx  { return ${prefix_frozen}/bin/clang++${suffix} }
+                cpp     { return ${prefix_frozen}/bin/clang-cpp${suffix} }
+            }
+        } else {
+            switch $type {
+                cc      -
+                objc    { return ${prefix_frozen}/bin/gcc${suffix} }
+                cxx     -
+                objcxx  { return ${prefix_frozen}/bin/g++${suffix} }
+                cpp     { return ${prefix_frozen}/bin/cpp${suffix} }
+                fc      -
+                f77     -
+                f90     { return ${prefix_frozen}/bin/gfortran${suffix} }
+            }
         }
     } elseif {$compiler eq "macports-llvm-gcc-4.2"} {
         switch $type {
