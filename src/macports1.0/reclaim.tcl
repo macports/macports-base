@@ -112,13 +112,22 @@ namespace eval reclaim {
         # The root build folder location
         set root_build      [file join ${macports::portdbpath} build]
 
-        try -pass_signal {
-            if {[macports::global_option_isset ports_dryrun]} {
-                ui_msg "Deleting... (dry run)"
-                ui_info [msgcat::mc "Skipping deletion of %s (dry run)" $root_build]
-            } else {
-                ui_info [msgcat::mc "Deleting %s" $root_build]
-                file delete -force $root_build
+        ui_msg "$macports::ui_prefix Build location: ${root_build}"
+
+        set retval 0
+        if {[info exists macports::ui_options(questions_yesno)]} {
+            set retval [$macports::ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete the entire build directory (including the default ccache location)?"]
+        }
+
+        if {${retval} == 0} {
+            try -pass_signal {
+                if {[macports::global_option_isset ports_dryrun]} {
+                    ui_msg "Deleting... (dry run)"
+                    ui_info [msgcat::mc "Skipping deletion of %s (dry run)" $root_build]
+                } else {
+                    ui_info [msgcat::mc "Deleting %s" $root_build]
+                    file delete -force $root_build
+                }
             }
         }
     }
