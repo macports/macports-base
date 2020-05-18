@@ -50,7 +50,7 @@ namespace eval macports {
         portarchivetype hfscompression portautoclean \
         porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_autostart startupitem_type startupitem_install \
-        place_worksymlink xcodeversion xcodebuildcmd \
+        place_worksymlink xcodeversion xcodebuildcmd cltversion \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_sdk_version macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
@@ -75,7 +75,7 @@ namespace eval macports {
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
     # they are not exported to the interpreter in system_options array.
-    variable portinterp_deferred_options "xcodeversion xcodebuildcmd developer_dir"
+    variable portinterp_deferred_options "xcodeversion xcodebuildcmd cltversion developer_dir"
 
     variable open_mports {}
 
@@ -170,7 +170,8 @@ proc macports::_log_sysinfo {} {
            macports::os_version macports::os_major macports::os_minor \
            macports::os_endian macports::os_arch \
            macports::macosx_version macports::macosx_sdk_version macports::macosx_deployment_target \
-           macports::xcodeversion
+           macports::xcodeversion \
+           macports::cltversion
     global tcl_platform
 
     set previous_phase ${macports::current_phase}
@@ -197,6 +198,7 @@ proc macports::_log_sysinfo {} {
     ui_debug "MacPorts [macports::version]"
     if {$os_platform eq "darwin" && $os_subplatform eq "macosx"} {
         ui_debug "Xcode ${xcodeversion}"
+        ui_debug "CLT ${cltversion}"
         ui_debug "SDK ${macosx_sdk_version}"
         ui_debug "MACOSX_DEPLOYMENT_TARGET: ${macosx_deployment_target}"
     }
@@ -496,6 +498,56 @@ proc macports::setxcodeinfo {name1 name2 op} {
     }
 }
 
+# deferred calculation of cltversion
+proc macports::set_cltversion {name1 name2 op} {
+    global macports::cltversion
+
+    trace remove variable macports::cltversion read macports::set_cltversion
+
+    if       {![catch {exec /usr/sbin/pkgutil --pkg-info=com.apple.pkg.CLTools_Executables  | /usr/bin/grep version: | /usr/bin/cut -d: -f2} result]} {
+    } elseif {![catch {exec /usr/sbin/pkgutil --pkg-info=com.apple.pkg.CLTools_Base         | /usr/bin/grep version: | /usr/bin/cut -d: -f2} result]} {
+    } elseif {![catch {exec /usr/sbin/pkgutil --pkg-info=com.apple.pkg.DeveloperToolsCLI    | /usr/bin/grep version: | /usr/bin/cut -d: -f2} result]} {
+    } elseif {![catch {exec /usr/sbin/pkgutil --pkg-info=com.apple.pkg.DeveloperToolsCLILeo | /usr/bin/grep version: | /usr/bin/cut -d: -f2} result]} {
+    } else {
+        set result ""
+    }
+
+    set result [string trim ${result}]
+
+    # There are reports of pkgutil returning (null) for version.
+    # It is unclear why this is or how common it is.
+    # Ensure $result is a valid version number.
+    if {[vercmp ${result} 0] >= 0} {
+        #ui_debug "Found Command Line Tools Version ${result}"
+    } else {
+        #ui_debug "Unable to Find Command Line Tools using pkgutil"
+
+        # This should be the end of the story.
+        # However, it would seem that receipts for command line tools are easily lost when upgrading Xcode.
+        # So it is possible that command line tools are installed (the files exist), but `pkgutil` does not recognize them.
+
+        # On OS X 10.9, running `xcode-select --install` seems to reinstall the command line tools.
+        # For later OS versions, however, if `/Library/Developer/CommandLineTools/usr/lib/libxcrun.dylib` exists, then `xcode-select --install` refuses to reinstall.
+
+        if {[file exists /usr/lib/libxcselect.dylib]} {
+            set test_file /Library/Developer/CommandLineTools/usr/lib/libxcrun.dylib
+        } else {
+            set test_file /usr/bin/make
+        }
+
+        if {![file exists ${test_file}]} {
+            # Command line tools do not seem to be installed.
+            set result none
+        } else {
+            ui_warn "The Command Line Tools are installed, but MacPorts cannot determine the version."
+            ui_warn "For a possible fix, please see: https://trac.macports.org/wiki/ProblemHotlist#reinstall-clt"
+            set result ""
+        }
+    }
+
+    set macports::cltversion ${result}
+}
+
 # deferred calculation of developer_dir
 proc macports::set_developer_dir {name1 name2 op} {
     global macports::developer_dir macports::os_major macports::xcodeversion
@@ -656,6 +708,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::frameworks_dir_frozen \
         macports::xcodebuildcmd \
         macports::xcodeversion \
+        macports::cltversion \
         macports::configureccache \
         macports::ccache_dir \
         macports::ccache_size \
@@ -1222,6 +1275,10 @@ match macports.conf.default."
         # We'll resolve these later (if needed)
         trace add variable macports::xcodeversion read macports::setxcodeinfo
         trace add variable macports::xcodebuildcmd read macports::setxcodeinfo
+    }
+
+    if {![info exists cltversion]} {
+        trace add variable macports::cltversion read macports::set_cltversion
     }
 
     if {![info exists developer_dir]} {
