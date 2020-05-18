@@ -59,7 +59,7 @@ options prefix name version revision epoch categories maintainers \
         compiler.limit_flags \
         compiler.support_environment_paths \
         compiler.support_environment_sdkroot \
-        add_users use_xcode
+        add_users use_xcode developerversion
 
 proc portmain::check_option_integer {option action args} {
     if {$action eq "set" && ![string is wideinteger -strict $args]} {
@@ -165,6 +165,17 @@ default worksymlink {[file normalize [file join $portpath work]]}
 default distpath {[file normalize [file join $portdbpath distfiles ${dist_subdir}]]}
 
 default use_xcode {[expr {[option build.type] eq "xcode" || ![file exists /usr/lib/libxcselect.dylib] || ![file executable /Library/Developer/CommandLineTools/usr/bin/make]}]}
+
+default developerversion {[portmain::get_default_developerversion]}
+
+proc portmain::get_default_developerversion {} {
+    global use_xcode xcodeversion cltversion
+    if {${use_xcode}} {
+        return ${xcodeversion}
+    } else {
+        return ${cltversion}
+    }
+}
 
 proc portmain::main {args} {
     return 0
