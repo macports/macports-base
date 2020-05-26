@@ -4765,6 +4765,13 @@ proc process_cmd { argv } {
             }
         }
 
+        if {$action eq "install"} {
+            array set portinfo [lindex $portlist 0]
+            if {[info exists portinfo(version)] && $portinfo(version) ne "" } {
+                fatal "install ignores the provided version $portinfo(version); remove it to continue."
+            }
+        }
+
         # execute the action
         set action_status [$action_proc $action $portlist [array get global_options]]
 
