@@ -110,7 +110,7 @@ namespace eval reclaim {
         # Delete portdbpath/build directories
         global macports::portdbpath
 
-        # The root build folder location
+        # The root build directory location
         set root_build      [file join ${macports::portdbpath} build]
 
         ui_msg "$macports::ui_prefix Build location: ${root_build}"
@@ -127,7 +127,7 @@ namespace eval reclaim {
                     ui_info [msgcat::mc "Skipping deletion of %s (dry run)" $root_build]
                 } else {
                     ui_info [msgcat::mc "Deleting %s" $root_build]
-                    set builddirs [glob -nocomplain -types d [file join $root_build *]]
+                    set builddirs [glob -nocomplain -directory $root_build *]
                     catch {file delete -force -- {*}$builddirs}
                 }
             }
@@ -159,7 +159,7 @@ namespace eval reclaim {
                 }
             }
         } else {
-            ui_info [msgcat::mc "Skipping deletion of ccache folders %s not found." $macports::ccache_dir]
+            ui_info [msgcat::mc "Skipping deletion of ccache directory: %s does not exist." $macports::ccache_dir]
         }
     }
 
