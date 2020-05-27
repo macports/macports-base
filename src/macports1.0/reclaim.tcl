@@ -77,6 +77,7 @@ namespace eval reclaim {
         uninstall_inactive
         remove_distfiles
         remove_builds
+        remove_ccache
 
         if {![macports::global_option_isset ports_dryrun]} {
             set last_run_contents [read_last_run_file]
@@ -106,7 +107,7 @@ namespace eval reclaim {
     }
 
     proc remove_builds {} {
-        # Delete portdbpath/build
+        # Delete portdbpath/build directories
         global macports::portdbpath
 
         # The root build folder location
@@ -116,7 +117,7 @@ namespace eval reclaim {
 
         set retval 0
         if {[info exists macports::ui_options(questions_yesno)]} {
-            set retval [$macports::ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete the entire build directory (including the default ccache location)?"]
+            set retval [$macports::ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete everything under the build directory (except the default ccache location)?"]
         }
 
         if {${retval} == 0} {
@@ -126,9 +127,39 @@ namespace eval reclaim {
                     ui_info [msgcat::mc "Skipping deletion of %s (dry run)" $root_build]
                 } else {
                     ui_info [msgcat::mc "Deleting %s" $root_build]
-                    file delete -force $root_build
+                    set builddirs [glob -nocomplain -types d [file join $root_build *]]
+                    catch {file delete -force -- {*}$builddirs}
                 }
             }
+        }
+    }
+
+    proc remove_ccache {} {
+        # Delete everything under ccache directory - default is build/.ccache
+        global macports::ccache_dir
+
+        if {[file exists ${macports::ccache_dir}]} {
+            ui_msg "$macports::ui_prefix ccache location: ${macports::ccache_dir}"
+
+            set retval 0
+            if {[info exists macports::ui_options(questions_yesno)]} {
+                set retval [$macports::ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete everything under the ccache directory?"]
+            }
+
+            if {${retval} == 0} {
+                try -pass_signal {
+                    if {[macports::global_option_isset ports_dryrun]} {
+                        ui_msg "Deleting... (dry run)"
+                        ui_info [msgcat::mc "Skipping deletion of %s (dry run)" $macports::ccache_dir]
+                    } else {
+                        ui_info [msgcat::mc "Deleting %s" $macports::ccache_dir]
+                        set ccachedirs [glob -nocomplain [file join $macports::ccache_dir *]]
+                        catch {file delete -force -- {*}$ccachedirs}
+                    }
+                }
+            }
+        } else {
+            ui_info [msgcat::mc "Skipping deletion of ccache folders %s not found." $macports::ccache_dir]
         }
     }
 
