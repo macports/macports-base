@@ -4133,6 +4133,17 @@ proc action_target { action portlist opts } {
             set porturl $portinfo(porturl)
         }
 
+        # If version was specified, it can be a version glob for use
+        # with the clean action. For other actions, error out if we're
+        # being asked for a version we can't provide.
+        if {[string length $portversion]} {
+            if {$action eq "clean"} {
+                set options(ports_version_glob) $portversion
+            } elseif {$portversion ne "$portinfo(version)_$portinfo(revision)"} {
+                break_softcontinue "$portname version $portversion is not available (current version is $portinfo(version)_$portinfo(revision))" 1 status
+            }
+        }
+
         # use existing variants iff none were explicitly requested
         if {[array get requested_variations] eq "" && [array get variations] ne ""} {
             array unset requested_variations
@@ -4147,11 +4158,6 @@ proc action_target { action portlist opts } {
             }
         }
 
-        # If version was specified, save it as a version glob for use
-        # in port actions (e.g. clean).
-        if {[string length $portversion]} {
-            set options(ports_version_glob) $portversion
-        }
         # if installing, mark the port as explicitly requested
         if {$action eq "install"} {
             if {![info exists options(ports_install_unrequested)]} {
@@ -4762,13 +4768,6 @@ proc process_cmd { argv } {
                         break
                     }
                 }
-            }
-        }
-
-        if {$action eq "install"} {
-            array set portinfo [lindex $portlist 0]
-            if {[info exists portinfo(version)] && $portinfo(version) ne "" } {
-                fatal "install ignores the provided version $portinfo(version); remove it to continue."
             }
         }
 
