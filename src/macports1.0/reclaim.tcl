@@ -117,7 +117,7 @@ namespace eval reclaim {
 
         set retval 0
         if {[info exists macports::ui_options(questions_yesno)]} {
-            set retval [$macports::ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete everything under the build directory (except the default ccache location)?"]
+            set retval [$macports::ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete all the build directories?"]
         }
 
         if {${retval} == 0} {
@@ -143,7 +143,7 @@ namespace eval reclaim {
 
             set retval 0
             if {[info exists macports::ui_options(questions_yesno)]} {
-                set retval [$macports::ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete everything under the ccache directory?"]
+                set retval [$macports::ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete all the ccache directories?"]
             }
 
             if {${retval} == 0} {
