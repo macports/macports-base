@@ -128,7 +128,14 @@ namespace eval reclaim {
                 } else {
                     ui_info [msgcat::mc "Deleting %s" $root_build]
                     set builddirs [glob -nocomplain -directory $root_build *]
-                    catch {file delete -force -- {*}$builddirs}
+                    if {[llength $builddirs] > 0} {
+                        try -pass_signal {
+                            file delete -force -- {*}$builddirs
+                        } catch {{*} eCode eMessage} {
+                            ui_debug "$::errorInfo"
+                            ui_error "$eMessage"
+                        }
+                    }
                 }
             }
         }
@@ -154,7 +161,14 @@ namespace eval reclaim {
                     } else {
                         ui_info [msgcat::mc "Deleting %s" $macports::ccache_dir]
                         set ccachedirs [glob -nocomplain [file join $macports::ccache_dir *]]
-                        catch {file delete -force -- {*}$ccachedirs}
+                        if {[llength $ccachedirs] > 0} {
+                            try -pass_signal {
+                                file delete -force -- {*}$ccachedirs
+                            } catch {{*} eCode eMessage} {
+                                ui_debug "$::errorInfo"
+                                ui_error "$eMessage"
+                            }
+                        }
                     }
                 }
             }
