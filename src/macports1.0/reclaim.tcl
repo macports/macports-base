@@ -160,7 +160,7 @@ namespace eval reclaim {
                         ui_info [msgcat::mc "Skipping deletion of %s (dry run)" $macports::ccache_dir]
                     } else {
                         ui_info [msgcat::mc "Deleting %s" $macports::ccache_dir]
-                        set ccachedirs [glob -nocomplain [file join $macports::ccache_dir *]]
+                        set ccachedirs [glob -nocomplain -directory $macports::ccache_dir *]
                         if {[llength $ccachedirs] > 0} {
                             try -pass_signal {
                                 file delete -force -- {*}$ccachedirs
