@@ -115,28 +115,30 @@ namespace eval reclaim {
 
         ui_msg "$macports::ui_prefix Build location: ${root_build}"
 
+        if {[macports::global_option_isset ports_dryrun]} {
+            ui_msg "Deleting... (dry run)"
+            ui_info [msgcat::mc "Skipping deletion of %s (dry run)" $root_build]
+            return
+        }
+
+        set builddirs [glob -nocomplain -directory $root_build *]
+        if {[llength $builddirs] == 0} {
+            ui_info [msgcat::mc "No build directories to delete"]
+            return
+        }
+
         set retval 0
         if {[info exists macports::ui_options(questions_yesno)]} {
             set retval [$macports::ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete all the build directories?"]
         }
 
         if {${retval} == 0} {
+            ui_info [msgcat::mc "Deleting %s" $root_build]
             try -pass_signal {
-                if {[macports::global_option_isset ports_dryrun]} {
-                    ui_msg "Deleting... (dry run)"
-                    ui_info [msgcat::mc "Skipping deletion of %s (dry run)" $root_build]
-                } else {
-                    ui_info [msgcat::mc "Deleting %s" $root_build]
-                    set builddirs [glob -nocomplain -directory $root_build *]
-                    if {[llength $builddirs] > 0} {
-                        try -pass_signal {
-                            file delete -force -- {*}$builddirs
-                        } catch {{*} eCode eMessage} {
-                            ui_debug "$::errorInfo"
-                            ui_error "$eMessage"
-                        }
-                    }
-                }
+                file delete -force -- {*}$builddirs
+            } catch {{*} eCode eMessage} {
+                ui_debug "$::errorInfo"
+                ui_error "$eMessage"
             }
         }
     }
@@ -145,35 +147,38 @@ namespace eval reclaim {
         # Delete everything under ccache directory - default is build/.ccache
         global macports::ccache_dir
 
-        if {[file exists ${macports::ccache_dir}]} {
-            ui_msg "$macports::ui_prefix ccache location: ${macports::ccache_dir}"
-
-            set retval 0
-            if {[info exists macports::ui_options(questions_yesno)]} {
-                set retval [$macports::ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete all the ccache directories?"]
-            }
-
-            if {${retval} == 0} {
-                try -pass_signal {
-                    if {[macports::global_option_isset ports_dryrun]} {
-                        ui_msg "Deleting... (dry run)"
-                        ui_info [msgcat::mc "Skipping deletion of %s (dry run)" $macports::ccache_dir]
-                    } else {
-                        ui_info [msgcat::mc "Deleting %s" $macports::ccache_dir]
-                        set ccachedirs [glob -nocomplain -directory $macports::ccache_dir *]
-                        if {[llength $ccachedirs] > 0} {
-                            try -pass_signal {
-                                file delete -force -- {*}$ccachedirs
-                            } catch {{*} eCode eMessage} {
-                                ui_debug "$::errorInfo"
-                                ui_error "$eMessage"
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
+        if {![file exists ${macports::ccache_dir}]} {
             ui_info [msgcat::mc "Skipping deletion of ccache directory: %s does not exist." $macports::ccache_dir]
+            return
+        }
+
+        ui_msg "$macports::ui_prefix ccache location: ${macports::ccache_dir}"
+
+        if {[macports::global_option_isset ports_dryrun]} {
+            ui_msg "Deleting... (dry run)"
+            ui_info [msgcat::mc "Skipping deletion of %s (dry run)" $macports::ccache_dir]
+            return
+        }
+
+        set ccachedirs [glob -nocomplain -directory $macports::ccache_dir *]
+        if {[llength $ccachedirs] == 0} {
+            ui_info [msgcat::mc "No ccache directories to delete"]
+            return
+        }
+
+        set retval 0
+        if {[info exists macports::ui_options(questions_yesno)]} {
+            set retval [$macports::ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete all the ccache directories?"]
+        }
+
+        if {${retval} == 0} {
+            ui_info [msgcat::mc "Deleting %s" $macports::ccache_dir]
+            try -pass_signal {
+                file delete -force -- {*}$ccachedirs
+            } catch {{*} eCode eMessage} {
+                ui_debug "$::errorInfo"
+                ui_error "$eMessage"
+            }
         }
     }
 
