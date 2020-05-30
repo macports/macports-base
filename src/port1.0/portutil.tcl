@@ -3261,10 +3261,10 @@ proc check_supported_archs {} {
 
 # check if the installed xcode version is new enough
 proc _check_xcode_version {} {
-    global os.subplatform os.major macosx_version xcodeversion use_xcode subport
+    global os.subplatform os.major macosx_version macosx_major_version xcodeversion use_xcode subport
 
     if {${os.subplatform} eq "macosx"} {
-        switch $macosx_version {
+        switch $macosx_major_version {
             10.4 {
                 set min 2.0
                 set ok 2.4.1
@@ -3341,10 +3341,10 @@ proc _check_xcode_version {} {
                 return 1
             }
         } elseif {[vercmp $xcodeversion $min] < 0} {
-            ui_error "The installed version of Xcode (${xcodeversion}) is too old to use on the installed OS version. Version $rec or later is recommended on macOS ${macosx_version}."
+            ui_error "The installed version of Xcode (${xcodeversion}) is too old to use on the installed OS version. Version $rec or later is recommended on macOS ${macosx_major_version}."
             return 1
         } elseif {[vercmp $xcodeversion $ok] < 0} {
-            ui_warn "The installed version of Xcode (${xcodeversion}) is known to cause problems. Version $rec or later is recommended on macOS ${macosx_version}."
+            ui_warn "The installed version of Xcode (${xcodeversion}) is known to cause problems. Version $rec or later is recommended on macOS ${macosx_major_version}."
         }
 
         # Xcode 4.3 and above requires the command-line utilities package to be installed.

@@ -68,7 +68,7 @@ namespace eval macports {
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir applications_dir_frozen current_phase frameworks_dir frameworks_dir_frozen \
         developer_dir universal_archs build_arch os_arch os_endian os_version os_major os_minor \
-        os_platform os_subplatform macosx_version macosx_sdk_version macosx_deployment_target \
+        os_platform os_subplatform macosx_version macosx_major_version macosx_sdk_version macosx_deployment_target \
         packagemaker_path default_compilers sandbox_enable sandbox_network delete_la_files cxx_stdlib \
         pkg_post_unarchive_deletions $user_options"
 
@@ -673,6 +673,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::os_platform \
         macports::os_subplatform \
         macports::macosx_version \
+        macports::macosx_major_version \
         macports::macosx_sdk_version \
         macports::macosx_deployment_target \
         macports::archivefetch_pubkeys \
@@ -711,7 +712,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             set os_subplatform macosx
             if {[file executable /usr/bin/sw_vers]} {
                 try -pass_signal {
-                    set macosx_version [exec /usr/bin/sw_vers -productVersion | cut -f1,2 -d.]
+                    set macosx_version [exec /usr/bin/sw_vers -productVersion]
+                    set macosx_major_version [join [lrange [split $macosx_version "."] 0 end-1] "."]
                 } catch {* ec result} {
                     ui_debug "sw_vers exists but running it failed: $result"
                 }
@@ -1127,10 +1129,10 @@ match macports.conf.default."
     }
 
     if {![info exists macports::macosx_deployment_target]} {
-        set macports::macosx_deployment_target $macosx_version
+        set macports::macosx_deployment_target $macosx_major_version
     }
     if {![info exists macports::macosx_sdk_version]} {
-        set macports::macosx_sdk_version $macosx_version
+        set macports::macosx_sdk_version $macosx_major_version
     }
 
     if {![info exists macports::revupgrade_autorun]} {
