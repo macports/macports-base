@@ -3,17 +3,19 @@
 ###
 
 Release x.y.z (unreleased)
-    - reclaim: remove portdbpath/build directory 
-      (hindenburg in b9fdb847)
+    - reclaim: remove everything under build and ccache directories
+      (khindenburg in b9fdb847)
+      (khindenburg in d08d261f)
 
     - For install action, abort if any @version is provided on command line
-      (hindenburg in 835a7db1)
+      (khindenburg in 835a7db1)
+      (jmr in ca071954)
 
     - Abort when a port includes a nonexistent PortGroup
-      (hindenburg in d9139328)
+      (khindenburg in d9139328)
 
     - Adjust lint --niptick on patchfiles to allow *.diff or *.patch
-      (hindenburg in 5037999e)
+      (khindenburg in 5037999e)
 
 Release 2.6.2 (2019-10-20 by jmr)
     - Added support for zsh to the pkg installer's PATH setup code.
