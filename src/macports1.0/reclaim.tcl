@@ -117,7 +117,7 @@ namespace eval reclaim {
 
         if {[macports::global_option_isset ports_dryrun]} {
             ui_msg "Deleting... (dry run)"
-            ui_info [msgcat::mc "Skipping deletion of %s (dry run)" $root_build]
+            ui_info [msgcat::mc "Skipping deletion of all build directories under %s (dry run)" $root_build]
             return
         }
 
@@ -133,7 +133,7 @@ namespace eval reclaim {
         }
 
         if {${retval} == 0} {
-            ui_info [msgcat::mc "Deleting %s" $root_build]
+            ui_info [msgcat::mc "Deleting all build directories under %s" $root_build]
             try -pass_signal {
                 file delete -force -- {*}$builddirs
             } catch {{*} eCode eMessage} {
@@ -156,7 +156,7 @@ namespace eval reclaim {
 
         if {[macports::global_option_isset ports_dryrun]} {
             ui_msg "Deleting... (dry run)"
-            ui_info [msgcat::mc "Skipping deletion of %s (dry run)" $macports::ccache_dir]
+            ui_info [msgcat::mc "Skipping deletion of everything under %s (dry run)" $macports::ccache_dir]
             return
         }
 
@@ -168,11 +168,11 @@ namespace eval reclaim {
 
         set retval 0
         if {[info exists macports::ui_options(questions_yesno)]} {
-            set retval [$macports::ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete all the ccache directories?"]
+            set retval [$macports::ui_options(questions_yesno) "" "" "" "y" 0 "Would you like to delete everything under the ccache directory?"]
         }
 
         if {${retval} == 0} {
-            ui_info [msgcat::mc "Deleting %s" $macports::ccache_dir]
+            ui_info [msgcat::mc "Deleting everything under %s" $macports::ccache_dir]
             try -pass_signal {
                 file delete -force -- {*}$ccachedirs
             } catch {{*} eCode eMessage} {
