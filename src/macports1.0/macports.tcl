@@ -68,7 +68,7 @@ namespace eval macports {
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir applications_dir_frozen current_phase frameworks_dir frameworks_dir_frozen \
         developer_dir universal_archs build_arch os_arch os_endian os_version os_major os_minor \
-        os_platform os_subplatform macosx_version macosx_sdk_version macosx_deployment_target \
+        os_platform os_subplatform macosx_version macosx_full_version macosx_sdk_version macosx_deployment_target \
         packagemaker_path default_compilers sandbox_enable sandbox_network delete_la_files cxx_stdlib \
         pkg_post_unarchive_deletions $user_options"
 
@@ -169,7 +169,8 @@ proc macports::_log_sysinfo {} {
     global macports::os_platform macports::os_subplatform \
            macports::os_version macports::os_major macports::os_minor \
            macports::os_endian macports::os_arch \
-           macports::macosx_version macports::macosx_sdk_version macports::macosx_deployment_target \
+           macports::macosx_version macports::macosx_full_version \
+           macports::macosx_sdk_version macports::macosx_deployment_target \
            macports::xcodeversion
     global tcl_platform
 
@@ -179,11 +180,11 @@ proc macports::_log_sysinfo {} {
     if {$os_platform eq "darwin"} {
         if {$os_subplatform eq "macosx"} {
             if {[vercmp $macosx_version 10.12] >= 0} {
-                set os_version_string "macOS ${macosx_version}"
+                set os_version_string "macOS ${macosx_full_version}"
             } elseif {[vercmp $macosx_version 10.8] >= 0} {
-                set os_version_string "OS X ${macosx_version}"
+                set os_version_string "OS X ${macosx_full_version}"
             } else {
-                set os_version_string "Mac OS X ${macosx_version}"
+                set os_version_string "Mac OS X ${macosx_full_version}"
             }
         } else {
             set os_version_string "PureDarwin ${os_version}"
@@ -673,6 +674,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::os_platform \
         macports::os_subplatform \
         macports::macosx_version \
+        macports::macosx_full_version \
         macports::macosx_sdk_version \
         macports::macosx_deployment_target \
         macports::archivefetch_pubkeys \
@@ -711,7 +713,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             set os_subplatform macosx
             if {[file executable /usr/bin/sw_vers]} {
                 try -pass_signal {
-                    set macosx_version [exec /usr/bin/sw_vers -productVersion | cut -f1,2 -d.]
+                    set macosx_full_version [exec /usr/bin/sw_vers -productVersion]
+                    set macosx_version [join [lrange [split $macosx_full_version "."] 0 end-1] "."]
                 } catch {* ec result} {
                     ui_debug "sw_vers exists but running it failed: $result"
                 }

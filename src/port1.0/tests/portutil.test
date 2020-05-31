@@ -34,8 +34,8 @@ proc init {} {
 }
 
 proc init_eval_targets {} {
-    global os_platform os_version os_arch macosx_version pwd \
-           version mport portpath portbuildpath macports::portdbpath
+    global os_platform os_version os_arch macosx_version macosx_full_version \
+           pwd version mport portpath portbuildpath macports::portdbpath
 
     set os_platform darwin
     set macosx_version 10.8

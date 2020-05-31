@@ -137,7 +137,7 @@ default os.endian {$os_endian}
 
 set macosx_version_text {}
 if {[option os.platform] eq "darwin"} {
-    set macosx_version_text "(macOS ${macosx_version}) "
+    set macosx_version_text "(macOS ${macosx_full_version}) "
 }
 ui_debug "OS [option os.platform]/[option os.version] ${macosx_version_text}arch [option os.arch]"
 
