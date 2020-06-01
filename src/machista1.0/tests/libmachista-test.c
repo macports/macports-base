@@ -174,18 +174,23 @@ static bool compare_to_otool_output(char *path, const macho_t *ref) {
 			char lib_path[_POSIX_PATH_MAX];
 			char lib_comp_version[256];
 			char lib_curr_version[256];
+			char lib_curr_version_tmp[256];
 
 			// read loadcommand output line from otool
-			if (3 != fscanf(tmpf, "%*[\n]%*[\t]%255s (compatibility version %255[^,], current version %255[^)]))", lib_path, lib_comp_version, lib_curr_version)) {
+			if (3 != fscanf(tmpf, "%*[\n]%*[\t]%255s (compatibility version %255[^,], current version %255[^)]))", lib_path, lib_comp_version, lib_curr_version_tmp)) {
 				// error out silently, probably been the last line
 				break;
 			}
 
 			nullterminate(lib_path);
 			nullterminate(lib_comp_version);
-			nullterminate(lib_curr_version);
+			nullterminate(lib_curr_version_tmp);
 
-			//printf("\t\t%s, %s, %s\n", lib_path, lib_comp_version, lib_curr_version);
+			//printf("\t\t%s, %s, %s\n", lib_path, lib_comp_version, lib_curr_version_tmp);
+
+			// Remove any extra after version (e.g. ', reexport' in 10.15)
+			sscanf(lib_curr_version_tmp, "%255[^,]", lib_curr_version);
+			nullterminate(lib_comp_version);
 
 			// try to find the library in this architecture's list of loadcommands
 			macho_loadcmd_t *mlt;
