@@ -623,6 +623,11 @@ proc variant {args} {
         return -code error "Variant name $name contains invalid characters"
     }
 
+    if {[ditem_key $ditem name] eq "universal" && [llength [option configure.universal_archs]] < 2} {
+        ditem_delete $ditem
+        return
+    }
+
     # make a user procedure named variant-blah-blah
     # we will call this procedure during variant-run
     makeuserproc variant-[ditem_key $ditem name] $code
@@ -686,6 +691,10 @@ proc variant {args} {
 # Returns 1 if variant name selected, otherwise 0
 proc variant_isset {name} {
     global variations
+
+    if {$name eq "universal" && [llength [option configure.universal_archs]] < 2} {
+        return 0
+    }
 
     if {[info exists variations($name)] && $variations($name) eq "+"} {
         return 1
