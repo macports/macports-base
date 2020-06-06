@@ -44,7 +44,7 @@ package require Tclx
 package require mpcommon 1.0
 
 namespace eval macports {
-    namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
+    namespace export bootstrap_options bootstrap_multivalue_options user_options portinterp_options open_mports ui_priorities
     variable bootstrap_options "\
         applications_dir \
         archive_site_local \
@@ -108,6 +108,8 @@ namespace eval macports {
         variants_conf \
         xcodebuildcmd \
         xcodeversion \
+        "
+    variable bootstrap_multivalue_options "\
         "
     variable user_options {}
     variable portinterp_options "\
@@ -747,6 +749,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::autoconf::macports_conf_path \
         macports::macports_user_dir \
         macports::bootstrap_options \
+        macports::bootstrap_multivalue_options \
         macports::user_options \
         macports::portconf \
         macports::portsharepath \
@@ -881,11 +884,29 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         if {[file exists $file]} {
             set portconf $file
             set fd [open $file r]
+
+            # List of multivalue options that did already occur in this
+            # configuration file. This enables the mechanism that allows
+            # specifying a line multiple times to specify a list, but still
+            # allows starting from scratch in the next configuration file
+            array set options_in_file {}
             while {[gets $fd line] >= 0} {
                 if {[regexp $conf_option_re $line match option ignore val] == 1} {
                     if {$option in $bootstrap_options} {
+                        # standard single-value options
                         set macports::$option [string trim $val]
                         global macports::$option
+                    } elseif {$option in $bootstrap_multivalue_options} {
+                        # multi-value options, append if this isn't the first
+                        # occurrence in the file
+                        if {[info exists options_in_file($option)]} {
+                            lappend macports::$option [string trim $val]
+                        } else {
+                            # otherwise, set to [list $val]
+                            set options_in_file($option) yes
+                            set macports::$option [list [string trim $val]]
+                            global macports::$option
+                        }
                     }
                 }
             }
