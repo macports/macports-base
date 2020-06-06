@@ -62,5 +62,6 @@ vendor/tcl8.*/unix/**/*Uuid.h
 Makefile
 pkgIndex.tcl
 !vendor/tcllib*/**/pkgIndex.tcl
+!vendor/signify-osx/Makefile
 
 /dist/
