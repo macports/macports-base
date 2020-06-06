@@ -436,39 +436,90 @@ T}
 .sp 1
 .RE
 .PP
-rsync_server
+release_version_url
 .RS 4
-Default rsync server to connect to when running "selfupdate" through the port com\- mand to update your base MacPorts infrastructure\&. While selfupdate also syncs the ports tree, it uses the settings from ${sources_conf} to do so\&.
+URL that MacPorts attempts to download to find out whether a new version was released\&. Can be specified multiple times; only one of the URLs needs to be available\&. Downloads will be attempted in the specified order\&.
 .TS
 tab(:);
 lt lt.
 T{
 \fBDefault:\fR
 T}:T{
-rsync\&.macports\&.org
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\m[blue]\fBhttps://raw\&.githubusercontent\&.com/macports/macports\-base/master/config/RELEASE_URL\fR\m[]
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\m[blue]\fBhttps://trac\&.macports\&.org/export/HEAD/macports\-base/config/RELEASE_URL\fR\m[]
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\m[blue]\fBhttps://distfiles\&.macports\&.org/MacPorts/RELEASE_URL\fR\m[]
+.RE
+.sp
 T}
 .TE
 .sp 1
+.RE
+.PP
+release_url
+.RS 4
+URL where MacPorts will download a new source code archive, if the release_version_url indicates that the current version needs to be updated\&. In this URL,
+\fB{version}\fR
+will be replaced with the version number determined from release_version_url\&.
+
+Additionally, "\&.sig" will be appended to this URL, downloaded, and used to verify a signature made with one of the keys in
+\fB$prefix/share/macports/keys/base/\fR
+using the signify(1) utility\&.
+
+The list of distfile mirrors will automatically be appended to this option\&.
+.TS
+tab(:);
+lt lt.
+T{
+\fBDefault:\fR
+T}:T{
+\fBhttps://github\&.com/macports/macports\-base/releases/download/v{version}/MacPorts\-{version}\&.tar\&.bz2\fR
+T}
+.TE
+.sp 1
+.RE
+.PP
+rsync_server
+.RS 4
+Obsolete\&. Remove this from your configuration\&.
 .RE
 .PP
 rsync_dir
 .RS 4
-Rsync directory from which to pull MacPorts sources from the rsync server\&.
-.TS
-tab(:);
-lt lt.
-T{
-\fBDefault:\fR
-T}:T{
-macports/release/base/ (which pulls sources for the currently shipping MacPorts release)
-T}
-.TE
-.sp 1
+Obsolete\&. Remove this from your configuration\&.
 .RE
 .PP
 rsync_options
 .RS 4
-Default rsync options to use when connecting to the rsync server\&.
+Default rsync options to use when connecting to the rsync server to sync the ports tree\&.
 .TS
 tab(:);
 lt lt.
