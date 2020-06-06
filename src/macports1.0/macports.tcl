@@ -110,6 +110,8 @@ namespace eval macports {
         xcodeversion \
         "
     variable bootstrap_multivalue_options "\
+        release_url \
+        release_version_url \
         "
     variable user_options {}
     variable portinterp_options "\
