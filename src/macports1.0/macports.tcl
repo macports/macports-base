@@ -94,9 +94,7 @@ namespace eval macports {
         revupgrade_autorun \
         revupgrade_check_id_loadcmds \
         revupgrade_mode \
-        rsync_dir \
         rsync_options \
-        rsync_server \
         sandbox_enable \
         sandbox_network \
         sources_conf \
@@ -163,9 +161,7 @@ namespace eval macports {
         prefix_frozen \
         registry.format \
         registry.path \
-        rsync_dir \
         rsync_options \
-        rsync_server \
         sandbox_enable \
         sandbox_network \
         startupitem_autostart \
@@ -1140,19 +1136,7 @@ Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarbal
         set macports::hfscompression yes
     }
 
-    # Set rync options
-    if {![info exists rsync_server]} {
-        global macports::rsync_server
-        set macports::rsync_server rsync.macports.org
-    }
-    if {![info exists rsync_dir]} {
-        global macports::rsync_dir
-        set macports::rsync_dir macports/release/tarballs/base.tar
-    } elseif {[string range $rsync_dir end-3 end] ne ".tar" && [string match *.macports.org ${macports::rsync_server}]} {
-        ui_warn "MacPorts is configured to use an unsigned source for selfupdate.\
-Please edit macports.conf and change the rsync_dir setting to\
-match macports.conf.default."
-    }
+    # Set rsync options
     if {![info exists rsync_options]} {
         global macports::rsync_options
         set rsync_options "-rtzvl --delete-after"

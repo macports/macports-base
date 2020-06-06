@@ -176,19 +176,14 @@ release_url::
     *Default:*;; *https://github.com/macports/macports-base/releases/download/v\{version\}/MacPorts-\{version\}.tar.bz2*
 
 rsync_server::
-    Default rsync server to connect to when running "selfupdate" through the
-    port com- mand to update your base MacPorts infrastructure. While selfupdate
-    also syncs the ports tree, it uses the settings from $\{sources_conf\} to do
-    so.
-    *Default:*;; rsync.macports.org
+    Obsolete. Remove this from your configuration.
 
 rsync_dir::
-    Rsync directory from which to pull MacPorts sources from the rsync server.
-    *Default:*;; macports/release/base/ (which pulls sources for the currently shipping
-    MacPorts release)
+    Obsolete. Remove this from your configuration.
 
 rsync_options::
-    Default rsync options to use when connecting to the rsync server.
+    Default rsync options to use when connecting to the rsync server to sync the
+    ports tree.
     *Default:*;; -rtzvl --delete-after
 
 binpath::
