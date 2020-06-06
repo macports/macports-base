@@ -13,6 +13,8 @@ doc/.dep
 doc/macports.conf
 doc/pubkeys.conf
 
+keys/*/*.sec
+
 Mk/macports.autoconf.mk
 
 portmgr/dmg/postflight
