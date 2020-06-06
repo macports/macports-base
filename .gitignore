@@ -55,5 +55,6 @@ vendor/tcl8.*/unix/tclsh
 Makefile
 pkgIndex.tcl
 !vendor/tcllib*/**/pkgIndex.tcl
+!vendor/signify-osx/Makefile
 
 /dist/
