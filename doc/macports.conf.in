@@ -136,6 +136,25 @@ variants_conf       	@MPCONFIGDIR_EXPANDED@/variants.conf
 # Keep logs after successful installations.
 #keeplogs            	no
 
+# URLs that MacPorts attempts to download to find out whether a new version was
+# released. Multiple values, space-separated; only one of the URLs needs to be
+# available. Downloads will be attempted in the specified order.
+#release_version_urls https://raw.githubusercontent.com/macports/macports-base/master/config/RELEASE_URL \
+#                     https://trac.macports.org/export/HEAD/macports-base/config/RELEASE_URL \
+#                     https://distfiles.macports.org/MacPorts/RELEASE_URL
+
+# URL where MacPorts will download a new source code archive, if the
+# release_version_urls indicate that the current version needs to be updated.
+# In this URL, {version} will be replaced with the version number determined
+# from release_version_urls.
+#
+# Additionally, ".sig" will be appended to this URL, downloaded, and used to
+# verify a signature made with one of the keys in
+# $prefix/share/macports/keys/base/ using the signify(1) utility.
+#
+# The list of distfile mirrors will automatically be appended to this option.
+#release_urls https://github.com/macports/macports-base/releases/download/v{version}/MacPorts-{version}.tar.bz2
+
 # The rsync server for fetching MacPorts base during selfupdate. This
 # setting is NOT used when downloading ports trees; ports trees are
 # configured using the file referenced by sources_conf. See

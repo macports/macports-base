@@ -51,8 +51,9 @@ namespace eval macports {
     # Config file options with no special handling
     foreach opt [list binpath auto_path extra_env portdbformat \
         portarchivetype portimage_mode hfscompression portautoclean \
-        porttrace portverbose keeplogs destroot_umask rsync_server rsync_options \
-        rsync_dir startupitem_autostart startupitem_type startupitem_install \
+        porttrace portverbose keeplogs destroot_umask release_urls release_version_urls \
+        rsync_server rsync_options rsync_dir \
+        startupitem_autostart startupitem_type startupitem_install \
         place_worksymlink xcodeversion xcodebuildcmd xcodecltversion xcode_license_unaccepted \
         configureccache ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         universal_archs build_arch macosx_sdk_version macosx_deployment_target \

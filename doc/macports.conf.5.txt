@@ -156,6 +156,28 @@ destroot_umask::
     Umask value to use during the destrooting of a port.
     *Default:*;; 022
 
+release_version_urls::
+    URLs that MacPorts attempts to download to find out whether a new version was
+    released. Multiple values, space-separated; only one of the URLs needs to be
+    available. Downloads will be attempted in the specified order.
+    *Default:*;;
+      - https://raw.githubusercontent.com/macports/macports-base/master/config/RELEASE_URL
+      - https://trac.macports.org/export/HEAD/macports-base/config/RELEASE_URL
+      - https://distfiles.macports.org/MacPorts/RELEASE_URL
+
+release_urls::
+    URLs where MacPorts will download a new source code archive, if the
+    release_version_urls indicate that the current version needs to be updated.
+    In this URL, *\{version\}* will be replaced with the version number determined
+    from release_version_urls.
+    +
+    Additionally, ".sig" will be appended to this URL, downloaded, and used to
+    verify a signature made with one of the keys in
+    *$prefix/share/macports/keys/base/* using the signify(1) utility.
+    +
+    The list of distfile mirrors will automatically be appended to this option.
+    *Default:*;; *https://github.com/macports/macports-base/releases/download/v\{version\}/MacPorts-\{version\}.tar.bz2*
+
 rsync_server::
     Default rsync server to connect to when running "selfupdate" through the
     port com- mand to update your base MacPorts infrastructure. While selfupdate
