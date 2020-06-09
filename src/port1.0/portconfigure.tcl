@@ -469,7 +469,7 @@ proc portconfigure::configure_get_ld_archflags {} {
 }
 
 proc portconfigure::configure_get_sdkroot {sdk_version} {
-    global developer_dir macosx_version xcodeversion os.arch os.platform use_xcode
+    global developer_dir macosx_version xcodeversion os.arch os.major os.platform use_xcode
 
     # This is only relevant for macOS
     if {${os.platform} ne "darwin"} {
@@ -482,7 +482,7 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
     }
 
     # Use the DevSDK (eg: /usr/include) if present and the requested SDK version matches the host version
-    if {$sdk_version eq $macosx_version && [file exists /usr/include]} {
+    if {${os.major} < 19 && $sdk_version eq $macosx_version && [file exists /usr/include/sys/cdefs.h]} {
         return {}
     }
 
