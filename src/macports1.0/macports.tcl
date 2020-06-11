@@ -2227,6 +2227,14 @@ proc mportexec {mport target} {
         set log_needs_pop yes
     }
 
+    if {$target eq "test"} {
+        # Before continuing with dependents, verify test.run is present and yes
+        set test_valid [catch {_mportkey $mport test.run} res]
+        if {$test_valid != 0 || $res ne "yes"} {
+            return -code error [format [msgcat::mc "%s has no tests turned on. see 'test.run' in portfile(7)"] $portname]
+        }
+    }
+
     # Use _target_needs_toolchain as a proxy for whether we're going to build
     # and will therefore need to check Xcode version and supported_archs.
     if {[macports::_target_needs_toolchain $workername $target]} {
