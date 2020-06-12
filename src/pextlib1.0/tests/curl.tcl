@@ -8,20 +8,18 @@ proc main {pextlibname} {
 	set tempfile /tmp/macports-pextlib-testcurl
 
 	# download a dummy file over HTTP.
-	set dummyroot http://svn.macports.org/repository/macports/users/eridius/curltest
-	curl fetch --ignore-ssl-cert $dummyroot/dummy $tempfile
+	set dummyfile http://distfiles.macports.org/MacPorts/MacPorts-2.6.2.tar.gz.asc
+	curl fetch $dummyfile $tempfile
 	
 	# check the md5 sum of the file.
-	test "md5sum" {[md5 file $tempfile] == "5421fb0f76c086a1e14bf33d25b292d4"}
+	test "md5sum" {[md5 file $tempfile] == "41023b6070d3dda3b5d34b7e773b40fc"}
 
 	# check we indeed get a 404 a dummy file over HTTP.
-	test "dummy404" {[catch {curl fetch --ignore-ssl-cert $dummyroot/404 $tempfile}]}
+	test "dummy404" {[catch {curl fetch $dummyfile/404 $tempfile}]}
 	
 	# check the modification date of the dummy file.
-	set seconds [clock scan 2007-06-16Z]
-	test "mtime1" {[curl isnewer --ignore-ssl-cert $dummyroot/dummy [clock scan 2007-06-16Z]]}
-	set seconds [clock scan 2007-06-17Z]
-	test "mtime2" {![curl isnewer --ignore-ssl-cert $dummyroot/dummy [clock scan 2007-06-17Z]]}
+	test "mtime1" {[curl isnewer $dummyfile [clock scan 2019-10-20Z]]}
+	test "mtime2" {![curl isnewer $dummyfile [clock scan 2019-10-21Z]]}
 	
 	# use --disable-epsv
 	#curl fetch --disable-epsv ftp://ftp.cup.hp.com/dist/networking/benchmarks/netperf/archive/netperf-2.2pl5.tar.gz $tempfile
