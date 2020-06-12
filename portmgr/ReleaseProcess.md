@@ -275,6 +275,17 @@ Verify that the new release has been built and deployed successfully on
 [Travis CI](https://travis-ci.org/macports/macports-base/branches).
 
 
+### Update the branch buildbot uses to generate manpages ###
+
+When releasing a new major version, you should update the buildbot's
+[`master.cfg` file][buildbot-master-cfg] so that the single branch scheduler
+for the manpage jobs pulls from that new branch. To do that, look for `'man'
+in config['deploy']`, locate the `util.ChangeFilter` object passed to the
+constructor of `schedulers.SingleBranchScheduler` below that and adjust the
+`branch` parameter to the branch you are releasing. Notify ryandesign@ to have
+this change deployed on the buildbot.
+
+
 ### Add Release Version to Trac ###
 
 Add the new version to the list of released versions on Trac. Edit the list
@@ -346,5 +357,6 @@ outdated ports tree sources.
 [SourceForge]: http://sourceforge.net/projects/macports
 [Twitter]: http://twitter.com/macports
 [using.xml]: https://github.com/macports/macports-guide/blob/master/guide/xml/using.xml
+[buildbot-master-cfg]: https://github.com/macports/macports-infrastructure/blob/master/buildbot/master.cfg
 
 <!-- vim:set fenc=utf-8 ft=markdown tw=78 et sw=4 sts=4: -->
