@@ -254,14 +254,14 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				/* check we also have the parameter */
 				if (optioncrsr < lastoption) {
 					optioncrsr++;
-					if ( numHTTPHeaders < MAXHTTPHEADERS ) {
-					  httpHeaders[numHTTPHeaders++] = Tcl_GetString(objv[optioncrsr]);
+					if (numHTTPHeaders < MAXHTTPHEADERS) {
+						httpHeaders[numHTTPHeaders++] = Tcl_GetString(objv[optioncrsr]);
 					} else {
-					  Tcl_SetResult(interp,
-					    "curl fetch: Too many --append-http-header options",
-					    TCL_STATIC);
-					  theResult = TCL_ERROR;
-					  break;
+						Tcl_SetResult(interp,
+							"curl fetch: Too many --append-http-header options",
+							TCL_STATIC);
+						theResult = TCL_ERROR;
+						break;
 					}
 				} else {
 					Tcl_SetResult(interp,
@@ -512,8 +512,8 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		/* Clear the Pragma: no-cache header */
 		headers = curl_slist_append(headers, "Pragma:");
 		/* Append any optional headers */
- 		for ( int iH = 0; iH < numHTTPHeaders; ++iH ) {
-		  headers = curl_slist_append(headers, httpHeaders[iH]);
+		for (int iH = 0; iH < numHTTPHeaders; ++iH) {
+			headers = curl_slist_append(headers, httpHeaders[iH]);
 		}
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_HTTPHEADER, headers);
 		if (theCurlCode != CURLE_OK) {
