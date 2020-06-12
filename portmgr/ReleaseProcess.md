@@ -322,8 +322,6 @@ sent/posted to the following places:
         (submitter: ???)
     *   [Twitter][]
         (submitter: raimue@)
-    *   [Google+ Community][Google+]
-        (submitter: raimue@)
     *   (Where else?)
 
 
@@ -341,7 +339,6 @@ outdated ports tree sources.
 [common.inc]: https://github.com/macports/macports-www/blob/master/includes/common.inc
 [configure]: /configure
 [dp_version]: /config/dp_version
-[Google+]: https://plus.google.com/communities/110287630398071712872
 [gpg-user-id]: https://gnupg.org/documentation/manuals/gnupg/Specify-a-User-ID.html
 [installing.xml]: https://github.com/macports/macports-guide/blob/master/guide/xml/installing.xml
 [macports-announce]: mailto:macports-announce@lists.macports.org
