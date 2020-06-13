@@ -27,6 +27,7 @@ depends_build   port:docbook-xml-4.1.2 \
                 port:docbook-xml-4.4 \
                 port:docbook-xml-4.5
 
+test.run    yes
 test {
     # testing consists in processing dependencies
 }

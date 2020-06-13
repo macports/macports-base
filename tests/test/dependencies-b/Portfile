@@ -21,6 +21,7 @@ destroot {
     system "touch ${destroot}${prefix}/lib/${name}"
 }
 
+test.run    yes
 test {
     # testing consists in processing dependencies
 }
