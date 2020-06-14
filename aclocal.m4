@@ -125,6 +125,14 @@ AC_DEFUN([MP_CONFIG_SUBDIR], [
 	if test "$no_recursion" != yes || test ! -f "$ac_srcdir/config.status"; then
 		AC_MSG_NOTICE([=== configuring in $ac_dir ($mp_popdir/$ac_dir)])
 		if test -f "$ac_srcdir/configure"; then
+			# Run 'make distclean' first, ignoring errors; unfortunately some
+			# of our projects are not reconfigure-safe and will not correctly
+			# pick up modified configure variables or recompile files affected
+			# by such variables. See
+			# https://github.com/macports/macports-base/pull/79 and
+			# https://github.com/macports/macports-base/pull/80
+			make distclean || true
+
 			mp_sub_configure_args=
 			mp_sub_configure_keys=
 			# Compile a list of keys that have been given to the MP_CONFIG_SUBDIR
