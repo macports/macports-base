@@ -1,0 +1,44 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+
+set pwd [file dirname [file normalize $argv0]]
+
+source ../port_test_autoconf.tcl
+package require macports 1.0
+
+array set ui_options {}
+#set ui_options(ports_debug)   yes
+#set ui_options(ports_verbose) yes
+mportinit ui_options
+
+source ./library.tcl
+macports_worker_init
+
+package require port 1.0
+package require portstartupitem 1.0
+
+test startupitems {
+    startupitems unit test. Check that the name seen in foreach_startupitem\
+    is the same whether set via the startupitem.name option or via key+value\
+    in the startupitems option.
+} -setup {
+    set system_options(startupitem_install) yes
+} -body {
+    startupitem.name    testname
+    portstartupitem::foreach_startupitem {
+        set single_result $si_name
+    }
+    startupitems        name testname
+    portstartupitem::foreach_startupitem {
+        set multi_result $si_name
+    }
+    if {$single_result ne $multi_result} {
+        return "ERROR: single_result = '$single_result' but multi_result = '$multi_result'"
+    }
+    return "startupitems successful."
+} -result "startupitems successful."
+
+cleanupTests
