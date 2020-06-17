@@ -24,7 +24,7 @@ patch {
         close $fd
     }
 }
-configure {}
+use_configure       no
 build {}
 destroot {
     install -d -m755 ${destroot}${prefix}/share
