@@ -25,10 +25,10 @@ test parse_checksum {
     set res [portchecksum::parse_checksums $checksums_str]
     if {$res != "yes"} {return "FAIL: error in checksum parse"}
     if {$checksums_array(file) != "md5 1111"} {
-	   return "FAIL: invalid file options"
+        return "FAIL: invalid file options"
     }
     if {$checksums_array(file2) != "sha1 3333"} {
-	   return "FAIL: invalid file options"
+        return "FAIL: invalid file options"
     }
     return "Parse checksum successful."
 } -result "Parse checksum successful."
@@ -43,7 +43,7 @@ test calc_md5 {
 
     set res [portchecksum::calc_md5 $pwd/file]
     if {$res != "9f70ecc1095ff10df81be6b5f218328d"} {
-	   return "FAIL: unexpected md5"
+        return "FAIL: unexpected md5"
     }
     return "Calc md5 successful."
 
@@ -61,7 +61,7 @@ test calc_sha1 {
 
     set res [portchecksum::calc_sha1 $pwd/file]
     if {$res != "5560df60ff202ca8b8c3dcf51ad650b78e859261"} {
-	   return "FAIL: unexpected sha1"
+        return "FAIL: unexpected sha1"
     }
     return "Calc sha1 successful."
 
@@ -79,7 +79,7 @@ test calc_rmd160 {
 
     set res [portchecksum::calc_rmd160 $pwd/file]
     if {$res != "5aee5d12fe536e2e288e9f1daafd84f1bc17c3e6"} {
-	   return "FAIL: unexpected rmd160"
+        return "FAIL: unexpected rmd160"
     }
     return "Calc rmd160 successful."
 
@@ -97,7 +97,7 @@ test calc_sha256 {
 
     set res [portchecksum::calc_sha256 $pwd/file]
     if {$res != "2f686816f2a80e8efcc4ef40ac4e898d27ce4205a61ee422d56f8c5e8b46612e"} {
-	   return "FAIL: unexpected sha1"
+        return "FAIL: unexpected sha1"
     }
     return "Calc sha256 successful."
 
@@ -167,7 +167,7 @@ test checksum_main {
     set checksum.skip yes
 
     if {[portchecksum::checksum_main] != 0} {
-	   return "FAIL: checksum not skipped"
+        return "FAIL: checksum not skipped"
     }
 
     set checksum.skip no
@@ -177,12 +177,12 @@ test checksum_main {
     close [open $distpath/file w]
     close [open $distpath/file2 w]
     array set checksums_array {
-	   file {md5 d41d8cd98f00b204e9800998ecf8427e}
-	   file2 {sha1 da39a3ee5e6b4b0d3255bfef95601890afd80709}
+        file {md5 d41d8cd98f00b204e9800998ecf8427e}
+        file2 {sha1 da39a3ee5e6b4b0d3255bfef95601890afd80709}
     }
 
     if {[portchecksum::checksum_main] != 0} {
-	   return "FAIL: incorrect checksum"
+        return "FAIL: incorrect checksum"
     }
     return "Checksum main successful."
 

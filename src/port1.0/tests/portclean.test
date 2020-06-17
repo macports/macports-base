@@ -27,7 +27,7 @@ test clean_start {
     set prefix /opt/local
     seteuid 333
     if {[catch {clean_start args}] != 1} {
-       return "FAIL: couldn't elevate privileges"
+        return "FAIL: couldn't elevate privileges"
     }
     seteuid 0
     return "Clean_start successful."
@@ -66,16 +66,16 @@ test clean_dist {
     portclean::clean_dist
 
     if {[file exists $distpath/dist_file]} {
-       return "FAIL: distfile not removed"
+        return "FAIL: distfile not removed"
     }
     if {[file exists $distpath/dist_file2]} {
-       return "FAIL: distfile not removed"
+        return "FAIL: distfile not removed"
     }
     if {[file exists $patchpath/patch_file2]} {
-       return "FAIL: patchfile not removed"
+        return "FAIL: patchfile not removed"
     }
     if {[file exists $portdbpath/distfiles/$dist_subdir]} {
-       return "FAIL: distfiles dir not removed"
+        return "FAIL: distfiles dir not removed"
     }
 
     return "Clean distfiles successful."
@@ -105,10 +105,10 @@ test clean_work {
     portclean::clean_work
 
     if {[file exists $subbuildpath]} {
-       return "FAIL: buildpath not removed"
+        return "FAIL: buildpath not removed"
     }
     if {[file exists $worksymlink]} {
-       return "FAIL: symlink not removed"
+        return "FAIL: symlink not removed"
     }
 
     return "Clean work successful."
@@ -136,7 +136,7 @@ test clean_logs {
     portclean::clean_logs
 
     if {[file exists $subport]} {
-       return "FAIL: log dir not removed"
+        return "FAIL: log dir not removed"
     }
     return "Clean logs successful."
 
@@ -166,13 +166,13 @@ test clean_archive {
     portclean::clean_archive
 
     if {[file exists $portdbpath/incoming/subport-1_0.0.0.0.TMP]} {
-       return "FAIL: .TMP file not removed"
+        return "FAIL: .TMP file not removed"
     }
     if {![file exists $portdbpath/incoming/test.clean]} {
-       return "FAIL: removed unrelated file"
+        return "FAIL: removed unrelated file"
     }
     if {[file exists $portdbpath/incoming/subport-2_0.0.0.0.zip]} {
-       return "FAIL: zip archive not removed"
+        return "FAIL: zip archive not removed"
     }
 
     return "Clean archive successful."
