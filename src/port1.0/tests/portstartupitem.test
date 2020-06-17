@@ -20,25 +20,81 @@ macports_worker_init
 package require port 1.0
 package require portstartupitem 1.0
 
-test startupitems {
-    startupitems unit test. Check that the name seen in foreach_startupitem\
-    is the same whether set via the startupitem.name option or via key+value\
-    in the startupitems option.
+
+test startupitems_executable {
+    Check that setting the startupitem.executable option behaves the\
+    same as setting executable via the startupitems option.
 } -setup {
     set system_options(startupitem_install) yes
 } -body {
-    startupitem.name    testname
+    startupitem.executable  ${prefix}/sbin/mydaemon -flag1 "quoted string"
     portstartupitem::foreach_startupitem {
-        set single_result $si_name
+        set single_result [list {*}$si_executable]
     }
-    startupitems        name testname
+    startupitems \
+                name        testname \
+                executable  "${prefix}/sbin/mydaemon -flag1 \"quoted string\""
     portstartupitem::foreach_startupitem {
-        set multi_result $si_name
+        set multi_result [list {*}$si_executable]
     }
     if {$single_result ne $multi_result} {
         return "ERROR: single_result = '$single_result' but multi_result = '$multi_result'"
     }
-    return "startupitems successful."
-} -result "startupitems successful."
+    return "startupitems_executable successful."
+} -cleanup {
+    startupitems
+} -result "startupitems_executable successful."
+
+
+test startupitems_name {
+    Check that setting the startupitem.name option behaves the\
+    same as setting name via the startupitems option.
+} -setup {
+    set system_options(startupitem_install) yes
+} -body {
+    startupitem.name        testname
+    portstartupitem::foreach_startupitem {
+        set single_result [list {*}$si_name]
+    }
+    startupitems \
+                name        testname
+    portstartupitem::foreach_startupitem {
+        set multi_result [list {*}$si_name]
+    }
+    if {$single_result ne $multi_result} {
+        return "ERROR: single_result = '$single_result' but multi_result = '$multi_result'"
+    }
+    return "startupitems_name successful."
+} -cleanup {
+    startupitems
+} -result "startupitems_name successful."
+
+
+test startupitems_start {
+    Check that setting the startupitem.start option behaves the\
+    same as setting start via the startupitems option.
+} -setup {
+    set system_options(startupitem_install) yes
+} -body {
+    startupitem.start       "${prefix}/sbin/daemon1 start -flag1 \"quoted string\"" \
+                            "${prefix}/sbin/daemon2 start -flag2 -flag3"
+    portstartupitem::foreach_startupitem {
+        set single_result [list {*}$si_start]
+    }
+    startupitems \
+                name        testname \
+                start       "\"${prefix}/sbin/daemon1 start -flag1 \\\"quoted string\\\"\" \
+                            \"${prefix}/sbin/daemon2 start -flag2 -flag3\""
+    portstartupitem::foreach_startupitem {
+        set multi_result [list {*}$si_start]
+    }
+    if {$single_result ne $multi_result} {
+        return "ERROR: single_result = '$single_result' but multi_result = '$multi_result'"
+    }
+    return "startupitems_start successful."
+} -cleanup {
+    startupitems
+} -result "startupitems_start successful."
+
 
 cleanupTests
