@@ -177,7 +177,7 @@ test try {
         return "FAIL: try clause not working"
     }
     if {[test_proc2] != 6} {
-       reutrn "FAIL: catch clause not working"
+        return "FAIL: catch clause not working"
     }
     if {[catch {try}] != 1} {
         return "FAIL: no args err not detected"
