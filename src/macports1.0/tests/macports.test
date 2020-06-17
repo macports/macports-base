@@ -657,7 +657,7 @@ test getdefaultportresourcepath {
 
 # FIXME way too brittle
 test mporttraverse {
-    Mport traverse unit test. Uses first line of the Portfile.
+    Mport traverse unit test. Uses first nonempty noncomment line of the Portfile.
 } -setup {
     file mkdir $pwd/porttree
     file mkdir $pwd/porttree/cat1/gcc_select
@@ -669,9 +669,14 @@ test mporttraverse {
     proc test_proc {file} {
         global pwd res
         set fd [open ${pwd}/porttree/${file}/Portfile r]
-        gets $fd line
+        while {1} {
+            gets $fd line
+            if {[eof $fd] || ($line ne "" && [string index $line 0] ne "#")} {
+                break
+            }
+        }
         # Assumes this will be "PortSystem 1.0"
-        append res [lindex [split $line " "] 1]
+        append res [lindex [split $line " "] end]
         close $fd
     }
 
