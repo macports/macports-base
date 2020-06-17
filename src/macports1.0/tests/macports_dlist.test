@@ -20,17 +20,17 @@ test dlist_match_multi {
 } -setup {
     set mport [mportopen file://[pwd]]
     set crit [list \
-       provides gcc_select \
-       porturl file://[pwd] \
+        provides gcc_select \
+        porturl file://[pwd] \
     ]
     set crit2 { provides fondu2 }
 
 } -body {
     if {[dlist_match_multi $mport $crit] ne $mport} {
-       return "FAIL: correct dlist not matched"
+        return "FAIL: correct dlist not matched"
     }
     if {[dlist_match_multi $mport $crit2] ne ""} {
-       return "FAIL: incorrect dlist matched"
+        return "FAIL: incorrect dlist matched"
     }
     return "dlist match successful."
 } -cleanup {
@@ -44,10 +44,10 @@ test dlist_search {
     set mport [mportopen file://.]
 } -body {
     if {[dlist_search $mport provides gcc_select] ne $mport} {
-       return "FAIL: matching item not found"
+        return "FAIL: matching item not found"
     }
     if {[dlist_search $mport provides fondu2] ne ""} {
-       return "FAIL: wrong item detected"
+        return "FAIL: wrong item detected"
     }
     return "dlist successful."
 } -cleanup {
@@ -63,10 +63,10 @@ test dlist_delete {
     lappend dlist $mport
 } -body {
     if {[dlist_delete dlist $mport] ne ""} {
-       return "FAIL: cannot run dlist_delete"
+        return "FAIL: cannot run dlist_delete"
     }
     if {$dlist ne ""} {
-       return "FAIL: port not removed from list"
+        return "FAIL: port not removed from list"
     }
     return "Dlist delete successful."
 } -cleanup {
@@ -80,10 +80,10 @@ test dlist_has_pending {
     set mport [mportopen file://.]
 } -body {
     if {[dlist_has_pending $mport gcc_select] != 1} {
-       return "FAIL: not detected"
+        return "FAIL: not detected"
     }
     if {[dlist_has_pending $mport provides] != 0} {
-       return "FAIL: incorrect detected"
+        return "FAIL: incorrect detected"
     }
     return "dlist pending successful."
 } -cleanup {
@@ -96,14 +96,14 @@ test dlist_count_unmet {
 } -setup {
     set mport [mportopen file://.]
     array set statusdict {
-       vara 0
-       varb 0
-       varc 1
+        vara 0
+        varb 0
+        varc 1
     }
     set tokens {vara varb vard}
 } -body {
     if {[dlist_count_unmet $mport statusdict $tokens] != 3} {
-       return "FAIL: wrong unmet number"
+        return "FAIL: wrong unmet number"
     }
     return "count unmet successful."
 } -cleanup {
@@ -127,7 +127,7 @@ test dlist_append_dependents {
     set result {fondu2}
 } -body {
     if {[dlist_append_dependents $mport provides $result] ne {fondu2 provides}} {
-       return "FAIL: wrong depends"
+        return "FAIL: wrong depends"
     }
     return "Append depends successful."
 } -cleanup {
@@ -142,7 +142,7 @@ test dlist_get_next {
     set dict {gcc_select}
 } -body {
     if {[dlist_get_next $mport $dict] ne $mport} {
-       return "FAIL: wrong dlist"
+        return "FAIL: wrong dlist"
     }
     return "dlist get next successful."
 } -cleanup {
@@ -155,16 +155,16 @@ test dlist_eval {
 } -setup {
     set mport [mportopen file://.]
     proc cond {arg} {
-       if {[string match "ditem_*" $arg] != 0} {
+        if {[string match "ditem_*" $arg] != 0} {
             return 0
-       } else {
+        } else {
             return 1
-       }
+        }
     }
     proc handler {arg} {}
 } -body {
     if {[dlist_eval $mport cond handler] ne ""} {
-       return "FAIL: wrong value returned"
+        return "FAIL: wrong value returned"
     }
     return "dlist eval successful."
 } -cleanup {
@@ -177,10 +177,10 @@ test ditem_create {
 } -body {
     set res [macports_dlist::ditem_create]
     if {[string match "ditem_*" $res] == 0} {
-	return "FAIL: ditem not created"
+        return "FAIL: ditem not created"
     }
     if {[info exists macports_dlist::$res] != 1} {
-	return "FAIL: array not set"
+        return "FAIL: array not set"
     }
     return "Create ditem successful."
 } -result "Create ditem successful."
@@ -192,7 +192,7 @@ test ditem_delete {
     set res [macports_dlist::ditem_create]
     set res [macports_dlist::ditem_delete $res]
     if {[info exists macports_dlist::$res] != 0} {
-	return "FAIL: array not deleted"
+        return "FAIL: array not deleted"
     }
     return "Ditem delete successful."
 } -result "Ditem delete successful."
@@ -205,7 +205,7 @@ test ditem_key {
     macports_dlist::ditem_key $res macports test
 } -body {
     if {[array get macports_dlist::$res macports] ne "macports test"} {
-	return "FAIL ditem key not set"
+        return "FAIL ditem key not set"
     }
     return "Ditem key successful."
 } -cleanup {
@@ -221,7 +221,7 @@ test ditem_append {
     macports_dlist::ditem_append $res macports test2
 } -body {
     if {[array get macports_dlist::$res macports] ne "macports {test test2}"} {
-	return "FAIL: ditem key not appended"
+        return "FAIL: ditem key not appended"
     }
     return "Ditem key append successful."
 } -cleanup {
@@ -237,7 +237,7 @@ test ditem_append_unique {
     macports_dlist::ditem_append_unique $res macports test
 } -body {
     if {[array get macports_dlist::$res macports] ne "macports test"} {
-	return "FAIL: ditem key not unique"
+        return "FAIL: ditem key not unique"
     }
     return "Ditem append unique successful."
 } -cleanup {
@@ -251,10 +251,10 @@ test ditem_contains {
     set mport [mportopen file://.]
 } -body {
     if {[ditem_contains $mport provides] != 1} {
-       return "FAIL: valid key not detected"
+        return "FAIL: valid key not detected"
     }
     if {[ditem_contains $mport wants] != 0} {
-       return "FAIL: invalid key detected"
+        return "FAIL: invalid key detected"
     }
     return "ditem contains successful."
 } -cleanup {
