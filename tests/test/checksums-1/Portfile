@@ -1,36 +1,37 @@
-PortSystem 1.0
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 
-name		checksum
-version		1
-categories	test
-maintainers	opendarwin.org@darkart.com
-description	Test port for checksum functionalities
-homepage	https://www.macports.org/
-platforms	darwin
-supported_archs	noarch
+PortSystem      1.0
+
+name            checksum
+version         1
+categories      test
+maintainers     opendarwin.org@darkart.com
+description     Test port for checksum functionalities
+homepage        https://www.macports.org/
+platforms       darwin
+supported_archs noarch
 configure.cxx_stdlib
 
 long_description ${description}
 
-master_sites	file:///dev/null
+master_sites    file:///dev/null
 
 fetch {
-	system "mkdir -p $distpath"
-	system "cat /dev/null > $distpath/$distname.tar.gz"
+    system "mkdir -p $distpath"
+    system "cat /dev/null > $distpath/$distname.tar.gz"
 }
 
-checksums \
-	md5 d41d8cd98f00b204e9800998ecf8427e \
-	sha1 da39a3ee5e6b4b0d3255bfef95601890afd80709 \
-	rmd160 9c1185a5c5e9fc54612808977ee8f548b2258d31
+checksums       md5     d41d8cd98f00b204e9800998ecf8427e \
+                sha1    da39a3ee5e6b4b0d3255bfef95601890afd80709 \
+                rmd160  9c1185a5c5e9fc54612808977ee8f548b2258d31
 
-extract		{}
-configure	{}
-build		{}
-destroot	{
-	system "touch ${destroot}${prefix}/lib/${name}"
+extract         {}
+configure       {}
+build           {}
+destroot {
+    system "touch ${destroot}${prefix}/lib/${name}"
 }
 
 test {
-	# test is actually running checksum target
+    # test is actually running checksum target
 }

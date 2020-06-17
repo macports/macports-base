@@ -1,39 +1,41 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
 PortSystem 1.0
 
-name		variants
-version		1
-categories	test
-maintainers	pguyot@kallisys.net
-description	Test port for variants logic
-homepage	https://www.macports.org/
-platforms	darwin
-supported_archs	noarch
+name            variants
+version         1
+categories      test
+maintainers     pguyot@kallisys.net
+description     Test port for variants logic
+homepage        https://www.macports.org/
+platforms       darwin
+supported_archs noarch
 configure.cxx_stdlib
 
 long_description ${description}
 
 distfiles
-use_configure no
-build		{}
-destroot	{
-	system "touch ${destroot}${prefix}/lib/${name}"
+use_configure   no
+build           {}
+destroot {
+    system "touch ${destroot}${prefix}/lib/${name}"
 }
 
 test {
-	# test is actually installing this.
+    # test is actually installing this.
 }
 
 # We override universal variant.
 variant universal {
-	puts "Universal Variant"
+    puts "Universal Variant"
 }
 
 # We define the utopia variant twice
 variant utopia {
-	puts "Utopia variant -- 1"
+    puts "Utopia variant -- 1"
 }
 variant utopia {
-	puts "Utopia variant -- 2"
+    puts "Utopia variant -- 2"
 }
 
-default_variants	+utopia
+default_variants +utopia

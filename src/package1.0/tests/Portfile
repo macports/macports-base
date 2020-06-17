@@ -1,3 +1,5 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
 PortSystem              1.0
 
 name                    fondu
@@ -20,7 +22,7 @@ long_description        Dealing with Mac fonts is hard on other operating \
                         from either a MacBinary file or a BinHex file. Ufond \
                         will create a resource fork inside a MacBinary file.
 
-checksums               md5 e20861beacddc1ab392bef7813641bf8
+checksums               md5     e20861beacddc1ab392bef7813641bf8
 extract.suffix          .tgz
 distfiles               ${name}_src-${version}${extract.suffix}
 
@@ -39,4 +41,4 @@ post-destroot {
     xinstall -m 644 {*}[glob ${worksrcpath}/*.1] ${destroot}${prefix}/share/man/man1/
 }
 
-test.run		yes
+test.run                yes

@@ -1,30 +1,32 @@
-PortSystem 1.0
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 
-name		dependencies-a
-version		1
-categories	test
-maintainers	pguyot@kallisys.net
-description	Test port for dependencies
-homepage	https://www.macports.org/
-platforms	darwin
-supported_archs	noarch
+PortSystem      1.0
+
+name            dependencies-a
+version         1
+categories      test
+maintainers     pguyot@kallisys.net
+description     Test port for dependencies
+homepage        https://www.macports.org/
+platforms       darwin
+supported_archs noarch
 configure.cxx_stdlib
 
 long_description ${description}
 
 distfiles
-use_configure no
-build		{}
-destroot	{
-	system "touch ${destroot}${prefix}/lib/${name}"
+use_configure   no
+build           {}
+destroot {
+    system "touch ${destroot}${prefix}/lib/${name}"
 }
 
-default_variants	+i_want_b
+default_variants +i_want_b
 
 variant i_want_b {
-	depends_lib-append	port:dependencies-b
+    depends_lib-append  port:dependencies-b
 }
 
 test {
-# testing consists in processing dependencies
+    # testing consists in processing dependencies
 }

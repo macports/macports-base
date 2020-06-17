@@ -28,14 +28,14 @@ patchfiles          patch
 checksums           patch md5 d41d8cd98f00b204e9800998ecf8427e
 
 # disable the patch phase because the patches would never apply
-patch		{}
-extract		{}
-configure	{}
-build		{}
-destroot	{
-	system "touch ${destroot}${prefix}/lib/${name}"
+patch               {}
+extract             {}
+configure           {}
+build               {}
+destroot {
+    system "touch ${destroot}${prefix}/lib/${name}"
 }
 
 test {
-	# test is actually running the fetch target
+    # test is actually running the fetch target
 }
