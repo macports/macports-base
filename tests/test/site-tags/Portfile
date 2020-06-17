@@ -1,36 +1,38 @@
-PortSystem 1.0
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 
-name		site-tags
-version		2
-categories	test
-maintainers	kallisys.net:pguyot
-description	Test port for site:tags functionalities
-homepage	https://www.macports.org/
-platforms	darwin
-supported_archs	noarch
+PortSystem  1.0
+
+name            site-tags
+version         2
+categories      test
+maintainers     kallisys.net:pguyot
+description     Test port for site:tags functionalities
+homepage        https://www.macports.org/
+platforms       darwin
+supported_archs noarch
 configure.cxx_stdlib
 
 long_description ${description}
 
-master_sites	http://distfiles.macports.org/py-importlib/:importlib \
-				http://distfiles.macports.org/py-errorhandler/:errorhandler
-distfiles		importlib-1.0.2.tar.gz:importlib \
-				errorhandler-1.1.1.tar.gz:errorhandler
+master_sites    http://distfiles.macports.org/py-importlib/:importlib \
+                http://distfiles.macports.org/py-errorhandler/:errorhandler
+distfiles       importlib-1.0.2.tar.gz:importlib \
+                errorhandler-1.1.1.tar.gz:errorhandler
 
-checksums		importlib-1.0.2.tar.gz \
-					rmd160 0bd0d01f4e419340066c29e3e09ddc182b96f8d1 \
-					sha256 24d0966aa76859b288485803f310076512f87377e6c9afe9c28c52a8ccdd328c \
-				errorhandler-1.1.1.tar.gz \
-					rmd160 3a60f826eb1bae0e249fdefd3d6c4eb3c598832f \
-					sha256 2baa97a8a256fe72960d196bbdee4404162186f539c4d73b3f1c072db18463e9
+checksums       importlib-1.0.2.tar.gz \
+                    rmd160  0bd0d01f4e419340066c29e3e09ddc182b96f8d1 \
+                    sha256  24d0966aa76859b288485803f310076512f87377e6c9afe9c28c52a8ccdd328c \
+                errorhandler-1.1.1.tar.gz \
+                    rmd160  3a60f826eb1bae0e249fdefd3d6c4eb3c598832f \
+                    sha256  2baa97a8a256fe72960d196bbdee4404162186f539c4d73b3f1c072db18463e9
 
-extract		{}
-use_configure no
-build		{}
-destroot	{
-	system "touch ${destroot}${prefix}/lib/${name}"
+extract         {}
+use_configure   no
+build           {}
+destroot {
+    system "touch ${destroot}${prefix}/lib/${name}"
 }
 
 test {
-	# test is actually running the fetch target
+    # test is actually running the fetch target
 }
