@@ -1,3 +1,5 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
 # Test file for Pextlib's fs-traverse
 # Requires r/w access to /tmp
 # Syntax:
@@ -361,31 +363,31 @@ proc setup_trees {root} {
     "
 
     set trees(6) "
-        .         directory
-        a         directory
-        a/a       file
-        a/b       file
-        a/c       directory
-        a/c/a     {link ../d}
-        a/c/b     file
-        a/c/c     directory
-        a/c/d     file
-        a/d       directory
-        a/d/a     file
-        a/d/b     {link ../../b/a}
-        a/d/c     directory
-        a/d/d     file
-        a/e       file
-        b         directory
-        b/a       directory
-        b/a/a     file
-        b/a/b     file
-        b/a/c     file
-        b/b       directory
-        b/c       directory
-        b/c/a     file
-        b/c/b     file
-        b/c/c     file
+        .               directory
+        a               directory
+        a/a             file
+        a/b             file
+        a/c             directory
+        a/c/a           {link ../d}
+        a/c/b           file
+        a/c/c           directory
+        a/c/d           file
+        a/d             directory
+        a/d/a           file
+        a/d/b           {link ../../b/a}
+        a/d/c           directory
+        a/d/d           file
+        a/e             file
+        b               directory
+        b/a             directory
+        b/a/a           file
+        b/a/b           file
+        b/a/c           file
+        b/b             directory
+        b/c             directory
+        b/c/a           file
+        b/c/b           file
+        b/c/c           file
     "
 }
 
