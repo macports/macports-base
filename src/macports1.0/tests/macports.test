@@ -853,7 +853,7 @@ test mportselect {
         return "FAIL: files not listed"
     }
     if {[mportselect set group file1] ne ""} {
-       reutrn "FAIL: cannot set links"
+        return "FAIL: cannot set links"
     }
     if {![file exists $macports::prefix/a]} {
         return "FAIL: link not created"
