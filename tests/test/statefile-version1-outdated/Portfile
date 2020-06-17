@@ -17,7 +17,7 @@ distfiles
 
 fetch               {}
 extract             {}
-configure           {}
+use_configure       no
 build               {}
 destroot            {
     system "touch ${destroot}${prefix}/lib/${name}"

@@ -30,7 +30,7 @@ checksums           patch md5 d41d8cd98f00b204e9800998ecf8427e
 # disable the patch phase because the patches would never apply
 patch               {}
 extract             {}
-configure           {}
+use_configure       no
 build               {}
 destroot {
     system "touch ${destroot}${prefix}/lib/${name}"

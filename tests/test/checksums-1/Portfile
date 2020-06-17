@@ -26,7 +26,7 @@ checksums       md5     d41d8cd98f00b204e9800998ecf8427e \
                 rmd160  9c1185a5c5e9fc54612808977ee8f548b2258d31
 
 extract         {}
-configure       {}
+use_configure   no
 build           {}
 destroot {
     system "touch ${destroot}${prefix}/lib/${name}"
