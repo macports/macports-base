@@ -2,6 +2,11 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.6.x (tbd)
+    - Fixed an issue where post-extract ran with elevated privileges when
+      adduser was used in a Portfile
+      (#50918, cal in 993bcdece)
+
 Release 2.6.2 (2019-10-20 by jmr)
     - Added support for zsh to the pkg installer's PATH setup code.
       (cal in f9a3b2d)
