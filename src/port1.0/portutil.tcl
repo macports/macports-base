@@ -2326,9 +2326,6 @@ proc adduser {name args} {
         ui_warn "adduser only works when running as root."
         ui_warn "The requested user '$name' was not created."
         return
-    } elseif {[geteuid] != 0} {
-        seteuid 0; setegid 0
-        set escalated 1
     }
 
     set passwd {*}
@@ -2347,6 +2344,11 @@ proc adduser {name args} {
 
     if {[existsuser ${name}] != -1 || [existsuser ${uid}] != -1} {
         return
+    }
+
+    if {[geteuid] != 0} {
+        seteuid 0; setegid 0
+        set escalated 1
     }
 
     if {${os.platform} eq "darwin"} {
@@ -2415,6 +2417,11 @@ proc adduser {name args} {
                     }
                 }
 
+                # drop privileges if they were escalated before
+                if {[info exists escalated]} {
+                    dropPrivileges
+                }
+
                 # and raise an error to abort
                 error "dscl failed to create required user $name."
             }
@@ -2437,9 +2444,6 @@ proc addgroup {name args} {
         ui_warn "addgroup only works when running as root."
         ui_warn "The requested group '$name' was not created."
         return
-    } elseif {[geteuid] != 0} {
-        seteuid 0; setegid 0
-        set escalated 1
     }
 
     set gid [nextgid]
@@ -2456,6 +2460,11 @@ proc addgroup {name args} {
 
     if {[existsgroup ${name}] != -1 || [existsgroup ${gid}] != -1} {
         return
+    }
+
+    if {[geteuid] != 0} {
+        seteuid 0; setegid 0
+        set escalated 1
     }
 
     if {${os.platform} eq "darwin"} {
@@ -2512,6 +2521,10 @@ proc addgroup {name args} {
                         ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of group $name."
                         ui_debug "dscl printed: $eMessage"
                     }
+                }
+
+                if {[info exists escalated]} {
+                    dropPrivileges
                 }
 
                 # and raise an error to abort
