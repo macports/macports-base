@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release x.y.z (unreleased)
+Release 2.7.0 (unreleased)
     - reclaim: remove everything under build and ccache directories
       (khindenburg in b9fdb847)
       (khindenburg in d08d261f)
@@ -16,6 +16,11 @@ Release x.y.z (unreleased)
 
     - Adjust lint --niptick on patchfiles to allow *.diff or *.patch
       (khindenburg in 5037999e)
+
+Release 2.6.3 (unreleased)
+    - Fixed an issue where post-extract ran with elevated privileges when
+      adduser was used in a Portfile
+      (#50918, cal in ac1a9b099)
 
 Release 2.6.2 (2019-10-20 by jmr)
     - Added support for zsh to the pkg installer's PATH setup code.
