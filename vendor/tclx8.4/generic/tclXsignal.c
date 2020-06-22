@@ -649,11 +649,11 @@ SignalTrap (signalNum)
 #ifdef SIGCHLD
     if (signalNum != SIGCHLD) {
         if (SetSignalState (signalNum, SignalTrap, FALSE) == TCL_ERROR)
-            panic ("SignalTrap bug");
+            Tcl_Panic ("SignalTrap bug");
     }
 #else
     if (SetSignalState (signalNum, SignalTrap, FALSE) == TCL_ERROR)
-        panic ("SignalTrap bug");
+        Tcl_Panic ("SignalTrap bug");
 #endif /* SIGCHLD */
 #endif /* NO_SIGACTION */
 }
@@ -1581,7 +1581,7 @@ SignalCmdCleanUp (clientData, interp)
             break;
     }
     if (idx == numInterps)
-        panic ("signal interp lost");
+        Tcl_Panic ("signal interp lost");
 
     interpTable [idx] = interpTable [--numInterps];
 
