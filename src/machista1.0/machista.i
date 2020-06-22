@@ -34,6 +34,9 @@
 %rename(EMAGIC) MACHO_EMAGIC;
 #define MACHO_EMAGIC    (0x10)
 
+%rename(ECACHE) MACHO_ECACHE;
+#define MACHO_ECACHE    (0x20)
+
 typedef unsigned int uint32_t;
 typedef int cpu_type_t;
 

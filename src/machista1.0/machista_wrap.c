@@ -2734,6 +2734,7 @@ SWIGEXPORT int SWIG_init(Tcl_Interp *interp) {
   SWIG_Tcl_SetConstantObj(interp, "machista::EMEM", SWIG_From_int((int)((0x04))));
   SWIG_Tcl_SetConstantObj(interp, "machista::ERANGE", SWIG_From_int((int)((0x08))));
   SWIG_Tcl_SetConstantObj(interp, "machista::EMAGIC", SWIG_From_int((int)((0x10))));
+  SWIG_Tcl_SetConstantObj(interp, "machista::ECACHE", SWIG_From_int((int)((0x20))));
   return TCL_OK;
 }
 SWIGEXPORT int Machista_SafeInit(Tcl_Interp *interp) {
