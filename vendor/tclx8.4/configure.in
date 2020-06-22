@@ -194,6 +194,7 @@ WIFEXITED(x);	/* Generates compiler error if WIFEXITED uses an int. */
     AC_TRY_RUN([
 #include <sys/types.h>
 #include <sys/times.h>
+#include <unistd.h>
 main() {
     struct tms cpu;
     times(&cpu);

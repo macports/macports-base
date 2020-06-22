@@ -6005,6 +6005,7 @@ else
 
 
 					#include <IOKit/IOKitLib.h>
+					#include <IOKit/pwr_mgt/IOPMLib.h>
 
 int
 main ()
