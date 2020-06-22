@@ -2587,6 +2587,7 @@ AC_DEFUN([SC_BUGGY_STRTOD], [
     if test "$tcl_strtod" = 1; then
 	AC_CACHE_CHECK([for Solaris2.4/Tru64 strtod bugs], tcl_cv_strtod_buggy,[
 	    AC_TRY_RUN([
+		#include <stdlib.h>
 		extern double strtod();
 		int main() {
 		    char *infString="Inf", *nanString="NaN", *spaceString=" ";
@@ -2864,7 +2865,10 @@ AC_DEFUN([SC_TCL_CHECK_BROKEN_FUNC],[
     AC_CHECK_FUNC($1, tcl_ok=1, tcl_ok=0)
     if test ["$tcl_ok"] = 1; then
 	AC_CACHE_CHECK([proper ]$1[ implementation], [tcl_cv_]$1[_unbroken],
-	    AC_TRY_RUN([[int main() {]$2[}]],[tcl_cv_]$1[_unbroken]=ok,
+	    AC_TRY_RUN([[
+#include <stdlib.h>
+#include <string.h>
+int main() {]$2[}]],[tcl_cv_]$1[_unbroken]=ok,
 		[tcl_cv_]$1[_unbroken]=broken,[tcl_cv_]$1[_unbroken]=unknown))
 	if test ["$tcl_cv_]$1[_unbroken"] = "ok"; then
 	    tcl_ok=1

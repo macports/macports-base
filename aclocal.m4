@@ -488,6 +488,7 @@ AC_DEFUN(MP_CHECK_FRAMEWORK_IOKIT, [
 		AC_LINK_IFELSE([
 			AC_LANG_PROGRAM([
 					#include <IOKit/IOKitLib.h>
+					#include <IOKit/pwr_mgt/IOPMLib.h>
 				], [
 					IOCreateReceivePort(0, NULL);
 					IORegisterForSystemPower(0, NULL, NULL, NULL);
