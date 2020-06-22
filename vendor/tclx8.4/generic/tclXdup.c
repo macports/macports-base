@@ -76,7 +76,7 @@ DupChannelOptions (interp, srcChannel, targetChannel)
         goto errorExit;
     }
     if ((optArgc % 2) != 0) {
-        panic("channel didn't return keyword/value pairs");
+        Tcl_Panic("channel didn't return keyword/value pairs");
     }
 
     for (idx = 0; idx < optArgc; idx += 2) {

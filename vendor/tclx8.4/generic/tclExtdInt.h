@@ -47,7 +47,7 @@
  */
 #ifdef TCLX_DEBUG
 #   define TclX_Assert(expr) ((expr) ? (void)0 : \
-                              panic("TclX assertion failure: %s:%d \"%s\"\n",\
+                              Tcl_Panic("TclX assertion failure: %s:%d \"%s\"\n",\
                                     __FILE__, __LINE__, "expr"))
 #else
 #   define TclX_Assert(expr)
