@@ -467,9 +467,11 @@ int macho_parse_file(macho_handle_t *handle, const char *filepath, const macho_t
     
     /* Open input file */
     if ((fd = open(filepath, O_RDONLY)) < 0) {
+#ifdef HAVE_DLOPEN_PREFLIGHT
         if (dlopen_preflight(filepath)) {
             return MACHO_ECACHE;
         }
+#endif /* HAVE_DLOPEN_PREFLIGHT */
         return MACHO_EFILE;
     }
 
