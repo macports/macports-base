@@ -402,22 +402,61 @@ proc portconfigure::configure_start {args} {
 
 # internal function to choose the default configure.build_arch and
 # configure.universal_archs based on supported_archs and build_arch or
-# universal_archs
+# universal_archs, plus the SDK being used
 proc portconfigure::choose_supported_archs {archs} {
     global supported_archs configure.sdk_version
-    if {$supported_archs eq ""} {
+
+    if {${configure.sdk_version} ne ""} {
+        # Figure out which archs are supported by the SDK
+        if {[vercmp ${configure.sdk_version} 11.0] >= 0} {
+            set sdk_archs [list arm64 x86_64]
+        } elseif {[vercmp ${configure.sdk_version} 10.14] >= 0} {
+            set sdk_archs x86_64
+        } elseif {[vercmp ${configure.sdk_version} 10.7] >= 0} {
+            set sdk_archs [list x86_64 i386]
+        } elseif {[vercmp ${configure.sdk_version} 10.6] >= 0} {
+            set sdk_archs [list x86_64 i386 ppc]
+        } elseif {[vercmp ${configure.sdk_version} 10.5] >= 0} {
+            set sdk_archs [list x86_64 i386 ppc ppc64]
+        } else {
+            # 10.4u
+            set sdk_archs [list i386 ppc ppc64]
+        }
+
+        # Set intersection_archs to the intersection of what's supported by
+        # the SDK and the port's supported_archs
+        if {$supported_archs eq ""} {
+            # Blank supported_archs; allow whatever the SDK does.
+            set intersection_archs $sdk_archs
+        } else {
+            set intersection_archs [list]
+            foreach arch $sdk_archs {
+                if {$arch in $supported_archs} {
+                    lappend intersection_archs $arch
+                }
+            }
+            if {$intersection_archs eq ""} {
+                # No archs in common.
+                return ""
+            }
+        }
+    } elseif {$supported_archs eq ""} {
+        # Nothing to filter on.
         return $archs
+    } else {
+        # No SDK version (maybe not on macOS)
+        set intersection_archs $supported_archs
     }
     set ret {}
+    # Filter out unsupported archs, but allow demoting to 32-bit if needed.
+    # That means if build_arch is x86_64 it's still possible to build a port
+    # that sets supported_archs to "i386 ppc" if the SDK allows it.
     foreach arch $archs {
-        if {$arch in $supported_archs} {
+        if {$arch in $intersection_archs} {
             set add_arch $arch
-        } elseif {$arch eq "x86_64" && "i386" in $supported_archs} {
-            if {${configure.sdk_version} ne "" && [vercmp ${configure.sdk_version} 10.14] >= 0} {
-                continue
-            }
+        } elseif {$arch eq "x86_64" && "i386" in $intersection_archs} {
             set add_arch "i386"
-        } elseif {$arch eq "ppc64" && "ppc" in $supported_archs} {
+        } elseif {$arch eq "ppc64" && "ppc" in $intersection_archs} {
             set add_arch "ppc"
         } else {
             continue
