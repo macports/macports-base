@@ -1,0 +1,90 @@
+https://github.com/macports/macports-base/commit/aeda00dfd7aa26fa4b78ac30d76ea64cdf0a4408
+
+diff --git a/vendor/tcl8.5.19/unix/configure b/vendor/tcl8.5.19/unix/configure
+index 7ff9f7257..fcb64f18e 100755
+--- a/vendor/tcl8.5.19/unix/configure
++++ b/vendor/tcl8.5.19/unix/configure
+@@ -2798,6 +2798,7 @@ cat confdefs.h >>conftest.$ac_ext
+ cat >>conftest.$ac_ext <<_ACEOF
+ /* end confdefs.h.  */
+ #include <ctype.h>
++#include <stdlib.h>
+ #if ((' ' & 0x0FF) == 0x020)
+ # define ISLOWER(c) ('a' <= (c) && (c) <= 'z')
+ # define TOUPPER(c) (ISLOWER(c) ? 'A' + ((c) - 'a') : (c))
+@@ -14488,6 +14489,7 @@ _ACEOF
+ cat confdefs.h >>conftest.$ac_ext
+ cat >>conftest.$ac_ext <<_ACEOF
+ /* end confdefs.h.  */
++#include <stdlib.h>
+ int main() {
+     extern int strstr();
+     exit(strstr("\0test", "test") ? 1 : 0);
+@@ -14655,6 +14657,7 @@ _ACEOF
+ cat confdefs.h >>conftest.$ac_ext
+ cat >>conftest.$ac_ext <<_ACEOF
+ /* end confdefs.h.  */
++#include <stdlib.h>
+ int main() {
+     extern int strtoul();
+     char *term, *string = "0";
+@@ -14822,6 +14825,7 @@ _ACEOF
+ cat confdefs.h >>conftest.$ac_ext
+ cat >>conftest.$ac_ext <<_ACEOF
+ /* end confdefs.h.  */
++#include <stdlib.h>
+ int main() {
+     extern double strtod();
+     char *term, *string = " +69";
+@@ -14993,6 +14997,7 @@ cat confdefs.h >>conftest.$ac_ext
+ cat >>conftest.$ac_ext <<_ACEOF
+ /* end confdefs.h.  */
+ 
++		#include <stdlib.h>
+ 		extern double strtod();
+ 		int main() {
+ 		    char *infString="Inf", *nanString="NaN", *spaceString=" ";
+@@ -16380,6 +16385,7 @@ cat >>conftest.$ac_ext <<_ACEOF
+ /* end confdefs.h.  */
+ 
+ 	#include <stdlib.h>
++	#include <string.h>
+ 	#define OURVAR "havecopy=yes"
+ 	int main (int argc, char *argv[])
+ 	{
+diff --git a/vendor/tcl8.5.19/unix/configure.in b/vendor/tcl8.5.19/unix/configure.in
+index e4255b6df..af2a26a14 100755
+--- a/vendor/tcl8.5.19/unix/configure.in
++++ b/vendor/tcl8.5.19/unix/configure.in
+@@ -453,6 +453,7 @@ fi
+ AC_CACHE_CHECK([for a putenv() that copies the buffer], tcl_cv_putenv_copy, [
+     AC_TRY_RUN([
+ 	#include <stdlib.h>
++	#include <string.h>
+ 	#define OURVAR "havecopy=yes"
+ 	int main (int argc, char *argv[])
+ 	{
+diff --git a/vendor/tcl8.5.19/unix/tcl.m4 b/vendor/tcl8.5.19/unix/tcl.m4
+index a7faae550..f482460ce 100644
+--- a/vendor/tcl8.5.19/unix/tcl.m4
++++ b/vendor/tcl8.5.19/unix/tcl.m4
+@@ -2587,6 +2587,7 @@ AC_DEFUN([SC_BUGGY_STRTOD], [
+     if test "$tcl_strtod" = 1; then
+ 	AC_CACHE_CHECK([for Solaris2.4/Tru64 strtod bugs], tcl_cv_strtod_buggy,[
+ 	    AC_TRY_RUN([
++		#include <stdlib.h>
+ 		extern double strtod();
+ 		int main() {
+ 		    char *infString="Inf", *nanString="NaN", *spaceString=" ";
+@@ -2864,7 +2865,10 @@ AC_DEFUN([SC_TCL_CHECK_BROKEN_FUNC],[
+     AC_CHECK_FUNC($1, tcl_ok=1, tcl_ok=0)
+     if test ["$tcl_ok"] = 1; then
+ 	AC_CACHE_CHECK([proper ]$1[ implementation], [tcl_cv_]$1[_unbroken],
+-	    AC_TRY_RUN([[int main() {]$2[}]],[tcl_cv_]$1[_unbroken]=ok,
++	    AC_TRY_RUN([[
++#include <stdlib.h>
++#include <string.h>
++int main() {]$2[}]],[tcl_cv_]$1[_unbroken]=ok,
+ 		[tcl_cv_]$1[_unbroken]=broken,[tcl_cv_]$1[_unbroken]=unknown))
+ 	if test ["$tcl_cv_]$1[_unbroken"] = "ok"; then
+ 	    tcl_ok=1

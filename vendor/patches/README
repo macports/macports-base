@@ -1,0 +1,6 @@
+These are patches that have been applied to the vendored projects. Please
+re-apply them after updating to a newer version, or delete those that have
+been applied upstream.
+
+Naturally, any new changes to the vendored files should be accompanied by a
+corresponding patch file here.
