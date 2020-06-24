@@ -695,8 +695,14 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # set up platform info variables
     set os_arch $tcl_platform(machine)
-    if {$os_arch eq "Power Macintosh"} {set os_arch "powerpc"}
-    if {$os_arch eq "i586" || $os_arch eq "i686" || $os_arch eq "x86_64"} {set os_arch "i386"}
+    # Set os_arch to match `uname -p`
+    if {$os_arch eq "Power Macintosh"} {
+        set os_arch "powerpc"
+    } elseif {$os_arch eq "i586" || $os_arch eq "i686" || $os_arch eq "x86_64"} {
+        set os_arch "i386"
+    } elseif {$os_arch eq "arm64"} {
+        set os_arch "arm"
+    }
     set os_version $tcl_platform(osVersion)
     set os_major [lindex [split $os_version .] 0]
     set os_minor [lindex [split $os_version .] 1]
@@ -1111,7 +1117,7 @@ match macports.conf.default."
     if {![info exists macports::build_arch]} {
         if {$os_platform eq "darwin"} {
             if {$os_major >= 20} {
-                if {$os_arch eq "arm64"} {
+                if {$os_arch eq "arm"} {
                     set macports::build_arch arm64
                 } else {
                     set macports::build_arch x86_64
