@@ -903,9 +903,19 @@ proc portconfigure::get_min_clang {} {
     if {${compiler.cxx_standard} >= 2017} {
         set min_value [max_version $min_value 5.0]
     } elseif {${compiler.cxx_standard} >= 2014} {
-        set min_value [max_version $min_value 3.4]
+        if {[option configure.cxx_stdlib] eq "libc++"} {
+            set min_value [max_version $min_value 3.4]
+        } else {
+            # macports-libstdc++ only macports-clang compilers >= 5.0 support this
+            set min_value [max_version $min_value 5.0]
+        }
     } elseif {${compiler.cxx_standard} >= 2011} {
-        set min_value [max_version $min_value 3.3]
+        if {[option configure.cxx_stdlib] eq "libc++"} {
+            set min_value [max_version $min_value 3.3]
+        } else {
+            # macports-libstdc++ only macports-clang compilers >= 5.0 support this
+            set min_value [max_version $min_value 5.0]
+        }
     }
     if {[vercmp ${compiler.openmp_version} 4.0] >= 0} {
         set min_value [max_version $min_value 6.0]
