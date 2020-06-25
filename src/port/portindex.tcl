@@ -9,6 +9,7 @@ package require Pextlib
 # Globals
 set full_reindex 0
 set permit_error 0
+set index_diff 0
 set stats(total) 0
 set stats(failed) 0
 set stats(skipped) 0
@@ -16,6 +17,7 @@ array set ui_options        [list ports_no_old_index_warning 1]
 array set global_options    [list]
 array set global_variations [list]
 set port_options            [list]
+array set parsed_ports      [list]
 
 # Pass global options into mportinit
 mportinit ui_options global_options global_variations
@@ -29,6 +31,7 @@ proc print_usage args {
     puts "-e:\tExit code indicates if ports failed to parse"
     puts "-o:\tOutput all files to specified directory"
     puts "-p:\tPretend to be on another platform"
+    puts "-diff:\tGenerate an index of ports changed since last indexing"
 }
 
 proc _read_index {idx} {
@@ -46,14 +49,28 @@ proc _read_index {idx} {
 }
 
 proc _write_index {name len line} {
-    global fd
-
+    global fd parsed_ports
+    set qname [string tolower $name]
+    set parsed_ports($qname) $qname
     puts $fd [list $name $len]
     puts $fd $line
 }
 
-proc _write_index_from_portinfo {portinfoname {is_subport no}} {
-    global keepkeys
+proc _write_diff_index {name len line diff_status} {
+    global diff_fd
+
+    array set temp_line $line
+    set temp_line(status) $diff_status
+
+    #Convert the temporary array back to list that can be written to differences file
+    set line [array get temp_line]
+    set len [expr {[string length $line] + 1}]
+    puts $diff_fd [list $name $len]
+    puts $diff_fd $line
+}
+
+proc _write_index_from_portinfo {diff_status portinfoname {is_subport no}} {
+    global keepkeys index_diff
 
     upvar $portinfoname portinfo
 
@@ -75,7 +92,13 @@ proc _write_index_from_portinfo {portinfoname {is_subport no}} {
 
     set output [array get keep_portinfo]
     set len [expr {[string length $output] + 1}]
+
+    # First write to the Full Portindex without the key "status"
     _write_index $portinfo(name) $len $output
+
+    if {$index_diff == 1} {
+        _write_diff_index $portinfo(name) $len $output $diff_status
+    }
 }
 
 proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}} {
@@ -105,6 +128,24 @@ proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}
     mportclose $interp
 
     set portinfo(portdir) $portdir
+}
+
+proc _write_deleted_ports {} {
+    global qindex parsed_ports
+    foreach port [array names qindex] {
+        if {![info exists parsed_ports($port)] && [string trim $port] != ""} {
+            try -pass_signal {
+                lassign [_read_index $port] name len line
+                array set portinfo $line
+                _write_diff_index $name $len $line D
+            } catch {{*} eCode eMessage} {
+                ui_warn "Failed to open old entry for deleted port: ${port}"
+                if {[info exists ui_options(ports_debug)]} {
+                    puts "$::errorInfo"
+                }
+            }
+        }
+    }
 }
 
 proc pindex {portdir} {
@@ -156,7 +197,12 @@ proc pindex {portdir} {
         _open_port portinfo $portdir $absportdir port_options
         puts "Adding port $portdir"
 
-        _write_index_from_portinfo portinfo
+        if {[info exists qindex($qname)]} {
+            set diff_status U
+        } else {
+            set diff_status A
+        }
+        _write_index_from_portinfo $diff_status portinfo
         set mtime [file mtime $portfile]
         if {$mtime > $newest} {
             set newest $mtime
@@ -172,7 +218,7 @@ proc pindex {portdir} {
                 _open_port portinfo $portdir $absportdir port_options $sub
                 puts "Adding subport $sub"
 
-                _write_index_from_portinfo portinfo yes
+                _write_index_from_portinfo $diff_status portinfo
             } catch {{*} eCode eMessage} {
                 puts stderr "Failed to parse file $portdir/Portfile with subport '${sub}': $eMessage"
                 incr stats(failed)
@@ -238,6 +284,8 @@ for {set i 0} {$i < $argc} {incr i} {
                 set full_reindex 1
             } elseif {$arg eq "-e"} { # Non-zero exit code on errors
                 set permit_error 1
+            } elseif {$arg eq "-diff"} { # Generate one more file along with PortIndex that will contain only changes.
+                set index_diff 1
             } else {
                 puts stderr "Unknown option: $arg"
                 print_usage
@@ -280,6 +328,11 @@ if {[info exists outdir]} {
 
 puts "Creating port index in $outdir"
 set outpath [file join $outdir PortIndex]
+if {$index_diff == 1} {
+    set diff_filename ChangedPorts-[clock format [clock seconds] -format {%Y%m%dT%H%M%S}]
+    set diffoutpath [file join $outdir $diff_filename]
+    set diff_fd [open $diffoutpath w]
+}
 # open old index for comparison
 if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
     set oldmtime [file mtime $outpath]
@@ -310,6 +363,9 @@ foreach key {categories depends_fetch depends_extract depends_patch \
 set exit_fail 0
 try {
     mporttraverse pindex $directory
+    if {$index_diff == 1} {
+        _write_deleted_ports
+    }
 } catch {{POSIX SIG SIGINT} eCode eMessage} {
     puts stderr "SIGINT received, terminating."
     set exit_fail 1
@@ -321,6 +377,9 @@ try {
         close $oldfd
     }
     close $fd
+    if {$index_diff == 1} {
+        close $diff_fd
+    }
 }
 if {$exit_fail} {
     exit 1
