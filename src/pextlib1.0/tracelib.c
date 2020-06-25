@@ -59,7 +59,6 @@
 #include <cregistry/portgroup.h>
 #include <cregistry/entry.h>
 #include <registry2.0/registry.h>
-#include <darwintracelib1.0/sandbox_actions.h>
 
 #if defined(LOCAL_PEERPID) && defined(HAVE_LIBPROC_H)
 #include <libproc.h>
@@ -99,8 +98,6 @@ static void peerpid_list_walk(bool (*callback)(int sock, pid_t pid, const char *
 
 
 static char *name;
-static char *sandbox;
-static size_t sandboxLength;
 static char **depends = NULL;
 static size_t dependsLength = 0;
 static int sock = -1;
@@ -108,7 +105,6 @@ static int kq = -1;
 /* EVFILT_USER isn't available (< 10.6), use the self-pipe trick to return from
  * the blocking kqueue(2) call by writing a byte to the pipe */
 static int selfpipe[2];
-static int enable_fence = 0;
 static Tcl_Interp *interp;
 
 static mount_cs_cache_t *mount_cs_cache;
@@ -135,7 +131,6 @@ static pthread_mutex_t evloop_mutex = PTHREAD_MUTEX_INITIALIZER;
  */
 static pthread_cond_t evloop_signal = PTHREAD_COND_INITIALIZER;
 
-static void send_file_map(int sock);
 static void dep_check(int sock, char *path);
 
 typedef enum {
@@ -356,122 +351,6 @@ static int TracelibSetNameCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
 }
 
 /**
- * Save sandbox boundaries to memory and format them for darwintrace. This
- * means changing : to \0 (with \ being an escape char).
- *
- * Input:
- *  /dev/null:/dev/tty:/tmp\:
- * In variable;
- *  /dev/null\0/dev/tty\0/tmp:\0\0
- *
- * \param[in,out] interp the Tcl interpreter
- * \param[in] objc the number of parameters
- * \param[in] objv the parameters
- * \return a Tcl return code
- */
-static int TracelibSetSandboxCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    char *src, *dst;
-    enum { NORMAL, ACTION, ESCAPE } state = NORMAL;
-
-    if (objc != 3) {
-        Tcl_WrongNumArgs(interp, 2, objv, "number of arguments should be exactly 3");
-        return TCL_ERROR;
-    }
-
-    src = Tcl_GetString(objv[2]);
-    sandboxLength = strlen(src) + 2;
-    sandbox = malloc(sandboxLength);
-    if (!sandbox) {
-        Tcl_SetResult(interp, "memory allocation failed", TCL_STATIC);
-        return TCL_ERROR;
-    }
-    for (dst = sandbox; *src != '\0'; src++) {
-        switch (*src) {
-            case '\\':
-                if (state == ESCAPE) {
-                    /* double backslash, turn into single backslash (note
-                     * C strings use \ as escape char, too! */
-                    *dst++ = '\\';
-                    state = NORMAL;
-                } else {
-                    /* hit a backslash, assume this is an escape sequence */
-                    state = ESCAPE;
-                }
-                break;
-            case ':':
-                if (state == ESCAPE) {
-                    /* : was escaped, keep literally */
-                    *dst++ = ':';
-                    state = NORMAL;
-                } else if (state == ACTION) {
-                    /* : -> \0, we're done with this entry */
-                    *dst++ = '\0';
-                    state = NORMAL;
-                } else {
-                    /* unescaped : should never occur in normal state */
-                    free(sandbox);
-                    Tcl_SetResult(interp, "Unexpected colon before action specification.", TCL_STATIC);
-                    return TCL_ERROR;
-                }
-                break;
-            case '=':
-                if (state == ESCAPE) {
-                    /* = was escaped, keep literally */
-                    *dst++ = '=';
-                    state = NORMAL;
-                } else {
-                    /* hit =, this is the end of the path, the action follows */
-                    *dst++ = '\0';
-                    state = ACTION;
-                }
-                break;
-            case '+':
-            case '-':
-            case '?':
-                if (state == ACTION) {
-                    /* control character after equals, convert to binary */
-                    switch (*src) {
-                        case '+':
-                            *dst++ = FILEMAP_ALLOW;
-                            break;
-                        case '-':
-                            *dst++ = FILEMAP_DENY;
-                            break;
-                        case '?':
-                            *dst++ = FILEMAP_ASK;
-                            break;
-                    }
-                } else {
-                    /* before equals sign, copy literally */
-                    *dst++ = *src;
-                }
-                break;
-            default:
-                if (state == ESCAPE) {
-                    /* unknown escape sequence, free buffer and raise an error */
-                    free(sandbox);
-                    Tcl_SetResult(interp, "Unknown escape sequence.", TCL_STATIC);
-                    return TCL_ERROR;
-                }
-                if (state == ACTION) {
-                    /* unknown control character, free buffer and raise an error */
-                    free(sandbox);
-                    Tcl_SetResult(interp, "Unknown control character. Possible values are +, -, and ?.", TCL_STATIC);
-                    return TCL_ERROR;
-                }
-                /* otherwise: copy the char */
-                *dst++ = *src;
-                break;
-        }
-    }
-    /* add two \0 to mark the end */
-    *dst++ = '\0';
-    *dst = '\0';
-
-    return TCL_OK;
-}
-
-/**
  * Receive line from socket, parse it and send an answer, if necessary. The
  * caller should ensure that data is available for reading from the given
  * socket. This method will block until a complete message has been read.
@@ -527,9 +406,7 @@ static int process_line(int sock) {
     /* Advance pointer to arguments */
     f++;
 
-    if (strcmp(buf, "filemap") == 0) {
-        send_file_map(sock);
-    } else if (strcmp(buf, "sandbox_unknown") == 0) {
+    if (strcmp(buf, "sandbox_unknown") == 0) {
         sandbox_violation(sock, f, SANDBOX_UNKNOWN);
     } else if (strcmp(buf, "sandbox_violation") == 0) {
         sandbox_violation(sock, f, SANDBOX_VIOLATION);
@@ -543,20 +420,6 @@ static int process_line(int sock) {
     return 1;
 }
 
-/**
- * Construct an in-memory representation of the sandbox file map and send it to
- * the socket indicated by \c sock.
- *
- * \param[in] sock the socket to send the sandbox bounds to
- */
-static void send_file_map(int sock) {
-    if (enable_fence) {
-        answer_s(sock, sandbox, sandboxLength);
-    } else {
-        char allowAllSandbox[5] = {'/', '\0', FILEMAP_ALLOW, '\0', '\0'};
-        answer_s(sock, allowAllSandbox, sizeof(allowAllSandbox));
-    }
-}
 
 /**
  * Process a sandbox violation reported by darwintrace. Calls back up to Tcl to
@@ -977,7 +840,6 @@ static int TracelibCleanCmd(Tcl_Interp *interp UNUSED) {
     safe_free(depends);
     dependsLength = 0;
 
-    enable_fence = 0;
     return TCL_OK;
 
 #undef safe_free
@@ -1061,10 +923,6 @@ static int TracelibSetDeps(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) 
     return TCL_OK;
 }
 
-static int TracelibEnableFence(Tcl_Interp *interp UNUSED) {
-    enable_fence = 1;
-    return TCL_OK;
-}
 #endif /* defined(HAVE_TRACEMODE_SUPPORT) */
 
 int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -1077,16 +935,14 @@ int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
     }
 
 #ifdef HAVE_TRACEMODE_SUPPORT
-    static const char *options[] = {"setname", "opensocket", "run", "clean", "setsandbox", "closesocket", "setdeps", "enablefence", 0};
+    static const char *options[] = {"setname", "opensocket", "run", "clean", "closesocket", "setdeps",  0};
     typedef enum {
         kSetName,
         kOpenSocket,
         kRun,
         kClean,
-        kSetSandbox,
         kCloseSocket,
         kSetDeps,
-        kEnableFence
     } EOptions;
     EOptions current_option;
 
@@ -1108,14 +964,8 @@ int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
             case kCloseSocket:
                 result = TracelibCloseSocketCmd(interp);
                 break;
-            case kSetSandbox:
-                result = TracelibSetSandboxCmd(interp, objc, objv);
-                break;
             case kSetDeps:
                 result = TracelibSetDeps(interp, objc, objv);
-                break;
-            case kEnableFence:
-                result = TracelibEnableFence(interp);
                 break;
         }
     }

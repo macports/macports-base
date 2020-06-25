@@ -1,15 +1,22 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
-TCLPKG=		cregistry \
-			registry2.0 \
-			macports1.0 \
-			port1.0 \
-			package1.0 \
-			pextlib1.0 \
-			machista1.0 \
-			mpcommon1.0
-SUBDIR=		compat ${TCLPKG} port programs
+TCLPKG=	\
+	cregistry \
+	registry2.0 \
+	macports1.0 \
+	port1.0 \
+	package1.0 \
+	pextlib1.0 \
+	machista1.0 \
+	mpcommon1.0
+
+ifeq (@TRACEMODE_SUPPORT@,1)
+SUBDIR=
+SUBDIR+= darwintrace_share
+endif
+
+SUBDIR+=		compat ${TCLPKG} port programs
 
 ifeq (@TRACEMODE_SUPPORT@,1)
 TCLPKG+= darwintracelib1.0

@@ -44,7 +44,6 @@
  * of the sandbox and simulate non-existence of the file instead.
  */
 static int _dt_unlink(const char *path) {
-	__darwintrace_setup();
 
 	int result = 0;
 

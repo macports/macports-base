@@ -91,13 +91,6 @@ enum {
 extern FILE *__darwintrace_stderr;
 
 /**
- * Initializer function, ensures darwintrace has been properly set up and check
- * whether this process was fork(2)'d or clone(2)'d since the last call. Call
- * this before calling any other functions from this library.
- */
-void __darwintrace_setup();
-
-/**
  * Close the darwintrace socket and set it to \c NULL. Since this uses \c
  * fclose(3), which internally calls \c close(2), which is intercepted by this
  * library and this library prevents closing the socket to MacPorts, we use \c
@@ -148,6 +141,18 @@ extern pid_t __darwintrace_pid;
  * MacPorts-side of the sandbox.
  */
 extern char *__env_darwintrace_log;
+
+/**
+ * Copy of the DARWINTRACE_CACHE_TREE_ROOT environment variable to restore it in execve(2).
+ * Contains the root of cache tree.
+ */
+extern char *__env_darwintrace_cache_tree_root;
+
+/**
+ * Copy of the TRACESANDBOX_TREE_ROOT environment variable to restore it in execve(2).
+ * Contains the root of sandbox tree.
+ */
+extern char *__env_tracesandbox_tree_root;
 
 /**
  * Helper variable containing the number of the darwintrace socket, iff the

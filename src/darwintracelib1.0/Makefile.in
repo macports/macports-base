@@ -36,6 +36,13 @@ LIBS+= $(COMPAT_OBJS)
 SHLIB_NAME = darwintrace$(SHLIB_SUFFIX)
 INSTALLDIR = $(TCL_PACKAGE_PATH)/darwintrace1.0
 
+
+# The library that contains code shared among pextlib1.0 and darwintracelib1.0
+DARWINTRACE_SHARE_LIB = $(srcdir)/../darwintrace_share/darwintrace_share.a
+LIBS+= $(DARWINTRACE_SHARE_LIB)
+$(SHLIB_NAME):: $(DARWINTRACE_SHARE_LIB)
+
+
 # Yes, we know having $ signs in identifiers is not a very good idea; in the
 # case of darwintrace we still need them, though.
 CFLAGS_PEDANTIC =
