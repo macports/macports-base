@@ -4139,7 +4139,7 @@ proc action_target { action portlist opts } {
         if {[string length $portversion]} {
             if {$action eq "clean"} {
                 set options(ports_version_glob) $portversion
-            } elseif {$portversion ne "$portinfo(version)_$portinfo(revision)"} {
+            } elseif {$portversion ne "$portinfo(version)_$portinfo(revision)" && $portversion ne $portinfo(version)} {
                 break_softcontinue "$portname version $portversion is not available (current version is $portinfo(version)_$portinfo(revision))" 1 status
             }
         }
