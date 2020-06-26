@@ -1,6 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 #
-# Copyright (c) 2007 - 2015 The MacPorts Project
+# Copyright (c) 2007 - 2020 The MacPorts Project
 # Copyright (c) 2007 Markus W. Weissmann <mww@macports.org>
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
@@ -793,7 +793,7 @@ proc portconfigure::max_version {verA verB} {
 #|------------------------------------------------------------------|
 #| 1998 (C++98) |     -     |       -       |     -     |     -     |
 #| 2011 (C++11) |    3.3    |   500.2.75    |    5.0    |   4.8.1   |
-#| 2014 (C++14) |    3.4    |   602         |    6.3    |     5     |
+#| 2014 (C++14) |    3.4    |   602.0.49    |    6.3    |     5     |
 #| 2017 (C++17) |    5.0    |   902.0.39.1  |    9.3    |     7     |
 #--------------------------------------------------------------------
 #
@@ -854,7 +854,7 @@ proc portconfigure::get_min_command_line {compiler} {
             if {${compiler.cxx_standard} >= 2017} {
                 set min_value [max_version $min_value 902.0.39.1]
             } elseif {${compiler.cxx_standard} >= 2014} {
-                set min_value [max_version $min_value 602]
+                set min_value [max_version $min_value 602.0.49]
             } elseif {${compiler.cxx_standard} >= 2011} {
                 if {${compiler.thread_local_storage}} {
                     # macOS has supported thread-local storage since Mac OS X Lion.
