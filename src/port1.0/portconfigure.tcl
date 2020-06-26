@@ -753,6 +753,8 @@ proc portconfigure::max_version {verA verB} {
 }
 #
 # https://releases.llvm.org/3.1/docs/ClangReleaseNotes.html#cchanges
+# _Noreturn implemented in clang 3.3.0:
+# https://github.com/llvm/llvm-project/commit/debc59d1f360b1f7a041de72c02d76ed131370c6
 # https://gcc.gnu.org/c99status.html
 # https://gcc.gnu.org/wiki/C11Status
 # https://trac.macports.org/wiki/XcodeVersionInfo
@@ -761,7 +763,7 @@ proc portconfigure::max_version {verA verB} {
 #|------------------------------------------------------------------|
 #| 1989 (C89)   |     -     |        -      |     -     |     -     |
 #| 1999 (C99)   |     -     |        -      |     -     |    4.0    |
-#| 2011 (C11)   |    3.1    |    318.0.61   |    4.3    |    4.9    |
+#| 2011 (C11)   |    3.3    |   500.2.75    |    5.0    |    4.9    |
 #--------------------------------------------------------------------
 #
 # https://clang.llvm.org/cxx_status.html
@@ -815,7 +817,7 @@ proc portconfigure::get_min_command_line {compiler} {
                 return none
             }
             if {${compiler.c_standard} >= 2011} {
-                set min_value [max_version $min_value 318.0.61]
+                set min_value [max_version $min_value 500.2.75]
             }
             if {${compiler.cxx_standard} >= 2017} {
                 set min_value [max_version $min_value 902.0.39.1]
