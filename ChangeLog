@@ -3,9 +3,25 @@
 ###
 
 Release 2.6.3 (unreleased)
+    - Added some basic support for Apple Silicon.
+      (jeremyhu, jmr in 6eaa8d5, 901eb21, 01afdbb)
+
     - Fixed an issue where post-extract ran with elevated privileges when
-      adduser was used in a Portfile
-      (#50918, cal in fcb9cd207)
+      adduser was used in a Portfile. (#50918, cal in ac1a9b099)
+
+    - Fixed cases where a proper error message was not displayed when curl
+      failed. (#60581, cal in f535c26)
+
+    - Reduced the number of processes spawned when pinging mirror sites.
+      (ryandesign in cee74bb)
+
+    - Support new naming scheme used starting with macports-clang-10 in
+      configure.compiler. (jonesc in 5c3f571)
+
+    - Fixed dmg and mdmg targets on 10.15+. (#59697, jmr in 0459cb1)
+
+    - Ensure archive paths are correctly quoted when extracting.
+      (#60365, jmr in 8a088c3)
 
 Release 2.6.2 (2019-10-20 by jmr)
     - Added support for zsh to the pkg installer's PATH setup code.
