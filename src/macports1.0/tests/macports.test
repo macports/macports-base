@@ -1037,10 +1037,10 @@ test shellescaping {
     set first "yes"
     foreach test $shellescapeTests {
         if {$first eq "yes"} {
-            system "echo [macports::shellescape $test]  >$outputfile"
+            system "printf '%s\n' [macports::shellescape $test]  >$outputfile"
             set first "no"
         } else {
-            system "echo [macports::shellescape $test] >>$outputfile"
+            system "printf '%s\n' [macports::shellescape $test] >>$outputfile"
         }
     }
 
