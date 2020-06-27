@@ -1025,7 +1025,7 @@ test get_archive_sites_conf_values {
 set shellescapeTests [list \
     "using \\backslashes" \
     " spaces " \
-    "and        tabs" \
+    "and	tabs" \
     "quotes need to be \"supported\", too" \
     "… and not only 'double-quotes'" \
     "other meta chars such as \$dollar," \
