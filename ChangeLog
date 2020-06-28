@@ -23,6 +23,9 @@ Release 2.7.0 (unreleased)
       (#55011, dgilman in 8c41ca7, d741f0c)
 
 Release 2.6.3 (unreleased)
+    - Avoid problems with trace mode on modern macOS
+      (#60702, saagarjha, cal in d96e5a85a)
+
     - Added some basic support for Apple Silicon.
       (jeremyhu, jmr in 6eaa8d5, 901eb21, 01afdbb)
 
