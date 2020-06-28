@@ -130,6 +130,12 @@ void __darwintrace_close();
  */
 bool __darwintrace_is_in_sandbox(const char *path, int flags);
 
+/**
+ * Whether darwintrace has been fully initialized or not. Do not interpose if
+ * this has not been set to true.
+ */
+volatile bool __darwintrace_initialized;
+
 #ifdef DARWINTRACE_USE_PRIVATE_API
 #include <errno.h>
 #include <stdlib.h>
@@ -182,4 +188,22 @@ static inline void __darwintrace_sock_set(FILE *stream) {
 		abort();
 	}
 }
+
+/**
+ * Initialize TLS variables.
+ */
+void __darwintrace_setup_tls();
+
+/**
+ * Grab environment variables at startup.
+ */
+void __darwintrace_store_env();
+
+/**
+ * Runs our "constructors". By this point all of the system libraries we link
+ * against should be fully initialized, so we can call their functions safely.
+ * Once our initialization is complete we may begin interposing.
+ */
+void __darwintrace_run_constructors() __attribute__((constructor));
+
 #endif /* defined(DARWINTRACE_USE_PRIVATE_API) */

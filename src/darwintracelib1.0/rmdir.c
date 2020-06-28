@@ -44,6 +44,10 @@
  * sandbox.
  */
 static int _dt_rmdir(const char *path) {
+	if (!__darwintrace_initialized) {
+		return rmdir(path);
+	}
+
 	__darwintrace_setup();
 
 	int result = 0;

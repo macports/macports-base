@@ -44,6 +44,10 @@
  * sandbox.
  */
 static int _dt_rename(const char *from, const char *to) {
+	if (!__darwintrace_initialized) {
+		return rename(from, to);
+	}
+
 	__darwintrace_setup();
 
 	int result = 0;

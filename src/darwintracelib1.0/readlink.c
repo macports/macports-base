@@ -43,6 +43,10 @@
  * Deny \c readlink(2) if the file is not within the sandbox bounds.
  */
 static ssize_t _dt_readlink(const char *path, char *buf, size_t bufsiz) {
+	if (!__darwintrace_initialized) {
+		return readlink(path, buf, bufsiz);
+	}
+
 	__darwintrace_setup();
 
 	int result = 0;
