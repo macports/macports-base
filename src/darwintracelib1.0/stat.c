@@ -50,6 +50,10 @@ int stat(const char *path, void *sb);
  * sandbox.
  */
 static int _dt_stat(const char *path, void *sb) {
+	if (!__darwintrace_initialized) {
+		return stat(path, sb);
+	}
+
 	__darwintrace_setup();
 
 	int result = 0;
@@ -75,6 +79,10 @@ int stat64(const char *path, void *sb);
 int stat$INODE64(const char *path, void *sb);
 
 static int _dt_stat64(const char *path, void *sb) {
+	if (!__darwintrace_initialized) {
+		return stat64(path, sb);
+	}
+
 	__darwintrace_setup();
 
 	int result = 0;
@@ -99,6 +107,10 @@ DARWINTRACE_INTERPOSE(_dt_stat64, stat$INODE64);
 int lstat(const char *path, void *sb);
 
 static int _dt_lstat(const char *path, void *sb) {
+	if (!__darwintrace_initialized) {
+		return lstat(path, sb);
+	}
+
 	__darwintrace_setup();
 
 	int result = 0;
@@ -125,6 +137,10 @@ int lstat64(const char *path, void *sb);
 int lstat$INODE64(const char *path, void *sb);
 
 static int _dt_lstat64(const char *path, void *sb) {
+	if (!__darwintrace_initialized) {
+		return lstat64(path, sb);
+	}
+
 	__darwintrace_setup();
 
 	int result = 0;

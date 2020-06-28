@@ -52,8 +52,6 @@
 #include <spawn.h>
 #endif
 
-static void store_env() __attribute__((constructor));
-
 /**
  * Copy of the DYLD_INSERT_LIBRARIES environment variable to restore it in
  * execve(2). DYLD_INSERT_LIBRARIES is needed to preload this library into any
@@ -83,7 +81,7 @@ static char *__env_full_darwintrace_log;
  * Copy the environment variables, if they're defined. This is run as
  * a constructor at startup.
  */
-static void store_env() {
+void __darwintrace_store_env() {
 #define COPYENV(name, variable, valuevar) do {\
 		char *val;\
 		if (NULL != (val = getenv(#name))) {\
@@ -249,6 +247,10 @@ static inline int check_interpreter(const char *restrict path) {
  * using \c check_interpreter.
  */
 static int _dt_execve(const char *path, char *const argv[], char *const envp[]) {
+	if (!__darwintrace_initialized) {
+		return execve(path, argv, envp);
+	}
+
 	__darwintrace_setup();
 
 	int result = 0;
@@ -291,6 +293,10 @@ DARWINTRACE_INTERPOSE(_dt_execve, execve);
  */
 static int _dt_posix_spawn(pid_t *restrict pid, const char *restrict path, const posix_spawn_file_actions_t *file_actions,
 		const posix_spawnattr_t *restrict attrp, char *const argv[restrict], char *const envp[restrict]) {
+	if (!__darwintrace_initialized) {
+		return posix_spawn(pid, path, file_actions, attrp, argv, envp);
+	}
+
 	__darwintrace_setup();
 
 	int result = 0;
