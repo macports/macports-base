@@ -46,6 +46,15 @@
  * when attempting to create a file, i.e., when \c O_CREAT is set.
  */
 static int _dt_open(const char *path, int flags, ...) {
+	if (!__darwintrace_initialized) {
+		va_list args;
+		va_start(args, flags);
+		mode_t mode = va_arg(args, int);
+		va_end(args);
+
+		return open(path, flags, mode);
+	}
+
 	__darwintrace_setup();
 	int result = 0;
 

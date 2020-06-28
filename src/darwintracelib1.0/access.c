@@ -39,6 +39,10 @@
 #include <unistd.h>
 
 static int _dt_access(const char *path, int amode) {
+	if (!__darwintrace_initialized) {
+		return access(path, amode);
+	}
+
 	__darwintrace_setup();
 
 	int result = 0;
