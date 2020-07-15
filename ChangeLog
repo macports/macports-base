@@ -3,30 +3,30 @@
 ###
 
 Release 2.7.0 (unreleased)
-    - reclaim: remove everything under build and ccache directories
+    - reclaim: remove everything under build and ccache directories.
       (khindenburg in b9fdb847, d08d261f)
 
-    - For various actions, abort if @version specified is not current
+    - For various actions, abort if @version specified is not current.
       (khindenburg, jmr in 835a7db1, ca071954)
 
-    - Abort when a port includes a nonexistent PortGroup
+    - Abort when a port includes a nonexistent PortGroup.
       (khindenburg in d9139328)
 
-    - Adjust lint --nitpick on patchfiles to allow *.diff or *.patch
+    - Adjust lint --nitpick on patchfiles to allow *.diff or *.patch.
       (khindenburg in 5037999e)
 
     - Display a progress bar when the underlying build system provides the
-      necessary information, which is currently cmake and ninja
+      necessary information, which is currently cmake and ninja.
       (#15939, landonf in da3524e)
 
-    - Support compressed web pages for livecheck
+    - Support compressed web pages for livecheck.
       (#55011, dgilman in 8c41ca7, d741f0c)
 
 Release 2.6.3 (unreleased)
-    - Correct macports-clang c++11+ compiler selection with non-libc++ installations
-      (kencu in 3ea1fb4)
+    - Correct macports-clang c++11+ compiler selection with non-libc++
+      installations. (kencu in 3ea1fb4)
 
-    - Avoid problems with trace mode on modern macOS
+    - Avoid problems with trace mode on modern macOS.
       (#60702, saagarjha, cal in d96e5a85a)
 
     - Added some basic support for Apple Silicon.
