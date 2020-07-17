@@ -279,6 +279,7 @@ proc portlint::lint_main {args} {
     set seen_portsystem false
     set seen_portgroup false
     set in_description false
+    set prohibit_tabs false
 
     array set portgroups {}
 
@@ -332,6 +333,14 @@ proc portlint::lint_main {args} {
             incr topline_number
             set require_blank true
             set require_after "modeline"
+            if {[regexp {\sindent-tabs-mode: nil[;\s]|[:\s](?:et|expandtab)(?:[:\s]|$)} $line]} {
+                set prohibit_tabs true
+            }
+        }
+
+        if {$prohibit_tabs && [string match "*\t*" $line]} {
+            ui_warn "Line $lineno contains tab but modeline says tabs should be expanded"
+            incr warnings
         }
 
         if {[string match "*\$Id*\$" $line]} {
