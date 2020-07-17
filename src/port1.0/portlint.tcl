@@ -330,6 +330,8 @@ proc portlint::lint_main {args} {
         if {($lineno == $topline_number) && [string match "*-\*- *" $line]} {
             ui_info "OK: Line $lineno has emacs/vim Mode"
             incr topline_number
+            set require_blank true
+            set require_after "modeline"
         }
 
         if {[string match "*\$Id*\$" $line]} {
