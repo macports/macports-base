@@ -399,9 +399,17 @@ proc portlint::lint_main {args} {
         
         if {[regexp {^\s*platform\s} $line]} {
             regexp {^\s*platform\s+(?:\w+\s+(?:\w+\s+)?)?(\w+)} $line -> platform_arch
-            if {$platform_arch eq "ppc"} {
-                ui_error "Arch 'ppc' in platform on line $lineno should be 'powerpc'"
-                incr errors
+            foreach {bad_platform_arch replacement_platform_arch} {
+                arm64 arm
+                intel i386
+                ppc powerpc
+                ppc64 powerpc
+                x86_64 i386
+            } {
+                if {$platform_arch eq $bad_platform_arch} {
+                    ui_error "Arch '$bad_platform_arch' in platform on line $lineno should be '$replacement_platform_arch'"
+                    incr errors
+                }
             }
         }
 
