@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.6.3 (unreleased)
+Release 2.6.3 (2020-07-19 by jmr)
     - Correct macports-clang c++11+ compiler selection with non-libc++
       installations. (kencu in 3ea1fb4)
 
