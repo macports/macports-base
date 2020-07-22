@@ -614,8 +614,8 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         return $sdk
     }
 
-    ui_error "Unable to determine location of a macOS SDK."
-    return -code error "Unable to determine location of a macOS SDK."
+    # We can get here if $sdk_version != $macosx_version on old OS versions
+    return {}
 }
 
 # internal function to determine DEVELOPER_DIR according to Xcode dependency
