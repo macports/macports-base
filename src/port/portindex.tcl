@@ -12,6 +12,7 @@ set permit_error 0
 set stats(total) 0
 set stats(failed) 0
 set stats(skipped) 0
+set extended_mode 0
 array set ui_options        [list ports_no_old_index_warning 1]
 array set global_options    [list]
 array set global_variations [list]
@@ -29,6 +30,7 @@ proc print_usage args {
     puts "-e:\tExit code indicates if ports failed to parse"
     puts "-o:\tOutput all files to specified directory"
     puts "-p:\tPretend to be on another platform"
+    puts "-x:\tInclude extra (optional) information in the PortIndex, like variant description and port notes."
 }
 
 proc _read_index {idx} {
@@ -236,6 +238,8 @@ for {set i 0} {$i < $argc} {incr i} {
                 lappend port_options os.platform $os_platform os.major $os_major os.arch $os_arch
             } elseif {$arg eq "-f"} { # Completely rebuild index
                 set full_reindex 1
+            } elseif {$arg eq "-x"} { # Build extended portindex (include extra information , eg.: notes, variant description, conflicts etc.)
+                set extended_mode 1
             } elseif {$arg eq "-e"} { # Non-zero exit code on errors
                 set permit_error 1
             } else {
@@ -299,12 +303,21 @@ if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
 set tempportindex [mktemp "/tmp/mports.portindex.XXXXXXXX"]
 set fd [open $tempportindex w]
 set save_prefix ${macports::prefix}
+
+# keys for a normal portindex
 foreach key {categories depends_fetch depends_extract depends_patch \
              depends_build depends_lib depends_run depends_test \
              description epoch homepage long_description maintainers \
              name platforms revision variants version portdir \
              replaced_by license installs_libs conflicts known_fail} {
     set keepkeys($key) 1
+}
+
+# additional keys for extended portindex (with extra information)
+if {$extended_mode eq 1 } {
+    foreach key {vinfo notes} {
+        set keepkeys($key) 1
+    }
 }
 
 set exit_fail 0
