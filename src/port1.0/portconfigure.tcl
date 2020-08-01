@@ -464,7 +464,7 @@ proc portconfigure::configure_get_archflags {tool} {
             $tool in {cc cxx objc objcxx}
         } then {
             set flags "-arch ${configure.build_arch}"
-        } elseif {${configure.build_arch} eq "x86_64" || ${configure.build_arch} eq "ppc64"} {
+        } elseif {${configure.build_arch} in [list arm64 ppc64 x86_64]} {
             set flags "-m64"
         } elseif {${configure.compiler} ne "gcc-3.3"} {
             set flags "-m32"
