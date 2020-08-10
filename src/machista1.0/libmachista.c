@@ -52,12 +52,11 @@
 #include <strings.h>
 
 #ifdef __MACH__
+#include <mach-o/dyld.h>
 #include <mach-o/fat.h>
 #include <mach-o/loader.h>
 
 #include <libkern/OSByteOrder.h>
-
-#include <dlfcn.h>
 #endif
 
 #include "libmachista.h"
@@ -467,11 +466,11 @@ int macho_parse_file(macho_handle_t *handle, const char *filepath, const macho_t
     
     /* Open input file */
     if ((fd = open(filepath, O_RDONLY)) < 0) {
-#ifdef HAVE_DLOPEN_PREFLIGHT
-        if (dlopen_preflight(filepath)) {
+#ifdef HAVE__DYLD_SHARED_CACHE_CONTAINS_PATH
+        if (_dyld_shared_cache_contains_path(filepath)) {
             return MACHO_ECACHE;
         }
-#endif /* HAVE_DLOPEN_PREFLIGHT */
+#endif /* HAVE__DYLD_SHARED_CACHE_CONTAINS_PATH */
         return MACHO_EFILE;
     }
 
