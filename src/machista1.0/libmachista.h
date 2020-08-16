@@ -50,6 +50,7 @@ typedef int cpu_type_t;
 #define MACHO_EMEM      (0x04)
 #define MACHO_ERANGE    (0x08)
 #define MACHO_EMAGIC    (0x10)
+#define MACHO_ECACHE    (0x20)
 
 /* Blind structure; this essentially contains the hash map used to cache
  * entries, but users should not have to look into this structure. struct

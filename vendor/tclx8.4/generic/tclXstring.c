@@ -677,7 +677,7 @@ TclX_CtypeObjCmd (dummy, interp, objc, objv)
 #define IS_8BIT_UNICHAR(c) (c <= 255)
 
     if (TCL_UTF_MAX > sizeof(number)) {
-        panic("TclX_CtypeObjCmd: UTF character longer than a int");
+        Tcl_Panic("TclX_CtypeObjCmd: UTF character longer than a int");
     }
 
     /*FIX: Split into multiple procs */

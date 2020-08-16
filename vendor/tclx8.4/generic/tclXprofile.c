@@ -240,7 +240,7 @@ PushEntry (infoPtr, cmdName, isProc, procLevel, scopeLevel, evalLevel)
          * Only global level can be NULL.
          */
         if (scanPtr == NULL)
-            panic (PROF_PANIC, 1);
+            Tcl_Panic (PROF_PANIC, 1);
     }
     entryPtr->prevScopePtr = scanPtr;
     infoPtr->scopeChainPtr = entryPtr;
@@ -450,7 +450,7 @@ ProfCommandEvalSetup (infoPtr, isProcPtr)
         UpdateTOSTimes (infoPtr);
     while (infoPtr->stackPtr->procLevel > procLevel) {
         if (infoPtr->stackPtr->evalLevel != UNKNOWN_LEVEL) 
-            panic (PROF_PANIC, 2);  /* Not an initial entry */
+            Tcl_Panic (PROF_PANIC, 2);  /* Not an initial entry */
         PopEntry (infoPtr);
     }
 
@@ -595,15 +595,15 @@ ProfTraceRoutine (clientData, interp, evalLevel, command, cmdProc,
     Tcl_Command cmd;
 
     if (infoPtr->currentCmdPtr != NULL)
-        panic (PROF_PANIC, 3);
+        Tcl_Panic (PROF_PANIC, 3);
 
     cmd = Tcl_FindCommand (interp, argv [0], NULL, 0);
     if (cmd == NULL)
-        panic (PROF_PANIC, 4);
+        Tcl_Panic (PROF_PANIC, 4);
     cmdPtr = (Command *) cmd;
 
     if ((cmdPtr->proc != cmdProc) || (cmdPtr->clientData != cmdClientData))
-        panic (PROF_PANIC, 5);
+        Tcl_Panic (PROF_PANIC, 5);
 
     /*
      * If command is to be compiled, we can't profile it.
@@ -740,7 +740,7 @@ TurnOnProfiling (infoPtr, commandMode, evalMode)
          * Only global level can be NULL.
          */
         if (scanPtr == NULL)
-            panic (PROF_PANIC, 6);
+            Tcl_Panic (PROF_PANIC, 6);
     }
     infoPtr->scopeChainPtr = scanPtr;
 

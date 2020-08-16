@@ -5,7 +5,7 @@
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
 # Copyright (c) 2004 - 2006 Ole Guldberg Jensen <olegb@opendarwin.org>.
 # Copyright (c) 2004 - 2005 Robert Shaw <rshaw@opendarwin.org>
-# Copyright (c) 2004 - 2016 The MacPorts Project
+# Copyright (c) 2004 - 2020 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -678,8 +678,14 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # set up platform info variables
     set os_arch $tcl_platform(machine)
-    if {$os_arch eq "Power Macintosh"} {set os_arch "powerpc"}
-    if {$os_arch eq "i586" || $os_arch eq "i686" || $os_arch eq "x86_64"} {set os_arch "i386"}
+    # Set os_arch to match `uname -p`
+    if {$os_arch eq "Power Macintosh"} {
+        set os_arch "powerpc"
+    } elseif {$os_arch eq "i586" || $os_arch eq "i686" || $os_arch eq "x86_64"} {
+        set os_arch "i386"
+    } elseif {$os_arch eq "arm64"} {
+        set os_arch "arm"
+    }
     set os_version $tcl_platform(osVersion)
     set os_major [lindex [split $os_version .] 0]
     set os_minor [lindex [split $os_version .] 1]
@@ -1075,7 +1081,11 @@ match macports.conf.default."
 
     # Default mp universal options
     if {![info exists macports::universal_archs]} {
-        if {$os_major >= 10} {
+        if {$os_major >= 20} {
+            set macports::universal_archs {arm64 x86_64}
+        } elseif {$os_major >= 19} {
+            set macports::universal_archs {x86_64}
+        } elseif {$os_major >= 10} {
             set macports::universal_archs {x86_64 i386}
         } else {
             set macports::universal_archs {i386 ppc}
@@ -1089,7 +1099,13 @@ match macports.conf.default."
     # Default arch to build for
     if {![info exists macports::build_arch]} {
         if {$os_platform eq "darwin"} {
-            if {$os_major >= 10} {
+            if {$os_major >= 20} {
+                if {$os_arch eq "arm"} {
+                    set macports::build_arch arm64
+                } else {
+                    set macports::build_arch x86_64
+                }
+            } elseif {$os_major >= 10} {
                 if {[sysctl hw.cpu64bit_capable] == 1} {
                     set macports::build_arch x86_64
                 } else {
@@ -1457,6 +1473,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias _mportsearchpath _mportsearchpath
     $workername alias _portnameactive _portnameactive
     $workername alias get_actual_cxx_stdlib macports::get_actual_cxx_stdlib
+    $workername alias shellescape macports::shellescape
 
     # New Registry/Receipts stuff
     $workername alias registry_new registry::new_entry
@@ -5519,18 +5536,10 @@ proc macports::get_archive_sites_conf_values {} {
 # @param arg The argument that should be escaped for use in a POSIX shell
 # @return A quoted version of the argument
 proc macports::shellescape {arg} {
-    set mapping {}
-    # Replace each backslash by a double backslash. Apparently Bash treats Backslashes in single-quoted strings
-    # differently depending on whether is was invoked as sh or bash: echo 'using \backslashes' preserves the backslash
-    # in bash mode, but interprets it in sh mode. Since the `system' command uses sh, escape backslashes.
-    lappend mapping "\\" "\\\\"
-    # Replace each single quote with a single quote (closing the currently open string), an escaped single quote \'
-    # (additional backslash needed to escape the backslash in Tcl), and another single quote (opening a new quoted
-    # string).
-    lappend mapping "'" "'\\''"
-
-    # Add a single quote at the start, escape all single quotes in the argument, and add a single quote at the end
-    return "'[string map $mapping $arg]'"
+    # Put a bashslash in front of every character that is not safe. This
+    # may not be an exhaustive list of safe characters but it is allowed
+    # to put a backslash in front of safe characters too.
+    return [regsub -all -- {[^A-Za-z0-9.:@%/+=_-]} $arg {\\&}]
 }
 
 ##

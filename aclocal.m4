@@ -488,6 +488,7 @@ AC_DEFUN(MP_CHECK_FRAMEWORK_IOKIT, [
 		AC_LINK_IFELSE([
 			AC_LANG_PROGRAM([
 					#include <IOKit/IOKitLib.h>
+					#include <IOKit/pwr_mgt/IOPMLib.h>
 				], [
 					IOCreateReceivePort(0, NULL);
 					IORegisterForSystemPower(0, NULL, NULL, NULL);
@@ -764,8 +765,11 @@ AC_DEFUN([MP_UNIVERSAL_OPTIONS],[
 			10.[[0-5]]*)
 				UNIVERSAL_ARCHS="i386 ppc"
 			;;
-			*)
+			10.[[6-9]]*)
 				UNIVERSAL_ARCHS="x86_64 i386"
+			;;
+			*)
+				UNIVERSAL_ARCHS="arm64 x86_64"
 			;;
 		esac
 	fi

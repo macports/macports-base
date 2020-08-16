@@ -50,6 +50,10 @@ int stat(const char *path, void *sb);
  * sandbox.
  */
 static int _dt_stat(const char *path, void *sb) {
+	if (!__darwintrace_initialized) {
+		return stat(path, sb);
+	}
+
 	__darwintrace_setup();
 
 	int result = 0;
@@ -69,12 +73,16 @@ static int _dt_stat(const char *path, void *sb) {
 DARWINTRACE_INTERPOSE(_dt_stat, stat);
 
 // Don't provide stat64 on systems that have no stat64 syscall
-#ifdef SYS_stat64
+#if __DARWIN_64_BIT_INO_T && !__DARWIN_ONLY_64_BIT_INO_T
 
 int stat64(const char *path, void *sb);
 int stat$INODE64(const char *path, void *sb);
 
 static int _dt_stat64(const char *path, void *sb) {
+	if (!__darwintrace_initialized) {
+		return stat64(path, sb);
+	}
+
 	__darwintrace_setup();
 
 	int result = 0;
@@ -94,11 +102,15 @@ static int _dt_stat64(const char *path, void *sb) {
 DARWINTRACE_INTERPOSE(_dt_stat64, stat64);
 DARWINTRACE_INTERPOSE(_dt_stat64, stat$INODE64);
 
-#endif /* defined(SYS_stat64) */
+#endif /* __DARWIN_64_BIT_INO_T && !__DARWIN_ONLY_64_BIT_INO_T */
 
 int lstat(const char *path, void *sb);
 
 static int _dt_lstat(const char *path, void *sb) {
+	if (!__darwintrace_initialized) {
+		return lstat(path, sb);
+	}
+
 	__darwintrace_setup();
 
 	int result = 0;
@@ -119,12 +131,16 @@ static int _dt_lstat(const char *path, void *sb) {
 DARWINTRACE_INTERPOSE(_dt_lstat, lstat);
 
 // Don't provide lstat64 on systems that have no lstat64 syscall
-#ifdef SYS_lstat64
+#if __DARWIN_64_BIT_INO_T && !__DARWIN_ONLY_64_BIT_INO_T
 
 int lstat64(const char *path, void *sb);
 int lstat$INODE64(const char *path, void *sb);
 
 static int _dt_lstat64(const char *path, void *sb) {
+	if (!__darwintrace_initialized) {
+		return lstat64(path, sb);
+	}
+
 	__darwintrace_setup();
 
 	int result = 0;
@@ -145,4 +161,4 @@ static int _dt_lstat64(const char *path, void *sb) {
 DARWINTRACE_INTERPOSE(_dt_lstat64, lstat64);
 DARWINTRACE_INTERPOSE(_dt_lstat64, lstat$INODE64);
 
-#endif /* defined(SYS_lstat64) */
+#endif /* __DARWIN_64_BIT_INO_T && !__DARWIN_ONLY_64_BIT_INO_T */

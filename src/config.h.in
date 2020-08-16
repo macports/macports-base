@@ -44,6 +44,9 @@
    and to 0 if you don't. */
 #undef HAVE_DECL_USERNAME_COMPLETION_FUNCTION
 
+/* Define to 1 if you have the `dlopen_preflight' function. */
+#undef HAVE_DLOPEN_PREFLIGHT
+
 /* Define to 1 if you have the <err.h> header file. */
 #undef HAVE_ERR_H
 

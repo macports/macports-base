@@ -263,7 +263,7 @@ proc portfetch::sortsites {urls default_listvar} {
                 # first check the persistent cache
                 set pingtimes($host) [get_pingtime $host]
                 if {$pingtimes($host) eq {}} {
-                    if {[catch {set fds($host) [open "|ping -noq -c3 -t3 $host | grep round-trip | cut -d / -f 5"]}]} {
+                    if {[catch {set fds($host) [open "|ping -noq -c3 -t3 $host"]}]} {
                         ui_debug "Spawning ping for $host failed"
                         # will end up after all hosts that were pinged OK but before those that didn't respond
                         set pingtimes($host) 5000
@@ -276,7 +276,13 @@ proc portfetch::sortsites {urls default_listvar} {
         }
 
         foreach host $hosts {
-            gets $fds($host) pingtimes($host)
+            set pingtimes($host) ""
+            while {[gets $fds($host) pingline] >= 0} {
+                if {[string match round-trip* $pingline]} {
+                    set pingtimes($host) [lindex [split $pingline /] 4]
+                    break
+                }
+            }
             if { [catch { close $fds($host) }] || ![string is double -strict $pingtimes($host)] } {
                 # ping failed, so put it last in the list
                 set pingtimes($host) 10000

@@ -176,7 +176,7 @@ static bool compare_to_otool_output(char *path, const macho_t *ref) {
 			char lib_curr_version[256];
 
 			// read loadcommand output line from otool
-			if (3 != fscanf(tmpf, "%*[\n]%*[\t]%255s (compatibility version %255[^,], current version %255[^)]))", lib_path, lib_comp_version, lib_curr_version)) {
+			if (3 != fscanf(tmpf, "%*[\n]%*[\t]%255s (compatibility version %255[^,], current version %255[^),]%*[^\n]", lib_path, lib_comp_version, lib_curr_version)) {
 				// error out silently, probably been the last line
 				break;
 			}

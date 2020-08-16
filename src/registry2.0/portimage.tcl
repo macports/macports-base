@@ -336,13 +336,13 @@ proc extract_archive_to_tmpdir {location} {
                         set gzip "gzip"
                         if {[catch {set gzip [macports::findBinary $gzip ${macports::autoconf::gzip_path}]} errmsg] == 0} {
                             ui_debug "Using $gzip"
-                            set unarchive.pipe_cmd "$gzip -d -c ${location} |"
+                            set unarchive.pipe_cmd "$gzip -d -c [macports::shellescape ${location}] |"
                         } else {
                             ui_debug $errmsg
                             throw MACPORTS "No '$gzip' was found on this system!"
                         }
                     } else {
-                        set unarchive.args "-f ${location} ."
+                        set unarchive.args "-f [macports::shellescape ${location}] ."
                     }
                 } else {
                     ui_debug $errmsg
@@ -353,7 +353,10 @@ proc extract_archive_to_tmpdir {location} {
                 global macports::hfscompression
                 # Opportunistic HFS compression. bsdtar will automatically
                 # disable this if filesystem does not support compression.
-                if {${macports::hfscompression} &&
+                # Don't use if not running as root, due to bugs:
+                # The system bsdtar on 10.15 suffers from https://github.com/libarchive/libarchive/issues/497
+                # Later versions fixed that problem but another remains: https://github.com/libarchive/libarchive/issues/1415 
+                if {${macports::hfscompression} && [getuid] == 0 &&
                         ![catch {macports::binaryInPath bsdtar}] &&
                         ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]} {
                     ui_debug "Using bsdtar with HFS+ compression (if valid)"
@@ -394,13 +397,13 @@ proc extract_archive_to_tmpdir {location} {
                     }
                     if {[catch {set gzip [macports::findBinary $gzip $hint]} errmsg] == 0} {
                         ui_debug "Using $gzip"
-                        set unarchive.pipe_cmd "$gzip -d -c ${location} |"
+                        set unarchive.pipe_cmd "$gzip -d -c [macports::shellescape ${location}] |"
                     } else {
                         ui_debug $errmsg
                         throw MACPORTS "No '$gzip' was found on this system!"
                     }
                 } else {
-                    set unarchive.args "${location}"
+                    set unarchive.args [macports::shellescape ${location}]
                 }
             }
             xar {
@@ -409,7 +412,7 @@ proc extract_archive_to_tmpdir {location} {
                     ui_debug "Using $xar"
                     set unarchive.cmd "$xar"
                     set unarchive.pre_args {-xvpf}
-                    set unarchive.args "${location}"
+                    set unarchive.args [macports::shellescape ${location}]
                 } else {
                     ui_debug $errmsg
                     throw MACPORTS "No '$xar' was found on this system!"
@@ -425,7 +428,7 @@ proc extract_archive_to_tmpdir {location} {
                     } else {
                         set unarchive.pre_args {-o}
                     }
-                    set unarchive.args "${location} -d ."
+                    set unarchive.args "[macports::shellescape ${location}] -d ."
                 } else {
                     ui_debug $errmsg
                     throw MACPORTS "No '$unzip' was found on this system!"

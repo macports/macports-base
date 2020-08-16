@@ -56,6 +56,8 @@
 #include <mach-o/loader.h>
 
 #include <libkern/OSByteOrder.h>
+
+#include <dlfcn.h>
 #endif
 
 #include "libmachista.h"
@@ -465,6 +467,11 @@ int macho_parse_file(macho_handle_t *handle, const char *filepath, const macho_t
     
     /* Open input file */
     if ((fd = open(filepath, O_RDONLY)) < 0) {
+#ifdef HAVE_DLOPEN_PREFLIGHT
+        if (dlopen_preflight(filepath)) {
+            return MACHO_ECACHE;
+        }
+#endif /* HAVE_DLOPEN_PREFLIGHT */
         return MACHO_EFILE;
     }
 
@@ -559,6 +566,7 @@ const char *macho_strerror(int err) {
         /* 0x04 */ "Error allocating memory",
         /* 0x08 */ "Premature end of data, possibly corrupt file",
         /* 0x10 */ "Not a Mach-O file",
+        /* 0x20 */ "Shared cache only",
     };
     return errors[num];
 }

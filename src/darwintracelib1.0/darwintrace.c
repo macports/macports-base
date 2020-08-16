@@ -88,7 +88,6 @@ volatile int __darwintrace_close_sock = -1;
 FILE *__darwintrace_stderr = NULL;
 
 static inline void __darwintrace_log_op(const char *op, const char *path);
-static void __darwintrace_setup_tls() __attribute__((constructor));
 static char *__send(const char *buf, uint32_t len, int answer);
 
 /**
@@ -121,6 +120,27 @@ static _Atomic(char *) filemap;
 static char *filemap;
 #endif
 
+
+volatile bool __darwintrace_initialized = false;
+
+/**
+ * "Constructors" we'd like to run before we do anything. As using
+ * __attribute__((constructor)) for these would be unsafe here (as our
+ * interposed functions might end up being called first) we'll run them manually
+ * before we interpose anything.
+ */
+static void (*constructors[])() = {
+	__darwintrace_setup_tls,
+	__darwintrace_store_env,
+};
+
+void __darwintrace_run_constructors() {
+	for (size_t i = 0; i < sizeof(constructors) / sizeof(*constructors); ++i) {
+		constructors[i]();
+	}
+	__darwintrace_initialized = true;
+}
+
 static void __darwintrace_sock_destructor(FILE *dtsock) {
 	__darwintrace_close_sock = fileno(dtsock);
 	fclose(dtsock);
@@ -132,7 +152,7 @@ static void __darwintrace_sock_destructor(FILE *dtsock) {
  * Setup method called as constructor to set up thread-local storage for the
  * thread id and the darwintrace socket.
  */
-static void __darwintrace_setup_tls() {
+void __darwintrace_setup_tls() {
 	if (0 != (errno = pthread_key_create(&tid_key, NULL))) {
 		perror("darwintrace: pthread_key_create");
 		abort();
