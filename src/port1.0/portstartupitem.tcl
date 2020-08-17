@@ -64,6 +64,12 @@
 #   startupitem.autostart   yes/no
 #       Automatically load the startupitem after activating. Defaults to no.
 #
+#   startupitem.user        <user>
+#       User to run the service/daemon as.
+#
+#   startupitem.group       <group>
+#       Group to run the service/daemon as.
+#
 #   startupitem.debug       yes/no
 #       Enable additional debug logging
 #       - for launchd, sets the Debug key to true
@@ -76,6 +82,7 @@ namespace eval portstartupitem {
 
 options startupitems startupitem.autostart startupitem.debug \
         startupitem.create startupitem.executable \
+        startupitem.user startupitem.group \
         startupitem.init startupitem.install startupitem.location \
         startupitem.logevents startupitem.logfile startupitem.name \
         startupitem.netchange startupitem.pidfile startupitem.plist \
@@ -86,6 +93,7 @@ options startupitems startupitem.autostart startupitem.debug \
 default startupitem.autostart   no
 default startupitem.debug       no
 default startupitem.executable  ""
+default startupitem.group       ""
 default startupitem.init        ""
 default startupitem.install     {$system_options(startupitem_install)}
 default startupitem.location    LaunchDaemons
@@ -101,6 +109,7 @@ default startupitem.start       ""
 default startupitem.stop        ""
 default startupitem.type        {[portstartupitem::get_startupitem_type]}
 default startupitem.uniquename  {org.macports.${startupitem.name}}
+default startupitem.user        ""
 
 default startupitem.daemondo.verbosity  1
 
@@ -132,9 +141,10 @@ proc portstartupitem::get_startupitem_type {} {
 # each startupitem that has been defined in the portfile
 proc portstartupitem::foreach_startupitem {body} {
     global startupitems
-    set vars [list autostart debug create executable init install location \
-              logevents logfile name netchange pidfile plist requires \
-              restart start stop type uniquename daemondo.verbosity]
+    set vars [list autostart debug create executable group init install \
+              location logevents logfile name netchange pidfile plist \
+              requires restart start stop type uniquename user \
+              daemondo.verbosity]
 
     array set startupitems_dict {}
     if {[info exists startupitems] && $startupitems ne ""} {
@@ -261,6 +271,8 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
     set plistname       $si(plist)
     set daemondest      $si(location)
     set itemdir         ${prefix}/etc/${daemondest}/${uniquename}
+    set username        $si(user)
+    set groupname       $si(group)
     set args            [list \
                           "${prefix}/bin/daemondo" \
                           "--label=${itemname}" \
@@ -445,6 +457,14 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
         puts ${plist} "<key>KeepAlive</key><true/>"
     } else {
         puts ${plist} "<key>OnDemand</key><false/>"
+    }
+
+    if {$username ne ""} {
+        puts ${plist} "<key>UserName</key><string>$username</string>"
+    }
+
+    if {$groupname ne ""} {
+        puts ${plist} "<key>GroupName</key><string>$groupname</string>"
     }
 
     if {$si(logfile) ne ""} {
