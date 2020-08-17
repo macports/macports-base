@@ -2889,7 +2889,7 @@ proc merge {base} {
 
     # traverse the base-architecture directory
     set basepath "${base}/${base_arch}"
-    fs-traverse file "${basepath}" {
+    fs-traverse file [list $basepath] {
         set fpath [string range "${file}" [string length "${basepath}"] [string length "${file}"]]
         if {${fpath} ne ""} {
             # determine the type (dir/file/link)
@@ -2946,7 +2946,7 @@ proc chown {path user} {
     lchown $path $user
 
     if {[file isdirectory $path]} {
-        fs-traverse myfile ${path} {
+        fs-traverse myfile [list $path] {
             lchown $myfile $user
         }
     }
