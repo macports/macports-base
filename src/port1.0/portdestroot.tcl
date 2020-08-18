@@ -118,6 +118,9 @@ proc portdestroot::destroot_start {args} {
     }
     file mkdir "${destroot}${prefix}"
     system -W ${destroot}${prefix} "${mtree} -e -U -f [file join ${portsharepath} install prefix.mtree]"
+
+    # Create startup-scripts/items
+    portstartupitem::startupitem_create
 }
 
 proc portdestroot::destroot_main {args} {
@@ -130,9 +133,6 @@ proc portdestroot::destroot_finish {args} {
            applications_dir frameworks_dir destroot.keepdirs destroot.delete_la_files \
            os.platform os.version
     variable oldmask
-
-    # Create startup-scripts/items
-    portstartupitem::startupitem_create
 
     foreach fileToDelete {share/info/dir lib/charset.alias} {
         if {[file exists "${destroot}${prefix}/${fileToDelete}"]} {
