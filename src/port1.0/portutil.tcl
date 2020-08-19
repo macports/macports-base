@@ -3386,7 +3386,7 @@ proc _check_xcode_version {} {
                 }
             }
 
-            if {${os.major} >= 18 && [file tail [option configure.sdkroot]] ne "MacOSX[option configure.sdk_version].sdk"} {
+            if {${os.major} >= 18 && [option configure.sdk_version] ne "" && [file tail [option configure.sdkroot]] ne "MacOSX[option configure.sdk_version].sdk"} {
                 ui_warn "The macOS [option configure.sdk_version] SDK does not appear to be installed. Ports may not build correctly."
                 ui_warn "You can install it as part of the Xcode Command Line Tools package by running `xcode-select --install'."
             }
