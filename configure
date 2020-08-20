@@ -10015,6 +10015,8 @@ printf "%s\n" "yes" >&6; }
 ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/dmg/postflight setupenv.bash src/Makefile src/cregistry/Makefile src/compat/Makefile src/darwintrace1.0/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/mpcommon1.0/Makefile src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/port/Makefile src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile tests/test.tcl tests/test/library.tcl tests/test/trace/test.tcl vendor/Makefile"
 
 
+ac_config_files="$ac_config_files port.sh"
+
 ac_config_files="$ac_config_files vendor/tclsh"
 
 ac_config_files="$ac_config_files src/cxx_stdlib_overridden.tcl"
@@ -10750,6 +10752,7 @@ do
     "tests/test/library.tcl") CONFIG_FILES="$CONFIG_FILES tests/test/library.tcl" ;;
     "tests/test/trace/test.tcl") CONFIG_FILES="$CONFIG_FILES tests/test/trace/test.tcl" ;;
     "vendor/Makefile") CONFIG_FILES="$CONFIG_FILES vendor/Makefile" ;;
+    "port.sh") CONFIG_FILES="$CONFIG_FILES port.sh" ;;
     "vendor/tclsh") CONFIG_FILES="$CONFIG_FILES vendor/tclsh" ;;
     "src/cxx_stdlib_overridden.tcl") CONFIG_FILES="$CONFIG_FILES src/cxx_stdlib_overridden.tcl" ;;
     "src/dedup_portfiles.tcl") CONFIG_FILES="$CONFIG_FILES src/dedup_portfiles.tcl" ;;
@@ -11308,6 +11311,7 @@ printf "%s\n" "$as_me: $ac_file is unchanged" >&6;}
 
 
   case $ac_file$ac_mode in
+    "port.sh":F) chmod +x port.sh ;;
     "vendor/tclsh":F) chmod +x vendor/tclsh ;;
     "src/cxx_stdlib_overridden.tcl":F) chmod +x src/cxx_stdlib_overridden.tcl ;;
     "src/dedup_portfiles.tcl":F) chmod +x src/dedup_portfiles.tcl ;;

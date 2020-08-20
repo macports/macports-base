@@ -4,6 +4,7 @@
 /Doxyfile
 /setupenv.bash
 /autom4te.cache
+/port.sh
 
 doc/*.gz
 doc/*.mtree

@@ -462,6 +462,7 @@ AC_CONFIG_FILES([
 	vendor/Makefile
 ])
 
+AC_CONFIG_FILES([port.sh], [chmod +x port.sh])
 AC_CONFIG_FILES([vendor/tclsh], [chmod +x vendor/tclsh])
 AC_CONFIG_FILES([src/cxx_stdlib_overridden.tcl], [chmod +x src/cxx_stdlib_overridden.tcl])
 AC_CONFIG_FILES([src/dedup_portfiles.tcl], [chmod +x src/dedup_portfiles.tcl])
