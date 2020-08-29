@@ -2064,8 +2064,10 @@ proc action_info { action portlist opts } {
             }
             # insert the expanded options into the ordering info
             set order_pos [lsearch -exact $global_options(options_${action}_order) ports_info_depends]
-            set global_options(options_${action}_order) [lreplace $global_options(options_${action}_order) \
-                $order_pos $order_pos {*}$all_depends_options]
+            if {$order_pos != -1} {
+                set global_options(options_${action}_order) [lreplace $global_options(options_${action}_order) \
+                    $order_pos $order_pos {*}$all_depends_options]
+            }
         }
 
         # Set up our field separators
