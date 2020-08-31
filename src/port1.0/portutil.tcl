@@ -3469,3 +3469,22 @@ proc _archive_available {} {
     set archive_available_result 0
     return 0
 }
+
+# get the mountpoint providing a given directory
+proc get_mountpoint {target_dir} {
+    file stat ${target_dir} target_stat
+
+    set parentdir ${target_dir}
+
+    while {$parentdir ne "/"} {
+        file stat [file dirname $parentdir] stat
+
+        if {$stat(dev) != $target_stat(dev)} {
+            return $parentdir
+        }
+
+        set parentdir [file dirname $parentdir]
+    }
+
+    return $parentdir
+}
