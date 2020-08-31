@@ -29,6 +29,7 @@
 
 package provide portsandbox 1.0
 package require porttrace 1.0
+package require portutil 1.0
 
 namespace eval portsandbox {
 }
@@ -44,7 +45,7 @@ default portsandbox_profile {}
 proc portsandbox::set_profile {target} {
     global os.major portsandbox_profile workpath distpath \
         package.destpath configure.ccache ccache_dir \
-        sandbox_network configure.distcc porttrace
+        sandbox_network configure.distcc porttrace prefix
 
     switch $target {
         activate -
@@ -98,6 +99,20 @@ proc portsandbox::set_profile {target} {
     set perms [list file-write*]
     if {${os.major} >= 17} {
         lappend perms file-write-setugid
+    }
+
+
+    # If ${prefix} is own its own volume, grant access to its
+    # temporary items directory, used by Xcode tools
+    set mountpoint [get_mountpoint ${prefix}]
+
+    if {$mountpoint != "/"} {
+        set extradir [file join $mountpoint ".TemporaryItems"]
+
+        if {[file isdirectory $extradir]} {
+            ui_debug "adding $extradir to allowed Sandbox paths"
+            lappend allow_dirs $extradir
+        }
     }
 
     foreach dir $allow_dirs {
