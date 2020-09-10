@@ -895,8 +895,8 @@ int reg_entry_unmap(reg_entry* entry, char** files, int file_count,
                     switch (r) {
                         case SQLITE_DONE:
                             if (sqlite3_changes(reg->db) == 0) {
-                                reg_throw(errPtr, REG_INVALID, "this entry "
-                                        "does not own the given file");
+                                reg_throw(errPtr, REG_INVALID, "%s is not "
+                                        "owned by this entry", files[i]);
                                 result = 0;
                             } else {
                                 sqlite3_reset(stmt);
@@ -1211,8 +1211,8 @@ int reg_entry_deactivate(reg_entry* entry, char** files, int file_count,
                     switch (r) {
                         case SQLITE_DONE:
                             if (sqlite3_changes(reg->db) == 0) {
-                                reg_throw(errPtr, REG_INVALID, "this entry "
-                                        "does not own the given file");
+                                reg_throw(errPtr, REG_INVALID, "%s is not "
+                                        "owned by this entry", files[i]);
                                 result = 0;
                             } else {
                                 sqlite3_reset(stmt);
