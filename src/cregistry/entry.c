@@ -864,7 +864,7 @@ int reg_entry_map(reg_entry* entry, char** files, int file_count,
 }
 
 /**
- * Unaps files from the given port in the filemap. The files must be owned by
+ * Unmaps files from the given port in the filemap. The files must be owned by
  * the given entry.
  *
  * @param [in] entry      the entry to unmap the files from
