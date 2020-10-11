@@ -101,6 +101,23 @@ case "$XCODE_VERSION" in
     ;;
 esac
 
+# Check whether the source location is valid; Tcl does not build in
+# locations containing spaces, and we don't support out-of-source
+# builds.
+AC_MSG_CHECKING(for in-tree build)
+if test "x$srcdir" != "x."; then
+   AC_MSG_ERROR([failed; out-of-source builds not supported])
+else
+  AC_MSG_RESULT([ok])
+fi
+
+AC_MSG_CHECKING(whether source directory location is valid)
+if echo "$ac_abs_confdir" | grep -q ' '; then
+   AC_MSG_ERROR([failed; path to source directory must not contain spaces])
+else
+  AC_MSG_RESULT([ok])
+fi
+
 # Checks for programs.
 AC_PROG_CC([clang cc gcc])
 AC_PROG_INSTALL
