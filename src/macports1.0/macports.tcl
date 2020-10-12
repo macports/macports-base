@@ -5002,7 +5002,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                         set libresult     [lindex $libresultlist 1]
 
                         if {$libreturncode != $machista::SUCCESS} {
-                            if {![info exists files_warned_about($filepath)]} {
+                            if {![info exists files_warned_about($filepath)] && $libreturncode != $machista::ECACHE} {
                                 if {$fancy_output} {
                                     $revupgrade_progress intermission
                                 }
