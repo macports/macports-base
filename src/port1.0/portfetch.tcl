@@ -515,7 +515,7 @@ proc portfetch::fetchfiles {args} {
     variable fetch_urls
     variable urlmap
 
-    set fetch_options {}
+    set fetch_options [list]
     if {[string length ${fetch.user}] || [string length ${fetch.password}]} {
         lappend fetch_options -u
         lappend fetch_options "${fetch.user}:${fetch.password}"
