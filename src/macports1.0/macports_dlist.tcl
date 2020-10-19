@@ -58,7 +58,7 @@ package provide macports_dlist 1.0
 #   criteria - the key/value pairs to compare
 
 proc dlist_match_multi {dlist criteria} {
-	set result {}
+	set result [list]
 	foreach ditem $dlist {
 		set match 1
 		foreach {key value} $criteria {
@@ -81,7 +81,7 @@ proc dlist_match_multi {dlist criteria} {
 #   value - the value to compare
 
 proc dlist_search {dlist key value} {
-	set result {}
+	set result [list]
 	foreach ditem $dlist {
 		if {[ditem_contains $ditem $key $value]} {
 			lappend result $ditem
