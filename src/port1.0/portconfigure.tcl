@@ -447,7 +447,7 @@ proc portconfigure::choose_supported_archs {archs} {
         # No SDK version (maybe not on macOS)
         set intersection_archs $supported_archs
     }
-    set ret {}
+    set ret [list]
     # Filter out unsupported archs, but allow demoting to 32-bit if needed.
     # That means if build_arch is x86_64 it's still possible to build a port
     # that sets supported_archs to "i386 ppc" if the SDK allows it.
