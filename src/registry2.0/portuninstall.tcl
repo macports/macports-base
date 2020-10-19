@@ -44,7 +44,7 @@ namespace eval registry_uninstall {
 proc generate_deplist {port {optslist ""}} {
 
     set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run depends_test}
-    set all_dependencies {}
+    set all_dependencies [list]
     # look up deps from the saved portfile if possible
     if {![catch {set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] $optslist]}]} {
         array set depportinfo [mportinfo $mport]
@@ -71,7 +71,7 @@ proc generate_deplist {port {optslist ""}} {
         if {![catch {mportlookup $portname} result] && [llength $result] >= 2} {
             array set depportinfo [lindex $result 1]
             set porturl $depportinfo(porturl)
-            set variations {}
+            set variations [list]
             set minusvariant [lrange [split [registry::property_retrieve $port negated_variants] -] 1 end]
             set plusvariant [lrange [split [$port variants] +] 1 end]
             foreach v $plusvariant {
@@ -287,12 +287,12 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
     }
 
     if {![info exists uports]} {
-        set uports {}
+        set uports [list]
     }
     # create list of all dependencies that will be uninstalled, if requested
     if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
         set alldeps $all_dependencies
-        set portilist {}
+        set portilist [list]
         for {set j 0} {$j < [llength $alldeps]} {incr j} {
             set dep [lindex $alldeps $j]
             set uninstalling_this_dep 0
