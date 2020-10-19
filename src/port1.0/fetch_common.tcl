@@ -280,7 +280,7 @@ proc portfetch::sortsites {urls default_listvar} {
             }
         }
 
-        set pinged_hosts {}
+        set pinged_hosts [list]
         foreach host $hosts {
             if {[llength $pinged_hosts] < $max_hosts_to_ping} {
                 if {[catch {set fds($host) [open "|ping -noq -c3 -t3 $host"]}]} {
@@ -315,7 +315,7 @@ proc portfetch::sortsites {urls default_listvar} {
             seteuid $oldeuid
         }
 
-        set pinglist {}
+        set pinglist [list]
         foreach site $urllist {
             if {[string range $site 0 6] eq "file://"} {
                 set host localhost
@@ -340,7 +340,7 @@ proc portfetch::sortsites {urls default_listvar} {
 proc portfetch::get_urls {} {
     variable fetch_urls
     variable urlmap
-    set urls {}
+    set urls [list]
 
     portfetch::checkfiles fetch_urls
 
