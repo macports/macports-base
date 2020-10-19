@@ -545,7 +545,7 @@ proc handle_option_string {option action args} {
         set {
             set args [join $args]
 
-            set fulllist {}
+            set fulllist [list]
             # args is a list of strings/list
             foreach arg $args {
                 # Strip empty lines at beginning
@@ -1194,7 +1194,7 @@ proc copy {args} {
 # move
 # Wrapper for file rename that handles case-only renames
 proc move {args} {
-    set options {}
+    set options [list]
     while {[string match "-*" [lindex $args 0]]} {
         set arg [string range [lindex $args 0] 1 end]
         set args [lreplace $args 0 0]
@@ -1473,7 +1473,7 @@ proc target_run {ditem} {
                     }
 
                     # Recursively collect all dependencies from registry for tracing
-                    set deplist {}
+                    set deplist [list]
                     foreach depspec $depends {
                         # Resolve dependencies to actual ports
                         set name [_get_dep_port $depspec]
@@ -2777,8 +2777,8 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
         file delete -force $tempdir
     }
     if {$metadata_type eq "contents"} {
-        set contents {}
-        set binary_info {}
+        set contents [list]
+        set binary_info [list]
         set ignore 0
         set sep [file separator]
         foreach line [split $raw_contents \n] {
