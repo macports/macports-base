@@ -66,7 +66,7 @@ proc check_dependents {port force {action "uninstall/deactivate"}} {
         # Check if any installed ports depend on this one
         set deplist [$port dependents]
         if {$action eq "deactivate"} {
-            set active_deplist {}
+            set active_deplist [list]
             # Check if any active ports depend on this one
             foreach p $deplist {
                 if {[$p state] eq "installed"} {
@@ -79,7 +79,7 @@ proc check_dependents {port force {action "uninstall/deactivate"}} {
             ## User Interaction Question
             # ask if user wants to uninstall a port and thereby break its dependents
             if {[info exists macports::ui_options(questions_yesno)] && ![string is true -strict $force]} { 
-                set portulist {}
+                set portulist [list]
                 foreach depport $deplist {
                     lappend portulist [$depport name]@[$depport version]_[$depport revision]
                 }
