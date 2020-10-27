@@ -155,7 +155,8 @@ namespace eval porttrace {
         create_slave $workpath $fifo
 
         # Launch darwintrace.dylib.
-        set darwintracepath [file join ${portutil::autoconf::tcl_package_path} darwintrace1.0 darwintrace.dylib]
+        set pkgdir [file dirname [file dirname [dict get [info frame -1] file]]]
+        set darwintracepath [file join ${pkgdir} darwintrace1.0 darwintrace.dylib]
 
         # Add darwintrace.dylib as last entry in DYLD_INSERT_LIBRARIES
         if {[info exists env(DYLD_INSERT_LIBRARIES)] && [string length $env(DYLD_INSERT_LIBRARIES)] > 0} {

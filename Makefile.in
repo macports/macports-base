@@ -16,7 +16,7 @@ include Mk/macports.autoconf.mk
 
 all:: Mk/macports.autoconf.mk
 
-Mk/macports.autoconf.mk: Mk/macports.autoconf.mk.in src/config.h.in Makefile.in doc/Makefile.in src/Makefile.in src/cregistry/Makefile.in src/darwintracelib1.0/Makefile.in src/machista1.0/Makefile.in src/macports1.0/Makefile.in src/mpcommon1.0/Makefile.in src/package1.0/Makefile.in src/pextlib1.0/Makefile.in src/port/Makefile.in src/port1.0/Makefile.in src/programs/Makefile.in src/programs/daemondo/Makefile.in src/registry2.0/Makefile.in tests/Makefile.in vendor/Makefile.in config.status
+Mk/macports.autoconf.mk: Mk/macports.autoconf.mk.in src/config.h.in Makefile.in doc/Makefile.in src/Makefile.in src/cregistry/Makefile.in src/darwintrace1.0/Makefile.in src/machista1.0/Makefile.in src/macports1.0/Makefile.in src/mpcommon1.0/Makefile.in src/package1.0/Makefile.in src/pextlib1.0/Makefile.in src/port/Makefile.in src/port1.0/Makefile.in src/programs/Makefile.in src/programs/daemondo/Makefile.in src/registry2.0/Makefile.in tests/Makefile.in vendor/Makefile.in config.status
 	./config.status
 	${MAKE} clean
 
@@ -156,7 +156,7 @@ test::
 # want things getting rebuilt after they're signed just because a dependency
 # has a later mtime because it was also signed.
 codesign::
-	@for subdir in vendor src/darwintracelib1.0 src/machista1.0 src/macports1.0 src/registry2.0 src/pextlib1.0 src/programs/daemondo ; do\
+	@for subdir in vendor src/darwintrace1.0 src/machista1.0 src/macports1.0 src/registry2.0 src/pextlib1.0 src/programs/daemondo ; do\
 		echo ===\> making $@ in ${DIRPRFX}$$subdir; \
 		( cd $$subdir && $(MAKE) DIRPRFX=${DIRPRFX}$$subdir/ $@) || exit 1; \
 	done

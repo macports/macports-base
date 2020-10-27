@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# Simple shell script to invoke MacPorts from the source directory
+#
+
+# force the locally built, vendored Tcl
+export TCL_LIBRARY="@abs_srcdir@/@VENDOR_DESTROOT@@TCL_PACKAGE_PATH@/tcl@TCL_VERSION@"
+
+# tell it about the location of the MacPorts source files
+export TCLLIBPATH="@abs_srcdir@/src"
+
+# this sandbox profile actively prevents MacPorts from loading the Tcl
+# sources from @prefix@
+sandbox_profile="
+(version 1)
+
+; allow everything
+(allow default)
+
+; ...but deny access to installed Tcl files
+(deny file* (subpath \"@TCL_PREFIX@\"))
+
+; ...and fix trace mode by allowing reexecution in another sandbox
+(allow process-exec (with no-sandbox)
+ (literal \"@SANDBOX_EXEC@\")
+ (regex #\"^@DARWINTRACE_SIP_WORKAROUND_PATH@/[0-9]*@SANDBOX_EXEC@\$\"))
+"
+
+# give a nice error if the source isn't built
+if ! [ -d "$TCL_LIBRARY" ] || ! [ -f "@abs_srcdir@/src/port/port" ]
+then
+    echo "please build MacPorts before running this script!" 1>&2
+    exit 1
+elif [ -z "@SANDBOX_EXEC@"]
+then
+    exec "@INTREE_TCLSH@" "@abs_srcdir@/src/port/port" "$@"
+else
+    exec "@SANDBOX_EXEC@" -p "$sandbox_profile" \
+         "@INTREE_TCLSH@" "@abs_srcdir@/src/port/port" "$@"
+fi

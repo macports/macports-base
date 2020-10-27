@@ -12,7 +12,7 @@ TCLPKG=		cregistry \
 SUBDIR=		compat ${TCLPKG} port programs
 
 ifeq (@TRACEMODE_SUPPORT@,1)
-TCLPKG+= darwintracelib1.0
+TCLPKG+= darwintrace1.0
 endif
 
 all::

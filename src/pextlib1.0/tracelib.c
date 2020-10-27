@@ -59,7 +59,7 @@
 #include <cregistry/portgroup.h>
 #include <cregistry/entry.h>
 #include <registry2.0/registry.h>
-#include <darwintracelib1.0/sandbox_actions.h>
+#include <darwintrace1.0/sandbox_actions.h>
 
 #if defined(LOCAL_PEERPID) && defined(HAVE_LIBPROC_H)
 #include <libproc.h>

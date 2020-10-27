@@ -1202,6 +1202,7 @@ match macports.conf.default."
         USER GROUP LANG
         http_proxy HTTPS_PROXY FTP_PROXY ALL_PROXY NO_PROXY
         COLUMNS LINES
+        TCLLIBPATH TCL_LIBRARY
     }
     if {[info exists extra_env]} {
         set keepenvkeys [concat $keepenvkeys $extra_env]

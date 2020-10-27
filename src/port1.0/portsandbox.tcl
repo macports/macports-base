@@ -45,7 +45,7 @@ default portsandbox_profile {}
 proc portsandbox::set_profile {target} {
     global os.major portsandbox_profile workpath distpath \
         package.destpath configure.ccache ccache_dir \
-        sandbox_network configure.distcc porttrace prefix
+        sandbox_network configure.distcc porttrace prefix env
 
     switch $target {
         activate -
@@ -101,6 +101,22 @@ proc portsandbox::set_profile {target} {
         lappend perms file-write-setugid
     }
 
+    if {[info exists env(TCL_LIBRARY)]} {
+        ui_debug "adding ${env(TCL_LIBRARY)} to allowed Sandbox paths"
+        append portsandbox_profile "\
+(allow file-read* (subpath \"${env(TCL_LIBRARY)}\"))
+"
+    }
+
+
+    if {[info exists env(TCLLIBPATH)]} {
+        foreach libpath $env(TCLLIBPATH) {
+            ui_debug "adding ${libpath} to allowed Sandbox paths"
+            append portsandbox_profile "\
+(allow file-read* (subpath \"${libpath}\"))
+"
+        }
+    }
 
     # If ${prefix} is own its own volume, grant access to its
     # temporary items directory, used by Xcode tools
