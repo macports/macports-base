@@ -21,8 +21,8 @@ src/*
 !src/*/
 src/*/*_autoconf.tcl
 src/cregistry/macports.sqlext
-src/darwintracelib1.0/*.d
-src/darwintracelib1.0/sip_copy_proc.[ch]
+src/darwintrace1.0/*.d
+src/darwintrace1.0/sip_copy_proc.[ch]
 src/machista1.0/tests/libmachista-test
 src/port/*
 !src/port/*.tcl

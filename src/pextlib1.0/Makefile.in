@@ -49,7 +49,7 @@ INSTALLDIR= ${TCL_PACKAGE_PATH}/pextlib1.0
 include $(srcdir)/../../Mk/macports.tea.mk
 
 # tracelib.o has an additional dependency
-tracelib.o: ../darwintracelib1.0/sandbox_actions.h
+tracelib.o: ../darwintrace1.0/sandbox_actions.h
 
 CFLAGS+= ${CURL_CFLAGS} ${MD5_CFLAGS} ${READLINE_CFLAGS}
 LIBS+= ${CURL_LIBS} ${MD5_LIBS} ${READLINE_LIBS}
