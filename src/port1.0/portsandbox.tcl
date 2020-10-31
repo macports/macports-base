@@ -104,9 +104,12 @@ proc portsandbox::set_profile {target} {
 
     # If ${prefix} is own its own volume, grant access to its
     # temporary items directory, used by Xcode tools
-    set mountpoint [get_mountpoint ${prefix_frozen}]
+    if {[catch {get_mountpoint ${prefix_frozen}} mountpoint]} {
+        ui_debug "get_mountpoint failed: $mountpoint"
+        set mountpoint /
+    }
 
-    if {$mountpoint != "/"} {
+    if {$mountpoint ne "/"} {
         set extradir [file join $mountpoint ".TemporaryItems"]
 
         if {[file isdirectory $extradir]} {
