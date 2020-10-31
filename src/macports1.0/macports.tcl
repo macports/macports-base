@@ -4024,6 +4024,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         if {![info exists variations($variation)]} {
             set variations($variation) $value
         }
+        # save the current variants for dependency calculation purposes
+        # in case we don't end up upgrading this port
+        set installedvariations($variation) $value
     }
 
     # Now merge in the global (i.e. variants.conf) variations.
@@ -4076,7 +4079,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         ui_error "Unable to open port: $result"
         return 1
     }
-    array unset interp_options
 
     array unset portinfo
     array set portinfo [mportinfo $mport]
@@ -4119,6 +4121,13 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             if {[info exists portinfo(canonical_active_variants)] && $portinfo(canonical_active_variants) ne $oldvariant} {
                 if {[llength $variationslist] > 0} {
                     ui_warn "Skipping upgrade since $portname ${version_installed}_$revision_installed >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\". Use 'upgrade --enforce-variants' to switch to the requested variants."
+                    # reopen with the installed variants so deps are calculated correctly
+                    catch {mportclose $mport}
+                    if {[catch {set mport [mportopen $porturl [array get interp_options] [array get installedvariations]]} result]} {
+                        ui_debug $::errorInfo
+                        ui_error "Unable to open port: $result"
+                        return 1
+                    }
                 } else {
                     ui_debug "Skipping upgrade since $portname ${version_installed}_$revision_installed >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\"."
                 }
@@ -4128,6 +4137,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             set will_install no
         }
     }
+
+    array unset interp_options
 
     set will_build no
     set already_installed [registry::entry_exists $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]
