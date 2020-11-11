@@ -4567,7 +4567,7 @@ proc macports::arch_runnable {arch} {
     if {$macports::os_platform eq "darwin"} {
         if {$macports::os_major >= 11 && [string first ppc $arch] == 0} {
             return no
-        } elseif {$macports::os_arch eq "i386" && $arch eq "ppc64"} {
+        } elseif {$macports::os_arch eq "i386" && $arch in [list arm64 ppc64]} {
             return no
         } elseif {$macports::os_major <= 8 && $arch eq "x86_64"} {
             return no
