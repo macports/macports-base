@@ -877,7 +877,7 @@ proc portconfigure::get_min_command_line {compiler} {
             if {
                 ([option compiler.limit_flags] || [option compiler.support_environment_sdkroot]) &&
                 [option configure.sdkroot] ne "" &&
-                ![file exists /usr/lib/libxcselect.dylib]
+                !([file exists /usr/lib/libxcselect.dylib] || ${os.major} >= 20)
             } {
                 return none
             }
