@@ -44,9 +44,6 @@
    and to 0 if you don't. */
 #undef HAVE_DECL_USERNAME_COMPLETION_FUNCTION
 
-/* Define to 1 if you have the `_dyld_shared_cache_contains_path' function. */
-#undef HAVE__DYLD_SHARED_CACHE_CONTAINS_PATH
-
 /* Define to 1 if you have the <err.h> header file. */
 #undef HAVE_ERR_H
 
@@ -227,6 +224,9 @@
 
 /* Define to 1 if you have the <utime.h> header file. */
 #undef HAVE_UTIME_H
+
+/* Define to 1 if you have the `_dyld_shared_cache_contains_path' function. */
+#undef HAVE__DYLD_SHARED_CACHE_CONTAINS_PATH
 
 /* Define to 1 if you have the `__getdirentries64' function. */
 #undef HAVE___GETDIRENTRIES64
