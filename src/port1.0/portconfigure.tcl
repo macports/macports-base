@@ -903,16 +903,15 @@ proc portconfigure::get_min_command_line {compiler} {
             } elseif {${compiler.cxx_standard} >= 2014} {
                 set min_value [max_version $min_value 602.0.49]
             } elseif {${compiler.cxx_standard} >= 2011} {
-                if {${compiler.thread_local_storage}} {
-                    # macOS has supported thread-local storage since Mac OS X Lion.
-                    # So __thread (GNU extension) and _Thread_local (C11) could be used.
-                    # However, the C++11 keyword was not supported until Xcode 8
-                    #    (https://developer.apple.com/library/archive/releasenotes/DeveloperTools/RN-Xcode/Chapters/Introduction.html#//apple_ref/doc/uid/TP40001051-CH1-SW127)
-                    #    (https://developer.apple.com/videos/play/wwdc2016-405/?time=354).
-                    set min_value [max_version $min_value 800.0.38]
-                } else {
-                    set min_value [max_version $min_value 500.2.75]
-                }
+                set min_value [max_version $min_value 500.2.75]
+            }
+            if {${compiler.cxx_standard} >= 2011 && ${compiler.thread_local_storage}} {
+                # macOS has supported thread-local storage since Mac OS X Lion.
+                # So __thread (GNU extension) and _Thread_local (C11) could be used.
+                # However, the C++11 keyword was not supported until Xcode 8
+                #    (https://developer.apple.com/library/archive/releasenotes/DeveloperTools/RN-Xcode/Chapters/Introduction.html#//apple_ref/doc/uid/TP40001051-CH1-SW127)
+                #    (https://developer.apple.com/videos/play/wwdc2016-405/?time=354).
+                set min_value [max_version $min_value 800.0.38]
             }
             if {[option compiler.limit_flags] || [option compiler.support_environment_paths]} {
                 set min_value [max_version $min_value 421.0.57]
