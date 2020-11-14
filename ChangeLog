@@ -3,24 +3,88 @@
 ###
 
 Release 2.7.0 (unreleased)
-    - reclaim: remove everything under build and ccache directories
-      (khindenburg in b9fdb847)
-      (khindenburg in d08d261f)
+    - reclaim: remove everything under build and ccache directories.
+      (khindenburg in b9fdb847, d08d261f)
 
-    - For install action, abort if any @version is provided on command line
-      (khindenburg in 835a7db1)
-      (jmr in ca071954)
+    - For various actions, abort if @version specified is not current.
+      (khindenburg, jmr in 835a7db1, ca071954)
 
-    - Abort when a port includes a nonexistent PortGroup
+    - Abort when a port includes a nonexistent PortGroup.
       (khindenburg in d9139328)
 
-    - Adjust lint --niptick on patchfiles to allow *.diff or *.patch
+    - Adjust lint --nitpick on patchfiles to allow *.diff or *.patch.
       (khindenburg in 5037999e)
 
-Release 2.6.3 (unreleased)
+    - Display a progress bar when the underlying build system provides the
+      necessary information, which is currently cmake and ninja.
+      (#15939, landonf in da3524e)
+
+    - Support compressed web pages for livecheck.
+      (#55011, dgilman in 8c41ca7, d741f0c)
+
+Release 2.6.4 (2020-11-14 by jmr)
+    - Fixed incorrectly requiring a full Xcode installation when
+      building all ports on Big Sur. (#61435, jmr in d58b124)
+
+    - Allow building ports for x86_64 on arm64 systems if they don't
+      support arm64. (#61430, jmr in 94f428e)
+
+    - Disabled building the MacPorts SQLite extension by default, since
+      the system's SQLite on Big Sur no longer supports extensions. Use
+      the new macports.sqlext port, which has a dependency on MacPorts'
+      sqlite3 port, to install it. (toby in 4664a4a)
+
+    - Fixed calculation of dependencies of up-to-date ports during
+      upgrade when different variants are specified but
+      --enforce-variants is not used. (jmr in 81979e5)
+
+    - Rev-upgrade no longer warns about libraries that are present only
+      in the shared cache, since this is normal as of Big Sur.
+      (jeremyhu in 601864d)
+
+    - Fixed incorrect output of 'port info --depends' when used with
+      multiple ports. (#61083, ryandesign in a7cf423)
+
+    - Fixed incorrect warning that the SDK for the current OS version
+      is missing, when configure.sdk_version has been cleared by the
+      Portfile. (jmr in 8402cf8)
+
+    - Fixed some operations involving fs-traverse failing with paths
+      containing whitespace. (ryandesign in 52609c9)
+
+    - Various changes to support arm64.
+      (ryandesign, toby in c8ddc79, bfc0544, 7ccf5a2)
+
+    - No longer error out immediately when an appropriate SDK cannot
+      be found, which prevented even actions like 'port info' from
+      working in that situation. (jmr in 5764fd9)
+
+Release 2.6.3 (2020-07-19 by jmr)
+    - Correct macports-clang c++11+ compiler selection with non-libc++
+      installations. (kencu in 3ea1fb4)
+
+    - Avoid problems with trace mode on modern macOS.
+      (#60702, saagarjha, cal in d96e5a85a)
+
+    - Added some basic support for Apple Silicon.
+      (jeremyhu, jmr in 6eaa8d5, 901eb21, 01afdbb)
+
     - Fixed an issue where post-extract ran with elevated privileges when
-      adduser was used in a Portfile
-      (#50918, cal in ac1a9b099)
+      adduser was used in a Portfile. (#50918, cal in ac1a9b099)
+
+    - Fixed cases where a proper error message was not displayed when curl
+      failed. (#60581, cal in f535c26)
+
+    - Reduced the number of processes spawned when pinging mirror sites.
+      (ryandesign in cee74bb)
+
+    - Support new naming scheme used starting with macports-clang-10 in
+      configure.compiler. (jonesc in 5c3f571)
+
+    - Fixed dmg and mdmg targets on 10.15+. (#59697, jmr in 0459cb1)
+
+    - Ensure archive paths are correctly quoted when extracting.
+      (#60365, jmr in 8a088c3)
 
 Release 2.6.2 (2019-10-20 by jmr)
     - Added support for zsh to the pkg installer's PATH setup code.

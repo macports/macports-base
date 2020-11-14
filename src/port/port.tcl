@@ -2062,10 +2062,16 @@ proc action_info { action portlist opts } {
             foreach depends_option $all_depends_options {
                 set options($depends_option) yes
             }
-            # insert the expanded options into the ordering info
-            set order_pos [lsearch -exact $global_options(options_${action}_order) ports_info_depends]
-            set global_options(options_${action}_order) [lreplace $global_options(options_${action}_order) \
-                $order_pos $order_pos {*}$all_depends_options]
+            # replace all occurrences of --depends with the expanded options
+            while 1 {
+                set order_pos [lsearch -exact $global_options(options_${action}_order) ports_info_depends]
+                if {$order_pos != -1} {
+                    set global_options(options_${action}_order) [lreplace $global_options(options_${action}_order) \
+                        $order_pos $order_pos {*}$all_depends_options]
+                } else {
+                    break
+                }
+            }
         }
 
         # Set up our field separators
@@ -2371,6 +2377,8 @@ proc action_location { action portlist opts } {
 
 
 proc action_notes { action portlist opts } {
+    global UI_PREFIX
+
     if {[require_portlist portlist]} {
         return 1
     }
@@ -2435,12 +2443,12 @@ proc action_notes { action portlist opts } {
 
         # Display the notes.
         if {$portnotes ne {}} {
-            ui_notice "$portname has the following notes:"
+            ui_notice "$UI_PREFIX $portname has the following notes:"
             foreach note $portnotes {
                 puts [wrap $note 0 "  " 1]
             }
         } else {
-            puts "$portname has no notes."
+            ui_notice "$UI_PREFIX $portname has no notes."
         }
     }
     return $status
@@ -4139,7 +4147,7 @@ proc action_target { action portlist opts } {
         if {[string length $portversion]} {
             if {$action eq "clean"} {
                 set options(ports_version_glob) $portversion
-            } elseif {$portversion ne "$portinfo(version)_$portinfo(revision)"} {
+            } elseif {$portversion ne "$portinfo(version)_$portinfo(revision)" && $portversion ne $portinfo(version)} {
                 break_softcontinue "$portname version $portversion is not available (current version is $portinfo(version)_$portinfo(revision))" 1 status
             }
         }

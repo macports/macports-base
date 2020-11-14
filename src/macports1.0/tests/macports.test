@@ -1025,7 +1025,7 @@ test get_archive_sites_conf_values {
 set shellescapeTests [list \
     "using \\backslashes" \
     " spaces " \
-    "and        tabs" \
+    "and	tabs" \
     "quotes need to be \"supported\", too" \
     "… and not only 'double-quotes'" \
     "other meta chars such as \$dollar," \
@@ -1042,10 +1042,10 @@ test shellescaping {
     set first "yes"
     foreach test $shellescapeTests {
         if {$first eq "yes"} {
-            system "echo [macports::shellescape $test]  >$outputfile"
+            system "printf '%s\n' [macports::shellescape $test]  >$outputfile"
             set first "no"
         } else {
-            system "echo [macports::shellescape $test] >>$outputfile"
+            system "printf '%s\n' [macports::shellescape $test] >>$outputfile"
         }
     }
 

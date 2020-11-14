@@ -192,7 +192,7 @@ The port command recognizes several global flags and options.
     Force mode, ignore state file
 
 -D 'portdir'|'portname'::
-    Specify a directory to which the port command should change to before
+    Specify a directory to which the port command should change before
     processing any actions. If the specified value does not contain any slashes,
     the value is used to look up a port and the current working directory is set
     to the corresponding port directory.

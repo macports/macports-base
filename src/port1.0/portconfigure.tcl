@@ -1,6 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 #
-# Copyright (c) 2007 - 2015 The MacPorts Project
+# Copyright (c) 2007 - 2020 The MacPorts Project
 # Copyright (c) 2007 Markus W. Weissmann <mww@macports.org>
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
@@ -402,23 +402,66 @@ proc portconfigure::configure_start {args} {
 
 # internal function to choose the default configure.build_arch and
 # configure.universal_archs based on supported_archs and build_arch or
-# universal_archs
+# universal_archs, plus the SDK being used
 proc portconfigure::choose_supported_archs {archs} {
     global supported_archs configure.sdk_version
-    if {$supported_archs eq ""} {
-        return $archs
-    }
-    set ret {}
-    foreach arch $archs {
-        if {$arch in $supported_archs} {
-            set add_arch $arch
-        } elseif {$arch eq "x86_64" && "i386" in $supported_archs} {
-            if {${configure.sdk_version} ne "" && [vercmp ${configure.sdk_version} 10.14] >= 0} {
-                continue
+
+    if {${configure.sdk_version} ne ""} {
+        # Figure out which archs are supported by the SDK
+        if {[vercmp ${configure.sdk_version} 11.0] >= 0} {
+            set sdk_archs [list arm64 x86_64]
+        } elseif {[vercmp ${configure.sdk_version} 10.14] >= 0} {
+            set sdk_archs x86_64
+        } elseif {[vercmp ${configure.sdk_version} 10.7] >= 0} {
+            set sdk_archs [list x86_64 i386]
+        } elseif {[vercmp ${configure.sdk_version} 10.6] >= 0} {
+            set sdk_archs [list x86_64 i386 ppc]
+        } elseif {[vercmp ${configure.sdk_version} 10.5] >= 0} {
+            set sdk_archs [list x86_64 i386 ppc ppc64]
+        } else {
+            # 10.4u
+            set sdk_archs [list i386 ppc ppc64]
+        }
+
+        # Set intersection_archs to the intersection of what's supported by
+        # the SDK and the port's supported_archs
+        if {$supported_archs eq ""} {
+            # Blank supported_archs; allow whatever the SDK does.
+            set intersection_archs $sdk_archs
+        } else {
+            set intersection_archs [list]
+            foreach arch $sdk_archs {
+                if {$arch in $supported_archs} {
+                    lappend intersection_archs $arch
+                }
             }
-            set add_arch "i386"
-        } elseif {$arch eq "ppc64" && "ppc" in $supported_archs} {
-            set add_arch "ppc"
+            if {$intersection_archs eq ""} {
+                # No archs in common.
+                return ""
+            }
+        }
+    } elseif {$supported_archs eq ""} {
+        # Nothing to filter on.
+        return $archs
+    } else {
+        # No SDK version (maybe not on macOS)
+        set intersection_archs $supported_archs
+    }
+    set ret [list]
+    # Filter out unsupported archs, but allow demoting to another arch
+    # supported by the SDK if needed, e.g. 64-bit to 32-bit. That means
+    # e.g. if build_arch is x86_64 it's still possible to build a port
+    # that sets supported_archs to "i386 ppc" if the SDK allows it.
+    array set arch_demotions [list \
+                                arm64 x86_64 \
+                                x86_64 i386 \
+                                ppc64 ppc \
+                                i386 ppc]
+    foreach arch $archs {
+        if {$arch in $intersection_archs} {
+            set add_arch $arch
+        } elseif {[info exists arch_demotions($arch)] && $arch_demotions($arch) in $intersection_archs} {
+            set add_arch $arch_demotions($arch)
         } else {
             continue
         }
@@ -442,7 +485,7 @@ proc portconfigure::configure_get_archflags {tool} {
             $tool in {cc cxx objc objcxx}
         } then {
             set flags "-arch ${configure.build_arch}"
-        } elseif {${configure.build_arch} eq "x86_64" || ${configure.build_arch} eq "ppc64"} {
+        } elseif {${configure.build_arch} in [list arm64 ppc64 x86_64]} {
             set flags "-m64"
         } elseif {${configure.compiler} ne "gcc-3.3"} {
             set flags "-m32"
@@ -575,8 +618,8 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         return $sdk
     }
 
-    ui_error "Unable to determine location of a macOS SDK."
-    return -code error "Unable to determine location of a macOS SDK."
+    # We can get here if $sdk_version != $macosx_version on old OS versions
+    return {}
 }
 
 # internal function to determine DEVELOPER_DIR according to Xcode dependency
@@ -731,6 +774,8 @@ proc portconfigure::max_version {verA verB} {
 }
 #
 # https://releases.llvm.org/3.1/docs/ClangReleaseNotes.html#cchanges
+# _Noreturn implemented in clang 3.3.0:
+# https://github.com/llvm/llvm-project/commit/debc59d1f360b1f7a041de72c02d76ed131370c6
 # https://gcc.gnu.org/c99status.html
 # https://gcc.gnu.org/wiki/C11Status
 # https://trac.macports.org/wiki/XcodeVersionInfo
@@ -739,7 +784,7 @@ proc portconfigure::max_version {verA verB} {
 #|------------------------------------------------------------------|
 #| 1989 (C89)   |     -     |        -      |     -     |     -     |
 #| 1999 (C99)   |     -     |        -      |     -     |    4.0    |
-#| 2011 (C11)   |    3.1    |    318.0.61   |    4.3    |    4.9    |
+#| 2011 (C11)   |    3.3    |   500.2.75    |    5.0    |    4.9    |
 #--------------------------------------------------------------------
 #
 # https://clang.llvm.org/cxx_status.html
@@ -752,7 +797,7 @@ proc portconfigure::max_version {verA verB} {
 #|------------------------------------------------------------------|
 #| 1998 (C++98) |     -     |       -       |     -     |     -     |
 #| 2011 (C++11) |    3.3    |   500.2.75    |    5.0    |   4.8.1   |
-#| 2014 (C++14) |    3.4    |   602         |    6.3    |     5     |
+#| 2014 (C++14) |    3.4    |   602.0.49    |    6.3    |     5     |
 #| 2017 (C++17) |    5.0    |   902.0.39.1  |    9.3    |     7     |
 #--------------------------------------------------------------------
 #
@@ -808,17 +853,18 @@ proc portconfigure::get_min_command_line {compiler} {
                 return none
             }
             if {${compiler.c_standard} >= 2011} {
-                set min_value [max_version $min_value 318.0.61]
+                set min_value [max_version $min_value 500.2.75]
             }
             if {${compiler.cxx_standard} >= 2017} {
                 set min_value [max_version $min_value 902.0.39.1]
             } elseif {${compiler.cxx_standard} >= 2014} {
-                set min_value [max_version $min_value 602]
+                set min_value [max_version $min_value 602.0.49]
             } elseif {${compiler.cxx_standard} >= 2011} {
                 if {${compiler.thread_local_storage}} {
                     # macOS has supported thread-local storage since Mac OS X Lion.
                     # So __thread (GNU extension) and _Thread_local (C11) could be used.
                     # However, the C++11 keyword was not supported until Xcode 8
+                    #    (https://developer.apple.com/library/archive/releasenotes/DeveloperTools/RN-Xcode/Chapters/Introduction.html#//apple_ref/doc/uid/TP40001051-CH1-SW127)
                     #    (https://developer.apple.com/videos/play/wwdc2016-405/?time=354).
                     set min_value [max_version $min_value 800.0.38]
                 } else {
@@ -831,7 +877,7 @@ proc portconfigure::get_min_command_line {compiler} {
             if {
                 ([option compiler.limit_flags] || [option compiler.support_environment_sdkroot]) &&
                 [option configure.sdkroot] ne "" &&
-                ![file exists /usr/lib/libxcselect.dylib]
+                !([file exists /usr/lib/libxcselect.dylib] || ${os.major} >= 20)
             } {
                 return none
             }
@@ -864,9 +910,19 @@ proc portconfigure::get_min_clang {} {
     if {${compiler.cxx_standard} >= 2017} {
         set min_value [max_version $min_value 5.0]
     } elseif {${compiler.cxx_standard} >= 2014} {
-        set min_value [max_version $min_value 3.4]
+        if {[option configure.cxx_stdlib] eq "libc++"} {
+            set min_value [max_version $min_value 3.4]
+        } else {
+            # macports-libstdc++ only macports-clang compilers >= 5.0 support this
+            set min_value [max_version $min_value 5.0]
+        }
     } elseif {${compiler.cxx_standard} >= 2011} {
-        set min_value [max_version $min_value 3.3]
+        if {[option configure.cxx_stdlib] eq "libc++"} {
+            set min_value [max_version $min_value 3.3]
+        } else {
+            # macports-libstdc++ only macports-clang compilers >= 5.0 support this
+            set min_value [max_version $min_value 5.0]
+        }
     }
     if {[vercmp ${compiler.openmp_version} 4.0] >= 0} {
         set min_value [max_version $min_value 6.0]

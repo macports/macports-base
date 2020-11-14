@@ -2776,16 +2776,14 @@ $as_echo "$as_me: WARNING: This version of macOS is out of date" >&2;}
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Please use the Mac App Store to update it" >&5
 $as_echo "$as_me: WARNING: Please use the Mac App Store to update it" >&2;}
     ;;
-  10.14|10.14.[1-5]|10.15|10.15.[1-3])
+  10.14|10.14.[1-5]|10.15|10.15.[1-6]|11.0)
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: This version of macOS is out of date" >&5
 $as_echo "$as_me: WARNING: This version of macOS is out of date" >&2;}
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Please run Software Update to update it" >&5
 $as_echo "$as_me: WARNING: Please run Software Update to update it" >&2;}
     ;;
-  10.4.*|10.5.*|10.6.*|10.7.*|10.8.*|10.9.*|10.10.*|10.11.*|10.12.*|10.13.*|10.14.*|10.15.*)
-        ;;
   *)
-    ;;
+        ;;
 esac
 
 # locate currently selected Xcode path
@@ -6860,7 +6858,7 @@ done
 # Checks for library functions.
 for ac_func in OSAtomicCompareAndSwap32 OSAtomicCompareAndSwap64 \
 	OSAtomicCompareAndSwapPtr __getdirentries64 clearenv copyfile \
-	flock fls kqueue posix_spawn setmode \
+	_dyld_shared_cache_contains_path flock fls kqueue posix_spawn setmode \
 	sysctlbyname
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`

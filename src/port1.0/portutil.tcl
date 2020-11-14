@@ -545,7 +545,7 @@ proc handle_option_string {option action args} {
         set {
             set args [join $args]
 
-            set fulllist {}
+            set fulllist [list]
             # args is a list of strings/list
             foreach arg $args {
                 # Strip empty lines at beginning
@@ -1194,7 +1194,7 @@ proc copy {args} {
 # move
 # Wrapper for file rename that handles case-only renames
 proc move {args} {
-    set options {}
+    set options [list]
     while {[string match "-*" [lindex $args 0]]} {
         set arg [string range [lindex $args 0] 1 end]
         set args [lreplace $args 0 0]
@@ -1473,7 +1473,7 @@ proc target_run {ditem} {
                     }
 
                     # Recursively collect all dependencies from registry for tracing
-                    set deplist {}
+                    set deplist [list]
                     foreach depspec $depends {
                         # Resolve dependencies to actual ports
                         set name [_get_dep_port $depspec]
@@ -2777,8 +2777,8 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
         file delete -force $tempdir
     }
     if {$metadata_type eq "contents"} {
-        set contents {}
-        set binary_info {}
+        set contents [list]
+        set binary_info [list]
         set ignore 0
         set sep [file separator]
         foreach line [split $raw_contents \n] {
@@ -2889,7 +2889,7 @@ proc merge {base} {
 
     # traverse the base-architecture directory
     set basepath "${base}/${base_arch}"
-    fs-traverse file "${basepath}" {
+    fs-traverse file [list $basepath] {
         set fpath [string range "${file}" [string length "${basepath}"] [string length "${file}"]]
         if {${fpath} ne ""} {
             # determine the type (dir/file/link)
@@ -2946,7 +2946,7 @@ proc chown {path user} {
     lchown $path $user
 
     if {[file isdirectory $path]} {
-        fs-traverse myfile ${path} {
+        fs-traverse myfile [list $path] {
             lchown $myfile $user
         }
     }
@@ -3336,12 +3336,17 @@ proc _check_xcode_version {} {
             10.15 {
                 set min 11.0
                 set ok 11.3
-                set rec 11.4.1
+                set rec 11.7
+            }
+            11.0 {
+                set min 12.2
+                set ok 12.2
+                set rec 12.2
             }
             default {
-                set min 11.0
-                set ok 11.3
-                set rec 11.4.1
+                set min 12.2
+                set ok 12.2
+                set rec 12.2
             }
         }
         if {$xcodeversion eq "none"} {
@@ -3386,7 +3391,7 @@ proc _check_xcode_version {} {
                 }
             }
 
-            if {${os.major} >= 18 && [file tail [option configure.sdkroot]] ne "MacOSX[option configure.sdk_version].sdk"} {
+            if {${os.major} >= 18 && [option configure.sdk_version] ne "" && [file tail [option configure.sdkroot]] ne "MacOSX[option configure.sdk_version].sdk"} {
                 ui_warn "The macOS [option configure.sdk_version] SDK does not appear to be installed. Ports may not build correctly."
                 ui_warn "You can install it as part of the Xcode Command Line Tools package by running `xcode-select --install'."
             }
@@ -3468,4 +3473,23 @@ proc _archive_available {} {
 
     set archive_available_result 0
     return 0
+}
+
+# get the mountpoint providing a given directory
+proc get_mountpoint {target_dir} {
+    file stat ${target_dir} target_stat
+
+    set parentdir ${target_dir}
+
+    while {$parentdir ne "/"} {
+        file stat [file dirname $parentdir] stat
+
+        if {$stat(dev) != $target_stat(dev)} {
+            return $parentdir
+        }
+
+        set parentdir [file dirname $parentdir]
+    }
+
+    return $parentdir
 }

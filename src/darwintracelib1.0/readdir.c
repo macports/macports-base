@@ -67,6 +67,10 @@ struct dirent64  {
 size_t __getdirentries64(int fd, void *buf, size_t bufsize, __darwin_off_t *basep);
 
 static size_t _dt_getdirentries64(int fd, void *buf, size_t bufsize, __darwin_off_t *basep) {
+	if (!__darwintrace_initialized) {
+		return __getdirentries64(fd, buf, bufsize, basep);
+	}
+
 	__darwintrace_setup();
 
 	size_t sz = __getdirentries64(fd, buf, bufsize, basep);
@@ -123,6 +127,10 @@ struct dirent32 {
 int getdirentries(int fd, char *buf, int nbytes, long *basep);
 
 static int _dt_getdirentries(int fd, char *buf, int nbytes, long *basep) {
+	if (!__darwintrace_initialized) {
+		return getdirentries(fd, buf, nbytes, basep);
+	}
+
 	__darwintrace_setup();
 
 	size_t sz = getdirentries(fd, buf, nbytes, basep);

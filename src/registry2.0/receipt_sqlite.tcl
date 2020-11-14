@@ -231,7 +231,7 @@ proc installed {{name ""} {version ""}} {
     } elseif {$name ne "" && $version eq ""} {
         set ports [registry::entry imaged $name]
     } else {
-        set ports {}
+        set ports [list]
         set possible_ports [registry::entry imaged $name]
         foreach p $possible_ports {
             if {"[$p version]_[$p revision][$p variants]" eq $version || [$p version] eq $version} {
@@ -276,7 +276,7 @@ proc open_dep_map {args} {
 #         criteria.
 proc list_depends {name version revision variants} {
     set rlist [list]
-    set searchkeys {}
+    set searchkeys [list]
     foreach key {name version revision} {
         if {[set $key] ne ""} {
             lappend searchkeys $key [set $key]
@@ -318,7 +318,7 @@ proc list_depends {name version revision variants} {
 #         search criteria.
 proc list_dependents {name version revision variants} {
     set rlist [list]
-    set searchkeys {}
+    set searchkeys [list]
     foreach key {name version revision} {
         if {[set $key] ne ""} {
             lappend searchkeys $key [set $key]
@@ -381,7 +381,7 @@ proc create_entry_l {proplist} {
                 if {[llength $props(imagefiles)] != [llength $props(files)]} {
                     # deal with this mess, just drop the extras...
                     set i 0
-                    set ilist {}; set flist {}
+                    set ilist [list]; set flist [list]
                     while {$i < [llength $props(imagefiles)] && $i < [llength $props(files)]} {
                         lappend ilist [lindex $props(imagefiles) $i]
                         lappend flist [lindex $props(files) $i]

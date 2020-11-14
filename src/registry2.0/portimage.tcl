@@ -88,7 +88,7 @@ proc activate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
     if {[info exists options(ports_activate_no-exec)]} {
         set noexec $options(ports_activate_no-exec)
     }
-    set rename_list {}
+    set rename_list [list]
     if {[info exists options(portactivate_rename_files)]} {
         set rename_list $options(portactivate_rename_files)
     }
@@ -226,7 +226,7 @@ proc _check_registry {name version revision variants} {
     set ilist [registry::entry imaged {*}$searchkeys]
 
     if { [llength $ilist] > 1 } {
-        set portilist {}
+        set portilist [list]
         set msg "The following versions of $name are currently installed:"
         if {[macports::ui_isset ports_noninteractive]} {
             ui_msg "$UI_PREFIX [msgcat::mc $msg]"
@@ -353,7 +353,10 @@ proc extract_archive_to_tmpdir {location} {
                 global macports::hfscompression
                 # Opportunistic HFS compression. bsdtar will automatically
                 # disable this if filesystem does not support compression.
-                if {${macports::hfscompression} &&
+                # Don't use if not running as root, due to bugs:
+                # The system bsdtar on 10.15 suffers from https://github.com/libarchive/libarchive/issues/497
+                # Later versions fixed that problem but another remains: https://github.com/libarchive/libarchive/issues/1415 
+                if {${macports::hfscompression} && [getuid] == 0 &&
                         ![catch {macports::binaryInPath bsdtar}] &&
                         ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]} {
                     ui_debug "Using bsdtar with HFS+ compression (if valid)"
@@ -560,7 +563,7 @@ proc _activate_contents {port {rename_list {}}} {
         # debug output of activate make more sense.
         set files [lsort -increasing -unique $files]
         # handle files that are to be renamed
-        set confirmed_rename_list {}
+        set confirmed_rename_list [list]
         foreach {src dest} $rename_list {
             set index [lsearch -exact -sorted $files $src]
             if {$index != -1} {
@@ -568,7 +571,7 @@ proc _activate_contents {port {rename_list {}}} {
                 lappend confirmed_rename_list $src $dest
             }
         }
-        set rollback_filelist {}
+        set rollback_filelist [list]
 
         registry::write {
             # Activate it, and catch errors so we can roll-back

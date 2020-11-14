@@ -234,7 +234,6 @@ proc portfetch::sortsites {urls default_listvar} {
             }
         }
         set urllist $urlmap($url_var)
-        set hosts {}
 
         if {[llength $urllist] <= 1} {
             # there is only one mirror, no need to ping or sort
@@ -248,6 +247,7 @@ proc portfetch::sortsites {urls default_listvar} {
             seteuid 0; setegid 0
         }
 
+        set hosts {}
         foreach site $urllist {
             if {[string range $site 0 6] eq "file://"} {
                 set pingtimes(localhost) 0
@@ -259,23 +259,42 @@ proc portfetch::sortsites {urls default_listvar} {
             if { [info exists seen($host)] } {
                 continue
             }
-            if { ![info exists seen($host)] } {
-                # first check the persistent cache
-                set pingtimes($host) [get_pingtime $host]
-                if {$pingtimes($host) eq {}} {
-                    if {[catch {set fds($host) [open "|ping -noq -c3 -t3 $host"]}]} {
-                        ui_debug "Spawning ping for $host failed"
-                        # will end up after all hosts that were pinged OK but before those that didn't respond
-                        set pingtimes($host) 5000
-                    } else {
-                        set seen($host) yes
-                        lappend hosts $host
-                    }
-                }
+            # first check the persistent cache
+            set pingtimes($host) [get_pingtime $host]
+            if {$pingtimes($host) eq {}} {
+                set seen($host) yes
+                lappend hosts $host
             }
         }
 
+        set max_hosts_to_ping 50
+        set len [llength $hosts]
+        if {$len > $max_hosts_to_ping} {
+            # randomize them
+            # shuffle10a from https://wiki.tcl-lang.org/page/Shuffle+a+list
+            while {$len} {
+                set n [expr {int($len*rand())}]
+                set tmp [lindex $hosts $n]
+                lset hosts $n [lindex $hosts [incr len -1]]
+                lset hosts $len $tmp
+            }
+        }
+
+        set pinged_hosts [list]
         foreach host $hosts {
+            if {[llength $pinged_hosts] < $max_hosts_to_ping} {
+                if {[catch {set fds($host) [open "|ping -noq -c3 -t3 $host"]}]} {
+                    ui_debug "Spawning ping for $host failed"
+                } else {
+                    lappend pinged_hosts $host
+                    continue
+                }
+            }
+            # will end up after all hosts that were pinged OK but before those that didn't respond
+            set pingtimes($host) 5000
+        }
+
+        foreach host $pinged_hosts {
             set pingtimes($host) ""
             while {[gets $fds($host) pingline] >= 0} {
                 if {[string match round-trip* $pingline]} {
@@ -296,7 +315,7 @@ proc portfetch::sortsites {urls default_listvar} {
             seteuid $oldeuid
         }
 
-        set pinglist {}
+        set pinglist [list]
         foreach site $urllist {
             if {[string range $site 0 6] eq "file://"} {
                 set host localhost
@@ -321,7 +340,7 @@ proc portfetch::sortsites {urls default_listvar} {
 proc portfetch::get_urls {} {
     variable fetch_urls
     variable urlmap
-    set urls {}
+    set urls [list]
 
     portfetch::checkfiles fetch_urls
 

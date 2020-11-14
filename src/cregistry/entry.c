@@ -864,7 +864,7 @@ int reg_entry_map(reg_entry* entry, char** files, int file_count,
 }
 
 /**
- * Unaps files from the given port in the filemap. The files must be owned by
+ * Unmaps files from the given port in the filemap. The files must be owned by
  * the given entry.
  *
  * @param [in] entry      the entry to unmap the files from
@@ -895,8 +895,8 @@ int reg_entry_unmap(reg_entry* entry, char** files, int file_count,
                     switch (r) {
                         case SQLITE_DONE:
                             if (sqlite3_changes(reg->db) == 0) {
-                                reg_throw(errPtr, REG_INVALID, "this entry "
-                                        "does not own the given file");
+                                reg_throw(errPtr, REG_INVALID, "%s is not "
+                                        "owned by this entry", files[i]);
                                 result = 0;
                             } else {
                                 sqlite3_reset(stmt);
@@ -1211,8 +1211,8 @@ int reg_entry_deactivate(reg_entry* entry, char** files, int file_count,
                     switch (r) {
                         case SQLITE_DONE:
                             if (sqlite3_changes(reg->db) == 0) {
-                                reg_throw(errPtr, REG_INVALID, "this entry "
-                                        "does not own the given file");
+                                reg_throw(errPtr, REG_INVALID, "%s is not "
+                                        "owned by this entry", files[i]);
                                 result = 0;
                             } else {
                                 sqlite3_reset(stmt);

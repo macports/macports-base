@@ -1,6 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 #
-# Copyright (c) 2007 - 2016 The MacPorts Project
+# Copyright (c) 2007 - 2018, 2020 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -279,6 +279,7 @@ proc portlint::lint_main {args} {
     set seen_portsystem false
     set seen_portgroup false
     set in_description false
+    set prohibit_tabs false
 
     array set portgroups {}
 
@@ -292,13 +293,11 @@ proc portlint::lint_main {args} {
     while {1} {
         set line [gets $f]
         if {[eof $f]} {
-            if {$nitpick} {
-                seek $f -1 end
-                set last [read $f 1]
-                if {"\n" ne $last} {
-                    ui_warn "Line $lineno has missing newline (at end of file)"
-                    incr warnings
-                }
+            seek $f -1 end
+            set last [read $f 1]
+            if {"\n" ne $last} {
+                ui_warn "Line $lineno has missing newline (at end of file)"
+                incr warnings
             }
             close $f
             break
@@ -311,7 +310,7 @@ proc portlint::lint_main {args} {
         }
 
         if {($require_after eq "PortSystem" || $require_after eq "PortGroup") && \
-            [string match "PortGroup*" $line]} {
+            [regexp {^\s*PortGroup\s} $line]} {
             set require_blank false
         }
 
@@ -330,6 +329,16 @@ proc portlint::lint_main {args} {
         if {($lineno == $topline_number) && [string match "*-\*- *" $line]} {
             ui_info "OK: Line $lineno has emacs/vim Mode"
             incr topline_number
+            set require_blank true
+            set require_after "modeline"
+            if {[regexp {\sindent-tabs-mode: nil[;\s]|[:\s](?:et|expandtab)(?:[:\s]|$)} $line]} {
+                set prohibit_tabs true
+            }
+        }
+
+        if {$prohibit_tabs && [string match "*\t*" $line]} {
+            ui_warn "Line $lineno contains tab but modeline says tabs should be expanded"
+            incr warnings
         }
 
         if {[string match "*\$Id*\$" $line]} {
@@ -343,12 +352,12 @@ proc portlint::lint_main {args} {
             continue
         }
 
-        if {[string match "PortSystem*" $line]} {
+        if {[regexp {^\s*PortSystem\s} $line]} {
             if {$seen_portsystem} {
                 ui_error "Line $lineno repeats PortSystem declaration"
                 incr errors
             }
-            regexp {PortSystem\s+([0-9.]+)} $line -> portsystem
+            regexp {^\s*PortSystem\s+([0-9.]+)\s*$} $line -> portsystem
             if {![info exists portsystem]} {
                 ui_error "Line $lineno has unrecognized PortSystem"
                 incr errors
@@ -357,8 +366,8 @@ proc portlint::lint_main {args} {
             set require_blank true
             set require_after "PortSystem"
         }
-        if {[string match "*PortGroup*" $line]} {
-            regexp {^\s*PortGroup\s+([A-Za-z0-9_]+)\s+([0-9.]+)} $line -> portgroup portgroupversion
+        if {[regexp {^\s*PortGroup\s} $line]} {
+            regexp {^\s*PortGroup\s+([A-Za-z0-9_]+)\s+([0-9.]+)\s*$} $line -> portgroup portgroupversion
             if {![info exists portgroup]} {
                 ui_error "Line $lineno has unrecognized PortGroup"
                 incr errors
@@ -379,7 +388,7 @@ proc portlint::lint_main {args} {
         # TODO: check the definition order of variables
         # TODO: check length of description against max
 
-        if {[string match "long_description*" $line]} {
+        if {[regexp {^\s*long_description\s} $line]} {
             set in_description true
         }
         if {$in_description && ([string range $line end end] ne "\\")} {
@@ -390,32 +399,40 @@ proc portlint::lint_main {args} {
             set require_blank false
         }
 
-        if {[string match "variant*" $line]} {
-            regexp {variant\s+(\w+)} $line -> variantname
+        if {[regexp {^\s*variant\s} $line]} {
+            regexp {^\s*variant\s+(\w+)} $line -> variantname
             if {[info exists variantname]} {
                 lappend local_variants $variantname
             }
         }
         
-        if {[string match "platform\[ \t\]*" $line]} {
-            regexp {platform\s+(?:\w+\s+(?:\w+\s+)?)?(\w+)} $line -> platform_arch
-            if {$platform_arch eq "ppc"} {
-                ui_error "Arch 'ppc' in platform on line $lineno should be 'powerpc'"
-                incr errors
+        if {[regexp {^\s*platform\s} $line]} {
+            regexp {^\s*platform\s+(?:\w+\s+(?:\w+\s+)?)?(\w+)} $line -> platform_arch
+            foreach {bad_platform_arch replacement_platform_arch} {
+                arm64 arm
+                intel i386
+                ppc powerpc
+                ppc64 powerpc
+                x86_64 i386
+            } {
+                if {$platform_arch eq $bad_platform_arch} {
+                    ui_error "Arch '$bad_platform_arch' in platform on line $lineno should be '$replacement_platform_arch'"
+                    incr errors
+                }
             }
         }
 
-        if {[string match "*adduser*" $line]} {
+        if {[regexp {^\s*adduser\s} $line]} {
             ui_warn "Line $lineno calling adduser directly; consider setting add_users instead"
             incr warnings
         }
 
-        if {[regexp {(^|\s)configure\s+\{\s*\}} $line]} {
+        if {[regexp {^\s*configure\s+\{\s*\}} $line]} {
             ui_warn "Line $lineno should say \"use_configure no\" instead of declaring an empty configure phase"
             incr warnings
         }
 
-        if {[regexp {compiler\.blacklist(?:-[a-z]+)?\s.*(["{]\S+(?:\s+\S+){2,}["}])} $line -> blacklist] && ![info exists portgroups(compiler_blacklist_versions)]} {
+        if {[regexp {^\s*compiler\.blacklist(?:-[a-z]+)?\s.*(["{]\S+(?:\s+\S+){2,}["}])} $line -> blacklist] && ![info exists portgroups(compiler_blacklist_versions)]} {
             ui_error "Line $lineno uses compiler.blacklist entry $blacklist which requires the compiler_blacklist_versions portgroup which has not been included"
             incr errors
         }
@@ -431,15 +448,13 @@ proc portlint::lint_main {args} {
         # Check for hardcoded version numbers
         if {$nitpick} {
             # Support for skipping checksums lines
-            if {[regexp {^checksums} $line]} {
+            if {[regexp {^\s*checksums\s} $line]} {
                 # We enter a series of one or more lines containing checksums
                 set hashline true
             }
     
             if {!$hashline
-                    && ![regexp {^\s*PortSystem|^\s*PortGroup|^\s*version} $line]
-                    && ![regexp {^\s*[A-Za-z0-9_]+\.setup} $line]
-                    && ![regexp {^\s*license} $line]
+                    && ![regexp {^\s*(?:PortSystem|PortGroup|version|license|[A-Za-z0-9_]+\.setup)\s} $line]
                     && [string first [option version] $line] != -1} {
                 ui_warn "Line $lineno seems to hardcode the version number, consider using \${version} instead"
                 incr warnings
@@ -457,8 +472,7 @@ proc portlint::lint_main {args} {
         if {!$hashline
                 && $name ne "MacPorts"
                 && [string match "*/opt/local*" $line]
-                && ![regexp {^\s*reinplace} $line]
-                && ![regexp {^\s*system.*\Wsed\W} $line]} {
+                && ![regexp {^\s*(?:reinplace\s|system.*\Wsed\W)} $line]} {
             ui_error "Line $lineno hardcodes /opt/local, use \${prefix} instead"
             incr errors
         }
@@ -720,12 +734,12 @@ proc portlint::lint_main {args} {
         }
     }
 
-    if {[regexp "^(.+)nomaintainer(@macports.org)?(.+)$" $maintainers] } {
+    if {[regexp "^(.+)nomaintainer(@macports\.org)?(.+)$" $maintainers] } {
         ui_error "Using nomaintainer together with other maintainer"
         incr errors
     }
 
-    if {[regexp "^openmaintainer(@macports.org)?$" $maintainers] } {
+    if {[regexp "^openmaintainer(@macports\.org)?$" $maintainers] } {
         ui_error "Using openmaintainer without any other maintainer"
         incr errors
     }
@@ -736,10 +750,10 @@ proc portlint::lint_main {args} {
                     $addr eq "openmaintainer@macports.org"} {
                 ui_warn "Using full email address for no/open maintainer"
                 incr warnings
-            } elseif {[regexp "^(.+)@macports.org$" $addr -> localpart]} {
+            } elseif {[regexp "^(.+)@macports\.org$" $addr -> localpart]} {
                 ui_warn "Maintainer email address for $localpart includes @macports.org"
                 incr warnings
-            } elseif {$addr eq "darwinports@opendarwin.org"} {
+            } elseif {$addr eq "darwinports@opendarwin\.org"} {
                 ui_warn "Using legacy email address for no/open maintainer"
                 incr warnings
             } elseif {[regexp "^(.+)@(.+)$" $addr -> localpart domain]} {

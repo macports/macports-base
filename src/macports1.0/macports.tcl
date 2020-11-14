@@ -5,7 +5,7 @@
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
 # Copyright (c) 2004 - 2006 Ole Guldberg Jensen <olegb@opendarwin.org>.
 # Copyright (c) 2004 - 2005 Robert Shaw <rshaw@opendarwin.org>
-# Copyright (c) 2004 - 2016 The MacPorts Project
+# Copyright (c) 2004 - 2020 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -695,8 +695,14 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # set up platform info variables
     set os_arch $tcl_platform(machine)
-    if {$os_arch eq "Power Macintosh"} {set os_arch "powerpc"}
-    if {$os_arch eq "i586" || $os_arch eq "i686" || $os_arch eq "x86_64"} {set os_arch "i386"}
+    # Set os_arch to match `uname -p`
+    if {$os_arch eq "Power Macintosh"} {
+        set os_arch "powerpc"
+    } elseif {$os_arch eq "i586" || $os_arch eq "i686" || $os_arch eq "x86_64"} {
+        set os_arch "i386"
+    } elseif {$os_arch eq "arm64"} {
+        set os_arch "arm"
+    }
     set os_version $tcl_platform(osVersion)
     set os_major [lindex [split $os_version .] 0]
     set os_minor [lindex [split $os_version .] 1]
@@ -1111,7 +1117,7 @@ match macports.conf.default."
     if {![info exists macports::build_arch]} {
         if {$os_platform eq "darwin"} {
             if {$os_major >= 20} {
-                if {$os_arch eq "arm64"} {
+                if {$os_arch eq "arm"} {
                     set macports::build_arch arm64
                 } else {
                     set macports::build_arch x86_64
@@ -4018,6 +4024,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         if {![info exists variations($variation)]} {
             set variations($variation) $value
         }
+        # save the current variants for dependency calculation purposes
+        # in case we don't end up upgrading this port
+        set installedvariations($variation) $value
     }
 
     # Now merge in the global (i.e. variants.conf) variations.
@@ -4070,7 +4079,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         ui_error "Unable to open port: $result"
         return 1
     }
-    array unset interp_options
 
     array unset portinfo
     array set portinfo [mportinfo $mport]
@@ -4113,6 +4121,13 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             if {[info exists portinfo(canonical_active_variants)] && $portinfo(canonical_active_variants) ne $oldvariant} {
                 if {[llength $variationslist] > 0} {
                     ui_warn "Skipping upgrade since $portname ${version_installed}_$revision_installed >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\". Use 'upgrade --enforce-variants' to switch to the requested variants."
+                    # reopen with the installed variants so deps are calculated correctly
+                    catch {mportclose $mport}
+                    if {[catch {set mport [mportopen $porturl [array get interp_options] [array get installedvariations]]} result]} {
+                        ui_debug $::errorInfo
+                        ui_error "Unable to open port: $result"
+                        return 1
+                    }
                 } else {
                     ui_debug "Skipping upgrade since $portname ${version_installed}_$revision_installed >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\"."
                 }
@@ -4122,6 +4137,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             set will_install no
         }
     }
+
+    array unset interp_options
 
     set will_build no
     set already_installed [registry::entry_exists $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]
@@ -4550,7 +4567,7 @@ proc macports::arch_runnable {arch} {
     if {$macports::os_platform eq "darwin"} {
         if {$macports::os_major >= 11 && [string first ppc $arch] == 0} {
             return no
-        } elseif {$macports::os_arch eq "i386" && $arch eq "ppc64"} {
+        } elseif {$macports::os_arch eq "i386" && $arch in [list arm64 ppc64]} {
             return no
         } elseif {$macports::os_major <= 8 && $arch eq "x86_64"} {
             return no
@@ -4996,7 +5013,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                         set libresult     [lindex $libresultlist 1]
 
                         if {$libreturncode != $machista::SUCCESS} {
-                            if {![info exists files_warned_about($filepath)]} {
+                            if {![info exists files_warned_about($filepath)] && $libreturncode != $machista::ECACHE} {
                                 if {$fancy_output} {
                                     $revupgrade_progress intermission
                                 }
@@ -5551,18 +5568,10 @@ proc macports::get_archive_sites_conf_values {} {
 # @param arg The argument that should be escaped for use in a POSIX shell
 # @return A quoted version of the argument
 proc macports::shellescape {arg} {
-    set mapping {}
-    # Replace each backslash by a double backslash. Apparently Bash treats Backslashes in single-quoted strings
-    # differently depending on whether is was invoked as sh or bash: echo 'using \backslashes' preserves the backslash
-    # in bash mode, but interprets it in sh mode. Since the `system' command uses sh, escape backslashes.
-    lappend mapping "\\" "\\\\"
-    # Replace each single quote with a single quote (closing the currently open string), an escaped single quote \'
-    # (additional backslash needed to escape the backslash in Tcl), and another single quote (opening a new quoted
-    # string).
-    lappend mapping "'" "'\\''"
-
-    # Add a single quote at the start, escape all single quotes in the argument, and add a single quote at the end
-    return "'[string map $mapping $arg]'"
+    # Put a bashslash in front of every character that is not safe. This
+    # may not be an exhaustive list of safe characters but it is allowed
+    # to put a backslash in front of safe characters too.
+    return [regsub -all -- {[^A-Za-z0-9.:@%/+=_-]} $arg {\\&}]
 }
 
 ##

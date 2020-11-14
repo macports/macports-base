@@ -84,7 +84,7 @@ proc portarchivefetch::filter_sites {} {
         set $key $val
     }
 
-    set ret {}
+    set ret [list]
     foreach site [array names portfetch::mirror_sites::archive_prefix] {
         set missing 0
         foreach var {archive_frameworks_dir archive_applications_dir archive_type archive_cxx_stdlib archive_delete_la_files} {
@@ -182,7 +182,7 @@ proc portarchivefetch::fetchfiles {args} {
         dropPrivileges
     }
 
-    set fetch_options {}
+    set fetch_options [list]
     if {[string length ${archivefetch.user}] || [string length ${archivefetch.password}]} {
         lappend fetch_options -u
         lappend fetch_options "${archivefetch.user}:${archivefetch.password}"

@@ -111,7 +111,7 @@ proc main {pextlibname} {
         # Test -tails option with multiple paths
         # It should error out
         if {![catch {
-            fs-traverse -tails file {$root/a $root/b} {}
+            fs-traverse -tails file [list $root/a $root/b] {}
         }]} {
             error "fs-traverse did not error when using multiple paths with -tails"
         }
