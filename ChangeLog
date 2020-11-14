@@ -22,6 +22,43 @@ Release 2.7.0 (unreleased)
     - Support compressed web pages for livecheck.
       (#55011, dgilman in 8c41ca7, d741f0c)
 
+Release 2.6.4 (2020-11-14 by jmr)
+    - Fixed incorrectly requiring a full Xcode installation when
+      building all ports on Big Sur. (#61435, jmr in d58b124)
+
+    - Allow building ports for x86_64 on arm64 systems if they don't
+      support arm64. (#61430, jmr in 94f428e)
+
+    - Disabled building the MacPorts SQLite extension by default, since
+      the system's SQLite on Big Sur no longer supports extensions. Use
+      the new macports.sqlext port, which has a dependency on MacPorts'
+      sqlite3 port, to install it. (toby in 4664a4a)
+
+    - Fixed calculation of dependencies of up-to-date ports during
+      upgrade when different variants are specified but
+      --enforce-variants is not used. (jmr in 81979e5)
+
+    - Rev-upgrade no longer warns about libraries that are present only
+      in the shared cache, since this is normal as of Big Sur.
+      (jeremyhu in 601864d)
+
+    - Fixed incorrect output of 'port info --depends' when used with
+      multiple ports. (#61083, ryandesign in a7cf423)
+
+    - Fixed incorrect warning that the SDK for the current OS version
+      is missing, when configure.sdk_version has been cleared by the
+      Portfile. (jmr in 8402cf8)
+
+    - Fixed some operations involving fs-traverse failing with paths
+      containing whitespace. (ryandesign in 52609c9)
+
+    - Various changes to support arm64.
+      (ryandesign, toby in c8ddc79, bfc0544, 7ccf5a2)
+
+    - No longer error out immediately when an appropriate SDK cannot
+      be found, which prevented even actions like 'port info' from
+      working in that situation. (jmr in 5764fd9)
+
 Release 2.6.3 (2020-07-19 by jmr)
     - Correct macports-clang c++11+ compiler selection with non-libc++
       installations. (kencu in 3ea1fb4)
