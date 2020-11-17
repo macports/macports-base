@@ -843,10 +843,10 @@ AC_DEFUN([MP_PROG_DAEMONDO],[
 	result=no
 	case $host_os in
 		darwin*)
-			if test "x$mp_cv_have_framework_corefoundation" == "xyes" &&
-			   test "x$mp_cv_have_framework_systemconfiguration" == "xyes" &&
-			   test "x$mp_cv_have_framework_iokit" == "xyes" &&
-			   test "x$mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter" == "xyes"; then
+			if test "x$mp_cv_have_framework_corefoundation" = "xyes" &&
+			   test "x$mp_cv_have_framework_systemconfiguration" = "xyes" &&
+			   test "x$mp_cv_have_framework_iokit" = "xyes" &&
+			   test "x$mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter" = "xyes"; then
 				result=yes
 				EXTRA_PROGS="$EXTRA_PROGS daemondo"
 				AC_CONFIG_FILES([src/programs/daemondo/Makefile])
