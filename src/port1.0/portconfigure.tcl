@@ -33,11 +33,13 @@
 package provide portconfigure 1.0
 package require portutil 1.0
 package require portprogress 1.0
+package require struct::set
 
 set org.macports.configure [target_new org.macports.configure portconfigure::configure_main]
 target_provides ${org.macports.configure} configure
 target_requires ${org.macports.configure} main fetch checksum extract patch
 target_prerun ${org.macports.configure} portconfigure::configure_start
+target_postrun ${org.macports.configure} portconfigure::configure_end
 
 namespace eval portconfigure {
 }
@@ -1722,4 +1724,81 @@ proc portconfigure::configure_main {args} {
         }
     }
     return 0
+}
+
+options configure.checks.implicit_function_declaration \
+        configure.checks.implicit_function_declaration.whitelist
+default configure.checks.implicit_function_declaration yes
+default configure.checks.implicit_function_declaration.whitelist {[portconfigure::load_implicit_function_declaration_whitelist ${configure.sdk_version}]}
+
+proc portconfigure::check_implicit_function_declarations {} {
+    global \
+        configure.dir \
+        configure.checks.implicit_function_declaration.whitelist
+
+    # Map from function name to config.log that used it without declaration
+    array set undeclared_functions {}
+
+    fs-traverse -tails file ${configure.dir} {
+        if {[file tail $file] eq "config.log" && [file isfile [file join ${configure.dir} $file]]} {
+            # We could do the searching ourselves, but using a tool optimized for this purpose is likely much faster
+            # than using Tcl.
+            #
+            # Using /usr/bin/grep here, so we don't accidentally pick up a macports-installed grep which might
+            # currently not be runnable due to a missing library.
+            set args [list "/usr/bin/grep" "--" "-Wimplicit-function-declaration"]
+            lappend args [file join ${configure.dir} $file]
+
+            if {![catch {set result [exec -- {*}$args]}]} {
+                foreach line [split $result "\n"] {
+                    if {[regexp -- "implicit declaration of function '(\[^']+)'" $line -> function]} {
+                        set is_whitelisted no
+                        foreach whitelisted ${configure.checks.implicit_function_declaration.whitelist} {
+                            if {[string match -nocase $whitelisted $function]} {
+                                set is_whitelisted yes
+                                break
+                            }
+                        }
+                        if {!$is_whitelisted} {
+                            ::struct::set include undeclared_functions($function) $file
+                        } else {
+                            ui_debug [format "Ignoring implicit declaration of function '%s', because it is whitelisted" $function]
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if {[array size undeclared_functions] > 0} {
+        ui_warn "Configuration logfiles contain indications of -Wimplicit-function-declaration, check that features were not accidentially disabled:"
+        foreach {function files} [array get undeclared_functions] {
+            ui_msg [format "  %s: found in %s" $function [join $files ", "]]
+        }
+    }
+}
+
+proc portconfigure::load_implicit_function_declaration_whitelist {sdk_version} {
+    set whitelist {}
+
+    set whitelist_file [getdefaultportresourcepath "port1.0/checks/implicit_function_declaration/macosx${sdk_version}.sdk.list"]
+    if {[file exists $whitelist_file]} {
+        set fd [open $whitelist_file r]
+        while {[gets $fd whitelist_entry] >= 0} {
+            lappend whitelist $whitelist_entry
+        }
+        close $fd
+    }
+
+    return $whitelist
+}
+
+proc portconfigure::configure_end {args} {
+    global \
+        configure.dir \
+        configure.checks.implicit_function_declaration
+
+    if {[file isdirectory ${configure.dir}] && ${configure.checks.implicit_function_declaration}} {
+        portconfigure::check_implicit_function_declarations
+    }
 }
