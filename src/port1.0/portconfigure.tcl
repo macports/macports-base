@@ -508,7 +508,7 @@ proc portconfigure::configure_get_ld_archflags {} {
 }
 
 proc portconfigure::configure_get_sdkroot {sdk_version} {
-    global developer_dir macosx_version xcodeversion os.arch os.major os.platform use_xcode
+    global developer_dir macos_version_major xcodeversion os.arch os.major os.platform use_xcode
 
     # This is only relevant for macOS
     if {${os.platform} ne "darwin"} {
@@ -516,12 +516,12 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
     }
 
     # Special hack for Tiger/ppc, since the system libraries do not contain intel slices
-    if {${os.arch} eq "powerpc" && $macosx_version eq "10.4" && [variant_exists universal] && [variant_isset universal]} {
+    if {${os.arch} eq "powerpc" && $macos_version_major eq "10.4" && [variant_exists universal] && [variant_isset universal]} {
         return ${developer_dir}/SDKs/MacOSX10.4u.sdk
     }
 
     # Use the DevSDK (eg: /usr/include) if present and the requested SDK version matches the host version
-    if {${os.major} < 19 && $sdk_version eq $macosx_version && [file exists /usr/include/sys/cdefs.h]} {
+    if {${os.major} < 19 && $sdk_version eq $macos_version_major && [file exists /usr/include/sys/cdefs.h]} {
         return {}
     }
 
@@ -618,7 +618,7 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         return $sdk
     }
 
-    # We can get here if $sdk_version != $macosx_version on old OS versions
+    # We can get here if $sdk_version != $macos_version_major on old OS versions
     return {}
 }
 

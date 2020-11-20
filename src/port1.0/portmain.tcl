@@ -135,11 +135,11 @@ default os.minor {$os_minor}
 default os.arch {$os_arch}
 default os.endian {$os_endian}
 
-set macosx_version_text {}
+set macos_version_text {}
 if {[option os.platform] eq "darwin"} {
-    set macosx_version_text "(macOS ${macosx_version}) "
+    set macos_version_text "(macOS ${macos_version}) "
 }
-ui_debug "OS [option os.platform]/[option os.version] ${macosx_version_text}arch [option os.arch]"
+ui_debug "OS [option os.platform]/[option os.version] ${macos_version_text}arch [option os.arch]"
 
 default universal_variant {${use_configure}}
 

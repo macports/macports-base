@@ -20,7 +20,7 @@ package require portmain 1.0
 
 # Set testing vars
 set os_platform darwin
-set macosx_version 10.8
+set macos_version 10.8.0
 set os_version 12
 set os_arch i386
 set portpath .

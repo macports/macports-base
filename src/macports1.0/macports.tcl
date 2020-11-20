@@ -68,9 +68,9 @@ namespace eval macports {
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir applications_dir_frozen current_phase frameworks_dir frameworks_dir_frozen \
         developer_dir universal_archs build_arch os_arch os_endian os_version os_major os_minor \
-        os_platform os_subplatform macosx_version macosx_sdk_version macosx_deployment_target \
-        packagemaker_path default_compilers sandbox_enable sandbox_network delete_la_files cxx_stdlib \
-        pkg_post_unarchive_deletions $user_options"
+        os_platform os_subplatform macos_version macos_version_major macosx_version macosx_sdk_version \
+        macosx_deployment_target packagemaker_path default_compilers sandbox_enable sandbox_network \
+        delete_la_files cxx_stdlib pkg_post_unarchive_deletions $user_options"
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
@@ -169,7 +169,7 @@ proc macports::_log_sysinfo {} {
     global macports::os_platform macports::os_subplatform \
            macports::os_version macports::os_major macports::os_minor \
            macports::os_endian macports::os_arch \
-           macports::macosx_version macports::macosx_sdk_version macports::macosx_deployment_target \
+           macports::macos_version macports::macosx_sdk_version macports::macosx_deployment_target \
            macports::xcodeversion
     global tcl_platform
 
@@ -178,12 +178,12 @@ proc macports::_log_sysinfo {} {
 
     if {$os_platform eq "darwin"} {
         if {$os_subplatform eq "macosx"} {
-            if {[vercmp $macosx_version 10.12] >= 0} {
-                set os_version_string "macOS ${macosx_version}"
-            } elseif {[vercmp $macosx_version 10.8] >= 0} {
-                set os_version_string "OS X ${macosx_version}"
+            if {[vercmp $macos_version 10.12] >= 0} {
+                set os_version_string "macOS ${macos_version}"
+            } elseif {[vercmp $macos_version 10.8] >= 0} {
+                set os_version_string "OS X ${macos_version}"
             } else {
-                set os_version_string "Mac OS X ${macosx_version}"
+                set os_version_string "Mac OS X ${macos_version}"
             }
         } else {
             set os_version_string "PureDarwin ${os_version}"
@@ -672,6 +672,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::os_minor \
         macports::os_platform \
         macports::os_subplatform \
+        macports::macos_version \
+        macports::macos_version_major \
         macports::macosx_version \
         macports::macosx_sdk_version \
         macports::macosx_deployment_target \
@@ -710,14 +712,14 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # Remove trailing "Endian"
     set os_endian [string range $tcl_platform(byteOrder) 0 end-6]
     set os_subplatform {}
-    set macosx_version {}
+    set macos_version {}
     if {$os_platform eq "darwin"} {
         if {[file isdirectory /System/Library/Frameworks/Carbon.framework]} {
             # macOS
             set os_subplatform macosx
             if {[file executable /usr/bin/sw_vers]} {
                 try -pass_signal {
-                    set macosx_version [exec /usr/bin/sw_vers -productVersion | cut -f1,2 -d.]
+                    set macos_version [exec /usr/bin/sw_vers -productVersion]
                 } catch {* ec result} {
                     ui_debug "sw_vers exists but running it failed: $result"
                 }
@@ -727,6 +729,14 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             set os_subplatform puredarwin
         }
     }
+    if {[vercmp $macos_version 11] >= 0} {
+        # Big Sur is apparently any 11.x version
+        set macos_version_major [lindex [split $macos_version .] 0]
+    } else {
+        set macos_version_major [join [lrange [split $macos_version .] 0 1] .]
+    }
+    # backward compatibility synonym
+    set macosx_version $macos_version_major
 
     # Check that the current platform is the one we were configured for, otherwise need to do migration
     if {($os_platform ne $macports::autoconf::os_platform) || ($os_platform eq "darwin" && $os_major != $macports::autoconf::os_major)} {
@@ -1143,10 +1153,18 @@ match macports.conf.default."
     }
 
     if {![info exists macports::macosx_deployment_target]} {
-        set macports::macosx_deployment_target $macosx_version
+        if {[vercmp $macos_version 11] >= 0} {
+            set macports::macosx_deployment_target ${macos_version_major}.0
+        } else {
+            set macports::macosx_deployment_target $macos_version_major
+        }
     }
     if {![info exists macports::macosx_sdk_version]} {
-        set macports::macosx_sdk_version $macosx_version
+        if {[vercmp $macos_version 11] >= 0} {
+            set macports::macosx_sdk_version ${macos_version_major}.0
+        } else {
+            set macports::macosx_sdk_version $macos_version_major
+        }
     }
 
     if {![info exists macports::revupgrade_autorun]} {

@@ -477,6 +477,11 @@ proc portlint::lint_main {args} {
             incr errors
         }
 
+        if {[regexp {\$\{?macosx_version} $line]} {
+            ui_warn "Line $lineno using macosx_version; switch to macos_version or macos_version_major"
+            incr warnings
+        }
+
         ### TODO: more checks to Portfile syntax
 
         incr lineno

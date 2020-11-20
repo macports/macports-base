@@ -273,9 +273,7 @@ namespace eval porttrace {
     # the communication socket. Just must call this once for each call to
     # trace_start.
     proc trace_stop {} {
-        global \
-            env \
-            macosx_version
+        global env
 
         variable fifo
 

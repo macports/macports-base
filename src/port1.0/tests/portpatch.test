@@ -35,7 +35,7 @@ test patch_main {
 } -constraints {
     root
 } -setup {
-    set macosx_version 12
+    set macos_version 11.0.1
 
     set subport gcc_select
     set filespath $pwd/files
