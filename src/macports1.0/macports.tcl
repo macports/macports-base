@@ -44,38 +44,144 @@ package require Tclx
 package require mpcommon 1.0
 
 namespace eval macports {
-    namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
+    namespace export bootstrap_options bootstrap_multivalue_options user_options portinterp_options open_mports ui_priorities
     variable bootstrap_options "\
-        portdbpath binpath auto_path extra_env sources_conf prefix portdbformat \
-        portarchivetype hfscompression portautoclean \
-        porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
-        rsync_dir startupitem_autostart startupitem_type startupitem_install \
-        place_worksymlink xcodeversion xcodebuildcmd \
-        configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_sdk_version macosx_deployment_target \
-        macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
-        master_site_local patch_site_local archive_site_local buildfromsource \
-        revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds \
-        host_blacklist preferred_hosts sandbox_enable sandbox_network delete_la_files cxx_stdlib \
-        packagemaker_path default_compilers pkg_post_unarchive_deletions ui_interactive"
+        applications_dir \
+        archive_site_local \
+        auto_path \
+        binpath \
+        build_arch \
+        buildfromsource \
+        buildmakejobs \
+        buildnicevalue \
+        ccache_dir \
+        ccache_size \
+        configureccache \
+        configuredistcc \
+        configurepipe \
+        cxx_stdlib \
+        default_compilers \
+        delete_la_files \
+        destroot_umask \
+        developer_dir \
+        extra_env \
+        frameworks_dir \
+        hfscompression \
+        host_blacklist \
+        keeplogs \
+        macosx_deployment_target \
+        macosx_sdk_version \
+        macportsuser \
+        master_site_local \
+        packagemaker_path \
+        patch_site_local \
+        pkg_post_unarchive_deletions \
+        place_worksymlink \
+        portarchivetype \
+        portautoclean \
+        portdbformat \
+        portdbpath \
+        porttrace \
+        portverbose \
+        preferred_hosts \
+        prefix \
+        proxy_ftp \
+        proxy_http \
+        proxy_https \
+        proxy_override_env \
+        proxy_rsync \
+        proxy_skip \
+        revupgrade_autorun \
+        revupgrade_check_id_loadcmds \
+        revupgrade_mode \
+        rsync_options \
+        sandbox_enable \
+        sandbox_network \
+        sources_conf \
+        startupitem_autostart \
+        startupitem_install \
+        startupitem_type \
+        ui_interactive \
+        universal_archs \
+        variants_conf \
+        xcodebuildcmd \
+        xcodeversion \
+        "
+    variable bootstrap_multivalue_options "\
+        release_url \
+        release_version_url \
+        "
     variable user_options {}
     variable portinterp_options "\
-        portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
-        registry.path registry.format user_home user_path user_ssh_auth_sock \
-        portarchivetype archivefetch_pubkeys portautoclean porttrace keeplogs portverbose destroot_umask \
-        rsync_server rsync_options rsync_dir startupitem_autostart startupitem_type startupitem_install \
-        place_worksymlink macportsuser sudo_user \
-        configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir applications_dir_frozen current_phase frameworks_dir frameworks_dir_frozen \
-        developer_dir universal_archs build_arch os_arch os_endian os_version os_major os_minor \
-        os_platform os_subplatform macosx_version macosx_sdk_version macosx_deployment_target \
-        packagemaker_path default_compilers sandbox_enable sandbox_network delete_la_files cxx_stdlib \
-        pkg_post_unarchive_deletions $user_options"
+        applications_dir \
+        applications_dir_frozen \
+        archivefetch_pubkeys \
+        auto_path \
+        build_arch \
+        buildmakejobs \
+        buildnicevalue \
+        ccache_dir \
+        ccache_size \
+        configureccache \
+        configuredistcc \
+        configurepipe \
+        current_phase \
+        cxx_stdlib \
+        default_compilers \
+        delete_la_files \
+        destroot_umask \
+        developer_dir \
+        frameworks_dir \
+        frameworks_dir_frozen \
+        keeplogs \
+        macosx_deployment_target \
+        macosx_sdk_version \
+        macosx_version \
+        macportsuser \
+        os_arch \
+        os_endian \
+        os_major \
+        os_minor \
+        os_platform \
+        os_subplatform \
+        os_version \
+        packagemaker_path \
+        pkg_post_unarchive_deletions \
+        place_worksymlink \
+        portarchivetype \
+        portautoclean \
+        portbuildpath \
+        portdbpath \
+        portpath \
+        portsharepath \
+        porttrace \
+        porturl \
+        portverbose \
+        prefix \
+        prefix_frozen \
+        registry.format \
+        registry.path \
+        rsync_options \
+        sandbox_enable \
+        sandbox_network \
+        startupitem_autostart \
+        startupitem_install \
+        startupitem_type \
+        sudo_user \
+        universal_archs \
+        user_home \
+        user_path \
+        user_ssh_auth_sock \
+        $user_options"
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
     # they are not exported to the interpreter in system_options array.
-    variable portinterp_deferred_options "xcodeversion xcodebuildcmd developer_dir"
+    variable portinterp_deferred_options "\
+        developer_dir \
+        xcodebuildcmd \
+        xcodeversion \
+        "
 
     variable open_mports {}
 
@@ -641,6 +747,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::autoconf::macports_conf_path \
         macports::macports_user_dir \
         macports::bootstrap_options \
+        macports::bootstrap_multivalue_options \
         macports::user_options \
         macports::portconf \
         macports::portsharepath \
@@ -781,11 +888,29 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         if {[file exists $file]} {
             set portconf $file
             set fd [open $file r]
+
+            # List of multivalue options that did already occur in this
+            # configuration file. This enables the mechanism that allows
+            # specifying a line multiple times to specify a list, but still
+            # allows starting from scratch in the next configuration file
+            array set options_in_file {}
             while {[gets $fd line] >= 0} {
                 if {[regexp $conf_option_re $line match option ignore val] == 1} {
                     if {$option in $bootstrap_options} {
+                        # standard single-value options
                         set macports::$option [string trim $val]
                         global macports::$option
+                    } elseif {$option in $bootstrap_multivalue_options} {
+                        # multi-value options, append if this isn't the first
+                        # occurrence in the file
+                        if {[info exists options_in_file($option)]} {
+                            lappend macports::$option [string trim $val]
+                        } else {
+                            # otherwise, set to [list $val]
+                            set options_in_file($option) yes
+                            set macports::$option [list [string trim $val]]
+                            global macports::$option
+                        }
                     }
                 }
             }
@@ -1017,19 +1142,7 @@ Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarbal
         set macports::hfscompression yes
     }
 
-    # Set rync options
-    if {![info exists rsync_server]} {
-        global macports::rsync_server
-        set macports::rsync_server rsync.macports.org
-    }
-    if {![info exists rsync_dir]} {
-        global macports::rsync_dir
-        set macports::rsync_dir macports/release/tarballs/base.tar
-    } elseif {[string range $rsync_dir end-3 end] ne ".tar" && [string match *.macports.org ${macports::rsync_server}]} {
-        ui_warn "MacPorts is configured to use an unsigned source for selfupdate.\
-Please edit macports.conf and change the rsync_dir setting to\
-match macports.conf.default."
-    }
+    # Set rsync options
     if {![info exists rsync_options]} {
         global macports::rsync_options
         set rsync_options "-rtzvl --delete-after"

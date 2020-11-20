@@ -109,21 +109,26 @@ variants_conf       	@MPCONFIGDIR_EXPANDED@/variants.conf
 # Keep logs after successful installations.
 #keeplogs            	no
 
-# The rsync server for fetching MacPorts base during selfupdate. This
-# setting is NOT used when downloading ports trees; ports trees are
-# configured using the file referenced by sources_conf. See
-# https://trac.macports.org/wiki/Mirrors#MacPortsSource for a list of
-# available servers.
-#rsync_server        	rsync.macports.org
+# URL that MacPorts attempts to download to find out whether a new version was
+# released. Can be specified multiple times; only one of the URLs needs to be
+# available. Downloads will be attempted in the specified order.
+#release_version_url https://raw.githubusercontent.com/macports/macports-base/master/config/RELEASE_URL
+#release_version_url https://trac.macports.org/export/HEAD/macports-base/config/RELEASE_URL
+#release_version_url https://distfiles.macports.org/MacPorts/RELEASE_URL
 
-# Location of MacPorts base sources on rsync_server. If this references
-# a .tar file, a signed .rmd160 file must exist in the same directory
-# and will be used to verify its integrity. See
-# https://trac.macports.org/wiki/Mirrors#MacPortsSource to find the
-# correct rsync_dir for a particular rsync_server.
-#rsync_dir           	macports/release/tarballs/base.tar
+# URL where MacPorts will download a new source code archive, if the
+# release_version_url indicates that the current version needs to be updated.
+# In this URL, {version} will be replaced with the version number determined
+# from release_version_url.
+#
+# Additionally, ".sig" will be appended to this URL, downloaded, and used to
+# verify a signature made with one of the keys in
+# $prefix/share/macports/keys/base/ using the signify(1) utility.
+#
+# The list of distfile mirrors will automatically be appended to this option.
+#release_url https://github.com/macports/macports-base/releases/download/v{version}/MacPorts-{version}.tar.bz2
 
-# Options to pass to rsync when fetching MacPorts base and the ports tree.
+# Options to pass to rsync when fetching the ports tree.
 #rsync_options       	-rtzvl --delete-after
 
 # Type of generated StartupItems.

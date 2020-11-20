@@ -50,11 +50,11 @@ When no new versions are available, *selfupdate* looks like this:
 [subs="verbatim,attributes"]
 ----
 $ sudo port selfupdate
----> Updating MacPorts base sources using rsync
+--->  Checking for newer releases of MacPorts
 MacPorts base version {manversion} installed,
-MacPorts base version {manversion} downloaded.
----> Updating the ports tree
----> MacPorts base is already the latest version
+MacPorts base version {manversion} available.
+--->  MacPorts base is already the latest version
+--->  Updating the ports tree
 ----
 
 If *selfupdate* detects that a newer version of MacPorts is available, it
@@ -64,12 +64,13 @@ different:
 [subs="verbatim,attributes"]
 ----
 $ sudo port selfupdate
----> Updating MacPorts base sources using rsync
-MacPorts base version 2.3.0 installed,
-MacPorts base version {manversion} downloaded.
----> Updating the ports tree
----> MacPorts base is outdated, installing new version {manversion}
-Installing new MacPorts release in /opt/local as root:admin; permissions 755
+--->  Checking for newer releases of MacPorts
+MacPorts base version 2.6.0 installed,
+MacPorts base version {manversion} available.
+--->  MacPorts base is outdated, installing new version {manversion}
+--->  Attempting to fetch MacPorts {manversion} source code from https://github.com/macports/macports-base/releases/download/v{manversion}/MacPorts-{manversion}.tar.bz2
+--->  Extracting MacPorts {manversion}
+--->  Installing new MacPorts release in /opt/local as root:admin; permissions 0755
 ----
 
 TROUBLESHOOTING
@@ -78,7 +79,7 @@ If *selfupdate* fails, it usually does so in one of two places: The network
 connection, or the installation of the update.
 
 Network Problems::
-MacPorts uses the 'rsync' protocol to update its sources to the latest version.
+MacPorts uses the 'rsync' protocol to update its ports tree to the latest version.
 This will fail if you are on a network that blocks TCP connections to the rsync
 port 873. Talk to your network administrators and ask them to allow connections
 to port 873 if this happens to you. Alternatively, you can just download a new
@@ -113,5 +114,5 @@ man:port[1], man:port-sync[1]
 
 AUTHORS
 -------
- (C) 2014 The MacPorts Project
+ (C) 2014-2020 The MacPorts Project
  Clemens Lang <cal@macports.org>
