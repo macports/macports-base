@@ -39,7 +39,7 @@ set org.macports.configure [target_new org.macports.configure portconfigure::con
 target_provides ${org.macports.configure} configure
 target_requires ${org.macports.configure} main fetch checksum extract patch
 target_prerun ${org.macports.configure} portconfigure::configure_start
-target_postrun ${org.macports.configure} portconfigure::configure_end
+target_postrun ${org.macports.configure} portconfigure::configure_finish
 
 namespace eval portconfigure {
 }
@@ -1793,7 +1793,7 @@ proc portconfigure::load_implicit_function_declaration_whitelist {sdk_version} {
     return $whitelist
 }
 
-proc portconfigure::configure_end {args} {
+proc portconfigure::configure_finish {args} {
     global \
         configure.dir \
         configure.checks.implicit_function_declaration
