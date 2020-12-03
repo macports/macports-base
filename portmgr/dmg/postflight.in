@@ -279,7 +279,7 @@ if /usr/bin/su "${USER}" -l -c "/usr/bin/printenv MANPATH" > /dev/null; then
 fi
 
 # Adding a DISPLAY variable only if we're running on Tiger or less and if it doesn't already exist:
-if (($(sw_vers -productVersion | awk -F . '{print $2}') >= 5)) || /usr/bin/su "${USER}" -l -c "/usr/bin/printenv DISPLAY" > /dev/null > /dev/null; then
+if (($(sw_vers -productVersion | awk -F . '{print $1}') >= 11)) || (($(sw_vers -productVersion | awk -F . '{print $2}') >= 5)) || /usr/bin/su "${USER}" -l -c "/usr/bin/printenv DISPLAY" > /dev/null > /dev/null; then
     echo "Your shell already has the right DISPLAY environment variable for use with MacPorts!"
 else
     write_setting DISPLAY ":0"
