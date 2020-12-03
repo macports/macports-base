@@ -182,12 +182,14 @@ function create_run_user {
         ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${PREFIX}/var/macports/home"
         ${DSCL} -q . -create "/Users/${RUNUSR}" UserShell /usr/bin/false
     fi
-    if [[ $(sw_vers -productVersion | /usr/bin/awk -F . '{print $2}') -eq 4 ]]; then
-        GID=$(${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $2}')
-        if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $2}')" != "$GID" ]]; then
-            echo "Fixing PrimaryGroupID for user \"${RUNUSR}\""
-            ${DSCL} -q . -create "/Users/${RUNUSR}" PrimaryGroupID "$GID"
-            ${DSCL} -q . -create "/Users/${RUNUSR}" RealName MacPorts
+    if [[ $(sw_vers -productVersion | /usr/bin/awk -F . '{print $1}') -eq 10 ]]; then
+        if [[ $(sw_vers -productVersion | /usr/bin/awk -F . '{print $2}') -eq 4 ]]; then
+            GID=$(${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $2}')
+            if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $2}')" != "$GID" ]]; then
+                echo "Fixing PrimaryGroupID for user \"${RUNUSR}\""
+                ${DSCL} -q . -create "/Users/${RUNUSR}" PrimaryGroupID "$GID"
+                ${DSCL} -q . -create "/Users/${RUNUSR}" RealName MacPorts
+            fi
         fi
     fi
     if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" = "NFSHomeDirectory: /var/empty" ]]; then
