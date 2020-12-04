@@ -182,14 +182,13 @@ function create_run_user {
         ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${PREFIX}/var/macports/home"
         ${DSCL} -q . -create "/Users/${RUNUSR}" UserShell /usr/bin/false
     fi
-    if [[ $(sw_vers -productVersion | /usr/bin/awk -F . '{print $1}') -eq 10 ]]; then
-        if [[ $(sw_vers -productVersion | /usr/bin/awk -F . '{print $2}') -eq 4 ]]; then
-            GID=$(${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $2}')
-            if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $2}')" != "$GID" ]]; then
-                echo "Fixing PrimaryGroupID for user \"${RUNUSR}\""
-                ${DSCL} -q . -create "/Users/${RUNUSR}" PrimaryGroupID "$GID"
-                ${DSCL} -q . -create "/Users/${RUNUSR}" RealName MacPorts
-            fi
+    # Check for OSX10.4 (Darwin8)
+    if [[ $(uname -r | /usr/bin/awk -F . '{print $1}') -eq 8 ]]; then
+        GID=$(${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $2}')
+        if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $2}')" != "$GID" ]]; then
+            echo "Fixing PrimaryGroupID for user \"${RUNUSR}\""
+            ${DSCL} -q . -create "/Users/${RUNUSR}" PrimaryGroupID "$GID"
+            ${DSCL} -q . -create "/Users/${RUNUSR}" RealName MacPorts
         fi
     fi
     if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" = "NFSHomeDirectory: /var/empty" ]]; then
@@ -280,8 +279,8 @@ if /usr/bin/su "${USER}" -l -c "/usr/bin/printenv MANPATH" > /dev/null; then
     fi
 fi
 
-# Adding a DISPLAY variable only if we're running on Tiger or less and if it doesn't already exist:
-if (($(sw_vers -productVersion | awk -F . '{print $1}') >= 11)) || (($(sw_vers -productVersion | awk -F . '{print $2}') >= 5)) || /usr/bin/su "${USER}" -l -c "/usr/bin/printenv DISPLAY" > /dev/null > /dev/null; then
+# Adding a DISPLAY variable only if we're running on Tiger (Darwin8) or less and if it doesn't already exist:
+if (($(uname -r | awk -F . '{print $1}') >= 9)) || /usr/bin/su "${USER}" -l -c "/usr/bin/printenv DISPLAY" > /dev/null > /dev/null; then
     echo "Your shell already has the right DISPLAY environment variable for use with MacPorts!"
 else
     write_setting DISPLAY ":0"
