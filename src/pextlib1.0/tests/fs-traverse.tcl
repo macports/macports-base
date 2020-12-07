@@ -23,28 +23,28 @@ proc main {pextlibname} {
     set result [catch {
         # Basic fs-traverse test
         set output [list]
-        fs-traverse file $root {
+        fs-traverse file [list $root] {
             lappend output $file
         }
         check_output $output $trees(1)
 
         # Test starting with a symlink
         set output [list]
-        fs-traverse file $root/a/c/a {
+        fs-traverse file [list $root/a/c/a] {
             lappend output $file
         }
         check_output $output $trees(sub1)
 
         # Test starting with a slash-ended symlink
         set output [list]
-        fs-traverse file $root/a/c/a/ {
+        fs-traverse file [list $root/a/c/a/] {
             lappend output [string map {// /} $file]
         }
         check_output $output $trees(sub2)
 
         # Test -depth
         set output [list]
-        fs-traverse -depth file $root {
+        fs-traverse -depth file [list $root] {
             lappend output $file
         }
         check_output $output $trees(2)
@@ -64,12 +64,12 @@ proc main {pextlibname} {
         check_output $output $trees(4)
 
         # Error raised for traversing directory that does not exist
-        if {![catch {fs-traverse file $root/does_not_exist {}}]} {
+        if {![catch {fs-traverse file [list $root/does_not_exist] {}}]} {
             error "fs-traverse did not raise an error for a missing directory"
         }
 
         # Test -ignoreErrors
-        if {[catch {fs-traverse -ignoreErrors file $root/does_not_exist {}}]} {
+        if {[catch {fs-traverse -ignoreErrors file [list $root/does_not_exist] {}}]} {
             error "fs-traverse raised an error despite -ignoreErrors"
         }
 
@@ -86,7 +86,7 @@ proc main {pextlibname} {
 
         # Test skipping parts of the tree
         set output [list]
-        fs-traverse file $root {
+        fs-traverse file [list $root] {
             if {[string match "*/a" $file]} {
                 continue
             }
@@ -96,14 +96,14 @@ proc main {pextlibname} {
 
         # Test -tails option
         set output [list]
-        fs-traverse -tails file $root {
+        fs-traverse -tails file [list $root] {
             lappend output $file
         }
         check_output $output $trees(6) $root
 
         # Test -tails option with trailing slash
         set output [list]
-        fs-traverse -tails file $root/ {
+        fs-traverse -tails file [list $root/] {
             lappend output $file
         }
         check_output $output $trees(6) $root
@@ -118,7 +118,7 @@ proc main {pextlibname} {
 
         # Test cutting the traversal short
         set output [list]
-        fs-traverse file $root {
+        fs-traverse file [list $root] {
             lappend output $file
             if {[file type $file] eq "link"} {
                 break
@@ -129,7 +129,7 @@ proc main {pextlibname} {
         # It should error out
         if {![catch {
             array set aryvar {}
-            fs-traverse aryvar $root {}
+            fs-traverse aryvar [list $root] {}
         }]} {
             error "fs-traverse did not error when setting the variable"
         }
@@ -137,7 +137,7 @@ proc main {pextlibname} {
         # Same test with -ignoreErrors
         if {[catch {
             array set aryvar {}
-            fs-traverse -ignoreErrors aryvar $root {}
+            fs-traverse -ignoreErrors aryvar [list $root] {}
         }]} {
             error "fs-traverse errored out when setting the variable despite -ignoreErrors"
         }
@@ -154,7 +154,7 @@ proc main {pextlibname} {
 
         # Test wacky variable name called -depth
         set output [list]
-        fs-traverse -- -depth $root {
+        fs-traverse -- -depth [list $root] {
             lappend output ${-depth}
         }
         check_output $output $trees(1)
@@ -162,7 +162,7 @@ proc main {pextlibname} {
         # NOTE: This should be the last test performed, as it modifies the file tree
         # Test to make sure deleting files during traversal works as expected
         set output [list]
-        fs-traverse file $root {
+        fs-traverse file [list $root] {
             if {[string match "*/a" $file]} {
                 # use /bin/rm because on 10.3 file delete doesn't work on directories properly
                 exec -ignorestderr /bin/rm -rf $file

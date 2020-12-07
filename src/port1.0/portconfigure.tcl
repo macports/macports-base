@@ -1739,7 +1739,7 @@ proc portconfigure::check_implicit_function_declarations {} {
     # Map from function name to config.log that used it without declaration
     array set undeclared_functions {}
 
-    fs-traverse -tails file ${configure.dir} {
+    fs-traverse -tails file [list ${configure.dir}] {
         if {[file tail $file] eq "config.log" && [file isfile [file join ${configure.dir} $file]]} {
             # We could do the searching ourselves, but using a tool optimized for this purpose is likely much faster
             # than using Tcl.
