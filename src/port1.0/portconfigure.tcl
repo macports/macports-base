@@ -1744,9 +1744,9 @@ proc portconfigure::check_implicit_function_declarations {} {
             # We could do the searching ourselves, but using a tool optimized for this purpose is likely much faster
             # than using Tcl.
             #
-            # Using /usr/bin/grep here, so we don't accidentally pick up a macports-installed grep which might
+            # Using /usr/bin/fgrep here, so we don't accidentally pick up a macports-installed grep which might
             # currently not be runnable due to a missing library.
-            set args [list "/usr/bin/grep" "--" "-Wimplicit-function-declaration"]
+            set args [list "/usr/bin/fgrep" "--" "-Wimplicit-function-declaration"]
             lappend args [file join ${configure.dir} $file]
 
             if {![catch {set result [exec -- {*}$args]}]} {
