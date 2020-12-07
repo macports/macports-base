@@ -2384,6 +2384,8 @@ before working.
 .Ic fs-traverse
 .Op Fl depth
 .Op Fl ignoreErrors
+.Op Fl tails
+.Op Fl -
 .Ar varname
 .Ar target-list
 .Ar body
@@ -2393,6 +2395,8 @@ Traverse the filesystem hierarchy rooted in each element of
 and execute
 .Ar body
 for each found file/directory.
+.Va target-list
+should always be specified as a list even if contains only one item.
 .Va varname
 is set to the path of the file/directory.
 If
@@ -2417,6 +2421,17 @@ as it will be processed after its children.
 Causes
 .Ic fs-traverse
 to ignore any permissions/read errors encountered during processing.
+.It Fl tails
+Returns paths relative to the top-level directory being traversed, as opposed to
+absolute paths. When
+.Fl tails
+is used
+.Va target-list
+can contain only one item.
+.It Fl --
+Ignores any further flags and interprets the next parameter as
+.Va varname
+even if it begins with a dash.
 .El
 .Pp
 If
