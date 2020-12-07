@@ -1771,7 +1771,7 @@ proc portconfigure::check_implicit_function_declarations {} {
     }
 
     if {[array size undeclared_functions] > 0} {
-        ui_warn "Configuration logfiles contain indications of -Wimplicit-function-declaration; check that features were not accidentially disabled:"
+        ui_warn "Configuration logfiles contain indications of -Wimplicit-function-declaration; check that features were not accidentally disabled:"
         foreach {function files} [array get undeclared_functions] {
             ui_msg [format "  %s: found in %s" $function [join $files ", "]]
         }
