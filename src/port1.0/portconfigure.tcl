@@ -1751,7 +1751,7 @@ proc portconfigure::check_implicit_function_declarations {} {
 
             if {![catch {set result [exec -- {*}$args]}]} {
                 foreach line [split $result "\n"] {
-                    if {[regexp -- "implicit declaration of function '(\[^']+)'" $line -> function]} {
+                    if {[regexp -- "(?:implicit declaration of function|implicitly declaring library function) '(\[^']+)'" $line -> function]} {
                         set is_whitelisted no
                         foreach whitelisted ${configure.checks.implicit_function_declaration.whitelist} {
                             if {[string match -nocase $whitelisted $function]} {
@@ -1762,7 +1762,7 @@ proc portconfigure::check_implicit_function_declarations {} {
                         if {!$is_whitelisted} {
                             ::struct::set include undeclared_functions($function) $file
                         } else {
-                            ui_debug [format "Ignoring implicit declaration of function '%s', because it is whitelisted" $function]
+                            ui_debug [format "Ignoring implicit declaration of function '%s' because it is whitelisted" $function]
                         }
                     }
                 }
@@ -1771,7 +1771,7 @@ proc portconfigure::check_implicit_function_declarations {} {
     }
 
     if {[array size undeclared_functions] > 0} {
-        ui_warn "Configuration logfiles contain indications of -Wimplicit-function-declaration, check that features were not accidentially disabled:"
+        ui_warn "Configuration logfiles contain indications of -Wimplicit-function-declaration; check that features were not accidentially disabled:"
         foreach {function files} [array get undeclared_functions] {
             ui_msg [format "  %s: found in %s" $function [join $files ", "]]
         }
