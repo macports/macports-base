@@ -10,7 +10,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define LIBSYSTEM_PATH "/usr/lib/libSystem.B.dylib"
+#define TEST_LIB_PATH "tests/libmachista-test-lib.dylib"
 #define OTOOL_PATH "/usr/bin/otool"
 
 // check helper
@@ -276,7 +276,7 @@ static bool test_destroy_null(void) {
 }
 
 /**
- * Test reading libSystem.B.dylib
+ * Test reading TEST_LIB_PATH
  */
 static void forked_test_libsystem(void) {
 	macho_handle_t *handle = macho_create_handle();
@@ -284,20 +284,20 @@ static void forked_test_libsystem(void) {
 	int ret = 0;
 
 	// parse file
-	if ((ret = macho_parse_file(handle, LIBSYSTEM_PATH, &result)) != MACHO_SUCCESS) {
-		printf("\tError parsing `%s': %s\n", LIBSYSTEM_PATH, macho_strerror(ret));
+	if ((ret = macho_parse_file(handle, TEST_LIB_PATH, &result)) != MACHO_SUCCESS) {
+		printf("\tError parsing `%s': %s\n", TEST_LIB_PATH, macho_strerror(ret));
 	}
 
 	// get otool reference output
-	bool success = compare_to_otool_output(LIBSYSTEM_PATH, result);
+	bool success = compare_to_otool_output(TEST_LIB_PATH, result);
 
 	macho_destroy_handle(handle);
 	
 	exit(!success);
 }
 static bool test_libsystem(void) {
-	puts("Testing parsing libSystem.B.dylib");
-	if (fork_test(forked_test_libsystem, "Error parsing libSystem.B.dylib")) {
+	puts("Testing parsing " TEST_LIB_PATH);
+	if (fork_test(forked_test_libsystem, "Error parsing " TEST_LIB_PATH)) {
 		puts("\tOK");
 		return true;
 	}
