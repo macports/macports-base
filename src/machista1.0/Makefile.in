@@ -43,8 +43,12 @@ ${PKG_INDEX}:: ${SWIG_SHLIB}
 
 clean::
 	rm -f ${SWIG_OBJS} ${PKG_INDEX}
-	rm -f ${TESTS}
-	rm -rf ${TESTS:%=%.dSYM}
+	rm -f ${TESTS} \
+		tests/libmachista-test-dependency${SHLIB_SUFFIX} \
+		tests/libmachista-test-lib${SHLIB_SUFFIX}
+	rm -rf ${TESTS:%=%.dSYM} \
+		tests/libmachista-test-dependency${SHLIB_SUFFIX}.dSYM \
+		tests/libmachista-test-lib${SHLIB_SUFFIX}.dSYM
 
 distclean::
 	rm -f Makefile
@@ -52,8 +56,36 @@ distclean::
 test:: ${TESTS}
 	${TESTS}
 
-tests/libmachista-test: tests/libmachista-test.c libmachista.h libmachista.o hashmap.o
+tests/libmachista-test: tests/libmachista-test.c libmachista.h libmachista.o hashmap.o tests/libmachista-test-lib${SHLIB_SUFFIX}
 	$(CC) $(CFLAGS) -D_POSIX_SOURCE -o $@ -I. $< libmachista.o hashmap.o
+
+# The tests for this library need a universal lib; we used to just use
+# /usr/lib/libSystem.B.dylib, but Apple has removed that with macOS 11, so now
+# we need a different alternative.
+#
+# Build a library that's dual arch, relying on $OS_MAJOR to figure out whatever
+# dual arch means on the current platform. Note the use of -nostdlib, because
+# later versions of macOS actually didn't ship support for i386 stdlibs for
+# a while, so no universal compiling was possible on those machines at all
+# (which didn't matter, since libSystem.B.dylib was still universal on those).
+#
+# The if expression below is basically the equivalent from aclocal.m4 for
+# UNIVERSAL_ARCHS, except that we're always forcing some kind of universiality.
+tests/%${SHLIB_SUFFIX}:
+ifeq (darwin,@OS_PLATFORM@)
+	${SHLIB_LD} \
+		$$(if [ @OS_MAJOR@ -lt 10 ]; then echo "-arch i386 -arch ppc"; elif [ @OS_MAJOR@ -lt 20 ]; then echo "-arch x86_64 -arch i386"; else echo "-arch x86_64 -arch arm64"; fi) \
+		-nostdlib \
+		-install_name $@ \
+		$^ \
+		-o $@
+else
+	touch $@
+endif
+
+tests/libmachista-test-dependency${SHLIB_SUFFIX}: tests/empty.c
+
+tests/libmachista-test-lib${SHLIB_SUFFIX}: tests/empty.c tests/libmachista-test-dependency${SHLIB_SUFFIX}
 
 codesign:: $(SHLIB_NAME)
 	../codesign.sh $?
