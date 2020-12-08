@@ -19,7 +19,7 @@
     },
 
     "files":
-        [{ "includePattern": "MacPorts-OS_MAJOR.tar.bz2", "uploadPattern": "2.6r0/MacPorts-OS_MAJOR.tar.bz2",
+        [{ "includePattern": "MacPorts-OS_MAJOR.tar.bz2", "uploadPattern": "2.6.4/MacPorts-OS_MAJOR.tar.bz2",
             "matrixParams": { "override": 1 }
         }],
     "publish": true
