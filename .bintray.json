@@ -12,9 +12,9 @@
     },
 
     "version": {
-        "name": "2.6r0",
+        "name": "2.6.4",
         "desc": "",
-        "released": "2018-01-01",
+        "released": "2020-11-14",
         "gpgSign": false
     },
 
