@@ -25,12 +25,21 @@ jobs:
         run: |
           sudo mkdir /opt/local.old
           sudo mv /usr/local/* /opt/local.old
-      - name: Build MacPorts Base
+      - name: Configure MacPorts Base
         run: |
           set -eu
           ./configure
+      - name: Build MacPorts Base
+        run: |
+          set -eu
           make
+      - name: Install MacPorts Base
+        run: |
+          set -eu
           sudo make install
+      - name: Test MacPorts Base
+        run: |
+          set -eu
           make test
       - name: Prepare Deployment
         run: |
@@ -44,7 +53,10 @@ jobs:
           sudo install -m644 \
             src/*.tcl \
             /opt/local/libexec/macports/postflight/
-          tar cjf "MacPorts.tar.bz2" /opt/local
+          tar \
+            --exclude '/opt/local/var/macports/sip-workaround/?*' \
+            -cjf "MacPorts.tar.bz2" \
+            /opt/local
       - name: Deploy to bintray
         run: |
           set -eu
