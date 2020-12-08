@@ -39,7 +39,7 @@ jobs:
           sed -i "" "s/-v selfupdate/version/" portmgr/dmg/postflight
           sudo install -d -m755 /opt/local/libexec/macports/postflight
           sudo install -m755 \
-            postmgr/dmg/postflight \
+            portmgr/dmg/postflight \
             /opt/local/libexec/macports/postflight/
           sudo install -m644 \
             src/*.tcl \
