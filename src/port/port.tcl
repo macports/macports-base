@@ -2062,10 +2062,16 @@ proc action_info { action portlist opts } {
             foreach depends_option $all_depends_options {
                 set options($depends_option) yes
             }
-            # insert the expanded options into the ordering info
-            set order_pos [lsearch -exact $global_options(options_${action}_order) ports_info_depends]
-            set global_options(options_${action}_order) [lreplace $global_options(options_${action}_order) \
-                $order_pos $order_pos {*}$all_depends_options]
+            # replace all occurrences of --depends with the expanded options
+            while 1 {
+                set order_pos [lsearch -exact $global_options(options_${action}_order) ports_info_depends]
+                if {$order_pos != -1} {
+                    set global_options(options_${action}_order) [lreplace $global_options(options_${action}_order) \
+                        $order_pos $order_pos {*}$all_depends_options]
+                } else {
+                    break
+                }
+            }
         }
 
         # Set up our field separators

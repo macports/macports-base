@@ -430,17 +430,21 @@ proc portconfigure::choose_supported_archs {archs} {
         # No SDK version (maybe not on macOS)
         set intersection_archs $supported_archs
     }
-    set ret {}
-    # Filter out unsupported archs, but allow demoting to 32-bit if needed.
-    # That means if build_arch is x86_64 it's still possible to build a port
+    set ret [list]
+    # Filter out unsupported archs, but allow demoting to another arch
+    # supported by the SDK if needed, e.g. 64-bit to 32-bit. That means
+    # e.g. if build_arch is x86_64 it's still possible to build a port
     # that sets supported_archs to "i386 ppc" if the SDK allows it.
+    array set arch_demotions [list \
+                                arm64 x86_64 \
+                                x86_64 i386 \
+                                ppc64 ppc \
+                                i386 ppc]
     foreach arch $archs {
         if {$arch in $intersection_archs} {
             set add_arch $arch
-        } elseif {$arch eq "x86_64" && "i386" in $intersection_archs} {
-            set add_arch "i386"
-        } elseif {$arch eq "ppc64" && "ppc" in $intersection_archs} {
-            set add_arch "ppc"
+        } elseif {[info exists arch_demotions($arch)] && $arch_demotions($arch) in $intersection_archs} {
+            set add_arch $arch_demotions($arch)
         } else {
             continue
         }
@@ -464,7 +468,7 @@ proc portconfigure::configure_get_archflags {tool} {
             $tool in {cc cxx objc objcxx}
         } then {
             set flags "-arch ${configure.build_arch}"
-        } elseif {${configure.build_arch} eq "x86_64" || ${configure.build_arch} eq "ppc64"} {
+        } elseif {${configure.build_arch} in [list arm64 ppc64 x86_64]} {
             set flags "-m64"
         } elseif {${configure.compiler} ne "gcc-3.3"} {
             set flags "-m32"
@@ -597,8 +601,8 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         return $sdk
     }
 
-    ui_error "Unable to determine location of a macOS SDK."
-    return -code error "Unable to determine location of a macOS SDK."
+    # We can get here if $sdk_version != $macosx_version on old OS versions
+    return {}
 }
 
 # internal function to determine DEVELOPER_DIR according to Xcode dependency

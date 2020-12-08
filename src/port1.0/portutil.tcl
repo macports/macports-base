@@ -2865,7 +2865,7 @@ proc merge {base} {
 
     # traverse the base-architecture directory
     set basepath "${base}/${base_arch}"
-    fs-traverse file "${basepath}" {
+    fs-traverse file [list $basepath] {
         set fpath [string range "${file}" [string length "${basepath}"] [string length "${file}"]]
         if {${fpath} ne ""} {
             # determine the type (dir/file/link)
@@ -2922,7 +2922,7 @@ proc chown {path user} {
     lchown $path $user
 
     if {[file isdirectory $path]} {
-        fs-traverse myfile ${path} {
+        fs-traverse myfile [list $path] {
             lchown $myfile $user
         }
     }
@@ -3312,12 +3312,17 @@ proc _check_xcode_version {} {
             10.15 {
                 set min 11.0
                 set ok 11.3
-                set rec 11.6
+                set rec 11.7
+            }
+            11.0 {
+                set min 12.2
+                set ok 12.2
+                set rec 12.2
             }
             default {
-                set min 11.0
-                set ok 11.3
-                set rec 11.6
+                set min 12.2
+                set ok 12.2
+                set rec 12.2
             }
         }
         if {$xcodeversion eq "none"} {
@@ -3362,7 +3367,7 @@ proc _check_xcode_version {} {
                 }
             }
 
-            if {${os.major} >= 18 && [file tail [option configure.sdkroot]] ne "MacOSX[option configure.sdk_version].sdk"} {
+            if {${os.major} >= 18 && [option configure.sdk_version] ne "" && [file tail [option configure.sdkroot]] ne "MacOSX[option configure.sdk_version].sdk"} {
                 ui_warn "The macOS [option configure.sdk_version] SDK does not appear to be installed. Ports may not build correctly."
                 ui_warn "You can install it as part of the Xcode Command Line Tools package by running `xcode-select --install'."
             }
