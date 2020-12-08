@@ -36,7 +36,7 @@ jobs:
         run: |
           set -eu
 
-          sed -i "" "s/-v selfupdate/version/" postmgr/dmg/postflight
+          sed -i "" "s/-v selfupdate/version/" portmgr/dmg/postflight
           sudo install -d -m755 /opt/local/libexec/macports/postflight
           sudo install -m755 \
             postmgr/dmg/postflight \
