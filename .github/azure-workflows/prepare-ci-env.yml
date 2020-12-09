@@ -81,5 +81,5 @@ jobs:
             "https://api.bintray.com/content/macports-ci-env/macports-base/MacPorts-${os_major}.tar.bz2"
         env:
           user: "macports-ci-env"
-          pass: ${{ BINTRAY_API_TOKEN }}
+          pass: $(BINTRAY_API_TOKEN)
         displayName: "Deploy to bintray"
