@@ -54,7 +54,7 @@ jobs:
             --exclude '/opt/local/var/macports/sip-workaround/?*' \
             -cjf "MacPorts.tar.bz2" \
             /opt/local
-        condition: and(succeeded(), or(eq(variables.Build.SourceBranch, 'refs/heads/travis-ci'), startsWith(variables.Build.SourceBranch, 'refs/tags/v')))
+        condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/travis-ci'), startsWith(variables['Build.SourceBranch'], 'refs/tags/v')))
         displayName: "Prepare Deployment"
       - bash: |
           set -eu
@@ -82,5 +82,5 @@ jobs:
         env:
           user: "macports-ci-env"
           pass: $(BINTRAY_API_TOKEN)
-        condition: and(succeeded(), or(eq(variables.Build.SourceBranch, 'refs/heads/travis-ci'), startsWith(variables.Build.SourceBranch, 'refs/tags/v')))
+        condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/travis-ci'), startsWith(variables['Build.SourceBranch'], 'refs/tags/v')))
         displayName: "Deploy to bintray"
