@@ -1,0 +1,85 @@
+---
+name: "Build & Test MacPorts Base"
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    name: "Build & Test MacPorts Base"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-10.15, macos-11.0]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 64
+      - name: Cleanup /usr/local
+        run: |
+          sudo mkdir /opt/local.old
+          sudo mv /usr/local/* /opt/local.old
+      - name: Configure MacPorts Base
+        run: |
+          set -eu
+          ./configure
+      - name: Build MacPorts Base
+        run: |
+          set -eu
+          make
+      - name: Install MacPorts Base
+        run: |
+          set -eu
+          sudo make install
+      - name: Test MacPorts Base
+        run: |
+          set -eu
+          make test
+      - name: Prepare Deployment
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/travis-ci' || startsWith(github.ref, 'refs/tags/v'))
+        run: |
+          set -eu
+
+          sed -i "" "s/-v selfupdate/version/" portmgr/dmg/postflight
+          sudo install -d -m755 /opt/local/libexec/macports/postflight
+          sudo install -m755 \
+            portmgr/dmg/postflight \
+            /opt/local/libexec/macports/postflight/
+          sudo install -m644 \
+            src/*.tcl \
+            /opt/local/libexec/macports/postflight/
+          tar \
+            --exclude '/opt/local/var/macports/sip-workaround/?*' \
+            -cjf "MacPorts.tar.bz2" \
+            /opt/local
+      - name: Deploy to bintray
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/travis-ci' || startsWith(github.ref, 'refs/tags/v'))
+        run: |
+          set -eu
+
+          # printf is a built-in, so this won't show up in ps(1)
+          printf \
+            "machine api.bintray.com\n\tlogin %s\n\tpassword %s\n" \
+            "$user" \
+            "$pass" > ~/.netrc
+          chmod 600 ~/.netrc
+
+          os_major=$(uname -r | cut -f 1 -d .)
+          macports_version=$(cat config/macports_version)
+          sha256=$(openssl dgst -sha256 -binary "MacPorts.tar.bz2" \
+              | xxd -ps -c256)
+          curl \
+            --upload-file "MacPorts.tar.bz2" \
+            --netrc \
+            --header "X-Checksum-Sha2: ${sha256}" \
+            --header "X-Bintray-Package: MacPorts" \
+            --header "X-Bintray-Version: ${macports_version}" \
+            --header "X-Bintray-Publish: 1" \
+            --header "X-Bintray-Override: 1" \
+            "https://api.bintray.com/content/macports-ci-env/macports-base/MacPorts-${os_major}.tar.bz2"
+        env:
+          user: "macports-ci-env"
+          pass: ${{ secrets.BINTRAY_API_TOKEN }}
