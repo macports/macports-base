@@ -1,14 +1,14 @@
 trigger:
   branches:
     include:
-      - *
+      - "*"
   tags:
     include:
-      - v*
+      - "v*"
 
 pr:
   branches:
-    - *
+    - "*"
 
 jobs:
   - job: build_and_test_base
