@@ -7,8 +7,7 @@ trigger:
       - "v*"
 
 pr:
-  branches:
-    - "*"
+  - "*"
 
 jobs:
   - job: build_and_test_base
