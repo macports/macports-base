@@ -74,7 +74,7 @@ tests/libmachista-test: tests/libmachista-test.c libmachista.h libmachista.o has
 tests/%${SHLIB_SUFFIX}:
 ifeq (darwin,@OS_PLATFORM@)
 	${SHLIB_LD} \
-		$$(if [ @OS_MAJOR@ -lt 6 ]; then echo "-arch i386 -arch ppc"; elif [ @OS_MAJOR@ -lt 20 ]; then echo "-arch x86_64 -arch i386"; else echo "-arch x86_64 -arch arm64"; fi) \
+		$$(if [ @OS_MAJOR@ -lt 10 ]; then echo "-arch i386 -arch ppc"; elif [ @OS_MAJOR@ -lt 20 ]; then echo "-arch x86_64 -arch i386"; else echo "-arch x86_64 -arch arm64"; fi) \
 		-nostdlib \
 		-install_name $@ \
 		$^ \
