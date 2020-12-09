@@ -10,7 +10,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define TEST_LIB_PATH "/usr/lib/libstdc++.6.dylib"
+#define TEST_LIB_PATH "tests/libmachista-test-lib.dylib"
 #define OTOOL_PATH "/usr/bin/otool"
 
 // check helper
