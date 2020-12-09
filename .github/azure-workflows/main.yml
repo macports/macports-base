@@ -1,21 +1,21 @@
 trigger:
   branches:
     include:
-      - travis-ci
+      - *
   tags:
     include:
       - v*
 
+pr:
+  branches:
+    - *
+
 jobs:
-  - job: prepare_ports_ci
-    displayName: "Prepare macports-ports CI environment"
+  - job: build_and_test_base
+    displayName: "Build & Test MacPorts Base"
     timeoutInMinutes: 0
-    strategy:
-      matrix:
-        mac-10.14:
-          imageName: 'macOS-10.14'
     pool:
-      vmImage: $(imageName)
+      vmImage: 'macOS-10.14'
     steps:
       - checkout: self
         displayName: "Checkout repository"
@@ -55,6 +55,7 @@ jobs:
             --exclude '/opt/local/var/macports/sip-workaround/?*' \
             -cjf "MacPorts.tar.bz2" \
             /opt/local
+        condition: and(succeeded(), or(eq(variables.Build.SourceBranch, 'refs/heads/travis-ci'), startsWith(variables.Build.SourceBranch, 'refs/tags/v')))
         displayName: "Prepare Deployment"
       - bash: |
           set -eu
@@ -82,4 +83,5 @@ jobs:
         env:
           user: "macports-ci-env"
           pass: $(BINTRAY_API_TOKEN)
+        condition: and(succeeded(), or(eq(variables.Build.SourceBranch, 'refs/heads/travis-ci'), startsWith(variables.Build.SourceBranch, 'refs/tags/v')))
         displayName: "Deploy to bintray"
