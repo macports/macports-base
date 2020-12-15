@@ -1160,11 +1160,7 @@ match macports.conf.default."
         }
     }
     if {![info exists macports::macosx_sdk_version]} {
-        if {[vercmp $macos_version 11] >= 0} {
-            set macports::macosx_sdk_version ${macos_version_major}.0
-        } else {
-            set macports::macosx_sdk_version $macos_version_major
-        }
+        set macports::macosx_sdk_version $macos_version_major
     }
 
     if {![info exists macports::revupgrade_autorun]} {

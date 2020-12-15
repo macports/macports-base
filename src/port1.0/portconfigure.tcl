@@ -509,6 +509,14 @@ proc portconfigure::configure_get_ld_archflags {} {
     }
 }
 
+# find a "close enough" match for the given sdk_version in sdk_path
+proc portconfigure::find_close_sdk {sdk_version sdk_path} {
+    # only works right for versions >= 11, which is all we need
+    set sdk_major [lindex [split $sdk_version .] 0]
+    set sdks [glob -nocomplain -directory $sdk_path MacOSX${sdk_major}*.sdk]
+    return [lindex [lsort -command vercmp $sdks] 0]
+}
+
 proc portconfigure::configure_get_sdkroot {sdk_version} {
     global developer_dir macos_version_major xcodeversion os.arch os.major os.platform use_xcode
 
@@ -527,24 +535,38 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
         return {}
     }
 
+    set sdk_major [lindex [split $sdk_version .] 0]
     set cltpath /Library/Developer/CommandLineTools
     # Check CLT first if Xcode shouldn't be used
     if {![tbool use_xcode]} {
         set sdk ${cltpath}/SDKs/MacOSX${sdk_version}.sdk
         if {[file exists $sdk]} {
             return $sdk
+        } elseif {$sdk_major >= 11} {
+            # SDKs have minor versions as of macOS 11
+            set sdk [find_close_sdk $sdk_version ${cltpath}/SDKs]
+            if {$sdk ne ""} {
+                return $sdk
+            }
         }
 
-        if {[info exists ::portconfigure::sdkroot_cache(macosx${sdk_version})]} {
-            if {$::portconfigure::sdkroot_cache(macosx${sdk_version}) ne ""} {
-                return $::portconfigure::sdkroot_cache(macosx${sdk_version})
-            }
-            # negative result cached, do nothing here
-        } elseif {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx${sdk_version} --show-sdk-path 2> /dev/null} sdk]} {
-            set ::portconfigure::sdkroot_cache(macosx${sdk_version}) $sdk
-            return $sdk
+        if {$sdk_major >= 11 && $sdk_major == $macos_version_major} {
+            set try_versions [list ${sdk_major}.0 [option macos_version]]
         } else {
-            set ::portconfigure::sdkroot_cache(macosx${sdk_version}) ""
+            set try_versions [list $sdk_version]
+        }
+        foreach try_version $try_versions {
+            if {[info exists ::portconfigure::sdkroot_cache(macosx${try_version})]} {
+                if {$::portconfigure::sdkroot_cache(macosx${try_version}) ne ""} {
+                    return $::portconfigure::sdkroot_cache(macosx${try_version})
+                }
+                # negative result cached, do nothing here
+            } elseif {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx${try_version} --show-sdk-path 2> /dev/null} sdk]} {
+                set ::portconfigure::sdkroot_cache(macosx${try_version}) $sdk
+                return $sdk
+            } else {
+                set ::portconfigure::sdkroot_cache(macosx${try_version}) ""
+            }
         }
 
         # Fallback on "macosx"
@@ -580,23 +602,42 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
 
     if {[file exists $sdk]} {
         return $sdk
+    } elseif {$sdk_major >= 11} {
+        # SDKs have minor versions as of macOS 11
+        set sdk [find_close_sdk $sdk_version ${sdks_dir}]
+        if {$sdk ne ""} {
+            return $sdk
+        }
     }
 
-    if {[info exists ::portconfigure::sdkroot_cache(macosx${sdk_version},noclt)]} {
-        if {$::portconfigure::sdkroot_cache(macosx${sdk_version},noclt) ne ""} {
-            return $::portconfigure::sdkroot_cache(macosx${sdk_version},noclt)
-        }
-        # negative result cached, do nothing here
-    } elseif {![catch {exec xcrun --sdk macosx${sdk_version} --show-sdk-path 2> /dev/null} sdk]} {
-        set ::portconfigure::sdkroot_cache(macosx${sdk_version},noclt) $sdk
-        return $sdk
+    if {$sdk_major >= 11 && $sdk_major == $macos_version_major} {
+        set try_versions [list ${sdk_major}.0 [option macos_version]]
     } else {
-        set ::portconfigure::sdkroot_cache(macosx${sdk_version},noclt) ""
+        set try_versions [list $sdk_version]
+    }
+    foreach try_version $try_versions {
+        if {[info exists ::portconfigure::sdkroot_cache(macosx${try_version},noclt)]} {
+            if {$::portconfigure::sdkroot_cache(macosx${try_version},noclt) ne ""} {
+                return $::portconfigure::sdkroot_cache(macosx${try_version},noclt)
+            }
+            # negative result cached, do nothing here
+        } elseif {![catch {exec xcrun --sdk macosx${try_version} --show-sdk-path 2> /dev/null} sdk]} {
+            set ::portconfigure::sdkroot_cache(macosx${try_version},noclt) $sdk
+            return $sdk
+        } else {
+            set ::portconfigure::sdkroot_cache(macosx${try_version},noclt) ""
+        }
     }
 
     set sdk ${cltpath}/SDKs/MacOSX${sdk_version}.sdk
     if {[file exists $sdk]} {
         return $sdk
+    } elseif {$sdk_major >= 11} {
+        # SDKs have minor versions as of macOS 11
+        set sdk [find_close_sdk $sdk_version ${cltpath}/SDKs]
+        if {$sdk ne ""} {
+            return $sdk
+        }
     }
 
     set sdk ${sdks_dir}/MacOSX.sdk
