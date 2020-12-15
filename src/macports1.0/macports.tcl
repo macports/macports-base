@@ -68,7 +68,7 @@ namespace eval macports {
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir applications_dir_frozen current_phase frameworks_dir frameworks_dir_frozen \
         developer_dir universal_archs build_arch os_arch os_endian os_version os_major os_minor \
-        os_platform os_subplatform macos_version macos_version_major macosx_version macosx_sdk_version \
+        os_platform os_subplatform macos_version macos_version_major macos_version_minor macosx_version macosx_sdk_version \
         macosx_deployment_target packagemaker_path default_compilers sandbox_enable sandbox_network \
         delete_la_files cxx_stdlib pkg_post_unarchive_deletions $user_options"
 
@@ -674,6 +674,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::os_subplatform \
         macports::macos_version \
         macports::macos_version_major \
+        macports::macos_version_minor \
         macports::macosx_version \
         macports::macosx_sdk_version \
         macports::macosx_deployment_target \
@@ -732,8 +733,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {[vercmp $macos_version 11] >= 0} {
         # Big Sur is apparently any 11.x version
         set macos_version_major [lindex [split $macos_version .] 0]
+        set macos_version_minor [lindex [split $macos_version .] 1]
     } else {
         set macos_version_major [join [lrange [split $macos_version .] 0 1] .]
+        set macos_version_minor [lindex [split $macos_version .] 2]
     }
     # backward compatibility synonym
     set macosx_version $macos_version_major
@@ -1154,14 +1157,14 @@ match macports.conf.default."
 
     if {![info exists macports::macosx_deployment_target]} {
         if {[vercmp $macos_version 11] >= 0} {
-            set macports::macosx_deployment_target ${macos_version_major}.0
+            set macports::macosx_deployment_target ${macos_version_major}.${macos_version_minor}
         } else {
             set macports::macosx_deployment_target $macos_version_major
         }
     }
     if {![info exists macports::macosx_sdk_version]} {
         if {[vercmp $macos_version 11] >= 0} {
-            set macports::macosx_sdk_version ${macos_version_major}.0
+            set macports::macosx_sdk_version ${macos_version_major}.${macos_version_minor}
         } else {
             set macports::macosx_sdk_version $macos_version_major
         }
