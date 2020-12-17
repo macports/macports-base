@@ -410,7 +410,7 @@ proc portconfigure::choose_supported_archs {archs} {
 
     if {${configure.sdk_version} ne ""} {
         # Figure out which archs are supported by the SDK
-        if {[vercmp ${configure.sdk_version} 11.0] >= 0} {
+        if {[vercmp ${configure.sdk_version} 11] >= 0} {
             set sdk_archs [list arm64 x86_64]
         } elseif {[vercmp ${configure.sdk_version} 10.14] >= 0} {
             set sdk_archs x86_64
