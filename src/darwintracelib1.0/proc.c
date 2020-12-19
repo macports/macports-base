@@ -61,14 +61,6 @@ static char *__env_dyld_insert_libraries;
 static char *__env_full_dyld_insert_libraries;
 
 /**
- * Copy of the DYLD_FORCE_FLAT_NAMESPACE environment variable to restore it in
- * execve(2). DYLD_FORCE_FLAT_NAMESPACE=1 is needed for the preload-based
- * sandbox to work.
- */
-static char *__env_dyld_force_flat_namespace;
-static char *__env_full_dyld_force_flat_namespace;
-
-/**
  * Copy of the DARWINTRACE_LOG environment variable to restore it in execve(2).
  * Contains the path to the unix socket used for communication with the
  * MacPorts-side of the sandbox. Since this variable is also used from
@@ -102,7 +94,6 @@ void __darwintrace_store_env() {
 	} while (0)
 
 	COPYENV(DYLD_INSERT_LIBRARIES, __env_full_dyld_insert_libraries, __env_dyld_insert_libraries);
-	COPYENV(DYLD_FORCE_FLAT_NAMESPACE, __env_full_dyld_force_flat_namespace, __env_dyld_force_flat_namespace);
 	COPYENV(DARWINTRACE_LOG, __env_full_darwintrace_log, __env_darwintrace_log);
 #undef COPYENV
 
@@ -136,7 +127,6 @@ static inline bool __darwintrace_strbeginswith(const char *str, const char *pref
 static inline char **restore_env(char *const envp[]) {
 	// we can re-use pre-allocated strings from store_env
 	char *dyld_insert_libraries_ptr     = __env_full_dyld_insert_libraries;
-	char *dyld_force_flat_namespace_ptr = __env_full_dyld_force_flat_namespace;
 	char *darwintrace_log_ptr           = __env_full_darwintrace_log;
 
 	char *const *enviter = envp;
@@ -149,8 +139,8 @@ static inline char **restore_env(char *const envp[]) {
 		enviter++;
 	}
 
-	// 4 is sufficient for the three variables we copy and the terminator
-	copy = malloc(sizeof(char *) * (envlen + 4));
+	// 3 is sufficient for the two variables we copy and the terminator
+	copy = malloc(sizeof(char *) * (envlen + 3));
 
 	enviter  = envp;
 	copyiter = copy;
@@ -160,9 +150,6 @@ static inline char **restore_env(char *const envp[]) {
 		if (__darwintrace_strbeginswith(val, "DYLD_INSERT_LIBRARIES=")) {
 			val = dyld_insert_libraries_ptr;
 			dyld_insert_libraries_ptr = NULL;
-		} else if (__darwintrace_strbeginswith(val, "DYLD_FORCE_FLAT_NAMESPACE=")) {
-			val = dyld_force_flat_namespace_ptr;
-			dyld_force_flat_namespace_ptr = NULL;
 		} else if (__darwintrace_strbeginswith(val, "DARWINTRACE_LOG=")) {
 			val = darwintrace_log_ptr;
 			darwintrace_log_ptr = NULL;
@@ -177,9 +164,6 @@ static inline char **restore_env(char *const envp[]) {
 
 	if (dyld_insert_libraries_ptr) {
 		*copyiter++ = dyld_insert_libraries_ptr;
-	}
-	if (dyld_force_flat_namespace_ptr) {
-		*copyiter++ = dyld_force_flat_namespace_ptr;
 	}
 	if (darwintrace_log_ptr) {
 		*copyiter++ = darwintrace_log_ptr;
