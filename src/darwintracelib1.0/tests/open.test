@@ -1,0 +1,52 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+source "testlib.tcl"
+
+test open_succeeds_on_dirs "Test that open(2) succeeds on directories even outside the sandbox" \
+    -setup [setup [list deny /]] \
+    -cleanup [expect {}] \
+    -body {exec -ignorestderr -- ./open -read /usr} \
+    -result ""
+
+test open_fails_outside_sandbox "Test that open(O_RDONLY) fails outside of the sandbox" \
+    -setup [setup [list deny /]] \
+    -cleanup [expect [list "$cwd/open"]] \
+    -body {exec -ignorestderr -- ./open -read "$cwd/open" 2>@1} \
+    -result "open($cwd/open): No such file or directory"
+
+test open_write_fails_outside_sandbox "Test that open(O_RDWR|O_CREAT) fails outside of the sandbox" \
+    -setup [setup [list deny /]] \
+    -cleanup [expect [list "$cwd/open"]] \
+    -body {exec -ignorestderr -- ./open -create "$cwd/open" 2>@1} \
+    -result "open($cwd/open): Permission denied"
+
+test open_succeeds_inside_sandbox "Test that open(O_RDONLY) succeeds inside of the sandbox" \
+    -setup [setup [list allow "$cwd"]] \
+    -cleanup [expect {}] \
+    -body {exec -ignorestderr -- ./open -read "$cwd/open" 2>@1} \
+    -result ""
+
+test open_write_succeeds_inside_sandbox "Test that open(O_RDWR|O_CREAT) succeeds inside of the sandbox" \
+    -setup [setup [list allow "$cwd"]] \
+    -cleanup {
+        file delete -force "$cwd/opentest"
+        [expect {}]
+    } \
+    -body {exec -ignorestderr -- ./open -create "$cwd/opentest" 2>@1} \
+    -result ""
+
+test open_succeeds_when_uninitialized "Test that open(2) succeeds outside of the sandbox when darwintrace is uninitialized" \
+    -setup [setup [list deny /]] \
+    -cleanup [expect {}] \
+    -body {
+        set ::env(DARWINTRACE_UNINITIALIZE) 1
+        set output [exec -ignorestderr -- ./open -read ./open 2>@1]
+        unset ::env(DARWINTRACE_UNINITIALIZE)
+        return $output
+    } \
+    -result ""
+
+cleanupTests

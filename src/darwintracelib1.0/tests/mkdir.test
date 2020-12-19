@@ -1,0 +1,43 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+source "testlib.tcl"
+
+test mkdir_allows_existing_dirs "Test that mkdir(2) succeeds outside sandbox, if the directory exists" \
+    -setup [setup [list deny /]] \
+    -cleanup [expect [list "/usr" "/usr/bin" "/bin"]] \
+    -body {exec -ignorestderr -- ./mkdir /usr /usr/bin /bin 2>@1} \
+    -result ""
+
+test mkdir_denies_outside_sandbox "Test that mkdir(2) fails if attempted outside of the sandbox" \
+    -setup [setup [list deny /]] \
+    -cleanup {
+        file delete -force "$cwd/testdirectory"
+        [expect [list "$cwd/testdirectory"]]
+    } \
+    -body {exec -ignorestderr -- ./mkdir "$cwd/testdirectory" 2>@1} \
+    -result "mkdir($cwd/testdirectory): Permission denied"
+
+test mkdir_allowed_inside_sandbox "Test that mkdir(2) succeeds inside of the sandbox" \
+    -setup [setup [list allow "$cwd"]] \
+    -cleanup {
+        file delete -force "$cwd/testdirectory2"
+        [expect]
+    } \
+    -body {exec -ignorestderr -- ./mkdir "$cwd/testdirectory2" 2>@1} \
+    -result ""
+
+test mkdir_allowed_when_uninitialized "Test that mkdir(2) succeeds outside of the sandbox when darwintrace is uninitialized" \
+    -setup [setup [list deny /]] \
+    -cleanup [expect {}] \
+    -body {
+        set ::env(DARWINTRACE_UNINITIALIZE) 1
+        set output [exec -ignorestderr -- ./mkdir /usr 2>@1]
+        unset ::env(DARWINTRACE_UNINITIALIZE)
+        return $output
+    } \
+    -result "mkdir(/usr): File exists"
+
+cleanupTests

@@ -410,6 +410,7 @@ AC_CONFIG_FILES([
 	src/cregistry/Makefile
 	src/compat/Makefile
 	src/darwintracelib1.0/Makefile
+	src/darwintracelib1.0/tests/Makefile
 	src/machista1.0/Makefile
 	src/macports1.0/Makefile
 	src/macports1.0/macports_autoconf.tcl

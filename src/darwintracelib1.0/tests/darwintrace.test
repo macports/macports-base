@@ -1,0 +1,171 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+source "testlib.tcl"
+
+test darwintrace_hides_files "Test that a file on the blacklist isn't stat(2)able" \
+    -setup [setup [list deny $cwd]] \
+    -cleanup [expect [list "$cwd/stat"]] \
+    -body {exec -ignorestderr -- ./stat stat 2>@1} \
+    -result "stat: No such file or directory"
+
+test darwintrace_hides_symlinks "Test that a symlink on the blacklist isn't stat(2)able, even if its target is" \
+    -setup {
+        file link -symbolic link .
+        [setup [list deny "$cwd/link" allow $cwd]]
+    } \
+    -cleanup {
+        file delete -force link
+        [expect [list "$cwd/link"]]
+    } \
+    -body {exec -ignorestderr -- ./lstat link 2>@1} \
+    -result "lstat: No such file or directory"
+
+test darwintrace_long_filenames "Test that a long filename does not trigger the stack canary" \
+    -setup [setup [list allow $cwd]] \
+    -cleanup [expect] \
+    -body {exec -ignorestderr -- ./stat [string repeat "ab/de/ghi/" 102] 2>@1} \
+    -result "stat: No such file or directory"
+
+test darwintrace_works_across_fork "Test that darwintrace works across fork(2)" \
+    -setup [setup [list deny "$cwd/access.c" allow $cwd]] \
+    -cleanup [expect [list "$cwd/access.c"]] \
+    -body {exec -ignorestderr -- ./fork ./access.c 2>@1} \
+    -result [join [list "access(./access.c): No such file or directory" "access(./access.c): No such file or directory"] "\n"]
+
+test darwintrace_allow_root "Test that access to / is always possible" \
+    -setup [setup {}] \
+    -cleanup [expect] \
+    -body {exec -ignorestderr -- ./stat / 2>@1} \
+    -result ""
+
+test darwintrace_empty_path "Test that access to and empty path isn't hindered by darwintrace" \
+    -setup [setup {}] \
+    -cleanup [expect] \
+    -body {exec -ignorestderr -- ./stat "" 2>@1} \
+    -result "stat: No such file or directory"
+
+test darwintrace_up_beyond_root_absolute "Test that walking up beyond the root with absolute paths works" \
+    -setup [setup [list deny "/"]] \
+    -cleanup [expect [list "/bin/sh"]] \
+    -body {exec -ignorestderr -- ./stat "/bin/..//..//../bin/sh" 2>@1} \
+    -result "stat: No such file or directory"
+
+test darwintrace_up_beyond_root_relative "Test that walking up beyond the root with relative paths works" \
+    -setup [setup [list deny "/"]] \
+    -cleanup [expect [list "/bin/sh"]] \
+    -body {
+        set levels [llength [regexp -all -inline -- "/" $cwd]]
+        set path [file join [string repeat "../" [expr {$levels + 2}]] bin sh]
+        exec -ignorestderr -- ./stat "$path" 2>@1
+    } \
+    -result "stat: No such file or directory"
+
+test darwintrace_ignores_rsrc_forks "Test that resource forks are ignored" \
+    -setup [setup [list deny "/"]] \
+    -cleanup [expect [list "/bin/sh"]] \
+    -body {exec -ignorestderr -- ./stat "/bin/sh/..namedfork/rsrc" 2>@1} \
+    -result "stat: No such file or directory"
+
+test darwintrace_on_volfs "Test that /.vol/device/inode works" \
+    -setup [setup [list deny "/"]] \
+    -cleanup [expect [list "/bin/sh"]] \
+    -body {
+        file stat "/bin/sh" st
+        exec -ignorestderr -- ./stat "/.vol/${st(dev)}/${st(ino)}" 2>@1
+    } \
+    -result "stat: No such file or directory"
+
+test darwintrace_on_looping_symlinks "Test that self-symlinks are handled" \
+    -setup {
+        set levels [llength [regexp -all -inline -- "/" $cwd]]
+        set path [file join [string repeat "../" [expr {$levels + 2}]] $cwd symlink]
+        exec -ignorestderr -- ln -s $path symlink
+        [setup [list allow "/"]]
+    } \
+    -cleanup {
+        [expect]
+        file delete -force symlink
+    } \
+    -body {exec -ignorestderr -- ./stat "$cwd/symlink" 2>@1} \
+    -result "stat: Too many levels of symbolic links"
+
+test darwintrace_checks_symlink_path "Test that accessing a symlink fails, even if the target is in the sandbox" \
+    -setup {
+        [setup [list deny "$cwd/symlink" allow $cwd]]
+        file link -symbolic symlink stat
+    } \
+    -cleanup {
+        [expect [list "$cwd/symlink"]]
+        file delete -force symlink
+    } \
+    -body {exec -ignorestderr -- ./stat "$cwd/symlink" 2>@1} \
+    -result "stat: No such file or directory"
+
+test darwintrace_access_through_symlink_checks_target_permission "Test that file through a symlink checks whether the target is in the sandbox" \
+    -setup {
+        [setup [list deny "$cwd/stat" allow $cwd]]
+        # while we're here, let's also test absolute symlinks
+        file link -symbolic symlink "$cwd/stat"
+    } \
+    -cleanup {
+        [expect [list "$cwd/stat"]]
+        file delete -force symlink
+    } \
+    -body {exec -ignorestderr -- ./stat "$cwd/symlink" 2>@1} \
+    -result "stat: No such file or directory"
+
+test darwintrace_relative_symlink_at_top_level "Test that a relative symlink at the top level works as expected" \
+    -setup [setup [list allow /]] \
+    -cleanup [expect] \
+    -body {exec -ignorestderr -- ./stat "/tmp" 2>@1} \
+    -result ""
+
+test darwintrace_relative_symlinks "Test that resolution of relative symlinks works as expected" \
+    -setup {
+        set levels [llength [regexp -all -inline -- "/" $cwd]]
+        set path "[string repeat "../" [expr {$levels + 2}]]$cwd//./stat"
+
+        [setup [list allow "$cwd/symlink"]]
+
+        exec -ignorestderr -- ln -s $path symlink
+    } \
+    -cleanup {
+        file delete -force symlink
+        [expect [list "$cwd/stat"]]
+    } \
+    -body {exec -ignorestderr -- ./stat "$cwd/symlink" 2>@1} \
+    -result "stat: No such file or directory"
+
+test darwintrace_long_symlinks "Test that resolution of long symlinks does not trigger the stack canary" \
+    -setup {
+        [setup [list allow /]]
+        exec -- ln -s [string repeat "ab/de/ghi/" 102] longlink
+    } \
+    -cleanup {
+        [expect]
+        file delete -force longlink
+    } \
+    -body {exec -ignorestderr -- ./stat "$cwd/longlink" 2>@1} \
+    -result "stat: No such file or directory"
+
+test darwintrace_without_log_env_fails "Test that injecting the lib without setting DARWINTRACE_LOG fails" \
+    -body {
+        set ::env(DYLD_INSERT_LIBRARIES) $darwintrace_lib
+        exec -ignorestderr -- ./stat . 2>@1
+    } \
+    -returnCodes [list 1] \
+    -result "darwintrace: trace library loaded, but DARWINTRACE_LOG not set\nchild killed: SIGABRT"
+
+test darwintrace_with_incorrect_log_env_fails "Test that DARWINTRACE_LOG pointing to a non-socket fails" \
+    -body {
+        set ::env(DYLD_INSERT_LIBRARIES) $darwintrace_lib
+        set ::env(DARWINTRACE_LOG) "GARBAGE.RANDOM.DOES.NOT.EXIST"
+        exec -ignorestderr -- ./stat . 2>@1
+    } \
+    -returnCodes [list 1] \
+    -result "darwintrace: connect: No such file or directory\nchild killed: SIGABRT"
+
+cleanupTests
