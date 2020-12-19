@@ -3,6 +3,8 @@ VPATH  = @srcdir@
 
 include ../../Mk/macports.autoconf.mk
 
+SUBDIR = tests
+
 # This Makefile will only be run on Darwin systems; we can safely use
 # Apple-specifics here
 SRCS = \
@@ -77,6 +79,7 @@ install:: all
 	$(INSTALL)    -o "$(DSTUSR)" -g "$(DSTGRP)" -m 444 "$(SHLIB_NAME)" "$(DESTDIR)$(INSTALLDIR)"
 
 test::
+	$(MAKE) -C tests/ test
 
 ifeq (,$(findstring clean,$(MAKECMDGOALS)))
 # Include dependency information

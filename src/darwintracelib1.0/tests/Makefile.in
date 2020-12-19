@@ -1,0 +1,56 @@
+srcdir = @srcdir@
+VPATH  = @srcdir@
+
+include ../../../Mk/macports.autoconf.mk
+
+SRCS = \
+	access.c \
+	close.c \
+	dup2.c \
+	execve.c \
+	fork.c \
+	lstat.c \
+	mkdir.c \
+	open.c \
+	posix_spawn.c \
+	readdir.c \
+	readlink.c \
+	rename.c \
+	rmdir.c \
+	stat.c \
+	unlink.c
+
+
+OBJS = $(SRCS:%.c=%.o)
+BINS = $(SRCS:%.c=%)
+TESTS = $(sort $(wildcard *.test))
+
+# Create a copy of env that doesn't have Apple's restricted bits set in order
+# to preserve DYLD* variables.
+env:
+	dd if=/usr/bin/env of=env
+	chmod +x env
+
+%: %.o ../darwintrace.dylib
+	$(CC) -o $@ $^
+
+# Generate dependency information
+%.d : %.c
+	$(CC) -MM -MP $(CPPFLAGS) $< > $@
+
+.PHONY: all clean distclean install test codesign
+all::
+
+clean::
+	rm -f $(BINS) $(OBJS) $(SRCS:%.c=%.d)
+
+distclean:: clean
+	rm -f Makefile
+
+test:: env $(BINS)
+	$(foreach test,$(TESTS),DARWINTRACE_SIP_WORKAROUND_PATH=@DARWINTRACE_SIP_WORKAROUND_PATH@ LC_ALL=C $(TCLSH) "$(srcdir)/$(test)";)
+
+ifeq (,$(findstring clean,$(MAKECMDGOALS)))
+# Include dependency information
+-include $(SRCS:%.c=%.d)
+endif

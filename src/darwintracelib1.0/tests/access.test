@@ -1,0 +1,37 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+source "testlib.tcl"
+
+test access_allows_denied_dirs "Test that access(2) allows accesses to all directories" \
+    -setup [setup [list deny /]] \
+    -cleanup [expect {}] \
+    -body {exec -ignorestderr -- ./access /usr /usr/bin /bin 2>@1} \
+    -result ""
+
+test access_denies_outside_sandbox "Test that access(2) hides files outside of the sandbox" \
+    -setup [setup {}] \
+    -cleanup [expect [list "$cwd/access"]] \
+    -body {exec -ignorestderr -- ./access ./access 2>@1} \
+    -result "access(./access): No such file or directory"
+
+test access_allowed_inside_sandbox "Test that access(2) does not hide files inside the sandbox" \
+    -setup [setup [list allow "$cwd/access"]] \
+    -cleanup [expect] \
+    -body {exec -ignorestderr -- ./access ./access 2>@1} \
+    -result ""
+
+test access_allowed_when_uninitialized "Test that access(2) does not hide files when darwintrace is uninitialized" \
+    -setup [setup [list deny /]] \
+    -cleanup [expect {}] \
+    -body {
+        set ::env(DARWINTRACE_UNINITIALIZE) 1
+        set output [exec -ignorestderr -- ./access ./access 2>@1]
+        unset ::env(DARWINTRACE_UNINITIALIZE)
+        return $output
+    } \
+    -result ""
+
+cleanupTests
