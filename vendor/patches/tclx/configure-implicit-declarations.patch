@@ -44,3 +44,41 @@ index 18d71343f..6b6ab41e4 100644
  		extern double strtod();
  		int main() {
  		    char *infString="Inf", *nanString="NaN", *spaceString=" ";
+--- a/vendor/tclx8.4/configure.orig	2020-12-22 21:08:08.000000000 +1100
++++ b/vendor/tclx8.4/configure	2020-12-22 21:14:04.000000000 +1100
+@@ -10559,7 +10559,7 @@
+ {
+ extern long timezone;
+ 	    timezone += 1;
+-	    exit (0);
++	    return (0);
+   ;
+   return 0;
+ }
+@@ -10624,7 +10624,7 @@
+ {
+ extern time_t timezone;
+ 		timezone += 1;
+-		exit (0);
++		return (0);
+   ;
+   return 0;
+ }
+@@ -10772,7 +10772,7 @@
+     struct tms cpu;
+     times(&cpu);
+     sleep(2);
+-    exit ((times(&cpu) > 0) ? 0 : 1);
++    return ((times(&cpu) > 0) ? 0 : 1);
+ }
+ 
+ _ACEOF
+@@ -13012,7 +13012,7 @@
+ main ()
+ {
+ 
+-    	    if (catclose ((nl_catd) 0) == 0) exit (0);
++    	    if (catclose ((nl_catd) 0) == 0) return (0);
+   ;
+   return 0;
+ }
