@@ -88,3 +88,25 @@ index a7faae550..f482460ce 100644
  		[tcl_cv_]$1[_unbroken]=broken,[tcl_cv_]$1[_unbroken]=unknown))
  	if test ["$tcl_cv_]$1[_unbroken"] = "ok"; then
  	    tcl_ok=1
+diff --git a/vendor/tcl8.5.19/unix/configure b/vendor/tcl8.5.19/unix/configure
+index fcb64f18..96a26063 100755
+--- a/vendor/tcl8.5.19/unix/configure
++++ b/vendor/tcl8.5.19/unix/configure
+@@ -13665,7 +13665,7 @@ main ()
+ {
+ extern long timezone;
+ 	    timezone += 1;
+-	    exit (0);
++	    return (0);
+   ;
+   return 0;
+ }
+@@ -13731,7 +13731,7 @@ main ()
+ {
+ extern time_t timezone;
+ 		timezone += 1;
+-		exit (0);
++		return (0);
+   ;
+   return 0;
+ }
