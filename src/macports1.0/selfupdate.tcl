@@ -186,16 +186,40 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
                 append configure_args " --with-unsupported-prefix"
             }
 
-            # Choose a sane compiler
+            # Choose a sane compiler and SDK
             set cc_arg {}
+            set sdk_arg {}
             if {$::macports::os_platform eq "darwin"} {
                 set cc_arg "CC=/usr/bin/cc "
+                if {$::macports::os_major >= 18 || ![file exists /usr/include/sys/cdefs.h]} {
+                    set cltpath /Library/Developer/CommandLineTools
+                    set sdk_version $::macports::macos_version_major
+                    set check_dirs [list ${cltpath}/SDKs \
+                        ${::macports::developer_dir}/Platforms/MacOSX.platform/Developer/SDKs \
+                        ${::macports::developer_dir}/SDKs]
+                    foreach check_dir $check_dirs {
+                        set sdk ${check_dir}/MacOSX${sdk_version}.sdk
+                        if {[file exists $sdk]} {
+                            set sdk_arg "SDKROOT=${sdk} "
+                            break
+                        } elseif {$::macports::os_major >= 20} {
+                            set matches [glob -nocomplain -directory ${check_dir} MacOSX${sdk_version}*.sdk]
+                            if {[llength $matches] > 1} {
+                                set matches [lsort -decreasing -command vercmp $matches]
+                            }
+                            if {[llength $matches] > 0} {
+                                set sdk_arg "SDKROOT=[lindex $matches 0] "
+                                break
+                            }
+                        }
+                    }
+                }
             }
 
             # do the actual configure, build and installation of new base
             ui_msg "Installing new MacPorts release in $prefix as ${owner}:${group}; permissions ${perms}\n"
             try {
-                system -W $mp_source_path "${cc_arg}./configure $configure_args && make SELFUPDATING=1 && make install SELFUPDATING=1"
+                system -W $mp_source_path "${cc_arg}${sdk_arg}./configure $configure_args && ${sdk_arg}make SELFUPDATING=1 && make install SELFUPDATING=1"
             } catch {{*} eCode eMessage} {
                 return -code error "Error installing new MacPorts base: $eMessage"
             }
