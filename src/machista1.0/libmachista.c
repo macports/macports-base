@@ -467,8 +467,12 @@ int macho_parse_file(macho_handle_t *handle, const char *filepath, const macho_t
     /* Open input file */
     if ((fd = open(filepath, O_RDONLY)) < 0) {
 #ifdef HAVE__DYLD_SHARED_CACHE_CONTAINS_PATH
-        if (_dyld_shared_cache_contains_path(filepath)) {
-            return MACHO_ECACHE;
+    /* All systems that have this function in the SDK should also have
+       __builtin_available, so not bothering to check for it. */
+        if (__builtin_available(macos 11.0, ios 14.0, watchos 7.0, tvos 14.0, *)) {
+            if (_dyld_shared_cache_contains_path(filepath)) {
+                return MACHO_ECACHE;
+            }
         }
 #endif /* HAVE__DYLD_SHARED_CACHE_CONTAINS_PATH */
         return MACHO_EFILE;
