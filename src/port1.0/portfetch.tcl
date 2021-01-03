@@ -188,7 +188,8 @@ proc portfetch::set_fetch_type {option action args} {
             }
             svn {
                 # Sierra is the first macOS version whose svn supports modern TLS cipher suites.
-                if {${os.major} >= 16 || ${os.platform} ne "darwin"} {
+                # Catalina's svn exists but is non-functional and hands off to another svn
+                if {(${os.major} >= 16 && ${os.major} <= 18) || ${os.platform} ne "darwin"} {
                     depends_fetch-append bin:svn:subversion
                 } else {
                     depends_fetch-append port:subversion
