@@ -716,6 +716,20 @@ proc variant_remove_ditem {name} {
     }
 }
 
+# variant_delete name
+# completely delete the named variant from the port
+proc variant_delete {name} {
+    variant_remove_ditem $name
+    if {[info exists ::PortInfo(variants)]} {
+        set ::PortInfo(variants) [ldelete $::PortInfo(variants) $name]
+    }
+    if {[info exists ::PortInfo(vinfo)]} {
+        array set vinfo $::PortInfo(vinfo)
+        unset -nocomplain vinfo($name)
+        set ::PortInfo(vinfo) [array get vinfo]
+    }
+}
+
 # variant_exists name
 # determine if a variant exists.
 proc variant_exists {name} {
@@ -2133,14 +2147,19 @@ proc check_variants {target} {
 # add the default universal variant if appropriate
 proc universal_setup {args} {
     if {[variant_exists universal]} {
-        ui_debug "universal variant already exists, so not adding the default one"
+        if {[llength [option configure.universal_archs]] >= 2} {
+            ui_debug "universal variant already exists, so not adding the default one"
+        } else {
+            ui_debug "removing universal variant due to < 2 supported universal_archs"
+            variant_delete universal
+        }
     } elseif {[exists universal_variant] && ![option universal_variant]} {
         ui_debug "universal_variant is false, so not adding the default universal variant"
     } elseif {[exists use_xmkmf] && [option use_xmkmf]} {
         ui_debug "using xmkmf, so not adding the default universal variant"
     } elseif {![exists os.universal_supported] || ![option os.universal_supported]} {
         ui_debug "OS doesn't support universal builds, so not adding the default universal variant"
-    } elseif {[llength [option supported_archs]] == 1} {
+    } elseif {[llength [option configure.universal_archs]] <= 1} {
         ui_debug "only one arch supported, so not adding the default universal variant"
     } elseif {![portconfigure::arch_flag_supported [option configure.compiler] yes]} {
         ui_debug "Compiler doesn't support universal builds, so not adding the default universal variant"
