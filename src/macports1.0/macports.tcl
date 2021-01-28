@@ -1118,7 +1118,7 @@ match macports.conf.default."
             set macports::universal_archs {i386 ppc}
         }
     } elseif {[llength $macports::universal_archs] < 2} {
-        if {$os_major < 18} {
+        if {$os_major < 18 || $os_major > 19} {
             ui_warn "invalid universal_archs configured (should contain at least 2 archs)"
         }
     }

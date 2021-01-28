@@ -3227,7 +3227,7 @@ proc get_canonical_archs {} {
     global supported_archs os.arch configure.build_arch configure.universal_archs
     if {$supported_archs eq "noarch"} {
         return "noarch"
-    } elseif {[variant_exists universal] && [variant_isset universal]} {
+    } elseif {[variant_exists universal] && [variant_isset universal] && [llength ${configure.universal_archs}] >= 2} {
         return [lsort -ascii ${configure.universal_archs}]
     } elseif {${configure.build_arch} ne ""} {
         return ${configure.build_arch}
@@ -3238,7 +3238,7 @@ proc get_canonical_archs {} {
 
 # returns the flags that should be passed to the compiler to choose arch(s)
 proc get_canonical_archflags {{tool cc}} {
-    if {![variant_exists universal] || ![variant_isset universal]} {
+    if {![variant_exists universal] || ![variant_isset universal] || [llength [option configure.universal_archs]] < 2} {
         if {[catch {option configure.${tool}_archflags} flags]} {
             return -code error "archflags do not exist for tool '$tool'"
         }
@@ -3259,28 +3259,8 @@ proc check_supported_archs {} {
     if {$supported_archs eq "noarch"} {
         return 0
     } elseif {[variant_exists universal] && [variant_isset universal]} {
-        if {[llength ${configure.universal_archs}] > 1 || $universal_archs eq ${configure.universal_archs}} {
-            return 0
-        }
-        set unsupported ""
-        if {$supported_archs ne ""} {
-            foreach arch $universal_archs {
-                if {$arch ni $supported_archs} {
-                    set unsupported $arch
-                    break
-                }
-            }
-        }
-        if {$unsupported ne ""} {
-            ui_error "$subport cannot be installed for the configured universal_archs '$universal_archs' because it only supports the arch(s) '$supported_archs'."
-        } else {
-            foreach arch $universal_archs {
-                if {$arch ni ${configure.universal_archs}} {
-                    lappend unsupported $arch
-                }
-            }
-            ui_error "$subport cannot be installed for the configured universal_archs '$universal_archs' because the arch(s) '$unsupported' are not supported."
-        }
+        # universal variant would not exist if < 2 universal_archs were supported
+        return 0
     } elseif {$build_arch eq "" || ${configure.build_arch} ne ""} {
         return 0
     } elseif {$supported_archs ne "" && $build_arch ni $supported_archs} {
