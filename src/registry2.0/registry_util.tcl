@@ -114,6 +114,7 @@ proc run_target {port target options} {
         ui_debug "no portfile in registry for $portspec"
         return 0
     }
+    lappend options _inregistry_version [$port version] _inregistry_revision [$port revision] _inregistry_variants [$port variants]
 
     if {![catch {set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] $options]}]} {
         if {[catch {set result [mportexec $mport $target]} result] || $result != 0} {
