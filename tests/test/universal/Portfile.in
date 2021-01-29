@@ -15,4 +15,5 @@ destroot        {
         system "touch ${destroot}${prefix}/lib/${name}"
 }
 test            {}
+configure.universal_archs   i386 x86_64
 @option@
