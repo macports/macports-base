@@ -57,9 +57,9 @@ proc portuninstall::uninstall_start {args} {
 
 proc portuninstall::uninstall_main {args} {
     global subport _inregistry_version _inregistry_revision _inregistry_variants user_options
-    foreach {var backup} {_inregistry_version ::version _inregistry_revision ::revision _inregistry_variants ::portvariants} {
+    foreach {var backup} {_inregistry_version version _inregistry_revision revision _inregistry_variants portvariants} {
         if {![info exists $var]} {
-            set $var [set $backup]
+            set $var [option $backup]
         }
     }
     registry_uninstall $subport $_inregistry_version $_inregistry_revision $_inregistry_variants [array get user_options]

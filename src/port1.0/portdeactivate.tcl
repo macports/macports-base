@@ -57,9 +57,9 @@ proc portdeactivate::deactivate_start {args} {
 
 proc portdeactivate::deactivate_main {args} {
     global subport _inregistry_version _inregistry_revision _inregistry_variants user_options
-    foreach {var backup} {_inregistry_version ::version _inregistry_revision ::revision _inregistry_variants ::portvariants} {
+    foreach {var backup} {_inregistry_version version _inregistry_revision revision _inregistry_variants portvariants} {
         if {![info exists $var]} {
-            set $var [set $backup]
+            set $var [option $backup]
         }
     }
 

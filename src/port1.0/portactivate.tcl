@@ -60,9 +60,9 @@ proc portactivate::activate_start {args} {
 
 proc portactivate::activate_main {args} {
     global subport _inregistry_version _inregistry_revision _inregistry_variants prefix user_options
-    foreach {var backup} {_inregistry_version ::version _inregistry_revision ::revision _inregistry_variants ::portvariants} {
+    foreach {var backup} {_inregistry_version version _inregistry_revision revision _inregistry_variants portvariants} {
         if {![info exists $var]} {
-            set $var [set $backup]
+            set $var [option $backup]
         }
     }
 
