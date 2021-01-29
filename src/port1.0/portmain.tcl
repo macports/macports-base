@@ -53,6 +53,7 @@ options prefix name version revision epoch categories maintainers \
         os.platform os.subplatform os.version os.major os.minor os.arch os.endian \
         platforms default_variants install.user install.group \
         macosx_deployment_target universal_variant os.universal_supported \
+        universal_possible \
         supported_archs depends_skip_archcheck installs_libs \
         license_noconflict copy_log_files \
         compiler.cpath compiler.library_path compiler.log_verbose_output \
@@ -149,6 +150,8 @@ if {[option os.platform] eq "darwin" && [option os.subplatform] eq "macosx"} {
 } else {
     default os.universal_supported no
 }
+
+default universal_possible {[expr {${os.universal_supported} && [llength ${configure.universal_archs}] >= 2}]}
 
 default compiler.cpath {${prefix}/include}
 default compiler.library_path {${prefix}/lib}
