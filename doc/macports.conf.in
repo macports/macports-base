@@ -57,15 +57,18 @@ variants_conf       	@MPCONFIGDIR_EXPANDED@/variants.conf
 #hfscompression      	yes
 
 # CPU architecture to target. Supported values are "ppc", "ppc64",
-# "i386", and "x86_64". Defaults to:
+# "i386", "x86_64", and "arm64". Defaults to:
 # - Mac OS X 10.5 and earlier: "ppc" on PowerPC, otherwise "i386".
-# - Mac OS X 10.6 and later: "x86_64" on 64-bit Intel, otherwise "i386".
-#build_arch          	i386
+# - Mac OS X 10.6 - 10.15: "x86_64" on 64-bit Intel, otherwise "i386".
+# - macOS 11 and later: "arm64" on Apple Silicon, otherwise "x86_64".
+#build_arch          	x86_64
 
 # Space-delimited list of CPU architectures to target when building
 # universal. Defaults to "i386 ppc" on Mac OS X 10.5 and earlier,
-# "x86_64 i386" on Mac OS X 10.6 through macOS 10.13, and "x86_64" on
-# macOS 10.14 and later (the 10.14 SDK is not universal).
+# "x86_64 i386" on Mac OS X 10.6 through macOS 10.13, "x86_64" on
+# macOS 10.14 and 10.15 (these SDKs are not universal), and
+# "arm64 x86_64" on macOS 11 and later. Set an empty value to disable
+# universal building.
 #universal_archs     	@UNIVERSAL_ARCHS@
 
 # Use ccache, a compiler cache for C, C++, Objective-C, and

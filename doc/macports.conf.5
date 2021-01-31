@@ -338,14 +338,20 @@ The machine architecture to try to build for in normal use\&.
 tab(:);
 lt lt
 lt lt
+lt lt
 lt lt.
 T{
 \fBRegular architectures include:\fR
 T}:T{
-ppc, i386, ppc64, x86_64
+ppc, i386, ppc64, x86_64, arm64
 T}
 T{
-\fBDefault (10\&.6):\fR
+\fBDefault (11 and later):\fR
+T}:T{
+arm64 or x86_64 depending on hardware
+T}
+T{
+\fBDefault (10\&.6\-10\&.15):\fR
 T}:T{
 x86_64 or i386 depending on hardware
 T}
@@ -360,19 +366,25 @@ T}
 .PP
 universal_archs
 .RS 4
-The machine architectures to use for +universal variant (multiple architecture entries should be space separated)\&.
+The machine architectures to use for +universal variant (multiple architecture entries should be space separated)\&. Should contain at least two entries, or be empty to disable universal building\&.
 .TS
 tab(:);
+lt lt
 lt lt
 lt lt
 lt lt.
 T{
 \fBRegular architectures include:\fR
 T}:T{
-ppc, i386, ppc64, x86_64
+ppc, i386, ppc64, x86_64, arm64
 T}
 T{
-\fBDefault (10\&.6):\fR
+\fBDefault (11 and later):\fR
+T}:T{
+arm64 x86_64
+T}
+T{
+\fBDefault (10\&.6\-10\&.13):\fR
 T}:T{
 x86_64 i386
 T}

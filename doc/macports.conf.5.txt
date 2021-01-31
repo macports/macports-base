@@ -124,15 +124,18 @@ keeplogs::
 
 build_arch::
     The machine architecture to try to build for in normal use.
-    *Regular architectures include:*;; ppc, i386, ppc64, x86_64
-    *Default (10.6):*;; x86_64 or i386 depending on hardware
+    *Regular architectures include:*;; ppc, i386, ppc64, x86_64, arm64
+    *Default (11 and later):*;; arm64 or x86_64 depending on hardware
+    *Default (10.6-10.15):*;; x86_64 or i386 depending on hardware
     *Default (10.5 and earlier):*;; i386 or ppc depending on hardware
 
 universal_archs::
     The machine architectures to use for +universal variant (multiple
-    architecture entries should be space separated).
-    *Regular architectures include:*;; ppc, i386, ppc64, x86_64
-    *Default (10.6):*;; x86_64 i386
+    architecture entries should be space separated). Should contain at
+    least two entries, or be empty to disable universal building.
+    *Regular architectures include:*;; ppc, i386, ppc64, x86_64, arm64
+    *Default (11 and later):*;; arm64 x86_64
+    *Default (10.6-10.13):*;; x86_64 i386
     *Default (10.5 and earlier):*;; i386 ppc
 
 startupitem_type::
