@@ -134,7 +134,7 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags);
  * Whether darwintrace has been fully initialized or not. Do not interpose if
  * this has not been set to true.
  */
-volatile bool __darwintrace_initialized;
+extern volatile bool __darwintrace_initialized;
 
 #ifdef DARWINTRACE_USE_PRIVATE_API
 #include <errno.h>
