@@ -159,8 +159,21 @@ distclean: clean
 %.html: %.soelim
 	ln -sf $(shell basename $$(awk '{print $$2}' < $<)).html $@
 
-# Define these rules only if both asciidoc and xsltproc are available
-ifneq ($(and $(ASCIIDOC),$(XSLTPROC),$(DOCBOOK_XSL)),)
+# Define these rules only if asciidoc, xsltproc, and docbook_zsl are
+# all available. GNU Make 3.80 (MacOSX 10.4) 'and' does not work, so
+# do the check manually. 'and' works in GNU Make 3.81 (MacOSX 10.5+).
+ifeq ("$(MAKE_VERSION)","3.80")
+ ifneq ($(ASCIIDOC),)
+  ifneq ($(XSLTPROC),)
+   ifneq ($(DOCBOOK_XSL),)
+    HAVE_DOCS_REQS= 1
+   endif
+  endif
+ endif
+else
+ HAVE_DOCS_REQS= $(and $(ASCIIDOC),$(XSLTPROC),$(DOCBOOK_XSL))
+endif
+ifneq ($(HAVE_DOCS_REQS),)
 %: %.xml manpage.xsl
 	$(XSLTPROC) $(XSLTFLAGS) manpage.xsl $<
 
