@@ -230,7 +230,7 @@ static copy_needed_return_t copy_needed(const char *path, char *const argv[],
             free_argv(new_argv);
             return copy_not_needed;
         }
-        if ((st->st_flags & (S_ISUID | S_ISGID)) > 0) {
+        if ((st->st_mode & (S_ISUID | S_ISGID)) > 0) {
             // the binary is SUID/SGID, which would get lost when copying;
             // DYLD_ variables are stripped for SUID/SGID binaries anyway
             free_argv(new_argv);
