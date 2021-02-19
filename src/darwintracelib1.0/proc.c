@@ -44,6 +44,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
@@ -123,11 +124,20 @@ static inline bool __darwintrace_strbeginswith(const char *str, const char *pref
  * library was loaded and modifies it if it doesn't. Returns a malloc(3)'d copy
  * of envp where the appropriate values have been restored. The caller should
  * pass the returned pointer to free(3) if necessary to avoid leaks.
+ *
+ * If drop_env is true, returns a copy of envp with the DYLD_INSERT_LIBRARIES
+ * and DARWINTRACE_LOG variables removed. This must be used with SUID/SGID
+ * binaries, because the kernel will otherwise kill them.
  */
-static inline char **restore_env(char *const envp[]) {
+static inline char **restore_env(char *const envp[], bool drop_env) {
 	// we can re-use pre-allocated strings from store_env
 	char *dyld_insert_libraries_ptr     = __env_full_dyld_insert_libraries;
 	char *darwintrace_log_ptr           = __env_full_darwintrace_log;
+
+	if (drop_env) {
+		dyld_insert_libraries_ptr = NULL;
+		darwintrace_log_ptr = NULL;
+	}
 
 	char *const *enviter = envp;
 	size_t envlen = 0;
@@ -180,14 +190,22 @@ static inline char **restore_env(char *const envp[]) {
  * within the sandbox bounds.
  *
  * \param[in] path The path of the file to be executed
- * \return 0, if access should be granted, a non-zero error code to be stored
- *         in \c errno otherwise
+ * \return 0, if access should be granted, -1 if this is a suid/sgid binary and
+ *         the darwintrace environment should be dropped, a non-zero error code
+ *         to be stored in \c errno otherwise
  */
 static inline int check_interpreter(const char *restrict path) {
 	int fd = open(path, O_RDONLY, 0);
 	if (fd <= 0) {
 		return errno;
 	}
+
+	struct stat st;
+	bool is_suid_sgid = false;
+	if (fstat(fd, &st) != -1 && (st.st_mode & (S_ISUID | S_ISGID)) > 0) {
+		is_suid_sgid = true;
+	}
+
 
 	char buffer[MAXPATHLEN + 1 + 2];
 	ssize_t bytes_read;
@@ -225,6 +243,12 @@ static inline int check_interpreter(const char *restrict path) {
 		}
 	}
 
+	if (is_suid_sgid) {
+		/* This is a binary (i.e. it doesn't have a shebang), and it's
+		 * SUID/SGID, we must drop the env vars or the kernel will kill this on
+		 * load */
+		return -1;
+	}
 	return 0;
 }
 
@@ -247,7 +271,7 @@ static int _dt_execve(const char *path, char *const argv[], char *const envp[]) 
 		result = -1;
 	} else {
 		int interp_result = check_interpreter(path);
-		if (interp_result != 0) {
+		if (interp_result > 0) {
 			errno = interp_result;
 			result = -1;
 		} else {
@@ -259,7 +283,7 @@ static int _dt_execve(const char *path, char *const argv[], char *const envp[]) 
 			__darwintrace_pid = (pid_t) -1;
 
 			// Call the original execve function, but restore environment
-			char **newenv = restore_env(envp);
+			char **newenv = restore_env(envp, interp_result == -1);
 			result = sip_copy_execve(path, argv, newenv);
 			free(newenv);
 		}
@@ -292,7 +316,7 @@ static int _dt_posix_spawn(pid_t *restrict pid, const char *restrict path, const
 		result = ENOENT;
 	} else {
 		int interp_result = check_interpreter(path);
-		if (interp_result != 0) {
+		if (interp_result > 0) {
 			result = interp_result;
 		} else {
 			short attrflags;
@@ -310,7 +334,7 @@ static int _dt_posix_spawn(pid_t *restrict pid, const char *restrict path, const
 			}
 
 			// call the original posix_spawn function, but restore environment
-			char **newenv = restore_env(envp);
+			char **newenv = restore_env(envp, interp_result == -1);
 			result = sip_copy_posix_spawn(pid, path, file_actions, attrp, argv, newenv);
 			free(newenv);
 		}
