@@ -514,7 +514,13 @@ proc portconfigure::find_close_sdk {sdk_version sdk_path} {
     # only works right for versions >= 11, which is all we need
     set sdk_major [lindex [split $sdk_version .] 0]
     set sdks [glob -nocomplain -directory $sdk_path MacOSX${sdk_major}*.sdk]
-    return [lindex [lsort -command vercmp $sdks] 0]
+    foreach sdk [lsort -command vercmp $sdks] {
+        # Sanity check - mostly empty SDK directories are known to exist
+        if {[file exists ${sdk}/usr/include/sys/cdefs.h]} {
+            return $sdk
+        }
+    }
+    return ""
 }
 
 proc portconfigure::configure_get_sdkroot {sdk_version} {
