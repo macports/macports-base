@@ -144,17 +144,11 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
     # check if we we need to rebuild base
     set comp [vercmp $macports_version_new $macports::autoconf::macports_version]
 
-    # syncing ports tree.
-    if {![info exists options(ports_selfupdate_no-sync)] || !$options(ports_selfupdate_no-sync)} {
-        if {$comp > 0} {
-            # updated portfiles potentially need new base to parse - tell sync to try to
-            # use prefabricated PortIndex files and signal if it couldn't
-            lappend optionslist no_reindex 1 needed_portindex_var needed_portindex
-        }
-        try {
-            mportsync $optionslist
-        }  catch {{*} eCode eMessage} {
-            return -code error "Couldn't sync the ports tree: $eMessage"
+    if {!$use_the_force_luke} {
+        if {$comp < 0} {
+            ui_msg "$macports::ui_prefix MacPorts base is probably master or a release candidate"
+        } elseif {$comp == 0} {
+            ui_msg "$macports::ui_prefix MacPorts base is already the latest version"
         }
     }
 
@@ -217,7 +211,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
             }
 
             # do the actual configure, build and installation of new base
-            ui_msg "Installing new MacPorts release in $prefix as ${owner}:${group}; permissions ${perms}\n"
+            ui_msg "Installing new MacPorts release in $prefix as ${owner}:${group}; permissions ${perms}"
             try {
                 system -W $mp_source_path "${cc_arg}${sdk_arg}./configure $configure_args && ${sdk_arg}make SELFUPDATING=1 && make install SELFUPDATING=1"
             } catch {{*} eCode eMessage} {
@@ -227,10 +221,6 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
                 set updatestatus yes
             }
         }
-    } elseif {$comp < 0} {
-        ui_msg "$macports::ui_prefix MacPorts base is probably master or a release candidate"
-    } else {
-        ui_msg "$macports::ui_prefix MacPorts base is already the latest version"
     }
 
     # set the MacPorts sources to the right owner
@@ -242,14 +232,16 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
         return -code error "Couldn't change permissions of the MacPorts sources at $mp_source_path to ${sources_owner}: $eMessage"
     }
 
-    if {![info exists options(ports_selfupdate_no-sync)] || !$options(ports_selfupdate_no-sync)} {
-        if {[info exists needed_portindex]} {
-            ui_msg "Not all sources could be fully synced using the old version of MacPorts."
-            ui_msg "Please run selfupdate again now that MacPorts base has been updated."
-        } else {
-            ui_msg "\nThe ports tree has been updated. To upgrade your installed ports, you should run"
-            ui_msg "  port upgrade outdated"
+    # syncing ports tree.
+    if {!$updatestatus && (![info exists options(ports_selfupdate_no-sync)] || !$options(ports_selfupdate_no-sync))} {
+        try {
+            mportsync $optionslist
+        }  catch {{*} eCode eMessage} {
+            return -code error "Couldn't sync the ports tree: $eMessage"
         }
+
+        ui_msg "\nThe ports tree has been updated. To upgrade your installed ports, you should run"
+        ui_msg "  port upgrade outdated"
     }
 
     return 0
