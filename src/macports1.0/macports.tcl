@@ -1976,7 +1976,12 @@ proc mportopen_installed {name version revision variants options} {
         set options_array(_portgroup_search_dirs) $pgdirlist
     }
 
-    return [mportopen file://${portfile_dir}/ [array get options_array] $variations]
+    set retmport [mportopen file://${portfile_dir}/ [array get options_array] $variations]
+    set workername [ditem_key $retmport workername]
+    foreach var {version revision variants} {
+        $workername eval [list set _inregistry_${var} [set $var]]
+    }
+    return $retmport
 }
 
 # Traverse a directory with ports, calling a function on the path of ports
