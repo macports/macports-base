@@ -1916,7 +1916,11 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
 
     macports::worker_init $workername $portpath $porturl [macports::getportbuildpath $portpath] $options $variations
 
-    $workername eval {source Portfile}
+    if {[catch {$workername eval {source Portfile}} result]} {
+        mportclose $mport
+        ui_debug $::errorInfo
+        error $result
+    }
 
     # add the default universal variant if appropriate, and set up flags that
     # are conditional on whether universal is set
