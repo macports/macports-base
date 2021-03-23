@@ -246,7 +246,7 @@ proc portarchivefetch::fetchfiles {args} {
                     file delete -force "${incoming_path}/${archive}.TMP"
                     throw
                 } catch {{*} eCode eMessage} {
-                    ui_debug [msgcat::mc "Fetching archive failed: %s" $eMessage]
+                    ui_debug [msgcat::mc "Fetching binary archive failed: %s" $eMessage]
                     set lastError $eMessage
                     file delete -force "${incoming_path}/${archive}.TMP"
                     incr failed_sites
@@ -326,7 +326,7 @@ proc portarchivefetch::archivefetch_start {args} {
         portarchivefetch::checkfiles archivefetch_urls
     }
     if {[info exists all_archive_files] && [llength $all_archive_files] > 0} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching archive for %s"] $subport]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching binary archive for %s"] $subport]"
     } elseif {[tbool ports_binary_only]} {
         error "Binary-only mode requested with no usable archive sites configured"
     }

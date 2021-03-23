@@ -567,7 +567,7 @@ proc portfetch::fetchfiles {args} {
                     set fetched 1
                     break
                 } catch {{*} eCode eMessage} {
-                    ui_debug [msgcat::mc "Fetching distfile failed: %s" $eMessage]
+                    ui_debug [msgcat::mc "Fetching source code failed: %s" $eMessage]
                     set lastError $eMessage
                 } finally {
                     file delete -force "${distpath}/${distfile}.TMP"
@@ -617,7 +617,7 @@ proc portfetch::fetch_init {args} {
 proc portfetch::fetch_start {args} {
     global UI_PREFIX subport distpath
 
-    ui_notice "$UI_PREFIX [format [msgcat::mc "Fetching distfiles for %s"] $subport]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Fetching source code for %s"] $subport]"
 
     # create and chown $distpath
     if {![file isdirectory $distpath]} {
