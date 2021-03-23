@@ -308,6 +308,30 @@ test reinplace {
     }
     close $f
 
+    # If no changes are made, nothing is printed out.  This should
+    # generate an error.
+    if {![catch {reinplace s/notfound/test/1 $file}]} {
+        return "FAIL: reinplace with no changes should generate an error."
+    }
+    catch {set f [open $file r]}
+    set cont [read -nonewline $f]
+    if { $cont != "" } {
+        return "FAIL: reinplace with no changes should not alter file."
+    }
+    close $f
+
+    # If no changes are made, nothing is printed out.  This should
+    # not generate an error due to -q.
+    if {[catch {reinplace -q s/notfound/test/1 $file}]} {
+        return "FAIL: reinplace (-q) with no changes should not generate an error."
+    }
+    catch {set f [open $file r]}
+    set cont [read -nonewline $f]
+    if { $cont != "" } {
+        return "FAIL: reinplace (-q) with no changes should not alter file."
+    }
+    close $f
+
     return "Reinplace successful."
 
 } -cleanup {
