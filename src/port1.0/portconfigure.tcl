@@ -831,9 +831,10 @@ proc portconfigure::max_version {verA verB} {
 #--------------------------------------------------------------------
 #|  C Standard  |   Clang   |  Xcode Clang  |   Xcode   |    GCC    |
 #|------------------------------------------------------------------|
-#| 1989 (C89)   |     -     |        -      |     -     |     -     |
-#| 1999 (C99)   |     -     |        -      |     -     |    4.0    |
-#| 2011 (C11)   |    3.3    |   500.2.75    |    5.0    |    4.9    |
+#| 1989 (C89)   |     -     |       -       |     -     |     -     |
+#| 1999 (C99)   |     -     |       -       |     -     |    4.0    |
+#| 2011 (C11)   |    3.3    |  500.2.75     |    5.0    |    4.9    |
+#| 2017 (C17)   |    6.0    |  1000.11.45.2 |   10.0    |    8.0    |
 #--------------------------------------------------------------------
 #
 # https://clang.llvm.org/cxx_status.html
@@ -901,7 +902,9 @@ proc portconfigure::get_min_command_line {compiler} {
                 # no Xcode clang can build against libc++ on < 10.7
                 return none
             }
-            if {${compiler.c_standard} >= 2011} {
+            if {${compiler.c_standard} >= 2017} {
+                set min_value [max_version $min_value 1000.11.45.2]
+            } elseif {${compiler.c_standard} >= 2011} {
                 set min_value [max_version $min_value 500.2.75]
             }
             if {${compiler.cxx_standard} >= 2017} {
@@ -952,7 +955,9 @@ proc portconfigure::get_min_command_line {compiler} {
 proc portconfigure::get_min_clang {} {
     global compiler.c_standard compiler.cxx_standard compiler.openmp_version compiler.thread_local_storage
     set min_value 1.0
-    if {${compiler.c_standard} >= 2011} {
+    if {${compiler.c_standard} >= 2017} {
+        set min_value [max_version $min_value 6.0]
+    } elseif {${compiler.c_standard} >= 2011} {
         set min_value [max_version $min_value 3.1]
     }
     if {${compiler.cxx_standard} >= 2017} {
@@ -996,7 +1001,9 @@ proc portconfigure::get_min_gcc {} {
     }
 
     set min_value 1.0
-    if {${compiler.c_standard} >= 2011} {
+    if {${compiler.c_standard} >= 2017} {
+        set min_value [max_version $min_value 8.0]
+    } elseif {${compiler.c_standard} >= 2011} {
         set min_value [max_version $min_value 4.3]
     }  elseif {${compiler.c_standard} >= 1999} {
         set min_value [max_version $min_value 4.0]
