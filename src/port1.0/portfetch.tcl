@@ -187,7 +187,7 @@ proc portfetch::set_fetch_type {option action args} {
                 depends_fetch-append bin:cvs:cvs
             }
             svn {
-                # Sierra is the first macOS version whose svn supports modern TLS cipher suites.
+                # Oldest macOS version whose svn can validate GitHub's SSL certificate.
                 if {${os.major} >= 16 || ${os.platform} ne "darwin"} {
                     depends_fetch-append bin:svn:subversion
                 } else {
@@ -195,8 +195,8 @@ proc portfetch::set_fetch_type {option action args} {
                 }
             }
             git {
-                # Mavericks is the first OS X version whose git supports modern TLS cipher suites.
-                if {${os.major} >= 13 || ${os.platform} ne "darwin"} {
+                # Oldest macOS version whose git can validate GitHub's SSL certificate.
+                if {${os.major} >= 14 || ${os.platform} ne "darwin"} {
                     depends_fetch-append bin:git:git
                 } else {
                     depends_fetch-append port:git
@@ -211,7 +211,7 @@ proc portfetch::set_fetch_type {option action args} {
 
 proc portfetch::find_svn_path {args} {
     global prefix_frozen os.platform os.major
-    # Sierra is the first macOS version whose svn supports modern TLS cipher suites.
+    # Oldest macOS version whose svn can validate GitHub's SSL certificate.
     if {${os.major} >= 16 || ${os.platform} ne "darwin"} {
         return [findBinary svn $portutil::autoconf::svn_path]
     } else {
@@ -221,8 +221,8 @@ proc portfetch::find_svn_path {args} {
 
 proc portfetch::find_git_path {args} {
     global prefix_frozen os.platform os.major
-    # Mavericks is the first OS X version whose git supports modern TLS cipher suites.
-    if {${os.major} >= 13 || ${os.platform} ne "darwin"} {
+    # Oldest macOS version whose git can validate GitHub's SSL certificate.
+    if {${os.major} >= 14 || ${os.platform} ne "darwin"} {
         return [findBinary git $portutil::autoconf::git_path]
     } else {
         return ${prefix_frozen}/bin/git
