@@ -251,6 +251,11 @@ reg_entry* reg_entry_open(reg_registry* reg, char* name, char* version,
 int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
     reg_registry* reg = entry->reg;
     int result = 0;
+
+    errPtr->code = REG_SQLITE_ERROR;
+    errPtr->description = "an unknown sqlite error occurred";
+    errPtr->free = NULL;
+
     sqlite3_stmt* ports = NULL;
     sqlite3_stmt* files = NULL;
     sqlite3_stmt* dependencies = NULL;
@@ -293,6 +298,7 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
                                                         case SQLITE_BUSY:
                                                             break;
                                                         case SQLITE_ERROR:
+                                                        default:
                                                             reg_sqlite_error(reg->db,
                                                                     errPtr, NULL);
                                                             break;
@@ -302,6 +308,7 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
                                             case SQLITE_BUSY:
                                                 break;
                                             case SQLITE_ERROR:
+                                            default:
                                                 reg_sqlite_error(reg->db,
                                                         errPtr, NULL);
                                                 break;
@@ -311,6 +318,7 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
                                 case SQLITE_BUSY:
                                     break;
                                 case SQLITE_ERROR:
+                                default:
                                     reg_sqlite_error(reg->db, errPtr, NULL);
                                     break;
                             }
@@ -325,6 +333,7 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
                 case SQLITE_BUSY:
                     break;
                 case SQLITE_ERROR:
+                default:
                     reg_sqlite_error(reg->db, errPtr, NULL);
                     break;
             }
@@ -1137,6 +1146,7 @@ int reg_entry_activate(reg_entry* entry, char** files, char** as_files,
                                         case SQLITE_BUSY:
                                             break;
                                         case SQLITE_ERROR:
+                                        default:
                                             reg_sqlite_error(reg->db, errPtr,
                                                     update_query);
                                             result = 0;
@@ -1147,6 +1157,7 @@ int reg_entry_activate(reg_entry* entry, char** files, char** as_files,
                             case SQLITE_BUSY:
                                 break;
                             case SQLITE_ERROR:
+                            default:
                                 reg_sqlite_error(reg->db, errPtr, select_query);
                                 result = 0;
                                 break;
