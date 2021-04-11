@@ -130,11 +130,24 @@ static void sql_regexp(sqlite3_context* context, int argc UNUSED,
  */
 int create_tables(sqlite3* db, reg_error* errPtr) {
     static char* queries[] = {
+        /* settings (can't be set inside a transaction) */
+        "PRAGMA fullfsync = 1",
+        /* WAL was added in 3.7.0, but read-only access when using it only
+           became possible in 3.22.0. It might be possible to use WAL on
+           3.7.7 and later since that version added the ability to open a DB
+           read-only as long as there is an existing read/write connection.
+           But the DB would need to be changed back to a non-WAL journal_mode
+           after doing a SQLITE_CHECKPOINT_RESTART whenever the last writer
+           closes it. */
+#if SQLITE_VERSION_NUMBER >= 3022000
+        "PRAGMA journal_mode=WAL",
+#endif
+
         "BEGIN",
 
         /* metadata table */
         "CREATE TABLE registry.metadata (key UNIQUE, value)",
-        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.204')",
+        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.205')",
         "INSERT INTO registry.metadata (key, value) VALUES ('created', strftime('%s', 'now'))",
 
         /* ports table */
@@ -709,6 +722,30 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             continue;
         }
 
+        if (sql_version(NULL, -1, version, -1, "1.205") < 0) {
+            /* enable fullfsync and possibly WAL */
+            static char* version_1_205_queries[] = {
+                "UPDATE registry.metadata SET value = '1.205' WHERE key = 'version'",
+                "COMMIT",
+                "PRAGMA fullfsync = 1",
+#if SQLITE_VERSION_NUMBER >= 3022000
+                "PRAGMA journal_mode=WAL",
+#endif
+                NULL
+            };
+
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+
+            if (!do_queries(db, version_1_205_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
         /* add new versions here, but remember to:
          *  - finalize the version query statement and set stmt to NULL
          *  - do _not_ use "BEGIN" in your query list, since a transaction has
@@ -718,7 +755,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
          *  - update the current version number below
          */
 
-        if (sql_version(NULL, -1, version, -1, "1.204") > 0) {
+        if (sql_version(NULL, -1, version, -1, "1.205") > 0) {
             /* the registry was already upgraded to a newer version and cannot be used anymore */
             reg_throw(errPtr, REG_INVALID, "Version number in metadata table is newer than expected.");
             sqlite3_finalize(stmt);

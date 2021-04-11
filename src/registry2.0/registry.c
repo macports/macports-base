@@ -224,6 +224,10 @@ static int registry_close(ClientData clientData UNUSED, Tcl_Interp* interp,
                 reg_vacuum(Tcl_GetAssocData(interp, "registry::db_path", NULL));
                 Tcl_DeleteAssocData(interp, "registry::needs_vacuum");
             }
+            /* Not really anything we can do if this fails. */
+            if (reg_checkpoint(reg, &error) == 0) {
+                fprintf(stderr, "%s\n", error.description);
+            }
             if (registry_tcl_detach(interp, reg, &error)) {
                 return TCL_OK;
             }
