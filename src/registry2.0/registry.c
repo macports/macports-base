@@ -202,6 +202,7 @@ static int registry_open(ClientData clientData UNUSED, Tcl_Interp* interp,
         if (reg == NULL) {
             return TCL_ERROR;
         } else if (reg_attach(reg, path, &error)) {
+            reg_configure(reg);
             return TCL_OK;
         } else {
             return registry_failed(interp, &error);
