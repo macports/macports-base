@@ -45,10 +45,8 @@ namespace eval porttrace {
     # The mktemp(3) template used to generate a filename for the fifo.
     # Note that Unix sockets are limited to 109 characters and that the
     # macports user must be able to connect to the socket (and in case of
-    # non-root installations, the current user, too). We're not prefixing the
-    # path in /tmp with a separate macports-specific directory, because this
-    # might not be writable by all users.
-    variable fifo_mktemp_template "/tmp/macports-trace-XXXXXX"
+    # non-root installations, the current user, too).
+    variable fifo_mktemp_template "/tmp/macports-trace/sock-XXXXXX"
 
     ##
     # The Tcl thread that runs the server side of trace mode and deals with
@@ -145,6 +143,17 @@ namespace eval porttrace {
         # Generate a name for the socket to be used to communicate with the
         # processes being traced.
         set fifo [mktemp $fifo_mktemp_template]
+
+        # Create enclosing directory with correct permissions, i.e. no
+        # finding out what the socket is called by listing the directory,
+        # but it can be opened if you know its name.
+        set fifo_dir [file dirname $fifo]
+        file mkdir $fifo_dir
+        if {[geteuid] == 0} {
+            file attributes $fifo_dir -permissions 0311 -owner $macportsuser
+        } else {
+            file attributes $fifo_dir -permissions 0311
+        }
 
         # Make sure the socket doesn't exist yet (this would cause errors
         # later)
@@ -286,6 +295,7 @@ namespace eval porttrace {
         tracelib clean
         # Delete the socket file
         file delete -force $fifo
+        file delete -force [file dirname $fifo]
 
         # Delete the slave.
         delete_slave
