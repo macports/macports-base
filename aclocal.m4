@@ -742,14 +742,18 @@ AC_DEFUN([MP_PATH_FRAMEWORKS],[
 AC_DEFUN([MP_CHECK_STARTUPITEMS],[
 	dnl if the user specifies --without-startupitems,
 	dnl set "startupitem_install no" in macports.conf
-	AC_ARG_WITH(startupitems, [AS_HELP_STRING([--without-startupitems],[set "startupitem_install no" in macports.conf])], [with_startupitems=$withval], [with_startupitems=yes] )
+	AC_ARG_WITH(startupitems, [AS_HELP_STRING([--without-startupitems],[set "startupitem_install no" in macports.conf])], [with_startupitems=$withval], [with_startupitems=default] )
 
 	AC_MSG_CHECKING([for startupitem_install])
 
-	if test "x$with_startupitems" != "xno" ; then
-		startupitem_install="#startupitem_install	yes"
-	else
+	if test "x$with_startupitems" = "xno" ; then
 		startupitem_install="startupitem_install	no"
+	elif test "x$with_startupitems" = "xdefault" -a "$DSTUSR" != "root" ; then
+		startupitem_install="startupitem_install	no"
+		with_startupitems=no
+	else
+		startupitem_install="#startupitem_install	yes"
+		with_startupitems=yes
 	fi
 
 	AC_MSG_RESULT([$with_startupitems])

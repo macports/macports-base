@@ -7095,17 +7095,21 @@ if test ${with_startupitems+y}
 then :
   withval=$with_startupitems; with_startupitems=$withval
 else $as_nop
-  with_startupitems=yes
+  with_startupitems=default
 fi
 
 
 	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for startupitem_install" >&5
 printf %s "checking for startupitem_install... " >&6; }
 
-	if test "x$with_startupitems" != "xno" ; then
-		startupitem_install="#startupitem_install	yes"
-	else
+	if test "x$with_startupitems" = "xno" ; then
 		startupitem_install="startupitem_install	no"
+	elif test "x$with_startupitems" = "xdefault" -a "$DSTUSR" != "root" ; then
+		startupitem_install="startupitem_install	no"
+		with_startupitems=no
+	else
+		startupitem_install="#startupitem_install	yes"
+		with_startupitems=yes
 	fi
 
 	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $with_startupitems" >&5
