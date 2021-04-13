@@ -79,7 +79,7 @@ ifeq ($(DESTDIR),)
                 echo "Not updating home directory location for user \"${RUNUSR}\" (not root)" ; \
             fi ; \
         fi ; \
-        if test `sw_vers -productVersion | /usr/bin/awk -F . '{print $$2}'` -eq 4 -a `id -u` -eq 0; then \
+        if test "@OS_MAJOR@" -eq 8 -a `id -u` -eq 0; then \
             GID=`${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $$2}'` ; \
             if test "`${DSCL} -q . -read "/Users/${RUNUSR}" PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $$2}'`" != "$$GID"; then \
                 echo "Fixing PrimaryGroupID for user \"${RUNUSR}\"" ; \
