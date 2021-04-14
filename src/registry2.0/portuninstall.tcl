@@ -72,13 +72,19 @@ proc generate_deplist {port {optslist ""}} {
             array set depportinfo [lindex $result 1]
             set porturl $depportinfo(porturl)
             set variations [list]
-            set minusvariant [lrange [split [registry::property_retrieve $port negated_variants] -] 1 end]
+            # Relies on all negated variants being at the end of requested_variants
+            set minusvariant [lrange [split [registry::property_retrieve $port requested_variants] -] 1 end]
             set plusvariant [lrange [split [$port variants] +] 1 end]
             foreach v $plusvariant {
                 lappend variations $v "+"
             }
             foreach v $minusvariant {
-                lappend variations $v "-"
+                if {[string first "+" $v] == -1} {
+                    lappend variations $v "-"
+                } else {
+                    ui_warn "Invalid negated variant for $portname @[$port version]_[$port revision][$port variants]: $v"
+                }
+                
             }
             if {![catch {set mport [mportopen $porturl [concat $optslist subport $portname] [array get variations]]} result]} {
                 array unset depportinfo

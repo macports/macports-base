@@ -333,7 +333,7 @@ proc portinstall::extract_contents {location type} {
 
 proc portinstall::install_main {args} {
     global subport version portpath depends_run revision user_options \
-    portvariants negated_variants depends_lib PortInfo epoch \
+    portvariants requested_variants depends_lib PortInfo epoch \
     os.platform os.major portarchivetype installPlist registry.path porturl \
     portinstall::file_is_binary portinstall::actual_cxx_stdlib portinstall::cxx_stdlib_overridden
 
@@ -398,8 +398,8 @@ proc portinstall::install_main {args} {
         }
         # Trick to have a portable GMT-POSIX epoch-based time.
         $regref date [expr {[clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]}]
-        if {[info exists negated_variants]} {
-            $regref negated_variants $negated_variants
+        if {[info exists requested_variants]} {
+            $regref requested_variants $requested_variants
         }
 
         foreach dep_portname $dep_portnames {

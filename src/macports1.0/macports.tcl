@@ -1959,13 +1959,18 @@ proc mportopen_installed {name version revision variants options} {
     set portfile_dir [file join ${registry.path} registry portfiles ${name}-${version}_${revision} [$regref portfile]]
 
     set variations {}
-    set minusvariant [lrange [split [$regref negated_variants] -] 1 end]
+    # Relies on all negated variants being at the end of requested_variants
+    set minusvariant [lrange [split [$regref requested_variants] -] 1 end]
     set plusvariant [lrange [split [$regref variants] +] 1 end]
     foreach v $plusvariant {
         lappend variations $v +
     }
     foreach v $minusvariant {
-        lappend variations $v -
+        if {[string first "+" $v] == -1} {
+            lappend variations $v -
+        } else {
+            ui_warn "Invalid negated variant for $name @${version}_${revision}${variants}: $v"
+        }
     }
 
     array set options_array $options
@@ -4006,9 +4011,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         set oldvariant $variant_installed
         set regref [registry::open_entry $portname $version_installed $revision_installed $variant_installed $epoch_installed]
     }
-    set oldnegatedvariant [registry::property_retrieve $regref negated_variants]
-    if {$oldnegatedvariant == 0} {
-        set oldnegatedvariant {}
+    set oldrequestedvariant [registry::property_retrieve $regref requested_variants]
+    if {$oldrequestedvariant == 0} {
+        set oldrequestedvariant {}
     }
     set requestedflag [registry::property_retrieve $regref requested]
     set os_platform_installed [registry::property_retrieve $regref os_platform]
@@ -4032,29 +4037,39 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
     set globalvarlist [array get macports::global_variations]
 
-    set minusvariant [lrange [split $oldnegatedvariant -] 1 end]
-    set plusvariant [lrange [split $oldvariant +] 1 end]
-    ui_debug "Merging existing variants '${oldvariant}$oldnegatedvariant' into variants"
+    # Relies on all negated variants being at the end of requested_variants
+    set splitvariant [split $oldrequestedvariant -]
+    set minusvariant [lrange $splitvariant 1 end]
+    set plusvariant [lrange [split $splitvariant +] 1 end]
+    ui_debug "Merging existing requested variants '${oldrequestedvariant}' into variants"
     set oldvariantlist [list]
     foreach v $plusvariant {
         lappend oldvariantlist $v +
     }
     foreach v $minusvariant {
-        lappend oldvariantlist $v -
+        if {[string first "+" $v] == -1} {
+            lappend oldvariantlist $v -
+            set installedvariations($v) -
+        } else {
+            ui_warn "Invalid negated variant for ${portname}: $v"
+        }
+    }
+    # save the current variants for dependency calculation purposes
+    # in case we don't end up upgrading this port
+    set plusvariant [lrange [split $oldvariant +] 1 end]
+    foreach v $plusvariant {
+        set installedvariations($v) +
     }
 
-    # merge in the old variants
+    # merge in the old requested variants
     foreach {variation value} $oldvariantlist {
         if {![info exists variations($variation)]} {
             set variations($variation) $value
         }
-        # save the current variants for dependency calculation purposes
-        # in case we don't end up upgrading this port
-        set installedvariations($variation) $value
     }
 
     # Now merge in the global (i.e. variants.conf) variations.
-    # We wait until now so that existing variants for this port
+    # We wait until now so that existing requested variants for this port
     # override global variations
     foreach {variation value} $globalvarlist {
         if {![info exists variations($variation)]} {
@@ -4145,15 +4160,15 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             if {[info exists portinfo(canonical_active_variants)] && $portinfo(canonical_active_variants) ne $oldvariant} {
                 if {[llength $variationslist] > 0} {
                     ui_warn "Skipping upgrade since $portname ${version_installed}_$revision_installed >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\". Use 'upgrade --enforce-variants' to switch to the requested variants."
-                    # reopen with the installed variants so deps are calculated correctly
-                    catch {mportclose $mport}
-                    if {[catch {set mport [mportopen $porturl [array get interp_options] [array get installedvariations]]} result]} {
-                        ui_debug $::errorInfo
-                        ui_error "Unable to open port: $result"
-                        return 1
-                    }
                 } else {
                     ui_debug "Skipping upgrade since $portname ${version_installed}_$revision_installed >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\"."
+                }
+                # reopen with the installed variants so deps are calculated correctly
+                catch {mportclose $mport}
+                if {[catch {set mport [mportopen $porturl [array get interp_options] [array get installedvariations]]} result]} {
+                    ui_debug $::errorInfo
+                    ui_error "Unable to open port: $result"
+                    return 1
                 }
             } else {
                 ui_debug "No need to upgrade! $portname ${version_installed}_$revision_installed >= $portname ${version_in_tree}_$revision_in_tree"
@@ -5195,7 +5210,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         if {$macports::revupgrade_mode ne "rebuild"} {
             ui_msg "$macports::ui_prefix Found $num_broken_ports broken port${s}:"
             foreach port $broken_ports {
-                ui_msg "     [$port name] @[$port version] [$port variants][$port negated_variants]"
+                ui_msg "     [$port name] @[$port version]_[$port revision][$port variants]"
                 if {[info exists broken_files_by_port($port)]} {
                     foreach f $broken_files_by_port($port) {
                         ui_msg "         $f"
@@ -5280,7 +5295,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         foreach port $topsort_ports {
             lappend broken_portnames [$port name]@[$port version][$port variants]
             if {![info exists macports::ui_options(questions_yesno)]} {
-                ui_msg "     [$port name] @[$port version] [$port variants][$port negated_variants]"
+                ui_msg "     [$port name] @[$port version]_[$port revision][$port variants]"
             }
         }
 
@@ -5390,7 +5405,7 @@ proc macports::revupgrade_buildgraph {port stackname adjlistname revadjlistname 
 
     set visited($port) true
 
-    ui_debug "Processing port [$port name] @[$port epoch]:[$port version]_[$port revision] [$port variants] [$port negated_variants]"
+    ui_debug "Processing port [$port name] @[$port epoch]:[$port version]_[$port revision][$port variants]"
     set dependent_ports [$port dependents]
     foreach dep $dependent_ports {
         set is_broken_port false

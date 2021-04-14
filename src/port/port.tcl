@@ -3296,19 +3296,18 @@ proc action_installed { action portlist opts } {
             set ivariants [lindex $i 3]
             set iactive [lindex $i 4]
             set extra ""
-            set nvariants ""
             if {[macports::ui_isset ports_verbose]} {
                 set regref [registry::open_entry $iname $iversion $irevision $ivariants [lindex $i 5]]
-                set nvariants [registry::property_retrieve $regref negated_variants]
-                if {$nvariants == 0} {
-                    set nvariants ""
+                set rvariants [registry::property_retrieve $regref requested_variants]
+                if {$rvariants != 0} {
+                    append extra " requested_variants='$rvariants'"
                 }
                 set os_platform [registry::property_retrieve $regref os_platform]
                 set os_major [registry::property_retrieve $regref os_major]
-                set archs [registry::property_retrieve $regref archs]
                 if {$os_platform != 0 && $os_platform ne "" && $os_major != 0 && $os_major ne ""} {
                     append extra " platform='$os_platform $os_major'"
                 }
+                set archs [registry::property_retrieve $regref archs]
                 if {$archs != 0 && $archs ne ""} {
                     append extra " archs='$archs'"
                 }
@@ -3318,9 +3317,9 @@ proc action_installed { action portlist opts } {
                 }
             }
             if { $iactive == 0 } {
-                puts "  $iname @${iversion}_${irevision}${ivariants}${nvariants}${extra}"
+                puts "  $iname @${iversion}_${irevision}${ivariants}${extra}"
             } elseif { $iactive == 1 } {
-                puts "  $iname @${iversion}_${irevision}${ivariants}${nvariants} (active)${extra}"
+                puts "  $iname @${iversion}_${irevision}${ivariants} (active)${extra}"
             }
         }
     } elseif { $restrictedList } {

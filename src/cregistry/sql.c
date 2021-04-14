@@ -160,7 +160,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
             ", version TEXT COLLATE VERSION"
             ", revision INTEGER"
             ", variants TEXT"
-            ", negated_variants TEXT"
+            ", requested_variants TEXT"
             ", state TEXT"
             ", date DATETIME"
             ", installtype TEXT"
@@ -746,6 +746,105 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             continue;
         }
 
+        if (sql_version(NULL, -1, version, -1, "1.210") < 0) {
+            /* add */
+            static char* version_1_210_queries[] = {
+#if SQLITE_VERSION_NUMBER >= 3025000
+                "ALTER TABLE registry.ports RENAME COLUMN negated_variants TO requested_variants",
+#else
+
+                /* Create a temporary table */
+                "CREATE TEMPORARY TABLE mp_ports_backup ("
+                "id INTEGER PRIMARY KEY"
+                ", name TEXT COLLATE NOCASE"
+                ", portfile TEXT"
+                ", location TEXT"
+                ", epoch INTEGER"
+                ", version TEXT COLLATE VERSION"
+                ", revision INTEGER"
+                ", variants TEXT"
+                ", negated_variants TEXT"
+                ", state TEXT"
+                ", date DATETIME"
+                ", installtype TEXT"
+                ", archs TEXT"
+                ", requested INTEGER"
+                ", os_platform TEXT"
+                ", os_major INTEGER"
+                ", cxx_stdlib TEXT"
+                ", cxx_stdlib_overridden INTEGER"
+                ", UNIQUE (name, epoch, version, revision, variants)"
+                ")",
+
+                /* Copy all data into the temporary table */
+                "INSERT INTO mp_ports_backup SELECT id, name, portfile, location, epoch, "
+                    "version, revision, variants, negated_variants, state, date, installtype, "
+                    "archs, requested, os_platform, os_major, cxx_stdlib, "
+                    "cxx_stdlib_overridden FROM registry.ports",
+
+                /* Drop the original table and re-create it with the new structure */
+                "DROP TABLE registry.ports",
+                "CREATE TABLE registry.ports ("
+                "id INTEGER PRIMARY KEY"
+                ", name TEXT COLLATE NOCASE"
+                ", portfile TEXT"
+                ", location TEXT"
+                ", epoch INTEGER"
+                ", version TEXT COLLATE VERSION"
+                ", revision INTEGER"
+                ", variants TEXT"
+                ", requested_variants TEXT"
+                ", state TEXT"
+                ", date DATETIME"
+                ", installtype TEXT"
+                ", archs TEXT"
+                ", requested INTEGER"
+                ", os_platform TEXT"
+                ", os_major INTEGER"
+                ", cxx_stdlib TEXT"
+                ", cxx_stdlib_overridden INTEGER"
+                ", UNIQUE (name, epoch, version, revision, variants)"
+                ")",
+                "CREATE INDEX registry.port_name ON ports"
+                    "(name, epoch, version, revision, variants)",
+                "CREATE INDEX registry.port_state ON ports(state)",
+
+                /* Copy all data back from temporary table */
+                "INSERT INTO registry.ports (id, name, portfile, location, epoch, version, "
+                    "revision, variants, requested_variants, state, date, installtype, archs, "
+                    "requested, os_platform, os_major, cxx_stdlib, cxx_stdlib_overridden) "
+                    "SELECT id, name, portfile, location, epoch, version, revision, "
+                    "variants, negated_variants, state, date, installtype, archs, "
+                    "requested, os_platform, os_major, cxx_stdlib, cxx_stdlib_overridden "
+                    "FROM mp_ports_backup",
+
+                /* Remove temporary table */
+                "DROP TABLE mp_ports_backup",
+#endif
+
+                /* Assume all existing variants were requested, which often
+                   won't be true, but does match the former upgrade behaviour. */
+                "UPDATE registry.ports SET requested_variants = variants || requested_variants",
+
+                "UPDATE registry.metadata SET value = '1.210' WHERE key = 'version'",
+
+                "COMMIT",
+                NULL
+            };
+
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+
+            if (!do_queries(db, version_1_210_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
+
         /* add new versions here, but remember to:
          *  - finalize the version query statement and set stmt to NULL
          *  - do _not_ use "BEGIN" in your query list, since a transaction has
@@ -755,7 +854,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
          *  - update the current version number below
          */
 
-        if (sql_version(NULL, -1, version, -1, "1.205") > 0) {
+        if (sql_version(NULL, -1, version, -1, "1.210") > 0) {
             /* the registry was already upgraded to a newer version and cannot be used anymore */
             reg_throw(errPtr, REG_INVALID, "Version number in metadata table is newer than expected.");
             sqlite3_finalize(stmt);

@@ -359,7 +359,7 @@ proc list_dependents {name version revision variants} {
 #  \li \c imagefiles A list of files installed by this port
 #  \li \c files A list of filenames as which the imagefiles should be activated
 #      if state is "installed"
-#  \li \c negated_variants The canonical representation of the negated variants
+#  \li \c requested_variants The canonical representation of the requested variants
 #  \li \c os_platform The platform on which the port was installed
 #  \li \c os_major The major version of the OS on which the port was installed
 #  \li \c archs A list of architectures of this port
@@ -395,7 +395,7 @@ proc create_entry_l {proplist} {
         } else {
             $regref map $props(files)
         }
-        foreach key {negated_variants os_platform os_major archs} {
+        foreach key {requested_variants os_platform os_major archs} {
             if {$props($key) != 0} {
                 $regref $key $props($key)
             } else {

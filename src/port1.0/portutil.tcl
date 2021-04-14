@@ -2020,7 +2020,7 @@ proc canonicalize_variants {variants {sign "+"}} {
 }
 
 proc eval_variants {variations} {
-    global all_variants PortInfo requested_variations portvariants negated_variants
+    global all_variants PortInfo requested_variations portvariants requested_variants
     set dlist $all_variants
     upvar $variations upvariations
     set chosen [choose_variants $dlist upvariations]
@@ -2086,13 +2086,16 @@ proc eval_variants {variations} {
     set PortInfo(active_variants) $activevariants
     set PortInfo(canonical_active_variants) $portvariants
 
-    # now set the negated variants
-    set negated_list [list]
+    # now set the requested variants
+    foreach dvar $chosen {
+        set thevar [ditem_key $dvar provides]
+        lappend requested_list $thevar "+"
+    }
     foreach dvar $negated {
         set thevar [ditem_key $dvar provides]
         lappend negated_list $thevar "-"
     }
-    set negated_variants [canonicalize_variants $negated_list "-"]
+    set requested_variants [canonicalize_variants $requested_list "+"][canonicalize_variants $negated_list "-"]
 
     return 0
 }
