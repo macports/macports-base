@@ -2087,10 +2087,12 @@ proc eval_variants {variations} {
     set PortInfo(canonical_active_variants) $portvariants
 
     # now set the requested variants
+    set requested_list [list]
     foreach dvar $chosen {
         set thevar [ditem_key $dvar provides]
         lappend requested_list $thevar "+"
     }
+    set negated_list [list]
     foreach dvar $negated {
         set thevar [ditem_key $dvar provides]
         lappend negated_list $thevar "-"
