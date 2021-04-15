@@ -109,6 +109,11 @@ proc activate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
         set specifier "${version}_${revision}${variants}"
         set location [$requested location]
 
+        if {[$requested state] eq "installed"} {
+            ui_info "${name} @${specifier} is already active."
+            return
+        }
+
         # if another version of this port is active, deactivate it first
         set current [registry::entry installed $name]
         foreach i $current {
@@ -123,9 +128,6 @@ proc activate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
         }
         if {![::file isfile $location]} {
             return -code error "Image error: Can't find image file $location"
-        }
-        if {[$requested state] eq "installed"} {
-            return -code error "Image error: ${name} @${specifier} is already active."
         }
     }
     foreach a $todeactivate {
@@ -173,7 +175,20 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
     if { [llength $ilist] == 1 } {
         set requested [lindex $ilist 0]
     } else {
-        throw registry::image-error "Image error: port ${name} is not active."
+        set ilist [_check_registry $name $version $revision $variants 1]
+        if {[llength $ilist] > 0} {
+            ui_info "port ${name} is already inactive"
+            return
+        } else {
+            set v ""
+            if {$version ne ""} {
+                set v " @${version}"
+                if {$revision ne ""} {
+                    append v _${revision}${variants}
+                }
+            }
+            throw registry::image-error "Image error: port ${name}${v} is not active."
+        }
     }
     # set name again since the one we were passed may not have had the correct case
     set name [$requested name]
@@ -184,6 +199,18 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
         set v $version
         if {$revision ne ""} {
             append v _${revision}${variants}
+        }
+        set ilist [_check_registry $name $version $revision $variants 1]
+        foreach inact $ilist {
+            if {$revision ne ""} {
+                set thisv [$inact version]_[$inact revision][$inact variants]
+            } else {
+                set thisv [$inact version]
+            }
+            if {$v eq $thisv} {
+                ui_info "port ${name} @${thisv} is already inactive"
+                return
+            }
         }
         return -code error "Active version of $name is not $v but ${specifier}."
     }
@@ -208,7 +235,7 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
     _deactivate_contents $requested [$requested files] $force
 }
 
-proc _check_registry {name version revision variants} {
+proc _check_registry {name version revision variants {return_all 0}} {
     global UI_PREFIX
 
     set searchkeys $name
@@ -224,6 +251,9 @@ proc _check_registry {name version revision variants} {
         }
     }
     set ilist [registry::entry imaged {*}$searchkeys]
+    if {$return_all} {
+        return $ilist
+    }
 
     if { [llength $ilist] > 1 } {
         set portilist [list]
