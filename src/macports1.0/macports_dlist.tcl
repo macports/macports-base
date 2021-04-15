@@ -278,10 +278,15 @@ proc dlist_get_next {dlist statusdict} {
 #              occures; if 0, then dlist_eval will return on the
 #              first failure
 #   selector - the selector for determining eligibility
+#   reason_var - variable name to return failure reason in
 
-proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"}} {
+proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"} {reason_var "dlist_eval_reason"}} {
 	array set statusdict [list]
-	
+	if {$reason_var ne ""} {
+	    upvar $reason_var reason
+	}
+	set reason ""
+
 	# Do a pre-run seeing if any items automagically
 	# can evaluate to true.
 	if {$testcond ne ""} {
@@ -301,7 +306,7 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 
 		if {$ditem eq {}} {
 			if {[llength $dlist] > 0} {
-				ui_debug "dlist_eval: all entries in dependency list have unsatisfied dependencies; can't process"
+				set reason unmet_deps
 			}
 			break
 		} else {
@@ -310,6 +315,7 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 			if {[catch {{*}$handler $ditem} result]} {
 				ui_debug $::errorInfo
 				ui_error $result
+				set reason handler
 				return $dlist
 			}
 			# No news is good news at this point.
@@ -321,6 +327,7 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 			
 			# Abort if we're not allowed to fail
 			if {$canfail == 0 && $result != 0} {
+			    set reason handler
 				return $dlist
 			}
 			

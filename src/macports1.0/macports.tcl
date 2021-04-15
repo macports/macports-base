@@ -2323,14 +2323,20 @@ proc mportexec {mport target} {
         if {$result ne ""} {
             ##
             # When this happens, the failing port usually already printed an
-            # error message. Omit this one to avoid cluttering the output and
-            # hiding the *real* problem.
+            # error message. Don't print another here to avoid cluttering the
+            # output and hiding the *real* problem, unless the problem
+            # appears to be a circular dependency, which won't have produced
+            # an error message yet.
 
-            #set errstring "The following dependencies were not installed:"
-            #foreach ditem $result {
-            #    append errstring " [ditem_key $ditem provides]"
-            #}
-            #ui_error $errstring
+            if {$dlist_eval_reason eq "unmet_deps"} {
+                set errstring "The following dependencies were not installed\
+                    because all of them have unmet dependencies (likely due\
+                    to a dependency cycle):"
+                foreach ditem $result {
+                    append errstring " [ditem_key $ditem provides]"
+                }
+                ui_error $errstring
+            }
             foreach ditem $dlist {
                 catch {mportclose $ditem}
             }
@@ -3920,6 +3926,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 array unset portinfo
                 array set portinfo [mportinfo $mport]
 
+                # mark it in the cache now to guard against circular dependencies
+                set depscache(port:$portname) 1
                 # upgrade its dependencies first
                 set status [_upgrade_dependencies portinfo depscache variationslist options]
                 if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
@@ -3938,8 +3946,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                     catch {mportclose $mport}
                     return $result
                 }
-                # we just installed it, so mark it done in the cache
-                set depscache(port:$portname) 1
                 mportclose $mport
             } else {
                 # dependency is satisfied by something other than the named port
