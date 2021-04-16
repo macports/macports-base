@@ -5192,12 +5192,16 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         foreach port $temp_broken_ports {
             set portname [$port name]
 
+            set broken_reason ""
+            if {![info exists broken_files_by_port($port)]} {
+                set broken_reason "(cxx_stdlib mismatch) "
+            }
             if {![info exists broken_port_counts($portname)]} {
                 set broken_port_counts($portname) 0
             }
             incr broken_port_counts($portname)
             if {$broken_port_counts($portname) > 3} {
-                ui_error "Port $portname is still broken after rebuilding it more than 3 times."
+                ui_error "Port $portname is still broken ${broken_reason}after rebuilding it more than 3 times."
                 if {$fancy_output} {
                     ui_error "Please run port -d -y rev-upgrade and use the output to report a bug."
                 }
@@ -5205,7 +5209,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 set s [expr {$rebuild_tries == 1 ? "" : "s"}]
                 error "Port $portname still broken after rebuilding $rebuild_tries time${s}"
             } elseif {$broken_port_counts($portname) > 1 && [global_option_isset ports_binary_only]} {
-                error "Port $portname still broken after reinstalling -- can't rebuild due to binary-only mode"
+                error "Port $portname still broken ${broken_reason}after reinstalling -- can't rebuild due to binary-only mode"
             }
             lappend broken_ports $port
         }
@@ -5222,6 +5226,8 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     foreach f $broken_files_by_port($port) {
                         ui_msg "         $f"
                     }
+                } else {
+                    ui_msg "         (cxx_stdlib mismatch)"
                 }
             }
             return 0
