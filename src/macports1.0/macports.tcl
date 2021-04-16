@@ -147,10 +147,9 @@ proc macports::init_logging {mport} {
 }
 
 proc macports::ch_logging {mport} {
-    set portname [_mportkey $mport subport]
-    set portpath [_mportkey $mport portpath]
-
-    ui_debug "Starting logging for $portname"
+    array set portinfo [mportinfo $mport]
+    set portname $portinfo(name)
+    set portpath [ditem_key $mport portpath]
 
     set logname [macports::getportlogpath $portpath $portname]
     file mkdir $logname
@@ -161,6 +160,8 @@ proc macports::ch_logging {mport} {
     # Append to the file if it already exists
     set ::debuglog [open $::debuglogname a]
     puts $::debuglog version:1
+
+    ui_debug "Starting logging for $portname @$portinfo(version)_$portinfo(revision)$portinfo(canonical_active_variants)"
 }
 
 # log platform information
