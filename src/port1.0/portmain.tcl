@@ -128,6 +128,7 @@ default install.user {${portutil::autoconf::install_user}}
 default install.group {${portutil::autoconf::install_group}}
 
 # Platform Settings
+default platforms darwin
 default os.platform {$os_platform}
 default os.subplatform {$os_subplatform}
 default os.version {$os_version}
