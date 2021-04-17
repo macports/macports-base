@@ -21,16 +21,16 @@
 
 # Commits to the "base" component of the repository:
 
- *  Commits with user-visible affect made to the "base" component of the
+ *  Commits with user-visible effect made to the "base" component of the
     repository should be accompanied by a corresponding entry in the
     base/ChangeLog file, with references to pertinent Trac ticket
-    numbers and svn commit revisions where appropriate.
+    numbers and git commits where appropriate.
 
  *  Such entries to the ChangeLog need not be full duplications of their
     related commit logs if the latter are thorough explanations of
     what's involved in the commit. In such cases it's perfectly
     acceptable to enter just a summary of the commit and point the
-    reader to further information through the related svn revision and
+    reader to further information through the related git commit and
     Trac ticket number (if applicable).
 
  *  Related commits to "base" should be grouped in a single ChangeLog
