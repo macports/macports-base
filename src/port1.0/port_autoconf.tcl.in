@@ -42,7 +42,6 @@ namespace eval portutil::autoconf {
 	variable find_path "@FIND@"
 	variable bzr_path "@BZR@"
 	variable cvs_path "@CVS@"
-	variable svn_path "@SVN@"
 	variable git_path "@GIT@"
 	variable hg_path "@HG@"
 	variable gzip_path "@GZIP_BIN@"

@@ -85,12 +85,12 @@ default cvs.pre_args {-z9 -f -d ${cvs.root}}
 default cvs.args ""
 default cvs.post_args {${cvs.module}}
 
-default svn.cmd {[portfetch::find_svn_path]}
+default svn.cmd {${prefix_frozen}/bin/svn}
 default svn.dir {${workpath}}
 default svn.method {export}
 default svn.revision ""
 default svn.env {}
-default svn.pre_args "--non-interactive --trust-server-cert"
+default svn.pre_args --non-interactive
 default svn.args ""
 default svn.post_args ""
 
@@ -187,12 +187,7 @@ proc portfetch::set_fetch_type {option action args} {
                 depends_fetch-append bin:cvs:cvs
             }
             svn {
-                # Oldest macOS version whose svn can validate GitHub's SSL certificate.
-                if {${os.major} >= 16 || ${os.platform} ne "darwin"} {
-                    depends_fetch-append bin:svn:subversion
-                } else {
-                    depends_fetch-append port:subversion
-                }
+                depends_fetch-append port:subversion
             }
             git {
                 # Oldest macOS version whose git can validate GitHub's SSL certificate.
@@ -206,16 +201,6 @@ proc portfetch::set_fetch_type {option action args} {
                 depends_fetch-append bin:hg:mercurial
             }
         }
-    }
-}
-
-proc portfetch::find_svn_path {args} {
-    global prefix_frozen os.platform os.major
-    # Oldest macOS version whose svn can validate GitHub's SSL certificate.
-    if {${os.major} >= 16 || ${os.platform} ne "darwin"} {
-        return [findBinary svn $portutil::autoconf::svn_path]
-    } else {
-        return ${prefix_frozen}/bin/svn
     }
 }
 

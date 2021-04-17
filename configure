@@ -729,7 +729,6 @@ XAR
 UNZIP
 TAR
 SWIG
-SVN
 SED
 SANDBOX_EXEC
 RSYNC
@@ -852,7 +851,6 @@ with_open
 with_openssl
 with_rsync
 with_sed
-with_svn
 with_swig
 with_tar
 with_xar
@@ -1528,7 +1526,6 @@ Optional Packages:
   --with-openssl=PATH     path to alternate openssl command
   --with-rsync=PATH       path to alternate rsync command
   --with-sed=PATH         path to alternate sed command
-  --with-svn=PATH         path to alternate svn command
   --with-swig=PATH        path to alternate swig command
   --with-tar=PATH         path to alternate tar command
   --with-xar=PATH         path to alternate xar command
@@ -4084,13 +4081,6 @@ then :
 fi
 
 
-# Check whether --with-svn was given.
-if test ${with_svn+y}
-then :
-  withval=$with_svn; SVN=$withval
-fi
-
-
 # Check whether --with-swig was given.
 if test ${with_swig+y}
 then :
@@ -5807,51 +5797,6 @@ SED=$ac_cv_path_SED
 if test -n "$SED"; then
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $SED" >&5
 printf "%s\n" "$SED" >&6; }
-else
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-fi
-
-
-# Extract the first word of "svn", so it can be a program name with args.
-set dummy svn; ac_word=$2
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-printf %s "checking for $ac_word... " >&6; }
-if test ${ac_cv_path_SVN+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  case $SVN in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_SVN="$SVN" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  case $as_dir in #(((
-    '') as_dir=./ ;;
-    */) ;;
-    *) as_dir=$as_dir/ ;;
-  esac
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
-    ac_cv_path_SVN="$as_dir$ac_word$ac_exec_ext"
-    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-SVN=$ac_cv_path_SVN
-if test -n "$SVN"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $SVN" >&5
-printf "%s\n" "$SVN" >&6; }
 else
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
