@@ -71,7 +71,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
     try -pass_signal {
         system "$rsync_path $rsync_options rsync://${rsync_server}/$rsync_dir $mp_source_path"
     } catch {{*} eCode eMessage} {
-        return -code error "Error synchronizing MacPorts sources: $eMessage"
+        error "Error synchronizing MacPorts sources: $eMessage"
     }
 
     if {$is_tarball} {
@@ -80,7 +80,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
         try -pass_signal {
             system "$rsync_path $rsync_options rsync://${rsync_server}/${rsync_dir}.rmd160 $mp_source_path"
         } catch {{*} eCode eMessage} {
-            return -code error "Error synchronizing MacPorts source signature: $eMessage"
+            error "Error synchronizing MacPorts source signature: $eMessage"
         }
         set openssl [macports::findBinary openssl $macports::autoconf::openssl_path]
         set tarball ${mp_source_path}/[file tail $rsync_dir]
@@ -108,7 +108,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
         try -pass_signal {
             system $tar_cmd
         } catch {*} {
-            return -code error "Failed to extract MacPorts sources from tarball!"
+            error "Failed to extract MacPorts sources from tarball!"
         }
         file delete -force ${mp_source_path}/base
         file rename ${mp_source_path}/tmp/base ${mp_source_path}/base
@@ -154,7 +154,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
         try {
             mportsync $optionslist
         }  catch {{*} eCode eMessage} {
-            return -code error "Couldn't sync the ports tree: $eMessage"
+            error "Couldn't sync the ports tree: $eMessage"
         }
     }
 
@@ -221,7 +221,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
             try {
                 system -W $mp_source_path "${cc_arg}${sdk_arg}./configure $configure_args && ${sdk_arg}make SELFUPDATING=1 && make install SELFUPDATING=1"
             } catch {{*} eCode eMessage} {
-                return -code error "Error installing new MacPorts base: $eMessage"
+                error "Error installing new MacPorts base: $eMessage"
             }
             if {[info exists updatestatus]} {
                 set updatestatus yes
@@ -239,7 +239,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
     try {
         exec [macports::findBinary chown $macports::autoconf::chown_path] -R $sources_owner [file join $portdbpath sources/]
     }  catch {{*} eCode eMessage} {
-        return -code error "Couldn't change permissions of the MacPorts sources at $mp_source_path to ${sources_owner}: $eMessage"
+        error "Couldn't change permissions of the MacPorts sources at $mp_source_path to ${sources_owner}: $eMessage"
     }
 
     if {![info exists options(ports_selfupdate_no-sync)] || !$options(ports_selfupdate_no-sync)} {
