@@ -116,7 +116,8 @@ proc break_softcontinue { msg status name_status } {
 # show the URL for the ticket reporting instructions
 proc print_tickets_url {args} {
     if {${macports::prefix} ne "/usr/local" && ${macports::prefix} ne "/usr"} {
-        ui_error "Follow https://guide.macports.org/#project.tickets if you believe there is a bug."
+        set len [string length [macports::ui_prefix_default error]]
+        ui_error [wrap "Follow https://guide.macports.org/#project.tickets if you believe there is a bug." -${len}]
     }
 }
 
@@ -504,18 +505,19 @@ proc wrap {string maxlen {indent ""} {indentfirstline 1}} {
 # @see wrap
 #
 # @param line input line
-# @param maxlen text width (0 defaults to current terminal width)
+# @param maxlen text width (0 defaults to current terminal width,
+#        negative numbers reduce width from terminal's)
 # @param indent prepend to every line
 # @return wrapped string
 proc wrapline {line maxlen {indent ""} {indentfirstline 1}} {
     global env
 
-    if {$maxlen == 0} {
+    if {$maxlen <= 0} {
         if {![info exists env(COLUMNS)]} {
             # no width for wrapping
             return $string
         }
-        set maxlen $env(COLUMNS)
+        set maxlen [expr {$env(COLUMNS) + $maxlen}]
     }
 
     set string [split $line " "]
