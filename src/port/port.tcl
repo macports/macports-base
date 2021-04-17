@@ -116,7 +116,7 @@ proc break_softcontinue { msg status name_status } {
 # show the URL for the ticket reporting instructions
 proc print_tickets_url {args} {
     if {${macports::prefix} ne "/usr/local" && ${macports::prefix} ne "/usr"} {
-        ui_error "Follow https://guide.macports.org/#project.tickets to report a bug."
+        ui_error "Follow https://guide.macports.org/#project.tickets if you believe there is a bug."
     }
 }
 
