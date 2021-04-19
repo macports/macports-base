@@ -3,17 +3,82 @@
 ###
 
 Release 2.7.0 (unreleased)
+    - The 'platforms' option now has a default value of 'darwin'.
+      (jmr in d918190)
+
+    - Fixed incorrect versioning assumptions that led to being unable
+      to find the right SDK on Big Sur. (#61866, jmr in 8aa347e)
+
+    - Fixed installer incorrectly setting DISPLAY in the user's shell
+      config on Big Sur. (#61649, jmr in 4ce1e96)
+
+    - Fixed crash in rev-upgrade when MacPorts was built against the
+      macOS 11 SDK and run on 10.15. (#61540, jmr in 23f2aa3)
+
+    - Fixed minimum compiler version selected when C++14 and
+      thread-local storage are required.
+      (#61418, chrstphrchvz in 618d036)
+
+    - Enabled write-ahead logging when using SQLite 3.22.0 and later,
+      and enabled the fullfsync pragma, which should make the database
+      even more resilient against power failures and the like.
+      (#61154, jmr in 5779dbc)
+
+    - Fixed svn fetch with newer Xcode versions that no longer provide
+      svn (but do ship a /usr/bin/svn stub) by always using the
+      subversion port. (#60854, jmr in 4acfd68)
+
+    - Logs now explicitly mention the port's version, revision, and
+      active variants. (#59643, jmr in d484695)
+
+    - Improved error reporting when circular dependencies are present
+      when installing or upgrading ports. (#59289, jmr in cea9833)
+
+    - The universal variant is removed if it is not possible to build
+      for two or more architectures. (#57133, jmr in fcff138)
+
+    - New universal_possible variable can be checked to see if
+      universal building is possible. (jmr in e356e1e)
+
+    - Fixed error when choosing the currently active version when
+      interactively prompted to pick a version by 'port activate'.
+      (#56817, jmr in 5f41bb4)
+
+    - Configuring MacPorts base with --with-no-root-privileges now
+      also defaults to --without-startupitems. (#56743, jmr in a18eb94)
+
+    - Rev-upgrade now makes it more obvious when a port is considered
+      broken because of using the wrong cxx_stdlib.
+      (#56629, jmr in 00a2631)
+
+    - Fixed missing error message when the sync portion of selfupdate
+      fails. (#56549, jmr in 8f4b9e5)
+
+    - When installing a port, the variants that are requested by the
+      user (either on the command line or via variants.conf) are now
+      recorded in the registry in order to distinguish them from
+      default variants chosen by the port. When upgrading, only the
+      requested variants from the previous version, rather than all its
+      active variants, are considered when deciding which variants to
+      request when installing the new version. (#46956, jmr in 19c9339)
+
+    - Added new variables macos_version and macos_version_major, which
+      contain the full macOS version (like 10.15.7) and the major macOS
+      version (like 10.15 or 11), respectively. The macosx_version
+      variable is still available but deprecated.
+      (#56252, jmr in 1916d6f)
+
     - reclaim: remove everything under build and ccache directories.
-      (khindenburg in b9fdb847, d08d261f)
+      (#60126, khindenburg in b9fdb847, d08d261f)
 
     - For various actions, abort if @version specified is not current.
-      (khindenburg, jmr in 835a7db1, ca071954)
+      (#60454, khindenburg, jmr in 835a7db1, ca071954)
 
     - Abort when a port includes a nonexistent PortGroup.
-      (khindenburg in d9139328)
+      (#59787, khindenburg in d9139328)
 
     - Adjust lint --nitpick on patchfiles to allow *.diff or *.patch.
-      (khindenburg in 5037999e)
+      (#59695, khindenburg in 5037999e)
 
     - Display a progress bar when the underlying build system provides the
       necessary information, which is currently cmake and ninja.
@@ -134,7 +199,7 @@ Release 2.6.0 (2019-09-21 by jmr)
     - Overhauled compiler selection logic. Ports can now specify that
       they require a particular C or C++ standard (e.g. C++11),
       Fortran, OpenMP, MPI, or TLS, and a suitable compiler will be
-      chosen based on all these criteria. (mcalhoun in 5e17a69)
+      chosen based on all these criteria. (#55139, mcalhoun in 5e17a69)
 
     - Rewrote handling of *.env options. This should fix cases where
       environment variables were not being set because the old code
