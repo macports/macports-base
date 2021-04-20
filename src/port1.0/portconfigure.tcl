@@ -276,11 +276,12 @@ default configure.pkg_config_path   {}
 
 options configure.build_arch configure.ld_archflags \
         configure.sdk_version configure.sdkroot \
-        configure.developer_dir
+        configure.sysroot configure.developer_dir
 default configure.build_arch    {[portconfigure::choose_supported_archs ${build_arch}]}
 default configure.ld_archflags  {[portconfigure::configure_get_ld_archflags]}
 default configure.sdk_version   {$macosx_sdk_version}
 default configure.sdkroot       {[portconfigure::configure_get_sdkroot ${configure.sdk_version}]}
+default configure.sysroot       {[expr {${configure.sdkroot} ne "" ? ${configure.sdkroot} : "/"}]}
 default configure.developer_dir {[portconfigure::configure_get_developer_dir]}
 foreach tool {cc objc f77 f90 fc} {
     options configure.${tool}_archflags
