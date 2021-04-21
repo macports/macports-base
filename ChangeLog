@@ -87,6 +87,10 @@ Release 2.7.0 (unreleased)
     - Support compressed web pages for livecheck.
       (#55011, dgilman in 8c41ca7, d741f0c)
 
+    - Added configure.sysroot variable, which is set to either
+      ${configure.sdkroot} if an SDK is being used, or "/" if not.
+      (#59798, jmr in 8d76ba6)
+
 Release 2.6.4 (2020-11-14 by jmr)
     - Fixed incorrectly requiring a full Xcode installation when
       building all ports on Big Sur. (#61435, jmr in d58b124)
