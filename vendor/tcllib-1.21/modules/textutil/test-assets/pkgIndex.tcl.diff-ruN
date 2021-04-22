@@ -1,0 +1,11 @@
+diff -ruN old/pkgIndex.tcl new/pkgIndex.tcl
+--- old/pkgIndex.tcl	2019-06-26 11:42:01.194722156 -0700
++++ new/pkgIndex.tcl	2019-06-26 11:42:43.690791588 -0700
+@@ -11,3 +11,7 @@
+ package ifneeded textutil::string   0.8   [list source [file join $dir string.tcl]]
+ package ifneeded textutil::expander 1.3.1 [list source [file join $dir expander.tcl]]
+ package ifneeded textutil::wcswidth 35.0  [list source [file join $dir wcswidth.tcl]]
++
++if {![package vsatisfies [package provide Tcl] 8.5]} { return }
++
++package ifneeded textutil::patch 0.1 [list source [file join $dir patch.tcl]]

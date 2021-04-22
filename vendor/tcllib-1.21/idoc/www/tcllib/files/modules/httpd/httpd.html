@@ -1,0 +1,819 @@
+<!DOCTYPE html><html><head>
+<title>httpd - Tcl Web Server</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'httpd.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; 2018 Sean Woods &amp;lt;yoda@etoyoc.com&amp;gt;
+   -->
+<!-- httpd.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+&#124; <a href="../../../../toc.html">Main Table Of Contents</a>
+&#124; <a href="../../../toc.html">Table Of Contents</a>
+&#124; <a href="../../../../index.html">Keyword Index</a>
+&#124; <a href="../../../../toc0.html">Categories</a>
+&#124; <a href="../../../../toc1.html">Modules</a>
+&#124; <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">httpd(n) 4.3.5 tcllib &quot;Tcl Web Server&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>httpd - A TclOO and coroutine based web server</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Minimal Example</a></li>
+<li class="doctools_section"><a href="#section3">Classes</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Class  httpd::mime</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Class  httpd::reply</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Class  httpd::server</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Class  httpd::server::dispatch</a></li>
+<li class="doctools_subsection"><a href="#subsection5">Class  httpd::content.redirect</a></li>
+<li class="doctools_subsection"><a href="#subsection6">Class  httpd::content.cache</a></li>
+<li class="doctools_subsection"><a href="#subsection7">Class  httpd::content.template</a></li>
+<li class="doctools_subsection"><a href="#subsection8">Class  httpd::content.file</a></li>
+<li class="doctools_subsection"><a href="#subsection9">Class  httpd::content.exec</a></li>
+<li class="doctools_subsection"><a href="#subsection10">Class  httpd::content.proxy</a></li>
+<li class="doctools_subsection"><a href="#subsection11">Class  httpd::content.cgi</a></li>
+<li class="doctools_subsection"><a href="#subsection12">Class  httpd::protocol.scgi</a></li>
+<li class="doctools_subsection"><a href="#subsection13">Class  httpd::content.scgi</a></li>
+<li class="doctools_subsection"><a href="#subsection14">Class  httpd::server.scgi</a></li>
+<li class="doctools_subsection"><a href="#subsection15">Class  httpd::content.websocket</a></li>
+<li class="doctools_subsection"><a href="#subsection16">Class  httpd::plugin</a></li>
+<li class="doctools_subsection"><a href="#subsection17">Class  httpd::plugin.dict_dispatch</a></li>
+<li class="doctools_subsection"><a href="#subsection18">Class  httpd::reply.memchan</a></li>
+<li class="doctools_subsection"><a href="#subsection19">Class  httpd::plugin.local_memchan</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">AUTHORS</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">uuid</b></li>
+<li>package require <b class="pkgname">clay</b></li>
+<li>package require <b class="pkgname">coroutine</b></li>
+<li>package require <b class="pkgname">fileutil</b></li>
+<li>package require <b class="pkgname">fileutil::magic::filetype</b></li>
+<li>package require <b class="pkgname">websocket</b></li>
+<li>package require <b class="pkgname">mime</b></li>
+<li>package require <b class="pkgname">cron</b></li>
+<li>package require <b class="pkgname">uri</b></li>
+<li>package require <b class="pkgname">Markdown</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1">method <b class="cmd">ChannelCopy</b> <i class="arg">in</i> <i class="arg">out</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#2">method <b class="cmd">html_header</b> <span class="opt">?<i class="arg">title</i> <b class="const"></b>?</span> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#3">method <b class="cmd">html_footer</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#4">method <b class="cmd">http_code_string</b> <i class="arg">code</i></a></li>
+<li><a href="#5">method <b class="cmd">HttpHeaders</b> <i class="arg">sock</i> <span class="opt">?<i class="arg">debug</i> <b class="const"></b>?</span></a></li>
+<li><a href="#6">method <b class="cmd">HttpHeaders_Default</b></a></li>
+<li><a href="#7">method <b class="cmd">HttpServerHeaders</b></a></li>
+<li><a href="#8">method <b class="cmd">MimeParse</b> <i class="arg">mimetext</i></a></li>
+<li><a href="#9">method <b class="cmd">Url_Decode</b> <i class="arg">data</i></a></li>
+<li><a href="#10">method <b class="cmd">Url_PathCheck</b> <i class="arg">urlsuffix</i></a></li>
+<li><a href="#11">method <b class="cmd">wait</b> <i class="arg">mode</i> <i class="arg">sock</i></a></li>
+<li><a href="#12">variable <b class="cmd">ChannelRegister</b></a></li>
+<li><a href="#13">variable <b class="cmd">reply</b></a></li>
+<li><a href="#14">variable <b class="cmd">request</b></a></li>
+<li><a href="#15">delegate <b class="cmd">&lt;server&gt;</b></a></li>
+<li><a href="#16">method <b class="cmd">constructor</b> <i class="arg">ServerObj</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#17">method <b class="cmd">destructor</b> <span class="opt">?<i class="arg">dictargs</i>?</span></a></li>
+<li><a href="#18">method <b class="cmd">ChannelRegister</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#19">method <b class="cmd">close</b></a></li>
+<li><a href="#20">method <b class="cmd">Log_Dispatched</b></a></li>
+<li><a href="#21">method <b class="cmd">dispatch</b> <i class="arg">newsock</i> <i class="arg">datastate</i></a></li>
+<li><a href="#22">method <b class="cmd">Dispatch</b></a></li>
+<li><a href="#23">method <b class="cmd">html_header</b> <i class="arg">title</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#24">method <b class="cmd">html_footer</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#25">method <b class="cmd"><a href="../../../../index.html#error">error</a></b> <i class="arg">code</i> <span class="opt">?<i class="arg">msg</i> <b class="const"></b>?</span> <span class="opt">?<i class="arg">errorInfo</i> <b class="const"></b>?</span></a></li>
+<li><a href="#26">method <b class="cmd">content</b></a></li>
+<li><a href="#27">method <b class="cmd">EncodeStatus</b> <i class="arg">status</i></a></li>
+<li><a href="#28">method <b class="cmd"><a href="../log/log.html">log</a></b> <i class="arg">type</i> <span class="opt">?<i class="arg">info</i> <b class="const"></b>?</span></a></li>
+<li><a href="#29">method <b class="cmd">CoroName</b></a></li>
+<li><a href="#30">method <b class="cmd">DoOutput</b></a></li>
+<li><a href="#31">method <b class="cmd">FormData</b></a></li>
+<li><a href="#32">method <b class="cmd">PostData</b> <i class="arg">length</i></a></li>
+<li><a href="#33">method <b class="cmd">Session_Load</b></a></li>
+<li><a href="#34">method <b class="cmd">puts</b> <i class="arg">line</i></a></li>
+<li><a href="#35">method <b class="cmd">RequestFind</b> <i class="arg">field</i></a></li>
+<li><a href="#36">method <b class="cmd">request</b> <i class="arg">subcommand</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#37">method <b class="cmd">reply</b> <i class="arg">subcommand</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#38">method <b class="cmd">reset</b></a></li>
+<li><a href="#39">method <b class="cmd">timeOutCheck</b></a></li>
+<li><a href="#40">method <b class="cmd"><a href="../../../../index.html#timestamp">timestamp</a></b></a></li>
+<li><a href="#41">variable <b class="cmd">template</b></a></li>
+<li><a href="#42">variable <b class="cmd">url_patterns</b></a></li>
+<li><a href="#43">method <b class="cmd">constructor</b> <i class="arg">args</i> <span class="opt">?<i class="arg">port</i> <b class="const">auto</b>?</span> <span class="opt">?<i class="arg">myaddr</i> <b class="const">127.0.0.1</b>?</span> <span class="opt">?<i class="arg">string</i> <b class="const">auto</b>?</span> <span class="opt">?<i class="arg">name</i> <b class="const">auto</b>?</span> <span class="opt">?<i class="arg">doc_root</i> <b class="const"></b>?</span> <span class="opt">?<i class="arg">reverse_dns</i> <b class="const">0</b>?</span> <span class="opt">?<i class="arg">configuration_file</i> <b class="const"></b>?</span> <span class="opt">?<i class="arg">protocol</i> <b class="const">HTTP/1.1</b>?</span></a></li>
+<li><a href="#44">method <b class="cmd">destructor</b> <span class="opt">?<i class="arg">dictargs</i>?</span></a></li>
+<li><a href="#45">method <b class="cmd">connect</b> <i class="arg">sock</i> <i class="arg">ip</i> <i class="arg">port</i></a></li>
+<li><a href="#46">method <b class="cmd">ServerHeaders</b> <i class="arg">ip</i> <i class="arg">http_request</i> <i class="arg">mimetxt</i></a></li>
+<li><a href="#47">method <b class="cmd">Connect</b> <i class="arg">uuid</i> <i class="arg">sock</i> <i class="arg">ip</i></a></li>
+<li><a href="#48">method <b class="cmd"><a href="../counter/counter.html">counter</a></b> <i class="arg">which</i></a></li>
+<li><a href="#49">method <b class="cmd">CheckTimeout</b></a></li>
+<li><a href="#50">method <b class="cmd"><a href="../debug/debug.html">debug</a></b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#51">method <b class="cmd">dispatch</b> <i class="arg">data</i></a></li>
+<li><a href="#52">method <b class="cmd">Dispatch_Default</b> <i class="arg">reply</i></a></li>
+<li><a href="#53">method <b class="cmd">Dispatch_Local</b> <i class="arg">data</i></a></li>
+<li><a href="#54">method <b class="cmd">Headers_Local</b> <i class="arg">varname</i></a></li>
+<li><a href="#55">method <b class="cmd">Headers_Process</b> <i class="arg">varname</i></a></li>
+<li><a href="#56">method <b class="cmd">HostName</b> <i class="arg">ipaddr</i></a></li>
+<li><a href="#57">method <b class="cmd"><a href="../log/log.html">log</a></b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#58">method <b class="cmd"><a href="../../../../index.html#plugin">plugin</a></b> <i class="arg">slot</i> <span class="opt">?<i class="arg">class</i> <b class="const"></b>?</span></a></li>
+<li><a href="#59">method <b class="cmd">port_listening</b></a></li>
+<li><a href="#60">method <b class="cmd">PrefixNormalize</b> <i class="arg">prefix</i></a></li>
+<li><a href="#61">method <b class="cmd"><a href="../../../../index.html#source">source</a></b> <i class="arg">filename</i></a></li>
+<li><a href="#62">method <b class="cmd">start</b></a></li>
+<li><a href="#63">method <b class="cmd">stop</b></a></li>
+<li><a href="#64">method <b class="cmd">SubObject {} db</b></a></li>
+<li><a href="#65">method <b class="cmd">SubObject {} default</b></a></li>
+<li><a href="#66">method <b class="cmd">template</b> <i class="arg">page</i></a></li>
+<li><a href="#67">method <b class="cmd">TemplateSearch</b> <i class="arg">page</i></a></li>
+<li><a href="#68">method <b class="cmd">Thread_start</b></a></li>
+<li><a href="#69">method <b class="cmd">Uuid_Generate</b></a></li>
+<li><a href="#70">method <b class="cmd">Validate_Connection</b> <i class="arg">sock</i> <i class="arg">ip</i></a></li>
+<li><a href="#71">method <b class="cmd">reset</b></a></li>
+<li><a href="#72">method <b class="cmd">content</b></a></li>
+<li><a href="#73">method <b class="cmd">Dispatch</b></a></li>
+<li><a href="#74">method <b class="cmd">content</b></a></li>
+<li><a href="#75">method <b class="cmd">FileName</b></a></li>
+<li><a href="#76">method <b class="cmd">DirectoryListing</b> <i class="arg">local_file</i></a></li>
+<li><a href="#77">method <b class="cmd">content</b></a></li>
+<li><a href="#78">method <b class="cmd">Dispatch</b></a></li>
+<li><a href="#79">variable <b class="cmd">exename</b></a></li>
+<li><a href="#80">method <b class="cmd">CgiExec</b> <i class="arg">execname</i> <i class="arg">script</i> <i class="arg">arglist</i></a></li>
+<li><a href="#81">method <b class="cmd">Cgi_Executable</b> <i class="arg">script</i></a></li>
+<li><a href="#82">method <b class="cmd">proxy_channel</b></a></li>
+<li><a href="#83">method <b class="cmd">proxy_path</b></a></li>
+<li><a href="#84">method <b class="cmd">ProxyRequest</b> <i class="arg">chana</i> <i class="arg">chanb</i></a></li>
+<li><a href="#85">method <b class="cmd">ProxyReply</b> <i class="arg">chana</i> <i class="arg">chanb</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#86">method <b class="cmd">Dispatch</b></a></li>
+<li><a href="#87">method <b class="cmd">FileName</b></a></li>
+<li><a href="#88">method <b class="cmd">proxy_channel</b></a></li>
+<li><a href="#89">method <b class="cmd">ProxyRequest</b> <i class="arg">chana</i> <i class="arg">chanb</i></a></li>
+<li><a href="#90">method <b class="cmd">ProxyReply</b> <i class="arg">chana</i> <i class="arg">chanb</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#91">method <b class="cmd">DirectoryListing</b> <i class="arg">local_file</i></a></li>
+<li><a href="#92">method <b class="cmd">EncodeStatus</b> <i class="arg">status</i></a></li>
+<li><a href="#93">method <b class="cmd">scgi_info</b></a></li>
+<li><a href="#94">method <b class="cmd">proxy_channel</b></a></li>
+<li><a href="#95">method <b class="cmd">ProxyRequest</b> <i class="arg">chana</i> <i class="arg">chanb</i></a></li>
+<li><a href="#96">method <b class="cmd">ProxyReply</b> <i class="arg">chana</i> <i class="arg">chanb</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#97">method <b class="cmd"><a href="../debug/debug.html">debug</a></b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#98">method <b class="cmd">Connect</b> <i class="arg">uuid</i> <i class="arg">sock</i> <i class="arg">ip</i></a></li>
+<li><a href="#99">method <b class="cmd">Dispatch_Dict</b> <i class="arg">data</i></a></li>
+<li><a href="#100">method <b class="cmd">uri {} add</b> <i class="arg">vhosts</i> <i class="arg">patterns</i> <i class="arg">info</i></a></li>
+<li><a href="#101">method <b class="cmd">uri {} direct</b> <i class="arg">vhosts</i> <i class="arg">patterns</i> <i class="arg">info</i> <i class="arg">body</i></a></li>
+<li><a href="#102">method <b class="cmd">output</b></a></li>
+<li><a href="#103">method <b class="cmd">DoOutput</b></a></li>
+<li><a href="#104">method <b class="cmd">close</b></a></li>
+<li><a href="#105">method <b class="cmd">local_memchan</b> <i class="arg">command</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#106">method <b class="cmd">Connect_Local</b> <i class="arg">uuid</i> <i class="arg">sock</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This module implements a web server, suitable for embedding in an
+application. The server is object oriented, and contains all of the
+fundamentals needed for a full service website.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Minimal Example</a></h2>
+<p>Starting a web service requires starting a class of type
+<b class="cmd">httpd::server</b>, and providing that server with one or more URIs
+to service, and <b class="cmd">httpd::reply</b> derived classes to generate them.</p>
+<pre class="doctools_example">
+oo::class create ::reply.hello {
+  method content {} {
+    my puts &quot;&lt;HTML&gt;&lt;HEAD&gt;&lt;TITLE&gt;IRM Dispatch Server&lt;/TITLE&gt;&lt;/HEAD&gt;&lt;BODY&gt;&quot;
+    my puts &quot;&lt;h1&gt;Hello World!&lt;/h1&gt;&quot;
+    my puts &lt;/BODY&gt;&lt;/HTML&gt;
+  }
+}
+::httpd::server create HTTPD port 8015 myaddr 127.0.0.1 doc_root ~/htdocs
+HTTPD plugin dispatch httpd::server::dispatch
+HTTPD uri add * /hello [list mixin reply.hello]
+</pre>
+<p>The bare module does have facilities to hose a files from a file system. Files that end in a .tml will be substituted in the style of Tclhttpd:</p>
+<pre class="doctools_example">
+&lt;!-- hello.tml --&gt;
+[my html_header {Hello World!}]
+Your Server is running.
+&lt;p&gt;
+The time is now [clock format [clock seconds]]
+[my html_footer]
+</pre>
+<p>A complete example of an httpd server is in the /examples directory of Tcllib. It also show how to dispatch URIs to other processes via SCGI and HTTP proxies.</p>
+<pre class="doctools_example">
+cd ~/tcl/sandbox/tcllib
+tclsh examples/httpd.tcl
+</pre>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Classes</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Class  httpd::mime</a></h3>
+<p>A metaclass for MIME handling behavior across a live socket</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="1">method <b class="cmd">ChannelCopy</b> <i class="arg">in</i> <i class="arg">out</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="2">method <b class="cmd">html_header</b> <span class="opt">?<i class="arg">title</i> <b class="const"></b>?</span> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Returns a block of HTML</p></dd>
+<dt><a name="3">method <b class="cmd">html_footer</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="4">method <b class="cmd">http_code_string</b> <i class="arg">code</i></a></dt>
+<dd></dd>
+<dt><a name="5">method <b class="cmd">HttpHeaders</b> <i class="arg">sock</i> <span class="opt">?<i class="arg">debug</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+<dt><a name="6">method <b class="cmd">HttpHeaders_Default</b></a></dt>
+<dd></dd>
+<dt><a name="7">method <b class="cmd">HttpServerHeaders</b></a></dt>
+<dd></dd>
+<dt><a name="8">method <b class="cmd">MimeParse</b> <i class="arg">mimetext</i></a></dt>
+<dd><p>Converts a block of mime encoded text to a key/value list. If an exception is encountered,
+ the method will generate its own call to the <b class="cmd"><a href="../../../../index.html#error">error</a></b> method, and immediately invoke
+ the <b class="cmd">output</b> method to produce an error code and close the connection.</p></dd>
+<dt><a name="9">method <b class="cmd">Url_Decode</b> <i class="arg">data</i></a></dt>
+<dd><p>De-httpizes a string.</p></dd>
+<dt><a name="10">method <b class="cmd">Url_PathCheck</b> <i class="arg">urlsuffix</i></a></dt>
+<dd></dd>
+<dt><a name="11">method <b class="cmd">wait</b> <i class="arg">mode</i> <i class="arg">sock</i></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Class  httpd::reply</a></h3>
+<p><em>ancestors</em>: <b class="class">httpd::mime</b></p>
+<p>A class which shephards a request through the process of generating a
+ reply.
+ The socket associated with the reply is available at all times as the <i class="arg">chan</i>
+ variable.
+ The process of generating a reply begins with an <b class="cmd">httpd::server</b> generating a
+ <b class="cmd">http::class</b> object, mixing in a set of behaviors and then invoking the reply
+ object's <b class="cmd">dispatch</b> method.
+ In normal operations the <b class="cmd">dispatch</b> method:</p>
+<ol class="doctools_enumerated">
+ 
+<li><p>Invokes the <b class="cmd">reset</b> method for the object to populate default headers.</p></li>
+<li><p>Invokes the <b class="cmd">HttpHeaders</b> method to stream the MIME headers out of the socket</p></li>
+<li><p>Invokes the <b class="cmd">request parse</b> method to convert the stream of MIME headers into a
+ dict that can be read via the <b class="cmd">request</b> method.</p></li>
+<li><p>Stores the raw stream of MIME headers in the <i class="arg">rawrequest</i> variable of the object.</p></li>
+<li><p>Invokes the <b class="cmd">content</b> method for the object, generating an call to the <b class="cmd"><a href="../../../../index.html#error">error</a></b>
+ method if an exception is raised.</p></li>
+<li><p>Invokes the <b class="cmd">output</b> method for the object</p></li>
+</ol>
+<p>Developers have the option of streaming output to a buffer via the <b class="cmd">puts</b> method of the
+ reply, or simply populating the <i class="arg">reply_body</i> variable of the object.
+ The information returned by the <b class="cmd">content</b> method is not interpreted in any way.
+ If an exception is thrown (via the <b class="cmd"><a href="../../../../index.html#error">error</a></b> command in Tcl, for example) the caller will
+ auto-generate a 500 {Internal Error} message.
+ A typical implementation of <b class="cmd">content</b> look like:</p>
+<pre class="doctools_example">
+ clay::define ::test::content.file {
+ 	superclass ::httpd::content.file
+ 	# Return a file
+ 	# Note: this is using the content.file mixin which looks for the reply_file variable
+ 	# and will auto-compute the Content-Type
+ 	method content {} {
+ 	  my reset
+     set doc_root [my request get DOCUMENT_ROOT]
+     my variable reply_file
+     set reply_file [file join $doc_root index.html]
+ 	}
+ }
+ clay::define ::test::content.time {
+   # return the current system time
+ 	method content {} {
+ 		my variable reply_body
+     my reply set Content-Type text/plain
+ 		set reply_body [clock seconds]
+ 	}
+ }
+ clay::define ::test::content.echo {
+ 	method content {} {
+ 		my variable reply_body
+     my reply set Content-Type [my request get CONTENT_TYPE]
+ 		set reply_body [my PostData [my request get CONTENT_LENGTH]]
+ 	}
+ }
+ clay::define ::test::content.form_handler {
+ 	method content {} {
+ 	  set form [my FormData]
+ 	  my reply set Content-Type {text/html; charset=UTF-8}
+     my puts [my html_header {My Dynamic Page}]
+     my puts &quot;&lt;BODY&gt;&quot;
+     my puts &quot;You Sent&lt;p&gt;&quot;
+     my puts &quot;&lt;TABLE&gt;&quot;
+     foreach {f v} $form {
+       my puts &quot;&lt;TR&gt;&lt;TH&gt;$f&lt;/TH&gt;&lt;TD&gt;&lt;verbatim&gt;$v&lt;/verbatim&gt;&lt;/TD&gt;&quot;
+     }
+     my puts &quot;&lt;/TABLE&gt;&lt;p&gt;&quot;
+     my puts &quot;Send some info:&lt;p&gt;&quot;
+     my puts &quot;&lt;FORM action=/[my request get REQUEST_PATH] method POST&gt;&quot;
+     my puts &quot;&lt;TABLE&gt;&quot;
+     foreach field {name rank serial_number} {
+       set line &quot;&lt;TR&gt;&lt;TH&gt;$field&lt;/TH&gt;&lt;TD&gt;&lt;input name=\&quot;$field\&quot; &quot;
+       if {[dict exists $form $field]} {
+         append line &quot; value=\&quot;[dict get $form $field]\&quot;&quot;&quot;
+       }
+       append line &quot; /&gt;&lt;/TD&gt;&lt;/TR&gt;&quot;
+       my puts $line
+     }
+     my puts &quot;&lt;/TABLE&gt;&quot;
+     my puts [my html footer]
+ 	}
+ }
+ </pre>
+<p><b class="class">Variable</b></p>
+<dl class="doctools_definitions">
+<dt><a name="12">variable <b class="cmd">ChannelRegister</b></a></dt>
+<dd></dd>
+<dt><a name="13">variable <b class="cmd">reply</b></a></dt>
+<dd><p>A dictionary which will converted into the MIME headers of the reply</p></dd>
+<dt><a name="14">variable <b class="cmd">request</b></a></dt>
+<dd><p>A dictionary containing the SCGI transformed HTTP headers for the request</p></dd>
+</dl>
+<p><b class="class">Delegate</b></p>
+<dl class="doctools_definitions">
+<dt><a name="15">delegate <b class="cmd">&lt;server&gt;</b></a></dt>
+<dd><p>The server object which spawned this reply</p></dd>
+</dl>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="16">method <b class="cmd">constructor</b> <i class="arg">ServerObj</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="17">method <b class="cmd">destructor</b> <span class="opt">?<i class="arg">dictargs</i>?</span></a></dt>
+<dd><p>clean up on exit</p></dd>
+<dt><a name="18">method <b class="cmd">ChannelRegister</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Registers a channel to be closed by the close method</p></dd>
+<dt><a name="19">method <b class="cmd">close</b></a></dt>
+<dd><p>Close channels opened by this object</p></dd>
+<dt><a name="20">method <b class="cmd">Log_Dispatched</b></a></dt>
+<dd><p>Record a dispatch event</p></dd>
+<dt><a name="21">method <b class="cmd">dispatch</b> <i class="arg">newsock</i> <i class="arg">datastate</i></a></dt>
+<dd><p>Accept the handoff from the server object of the socket
+ <em>newsock</em> and feed it the state <em>datastate</em>.
+ Fields the <em>datastate</em> are looking for in particular are:</p>
+<p>* <b class="const">mixin</b> - A key/value list of slots and classes to be mixed into the
+ object prior to invoking <b class="cmd">Dispatch</b>.</p>
+<p>* <b class="const">http</b> - A key/value list of values to populate the object's <em>request</em>
+ ensemble</p>
+<p>All other fields are passed along to the <b class="method">clay</b> structure of the object.</p></dd>
+<dt><a name="22">method <b class="cmd">Dispatch</b></a></dt>
+<dd></dd>
+<dt><a name="23">method <b class="cmd">html_header</b> <i class="arg">title</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="24">method <b class="cmd">html_footer</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="25">method <b class="cmd"><a href="../../../../index.html#error">error</a></b> <i class="arg">code</i> <span class="opt">?<i class="arg">msg</i> <b class="const"></b>?</span> <span class="opt">?<i class="arg">errorInfo</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+<dt><a name="26">method <b class="cmd">content</b></a></dt>
+<dd><p>REPLACE ME:
+ This method is the &quot;meat&quot; of your application.
+ It writes to the result buffer via the &quot;puts&quot; method
+ and can tweak the headers via &quot;clay put header_reply&quot;</p></dd>
+<dt><a name="27">method <b class="cmd">EncodeStatus</b> <i class="arg">status</i></a></dt>
+<dd><p>Formulate a standard HTTP status header from he string provided.</p></dd>
+<dt><a name="28">method <b class="cmd"><a href="../log/log.html">log</a></b> <i class="arg">type</i> <span class="opt">?<i class="arg">info</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+<dt><a name="29">method <b class="cmd">CoroName</b></a></dt>
+<dd></dd>
+<dt><a name="30">method <b class="cmd">DoOutput</b></a></dt>
+<dd><p>Generates the the HTTP reply, streams that reply back across <i class="arg">chan</i>,
+ and destroys the object.</p></dd>
+<dt><a name="31">method <b class="cmd">FormData</b></a></dt>
+<dd><p>For GET requests, converts the QUERY_DATA header into a key/value list.
+ For POST requests, reads the Post data and converts that information to
+ a key/value list for application/x-www-form-urlencoded posts. For multipart
+ posts, it composites all of the MIME headers of the post to a singular key/value
+ list, and provides MIME_* information as computed by the <b class="cmd"><a href="../mime/mime.html">mime</a></b> package, including
+ the MIME_TOKEN, which can be fed back into the mime package to read out the contents.</p></dd>
+<dt><a name="32">method <b class="cmd">PostData</b> <i class="arg">length</i></a></dt>
+<dd><p>Stream <i class="arg">length</i> bytes from the <i class="arg">chan</i> socket, but only of the request is a
+ POST or PUSH. Returns an empty string otherwise.</p></dd>
+<dt><a name="33">method <b class="cmd">Session_Load</b></a></dt>
+<dd><p>Manage session data</p></dd>
+<dt><a name="34">method <b class="cmd">puts</b> <i class="arg">line</i></a></dt>
+<dd><p>Appends the value of <i class="arg">string</i> to the end of <i class="arg">reply_body</i>, as well as a trailing newline
+ character.</p></dd>
+<dt><a name="35">method <b class="cmd">RequestFind</b> <i class="arg">field</i></a></dt>
+<dd></dd>
+<dt><a name="36">method <b class="cmd">request</b> <i class="arg">subcommand</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="37">method <b class="cmd">reply</b> <i class="arg">subcommand</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="38">method <b class="cmd">reset</b></a></dt>
+<dd><p>Clear the contents of the <i class="arg">reply_body</i> variable, and reset all headers in the <b class="cmd">reply</b>
+ structure back to the defaults for this object.</p></dd>
+<dt><a name="39">method <b class="cmd">timeOutCheck</b></a></dt>
+<dd><p>Called from the <b class="cmd">http::server</b> object which spawned this reply. Checks to see
+ if too much time has elapsed while waiting for data or generating a reply, and issues
+ a timeout error to the request if it has, as well as destroy the object and close the
+ <i class="arg">chan</i> socket.</p></dd>
+<dt><a name="40">method <b class="cmd"><a href="../../../../index.html#timestamp">timestamp</a></b></a></dt>
+<dd><p>Return the current system time in the format:</p>
+<pre class="doctools_example">%a, %d %b %Y %T %Z</pre>
+</dd>
+</dl>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Class  httpd::server</a></h3>
+<p><em>ancestors</em>: <b class="class">httpd::mime</b></p>
+<p><b class="class">Variable</b></p>
+<dl class="doctools_definitions">
+<dt><a name="41">variable <b class="cmd">template</b></a></dt>
+<dd></dd>
+<dt><a name="42">variable <b class="cmd">url_patterns</b></a></dt>
+<dd></dd>
+</dl>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="43">method <b class="cmd">constructor</b> <i class="arg">args</i> <span class="opt">?<i class="arg">port</i> <b class="const">auto</b>?</span> <span class="opt">?<i class="arg">myaddr</i> <b class="const">127.0.0.1</b>?</span> <span class="opt">?<i class="arg">string</i> <b class="const">auto</b>?</span> <span class="opt">?<i class="arg">name</i> <b class="const">auto</b>?</span> <span class="opt">?<i class="arg">doc_root</i> <b class="const"></b>?</span> <span class="opt">?<i class="arg">reverse_dns</i> <b class="const">0</b>?</span> <span class="opt">?<i class="arg">configuration_file</i> <b class="const"></b>?</span> <span class="opt">?<i class="arg">protocol</i> <b class="const">HTTP/1.1</b>?</span></a></dt>
+<dd></dd>
+<dt><a name="44">method <b class="cmd">destructor</b> <span class="opt">?<i class="arg">dictargs</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="45">method <b class="cmd">connect</b> <i class="arg">sock</i> <i class="arg">ip</i> <i class="arg">port</i></a></dt>
+<dd><p>Reply to an open socket. This method builds a coroutine to manage the remainder
+ of the connection. The coroutine's operations are driven by the <b class="cmd">Connect</b> method.</p></dd>
+<dt><a name="46">method <b class="cmd">ServerHeaders</b> <i class="arg">ip</i> <i class="arg">http_request</i> <i class="arg">mimetxt</i></a></dt>
+<dd></dd>
+<dt><a name="47">method <b class="cmd">Connect</b> <i class="arg">uuid</i> <i class="arg">sock</i> <i class="arg">ip</i></a></dt>
+<dd><p>This method reads HTTP headers, and then consults the <b class="cmd">dispatch</b> method to
+ determine if the request is valid, and/or what kind of reply to generate. Under
+ normal cases, an object of class <b class="cmd">::http::reply</b> is created, and that class's
+ <b class="cmd">dispatch</b> method.
+ This action passes control of the socket to
+ the reply object. The reply object manages the rest of the transaction, including
+ closing the socket.</p></dd>
+<dt><a name="48">method <b class="cmd"><a href="../counter/counter.html">counter</a></b> <i class="arg">which</i></a></dt>
+<dd><p>Increment an internal counter.</p></dd>
+<dt><a name="49">method <b class="cmd">CheckTimeout</b></a></dt>
+<dd><p>Check open connections for a time out event.</p></dd>
+<dt><a name="50">method <b class="cmd"><a href="../debug/debug.html">debug</a></b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="51">method <b class="cmd">dispatch</b> <i class="arg">data</i></a></dt>
+<dd><p>Given a key/value list of information, return a data structure describing how
+ the server should reply.</p></dd>
+<dt><a name="52">method <b class="cmd">Dispatch_Default</b> <i class="arg">reply</i></a></dt>
+<dd><p>Method dispatch method of last resort before returning a 404 NOT FOUND error.
+ The default behavior is to look for a file in <em>DOCUMENT_ROOT</em> which
+ matches the query.</p></dd>
+<dt><a name="53">method <b class="cmd">Dispatch_Local</b> <i class="arg">data</i></a></dt>
+<dd><p>Method dispatch method invoked prior to invoking methods implemented by plugins.
+ If this method returns a non-empty dictionary, that structure will be passed to
+ the reply. The default is an empty implementation.</p></dd>
+<dt><a name="54">method <b class="cmd">Headers_Local</b> <i class="arg">varname</i></a></dt>
+<dd><p>Introspect and possibly modify a data structure destined for a reply. This
+ method is invoked before invoking Header methods implemented by plugins.
+ The default implementation is empty.</p></dd>
+<dt><a name="55">method <b class="cmd">Headers_Process</b> <i class="arg">varname</i></a></dt>
+<dd><p>Introspect and possibly modify a data structure destined for a reply. This
+ method is built dynamically by the <b class="cmd"><a href="../../../../index.html#plugin">plugin</a></b> method.</p></dd>
+<dt><a name="56">method <b class="cmd">HostName</b> <i class="arg">ipaddr</i></a></dt>
+<dd><p>Convert an ip address to a host name. If the server/ reverse_dns flag
+ is false, this method simply returns the IP address back.
+ Internally, this method uses the <em>dns</em> module from tcllib.</p></dd>
+<dt><a name="57">method <b class="cmd"><a href="../log/log.html">log</a></b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Log an event. The input for args is free form. This method is intended
+ to be replaced by the user, and is a noop for a stock http::server object.</p></dd>
+<dt><a name="58">method <b class="cmd"><a href="../../../../index.html#plugin">plugin</a></b> <i class="arg">slot</i> <span class="opt">?<i class="arg">class</i> <b class="const"></b>?</span></a></dt>
+<dd><p>Incorporate behaviors from a plugin.
+ This method dynamically rebuilds the <b class="cmd">Dispatch</b> and <b class="cmd">Headers</b>
+ method. For every plugin, the server looks for the following entries in
+ <em>clay plugin/</em>:</p>
+<p><em>load</em> - A script to invoke in the server's namespace during the <b class="cmd"><a href="../../../../index.html#plugin">plugin</a></b> method invokation.</p>
+<p><em>dispatch</em> - A script to stitch into the server's <b class="cmd">Dispatch</b> method.</p>
+<p><em>headers</em> - A script to stitch into the server's <b class="cmd">Headers</b> method.</p>
+<p><em>thread</em> - A script to stitch into the server's <b class="cmd">Thread_start</b> method.</p></dd>
+<dt><a name="59">method <b class="cmd">port_listening</b></a></dt>
+<dd><p>Return the actual port that httpd is listening on.</p></dd>
+<dt><a name="60">method <b class="cmd">PrefixNormalize</b> <i class="arg">prefix</i></a></dt>
+<dd><p>For the stock version, trim trailing /'s and *'s from a prefix. This
+ method can be replaced by the end user to perform any other transformations
+ needed for the application.</p></dd>
+<dt><a name="61">method <b class="cmd"><a href="../../../../index.html#source">source</a></b> <i class="arg">filename</i></a></dt>
+<dd></dd>
+<dt><a name="62">method <b class="cmd">start</b></a></dt>
+<dd><p>Open the socket listener.</p></dd>
+<dt><a name="63">method <b class="cmd">stop</b></a></dt>
+<dd><p>Shut off the socket listener, and destroy any pending replies.</p></dd>
+<dt><a name="64">method <b class="cmd">SubObject {} db</b></a></dt>
+<dd></dd>
+<dt><a name="65">method <b class="cmd">SubObject {} default</b></a></dt>
+<dd></dd>
+<dt><a name="66">method <b class="cmd">template</b> <i class="arg">page</i></a></dt>
+<dd><p>Return a template for the string <i class="arg">page</i></p></dd>
+<dt><a name="67">method <b class="cmd">TemplateSearch</b> <i class="arg">page</i></a></dt>
+<dd><p>Perform a search for the template that best matches <i class="arg">page</i>. This
+ can include local file searches, in-memory structures, or even
+ database lookups. The stock implementation simply looks for files
+ with a .tml or .html extension in the <span class="opt">?doc_root?</span> directory.</p></dd>
+<dt><a name="68">method <b class="cmd">Thread_start</b></a></dt>
+<dd><p>Built by the <b class="cmd"><a href="../../../../index.html#plugin">plugin</a></b> method. Called by the <b class="cmd">start</b> method. Intended
+ to allow plugins to spawn worker threads.</p></dd>
+<dt><a name="69">method <b class="cmd">Uuid_Generate</b></a></dt>
+<dd><p>Generate a GUUID. Used to ensure every request has a unique ID.
+ The default implementation is:</p>
+<pre class="doctools_example">
+   return [::clay::uuid generate]
+ </pre>
+</dd>
+<dt><a name="70">method <b class="cmd">Validate_Connection</b> <i class="arg">sock</i> <i class="arg">ip</i></a></dt>
+<dd><p>Given a socket and an ip address, return true if this connection should
+ be terminated, or false if it should be allowed to continue. The stock
+ implementation always returns 0. This is intended for applications to
+ be able to implement black lists and/or provide security based on IP
+ address.</p></dd>
+</dl>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Class  httpd::server::dispatch</a></h3>
+<p><em>ancestors</em>: <b class="class">httpd::server</b></p>
+<p>Provide a backward compadible alias</p>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">Class  httpd::content.redirect</a></h3>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="71">method <b class="cmd">reset</b></a></dt>
+<dd></dd>
+<dt><a name="72">method <b class="cmd">content</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">Class  httpd::content.cache</a></h3>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="73">method <b class="cmd">Dispatch</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection7" class="doctools_subsection"><h3><a name="subsection7">Class  httpd::content.template</a></h3>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="74">method <b class="cmd">content</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection8" class="doctools_subsection"><h3><a name="subsection8">Class  httpd::content.file</a></h3>
+<p>Class to deliver Static content
+ When utilized, this class is fed a local filename
+ by the dispatcher</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="75">method <b class="cmd">FileName</b></a></dt>
+<dd></dd>
+<dt><a name="76">method <b class="cmd">DirectoryListing</b> <i class="arg">local_file</i></a></dt>
+<dd></dd>
+<dt><a name="77">method <b class="cmd">content</b></a></dt>
+<dd></dd>
+<dt><a name="78">method <b class="cmd">Dispatch</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection9" class="doctools_subsection"><h3><a name="subsection9">Class  httpd::content.exec</a></h3>
+<p><b class="class">Variable</b></p>
+<dl class="doctools_definitions">
+<dt><a name="79">variable <b class="cmd">exename</b></a></dt>
+<dd></dd>
+</dl>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="80">method <b class="cmd">CgiExec</b> <i class="arg">execname</i> <i class="arg">script</i> <i class="arg">arglist</i></a></dt>
+<dd></dd>
+<dt><a name="81">method <b class="cmd">Cgi_Executable</b> <i class="arg">script</i></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection10" class="doctools_subsection"><h3><a name="subsection10">Class  httpd::content.proxy</a></h3>
+<p><em>ancestors</em>: <b class="class">httpd::content.exec</b></p>
+<p>Return data from an proxy process</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="82">method <b class="cmd">proxy_channel</b></a></dt>
+<dd></dd>
+<dt><a name="83">method <b class="cmd">proxy_path</b></a></dt>
+<dd></dd>
+<dt><a name="84">method <b class="cmd">ProxyRequest</b> <i class="arg">chana</i> <i class="arg">chanb</i></a></dt>
+<dd></dd>
+<dt><a name="85">method <b class="cmd">ProxyReply</b> <i class="arg">chana</i> <i class="arg">chanb</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="86">method <b class="cmd">Dispatch</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection11" class="doctools_subsection"><h3><a name="subsection11">Class  httpd::content.cgi</a></h3>
+<p><em>ancestors</em>: <b class="class">httpd::content.proxy</b></p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="87">method <b class="cmd">FileName</b></a></dt>
+<dd></dd>
+<dt><a name="88">method <b class="cmd">proxy_channel</b></a></dt>
+<dd></dd>
+<dt><a name="89">method <b class="cmd">ProxyRequest</b> <i class="arg">chana</i> <i class="arg">chanb</i></a></dt>
+<dd></dd>
+<dt><a name="90">method <b class="cmd">ProxyReply</b> <i class="arg">chana</i> <i class="arg">chanb</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="91">method <b class="cmd">DirectoryListing</b> <i class="arg">local_file</i></a></dt>
+<dd><p>For most CGI applications a directory list is vorboten</p></dd>
+</dl>
+</div>
+<div id="subsection12" class="doctools_subsection"><h3><a name="subsection12">Class  httpd::protocol.scgi</a></h3>
+<p>Return data from an SCGI process</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="92">method <b class="cmd">EncodeStatus</b> <i class="arg">status</i></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection13" class="doctools_subsection"><h3><a name="subsection13">Class  httpd::content.scgi</a></h3>
+<p><em>ancestors</em>: <b class="class">httpd::content.proxy</b></p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="93">method <b class="cmd">scgi_info</b></a></dt>
+<dd></dd>
+<dt><a name="94">method <b class="cmd">proxy_channel</b></a></dt>
+<dd></dd>
+<dt><a name="95">method <b class="cmd">ProxyRequest</b> <i class="arg">chana</i> <i class="arg">chanb</i></a></dt>
+<dd></dd>
+<dt><a name="96">method <b class="cmd">ProxyReply</b> <i class="arg">chana</i> <i class="arg">chanb</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection14" class="doctools_subsection"><h3><a name="subsection14">Class  httpd::server.scgi</a></h3>
+<p><em>ancestors</em>: <b class="class">httpd::server</b></p>
+<p>Act as an  SCGI Server</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="97">method <b class="cmd"><a href="../debug/debug.html">debug</a></b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="98">method <b class="cmd">Connect</b> <i class="arg">uuid</i> <i class="arg">sock</i> <i class="arg">ip</i></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection15" class="doctools_subsection"><h3><a name="subsection15">Class  httpd::content.websocket</a></h3>
+<p>Upgrade a connection to a websocket</p>
+</div>
+<div id="subsection16" class="doctools_subsection"><h3><a name="subsection16">Class  httpd::plugin</a></h3>
+<p>httpd plugin template</p>
+</div>
+<div id="subsection17" class="doctools_subsection"><h3><a name="subsection17">Class  httpd::plugin.dict_dispatch</a></h3>
+<p>A rudimentary plugin that dispatches URLs from a dict
+ data structure</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="99">method <b class="cmd">Dispatch_Dict</b> <i class="arg">data</i></a></dt>
+<dd><p>Implementation of the dispatcher</p></dd>
+<dt><a name="100">method <b class="cmd">uri {} add</b> <i class="arg">vhosts</i> <i class="arg">patterns</i> <i class="arg">info</i></a></dt>
+<dd></dd>
+<dt><a name="101">method <b class="cmd">uri {} direct</b> <i class="arg">vhosts</i> <i class="arg">patterns</i> <i class="arg">info</i> <i class="arg">body</i></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection18" class="doctools_subsection"><h3><a name="subsection18">Class  httpd::reply.memchan</a></h3>
+<p><em>ancestors</em>: <b class="class">httpd::reply</b></p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="102">method <b class="cmd">output</b></a></dt>
+<dd></dd>
+<dt><a name="103">method <b class="cmd">DoOutput</b></a></dt>
+<dd></dd>
+<dt><a name="104">method <b class="cmd">close</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection19" class="doctools_subsection"><h3><a name="subsection19">Class  httpd::plugin.local_memchan</a></h3>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="105">method <b class="cmd">local_memchan</b> <i class="arg">command</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="106">method <b class="cmd">Connect_Local</b> <i class="arg">uuid</i> <i class="arg">sock</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>A modified connection method that passes simple GET request to an object
+ and pulls data directly from the reply_body data variable in the object
+ Needed because memchan is bidirectional, and we can't seem to communicate that
+ the server is one side of the link and the reply is another</p></dd>
+</dl>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">AUTHORS</a></h2>
+<p>Sean Woods</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>network</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+<p>When proposing code changes, please provide <em>unified diffs</em>,
+i.e the output of <b class="const">diff -u</b>.</p>
+<p>Note further that <em>attachments</em> are strongly preferred over
+inlined patches. Attachments can be made by going to the <b class="const">Edit</b>
+form of the ticket immediately after its creation, and then using the
+left-most button in the secondary navigation bar.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#tcloo">TclOO</a>, <a href="../../../../index.html#www">WWW</a>, <a href="../../../../index.html#http">http</a>, <a href="../../../../index.html#httpd">httpd</a>, <a href="../../../../index.html#httpserver">httpserver</a>, <a href="../../../../index.html#services">services</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Networking</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2018 Sean Woods &lt;yoda@etoyoc.com&gt;</p>
+</div>
+</div></body></html>

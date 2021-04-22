@@ -1,0 +1,239 @@
+This file records outstanding actions for the math module
+
+
+dd. 21 september 2021
+Ticket de2be80fd27630f85c25c238fe26c89a3dfe9407: direction and octant delete the minus sign lead to diagram display bugs
+The changes were made in 2020, so a year ago. It is unclear what has happened and what should still be repaired. Apparently
+the definition in the Diagram package is screen-oriented.
+
+
+
+
+
+dd. 11 may 2021
+Update linearalgebra code:
+- comparison of strings via ==
+- using foreach instead of lassign
+
+
+dd. 4 march 2021
+Paired t-test: https://mathworld.wolfram.com/Pairedt-Test.html
+
+
+dd. 19 february 2021
+Provide alternatives for pdf-gamma/cdf-gamma: using mean and standard deviation instead of alpha and beta
+
+Support Kaplan-Meier for censored data
+
+dd. 11 february 2021
+Check:
+- statistical procedures for testing " normality" - I saw some obviously not normal datasets that were still not flagged as such
+  -- that seems to have been my mistake: comparing the wrong graphs
+Implement:
+- PPCC
+- Plot positions
+- QQ plots
+- general support for censored data
+
+
+dd. 19 january 2021
+Solve a problem with determineSVD - reported by Nicolas Robert
+https://groups.google.com/g/comp.lang.tcl/c/RKcM7OfVkXk
+- the code turned out to be correct. Issue was closed.
+
+
+dd. 4 january 2021
+Check the man pages:
+- [category] missing in several
+- [strong] used (deprecated) - or some other keyword, no, [nl] in quasirandom.man
+  math_geometry.man
+  probopt.man
+  quasirandom.man
+
+
+dd. 27 november 2020
+Stirling numbers - https://mathworld.wolfram.com/StirlingNumberoftheFirstKind.html
+                   https://mathworld.wolfram.com/StirlingNumberoftheSecondKind.html
+
+Most efficient via the recurrence relations and memoization?
+
+First kind:   S1(n+1,k) = S1(n,k-1)   - n S1(n,k)    -- S1(n,1) = (-1)**(n-1) * (n-1)! , S1(n,0) = Kronecker(n,0)
+Second kind:  S2(n,k)   = S2(n-1,k-1) + k S2(n-1,k)  -- S2(n,n) = 1, S2(n,1) = 1, S2(n,0) = Kronecker(n,0)
+
+-- done
+
+Note: [math::choose] does not take the bigints into account!
+
+More numbers: Fibonacci and Lucas numbers:
+F(0) = 1, F(1) = 1, F(n+2) = F(n+1) + F(n)
+L(0) = 1, L(1) = 3, L(n+2) = L(n+1) + L(n)
+
+dd. 23 november 2020
+Add new procs by Manfred Rosenberger
+Clean up some of the code (notably the synonyms)
+
+
+dd. 2 november 2020
+Generate the actual combinations - in math::combinatinatorics
+    - take struct::list as an example!!
+
+
+dd. 20 september 2020
+Incorporate suggestions by Manfred Rosenberger for the geometry package - done
+
+dd. 16 august 2020
+Statistics:
+Based on article by Dennis Helsel:
+- Shapiro-Wilk or Anderson-Darling?
+- mean according to Kaplan-Meier
+- Box-Cox transformation
+
+
+dd. 17 april 2020
+Issue with the totient function:
+https://core.tcl-lang.org/tcllib/tktview?name=7017dad214
+Done
+
+dd. 6 february 2020
+- Implement accelerations for infinite sums:
+  - Method described on Wolfram
+  - Method for alternating series from the book
+
+dd. 9 february
+http://numbers.computation.free.fr/Constants/Miscellaneous/seriesacceleration.html
+- provides an overview
+https://arxiv.org/pdf/math/0202009.pdf
+- also interesting
+https://www.cis.twcu.ac.jp/~osada/thesis_osada.pdf
+- thesis
+https://kconrad.math.uconn.edu/blurbs/analysis/series_acceleration.pdf
+- yet another article
+
+dd. 4 november 2019
+- Extend the set of test cases for linear interpolation with corner cases
+  - these should fail with a clear error message.
+
+dd. 4 september 2018
+- Implement a "typical profile" for timeseries and determining residuals
+  (Plus perhaps a notion of outliers)
+- Implement detection of extreme values/periods with extreme values
+
+
+dd. 17 june 2018
+- Factor out the backward rotation in the intersection routines for circles
+- Add a normalisation routine for vectors
+- Add routines to construct a perpendicular vector and line
+- Add a routine to return the perpendicular bisector of a line segment
+- Add routines to deal with triangles (incircle, circumcircle)
+- Add various other geometrical procs
+
+- Add documentation of the new procs
+
+dd. 12 june 2018
+- Create a complex number based on modulus and argument
+
+dd. 24 january 2018
+- Implement plot positions for ranking in statistics package
+- Implement a bootstrap method for selecting "new" samples
+- Implement maximum likelihood methods for various distributions
+  (exponential, normal and binomial are simple enough). Partly esthetical.
+
+dd. 29 may 2017
+- Implement Kronecker symbol (extension of Jacobi symbol)
+
+dd. 8 january 2017
+- Fix problem with test-anova-F (at least the test cases 1.1 and 1.2) - done
+
+
+dd. 3 august 2016
+- Fix problem in interpolation - integer arguments - done
+- Fix problem in pdf-lognormal and cdf-lognormal: stdev is now used as variance - done
+
+dd. 4 august 2016
+- Add test case for permuted linear system - done
+- Add test case for pdf-lognormal and cdf-lognormal (non-unity standard deviation) - done
+
+
+
+dd. 11 april 2016
+Fix problem in math::geometry::pointInsidePolygon (Eduard on comp.lang.tcl):
+
+% set polygon "-764 -677 -668 -1341 -124 -797 -508 -406"
+-764 -677 -668 -1341 -124 -797 -508 -406
+% set point "838 456"
+838 456
+% package require math::geometry
+1.1.3
+% ::math::geometry::pointInsidePolygon $point $polygon
+1
+
+Possible solution at: https://www.ecse.rpi.edu/~wrf/Research/Short_Notes/pnpoly.html
+
+I fixed the calculation of the point far away - but I want an edge case or two extra!
+
+
+dd. 10 november 2015, Arjen Markus
+Implement Box-Cox and Fisher's F test
+
+Note: Fisher's F test implemented as test-anova-F
+
+dd. 28 october 2015, Arjen Markus
+Implement Dunnett's test for means and Levene's test for standard deviations
+
+
+dd. 1 october 2015, Arjen Markus
+Implement the following geometrical functions:
+inproduct, crossProduct, areaParallellogram, unitVector, translate, rotate, rotateGeneral, reflect, reflectGeneral,
+angleBetween, affine, degToRad, radToDeg, mkAffine
+
+circles and triangles
+
+Still to be implemented:
+unitVector, rotateGeneral, reflectGeneral, affine, mkAffine
+
+don't use lset, but lappend instead?
+
+Describe the procedures
+
+Implement tests
+
+dd. 9 september 2015, Arjen Markus
+Implement an inverse Student's t function - based on cephes library (cprob.tgz)
+
+dd. 29 may 2015, Arjen Markus
+- implement a wavelets module
+- small stuff: create a proc that constructs a piece-wise linear function from a specification
+
+dd. 26 april 2015, Arjen Markus
+Add:
+- additional linear algebra procedures by Federico Ferri
+- lognormal income library by Eric Benedict
+- empirical distribution
+- tukey-duckworth test
+
+
+
+dd. 18 january 2014, Arjen Markus
+test cases for kernel-density:
+One test case is troublesome - uniform kernel, checking the total density
+
+
+dd. 26 october 2005, Arjen Markus
+
+qcomplex.test: extend the tests for cos/sin .. to include
+               non-real results.
+
+dd. 28 september 2005, Arjen Markus
+
+optimize.tcl: linear programming algorithm ignores certain
+              constraints (of type x > 0). Needs to be
+              fixed
+
+dd. 22 june 2004, Arjen Markus
+
+interpolate.man: add examples
+interpolate.tcl: more consistency in the calling convention
+                 checks on arguments (add tests for them)
+optimize.man: example of a parametrized function (also a test case!)
+optimize.tcl: provide an alternative for maximum
+

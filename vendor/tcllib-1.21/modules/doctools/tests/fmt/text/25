@@ -1,0 +1,19 @@
+
+TEST - 
+Generated from file '.FILE.' by tcllib/doctools with format 'text'
+TEST(z) 3.14.15.926 .MODULE. ""
+
+NAME
+====
+
+TEST -
+
+DESCRIPTION
+===========
+
+| Special markdown __non-special__
+
+COPYRIGHT
+=========
+
+Copyright (c) .COPYRIGHT.

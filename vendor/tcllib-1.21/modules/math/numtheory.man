@@ -1,0 +1,231 @@
+[comment {
+    __Attention__ This document is a generated file.
+    It is not the true source.
+    The true source is
+
+        numtheory.dtx
+
+    To make changes edit the true source, and then use
+
+        sak.tcl docstrip/regen modules/math
+
+    to update all generated files.
+}]
+[vset VERSION 1.1.3]
+[manpage_begin math::numtheory n [vset VERSION]]
+[keywords {number theory}]
+[keywords prime]
+[copyright "2010 Lars Hellstr\u00F6m\
+  <Lars dot Hellstrom at residenset dot net>"]
+[moddesc   {Tcl Math Library}]
+[titledesc {Number Theory}]
+[category  Mathematics]
+[require Tcl [opt 8.5]]
+[require math::numtheory [opt [vset VERSION]]]
+
+[description]
+[para]
+This package is for collecting various number-theoretic operations, with
+a slight bias to prime numbers.
+
+[list_begin definitions]
+[call [cmd math::numtheory::isprime] [arg N] [
+   opt "[arg option] [arg value] ..."
+]]
+  The [cmd isprime] command tests whether the integer [arg N] is a
+  prime, returning a boolean true value for prime [arg N] and a
+  boolean false value for non-prime [arg N]. The formal definition of
+  'prime' used is the conventional, that the number being tested is
+  greater than 1 and only has trivial divisors.
+  [para]
+
+  To be precise, the return value is one of [const 0] (if [arg N] is
+  definitely not a prime), [const 1] (if [arg N] is definitely a
+  prime), and [const on] (if [arg N] is probably prime); the latter
+  two are both boolean true values. The case that an integer may be
+  classified as "probably prime" arises because the Miller-Rabin
+  algorithm used in the test implementation is basically probabilistic,
+  and may if we are unlucky fail to detect that a number is in fact
+  composite. Options may be used to select the risk of such
+  "false positives" in the test. [const 1] is returned for "small"
+  [arg N] (which currently means [arg N] < 118670087467), where it is
+  known that no false positives are possible.
+  [para]
+
+  The only option currently defined is:
+  [list_begin options]
+  [opt_def -randommr [arg repetitions]]
+    which controls how many times the Miller-Rabin test should be
+    repeated with randomly chosen bases. Each repetition reduces the
+    probability of a false positive by a factor at least 4. The
+    default for [arg repetitions] is 4.
+  [list_end]
+  Unknown options are silently ignored.
+
+[call [cmd math::numtheory::firstNprimes] [arg N]]
+Return the first N primes
+
+[list_begin arguments]
+[arg_def integer N in]
+Number of primes to return
+[list_end]
+
+[call [cmd math::numtheory::primesLowerThan] [arg N]]
+Return the prime numbers lower/equal to N
+
+[list_begin arguments]
+[arg_def integer N in]
+Maximum number to consider
+[list_end]
+
+[call [cmd math::numtheory::primeFactors] [arg N]]
+Return a list of the prime numbers in the number N
+
+[list_begin arguments]
+[arg_def integer N in]
+Number to be factorised
+[list_end]
+
+[call [cmd math::numtheory::primesLowerThan] [arg N]]
+Return the prime numbers lower/equal to N
+
+[list_begin arguments]
+[arg_def integer N in]
+Maximum number to consider
+[list_end]
+
+[call [cmd math::numtheory::primeFactors] [arg N]]
+Return a list of the prime numbers in the number N
+
+[list_begin arguments]
+[arg_def integer N in]
+Number to be factorised
+[list_end]
+
+[call [cmd math::numtheory::uniquePrimeFactors] [arg N]]
+Return a list of the [emph unique] prime numbers in the number N
+
+[list_begin arguments]
+[arg_def integer N in]
+Number to be factorised
+[list_end]
+
+[call [cmd math::numtheory::factors] [arg N]]
+Return a list of all [emph unique] factors in the number N, including 1 and N itself
+[list_begin arguments]
+[arg_def integer N in]
+Number to be factorised
+[list_end]
+
+[call [cmd math::numtheory::totient] [arg N]]
+Evaluate the Euler totient function for the number N (number of numbers
+relatively prime to N)
+
+[list_begin arguments]
+[arg_def integer N in]
+Number in question
+[list_end]
+
+[call [cmd math::numtheory::moebius] [arg N]]
+Evaluate the Moebius function for the number N
+
+[list_begin arguments]
+[arg_def integer N in]
+Number in question
+[list_end]
+
+[call [cmd math::numtheory::legendre] [arg a] [arg p]]
+Evaluate the Legendre symbol (a/p)
+
+[list_begin arguments]
+[arg_def integer a in]
+Upper number in the symbol
+[arg_def integer p in]
+Lower number in the symbol (must be non-zero)
+[list_end]
+
+[call [cmd math::numtheory::jacobi] [arg a] [arg b]]
+Evaluate the Jacobi symbol (a/b)
+
+[list_begin arguments]
+[arg_def integer a in]
+Upper number in the symbol
+[arg_def integer b in]
+Lower number in the symbol (must be odd)
+[list_end]
+
+[call [cmd math::numtheory::gcd] [arg m] [arg n]]
+Return the greatest common divisor of [term m] and [term n]
+
+[list_begin arguments]
+[arg_def integer m in]
+First number
+[arg_def integer n in]
+Second number
+[list_end]
+
+[call [cmd math::numtheory::lcm] [arg m] [arg n]]
+Return the lowest common multiple of [term m] and [term n]
+
+[list_begin arguments]
+[arg_def integer m in]
+First number
+[arg_def integer n in]
+Second number
+[list_end]
+
+[call [cmd math::numtheory::numberPrimesGauss] [arg N]]
+Estimate the number of primes according the formula by Gauss.
+
+[list_begin arguments]
+[arg_def integer N in]
+Number in question, should be larger than 0
+[list_end]
+
+[call [cmd math::numtheory::numberPrimesLegendre] [arg N]]
+Estimate the number of primes according the formula by Legendre.
+
+[list_begin arguments]
+[arg_def integer N in]
+Number in question, should be larger than 0
+[list_end]
+
+[call [cmd math::numtheory::numberPrimesLegendreModified] [arg N]]
+Estimate the number of primes according the modified formula by Legendre.
+
+[list_begin arguments]
+[arg_def integer N in]
+Number in question, should be larger than 0
+[list_end]
+
+[call [cmd math::numtheory::differenceNumberPrimesLegendreModified] [arg lower] [arg upper]]
+Estimate the number of primes between tow limits according the modified formula by Legendre.
+
+[list_begin arguments]
+[arg_def integer lower in] Lower limit for the primes, should be larger than 0
+[arg_def integer upper in] Upper limit for the primes, should be larger than 0
+[list_end]
+
+[call [cmd math::numtheory::listPrimePairs] [arg lower] [arg upper] [arg step]]
+Return a list of pairs of primes each differing by the given step.
+
+[list_begin arguments]
+[arg_def integer lower in] Lower limit for the primes, should be larger than 0
+[arg_def integer upper in] Upper limit for the primes, should be larger than the lower limit
+[arg_def integer step in] Step by which the primes should differ, defaults to 2
+[list_end]
+
+[call [cmd math::numtheory::listPrimeProgressions] [arg lower] [arg upper] [arg step]]
+Return a list of lists of primes each differing by the given step from the previous one.
+
+[list_begin arguments]
+[arg_def integer lower in] Lower limit for the primes, should be larger than 0
+[arg_def integer upper in] Upper limit for the primes, should be larger than the lower limit
+[arg_def integer step in] Step by which the primes should differ, defaults to 2
+[list_end]
+
+[list_end]
+
+[vset CATEGORY {math :: numtheory}]
+[include ../common-text/feedback.inc]
+[manpage_end]

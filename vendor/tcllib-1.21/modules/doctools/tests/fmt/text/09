@@ -1,0 +1,39 @@
+
+TEST - 
+Generated from file '.FILE.' by tcllib/doctools with format 'text'
+TEST(z) 3.14.15.926 .MODULE. ""
+
+NAME
+====
+
+TEST -
+
+DESCRIPTION
+===========
+
+lorem
+
+| 1 lorem ipsum dolores
+
+ipsum
+
+| 2 lorem ipsum dolores
+
+dolores
+
+| 3 lorem ipsum dolores
+
+lorem
+
+| 4 lorem ipsum dolores
+
+ipsum
+
+| 5 lorem ipsum dolores
+
+dolores
+
+COPYRIGHT
+=========
+
+Copyright (c) .COPYRIGHT.

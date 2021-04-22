@@ -1,0 +1,32 @@
+
+TEST - 
+Generated from file '.FILE.' by tcllib/doctools with format 'text'
+TEST(z) 3.14.15.926 .MODULE. ""
+
+NAME
+====
+
+TEST -
+
+DESCRIPTION
+===========
+
+| Example Block  More Lines \
+| Ever More
+| Never
+
+............... Weiter .............
+
+| Second \
+| Continuing Lines \
+| Done
+
+............... Vorwaerts ..........
+
+| command    x \
+| -- command --
+
+COPYRIGHT
+=========
+
+Copyright (c) .COPYRIGHT.

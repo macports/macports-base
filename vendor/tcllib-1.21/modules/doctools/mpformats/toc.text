@@ -1,0 +1,106 @@
+# -*- tcl -*-
+# Engine to convert a doctoc document into plain text.
+#
+# Copyright (c) 2003-2019 Andreas Kupries <andreas_kupries@sourceforge.net>
+# Freely redistributable.
+#
+######################################################################
+
+dt_source _toc_common.tcl
+dt_source _text.tcl
+
+######################################################################
+# Conversion specification.
+# One-pass processing.
+
+rename toc_postprocess {}
+rename text_postprocess toc_postprocess
+
+proc fmt_plain_text {text} {return {}}
+
+################################################################
+## Backend for TEXT markup
+
+global seclist ; set seclist {}
+global max     ; set max 0
+
+proc InitSections {} {
+    global seclist ; set seclist {} ;# list of items in this division
+    global max     ; set max 0      ;# length of longest file path in the division
+    return
+}
+
+proc ProcessSections {} {
+    global seclist max
+    
+    if {![llength $seclist]} {
+	# Division is empty, nothing to do
+	return
+    }
+
+    incr max 2  ; set rmargin [RMargin  $max]
+    incr max -1 ; set blank   [Blank    $max]
+    incr max -1 ; set dots   "[Repeat . $max] "
+
+    # Example wrt max handling, blank, and dots:
+    #
+    # string = "longest",  max = 7 +2 => max = lmargin = 9
+    # blank  = "________" (max = 8, using _ as visible placeholder)
+    # dots   = "......._" (max = 7 (dots))
+    
+    foreach {file desc} $seclist {
+	Text [InFlow $desc $rmargin [ReHead $dots "$file "] $blank]
+	CloseParagraph [Verbatim]
+    }
+
+    set seclist {}
+    return
+}
+
+proc fmt_toc_begin {label title} {
+    set title "$label -- $title"
+    
+    TextInitialize
+    lappend   hdr "Table of contents [Provenance]"
+    lappend   hdr ""
+    SectTitle hdr $title
+    Text [Compose hdr]    
+    CloseParagraph [Verbatim]
+    return
+}
+
+proc fmt_toc_end {} {
+    ProcessSections
+    return
+}
+
+proc fmt_division_start {title symfile} {
+    # We may have sections before the new division
+    ProcessSections
+
+    InitSections
+    SubsectTitle hdr $title
+    Text [Compose hdr]
+    CloseParagraph [Verbatim]
+
+    ContextPush ;# Ref (a)
+    ContextNew Division { MarginIn }
+    return
+}
+
+proc fmt_division_end   {}      {
+    ProcessSections
+    ContextPop ;# Ref (a)
+    return
+}
+
+proc fmt_item {file label desc} {
+    global  seclist max
+    lappend seclist $file $desc
+    MaxLen max $file
+    return
+}
+
+proc fmt_comment {text} {return}
+
+################################################################

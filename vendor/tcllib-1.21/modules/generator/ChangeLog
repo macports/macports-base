@@ -1,0 +1,12 @@
+2021-03-14 Shawn Wagner <shawnw.mobile@gmail.com>
+	* Fix incorrect behavior of takeWhile
+
+2013-02-01  Andreas Kupries  <andreas_kupries@users.sourceforge.net>
+
+	*
+	* Released and tagged Tcllib 1.15 ========================
+	*
+
+2012-08-07  Andreas Kupries  <andreask@activestate.com>
+
+	* New Module. Provided by Neil Madden.

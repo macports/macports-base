@@ -1,0 +1,24 @@
+Deprecations in Tcllib 1.21
+===========================
+
+Four packages are stage 2 deprecated in favor of two replacements.
+All internal users of the deprecated packages have been rewritten to
+use their replacements.
+
+|Module|Package|Replacement|Deprecation stage|
+|---|---|---|---|
+|doctools|doctools::paths|fileutil::paths|(D2) Attempts to use throw errors|
+|doctools|doctools::config|struct::map|(D2) Attempts to use throw errors|
+|pt|paths|fileutil::paths|(D2) Attempts to use throw errors|
+|pt|configuration|struct::map|(D2) Attempts to use throw errors|
+
+Stage 1 (__D1__) means that:
+
+  - The deprecated packages still exist.
+  - Their implementations have changed and throw errors.
+
+Future progress:
+
+  - In the release after 1.21 the stage 2 deprecated packages will be
+    moved to stage 3 (__D3__). In that stage the implementations will
+    be removed from Tcllib, causing `package require` to fail.

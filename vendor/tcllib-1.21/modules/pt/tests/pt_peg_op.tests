@@ -1,0 +1,866 @@
+# -*- tcl -*-
+# Testsuite for pt::peg::op.
+# Copyright (c) 2018 Stefan Sobernig <stefan.sobernig@wu.ac.at>
+
+# [ok] drop unreachable
+# [ok] drop unrealizable
+# [ok] flatten
+# [ok] minimize
+# [ok] called
+# [ok] realizable
+# [ok] reachable
+# [ok] dechain
+# [ok] modeopt
+
+# -------------------------------------------------------------------------
+# Basic syntax
+
+foreach op {
+    called
+    dechain
+    flatten
+    minimize
+    modeopt
+    reachable
+    realizable
+    {drop unreachable}
+    {drop unrealizable}
+} {
+    test pt-peg-op-set:${setimpl}-${op}-0.0 "$op, wrong#args, not enough" -body {
+	pt::peg::op {*}$op
+    } -returnCodes error -result "wrong # args: should be \"pt::peg::op $op container\""
+
+    test pt-peg-op-set:${setimpl}-${op}-0.1 "$op, wrong#args, too many" -body {
+	pt::peg::op {*}$op Container X
+    } -returnCodes error -result "wrong # args: should be \"pt::peg::op $op container\""
+}
+
+# -------------------------------------------------------------------------
+# General support for testing transforms
+
+proc sl {v} {
+    # Remove comment lines
+    regsub -all -line {^\s*#.*$} $v {}
+}
+
+proc g {s r} {
+    # quick constructor of a grammar value
+    return [list pt::grammar::peg [list rules $r start $s]]
+}
+
+proc TestTransformation {op data setImpl} {
+    # Convert operation and data table into series of test cases
+    set debug 0
+    # Note, the `op` changes the container (here ::In) in-place.
+    append bodyScript [list {*}::pt::peg::op::$op ::In] \;
+    if {$debug} {
+	append bodyScript "puts stderr \"ASIS \[::In       serialize\]\"" \;
+	append bodyScript "puts stderr \"TOBE \[::Expected serialize\]\"" \;
+    }
+    # After the op, when all is well, the content of ::In should be
+    # the same as ::Expected.
+    append bodyScript "pt::peg equal \[::In serialize\] \[::Expected serialize\]" \;
+    set n 1
+    foreach {inStart inRulesSet outStart outRulesSet} [sl $data] {
+	set testLabel "pt-peg-op-set:${setImpl}-[join $op -]-$n"
+	if {$debug} {
+	    puts stderr >>>>$testLabel<<<<
+	}
+	test $testLabel "OP '$op' vs. expected" -setup {
+	    pt::peg::container ::In       deserialize [g $inStart  $inRulesSet]
+	    pt::peg::container ::Expected deserialize [g $outStart $outRulesSet]
+	} -body $bodyScript -result 1 -cleanup {
+	    ::In       destroy
+	    ::Expected destroy
+	}
+	incr n
+    }
+}
+
+# -------------------------------------------------------------------------
+# op: called
+
+set n 0
+foreach {inStart inRulesSet expectedSym} [sl {
+    # --- 
+    epsilon {}
+    {{} {}}
+    # ---
+    {n S} {
+	S {is {x {t A} {* {n SYM}} {t B} {n OTHER} {n SYM}} mode value}
+	A {is {n A} mode value}
+    }
+    {{} S A A S {SYM OTHER}}
+    # --- 
+    {n S} {
+	S {is {x {t A} {t B}} mode value}
+	A {is {t a} mode value}
+	B {is {t b} mode value}
+    }
+    {{} S A {} B {} S {}}
+    # --- 
+    {n S} {
+	S {is {epsilon} mode value}
+    }
+    {{} S S {}}
+}] {
+    test pt-peg-op-set:${setimpl}-called.$n {op called} -setup {
+	pt::peg::container ::In       deserialize [g $inStart  $inRulesSet]
+    } -body {
+	set r [pt::peg::op called ::In]
+	dict filter $r script {key val} {
+	    ::tcl::mathop::in $key [lsort [dict keys $r]]
+	}
+    } -cleanup {
+	::In destroy
+    } -result $expectedSym
+    incr n
+}
+unset n
+
+# -------------------------------------------------------------------------
+# op: flatten
+
+TestTransformation flatten {
+    # --- stays as-is #1
+    epsilon {}
+    epsilon {}
+    # --- stays as-is #2
+    {n S} {
+	S {is {n A} mode value}
+	A {is {t a} mode value}
+    }
+    {n S} {
+	S {is {n A} mode value}
+	A {is {t a} mode value}
+    }
+    # --- flatten start expr and rules: single-element sequences
+    {x {n S}} {
+	S {is {x {n A}} mode value}
+	A {is {n A} mode value}
+    }
+    {n S} {
+	S {is {n A} mode value}
+	A {is {n A} mode value}
+    }
+    # --- flatten start expr and rules: single-element choices
+    {/ {n S}} {
+	S {is {/ {n A}} mode value}
+	A {is {n A} mode value}
+    }
+    {n S} {
+	S {is {n A} mode value}
+	A {is {n A} mode value}
+    }
+    # --- flatten start expr and rules: nested sequences
+    {x {n S}} {
+	S {is {x {n A} {x {n A} {n A}}} mode value}
+	A {is {n A} mode value}
+    }
+    {n S} {
+	S {is {x {n A} {n A} {n A}} mode value}
+	A {is {n A} mode value}
+    }
+    # --- flatten start expr and rules: nested choices
+    {x {n S}} {
+	S {is {/ {n A} {/ {n A} {n A}}} mode value}
+	A {is {n A} mode value}
+    }
+    {n S} {
+	S {is {/ {n A} {n A} {n A}} mode value}
+	A {is {n A} mode value}
+    }
+} $setimpl
+
+
+# -------------------------------------------------------------------------
+# op: realizable
+
+set n 0
+foreach {inStart inRulesSet expectedSym} [sl {
+    # --- just start expression
+    epsilon {}
+    {{}}
+    # -- all realizable, incl. start expression
+    {n S} {
+	S {is {n X} mode value}
+	X {is {t x} mode leaf}
+    }
+    {{} S X}
+    # -- not even start expression
+    {n S} {
+	S {is {n X} mode value}
+	X {is {n X} mode value}
+    }
+    {}
+    # -- not even start expression
+    {n S} {
+	S {is {n X} mode value}
+	X {is {n X} mode value}
+    }
+    {}
+    # -- X is unrealizable
+    {n S} {
+	S {is {? {n X}} mode value}
+	X {is {n X} mode value}
+    }
+    {{} S}
+    # -- X is unrealizable
+    {n S} {
+	S {is {/ {n X} {t y}} mode value}
+	X {is {n X} mode value}
+    }
+    {{} S}
+    # --  X <- 'A' 'B' X / 'C' X 'A'; X is unrealizable
+    {n S} {
+	S {is {/ {n X} {t y}} mode value}
+	X {is {/ {x {t A} {t B} {n X}} {x {t C} {n X} {t A}}} mode value}
+    }
+    {{} S}
+    # --  X <- 'A' 'B' X / 'C' X 'A' / 'x'; X *is* realizable
+    {n S} {
+	S {is {/ {n X} {t y}} mode value}
+	X {is {/ {x {t A} {t B} {n X}} {x {t C} {n X} {t A}} {t x}} mode value}
+    }
+    {{} S X}
+    # -- E is unrealizable
+    {n S} {
+	S {is {/ {x {n B} {t b}} {x {n C} {t c}} {x {n E} {t e}}} mode value}
+	B {is {/ {x {n B} {t b}} {t b}} mode value}
+	C {is {/ {x {n C} {t c}} {t c}} mode value}
+	E {is {x {n E} {t e}} mode value}
+    }
+    {{} B C S}
+    # -- S remains realizable (*)
+    {n S} {
+	S {is {* {n X}} mode value}
+	X {is {n X} mode value}
+    }
+    {{} S}
+}] {
+    test pt-peg-op-set:${setimpl}-realizable.$n {op realizable} -setup {
+	pt::peg::container ::In deserialize [g $inStart  $inRulesSet]
+    } -body {
+	lsort [pt::peg::op realizable ::In]
+    } -cleanup {
+	::In destroy
+    } -result $expectedSym
+    incr n
+}
+unset n
+
+
+# -------------------------------------------------------------------------
+# op: drop unrealizable
+
+TestTransformation "drop unrealizable" {
+    # (1) stays as-is
+    epsilon {}
+    epsilon {}
+    # (2) S <-- X; X <-- X; => epsilon
+    {n S} {
+	S {is {n X} mode value}
+	X {is {n X} mode value}
+    }
+    epsilon {}
+    # (3) S <-- X?; X <-- X; => S <-- epsilon
+    {n S} {
+	S {is {? {n X}} mode value}
+	X {is {n X} mode value}
+    }
+    {n S} {
+	S {is epsilon mode value}
+    }
+    # (4) S <-- X*; X <-- X; => S <-- epsilon
+    {n S} {
+	S {is {* {n X}} mode value}
+	X {is {n X} mode value}
+    }
+    {n S} {
+	S {is epsilon mode value}
+    }
+    # (5) S <-- X 'y'; X <-- X; => epsilon
+    {n S} {
+	S {is {x {n X} {t y}} mode value}
+	X {is {n X} mode value}
+    }
+    epsilon {}
+    # (6) S <-- X / 'y'; X <-- X; => S <-- 'y' (unflattened!)
+    {n S} {
+	S {is {/ {n X} {t y}} mode value}
+	X {is {n X} mode value}
+    }
+    {n S} {
+	S {is {/ {t y}} mode value}
+    }
+} $setimpl
+
+
+# -------------------------------------------------------------------------
+# op: reachable
+
+set n 0
+foreach {inStart inRulesSet expectedSym} [sl {
+    # --- none
+    epsilon {}
+    {}
+    # -- D is not reachable
+    {n S} {
+	S {is {/ {x {n B} {t b}} {x {n C} {t c}} {x {n E} {t e}}} mode value}
+	B {is {/ {x {n B} {t b}} {t b}} mode value}
+	C {is {/ {x {n C} {t c}} {t c}} mode value}
+	D {is {/ {x {n B} {t d}} {x {n C} {t d}} {t d}} mode value}
+	E {is {x {n E} {t e}} mode value}
+    }
+    {B C E S}
+    # -- all reachable
+    {n S} {
+     	S {is {/ {x {n A} {n B}} {t a}} mode value}
+     	A {is {x {t a} {n A}} mode value}
+	B {is {t a} mode leaf}
+    }
+    {A B S}
+}] {
+    test pt-peg-op-set:${setimpl}-reachable.$n {op reachable} -setup {
+	pt::peg::container ::In deserialize [g $inStart  $inRulesSet]
+    } -body {
+	lsort [pt::peg::op reachable ::In]
+    } -cleanup {
+	::In destroy
+    } -result $expectedSym
+    incr n
+}
+unset n
+
+# -------------------------------------------------------------------------
+# op: drop unreachable
+
+TestTransformation "drop unreachable" {
+    # (1) stays as-is
+    epsilon {}
+    epsilon {}
+    # S <-- a; A <-- a ==> S <-- a (A not reachable, dropped)
+    {n S} {
+     	S {is {t a} mode leaf}
+     	A {is {t a} mode void}
+    }
+    {n S} {
+     	S {is {t a} mode leaf}
+    }
+    # S <-- a; A <-- B; B <-- a ==> A, B unreachable, dropped
+    {n S} {
+     	S {is {t a} mode leaf}
+     	A {is {n B} mode void}
+     	B {is {t a} mode void}
+    }
+    {n S} {
+     	S {is {t a} mode leaf}
+    }
+} $setimpl
+
+# -------------------------------------------------------------------------
+# op: dechain
+
+TestTransformation dechain {
+    # --- stays as-is
+    epsilon {}
+    epsilon {}
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode value}
+	B {is {t b} mode value}
+    }
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode value}
+	B {is {t b} mode value}
+    }
+    # --- basic chain:  A <- B <- C (leaf) <- c |> A <- C (leaf) <- c
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode value}
+	B {is {n C} mode value}
+	C {is {t c} mode value}
+    }
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n C} mode value}
+	B {is {n C} mode value}
+	C {is {t c} mode value}
+    }
+    # --- longer chain
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	E {is {t e} mode leaf}
+	A {is {n B} mode value}
+	D {is {n E} mode value}
+	B {is {n C} mode value}
+	C {is {n D} mode value}
+    }
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n E} mode value}
+	B {is {n D} mode value}
+	C {is {n E} mode value}
+	D {is {n E} mode value}
+	E {is {t e} mode leaf}
+    }
+    # --- basic cycle:  A <- B <- A
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode value}
+	B {is {n A} mode value}
+    }
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode value}
+	B {is {n A} mode value}
+    }
+    # --- basic (indirect) cycle:  A <- B <- C <- A
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode value}
+	B {is {n C} mode value}
+	C {is {n A} mode value}
+    }
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode value}
+	B {is {n C} mode value}
+	C {is {n A} mode value}
+    }
+    # --- basic chain plus renaming for self-recursive leaves
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode value}
+	B {is {n C} mode value}
+	C {is {x {n C} {t c}} mode value}
+    }
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n C} mode value}
+	B {is {n C} mode value}
+	C {is {x {n C} {t c}} mode value}
+    }
+    # {n S} {
+    # 	S {is {x {n A} {t s}} mode value}
+    # 	A {is {x {n A} {t c}} mode value}
+    # 	B {is {x {n B} {t c}} mode value}
+    # 	C {is {x {n C} {t c}} mode value}
+    # }
+    # --- start expression: {} <- Z <- S <- s |> {} <- Z <- s
+    {n Z} {
+	Z {is {n S} mode value}
+    	S {is {t s} mode value}
+    }
+    {n Z} {
+	Z {is {n S} mode value}
+    	S {is {t s} mode value}
+    }
+    # --- TODO: start expression: {} <- Z <- S (leaf) <- s |> {} <- S <- s
+    # {n Z} {
+    # 	Z {is {n S} mode value}
+    # 	S {is {t s} mode value}
+    # }
+    # {n S} {
+    # 	S {is {t s} mode value}
+    # }
+    # --- broken chain #1 (undefined leaves?)
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode value}
+    }
+    {n S} {
+	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode value}
+    }
+    # --- broken chain #2 (undefined leaves?)
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode value}
+	B {is {n C} mode value}
+    }
+    {n S} {
+	S {is {x {n A} {t s}} mode value}
+	A {is {n C} mode value}
+	B {is {n C} mode value}
+    }
+    # --- intermittents
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode value}
+	B {is {n C} mode value}
+	C {is {x {n X} {t c}} mode value}
+	X {is {n Y} mode value}
+	Y {is {n Z} mode value}
+	Z {is {x {n Z} {t z}} mode value}
+    }
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n C} mode value}
+	B {is {n C} mode value}
+	C {is {x {n X} {t c}} mode value}
+	X {is {n Z} mode value}
+	Y {is {n Z} mode value}
+	Z {is {x {n Z} {t z}} mode value}
+    }
+    # {n S} {
+    # 	S {is {x {n A} {t s}} mode value}
+    # 	A {is {x {n X} {t c}} mode value}
+    # 	B {is {x {n X} {t c}} mode value}
+    # 	C {is {x {n X} {t c}} mode value}
+    # 	X {is {x {n X} {t z}} mode value}
+    # 	Y {is {x {n Y} {t z}} mode value}
+    # 	Z {is {x {n Z} {t z}} mode value}
+    # }
+    # --- incompat modes #1a
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode void}
+	B {is {n C} mode void}
+	C {is {t c} mode value}
+    }
+    {n S} {
+	S {is {x {n A} {t s}} mode value}
+	A {is {n C} mode void}
+	B {is {n C} mode void}
+	C {is {t c} mode value}
+    }
+    # --- incompat modes #1b
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode void}
+	B {is {n C} mode value}
+	C {is {t c} mode value}
+    }
+    {n S} {
+	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode void}
+	B {is {n C} mode value}
+	C {is {t c} mode value}
+    }
+    # X <- Z
+    #
+    # X     Z      dechain notes
+    # value value| yes    | value is passed
+    {n S} {
+	S {is {n X} mode value}
+	X {is {n Z} mode value}
+	Z {is {t z} mode value}
+    }
+    {n S} {
+	S {is {n Z} mode value}
+	X {is {n Z} mode value}
+	Z {is {t z} mode value}
+    }
+    # X     Z      dechain notes
+    # leaf  value| no     | generated value was discarded, inlined doesn't. Z may be implied void
+    {n S} {
+	S {is {n X} mode leaf}
+	X {is {n Z} mode value}
+	Z {is {t z} mode value}
+    }
+    {n S} {
+	S {is {n X} mode leaf}
+	X {is {n Z} mode value}
+	Z {is {t z} mode value}
+    }
+    # value leaf | yes    | value is passed
+    {n S} {
+	S {is {n X} mode value}
+	X {is {n Z} mode leaf}
+	Z {is {t z} mode value}
+    }
+    {n S} {
+	S {is {n Z} mode value}
+	X {is {n Z} mode leaf}
+	Z {is {t z} mode value}
+    }
+    # value void | yes    | X is implied void
+    {n S} {
+	S {is {n X} mode value}
+	X {is {n Z} mode void}
+	Z {is {t z} mode value}
+    }
+    {n S} {
+	S {is {n Z} mode value}
+	X {is {n Z} mode void}
+	Z {is {t z} mode value}
+    }
+    # leaf  leaf | no     | s.a.
+    {n S} {
+	S {is {n X} mode leaf}
+	X {is {n Z} mode leaf}
+	Z {is {t z} mode value}
+    }
+    {n S} {
+	S {is {n X} mode leaf}
+	X {is {n Z} mode leaf}
+	Z {is {t z} mode value}
+    }
+    # leaf  void | no     | s.a.
+    {n S} {
+	S {is {n X} mode leaf}
+	X {is {n Z} mode void}
+	Z {is {t z} mode value}
+    }
+    {n S} {
+	S {is {n X} mode leaf}
+	X {is {n Z} mode void}
+	Z {is {t z} mode value}
+    }
+    # void  value| no     | X drops value, inline doesn't
+    {n S} {
+	S {is {n X} mode void}
+	X {is {n Z} mode value}
+	Z {is {t z} mode value}
+    }
+    {n S} {
+	S {is {n X} mode void}
+	X {is {n Z} mode value}
+	Z {is {t z} mode value}
+    }
+    # void  leaf | no     | s.a.
+    {n S} {
+	S {is {n X} mode void}
+	X {is {n Z} mode leaf}
+	Z {is {t z} mode value}
+    }
+    {n S} {
+	S {is {n X} mode void}
+	X {is {n Z} mode leaf}
+	Z {is {t z} mode value}
+    }
+    # void  void | yes    |
+    {n S} {
+	S {is {n X} mode void}
+	X {is {n Z} mode void}
+	Z {is {t z} mode value}
+    }
+    {n S} {
+	S {is {n Z} mode void}
+	X {is {n Z} mode void}
+	Z {is {t z} mode value}
+    }
+    {n S} {
+	S {is {n S} mode value}
+    }
+    {n S} {
+	S {is {n S} mode value}
+    }
+} $setimpl
+
+# -------------------------------------------------------------------------
+# op: modeopt
+
+TestTransformation modeopt {
+    # --- stays as-is
+    epsilon {}
+    epsilon {}
+    # --- cycle
+    # S <-- A; A <-- A
+    {n S} {
+	S {is {n A} mode value}
+	A {is {n A} mode value}
+    }
+    {n S} {
+	S {is {n A} mode value}
+	A {is {n A} mode value}
+    }
+    # -- undefined (deferred) symbol: B
+    {n S} {
+	S {is {n A} mode value}
+	A {is {n B} mode value}
+    }
+    {n S} {
+	S {is {n A} mode value}
+	A {is {n B} mode value}
+    }
+    # --- rule 1
+    {n S} {
+	S {is {n A} mode value}
+	A {is {t A} mode value}
+    }
+    {n S} {
+	S {is {n A} mode value}
+	A {is {t A} mode leaf}
+    }
+    # --- rule 1
+    {n S} {
+	S {is {n A} mode value}
+	A {is {x {t A} {n B}} mode value}
+	B {is {t b} mode value}
+    }
+    {n S} {
+	S {is {n A} mode value}
+	A {is {x {t A} {n B}} mode value}
+	B {is {t b} mode leaf}
+    }
+    # --- rule 2 (no opt)
+    {n S} {
+	S {is {x {n A} {n B}} mode value}
+	A {is {n C} mode value}
+	B {is {n C} mode value}
+	C {is {t c} mode leaf}
+    }
+    {n S} {
+	S {is {x {n A} {n B}} mode value}
+	A {is {n C} mode value}
+	B {is {n C} mode value}
+	C {is {t c} mode leaf}
+    }
+    # --- rule 2 (void)
+    {n S} {
+	S {is {x {n A} {n B}} mode value}
+	A {is {n C} mode void}
+	B {is {n C} mode void}
+	C {is {t c} mode leaf}
+    }
+    {n S} {
+	S {is {x {n A} {n B}} mode value}
+	A {is {n C} mode void}
+	B {is {n C} mode void}
+	C {is {t c} mode void}
+    }
+    # --- rule 2 (leaf)
+    {n S} {
+	S {is {x {n A} {n B}} mode value}
+	A {is {n C} mode leaf}
+	B {is {n C} mode leaf}
+	C {is {t c} mode leaf}
+    }
+    {n S} {
+	S {is {x {n A} {n B}} mode value}
+	A {is {n C} mode leaf}
+	B {is {n C} mode leaf}
+	C {is {t c} mode void}
+    }
+    # --- rule 2 (mixed)
+    {n S} {
+	S {is {x {n A} {n B}} mode value}
+	A {is {n C} mode leaf}
+	B {is {n C} mode void}
+	C {is {t c} mode leaf}
+    }
+    {n S} {
+	S {is {x {n A} {n B}} mode value}
+	A {is {n C} mode leaf}
+	B {is {n C} mode void}
+	C {is {t c} mode void}
+    }
+    # --- rule 2 (mixed, no opt)
+    {n S} {
+	S {is {x {n A} {n B}} mode value}
+	A {is {n C} mode leaf}
+	B {is {n C} mode value}
+	C {is {t c} mode leaf}
+    }
+    {n S} {
+	S {is {x {n A} {n B}} mode value}
+	A {is {n C} mode leaf}
+	B {is {n C} mode value}
+	C {is {t c} mode leaf}
+    }
+    # --- rule 1: applies, rule 2: n/a
+    {n S} {
+	S {is {x {n A} {n B}} mode value}
+	A {is {n C} mode leaf}
+	B {is {n C} mode value}
+	C {is {t c} mode value}
+    }
+    {n S} {
+	S {is {x {n A} {n B}} mode value}
+	A {is {n C} mode leaf}
+	B {is {n C} mode value}
+	C {is {t c} mode leaf}
+    }
+    # --- rule 1: applies, rule 2: applies
+    {n S} {
+	S {is {x {n A} {n B}} mode value}
+	A {is {n C} mode leaf}
+	B {is {n C} mode leaf}
+	C {is {t c} mode value}
+    }
+    {n S} {
+	S {is {x {n A} {n B}} mode value}
+	A {is {n C} mode leaf}
+	B {is {n C} mode leaf}
+	C {is {t c} mode void}
+    }
+} $setimpl
+
+
+
+# -------------------------------------------------------------------------
+# op: minimize
+
+TestTransformation minimize {
+    # --- stays as-is
+    epsilon {}
+    epsilon {}
+    # --- minimize away (unrealizable)
+    # S <-- A; A <-- A
+    {n S} {
+	S {is {n A} mode value}
+	A {is {n A} mode value}
+    }
+    epsilon {}
+    # --- already minimal
+    {n S} {
+     	S {is {n A} mode leaf}
+     	A {is {t a} mode void}
+    }
+    {n S} {
+	S {is {n A} mode leaf}
+     	A {is {t a} mode void}
+    }
+    # --- drop unrealizable *before* unreachable
+    # S <-- AB / a; A <-- aA; B <-- a
+    {n S} {
+     	S {is {/ {x {n A} {n B}} {t a}} mode value}
+     	A {is {x {t a} {n A}} mode value}
+	B {is {t a} mode leaf}
+    }
+    {n S} {
+	S {is {t a} mode leaf}
+    }
+    # --- direct cycle
+    {n A} {
+	A {is {n A} mode value}
+    }
+    epsilon {}
+    # --- indirect cycle
+    {n A} {
+	A {is {n B} mode value}
+	B {is {n C} mode value}
+	C {is {n A} mode value}
+    }
+    epsilon {}
+    # --- dechaining creates unreachable and unrealisable rules; here: B, Y
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n B} mode value}
+	B {is {n C} mode value}
+	C {is {x {n X} {t c}} mode value}
+	X {is {n Y} mode value}
+	Y {is {n Z} mode value}
+	Z {is {x {t z}} mode leaf}
+    }
+    {n S} {
+    	S {is {x {n A} {t s}} mode value}
+	A {is {n C} mode value}
+	C {is {x {n X} {t c}} mode value}
+	X {is {n Z} mode value}
+	Z {is {t z} mode leaf}
+    }
+    # {n S} {
+    # 	S {is {x {n A} {t s}} mode value}
+    # 	A {is {x {n X} {t c}} mode value}
+    # 	X {is {t z} mode leaf}
+    # }
+} $setimpl
+
+# -------------------------------------------------------------------------
+rename sl {}
+rename g {}
+rename TestTransformation {}

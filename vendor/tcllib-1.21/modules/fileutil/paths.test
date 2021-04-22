@@ -1,0 +1,151 @@
+# -*- tcl -*-
+# paths.test:  Testsuite for package fileutil::paths
+#
+# Copyright (c) 2019 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+support {
+    use snit/snit.tcl snit
+}
+testing {
+    useLocal paths.tcl fileutil::paths
+}
+
+# ---------------------------------------------------------------------
+# [] constructor
+# [] destructor
+# [] paths
+# [] add
+# [] remove
+# [] clear
+
+#----------------------------------------------------------------------
+## Constructor, destructor
+
+test fileutil-paths-1.0 {constructor, wrong args, too many} -body {
+    fileutil::paths P X
+} -returnCodes error -result {Error in constructor: wrong # args: should be "::fileutil::paths::Snit_constructor type selfns win self"}
+
+test fileutil-paths-1.1 {instance, bogus method} -setup {
+    fileutil::paths P
+} -cleanup {
+    P destroy
+} -body {
+    P bogus
+} -returnCodes error -result {"::P bogus" is not defined}
+
+#----------------------------------------------------------------------
+## paths
+
+test fileutil-paths-2.0 {paths, wrong args, too many} -setup {
+    fileutil::paths P
+} -cleanup {
+    P destroy
+} -body {
+    P paths X
+} -returnCodes error -result {wrong # args: should be "::fileutil::paths::Snit_methodpaths type selfns win self"}
+
+test fileutil-paths-2.1 {paths, base state, none} -setup {
+    fileutil::paths P
+} -cleanup {
+    P destroy
+} -body {
+    P paths
+} -result {}
+
+#----------------------------------------------------------------------
+## add
+
+test fileutil-paths-3.0 {add, wrong args, not enough} -setup {
+    fileutil::paths P
+} -cleanup {
+    P destroy
+} -body {
+    P add
+} -returnCodes error -result {wrong # args: should be "::fileutil::paths::Snit_methodadd type selfns win self path"}
+
+test fileutil-paths-3.1 {add, wrong args, too many} -setup {
+    fileutil::paths P
+} -cleanup {
+    P destroy
+} -body {
+    P add F X
+} -returnCodes error -result {wrong # args: should be "::fileutil::paths::Snit_methodadd type selfns win self path"}
+
+test fileutil-paths-3.2 {add, state change, result} -setup {
+    fileutil::paths P
+} -cleanup {
+    P destroy
+} -body {
+    list [P add F] [P paths]
+} -result {{} F}
+
+#----------------------------------------------------------------------
+## remove
+
+test fileutil-paths-4.0 {remove, wrong args, not enough} -setup {
+    fileutil::paths P
+} -cleanup {
+    P destroy
+} -body {
+    P remove
+} -returnCodes error -result {wrong # args: should be "::fileutil::paths::Snit_methodremove type selfns win self path"}
+
+test fileutil-paths-4.1 {remove, wrong args, too many} -setup {
+    fileutil::paths P
+} -cleanup {
+    P destroy
+} -body {
+    P remove F X
+} -returnCodes error -result {wrong # args: should be "::fileutil::paths::Snit_methodremove type selfns win self path"}
+
+test fileutil-paths-4.2 {remove, known path, state change, result} -setup {
+    fileutil::paths P
+    P add F
+} -cleanup {
+    P destroy
+} -body {
+    list [P remove F] [P paths]
+} -result {{} {}}
+
+test fileutil-paths-4.3 {remove, missing path, no state change, result} -setup {
+    fileutil::paths P
+    P add Z
+} -cleanup {
+    P destroy
+} -body {
+    list [P remove F] [P paths]
+} -result {{} Z}
+
+#----------------------------------------------------------------------
+## clear
+
+test fileutil-paths-5.0 {clear, wrong args, too many} -setup {
+    fileutil::paths P
+} -cleanup {
+    P destroy
+} -body {
+    P clear X
+} -returnCodes error -result {wrong # args: should be "::fileutil::paths::Snit_methodclear type selfns win self"}
+
+test fileutil-paths-5.1 {clear, return to base state} -setup {
+    fileutil::paths P
+    P add F
+} -cleanup {
+    P destroy
+} -body {
+    list [P clear] [P paths]
+} -result {{} {}}
+
+#----------------------------------------------------------------------
+testsuiteCleanup
+return

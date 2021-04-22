@@ -1,0 +1,105 @@
+# -*- tcl -*-
+# Tests for changepoint library.
+#
+# RCS: @(#) $Id: geometry.test,v 1.13 2010/04/06 17:02:25 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+        [file dirname [file dirname [file join [pwd] [info script]]]] \
+        devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 1.0
+
+support {
+    useLocal math.tcl math
+    useLocal linalg.tcl math::linearalgebra
+    useLocal statistics.tcl math::statistics
+}
+testing {
+    useLocal changepoint.tcl math::changepoint
+}
+
+# setRand --
+#     Make sure we always get the same results:
+#     Use srand() to ensure that the random numbers follow
+#     the same sequence.
+#
+proc setRand {} {
+    expr {srand(100000)}
+}
+
+# test data NIST --
+#     From https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc323.htm
+#
+set testdata {
+    324.93
+    324.68
+    324.73
+    324.35
+    325.35
+    325.23
+    324.13
+    324.53
+    325.23
+    324.60
+    324.63
+    325.15
+    328.33
+    327.25
+    327.83
+    328.50
+    326.68
+    327.78
+    326.88
+    328.35
+}
+
+# test data for binary sgmentation
+#
+setRand
+set series       [concat [lrepeat 20 0.0] [lrepeat 20 1.0]]
+set noise        [::math::statistics::random-normal 0.0 1.5 40]
+set binsegSeries [lrepeat 40 0.0]
+
+for {set n 0} {$n < 40} {incr n} {
+    lset binsegSeries $n [expr {[lindex $series $n] + [lindex $noise $n]}]
+}
+
+# actual tests
+#
+test cusum-1.0 {examine entire data set} -body {
+    global testdata
+
+    set location [::math::changepoint::cusum-detect $testdata -target 325 -tolerance 0.635]
+} -result 12
+
+test cusum-1.1 {examine the data set one value at a time} -body {
+    global testdata
+
+    set cpd [::math::changepoint::cusum-online new -target 325 -tolerance 0.635]
+
+    set loc 0
+    foreach value $testdata {
+        if { [$cpd examine $value] } {
+            break
+        }
+
+        incr loc
+    }
+    set location $loc
+} -result 12
+
+
+test binseg-1.0 {binary segmentation for a series with clear shift} -body {
+    global binsegSeries
+
+    ::math::changepoint::binary-segmentation $series
+} -result 19
+
+test binseg-1.1 {binary segmentation for a series with clear shift - longer minimum length} -body {
+    global binsegSeries
+
+    ::math::changepoint::binary-segmentation $series -minlength 10
+} -result 19

@@ -1,0 +1,498 @@
+# -*- tcl -*-
+# quasirandom.test --
+#     Tests for the quasi-random numbers package
+#
+
+source [file join \
+	    [file dirname [file dirname [file join [pwd] [info script]]]] \
+	    devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.1
+
+testing {
+    useLocal  quasirandom.tcl math::quasirandom
+}
+
+#
+# Functions for integration tests
+#
+proc const {coords} {
+    return 1.0
+}
+
+proc fx {coords} {
+    set x [lindex $coords 0]
+    return $x
+}
+
+proc fy {coords} {
+    set y [lindex $coords 1]
+    return $y
+}
+
+proc fz {coords} {
+    set z [lindex $coords 2]
+    return $z
+}
+
+proc fxyz4 {coords} {
+    lassign $coords x y z
+    return [expr {($x*$y*$z)**4}]
+}
+
+#
+# Auxiliary proc
+#
+proc equalCoords {coords1 coords2} {
+    set equal 1
+    foreach c1 $coords1 c2 $coords2 {
+        if { $c1 != $c2 } {
+            set equal 0
+            break
+        }
+    }
+    return $equal
+}
+
+#
+# Create and register (in that order!) custom matching procedures
+#
+proc matchTolerant { expected actual } {
+    set match 1
+    foreach a $actual e $expected {
+	if { $e != 0.0 } {
+	    if { abs($e-$a)>1.0e-7*abs($e) &&
+		 abs($e-$a)>1.0e-7*abs($a)     } {
+		set match 0
+		break
+	    }
+	} else {
+	    if { abs($a) > 1.0e-7 } {
+		set match 0
+	    }
+	}
+    }
+    return $match
+}
+proc matchOnePercent { expected actual } {
+    set match 1
+    foreach a $actual e $expected {
+	if { $e != 0.0 } {
+	    if { abs($e-$a)>1.0e-2*abs($e) &&
+		 abs($e-$a)>1.0e-2*abs($a)     } {
+		set match 0
+		break
+	    }
+	} else {
+	    if { abs($a) > 1.0e-2 } {
+		set match 0
+	    }
+	}
+    }
+    return $match
+}
+
+::tcltest::customMatch tolerant matchTolerant
+::tcltest::customMatch error1percent matchOnePercent
+::tcltest::customMatch equal equalCoords
+
+
+#
+# Testing CoordFactors: the basis of the algorithm
+# Note: exact matching
+#
+test "Quasirandom-0.1" "Check basic factor for 1 dimension" -body {
+    set f [::math::quasirandom::CoordFactors 1]
+    return [expr {1.0/$f}]
+} -result 1.618033988749895
+
+test "Quasirandom-0.2" "Check basic factor for 2 dimensions" -body {
+    set f [lindex [::math::quasirandom::CoordFactors 2] 0]
+    return [expr {1.0/$f}]
+} -result 1.324717957244746
+
+test "Quasirandom-0.3" "Check basic factor for 3 dimensions" -body {
+    set f [lindex [::math::quasirandom::CoordFactors 3] 0]
+    return [expr {1.0/$f}]
+} -result 1.2207440846057596
+
+test "Quasirandom-0.4" "Check number of factors for 10 dimensions" -body {
+    return [llength [::math::quasirandom::CoordFactors 10]]
+} -result 10
+
+#
+# Basic interface to the qrpoints class
+#
+test "Quasirandom-1.0" "Simple QR generator for two dimensions" -match tolerant -body {
+    ::math::quasirandom::qrpoints create simple 2
+
+    return [simple next]
+} -result {0.7548776662466927 0.5698402909980532} -cleanup {simple destroy}
+
+test "Quasirandom-1.1" "Simple QR generator - negative dimension" -body {
+    ::math::quasirandom::qrpoints create simple -1
+} -returnCodes {error} -result {The dimension argument should be a positive integer value or one of circle, disk, sphere or ball}
+
+test "Quasirandom-1.2" "Simple QR generator - set start" -body {
+    ::math::quasirandom::qrpoints create simple  2
+    ::math::quasirandom::qrpoints create simple2 2 -start 2
+
+    simple next
+    set coords  [simple next]
+
+    set coords2 [simple2 next]  ;# Should be equal to the second point for the [simple] generator
+
+    equalCoords $coords $coords2
+} -result 1 -cleanup {simple destroy; simple2 destroy}
+
+#
+# Test simple methods
+#
+test "Quasirandom-2.1" "set-step sets and returns the value" -match equal -body {
+    ::math::quasirandom::qrpoints create simple 2
+
+    simple set-step 100
+} -result 100 -cleanup {simple destroy}
+
+test "Quasirandom-2.2" "set-evaluations sets and returns the value" -match equal -body {
+    ::math::quasirandom::qrpoints create simple 2
+
+    simple set-evaluations 100
+} -result 100 -cleanup {simple destroy}
+
+test "Quasirandom-2.3" "set-step returns the value" -match equal -body {
+    ::math::quasirandom::qrpoints create simple 2
+
+    simple set-step 100
+    simple set-step
+} -result 100 -cleanup {simple destroy}
+
+test "Quasirandom-2.4" "set-evaluations returns the value" -match equal -body {
+    ::math::quasirandom::qrpoints create simple 2
+
+    simple set-evaluations 100
+    simple set-evaluations
+} -result 100 -cleanup {simple destroy}
+
+#
+# Test of bounds on points
+#
+test "Quasirandom-3.1" "Points should fall within block" -body {
+    ::math::quasirandom::qrpoints create simple 10
+
+    set correct_bound 1
+
+    for {set i 0} {$i < 100} {incr i} {
+        set coords [simple next]
+
+        foreach c $coords {
+            if { $c < 0.0 || $c > 1.0 } {
+                set correct_bound 0
+                break
+            }
+        }
+    }
+
+    return $correct_bound
+} -result 1 -cleanup {simple destroy}
+
+test "Quasirandom-3.2" "Points should fall on a circle" -match tolerant -body {
+    ::math::quasirandom::qrpoints create simple circle
+
+    set correct_bound 1
+    set radii {}
+
+    for {set i 0} {$i < 100} {incr i} {
+        set coords [simple next]
+
+        lassign $coords x y
+        lappend radii [expr {hypot($x,$y)}]
+    }
+
+    return $radii
+} -result [lrepeat 100 1.0] -cleanup {simple destroy}
+
+test "Quasirandom-3.3" "Points should fall within a disk" -match equal -body {
+    ::math::quasirandom::qrpoints create simple disk
+
+    set correct_bounds {}
+    for {set i 0} {$i < 100} {incr i} {
+        set coords [simple next]
+
+        lassign $coords x y
+        lappend correct_bounds [expr {hypot($x,$y) <= 1.0}]
+    }
+
+    return $correct_bounds
+} -result [lrepeat 100 1] -cleanup {simple destroy}
+
+test "Quasirandom-3.4" "Points should fall on a sphere" -match tolerant -body {
+    ::math::quasirandom::qrpoints create simple sphere
+
+    set correct_bound 1
+    set radii {}
+
+    for {set i 0} {$i < 100} {incr i} {
+        set coords [simple next]
+
+        lassign $coords x y z
+        lappend radii [expr {sqrt($x**2 + $y**2 + $z**2)}]
+    }
+
+    return $radii
+} -result [lrepeat 100 1.0] -cleanup {simple destroy}
+
+test "Quasirandom-3.5" "Points should fall within a ball" -match equal -body {
+    ::math::quasirandom::qrpoints create simple ball
+
+    set correct_bounds {}
+    for {set i 0} {$i < 100} {incr i} {
+        set coords [simple next]
+
+        lassign $coords x y
+        lappend correct_bounds [expr {sqrt($x**2 + $y**2 + $z**2) <= 1.0}]
+    }
+
+    return $correct_bounds
+} -result [lrepeat 100 1] -cleanup {simple destroy}
+
+
+
+
+#
+# Test of integral methods
+#
+# Integrating a constant function means the result is the volume
+#
+test "Quasirandom-4.1" "Integrate constant function - volume = 1" -match tolerant -body {
+    ::math::quasirandom::qrpoints create simple 3
+
+    set result [simple integral const {{0.0 1.0} {0.0 1.0} {0.0 1.0}}]
+
+} -result 1.0 -cleanup {simple destroy}
+
+test "Quasirandom-4.2" "Integrate constant function - volume = 8" -match tolerant -body {
+    ::math::quasirandom::qrpoints create simple 3
+
+    set result [simple integral const {{0.0 2.0} {0.0 2.0} {0.0 2.0}}]
+
+} -result 8.0 -cleanup {simple destroy}
+
+test "Quasirandom-4.3" "Integrate constant function - circle" -match tolerant -body {
+    ::math::quasirandom::qrpoints create simple circle
+
+    set result [simple integral const 2.0]
+
+} -result [expr {2.0 * 2.0 * cos(-1.0)}] -cleanup {simple destroy}
+
+test "Quasirandom-4.3" "Integrate constant function - disk" -match tolerant -body {
+    ::math::quasirandom::qrpoints create simple disk
+
+    set result [simple integral const 2.0]
+
+} -result [expr {2.0**2 * cos(-1.0)}] -cleanup {simple destroy}
+
+test "Quasirandom-4.4" "Integrate constant function - sphere" -match tolerant -body {
+    ::math::quasirandom::qrpoints create simple sphere
+
+    set result [simple integral const 2.0]
+
+} -result [expr {4.0 * 2.0**2 * cos(-1.0)}] -cleanup {simple destroy}
+
+test "Quasirandom-4.5" "Integrate constant function - ball" -match tolerant -body {
+    ::math::quasirandom::qrpoints create simple ball
+
+    set result [simple integral const 2.0]
+
+} -result [expr {4.0/3.0 * 2.0**3 * cos(-1.0)}] -cleanup {simple destroy}
+
+# We do not use too many evaluations ... error less than 1%
+test "Quasirandom-4.6" "Integrate linear function (x, y, z)" -match error1percent -body {
+    ::math::quasirandom::qrpoints create simple 3
+
+    set result [list [simple integral fx {{0.0 1.0} {0.0 1.0} {0.0 1.0}}] \
+		    [simple integral fy {{0.0 1.0} {0.0 1.0} {0.0 1.0}}] \
+		    [simple integral fz {{0.0 1.0} {0.0 1.0} {0.0 1.0}}] ]
+
+} -result {0.5 0.5 0.5} -cleanup {simple destroy}
+
+#
+# The function varies "sharply", so we need more evaluations
+#
+test "Quasirandom-4.7" "Integrate (xyz)**4" -match error1percent -body {
+    ::math::quasirandom::qrpoints create simple 3
+
+    # Exact answer is 1/125
+    set result [simple integral fxyz4 {{0.0 1.0} {0.0 1.0} {0.0 1.0}} -evaluations 1000]
+
+} -result 0.0080 -cleanup {simple destroy}
+
+
+#
+# Detailed integration: provides error estimates but also an indication that
+# the values can differ quite a bit
+#
+test "Quasirandom-5.1" "Integrate constant function with details - volume = 1" -match tolerant -body {
+    ::math::quasirandom::qrpoints create simple 3
+
+    set result [simple integral-detailed const {{0.0 1.0} {0.0 1.0} {0.0 1.0}}]
+
+    set rawvalues [dict get $result -rawvalues]
+
+} -result {1.0 1.0 1.0 1.0} -cleanup {simple destroy}
+
+
+test "Quasirandom-5.2" "Integrate linear function with details - volume = 1" -match tolerant -body {
+    ::math::quasirandom::qrpoints create simple 3
+
+    set result [simple integral-detailed fx {{0.0 1.0} {0.0 1.0} {0.0 1.0}}]
+
+    set rawvalues [dict get $result -rawvalues]
+
+} -result {0.48924267415013695 0.48855550905424594 0.5278683439583554 0.48718117886246404} -cleanup {simple destroy}
+
+
+test "Quasirandom-5.3" "Integrate (xyz)**4 with details - volume = 1" -match tolerant -body {
+    ::math::quasirandom::qrpoints create simple 3
+
+    set result [simple integral-detailed fxyz4 {{0.0 1.0} {0.0 1.0} {0.0 1.0}}]
+
+    set rawvalues [dict get $result -rawvalues]
+
+} -result {0.0022115062627913935 0.009840104253511376 0.014937934937801888 0.007838969739655276} -cleanup {simple destroy}
+
+
+#
+# Test integration procedures in a different namespace
+#
+test "Quasirandom-6.1" "Integrate ::func::func" -match tolerant -body {
+    namespace eval ::func {
+
+        proc func {xy} {
+            lassign $xy x y
+            expr {$x**2+$y**2}
+        }
+
+        ::math::quasirandom::qrpoints create simple 2
+
+        set ::result [simple integral func {{0.0 1.0} {0.0 1.0}}]
+    }
+
+    return $result
+
+} -result {0.67353777} -cleanup {::func::simple destroy}
+
+
+test "Quasirandom-6.2" "Integrate (details) ::func::func" -match tolerant -body {
+    namespace eval ::func {
+
+        proc func {xy} {
+            lassign $xy x y
+            expr {$x**2+$y**2}
+        }
+
+        ::math::quasirandom::qrpoints create simple 2
+
+        set ::result [simple integral-detailed func {{0.0 1.0} {0.0 1.0}}]
+    }
+
+    return [dict get $result -estimate]
+
+} -result {0.67353777} -cleanup {::func::simple destroy}
+
+
+# TODO:
+# - func in different namespace
+# - implement detailed integration and test the details
+# - implement minimization
+
+#
+# Hm, the less than 1% error in the above test is a coincidence. The error is more
+# likely to be 10%.
+#
+if {0} {
+    ::math::quasirandom::qrpoints create simple 3
+    # Exact answer is 1/125
+    set result [simple integral fxyz4 {{0.0 1.0} {0.0 1.0} {0.0 1.0}} -evaluations 100]
+    puts "fxyz4: $result"
+    simple set-step 0
+    set result [simple integral fxyz4 {{0.0 1.0} {0.0 1.0} {0.0 1.0}} -evaluations 1000]
+    puts "fxyz4: $result"
+    set result [simple integral fxyz4 {{0.0 1.0} {0.0 1.0} {0.0 1.0}} -evaluations 1000]
+    puts "fxyz4: $result"
+    set result [simple integral fxyz4 {{0.0 1.0} {0.0 1.0} {0.0 1.0}} -evaluations 1000]
+    puts "fxyz4: $result"
+
+    package require math::statistics
+    set samples {}
+    for {set trial 0} {$trial < 10} {incr trial} {
+	set sum 0.0
+
+	for {set p 0} {$p < 100} {incr p} {
+	    set x   [expr {rand()}]
+	    set y   [expr {rand()}]
+	    set z   [expr {rand()}]
+	    set sum [expr {$sum + [fxyz4 [list $x $y $z]]}]
+	}
+
+	puts "Trial $trial: [expr {$sum/100.0}]"
+
+	lappend samples [expr {$sum/100.0}]
+    }
+
+    puts "MonteCarlo (100):"
+    puts [::math::statistics::mean $samples]
+    puts [::math::statistics::stdev $samples]
+
+    set samples {}
+    for {set trial 0} {$trial < 10} {incr trial} {
+	set sum 0.0
+
+	for {set p 0} {$p < 1000} {incr p} {
+	    set x   [expr {rand()}]
+	    set y   [expr {rand()}]
+	    set z   [expr {rand()}]
+	    set sum [expr {$sum + [fxyz4 [list $x $y $z]]}]
+	}
+
+	puts "Trial $trial: [expr {$sum/1000.0}]"
+
+	lappend samples [expr {$sum/1000.0}]
+    }
+
+    puts "MonteCarlo (1000):"
+    puts [::math::statistics::mean $samples]
+    puts [::math::statistics::stdev $samples]
+
+    set samples {}
+    for {set trial 0} {$trial < 10} {incr trial} {
+	set result [simple integral fxyz4 {{0.0 1.0} {0.0 1.0} {0.0 1.0}} -evaluations 100]
+
+	lappend samples $result
+    }
+
+    puts "Quasi-random (100):"
+    puts [::math::statistics::mean $samples]
+    puts [::math::statistics::stdev $samples]
+
+    set samples {}
+    for {set trial 0} {$trial < 10} {incr trial} {
+	set result [simple integral fxyz4 {{0.0 1.0} {0.0 1.0} {0.0 1.0}} -evaluations 1000]
+
+	lappend samples $result
+    }
+
+    puts "Quasi-random (1000):"
+    puts [::math::statistics::mean $samples]
+    puts [::math::statistics::stdev $samples]
+
+
+    puts [simple integral-detailed fx {{0.0 1.0} {0.0 1.0} {0.0 1.0}}]
+}
+
+
+# -------------------------------------------------------------------------
+
+# End of test cases
+testsuiteCleanup

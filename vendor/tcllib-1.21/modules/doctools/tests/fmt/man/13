@@ -1,0 +1,15 @@
+[comment { -- List 6 - itemized examples }]
+[manpage_begin test-itemized-examples 1 n]
+[description]
+lorem ipsum dolores
+[list_begin itemized]
+[item]
+[example { A lorem ipsum dolores }]
+[item] lorem ipsum dolores
+[example { B lorem ipsum dolores }]
+lorem ipsum dolores
+[item] lorem ipsum dolores
+[example { C lorem ipsum dolores }]
+[item] lorem ipsum dolores
+[list_end]
+[manpage_end]

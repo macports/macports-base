@@ -1,0 +1,16 @@
+PEG Tiny (Proc)
+        Proc            <- CmdSeq !. ;
+ 	CmdSeq 		<- Cmd SEMICOLON (Cmd SEMICOLON)*;
+	Cmd 		<- Skip ((IfCmd / RepeatCmd / AssignCmd / ReadCmd / WriteCmd)) Skip;
+	IfCmd 		<- 'if' Exp 'then' CmdSeq ('else' CmdSeq)? 'end';
+	RepeatCmd 	<- 'repeat' CmdSeq 'until' Exp;
+	AssignCmd 	<- Name ASSIGNMENT Exp;
+	ReadCmd 	<- 'read' Skip Name;
+	WriteCmd 	<- 'write' Skip Exp;
+void:   SEMICOLON       <- Skip ';' Skip;
+leaf:   ASSIGNMENT      <- Skip ':=' Skip;
+	Name 		<- 'n' / 'f';
+	Exp 		<- Operand Skip (('*' / '-' / '+' / '>' / '<') Operand)?;
+	Operand 	<- Skip (Name / <digit>) Skip;
+void:   Skip 	        <- <space>*;
+END;

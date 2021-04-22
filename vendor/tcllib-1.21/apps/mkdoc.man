@@ -1,0 +1,107 @@
+[comment {-*- mode: tcl ; fill-column: 90 -*- doctools manpage}]
+[vset VERSION 0.7.0]
+[manpage_begin mkdoc n [vset VERSION]]
+[copyright {2019-2022, Detlef Groth <detlef(at)dgroth(dot)de>}]
+[moddesc   {Source code documentation using Markdown}]
+[titledesc {Source code documentation extractor/converter application}]
+[category  {Text processing}]
+[description]
+
+This document describes [cmd mkdoc], an application to extract documentation embedded in
+source code files, be they [file .tcl], or other.
+
+
+[section {Command Line}]
+
+[list_begin definitions]
+
+[call [cmd mkdoc] [option --help]]
+
+The application prints a short help to standard output and exits.
+
+[call [cmd mkdoc] [option --version]]
+
+The application prints its version number to standard output and exits.
+
+[call [cmd mkdoc] [option --license]]
+
+The application prints its license to standard output and exits.
+
+[call [cmd mkdoc] [arg input] [arg output] [opt "[option --css] [arg cssfile]"]]
+
+The application reads the [arg input] file, extracts the embedded documentation, and
+writes it to the [arg output] file.
+
+[para] If the output file is not a [file .md] file the extracted documentation is
+converted to HTML before being written.
+
+[para] When generating and writing HTML the default CSS stylesheet can be overridden by
+specifying the path to a custom stylesheet via option [option --css].
+
+[para] If the input file is a [file .md] file it is expected to contain Markdown as-is,
+instead of Markdown embedded into code.
+
+[para] On the other side, when the file is considered code then the documentation is
+expected to be contained in all lines starting with the marker [const "#'"].
+
+For script languages like Tcl the [const #] character of this marker means that the
+documentation is contained in the so-flagged comments.
+
+For other languages the marker and documentation may have to be embedded into multi-line
+comments.
+
+[list_end]
+
+[section Examples]
+
+[example {
+    # Create HTML manual for a CPP file using a custom style sheet
+    mkdoc sample.cpp sample.html --css manual.css
+
+    # Extract the documentation from code as simple Markdown, ready to be processed
+    # further, for example with pandoc, or similar
+    mkdoc sample.cpp sample.md 
+
+    # Convert a Markdown file to HTML
+    mkdoc sample.md sample.html
+}]
+
+[section "Bugs, Ideas, Feedback"]
+
+This document, and the package it describes, will undoubtedly contain bugs and
+other problems. Please report such to the author of this package. Please also report any ideas for enhancements you may have for
+either package and/or documentation.
+
+[section "Code Copyright"]
+
+BSD License type:
+
+[para] The following terms apply to all files a ssociated with the software unless
+explicitly disclaimed in individual files.
+
+[para] The authors hereby grant permission to use, copy, modify, distribute, and license
+this software and its documentation for any purpose, provided that existing copyright
+notices are retained in all copies and that this notice is included verbatim in any
+distributions. No written agreement, license, or royalty fee is required for any of the
+authorized uses.  Modifications to this software may be copyrighted by their authors and
+need not follow the licensing terms described here, provided that the new terms are
+clearly indicated on the first page of each file where they apply.
+
+[para] In no event shall the authors or distributors be liable to any party for direct,
+indirect, special, incidental, or consequential damages arising out of the use of this
+software, its documentation, or any derivatives thereof, even if the authors have been
+advised of the possibility of such damage.
+
+[para] The authors and distributors specifically disclaim any warranties, including, but
+not limited to, the implied warranties of merchantability, fitness for a particular
+purpose, and non-infringement.
+
+This software is provided on an "as is" basis, and the authors and distributors have no
+obligation to provide maintenance, support, updates, enhancements, or modifications.
+
+[para] [strong {RESTRICTED RIGHTS}]: Use, duplication or disclosure by the government is
+subject to the restrictions as set forth in subparagraph (c) (1) (ii) of the Rights in
+Technical Data and Computer Software Clause as DFARS 252.227-7013 and FAR 52.227-19.
+
+[vset CATEGORY mkdoc]
+[manpage_end]

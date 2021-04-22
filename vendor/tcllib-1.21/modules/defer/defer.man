@@ -1,0 +1,102 @@
+[vset VERSION 1]
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin defer n [vset VERSION]]
+[keywords golang]
+[keywords cleanup]
+[copyright {2017, Roy Keene}]
+[moddesc {Defered execution ala Go}]
+[titledesc {Defered execution}]
+[category  {Utility}]
+[require Tcl 8.6]
+[require defer [opt [vset VERSION]]]
+[description]
+
+The [cmd defer] commands allow a developer to schedule actions to happen
+as part of the current variable scope terminating.  This is most useful
+for dealing with cleanup activities.  Since the defered actions always
+execute, and always execute in the reverse order from which the defer
+statements themselves execute, the programmer can schedule the cleanup
+of a resource (for example, a channel) as soon as that resource is
+acquired.  Then, later if the procedure or lambda ends, either due to
+an error, or an explicit return, the cleanup of that resource will
+always occur.
+
+[para]
+
+[section {COMMANDS}]
+
+[list_begin definitions]
+
+[call [cmd "::defer::defer"] \
+        [opt [arg command]] \
+        [opt [arg arg1]] \
+        [opt [arg arg2]] \
+        [opt [arg argN...]]]
+
+Defers execution of some code until the current variable scope
+ends.  Each argument is concatencated together to form the script
+to execute at deferal time.
+
+Multiple defer statements may be used, they are executed in the order
+of last-in, first-out.
+
+[comment {
+	Just like Go !
+}]
+
+The return value is an identifier which can be used later with 
+[cmd defer::cancel]
+
+[call [cmd "::defer::with"] \
+	[arg variableList] [arg script]]
+
+Defers execution of a script while copying the current value of some
+variables, whose names specified in [arg variableList], into the script.
+The script acts like a lambda but executes at the same level as the
+[cmd defer::with]
+call.
+
+The return value is the same as
+[cmd ::defer::defer]
+
+[call [cmd ::defer::autowith] [arg script]]
+
+The same as
+[cmd ::defer::with] but uses all local variables in the variable list.
+
+[call [cmd ::defer::cancel] \
+    [opt [arg id...]]]
+
+Cancels the execution of a defered action.  The [arg id] argument is the
+identifier returned by
+[cmd ::defer::defer],
+[cmd ::defer::with], or
+[cmd ::defer::autowith].
+
+Any number of arguments may be supplied, and all of the IDs supplied
+will be cancelled.
+
+[list_end]
+
+[section "EXAMPLES"]
+
+[example {
+	package require defer 1
+	apply {{} {
+		set fd [open /dev/null]
+		defer::defer close $fd
+	}}
+}]
+
+[section "REFERENCES"]
+
+[list_begin enumerated]
+[enum]
+[list_end]
+
+[section AUTHORS]
+Roy Keene
+
+[vset CATEGORY defer]
+[include ../common-text/feedback.inc]
+[manpage_end]

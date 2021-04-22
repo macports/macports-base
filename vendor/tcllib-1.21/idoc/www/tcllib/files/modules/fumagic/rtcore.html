@@ -1,0 +1,283 @@
+<!DOCTYPE html><html><head>
+<title>fileutil::magic::rt - file utilities</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'rtcore.man' by tcllib/doctools with format 'html'
+   -->
+<!-- fileutil::magic::rt.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+&#124; <a href="../../../../toc.html">Main Table Of Contents</a>
+&#124; <a href="../../../toc.html">Table Of Contents</a>
+&#124; <a href="../../../../index.html">Keyword Index</a>
+&#124; <a href="../../../../toc0.html">Categories</a>
+&#124; <a href="../../../../toc1.html">Modules</a>
+&#124; <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">fileutil::magic::rt(n) 2.0 tcllib &quot;file utilities&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>fileutil::magic::rt - Runtime core for file type recognition engines written in pure Tcl</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">NUMERIC TYPES</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#see-also">See Also</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.5</b></li>
+<li>package require <b class="pkgname">fileutil::magic::rt <span class="opt">?2.0?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::fileutil::magic::rt::&gt;</b></a></li>
+<li><a href="#2"><b class="cmd">::fileutil::magic::rt::&lt;</b></a></li>
+<li><a href="#3"><b class="cmd">::fileutil::magic::rt::new</b> <i class="arg">chan</i> <i class="arg">named</i> <i class="arg">analyze</i></a></li>
+<li><a href="#4"><b class="cmd">::fileutil::magic::rt::file_start</b> <i class="arg">name</i></a></li>
+<li><a href="#5"><b class="cmd">::fileutil::magic::rt::emit</b> <i class="arg">msg</i></a></li>
+<li><a href="#6"><b class="cmd">::fileutil::magic::rt::O</b> <i class="arg">where</i></a></li>
+<li><a href="#7"><b class="cmd">::fileutil::magic::rt::R</b> <i class="arg">where</i></a></li>
+<li><a href="#8"><b class="cmd">::fileutil::magic::rt::Nv</b> <i class="arg">type</i> <i class="arg">offset</i> <i class="arg">compinvert</i> <i class="arg">comp</i> <i class="arg">expected</i></a></li>
+<li><a href="#9"><b class="cmd">::fileutil::magic::rt::N</b> <i class="arg">type</i> <i class="arg">offset</i> <i class="arg">testinvert</i> <i class="arg">compinvert</i> <i class="arg">mod</i> <i class="arg">mand</i> <i class="arg">comp</i> <i class="arg">expected</i></a></li>
+<li><a href="#10"><b class="cmd">::fileutil::magic::rt::S</b> <i class="arg">type</i> <i class="arg">offset</i> <i class="arg">testinvert</i> <i class="arg">mod</i> <i class="arg">mand</i> <i class="arg">comp</i> <i class="arg">val</i></a></li>
+<li><a href="#11"><b class="cmd">::fileutil::magic::rt::L</b> <i class="arg">newlevel</i></a></li>
+<li><a href="#12"><b class="cmd">::fileutil::magic::rt::I</b> <i class="arg">offset</i> <i class="arg">it</i> <i class="arg">ioi</i> <i class="arg">ioo</i> <i class="arg">iir</i> <i class="arg">io</i></a></li>
+<li><a href="#13"><b class="cmd">::fileutil::magic::rt::R</b> <i class="arg">offset</i></a></li>
+<li><a href="#14"><b class="cmd">::fileutil::magic::rt::U</b> <i class="arg">fileindex</i> <i class="arg">name</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This package provides the runtime core for file type recognition
+engines written in pure Tcl and is thus used by all other packages in
+this module such as <b class="package"><a href="filetypes.html">fileutil::magic::filetype</a></b> and the two compiler
+packages <b class="package"><a href="cgen.html">fileutil::magic::cgen</a></b> and
+<b class="package"><a href="cfront.html">fileutil::magic::cfront</a></b>.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::fileutil::magic::rt::&gt;</b></a></dt>
+<dd><p>Increment the level and perform related housekeeping</p></dd>
+<dt><a name="2"><b class="cmd">::fileutil::magic::rt::&lt;</b></a></dt>
+<dd><p>Decrement the level and perform related housekeeping</p></dd>
+<dt><a name="3"><b class="cmd">::fileutil::magic::rt::new</b> <i class="arg">chan</i> <i class="arg">named</i> <i class="arg">analyze</i></a></dt>
+<dd><p>Create a new command which returns one description of the file each time it is
+called, and a code of <i class="arg">break</i> when there are no more descriptions.
+<i class="arg">chan</i> is the channel containing the data to describe.  The channel
+configuration is then managed as needed.
+<i class="arg">named</i> is a dictionary of named tests, as generated by
+<b class="cmd">fileutil::magic::cfront::compile</b>.
+<i class="arg">test</i> is a command prefix for a routine composed of the list of commands
+as returned by <b class="cmd">fileutil::magic::cfront::compile</b>.</p></dd>
+<dt><a name="4"><b class="cmd">::fileutil::magic::rt::file_start</b> <i class="arg">name</i></a></dt>
+<dd><p>This command marks the start of a magic file when debugging. It
+returns the empty string as its result.</p></dd>
+<dt><a name="5"><b class="cmd">::fileutil::magic::rt::emit</b> <i class="arg">msg</i></a></dt>
+<dd><p>This command adds the text <i class="arg">msg</i> to the result buffer. The
+message may contain the following special character sequences. They
+will be replaced with buffered values before the message is added to
+the result. The command returns the empty string as its result.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">\b</b></dt>
+<dd><p>This sequence is removed</p></dd>
+<dt><b class="const">%s</b></dt>
+<dd><p>Replaced with the last buffered string value.</p></dd>
+<dt><b class="const">%ld</b></dt>
+<dd><p>Replaced with the last buffered numeric value.</p></dd>
+<dt><b class="const">%d</b></dt>
+<dd><p>See above.</p></dd>
+<dt><b class="const">${x:...?...}</b></dt>
+<dd><p>Substitute one string if the file is executable, and
+another string otherwise.</p></dd>
+</dl></dd>
+<dt><a name="6"><b class="cmd">::fileutil::magic::rt::O</b> <i class="arg">where</i></a></dt>
+<dd><p>Produce an offset from <i class="arg">where</i>, relative to the cursor one level up.
+Produce an offset from <i class="arg">where</i>, relative to the offset one level up.</p></dd>
+<dt><a name="8"><b class="cmd">::fileutil::magic::rt::Nv</b> <i class="arg">type</i> <i class="arg">offset</i> <i class="arg">compinvert</i> <i class="arg">comp</i> <i class="arg">expected</i></a></dt>
+<dd><p>A limited form of <b class="cmd">::fileutile::magic::rt::N</b> that only checks for
+equality and can't be told to invert the test.</p></dd>
+<dt><a name="9"><b class="cmd">::fileutil::magic::rt::N</b> <i class="arg">type</i> <i class="arg">offset</i> <i class="arg">testinvert</i> <i class="arg">compinvert</i> <i class="arg">mod</i> <i class="arg">mand</i> <i class="arg">comp</i> <i class="arg">expected</i></a></dt>
+<dd><p>Fetch the numeric value with <i class="arg">type</i> from the absolute location
+<i class="arg">offset</i>, compare it with <i class="arg">expected</i> using <i class="arg">comp</i> as the comparision
+operator,  and returns the result.</p>
+<p>The argument <i class="arg">comp</i> must be one of Tcl's comparison
+operators.</p>
+<pre class="doctools_example">
+	&lt;comp&gt; &lt;fetched-and-masked-value&gt; &lt;comp&gt; &lt;expected&gt;
+</pre>
+<p>The special comparison operator <b class="const">x</b> signals that no comparison
+should be done, or, in other words, that the fetched value will always
+match <i class="arg">val</i>.</p></dd>
+<dt><a name="10"><b class="cmd">::fileutil::magic::rt::S</b> <i class="arg">type</i> <i class="arg">offset</i> <i class="arg">testinvert</i> <i class="arg">mod</i> <i class="arg">mand</i> <i class="arg">comp</i> <i class="arg">val</i></a></dt>
+<dd><p>Like <b class="cmd">::fileutil::magic::rt::N</b> except that it fetches and compares string
+types , not numeric data.</p></dd>
+<dt><a name="11"><b class="cmd">::fileutil::magic::rt::L</b> <i class="arg">newlevel</i></a></dt>
+<dd><p>Sets the current level in the calling context to
+<i class="arg">newlevel</i>. The command returns the empty string as its result.</p></dd>
+<dt><a name="12"><b class="cmd">::fileutil::magic::rt::I</b> <i class="arg">offset</i> <i class="arg">it</i> <i class="arg">ioi</i> <i class="arg">ioo</i> <i class="arg">iir</i> <i class="arg">io</i></a></dt>
+<dd><p>Calculates an offset based on an initial offset and the provided modifiers.</p></dd>
+<dt><a name="13"><b class="cmd">::fileutil::magic::rt::R</b> <i class="arg">offset</i></a></dt>
+<dd><p>Given an initial offset, calculates an offset relative to the cursor at the
+next level up. The cursor is the position in the data one character after the
+data extracted from the file one level up.</p></dd>
+<dt><a name="14"><b class="cmd">::fileutil::magic::rt::U</b> <i class="arg">fileindex</i> <i class="arg">name</i></a></dt>
+<dd><p>Add a level and use a named test script.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">NUMERIC TYPES</a></h2>
+<dl class="doctools_definitions">
+<dt><b class="const">byte</b></dt>
+<dd><p>8-bit integer</p></dd>
+<dt><b class="const">short</b></dt>
+<dd><p>16-bit integer, stored in native endianess</p></dd>
+<dt><b class="const">beshort</b></dt>
+<dd><p>see above, stored in big endian</p></dd>
+<dt><b class="const">leshort</b></dt>
+<dd><p>see above, stored in small/little endian</p></dd>
+<dt><b class="const">long</b></dt>
+<dd><p>32-bit integer, stored in native endianess</p></dd>
+<dt><b class="const">belong</b></dt>
+<dd><p>see above, stored in big endian</p></dd>
+<dt><b class="const">lelong</b></dt>
+<dd><p>see above, stored in small/little endian</p></dd>
+</dl>
+<p>All of the types above exit in an unsigned form as well. The type
+names are the same, with the character &quot;u&quot; added as prefix.</p>
+<dl class="doctools_definitions">
+<dt><b class="const">date</b></dt>
+<dd><p>32-bit integer timestamp, stored in native endianess</p></dd>
+<dt><b class="const">bedate</b></dt>
+<dd><p>see above, stored in big endian</p></dd>
+<dt><b class="const">ledate</b></dt>
+<dd><p>see above, stored in small/little endian</p></dd>
+<dt><b class="const">ldate</b></dt>
+<dd><p>32-bit integer timestamp, stored in native endianess</p></dd>
+<dt><b class="const">beldate</b></dt>
+<dd><p>see above, stored in big endian</p></dd>
+<dt><b class="const">leldate</b></dt>
+<dd><p>see above, stored in small/little endian</p></dd>
+</dl>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>fileutil :: magic</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+<p>When proposing code changes, please provide <em>unified diffs</em>,
+i.e the output of <b class="const">diff -u</b>.</p>
+<p>Note further that <em>attachments</em> are strongly preferred over
+inlined patches. Attachments can be made by going to the <b class="const">Edit</b>
+form of the ticket immediately after its creation, and then using the
+left-most button in the secondary navigation bar.</p>
+</div>
+<div id="see-also" class="doctools_section"><h2><a name="see-also">See Also</a></h2>
+<p>file(1), <a href="../fileutil/fileutil.html">fileutil</a>, magic(5)</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#file_recognition">file recognition</a>, <a href="../../../../index.html#file_type">file type</a>, <a href="../../../../index.html#file_utilities">file utilities</a>, <a href="../../../../index.html#mime">mime</a>, <a href="../../../../index.html#type">type</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+</div></body></html>

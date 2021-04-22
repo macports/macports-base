@@ -1,0 +1,43 @@
+<!-- Generated from file '.FILE.' by tcllib/doctools with format 'tmml' -->
+<manpage id='.FILE' cat='cmd' title='test-enumerated-examples' version='n' package='.MODULE.'>
+<head>
+<info key='copyright' value='Copyright (c) .COPYRIGHT.'/>
+</head>
+<namesection>
+<name>test-enumerated-examples</name>
+<desc></desc>
+
+</namesection>
+
+
+<section id='section1'>
+<title>DESCRIPTION</title>
+lorem ipsum dolores
+
+<ol>
+
+<li>
+
+<example> A1 lorem ipsum dolores 
+</example>
+</li>
+<li> lorem ipsum dolores
+
+<example> B2 lorem ipsum dolores 
+</example>
+lorem ipsum dolores
+</li>
+<li> lorem ipsum dolores
+
+<example> C3 lorem ipsum dolores 
+</example>
+</li>
+<li> lorem ipsum dolores
+</li>
+
+</ol>
+</section>
+
+
+
+</manpage>

@@ -1,0 +1,118 @@
+[vset VERSION 1]
+[manpage_begin math::quasirandom n [vset VERSION]]
+[keywords {quasi-random}]
+[keywords mathematics]
+[moddesc {Tcl Math Library}]
+[titledesc {Quasi-random points for integration and Monte Carlo type methods}]
+[category  Mathematics]
+[require Tcl 8.6]
+[require TclOO]
+[require math::quasirandom [vset VERSION]]
+[description]
+[para]
+
+In many applications pseudo-random numbers and pseudo-random points in a (limited)
+sample space play an important role. For instance in any type of Monte Carlo simulation.
+Pseudo-random numbers, however, may be too random and as a consequence a large
+number of data points is required to reduce the error or fluctuation in the results
+to the desired value.
+[para]
+
+Quasi-random numbers can be used as an alternative: instead of "completely" arbitrary
+points, points are generated that are diverse enough to cover the entire sample space
+in a more or less uniform way. As a consequence convergence to the limit can be
+much faster, when such quasi-random numbers are well-chosen.
+[para]
+
+The package defines a [term class] "qrpoint" that creates a command to generate
+quasi-random points in 1, 2 or more dimensions. The command can either generate
+separate points, so that they can be used in a user-defined algorithm or use these
+points to calculate integrals of functions defined over 1, 2 or more dimensions.
+It also holds several other common algorithms. (NOTE: these are not implemented yet)
+[para]
+One particular characteristic of the generators is that there are no tuning parameters
+involved, which makes the use particularly simple.
+
+
+[section "COMMANDS"]
+A quasi-random point generator is created using the [term qrpoint] class:
+
+[list_begin definitions]
+
+[call [cmd "::math::quasirandom::qrpoint create"] [arg NAME] [arg DIM] [opt ARGS]]
+This command takes the following arguments:
+
+[list_begin arguments]
+[arg_def string NAME] The name of the command to be created (alternatively: the [term new] subcommand
+will generate a unique name)
+[arg_def integer/string DIM] The number of dimensions or one of: "circle", "disk", "sphere" or "ball"
+[arg_def strings ARGS] Zero or more key-value pairs. The supported options are:
+
+[list_begin itemized]
+[item] [term {-start index}]: The index for the next point to be generated (default: 1)
+[item] [term {-evaluations number}]: The number of evaluations to be used by default (default: 100)
+[list_end]
+
+[list_end]
+
+[list_end]
+
+The points that are returned lie in the hyperblock [lb]0,1[lb]^n (n the number of dimensions)
+or on the unit circle, within the unit disk, on the unit sphere or within the unit ball.
+[para]
+
+Each generator supports the following subcommands:
+[list_begin definitions]
+
+[call [cmd "gen next"]]
+Return the coordinates of the next quasi-random point
+[para]
+
+[call [cmd "gen set-start"] [arg index]]
+Reset the index for the next quasi-random point. This is useful to control which list of points is returned.
+Returns the new or the current value, if no value is given.
+[para]
+
+[call [cmd "gen set-evaluations"] [arg number]]
+Reset the default number of evaluations in compound algorithms. Note that the actual number is the
+smallest 4-fold larger or equal to the given number. (The 4-fold plays a role in the detailed integration
+routine.)
+[para]
+
+[call [cmd "gen integral"] [arg func] [arg minmax] [arg args]]
+Calculate the integral of the given function over the block (or the circle, sphere etc.)
+
+[list_begin arguments]
+[arg_def string func] The name of the function to be integrated
+
+[arg_def list minmax] List of pairs of minimum and maximum coordinates. This can be used to
+map the quasi-random coordinates to the desired hyper-block.
+[para]
+If the space is a circle, disk etc. then this argument should be a single value, the radius.
+The circle, disk, etc. is centred at the origin. If this is not what is required, then a coordinate
+transformation should be made within the function.
+
+[arg_def strings args] Zero or more key-value pairs. The following options are supported:
+[list_begin itemized]
+[item] [term {-evaluations number}]: The number of evaluations to be used. If not specified use the
+default of the generator object.
+[list_end]
+
+[list_end]
+
+[list_end]
+
+[section TODO]
+Implement other algorithms and variants
+[para]
+Implement more unit tests.
+[para]
+Comparison to pseudo-random numbers for integration.
+
+
+[section References]
+
+Various algorithms exist for generating quasi-random numbers. The generators created in this package are based on:
+[uri http://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/]
+
+[manpage_end]

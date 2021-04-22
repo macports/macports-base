@@ -1,0 +1,12 @@
+<manual package='TOC'>
+<title>Test</title>
+<subdoc href='I1f'/>
+<division>
+<title>D</title>
+<subdoc href='I2f'/>
+<subdoc href='I3f'/>
+
+</division>
+<subdoc href='I4f'/>
+
+</manual>

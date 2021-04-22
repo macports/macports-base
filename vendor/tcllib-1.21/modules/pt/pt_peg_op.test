@@ -1,0 +1,49 @@
+# -*- tcl -*-
+# pe_peg_op.test:  tests for the pt::peg::op package.
+#
+# Copyright (c) 2018 by Stefan Sobernig <stefan.sobernig@wu.ac.at>
+# All rights reserved.
+#
+
+# -------------------------------------------------------------------------
+
+source [file join [
+	file dirname [file dirname [file join [pwd] [info script]]]
+] devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+support {
+    useAccel [useTcllibC] struct/sets.tcl struct::set
+    TestAccelInit                         struct::set
+
+    use fileutil/fileutil.tcl  fileutil ; # For tests/common
+    use snit/snit.tcl          snit
+
+    use pt/pt_pegrammar.tcl     pt::peg
+    use pt/pt_peg_container.tcl pt::peg::container
+    use pt/pt_pexpr_op.tcl      pt::pe::op
+
+    source [localPath tests/common]
+}
+testing {
+    useLocal pt_peg_op.tcl pt::peg::op
+}
+
+# -------------------------------------------------------------------------
+
+set mytestdir data
+
+# -------------------------------------------------------------------------
+
+TestAccelDo struct::set setimpl {
+    source [localPath tests/pt_peg_op.tests]
+}
+
+#----------------------------------------------------------------------
+
+unset mytestdir
+TestAccelExit struct::set
+testsuiteCleanup
+return

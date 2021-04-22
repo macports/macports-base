@@ -1,0 +1,63 @@
+[vset VERSION 0.1]
+[manpage_begin textutil::patch n [vset VERSION]]
+[keywords {diff, unified format} {unified format diff} patch {diff -ruN} git fossil]
+[moddesc   {Text and string utilities}]
+[titledesc {Application of uni-diff patches to directory trees}]
+[category  {Text processing}]
+[require Tcl 8.2]
+[require textutil::patch [opt [vset VERSION]]]
+[description]
+
+This package provides a single command which applies a patch in
+[uri \
+	https://www.gnu.org/software/diffutils/manual/html_node/Detailed-Unified.html \
+	{unified format}]
+to a directory tree.
+
+[list_begin definitions]
+
+[call [cmd ::textutil::patch::apply] [arg basedirectory] \
+	[arg striplevel] [arg patch] [arg reportcmd]]
+
+Applies the [arg patch] (text of the path, not file) to the files in
+the [arg basedirectory] using the specified [arg striplevel].
+
+The result of the command is the empty string.
+
+[para] The [arg striplevel] argument is equivalent to option
+[option -p] of the [syscmd patch] command.
+
+[para] Errors are thrown when the [arg patch] does not parse, and
+nothing is done to the files in [arg basedirectory].
+
+[para] All activities during the application of the patch, including
+the inability to apply a hunk are reported through the command prefix
+[arg reportcmd] instead. Files with problems are left unchanged.  Note
+however that this does [strong {not prevent}] changes to files with no
+problems, before and after the problematic file(s).
+
+[para] The command prefix is called in 3 possible forms:
+
+[list_begin definitions]
+
+[call [cmd {{*}reportcmd}] [method apply] [arg filename]]
+
+The caller begins operation on file [arg fname], applying all hunks
+collected for said file.
+
+[call [cmd {{*}reportcmd}] [method fail] [arg filename] [arg hunk] [arg expected] [arg seen]]
+
+Application of hunk number [arg hunk] of file [arg filename] has failed.
+The command expected to find the text [arg expected], and saw [arg seen] instead.
+
+[call [cmd {{*}reportcmd}] [method fail-already] [arg filename] [arg hunk]]
+
+Application of hunk number [arg hunk] of file [arg filename] has failed.
+The command believes that this hunk has already been applied to the file.
+
+[list_end]
+[list_end]
+
+[vset CATEGORY textutil]
+[include ../common-text/feedback.inc]
+[manpage_end]

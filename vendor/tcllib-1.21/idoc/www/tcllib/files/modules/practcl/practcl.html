@@ -1,0 +1,1584 @@
+<!DOCTYPE html><html><head>
+<title>practcl - The The Proper Rational API for C to Tool Command Language Module</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'practcl.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; 2016-2018 Sean Woods &amp;lt;yoda@etoyoc.com&amp;gt;
+   -->
+<!-- practcl.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+&#124; <a href="../../../../toc.html">Main Table Of Contents</a>
+&#124; <a href="../../../toc.html">Table Of Contents</a>
+&#124; <a href="../../../../index.html">Keyword Index</a>
+&#124; <a href="../../../../toc0.html">Categories</a>
+&#124; <a href="../../../../toc1.html">Modules</a>
+&#124; <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">practcl(n) 0.16.4 tcllib &quot;The The Proper Rational API for C to Tool Command Language Module&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>practcl - The Practcl Module</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Commands</a></li>
+<li class="doctools_section"><a href="#section3">Classes</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Class  practcl::doctool</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Class  practcl::metaclass</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Class  practcl::toolset</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Class  practcl::toolset.gcc</a></li>
+<li class="doctools_subsection"><a href="#subsection5">Class  practcl::toolset.msvc</a></li>
+<li class="doctools_subsection"><a href="#subsection6">Class  practcl::make_obj</a></li>
+<li class="doctools_subsection"><a href="#subsection7">Class  practcl::object</a></li>
+<li class="doctools_subsection"><a href="#subsection8">Class  practcl::dynamic</a></li>
+<li class="doctools_subsection"><a href="#subsection9">Class  practcl::product</a></li>
+<li class="doctools_subsection"><a href="#subsection10">Class  practcl::product.cheader</a></li>
+<li class="doctools_subsection"><a href="#subsection11">Class  practcl::product.csource</a></li>
+<li class="doctools_subsection"><a href="#subsection12">Class  practcl::product.clibrary</a></li>
+<li class="doctools_subsection"><a href="#subsection13">Class  practcl::product.dynamic</a></li>
+<li class="doctools_subsection"><a href="#subsection14">Class  practcl::product.critcl</a></li>
+<li class="doctools_subsection"><a href="#subsection15">Class  practcl::module</a></li>
+<li class="doctools_subsection"><a href="#subsection16">Class  practcl::project</a></li>
+<li class="doctools_subsection"><a href="#subsection17">Class  practcl::library</a></li>
+<li class="doctools_subsection"><a href="#subsection18">Class  practcl::tclkit</a></li>
+<li class="doctools_subsection"><a href="#subsection19">Class  practcl::distribution</a></li>
+<li class="doctools_subsection"><a href="#subsection20">Class  practcl::distribution.snapshot</a></li>
+<li class="doctools_subsection"><a href="#subsection21">Class  practcl::distribution.fossil</a></li>
+<li class="doctools_subsection"><a href="#subsection22">Class  practcl::distribution.git</a></li>
+<li class="doctools_subsection"><a href="#subsection23">Class  practcl::subproject</a></li>
+<li class="doctools_subsection"><a href="#subsection24">Class  practcl::subproject.source</a></li>
+<li class="doctools_subsection"><a href="#subsection25">Class  practcl::subproject.teapot</a></li>
+<li class="doctools_subsection"><a href="#subsection26">Class  practcl::subproject.kettle</a></li>
+<li class="doctools_subsection"><a href="#subsection27">Class  practcl::subproject.critcl</a></li>
+<li class="doctools_subsection"><a href="#subsection28">Class  practcl::subproject.sak</a></li>
+<li class="doctools_subsection"><a href="#subsection29">Class  practcl::subproject.practcl</a></li>
+<li class="doctools_subsection"><a href="#subsection30">Class  practcl::subproject.binary</a></li>
+<li class="doctools_subsection"><a href="#subsection31">Class  practcl::subproject.tea</a></li>
+<li class="doctools_subsection"><a href="#subsection32">Class  practcl::subproject.library</a></li>
+<li class="doctools_subsection"><a href="#subsection33">Class  practcl::subproject.external</a></li>
+<li class="doctools_subsection"><a href="#subsection34">Class  practcl::subproject.core</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">TclOO 1.0</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1">proc <b class="cmd">practcl::cat</b> <i class="arg">fname</i></a></li>
+<li><a href="#2">proc <b class="cmd">practcl::docstrip</b> <i class="arg">text</i></a></li>
+<li><a href="#3">proc <b class="cmd">putb</b> <span class="opt">?<i class="arg">map</i>?</span> <i class="arg">text</i></a></li>
+<li><a href="#4">proc <b class="cmd"><a href="../../../../index.html#proc">Proc</a></b> <i class="arg">name</i> <i class="arg">arglist</i> <i class="arg">body</i></a></li>
+<li><a href="#5">proc <b class="cmd">noop</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#6">proc <b class="cmd">practcl::debug</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#7">proc <b class="cmd">practcl::doexec</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#8">proc <b class="cmd">practcl::doexec_in</b> <i class="arg">path</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#9">proc <b class="cmd">practcl::dotclexec</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#10">proc <b class="cmd">practcl::domake</b> <i class="arg">path</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#11">proc <b class="cmd">practcl::domake.tcl</b> <i class="arg">path</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#12">proc <b class="cmd">practcl::fossil</b> <i class="arg">path</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#13">proc <b class="cmd">practcl::fossil_status</b> <i class="arg">dir</i></a></li>
+<li><a href="#14">proc <b class="cmd">practcl::os</b></a></li>
+<li><a href="#15">proc <b class="cmd">practcl::mkzip</b> <i class="arg">exename</i> <i class="arg">barekit</i> <i class="arg">vfspath</i></a></li>
+<li><a href="#16">proc <b class="cmd">practcl::sort_dict</b> <i class="arg">list</i></a></li>
+<li><a href="#17">proc <b class="cmd">practcl::local_os</b></a></li>
+<li><a href="#18">proc <b class="cmd">practcl::config.tcl</b> <i class="arg">path</i></a></li>
+<li><a href="#19">proc <b class="cmd">practcl::read_configuration</b> <i class="arg">path</i></a></li>
+<li><a href="#20">proc <b class="cmd">practcl::tcllib_require</b> <i class="arg">pkg</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#21">proc <b class="cmd">practcl::platform::tcl_core_options</b> <i class="arg">os</i></a></li>
+<li><a href="#22">proc <b class="cmd">practcl::platform::tk_core_options</b> <i class="arg">os</i></a></li>
+<li><a href="#23">proc <b class="cmd">practcl::read_rc_file</b> <i class="arg">filename</i> <span class="opt">?<i class="arg">localdat</i> <b class="const"></b>?</span></a></li>
+<li><a href="#24">proc <b class="cmd">practcl::read_sh_subst</b> <i class="arg">line</i> <i class="arg">info</i></a></li>
+<li><a href="#25">proc <b class="cmd">practcl::read_sh_file</b> <i class="arg">filename</i> <span class="opt">?<i class="arg">localdat</i> <b class="const"></b>?</span></a></li>
+<li><a href="#26">proc <b class="cmd">practcl::read_Config.sh</b> <i class="arg">filename</i></a></li>
+<li><a href="#27">proc <b class="cmd">practcl::read_Makefile</b> <i class="arg">filename</i></a></li>
+<li><a href="#28">proc <b class="cmd">practcl::cputs</b> <i class="arg">varname</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#29">proc <b class="cmd">practcl::tcl_to_c</b> <i class="arg">body</i></a></li>
+<li><a href="#30">proc <b class="cmd">practcl::_tagblock</b> <i class="arg">text</i> <span class="opt">?<i class="arg">style</i> <b class="const">tcl</b>?</span> <span class="opt">?<i class="arg">note</i> <b class="const"></b>?</span></a></li>
+<li><a href="#31">proc <b class="cmd">practcl::de_shell</b> <i class="arg">data</i></a></li>
+<li><a href="#32">proc <b class="cmd">practcl::grep</b> <i class="arg">pattern</i> <span class="opt">?<i class="arg">files</i> <b class="const"></b>?</span></a></li>
+<li><a href="#33">proc <b class="cmd">practcl::file_lexnormalize</b> <i class="arg">sp</i></a></li>
+<li><a href="#34">proc <b class="cmd">practcl::file_relative</b> <i class="arg">base</i> <i class="arg">dst</i></a></li>
+<li><a href="#35">proc <b class="cmd">practcl::findByPattern</b> <i class="arg">basedir</i> <i class="arg">patterns</i></a></li>
+<li><a href="#36">proc <b class="cmd">practcl::log</b> <i class="arg">fname</i> <i class="arg">comment</i></a></li>
+<li><a href="#37">proc <b class="cmd">practcl::_pkgindex_simpleIndex</b> <i class="arg">path</i></a></li>
+<li><a href="#38">proc <b class="cmd">practcl::_pkgindex_directory</b> <i class="arg">path</i></a></li>
+<li><a href="#39">proc <b class="cmd">practcl::_pkgindex_path_subdir</b> <i class="arg">path</i></a></li>
+<li><a href="#40">proc <b class="cmd">practcl::pkgindex_path</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#41">proc <b class="cmd">practcl::installDir</b> <i class="arg">d1</i> <i class="arg">d2</i></a></li>
+<li><a href="#42">proc <b class="cmd">practcl::copyDir</b> <i class="arg">d1</i> <i class="arg">d2</i> <span class="opt">?<i class="arg">toplevel</i> <b class="const">1</b>?</span></a></li>
+<li><a href="#43">proc <b class="cmd">practcl::buildModule</b> <i class="arg">modpath</i></a></li>
+<li><a href="#44">proc <b class="cmd">practcl::installModule</b> <i class="arg">modpath</i> <i class="arg">DEST</i></a></li>
+<li><a href="#45">proc <b class="cmd">practcl::trigger</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#46">proc <b class="cmd">practcl::depends</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#47">proc <b class="cmd">practcl::target</b> <i class="arg">name</i> <i class="arg">info</i> <span class="opt">?<i class="arg">action</i> <b class="const"></b>?</span></a></li>
+<li><a href="#48">method <b class="cmd">constructor</b></a></li>
+<li><a href="#49">method <b class="cmd">argspec</b> <i class="arg">argspec</i></a></li>
+<li><a href="#50">method <b class="cmd"><a href="../../../../index.html#comment">comment</a></b> <i class="arg">block</i></a></li>
+<li><a href="#51">method <b class="cmd">keyword.Annotation</b> <i class="arg">resultvar</i> <i class="arg">commentblock</i> <i class="arg">type</i> <i class="arg">name</i> <i class="arg">body</i></a></li>
+<li><a href="#52">method <b class="cmd">keyword.Class</b> <i class="arg">resultvar</i> <i class="arg">commentblock</i> <i class="arg">name</i> <i class="arg">body</i></a></li>
+<li><a href="#53">method <b class="cmd">keyword.class</b> <i class="arg">resultvar</i> <i class="arg">commentblock</i> <i class="arg">name</i> <i class="arg">body</i></a></li>
+<li><a href="#54">method <b class="cmd">keyword.Class_Method</b> <i class="arg">resultvar</i> <i class="arg">commentblock</i> <i class="arg">name</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#55">method <b class="cmd">keyword.method</b> <i class="arg">resultvar</i> <i class="arg">commentblock</i> <i class="arg">name</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#56">method <b class="cmd">keyword.proc</b> <i class="arg">commentblock</i> <i class="arg">name</i> <i class="arg">argspec</i></a></li>
+<li><a href="#57">method <b class="cmd">reset</b></a></li>
+<li><a href="#58">method <b class="cmd">Main</b></a></li>
+<li><a href="#59">method <b class="cmd">section.method</b> <i class="arg">keyword</i> <i class="arg">method</i> <i class="arg">minfo</i></a></li>
+<li><a href="#60">method <b class="cmd">section.annotation</b> <i class="arg">type</i> <i class="arg">name</i> <i class="arg">iinfo</i></a></li>
+<li><a href="#61">method <b class="cmd">section.class</b> <i class="arg">class_name</i> <i class="arg">class_info</i></a></li>
+<li><a href="#62">method <b class="cmd">section.command</b> <i class="arg">procinfo</i></a></li>
+<li><a href="#63">method <b class="cmd"><a href="../../../../index.html#manpage">manpage</a></b> <span class="opt">?<b class="option">header <em>value</em></b>?</span> <span class="opt">?<b class="option">footer <em>value</em></b>?</span> <span class="opt">?<b class="option">authors <em>list</em></b>?</span></a></li>
+<li><a href="#64">method <b class="cmd">scan_text</b> <i class="arg">text</i></a></li>
+<li><a href="#65">method <b class="cmd">scan_file</b> <i class="arg">filename</i></a></li>
+<li><a href="#66">method <b class="cmd">_MorphPatterns</b></a></li>
+<li><a href="#67">method <b class="cmd"><a href="../../../../index.html#define">define</a></b> <i class="arg">submethod</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#68">method <b class="cmd">graft</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#69">method <b class="cmd">initialize</b></a></li>
+<li><a href="#70">method <b class="cmd">link</b> <i class="arg">command</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#71">method <b class="cmd">morph</b> <i class="arg">classname</i></a></li>
+<li><a href="#72">method <b class="cmd">script</b> <i class="arg">script</i></a></li>
+<li><a href="#73">method <b class="cmd">select</b></a></li>
+<li><a href="#74">method <b class="cmd"><a href="../../../../index.html#source">source</a></b> <i class="arg">filename</i></a></li>
+<li><a href="#75">classmethod <b class="cmd">select</b> <i class="arg">object</i></a></li>
+<li><a href="#76">method <b class="cmd">config.sh</b></a></li>
+<li><a href="#77">method <b class="cmd">BuildDir</b> <i class="arg">PWD</i></a></li>
+<li><a href="#78">method <b class="cmd">MakeDir</b> <i class="arg">srcdir</i></a></li>
+<li><a href="#79">method <b class="cmd">read_configuration</b></a></li>
+<li><a href="#80">method <b class="cmd">build-cflags</b> <i class="arg">PROJECT</i> <i class="arg">DEFS</i> <i class="arg">namevar</i> <i class="arg">versionvar</i> <i class="arg">defsvar</i></a></li>
+<li><a href="#81">method <b class="cmd">critcl</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#82">method <b class="cmd">Autoconf</b></a></li>
+<li><a href="#83">method <b class="cmd">BuildDir</b> <i class="arg">PWD</i></a></li>
+<li><a href="#84">method <b class="cmd">ConfigureOpts</b></a></li>
+<li><a href="#85">method <b class="cmd">MakeDir</b> <i class="arg">srcdir</i></a></li>
+<li><a href="#86">method <b class="cmd">make {} autodetect</b></a></li>
+<li><a href="#87">method <b class="cmd">make {} clean</b></a></li>
+<li><a href="#88">method <b class="cmd">make {} compile</b></a></li>
+<li><a href="#89">method <b class="cmd">make {} install</b> <i class="arg">DEST</i></a></li>
+<li><a href="#90">method <b class="cmd">build-compile-sources</b> <i class="arg">PROJECT</i> <i class="arg">COMPILE</i> <i class="arg">CPPCOMPILE</i> <i class="arg">INCLUDES</i></a></li>
+<li><a href="#91">method <b class="cmd">build-Makefile</b> <i class="arg">path</i> <i class="arg">PROJECT</i></a></li>
+<li><a href="#92">method <b class="cmd">build-library</b> <i class="arg">outfile</i> <i class="arg">PROJECT</i></a></li>
+<li><a href="#93">method <b class="cmd">build-tclsh</b> <i class="arg">outfile</i> <i class="arg">PROJECT</i> <span class="opt">?<i class="arg">path</i> <b class="const">auto</b>?</span></a></li>
+<li><a href="#94">method <b class="cmd">BuildDir</b> <i class="arg">PWD</i></a></li>
+<li><a href="#95">method <b class="cmd">make {} autodetect</b></a></li>
+<li><a href="#96">method <b class="cmd">make {} clean</b></a></li>
+<li><a href="#97">method <b class="cmd">make {} compile</b></a></li>
+<li><a href="#98">method <b class="cmd">make {} install</b> <i class="arg">DEST</i></a></li>
+<li><a href="#99">method <b class="cmd">MakeDir</b> <i class="arg">srcdir</i></a></li>
+<li><a href="#100">method <b class="cmd">NmakeOpts</b></a></li>
+<li><a href="#101">method <b class="cmd">constructor</b> <i class="arg">module_object</i> <i class="arg">name</i> <i class="arg">info</i> <span class="opt">?<i class="arg">action_body</i> <b class="const"></b>?</span></a></li>
+<li><a href="#102">method <b class="cmd"><a href="../../../../index.html#do">do</a></b></a></li>
+<li><a href="#103">method <b class="cmd">check</b></a></li>
+<li><a href="#104">method <b class="cmd">output</b></a></li>
+<li><a href="#105">method <b class="cmd">reset</b></a></li>
+<li><a href="#106">method <b class="cmd">triggers</b></a></li>
+<li><a href="#107">method <b class="cmd">constructor</b> <i class="arg">parent</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#108">method <b class="cmd">child</b> <i class="arg">method</i></a></li>
+<li><a href="#109">method <b class="cmd">go</b></a></li>
+<li><a href="#110">method <b class="cmd">cstructure</b> <i class="arg">name</i> <i class="arg">definition</i> <span class="opt">?<i class="arg">argdat</i> <b class="const"></b>?</span></a></li>
+<li><a href="#111">method <b class="cmd">include</b> <i class="arg">header</i></a></li>
+<li><a href="#112">method <b class="cmd">include_dir</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#113">method <b class="cmd">include_directory</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#114">method <b class="cmd">c_header</b> <i class="arg">body</i></a></li>
+<li><a href="#115">method <b class="cmd">c_code</b> <i class="arg">body</i></a></li>
+<li><a href="#116">method <b class="cmd">c_function</b> <i class="arg">header</i> <i class="arg">body</i> <span class="opt">?<i class="arg">info</i> <b class="const"></b>?</span></a></li>
+<li><a href="#117">method <b class="cmd">c_tcloomethod</b> <i class="arg">name</i> <i class="arg">body</i> <span class="opt">?<i class="arg">arginfo</i> <b class="const"></b>?</span></a></li>
+<li><a href="#118">method <b class="cmd">cmethod</b> <i class="arg">name</i> <i class="arg">body</i> <span class="opt">?<i class="arg">arginfo</i> <b class="const"></b>?</span></a></li>
+<li><a href="#119">method <b class="cmd">c_tclproc_nspace</b> <i class="arg">nspace</i></a></li>
+<li><a href="#120">method <b class="cmd">c_tclcmd</b> <i class="arg">name</i> <i class="arg">body</i> <span class="opt">?<i class="arg">arginfo</i> <b class="const"></b>?</span></a></li>
+<li><a href="#121">method <b class="cmd">c_tclproc_raw</b> <i class="arg">name</i> <i class="arg">body</i> <span class="opt">?<i class="arg">arginfo</i> <b class="const"></b>?</span></a></li>
+<li><a href="#122">method <b class="cmd">tcltype</b> <i class="arg">name</i> <i class="arg">argdat</i></a></li>
+<li><a href="#123">method <b class="cmd">project-compile-products</b></a></li>
+<li><a href="#124">method <b class="cmd">implement</b> <i class="arg">path</i></a></li>
+<li><a href="#125">method <b class="cmd">initialize</b></a></li>
+<li><a href="#126">method <b class="cmd">linktype</b></a></li>
+<li><a href="#127">method <b class="cmd">generate-cfile-constant</b></a></li>
+<li><a href="#128">method <b class="cmd">generate-cfile-header</b></a></li>
+<li><a href="#129">method <b class="cmd">generate-cfile-tclapi</b></a></li>
+<li><a href="#130">method <b class="cmd">generate-loader-module</b></a></li>
+<li><a href="#131">method <b class="cmd">Collate_Source</b> <i class="arg">CWD</i></a></li>
+<li><a href="#132">method <b class="cmd">select</b></a></li>
+<li><a href="#133">classmethod <b class="cmd">select</b> <i class="arg">object</i></a></li>
+<li><a href="#134">method <b class="cmd">code</b> <i class="arg">section</i> <i class="arg">body</i></a></li>
+<li><a href="#135">method <b class="cmd">Collate_Source</b> <i class="arg">CWD</i></a></li>
+<li><a href="#136">method <b class="cmd">project-compile-products</b></a></li>
+<li><a href="#137">method <b class="cmd">generate-debug</b> <span class="opt">?<i class="arg">spaces</i> <b class="const"></b>?</span></a></li>
+<li><a href="#138">method <b class="cmd">generate-cfile-constant</b></a></li>
+<li><a href="#139">method <b class="cmd">generate-cfile-public-structure</b></a></li>
+<li><a href="#140">method <b class="cmd">generate-cfile-header</b></a></li>
+<li><a href="#141">method <b class="cmd">generate-cfile-global</b></a></li>
+<li><a href="#142">method <b class="cmd">generate-cfile-private-typedef</b></a></li>
+<li><a href="#143">method <b class="cmd">generate-cfile-private-structure</b></a></li>
+<li><a href="#144">method <b class="cmd">generate-cfile-functions</b></a></li>
+<li><a href="#145">method <b class="cmd">generate-cfile-tclapi</b></a></li>
+<li><a href="#146">method <b class="cmd">generate-hfile-public-define</b></a></li>
+<li><a href="#147">method <b class="cmd">generate-hfile-public-macro</b></a></li>
+<li><a href="#148">method <b class="cmd">generate-hfile-public-typedef</b></a></li>
+<li><a href="#149">method <b class="cmd">generate-hfile-public-structure</b></a></li>
+<li><a href="#150">method <b class="cmd">generate-hfile-public-headers</b></a></li>
+<li><a href="#151">method <b class="cmd">generate-hfile-public-function</b></a></li>
+<li><a href="#152">method <b class="cmd">generate-hfile-public-includes</b></a></li>
+<li><a href="#153">method <b class="cmd">generate-hfile-public-verbatim</b></a></li>
+<li><a href="#154">method <b class="cmd">generate-loader-external</b></a></li>
+<li><a href="#155">method <b class="cmd">generate-loader-module</b></a></li>
+<li><a href="#156">method <b class="cmd">generate-stub-function</b></a></li>
+<li><a href="#157">method <b class="cmd">IncludeAdd</b> <i class="arg">headervar</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#158">method <b class="cmd">generate-tcl-loader</b></a></li>
+<li><a href="#159">method <b class="cmd">generate-tcl-pre</b></a></li>
+<li><a href="#160">method <b class="cmd">generate-tcl-post</b></a></li>
+<li><a href="#161">method <b class="cmd">linktype</b></a></li>
+<li><a href="#162">method <b class="cmd">Ofile</b> <i class="arg">filename</i></a></li>
+<li><a href="#163">method <b class="cmd">project-static-packages</b></a></li>
+<li><a href="#164">method <b class="cmd">toolset-include-directory</b></a></li>
+<li><a href="#165">method <b class="cmd">target</b> <i class="arg">method</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#166">method <b class="cmd">project-compile-products</b></a></li>
+<li><a href="#167">method <b class="cmd">generate-loader-module</b></a></li>
+<li><a href="#168">method <b class="cmd">project-compile-products</b></a></li>
+<li><a href="#169">method <b class="cmd">linker-products</b> <i class="arg">configdict</i></a></li>
+<li><a href="#170">method <b class="cmd">initialize</b></a></li>
+<li><a href="#171">variable <b class="cmd">make_object</b></a></li>
+<li><a href="#172">method <b class="cmd">_MorphPatterns</b></a></li>
+<li><a href="#173">method <b class="cmd">add</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#174">method <b class="cmd">install-headers</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#175">method <b class="cmd">make {} _preamble</b></a></li>
+<li><a href="#176">method <b class="cmd">make {} pkginfo</b></a></li>
+<li><a href="#177">method <b class="cmd">make {} objects</b></a></li>
+<li><a href="#178">method <b class="cmd">make {} object</b> <i class="arg">name</i></a></li>
+<li><a href="#179">method <b class="cmd">make {} reset</b></a></li>
+<li><a href="#180">method <b class="cmd">make {} trigger</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#181">method <b class="cmd">make {} depends</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#182">method <b class="cmd">make {} filename</b> <i class="arg">name</i></a></li>
+<li><a href="#183">method <b class="cmd">make {} target</b> <i class="arg">name</i> <i class="arg">Info</i> <i class="arg">body</i></a></li>
+<li><a href="#184">method <b class="cmd">make {} todo</b></a></li>
+<li><a href="#185">method <b class="cmd">make {} do</b></a></li>
+<li><a href="#186">method <b class="cmd">child</b> <i class="arg">which</i></a></li>
+<li><a href="#187">method <b class="cmd">generate-c</b></a></li>
+<li><a href="#188">method <b class="cmd">generate-h</b></a></li>
+<li><a href="#189">method <b class="cmd">generate-loader</b></a></li>
+<li><a href="#190">method <b class="cmd">initialize</b></a></li>
+<li><a href="#191">method <b class="cmd">implement</b> <i class="arg">path</i></a></li>
+<li><a href="#192">method <b class="cmd">linktype</b></a></li>
+<li><a href="#193">method <b class="cmd">_MorphPatterns</b></a></li>
+<li><a href="#194">method <b class="cmd">constructor</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#195">method <b class="cmd">add_object</b> <i class="arg">object</i></a></li>
+<li><a href="#196">method <b class="cmd">add_project</b> <i class="arg">pkg</i> <i class="arg">info</i> <span class="opt">?<i class="arg">oodefine</i> <b class="const"></b>?</span></a></li>
+<li><a href="#197">method <b class="cmd">add_tool</b> <i class="arg">pkg</i> <i class="arg">info</i> <span class="opt">?<i class="arg">oodefine</i> <b class="const"></b>?</span></a></li>
+<li><a href="#198">method <b class="cmd">build-tclcore</b></a></li>
+<li><a href="#199">method <b class="cmd">child</b> <i class="arg">which</i></a></li>
+<li><a href="#200">method <b class="cmd">linktype</b></a></li>
+<li><a href="#201">method <b class="cmd">project</b> <i class="arg">pkg</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#202">method <b class="cmd">tclcore</b></a></li>
+<li><a href="#203">method <b class="cmd">tkcore</b></a></li>
+<li><a href="#204">method <b class="cmd"><a href="../tool/tool.html">tool</a></b> <i class="arg">pkg</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#205">method <b class="cmd">clean</b> <i class="arg">PATH</i></a></li>
+<li><a href="#206">method <b class="cmd">project-compile-products</b></a></li>
+<li><a href="#207">method <b class="cmd">go</b></a></li>
+<li><a href="#208">method <b class="cmd">generate-decls</b> <i class="arg">pkgname</i> <i class="arg">path</i></a></li>
+<li><a href="#209">method <b class="cmd">implement</b> <i class="arg">path</i></a></li>
+<li><a href="#210">method <b class="cmd">generate-make</b> <i class="arg">path</i></a></li>
+<li><a href="#211">method <b class="cmd">linktype</b></a></li>
+<li><a href="#212">method <b class="cmd">package-ifneeded</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#213">method <b class="cmd">shared_library</b> <span class="opt">?<i class="arg">filename</i> <b class="const"></b>?</span></a></li>
+<li><a href="#214">method <b class="cmd">static_library</b> <span class="opt">?<i class="arg">filename</i> <b class="const"></b>?</span></a></li>
+<li><a href="#215">method <b class="cmd">build-tclkit_main</b> <i class="arg">PROJECT</i> <i class="arg">PKG_OBJS</i></a></li>
+<li><a href="#216">method <b class="cmd">Collate_Source</b> <i class="arg">CWD</i></a></li>
+<li><a href="#217">method <b class="cmd">wrap</b> <i class="arg">PWD</i> <i class="arg">exename</i> <i class="arg">vfspath</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#218">classmethod <b class="cmd">Sandbox</b> <i class="arg">object</i></a></li>
+<li><a href="#219">classmethod <b class="cmd">select</b> <i class="arg">object</i></a></li>
+<li><a href="#220">classmethod <b class="cmd">claim_option</b></a></li>
+<li><a href="#221">classmethod <b class="cmd">claim_object</b> <i class="arg">object</i></a></li>
+<li><a href="#222">classmethod <b class="cmd">claim_path</b> <i class="arg">path</i></a></li>
+<li><a href="#223">method <b class="cmd">scm_info</b></a></li>
+<li><a href="#224">method <b class="cmd">DistroMixIn</b></a></li>
+<li><a href="#225">method <b class="cmd">Sandbox</b></a></li>
+<li><a href="#226">method <b class="cmd">SrcDir</b></a></li>
+<li><a href="#227">method <b class="cmd">ScmTag</b></a></li>
+<li><a href="#228">method <b class="cmd">ScmClone</b></a></li>
+<li><a href="#229">method <b class="cmd">ScmUnpack</b></a></li>
+<li><a href="#230">method <b class="cmd">ScmUpdate</b></a></li>
+<li><a href="#231">method <b class="cmd">Unpack</b></a></li>
+<li><a href="#232">classmethod <b class="cmd">claim_object</b> <i class="arg">object</i></a></li>
+<li><a href="#233">classmethod <b class="cmd">claim_option</b></a></li>
+<li><a href="#234">classmethod <b class="cmd">claim_path</b> <i class="arg">path</i></a></li>
+<li><a href="#235">method <b class="cmd">ScmUnpack</b></a></li>
+<li><a href="#236">classmethod <b class="cmd">claim_object</b> <i class="arg">obj</i></a></li>
+<li><a href="#237">classmethod <b class="cmd">claim_option</b></a></li>
+<li><a href="#238">classmethod <b class="cmd">claim_path</b> <i class="arg">path</i></a></li>
+<li><a href="#239">method <b class="cmd">scm_info</b></a></li>
+<li><a href="#240">method <b class="cmd">ScmClone</b></a></li>
+<li><a href="#241">method <b class="cmd">ScmTag</b></a></li>
+<li><a href="#242">method <b class="cmd">ScmUnpack</b></a></li>
+<li><a href="#243">method <b class="cmd">ScmUpdate</b></a></li>
+<li><a href="#244">classmethod <b class="cmd">claim_object</b> <i class="arg">obj</i></a></li>
+<li><a href="#245">classmethod <b class="cmd">claim_option</b></a></li>
+<li><a href="#246">classmethod <b class="cmd">claim_path</b> <i class="arg">path</i></a></li>
+<li><a href="#247">method <b class="cmd">ScmTag</b></a></li>
+<li><a href="#248">method <b class="cmd">ScmUnpack</b></a></li>
+<li><a href="#249">method <b class="cmd">ScmUpdate</b></a></li>
+<li><a href="#250">method <b class="cmd">_MorphPatterns</b></a></li>
+<li><a href="#251">method <b class="cmd">BuildDir</b> <i class="arg">PWD</i></a></li>
+<li><a href="#252">method <b class="cmd">child</b> <i class="arg">which</i></a></li>
+<li><a href="#253">method <b class="cmd">compile</b></a></li>
+<li><a href="#254">method <b class="cmd">go</b></a></li>
+<li><a href="#255">method <b class="cmd">install</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#256">method <b class="cmd">linktype</b></a></li>
+<li><a href="#257">method <b class="cmd">linker-products</b> <i class="arg">configdict</i></a></li>
+<li><a href="#258">method <b class="cmd">linker-external</b> <i class="arg">configdict</i></a></li>
+<li><a href="#259">method <b class="cmd">linker-extra</b> <i class="arg">configdict</i></a></li>
+<li><a href="#260">method <b class="cmd">env-bootstrap</b></a></li>
+<li><a href="#261">method <b class="cmd">env-exec</b></a></li>
+<li><a href="#262">method <b class="cmd">env-install</b></a></li>
+<li><a href="#263">method <b class="cmd">env-load</b></a></li>
+<li><a href="#264">method <b class="cmd">env-present</b></a></li>
+<li><a href="#265">method <b class="cmd">sources</b></a></li>
+<li><a href="#266">method <b class="cmd"><a href="../../../../index.html#update">update</a></b></a></li>
+<li><a href="#267">method <b class="cmd">unpack</b></a></li>
+<li><a href="#268">method <b class="cmd">env-bootstrap</b></a></li>
+<li><a href="#269">method <b class="cmd">env-present</b></a></li>
+<li><a href="#270">method <b class="cmd">linktype</b></a></li>
+<li><a href="#271">method <b class="cmd">env-bootstrap</b></a></li>
+<li><a href="#272">method <b class="cmd">env-install</b></a></li>
+<li><a href="#273">method <b class="cmd">env-present</b></a></li>
+<li><a href="#274">method <b class="cmd">install</b> <i class="arg">DEST</i></a></li>
+<li><a href="#275">method <b class="cmd">kettle</b> <i class="arg">path</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#276">method <b class="cmd">install</b> <i class="arg">DEST</i></a></li>
+<li><a href="#277">method <b class="cmd">install</b> <i class="arg">DEST</i></a></li>
+<li><a href="#278">method <b class="cmd">env-bootstrap</b></a></li>
+<li><a href="#279">method <b class="cmd">env-install</b></a></li>
+<li><a href="#280">method <b class="cmd">env-present</b></a></li>
+<li><a href="#281">method <b class="cmd">install</b> <i class="arg">DEST</i></a></li>
+<li><a href="#282">method <b class="cmd">install-module</b> <i class="arg">DEST</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#283">method <b class="cmd">env-bootstrap</b></a></li>
+<li><a href="#284">method <b class="cmd">env-install</b></a></li>
+<li><a href="#285">method <b class="cmd">install</b> <i class="arg">DEST</i></a></li>
+<li><a href="#286">method <b class="cmd">install-module</b> <i class="arg">DEST</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#287">method <b class="cmd">clean</b></a></li>
+<li><a href="#288">method <b class="cmd">env-install</b></a></li>
+<li><a href="#289">method <b class="cmd">project-compile-products</b></a></li>
+<li><a href="#290">method <b class="cmd">ComputeInstall</b></a></li>
+<li><a href="#291">method <b class="cmd">go</b></a></li>
+<li><a href="#292">method <b class="cmd">linker-products</b> <i class="arg">configdict</i></a></li>
+<li><a href="#293">method <b class="cmd">project-static-packages</b></a></li>
+<li><a href="#294">method <b class="cmd">BuildDir</b> <i class="arg">PWD</i></a></li>
+<li><a href="#295">method <b class="cmd">compile</b></a></li>
+<li><a href="#296">method <b class="cmd">Configure</b></a></li>
+<li><a href="#297">method <b class="cmd">install</b> <i class="arg">DEST</i></a></li>
+<li><a href="#298">method <b class="cmd">install</b> <i class="arg">DEST</i></a></li>
+<li><a href="#299">method <b class="cmd">install</b> <i class="arg">DEST</i></a></li>
+<li><a href="#300">method <b class="cmd">env-bootstrap</b></a></li>
+<li><a href="#301">method <b class="cmd">env-present</b></a></li>
+<li><a href="#302">method <b class="cmd">env-install</b></a></li>
+<li><a href="#303">method <b class="cmd">go</b></a></li>
+<li><a href="#304">method <b class="cmd">linktype</b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The Practcl module is a tool for integrating large modules for C API
+Tcl code that requires custom Tcl types and TclOO objects.</p>
+<p>The concept with Practcl is that is a single file package that can
+assist any tcl based project with distribution, compilation, linking,
+VFS preparation, executable assembly, and installation. Practcl also
+allows one project to invoke the build system from another project,
+allowing complex projects such as a statically linked basekit to be
+assembled with relative ease.</p>
+<p>Practcl ships as a single file, and aside from a Tcl 8.6 interpreter,
+has no external dependencies.</p>
+<p>Making a practcl project</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Commands</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1">proc <b class="cmd">practcl::cat</b> <i class="arg">fname</i></a></dt>
+<dd><p>Concatenate a file</p></dd>
+<dt><a name="2">proc <b class="cmd">practcl::docstrip</b> <i class="arg">text</i></a></dt>
+<dd><p>Strip the global comments from tcl code. Used to
+ prevent the documentation markup comments from clogging
+ up files intended for distribution in machine readable format.</p></dd>
+<dt><a name="3">proc <b class="cmd">putb</b> <span class="opt">?<i class="arg">map</i>?</span> <i class="arg">text</i></a></dt>
+<dd><p>Append a line of text to a variable. Optionally apply a string mapping.</p></dd>
+<dt><a name="4">proc <b class="cmd"><a href="../../../../index.html#proc">Proc</a></b> <i class="arg">name</i> <i class="arg">arglist</i> <i class="arg">body</i></a></dt>
+<dd><p>Generate a proc if no command already exists by that name</p></dd>
+<dt><a name="5">proc <b class="cmd">noop</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>A command to do nothing. A handy way of
+ negating an instruction without
+ having to comment it completely out.
+ It's also a handy attachment point for
+ an object to be named later</p></dd>
+<dt><a name="6">proc <b class="cmd">practcl::debug</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="7">proc <b class="cmd">practcl::doexec</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Drop in a static copy of Tcl</p></dd>
+<dt><a name="8">proc <b class="cmd">practcl::doexec_in</b> <i class="arg">path</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="9">proc <b class="cmd">practcl::dotclexec</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="10">proc <b class="cmd">practcl::domake</b> <i class="arg">path</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="11">proc <b class="cmd">practcl::domake.tcl</b> <i class="arg">path</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="12">proc <b class="cmd">practcl::fossil</b> <i class="arg">path</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="13">proc <b class="cmd">practcl::fossil_status</b> <i class="arg">dir</i></a></dt>
+<dd></dd>
+<dt><a name="14">proc <b class="cmd">practcl::os</b></a></dt>
+<dd></dd>
+<dt><a name="15">proc <b class="cmd">practcl::mkzip</b> <i class="arg">exename</i> <i class="arg">barekit</i> <i class="arg">vfspath</i></a></dt>
+<dd><p>Build a zipfile. On tcl8.6 this invokes the native Zip implementation
+ on older interpreters this invokes zip via exec</p></dd>
+<dt><a name="16">proc <b class="cmd">practcl::sort_dict</b> <i class="arg">list</i></a></dt>
+<dd><p>Dictionary sort a key/value list. Needed because pre tcl8.6
+ does not have <em>lsort -stride 2</em></p></dd>
+<dt><a name="17">proc <b class="cmd">practcl::local_os</b></a></dt>
+<dd><p>Returns a dictionary describing the local operating system.
+ Fields return include:</p>
+<ul class="doctools_itemized">
+ 
+<li><p>download - Filesystem path where fossil repositories and source tarballs are downloaded for the current user</p></li>
+<li><p>EXEEXT - The extension to give to executables. (i.e. .exe on windows)</p></li>
+<li><p>fossil_mirror - A URI for a local network web server who acts as a fossil repository mirror</p></li>
+<li><p>local_install - Filesystem path where packages for local consumption by the current user are installed</p></li>
+<li><p>prefix - The prefix as given to the Tcl core/TEA for installation to local_install in ./configure</p></li>
+<li><p>sandbox - The file location where this project unpacks external projects</p></li>
+<li><p>TEACUP_PROFILE - The ActiveState/Teacup canonical name for this platform (i.e. win32-ix86 macosx10.5-i386-x86_84)</p></li>
+<li><p>TEACUP_OS - The local operating system (windows, macosx, openbsd, etc). Gives the same answer as tcl.m4, except that macosx is given as macosx instead of Darwin.</p></li>
+<li><p>TEA_PLATFORM - The platform returned by uname -s-uname -r (on Unix), or &quot;windows&quot; on Windows</p></li>
+<li><p>TEACUP_ARCH - The processor architecture for the local os (i.e. ix86, x86_64)</p></li>
+<li><p>TEACUP_ARCH - The processor architecture for the local os (i.e. ix86, x86_64)</p></li>
+<li><p>teapot - Filesystem path where teapot package files are downloaded for the current user</p></li>
+<li><p>userhome - File path to store localized preferences, cache download files, etc for the current user</p></li>
+</ul>
+<p>This command uses a combination of local checks with Exec, any tclConfig.sh file that is
+ resident, autoconf data where already computed, and data gleaned from a file named
+ practcl.rc in userhome. The location for userhome varies by platform and operating system:</p>
+<ul class="doctools_itemized">
+ 
+<li><p>Windows: ::env(LOCALAPPDATA)/Tcl</p></li>
+<li><p>Macos: ~/Library/Application Support/Tcl</p></li>
+<li><p>Other: ~/tcl</p></li>
+</ul></dd>
+<dt><a name="18">proc <b class="cmd">practcl::config.tcl</b> <i class="arg">path</i></a></dt>
+<dd><p>A transparent call to ::practcl::read_configuration to preserve backward compadibility
+ with older copies of Practcl</p></dd>
+<dt><a name="19">proc <b class="cmd">practcl::read_configuration</b> <i class="arg">path</i></a></dt>
+<dd><p>Detect local platform. This command looks for data gleaned by autoconf or autosetup
+ in the path specified, or perform its own logic tests if neither has been run.
+ A file named config.site present in the location indicates that this project is
+ cross compiling, and the data stored in that file is used for the compiler and linker.</p>
+<p>This command looks for information from the following files, in the following order:</p>
+<ul class="doctools_itemized">
+ 
+<li><p>config.tcl - A file generated by autoconf/configure in newer editions of TEA, encoded as a Tcl script.</p></li>
+<li><p>config.site - A file containing cross compiler information, encoded as a SH script</p></li>
+<li><p>::env(VisualStudioVersion) - On Windows, and environmental value that indicates MS Visual Studio is installed</p></li>
+</ul>
+<p>This command returns a dictionary containing all of the data cleaned from the sources above.
+ In the absence of any guidance this command returns the same output as ::practcl::local_os.
+ In this mode, if the environmental variable VisualStudioVersion exists, this command
+ will provide a template of fields that are appropriate for compiling on Windows under
+ Microsoft Visual Studio. The USEMSVC flag in the dictionary is a boolean flag to indicate
+ if this is indeed the case.</p></dd>
+<dt><a name="20">proc <b class="cmd">practcl::tcllib_require</b> <i class="arg">pkg</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Try to load  a package, and failing that
+ retrieve tcllib</p></dd>
+<dt><a name="21">proc <b class="cmd">practcl::platform::tcl_core_options</b> <i class="arg">os</i></a></dt>
+<dd><p>Return the string to pass to ./configure to compile the Tcl core for the given OS.</p>
+<ul class="doctools_itemized">
+ 
+<li><p>windows: --with-tzdata --with-encoding utf-8</p></li>
+<li><p>macosx: --enable-corefoundation=yes  --enable-framework=no --with-tzdata --with-encoding utf-8</p></li>
+<li><p>other: --with-tzdata --with-encoding utf-8</p></li>
+</ul></dd>
+<dt><a name="22">proc <b class="cmd">practcl::platform::tk_core_options</b> <i class="arg">os</i></a></dt>
+<dd></dd>
+<dt><a name="23">proc <b class="cmd">practcl::read_rc_file</b> <i class="arg">filename</i> <span class="opt">?<i class="arg">localdat</i> <b class="const"></b>?</span></a></dt>
+<dd><p>Read a stylized key/value list stored in a file</p></dd>
+<dt><a name="24">proc <b class="cmd">practcl::read_sh_subst</b> <i class="arg">line</i> <i class="arg">info</i></a></dt>
+<dd><p>Converts a XXX.sh file into a series of Tcl variables</p></dd>
+<dt><a name="25">proc <b class="cmd">practcl::read_sh_file</b> <i class="arg">filename</i> <span class="opt">?<i class="arg">localdat</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+<dt><a name="26">proc <b class="cmd">practcl::read_Config.sh</b> <i class="arg">filename</i></a></dt>
+<dd><p>A simpler form of read_sh_file tailored
+ to pulling data from (tcl|tk)Config.sh</p></dd>
+<dt><a name="27">proc <b class="cmd">practcl::read_Makefile</b> <i class="arg">filename</i></a></dt>
+<dd><p>A simpler form of read_sh_file tailored
+ to pulling data from a Makefile</p></dd>
+<dt><a name="28">proc <b class="cmd">practcl::cputs</b> <i class="arg">varname</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Append arguments to a buffer
+ The command works like puts in that each call will also insert
+ a line feed. Unlike puts, blank links in the interstitial are
+ suppressed</p></dd>
+<dt><a name="29">proc <b class="cmd">practcl::tcl_to_c</b> <i class="arg">body</i></a></dt>
+<dd></dd>
+<dt><a name="30">proc <b class="cmd">practcl::_tagblock</b> <i class="arg">text</i> <span class="opt">?<i class="arg">style</i> <b class="const">tcl</b>?</span> <span class="opt">?<i class="arg">note</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+<dt><a name="31">proc <b class="cmd">practcl::de_shell</b> <i class="arg">data</i></a></dt>
+<dd></dd>
+<dt><a name="32">proc <b class="cmd">practcl::grep</b> <i class="arg">pattern</i> <span class="opt">?<i class="arg">files</i> <b class="const"></b>?</span></a></dt>
+<dd><p>Search for the pattern <em>pattern</em> amongst $files</p></dd>
+<dt><a name="33">proc <b class="cmd">practcl::file_lexnormalize</b> <i class="arg">sp</i></a></dt>
+<dd></dd>
+<dt><a name="34">proc <b class="cmd">practcl::file_relative</b> <i class="arg">base</i> <i class="arg">dst</i></a></dt>
+<dd><p>Calculate a relative path between base and dst</p>
+<p>Example:</p>
+<pre class="doctools_example">  ::practcl::file_relative ~/build/tcl/unix ~/build/tcl/library
+  &gt; ../library
+</pre>
+</dd>
+<dt><a name="35">proc <b class="cmd">practcl::findByPattern</b> <i class="arg">basedir</i> <i class="arg">patterns</i></a></dt>
+<dd></dd>
+<dt><a name="36">proc <b class="cmd">practcl::log</b> <i class="arg">fname</i> <i class="arg">comment</i></a></dt>
+<dd><p>Record an event in the practcl log</p></dd>
+<dt><a name="37">proc <b class="cmd">practcl::_pkgindex_simpleIndex</b> <i class="arg">path</i></a></dt>
+<dd></dd>
+<dt><a name="38">proc <b class="cmd">practcl::_pkgindex_directory</b> <i class="arg">path</i></a></dt>
+<dd><p>Return true if the pkgindex file contains
+ any statement other than &quot;package ifneeded&quot;
+ and/or if any package ifneeded loads a DLL</p></dd>
+<dt><a name="39">proc <b class="cmd">practcl::_pkgindex_path_subdir</b> <i class="arg">path</i></a></dt>
+<dd><p>Helper function for ::practcl::pkgindex_path</p></dd>
+<dt><a name="40">proc <b class="cmd">practcl::pkgindex_path</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Index all paths given as though they will end up in the same
+ virtual file system</p></dd>
+<dt><a name="41">proc <b class="cmd">practcl::installDir</b> <i class="arg">d1</i> <i class="arg">d2</i></a></dt>
+<dd><p>Delete the contents of <em>d2</em>, and then
+ recusively Ccopy the contents of <em>d1</em> to <em>d2</em>.</p></dd>
+<dt><a name="42">proc <b class="cmd">practcl::copyDir</b> <i class="arg">d1</i> <i class="arg">d2</i> <span class="opt">?<i class="arg">toplevel</i> <b class="const">1</b>?</span></a></dt>
+<dd><p>Recursively copy the contents of <em>d1</em> to <em>d2</em></p></dd>
+<dt><a name="43">proc <b class="cmd">practcl::buildModule</b> <i class="arg">modpath</i></a></dt>
+<dd></dd>
+<dt><a name="44">proc <b class="cmd">practcl::installModule</b> <i class="arg">modpath</i> <i class="arg">DEST</i></a></dt>
+<dd><p>Install a module from MODPATH to the directory specified.
+ <em>dpath</em> is assumed to be the fully qualified path where module is to be placed.
+ Any existing files will be deleted at that path.
+ If the path is symlink the process will return with no error and no action.
+ If the module has contents in the build/ directory that are newer than the
+ .tcl files in the module source directory, and a build/build.tcl file exists,
+ the build/build.tcl file is run.
+ If the source directory includes a file named index.tcl, the directory is assumed
+ to be in the tao style of modules, and the entire directory (and all subdirectories)
+ are copied verbatim.
+ If no index.tcl file is present, all .tcl files are copied from the module source
+ directory, and a pkgIndex.tcl file is generated if non yet exists.
+ I a folder named htdocs exists in the source directory, that directory is copied
+ verbatim to the destination.</p></dd>
+<dt><a name="45">proc <b class="cmd">practcl::trigger</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Trigger build targets, and recompute dependencies</p>
+<p>Internals:</p>
+<pre class="doctools_example">
+  ::practcl::LOCAL make trigger {*}$args
+  foreach {name obj} [::practcl::LOCAL make objects] {
+    set ::make($name) [$obj do]
+  }
+</pre>
+</dd>
+<dt><a name="46">proc <b class="cmd">practcl::depends</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Calculate if a dependency for any of the arguments needs to
+ be fulfilled or rebuilt.</p>
+<p>Internals:</p>
+<pre class="doctools_example">
+  ::practcl::LOCAL make depends {*}$args
+</pre>
+</dd>
+<dt><a name="47">proc <b class="cmd">practcl::target</b> <i class="arg">name</i> <i class="arg">info</i> <span class="opt">?<i class="arg">action</i> <b class="const"></b>?</span></a></dt>
+<dd><p>Declare a build product. This proc is just a shorthand for
+ <em>::practcl::LOCAL make task $name $info $action</em></p>
+<p>Registering a build product with this command will create
+ an entry in the global  array, and populate
+ a value in the global  array.</p>
+<p>Internals:</p>
+<pre class="doctools_example">
+  set obj [::practcl::LOCAL make task $name $info $action]
+  set ::make($name) 0
+  set filename [$obj define get filename]
+  if {$filename ne {}} {
+    set ::target($name) $filename
+  }
+</pre>
+</dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Classes</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Class  practcl::doctool</a></h3>
+<pre class="doctools_example">{ set authors {
+   {John Doe} {jdoe@illustrious.edu}
+   {Tom RichardHarry} {tomdickharry@illustrius.edu}
+ }
+ # Create the object
+ ::practcl::doctool create AutoDoc
+ set fout [open [file join $moddir module.tcl] w]
+ foreach file [glob [file join $srcdir *.tcl]] {
+   set content [::practcl::cat [file join $srcdir $file]]
+    # Scan the file
+    AutoDoc scan_text $content
+    # Strip the comments from the distribution
+    puts $fout [::practcl::docstrip $content]
+ }
+ # Write out the manual page
+ set manout [open [file join $moddir module.man] w]
+ dict set args header [string map $modmap [::practcl::cat [file join $srcdir manual.txt]]]
+ dict set args footer [string map $modmap [::practcl::cat [file join $srcdir footer.txt]]]
+ dict set args authors $authors
+ puts $manout [AutoDoc manpage {*}$args]
+ close $manout
+}</pre>
+<p>Tool for build scripts to dynamically generate manual files from comments
+ in source code files</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="48">method <b class="cmd">constructor</b></a></dt>
+<dd></dd>
+<dt><a name="49">method <b class="cmd">argspec</b> <i class="arg">argspec</i></a></dt>
+<dd><p>Process an argument list into an informational dict.
+ This method also understands non-positional
+ arguments expressed in the notation of Tip 471
+ <a href="https://core.tcl-lang.org/tips/doc/trunk/tip/479.md">https://core.tcl-lang.org/tips/doc/trunk/tip/479.md</a>.</p>
+<p>The output will be a dictionary of all of the fields and whether the fields
+ are <b class="const">positional</b>, <b class="const">mandatory</b>, and whether they have a
+ <b class="const">default</b> value.</p>
+<p>Example:</p>
+<pre class="doctools_example">   my argspec {a b {c 10}}
+   &gt; a {positional 1 mandatory 1} b {positional 1 mandatory 1} c {positional 1 mandatory 0 default 10}
+</pre>
+</dd>
+<dt><a name="50">method <b class="cmd"><a href="../../../../index.html#comment">comment</a></b> <i class="arg">block</i></a></dt>
+<dd><p>Convert a block of comments into an informational dictionary.
+ If lines in the comment start with a single word ending in a colon,
+ all subsequent lines are appended to a dictionary field of that name.
+ If no fields are given, all of the text is appended to the <b class="const">description</b>
+ field.</p>
+<p>Example:</p>
+<pre class="doctools_example"> my comment {Does something cool}
+ &gt; description {Does something cool}
+ my comment {
+ title : Something really cool
+ author : Sean Woods
+ author : John Doe
+ description :
+ This does something really cool!
+ }
+ &gt; description {This does something really cool!}
+   title {Something really cool}
+   author {Sean Woods
+   John Doe}
+</pre>
+</dd>
+<dt><a name="51">method <b class="cmd">keyword.Annotation</b> <i class="arg">resultvar</i> <i class="arg">commentblock</i> <i class="arg">type</i> <i class="arg">name</i> <i class="arg">body</i></a></dt>
+<dd></dd>
+<dt><a name="52">method <b class="cmd">keyword.Class</b> <i class="arg">resultvar</i> <i class="arg">commentblock</i> <i class="arg">name</i> <i class="arg">body</i></a></dt>
+<dd><p>Process an oo::objdefine call that modifies the class object
+ itself</p></dd>
+<dt><a name="53">method <b class="cmd">keyword.class</b> <i class="arg">resultvar</i> <i class="arg">commentblock</i> <i class="arg">name</i> <i class="arg">body</i></a></dt>
+<dd><p>Process an oo::define, clay::define, etc statement.</p></dd>
+<dt><a name="54">method <b class="cmd">keyword.Class_Method</b> <i class="arg">resultvar</i> <i class="arg">commentblock</i> <i class="arg">name</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Process a statement for a clay style class method</p></dd>
+<dt><a name="55">method <b class="cmd">keyword.method</b> <i class="arg">resultvar</i> <i class="arg">commentblock</i> <i class="arg">name</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Process a statement for a tcloo style object method</p></dd>
+<dt><a name="56">method <b class="cmd">keyword.proc</b> <i class="arg">commentblock</i> <i class="arg">name</i> <i class="arg">argspec</i></a></dt>
+<dd><p>Process a proc statement</p></dd>
+<dt><a name="57">method <b class="cmd">reset</b></a></dt>
+<dd><p>Reset the state of the object and its embedded coroutine</p></dd>
+<dt><a name="58">method <b class="cmd">Main</b></a></dt>
+<dd><p>Main body of the embedded coroutine for the object</p></dd>
+<dt><a name="59">method <b class="cmd">section.method</b> <i class="arg">keyword</i> <i class="arg">method</i> <i class="arg">minfo</i></a></dt>
+<dd><p>Generate the manual page text for a method or proc</p></dd>
+<dt><a name="60">method <b class="cmd">section.annotation</b> <i class="arg">type</i> <i class="arg">name</i> <i class="arg">iinfo</i></a></dt>
+<dd></dd>
+<dt><a name="61">method <b class="cmd">section.class</b> <i class="arg">class_name</i> <i class="arg">class_info</i></a></dt>
+<dd><p>Generate the manual page text for a class</p></dd>
+<dt><a name="62">method <b class="cmd">section.command</b> <i class="arg">procinfo</i></a></dt>
+<dd><p>Generate the manual page text for the commands section</p></dd>
+<dt><a name="63">method <b class="cmd"><a href="../../../../index.html#manpage">manpage</a></b> <span class="opt">?<b class="option">header <em>value</em></b>?</span> <span class="opt">?<b class="option">footer <em>value</em></b>?</span> <span class="opt">?<b class="option">authors <em>list</em></b>?</span></a></dt>
+<dd><p>Generate the manual page. Returns the completed text suitable for saving in .man file.
+ The header argument is a block of doctools text to go in before the machine generated
+ section. footer is a block of doctools text to go in after the machine generated
+ section. authors is a list of individual authors and emails in the form of AUTHOR EMAIL ?AUTHOR EMAIL?...</p></dd>
+<dt><a name="64">method <b class="cmd">scan_text</b> <i class="arg">text</i></a></dt>
+<dd><p>Scan a block of text</p></dd>
+<dt><a name="65">method <b class="cmd">scan_file</b> <i class="arg">filename</i></a></dt>
+<dd><p>Scan a file of text</p></dd>
+</dl>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Class  practcl::metaclass</a></h3>
+<p>The metaclass for all practcl objects</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="66">method <b class="cmd">_MorphPatterns</b></a></dt>
+<dd></dd>
+<dt><a name="67">method <b class="cmd"><a href="../../../../index.html#define">define</a></b> <i class="arg">submethod</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="68">method <b class="cmd">graft</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="69">method <b class="cmd">initialize</b></a></dt>
+<dd></dd>
+<dt><a name="70">method <b class="cmd">link</b> <i class="arg">command</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="71">method <b class="cmd">morph</b> <i class="arg">classname</i></a></dt>
+<dd></dd>
+<dt><a name="72">method <b class="cmd">script</b> <i class="arg">script</i></a></dt>
+<dd></dd>
+<dt><a name="73">method <b class="cmd">select</b></a></dt>
+<dd></dd>
+<dt><a name="74">method <b class="cmd"><a href="../../../../index.html#source">source</a></b> <i class="arg">filename</i></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Class  practcl::toolset</a></h3>
+<p>Ancestor-less class intended to be a mixin
+ which defines a family of build related behaviors
+ that are modified when targetting either gcc or msvc</p>
+<p><b class="class">Class Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="75">classmethod <b class="cmd">select</b> <i class="arg">object</i></a></dt>
+<dd><p>Perform the selection for the toolset mixin</p></dd>
+</dl>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="76">method <b class="cmd">config.sh</b></a></dt>
+<dd><p>find or fake a key/value list describing this project</p></dd>
+<dt><a name="77">method <b class="cmd">BuildDir</b> <i class="arg">PWD</i></a></dt>
+<dd><p>Compute the location where the product will be built</p></dd>
+<dt><a name="78">method <b class="cmd">MakeDir</b> <i class="arg">srcdir</i></a></dt>
+<dd><p>Return where the Makefile is located relative to <em>srcdir</em>.
+ For this implementation the MakeDir is always srcdir.</p></dd>
+<dt><a name="79">method <b class="cmd">read_configuration</b></a></dt>
+<dd><p>Read information about the build process for this package.
+ For this implementation, data is sought in the following locations
+ in the following order:
+ config.tcl (generated by practcl.) PKGConfig.sh. The Makefile</p>
+<p>If the Makefile needs to be consulted, but does not exist, the
+ Configure method is invoked</p></dd>
+<dt><a name="80">method <b class="cmd">build-cflags</b> <i class="arg">PROJECT</i> <i class="arg">DEFS</i> <i class="arg">namevar</i> <i class="arg">versionvar</i> <i class="arg">defsvar</i></a></dt>
+<dd><p>method DEFS
+ This method populates 4 variables:
+ name - The name of the package
+ version - The version of the package
+ defs - C flags passed to the compiler
+ includedir - A list of paths to feed to the compiler for finding headers</p></dd>
+<dt><a name="81">method <b class="cmd">critcl</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Invoke critcl in an external process</p></dd>
+</dl>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Class  practcl::toolset.gcc</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::toolset</b></p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="82">method <b class="cmd">Autoconf</b></a></dt>
+<dd></dd>
+<dt><a name="83">method <b class="cmd">BuildDir</b> <i class="arg">PWD</i></a></dt>
+<dd></dd>
+<dt><a name="84">method <b class="cmd">ConfigureOpts</b></a></dt>
+<dd></dd>
+<dt><a name="85">method <b class="cmd">MakeDir</b> <i class="arg">srcdir</i></a></dt>
+<dd><p>Detect what directory contains the Makefile template</p></dd>
+<dt><a name="86">method <b class="cmd">make {} autodetect</b></a></dt>
+<dd></dd>
+<dt><a name="87">method <b class="cmd">make {} clean</b></a></dt>
+<dd></dd>
+<dt><a name="88">method <b class="cmd">make {} compile</b></a></dt>
+<dd></dd>
+<dt><a name="89">method <b class="cmd">make {} install</b> <i class="arg">DEST</i></a></dt>
+<dd></dd>
+<dt><a name="90">method <b class="cmd">build-compile-sources</b> <i class="arg">PROJECT</i> <i class="arg">COMPILE</i> <i class="arg">CPPCOMPILE</i> <i class="arg">INCLUDES</i></a></dt>
+<dd></dd>
+<dt><a name="91">method <b class="cmd">build-Makefile</b> <i class="arg">path</i> <i class="arg">PROJECT</i></a></dt>
+<dd></dd>
+<dt><a name="92">method <b class="cmd">build-library</b> <i class="arg">outfile</i> <i class="arg">PROJECT</i></a></dt>
+<dd><p>Produce a static or dynamic library</p></dd>
+<dt><a name="93">method <b class="cmd">build-tclsh</b> <i class="arg">outfile</i> <i class="arg">PROJECT</i> <span class="opt">?<i class="arg">path</i> <b class="const">auto</b>?</span></a></dt>
+<dd><p>Produce a static executable</p></dd>
+</dl>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">Class  practcl::toolset.msvc</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::toolset</b></p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="94">method <b class="cmd">BuildDir</b> <i class="arg">PWD</i></a></dt>
+<dd><p>MSVC always builds in the source directory</p></dd>
+<dt><a name="95">method <b class="cmd">make {} autodetect</b></a></dt>
+<dd><p>Do nothing</p></dd>
+<dt><a name="96">method <b class="cmd">make {} clean</b></a></dt>
+<dd></dd>
+<dt><a name="97">method <b class="cmd">make {} compile</b></a></dt>
+<dd></dd>
+<dt><a name="98">method <b class="cmd">make {} install</b> <i class="arg">DEST</i></a></dt>
+<dd></dd>
+<dt><a name="99">method <b class="cmd">MakeDir</b> <i class="arg">srcdir</i></a></dt>
+<dd><p>Detect what directory contains the Makefile template</p></dd>
+<dt><a name="100">method <b class="cmd">NmakeOpts</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">Class  practcl::make_obj</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::metaclass</b></p>
+<p>A build deliverable object. Normally an object file, header, or tcl script
+ which must be compiled or generated in some way</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="101">method <b class="cmd">constructor</b> <i class="arg">module_object</i> <i class="arg">name</i> <i class="arg">info</i> <span class="opt">?<i class="arg">action_body</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+<dt><a name="102">method <b class="cmd"><a href="../../../../index.html#do">do</a></b></a></dt>
+<dd></dd>
+<dt><a name="103">method <b class="cmd">check</b></a></dt>
+<dd></dd>
+<dt><a name="104">method <b class="cmd">output</b></a></dt>
+<dd></dd>
+<dt><a name="105">method <b class="cmd">reset</b></a></dt>
+<dd></dd>
+<dt><a name="106">method <b class="cmd">triggers</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection7" class="doctools_subsection"><h3><a name="subsection7">Class  practcl::object</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::metaclass</b></p>
+<p>A generic Practcl object</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="107">method <b class="cmd">constructor</b> <i class="arg">parent</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="108">method <b class="cmd">child</b> <i class="arg">method</i></a></dt>
+<dd></dd>
+<dt><a name="109">method <b class="cmd">go</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection8" class="doctools_subsection"><h3><a name="subsection8">Class  practcl::dynamic</a></h3>
+<p>Dynamic blocks do not generate their own .c files,
+ instead the contribute to the amalgamation
+ of the main library file</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="110">method <b class="cmd">cstructure</b> <i class="arg">name</i> <i class="arg">definition</i> <span class="opt">?<i class="arg">argdat</i> <b class="const"></b>?</span></a></dt>
+<dd><p>Parser functions</p></dd>
+<dt><a name="111">method <b class="cmd">include</b> <i class="arg">header</i></a></dt>
+<dd></dd>
+<dt><a name="112">method <b class="cmd">include_dir</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="113">method <b class="cmd">include_directory</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="114">method <b class="cmd">c_header</b> <i class="arg">body</i></a></dt>
+<dd></dd>
+<dt><a name="115">method <b class="cmd">c_code</b> <i class="arg">body</i></a></dt>
+<dd></dd>
+<dt><a name="116">method <b class="cmd">c_function</b> <i class="arg">header</i> <i class="arg">body</i> <span class="opt">?<i class="arg">info</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+<dt><a name="117">method <b class="cmd">c_tcloomethod</b> <i class="arg">name</i> <i class="arg">body</i> <span class="opt">?<i class="arg">arginfo</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+<dt><a name="118">method <b class="cmd">cmethod</b> <i class="arg">name</i> <i class="arg">body</i> <span class="opt">?<i class="arg">arginfo</i> <b class="const"></b>?</span></a></dt>
+<dd><p>Alias to classic name</p></dd>
+<dt><a name="119">method <b class="cmd">c_tclproc_nspace</b> <i class="arg">nspace</i></a></dt>
+<dd></dd>
+<dt><a name="120">method <b class="cmd">c_tclcmd</b> <i class="arg">name</i> <i class="arg">body</i> <span class="opt">?<i class="arg">arginfo</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+<dt><a name="121">method <b class="cmd">c_tclproc_raw</b> <i class="arg">name</i> <i class="arg">body</i> <span class="opt">?<i class="arg">arginfo</i> <b class="const"></b>?</span></a></dt>
+<dd><p>Alias to classic name</p></dd>
+<dt><a name="122">method <b class="cmd">tcltype</b> <i class="arg">name</i> <i class="arg">argdat</i></a></dt>
+<dd></dd>
+<dt><a name="123">method <b class="cmd">project-compile-products</b></a></dt>
+<dd><p>Module interactions</p></dd>
+<dt><a name="124">method <b class="cmd">implement</b> <i class="arg">path</i></a></dt>
+<dd></dd>
+<dt><a name="125">method <b class="cmd">initialize</b></a></dt>
+<dd><p>Practcl internals</p></dd>
+<dt><a name="126">method <b class="cmd">linktype</b></a></dt>
+<dd></dd>
+<dt><a name="127">method <b class="cmd">generate-cfile-constant</b></a></dt>
+<dd></dd>
+<dt><a name="128">method <b class="cmd">generate-cfile-header</b></a></dt>
+<dd></dd>
+<dt><a name="129">method <b class="cmd">generate-cfile-tclapi</b></a></dt>
+<dd><p>Generate code that provides implements Tcl API
+ calls</p></dd>
+<dt><a name="130">method <b class="cmd">generate-loader-module</b></a></dt>
+<dd><p>Generate code that runs when the package/module is
+ initialized into the interpreter</p></dd>
+<dt><a name="131">method <b class="cmd">Collate_Source</b> <i class="arg">CWD</i></a></dt>
+<dd></dd>
+<dt><a name="132">method <b class="cmd">select</b></a></dt>
+<dd><p>Once an object marks itself as some
+ flavor of dynamic, stop trying to morph
+ it into something else</p></dd>
+</dl>
+</div>
+<div id="subsection9" class="doctools_subsection"><h3><a name="subsection9">Class  practcl::product</a></h3>
+<p>A deliverable for the build system</p>
+<p><b class="class">Class Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="133">classmethod <b class="cmd">select</b> <i class="arg">object</i></a></dt>
+<dd></dd>
+</dl>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="134">method <b class="cmd">code</b> <i class="arg">section</i> <i class="arg">body</i></a></dt>
+<dd></dd>
+<dt><a name="135">method <b class="cmd">Collate_Source</b> <i class="arg">CWD</i></a></dt>
+<dd></dd>
+<dt><a name="136">method <b class="cmd">project-compile-products</b></a></dt>
+<dd></dd>
+<dt><a name="137">method <b class="cmd">generate-debug</b> <span class="opt">?<i class="arg">spaces</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+<dt><a name="138">method <b class="cmd">generate-cfile-constant</b></a></dt>
+<dd></dd>
+<dt><a name="139">method <b class="cmd">generate-cfile-public-structure</b></a></dt>
+<dd><p>Populate const static data structures</p></dd>
+<dt><a name="140">method <b class="cmd">generate-cfile-header</b></a></dt>
+<dd></dd>
+<dt><a name="141">method <b class="cmd">generate-cfile-global</b></a></dt>
+<dd></dd>
+<dt><a name="142">method <b class="cmd">generate-cfile-private-typedef</b></a></dt>
+<dd></dd>
+<dt><a name="143">method <b class="cmd">generate-cfile-private-structure</b></a></dt>
+<dd></dd>
+<dt><a name="144">method <b class="cmd">generate-cfile-functions</b></a></dt>
+<dd><p>Generate code that provides subroutines called by
+ Tcl API methods</p></dd>
+<dt><a name="145">method <b class="cmd">generate-cfile-tclapi</b></a></dt>
+<dd><p>Generate code that provides implements Tcl API
+ calls</p></dd>
+<dt><a name="146">method <b class="cmd">generate-hfile-public-define</b></a></dt>
+<dd></dd>
+<dt><a name="147">method <b class="cmd">generate-hfile-public-macro</b></a></dt>
+<dd></dd>
+<dt><a name="148">method <b class="cmd">generate-hfile-public-typedef</b></a></dt>
+<dd></dd>
+<dt><a name="149">method <b class="cmd">generate-hfile-public-structure</b></a></dt>
+<dd></dd>
+<dt><a name="150">method <b class="cmd">generate-hfile-public-headers</b></a></dt>
+<dd></dd>
+<dt><a name="151">method <b class="cmd">generate-hfile-public-function</b></a></dt>
+<dd></dd>
+<dt><a name="152">method <b class="cmd">generate-hfile-public-includes</b></a></dt>
+<dd></dd>
+<dt><a name="153">method <b class="cmd">generate-hfile-public-verbatim</b></a></dt>
+<dd></dd>
+<dt><a name="154">method <b class="cmd">generate-loader-external</b></a></dt>
+<dd></dd>
+<dt><a name="155">method <b class="cmd">generate-loader-module</b></a></dt>
+<dd></dd>
+<dt><a name="156">method <b class="cmd">generate-stub-function</b></a></dt>
+<dd></dd>
+<dt><a name="157">method <b class="cmd">IncludeAdd</b> <i class="arg">headervar</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="158">method <b class="cmd">generate-tcl-loader</b></a></dt>
+<dd></dd>
+<dt><a name="159">method <b class="cmd">generate-tcl-pre</b></a></dt>
+<dd><p>This methods generates any Tcl script file
+ which is required to pre-initialize the C library</p></dd>
+<dt><a name="160">method <b class="cmd">generate-tcl-post</b></a></dt>
+<dd></dd>
+<dt><a name="161">method <b class="cmd">linktype</b></a></dt>
+<dd></dd>
+<dt><a name="162">method <b class="cmd">Ofile</b> <i class="arg">filename</i></a></dt>
+<dd></dd>
+<dt><a name="163">method <b class="cmd">project-static-packages</b></a></dt>
+<dd><p>Methods called by the master project</p></dd>
+<dt><a name="164">method <b class="cmd">toolset-include-directory</b></a></dt>
+<dd><p>Methods called by the toolset</p></dd>
+<dt><a name="165">method <b class="cmd">target</b> <i class="arg">method</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection10" class="doctools_subsection"><h3><a name="subsection10">Class  practcl::product.cheader</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::product</b></p>
+<p>A product which generated from a C header file. Which is to say, nothing.</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="166">method <b class="cmd">project-compile-products</b></a></dt>
+<dd></dd>
+<dt><a name="167">method <b class="cmd">generate-loader-module</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection11" class="doctools_subsection"><h3><a name="subsection11">Class  practcl::product.csource</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::product</b></p>
+<p>A product which generated from a C source file. Normally an object (.o) file.</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="168">method <b class="cmd">project-compile-products</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection12" class="doctools_subsection"><h3><a name="subsection12">Class  practcl::product.clibrary</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::product</b></p>
+<p>A product which is generated from a compiled C library.
+ Usually a .a or a .dylib file, but in complex cases may
+ actually just be a conduit for one project to integrate the
+ source code of another</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="169">method <b class="cmd">linker-products</b> <i class="arg">configdict</i></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection13" class="doctools_subsection"><h3><a name="subsection13">Class  practcl::product.dynamic</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::dynamic</b> <b class="class">practcl::product</b></p>
+<p>A product which is generated from C code that itself is generated
+ by practcl or some other means. This C file may or may not produce
+ its own .o file, depending on whether it is eligible to become part
+ of an amalgamation</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="170">method <b class="cmd">initialize</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection14" class="doctools_subsection"><h3><a name="subsection14">Class  practcl::product.critcl</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::dynamic</b> <b class="class">practcl::product</b></p>
+<p>A binary product produced by critcl. Note: The implementation is not
+ written yet, this class does nothing.</p>
+</div>
+<div id="subsection15" class="doctools_subsection"><h3><a name="subsection15">Class  practcl::module</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::object</b> <b class="class">practcl::product.dynamic</b></p>
+<p>In the end, all C code must be loaded into a module
+ This will either be a dynamically loaded library implementing
+ a tcl extension, or a compiled in segment of a custom shell/app</p>
+<p><b class="class">Variable</b></p>
+<dl class="doctools_definitions">
+<dt><a name="171">variable <b class="cmd">make_object</b></a></dt>
+<dd></dd>
+</dl>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="172">method <b class="cmd">_MorphPatterns</b></a></dt>
+<dd></dd>
+<dt><a name="173">method <b class="cmd">add</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="174">method <b class="cmd">install-headers</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="175">method <b class="cmd">make {} _preamble</b></a></dt>
+<dd></dd>
+<dt><a name="176">method <b class="cmd">make {} pkginfo</b></a></dt>
+<dd></dd>
+<dt><a name="177">method <b class="cmd">make {} objects</b></a></dt>
+<dd><p>Return a dictionary of all handles and associated objects</p></dd>
+<dt><a name="178">method <b class="cmd">make {} object</b> <i class="arg">name</i></a></dt>
+<dd><p>Return the object associated with handle <em>name</em></p></dd>
+<dt><a name="179">method <b class="cmd">make {} reset</b></a></dt>
+<dd><p>Reset all deputy objects</p></dd>
+<dt><a name="180">method <b class="cmd">make {} trigger</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Exercise the triggers method for all handles listed</p></dd>
+<dt><a name="181">method <b class="cmd">make {} depends</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Exercise the check method for all handles listed</p></dd>
+<dt><a name="182">method <b class="cmd">make {} filename</b> <i class="arg">name</i></a></dt>
+<dd><p>Return the file name of the build product for the listed
+ handle</p></dd>
+<dt><a name="183">method <b class="cmd">make {} target</b> <i class="arg">name</i> <i class="arg">Info</i> <i class="arg">body</i></a></dt>
+<dd></dd>
+<dt><a name="184">method <b class="cmd">make {} todo</b></a></dt>
+<dd><p>Return a list of handles for object which return true for the
+ do method</p></dd>
+<dt><a name="185">method <b class="cmd">make {} do</b></a></dt>
+<dd><p>For each target exercise the action specified in the <em>action</em>
+ definition if the <em>do</em> method returns true</p></dd>
+<dt><a name="186">method <b class="cmd">child</b> <i class="arg">which</i></a></dt>
+<dd></dd>
+<dt><a name="187">method <b class="cmd">generate-c</b></a></dt>
+<dd><p>This methods generates the contents of an amalgamated .c file
+ which implements the loader for a batch of tools</p></dd>
+<dt><a name="188">method <b class="cmd">generate-h</b></a></dt>
+<dd><p>This methods generates the contents of an amalgamated .h file
+ which describes the public API of this module</p></dd>
+<dt><a name="189">method <b class="cmd">generate-loader</b></a></dt>
+<dd></dd>
+<dt><a name="190">method <b class="cmd">initialize</b></a></dt>
+<dd></dd>
+<dt><a name="191">method <b class="cmd">implement</b> <i class="arg">path</i></a></dt>
+<dd></dd>
+<dt><a name="192">method <b class="cmd">linktype</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection16" class="doctools_subsection"><h3><a name="subsection16">Class  practcl::project</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::module</b></p>
+<p>A toplevel project that is a collection of other projects</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="193">method <b class="cmd">_MorphPatterns</b></a></dt>
+<dd></dd>
+<dt><a name="194">method <b class="cmd">constructor</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="195">method <b class="cmd">add_object</b> <i class="arg">object</i></a></dt>
+<dd></dd>
+<dt><a name="196">method <b class="cmd">add_project</b> <i class="arg">pkg</i> <i class="arg">info</i> <span class="opt">?<i class="arg">oodefine</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+<dt><a name="197">method <b class="cmd">add_tool</b> <i class="arg">pkg</i> <i class="arg">info</i> <span class="opt">?<i class="arg">oodefine</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+<dt><a name="198">method <b class="cmd">build-tclcore</b></a></dt>
+<dd><p>Compile the Tcl core. If the define <em>tk</em> is true, compile the
+ Tk core as well</p></dd>
+<dt><a name="199">method <b class="cmd">child</b> <i class="arg">which</i></a></dt>
+<dd></dd>
+<dt><a name="200">method <b class="cmd">linktype</b></a></dt>
+<dd></dd>
+<dt><a name="201">method <b class="cmd">project</b> <i class="arg">pkg</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Exercise the methods of a sub-object</p></dd>
+<dt><a name="202">method <b class="cmd">tclcore</b></a></dt>
+<dd></dd>
+<dt><a name="203">method <b class="cmd">tkcore</b></a></dt>
+<dd></dd>
+<dt><a name="204">method <b class="cmd"><a href="../tool/tool.html">tool</a></b> <i class="arg">pkg</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection17" class="doctools_subsection"><h3><a name="subsection17">Class  practcl::library</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::project</b></p>
+<p>A toplevel project that produces a library</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="205">method <b class="cmd">clean</b> <i class="arg">PATH</i></a></dt>
+<dd></dd>
+<dt><a name="206">method <b class="cmd">project-compile-products</b></a></dt>
+<dd></dd>
+<dt><a name="207">method <b class="cmd">go</b></a></dt>
+<dd></dd>
+<dt><a name="208">method <b class="cmd">generate-decls</b> <i class="arg">pkgname</i> <i class="arg">path</i></a></dt>
+<dd></dd>
+<dt><a name="209">method <b class="cmd">implement</b> <i class="arg">path</i></a></dt>
+<dd></dd>
+<dt><a name="210">method <b class="cmd">generate-make</b> <i class="arg">path</i></a></dt>
+<dd><p>Backward compadible call</p></dd>
+<dt><a name="211">method <b class="cmd">linktype</b></a></dt>
+<dd></dd>
+<dt><a name="212">method <b class="cmd">package-ifneeded</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Create a &quot;package ifneeded&quot;
+ Args are a list of aliases for which this package will answer to</p></dd>
+<dt><a name="213">method <b class="cmd">shared_library</b> <span class="opt">?<i class="arg">filename</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+<dt><a name="214">method <b class="cmd">static_library</b> <span class="opt">?<i class="arg">filename</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection18" class="doctools_subsection"><h3><a name="subsection18">Class  practcl::tclkit</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::library</b></p>
+<p>A toplevel project that produces a self-contained executable</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="215">method <b class="cmd">build-tclkit_main</b> <i class="arg">PROJECT</i> <i class="arg">PKG_OBJS</i></a></dt>
+<dd></dd>
+<dt><a name="216">method <b class="cmd">Collate_Source</b> <i class="arg">CWD</i></a></dt>
+<dd></dd>
+<dt><a name="217">method <b class="cmd">wrap</b> <i class="arg">PWD</i> <i class="arg">exename</i> <i class="arg">vfspath</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Wrap an executable</p></dd>
+</dl>
+</div>
+<div id="subsection19" class="doctools_subsection"><h3><a name="subsection19">Class  practcl::distribution</a></h3>
+<p>Standalone class to manage code distribution
+ This class is intended to be mixed into another class
+ (Thus the lack of ancestors)</p>
+<p><b class="class">Class Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="218">classmethod <b class="cmd">Sandbox</b> <i class="arg">object</i></a></dt>
+<dd></dd>
+<dt><a name="219">classmethod <b class="cmd">select</b> <i class="arg">object</i></a></dt>
+<dd></dd>
+<dt><a name="220">classmethod <b class="cmd">claim_option</b></a></dt>
+<dd></dd>
+<dt><a name="221">classmethod <b class="cmd">claim_object</b> <i class="arg">object</i></a></dt>
+<dd></dd>
+<dt><a name="222">classmethod <b class="cmd">claim_path</b> <i class="arg">path</i></a></dt>
+<dd></dd>
+</dl>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="223">method <b class="cmd">scm_info</b></a></dt>
+<dd></dd>
+<dt><a name="224">method <b class="cmd">DistroMixIn</b></a></dt>
+<dd></dd>
+<dt><a name="225">method <b class="cmd">Sandbox</b></a></dt>
+<dd></dd>
+<dt><a name="226">method <b class="cmd">SrcDir</b></a></dt>
+<dd></dd>
+<dt><a name="227">method <b class="cmd">ScmTag</b></a></dt>
+<dd></dd>
+<dt><a name="228">method <b class="cmd">ScmClone</b></a></dt>
+<dd></dd>
+<dt><a name="229">method <b class="cmd">ScmUnpack</b></a></dt>
+<dd></dd>
+<dt><a name="230">method <b class="cmd">ScmUpdate</b></a></dt>
+<dd></dd>
+<dt><a name="231">method <b class="cmd">Unpack</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection20" class="doctools_subsection"><h3><a name="subsection20">Class  practcl::distribution.snapshot</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::distribution</b></p>
+<p>A file distribution from zip, tarball, or other non-scm archive format</p>
+<p><b class="class">Class Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="232">classmethod <b class="cmd">claim_object</b> <i class="arg">object</i></a></dt>
+<dd></dd>
+<dt><a name="233">classmethod <b class="cmd">claim_option</b></a></dt>
+<dd></dd>
+<dt><a name="234">classmethod <b class="cmd">claim_path</b> <i class="arg">path</i></a></dt>
+<dd></dd>
+</dl>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="235">method <b class="cmd">ScmUnpack</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection21" class="doctools_subsection"><h3><a name="subsection21">Class  practcl::distribution.fossil</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::distribution</b></p>
+<p>A file distribution based on fossil</p>
+<p><b class="class">Class Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="236">classmethod <b class="cmd">claim_object</b> <i class="arg">obj</i></a></dt>
+<dd><p>Check for markers in the metadata</p></dd>
+<dt><a name="237">classmethod <b class="cmd">claim_option</b></a></dt>
+<dd></dd>
+<dt><a name="238">classmethod <b class="cmd">claim_path</b> <i class="arg">path</i></a></dt>
+<dd><p>Check for markers in the source root</p></dd>
+</dl>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="239">method <b class="cmd">scm_info</b></a></dt>
+<dd></dd>
+<dt><a name="240">method <b class="cmd">ScmClone</b></a></dt>
+<dd><p>Clone the source</p></dd>
+<dt><a name="241">method <b class="cmd">ScmTag</b></a></dt>
+<dd></dd>
+<dt><a name="242">method <b class="cmd">ScmUnpack</b></a></dt>
+<dd></dd>
+<dt><a name="243">method <b class="cmd">ScmUpdate</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection22" class="doctools_subsection"><h3><a name="subsection22">Class  practcl::distribution.git</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::distribution</b></p>
+<p>A file distribution based on git</p>
+<p><b class="class">Class Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="244">classmethod <b class="cmd">claim_object</b> <i class="arg">obj</i></a></dt>
+<dd></dd>
+<dt><a name="245">classmethod <b class="cmd">claim_option</b></a></dt>
+<dd></dd>
+<dt><a name="246">classmethod <b class="cmd">claim_path</b> <i class="arg">path</i></a></dt>
+<dd></dd>
+</dl>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="247">method <b class="cmd">ScmTag</b></a></dt>
+<dd></dd>
+<dt><a name="248">method <b class="cmd">ScmUnpack</b></a></dt>
+<dd></dd>
+<dt><a name="249">method <b class="cmd">ScmUpdate</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection23" class="doctools_subsection"><h3><a name="subsection23">Class  practcl::subproject</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::module</b></p>
+<p>A subordinate project</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="250">method <b class="cmd">_MorphPatterns</b></a></dt>
+<dd></dd>
+<dt><a name="251">method <b class="cmd">BuildDir</b> <i class="arg">PWD</i></a></dt>
+<dd></dd>
+<dt><a name="252">method <b class="cmd">child</b> <i class="arg">which</i></a></dt>
+<dd></dd>
+<dt><a name="253">method <b class="cmd">compile</b></a></dt>
+<dd></dd>
+<dt><a name="254">method <b class="cmd">go</b></a></dt>
+<dd></dd>
+<dt><a name="255">method <b class="cmd">install</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Install project into the local build system</p></dd>
+<dt><a name="256">method <b class="cmd">linktype</b></a></dt>
+<dd></dd>
+<dt><a name="257">method <b class="cmd">linker-products</b> <i class="arg">configdict</i></a></dt>
+<dd></dd>
+<dt><a name="258">method <b class="cmd">linker-external</b> <i class="arg">configdict</i></a></dt>
+<dd></dd>
+<dt><a name="259">method <b class="cmd">linker-extra</b> <i class="arg">configdict</i></a></dt>
+<dd></dd>
+<dt><a name="260">method <b class="cmd">env-bootstrap</b></a></dt>
+<dd><p>Methods for packages/tools that can be downloaded
+ possibly built and used internally by this Practcl
+ process
+ Load the facility into the interpreter</p></dd>
+<dt><a name="261">method <b class="cmd">env-exec</b></a></dt>
+<dd><p>Return a file path that exec can call</p></dd>
+<dt><a name="262">method <b class="cmd">env-install</b></a></dt>
+<dd><p>Install the tool into the local environment</p></dd>
+<dt><a name="263">method <b class="cmd">env-load</b></a></dt>
+<dd><p>Do whatever is necessary to get the tool
+ into the local environment</p></dd>
+<dt><a name="264">method <b class="cmd">env-present</b></a></dt>
+<dd><p>Check if tool is available for load/already loaded</p></dd>
+<dt><a name="265">method <b class="cmd">sources</b></a></dt>
+<dd></dd>
+<dt><a name="266">method <b class="cmd"><a href="../../../../index.html#update">update</a></b></a></dt>
+<dd></dd>
+<dt><a name="267">method <b class="cmd">unpack</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection24" class="doctools_subsection"><h3><a name="subsection24">Class  practcl::subproject.source</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::subproject</b> <b class="class">practcl::library</b></p>
+<p>A project which the kit compiles and integrates
+ the source for itself</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="268">method <b class="cmd">env-bootstrap</b></a></dt>
+<dd></dd>
+<dt><a name="269">method <b class="cmd">env-present</b></a></dt>
+<dd></dd>
+<dt><a name="270">method <b class="cmd">linktype</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection25" class="doctools_subsection"><h3><a name="subsection25">Class  practcl::subproject.teapot</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::subproject</b></p>
+<p>a copy from the teapot</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="271">method <b class="cmd">env-bootstrap</b></a></dt>
+<dd></dd>
+<dt><a name="272">method <b class="cmd">env-install</b></a></dt>
+<dd></dd>
+<dt><a name="273">method <b class="cmd">env-present</b></a></dt>
+<dd></dd>
+<dt><a name="274">method <b class="cmd">install</b> <i class="arg">DEST</i></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection26" class="doctools_subsection"><h3><a name="subsection26">Class  practcl::subproject.kettle</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::subproject</b></p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="275">method <b class="cmd">kettle</b> <i class="arg">path</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="276">method <b class="cmd">install</b> <i class="arg">DEST</i></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection27" class="doctools_subsection"><h3><a name="subsection27">Class  practcl::subproject.critcl</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::subproject</b></p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="277">method <b class="cmd">install</b> <i class="arg">DEST</i></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection28" class="doctools_subsection"><h3><a name="subsection28">Class  practcl::subproject.sak</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::subproject</b></p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="278">method <b class="cmd">env-bootstrap</b></a></dt>
+<dd></dd>
+<dt><a name="279">method <b class="cmd">env-install</b></a></dt>
+<dd></dd>
+<dt><a name="280">method <b class="cmd">env-present</b></a></dt>
+<dd></dd>
+<dt><a name="281">method <b class="cmd">install</b> <i class="arg">DEST</i></a></dt>
+<dd></dd>
+<dt><a name="282">method <b class="cmd">install-module</b> <i class="arg">DEST</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection29" class="doctools_subsection"><h3><a name="subsection29">Class  practcl::subproject.practcl</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::subproject</b></p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="283">method <b class="cmd">env-bootstrap</b></a></dt>
+<dd></dd>
+<dt><a name="284">method <b class="cmd">env-install</b></a></dt>
+<dd></dd>
+<dt><a name="285">method <b class="cmd">install</b> <i class="arg">DEST</i></a></dt>
+<dd></dd>
+<dt><a name="286">method <b class="cmd">install-module</b> <i class="arg">DEST</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection30" class="doctools_subsection"><h3><a name="subsection30">Class  practcl::subproject.binary</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::subproject</b></p>
+<p>A subordinate binary package</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="287">method <b class="cmd">clean</b></a></dt>
+<dd></dd>
+<dt><a name="288">method <b class="cmd">env-install</b></a></dt>
+<dd></dd>
+<dt><a name="289">method <b class="cmd">project-compile-products</b></a></dt>
+<dd></dd>
+<dt><a name="290">method <b class="cmd">ComputeInstall</b></a></dt>
+<dd></dd>
+<dt><a name="291">method <b class="cmd">go</b></a></dt>
+<dd></dd>
+<dt><a name="292">method <b class="cmd">linker-products</b> <i class="arg">configdict</i></a></dt>
+<dd></dd>
+<dt><a name="293">method <b class="cmd">project-static-packages</b></a></dt>
+<dd></dd>
+<dt><a name="294">method <b class="cmd">BuildDir</b> <i class="arg">PWD</i></a></dt>
+<dd></dd>
+<dt><a name="295">method <b class="cmd">compile</b></a></dt>
+<dd></dd>
+<dt><a name="296">method <b class="cmd">Configure</b></a></dt>
+<dd></dd>
+<dt><a name="297">method <b class="cmd">install</b> <i class="arg">DEST</i></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection31" class="doctools_subsection"><h3><a name="subsection31">Class  practcl::subproject.tea</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::subproject.binary</b></p>
+<p>A subordinate TEA based binary package</p>
+</div>
+<div id="subsection32" class="doctools_subsection"><h3><a name="subsection32">Class  practcl::subproject.library</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::subproject.binary</b> <b class="class">practcl::library</b></p>
+<p>A subordinate C library built by this project</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="298">method <b class="cmd">install</b> <i class="arg">DEST</i></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection33" class="doctools_subsection"><h3><a name="subsection33">Class  practcl::subproject.external</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::subproject.binary</b></p>
+<p>A subordinate external C library</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="299">method <b class="cmd">install</b> <i class="arg">DEST</i></a></dt>
+<dd></dd>
+</dl>
+</div>
+<div id="subsection34" class="doctools_subsection"><h3><a name="subsection34">Class  practcl::subproject.core</a></h3>
+<p><em>ancestors</em>: <b class="class">practcl::subproject.binary</b></p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="300">method <b class="cmd">env-bootstrap</b></a></dt>
+<dd></dd>
+<dt><a name="301">method <b class="cmd">env-present</b></a></dt>
+<dd></dd>
+<dt><a name="302">method <b class="cmd">env-install</b></a></dt>
+<dd></dd>
+<dt><a name="303">method <b class="cmd">go</b></a></dt>
+<dd></dd>
+<dt><a name="304">method <b class="cmd">linktype</b></a></dt>
+<dd></dd>
+</dl>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>practcl</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+<p>When proposing code changes, please provide <em>unified diffs</em>,
+i.e the output of <b class="const">diff -u</b>.</p>
+<p>Note further that <em>attachments</em> are strongly preferred over
+inlined patches. Attachments can be made by going to the <b class="const">Edit</b>
+form of the ticket immediately after its creation, and then using the
+left-most button in the secondary navigation bar.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#practcl">practcl</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>TclOO</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2016-2018 Sean Woods &lt;yoda@etoyoc.com&gt;</p>
+</div>
+</div></body></html>

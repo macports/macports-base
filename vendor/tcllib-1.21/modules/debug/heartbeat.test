@@ -1,0 +1,57 @@
+# heartbeat.test - Copyright (c) 2019 A. Kupries
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2
+
+testing {
+    useLocal heartbeat.tcl debug::heartbeat
+}
+
+# -------------------------------------------------------------------------
+
+test heartbeat-1.0 {wrong args, too many} -body {
+    debug heartbeat 500 X
+} -returnCodes error -result {wrong # args: should be "debug heartbeat ?delta?"}
+
+test heartbeat-2.0 {run the beat} -setup {
+    # capture the beat
+    rename ::puts ::puts_x
+    proc puts {args} {
+        lappend ::captured [info level 0]
+    }
+    set forever {}
+    set captured {}
+    set sep "\n    "
+} -cleanup {
+    # undo capture
+    rename ::puts {}
+    rename ::puts_x ::puts
+    unset forever captured sep _
+} -body {
+    after 1100 { set ::forever now }
+    debug heartbeat 200
+    vwait forever
+    set _ "${sep}[join [lreplace $captured 0 0 start] ${sep}]\n"
+} -match glob -result {
+    start
+    puts stderr {heartbeat | 1 *}
+    puts stderr {heartbeat | 2 *}
+    puts stderr {heartbeat | 3 *}
+    puts stderr {heartbeat | 4 *}
+    puts stderr {heartbeat | 5 *}
+    puts stderr {heartbeat | 6 *}
+}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

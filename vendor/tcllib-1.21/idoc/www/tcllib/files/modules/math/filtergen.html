@@ -1,0 +1,204 @@
+<!DOCTYPE html><html><head>
+<title>math::filters - Tcl Math Library</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'filtergen.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; 2020 by Arjen Markus
+   -->
+<!-- math::filters.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+&#124; <a href="../../../../toc.html">Main Table Of Contents</a>
+&#124; <a href="../../../toc.html">Table Of Contents</a>
+&#124; <a href="../../../../index.html">Keyword Index</a>
+&#124; <a href="../../../../toc0.html">Categories</a>
+&#124; <a href="../../../../toc1.html">Modules</a>
+&#124; <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::filters(n) 0.1 tcllib &quot;Tcl Math Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::filters - Digital filters</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PROCEDURES</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">TclOO</b></li>
+<li>package require <b class="pkgname">math::filters <span class="opt">?0.1?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::filters::filterButterworth</b> <i class="arg">lowpass</i> <i class="arg">order</i> <i class="arg">samplefreq</i> <i class="arg">cutofffreq</i></a></li>
+<li><a href="#2"><b class="cmd">::math::filters::filter</b> <i class="arg">coeffs</i> <i class="arg">data</i></a></li>
+<li><a href="#3"><b class="cmd">::math::filters::filterObj</b> new <i class="arg">coeffs</i> <i class="arg">yinit</i></a></li>
+<li><a href="#4"><b class="cmd">$filterObj</b> filter <i class="arg">x</i></a></li>
+<li><a href="#5"><b class="cmd">$filterObj</b> reset</a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package">math::filters</b> package implements digital filters,
+notably Butterworth low-pass and high-pass filters. The procedures
+allow to filter an entire data series as well as filter data one
+by one.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PROCEDURES</a></h2>
+<p>The package defines the following public procedures:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::filters::filterButterworth</b> <i class="arg">lowpass</i> <i class="arg">order</i> <i class="arg">samplefreq</i> <i class="arg">cutofffreq</i></a></dt>
+<dd><p>Determine the coefficients for a Butterworth filter of given order. The coefficients are returned as
+a list of the x-coefficients, the y-coefficients and the scale. The formula is (n is the filter order):</p>
+<pre class="doctools_example">
+                   n             n
+    scale * y_k = sum x_(k-i) + sum y_(k-i)
+                  i=0           i=1
+</pre>
+<dl class="doctools_arguments">
+<dt>bool <i class="arg">lowpass</i></dt>
+<dd><p>Generate a low-pass filter (1) or a high-pass filter (0)</p></dd>
+<dt>integer <i class="arg">lowpass</i></dt>
+<dd><p>The order of the filter to be generated</p></dd>
+<dt>double <i class="arg">samplefreq</i></dt>
+<dd><p>Sampling frequency of the data series</p></dd>
+<dt>double <i class="arg">cutofffreq</i></dt>
+<dd><p>Cut-off frequency for the filter</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">::math::filters::filter</b> <i class="arg">coeffs</i> <i class="arg">data</i></a></dt>
+<dd><p>Filter the entire data series based on the filter coefficients.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">coeffs</i></dt>
+<dd><p>List of coefficients as generated by <em>filterButterworth</em> (or in fact any similar list of coefficients)</p></dd>
+<dt>list <i class="arg">data</i></dt>
+<dd><p>Data to be filtered</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">::math::filters::filterObj</b> new <i class="arg">coeffs</i> <i class="arg">yinit</i></a></dt>
+<dd><p>Create a filter object. The initial x data are taken as zero. The initial y data can be prescribed. If they are not given,
+they are taken as zero as well.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">coeffs</i></dt>
+<dd><p>List of coefficients as generated by <em>filterButterworth</em> (or in fact any similar list of coefficients)</p></dd>
+<dt>list <i class="arg">yinit</i></dt>
+<dd><p>(Optional) initial data for the filter result.</p></dd>
+</dl></dd>
+<dt><a name="4"><b class="cmd">$filterObj</b> filter <i class="arg">x</i></a></dt>
+<dd><p>Filter a single value and return the result.</p>
+<dl class="doctools_arguments">
+<dt>double <i class="arg">x</i></dt>
+<dd><p>The value to be filtered</p></dd>
+</dl></dd>
+<dt><a name="5"><b class="cmd">$filterObj</b> reset</a></dt>
+<dd><p>Reset the filter object (start anew)</p></dd>
+</dl>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#digital">digital</a>, <a href="../../../../index.html#filtering">filtering</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2020 by Arjen Markus</p>
+</div>
+</div></body></html>

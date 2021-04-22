@@ -1,0 +1,90 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcllib_install_guide n 1]
+[titledesc {Tcllib - The Installer's Guide}]
+[description]
+[include parts/welcome.inc]
+
+[para]
+
+The audience of this document is anyone wishing to build and install
+the packages found in Tcllib, for either themselves, or others.
+
+[para]
+
+For developers intending to work on the packages themselves we
+additionally provide
+
+[list_begin enum]
+[enum] [term {Tcllib - The Developer's Guide}].
+[list_end]
+
+[para]
+
+Please read [term {Tcllib - How To Get The Sources}] first, if that
+was not done already. Here we assume that the sources are already
+available in a directory of your choice.
+
+[para]
+
+[comment {===================================================================}]
+[section Requisites]
+
+Before Tcllib can be build and used a number of requisites must be installed.
+
+These are:
+
+[list_begin enumerated]
+[enum] The scripting language Tcl.
+       For details see [sectref Tcl].
+[enum] Optionally, the [package critcl] package (C embedding) for [syscmd Tcl].
+       For details see [sectref CriTcl].
+[list_end]
+
+This list assumes that the machine where Tcllib is to be installed is
+essentially clean. Of course, if parts of the dependencies listed
+below are already installed the associated steps can be skipped. It is
+still recommended to read their sections though, to validate that the
+dependencies they talk about are indeed installed.
+
+[include parts/rq_tcl.inc]
+[include parts/rq_critcl.inc]
+
+[comment {= build instructions ==============================================}]
+[section {Build & Installation Instructions}]
+
+As Tcllib is mainly a bundle of packages written in pure Tcl building
+it is the same as installing it. The exceptions to this have their own
+subsection, [sectref {Critcl & Accelerators}], later on.
+
+[para] Before that however comes the standard case, differentiated by
+       the platforms with material differences in the instruction, i.e.
+       [term Unix]-like, versus [term Windows].
+
+[para] Regarding the latter it should also be noted that it is
+       possible set up an [term Unix]-like environment using projects
+       like [term MSYS], [term Cygwin], and others. In that case the
+       user has the choice of which instructions to follow.
+
+[para] Regardless of environment or platform, a suitable [term Tcl]
+       has to be installed, and its [syscmd tclsh] should be placed on
+       the [variable PATH] ([term Unix]) or associated with
+       [file .tcl] files ([term Windows]).
+
+[comment %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%]
+[subsection {Installing on Unix}]
+[include parts/b_unix.inc]
+
+[comment %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%]
+[subsection {Installing on Windows}]
+[include parts/b_windows.inc]
+
+[comment %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%]
+[subsection {Critcl & Accelerators}]
+[include parts/b_critcl.inc]
+
+[comment %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%]
+[subsection Tooling]
+[include parts/b_tooling.inc]
+
+[manpage_end]
+

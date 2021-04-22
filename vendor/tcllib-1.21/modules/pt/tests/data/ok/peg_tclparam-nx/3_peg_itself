@@ -1,0 +1,2413 @@
+## -*- tcl -*-
+##
+## NX-based Tcl/PARAM implementation of the parsing
+## expression grammar
+##
+##	TEMPLATE
+##
+## Generated from file	TEST
+##            for user  unknown
+##
+# # ## ### ##### ######## ############# #####################
+## Requirements
+
+package require Tcl 8.5
+package require nx
+package require pt::rde::nx ; # NX-based implementation of the
+			      # PARAM virtual machine
+			      # underlying the Tcl/PARAM code
+			      # used below.
+
+# # ## ### ##### ######## ############# #####################
+##
+
+nx::Class create PARSER -superclasses pt::rde::nx {
+    # # ## ### ##### ######## #############
+    ## Public API
+    
+    :public method parse {channel} {
+	:reset $channel
+	:MAIN ; # Entrypoint for the generated code.
+	return [:complete]
+    }
+
+    :public method parset {text} {
+	:reset {}
+	:data $text
+	:MAIN ; # Entrypoint for the generated code.
+	return [:complete]
+    }
+
+    # # ## ### ###### ######## #############
+    ## BEGIN of GENERATED CODE. DO NOT EDIT.
+
+    #
+    # Grammar Start Expression
+    #
+    
+    :method MAIN {} {
+        : sym_Grammar
+        return
+    }
+    
+    #
+    # leaf Symbol 'ALNUM'
+    #
+    
+    :method sym_ALNUM {} {
+        # x
+        #     "<alnum>"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start ALNUM
+        : sequence_4
+        : si:void_leaf_symbol_end ALNUM
+        return
+    }
+    
+    :method sequence_4 {} {
+        # x
+        #     "<alnum>"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str <alnum>
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'ALPHA'
+    #
+    
+    :method sym_ALPHA {} {
+        # x
+        #     "<alpha>"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start ALPHA
+        : sequence_9
+        : si:void_leaf_symbol_end ALPHA
+        return
+    }
+    
+    :method sequence_9 {} {
+        # x
+        #     "<alpha>"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str <alpha>
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'AND'
+    #
+    
+    :method sym_AND {} {
+        # x
+        #     '&'
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start AND
+        : sequence_14
+        : si:void_leaf_symbol_end AND
+        return
+    }
+    
+    :method sequence_14 {} {
+        # x
+        #     '&'
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_char &
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'APOSTROPH'
+    #
+    
+    :method sym_APOSTROPH {} {
+        # '''
+    
+        : si:void_void_symbol_start APOSTROPH
+        : si:next_char '
+        : si:void_clear_symbol_end APOSTROPH
+        return
+    }
+    
+    #
+    # leaf Symbol 'ASCII'
+    #
+    
+    :method sym_ASCII {} {
+        # x
+        #     "<ascii>"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start ASCII
+        : sequence_21
+        : si:void_leaf_symbol_end ASCII
+        return
+    }
+    
+    :method sequence_21 {} {
+        # x
+        #     "<ascii>"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str <ascii>
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Attribute'
+    #
+    
+    :method sym_Attribute {} {
+        # x
+        #     /
+        #         (VOID)
+        #         (LEAF)
+        #     (COLON)
+    
+        : si:value_symbol_start Attribute
+        : sequence_29
+        : si:reduce_symbol_end Attribute
+        return
+    }
+    
+    :method sequence_29 {} {
+        # x
+        #     /
+        #         (VOID)
+        #         (LEAF)
+        #     (COLON)
+    
+        : si:value_state_push
+        : choice_26
+        : si:valuevalue_part
+        : sym_COLON
+        : si:value_state_merge
+        return
+    }
+    
+    :method choice_26 {} {
+        # /
+        #     (VOID)
+        #     (LEAF)
+    
+        : si:value_state_push
+        : sym_VOID
+        : si:valuevalue_branch
+        : sym_LEAF
+        : si:value_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Char'
+    #
+    
+    :method sym_Char {} {
+        # /
+        #     (CharSpecial)
+        #     (CharOctalFull)
+        #     (CharOctalPart)
+        #     (CharUnicode)
+        #     (CharUnescaped)
+    
+        : si:value_symbol_start Char
+        : choice_37
+        : si:reduce_symbol_end Char
+        return
+    }
+    
+    :method choice_37 {} {
+        # /
+        #     (CharSpecial)
+        #     (CharOctalFull)
+        #     (CharOctalPart)
+        #     (CharUnicode)
+        #     (CharUnescaped)
+    
+        : si:value_state_push
+        : sym_CharSpecial
+        : si:valuevalue_branch
+        : sym_CharOctalFull
+        : si:valuevalue_branch
+        : sym_CharOctalPart
+        : si:valuevalue_branch
+        : sym_CharUnicode
+        : si:valuevalue_branch
+        : sym_CharUnescaped
+        : si:value_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'CharOctalFull'
+    #
+    
+    :method sym_CharOctalFull {} {
+        # x
+        #     '\'
+        #     range (0 .. 2)
+        #     range (0 .. 7)
+        #     range (0 .. 7)
+    
+        : si:void_symbol_start CharOctalFull
+        : sequence_44
+        : si:void_leaf_symbol_end CharOctalFull
+        return
+    }
+    
+    :method sequence_44 {} {
+        # x
+        #     '\'
+        #     range (0 .. 2)
+        #     range (0 .. 7)
+        #     range (0 .. 7)
+    
+        : si:void_state_push
+        : si:next_char \134
+        : si:voidvoid_part
+        : si:next_range 0 2
+        : si:voidvoid_part
+        : si:next_range 0 7
+        : si:voidvoid_part
+        : si:next_range 0 7
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'CharOctalPart'
+    #
+    
+    :method sym_CharOctalPart {} {
+        # x
+        #     '\'
+        #     range (0 .. 7)
+        #     ?
+        #         range (0 .. 7)
+    
+        : si:void_symbol_start CharOctalPart
+        : sequence_52
+        : si:void_leaf_symbol_end CharOctalPart
+        return
+    }
+    
+    :method sequence_52 {} {
+        # x
+        #     '\'
+        #     range (0 .. 7)
+        #     ?
+        #         range (0 .. 7)
+    
+        : si:void_state_push
+        : si:next_char \134
+        : si:voidvoid_part
+        : si:next_range 0 7
+        : si:voidvoid_part
+        : optional_50
+        : si:void_state_merge
+        return
+    }
+    
+    :method optional_50 {} {
+        # ?
+        #     range (0 .. 7)
+    
+        : si:void2_state_push
+        : si:next_range 0 7
+        : si:void_state_merge_ok
+        return
+    }
+    
+    #
+    # leaf Symbol 'CharSpecial'
+    #
+    
+    :method sym_CharSpecial {} {
+        # x
+        #     '\'
+        #     [nrt'\"[]\]
+    
+        : si:void_symbol_start CharSpecial
+        : sequence_57
+        : si:void_leaf_symbol_end CharSpecial
+        return
+    }
+    
+    :method sequence_57 {} {
+        # x
+        #     '\'
+        #     [nrt'\"[]\]
+    
+        : si:void_state_push
+        : si:next_char \134
+        : si:voidvoid_part
+        : si:next_class nrt'\42\133\135\134
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'CharUnescaped'
+    #
+    
+    :method sym_CharUnescaped {} {
+        # x
+        #     !
+        #         '\'
+        #     <dot>
+    
+        : si:void_symbol_start CharUnescaped
+        : sequence_64
+        : si:void_leaf_symbol_end CharUnescaped
+        return
+    }
+    
+    :method sequence_64 {} {
+        # x
+        #     !
+        #         '\'
+        #     <dot>
+    
+        : si:void_state_push
+        : notahead_61
+        : si:voidvoid_part
+        : i_input_next dot
+        : si:void_state_merge
+        return
+    }
+    
+    :method notahead_61 {} {
+        # !
+        #     '\'
+    
+        : i_loc_push
+        : si:next_char \134
+        : si:void_notahead_exit
+        return
+    }
+    
+    #
+    # leaf Symbol 'CharUnicode'
+    #
+    
+    :method sym_CharUnicode {} {
+        # x
+        #     "\u"
+        #     <xdigit>
+        #     ?
+        #         x
+        #             <xdigit>
+        #             ?
+        #                 x
+        #                     <xdigit>
+        #                     ?
+        #                         <xdigit>
+    
+        : si:void_symbol_start CharUnicode
+        : sequence_82
+        : si:void_leaf_symbol_end CharUnicode
+        return
+    }
+    
+    :method sequence_82 {} {
+        # x
+        #     "\u"
+        #     <xdigit>
+        #     ?
+        #         x
+        #             <xdigit>
+        #             ?
+        #                 x
+        #                     <xdigit>
+        #                     ?
+        #                         <xdigit>
+    
+        : si:void_state_push
+        : si:next_str \134u
+        : si:voidvoid_part
+        : si:next_xdigit
+        : si:voidvoid_part
+        : optional_80
+        : si:void_state_merge
+        return
+    }
+    
+    :method optional_80 {} {
+        # ?
+        #     x
+        #         <xdigit>
+        #         ?
+        #             x
+        #                 <xdigit>
+        #                 ?
+        #                     <xdigit>
+    
+        : si:void2_state_push
+        : sequence_78
+        : si:void_state_merge_ok
+        return
+    }
+    
+    :method sequence_78 {} {
+        # x
+        #     <xdigit>
+        #     ?
+        #         x
+        #             <xdigit>
+        #             ?
+        #                 <xdigit>
+    
+        : si:void_state_push
+        : si:next_xdigit
+        : si:voidvoid_part
+        : optional_76
+        : si:void_state_merge
+        return
+    }
+    
+    :method optional_76 {} {
+        # ?
+        #     x
+        #         <xdigit>
+        #         ?
+        #             <xdigit>
+    
+        : si:void2_state_push
+        : sequence_74
+        : si:void_state_merge_ok
+        return
+    }
+    
+    :method sequence_74 {} {
+        # x
+        #     <xdigit>
+        #     ?
+        #         <xdigit>
+    
+        : si:void_state_push
+        : si:next_xdigit
+        : si:voidvoid_part
+        : optional_72
+        : si:void_state_merge
+        return
+    }
+    
+    :method optional_72 {} {
+        # ?
+        #     <xdigit>
+    
+        : si:void2_state_push
+        : si:next_xdigit
+        : si:void_state_merge_ok
+        return
+    }
+    
+    #
+    # value Symbol 'Class'
+    #
+    
+    :method sym_Class {} {
+        # x
+        #     (OPENB)
+        #     *
+        #         x
+        #             !
+        #                 (CLOSEB)
+        #             (Range)
+        #     (CLOSEB)
+        #     (WHITESPACE)
+    
+        : si:value_symbol_start Class
+        : sequence_96
+        : si:reduce_symbol_end Class
+        return
+    }
+    
+    :method sequence_96 {} {
+        # x
+        #     (OPENB)
+        #     *
+        #         x
+        #             !
+        #                 (CLOSEB)
+        #             (Range)
+        #     (CLOSEB)
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : sym_OPENB
+        : si:voidvalue_part
+        : kleene_92
+        : si:valuevalue_part
+        : sym_CLOSEB
+        : si:valuevalue_part
+        : sym_WHITESPACE
+        : si:value_state_merge
+        return
+    }
+    
+    :method kleene_92 {} {
+        # *
+        #     x
+        #         !
+        #             (CLOSEB)
+        #         (Range)
+    
+        while {1} {
+            : si:void2_state_push
+        : sequence_90
+            : si:kleene_close
+        }
+        return
+    }
+    
+    :method sequence_90 {} {
+        # x
+        #     !
+        #         (CLOSEB)
+        #     (Range)
+    
+        : si:void_state_push
+        : notahead_87
+        : si:voidvalue_part
+        : sym_Range
+        : si:value_state_merge
+        return
+    }
+    
+    :method notahead_87 {} {
+        # !
+        #     (CLOSEB)
+    
+        : i_loc_push
+        : sym_CLOSEB
+        : si:void_notahead_exit
+        return
+    }
+    
+    #
+    # void Symbol 'CLOSE'
+    #
+    
+    :method sym_CLOSE {} {
+        # x
+        #     '\)'
+        #     (WHITESPACE)
+    
+        : si:void_void_symbol_start CLOSE
+        : sequence_101
+        : si:void_clear_symbol_end CLOSE
+        return
+    }
+    
+    :method sequence_101 {} {
+        # x
+        #     '\)'
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_char \51
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'CLOSEB'
+    #
+    
+    :method sym_CLOSEB {} {
+        # ']'
+    
+        : si:void_void_symbol_start CLOSEB
+        : si:next_char \135
+        : si:void_clear_symbol_end CLOSEB
+        return
+    }
+    
+    #
+    # void Symbol 'COLON'
+    #
+    
+    :method sym_COLON {} {
+        # x
+        #     ':'
+        #     (WHITESPACE)
+    
+        : si:void_void_symbol_start COLON
+        : sequence_108
+        : si:void_clear_symbol_end COLON
+        return
+    }
+    
+    :method sequence_108 {} {
+        # x
+        #     ':'
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_char :
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'COMMENT'
+    #
+    
+    :method sym_COMMENT {} {
+        # x
+        #     '#'
+        #     *
+        #         x
+        #             !
+        #                 (EOL)
+        #             <dot>
+        #     (EOL)
+    
+        : si:void_void_symbol_start COMMENT
+        : sequence_121
+        : si:void_clear_symbol_end COMMENT
+        return
+    }
+    
+    :method sequence_121 {} {
+        # x
+        #     '#'
+        #     *
+        #         x
+        #             !
+        #                 (EOL)
+        #             <dot>
+        #     (EOL)
+    
+        : si:void_state_push
+        : si:next_char #
+        : si:voidvoid_part
+        : kleene_118
+        : si:voidvoid_part
+        : sym_EOL
+        : si:void_state_merge
+        return
+    }
+    
+    :method kleene_118 {} {
+        # *
+        #     x
+        #         !
+        #             (EOL)
+        #         <dot>
+    
+        while {1} {
+            : si:void2_state_push
+        : sequence_116
+            : si:kleene_close
+        }
+        return
+    }
+    
+    :method sequence_116 {} {
+        # x
+        #     !
+        #         (EOL)
+        #     <dot>
+    
+        : si:void_state_push
+        : notahead_113
+        : si:voidvoid_part
+        : i_input_next dot
+        : si:void_state_merge
+        return
+    }
+    
+    :method notahead_113 {} {
+        # !
+        #     (EOL)
+    
+        : i_loc_push
+        : sym_EOL
+        : si:void_notahead_exit
+        return
+    }
+    
+    #
+    # leaf Symbol 'CONTROL'
+    #
+    
+    :method sym_CONTROL {} {
+        # x
+        #     "<control>"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start CONTROL
+        : sequence_126
+        : si:void_leaf_symbol_end CONTROL
+        return
+    }
+    
+    :method sequence_126 {} {
+        # x
+        #     "<control>"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str <control>
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'DAPOSTROPH'
+    #
+    
+    :method sym_DAPOSTROPH {} {
+        # '\"'
+    
+        : si:void_void_symbol_start DAPOSTROPH
+        : si:next_char \42
+        : si:void_clear_symbol_end DAPOSTROPH
+        return
+    }
+    
+    #
+    # leaf Symbol 'DDIGIT'
+    #
+    
+    :method sym_DDIGIT {} {
+        # x
+        #     "<ddigit>"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start DDIGIT
+        : sequence_133
+        : si:void_leaf_symbol_end DDIGIT
+        return
+    }
+    
+    :method sequence_133 {} {
+        # x
+        #     "<ddigit>"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str <ddigit>
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Definition'
+    #
+    
+    :method sym_Definition {} {
+        # x
+        #     ?
+        #         (Attribute)
+        #     (Identifier)
+        #     (IS)
+        #     (Expression)
+        #     (SEMICOLON)
+    
+        : si:value_symbol_start Definition
+        : sequence_143
+        : si:reduce_symbol_end Definition
+        return
+    }
+    
+    :method sequence_143 {} {
+        # x
+        #     ?
+        #         (Attribute)
+        #     (Identifier)
+        #     (IS)
+        #     (Expression)
+        #     (SEMICOLON)
+    
+        : si:value_state_push
+        : optional_137
+        : si:valuevalue_part
+        : sym_Identifier
+        : si:valuevalue_part
+        : sym_IS
+        : si:valuevalue_part
+        : sym_Expression
+        : si:valuevalue_part
+        : sym_SEMICOLON
+        : si:value_state_merge
+        return
+    }
+    
+    :method optional_137 {} {
+        # ?
+        #     (Attribute)
+    
+        : si:void2_state_push
+        : sym_Attribute
+        : si:void_state_merge_ok
+        return
+    }
+    
+    #
+    # leaf Symbol 'DIGIT'
+    #
+    
+    :method sym_DIGIT {} {
+        # x
+        #     "<digit>"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start DIGIT
+        : sequence_148
+        : si:void_leaf_symbol_end DIGIT
+        return
+    }
+    
+    :method sequence_148 {} {
+        # x
+        #     "<digit>"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str <digit>
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'DOT'
+    #
+    
+    :method sym_DOT {} {
+        # x
+        #     '.'
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start DOT
+        : sequence_153
+        : si:void_leaf_symbol_end DOT
+        return
+    }
+    
+    :method sequence_153 {} {
+        # x
+        #     '.'
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_char .
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'EOF'
+    #
+    
+    :method sym_EOF {} {
+        # !
+        #     <dot>
+    
+        : si:void_void_symbol_start EOF
+        : notahead_157
+        : si:void_clear_symbol_end EOF
+        return
+    }
+    
+    :method notahead_157 {} {
+        # !
+        #     <dot>
+    
+        : i_loc_push
+        : i_input_next dot
+        : si:void_notahead_exit
+        return
+    }
+    
+    #
+    # void Symbol 'EOL'
+    #
+    
+    :method sym_EOL {} {
+        # [\n\r]
+    
+        : si:void_void_symbol_start EOL
+        : si:next_class \n\r
+        : si:void_clear_symbol_end EOL
+        return
+    }
+    
+    #
+    # value Symbol 'Expression'
+    #
+    
+    :method sym_Expression {} {
+        # x
+        #     (Sequence)
+        #     *
+        #         x
+        #             (SLASH)
+        #             (Sequence)
+    
+        : si:value_symbol_start Expression
+        : sequence_169
+        : si:reduce_symbol_end Expression
+        return
+    }
+    
+    :method sequence_169 {} {
+        # x
+        #     (Sequence)
+        #     *
+        #         x
+        #             (SLASH)
+        #             (Sequence)
+    
+        : si:value_state_push
+        : sym_Sequence
+        : si:valuevalue_part
+        : kleene_167
+        : si:value_state_merge
+        return
+    }
+    
+    :method kleene_167 {} {
+        # *
+        #     x
+        #         (SLASH)
+        #         (Sequence)
+    
+        while {1} {
+            : si:void2_state_push
+        : sequence_165
+            : si:kleene_close
+        }
+        return
+    }
+    
+    :method sequence_165 {} {
+        # x
+        #     (SLASH)
+        #     (Sequence)
+    
+        : si:void_state_push
+        : sym_SLASH
+        : si:voidvalue_part
+        : sym_Sequence
+        : si:value_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'Final'
+    #
+    
+    :method sym_Final {} {
+        # x
+        #     "END"
+        #     (WHITESPACE)
+        #     (SEMICOLON)
+        #     (WHITESPACE)
+    
+        : si:void_void_symbol_start Final
+        : sequence_176
+        : si:void_clear_symbol_end Final
+        return
+    }
+    
+    :method sequence_176 {} {
+        # x
+        #     "END"
+        #     (WHITESPACE)
+        #     (SEMICOLON)
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str END
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:voidvoid_part
+        : sym_SEMICOLON
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Grammar'
+    #
+    
+    :method sym_Grammar {} {
+        # x
+        #     (WHITESPACE)
+        #     (Header)
+        #     *
+        #         (Definition)
+        #     (Final)
+        #     (EOF)
+    
+        : si:value_symbol_start Grammar
+        : sequence_186
+        : si:reduce_symbol_end Grammar
+        return
+    }
+    
+    :method sequence_186 {} {
+        # x
+        #     (WHITESPACE)
+        #     (Header)
+        #     *
+        #         (Definition)
+        #     (Final)
+        #     (EOF)
+    
+        : si:void_state_push
+        : sym_WHITESPACE
+        : si:voidvalue_part
+        : sym_Header
+        : si:valuevalue_part
+        : kleene_182
+        : si:valuevalue_part
+        : sym_Final
+        : si:valuevalue_part
+        : sym_EOF
+        : si:value_state_merge
+        return
+    }
+    
+    :method kleene_182 {} {
+        # *
+        #     (Definition)
+    
+        while {1} {
+            : si:void2_state_push
+        : sym_Definition
+            : si:kleene_close
+        }
+        return
+    }
+    
+    #
+    # leaf Symbol 'GRAPH'
+    #
+    
+    :method sym_GRAPH {} {
+        # x
+        #     "<graph>"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start GRAPH
+        : sequence_191
+        : si:void_leaf_symbol_end GRAPH
+        return
+    }
+    
+    :method sequence_191 {} {
+        # x
+        #     "<graph>"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str <graph>
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Header'
+    #
+    
+    :method sym_Header {} {
+        # x
+        #     (PEG)
+        #     (Identifier)
+        #     (StartExpr)
+    
+        : si:value_symbol_start Header
+        : sequence_197
+        : si:reduce_symbol_end Header
+        return
+    }
+    
+    :method sequence_197 {} {
+        # x
+        #     (PEG)
+        #     (Identifier)
+        #     (StartExpr)
+    
+        : si:void_state_push
+        : sym_PEG
+        : si:voidvalue_part
+        : sym_Identifier
+        : si:valuevalue_part
+        : sym_StartExpr
+        : si:value_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'Ident'
+    #
+    
+    :method sym_Ident {} {
+        # x
+        #     /
+        #         [_:]
+        #         <alpha>
+        #     *
+        #         /
+        #             [_:]
+        #             <alnum>
+    
+        : si:void_symbol_start Ident
+        : sequence_210
+        : si:void_leaf_symbol_end Ident
+        return
+    }
+    
+    :method sequence_210 {} {
+        # x
+        #     /
+        #         [_:]
+        #         <alpha>
+        #     *
+        #         /
+        #             [_:]
+        #             <alnum>
+    
+        : si:void_state_push
+        : choice_202
+        : si:voidvoid_part
+        : kleene_208
+        : si:void_state_merge
+        return
+    }
+    
+    :method choice_202 {} {
+        # /
+        #     [_:]
+        #     <alpha>
+    
+        : si:void_state_push
+        : si:next_class _:
+        : si:voidvoid_branch
+        : si:next_alpha
+        : si:void_state_merge
+        return
+    }
+    
+    :method kleene_208 {} {
+        # *
+        #     /
+        #         [_:]
+        #         <alnum>
+    
+        while {1} {
+            : si:void2_state_push
+        : choice_206
+            : si:kleene_close
+        }
+        return
+    }
+    
+    :method choice_206 {} {
+        # /
+        #     [_:]
+        #     <alnum>
+    
+        : si:void_state_push
+        : si:next_class _:
+        : si:voidvoid_branch
+        : si:next_alnum
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Identifier'
+    #
+    
+    :method sym_Identifier {} {
+        # x
+        #     (Ident)
+        #     (WHITESPACE)
+    
+        : si:value_symbol_start Identifier
+        : sequence_215
+        : si:reduce_symbol_end Identifier
+        return
+    }
+    
+    :method sequence_215 {} {
+        # x
+        #     (Ident)
+        #     (WHITESPACE)
+    
+        : si:value_state_push
+        : sym_Ident
+        : si:valuevalue_part
+        : sym_WHITESPACE
+        : si:value_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'IS'
+    #
+    
+    :method sym_IS {} {
+        # x
+        #     "<-"
+        #     (WHITESPACE)
+    
+        : si:void_void_symbol_start IS
+        : sequence_220
+        : si:void_clear_symbol_end IS
+        return
+    }
+    
+    :method sequence_220 {} {
+        # x
+        #     "<-"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str <-
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'LEAF'
+    #
+    
+    :method sym_LEAF {} {
+        # x
+        #     "leaf"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start LEAF
+        : sequence_225
+        : si:void_leaf_symbol_end LEAF
+        return
+    }
+    
+    :method sequence_225 {} {
+        # x
+        #     "leaf"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str leaf
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Literal'
+    #
+    
+    :method sym_Literal {} {
+        # /
+        #     x
+        #         (APOSTROPH)
+        #         *
+        #             x
+        #                 !
+        #                     (APOSTROPH)
+        #                 (Char)
+        #         (APOSTROPH)
+        #         (WHITESPACE)
+        #     x
+        #         (DAPOSTROPH)
+        #         *
+        #             x
+        #                 !
+        #                     (DAPOSTROPH)
+        #                 (Char)
+        #         (DAPOSTROPH)
+        #         (WHITESPACE)
+    
+        : si:value_symbol_start Literal
+        : choice_254
+        : si:reduce_symbol_end Literal
+        return
+    }
+    
+    :method choice_254 {} {
+        # /
+        #     x
+        #         (APOSTROPH)
+        #         *
+        #             x
+        #                 !
+        #                     (APOSTROPH)
+        #                 (Char)
+        #         (APOSTROPH)
+        #         (WHITESPACE)
+        #     x
+        #         (DAPOSTROPH)
+        #         *
+        #             x
+        #                 !
+        #                     (DAPOSTROPH)
+        #                 (Char)
+        #         (DAPOSTROPH)
+        #         (WHITESPACE)
+    
+        : si:value_state_push
+        : sequence_239
+        : si:valuevalue_branch
+        : sequence_252
+        : si:value_state_merge
+        return
+    }
+    
+    :method sequence_239 {} {
+        # x
+        #     (APOSTROPH)
+        #     *
+        #         x
+        #             !
+        #                 (APOSTROPH)
+        #             (Char)
+        #     (APOSTROPH)
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : sym_APOSTROPH
+        : si:voidvalue_part
+        : kleene_235
+        : si:valuevalue_part
+        : sym_APOSTROPH
+        : si:valuevalue_part
+        : sym_WHITESPACE
+        : si:value_state_merge
+        return
+    }
+    
+    :method kleene_235 {} {
+        # *
+        #     x
+        #         !
+        #             (APOSTROPH)
+        #         (Char)
+    
+        while {1} {
+            : si:void2_state_push
+        : sequence_233
+            : si:kleene_close
+        }
+        return
+    }
+    
+    :method sequence_233 {} {
+        # x
+        #     !
+        #         (APOSTROPH)
+        #     (Char)
+    
+        : si:void_state_push
+        : notahead_230
+        : si:voidvalue_part
+        : sym_Char
+        : si:value_state_merge
+        return
+    }
+    
+    :method notahead_230 {} {
+        # !
+        #     (APOSTROPH)
+    
+        : i_loc_push
+        : sym_APOSTROPH
+        : si:void_notahead_exit
+        return
+    }
+    
+    :method sequence_252 {} {
+        # x
+        #     (DAPOSTROPH)
+        #     *
+        #         x
+        #             !
+        #                 (DAPOSTROPH)
+        #             (Char)
+        #     (DAPOSTROPH)
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : sym_DAPOSTROPH
+        : si:voidvalue_part
+        : kleene_248
+        : si:valuevalue_part
+        : sym_DAPOSTROPH
+        : si:valuevalue_part
+        : sym_WHITESPACE
+        : si:value_state_merge
+        return
+    }
+    
+    :method kleene_248 {} {
+        # *
+        #     x
+        #         !
+        #             (DAPOSTROPH)
+        #         (Char)
+    
+        while {1} {
+            : si:void2_state_push
+        : sequence_246
+            : si:kleene_close
+        }
+        return
+    }
+    
+    :method sequence_246 {} {
+        # x
+        #     !
+        #         (DAPOSTROPH)
+        #     (Char)
+    
+        : si:void_state_push
+        : notahead_243
+        : si:voidvalue_part
+        : sym_Char
+        : si:value_state_merge
+        return
+    }
+    
+    :method notahead_243 {} {
+        # !
+        #     (DAPOSTROPH)
+    
+        : i_loc_push
+        : sym_DAPOSTROPH
+        : si:void_notahead_exit
+        return
+    }
+    
+    #
+    # leaf Symbol 'LOWER'
+    #
+    
+    :method sym_LOWER {} {
+        # x
+        #     "<lower>"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start LOWER
+        : sequence_259
+        : si:void_leaf_symbol_end LOWER
+        return
+    }
+    
+    :method sequence_259 {} {
+        # x
+        #     "<lower>"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str <lower>
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'NOT'
+    #
+    
+    :method sym_NOT {} {
+        # x
+        #     '!'
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start NOT
+        : sequence_264
+        : si:void_leaf_symbol_end NOT
+        return
+    }
+    
+    :method sequence_264 {} {
+        # x
+        #     '!'
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_char !
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'OPEN'
+    #
+    
+    :method sym_OPEN {} {
+        # x
+        #     '\('
+        #     (WHITESPACE)
+    
+        : si:void_void_symbol_start OPEN
+        : sequence_269
+        : si:void_clear_symbol_end OPEN
+        return
+    }
+    
+    :method sequence_269 {} {
+        # x
+        #     '\('
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_char \50
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'OPENB'
+    #
+    
+    :method sym_OPENB {} {
+        # '['
+    
+        : si:void_void_symbol_start OPENB
+        : si:next_char \133
+        : si:void_clear_symbol_end OPENB
+        return
+    }
+    
+    #
+    # void Symbol 'PEG'
+    #
+    
+    :method sym_PEG {} {
+        # x
+        #     "PEG"
+        #     !
+        #         /
+        #             [_:]
+        #             <alnum>
+        #     (WHITESPACE)
+    
+        : si:void_void_symbol_start PEG
+        : sequence_281
+        : si:void_clear_symbol_end PEG
+        return
+    }
+    
+    :method sequence_281 {} {
+        # x
+        #     "PEG"
+        #     !
+        #         /
+        #             [_:]
+        #             <alnum>
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str PEG
+        : si:voidvoid_part
+        : notahead_278
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    :method notahead_278 {} {
+        # !
+        #     /
+        #         [_:]
+        #         <alnum>
+    
+        : i_loc_push
+        : choice_206
+        : si:void_notahead_exit
+        return
+    }
+    
+    #
+    # leaf Symbol 'PLUS'
+    #
+    
+    :method sym_PLUS {} {
+        # x
+        #     '+'
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start PLUS
+        : sequence_286
+        : si:void_leaf_symbol_end PLUS
+        return
+    }
+    
+    :method sequence_286 {} {
+        # x
+        #     '+'
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_char +
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Prefix'
+    #
+    
+    :method sym_Prefix {} {
+        # x
+        #     ?
+        #         /
+        #             (AND)
+        #             (NOT)
+        #     (Suffix)
+    
+        : si:value_symbol_start Prefix
+        : sequence_296
+        : si:reduce_symbol_end Prefix
+        return
+    }
+    
+    :method sequence_296 {} {
+        # x
+        #     ?
+        #         /
+        #             (AND)
+        #             (NOT)
+        #     (Suffix)
+    
+        : si:value_state_push
+        : optional_293
+        : si:valuevalue_part
+        : sym_Suffix
+        : si:value_state_merge
+        return
+    }
+    
+    :method optional_293 {} {
+        # ?
+        #     /
+        #         (AND)
+        #         (NOT)
+    
+        : si:void2_state_push
+        : choice_291
+        : si:void_state_merge_ok
+        return
+    }
+    
+    :method choice_291 {} {
+        # /
+        #     (AND)
+        #     (NOT)
+    
+        : si:value_state_push
+        : sym_AND
+        : si:valuevalue_branch
+        : sym_NOT
+        : si:value_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Primary'
+    #
+    
+    :method sym_Primary {} {
+        # /
+        #     (ALNUM)
+        #     (ALPHA)
+        #     (ASCII)
+        #     (CONTROL)
+        #     (DDIGIT)
+        #     (DIGIT)
+        #     (GRAPH)
+        #     (LOWER)
+        #     (PRINTABLE)
+        #     (PUNCT)
+        #     (SPACE)
+        #     (UPPER)
+        #     (WORDCHAR)
+        #     (XDIGIT)
+        #     (Identifier)
+        #     x
+        #         (OPEN)
+        #         (Expression)
+        #         (CLOSE)
+        #     (Literal)
+        #     (Class)
+        #     (DOT)
+    
+        : si:value_symbol_start Primary
+        : choice_322
+        : si:reduce_symbol_end Primary
+        return
+    }
+    
+    :method choice_322 {} {
+        # /
+        #     (ALNUM)
+        #     (ALPHA)
+        #     (ASCII)
+        #     (CONTROL)
+        #     (DDIGIT)
+        #     (DIGIT)
+        #     (GRAPH)
+        #     (LOWER)
+        #     (PRINTABLE)
+        #     (PUNCT)
+        #     (SPACE)
+        #     (UPPER)
+        #     (WORDCHAR)
+        #     (XDIGIT)
+        #     (Identifier)
+        #     x
+        #         (OPEN)
+        #         (Expression)
+        #         (CLOSE)
+        #     (Literal)
+        #     (Class)
+        #     (DOT)
+    
+        : si:value_state_push
+        : sym_ALNUM
+        : si:valuevalue_branch
+        : sym_ALPHA
+        : si:valuevalue_branch
+        : sym_ASCII
+        : si:valuevalue_branch
+        : sym_CONTROL
+        : si:valuevalue_branch
+        : sym_DDIGIT
+        : si:valuevalue_branch
+        : sym_DIGIT
+        : si:valuevalue_branch
+        : sym_GRAPH
+        : si:valuevalue_branch
+        : sym_LOWER
+        : si:valuevalue_branch
+        : sym_PRINTABLE
+        : si:valuevalue_branch
+        : sym_PUNCT
+        : si:valuevalue_branch
+        : sym_SPACE
+        : si:valuevalue_branch
+        : sym_UPPER
+        : si:valuevalue_branch
+        : sym_WORDCHAR
+        : si:valuevalue_branch
+        : sym_XDIGIT
+        : si:valuevalue_branch
+        : sym_Identifier
+        : si:valuevalue_branch
+        : sequence_317
+        : si:valuevalue_branch
+        : sym_Literal
+        : si:valuevalue_branch
+        : sym_Class
+        : si:valuevalue_branch
+        : sym_DOT
+        : si:value_state_merge
+        return
+    }
+    
+    :method sequence_317 {} {
+        # x
+        #     (OPEN)
+        #     (Expression)
+        #     (CLOSE)
+    
+        : si:void_state_push
+        : sym_OPEN
+        : si:voidvalue_part
+        : sym_Expression
+        : si:valuevalue_part
+        : sym_CLOSE
+        : si:value_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'PRINTABLE'
+    #
+    
+    :method sym_PRINTABLE {} {
+        # x
+        #     "<print>"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start PRINTABLE
+        : sequence_327
+        : si:void_leaf_symbol_end PRINTABLE
+        return
+    }
+    
+    :method sequence_327 {} {
+        # x
+        #     "<print>"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str <print>
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'PUNCT'
+    #
+    
+    :method sym_PUNCT {} {
+        # x
+        #     "<punct>"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start PUNCT
+        : sequence_332
+        : si:void_leaf_symbol_end PUNCT
+        return
+    }
+    
+    :method sequence_332 {} {
+        # x
+        #     "<punct>"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str <punct>
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'QUESTION'
+    #
+    
+    :method sym_QUESTION {} {
+        # x
+        #     '?'
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start QUESTION
+        : sequence_337
+        : si:void_leaf_symbol_end QUESTION
+        return
+    }
+    
+    :method sequence_337 {} {
+        # x
+        #     '?'
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_char ?
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Range'
+    #
+    
+    :method sym_Range {} {
+        # /
+        #     x
+        #         (Char)
+        #         (TO)
+        #         (Char)
+        #     (Char)
+    
+        : si:value_symbol_start Range
+        : choice_346
+        : si:reduce_symbol_end Range
+        return
+    }
+    
+    :method choice_346 {} {
+        # /
+        #     x
+        #         (Char)
+        #         (TO)
+        #         (Char)
+        #     (Char)
+    
+        : si:value_state_push
+        : sequence_343
+        : si:valuevalue_branch
+        : sym_Char
+        : si:value_state_merge
+        return
+    }
+    
+    :method sequence_343 {} {
+        # x
+        #     (Char)
+        #     (TO)
+        #     (Char)
+    
+        : si:value_state_push
+        : sym_Char
+        : si:valuevalue_part
+        : sym_TO
+        : si:valuevalue_part
+        : sym_Char
+        : si:value_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'SEMICOLON'
+    #
+    
+    :method sym_SEMICOLON {} {
+        # x
+        #     ';'
+        #     (WHITESPACE)
+    
+        : si:void_void_symbol_start SEMICOLON
+        : sequence_351
+        : si:void_clear_symbol_end SEMICOLON
+        return
+    }
+    
+    :method sequence_351 {} {
+        # x
+        #     ';'
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_char \73
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Sequence'
+    #
+    
+    :method sym_Sequence {} {
+        # +
+        #     (Prefix)
+    
+        : si:value_symbol_start Sequence
+        : poskleene_355
+        : si:reduce_symbol_end Sequence
+        return
+    }
+    
+    :method poskleene_355 {} {
+        # +
+        #     (Prefix)
+    
+        : i_loc_push
+        : sym_Prefix
+        : si:kleene_abort
+        while {1} {
+            : si:void2_state_push
+        : sym_Prefix
+            : si:kleene_close
+        }
+        return
+    }
+    
+    #
+    # void Symbol 'SLASH'
+    #
+    
+    :method sym_SLASH {} {
+        # x
+        #     '/'
+        #     (WHITESPACE)
+    
+        : si:void_void_symbol_start SLASH
+        : sequence_360
+        : si:void_clear_symbol_end SLASH
+        return
+    }
+    
+    :method sequence_360 {} {
+        # x
+        #     '/'
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_char /
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'SPACE'
+    #
+    
+    :method sym_SPACE {} {
+        # x
+        #     "<space>"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start SPACE
+        : sequence_365
+        : si:void_leaf_symbol_end SPACE
+        return
+    }
+    
+    :method sequence_365 {} {
+        # x
+        #     "<space>"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str <space>
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'STAR'
+    #
+    
+    :method sym_STAR {} {
+        # x
+        #     '*'
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start STAR
+        : sequence_370
+        : si:void_leaf_symbol_end STAR
+        return
+    }
+    
+    :method sequence_370 {} {
+        # x
+        #     '*'
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_char *
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'StartExpr'
+    #
+    
+    :method sym_StartExpr {} {
+        # x
+        #     (OPEN)
+        #     (Expression)
+        #     (CLOSE)
+    
+        : si:value_symbol_start StartExpr
+        : sequence_317
+        : si:reduce_symbol_end StartExpr
+        return
+    }
+    
+    #
+    # value Symbol 'Suffix'
+    #
+    
+    :method sym_Suffix {} {
+        # x
+        #     (Primary)
+        #     ?
+        #         /
+        #             (QUESTION)
+        #             (STAR)
+        #             (PLUS)
+    
+        : si:value_symbol_start Suffix
+        : sequence_386
+        : si:reduce_symbol_end Suffix
+        return
+    }
+    
+    :method sequence_386 {} {
+        # x
+        #     (Primary)
+        #     ?
+        #         /
+        #             (QUESTION)
+        #             (STAR)
+        #             (PLUS)
+    
+        : si:value_state_push
+        : sym_Primary
+        : si:valuevalue_part
+        : optional_384
+        : si:value_state_merge
+        return
+    }
+    
+    :method optional_384 {} {
+        # ?
+        #     /
+        #         (QUESTION)
+        #         (STAR)
+        #         (PLUS)
+    
+        : si:void2_state_push
+        : choice_382
+        : si:void_state_merge_ok
+        return
+    }
+    
+    :method choice_382 {} {
+        # /
+        #     (QUESTION)
+        #     (STAR)
+        #     (PLUS)
+    
+        : si:value_state_push
+        : sym_QUESTION
+        : si:valuevalue_branch
+        : sym_STAR
+        : si:valuevalue_branch
+        : sym_PLUS
+        : si:value_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'TO'
+    #
+    
+    :method sym_TO {} {
+        # '-'
+    
+        : si:void_void_symbol_start TO
+        : si:next_char -
+        : si:void_clear_symbol_end TO
+        return
+    }
+    
+    #
+    # leaf Symbol 'UPPER'
+    #
+    
+    :method sym_UPPER {} {
+        # x
+        #     "<upper>"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start UPPER
+        : sequence_393
+        : si:void_leaf_symbol_end UPPER
+        return
+    }
+    
+    :method sequence_393 {} {
+        # x
+        #     "<upper>"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str <upper>
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'VOID'
+    #
+    
+    :method sym_VOID {} {
+        # x
+        #     "void"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start VOID
+        : sequence_398
+        : si:void_leaf_symbol_end VOID
+        return
+    }
+    
+    :method sequence_398 {} {
+        # x
+        #     "void"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str void
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # void Symbol 'WHITESPACE'
+    #
+    
+    :method sym_WHITESPACE {} {
+        # *
+        #     /
+        #         <space>
+        #         (COMMENT)
+    
+        : si:void_void_symbol_start WHITESPACE
+        : kleene_405
+        : si:void_clear_symbol_end WHITESPACE
+        return
+    }
+    
+    :method kleene_405 {} {
+        # *
+        #     /
+        #         <space>
+        #         (COMMENT)
+    
+        while {1} {
+            : si:void2_state_push
+        : choice_403
+            : si:kleene_close
+        }
+        return
+    }
+    
+    :method choice_403 {} {
+        # /
+        #     <space>
+        #     (COMMENT)
+    
+        : si:void_state_push
+        : si:next_space
+        : si:voidvoid_branch
+        : sym_COMMENT
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'WORDCHAR'
+    #
+    
+    :method sym_WORDCHAR {} {
+        # x
+        #     "<wordchar>"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start WORDCHAR
+        : sequence_410
+        : si:void_leaf_symbol_end WORDCHAR
+        return
+    }
+    
+    :method sequence_410 {} {
+        # x
+        #     "<wordchar>"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str <wordchar>
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    #
+    # leaf Symbol 'XDIGIT'
+    #
+    
+    :method sym_XDIGIT {} {
+        # x
+        #     "<xdigit>"
+        #     (WHITESPACE)
+    
+        : si:void_symbol_start XDIGIT
+        : sequence_415
+        : si:void_leaf_symbol_end XDIGIT
+        return
+    }
+    
+    :method sequence_415 {} {
+        # x
+        #     "<xdigit>"
+        #     (WHITESPACE)
+    
+        : si:void_state_push
+        : si:next_str <xdigit>
+        : si:voidvoid_part
+        : sym_WHITESPACE
+        : si:void_state_merge
+        return
+    }
+    
+    ## END of GENERATED CODE. DO NOT EDIT.
+    # # ## ### ###### ######## #############
+}
+
+# # ## ### ##### ######## ############# #####################
+## Ready
+
+package provide NX_PACKAGE 1
+return

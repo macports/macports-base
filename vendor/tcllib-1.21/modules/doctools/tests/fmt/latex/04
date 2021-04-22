@@ -1,0 +1,25 @@
+% Generated from file '.FILE.' by tcllib/doctools with format 'latex'
+% Copyright (c) .COPYRIGHT.
+% TEST.z
+\documentclass{article}
+\usepackage{alltt}
+\begin{document}
+\author{@USR@}
+\title{.MODULE. / TEST --  : }
+\maketitle
+\section{Description}\label{section1}
+BEGINNE HIER
+\begin{alltt}
+	 Example Block  More Lines
+\end{alltt}
+
+\begin{alltt}
+Inlined Example \textbackslash
+Next Line
+\end{alltt}
+FERTIG
+\section{Copyright}\label{copyright}
+\begin{flushleft}
+Copyright (c) .COPYRIGHT.\linebreak
+\end{flushleft}
+\end{document}

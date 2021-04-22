@@ -1,0 +1,419 @@
+# Profiler tests.                                              -*- tcl -*-
+#
+# Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 1998-2000 by Ajuba Solutions.
+# All rights reserved.
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.3
+testsNeedTcltest 1.0
+
+testing {
+    useLocal profiler.tcl profiler
+}
+
+proc do {script} {
+    set c [interp create]
+    interp alias $c parentSet {} set
+    $c eval [list source [localPath profiler.tcl]]
+    $c eval profiler::init
+    set result [$c eval $script]
+    interp delete $c
+    set result
+}
+
+# -------------------------------------------------------------------------
+
+test profiler-1.0 {profiler::init redirects the proc command} {
+    do {
+	list [interp alias {} proc] [info commands ::_oldProc]
+    }
+} [list ::profiler::profProc ::_oldProc]
+
+test profiler-2.0 {profiler creates two wrapper proc and real proc} tcl8.3only {
+    do {
+	proc foo {} {
+	    puts "foo!"
+	}
+	list [info commands foo] [info commands fooORIG]
+    }
+} [list foo fooORIG]
+
+test profiler-2.1 {profiler creates procs in correct scope} tcl8.3only {
+    do {
+	namespace eval foo {}
+	proc ::foo::foo {} {
+	    puts "foo!"
+	}
+	list [info commands ::foo::foo] [info commands ::foo::fooORIG]
+    }
+} [list ::foo::foo ::foo::fooORIG]
+
+test profiler-2.2 {profiler creates procs in correct scope} {tcl8.3only} {
+    do {
+	namespace eval foo {
+	    proc foo {} {
+		puts "foo!"
+	    }
+	}
+	list [info commands ::foo::foo] [info commands ::foo::fooORIG]
+    }
+} [list ::foo::foo ::foo::fooORIG]
+
+test profiler-2.3 {profiler creates procs in correct scope} {tcl8.3only} {
+    do {
+	namespace eval foo {
+	    namespace eval bar {}
+	    proc bar::foo {} {
+		puts "foo!"
+	    }
+	}
+	list [info commands ::foo::bar::foo] [info commands ::foo::bar::fooORIG]
+    }
+} [list ::foo::bar::foo ::foo::bar::fooORIG]
+
+test profiler-2.4 {profiler creates procs in correct scope} {tcl8.3only} {
+    do {
+	namespace eval foo {
+	    proc ::foo {} {
+		puts "foo!"
+	    }
+	}
+	list [info commands ::foo] [info commands ::fooORIG]
+    }
+} [list ::foo ::fooORIG]
+
+test profiler-3.1 {profiler wrappers do profiling} {
+    array set bar [do {
+	proc ::foo {} {
+	    set foobar 0
+	}
+	foo
+	foo
+	foo
+	foo
+	profiler::dump ::foo
+    }]
+    array set foo $bar(::foo)
+    set result [list callCount $foo(callCount) callerDist $foo(callerDist)]
+    unset foo bar
+    set result
+} [list callCount 4 callerDist [list GLOBAL 4]]
+
+test profiler::leaveHandler::initialize_descendent_time {} {
+    # Verify that the profiler tracks descendent time correctly.  We'll make
+    # a simple call tree, foo -> bar, then invoke foo, then check the profiler
+    # stats to see that _some_ descendent time has been logged for the call
+    # to bar.  We won't be able to predict exactly how much time will get
+    # billed there, but it should be non-zero.
+
+    array set stats [lindex [do {
+	proc ::foo {} {
+	    ::bar
+	}
+        proc ::bar {} {
+            after 300
+        }
+	foo
+
+	profiler::dump ::foo
+    }] 1]
+    list descendantTime [expr {$stats(descendantTime) > 0}]
+} {descendantTime 1}
+
+test profiler::leaveHandler::increment_descendent_time {} {
+    # Verify that the profiler increments descendent time each time a
+    # a descendent is invoked.  We'll make a simple call tree, foo -> bar, then
+    # invoke foo, check the descendent time for foo, then invoke foo again and
+    # check the descendent time again.  It should have been incremented after
+    # the second call.
+
+    do {
+	proc ::foo {} {
+	    ::bar
+	}
+        proc ::bar {} {
+            after 300
+        }
+	foo
+        array set stats [lindex [profiler::dump ::foo] 1]
+        set before $stats(descendantTime)
+        foo
+        array set stats [lindex [profiler::dump ::foo] 1]
+        set after $stats(descendantTime)
+        list \
+	    before [expr {$before - $before}] \
+            after  [expr {($after - $before) > 0}]
+    }
+} {before 0 after 1}
+
+test profiler-4.1 {profiler::print produces nicer output than dump} {
+    set result [do {
+	proc ::foo {} {
+	    set foobar 0
+	}
+	foo
+	foo
+	foo
+	foo
+	profiler::print ::foo
+    }]
+    regsub {Compile time:.*} $result {} result
+    string trim $result
+} [tcltest::viewFile [asset 4.1]]
+
+test profiler-5.1 {profiler respects suspend/resume} {
+    set result [do {
+	proc ::foo {} {
+	    set foobar 0
+	}
+	foo
+	foo
+	foo
+	foo
+	profiler::suspend ::foo ; # note the qualification, has to match proc!
+	foo
+	foo
+	set res [profiler::print ::foo]
+	profiler::resume
+	set res
+    }]
+    regsub {Compile time:.*} $result {} result
+    string trim $result
+} [tcltest::viewFile [asset 5.1]]
+
+
+test profiler-5.2 {profiler respects new-disabled/enabled} {
+    set result [do {
+	profiler::new-disabled
+	proc ::bar {} {
+	    set foobar 0
+	}
+	profiler::new-enabled
+	proc ::foo {} {
+	    set foobar 0
+	}
+	#---
+	foo
+	bar
+	profiler::resume
+	bar
+	#---
+	set res [profiler::print ::foo]
+	regsub {Compile time:.*} $res {} res
+	set res [string trim $res]
+	append res \n\n [profiler::print ::bar]
+	regsub {Compile time:.*} $res {} res
+	set res
+    }]
+    string trim $result
+} [tcltest::viewFile [asset 5.2]]
+
+test profiler-6.1 {profiler handles functions with funny names} {
+    array set bar [do {
+	proc ::foo(bar) {} {
+	    set foobar 0
+	}
+	foo(bar); foo(bar); foo(bar)
+	profiler::dump ::foo(bar)
+    }]
+    array set foo ${bar(::foo(bar))}
+    set result [list callCount $foo(callCount) callerDist $foo(callerDist)]
+    unset foo bar
+    set result
+} [list callCount 3 callerDist [list GLOBAL 3]]
+
+test profiler-7.1 {sortFunctions} {
+    do {
+	catch {profiler::sortFunctions} res
+	set res
+    }
+} "unknown statistic \"\": should be calls, compileTime, exclusiveRuntime,\
+nonCompileTime, totalRuntime, avgExclusiveRuntime, or avgRuntime"
+
+test profiler-7.2 {sortFunctions} tcl8.4only {
+    do {
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	profiler::sortFunctions calls
+    }
+} [list [list ::bar 1] [list ::foo 2]]
+
+test profiler-7.2-85 {sortFunctions} tcl8.5only {
+    do {
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	profiler::sortFunctions calls
+    }
+} [list [list ::tcl::clock::scan 0] [list ::tcl::clock::format 0] [list ::tcl::clock::add 0] [list ::bar 1] [list ::foo 2]]
+
+test profiler-7.2-86 {sortFunctions} tcl8.6plus {
+    do {
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	profiler::sortFunctions calls
+    }
+} [list [list ::bar 1] [list ::foo 2]]
+
+test profiler-7.3 {sortFunctions} {
+    do {
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	catch {profiler::sortFunctions compileTime}
+    }
+} 0
+
+test profiler-7.4 {sortFunctions} {
+    do {
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	catch {profiler::sortFunctions totalRuntime}
+    }
+} 0
+
+test profiler-7.5 {sortFunctions} {
+    do {
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	catch {profiler::sortFunctions avgRuntime}
+    }
+} 0
+
+test profiler-8.1 {reset} {
+    array set bar [do {
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	profiler::reset
+	profiler::dump ::foo
+    }]
+    array set foo $bar(::foo)
+    set result [list callCount $foo(callCount) callerDist $foo(callerDist)]
+    unset foo bar
+    set result
+} [list callCount 0 callerDist [list ]]
+
+test profiler-8.2 {reset with a pattern} {
+    array set data [do {
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	profiler::reset ::foo
+	profiler::dump *
+    }]
+    array set foo $data(::foo)
+    array set bar $data(::bar)
+    set result [list \
+		    [list callCount $foo(callCount) callerDist $foo(callerDist)] \
+		    [list callCount $bar(callCount) callerDist $bar(callerDist)]]
+    unset foo bar data
+    set result
+} [list \
+       [list callCount 0 callerDist [list ]] \
+       [list callCount 1 callerDist [list GLOBAL 1]]]
+
+test profiler-9.1 {dump for multiple functions} {
+    array set data [do {
+	proc ::foo {} {
+	    set foobar 0
+	}
+	proc ::bar {} {
+	    set foobar 1
+	}
+	foo; foo; bar;
+	profiler::dump *
+    }]
+    array set foo $data(::foo)
+    array set bar $data(::bar)
+    set result [list \
+		    [list callCount $foo(callCount) callerDist $foo(callerDist)] \
+		    [list callCount $bar(callCount) callerDist $bar(callerDist)]]
+    unset foo bar data
+    set result
+} [list \
+       [list callCount 2 callerDist [list GLOBAL 2]] \
+       [list callCount 1 callerDist [list GLOBAL 1]]]
+
+test profiler-10.0-tkt-0dd4b31bb8 {result of leave handler} {
+    join [do {
+	set trace {}
+	#
+	proc echo   args { global trace; lappend trace $args; return $args }
+	proc tracer args { global trace; lappend trace $args; return $args }
+	#
+	trace add execution echo leave tracer
+	echo hi
+	#
+	set trace
+    }] \n
+} [viewFile [asset tkt-0dd4b31bb8]]
+
+
+test profiler-11.0-tkt-3603260fff {reset descendants} {
+    do {
+	proc profile_a {} {
+	    for {set f 0} {$f<100} {incr f} {
+		profile_b
+	    }
+	}
+	proc profile_b {} {
+	    for {set f 0} {$f<100000} {incr f} {}
+	}
+
+	profile_a
+	profiler::reset
+	profile_a
+
+	expr {$profiler::totalRuntime(::profile_a) < $profiler::descendantTime(::profile_a)}
+    }
+} 0
+
+# -------------------------------------------------------------------------
+rename do {}
+testsuiteCleanup
+return

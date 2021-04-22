@@ -1,0 +1,33 @@
+<!-- Generated from file '.FILE.' by tcllib/doctools with format 'tmml' -->
+<manpage id='.FILE' cat='cmd' title='TEST' version='0' package='.MODULE.'>
+<head>
+<info key='copyright' value='Copyright (c) .COPYRIGHT.'/>
+</head>
+<namesection>
+<name>TEST</name>
+<desc></desc>
+
+</namesection>
+
+
+<section id='section1'>
+<title>DESCRIPTION</title>
+= = == === ===== ======== =============
+
+<example>[<cmd>bar</cmd> \
+  foo]
+</example>
+= = == === ===== ======== =============
+
+<example>
+<emph>  many lines
+  highlighted
+</emph>
+
+</example>
+= = == === ===== ======== =============
+</section>
+
+
+
+</manpage>

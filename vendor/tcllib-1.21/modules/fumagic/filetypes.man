@@ -1,0 +1,62 @@
+[vset VERSION 2.0]
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin fileutil::magic::filetype n [vset VERSION]]
+[see_also file(1)]
+[see_also fileutil]
+[see_also magic(5)]
+[keywords {file recognition}]
+[keywords {file type}]
+[keywords {file utilities}]
+[keywords type]
+[moddesc   {file utilities}]
+[titledesc {Procedures implementing file-type recognition}]
+[category  {Programming tools}]
+[require Tcl 8.6]
+[require fileutil::magic::filetype [opt [vset VERSION]]]
+[description]
+[para]
+
+This package provides a command for the recognition of file types in
+pure Tcl.
+
+[para]
+
+The core part of the recognizer was generated from a "magic(5)" file
+containing the checks to perform to recognize files, and associated
+file-types.
+
+[para]
+
+[emph Beware!] This recognizer is large, about 752 Kilobyte of
+generated Tcl code.
+
+[list_begin definitions]
+
+[call [cmd ::fileutil::magic::filetype] [arg filename]]
+
+This command is similar to the command [cmd fileutil::fileType].
+
+[para]
+
+Returns a list containing a list of descriptions, a list of mimetype
+components, and a list file extensions.  Returns an empty string if the file
+content is not recognized.
+
+
+[list_end]
+
+[section REFERENCES]
+
+[list_begin enumerated]
+[enum]
+[uri ftp://ftp.astron.com/pub/file/ {File(1) sources}]
+
+This site contains the current sources for the file command, including
+the magic definitions used by it. The latter were used by us to
+generate this recognizer.
+
+[list_end]
+
+[vset CATEGORY {fileutil :: magic}]
+[include ../common-text/feedback.inc]
+[manpage_end]

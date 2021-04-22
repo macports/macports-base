@@ -1,0 +1,77 @@
+#! /usr/bin/env tclsh
+
+set dir [file normalize [file dirname [info script]]]
+
+lappend auto_path [file join $dir ..]
+
+package require pki 0.10
+
+proc loadCertData {directory} {
+    foreach certFile [glob -nocomplain -directory $directory *.crt] {
+	set rootFile [file rootname $certFile]
+	set id [file tail $rootFile]
+	set keyFile "${rootFile}.key"
+	set keyPassFile "${rootFile}.key.password"
+
+	if {![file readable $certFile] || ![file readable $keyFile]} {
+	    continue
+	}
+
+	set password ""
+	if {[file exists $keyPassFile]} {
+	    set fd [open $keyPassFile r]
+	    set password [gets $fd]
+	    close $fd
+	}
+
+	set fd [open $certFile]
+	set cert [dict get [::pki::parse [read $fd]] certificate]
+	close $fd
+
+	set fd [open $keyFile]
+	set cert [dict merge $cert [::pki::pkcs::parse_key [read $fd] $password]]
+	close $fd
+
+	dict set toProcess $id [dict create certFile $certFile data $cert]
+    }
+
+    return $toProcess
+}
+
+proc updateCerts {caCert certs} {
+    foreach {id cert} $certs {
+	set certFile [dict get $cert certFile]
+	set cert [dict get $cert data]
+
+	set validStart [clock seconds]
+	set extensions [dict get $cert extensions]
+
+	if {$id eq "ca"} {
+	    set oldSerialNumber [dict get $cert serial_number]
+
+	    set isCA true
+	    set validEnd   [clock add $validStart 10 years]
+	    set serialNumber [expr {$oldSerialNumber + 1}]
+	} else {
+	    set isCA false
+	    set validEnd   [clock add $validStart 9 years]
+	    set serialNumber [clock microseconds]
+	}
+
+	# pki 0.10 didnt support these
+	dict unset extensions id-ce-authorityKeyIdentifier
+	dict unset extensions id-ce-subjectKeyIdentifier
+	dict unset extensions 2.5.29.37
+
+	set newCert [::pki::x509::create_cert $cert $caCert $serialNumber $validStart $validEnd $isCA $extensions 1 sha256]
+
+	set fd [open $certFile w]
+	puts $fd [string trimright $newCert "\n"]
+	close $fd
+    }
+}
+
+set certInfo [loadCertData $dir]
+set caCert [dict get $certInfo ca data]
+
+updateCerts $caCert $certInfo

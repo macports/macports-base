@@ -1,0 +1,32 @@
+'''test-definition-examples n''' '''.MODULE.'''
+
+
+
+
+**DESCRIPTION**
+
+lorem ipsum dolores
+
+   lorem:    
+======
+ A1 lorem ipsum dolores 
+======
+
+
+   lorem:    ipsum dolores 
+======
+ B2 lorem ipsum dolores 
+======
+lorem ipsum dolores
+
+   lorem:    ipsum dolores 
+======
+ C3 lorem ipsum dolores 
+======
+
+
+   lorem:    ipsum dolores  
+
+**COPYRIGHT**
+
+ Copyright (c) .COPYRIGHT.

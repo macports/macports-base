@@ -1,0 +1,77 @@
+# -*- tcl -*-
+# Engine to convert a docidx document into plain text.
+#
+# Copyright (c) 2003-2019 Andreas Kupries <andreas_kupries@sourceforge.net>
+# Freely redistributable.
+#
+######################################################################
+
+dt_source _idx_common.tcl
+dt_source _text.tcl
+
+proc c_copyrightsymbol {} {return "(c)"}
+
+######################################################################
+# Conversion specification.
+# One-pass processing.
+
+rename idx_postprocess {}
+rename text_postprocess idx_postprocess
+proc   fmt_plain_text {text} {return {}}
+
+################################################################
+## Backend for plain text markup
+
+global map ; array set map {}
+global key ; set key {}
+global max ; set max 0
+
+proc fmt_index_begin {label title} {
+    global map ; unset map ; array set map {}
+    global key ; set key {}
+    global max ; set max 0
+
+    if {($label != {}) && ($title != {})} {
+	set title "$label -- $title"
+    } elseif {$label != {}} {
+	set title $label
+    } elseif {$title != {}} {
+	 # title is set
+    }
+
+    TextInitialize
+
+    lappend   hdr "Index [Provenance]"
+    SectTitle hdr $title
+    Text [Compose hdr]
+    CloseParagraph [Verbatim]
+    return
+}
+
+proc fmt_index_end {} {
+    global map max
+
+    set rmargin [RMargin $max]
+
+    incr max
+    set blank [Blank $max] ;# indent
+
+    foreach key [lsort [array names map]] {
+	set keys [join $map($key) ", "]
+	Text [InFlow $keys $rmargin [ReHead $blank $key] $blank]
+	CloseParagraph [Verbatim]
+    }
+    return
+}
+
+proc fmt_key {text} {
+    global key max ; set key $text
+    MaxLen max $text
+    return
+}
+
+proc fmt_manpage {file label} {global map key ; lappend map($key) $file ; return}
+proc fmt_url     {url label}  {global map key ; lappend map($key) $url  ; return}
+proc fmt_comment {text}       {return}
+
+################################################################

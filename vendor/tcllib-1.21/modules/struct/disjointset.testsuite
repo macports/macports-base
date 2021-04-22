@@ -1,0 +1,401 @@
+# -*- tcl -*-
+# Tests for the 'disjointset' module in the 'struct' library. -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2008 by Alejandro Eduardo Cruz Paz
+# Copyright (c) 2008 by Andreas Kupries (extended for API changes and
+# error conditions)
+# Copyright (c) 2018 by Kevin B. Kenny - reworked to a proper disjoint-sets
+# data structure, added 'add-element', 'exemplars' and 'find-exemplar'.
+#
+# RCS: @(#) $Id: disjointset.testsuite,v 1.1 2008/09/10 16:23:14 andreas_kupries Exp $
+
+#----------------------------------------------------------------------
+
+test disjointset-1.0 {disjointset creation} {
+    ::struct::disjointset DS
+    set result [djstate DS]
+    DS destroy
+    set result
+} {{} 0}
+
+test disjointset-1.1 {disjointset creation error} {
+    catch {::struct::disjointset DS other} msg
+    set result $msg
+} {wrong # args: should be "::struct::disjointset ?name?"}
+
+#----------------------------------------------------------------------
+
+test disjointset-2.0 {disjointset add-partition error, wrong#args, missing} {
+    ::struct::disjointset DS
+    catch {DS add-partition} msg
+    DS destroy
+    set msg
+} [tcltest::wrongNumArgs "DS add-partition" {items} 1]
+
+test disjointset-2.1 {disjointset add-partition error, wrong#args, too many} {
+    ::struct::disjointset DS
+    catch {DS add-partition x y} msg
+    DS destroy
+    set msg
+} [tcltest::tooManyArgs "DS add-partition" {items}]
+
+test disjointset-2.2 {disjointset add-partition error, elements already known} {
+    testset
+    catch {DS add-partition {1}} msg
+    DS destroy
+    set msg
+} {The element "1" is already known to the disjoint set ::DS}
+
+test disjointset-2.3 {disjointset add-partition, ok} {
+    testset
+    set result [list [DS add-partition {11 14}] [djstate DS]]
+    DS destroy
+    set result
+} {{} {{0 {1 2 3 4} {5 6} {7 10} {8 9} {11 14}} 6}}
+
+#----------------------------------------------------------------------
+
+test disjointset-3.0 {disjointset partitions error, wrong#args, too many} {
+    ::struct::disjointset DS
+    catch {DS partitions x} msg
+    DS destroy
+    set msg
+} [tcltest::tooManyArgs "DS partitions" {}]
+
+test disjointset-3.1 {disjointset partitions, ok} {
+    testset
+    set result [djstate DS]
+    DS destroy
+    set result
+} {{0 {1 2 3 4} {5 6} {7 10} {8 9}} 5}
+
+test disjointset-3.2 {disjointset partitions, empty} {
+    ::struct::disjointset DS
+    set result [DS partitions]
+    DS destroy
+    set result
+} {}
+
+#----------------------------------------------------------------------
+
+test disjointset-4.0 {disjointset equal error, wrong#args, missing} {
+    ::struct::disjointset DS
+    catch {DS equal} msg
+    DS destroy
+    set msg
+} [tcltest::wrongNumArgs "DS equal" {a b} 1]
+
+test disjointset-4.1 {disjointset equal error, wrong#args, missing} {
+    ::struct::disjointset DS
+    catch {DS equal x} msg
+    DS destroy
+    set msg
+} [tcltest::wrongNumArgs "DS equal" {a b} 2]
+
+test disjointset-4.2 {disjointset equal error, wrong#args, too many} {
+    ::struct::disjointset DS
+    catch {DS equal x y z} msg
+    DS destroy
+    set msg
+} [tcltest::tooManyArgs "DS equal" {a b}]
+
+test disjointset-4.3 {disjointset equal error, unknown elements} {
+    testset
+    catch {DS equal x 1} msg
+    DS destroy
+    set msg
+} {The element "x" is not known to the disjoint set ::DS}
+
+test disjointset-4.4 {disjointset equal error, unknown elements} {
+    testset
+    catch {DS equal 1 x} msg
+    DS destroy
+    set msg
+} {The element "x" is not known to the disjoint set ::DS}
+
+test disjointset-4.5 {disjointset equal ok, unequal elements} {
+    testset
+    set res [DS equal 1 5]
+    DS destroy
+    set res
+} 0
+
+test disjointset-4.6 {disjointset equal ok, equal elements} {
+    testset
+    set res [DS equal 4 1]
+    DS destroy
+    set res
+} 1
+
+#----------------------------------------------------------------------
+
+test disjointset-5.0 {disjointset merge error, wrong#args, missing} {
+    ::struct::disjointset DS
+    catch {DS merge} msg
+    DS destroy
+    set msg
+} [tcltest::wrongNumArgs "DS merge" {a b} 1]
+
+test disjointset-5.1 {disjointset merge error, wrong#args, missing} {
+    ::struct::disjointset DS
+    catch {DS merge x} msg
+    DS destroy
+    set msg
+} [tcltest::wrongNumArgs "DS merge" {a b} 2]
+
+test disjointset-5.2 {disjointset merge error, wrong#args, too many} {
+    ::struct::disjointset DS
+    catch {DS merge x y z} msg
+    DS destroy
+    set msg
+} [tcltest::tooManyArgs "DS merge" {a b}]
+
+test disjointset-5.3 {disjointset merge error, unknown elements} {
+    testset
+    catch {DS merge x 1} msg
+    DS destroy
+    set msg
+} {The element "x" is not known to the disjoint set ::DS}
+
+test disjointset-5.4 {disjointset merge error, unknown elements} {
+    testset
+    catch {DS merge 1 x} msg
+    DS destroy
+    set msg
+} {The element "x" is not known to the disjoint set ::DS}
+
+test disjointset-5.5 {disjointset merge ok, different partitions} {
+    testset
+    DS merge 1 5
+    set result [djstate DS]
+    DS destroy
+    set result
+} {{0 {1 2 3 4 5 6} {7 10} {8 9}} 4}
+
+test disjointset-5.6 {disjointset merge ok, same partition, no change} {
+    testset
+    DS merge 4 3
+    set result [djstate DS]
+    DS destroy
+    set result
+} {{0 {1 2 3 4} {5 6} {7 10} {8 9}} 5}
+
+#----------------------------------------------------------------------
+
+test disjointset-6.0 {disjointset find error, wrong#args, missing} {
+    ::struct::disjointset DS
+    catch {DS find} msg
+    DS destroy
+    set msg
+} [tcltest::wrongNumArgs "DS find" {item} 1]
+
+test disjointset-6.1 {disjointset find error, wrong#args, too many} {
+    ::struct::disjointset DS
+    catch {DS find x y} msg
+    DS destroy
+    set msg
+} [tcltest::tooManyArgs "DS find" {item}]
+
+test disjointset-6.2 {disjointset find, unknown element} {
+    testset
+    set result [DS find 11]
+    DS destroy
+    set result
+} {}
+
+test disjointset-6.3 {disjointset find, known element} {
+    testset
+    set result [lsort -dict [DS find 3]]
+    DS destroy
+    set result
+} {1 2 3 4}
+
+#----------------------------------------------------------------------
+
+test disjointset-7.0 {disjointset num-partitions error, wrong#args, too many} {
+    ::struct::disjointset DS
+    catch {DS num-partitions x} msg
+    DS destroy
+    set msg
+} [tcltest::tooManyArgs "DS num-partitions" {}]
+
+test disjointset-7.1 {disjointset num-partitions, ok} {
+    testset
+    set result [DS num-partitions]
+    DS destroy
+    set result
+} 5
+
+#----------------------------------------------------------------------
+
+test disjointset-8.0 {disjointset add-element error, wrongArgs, none} {
+    ::struct::disjointset DS
+    catch {DS add-element} msg
+    DS destroy
+    set msg
+} [tcltest::wrongNumArgs "DS add-element" {item} 1]
+
+test disjointset-8.1 {disjointset add-element error, wrongArgs, too many} {
+    ::struct::disjointset DS
+    catch {DS add-element p q} msg
+    DS destroy
+    set msg
+} [tcltest::tooManyArgs "DS add-element" {item}]
+
+test disjointset-8.2 {disjointset add-element error, duplicate element} {
+    testset
+    catch {DS add-element 0} message
+    DS destroy
+    set message
+} {The element "0" is already known to the disjoint set ::DS}
+
+test disjointset-8.3 {disjointset add-element ok} {
+    testset
+    DS add-element 11
+    set result [djstate DS]
+    DS destroy
+    set result
+} {{0 {1 2 3 4} {5 6} {7 10} {8 9} 11} 6}
+
+#----------------------------------------------------------------------
+
+test disjointset-9.0 {disjointset find-exemplar error, wrongArgs, none} {
+    ::struct::disjointset DS
+    catch {DS find-exemplar} msg
+    DS destroy
+    set msg
+} [tcltest::wrongNumArgs "DS find-exemplar" {item} 1]
+
+test disjointset-9.1 {disjointset find-exemplar error, wrongArgs, too many} {
+    ::struct::disjointset DS
+    catch {DS find-exemplar p q} msg
+    DS destroy
+    set msg
+} [tcltest::tooManyArgs "DS find-exemplar" {item}]
+
+test disjointset-9.2 {disjointset find-exemplar error, not found} {
+    testset
+    catch {DS find-exemplar x} message
+    DS destroy
+    set message
+} {The element "x" is not known to the disjoint set ::DS}    
+
+test disjointset-9.3 {disjointset find-exemplar ok} {
+    testset
+    set result [DS find-exemplar 3]
+    DS destroy
+    expr {$result in {1 2 3 4}}
+} {1}
+
+#----------------------------------------------------------------------
+
+test disjointset-10.0 {disjointset exemplars error, wrong#args, too many} {
+    ::struct::disjointset DS
+    catch {DS exemplars x} msg
+    DS destroy
+    set msg
+} [tcltest::tooManyArgs "DS exemplars" {}]
+
+test disjointset-10.1 {disjointset exemplars, ok} {
+    ::struct::disjointset DS
+    DS add-element 0
+    set result [DS exemplars]
+    DS destroy
+    set result
+} 0
+
+test disjointset-10.2 {disjointset exemplars, empty} {
+    ::struct::disjointset DS
+    set result [DS exemplars]
+    DS destroy
+    set result
+} {}
+
+#----------------------------------------------------------------------
+
+test disjointset-11.0 {disjointset merge - larger randomized set of merges} {
+    struct::disjointset DS
+    foreach item {a b c d e f g h i j k l m n o p q r s t u v w x y z} {
+	DS add-partition [list $item]
+    }
+    DS merge g a
+    DS merge o n
+    DS merge v o
+    DS merge c w
+    DS merge r h
+    DS merge s y
+    DS merge g i
+    DS merge d f
+    DS merge m q
+    DS merge a z
+    DS merge k e
+    DS merge x k
+    DS merge r s
+    DS merge h m
+    DS merge d l
+    DS merge e a
+    DS merge o t
+    DS merge q p
+    DS merge u c
+    DS merge o a
+    DS merge p j
+    DS merge b l
+    DS merge p c
+    DS merge f e
+    set result [lsort [lmap x [DS partitions] {lsort $x}]]
+    DS destroy
+    set result
+} {{a b d e f g i k l n o t v x z} {c h j m p q r s u w y}}
+
+test disjointset-11.1 {disjointset merge - larger randomized set of merges} {
+    struct::disjointset DS
+    foreach item {a b c d e f g h i j k l m n o p q r s t u v w x y z} {
+	DS add-partition [list $item]
+    }
+    DS merge g a
+    DS merge o n
+    DS merge v o
+    DS merge c w
+    DS merge r h
+    DS merge s y
+    DS merge g i
+    DS merge d f
+    DS merge m q
+    DS merge a z
+    DS merge k e
+    DS merge x k
+    DS merge r s
+    DS merge h m
+    DS merge d l
+    DS merge e a
+    DS merge o t
+    DS merge q p
+    DS merge u c
+    DS merge o a
+    DS merge p j
+    DS merge b l
+    DS merge p c
+    DS merge f e
+    set result [DS exemplars]
+    DS destroy
+    set trouble {}
+    if {[llength $result] ne 2} {
+	append trouble "\nShould be two exemplars, found $result"
+    }
+    lassign $result e1 e2
+    set l1 {a b d e f g i k l n o t v x z}
+    set l2 {c h j m p q r s u w y}
+    if {!(($e1 in $l1) ^ ($e2 in $l1))} {
+	append trouble "\nExactly one of $e1 and $e2\
+                          should be in the first set"
+    }
+    if {!(($e1 in $l2) ^ ($e2 in $l2))} {
+	append trouble "\nExactly one of $e1 and $e2\
+                          should be in the second set"
+    }
+    set trouble
+} {}

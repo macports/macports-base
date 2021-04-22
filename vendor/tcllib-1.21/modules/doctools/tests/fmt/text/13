@@ -1,0 +1,33 @@
+
+test-itemized-examples - 
+Generated from file '.FILE.' by tcllib/doctools with format 'text'
+test-itemized-examples(1) n .MODULE. ""
+
+NAME
+====
+
+test-itemized-examples -
+
+DESCRIPTION
+===========
+
+lorem ipsum dolores
+
+    *   | A lorem ipsum dolores
+
+    *   lorem ipsum dolores
+
+        | B lorem ipsum dolores
+
+        lorem ipsum dolores
+
+    *   lorem ipsum dolores
+
+        | C lorem ipsum dolores
+
+    *   lorem ipsum dolores
+
+COPYRIGHT
+=========
+
+Copyright (c) .COPYRIGHT.

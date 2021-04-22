@@ -1,0 +1,13 @@
+[comment { -- List 3 - itemized }]
+[manpage_begin test-itemized 1 n]
+[description]
+lorem ipsum dolores
+[list_begin itemized]
+[item] lorem ipsum dolores
+[item] lorem ipsum dolores
+[para] lorem ipsum dolores
+[item] lorem ipsum dolores
+[para] lorem ipsum dolores
+[para] lorem ipsum dolores
+[list_end]
+[manpage_end]

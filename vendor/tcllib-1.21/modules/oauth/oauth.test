@@ -1,0 +1,35 @@
+# oauth.test
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2
+testsNeed tls
+
+support {
+    use sha1/sha1.tcl     sha1
+    use base64/base64.tcl base64
+}
+testing {
+    useLocal oauth.tcl oauth
+}
+
+# -------------------------------------------------------------------------
+# A no-op test, just to have one running.
+# As is this file tests that the package code loads at least
+
+test oauth-placeholder {oauth, placeholder, no-op} -setup {
+} -body {
+} -cleanup {
+} -result {}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

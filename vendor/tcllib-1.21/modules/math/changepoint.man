@@ -1,0 +1,123 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin math::changepoint n 0.1]
+[keywords statistics]
+[keywords control]
+[copyright {2020 by Arjen Markus}]
+[moddesc   {Tcl Math Library}]
+[titledesc {Change point detection methods}]
+[category  Mathematics]
+[require Tcl 8.6]
+[require TclOO]
+[require math::statistics]
+[require math::changepoint [opt 0.1]]
+
+[description]
+[para]
+The [package math::changepoint] package implements a number of well-known methods
+to determine if a series of data contains a shift in the mean or not. Note that
+these methods only indicate if a shift in the mean is probably. Due to the stochastic
+nature of the data that will be analysed, false positives are possible.
+
+The CUSUM method is implemented in both an "offline" and an "online" version, so that
+it can be used either for a complete data series or for detecting changes in data that
+come in one by one. The implementation has been based on these websites mostly:
+
+[list_begin itemized]
+[item]
+[uri https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc323.htm]
+[item]
+[uri https://en.wikipedia.org/wiki/CUSUM]
+[list_end]
+
+Basically, the deviation of the data from a given target value is accumulated and when
+the total deviation becomes too large, a change point is reported.
+
+A second method, binary segmentation, is implemented only as an "offline" method, as it
+needs to examine the data series as a whole. In the variant contained here the following
+ideas have been used:
+[list_begin itemized]
+[item]
+The segments in which the data series may be separated shold not be too short, otherwise
+the ultimate result could be segments of only one data point long. So a minimum length is
+used.
+[item]
+To make the segmentation worthwhile there should be a minimum gain in reducing the cost
+function (the sum of the squared deviations from the mean for each segment).
+[list_end]
+
+This may not be in agreement with the descriptions of the method found in various
+publications, but it is simple to understand and intuitive.
+
+One publication that provides more information on the method in general is
+"Selective review of offline change point detection methods" by Truong et al. [uri https://arxiv.org/abs/1801.00718].
+
+
+[section "PROCEDURES"]
+
+The package defines the following public procedures:
+
+[list_begin definitions]
+
+[call [cmd ::math::changepoint::cusum-detect] [arg data] [opt args]]
+
+Examine a given data series and return the location of the first change (if any)
+
+[list_begin arguments]
+[arg_def double data] Series of data to be examined
+[arg_def list args] Optional list of key-value pairs:
+[list_begin definitions]
+[def "[option -target] [arg value]"] The target (or mean) for the time series
+[def "[option -tolerance] [arg value]"] The tolerated standard deviation
+[def "[option -kfactor] [arg value]"] The factor by which to multiply the standard deviation (defaults to 0.5, typically between 0.5 and 1.0)
+[def "[option -hfactor] [arg value]"] The factor determining the limits betweem which the "cusum" statistic is accepted (typicaly 3.0-5.0, default 4.0)
+[list_end]
+[list_end]
+
+
+[call [cmd ::math::changepoint::cusum-online] [opt args]]
+
+Class to examine data passed in against expected properties. At least the keywords [term -target] and [term -tolerance] must be given.
+
+[list_begin arguments]
+[arg_def list args] List of key-value pairs:
+[list_begin definitions]
+[def "[option -target] [arg value]"] The target (or mean) for the time series
+[def "[option -tolerance] [arg value]"] The tolerated standard deviation
+[def "[option -kfactor] [arg value]"] The factor by which to multiply the standard deviation (defaults to 0.5, typically between 0.5 and 1.0)
+[def "[option -hfactor] [arg value]"] The factor determining the limits betweem which the "cusum" statistic is accepted (typicaly 3.0-5.0, default 4.0)
+[list_end]
+[list_end]
+
+
+[call [cmd \$cusumObj] examine [arg value]]
+
+Pass a value to the [term cusum-online] object and examine it. If, with this new value, the cumulative sum remains within the bounds,
+zero (0) is returned, otherwise one (1) is returned.
+
+[list_begin arguments]
+[arg_def double value] The new value
+[list_end]
+
+
+[call [cmd \$cusumObj] reset]
+
+Reset the cumulative sum, so that the examination can start afresh.
+
+
+[call [cmd ::math::changepoint::binary-segmentation] [arg data] [opt args]]
+
+Apply the binary segmentation method recursively to find change points. Returns a list of indices of potential change points
+
+[list_begin arguments]
+[arg_def list data] Data to be examined
+[arg_def list args] Optional key-value pairs:
+[list_begin definitions]
+[def "[option -minlength] [arg number]"]  Minimum number of points in each segment (default: 5)
+[def "[option -threshold] [arg value]"]   Factor applied to the standard deviation functioning as a threshold for accepting the change in cost function as an improvement (default: 1.0)
+[list_end]
+[list_end]
+
+
+[list_end]
+
+[manpage_end]

@@ -1,0 +1,45 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcllib_releasemgr n 1]
+[titledesc {Tcllib - The Release Manager's Guide}]
+[description]
+[include parts/welcome.inc]
+
+[para]
+
+The audience of this document is the release manager for Tcllib, their
+deputies, and anybody else interested in the task of creating
+an official release of Tcllib for distribution.
+
+[para]
+
+Please read [term {Tcllib - How To Get The Sources}] first, if that
+was not done already. Here we assume that the sources are already
+available in a directory of your choice.
+
+[para]
+
+[comment {===================================================================}]
+[section Tools]
+[include parts/rm_tooling.inc]
+
+[comment {===================================================================}]
+[section Tasks]
+
+[comment {===================================================================}]
+[subsection {Start a release candidate}]
+[include parts/rm_start.inc]
+
+[comment {===================================================================}]
+[subsection {Ready the candidate}]
+[include parts/rm_work.inc]
+
+[comment {===================================================================}]
+[subsection {Make it official}]
+[include parts/rm_final.inc]
+
+[comment {===================================================================}]
+[subsection {Distribute the release}]
+[include parts/rm_distribute.inc]
+
+[manpage_end]
+

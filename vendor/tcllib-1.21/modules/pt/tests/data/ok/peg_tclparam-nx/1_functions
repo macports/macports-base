@@ -1,0 +1,119 @@
+## -*- tcl -*-
+##
+## NX-based Tcl/PARAM implementation of the parsing
+## expression grammar
+##
+##	TEMPLATE
+##
+## Generated from file	TEST
+##            for user  unknown
+##
+# # ## ### ##### ######## ############# #####################
+## Requirements
+
+package require Tcl 8.5
+package require nx
+package require pt::rde::nx ; # NX-based implementation of the
+			      # PARAM virtual machine
+			      # underlying the Tcl/PARAM code
+			      # used below.
+
+# # ## ### ##### ######## ############# #####################
+##
+
+nx::Class create PARSER -superclasses pt::rde::nx {
+    # # ## ### ##### ######## #############
+    ## Public API
+    
+    :public method parse {channel} {
+	:reset $channel
+	:MAIN ; # Entrypoint for the generated code.
+	return [:complete]
+    }
+
+    :public method parset {text} {
+	:reset {}
+	:data $text
+	:MAIN ; # Entrypoint for the generated code.
+	return [:complete]
+    }
+
+    # # ## ### ###### ######## #############
+    ## BEGIN of GENERATED CODE. DO NOT EDIT.
+
+    #
+    # Grammar Start Expression
+    #
+    
+    :method MAIN {} {
+        : sym_Expression
+        return
+    }
+    
+    #
+    # value Symbol 'Expression'
+    #
+    
+    :method sym_Expression {} {
+        # (Function)
+    
+        : si:value_symbol_start Expression
+        : sym_Function
+        : si:reduce_symbol_end Expression
+        return
+    }
+    
+    #
+    # value Symbol 'Function'
+    #
+    
+    :method sym_Function {} {
+        # (Sinus)
+    
+        : si:value_symbol_start Function
+        : sym_Sinus
+        : si:reduce_symbol_end Function
+        return
+    }
+    
+    #
+    # value Symbol 'Sinus'
+    #
+    
+    :method sym_Sinus {} {
+        # x
+        #     "sin\("
+        #     (Expression)
+        #     '\)'
+    
+        : si:value_symbol_start Sinus
+        : sequence_9
+        : si:reduce_symbol_end Sinus
+        return
+    }
+    
+    :method sequence_9 {} {
+        # x
+        #     "sin\("
+        #     (Expression)
+        #     '\)'
+    
+        : si:void_state_push
+        : si:next_str sin\50
+        : si:voidvalue_part
+        : sym_Expression
+        : si:valuevalue_part
+        : si:next_char \51
+        : si:value_state_merge
+        return
+    }
+    
+    ## END of GENERATED CODE. DO NOT EDIT.
+    # # ## ### ###### ######## #############
+}
+
+# # ## ### ##### ######## ############# #####################
+## Ready
+
+package provide NX_PACKAGE 1
+return

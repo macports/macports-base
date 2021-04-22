@@ -1,0 +1,33 @@
+
+TEST - ..THE_MODULE..
+Generated from file '.FILE.' by tcllib/doctools with format 'text'
+TEST(z) 3.14.15.926 .MODULE. "..THE_MODULE.."
+
+NAME
+====
+
+TEST - ..THE_TITLE..
+
+SYNOPSIS
+========
+
+package require AAA
+package require BBB VVV
+
+DESCRIPTION
+===========
+
+SEE ALSO
+========
+
+ELSE, OTHER
+
+KEYWORDS
+========
+
+KEYA, KEYZ
+
+COPYRIGHT
+=========
+
+Copyright (c) .COPYRIGHT.

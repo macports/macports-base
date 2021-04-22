@@ -1,0 +1,6 @@
+This directory contains the following example applications of practcl:
+
+* project.tcl -> The script which builds the library implementing "hello"
+* hellocmd.tcl -> Adding a simple command "hello_world"
+* helloclass.tcl -> A class that implements a method called "hello_world"
+* hellotype.tcl -> Create a new tcl_obj type to represent "hello_world"

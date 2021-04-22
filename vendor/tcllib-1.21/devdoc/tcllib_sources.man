@@ -1,0 +1,96 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcllib_sources n 1]
+[titledesc {Tcllib - How To Get The Sources}]
+[description]
+[include parts/welcome.inc]
+
+[para]
+
+The audience of this document is anyone wishing to either have just a
+look at Tcllib's source code, or build the packages, or to extend and
+modify them.
+
+[para] For builders and developers we additionally provide
+
+[list_begin enum]
+[enum] [term {Tcllib - The Installer's Guide}].
+[enum] [term {Tcllib - The Developer's Guide}].
+[list_end]
+
+respectively.
+
+[section {Source Location}]
+
+The official repository for Tcllib is found at [uri http://core.tcl-lang.org/tcllib].
+
+This repository is managed by the [uri http://www.fossil-scm.org {Fossil SCM}].
+
+[section {Get archives for head and releases}]
+
+This is done easiest by going to the
+[uri http://core.tcl-lang.org/tcllib {official repository}]
+and following the links in the [strong Releases] section at the top,
+immediately underneath the entry field for searching the package
+documentation.
+
+[section {Retrieval of arbitrary commits}]
+
+For anything beyond head state and releases the process is a bit more
+involved.
+
+[para] If the commit id (commit hash) [const ((ID))] of the revision
+of interest is already known then links to the desired archives can be
+constructed using the forms below:
+
+[example {
+    https://core.tcl-lang.org/tcllib/tarball/((ID))/Tcl+Library+Source+Code.tar.gz
+    https://core.tcl-lang.org/tcllib/zip/((ID))/Tcl+Library+Source+Code.zip
+}]
+
+Note that branch names can be used for the [const ((ID))] also, this
+returns archives containing the head revision of the named branch.
+
+[para] The part of of the url after the [const ((ID))] is the name of
+the file to return and can be modified to suit.
+
+[para] Without a known commit id the process is longer again:
+
+[list_begin enum]
+[enum] Go to the [uri http://core.tcl-lang.org/tcllib {official repository}].
+[enum] Find the login link/button in the top right corner of the page.
+[enum] Log in as "anonymous", using the semi-random password in the captcha.
+[enum] Go to the "Timeline" following the link/button in the middle of the nav bar.
+[enum] Choose the revision you wish to have.
+[enum] Follow its link to its detailed information page.
+[enum] On that page, choose either the "ZIP" or "Tarball" link to get a copy
+       of this revision in the format of your choice.
+[list_end]
+
+[section {Source Code Management}]
+
+The sources are managed with the [uri http://www.fossil-scm.org {Fossil SCM}].
+
+Binaries for popular platforms can be found directly at its
+[uri http://www.fossil-scm.org/download.html {download page}].
+
+[para]
+
+With that tool available the full history can be retrieved via:
+
+[example {
+    fossil clone \
+	http://core.tcl-lang.org/tcllib \
+        tcllib.fossil
+}]
+
+followed by
+
+[example {
+    mkdir tcllib
+    cd tcllib
+    fossil open ../tcllib.fossil
+}]
+
+to get a checkout of the head of the trunk.
+
+[manpage_end]

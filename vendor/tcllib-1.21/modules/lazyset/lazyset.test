@@ -1,0 +1,130 @@
+# lazyset.test - Copyright (c) 2018 Roy Keene
+#
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2
+
+testing {
+	useLocal lazyset.tcl lazyset
+}
+
+# -------------------------------------------------------------------------
+
+test lazyset-basic-1.0 {} -body {
+	::lazyset::variable -appendArgs false test {
+		return -level 0 ok
+	}
+	set test
+} -cleanup {
+	unset test
+} -result {ok}
+
+test lazyset-withargs-1.0 {} -body {
+	::lazyset::variable test [list apply {{name} {
+		return ok
+	}}]
+	set test
+} -cleanup {
+	unset test
+} -result {ok}
+
+test lazyset-withargs-2.0 {} -body {
+	::lazyset::variable test [list apply {{result name} {
+		return $result
+	}} ok]
+	set test
+} -cleanup {
+	unset test
+} -result {ok}
+
+test lazyset-inscope-1.0 {} -body {
+	::lazyset::variable -appendArgs false test {
+		set x 0
+		return -level 0 ok
+	}
+	set test
+	set x
+} -cleanup {
+	unset test
+	unset x
+} -result {0}
+
+test lazyset-onlyonce-1.0 {} -body {
+	set x 0
+	::lazyset::variable -appendArgs false test {
+		incr x
+		return -level 0 ok
+	}
+	set test
+	set test
+	set x
+} -cleanup {
+	unset test
+	unset x
+} -result {1}
+
+test lazyset-onlyonce-2.0 {} -body {
+	set x 0
+	::lazyset::variable -appendArgs false -array true test {
+		incr x
+		return -level 0 ok
+	}
+	set test(a)
+	set test(a)
+	set x
+} -cleanup {
+	unset test
+	unset x
+} -result {1}
+
+test lazyset-onlyonce-3.0 {} -body {
+	set x 0
+	::lazyset::variable -appendArgs false -array true test {
+		incr x
+		return -level 0 ok
+	}
+	set test(a)
+	set test(a)
+	set test(b)
+	set test(b)
+	set x
+} -cleanup {
+	unset test
+	unset x
+} -result {2}
+
+test lazyset-array-1.0 {} -body {
+	::lazyset::variable -appendArgs false -array true test {
+		return -level 0 ok
+	}
+	set result $test(a)
+	append result $test(b)
+} -cleanup {
+	unset test
+	unset result
+} -result {okok}
+
+test lazyset-array-1.0 {} -body {
+	::lazyset::variable -array true test [list apply {{_ index} {
+		return $index
+	}}]
+	set result $test(a)
+	append result $test(b)
+} -cleanup {
+	unset test
+	unset result
+} -result {ab}
+
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

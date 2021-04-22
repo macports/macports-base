@@ -1,0 +1,190 @@
+<!DOCTYPE html><html><head>
+<title>tcllib_sources - </title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'tcllib_sources.man' by tcllib/doctools with format 'html'
+   -->
+<!-- tcllib_sources.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../home">Tcllib Home</a>
+&#124; <a href="../../../toc.html">Main Table Of Contents</a>
+&#124; <a href="../../toc.html">Table Of Contents</a>
+&#124; <a href="../../../index.html">Keyword Index</a>
+&#124; <a href="../../../toc0.html">Categories</a>
+&#124; <a href="../../../toc1.html">Modules</a>
+&#124; <a href="../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">tcllib_sources(n) 1 tcllib &quot;&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>tcllib_sources - Tcllib - How To Get The Sources</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Source Location</a></li>
+<li class="doctools_section"><a href="#section3">Get archives for head and releases</a></li>
+<li class="doctools_section"><a href="#section4">Retrieval of arbitrary commits</a></li>
+<li class="doctools_section"><a href="#section5">Source Code Management</a></li>
+</ul>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Welcome to Tcllib, the Tcl Standard Library. Note that Tcllib is not a
+package itself. It is a collection of (semi-independent) <i class="term"><a href="../../../index.html#tcl">Tcl</a></i>
+packages that provide utility functions useful to a large collection
+of Tcl programmers.</p>
+<p>The audience of this document is anyone wishing to either have just a
+look at Tcllib's source code, or build the packages, or to extend and
+modify them.</p>
+<p>For builders and developers we additionally provide</p>
+<ol class="doctools_enumerated">
+<li><p><i class="term"><a href="tcllib_installer.html">Tcllib - The Installer's Guide</a></i>.</p></li>
+<li><p><i class="term"><a href="tcllib_devguide.html">Tcllib - The Developer's Guide</a></i>.</p></li>
+</ol>
+<p>respectively.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Source Location</a></h2>
+<p>The official repository for Tcllib is found at <a href="http://core.tcl-lang.org/tcllib">http://core.tcl-lang.org/tcllib</a>.
+This repository is managed by the <a href="http://www.fossil-scm.org">Fossil SCM</a>.</p>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Get archives for head and releases</a></h2>
+<p>This is done easiest by going to the
+<a href="http://core.tcl-lang.org/tcllib">official repository</a>
+and following the links in the <em>Releases</em> section at the top,
+immediately underneath the entry field for searching the package
+documentation.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Retrieval of arbitrary commits</a></h2>
+<p>For anything beyond head state and releases the process is a bit more
+involved.</p>
+<p>If the commit id (commit hash) <b class="const">((ID))</b> of the revision
+of interest is already known then links to the desired archives can be
+constructed using the forms below:</p>
+<pre class="doctools_example">
+    https://core.tcl-lang.org/tcllib/tarball/((ID))/Tcl+Library+Source+Code.tar.gz
+    https://core.tcl-lang.org/tcllib/zip/((ID))/Tcl+Library+Source+Code.zip
+</pre>
+<p>Note that branch names can be used for the <b class="const">((ID))</b> also, this
+returns archives containing the head revision of the named branch.</p>
+<p>The part of of the url after the <b class="const">((ID))</b> is the name of
+the file to return and can be modified to suit.</p>
+<p>Without a known commit id the process is longer again:</p>
+<ol class="doctools_enumerated">
+<li><p>Go to the <a href="http://core.tcl-lang.org/tcllib">official repository</a>.</p></li>
+<li><p>Find the login link/button in the top right corner of the page.</p></li>
+<li><p>Log in as &quot;anonymous&quot;, using the semi-random password in the captcha.</p></li>
+<li><p>Go to the &quot;Timeline&quot; following the link/button in the middle of the nav bar.</p></li>
+<li><p>Choose the revision you wish to have.</p></li>
+<li><p>Follow its link to its detailed information page.</p></li>
+<li><p>On that page, choose either the &quot;ZIP&quot; or &quot;Tarball&quot; link to get a copy
+       of this revision in the format of your choice.</p></li>
+</ol>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Source Code Management</a></h2>
+<p>The sources are managed with the <a href="http://www.fossil-scm.org">Fossil SCM</a>.
+Binaries for popular platforms can be found directly at its
+<a href="http://www.fossil-scm.org/download.html">download page</a>.</p>
+<p>With that tool available the full history can be retrieved via:</p>
+<pre class="doctools_example">
+    fossil clone  http://core.tcl-lang.org/tcllib  tcllib.fossil
+</pre>
+<p>followed by</p>
+<pre class="doctools_example">
+    mkdir tcllib
+    cd tcllib
+    fossil open ../tcllib.fossil
+</pre>
+<p>to get a checkout of the head of the trunk.</p>
+</div>
+</div></body></html>

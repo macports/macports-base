@@ -1,0 +1,80 @@
+[vset VERSION 1]
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin lazyset n [vset VERSION]]
+[copyright {2018 Roy Keene}]
+[moddesc   {Lazy evaluation for variables and arrays}]
+[category  Utility]
+[titledesc {Lazy evaluation}]
+[require Tcl 8.5]
+[require lazyset [opt [vset VERSION]]]
+[description]
+[para]
+
+The [package lazyset] package provides a mechanism for deferring execution
+of code until a specific variable or any index of an array is referenced.
+
+[section {COMMANDS}]
+
+[list_begin definitions]
+[call [cmd ::lazyset::variable] [opt [arg {-array boolean}]] [opt [arg {-appendArgs boolean}]] [arg variableName] [arg commandPrefix]]
+Arrange for the code specified as [arg commandPrefix] to be executed when
+the variable whose name is specified by [arg variableName] is read for
+the first time.
+
+If the optional argument [arg {-array boolean}] is specified as true,
+then the variable specified as [arg variableName] is treated as an
+array and attempting to read any index of the array causes that
+index to be set by the [arg commandPrefix] as they are read.
+
+If the optional argument [arg {-appendArgs boolean}] is specified as
+false, then the variable name and subnames are not appended to the
+[arg commandPrefix] before it is evaluated.  If the argument
+[arg {-appendArgs boolean}] is not specified or is specified as true
+then 1 or 2 additional arguments are appended to the [arg commandPrefix].
+If [arg {-array boolean}] is specified as true, then 2 arguments are
+appended corresponding to the name of the variable and the index,
+otherwise 1 argument is appended containing the name of variable.
+
+The [arg commandPrefix] code is run in the same scope as the variable
+is read.
+
+[list_end]
+
+[section EXAMPLES]
+
+[example {
+	::lazyset::variable page {apply {{name} {
+		package require http
+		set token [http::geturl http://www.tcl.tk/]
+		set data [http::data $token]
+		return $data
+	}}}
+
+	puts $page
+}]
+
+[example {
+	::lazyset::variable -array true page {apply {{name index} {
+		package require http
+		set token [http::geturl $index]
+		set data [http::data $token]
+		return $data
+	}}}
+
+	puts $page(http://www.tcl.tk/)
+}]
+
+[example {
+	::lazyset::variable -appendArgs false simple {
+		return -level 0 42
+	}
+
+	puts $simple
+}]
+
+[section AUTHORS]
+Roy Keene
+
+[vset CATEGORY utility]
+[include ../common-text/feedback.inc]
+[manpage_end]

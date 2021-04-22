@@ -1,0 +1,124 @@
+[vset VERSION 2.5]
+[manpage_begin base64 n [vset VERSION]]
+[keywords base64]
+[keywords encoding]
+[copyright {2000, Eric Melski}]
+[copyright {2001, Miguel Sofer}]
+[moddesc   {Text encoding & decoding binary data}]
+[titledesc {base64-encode/decode binary data}]
+[category  {Text processing}]
+[require Tcl 8]
+[require base64 [opt [vset VERSION]]]
+[description]
+[para]
+
+This package provides procedures to encode binary data into base64 and back.
+
+[section {Beware: Variations in decoding behaviour}]
+
+The Tcl core provides since version 8.6 commands for the de- and
+encoding of base64 data. These are
+
+[example {
+    binary encode base64
+    binary decode base64
+}]
+
+[para] Beware that while these are signature compatible with the
+commands provided by this package, the decoders are
+[strong {not behaviourally compatible}].
+
+[para] The core decoder command accepts the option [option -strict],
+enabling the user to choose between strict and lax modes. In the
+strict mode invalid characters, and partial data at the end of the
+input are reported as errors. In lax mode they are ignored.
+
+[para] All the implementations provided by this package on the other
+hand implement a mix of the above, and the user cannot choose. Partial
+data at the end of the input is reported as error, and invalid
+characters are ignored.
+
+[para] [strong Beware] of these differences when switching code from
+one to other.
+
+[section API]
+
+[list_begin definitions]
+
+[call [cmd ::base64::encode] [opt "[option -maxlen] [arg maxlen]"] [opt "[option -wrapchar] [arg wrapchar]"] [arg string]]
+
+Base64 encodes the given binary [arg string] and returns the encoded
+result. Inserts the character [arg wrapchar] every [arg maxlen]
+characters of output. [arg wrapchar] defaults to newline. [arg maxlen]
+defaults to [const 76].
+
+[para] [emph Note] that if [arg maxlen] is set to [const 0], the
+output will not be wrapped at all.
+
+[para]
+
+[emph {Note well}]: If your string is not simple ASCII you should fix
+the string encoding before doing base64 encoding. See the examples.
+
+[para]
+
+The command will throw an error for negative values of [arg maxlen],
+or if [arg maxlen] is not an integer number.
+
+[call [cmd ::base64::decode] [arg "string"]]
+
+Base64 decodes the given [arg "string"] and returns the binary data.
+The decoder ignores whitespace in the string.
+
+[list_end]
+
+[section {Implementation Notes}]
+
+This package contains three different implementations for base64 de-
+and encoding, and chooses among them based on the environment it finds
+itself in.
+
+[para] All three implementations have the same behaviour.
+
+See also [sectref {Beware: Variations in decoding behaviour}] at the
+beginning of this document.
+
+[list_begin enumerated]
+
+[enum]  If Tcl 8.6 or higher is found the commands are implemented in
+	terms of the then-available builtin commands.
+
+[enum]  If the [package Trf] extension cand be loaded the commands are
+	implemented in terms of its commands.
+
+[enum]  If neither of the above are possible a pure Tcl implementation
+	is used. This is of course much slower.
+
+[list_end]
+
+[section {EXAMPLES}]
+
+[example {
+% base64::encode "Hello, world"
+SGVsbG8sIHdvcmxk
+}]
+
+[example {
+% base64::encode [string repeat xyz 20]
+eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6
+eHl6eHl6eHl6
+% base64::encode -wrapchar "" [string repeat xyz 20]
+eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6eHl6
+}]
+
+[example {
+# NOTE: base64 encodes BINARY strings.
+% set chemical [encoding convertto utf-8 "C\u2088H\u2081\u2080N\u2084O\u2082"]
+% set encoded [base64::encode $chemical]
+Q+KCiEjigoHigoBO4oKET+KCgg==
+% set caffeine [encoding convertfrom utf-8 [base64::decode $encoded]]
+}]
+
+[vset CATEGORY base64]
+[include ../common-text/feedback.inc]
+[manpage_end]

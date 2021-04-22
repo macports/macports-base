@@ -1,0 +1,525 @@
+# Tests for the cron module
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2016 by Sean Woods
+# (Insert BSDish style "use at your own risk" license text)
+
+source [file join \
+    [file dirname [file dirname [file join [pwd] [info script]]]] \
+    devtools testutilities.tcl]
+
+package require tcltest
+testsNeedTcl     8.6
+testsNeedTcltest 1.0
+
+support {
+    use dicttool/dicttool.tcl   dicttool
+}
+testing {
+    useLocal cron.tcl cron
+}
+
+###
+# For the first part of our testing, control the clock
+# via the test harness
+###
+set ::cron::trace 0
+set ::cron::time [expr {[clock scan {2016-01-01}]*1000}]
+
+foreach {val testval} {
+  1000 1000
+  11235 11000
+  1241241 1241000
+} {
+  test cron-step-$val [list test clock_step function for $val] {
+    ::cron::clock_step $val
+  } $testval 
+}
+
+proc test_elapsed_time {start target} {
+  set now [::cron::current_time]
+  set value [expr {$now-$start}]
+  if {$value < ($target-5)} {
+    puts "ELAPSED TIME WAS SHORT: $value / $target"
+    return 1
+  }
+  if {$value > ($target+250)} {
+    puts "ELAPSED TIME WAS LONG: $value / $target"
+    return 1
+  }
+  return 0
+}
+
+
+set start [::cron::current_time]
+::cron::sleep 250
+test cron-sleep-1 {Ensure sleep is in a plausible range} {
+  test_elapsed_time $start 250
+} 0
+
+# Sleep until the top of the second
+::cron::clock_sleep 1
+set start [::cron::current_time]
+::cron::clock_sleep 0 750
+test cron-sleep-2 {Ensure sleep is in a plausible range} {
+  test_elapsed_time $start 750
+} 0
+::cron::clock_sleep 1 0
+test cron-sleep-3 {Ensure sleep is in a plausible range} {
+  test_elapsed_time $start 1000
+} 0
+::cron::clock_sleep 1 0
+
+###
+# Object interaction tests
+###
+oo::class create CronTest {
+
+  method coro_name {} {
+    return [info object namespace [self]]::idle
+  }
+  method idle {} {
+    set coro [my coro_name]
+    ::cron::object_coroutine [self] $coro
+    ::coroutine $coro {*}[namespace code {my IdleTask}]
+  }
+
+}
+
+###
+# This test is a mockup of typical Tk widget
+# which has some portion of its startup that has to
+# process after an idle loop has completed
+###
+oo::class create CronTest_3Pings {
+  superclass CronTest
+  constructor {} {
+    set ::TESTOBJ([self]) 0
+    my idle
+  }
+  method IdleTask {} {
+    incr ::TESTOBJ([self])
+    yield
+    incr ::TESTOBJ([self])
+    yield
+    incr ::TESTOBJ([self])
+  }
+}
+CronTest_3Pings create FOO
+set coro [FOO coro_name]
+###
+# The coroutine for the object exist on startup
+test cron-objects-1-1 {cron::every} {
+  info commands $coro
+} $coro
+# And CRON knows about it
+test cron-objects-1-2 {cron::every} {
+  ::cron::task exists $coro
+} 1
+# The counter should be initialized to the value
+# before the first yield
+test cron-objects-1-3 {cron::every} {
+  set ::TESTOBJ(::FOO)
+} 1
+::cron::clock_sleep 1
+
+###
+# The coroutine should have completed, and now ceases to exist
+###
+test cron-objects-1-4 {cron::every} {
+  ::cron::task exists $coro
+} 0
+# The counter should be 3
+test cron-objects-1-5 {cron::every} {
+  set ::TESTOBJ(::FOO)
+} 3
+
+###
+# Test that cron cleans up after a destroyed object
+###
+CronTest_3Pings create FOOBAR
+set coro [FOOBAR coro_name]
+###
+# The coroutine for the object exist on startup
+test cron-objects-2-1 {cron::every} {
+  info commands $coro
+} $coro
+# However CRON knows about it
+test cron-objects-2-2 {cron::every} {
+  ::cron::task exists $coro
+} 1
+FOOBAR destroy
+
+# The idle routine did parse up to the first yield
+test cron-objects-2-3 {cron::every} {
+  set ::TESTOBJ(::FOOBAR)
+} 1
+
+###
+# The coroutine for the object exist on startup
+test cron-objects-2-4 {cron::every} {
+  info commands $coro
+} {}
+# However CRON knows about it
+test cron-objects-2-5 {cron::every} {
+  ::cron::task exists $coro
+} 1
+
+# Trigger the idle loop
+::cron::do_one_event TEST
+# The idle routine did parse up to the first yield
+test cron-objects-2-6 {cron::every} {
+  set ::TESTOBJ(::FOOBAR)
+} 1
+# The coroutine is still gone
+test cron-objects-2-7 {cron::every} {
+  info commands $coro
+} {}
+# And now cron has forgotten about the object
+test cron-objects-2-8 {cron::every} {
+  ::cron::task exists $coro
+} 0
+
+::cron::do_one_event TEST
+test cron-objects-2-9 {cron::every} {
+  info commands $coro
+} {}
+# However cron has forgotten about the object
+test cron-objects-2-10 {cron::every} {
+  ::cron::task exists $coro
+} 0
+
+
+oo::class create CronTest_Persistant_Coro {
+  superclass CronTest
+  constructor {} {
+    set nspace [info object namespace [self]]
+    set coro_do [my coro_name DoLoop]
+    set ::TESTOBJ([self]) -1
+    set now [::cron::current_time]
+    set frequency 1000
+    set scheduled [::cron::clock_step [expr {$now+$frequency}]]
+    ::cron::object_coroutine [self] $coro_do [list frequency $frequency scheduled $scheduled command [namespace code {my DoLoop}]]
+  }
+  method coro_name {which} {
+    return [info object namespace [self]]::${which}
+  }
+  method exit_loop {} {
+    my variable doloop
+    set doloop 0
+    if {$::cron::trace} {
+      puts [list [self] SIGNAL TO EXIT]
+    }
+  }
+  
+  method DoLoop {} {
+    if {$::cron::trace} {
+      puts "[self] CORO START"
+    }
+    my variable doloop
+    set doloop 1
+    set ::TESTOBJ([self]) 0
+    yield
+    while {$doloop} {
+      if {$::cron::trace} {
+        puts [list [self] LOOP $doloop]
+      }
+      incr ::TESTOBJ([self])
+      yield
+    }
+    if {$::cron::trace} {
+      puts "[self] CORO EXIT"
+    }
+  }
+}
+
+###
+# This series of tests is built around a more complex case:
+# an object wants a method invoked periodically. CRON
+# will create a coroutine (based on the name given by the object)
+# and invoke that coroutine at the frequency requested
+#
+# If the coroutine exits (or throws an error) It will be restarted
+###
+set ::cron::trace 0
+::cron::clock_sleep 1
+
+CronTest_Persistant_Coro create IRONBAR
+set coro [IRONBAR coro_name DoLoop]
+test cron-objects-3-1 {
+The actual coroutine should not exist yet
+} {
+  info commands $coro
+} {}
+# And CRON knows about it
+test cron-objects-3-2 {
+CRON should be aware of the task
+} {
+  ::cron::task exists $coro
+} 1
+
+test cron-objects-3-3 {
+The counter should be initialized to the value
+before the first yield
+} {
+  set ::TESTOBJ(::IRONBAR)
+} -1
+
+set start [::cron::current_time]
+::cron::clock_sleep 1
+
+test cron-objects-3-4 {The coroutine for the object exists} {
+  info commands $coro
+} $coro
+test cron-objects-3-5 {Cron should know about the task} {
+  ::cron::task exists $coro
+} 1
+test cron-objects-3-6 {The counter should have incremented} {
+  set ::TESTOBJ(::IRONBAR)
+} 1
+
+::cron::clock_sleep 0 500
+test cron-objects-3-7 {The counter should have incremented} {
+  set ::TESTOBJ(::IRONBAR)
+} 1
+::cron::clock_sleep 1
+
+# Test a graceful exit of the coroutine
+::IRONBAR exit_loop
+::cron::clock_sleep 1
+set coro [IRONBAR coro_name DoLoop]
+test cron-objects-3-8 {
+The actual coroutine should now exit
+} {
+  info commands $coro
+} {}
+test cron-objects-3-9 {
+CRON should still be aware of the tast
+} {
+  ::cron::task exists $coro
+} 1
+test cron-objects-3-10 {The counter hasn't reset} {
+  set ::TESTOBJ(::IRONBAR)
+} 2
+::cron::clock_sleep 1
+test cron-objects-3-11 {The should have reset when the coroutine restarted} {
+  set ::TESTOBJ(::IRONBAR)
+} 1
+#::cron::object_destroy ::IRONBAR
+::IRONBAR destroy
+
+set ::cron::trace 0
+proc my_coro {} {
+  if {$::cron::trace} {
+    puts "START MY CORO"
+  }
+  set ::my_coro_progress 0
+  set ::my_coro_start [::cron::current_time]
+  if {$::cron::trace} {
+    puts "SLEEP MY CORO"
+  }
+  ::cron::sleep 1250
+  if {$::cron::trace} {
+    puts "/SLEEP MY CORO"
+  }
+  set ::my_coro_end [::cron::current_time]
+  set ::my_coro_progress 1
+  if {$::cron::trace} {
+    puts "END MY CORO"
+  }
+}
+
+###
+# Test that an otherwise inprepared coroutine
+# which invokes "::cron::sleep" partipates in
+# the ::cron event system
+###
+if {$::cron::trace} {
+  puts "PRE-MY CORO"
+}
+coroutine ::TESTCORO my_coro
+if {$::cron::trace} {
+  puts "POST-MY CORO"
+}
+test cron-naive-corotine-1 {cron::coroutine sleep} {
+  set ::my_coro_progress
+} 0
+::cron::clock_sleep 3
+set ::cron::trace 0
+
+test cron-naive-corotine-2 {cron::coroutine sleep} {
+  set ::my_coro_progress
+} 1
+
+test cron-naive-corotine-3 {cron::coroutine sleep} {
+  set delay [expr {($::my_coro_end - $::my_coro_start)}]
+  if {$delay < 1000 || $delay > 2000} {
+    puts "TIME DELAY OUT OF RANGE: $delay"
+    return 1
+  } else {
+    return 0
+  }
+  
+} 0
+
+###
+# Tests after this point test interactions with the Tcl event loop
+# We need to be slaved to the real time clock to work properly
+###
+set ::cron::trace 0
+set ::cron::time -1
+
+###
+# Test the clock sleep offset feature
+###
+# Reset to the top of a clock step
+::cron::clock_sleep 1
+
+set ::cron::trace 0
+set start [::cron::current_time]
+set ::FLAG -1
+set time_0 [::cron::clock_delay 1000]
+set time_1 [::cron::clock_delay 2000]
+
+after $time_0 {set ::FLAG 0}
+after $time_1 {set ::FLAG 1}
+test cron-delay-1 {Prior to the first event the value should not have changed} {
+  set ::FLAG
+} -1
+
+vwait ::FLAG
+test cron-delay-3 {At the top of the second, we should have a new value for flag} {
+  set ::FLAG
+} 0
+vwait ::FLAG
+test cron-delay-5 {At the top of the second second, we should have a new value for flag} {
+  set ::FLAG
+} 1
+set ::cron::trace 0
+
+proc elapsed_time_coro {} {
+  set ::start [::cron::current_time]
+  while 1 {
+    set now [::cron::current_time]
+    set ::elapsed_time [expr {($now-$::start)/1000}]
+    yield
+  }
+}
+
+::cron::task set ::ELAPSED_TIME \
+  coroutine ::ELAPSED_TIME \
+  command elapsed_time_coro \
+  frequency 1000
+
+set timecounter 0
+::cron::every timecounter 1 {incr timecounter}
+set now [clock seconds]
+
+# Test at
+set timerevent 0
+::cron::at timeevent1 [expr {$now + 5}] {set ::timerevent 1}
+::cron::at timeevent2 [expr {$now + 6}] {set ::eventpause 0}
+::cron::at timeevent3 [expr {$now + 10}] {set ::timerevent 2}
+::cron::at timeevent4 [expr {$now + 11}] {set ::pause 0}
+
+test cron-1.1 {cron::every} {
+  set ::timecounter
+} 0
+test cron-1.2 {cron::at1} {
+  set ::timerevent
+} 0
+vwait eventpause
+test cron-1.3 {cron::at1} {
+  set ::timerevent
+} 1
+
+
+###
+# At this point 6 seconds should have passed
+###
+#test cron-1.elapsed-1 {Elapsed time} {
+#  set ::elapsed_time
+#} 5
+# - Test removed - Was too unstable on a busy computer
+
+vwait pause
+###
+# At this point 11 seconds should have passed
+###
+#test cron-1.elapsed-2 {Elapsed time} {
+#  set ::elapsed_time
+#} 10
+# - Test removed - Was too unstable on a busy computer
+
+# Test that in X seconds our timer
+# was incremented X times
+#test cron-1.4 {cron::every} {
+#  set ::timecounter
+#} $::elapsed_time
+#
+# - Test removed - Was too unstable on a busy computer
+
+test cron-1.5 {cron::at2} {
+  set ::timerevent
+} 2
+
+###
+# Confirm cancel works
+::cron::cancel timecounter
+set timecounterfinal $::timecounter
+::cron::clock_sleep 2
+test cron-1.6 {cron::cancel} {
+  set ::timecounter
+} $::timecounterfinal
+
+###
+# Test the new IN command
+###
+set ::inevent 0
+cron::in 5 {set ::inevent 1}
+
+test cron-1.7 {cron::in} {
+  set ::inevent
+} 0
+::cron::clock_sleep 6
+
+test cron-1.8 {cron::in} {
+  set ::inevent
+} 1
+
+
+set FAILED 0
+after 10000 {set ::cron::forever 0 ; set FAILED 1}
+::cron::in 5 {
+  set ::cron::forever 0
+test cron-1.12 {cron::main} {
+  set ::cron::forever
+} 0
+}
+::cron::wake TEST
+
+###
+# At this point 22 seconds should have passed
+###
+#test cron-1.elapsed-3 {Elapsed time} {
+#  set ::elapsed_time
+#} 21
+#
+# Test removed - it was too unstable on a real working computer
+
+::cron::main
+
+# If we get to this test, mission successful
+test cron-1.13 {cron::main} {
+  return 1
+} 1
+
+test cron-1.14 {cron::main} {
+  set FAILED
+} 0
+
+testsuiteCleanup
+return

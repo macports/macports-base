@@ -1,0 +1,924 @@
+'\"
+'\" Generated from file 'docstrip_util\&.man' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) 2003–2010 Lars Hellström <Lars dot Hellstrom at residenset dot net>
+'\"
+.TH "docstrip_util" n 1\&.3\&.1 tcllib "Literate programming tool"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+docstrip_util \- Docstrip-related utilities
+.SH SYNOPSIS
+package require \fBTcl  8\&.4\fR
+.sp
+package require \fBdocstrip  ?1\&.2?\fR
+.sp
+package require \fBdocstrip::util  ?1\&.3\&.1?\fR
+.sp
+\fBpkgProvide\fR \fIname\fR \fIversion\fR \fIterminals\fR
+.sp
+\fBpkgIndex\fR ?\fIterminal\fR \&.\&.\&.?
+.sp
+\fBfileoptions\fR ?\fIoption\fR \fIvalue\fR \&.\&.\&.?
+.sp
+\fBdocstrip::util::index_from_catalogue\fR \fIdir\fR \fIpattern\fR ?\fIoption\fR \fIvalue\fR \&.\&.\&.?
+.sp
+\fBdocstrip::util::modules_from_catalogue\fR \fItarget\fR \fIsource\fR ?\fIoption\fR \fIvalue\fR \&.\&.\&.?
+.sp
+\fBdocstrip::util::classical_preamble\fR \fImetaprefix\fR \fImessage\fR \fItarget\fR ?\fIsource\fR \fIterminals\fR \&.\&.\&.?
+.sp
+\fBdocstrip::util::classical_postamble\fR \fImetaprefix\fR \fImessage\fR \fItarget\fR ?\fIsource\fR \fIterminals\fR \&.\&.\&.?
+.sp
+\fBdocstrip::util::packages_provided\fR \fItext\fR ?\fIsetup-script\fR?
+.sp
+\fBdocstrip::util::ddt2man\fR \fItext\fR
+.sp
+\fBdocstrip::util::guards\fR \fIsubcmd\fR \fItext\fR
+.sp
+\fBdocstrip::util::patch\fR \fIsource-var\fR \fIterminals\fR \fIfromtext\fR \fIdiff\fR ?\fIoption\fR \fIvalue\fR \&.\&.\&.?
+.sp
+\fBdocstrip::util::thefile\fR \fIfilename\fR ?\fIoption\fR \fIvalue\fR \&.\&.\&.?
+.sp
+\fBdocstrip::util::import_unidiff\fR \fIdiff-text\fR ?\fIwarning-var\fR?
+.sp
+.BE
+.SH DESCRIPTION
+The \fBdocstrip::util\fR package is meant for collecting various
+utility procedures that are mainly useful at installation or
+development time\&. It is separate from the base package to avoid
+overhead when the latter is used to \fBsource\fR code\&.
+.PP
+.SH "PACKAGE INDEXING COMMANDS"
+Like raw "\fI\&.tcl\fR" files, code lines in docstrip source files can
+be searched for package declarations and corresponding indices
+constructed\&. A complication is however that one cannot tell from the
+code blocks themselves which will fit together to make a working
+package; normally that information would be found in an accompanying
+"\fI\&.ins\fR" file, but parsing one of those is not an easy task\&.
+Therefore \fBdocstrip::util\fR introduces an alternative encoding
+of such information, in the form of a declarative Tcl script: the
+\fIcatalogue\fR (of the contents in a source file)\&.
+.PP
+The special commands which are available inside a catalogue are:
+.TP
+\fBpkgProvide\fR \fIname\fR \fIversion\fR \fIterminals\fR
+Declares that the code for a package with name \fIname\fR and
+version \fIversion\fR is made up from those modules in the source
+file which are selected by the \fIterminals\fR list of guard
+expression terminals\&. This code should preferably not contain a
+\fBpackage\fR \fBprovide\fR command for the package, as one
+will be provided by the package loading mechanisms\&.
+.TP
+\fBpkgIndex\fR ?\fIterminal\fR \&.\&.\&.?
+Declares that the code for a package is made up from those modules
+in the source file which are selected by the listed guard
+expression \fIterminal\fRs\&. The name and version of this package is
+determined from \fBpackage\fR \fBprovide\fR command(s) found
+in that code (hence there must be such a command in there)\&.
+.TP
+\fBfileoptions\fR ?\fIoption\fR \fIvalue\fR \&.\&.\&.?
+Declares the \fBfconfigure\fR options that should be in force when
+reading the source; this can usually be ignored for pure ASCII
+files, but if the file needs to be interpreted according to some
+other \fB-encoding\fR then this is how to specify it\&. The
+command should normally appear first in the catalogue, as it takes
+effect only for commands following it\&.
+.PP
+Other Tcl commands are supported too — a catalogue is
+parsed by being evaluated in a safe interpreter — but they
+are rarely needed\&. To allow for future extensions, unknown commands
+in the catalogue are silently ignored\&.
+.PP
+To simplify distribution of catalogues together with their source
+files, the catalogue is stored \fIin the source file itself\fR as
+a module selected by the terminal '\fBdocstrip\&.tcl::catalogue\fR'\&.
+This supports both the style of collecting all catalogue lines in one
+place and the style of putting each catalogue line in close proximity
+of the code that it declares\&.
+.PP
+Putting catalogue entries next to the code they declare may look as
+follows
+.CS
+
+
+%    First there's the catalogue entry
+%    \\begin{tcl}
+%<docstrip\&.tcl::catalogue>pkgProvide foo::bar 1\&.0 {foobar load}
+%    \\end{tcl}
+%    second a metacomment used to include a copyright message
+%    \\begin{macrocode}
+%<*foobar>
+%% This file is placed in the public domain\&.
+%    \\end{macrocode}
+%    third the package implementation
+%    \\begin{tcl}
+namespace eval foo::bar {
+   # \&.\&.\&. some clever piece of Tcl code elided \&.\&.\&.
+%    \\end{tcl}
+%    which at some point may have variant code to make use of a
+%    |load|able extension
+%    \\begin{tcl}
+%<*load>
+   load [file rootname [info script]][info sharedlibextension]
+%</load>
+%<*!load>
+   # \&.\&.\&. even more clever scripted counterpart of the extension
+   # also elided \&.\&.\&.
+%</!load>
+}
+%</foobar>
+%    \\end{tcl}
+%    and that's it!
+
+.CE
+The corresponding set-up with \fBpkgIndex\fR would be
+.CS
+
+
+%    First there's the catalogue entry
+%    \\begin{tcl}
+%<docstrip\&.tcl::catalogue>pkgIndex foobar load
+%    \\end{tcl}
+%    second a metacomment used to include a copyright message
+%    \\begin{tcl}
+%<*foobar>
+%% This file is placed in the public domain\&.
+%    \\end{tcl}
+%    third the package implementation
+%    \\begin{tcl}
+package provide foo::bar 1\&.0
+namespace eval foo::bar {
+   # \&.\&.\&. some clever piece of Tcl code elided \&.\&.\&.
+%    \\end{tcl}
+%    which at some point may have variant code to make use of a
+%    |load|able extension
+%    \\begin{tcl}
+%<*load>
+   load [file rootname [info script]][info sharedlibextension]
+%</load>
+%<*!load>
+   # \&.\&.\&. even more clever scripted counterpart of the extension
+   # also elided \&.\&.\&.
+%</!load>
+}
+%</foobar>
+%    \\end{tcl}
+%    and that's it!
+
+.CE
+.TP
+\fBdocstrip::util::index_from_catalogue\fR \fIdir\fR \fIpattern\fR ?\fIoption\fR \fIvalue\fR \&.\&.\&.?
+This command is a sibling of the standard \fBpkg_mkIndex\fR
+command, in that it adds package entries to "\fIpkgIndex\&.tcl\fR"
+files\&. The difference is that it indexes \fBdocstrip\fR-style
+source files rather than raw "\fI\&.tcl\fR" or loadable library files\&.
+Only packages listed in the catalogue of a file are considered\&.
+.sp
+The \fIdir\fR argument is the directory in which to look for files
+(and whose "\fIpkgIndex\&.tcl\fR" file should be amended)\&.
+The \fIpattern\fR argument is a \fBglob\fR pattern of files to look
+into; a typical value would be \fB*\&.dtx\fR or
+\fB*\&.{dtx,ddt}\fR\&. Remaining arguments are option-value pairs,
+where the supported options are:
+.RS
+.TP
+\fB-recursein\fR \fIdirpattern\fR
+If this option is given, then the \fBindex_from_catalogue\fR
+operation will be repeated in each subdirectory whose name
+matches the \fIdirpattern\fR\&. \fB-recursein\fR \fB*\fR will
+cause the entire subtree rooted at \fIdir\fR to be indexed\&.
+.TP
+\fB-sourceconf\fR \fIdictionary\fR
+Specify \fBfileoptions\fR to use when reading the catalogues of
+files (and also for reading the packages if the catalogue does
+not contain a \fBfileoptions\fR command)\&. Defaults to being
+empty\&. Primarily useful if your system encoding is very different
+from that of the source file (e\&.g\&., one is a two-byte encoding
+and the other is a one-byte encoding)\&. \fBascii\fR and
+\fButf-8\fR are not very different in that sense\&.
+.TP
+\fB-options\fR \fIterminals\fR
+The \fIterminals\fR is a list of terminals in addition to
+\fBdocstrip\&.tcl::catalogue\fR that should be held as true when
+extracting the catalogue\&. Defaults to being empty\&. This makes it
+possible to make use of "variant sections" in the catalogue
+itself, e\&.g\&. gaurd some entries with an extra "experimental" and
+thus prevent them from appearing in the index unless that is
+generated with "experimental" among the \fB-options\fR\&.
+.TP
+\fB-report\fR \fIboolean\fR
+If the \fIboolean\fR is true then the return value will be a
+textual, probably multiline, report on what was done\&. Defaults
+to false, in which case there is no particular return value\&.
+.TP
+\fB-reportcmd\fR \fIcommandPrefix\fR
+Every item in the report is handed as an extra argument to the
+command prefix\&. Since \fBindex_from_catalogue\fR would typically
+be used at a rather high level in installation scripts and the
+like, the \fIcommandPrefix\fR defaults to
+"\fBputs\fR \fBstdout\fR"\&.
+Use \fBlist\fR to effectively disable this feature\&. The return
+values from the prefix are ignored\&.
+.RE
+.IP
+The \fBpackage ifneeded\fR scripts that are generated contain
+one \fBpackage require docstrip\fR command and one
+\fBdocstrip::sourcefrom\fR command\&. If the catalogue entry was
+of the \fBpkgProvide\fR kind then the \fBpackage ifneeded\fR
+script also contains the \fBpackage provide\fR command\&.
+.sp
+Note that \fBindex_from_catalogue\fR never removes anything from an
+existing "\fIpkgIndex\&.tcl\fR" file\&. Hence you may need to delete it
+(or have \fBpkg_mkIndex\fR recreate it from scratch) before running
+\fBindex_from_catalogue\fR to update some piece of information, such
+as a package version number\&.
+.sp
+.TP
+\fBdocstrip::util::modules_from_catalogue\fR \fItarget\fR \fIsource\fR ?\fIoption\fR \fIvalue\fR \&.\&.\&.?
+This command is an alternative to \fBindex_from_catalogue\fR which
+creates Tcl Module ("\fI\&.tm\fR") files rather than
+"\fIpkgIndex\&.tcl\fR" entries\&. Since this action is more similar to
+what \fBdocstrip\fR classically does, it has features for
+putting pre- and postambles on the generated files\&.
+.sp
+The \fIsource\fR argument is the name of the source file to
+generate "\fI\&.tm\fR" files from\&. The \fItarget\fR argument is the
+directory which should count as a module path, i\&.e\&., this is what
+the relative paths derived from package names are joined to\&. The
+supported options are:
+.RS
+.TP
+\fB-preamble\fR \fImessage\fR
+A message to put in the preamble (initial block of comments) of
+generated files\&. Defaults to a space\&. May be several lines, which
+are then separated by newlines\&. Traditionally used for copyright
+notices or the like, but metacomment lines provide an alternative
+to that\&.
+.TP
+\fB-postamble\fR \fImessage\fR
+Like \fB-preamble\fR, but the message is put at the end of the
+file instead of the beginning\&. Defaults to being empty\&.
+.TP
+\fB-sourceconf\fR \fIdictionary\fR
+Specify \fBfileoptions\fR to use when reading the catalogue of
+the \fIsource\fR (and also for reading the packages if the
+catalogue does not contain a \fBfileoptions\fR command)\&. Defaults
+to being empty\&. Primarily useful if your system encoding is very
+different from that of the source file (e\&.g\&., one is a two-byte
+encoding and the other is a one-byte encoding)\&. \fBascii\fR and
+\fButf-8\fR are not very different in that sense\&.
+.TP
+\fB-options\fR \fIterminals\fR
+The \fIterminals\fR is a list of terminals in addition to
+\fBdocstrip\&.tcl::catalogue\fR that should be held as true when
+extracting the catalogue\&. Defaults to being empty\&. This makes it
+possible to make use of "variant sections" in the catalogue
+itself, e\&.g\&. gaurd some entries with an extra "experimental" guard
+and thus prevent them from contributing packages unless those are
+generated with "experimental" among the \fB-options\fR\&.
+.TP
+\fB-formatpreamble\fR \fIcommandPrefix\fR
+Command prefix used to actually format the preamble\&. Takes four
+additional arguments \fImessage\fR, \fItargetFilename\fR,
+\fIsourceFilename\fR, and \fIterminalList\fR and returns a fully
+formatted preamble\&. Defaults to using \fBclassical_preamble\fR
+with a \fImetaprefix\fR of '##'\&.
+.TP
+\fB-formatpostamble\fR \fIcommandPrefix\fR
+Command prefix used to actually format the postamble\&. Takes four
+additional arguments \fImessage\fR, \fItargetFilename\fR,
+\fIsourceFilename\fR, and \fIterminalList\fR and returns a fully
+formatted postamble\&. Defaults to using \fBclassical_postamble\fR
+with a \fImetaprefix\fR of '##'\&.
+.TP
+\fB-report\fR \fIboolean\fR
+If the \fIboolean\fR is true (which is the default) then the return
+value will be a textual, probably multiline, report on what was
+done\&. If it is false then there is no particular return value\&.
+.TP
+\fB-reportcmd\fR \fIcommandPrefix\fR
+Every item in the report is handed as an extra argument to this
+command prefix\&. Defaults to \fBlist\fR, which effectively disables
+this feature\&. The return values from the prefix are ignored\&. Use
+for example "\fBputs\fR \fBstdout\fR" to get report items
+written immediately to the terminal\&.
+.RE
+.IP
+An existing file of the same name as one to be created will be
+overwritten\&.
+.TP
+\fBdocstrip::util::classical_preamble\fR \fImetaprefix\fR \fImessage\fR \fItarget\fR ?\fIsource\fR \fIterminals\fR \&.\&.\&.?
+This command returns a preamble in the classical
+\fBdocstrip\fR style
+.CS
+
+
+##
+## This is `TARGET',
+## generated by the docstrip::util package\&.
+##
+## The original source files were:
+##
+## SOURCE (with options: `foo,bar')
+##
+## Some message line 1
+## line2
+## line3
+
+.CE
+.IP
+if called as
+.CS
+
+
+docstrip::util::classical_preamble {##}\\
+  "\\nSome message line 1\\nline2\\nline3" TARGET SOURCE {foo bar}
+
+.CE
+.IP
+The command supports preambles for files generated from multiple
+sources, even though \fBmodules_from_catalogue\fR at present does
+not need that\&.
+.TP
+\fBdocstrip::util::classical_postamble\fR \fImetaprefix\fR \fImessage\fR \fItarget\fR ?\fIsource\fR \fIterminals\fR \&.\&.\&.?
+This command returns a postamble in the classical
+\fBdocstrip\fR style
+.CS
+
+
+## Some message line 1
+## line2
+## line3
+##
+## End of file `TARGET'\&.
+
+.CE
+.IP
+if called as
+.CS
+
+
+docstrip::util::classical_postamble {##}\\
+  "Some message line 1\\nline2\\nline3" TARGET SOURCE {foo bar}
+
+.CE
+.IP
+In other words, the \fIsource\fR and \fIterminals\fR arguments are
+ignored, but supported for symmetry with \fBclassical_preamble\fR\&.
+.TP
+\fBdocstrip::util::packages_provided\fR \fItext\fR ?\fIsetup-script\fR?
+This command returns a list where every even index element is the
+name of a package \fBprovide\fRd by \fItext\fR when that is
+evaluated as a Tcl script, and the following odd index element is
+the corresponding version\&. It is used to do package indexing of
+extracted pieces of code, in the manner of \fBpkg_mkIndex\fR\&.
+.sp
+One difference to \fBpkg_mkIndex\fR is that the \fItext\fR gets
+evaluated in a safe interpreter\&. \fBpackage require\fR commands
+are silently ignored, as are unknown commands (which includes
+\fBsource\fR and \fBload\fR)\&. Other errors cause
+processing of the \fItext\fR to stop, in which case only those
+package declarations that had been encountered before the error
+will be included in the return value\&.
+.sp
+The \fIsetup-script\fR argument can be used to customise the
+evaluation environment, if the code in \fItext\fR has some very
+special needs\&. The \fIsetup-script\fR is evaluated in the local
+context of the \fBpackages_provided\fR procedure just before the
+\fItext\fR is processed\&. At that time, the name of the slave
+command for the safe interpreter that will do this processing is
+kept in the local variable \fBc\fR\&. To for example copy the
+contents of the \fB::env\fR array to the safe interpreter, one
+might use a \fIsetup-script\fR of
+.CS
+
+  $c eval [list array set env [array get ::env]]
+.CE
+.PP
+.SH "SOURCE PROCESSING COMMANDS"
+Unlike the previous group of commands, which would use
+\fBdocstrip::extract\fR to extract some code lines and then process
+those further, the following commands operate on text consisting of
+all types of lines\&.
+.TP
+\fBdocstrip::util::ddt2man\fR \fItext\fR
+The \fBddt2man\fR command reformats \fItext\fR from the general
+\fBdocstrip\fR format to \fBdoctools\fR "\fI\&.man\fR" format
+(Tcl Markup Language for Manpages)\&. The different line types are
+treated as follows:
+.RS
+.TP
+comment and metacomment lines
+The '%' and '%%' prefixes are removed, the rest of the text is
+kept as it is\&.
+.TP
+empty lines
+These are kept as they are\&. (Effectively this means that they will
+count as comment lines after a comment line and as code lines
+after a code line\&.)
+.TP
+code lines
+\fBexample_begin\fR and \fBexample_end\fR commands are placed
+at the beginning and end of every block of consecutive code
+lines\&. Brackets in a code line are converted to \fBlb\fR and
+\fBrb\fR commands\&.
+.TP
+verbatim guards
+These are processed as usual, so they do not show up in the
+result but every line in a verbatim block is treated as a code
+line\&.
+.TP
+other guards
+These are treated as code lines, except that the actual guard is
+\fBemph\fRasised\&.
+.RE
+.IP
+At the time of writing, no project has employed \fBdoctools\fR
+markup in master source files, so experience of what works well is
+not available\&. A source file could however look as follows
+.CS
+
+
+% [manpage_begin gcd n 1\&.0]
+% [keywords divisor]
+% [keywords math]
+% [moddesc {Greatest Common Divisor}]
+% [require gcd [opt 1\&.0]]
+% [description]
+%
+% [list_begin definitions]
+% [call [cmd gcd] [arg a] [arg b]]
+%   The [cmd gcd] procedure takes two arguments [arg a] and [arg b] which
+%   must be integers and returns their greatest common divisor\&.
+proc gcd {a b} {
+%   The first step is to take the absolute values of the arguments\&.
+%   This relieves us of having to worry about how signs will be treated
+%   by the remainder operation\&.
+   set a [expr {abs($a)}]
+   set b [expr {abs($b)}]
+%   The next line does all of Euclid's algorithm! We can make do
+%   without a temporary variable, since $a is substituted before the
+%   [lb]set a $b[rb] and thus continues to hold a reference to the
+%   "old" value of [var a]\&.
+   while {$b>0} { set b [expr { $a % [set a $b] }] }
+%   In Tcl 8\&.3 we might want to use [cmd set] instead of [cmd return]
+%   to get the slight advantage of byte-compilation\&.
+%<tcl83>  set a
+%<!tcl83>   return $a
+}
+% [list_end]
+%
+% [manpage_end]
+
+.CE
+.IP
+If the above text is fed through \fBdocstrip::util::ddt2man\fR then
+the result will be a syntactically correct \fBdoctools\fR
+manpage, even though its purpose is a bit different\&.
+.sp
+It is suggested that master source code files with \fBdoctools\fR
+markup are given the suffix "\fI\&.ddt\fR", hence the "ddt" in
+\fBddt2man\fR\&.
+.TP
+\fBdocstrip::util::guards\fR \fIsubcmd\fR \fItext\fR
+The \fBguards\fR command returns information (mostly of a
+statistical nature) about the ordinary docstrip guards that occur
+in the \fItext\fR\&. The \fIsubcmd\fR selects what is returned\&.
+.RS
+.TP
+\fBcounts\fR
+List the guard expression terminals with counts\&. The format of
+the return value is a dictionary which maps the terminal name to
+the number of occurencies of it in the file\&.
+.TP
+\fBexprcount\fR
+List the guard expressions with counts\&. The format of the return
+value is a dictionary which maps the expression to the number of
+occurencies of it in the file\&.
+.TP
+\fBexprerr\fR
+List the syntactically incorrect guard expressions (e\&.g\&.
+parentheses do not match, or a terminal is missing)\&. The return
+value is a list, with the elements in no particular order\&.
+.TP
+\fBexpressions\fR
+List the guard expressions\&. The return value is a list, with the
+elements in no particular order\&.
+.TP
+\fBexprmods\fR
+List the guard expressions with modifiers\&. The format of the return
+value is a dictionary where each index is a guard expression and
+each entry is a string with one character for every guard line that
+has this expression\&. The characters in the entry specify what
+modifier was used in that line: +, -, *, /, or (for guard without
+modifier:) space\&. This is the most primitive form of the
+information gathered by \fBguards\fR\&.
+.TP
+\fBnames\fR
+List the guard expression terminals\&. The return value is a list,
+with the elements in no particular order\&.
+.TP
+\fBrotten\fR
+List the malformed guard lines (this does not include lines where
+only the expression is malformed, though)\&. The format of the return
+value is a dictionary which maps line numbers to their contents\&.
+.RE
+.TP
+\fBdocstrip::util::patch\fR \fIsource-var\fR \fIterminals\fR \fIfromtext\fR \fIdiff\fR ?\fIoption\fR \fIvalue\fR \&.\&.\&.?
+This command tries to apply a \fBdiff\fR file (for example a
+contributed patch) that was computed for a generated file to the
+\fBdocstrip\fR source\&. This can be useful if someone has
+edited a generated file, thus mistaking it for being the source\&.
+This command makes no presumptions which are specific for the case
+that the generated file is a Tcl script\&.
+.sp
+\fBpatch\fR requires that the source file to patch is kept as a
+list of lines in a variable, and the name of that variable in the
+calling context is what goes into the \fIsource-var\fR argument\&.
+The \fIterminals\fR is the list of terminals used to extract the
+file that has been patched\&. The \fIdiff\fR is the actual diff to
+apply (in a format as explained below) and the \fIfromtext\fR is
+the contents of the file which served as "from" when the diff was
+computed\&. Options can be used to further control the process\&.
+.sp
+The process works by "lifting" the hunks in the \fIdiff\fR from
+generated to source file, and then applying them to the elements of
+the \fIsource-var\fR\&. In order to do this lifting, it is necessary
+to determine how lines in the \fIfromtext\fR correspond to elements
+of the \fIsource-var\fR, and that is where the \fIterminals\fR come
+in; the source is first \fBextract\fRed under the given
+\fIterminals\fR, and the result of that is then matched against
+the \fIfromtext\fR\&. This produces a map which translates line
+numbers stated in the \fIdiff\fR to element numbers in
+\fIsource-var\fR, which is what is needed to lift the hunks\&.
+.sp
+The reason that both the \fIterminals\fR and the \fIfromtext\fR
+must be given is twofold\&. First, it is very difficult to keep track
+of how many lines of preamble are supplied some other way than by
+copying lines from source files\&. Second, a generated file might
+contain material from several source files\&. Both make it impossible
+to predict what line number an extracted file would have in the
+generated file, so instead the algorithm for computing the line
+number map looks for a block of lines in the \fIfromtext\fR which
+matches what can be extracted from the source\&. This matching is
+affected by the following options:
+.RS
+.TP
+\fB-matching\fR \fImode\fR
+How equal must two lines be in order to match? The supported
+\fImode\fRs are:
+.RS
+.TP
+\fBexact\fR
+Lines must be equal as strings\&. This is the default\&.
+.TP
+\fBanyspace\fR
+All sequences of whitespace characters are converted to single
+spaces before comparing\&.
+.TP
+\fBnonspace\fR
+Only non-whitespace characters are considered when comparing\&.
+.TP
+\fBnone\fR
+Any two lines are considered to be equal\&.
+.RE
+.TP
+\fB-metaprefix\fR \fIstring\fR
+The \fB-metaprefix\fR value to use when extracting\&. Defaults
+to "%%", but for Tcl code it is more likely that "#" or "##" had
+been used for the generated file\&.
+.TP
+\fB-trimlines\fR \fIboolean\fR
+The \fB-trimlines\fR value to use when extracting\&. Defaults to
+true\&.
+.RE
+.IP
+The return value is in the form of a unified diff, containing only
+those hunks which were not applied or were only partially applied;
+a comment in the header of each hunk specifies which case is at
+hand\&. It is normally necessary to manually review both the return
+value from \fBpatch\fR and the patched text itself, as this command
+cannot adjust comment lines to match new content\&.
+.sp
+An example use would look like
+.CS
+
+
+set sourceL [split [docstrip::util::thefile from\&.dtx] \\n]
+set terminals {foo bar baz}
+set fromtext [docstrip::util::thefile from\&.tcl]
+set difftext [exec diff --unified from\&.tcl to\&.tcl]
+set leftover [docstrip::util::patch sourceL $terminals $fromtext\\
+  [docstrip::util::import_unidiff $difftext] -metaprefix {#}]
+set F [open to\&.dtx w]; puts $F [join $sourceL \\n]; close $F
+return $leftover
+
+.CE
+.IP
+Here, "\fIfrom\&.dtx\fR" was used as source for "\fIfrom\&.tcl\fR", which
+someone modified into "\fIto\&.tcl\fR"\&. We're trying to construct a
+"\fIto\&.dtx\fR" which can be used as source for "\fIto\&.tcl\fR"\&.
+.TP
+\fBdocstrip::util::thefile\fR \fIfilename\fR ?\fIoption\fR \fIvalue\fR \&.\&.\&.?
+The \fBthefile\fR command opens the file \fIfilename\fR, reads it to
+end, closes it, and returns the contents (dropping a final newline
+if there is one)\&. The option-value pairs are
+passed on to \fBfconfigure\fR to configure the open file channel
+before anything is read from it\&.
+.TP
+\fBdocstrip::util::import_unidiff\fR \fIdiff-text\fR ?\fIwarning-var\fR?
+This command parses a unified (\fBdiff\fR flags \fB-U\fR and
+\fB--unified\fR) format diff into the list-of-hunks format
+expected by \fBdocstrip::util::patch\fR\&. The \fIdiff-text\fR
+argument is the text to parse and the \fIwarning-var\fR is, if
+specified, the name in the calling context of a variable to which
+any warnings about parsing problems will be \fBappend\fRed\&.
+.sp
+The return value is a list of \fIhunks\fR\&. Each hunk is a list of
+five elements "\fIstart1\fR \fIend1\fR \fIstart2\fR \fIend2\fR
+\fIlines\fR"\&. \fIstart1\fR and \fIend1\fR are line numbers in the
+"from" file of the first and last respectively lines of the hunk\&.
+\fIstart2\fR and \fIend2\fR are the corresponding line numbers in
+the "to" file\&. Line numbers start at 1\&. The \fIlines\fR is a list
+with two elements for each line in the hunk; the first specifies the
+type of a line and the second is the actual line contents\&. The type
+is \fB-\fR for lines only in the "from" file, \fB+\fR for lines
+that are only in the "to" file, and \fB0\fR for lines that are
+in both\&.
+.PP
+.SH "SEE ALSO"
+docstrip, doctools, doctools_fmt
+.SH KEYWORDS
+\\\&.ddt, \&.dtx, LaTeX, Tcl module, catalogue, diff, docstrip, doctools, documentation, literate programming, module, package indexing, patch, source
+.SH CATEGORY
+Documentation tools
+.SH COPYRIGHT
+.nf
+Copyright (c) 2003–2010 Lars Hellström <Lars dot Hellstrom at residenset dot net>
+
+.fi

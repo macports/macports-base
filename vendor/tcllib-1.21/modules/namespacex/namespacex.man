@@ -1,0 +1,174 @@
+[vset VERSION 0.3]
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin namespacex n [vset VERSION]]
+[keywords {extended namespace}]
+[keywords info]
+[keywords {namespace unknown}]
+[keywords {namespace utilities}]
+[keywords {state (de)serialization}]
+[keywords {unknown hooking}]
+[keywords utilities]
+[copyright {200? Neil Madden (http://wiki.tcl.tk/12790)}]
+[copyright {200? Various (http://wiki.tcl.tk/1489)}]
+[copyright {2010 Documentation, Andreas Kupries}]
+[moddesc   {Namespace utility commands}]
+[titledesc {Namespace utility commands}]
+[require Tcl 8.5]
+[require namespacex [opt [vset VERSION]]]
+[description]
+
+This package provides a number of utility commands for working with
+namespaces.
+
+The commands fall into four categories:
+
+[list_begin enumerated]
+
+[enum] Hook commands provide and manipulate a chain of commands which
+replaces the single regular [cmd "namespace unknown"] handler.
+
+[enum] An import command provides the ability to import any command
+from another namespace.
+
+[enum] Information commands allow querying of variables and child
+namespaces.
+
+[enum] State commands provide a means to serialize variable values in
+a namespace.
+
+[list_end]
+
+[section Commands]
+
+[list_begin definitions]
+
+[call [cmd {::namespacex hook add}]  [opt [arg namespace]] [arg cmdprefix]]
+
+Adds the [arg cmdprefix] to the chain of unknown command handlers that
+are invoked when the [arg namespace] would otherwise invoke its
+unknown handler.
+
+If [arg namespace] is not specified, then [arg cmdprefix] is added to
+the chain of handlers for the namespace of the caller.
+
+[para]
+The chain of [arg cmdprefix] are executed in reverse order of
+addition, [emph i.e.] the most recently added [arg cmdprefix] is
+executed first.
+
+When executed, [arg cmdprefix] has additional arguments appended to it
+as would any namespace unknown handler.
+
+[call [cmd {::namespacex hook proc}] [opt [arg namespace]] \
+     [arg arguments] [arg body]]
+
+Adds an anonymous procedure to the chain of namespace unknown handlers
+for the [arg namespace].
+
+[para] If [arg namespace] is not specified, then the handler is added
+to the chain of handlers for the namespace of the caller.
+
+[para] The [arg arguments] and [arg body] are specified as for the
+core [cmd proc] command.
+
+[call [cmd {::namespacex hook on}] [opt [arg namespace]] \
+     [arg guardcmdprefix] [arg actioncmdprefix]]
+
+Adds a guarded action to the chain of namespace unknown handlers for
+the [arg namespace].
+
+[para] If [arg namespace] is not specified, then the handler is added
+to the chain of handlers for the namespace of the caller.
+
+[para] The [arg guardcmdprefix] is executed first. If it returns a
+value that can be interpreted as false, then the next unknown hander
+in the chain is executed. Otherwise, [arg actioncmdprefix] is executed
+and the return value of the handler is the value returned by
+[arg actioncmdprefix].
+
+[para] When executed, both [arg guardcmdprefix] and
+[arg actioncmdprefix] have the same additional arguments appended as
+for any namespace unknown handler.
+
+[call [cmd {::namespacex hook next}] [arg arg]...]
+
+This command is available to namespace hooks to execute the next hook
+in the chain of handlers for the namespace.
+
+[call [cmd {::namespacex import fromns}] [arg "cmdname [opt "[arg newname] ..."]"]]
+
+Imports the command [arg cmdname] from the [arg fromns] namespace into
+the namespace of the caller.
+
+The [arg cmdname] command is imported even if the [arg fromns] did not
+originally export the command.
+
+[para] If [arg newname] is specified, then the imported command will
+be known by that name. Otherwise, the command retains is original name
+as given by [arg cmdname].
+
+[para] Additional pairs of [arg cmdname] / [arg newname] arguments may
+also be specified.
+
+[call [cmd {::namespacex info allchildren}] [arg namespace]]
+
+Returns a list containing the names of all child namespaces in the
+specified [arg namespace] and its children. The names are all fully
+qualified.
+
+[call [cmd {::namespacex info allvars}] [arg namespace]]
+
+Returns a list containing the names of all variables in the specified
+[arg namespace] and its children. The names are all given relative to
+[arg namespace], and [emph not] fully qualified.
+
+[call [cmd {::namespacex normalize}] [arg namespace]]
+
+Returns the absolute name of [arg namespace], which is resolved
+relative to the namespace of the caller, with all unneeded colon
+characters removed.
+
+[call [cmd {::namespacex info vars}] [arg namespace] [opt [arg pattern]]]
+
+Returns a list containing the names of all variables in
+the specified [arg namespace].
+
+If the [arg pattern] argument is specified, then only variables
+matching [arg pattern] are returned. Matching is determined using the
+same rules as for [cmd {string match}].
+
+[call [cmd {::namespacex state get}] [arg namespace]]
+
+Returns a dictionary holding the names and values of all variables in
+the specified [arg namespace] and its child namespaces.
+
+[para] Note that the names are all relative to [arg namespace], and
+[emph not] fully qualified.
+
+[call [cmd {::namespacex state set}] [arg namespace] [arg dict]]
+
+Takes a dictionary holding the names and values for a set of variables
+and replaces the current state of the specified [arg namespace] and
+its child namespaces with this state.
+
+The result of the command is the empty string.
+
+[call [cmd {::namespacex state drop}] [arg namespace]]
+
+Unsets all variables in the specified [arg namespace] and its child
+namespaces.
+
+The result of the command is the empty string.
+
+[call [cmd {::namespacex strip}] [arg prefix] [arg namespaces]]
+
+Each item in [arg namespaces] must be the absolute normalized name of
+a child namespace of namespace [arg prefix].
+
+Returns the corresponding list of relative names of child namespaces.
+
+[list_end]
+
+[vset CATEGORY namespacex]
+[include ../common-text/feedback.inc]
+[manpage_end]

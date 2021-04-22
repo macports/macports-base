@@ -1,0 +1,69 @@
+#- - -- --- ----- -------- ------------- ---------------------
+# cat.test -*- tcl -*-
+# (C) 2019 Andreas Kupries. BSD licensed.
+#- - -- --- ----- -------- ------------- ---------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+testsNeed        TclOO 1
+
+support {
+    use virtchannel_core/core.tcl   tcl::chan::core
+    use virtchannel_core/events.tcl tcl::chan::events
+    useLocal string.tcl tcl::chan::string
+}
+testing {
+    useLocal cat.tcl tcl::chan::cat
+}
+
+#- - -- --- ----- -------- ------------- ---------------------
+## No wrong#args, allowed to zero and up
+
+#- - -- --- ----- -------- ------------- ---------------------
+
+test tcl-chan-cat-2.0 {tell, nothing} -setup {
+    set c [tcl::chan::cat]
+} -body {
+    tell $c
+} -cleanup {
+    close $c
+    unset c
+} -result -1
+
+test tcl-chan-cat-2.1 {ticket 1975182bdd - file events} -setup {
+    # setup a cat'enated channel
+    set fa [tcl::chan::string "ABCDE..XYZ"]
+    set fb [tcl::chan::string "0123456789"]
+    set ch [tcl::chan::cat $fa $fb]
+} -body {
+    set r {}
+    chan event $ch readable {
+        if { [eof $ch] } {
+            set done .
+        } else {
+            lappend r [read $ch 4]
+        }
+    }    
+    vwait done
+    set r
+} -cleanup {
+    close $ch
+    unset ch fa fb r
+} -result {ABCD E..X YZ01 2345 6789 {}}
+
+#- - -- --- ----- -------- ------------- ---------------------
+# Explicit cleanup of loaded support classes.
+
+rename tcl::chan::events {}
+rename tcl::chan::core   {}
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

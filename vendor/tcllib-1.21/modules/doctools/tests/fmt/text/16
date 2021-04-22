@@ -1,0 +1,55 @@
+
+test-itemized-nested - 
+Generated from file '.FILE.' by tcllib/doctools with format 'text'
+test-itemized-nested(1) n .MODULE. ""
+
+NAME
+====
+
+test-itemized-nested -
+
+DESCRIPTION
+===========
+
+lorem ipsum dolores
+
+    *   lorem ipsum dolores
+
+        -   lorem ipsum dolores
+
+        -   lorem ipsum dolores
+
+            lorem ipsum dolores
+
+        -   lorem ipsum dolores
+
+            lorem ipsum dolores
+
+            lorem ipsum dolores
+
+    *   lorem ipsum dolores
+
+        lorem ipsum dolores
+
+    *   lorem ipsum dolores
+
+        lorem ipsum dolores
+
+        -   lorem ipsum dolores
+
+        -   lorem ipsum dolores
+
+            lorem ipsum dolores
+
+        -   lorem ipsum dolores
+
+            lorem ipsum dolores
+
+            lorem ipsum dolores
+
+        lorem ipsum dolores
+
+COPYRIGHT
+=========
+
+Copyright (c) .COPYRIGHT.

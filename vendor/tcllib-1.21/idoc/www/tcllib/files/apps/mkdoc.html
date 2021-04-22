@@ -1,0 +1,212 @@
+<!DOCTYPE html><html><head>
+<title>mkdoc - Source code documentation using Markdown</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'mkdoc.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; 2019-2022, Detlef Groth &amp;lt;detlef(at)dgroth(dot)de&amp;gt;
+   -->
+<!-- mkdoc.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../home">Tcllib Home</a>
+&#124; <a href="../../../toc.html">Main Table Of Contents</a>
+&#124; <a href="../../toc.html">Table Of Contents</a>
+&#124; <a href="../../../index.html">Keyword Index</a>
+&#124; <a href="../../../toc0.html">Categories</a>
+&#124; <a href="../../../toc1.html">Modules</a>
+&#124; <a href="../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">mkdoc(n) 0.7.0 tcllib &quot;Source code documentation using Markdown&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>mkdoc - Source code documentation extractor/converter application</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Command Line</a></li>
+<li class="doctools_section"><a href="#section3">Examples</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#section5">Code Copyright</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd"><a href="../modules/mkdoc/mkdoc.html">mkdoc</a></b> <b class="option">--help</b></a></li>
+<li><a href="#2"><b class="cmd"><a href="../modules/mkdoc/mkdoc.html">mkdoc</a></b> <b class="option">--version</b></a></li>
+<li><a href="#3"><b class="cmd"><a href="../modules/mkdoc/mkdoc.html">mkdoc</a></b> <b class="option">--license</b></a></li>
+<li><a href="#4"><b class="cmd"><a href="../modules/mkdoc/mkdoc.html">mkdoc</a></b> <i class="arg">input</i> <i class="arg">output</i> <span class="opt">?<b class="option">--css</b> <i class="arg">cssfile</i>?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>This document describes <b class="cmd"><a href="../modules/mkdoc/mkdoc.html">mkdoc</a></b>, an application to extract documentation embedded in
+source code files, be they &quot;<b class="file">.tcl</b>&quot;, or other.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Command Line</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd"><a href="../modules/mkdoc/mkdoc.html">mkdoc</a></b> <b class="option">--help</b></a></dt>
+<dd><p>The application prints a short help to standard output and exits.</p></dd>
+<dt><a name="2"><b class="cmd"><a href="../modules/mkdoc/mkdoc.html">mkdoc</a></b> <b class="option">--version</b></a></dt>
+<dd><p>The application prints its version number to standard output and exits.</p></dd>
+<dt><a name="3"><b class="cmd"><a href="../modules/mkdoc/mkdoc.html">mkdoc</a></b> <b class="option">--license</b></a></dt>
+<dd><p>The application prints its license to standard output and exits.</p></dd>
+<dt><a name="4"><b class="cmd"><a href="../modules/mkdoc/mkdoc.html">mkdoc</a></b> <i class="arg">input</i> <i class="arg">output</i> <span class="opt">?<b class="option">--css</b> <i class="arg">cssfile</i>?</span></a></dt>
+<dd><p>The application reads the <i class="arg">input</i> file, extracts the embedded documentation, and
+writes it to the <i class="arg">output</i> file.</p>
+<p>If the output file is not a &quot;<b class="file">.md</b>&quot; file the extracted documentation is
+converted to HTML before being written.</p>
+<p>When generating and writing HTML the default CSS stylesheet can be overridden by
+specifying the path to a custom stylesheet via option <b class="option">--css</b>.</p>
+<p>If the input file is a &quot;<b class="file">.md</b>&quot; file it is expected to contain Markdown as-is,
+instead of Markdown embedded into code.</p>
+<p>On the other side, when the file is considered code then the documentation is
+expected to be contained in all lines starting with the marker <b class="const">#'</b>.
+For script languages like Tcl the <b class="const">#</b> character of this marker means that the
+documentation is contained in the so-flagged comments.
+For other languages the marker and documentation may have to be embedded into multi-line
+comments.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Examples</a></h2>
+<pre class="doctools_example">
+    # Create HTML manual for a CPP file using a custom style sheet
+    mkdoc sample.cpp sample.html --css manual.css
+    # Extract the documentation from code as simple Markdown, ready to be processed
+    # further, for example with pandoc, or similar
+    mkdoc sample.cpp sample.md 
+    # Convert a Markdown file to HTML
+    mkdoc sample.md sample.html
+</pre>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain bugs and
+other problems. Please report such to the author of this package. Please also report any ideas for enhancements you may have for
+either package and/or documentation.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Code Copyright</a></h2>
+<p>BSD License type:</p>
+<p>The following terms apply to all files a ssociated with the software unless
+explicitly disclaimed in individual files.</p>
+<p>The authors hereby grant permission to use, copy, modify, distribute, and license
+this software and its documentation for any purpose, provided that existing copyright
+notices are retained in all copies and that this notice is included verbatim in any
+distributions. No written agreement, license, or royalty fee is required for any of the
+authorized uses.  Modifications to this software may be copyrighted by their authors and
+need not follow the licensing terms described here, provided that the new terms are
+clearly indicated on the first page of each file where they apply.</p>
+<p>In no event shall the authors or distributors be liable to any party for direct,
+indirect, special, incidental, or consequential damages arising out of the use of this
+software, its documentation, or any derivatives thereof, even if the authors have been
+advised of the possibility of such damage.</p>
+<p>The authors and distributors specifically disclaim any warranties, including, but
+not limited to, the implied warranties of merchantability, fitness for a particular
+purpose, and non-infringement.
+This software is provided on an &quot;as is&quot; basis, and the authors and distributors have no
+obligation to provide maintenance, support, updates, enhancements, or modifications.</p>
+<p><em>RESTRICTED RIGHTS</em>: Use, duplication or disclosure by the government is
+subject to the restrictions as set forth in subparagraph (c) (1) (ii) of the Rights in
+Technical Data and Computer Software Clause as DFARS 252.227-7013 and FAR 52.227-19.</p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Text processing</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2019-2022, Detlef Groth &lt;detlef(at)dgroth(dot)de&gt;</p>
+</div>
+</div></body></html>

@@ -1,0 +1,55 @@
+
+test-enumerated-itemized - 
+Generated from file '.FILE.' by tcllib/doctools with format 'text'
+test-enumerated-itemized(1) n .MODULE. ""
+
+NAME
+====
+
+test-enumerated-itemized -
+
+DESCRIPTION
+===========
+
+lorem ipsum dolores
+
+    [1] lorem ipsum dolores
+
+        *   lorem ipsum dolores
+
+        *   lorem ipsum dolores
+
+            lorem ipsum dolores
+
+        *   lorem ipsum dolores
+
+            lorem ipsum dolores
+
+            lorem ipsum dolores
+
+    [2] lorem ipsum dolores
+
+        lorem ipsum dolores
+
+    [3] lorem ipsum dolores
+
+        lorem ipsum dolores
+
+        *   lorem ipsum dolores
+
+        *   lorem ipsum dolores
+
+            lorem ipsum dolores
+
+        *   lorem ipsum dolores
+
+            lorem ipsum dolores
+
+            lorem ipsum dolores
+
+        lorem ipsum dolores
+
+COPYRIGHT
+=========
+
+Copyright (c) .COPYRIGHT.

@@ -1,0 +1,975 @@
+# tool.test - Copyright (c) 2015 Sean Woods
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 2
+testsNeed        TclOO 1
+
+
+support {
+    use oodialect/oodialect.tcl oo::dialect
+    use dicttool/dicttool.tcl   dicttool
+    use cron/cron.tcl           cron
+    use oometa/oometa.tcl       oo::meta
+    use sha1/sha1.tcl           sha1
+}
+testing {
+    useLocal tool.tcl tool
+}
+
+# -------------------------------------------------------------------------
+
+###
+# Test the underlying components
+###
+::tool::event::subscribe ::BARNEY ::BETTY *
+test tool-subscribe-001 {Test that tool subscribe inserts a pattern into the dictionary} {
+  set ::tool::object_subscribe(::BARNEY)
+} {::BETTY *}
+
+test tool-notify-001 {Test the distribution list} {
+  ::tool::event::Notification_list ::BETTY niceday
+} ::BARNEY
+
+::tool::event::subscribe ::BARNEY ::BETTY *
+test tool-subscribe-002 {Test that tool subscribe inserts a pattern into the dictionary only once} {
+  set ::tool::object_subscribe(::BARNEY)
+} {::BETTY *}
+
+::tool::event::subscribe ::BARNEY ::BETTY niceday
+test tool-subscribe-002 {Test that tool subscribe will not add a more specific pattern if a general one already exists} {
+  set ::tool::object_subscribe(::BARNEY)
+} {::BETTY *}
+
+test tool-notify-002 {Test the distribution list} {
+  ::tool::event::Notification_list ::BETTY niceday
+} ::BARNEY
+
+::tool::event::subscribe ::BARNEY * caring
+test tool-subscribe-003 {Test that tool subscribe inserts a global pattern} {
+  set ::tool::object_subscribe(::BARNEY)
+} {::BETTY * * caring}
+
+::tool::event::subscribe ::BARNEY * sharing
+test tool-subscribe-004 {Test that tool subscribe inserts a global pattern} {
+  set ::tool::object_subscribe(::BARNEY)
+} {::BETTY * * {caring sharing}}
+
+::tool::event::subscribe ::BARNEY ::FRED sharing
+::tool::event::unsubscribe ::BARNEY * sharing
+test tool-subscribe-005 {Test that tool unsubscribe removes a global pattern} {
+  set ::tool::object_subscribe(::BARNEY)
+} {::BETTY * * caring}
+
+::tool::event::subscribe ::BARNEY ::FRED sharing
+::tool::event::subscribe ::BARNEY ::FRED niceday
+::tool::event::subscribe ::BETTY ::FRED niceday
+
+test tool-subscribe-005 {Test that tool unsubscribe removes a global pattern} {
+  set ::tool::object_subscribe(::BARNEY)
+} {::BETTY * * caring ::FRED {sharing niceday}}
+
+test tool-notify-002 {Test the distribution list} {
+  ::tool::event::Notification_list ::BETTY caring
+} ::BARNEY
+
+test tool-notify-002 {Test the distribution list} {
+  lsort -dictionary [::tool::event::Notification_list ::FRED niceday]
+} {::BARNEY ::BETTY}
+
+# Test that destroy auto-cleans up the event list
+::tool::object_destroy ::BARNEY
+test tool-destroy-001 {Test that destroy auto-cleans up the event list} {
+  info exists ::tool::object_subscribe(::BARNEY)
+} 0
+
+# Start over
+array unset ::tool::object_subscribe
+
+
+tool::class create OptionClass {
+  property color green
+  property mass  1200kg
+  option bodystyle {default: sedan}
+  option master {class organ default ::noop}
+}
+
+tool::class create OptionClass2 {
+  superclass OptionClass
+  property mass  1400kg
+  option color {default: blue}
+}
+
+OptionClass create ObjectOptionTest1 
+OptionClass create ObjectOptionTest2 bodystyle wagon transmission standard
+OptionClass2 create ObjectOptionTest3
+OptionClass2 create ObjectOptionTest4 bodystyle SUV transmission cvt color white
+
+###
+# Property ignores options
+###
+test tool-options-001 {Simple property queries} {
+  ObjectOptionTest1 meta cget color
+} green
+
+test tool-options-002 {Simple property queries} {
+  ObjectOptionTest2 meta cget color
+} green
+
+test tool-options-003 {Simple property queries} {
+  ObjectOptionTest3 meta cget color
+} green
+
+test tool-options-004 {Simple property queries} {
+  ObjectOptionTest4 meta cget color
+} green
+
+###
+# Cget consults the options
+###
+test tool-options-005 {Simple property queries} {
+  ObjectOptionTest1 cget color
+} green
+
+test tool-options-006 {Simple property queries} {
+  ObjectOptionTest2 cget color
+} green
+
+test tool-options-007 {Simple property queries} {
+  ObjectOptionTest3 cget color
+} blue
+
+test tool-options-008 {Simple property queries} {
+  ObjectOptionTest4 cget color
+} white
+
+###
+# Tests with options in an object changing class
+###
+test tool-options-009 {Simple property queries} {
+  ObjectOptionTest3 meta cget mass
+} 1400kg
+
+ObjectOptionTest3 morph OptionClass
+# The option for color was already set. It should remain
+test tool-options-010 {Simple property queries} {
+  ObjectOptionTest3 cget color
+} blue
+# The "color" property on the other hand should revert
+test tool-options-011 {Simple property queries} {
+  ObjectOptionTest3 meta cget color
+} green
+# The "mass" property on the other hand should revert
+test tool-options-012 {Simple property queries} {
+  ObjectOptionTest3 meta cget mass
+} 1200kg
+
+# Change a OptionClass to a OptionClass2
+
+test tool-options-013 {Simple property queries} {
+  ObjectOptionTest2 meta cget mass
+} 1200kg
+
+ObjectOptionTest2 morph OptionClass2
+# When entering OptionClass2, the object will get any new options
+test tool-options-014 {Simple property queries} {
+  ObjectOptionTest2 cget color
+} blue
+
+test tool-options-015 {Simple property queries} {
+  ObjectOptionTest2 meta cget mass
+} 1400kg
+
+# When changing back, the set option remains
+ObjectOptionTest2 morph OptionClass
+test tool-options-016 {Simple property queries} {
+  ObjectOptionTest2 cget color
+} blue
+
+test tool-options-017 {Simple property queries} {
+  ObjectOptionTest2 meta cget mass
+} 1200kg
+
+
+tool::class create ArrayEnsembleClass {
+  # Burned in defaults
+  meta branchset define {
+    color: pink
+  }
+
+  array_ensemble define define {
+    initialize {
+      foo bar
+    }
+    custom {
+      return custom
+    }
+    true {
+      return true
+    }
+    false {
+      return false
+    }
+  }
+}
+
+ArrayEnsembleClass create ArrayEnsembleObject
+
+test tool-ensemble-001 {Test Array Ensemble} {
+  ArrayEnsembleObject define true
+} true
+test tool-ensemble-002 {Test Array Ensemble} {
+  ArrayEnsembleObject define false
+} false
+test tool-ensemble-003 {Test Array Ensemble retrieve initial value} {
+  ArrayEnsembleObject define get foo
+} bar
+test tool-ensemble-004 {Test Array Ensemble Store a value} {
+  ArrayEnsembleObject define set cc /usr/bin/cc
+  ArrayEnsembleObject define get cc
+} /usr/bin/cc
+
+test tool-ensemble-005 {Test array add} {
+  ArrayEnsembleObject define add path /bin
+  ArrayEnsembleObject define get path
+} /bin
+
+test tool-ensemble-005 {Test array add} {
+  ArrayEnsembleObject define add path /usr/bin
+  ArrayEnsembleObject define get path
+} {/bin /usr/bin}
+
+test tool-ensemble-006 {Test array add (again)} {
+  ArrayEnsembleObject define add path /usr/bin
+  ArrayEnsembleObject define get path
+} {/bin /usr/bin}
+
+
+test tool-ensemble-007 {Test array lappend} {
+  ArrayEnsembleObject define lappend path /usr/bin
+  ArrayEnsembleObject define get path
+} {/bin /usr/bin /usr/bin}
+
+test tool-ensemble-008 {Test array remove} {
+  ArrayEnsembleObject define remove path /usr/bin
+  ArrayEnsembleObject define get path
+} {/bin}
+
+test tool-ensemble-009 {Test array exists} {
+  ArrayEnsembleObject define exists counter
+} 0
+
+test tool-ensemble-010 {Test array incr} {
+  ArrayEnsembleObject define incr counter
+  ArrayEnsembleObject define get counter
+} 1
+
+test tool-ensemble-011 {Test array incr} {
+  ArrayEnsembleObject define incr counter
+  ArrayEnsembleObject define get counter
+} 2
+
+test tool-ensemble-012 {Test array exists} {
+  ArrayEnsembleObject define exists counter
+} 1
+
+test tool-ensemble-013 {Test array reset} {
+  ArrayEnsembleObject define reset
+  lsort -stride 2 [ArrayEnsembleObject define dump]
+} {color pink foo bar}
+
+tool::class create DictEnsembleClass {
+  # Burned in defaults
+  meta branchset define {
+    color: pink
+  }
+
+  dict_ensemble define define {
+    initialize {
+      foo bar
+    }
+    custom {
+      return custom
+    }
+    true {
+      return true
+    }
+    false {
+      return false
+    }
+  }
+}
+
+DictEnsembleClass create DictEnsembleObject
+
+test tool-ensemble-001 {Test Array Ensemble} {
+  DictEnsembleObject define true
+} true
+test tool-ensemble-002 {Test Array Ensemble} {
+  DictEnsembleObject define false
+} false
+test tool-ensemble-003 {Test Array Ensemble retrieve initial value} {
+  DictEnsembleObject define get foo
+} bar
+test tool-ensemble-004 {Test Array Ensemble Store a value} {
+  DictEnsembleObject define set cc /usr/bin/cc
+  DictEnsembleObject define get cc
+} /usr/bin/cc
+
+test tool-ensemble-005 {Test array add} {
+  DictEnsembleObject define add path /bin
+  DictEnsembleObject define get path
+} /bin
+
+test tool-ensemble-005 {Test array add} {
+  DictEnsembleObject define add path /usr/bin
+  DictEnsembleObject define get path
+} {/bin /usr/bin}
+
+test tool-ensemble-006 {Test array add (again)} {
+  DictEnsembleObject define add path /usr/bin
+  DictEnsembleObject define get path
+} {/bin /usr/bin}
+
+
+test tool-ensemble-007 {Test array lappend} {
+  DictEnsembleObject define lappend path /usr/bin
+  DictEnsembleObject define get path
+} {/bin /usr/bin /usr/bin}
+
+test tool-ensemble-008 {Test array remove} {
+  DictEnsembleObject define remove path /usr/bin
+  DictEnsembleObject define get path
+} {/bin}
+
+test tool-ensemble-009 {Test array exists} {
+  DictEnsembleObject define exists counter
+} 0
+
+test tool-ensemble-010 {Test array incr} {
+  DictEnsembleObject define incr counter
+  DictEnsembleObject define get counter
+} 1
+
+test tool-ensemble-011 {Test array incr} {
+  DictEnsembleObject define incr counter
+  DictEnsembleObject define get counter
+} 2
+
+test tool-ensemble-012 {Test array exists} {
+  DictEnsembleObject define exists counter
+} 1
+
+test tool-ensemble-013 {Test array reset} {
+  DictEnsembleObject define reset
+  lsort -stride 2 [DictEnsembleObject define dump]
+} {color pink foo bar}
+
+
+
+
+test tool-option_class-001 {Test option class} {
+  ObjectOptionTest1 meta get option master
+} {default: ::noop class: organ widget: label set-command: {my graft %field% %value%} get-command: {my organ %field%}}
+
+proc GNDN args {
+  return $args
+}
+
+ObjectOptionTest1 configure master GNDN
+test tool-option_class-002 {Test option class} {
+  ObjectOptionTest1 organ master
+} GNDN
+
+test tool-option_class-003 {Test option class} {
+  ObjectOptionTest1 <master> puts FOO
+} {puts FOO}
+
+OptionClass2 create ObjectOptionTest5 bodystyle SUV transmission cvt color white master GNDN
+
+test tool-option_class-002 {Test option class} {
+  ObjectOptionTest5 organ master
+} GNDN
+
+test tool-option_class-003 {Test option class} {
+  ObjectOptionTest5 <master> puts FOO
+} {puts FOO}
+
+###
+# Second round of testing
+# Make sure the various and sundry ways to generate
+# dynamic methods follow through morphs, mixins,
+# and class method definitions
+###
+
+tool::class create WidgetClass {
+  class_method unknown args {
+    set tkpath [lindex $args 0]
+    if {[string index $tkpath 0] eq "."} {
+      set obj [my new $tkpath {*}[lrange $args 1 end]]
+      $obj tkalias $tkpath
+      return $tkpath
+    }
+    next {*}$args
+  }
+  
+  constructor {TkPath args} {
+    my variable hull
+    set hull $TkPath
+    my graft hull $TkPath
+  }
+    
+  method tkalias tkname {
+    set oldname $tkname
+    my variable tkalias
+    set tkalias $tkname
+    set self [self]
+    set hullwidget [::info object namespace $self]::tkwidget
+    my graft tkwidget $hullwidget
+    #rename ::$tkalias $hullwidget
+    my graft hullwidget $hullwidget
+    ::tool::object_rename [self] ::$tkalias
+    #my Hull_Bind $tkname
+    return $hullwidget
+  }
+}
+
+test tool-class-method-001 {Test Tk style creator} {
+  WidgetClass .foo
+  .foo organ hull
+} {.foo}
+
+tool::class create WidgetNewClass {
+  superclass WidgetClass
+}
+
+test tool-class-method-002 {Test Tk style creator inherited by morph} {
+  WidgetNewClass .bar
+  .bar organ hull
+} {.bar}
+
+tool::class create DummyClass {
+  method i_am_here {} {
+    return DummyClass
+  }
+}
+
+
+tool::class create OrganClass {
+  option db {class organ default ::noop}
+  constructor args {
+    my config set $args
+  }
+}
+DummyClass create ::DbObj
+OrganClass create OrganObject db ::DbObj
+test tool-constructor-args-001 {Test that organs passed as options map correctly} {
+  OrganObject organ db
+} {::DbObj} 
+test tool-constructor-args-002 {Test that organs passed as options map correctly} {
+  OrganObject cget db
+} {::DbObj}
+
+tool::object create MorphOrganObject#1
+tool::object create MorphOrganObject#2
+MorphOrganObject#2 graft db ::DbObj
+
+MorphOrganObject#1 morph OrganClass
+test tool-constructor-args-003 {Test that a default for an organ option is applied after a morph} {
+  MorphOrganObject#1  organ db
+} {::noop}
+
+MorphOrganObject#2 morph OrganClass
+test tool-constructor-args-004 {Test that a default for an organ option is NOT applied if the graft exists following a morph} {
+  MorphOrganObject#2  organ db
+} {::DbObj}
+
+tool::object create MorphOrganObject#3
+tool::object create MorphOrganObject#4
+MorphOrganObject#4 graft db ::DbObj
+MorphOrganObject#3 mixin OrganClass
+test tool-constructor-args-005 {Test that a default for an organ option is applied during a mixin} {
+  MorphOrganObject#3  organ db
+} {::noop}
+
+MorphOrganObject#4 mixin OrganClass
+test tool-constructor-args-006 {Test that a default for an organ option is NOT applied if the graft exists during a mixin} {
+  MorphOrganObject#4  organ db
+} {::DbObj}
+
+###
+# Test ensemble inheritence
+###
+tool::define NestedClassA {
+  method do::family {
+    return [self class]
+  }
+  method do::something {
+    return A
+  }
+  method do::whop {
+    return A
+  }
+}
+tool::define NestedClassB {
+  superclass NestedClassA
+  method do::family {
+    set r [next family]
+    lappend r [self class]
+    return $r
+  }
+  method do::whop {
+    return B
+  }
+}
+tool::define NestedClassC {
+  superclass NestedClassB
+
+  method do::somethingelse {
+    return C
+  }
+}
+tool::define NestedClassD {
+  superclass NestedClassB
+
+  method do::somethingelse {
+    return D
+  }
+}
+
+tool::define NestedClassE {
+  superclass NestedClassD NestedClassC
+}
+
+tool::define NestedClassF {
+  superclass NestedClassC NestedClassD
+}
+
+NestedClassC create NestedObjectC
+
+test tool-ensemble-001 {Test that an ensemble can access [next] even if no object of the ancestor class have been instantiated} {
+  NestedObjectC do family
+} {::NestedClassA ::NestedClassB ::NestedClassC}
+
+test tool-ensemble-002 {Test that a later ensemble definition trumps a more primitive one} {
+  NestedObjectC do whop
+} {B}
+test tool-ensemble-003 {Test that an ensemble definitions in an ancestor carry over} {
+  NestedObjectC do something
+} {A}
+
+NestedClassE create NestedObjectE
+NestedClassF create NestedObjectF
+
+
+test tool-ensemble-004 {Test that ensembles follow the same rules for inheritance as methods} {
+  NestedObjectE do somethingelse
+} {D}
+
+test tool-ensemble-005 {Test that ensembles follow the same rules for inheritance as methods} {
+  NestedObjectF do somethingelse
+} {C}
+
+###
+# Set of tests to exercise the mixinmap system
+###
+tool::define MixinMainClass {
+  variable mainvar unchanged
+  
+  method test::which {} {
+    my variable mainvar
+    return $mainvar
+  }
+  
+  method test::main args {
+    puts [list this is main $method $args]
+  }
+
+}
+
+tool::define MixinTool {
+  variable toolvar unchanged.mixin
+  meta set mixin unmap-script: {
+my test untool $class
+  }
+  meta set mixin map-script: {
+my test tool $class
+  }
+  meta set mixin name: {Generic Tool}
+  
+  method test::untool class { 
+    my variable toolvar mainvar
+    set mainvar {}
+    set toolvar {} 
+  }
+  
+  method test::tool class {
+    my variable toolvar mainvar
+    set mainvar [$class meta get mixin name:] 
+    set toolvar [$class meta get mixin name:] 
+  }
+}
+
+tool::define MixinToolA {
+  superclass MixinTool
+  meta set mixin name: {Tool A}
+}
+
+tool::define MixinToolB {
+  superclass MixinTool
+  meta set mixin name: {Tool B}
+
+  method test_newfunc {} {
+    return "B"
+  }
+}
+
+MixinMainClass create mixintest
+
+test tool-mixinmap-001 {Test object prior to mixins} {
+  mixintest test which
+} {unchanged}
+
+mixintest mixinmap tool MixinToolA
+test tool-mixinmap-002 {Test mixin map script ran} {
+  mixintest test which
+} {Tool A}
+
+mixintest mixinmap tool MixinToolB
+test tool-mixinmap-003 {Test mixin map script ran} {
+  mixintest test which
+} {Tool B}
+
+test tool-mixinmap-003 {Test mixin map script ran} {
+  mixintest test_newfunc
+} {B}
+
+mixintest mixinmap tool {}
+test tool-mixinmap-001 {Test object prior to mixins} {
+  mixintest test which
+} {}
+
+###
+# Coroutine tests
+###
+tool::define coro_example {
+  
+  dict_ensemble coro_a_info coro_a_info {
+    initialize {
+      restart 0
+      phase 0
+      loop  0
+      event 0
+      idle  0
+    }
+  }
+  
+  coroutine coro_a {
+    my coro_a_info merge {
+      phase 0
+      loop  0
+      event 0
+      idle  0
+    }
+    yield [info coroutine]
+    while 1 {
+      my coro_a_info incr phase
+      my coro_a_info set  loop 0
+      while 1 {
+        if {[my $coro next event]} {
+          my coro_a_info incr idle
+          yield
+          continue
+        }
+        my coro_a_info set last_event $event
+        my coro_a_info incr loop
+        my coro_a_info incr event
+        switch [lindex $event 0] {
+          phase {
+            break
+          }
+          quit {
+            return
+          }
+          b {
+            my coro_b send [lrange $event 1 end]
+          }
+        }
+      }
+    }
+  }
+  
+  dict_ensemble coro_b_info coro_b_info {
+    initialize {
+      restart 0
+      phase 0
+      loop  0
+      event 0
+      idle  0
+    }
+  }
+  
+  coroutine coro_b {
+    my coro_b_info merge {
+      phase 0
+      loop  0
+      event 0
+      idle  0
+    }
+    yield [info coroutine]
+
+    while 1 {
+      my coro_b_info incr phase
+      my coro_b_info set  loop 0
+      while 1 {
+        if {[my $coro next event]} {
+          my coro_b_info incr idle
+          yield
+          continue
+        }
+        my coro_b_info incr loop
+        my coro_b_info incr event
+        switch [lindex $event 0] {
+          phase break
+          quit return
+          a {
+            my coro_a [lrange $event 1 end]
+          }
+        }
+      }
+    }
+  }
+  
+
+  dict_ensemble coro_yodawg_info coro_yodawg_info {
+    initialize {
+      restart 0
+      phase 0
+      loop  0
+      event 0
+      idle  0
+      yodawg  0
+    }
+  }
+  
+  coroutine coro_yodawg {
+    my coro_yodawg_info merge {
+      phase 0
+      loop  0
+      event 0
+      idle  0
+      yodawg  0
+      iloop 0
+    }
+    yield [info coroutine]
+
+    while 1 {
+      my coro_yodawg_info incr phase
+      my coro_yodawg_info set  loop 0
+      while 1 {
+        if {[my $coro next event]} {
+          my coro_yodawg_info incr idle
+          yield
+          continue
+        }
+        my coro_yodawg_info set last_event $event
+        my coro_yodawg_info incr loop
+        my coro_yodawg_info incr event
+        switch [lindex $event 0] {
+          phase break
+          quit {
+            return
+          }
+          yodawg {
+            my coro_yodawg_info incr yodawg
+            if {[my coro_yodawg_info get yodawg] <32} {
+              my coro_yodawg yodawg
+              yield
+            }
+          }
+          iloop {
+            my coro_yodawg_info incr iloop
+          }
+        }
+      }
+    }
+  }
+}
+
+set obj [coro_example new]
+$obj coro_a none
+test tool-coroutine-001-00 {Test coroutine } {
+  $obj coro_a_info get restart
+} 0
+test tool-coroutine-001-01 {Test coroutine } {
+  $obj coro_a_info get loop
+} 1
+$obj coro_a none
+test tool-coroutine-001-02 {Test coroutine } {
+  $obj coro_a_info get loop
+} 2
+$obj coro_a none
+test tool-coroutine-001-03 {Test coroutine } {
+  $obj coro_a_info get loop
+} 3
+$obj coro_a phase
+test tool-coroutine-002-01 {Test coroutine } {
+  $obj coro_a_info get loop
+} 0
+test tool-coroutine-002-02 {Test coroutine } {
+  $obj coro_a_info get phase
+} 2
+
+###
+# Start both coroutines over
+$obj coro_a restart
+$obj coro_b restart
+
+test tool-coroutine-003-01-A {Test coroutine } {
+  $obj coro_a_info get phase
+} 0
+test tool-coroutine-003-01-B {Test coroutine } {
+  $obj coro_a_info get loop
+} 0
+test tool-coroutine-003-01-C {Test coroutine } {
+  $obj coro_a_info get phase
+} 0
+test tool-coroutine-003-01-D {Test coroutine } {
+  $obj coro_b_info get loop
+} 0
+
+
+$obj coro_a b
+###
+# Test coroutines calling coroutines
+test tool-coroutine-003-02-A {Test coroutine } {
+  $obj coro_a_info get loop
+} 1
+test tool-coroutine-003-02-B {Test coroutine } {
+  $obj coro_b_info get loop
+} 1
+
+$obj coro_b a
+###
+# Test coroutines calling coroutines
+# Note: Each call to each other coroutine can only happen
+# once per "send"
+###
+test tool-coroutine-003-03-A {Test coroutine } {
+  $obj coro_a_info get loop
+} 1
+test tool-coroutine-003-03-B {Test coroutine } {
+  $obj coro_b_info get loop
+} 2
+
+###
+# Rig the coroutine to call itself back from the other coroutine
+###
+$obj coro_b a b
+###
+# Test coroutines calling coroutines
+test tool-coroutine-003-04-A {Test coroutine } {
+  $obj coro_a_info get loop
+} 2
+test tool-coroutine-003-04-B {Test coroutine } {
+  $obj coro_b_info get loop
+} 3
+
+# We should see A update in the background
+$obj coro_b loop
+test tool-coroutine-003-05-A {Test coroutine } {
+  $obj coro_a_info get loop
+} 3
+test tool-coroutine-003-05-B {Test coroutine } {
+  $obj coro_b_info get loop
+} 5
+
+# Now only B advances
+$obj coro_b loop
+test tool-coroutine-003-05-A {Test coroutine } {
+  $obj coro_a_info get loop
+} 3
+test tool-coroutine-003-05-B {Test coroutine } {
+  $obj coro_b_info get loop
+} 6
+
+# Now only A advances
+$obj coro_a loop
+test tool-coroutine-003-06-A {Test coroutine } {
+  $obj coro_a_info get loop
+} 4
+test tool-coroutine-003-06-B {Test coroutine } {
+  $obj coro_b_info get loop
+} 6
+
+###
+# Test a malformed coroutine that calls itself
+# The safety mechanism should allow the event to re-schedule itself
+# but only once per call, and only execute once per call
+###
+test tool-coroutine-yodawg-00 {Test coroutine - yodawg } {
+  $obj coro_yodawg running
+} 0
+
+$obj coro_yodawg yodawg
+test tool-coroutine-yodawg-01 {Test coroutine - yodawg } {
+  $obj coro_yodawg_info get yodawg
+} 1
+$obj coro_yodawg
+test tool-coroutine-yodawg-02 {Test coroutine - yodawg } {
+  $obj coro_yodawg_info get yodawg
+} 2
+$obj coro_yodawg yodawg
+$obj coro_yodawg yodawg
+test tool-coroutine-yodawg-03 {Test coroutine - yodawg } {
+  $obj coro_yodawg_info get yodawg
+} 4
+for {set x 1} {$x < 32} {incr x} {
+  $obj coro_yodawg iloop
+  set a [$obj coro_yodawg_info get yodawg]
+  set levent [$obj coro_yodawg_info get last_event]
+  set iloop [$obj coro_yodawg_info get iloop]
+  if {$a > 32} break
+  test tool-coroutine-yodawg-03-yd-$x {Test coroutine - yodawg } {
+    set a
+  } [expr {4+$x}]
+  test tool-coroutine-yodawg-03-le-$x {Test coroutine - yodawg } {
+    set levent
+  } yodawg
+  # The iloop should *ALSO* be running side-by-side with the yodawg
+  # However, not until the first three yodawg events are processed
+  # in the queue
+  if {$x > 3} {
+    test tool-coroutine-yodawg-03-il-$x {Test coroutine - yodawg } {
+      set iloop
+    } [expr {$x-3}]
+  }
+}
+###
+# With the yodawgs resolved we should now
+# be processing events in order once more
+# Add one more event
+#
+# NOTE the lagging iloop events do catch up
+###
+$obj coro_yodawg end
+test tool-coroutine-yodawg-03-iloop-count {Test coroutine - yodawg } {
+  $obj coro_yodawg_info get iloop
+} $x
+test tool-coroutine-yodawg-03-endevent {Test coroutine - yodawg } {
+  $obj coro_yodawg_info get last_event
+} end
+
+# -------------------------------------------------------------------------
+
+
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

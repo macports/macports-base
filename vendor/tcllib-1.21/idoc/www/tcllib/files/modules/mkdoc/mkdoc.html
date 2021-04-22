@@ -1,0 +1,260 @@
+<!DOCTYPE html><html><head>
+<title>mkdoc - Source code documentation using Markdown</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'mkdoc.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; 2019-2022, Detlef Groth &amp;lt;detlef(at)dgroth(dot)de&amp;gt;
+   -->
+<!-- mkdoc.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+&#124; <a href="../../../../toc.html">Main Table Of Contents</a>
+&#124; <a href="../../../toc.html">Table Of Contents</a>
+&#124; <a href="../../../../index.html">Keyword Index</a>
+&#124; <a href="../../../../toc0.html">Categories</a>
+&#124; <a href="../../../../toc1.html">Modules</a>
+&#124; <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">mkdoc(n) 0.7.0 tcllib &quot;Source code documentation using Markdown&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>mkdoc - Extracts and optionally converts Markdown comments in source code to HTML</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Examples</a></li>
+<li class="doctools_section"><a href="#section3">Formatting</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#section5">Code Copyright</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">Markdown <span class="opt">?1.2.1?</span></b></li>
+<li>package require <b class="pkgname">yaml <span class="opt">?0.4.1?</span></b></li>
+<li>package require <b class="pkgname">mkdoc <span class="opt">?0.7.0?</span></b></li>
+<li>package require <b class="pkgname">hook</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::mkdoc::mkdoc</b> <i class="arg">infile</i> <i class="arg">outfile</i> <span class="opt">?<b class="option">-css</b> <i class="arg">cssfile</i>?</span></a></li>
+<li><a href="#2"><b class="cmd">::mkdoc::run</b> <i class="arg">infile</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The package <b class="package">mkdoc</b> provides a command to extract documentation embedded in code
+and optionally convert these comments into HTML.
+The latter uses Tcllib's <b class="package"><a href="../markdown/markdown.html">Markdown</a></b> package.
+Each line of the embedded documentation begins with the special comment marker
+<b class="const">#'</b>.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::mkdoc::mkdoc</b> <i class="arg">infile</i> <i class="arg">outfile</i> <span class="opt">?<b class="option">-css</b> <i class="arg">cssfile</i>?</span></a></dt>
+<dd><p>The command reads the specified <i class="arg">infile</i> and extracts the code comments introduced by
+the <b class="const"> #'</b> marker.  If the <i class="arg">outfile</i> is either a &quot;<b class="file">.html</b>&quot; or &quot;<b class="file">.htm</b>&quot;
+file the Markdown is converted into HTML using either a default style or the specified
+style sheet <i class="arg">cssfile</i>.</p>
+<p>All arguments are paths to the files to read from or write to.</p>
+<p>The result of the command is the empty string.</p>
+<p>See section <span class="sectref"><a href="#section3">Formatting</a></span> for the supported Markdown syntax and extensions
+to it.</p></dd>
+<dt><a name="2"><b class="cmd">::mkdoc::run</b> <i class="arg">infile</i></a></dt>
+<dd><p>The command reads the specified <i class="arg">infile</i>, extracts the embedded documentation, and
+then executes the contents of the first example, i.e. <b class="const">```</b>-quoted block, found in
+the <b class="const">Example</b> section.</p>
+<p>Here is such an example which will be executed by the Tcl interpreter</p>
+<pre class="doctools_example">
+    #' ## &lt;a name=&quot;example&quot;&gt;Example&lt;/a&gt;
+    #' 
+    #' ```
+    #' puts &quot;Hello mkdoc package&quot;
+    #' puts &quot;I am in the example section&quot;
+    #' ```
+</pre>
+<p><em>DANGER, BEWARE</em>.
+Failing to open the <i class="arg">infile</i> causes the command to <em>exit</em> the entire process.</p>
+<p>Use of this command in a general context is not recommended.</p></dd>
+</dl>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Examples</a></h2>
+<p>The example below demonstrates the conversion of the documentation embedded into the file
+&quot;<b class="file">mkdoc.tcl</b>&quot; itself:</p>
+<pre class="doctools_example">
+    package require mkdoc
+    # extracting the Markdown
+    mkdoc::mkdoc mkdoc.tcl mkdoc.md
+    # converting Markdown to HTML
+    mkdoc::mkdoc mkdoc.md mkdoc.html
+    # direct conversion without intermediate file
+    mkdoc::mkdoc mkdoc.tcl mkdoc.html
+</pre>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Formatting</a></h2>
+<p>The package supports the syntax supported by Tcllib's <b class="package"><a href="../markdown/markdown.html">Markdown</a></b> package.</p>
+<p>It further supports a set of simple YAML headers whose information is inserted into
+appropriate HTML <b class="const">meta</b>-tags. The supported keys are</p>
+<dl class="doctools_definitions">
+<dt><b class="const">author</b></dt>
+<dd><p>Set the document author. Defaults to <b class="const">NN</b>.</p></dd>
+<dt><b class="const">title</b></dt>
+<dd><p>Set the document title. Defaults to <b class="const">Documentation </b><b class="variable">filename</b>].</p></dd>
+<dt><b class="const">date</b></dt>
+<dd><p>Sets the document date. Defaults to the current day.</p></dd>
+<dt><b class="const">css</b></dt>
+<dd><p>Sets a custom CSS stylesheet. Defaults to the internal mkdoc sheet.</p></dd>
+</dl>
+<p><em>Note</em> that in Markdown output mode these headers are simply passed through
+into the result. This is proper, as processors like <b class="syscmd">pandoc</b> are able to use them
+as well.</p>
+<p>See the example below for the syntax:</p>
+<pre class="doctools_example">
+    #' ---
+    #' title: mkdoc::mkdoc 0.7.0
+    #' author: Detlef Groth, Schwielowsee, Germany
+    #' date: 2022-04-17 
+    #' css: mini.css 
+    #' ---
+    #'
+</pre>
+<p>Another extension over standard Markdown is the support of a single level of includes.</p>
+<p>See the example below for the syntax:</p>
+<pre class="doctools_example">
+    #' #include &quot;path/to/include/file&quot;
+</pre>
+<p><em>Note</em>, the double-quotes around the path are part of the syntax.</p>
+<p><em>Beware</em> further that relative paths are resolved relative to the current
+working directory, and <em>not</em> relative to the location of the including file.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain bugs and other
+problems. Please report such to the author of this package. Please also report any ideas
+for enhancements you may have for either package and/or documentation.</p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Code Copyright</a></h2>
+<p>BSD License type:</p>
+<p>The following terms apply to all files a ssociated with the software unless
+explicitly disclaimed in individual files.</p>
+<p>The authors hereby grant permission to use, copy, modify, distribute, and license
+this software and its documentation for any purpose, provided that existing copyright
+notices are retained in all copies and that this notice is included verbatim in any
+distributions. No written agreement, license, or royalty fee is required for any of the
+authorized uses.  Modifications to this software may be copyrighted by their authors and
+need not follow the licensing terms described here, provided that the new terms are
+clearly indicated on the first page of each file where they apply.</p>
+<p>In no event shall the authors or distributors be liable to any party for direct,
+indirect, special, incidental, or consequential damages arising out of the use of this
+software, its documentation, or any derivatives thereof, even if the authors have been
+advised of the possibility of such damage.</p>
+<p>The authors and distributors specifically disclaim any warranties, including, but
+not limited to, the implied warranties of merchantability, fitness for a particular
+purpose, and non-infringement.
+This software is provided on an &quot;as is&quot; basis, and the authors and distributors have no
+obligation to provide maintenance, support, updates, enhancements, or modifications.</p>
+<p><em>RESTRICTED RIGHTS</em>: Use, duplication or disclosure by the government is
+subject to the restrictions as set forth in subparagraph (c) (1) (ii) of the Rights in
+Technical Data and Computer Software Clause as DFARS 252.227-7013 and FAR 52.227-19.</p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Text processing</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2019-2022, Detlef Groth &lt;detlef(at)dgroth(dot)de&gt;</p>
+</div>
+</div></body></html>

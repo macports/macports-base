@@ -1,0 +1,94 @@
+# -------------------------------------------------------------------------
+# string.test -*- tcl -*-
+# (C) 2017 Andreas Kupries. BSD licensed.
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+testsNeed        TclOO 1
+
+support {
+    use virtchannel_core/core.tcl   tcl::chan::core
+    use virtchannel_core/events.tcl tcl::chan::events
+}
+testing {
+    useLocal string.tcl tcl::chan::string
+}
+
+# -------------------------------------------------------------------------
+
+test tcl-chan-string-1.0 {constructor wrong\#args} -body {
+    tcl::chan::string
+} -returnCodes error \
+    -result {wrong # args: should be "tcl::chan::string content"}
+
+test tcl-chan-string-1.1 {constructor wrong\#args} -body {
+    tcl::chan::string C X
+} -returnCodes error \
+    -result {wrong # args: should be "tcl::chan::string content"}
+
+# -------------------------------------------------------------------------
+
+test tcl-chan-string-2.0 {tell, initial, empty} -setup {
+    set c [tcl::chan::string ""]
+} -body {
+    tell $c
+} -cleanup {
+    close $c
+    unset c
+} -result 0
+
+test tcl-chan-string-2.1 {seek from start beyond eof is error} -setup {
+    set c [tcl::chan::string ""]
+} -body {
+    seek $c 10
+} -cleanup {
+    close $c
+    unset c
+} -returnCodes error -result {Cannot seek after the end of the channel}
+
+test tcl-chan-string-2.2 {seek from end, eof, empty, tell} -setup {
+    set c [tcl::chan::string ""]
+} -body {
+    seek $c 0 end
+    tell $c
+} -cleanup {
+    close $c
+    unset c
+} -result 0
+
+test tcl-chan-string-2.3 {seek from end, eof, non-empty, tell} -setup {
+    set c [tcl::chan::string Hello\n]
+} -body {
+    seek $c 0 end
+    tell $c
+} -cleanup {
+    close $c
+    unset c
+} -result 6
+
+test tcl-chan-string-2.4 {seek from end, non-eof, non-empty, tell} -setup {
+    set c [tcl::chan::string Hello\n]
+} -body {
+    seek $c -6 end
+    tell $c
+} -cleanup {
+    close $c
+    unset c
+} -result 0
+
+# -------------------------------------------------------------------------
+# Explicit cleanup of loaded support classes.
+rename tcl::chan::events {}
+rename tcl::chan::core   {}
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

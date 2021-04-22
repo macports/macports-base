@@ -1,0 +1,66 @@
+[keywords WWW]
+[copyright {2018 Sean Woods <yoda@etoyoc.com>}]
+[moddesc   {Tcl Web Server}]
+[titledesc {A TclOO and coroutine based web server}]
+[category  Networking]
+[keywords TclOO]
+[keywords http]
+[keywords httpd]
+[keywords httpserver]
+[keywords services]
+[require Tcl 8.6]
+[require uuid]
+[require clay]
+[require coroutine]
+[require fileutil]
+[require fileutil::magic::filetype]
+[require websocket]
+[require mime]
+[require cron]
+[require uri]
+[require Markdown]
+[description]
+[para]
+
+This module implements a web server, suitable for embedding in an
+application. The server is object oriented, and contains all of the
+fundamentals needed for a full service website.
+
+[para]
+
+[section {Minimal Example}]
+
+Starting a web service requires starting a class of type
+[cmd httpd::server], and providing that server with one or more URIs
+to service, and [cmd httpd::reply] derived classes to generate them.
+
+[example {
+oo::class create ::reply.hello {
+  method content {} {
+    my puts "<HTML><HEAD><TITLE>IRM Dispatch Server</TITLE></HEAD><BODY>"
+    my puts "<h1>Hello World!</h1>"
+    my puts </BODY></HTML>
+  }
+}
+::httpd::server create HTTPD port 8015 myaddr 127.0.0.1 doc_root ~/htdocs
+HTTPD plugin dispatch httpd::server::dispatch
+HTTPD uri add * /hello [list mixin reply.hello]
+}]
+
+The bare module does have facilities to hose a files from a file system. Files that end in a .tml will be substituted in the style of Tclhttpd:
+
+[example {
+<!-- hello.tml -->
+[my html_header {Hello World!}]
+Your Server is running.
+<p>
+The time is now [clock format [clock seconds]]
+[my html_footer]
+}]
+
+A complete example of an httpd server is in the /examples directory of Tcllib. It also show how to dispatch URIs to other processes via SCGI and HTTP proxies.
+
+[example {
+cd ~/tcl/sandbox/tcllib
+tclsh examples/httpd.tcl
+}]

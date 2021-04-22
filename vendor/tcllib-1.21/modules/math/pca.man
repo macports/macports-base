@@ -1,0 +1,136 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin math::PCA n 1.0]
+[keywords PCA]
+[keywords statistics]
+[keywords math]
+[keywords tcl]
+[moddesc   {Principal Components Analysis}]
+[titledesc {Package for Principal Component Analysis}]
+[category  Mathematics]
+[require Tcl [opt 8.6]]
+[require math::linearalgebra 1.0]
+
+[description]
+[para]
+The PCA package provides a means to perform principal components analysis
+in Tcl, using an object-oriented technique as facilitated by TclOO. It
+actually defines a single public method, [term ::math::PCA::createPCA],
+which constructs an object based on the data that are passed to perform
+the actual analysis.
+
+[para]
+The methods of the PCA objects that are created with this command allow one
+to examine the principal components, to approximate (new) observations
+using all or a selected number of components only and to examine the
+properties of the components and the statistics of the approximations.
+
+[para]
+The package has been modelled after the PCA example provided by the
+original linear algebra package by Ed Hume.
+
+[section "Commands"]
+The [term math::PCA] package provides one public command:
+[list_begin definitions]
+
+[call [cmd ::math::PCA::createPCA] [arg data] [opt args]]
+Create a new object, based on the data that are passed via the [term data] argument.
+The principal components may be based on either correlations or covariances.
+All observations will be normalised according to the mean and standard deviation
+of the original data.
+
+[list_begin arguments]
+[arg_def list data] - A list of observations (see the example below).
+[arg_def list args] - A list of key-value pairs defining the options. Currently there is
+only one key: [term -covariances]. This indicates if covariances are to be used
+(if the value is 1) or instead correlations (value is 0). The default is to use
+correlations.
+[list_end]
+
+[list_end]
+
+The PCA object that is created has the following methods:
+[list_begin definitions]
+
+[call [cmd "\$pca using"] [opt number]|[opt "-minproportion value"]]
+Set the number of components to be used in the analysis (the number of retained components).
+Returns the number of components, also if no argument is given.
+
+[list_begin arguments]
+[arg_def int number] - The number of components to be retained
+[arg_def double value] - Select the number of components based on the minimum proportion
+of variation that is retained by them. Should be a value between 0 and 1.
+[list_end]
+
+
+[call [cmd "\$pca eigenvectors"] [opt option]]
+Return the eigenvectors as a list of lists.
+
+[list_begin arguments]
+[arg_def string option] - By default only the [emph retained] components are returned.
+If all eigenvectors are required, use the option [term -all].
+[list_end]
+
+
+[call [cmd "\$pca eigenvalues"] [opt option]]
+Return the eigenvalues as a list of lists.
+
+[list_begin arguments]
+[arg_def string option] - By default only the eigenvalues of the [emph retained] components are returned.
+If all eigenvalues are required, use the option [term -all].
+[list_end]
+
+
+[call [cmd "\$pca proportions"] [opt option]]
+Return the proportions for all components, that is, the amount of variations that each
+components can explain.
+
+
+[call [cmd "\$pca approximate"] [arg observation]]
+Return an approximation of the observation based on the retained components
+
+[list_begin arguments]
+[arg_def list observation] - The values for the observation.
+[list_end]
+
+
+[call [cmd "\$pca approximatOriginal"]]
+Return an approximation of the original data, using the retained components. It is
+a convenience method that works on the complete set of original data.
+
+
+[call [cmd "\$pca scores"] [arg observation]]
+Return the scores per retained component for the given observation.
+
+[list_begin arguments]
+[arg_def list observation] - The values for the observation.
+[list_end]
+
+
+[call [cmd "\$pca distance"] [arg observation]]
+Return the distance between the given observation and its approximation. (Note:
+this distance is based on the normalised vectors.)
+
+[list_begin arguments]
+[arg_def list observation] - The values for the observation.
+[list_end]
+
+
+[call [cmd "\$pca qstatistic"] [arg observation] [opt option]]
+Return the Q statistic, basically the square of the distance, for the given observation.
+
+[list_begin arguments]
+[arg_def list observation] - The values for the observation.
+[arg_def string option] - If the observation is part of the original data, you may want
+to use the corrected Q statistic. This is achieved with the option "-original".
+[list_end]
+
+[list_end]
+
+[section EXAMPLE]
+TODO: NIST example
+
+
+
+[vset CATEGORY PCA]
+[include ../common-text/feedback.inc]
+[manpage_end]

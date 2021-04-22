@@ -1,0 +1,21 @@
+[keywords practcl]
+[copyright {2016-2018 Sean Woods <yoda@etoyoc.com>}]
+[moddesc {The The Proper Rational API for C to Tool Command Language Module}]
+[titledesc {The Practcl Module}]
+[category {TclOO}]
+[require TclOO 1.0]
+[description]
+The Practcl module is a tool for integrating large modules for C API
+Tcl code that requires custom Tcl types and TclOO objects.
+[para]
+The concept with Practcl is that is a single file package that can
+assist any tcl based project with distribution, compilation, linking,
+VFS preparation, executable assembly, and installation. Practcl also
+allows one project to invoke the build system from another project,
+allowing complex projects such as a statically linked basekit to be
+assembled with relative ease.
+[para]
+Practcl ships as a single file, and aside from a Tcl 8.6 interpreter,
+has no external dependencies.
+[para]
+Making a practcl project

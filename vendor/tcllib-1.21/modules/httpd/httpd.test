@@ -1,0 +1,639 @@
+# httpd.test - Copyright (c) 2015 Sean Woods
+
+# -------------------------------------------------------------------------
+set TESTDIR [file dirname [file normalize [info script]]]
+set MODDIR [file dirname $TESTDIR]
+if {[file exists [file join $MODDIR devtools testutilities.tcl]]} {
+  # Running inside tcllib
+  set TCLLIBMOD $MODDIR
+} else {
+  set TCLLIBMOD [file join $MODDIR .. .. tcllib modules]
+}
+source [file join $TCLLIBMOD devtools testutilities.tcl]
+
+testsNeedTcl     8.6 ;# tool requires 8.6
+testsNeedTcltest 2
+set NOW [clock seconds]
+testsNeed TclOO 1
+
+support {
+    use [file join ${TCLLIBMOD} fumagic rtcore.tcl]       fileutil::magic::rt
+    use [file join ${TCLLIBMOD} fumagic filetypes.tcl]    fileutil::magic::filetype
+    use [file join ${TCLLIBMOD} textutil string.tcl]      textutil::string
+    use [file join ${TCLLIBMOD} textutil repeat.tcl]      textutil::repeat
+    use [file join ${TCLLIBMOD} textutil tabify.tcl]      textutil::tabify
+    use [file join ${TCLLIBMOD} markdown markdown.tcl]    Markdown
+    use [file join ${TCLLIBMOD} ncgi ncgi.tcl]            ncgi
+    use [file join ${TCLLIBMOD} log logger.tcl]           logger
+    use [file join ${TCLLIBMOD} base64 base64.tcl]        base64
+    use [file join ${TCLLIBMOD} md5 md5x.tcl]             md5
+    use [file join ${TCLLIBMOD} virtchannel_core core.tcl] tcl::chan::core
+    use [file join ${TCLLIBMOD} virtchannel_core events.tcl] tcl::chan::events
+    use [file join ${TCLLIBMOD} virtchannel_base memchan.tcl] tcl::chan::memchan
+    # note: mime depends on the virtchannel packages
+    use [file join ${TCLLIBMOD} mime mime.tcl]            mime
+    use [file join ${TCLLIBMOD} uuid uuid.tcl]            uuid
+    use [file join ${TCLLIBMOD} cmdline cmdline.tcl]      cmdline
+    use [file join ${TCLLIBMOD} fileutil fileutil.tcl]    fileutil
+    use [file join ${TCLLIBMOD} sha1 sha1.tcl]            sha1
+    use [file join ${TCLLIBMOD} uri uri.tcl]              uri
+    use [file join ${TCLLIBMOD} ncgi ncgi.tcl]            ncgi
+    use [file join ${TCLLIBMOD} dns ip.tcl]               ip
+    use [file join ${TCLLIBMOD} nettool nettool.tcl]      nettool
+    use [file join ${TCLLIBMOD} coroutine coroutine.tcl]  coroutine
+    use [file join ${TCLLIBMOD} dicttool dicttool.tcl]    dicttool
+    use [file join ${TCLLIBMOD} cron cron.tcl]            cron
+    use [file join ${TCLLIBMOD} websocket websocket.tcl]  websocket
+    use [file join ${MODDIR} clay clay.tcl]               clay
+}
+
+testing {
+    useLocal httpd.tcl httpd
+}
+
+# Set to true for debugging and traces
+set ::DEBUG 0
+set ::clay::debug $::DEBUG
+
+proc DEBUG args {
+    if {!$::DEBUG} return
+    uplevel 1 $args
+}
+
+# -------------------------------------------------------------------------
+# Constructors for various expected replies.
+proc IndexReply {{head {HTTP/1.0}}} {
+   global TESTDIR
+   set fin       [open [file join $TESTDIR pkgIndex.tcl] r]
+   set replyfile [read $fin]
+   close $fin
+
+   append checkreply "$head 200 OK" \n
+   append checkreply "Content-Type: text/plain" \n
+   append checkreply "Connection: close" \n
+   append checkreply "Content-Length: [string length $replyfile]" \n
+   append checkreply \n
+   append checkreply $replyfile
+
+   return $checkreply
+}
+
+proc 404 {} {
+    lappend map "        " ""
+    lappend map "    "     ""
+    # The map removes the indentation of the value
+    return [string map $map {HTTP/1.0 404 Not Found
+        Content-Type: text/plain
+        Connection: close
+        Content-Length: *
+
+        404 Not Found
+    }]
+}
+
+proc 200 {text {len *}} {
+    lappend map "        " ""
+    # The map removes the indentation of the value
+    # and inserts the dynamic parts
+    lappend map @C $text
+    lappend map @L $len
+    return [string map $map {HTTP/1.0 200 OK
+        Content-Type: text/plain
+        Connection: close
+        Content-Length: @L
+
+        @C}]
+}
+
+proc 200+status-head {text {len *}} {
+    lappend map "        " ""
+    # The map removes the indentation of the value
+    # and inserts the dynamic parts
+    lappend map @C $text
+    lappend map @L $len
+    return [string map $map {Status: 200 OK
+        Content-Type: text/plain
+        Connection: close
+        Content-Length: @L
+
+        @C}]
+}
+
+proc 200+status-conn {text {len *}} {
+    lappend map "        " ""
+    # The map removes the indentation of the value
+    # and inserts the dynamic parts
+    lappend map @C $text
+    lappend map @L $len
+    return [string map $map {HTTP/1.0 200 OK
+        Status: 200 OK
+        Content-Type: text/plain
+        Content-Length: @L
+
+        @C}]
+}
+
+proc 500 {} {
+    lappend map "        " ""
+    lappend map "    "     ""
+    # The map removes the indentation of the value
+    return [string map $map {HTTP/1.0 500 Server Internal Error
+        Content-Type: text/plain
+        Connection: close
+        Content-Length: *
+
+        500 Server Internal Error
+    }]
+}
+
+proc 500+status-head {} {
+    lappend map "        " ""
+    lappend map "    "     ""
+    # The map removes the indentation of the value
+    return [string map $map {Status: 500 Server Internal Error
+        Content-Type: text/plain
+        Connection: close
+        Content-Length: *
+
+        500 Server Internal Error
+    }]
+}
+
+# Likely a band aid, see AKU
+proc norm-eol {x} { string map [list "\r\n" "\n"] $x }
+
+# -------------------------------------------------------------------------
+
+namespace eval ::httpd {}
+namespace eval ::httpd::test {}
+
+proc ::httpd::test::send {port http headers body} {
+    set sock [socket localhost $port]
+    variable reply
+    set reply($sock) {}
+    chan configure $sock -translation {crlf crlf} -blocking 0 -buffering full -buffersize 4096
+    chan event $sock readable [list ::httpd::test::get_reply $sock]
+
+    puts $sock $http
+    if {![dict exists $headers Host]} {
+        dict set headers Host localhost
+    }
+    if {[string length $body]} {
+        if {![dict exists $headers Content-Type]} {
+            dict set headers Content_Type text/plain
+        }
+        dict set headers Content-Length [string length $body]
+    }
+    foreach {f v} $headers {
+        puts $sock "${f}: $v"
+    }
+    puts $sock {}
+    if {[string length $body]} {
+        chan configure $sock -translation binary -blocking 0 -buffering full -buffersize 4096
+        puts -nonewline $sock $body
+    }
+    flush $sock
+    while {$reply($sock) eq {}} {
+        update
+    }
+    #vwait [namespace current]::reply($sock)
+
+    #puts ZZ\t[join [split $reply($sock) \n] "|\nZZ\t"]|
+    return $reply($sock)
+}
+
+proc ::httpd::test::get_reply {sock} {
+    variable buffer
+    set data [read $sock]
+    append buffer($sock) $data
+    if {[eof $sock]} {
+        chan event $sock readable {}
+        set [namespace current]::reply($sock) $buffer($sock)
+        unset buffer($sock)
+    }
+}
+
+clay::define ::httpd::server {
+    method log args {}
+
+    method TemplateSearch page {
+        set doc_root [my clay get server/ doc_root]
+        if {$doc_root ne {} && [file exists [file join $doc_root $page.tml]]} {
+            return [::fileutil::cat [file join $doc_root $page.tml]]
+        }
+        if {$doc_root ne {} && [file exists [file join $doc_root $page.html]]} {
+            return [::fileutil::cat [file join $doc_root $page.html]]
+        }
+        switch $page {
+            redirect {
+                return {300 Redirect}
+            }
+            notfound {
+                return {404 Not Found}
+            }
+            internal_error {
+                return {500 Server Internal Error}
+            }
+        }
+    }
+
+
+    ::DEBUG method debug args {
+        puts stderr $args
+    }
+
+    ::DEBUG method log args {
+        puts stdout $args
+    }
+}
+
+
+###
+# Modify the reply class to return plain text
+###
+clay::define ::httpd::reply {
+
+    method HttpHeaders_Default {} {
+        return {
+            Status       {200 OK}
+            Content-Type {text/plain}
+            Connection   close
+        }
+    }
+
+    method reset {} {
+        my variable reply_body
+        my reply replace [my HttpHeaders_Default]
+        set reply_body {}
+    }
+
+    method error {code {msg {}} {errorInfo {}}} {
+        my clay set HTTP_ERROR $code
+        my reset
+        set errorstring [my http_code_string $code]
+        set qheaders [my clay dump]
+        dict with qheaders {}
+        my reply replace {}
+        my reply set Status "$code $errorstring"
+        my reply set Content-Type text/plain
+        my puts "$code $errorstring"
+    }
+}
+
+clay::define ::test::content.echo {
+    method content {} {
+        my variable reply_body
+        set reply_body [my PostData [my request get CONTENT_LENGTH]]
+        #puts [list REPLY BODY WAS $reply_body]
+    }
+}
+clay::define ::test::content.file {
+    superclass ::httpd::content.file
+    method content {} {
+        my reset
+        set doc_root  [my clay get path]
+        my variable reply_file
+        set reply_file [file join $doc_root pkgIndex.tcl]
+    }
+}
+clay::define ::test::content.time {
+    method content {} {
+        my variable reply_body
+        set reply_body $::NOW
+    }
+}
+clay::define ::test::content.error {
+    method content {} {
+        error {The programmer asked me to die this way}
+    }
+}
+clay::define ::test::content.cgi {
+    superclass ::httpd::content.cgi
+}
+clay::define ::test::content.string {
+    method content {} {
+        my variable reply_body
+        set reply_body [my clay get hardcoded_string]
+    }
+}
+clay::define ::httpd::test::reply {
+    superclass ::httpd::reply ::test::content.echo
+}
+
+###
+# Build the server
+###
+
+::httpd::server create TESTAPP port 10001 doc_root $::TESTDIR
+TESTAPP plugin dict_dispatch
+TESTAPP uri add * /      [list mixin {reply ::test::content.echo}]
+TESTAPP uri add * /echo  [list mixin {reply ::test::content.echo}]
+TESTAPP uri add * /file  [list mixin {reply ::test::content.file} path $::TESTDIR]
+TESTAPP uri add * /time  [list mixin {reply ::test::content.time}]
+TESTAPP uri add * /error [list mixin {reply ::test::content.error}]
+TESTAPP uri add * /string  [list mixin {reply ::test::content.string} hardcoded_string apple]
+
+# Catch all
+#TESTAPP uri add * * [list mixin {reply httpd::content.echo}]
+
+::DEBUG puts httpd-client-0001
+test httpd-client-0001 {Do an echo request} -body {
+    ::httpd::test::send 10001 {POST /echo HTTP/1.0} {} {THIS IS MY CODE}
+} -match glob -result [200 {THIS IS MY CODE}]
+
+::DEBUG puts httpd-client-0002
+test httpd-client-0002 {Do another echo request} {
+    ::httpd::test::send 10001 {POST /echo HTTP/1.0} {} {THOUGH THERE ARE MANY LIKE IT}
+} [200 {THOUGH THERE ARE MANY LIKE IT} 29]
+
+::DEBUG puts httpd-client-0003
+test httpd-client-0003 {Do another echo request} -body {
+    ::httpd::test::send 10001 {POST /echo HTTP/1.0} {} {THIS ONE ALONE IS MINE}
+} -match glob -result [200 {THIS ONE ALONE IS MINE}]
+
+::DEBUG puts httpd-client-0004
+test httpd-client-0004 {URL Generates Error} -body {
+    ::httpd::test::send 10001 {POST /error HTTP/1.0} {} {THIS ONE ALONE IS MINE}
+} -match glob -result [500]
+
+::DEBUG puts httpd-client-0005
+test httpd-client-0005 {URL Different output with a different request} -body {
+    ::httpd::test::send 10001 {POST /time HTTP/1.0} {} {THIS ONE ALONE IS MINE}
+} -match glob -result [200 $::NOW]
+
+::DEBUG puts httpd-client-0006
+test httpd-client-0006 {Return a file} -body {
+    ::httpd::test::send 10001 {GET /file HTTP/1.0} {} {}
+} -result [IndexReply]
+
+::DEBUG puts httpd-client-0007
+test httpd-client-0007 {URL Generates Not Found} -body {
+    ::httpd::test::send 10001 {POST /doesnotexist HTTP/1.0} {} {THIS ONE ALONE IS MINE}
+} -match glob -result [404]
+
+::DEBUG puts httpd-client-0008
+test httpd-client-0008 {Pull a constant string} -body {
+    ::httpd::test::send 10001 {GET /string HTTP/1.0} {} {}
+} -match glob -result [200 apple]
+# -------------------------------------------------------------------------
+# Test proxies
+
+clay::define ::test::content.proxy {
+    superclass ::httpd::content.proxy
+
+    method proxy_channel {} {
+        return [::socket localhost [my clay get proxy_port]]
+    }
+}
+
+::httpd::server create TESTPROXY port 10002 doc_root $::TESTDIR
+TESTAPP   uri add * /proxy* [list mixin {reply ::test::content.proxy} proxy_port [TESTPROXY port_listening]]
+TESTPROXY plugin dict_dispatch
+TESTPROXY uri add * /       [list mixin {reply ::test::content.echo}]
+TESTPROXY uri add * /echo   [list mixin {reply ::test::content.echo}]
+TESTPROXY uri add * /file   [list mixin {reply ::test::content.file} path $::TESTDIR]
+TESTPROXY uri add * /time   [list mixin {reply ::test::content.time}]
+TESTPROXY uri add * /error  [list mixin {reply ::test::content.error}]
+TESTPROXY uri add * /string   [list mixin {reply ::test::content.string} hardcoded_string banana]
+
+## AKU ##
+#
+# Note: Proxy replies are not normalized to \n. They contain \r\n
+# endings.  The old test::compare was ok with that due to running a
+# trim on the lines it was comparing. Here we properly normalize
+# before feeding into the comparison.
+#
+# Note 2: I suspect that this leakage / non-normalization of of \r\n
+#         in the server is a bug which should be fixed. If so, norm-eol
+#         becomes superfluous. Right now it feels like a band-aid
+
+::DEBUG puts httpd-proxy-0001
+test httpd-proxy-0001 {Do an echo request} -body {
+    norm-eol [::httpd::test::send 10001 {POST /proxy/echo HTTP/1.0} {} {THIS IS MY CODE}]
+} -match glob -result [200 {THIS IS MY CODE}]
+
+::DEBUG puts httpd-proxy-0002
+test httpd-proxy-0002 {Do another echo request} -body {
+    norm-eol [::httpd::test::send 10001 {POST /proxy/echo HTTP/1.0} {} {THOUGH THERE ARE MANY LIKE IT}]
+} -result [200 {THOUGH THERE ARE MANY LIKE IT} 29]
+
+::DEBUG puts httpd-proxy-0003
+test httpd-proxy-0003 {Do another echo request} -body {
+    norm-eol [::httpd::test::send 10001 {POST /proxy/echo HTTP/1.0} {} {THIS ONE ALONE IS MINE}]
+} -match glob -result [200 {THIS ONE ALONE IS MINE}]
+
+::DEBUG puts httpd-proxy-0004
+test httpd-proxy-0004 {URL Generates Error} -body {
+    norm-eol [::httpd::test::send 10001 {POST /proxy/error HTTP/1.0} {} {THIS ONE ALONE IS MINE}]
+} -match glob -result [500]
+
+::DEBUG puts httpd-proxy-0005
+test httpd-proxy-0005 {URL Different output with a different request} -body {
+    norm-eol [::httpd::test::send 10001 {POST /proxy/time HTTP/1.0} {} {THIS ONE ALONE IS MINE}]
+} -match glob -result [200 $::NOW]
+
+::DEBUG puts httpd-proxy-0006
+test httpd-proxy-0006 {Return a file} -body {
+    norm-eol [::httpd::test::send 10001 {GET /proxy/file HTTP/1.0} {} {}]
+} -result [IndexReply]
+
+::DEBUG puts httpd-proxy-0008
+test httpd-proxy-0008 {Pull a constant string} -body {
+    norm-eol [::httpd::test::send 10001 {GET /proxy/string HTTP/1.0} {} {}]
+} -result [200 banana 6]
+# -------------------------------------------------------------------------
+# cgi
+
+TESTAPP plugin local_memchan
+TESTAPP uri add * /cgi-bin* [list mixin {reply ::test::content.cgi} path $::TESTDIR/assets]
+
+::DEBUG puts httpd-cgi-0001
+test httpd-cgi-0001 {CGI Post} -body {
+    norm-eol [::httpd::test::send 10001 {POST /cgi-bin/test_cgi.tcl HTTP/1.0} {} {THIS IS MY CODE}]
+} -match glob -result [200+status-conn {THIS IS MY CODE
+}]
+
+::DEBUG puts httpd-cgi-0002
+test httpd-cgi-0002 {CGI Get} -body {
+    ::httpd::test::send 10001 {GET /cgi-bin/test_cgi.tcl HTTP/1.0} {} {}
+} -match glob -result [200+status-conn {Hi!
+}]
+
+###
+# Test the local geturl method
+###
+test httpd-memchan-0001 {Memchan GET} {
+    TESTAPP local_memchan geturl /time
+} $NOW
+
+# -------------------------------------------------------------------------
+namespace eval ::scgi {}
+namespace eval ::scgi::test {}
+
+###
+# Minimal test harness for the .tests
+# Not intended for public consumption
+# (But if you find it handy, please steal!)
+
+proc ::scgi::encode_request {headers body info} {
+    variable server_block
+
+    dict set outdict CONTENT_LENGTH [string length $body]
+    set outdict [dict merge $outdict $server_block $info]
+    dict set outdict PWD [pwd]
+
+    foreach {key value} $headers {
+        if {$key in {
+            DOCUMENT_ROOT
+            HTTPS
+            PATH
+            REQUEST_METHOD REQUEST_URI
+            REMOTE_HOST REMOTE_ADDR REMOTE_PORT
+            SCRIPT_NAME
+        } || [string range $key 0 5] eq "HTTP_"} {
+            dict set outdict $key $value
+        } else {
+            dict set outdict HTTP_[string map {"-" "_"} [string toupper $key]] $value
+        }
+    }
+    set result {}
+    foreach {name value} $outdict {
+        append result $name \x00 $value \x00
+    }
+    return "[string length $result]:$result,"
+}
+
+proc ::scgi::test::send {port headers body} {
+    set sock [socket localhost $port]
+    variable reply
+    set reply($sock) {}
+
+    if {![dict exists $headers HOST]} {
+        dict set headers HOST localhost
+    }
+    dict set headers REMOTE_IP   127.0.0.1
+    dict set headers REMOTE_HOST localhost
+
+    chan configure $sock -translation binary -blocking 0 -buffering full -buffersize 4096
+    chan event     $sock readable [list ::scgi::test::get_reply $sock]
+
+    set block [::scgi::encode_request $headers $body {}]
+
+    puts -nonewline $sock $block
+    flush $sock
+    puts -nonewline $sock $body
+    flush $sock
+
+    while {$reply($sock) eq {}} {
+        update
+    }
+
+    #vwait [namespace current]::reply($sock)
+
+    #puts ZZ\t[join [split $reply($sock) \n] "|\nZZ\t"]|
+    return $reply($sock)
+}
+
+proc ::scgi::test::get_reply {sock} {
+    variable buffer
+    set data [read $sock]
+    append buffer($sock) $data
+    if {[eof $sock]} {
+        chan event $sock readable {}
+        set [namespace current]::reply($sock) $buffer($sock)
+        unset buffer($sock)
+    }
+}
+
+namespace eval ::scgi {
+  variable server_block {SCGI 1.0 SERVER_SOFTWARE {TclScgiServer/0.1}}
+}
+
+###
+# Build the reply class
+###
+
+::clay::define ::scgi::test::reply {
+    superclass ::httpd::reply
+
+    method reset {} {
+        my variable reply_body
+        my reply replace [my HttpHeaders_Default]
+        set reply_body {}
+    }
+}
+
+###
+# Build the server
+###
+
+::clay::define scgi::test::app {
+    superclass ::httpd::server.scgi
+
+    clay set reply_class ::scgi::test::reply
+}
+
+::DEBUG puts [list ::test::content.file [info commands ::test::content.file]]
+
+scgi::test::app create TESTSCGI port 10003 doc_root $::TESTDIR
+
+TESTSCGI plugin dict_dispatch
+TESTSCGI uri add * /      [list mixin {reply ::test::content.echo}]
+TESTSCGI uri add * /echo  [list mixin {reply ::test::content.echo}]
+TESTSCGI uri add * /file  [list mixin {reply ::test::content.file} path $::TESTDIR]
+TESTSCGI uri add * /time  [list mixin {reply ::test::content.time}]
+TESTSCGI uri add * /error [list mixin {reply ::test::content.error}]
+TESTSCGI uri add * /string  [list mixin {reply ::test::content.string} hardcoded_string cherry]
+
+::DEBUG puts scgi-client-0001
+test scgi-client-0001 {Do an echo request} -body {
+    ::scgi::test::send 10003 {REQUEST_METHOD POST REQUEST_URI /echo} {THIS IS MY CODE}
+} -match glob -result [200+status-head {THIS IS MY CODE}]
+
+::DEBUG puts scgi-client-0002
+test scgi-client-0002 {Do another echo request} -body {
+    ::scgi::test::send 10003 {REQUEST_METHOD POST REQUEST_URI /echo} {THOUGH THERE ARE MANY LIKE IT}
+} -match glob -result [200+status-head {THOUGH THERE ARE MANY LIKE IT}]
+
+::DEBUG puts scgi-client-0003
+test scgi-client-0003 {Do another echo request} -body {
+    ::scgi::test::send 10003 {REQUEST_METHOD POST REQUEST_URI /echo} {THIS ONE ALONE IS MINE}
+} -match glob -result [200+status-head {THIS ONE ALONE IS MINE}]
+
+::DEBUG puts scgi-client-0004
+test scgi-client-0004 {URL Generates Error} -body {
+    ::scgi::test::send 10003 {REQUEST_METHOD POST REQUEST_URI /error} {THIS ONE ALONE IS MINE}
+} -match glob -result [500+status-head]
+
+::DEBUG puts scgi-client-0005
+test scgi-client-0005 {URL Different output with a different request} -body {
+    ::scgi::test::send 10003 {REQUEST_METHOD POST REQUEST_URI /time} {THIS ONE ALONE IS MINE}
+} -match glob -result [200+status-head $::NOW]
+
+::DEBUG puts scgi-client-0006
+test scgi-client-0006 {Return a file} -body {
+    ::scgi::test::send 10003 {REQUEST_METHOD GET REQUEST_URI /file} {}
+} -result [IndexReply Status:]
+
+
+::DEBUG puts scgi-client-0008
+test scgi-client-0008 {Pull a constant string} -body {
+    ::scgi::test::send 10003 {REQUEST_METHOD GET REQUEST_URI /string} {}
+} -match glob -result [200+status-head cherry]
+###
+# Test the all object have been destroyed after ::clay::cleanup
+###
+test httpd-garbage-collection {Test that garbage collection leaves nothing behind} -body {
+  ::clay::cleanup
+  info commands ::httpd::object::*
+} -result {}
+
+::DEBUG puts all-tests-finished
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

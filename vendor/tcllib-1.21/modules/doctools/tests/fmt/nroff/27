@@ -1,0 +1,31 @@
+'\"
+'\" Generated from file '\&.FILE\&.' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) \&.COPYRIGHT\&.
+'\"
+.TH "TEST" T 0 \&.MODULE\&. ""
+.so man.macros
+.BS
+.SH NAME
+TEST \-
+.SH DESCRIPTION
+= = == === ===== ======== =============
+.CS
+
+[\fBbar\fR \\
+  foo]
+.CE
+= = == === ===== ======== =============
+.CS
+
+
+\fI  many lines
+  highlighted
+\fR
+
+.CE
+= = == === ===== ======== =============
+.SH COPYRIGHT
+.nf
+Copyright (c) \&.COPYRIGHT\&.
+
+.fi

@@ -1,0 +1,434 @@
+'\"
+'\" Generated from file 'pca\&.man' by tcllib/doctools with format 'nroff'
+'\"
+.TH "math::PCA" n 1\&.0 tcllib "Principal Components Analysis"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+math::PCA \- Package for Principal Component Analysis
+.SH SYNOPSIS
+package require \fBTcl  ?8\&.6?\fR
+.sp
+package require \fBmath::linearalgebra  1\&.0\fR
+.sp
+\fB::math::PCA::createPCA\fR \fIdata\fR ?args?
+.sp
+\fB$pca using\fR ?number?|?-minproportion value?
+.sp
+\fB$pca eigenvectors\fR ?option?
+.sp
+\fB$pca eigenvalues\fR ?option?
+.sp
+\fB$pca proportions\fR ?option?
+.sp
+\fB$pca approximate\fR \fIobservation\fR
+.sp
+\fB$pca approximatOriginal\fR
+.sp
+\fB$pca scores\fR \fIobservation\fR
+.sp
+\fB$pca distance\fR \fIobservation\fR
+.sp
+\fB$pca qstatistic\fR \fIobservation\fR ?option?
+.sp
+.BE
+.SH DESCRIPTION
+.PP
+The PCA package provides a means to perform principal components analysis
+in Tcl, using an object-oriented technique as facilitated by TclOO\&. It
+actually defines a single public method, \fI::math::PCA::createPCA\fR,
+which constructs an object based on the data that are passed to perform
+the actual analysis\&.
+.PP
+The methods of the PCA objects that are created with this command allow one
+to examine the principal components, to approximate (new) observations
+using all or a selected number of components only and to examine the
+properties of the components and the statistics of the approximations\&.
+.PP
+The package has been modelled after the PCA example provided by the
+original linear algebra package by Ed Hume\&.
+.SH COMMANDS
+The \fImath::PCA\fR package provides one public command:
+.TP
+\fB::math::PCA::createPCA\fR \fIdata\fR ?args?
+Create a new object, based on the data that are passed via the \fIdata\fR argument\&.
+The principal components may be based on either correlations or covariances\&.
+All observations will be normalised according to the mean and standard deviation
+of the original data\&.
+.RS
+.TP
+list \fIdata\fR
+- A list of observations (see the example below)\&.
+.TP
+list \fIargs\fR
+- A list of key-value pairs defining the options\&. Currently there is
+only one key: \fI-covariances\fR\&. This indicates if covariances are to be used
+(if the value is 1) or instead correlations (value is 0)\&. The default is to use
+correlations\&.
+.RE
+.PP
+The PCA object that is created has the following methods:
+.TP
+\fB$pca using\fR ?number?|?-minproportion value?
+Set the number of components to be used in the analysis (the number of retained components)\&.
+Returns the number of components, also if no argument is given\&.
+.RS
+.TP
+int \fInumber\fR
+- The number of components to be retained
+.TP
+double \fIvalue\fR
+- Select the number of components based on the minimum proportion
+of variation that is retained by them\&. Should be a value between 0 and 1\&.
+.RE
+.TP
+\fB$pca eigenvectors\fR ?option?
+Return the eigenvectors as a list of lists\&.
+.RS
+.TP
+string \fIoption\fR
+- By default only the \fIretained\fR components are returned\&.
+If all eigenvectors are required, use the option \fI-all\fR\&.
+.RE
+.TP
+\fB$pca eigenvalues\fR ?option?
+Return the eigenvalues as a list of lists\&.
+.RS
+.TP
+string \fIoption\fR
+- By default only the eigenvalues of the \fIretained\fR components are returned\&.
+If all eigenvalues are required, use the option \fI-all\fR\&.
+.RE
+.TP
+\fB$pca proportions\fR ?option?
+Return the proportions for all components, that is, the amount of variations that each
+components can explain\&.
+.TP
+\fB$pca approximate\fR \fIobservation\fR
+Return an approximation of the observation based on the retained components
+.RS
+.TP
+list \fIobservation\fR
+- The values for the observation\&.
+.RE
+.TP
+\fB$pca approximatOriginal\fR
+Return an approximation of the original data, using the retained components\&. It is
+a convenience method that works on the complete set of original data\&.
+.TP
+\fB$pca scores\fR \fIobservation\fR
+Return the scores per retained component for the given observation\&.
+.RS
+.TP
+list \fIobservation\fR
+- The values for the observation\&.
+.RE
+.TP
+\fB$pca distance\fR \fIobservation\fR
+Return the distance between the given observation and its approximation\&. (Note:
+this distance is based on the normalised vectors\&.)
+.RS
+.TP
+list \fIobservation\fR
+- The values for the observation\&.
+.RE
+.TP
+\fB$pca qstatistic\fR \fIobservation\fR ?option?
+Return the Q statistic, basically the square of the distance, for the given observation\&.
+.RS
+.TP
+list \fIobservation\fR
+- The values for the observation\&.
+.TP
+string \fIoption\fR
+- If the observation is part of the original data, you may want
+to use the corrected Q statistic\&. This is achieved with the option "-original"\&.
+.RE
+.PP
+.SH EXAMPLE
+TODO: NIST example
+.SH "BUGS, IDEAS, FEEDBACK"
+This document, and the package it describes, will undoubtedly contain
+bugs and other problems\&.
+Please report such in the category \fIPCA\fR of the
+\fITcllib Trackers\fR [http://core\&.tcl\&.tk/tcllib/reportlist]\&.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation\&.
+.PP
+When proposing code changes, please provide \fIunified diffs\fR,
+i\&.e the output of \fBdiff -u\fR\&.
+.PP
+Note further that \fIattachments\fR are strongly preferred over
+inlined patches\&. Attachments can be made by going to the \fBEdit\fR
+form of the ticket immediately after its creation, and then using the
+left-most button in the secondary navigation bar\&.
+.SH KEYWORDS
+PCA, math, statistics, tcl
+.SH CATEGORY
+Mathematics

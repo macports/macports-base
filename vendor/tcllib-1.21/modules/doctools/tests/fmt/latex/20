@@ -1,0 +1,75 @@
+% Generated from file '.FILE.' by tcllib/doctools with format 'latex'
+% Copyright (c) .COPYRIGHT.
+% test-enumerated-itemized.1
+\documentclass{article}
+\begin{document}
+\author{@USR@}
+\title{.MODULE. / test-enumerated-itemized --  : }
+\maketitle
+\section{Description}\label{section1}
+lorem ipsum dolores
+\begin{enumerate}
+%
+\item
+%
+ lorem ipsum dolores
+\begin{itemize}
+%
+\item
+%
+ lorem ipsum dolores
+%
+\item
+%
+ lorem ipsum dolores
+
+lorem ipsum dolores
+%
+\item
+%
+ lorem ipsum dolores
+
+lorem ipsum dolores
+
+lorem ipsum dolores
+\end{itemize}
+%
+\item
+%
+ lorem ipsum dolores
+
+lorem ipsum dolores
+%
+\item
+%
+ lorem ipsum dolores
+
+lorem ipsum dolores
+\begin{itemize}
+%
+\item
+%
+ lorem ipsum dolores
+%
+\item
+%
+ lorem ipsum dolores
+
+lorem ipsum dolores
+%
+\item
+%
+ lorem ipsum dolores
+
+lorem ipsum dolores
+
+lorem ipsum dolores
+\end{itemize}
+
+lorem ipsum dolores
+\end{enumerate}
+\section{Copyright}\label{copyright}
+\begin{flushleft}
+Copyright (c) .COPYRIGHT.\linebreak
+\end{flushleft}
+\end{document}

@@ -1,0 +1,225 @@
+<!DOCTYPE html><html><head>
+<title>math::quasirandom - Tcl Math Library</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'quasirandom.man' by tcllib/doctools with format 'html'
+   -->
+<!-- math::quasirandom.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+&#124; <a href="../../../../toc.html">Main Table Of Contents</a>
+&#124; <a href="../../../toc.html">Table Of Contents</a>
+&#124; <a href="../../../../index.html">Keyword Index</a>
+&#124; <a href="../../../../toc0.html">Categories</a>
+&#124; <a href="../../../../toc1.html">Modules</a>
+&#124; <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::quasirandom(n) 1 tcllib &quot;Tcl Math Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::quasirandom - Quasi-random points for integration and Monte Carlo type methods</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">TODO</a></li>
+<li class="doctools_section"><a href="#section4">References</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">TclOO</b></li>
+<li>package require <b class="pkgname">math::quasirandom 1</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::quasirandom::qrpoint create</b> <i class="arg">NAME</i> <i class="arg">DIM</i> <span class="opt">?ARGS?</span></a></li>
+<li><a href="#2"><b class="cmd">gen next</b></a></li>
+<li><a href="#3"><b class="cmd">gen set-start</b> <i class="arg">index</i></a></li>
+<li><a href="#4"><b class="cmd">gen set-evaluations</b> <i class="arg">number</i></a></li>
+<li><a href="#5"><b class="cmd">gen integral</b> <i class="arg">func</i> <i class="arg">minmax</i> <i class="arg">args</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>In many applications pseudo-random numbers and pseudo-random points in a (limited)
+sample space play an important role. For instance in any type of Monte Carlo simulation.
+Pseudo-random numbers, however, may be too random and as a consequence a large
+number of data points is required to reduce the error or fluctuation in the results
+to the desired value.</p>
+<p>Quasi-random numbers can be used as an alternative: instead of &quot;completely&quot; arbitrary
+points, points are generated that are diverse enough to cover the entire sample space
+in a more or less uniform way. As a consequence convergence to the limit can be
+much faster, when such quasi-random numbers are well-chosen.</p>
+<p>The package defines a <i class="term"><a href="../../../../index.html#class">class</a></i> &quot;qrpoint&quot; that creates a command to generate
+quasi-random points in 1, 2 or more dimensions. The command can either generate
+separate points, so that they can be used in a user-defined algorithm or use these
+points to calculate integrals of functions defined over 1, 2 or more dimensions.
+It also holds several other common algorithms. (NOTE: these are not implemented yet)</p>
+<p>One particular characteristic of the generators is that there are no tuning parameters
+involved, which makes the use particularly simple.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<p>A quasi-random point generator is created using the <i class="term">qrpoint</i> class:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::quasirandom::qrpoint create</b> <i class="arg">NAME</i> <i class="arg">DIM</i> <span class="opt">?ARGS?</span></a></dt>
+<dd><p>This command takes the following arguments:</p>
+<dl class="doctools_arguments">
+<dt>string <i class="arg">NAME</i></dt>
+<dd><p>The name of the command to be created (alternatively: the <i class="term">new</i> subcommand
+will generate a unique name)</p></dd>
+<dt>integer/string <i class="arg">DIM</i></dt>
+<dd><p>The number of dimensions or one of: &quot;circle&quot;, &quot;disk&quot;, &quot;sphere&quot; or &quot;ball&quot;</p></dd>
+<dt>strings <i class="arg">ARGS</i></dt>
+<dd><p>Zero or more key-value pairs. The supported options are:</p>
+<ul class="doctools_itemized">
+<li><p><i class="term">-start index</i>: The index for the next point to be generated (default: 1)</p></li>
+<li><p><i class="term">-evaluations number</i>: The number of evaluations to be used by default (default: 100)</p></li>
+</ul></dd>
+</dl></dd>
+</dl>
+<p>The points that are returned lie in the hyperblock [0,1[^n (n the number of dimensions)
+or on the unit circle, within the unit disk, on the unit sphere or within the unit ball.</p>
+<p>Each generator supports the following subcommands:</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">gen next</b></a></dt>
+<dd><p>Return the coordinates of the next quasi-random point</p></dd>
+<dt><a name="3"><b class="cmd">gen set-start</b> <i class="arg">index</i></a></dt>
+<dd><p>Reset the index for the next quasi-random point. This is useful to control which list of points is returned.
+Returns the new or the current value, if no value is given.</p></dd>
+<dt><a name="4"><b class="cmd">gen set-evaluations</b> <i class="arg">number</i></a></dt>
+<dd><p>Reset the default number of evaluations in compound algorithms. Note that the actual number is the
+smallest 4-fold larger or equal to the given number. (The 4-fold plays a role in the detailed integration
+routine.)</p></dd>
+<dt><a name="5"><b class="cmd">gen integral</b> <i class="arg">func</i> <i class="arg">minmax</i> <i class="arg">args</i></a></dt>
+<dd><p>Calculate the integral of the given function over the block (or the circle, sphere etc.)</p>
+<dl class="doctools_arguments">
+<dt>string <i class="arg">func</i></dt>
+<dd><p>The name of the function to be integrated</p></dd>
+<dt>list <i class="arg">minmax</i></dt>
+<dd><p>List of pairs of minimum and maximum coordinates. This can be used to
+map the quasi-random coordinates to the desired hyper-block.</p>
+<p>If the space is a circle, disk etc. then this argument should be a single value, the radius.
+The circle, disk, etc. is centred at the origin. If this is not what is required, then a coordinate
+transformation should be made within the function.</p></dd>
+<dt>strings <i class="arg">args</i></dt>
+<dd><p>Zero or more key-value pairs. The following options are supported:</p>
+<ul class="doctools_itemized">
+<li><p><i class="term">-evaluations number</i>: The number of evaluations to be used. If not specified use the
+default of the generator object.</p></li>
+</ul></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">TODO</a></h2>
+<p>Implement other algorithms and variants</p>
+<p>Implement more unit tests.</p>
+<p>Comparison to pseudo-random numbers for integration.</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">References</a></h2>
+<p>Various algorithms exist for generating quasi-random numbers. The generators created in this package are based on:
+<a href="http://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/">http://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/</a></p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#mathematics">mathematics</a>, <a href="../../../../index.html#quasi_random">quasi-random</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+</div></body></html>

@@ -1,0 +1,61 @@
+
+[//000000001]: # (test\-enumerated\-itemized \- )
+[//000000002]: # (Generated from file '\.FILE\.' by tcllib/doctools with format 'markdown')
+[//000000003]: # (Copyright &copy; \.COPYRIGHT\.)
+[//000000004]: # (test\-enumerated\-itemized\(1\) n \.MODULE\. "")
+
+# NAME
+
+test\-enumerated\-itemized \-
+
+# <a name='toc'></a>Table Of Contents
+
+  - [Table Of Contents](#toc)
+
+  - [Description](#section1)
+
+  - [Copyright](#copyright)
+
+# <a name='description'></a>DESCRIPTION
+
+lorem ipsum dolores
+
+  1. lorem ipsum dolores
+
+       - lorem ipsum dolores
+
+       - lorem ipsum dolores
+
+         lorem ipsum dolores
+
+       - lorem ipsum dolores
+
+         lorem ipsum dolores
+
+         lorem ipsum dolores
+
+  1. lorem ipsum dolores
+
+     lorem ipsum dolores
+
+  1. lorem ipsum dolores
+
+     lorem ipsum dolores
+
+       - lorem ipsum dolores
+
+       - lorem ipsum dolores
+
+         lorem ipsum dolores
+
+       - lorem ipsum dolores
+
+         lorem ipsum dolores
+
+         lorem ipsum dolores
+
+     lorem ipsum dolores
+
+# <a name='copyright'></a>COPYRIGHT
+
+Copyright &copy; \.COPYRIGHT\.

@@ -1,0 +1,13 @@
+[comment { -- List 5 - definitions }]
+[manpage_begin test-definitions 1 n]
+[description]
+lorem ipsum dolores
+[list_begin definitions]
+[def lorem] ipsum dolores
+[def lorem] ipsum dolores
+[para] lorem ipsum dolores
+[def lorem] ipsum dolores
+[para] lorem ipsum dolores
+[para] lorem ipsum dolores
+[list_end]
+[manpage_end]

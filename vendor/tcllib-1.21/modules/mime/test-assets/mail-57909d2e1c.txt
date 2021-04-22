@@ -1,0 +1,53 @@
+MIME-Version: 1.0
+Content-ID: <10177.1554980513.8@mousetrap.lan>
+Content-Type: multipart/mixed;
+              boundary="----- =_U9Pw/kikzJT5t8pT5pl5Pw=="
+
+------- =_U9Pw/kikzJT5t8pT5pl5Pw==
+MIME-Version: 1.0
+Content-ID: <10177.1554980513.4@mousetrap.lan>
+Content-Disposition: inline; filename="/model.pl"
+Content-Description: Simile model
+Date-Modified: 2019-04-11 11:01:36 GMT
+Authentication-Code: c0c651af192d709b2757cb9ef0d8c19d
+Content-Type: application/x-simile
+Content-Transfer-Encoding: base64
+
+c291cmNlKHByb2dyYW09J0FNRScsdmVyc2lvbj0gMTAuOSxlZGl0aW9uPWVudGVycHJpc2UsZGF0
+KG5vbmUsaW5faGllcmFyY2h5LGRlc3QsMSldXSxbY3VydmU9Wy05LDFdXSkuCg==
+
+------- =_U9Pw/kikzJT5t8pT5pl5Pw==
+MIME-Version: 1.0
+Content-ID: <10177.1554980513.5@mousetrap.lan>
+Content-Disposition: attachment; filename="/model.cnv"
+Content-Description: Simile canvas description
+Date-Modified: 2019-04-11 11:01:36 GMT
+Content-Type: application/x-simile
+Content-Transfer-Encoding: base64
+
+IyB3cml0dGVuIG9uIFRodSBBcHIgMTEgMTE6MDE6MzYgR01UIDIwMTkKTG9hZE1vZGVsTG9va3Mg
+bl90aGlzIHJlYWx3aWR0aCgxMDguMCkgY3VycmVudGx5X2VkaXRhYmxlfSAtdGV4dCBmbG93MwoK
+
+
+------- =_U9Pw/kikzJT5t8pT5pl5Pw==
+MIME-Version: 1.0
+Content-ID: <10177.1554980513.6@mousetrap.lan>
+Content-Disposition: attachment; filename="/model.spj"
+Content-Description: Simile package description
+Date-Modified: 2019-04-11 11:01:53 GMT
+Content-Type: application/x-simile
+Content-Transfer-Encoding: base64
+
+Cg==
+
+------- =_U9Pw/kikzJT5t8pT5pl5Pw==
+MIME-Version: 1.0
+Content-Description: Run Status
+Content-ID: <10177.1554980513.7@mousetrap.lan>
+Content-Type: application/x-simile
+Content-Transfer-Encoding: base64
+
+ZXhlY1RpbWUgMTAwLjAgdGltZVVuaXQgdW5pdCBkaXNwbGF5SW50IDEgaW50TWV0aG9kIEV1bGVy
+IHBoYXNlTGlzdCAwLjE=
+
+------- =_U9Pw/kikzJT5t8pT5pl5Pw==--

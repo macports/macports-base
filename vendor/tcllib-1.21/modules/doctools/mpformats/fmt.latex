@@ -1,0 +1,431 @@
+# -*- tcl -*-
+# (c) 2001-2019 Andreas Kupries <andreas_kupries@sourceforge.net>
+#
+# [mpexpand] definitions to convert a tcl based manpage definition into
+# a manpage based upon LaTeX markup.
+#
+################################################################
+
+##
+## This engine needs a rewrite for a better handling
+## of characters special to TeX / LaTeX.
+##
+
+dt_source _common.tcl   ; # Shared code
+
+global _in_example
+set    _in_example 0
+
+global _has_images
+set    _has_images 0
+
+global _has_examples
+set    _has_examples 0
+
+# Called to handle plain text from the input
+proc fmt_plain_text {text} {
+    global _in_example
+    if {$_in_example} {	
+	lappend map \\\\\n \1\\textbackslash\n
+	lappend map \\\n   \1\\textbackslash\n	
+	set text [string map $map $text]
+	return $text
+    }
+    return [texEscape $text]
+}
+
+proc Year {} {clock format [clock seconds] -format %Y}
+
+c_holdBuffers require
+
+proc fmt_postprocess {text} {
+    # Trim trailing whitespace, for all lines.
+    regsub -all -- "\[ \t]+\n" $text "\n" text
+    # Strip superfluous line breaks
+    regsub -all -- "\n+" $text "\n" text
+    # Normalize paragraph breaks (subsume leading and traling whitespace)
+    regsub -all -- "\[\t \n]+\1@P" $text "\1@P" text
+    regsub -all -- "\1@P\[\t \n]+" $text "\1@P" text
+    # Insert the paragraph breaks, unify multiple adjacent breaks
+    regsub -all -- "(\1@P)+" $text "\n\n" text
+    # Finalize the protected special characters
+    return [string trimleft [string map {\1\\ \\ \1$ $} $text]]
+    #return $text
+}
+
+################################################################
+## Backend for LaTeX markup
+
+c_pass 1 fmt_manpage_begin {title section version} NOP
+c_pass 2 fmt_manpage_begin {title section version} {
+    global _has_images _has_examples
+
+    set module      [dt_module]
+    set shortdesc   [c_get_module]
+    set description [c_get_title]
+    set copyright   [c_get_copyright]
+
+    set     hdr ""
+    append  hdr [Comment [c_provenance]] \n
+    if {$copyright != {}} {
+	append  hdr [Comment $copyright] \n
+    }
+    append  hdr [Comment "$title.$section"] \n
+    append  hdr \n
+    append  hdr "\1\\documentclass\{article\}" \n
+
+    if {$_has_images} {
+	append hdr "\1\\usepackage{epsfig}" \n
+	append hdr "\1\\usepackage{epstopdf}" \n
+    }
+    if {$_has_examples} {
+	append hdr "\1\\usepackage{alltt}" \n
+    }
+
+    append  hdr "\1\\begin\{document\}" \n
+    append  hdr "\1\\author\{[dt_user]\}" \n
+
+    set    titletext ""
+    append titletext "$module / $title -- "
+    append titletext "$shortdesc : $description"
+
+    append  hdr "\1\\title\{[texEscape $titletext]\}" \n
+    append  hdr "\1\\maketitle" \n
+    return $hdr
+}
+
+c_pass 1 fmt_moddesc   {desc} {c_set_module $desc}
+c_pass 2 fmt_moddesc   {desc} NOP
+
+c_pass 1 fmt_titledesc {desc} {c_set_title $desc}
+c_pass 2 fmt_titledesc {desc} NOP
+
+c_pass 1 fmt_copyright {desc} {c_set_copyright [texEscape $desc]}
+c_pass 2 fmt_copyright {desc} NOP
+
+c_pass 1 fmt_manpage_end {} NOP
+c_pass 2 fmt_manpage_end {} {
+    set    res ""
+
+    set sa [c_xref_seealso]
+    set kw [c_xref_keywords]
+    set ca [c_xref_category]
+    set ct [c_get_copyright]
+
+    if {[llength $sa] > 0} {
+	set tmp {}
+	foreach x $sa {lappend tmp [texEscape $x]}
+	set sa $tmp
+
+	append res [fmt_section {See Also} see-also] \n
+	append res [join [lsort $sa] ", "] \n
+    }
+    if {[llength $kw] > 0} {
+	set tmp {}
+	foreach x $kw {lappend tmp [texEscape $x]}
+	set kw $tmp
+
+	append res [fmt_section Keywords keywords] \n
+	append res [join [lsort $kw] ", "] \n
+    }
+    if {$ca ne ""} {
+	set ca [texEscape $ca]
+
+	append res [fmt_section Category category] \n
+	append res $ca \n
+    }
+    if {$ct != {}} {
+	append res [fmt_section Copyright copyright] \n
+	append res \1\\begin\{flushleft\} \n
+	append res [join [split $ct \n] \1\\linebreak\n] \1\\linebreak\n
+	append res \1\\end\{flushleft\} \n
+    }
+    append  res "\1\\end\{document\}"
+    return $res
+}
+
+proc fmt_section    {name id} {return    "\1\\section\{[texEscape $name]\}\1\\label\{$id\}"}
+proc fmt_subsection {name id} {return "\1\\subsection\{[texEscape $name]\}\1\\label\{$id\}"}
+
+proc fmt_para   {} { return \1@P }
+proc fmt_nl     {} { return \1@P }
+
+c_pass 2 fmt_require {pkg {version {}}} NOP
+c_pass 1 fmt_require {pkg {version {}}} {
+    if {$version != {}} {
+	set res "package require [Bold "$pkg $version"]\n"
+    } else {
+	set res "package require [Bold $pkg]\n"
+    }
+    c_hold require $res
+    return
+}
+
+c_pass 2 fmt_usage {cmd args} NOP
+c_pass 1 fmt_usage {cmd args} {c_hold synopsis "\1\\item\[\] $cmd [join $args " "]"}
+
+c_pass 2 fmt_call {cmd args} {return "[fmt_lst_item "$cmd [join $args " "]"]"}
+c_pass 1 fmt_call {cmd args} {c_hold synopsis "\1\\item\[\] $cmd [join $args " "]"}
+
+c_pass 1 fmt_description {id} NOP
+c_pass 2 fmt_description {id} {
+    set res ""
+    set req [c_held require]
+    set syn [c_held synopsis]
+    if {$req != {} || $syn != {}} {
+	append res [fmt_section Synopsis synopsis]\n
+	if {$req != {}} {
+	    append res \1\\begin\{flushleft\} \n
+	    append res $req \n
+	    append res \1\\end\{flushleft\} \n
+	}
+	if {$syn != {}} {
+	    append res "\1\\begin\{itemize\}" \n
+	    append res ${syn} \n\n
+	    append res "\1\\end\{itemize\}" \n
+	}
+    }
+    append res [fmt_section Description $id]
+    return $res
+}
+
+################################################################
+
+global    list_state
+array set list_state {level -1}
+
+proc fmt_list_begin  {what {hint {}}} {
+    # ignoring hints
+    global list_state
+    incr list_state(level)
+    set  list_state(l,$list_state(level)) $what
+    set  list_state(l,$list_state(level),item) 0
+
+    switch -exact -- $what {
+	enumerated {
+	    return \1\\begin\{enumerate\}
+	}
+	itemized -
+	arguments -
+	options -
+	commands -
+	tkoptions -
+	definitions {
+	    return \1\\begin\{itemize\}
+	}
+	default {
+	    return -code error "Must not happen"
+	}
+    }
+}
+
+proc fmt_list_end {} {
+    global list_state
+
+    set what $list_state(l,$list_state(level))
+    set item $list_state(l,$list_state(level),item)
+
+    catch {unset list_state(l,$list_state(level))}
+    catch {unset list_state(l,$list_state(level),item)}
+
+    incr list_state(level) -1
+
+    switch -exact -- $what {
+	enumerated {
+	    return \1\\end\{enumerate\}
+	}
+	itemized -
+	arguments -
+	options -
+	commands -
+	tkoptions -
+	definitions {
+	    return \1\\end\{itemize\}
+	}
+	default {
+	    return -code error "Must not happen"
+	}
+    }
+}
+
+proc fmt_bullet {} {return "\n%\n\1\\item\n%\n"}
+proc fmt_enum   {} {return "\n%\n\1\\item\n%\n"}
+
+proc fmt_lst_item {text} {
+    global list_state
+
+    set item $list_state(l,$list_state(level),item)
+    set list_state(l,$list_state(level),item) 1
+
+    set text [texEscape $text]
+    return "\n%\n\1\\item\[\] $text\n%\n"
+}
+
+proc fmt_arg_def {type name {mode {}}} {
+    global list_state
+
+    set item $list_state(l,$list_state(level),item)
+    set list_state(l,$list_state(level),item) 1
+
+    set    text ""
+    append text [fmt_arg $name]
+    append text " $type"
+    if {$mode != {}} {append text " ($mode)"}
+    return "\n%\n\1\\item\[\] $text\n%\n"
+}
+
+proc fmt_cmd_def {command} {
+    global list_state
+
+    set item $list_state(l,$list_state(level),item)
+    set list_state(l,$list_state(level),item) 1
+
+    set text [fmt_cmd $command]
+    return "\n%\n\1\\item\[\] $text\n%\n"
+}
+
+proc fmt_opt_def {name {arg {}}} {
+    global list_state
+
+    set item $list_state(l,$list_state(level),item)
+    set list_state(l,$list_state(level),item) 1
+
+    set text [fmt_option $name]
+    if {$arg != {}} {append text " $arg"}
+    return "\n%\n\1\\item\[\] $text\n%\n"
+}
+
+proc fmt_tkoption_def {name dbname dbclass} {
+    global list_state
+
+    set item $list_state(l,$list_state(level),item)
+    set list_state(l,$list_state(level),item) 1
+
+    set    text ""
+    append text "Command-Line Switch:	[Bold $name]\\\\\n"
+    append text "Database Name:	[Bold $dbname]\\\\\n"
+    append text "Database Class:	[Bold $dbclass]\\\\\n"
+    return "\n%\n\1\\item\[\] $text\n%\n"
+}
+
+################################################################
+
+proc fmt_example_begin {} {
+    global _has_examples _in_example
+    set _has_examples 1
+    set    _in_example 1
+    return "\1\\begin{alltt}\n"
+}
+proc fmt_example_end   {} {
+    global _in_example
+    set    _in_example 0
+    return "\1\\end{alltt}\n"
+}
+# No mapping of special characters
+proc fmt_example {code} {
+    return [fmt_example_begin][fmt_plain_text $code][fmt_example_end]
+}
+
+proc fmt_arg    {text} {Underline $text}
+proc fmt_cmd    {text} {Bold      $text}
+proc fmt_emph   {text} {Italic    $text}
+proc fmt_opt    {text} {return   ?$text?}
+
+proc fmt_comment {text} {
+    set res [list]
+    foreach l [split $text \n] {
+	lappend res [Comment $l]
+    }
+    return [join $res \n]
+}
+proc fmt_sectref {text {label {}}} {
+    if {![string length $label]} {set label $text}
+    Bold "$text (\1\\ref\{$label\})"
+}
+proc fmt_syscmd  {text} {Bold $text}
+proc fmt_method  {text} {Bold $text}
+proc fmt_option  {text} {Bold $text}
+proc fmt_widget  {text} {Bold $text}
+proc fmt_fun     {text} {Bold $text}
+proc fmt_type    {text} {Bold $text}
+proc fmt_package {text} {Bold $text}
+proc fmt_class   {text} {Bold $text}
+proc fmt_var     {text} {Bold $text}
+proc fmt_file    {text} {return "\"[Italic $text]\""}
+proc fmt_namespace     {text} {Bold $text]}
+proc fmt_uri     {text {label {}}} {
+    if {$label == {}} {
+	# Without label we use the link directly as part of the text.
+	return [Underline $text]
+    } else {
+	# Label is used in the text, referred link is delegated into a
+	# footnote.
+	return "[Underline $label] \1\\footnote\{[texEscape $text]\}"
+    }
+}
+proc fmt_image {text {label {}}} {
+    global _has_images
+    # text = symbolic name of the image.
+
+    set img [dt_imgsrc $text {eps ps}]
+    if {$img eq {}} {
+	if {$label eq {}} {
+	    return [Underline "IMAGE: $text"]
+	} else {
+	    return [Underline "IMAGE: $text $label"]
+	}
+    }
+
+    set _has_images 1
+
+    return "\1\\begin{figure}\[htp\]\1\\includegraphics\[width=0.9\1\\textwidth\]{$img}\1\\end{figure}"
+}
+proc fmt_term    {text} {Italic $text}
+proc fmt_const   {text} {Bold $text}
+proc fmt_mdash {} { return " --- " }
+proc fmt_ndash {} { return " -- " }
+
+################################################################
+# latex specific commands
+
+proc Comment   {text} {return "% [join [split $text \n] "\n% "]"}
+proc Bold      {text} {return "\{\1\\bf [texEscape $text]\}"}
+proc Italic    {text} {return "\{\1\\it [texEscape $text]\}"}
+proc Underline {text} {return "\1\\underline\{[texEscape $text]\}"}
+
+################################################################
+
+proc texEscape {text} {
+    set x 0
+    if {[string match *%* $text]} {
+	#puts_stderr '$text'
+	set x 1
+    }
+
+    # Important: \1 protected sequences are left unchanged, they are already escaped.
+    set text [string map {
+        \1$\\backslash$ \1$\\backslash$ \1$<$ \1$<$ \1$>$ \1$>$
+	\1\\_ \1\\_
+	\1\\% \1\\%
+	\1\\^ \1\\^
+	\1\\$ \1\\$
+	\1\\# \1\\#
+	\1\\& \1\\&
+	\1\\ \1\\
+	\\ \1$\\backslash$
+	_ \1\\_
+	% \1\\%
+	^ \1\\^
+	$ \1\\$
+	< \1$<$
+	> \1$>$
+	# \1\\#
+	& \1\\&
+    } $text]
+    if {$x} {
+	#puts_stderr "==> '$text'"
+    }
+    return $text
+}
+
+################################################################

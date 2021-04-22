@@ -1,0 +1,38 @@
+# practcl.test - Copyright (c) 2018 Sean Woods
+# -------------------------------------------------------------------------
+
+#source [file join  #	[file dirname [file dirname [file dirname [file join [pwd] [info script]]]]]  #	compat devtools testutilities.tcl]
+set TestPwd [file dirname [file join [pwd] [info script]]]
+source [file join  [file dirname [file dirname [file join [pwd] [info script]]]]  devtools testutilities.tcl]
+
+
+testsNeedTcl     8.6
+testsNeedTcltest 2
+testsNeed        TclOO 1
+
+support {
+   use clay/clay.tcl           clay
+}
+testing {
+    useLocal practcl.tcl practcl
+}
+
+proc makeFile path {
+  file mkdir [file dirname $path]
+  set fout [open $path w]
+  puts $fout [list FILE $path]
+  close $fout
+}
+file mkdir test
+
+cd $TestPwd
+makeFile test/one.tcl
+makeFile test/sub/two.tcl
+makeFile test/sub/sub/three.tcl
+
+test dict-compare-001 {Test our testing method} {
+  ::practcl::findByPattern test *.tcl
+} {test/one.tcl test/sub/two.tcl test/sub/sub/three.tcl}
+
+file delete -force test
+

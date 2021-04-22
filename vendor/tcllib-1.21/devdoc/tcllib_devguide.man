@@ -1,0 +1,62 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin tcllib_devguide n 1]
+[titledesc {Tcllib - The Developer's Guide}]
+[description]
+[include parts/welcome.inc]
+
+[para]
+
+This document is a guide for developers working on Tcllib,
+i.e. maintainers fixing bugs, extending the collection's
+functionality, etc.
+
+[para]
+
+Please read
+
+[list_begin enum]
+[enum] [term {Tcllib - How To Get The Sources}] and
+[enum] [term {Tcllib - The Installer's Guide}]
+[list_end]
+
+first, if that was not done already.
+
+[para] Here we assume that the sources are already available in a
+directory of your choice, and that you not only know how to build and
+install them, but also have all the necessary requisites to actually
+do so. The guide to the sources in particular also explains which
+source code management system is used, where to find it, how to set it
+up, etc.
+
+[comment {===================================================================}]
+[section Commitments]
+[subsection Contributor][include parts/d_contrib.inc]
+[subsection Maintainer][include parts/d_maintain.inc]
+
+[comment {===================================================================}]
+[section {Branching and Workflow}]
+[include parts/d_branchflow.inc]
+
+[comment {===================================================================}]
+[section {Structural Overview}]
+[include parts/d_dirlayout.inc]
+
+[comment {===================================================================}]
+[section {Testsuite Tooling}]
+[include parts/d_testing.inc]
+
+[comment {===================================================================}]
+[section {Documentation Tooling}]
+[include parts/d_documentation.inc]
+
+[comment {===================================================================}]
+[section {Notes On Writing A Testsuite}]
+[include parts/d_testwrite.inc]
+
+[comment {===================================================================}]
+[section {Installation Tooling}]
+[include parts/d_installation.inc]
+
+[comment {===================================================================}]
+[manpage_end]
+

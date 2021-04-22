@@ -1,0 +1,74 @@
+## -*- tcl -*-
+##
+## NX-based Tcl/PARAM implementation of the parsing
+## expression grammar
+##
+##	TEMPLATE
+##
+## Generated from file	TEST
+##            for user  unknown
+##
+# # ## ### ##### ######## ############# #####################
+## Requirements
+
+package require Tcl 8.5
+package require nx
+package require pt::rde::nx ; # NX-based implementation of the
+			      # PARAM virtual machine
+			      # underlying the Tcl/PARAM code
+			      # used below.
+
+# # ## ### ##### ######## ############# #####################
+##
+
+nx::Class create PARSER -superclasses pt::rde::nx {
+    # # ## ### ##### ######## #############
+    ## Public API
+    
+    :public method parse {channel} {
+	:reset $channel
+	:MAIN ; # Entrypoint for the generated code.
+	return [:complete]
+    }
+
+    :public method parset {text} {
+	:reset {}
+	:data $text
+	:MAIN ; # Entrypoint for the generated code.
+	return [:complete]
+    }
+
+    # # ## ### ###### ######## #############
+    ## BEGIN of GENERATED CODE. DO NOT EDIT.
+
+    #
+    # Grammar Start Expression
+    #
+    
+    :method MAIN {} {
+        : choice_3
+        return
+    }
+    
+    :method choice_3 {} {
+        # /
+        #     'a'
+        #     <epsilon>
+    
+        : si:void_state_push
+        : si:next_char a
+        : si:voidvoid_branch
+        : i_status_ok
+        : si:void_state_merge
+        return
+    }
+    
+    ## END of GENERATED CODE. DO NOT EDIT.
+    # # ## ### ###### ######## #############
+}
+
+# # ## ### ##### ######## ############# #####################
+## Ready
+
+package provide NX_PACKAGE 1
+return

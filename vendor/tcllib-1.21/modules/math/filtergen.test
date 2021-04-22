@@ -1,0 +1,125 @@
+# -*- tcl -*-
+# Tests for filters library.
+#
+# RCS: @(#) $Id: geometry.test,v 1.13 2010/04/06 17:02:25 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 1.0
+
+support {
+    useLocal math.tcl math
+}
+testing {
+    useLocal filtergen.tcl math::filters
+}
+
+# -------------------------------------------------------------------------
+
+proc withFourDecimals {args} {
+    set res {}
+    foreach arg $args {lappend res [expr (round(10000*$arg))/10000.0]}
+    return $res
+}
+
+if { [info commands lmap] eq {} } {
+    proc lmap {var list body} {
+        upvar 1 $var _$var
+        set __$var {}
+        foreach _$var $list {
+            lappend __$var [uplevel 1 $body]
+        }
+        set __$var
+    }
+}
+
+#
+# Custom matching procedure:
+# Expect an accuracy of at least four decimals
+#
+proc matchNumbers {expected actual} {
+    set match 1
+    foreach a $actual e $expected {
+        if { [llength $a] == 1 } {
+            if {abs($a-$e) > 1.0e-4} {
+                set match 0
+                break
+            }
+        } else {
+            set match [matchNumbers $a $e]
+        }
+    }
+    return $match
+}
+
+customMatch numbers matchNumbers
+
+
+# -------------------------------------------------------------------------
+
+# Butterworth filter coefficients
+
+test butterworth-1.1 {low-pass, second order} -match numbers -body {
+    set coeffs [::math::filters::filterButterworth 1 2 100 20]
+    set result [concat {*}$coeffs]
+} -result {1.0 2.0 1.0 1.78885 -0.94793 4.84093}
+
+test butterworth-1.2 {high-pass, second order} -match numbers -body {
+    set coeffs [::math::filters::filterButterworth 0 2 100 20]
+    set result [concat {*}$coeffs]
+} -result {1.0 -2.0 1.0 0.94427 -0.50038 2.55535}
+
+
+# Actually filter data
+
+# 20 data, second-order filter, so 18 data returned
+test filter-1.0 {low-pass, second order, uniform series} -match numbers -body {
+    set coeffs   [::math::filters::filterButterworth 1 2 100 20]
+    set data     [lrepeat 20 1.0]
+    set filtered [::math::filters::filter $coeffs $data]
+    set result   [list [llength $filtered] [lindex $filtered end]]
+} -result {18 1.0}
+
+test filter-1.1 {low-pass, second order, sine series} -match numbers -body {
+    set coeffs   [::math::filters::filterButterworth 1 2 100 20]
+
+    set twopi  [expr {2.0 * acos(-1.0)}]
+    set period 100
+
+    set data {}
+
+    for {set i 0} {$i < $period} {incr i} {
+        lappend data [expr {cos($twopi * ($i/1.0) / double($period))}]
+    }
+
+    set filtered [lrange [::math::filters::filter $coeffs $data] end-7 end]
+} -result {0.845195 0.877086 0.905515 0.930371 0.951555 0.968984 0.982588 0.992315}
+
+# The object interface
+
+test filterobj-1.0 {low-pass, second order, sine series} -match numbers -body {
+    set coeffs   [::math::filters::filterButterworth 1 2 100 20]
+    set filter   [::math::filters::filterObject new $coeffs]
+
+    set twopi  [expr {2.0 * acos(-1.0)}]
+    set period 100
+
+    set data {}
+
+    for {set i 0} {$i < $period} {incr i} {
+        lappend filtered [$filter filter [expr {cos($twopi * ($i/1.0) / double($period))}]]
+    }
+
+    set filtered [lrange $filtered end-9 end]
+} -result {0.771545 0.809968 0.845195 0.877086 0.905515 0.930371 0.951555 0.968984 0.982588 0.992315}
+
+
+#
+# Cleanup
+#
+testsuiteCleanup

@@ -1,0 +1,502 @@
+'\"
+'\" Generated from file 'probopt\&.man' by tcllib/doctools with format 'nroff'
+'\"
+.TH "math::probopt" n 1 tcllib "Tcl Math Library"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+math::probopt \- Probabilistic optimisation methods
+.SH SYNOPSIS
+package require \fBTcl  8\&.6\fR
+.sp
+package require \fBTclOO \fR
+.sp
+package require \fBmath::probopt  1\fR
+.sp
+\fB::math::probopt::pso\fR \fIfunction\fR \fIbounds\fR \fIargs\fR
+.sp
+\fB::math::probopt::sce\fR \fIfunction\fR \fIbounds\fR \fIargs\fR
+.sp
+\fB::math::probopt::diffev\fR \fIfunction\fR \fIbounds\fR \fIargs\fR
+.sp
+\fB::math::probopt::lipoMax\fR \fIfunction\fR \fIbounds\fR \fIargs\fR
+.sp
+\fB::math::probopt::adaLipoMax\fR \fIfunction\fR \fIbounds\fR \fIargs\fR
+.sp
+.BE
+.SH DESCRIPTION
+.PP
+The purpose of the \fBmath::probopt\fR package is to provide various optimisation
+algorithms that are based on probabilistic techniques\&. The results of these algorithms
+may therefore vary from one run to the next\&. The algorithms are all well-known and
+well described and proponents generally claim they are efficient and reliable\&.
+.PP
+As most of these algorithms have one or more tunable parameters or even variations,
+the interface to each accepts options to set these parameters or the select
+the variation\&. These take the form of key-value pairs, for instance, \fI-iterations 100\fR\&.
+.PP
+This manual does not offer any recommendations with regards to these algorithms, nor
+does it provide much in the way of guidelines for the parameters\&. For this we refer to
+online articles on the algorithms in question\&.
+.PP
+A few notes, however:
+.IP \(bu
+With the exception of LIPO, the algorithms are capable of dealing with irregular (non-smooth) and even discontinuous
+functions\&.
+.IP \(bu
+The results depend on the random number seeding and are likely not to be very accurate, especially if the function
+varies slowly in the vicinty of the optimum\&. They do give a good starting point for a deterministic algorithm\&.
+.PP
+.PP
+The collection consists of the following algorithms:
+.IP \(bu
+PSO - particle swarm optimisation
+.IP \(bu
+SCE - shuffled complexes evolution
+.IP \(bu
+DE - differential evolution
+.IP \(bu
+LIPO - Lipschitz optimisation
+.PP
+The various procedures have a uniform interface:
+.CS
+
+
+   set result [::math::probopt::algorithm function bounds args]
+
+.CE
+The arguments have the following meaning:
+.IP \(bu
+The argument \fIfunction\fR is the name of the procedure that evaluates the function\&.
+Its interface is:
+.CS
+
+
+    set value [function coords]
+
+.CE
+.IP
+where \fIcoords\fR is a list of coordinates at which to evaluate the function\&. It is
+supposed to return the function value\&.
+.IP \(bu
+The argument \fIbounds\fR is a list of pairs of minimum and maximum for each coordinate\&.
+This list implicitly determines the dimension of the coordinate space in which the optimum
+is to be sought, for instance for a function like \fIx**2 + (y-1)**4\fR, you may specify
+the bounds as \fI{{-1 1} {-1 1}}\fR, that is, two pairs for the two coordinates\&.
+.IP \(bu
+The rest (\fIargs\fR) consists of zero or more key-value pairs to specify the options\&. Which
+options are supported by which algorithm, is documented below\&.
+.PP
+The result of the various optimisation procedures is a dictionary containing at least the
+following elements:
+.IP \(bu
+\fIoptimum-coordinates\fR is a list containing the coordinates of the optimum that was found\&.
+.IP \(bu
+\fIoptimum-value\fR is the function value at those coordinates\&.
+.IP \(bu
+\fIevaluations\fR is the number of function evaluations\&.
+.IP \(bu
+\fIbest-values\fR is a list of successive best values, obtained as
+part of the iterations\&.
+.PP
+.SH "DETAILS ON THE ALGORITHMS"
+The algorithms in the package are the following:
+.TP
+\fB::math::probopt::pso\fR \fIfunction\fR \fIbounds\fR \fIargs\fR
+The "particle swarm optimisation" algorithm uses the idea that the candidate
+optimum points should swarm around the best point found so far, with
+variations to allow for improvements\&.
+.sp
+It recognises the following options:
+.RS
+.IP \(bu
+\fI-swarmsize number\fR: Number of particles to consider (default: 50)
+.IP \(bu
+\fI-vweight    value\fR: Weight for the current "velocity" (0-1, default: 0\&.5)
+.IP \(bu
+\fI-pweight    value\fR: Weight for the individual particle's best position (0-1, default: 0\&.3)
+.IP \(bu
+\fI-gweight    value\fR: Weight for the "best" overall position as per particle (0-1, default: 0\&.3)
+.IP \(bu
+\fI-type       local/global\fR: Type of optimisation
+.IP \(bu
+\fI-neighbours number\fR: Size of the neighbourhood (default: 5, used if "local")
+.IP \(bu
+\fI-iterations number\fR: Maximum number of iterations
+.IP \(bu
+\fI-tolerance  value\fR: Absolute minimal improvement for minimum value
+.RE
+.TP
+\fB::math::probopt::sce\fR \fIfunction\fR \fIbounds\fR \fIargs\fR
+The "shuffled complex evolution" algorithm is an extension of the Nelder-Mead algorithm that
+uses multiple complexes and reorganises these complexes to find the "global" optimum\&.
+.sp
+It recognises the following options:
+.RS
+.IP \(bu
+\fI-complexes           number\fR: Number of particles to consider (default: 2)
+.IP \(bu
+\fI-mincomplexes        number\fR: Minimum number of complexes (default: 2; not currently used)
+.IP \(bu
+\fI-newpoints           number\fR: Number of new points to be generated (default: 1)
+.IP \(bu
+\fI-shuffle             number\fR: Number of iterations after which to reshuffle the complexes (if set to 0, the default, a number will be calculated from the number of dimensions)
+.IP \(bu
+\fI-pointspercomplex    number\fR: Number of points per complex (if set to 0, the default, a number will be calculated from the number of dimensions)
+.IP \(bu
+\fI-pointspersubcomplex number\fR: Number of points per subcomplex (used to select the best points in each complex; if set to 0, the default, a number will be calculated from the number of dimensions)
+.IP \(bu
+\fI-iterations          number\fR: Maximum number of iterations (default: 100)
+.IP \(bu
+\fI-maxevaluations      number\fR: Maximum number of function evaluations (when this number is reached the iteration is broken off\&. Default: 1000 million)
+.IP \(bu
+\fI-abstolerance        value\fR: Absolute minimal improvement for minimum value (default: 0\&.0)
+.IP \(bu
+\fI-reltolerance        value\fR: Relative minimal improvement for minimum value (default: 0\&.001)
+.RE
+.TP
+\fB::math::probopt::diffev\fR \fIfunction\fR \fIbounds\fR \fIargs\fR
+The "differential evolution" algorithm uses a number of initial points that are then updated using randomly selected points\&. It is more or less akin
+to genetic algorithms\&. It is controlled by two parameters, factor and lambda, where the first determines the update via random points and the second
+the update with the best point found sofar\&.
+.sp
+It recognises the following options:
+.RS
+.IP \(bu
+\fI-iterations          number\fR: Maximum number of iterations (default: 100)
+.IP \(bu
+\fI-number              number\fR: Number of point to work with (if set to 0, the default, it is calculated from the number of dimensions)
+.IP \(bu
+\fI-factor              value\fR: Weight of randomly selected points in the updating (0-1, default: 0\&.6)
+.IP \(bu
+\fI-lambda              value\fR: Weight of the best point found so far in the updating (0-1, default: 0\&.0)
+.IP \(bu
+\fI-crossover           value\fR: Fraction of new points to be considered for replacing the old ones (0-1, default: 0\&.5)
+.IP \(bu
+\fI-maxevaluations      number\fR: Maximum number of function evaluations (when this number is reached the iteration is broken off\&. Default: 1000 million)
+.IP \(bu
+\fI-abstolerance        value\fR: Absolute minimal improvement for minimum value (default: 0\&.0)
+.IP \(bu
+\fI-reltolerance        value\fR: Relative minimal improvement for minimum value (default: 0\&.001)
+.RE
+.TP
+\fB::math::probopt::lipoMax\fR \fIfunction\fR \fIbounds\fR \fIargs\fR
+The "Lipschitz optimisation" algorithm uses the "Lipschitz" property of the given function to find a \fImaximum\fR in the given bounding box\&. There are
+two variants, \fIlipoMax\fR assumes a fixed estimate for the Lipschitz parameter\&.
+.sp
+It recognises the following options:
+.RS
+.IP \(bu
+\fI-iterations          number\fR: Number of iterations (equals the actual number of function evaluations, default: 100)
+.IP \(bu
+\fI-lipschitz           value\fR: Estimate of the Lipschitz parameter (default: 10\&.0)
+.RE
+.TP
+\fB::math::probopt::adaLipoMax\fR \fIfunction\fR \fIbounds\fR \fIargs\fR
+The "adaptive Lipschitz optimisation" algorithm uses the "Lipschitz" property of the given function to find a \fImaximum\fR in the given bounding box\&. The adaptive
+variant actually uses two phases to find a suitable estimate for the Lipschitz parameter\&. This is controlled by the "Bernoulli" parameter\&.
+.sp
+When you specify a large number of iterations, the algorithm may take a very long time to complete as it is trying to improve on the Lipschitz parameter and
+the chances of hitting a better estimate diminish fast\&.
+.sp
+It recognises the following options:
+.RS
+.IP \(bu
+\fI-iterations          number\fR: Number of iterations (equals the actual number of function evaluations, default: 100)
+.IP \(bu
+\fI-bernoulli           value\fR: Parameter for random decisions (exploration versus exploitation, default: 0\&.1)
+.RE
+.PP
+.SH REFERENCES
+The various algorithms have been described in on-line publications\&. Here are a few:
+.IP \(bu
+\fIPSO\fR: Maurice Clerc, Standard Particle Swarm Optimisation (2012)
+\fIhttps://hal\&.archives-ouvertes\&.fr/file/index/docid/764996/filename/SPSO_descriptions\&.pdf\fR
+.sp
+Alternatively: \fIhttps://en\&.wikipedia\&.org/wiki/Particle_swarm_optimization\fR
+.IP \(bu
+\fISCE\fR: Qingyuan Duan, Soroosh Sorooshian, Vijai K\&. Gupta, Optimal use offo the SCE-UA global optimization method for calibrating watershed models
+(1994), Journal of Hydrology 158, pp 265-284
+.sp
+\fIhttps://www\&.researchgate\&.net/publication/223408756_Optimal_Use_of_the_SCE-UA_Global_Optimization_Method_for_Calibrating_Watershed_Models\fR
+.IP \(bu
+\fIDE\fR: Rainer Storn and Kenneth Price, Differential Evolution - A simple and efficient adaptivescheme for globaloptimization over continuous spaces
+(1996)
+.sp
+\fIhttp://www1\&.icsi\&.berkeley\&.edu/~storn/TR-95-012\&.pdf\fR
+.IP \(bu
+\fILIPO\fR: Cedric Malherbe and Nicolas Vayatis, Global optimization of Lipschitz functions,
+(june 2017)
+.sp
+\fIhttps://arxiv\&.org/pdf/1703\&.02628\&.pdf\fR
+.PP
+.SH KEYWORDS
+mathematics, optimisation, probabilistic calculations
+.SH CATEGORY
+Mathematics

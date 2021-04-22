@@ -1,0 +1,91 @@
+[comment {-*- tcl -*- doctools manpage}]
+[manpage_begin clock_iso8601 n 0.1]
+[moddesc   {Date/Time Utilities}]
+[titledesc {Parsing ISO 8601 dates/times}]
+[category  {Text processing}]
+[require Tcl 8.5]
+[require clock::iso8601 [opt 0.1]]
+[description]
+
+This package provides functionality to parse dates and times in
+ISO 8601 format.
+
+[para]
+
+[list_begin definitions]
+
+[call [cmd {::clock::iso8601 parse_date}] \
+     [arg date] [arg options...]]
+
+This command parses an ISO8601 date string in an unknown variant and
+returns the given date/time in seconds since epoch.
+
+[para] The acceptable options are
+[option -base],
+[option -gmt],
+[option -locale], and
+[option -timezone]
+of the builtin command [cmd {clock scan}].
+
+[call [cmd {::clock::iso8601 parse_time}] \
+     [arg time] [arg options...]]
+
+This command parses a full ISO8601 timestamp string (date and time) in
+an unknown variant and returns the given time in seconds since epoch.
+
+[para] The acceptable options are
+[option -base],
+[option -gmt],
+[option -locale], and
+[option -timezone]
+of the builtin command [cmd {clock scan}].
+
+[list_end]
+
+[section {Date formats}]
+
+The commands accept the following 23 date formats:
+
+[example_begin]
+(year)-(month)-(day)
+(year)(month)(day)
+(year)-(day in year)
+(year)(day in year)
+(year in century)-(month)-(day)
+(year)-(month)			Day defaults to the 1st of the month
+(year in century)(month)(day)		
+(year in century)-(day in year)		
+(year in century)(day in year)		
+--(month)-(day)			Year defaults to the current year
+--(month)(day)			Year defaults to the current year
+--(day in year)			Year defaults to the current year
+---(day)  		        Year defaults to the current year, month to current month
+(fiscal year)-W(week)-(wday)
+(fiscal year)W(week)-(wday)
+(fiscal year in century)-W(week)-(wday)
+(fiscal year in century)W(week)(wday)
+(fiscal year)-W(week)		Weekday defaults to monday
+(fiscal year)W(week)		Weekday defaults to monday
+-W(week)-(wday)			Year defaults to current fiscal year
+-W(week)(wday)			Year defaults to current fiscal year
+(wday)				Year defaults to current fiscal year, week to current week
+(year)				Month defaults to january, day to 1st of the month
+[example_end]
+
+The possible parts/fields in the above, and their meanings, are:
+
+[list_begin definitions]
+[def year] Year with century, 4 digits
+[def month] Month in year, 2 digits
+[def day] Day in month, 2 digits.
+[def {year in century}] Year without century, 2 digits
+[def {day in year}] Day in year, 3 digits
+[def {fiscal year}] ISO 8601 fiscal year with century, 4 digits
+[def {fiscal year in century}] ISO 8601 fiscal year without century, 2 digits
+[def week] ISO 8601 week number
+[def wday] Week day, 1 digit, Monday (1) to Sunday (7,0)
+[list_end]
+
+[vset CATEGORY clock::iso8601]
+[include ../common-text/feedback.inc]
+[manpage_end]

@@ -1,0 +1,24 @@
+# -*- tcl -*-
+# Stitch definition for docstrip files, used by SAK.
+
+input numtheory.dtx
+
+options -metaprefix \# -preamble {In other words:
+**************************************
+* This Source is not the True Source *
+**************************************
+the true source is the file from which this one was generated.
+}
+
+stitch numtheory.tcl       {pkg pkg_common}
+stitch numtheory.test      {test test_common}
+
+stitch primes.tcl          {pkg_primes pkg_common}
+stitch primes.test         {test_primes test_common}
+
+options -nopostamble -nopreamble
+stitch numtheory.man      man
+
+# Unused guards:
+#
+# - driver	(TeX output prolog)

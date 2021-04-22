@@ -1,0 +1,5 @@
+[comment { -- just items }]
+[toc_begin TOC Test]
+[item I1f i1 i1d]
+[item I2f i2 i2d]
+[toc_end]

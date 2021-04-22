@@ -1,0 +1,260 @@
+<!DOCTYPE html><html><head>
+<title>math::PCA - Principal Components Analysis</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'pca.man' by tcllib/doctools with format 'html'
+   -->
+<!-- math::PCA.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+&#124; <a href="../../../../toc.html">Main Table Of Contents</a>
+&#124; <a href="../../../toc.html">Table Of Contents</a>
+&#124; <a href="../../../../index.html">Keyword Index</a>
+&#124; <a href="../../../../toc0.html">Categories</a>
+&#124; <a href="../../../../toc1.html">Modules</a>
+&#124; <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::PCA(n) 1.0 tcllib &quot;Principal Components Analysis&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::PCA - Package for Principal Component Analysis</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Commands</a></li>
+<li class="doctools_section"><a href="#section3">EXAMPLE</a></li>
+<li class="doctools_section"><a href="#section4">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl <span class="opt">?8.6?</span></b></li>
+<li>package require <b class="pkgname">math::linearalgebra 1.0</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::PCA::createPCA</b> <i class="arg">data</i> <span class="opt">?args?</span></a></li>
+<li><a href="#2"><b class="cmd">$pca using</b> <span class="opt">?number?</span>|<span class="opt">?-minproportion value?</span></a></li>
+<li><a href="#3"><b class="cmd">$pca eigenvectors</b> <span class="opt">?option?</span></a></li>
+<li><a href="#4"><b class="cmd">$pca eigenvalues</b> <span class="opt">?option?</span></a></li>
+<li><a href="#5"><b class="cmd">$pca proportions</b> <span class="opt">?option?</span></a></li>
+<li><a href="#6"><b class="cmd">$pca approximate</b> <i class="arg">observation</i></a></li>
+<li><a href="#7"><b class="cmd">$pca approximatOriginal</b></a></li>
+<li><a href="#8"><b class="cmd">$pca scores</b> <i class="arg">observation</i></a></li>
+<li><a href="#9"><b class="cmd">$pca distance</b> <i class="arg">observation</i></a></li>
+<li><a href="#10"><b class="cmd">$pca qstatistic</b> <i class="arg">observation</i> <span class="opt">?option?</span></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The PCA package provides a means to perform principal components analysis
+in Tcl, using an object-oriented technique as facilitated by TclOO. It
+actually defines a single public method, <i class="term">::math::PCA::createPCA</i>,
+which constructs an object based on the data that are passed to perform
+the actual analysis.</p>
+<p>The methods of the PCA objects that are created with this command allow one
+to examine the principal components, to approximate (new) observations
+using all or a selected number of components only and to examine the
+properties of the components and the statistics of the approximations.</p>
+<p>The package has been modelled after the PCA example provided by the
+original linear algebra package by Ed Hume.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Commands</a></h2>
+<p>The <i class="term">math::PCA</i> package provides one public command:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::PCA::createPCA</b> <i class="arg">data</i> <span class="opt">?args?</span></a></dt>
+<dd><p>Create a new object, based on the data that are passed via the <i class="term">data</i> argument.
+The principal components may be based on either correlations or covariances.
+All observations will be normalised according to the mean and standard deviation
+of the original data.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">data</i></dt>
+<dd><p>- A list of observations (see the example below).</p></dd>
+<dt>list <i class="arg">args</i></dt>
+<dd><p>- A list of key-value pairs defining the options. Currently there is
+only one key: <i class="term">-covariances</i>. This indicates if covariances are to be used
+(if the value is 1) or instead correlations (value is 0). The default is to use
+correlations.</p></dd>
+</dl></dd>
+</dl>
+<p>The PCA object that is created has the following methods:</p>
+<dl class="doctools_definitions">
+<dt><a name="2"><b class="cmd">$pca using</b> <span class="opt">?number?</span>|<span class="opt">?-minproportion value?</span></a></dt>
+<dd><p>Set the number of components to be used in the analysis (the number of retained components).
+Returns the number of components, also if no argument is given.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">number</i></dt>
+<dd><p>- The number of components to be retained</p></dd>
+<dt>double <i class="arg">value</i></dt>
+<dd><p>- Select the number of components based on the minimum proportion
+of variation that is retained by them. Should be a value between 0 and 1.</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">$pca eigenvectors</b> <span class="opt">?option?</span></a></dt>
+<dd><p>Return the eigenvectors as a list of lists.</p>
+<dl class="doctools_arguments">
+<dt>string <i class="arg">option</i></dt>
+<dd><p>- By default only the <em>retained</em> components are returned.
+If all eigenvectors are required, use the option <i class="term">-all</i>.</p></dd>
+</dl></dd>
+<dt><a name="4"><b class="cmd">$pca eigenvalues</b> <span class="opt">?option?</span></a></dt>
+<dd><p>Return the eigenvalues as a list of lists.</p>
+<dl class="doctools_arguments">
+<dt>string <i class="arg">option</i></dt>
+<dd><p>- By default only the eigenvalues of the <em>retained</em> components are returned.
+If all eigenvalues are required, use the option <i class="term">-all</i>.</p></dd>
+</dl></dd>
+<dt><a name="5"><b class="cmd">$pca proportions</b> <span class="opt">?option?</span></a></dt>
+<dd><p>Return the proportions for all components, that is, the amount of variations that each
+components can explain.</p></dd>
+<dt><a name="6"><b class="cmd">$pca approximate</b> <i class="arg">observation</i></a></dt>
+<dd><p>Return an approximation of the observation based on the retained components</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">observation</i></dt>
+<dd><p>- The values for the observation.</p></dd>
+</dl></dd>
+<dt><a name="7"><b class="cmd">$pca approximatOriginal</b></a></dt>
+<dd><p>Return an approximation of the original data, using the retained components. It is
+a convenience method that works on the complete set of original data.</p></dd>
+<dt><a name="8"><b class="cmd">$pca scores</b> <i class="arg">observation</i></a></dt>
+<dd><p>Return the scores per retained component for the given observation.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">observation</i></dt>
+<dd><p>- The values for the observation.</p></dd>
+</dl></dd>
+<dt><a name="9"><b class="cmd">$pca distance</b> <i class="arg">observation</i></a></dt>
+<dd><p>Return the distance between the given observation and its approximation. (Note:
+this distance is based on the normalised vectors.)</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">observation</i></dt>
+<dd><p>- The values for the observation.</p></dd>
+</dl></dd>
+<dt><a name="10"><b class="cmd">$pca qstatistic</b> <i class="arg">observation</i> <span class="opt">?option?</span></a></dt>
+<dd><p>Return the Q statistic, basically the square of the distance, for the given observation.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">observation</i></dt>
+<dd><p>- The values for the observation.</p></dd>
+<dt>string <i class="arg">option</i></dt>
+<dd><p>- If the observation is part of the original data, you may want
+to use the corrected Q statistic. This is achieved with the option &quot;-original&quot;.</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">EXAMPLE</a></h2>
+<p>TODO: NIST example</p>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>PCA</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+<p>When proposing code changes, please provide <em>unified diffs</em>,
+i.e the output of <b class="const">diff -u</b>.</p>
+<p>Note further that <em>attachments</em> are strongly preferred over
+inlined patches. Attachments can be made by going to the <b class="const">Edit</b>
+form of the ticket immediately after its creation, and then using the
+left-most button in the secondary navigation bar.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#pca">PCA</a>, <a href="../../../../index.html#math">math</a>, <a href="../../../../index.html#statistics">statistics</a>, <a href="../../../../index.html#tcl">tcl</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+</div></body></html>

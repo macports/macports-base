@@ -1,0 +1,73 @@
+
+test-definitions-nested - 
+Generated from file '.FILE.' by tcllib/doctools with format 'text'
+test-definitions-nested(1) n .MODULE. ""
+
+NAME
+====
+
+test-definitions-nested -
+
+DESCRIPTION
+===========
+
+lorem ipsum dolores
+
+    lorem
+
+        ipsum dolores
+
+        lorem
+
+            ipsum dolores
+
+        lorem
+
+            ipsum dolores
+
+            lorem ipsum dolores
+
+        lorem
+
+            ipsum dolores
+
+            lorem ipsum dolores
+
+            lorem ipsum dolores
+
+    lorem
+
+        ipsum dolores
+
+        lorem ipsum dolores
+
+    lorem
+
+        ipsum dolores
+
+        lorem ipsum dolores
+
+        lorem
+
+            ipsum dolores
+
+        lorem
+
+            ipsum dolores
+
+            lorem ipsum dolores
+
+        lorem
+
+            ipsum dolores
+
+            lorem ipsum dolores
+
+            lorem ipsum dolores
+
+        lorem ipsum dolores
+
+COPYRIGHT
+=========
+
+Copyright (c) .COPYRIGHT.

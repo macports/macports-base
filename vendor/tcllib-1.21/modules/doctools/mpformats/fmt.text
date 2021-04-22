@@ -1,0 +1,565 @@
+# -*- tcl -*-
+#
+# -- Engine to convert a doctools document into plain text.
+#
+# Copyright (c) 2003-2019 Andreas Kupries <andreas_kupries@sourceforge.net>
+
+# # ## ### ##### ######## #############
+## Load shared code and modify it to our needs.
+
+dt_source _common.tcl
+dt_source _text.tcl
+
+proc c_copyrightsymbol {} {return "(c)"}
+
+# # ## ### ##### ########
+## Special manpage contexts
+
+# example     = if present, context is for an example
+# exenv       = if present, reference to example variant of current context
+
+proc Example!  {} { CAttrSet example . }
+proc Example?  {} { CAttrHas example }
+
+proc NewExample {} {
+    return [ContextNew Example { VerbatimOn ; Example! ; Prefix! "| " }] ; # {}
+}
+
+proc Example {} {
+    if {![CAttrHas exenv]} {
+	ContextPush
+	set exenv [NewExample]
+	ContextPop
+	CAttrSet exenv $exenv
+	ContextCommit
+    }
+    return [CAttrGet exenv]
+}
+
+proc NewList {what} {
+    # List contexts
+    # Per list type several contexts are required.
+    #puts_stderr "LIST OUT [CAttrName] NewList $what"
+    
+    switch -exact -- $what {
+	enumerated {NewOrderedList}
+	itemized   {NewUnorderedList}
+	arguments -
+	commands  -
+	options   -
+	tkoptions -
+	definitions {NewDefinitionList}
+    }
+
+    #puts_stderr "LIST INN [CAttrName]"
+    return
+}
+
+proc NewUnorderedList {} {
+    # Itemized list - unordered list - bullet
+    # 1. Base context provides indentation.
+    # 2. First paragraph in a list item.
+    # 3. All other paragraphs.
+    ContextPush
+
+    set base [ContextNew Itemized {
+	LC
+	MarginIn
+	set bullet [IBullet]
+    }] ; # {}
+
+    set first [ContextNew First {
+	List! bullet $bullet [BlankMargin]
+    }] ; ContextSet $base ; # {}
+
+    set next [ContextNew Next {
+	MarginIn
+    }] ; ContextSet $base ; # {}
+
+    OUL $first $next
+    ContextCommit
+
+    ContextPop
+    ContextSet $base
+    return
+}
+
+proc NewOrderedList {} {
+    # Ordered list - enumeration - enum
+    # 1. Base context provides indentation.
+    # 2. First paragraph in a list item.
+    # 3. All other paragraphs.
+    ContextPush
+    
+    set base [ContextNew Enumerated {
+	LC
+	MarginIn
+	set bullet [EBullet]
+    }] ; # {}
+
+    set first [ContextNew First {
+	List! enum $bullet [BlankMargin]
+    }] ; ContextSet $base ; # {}
+
+    set next [ContextNew Next {
+	MarginIn
+    }] ; ContextSet $base ; # {}
+
+    OUL $first $next
+    ContextCommit
+
+    ContextPop
+    ContextSet $base
+    return
+}
+
+proc NewDefinitionList {} {
+    # Definition list - terms & definitions
+    # 1. Base context provides indentation.
+    # 2. Term context
+    # 3. Definition context
+    ContextPush
+
+    set base [ContextNew Definitions {
+	LC
+	MarginIn
+    }] ; # {}
+
+    set term [ContextNew Term {
+	VerbatimOn
+    }] ; ContextSet $base ; # {}
+
+    set def [ContextNew Def {
+	MarginIn
+    }] ; ContextSet $base ; # {}
+
+    TD $term $def
+    ContextCommit
+    
+    ContextPop
+    ContextSet $base
+    return
+}
+
+# # ## ### ##### ########
+##
+
+proc LC {} {
+    # Clear inherited list type information from the current context
+    CAttrUnset _first
+    CAttrUnset _next
+    CAttrUnset _term
+    CAttrUnset _definition
+}
+
+proc OUL {f n} {
+    CAttrSet _first $f
+    CAttrSet _next  $n
+}
+
+proc TD {t d} {
+    CAttrSet _term       $t
+    CAttrSet _definition $d
+}
+
+proc IsPara   {} { CAttrHas _next }
+proc Paras    {} { global __pcount ; set  __pcount }
+proc PAdvance {} {
+    global __pcount ; incr __pcount 1
+    #puts_stderr "    ZZZ/ItemParas/Advance:$__pcount"
+}
+proc PReset   {} {
+    #puts_stderr "    ZZZ/ItemParas/Reset"
+    global __pcount ; set  __pcount 0 }
+
+global __pcount  ; set __pcount  0
+global __pcstack ; set __pcstack {}
+
+proc PSave {} {
+    global __pcount __pcstack
+    lappend __pcstack $__pcount
+    PReset
+}
+
+proc PRestore {} {
+    global __pcount __pcstack
+    set __pcount  [lindex $__pcstack end]
+    set __pcstack [lrange $__pcstack 0 end-1]
+    #puts_stderr "    ZZZ/ItemParas/Restore:$__pcount"
+    return
+}
+
+proc First    {} { CAttrGet _first }
+proc Other    {} { CAttrGet _next }
+proc Term     {} { CAttrGet _term }
+proc Def      {} { CAttrGet _definition }
+proc IsDef    {} { CAttrHas _definition }
+
+# # ## ### ##### ########
+##
+
+proc CloseCurrent {} {
+    if {[IsDef]} {
+	#puts_stderr "    ZZZ/CloseCurrent/Definitions"
+	# Currently in a definition list.
+	CloseParagraph [Def]
+    } elseif {[IsPara]} {
+	#puts_stderr "    ZZZ/CloseCurrent/UOL"
+	# Currently in an (un)ordered list.
+	#puts_stderr "    ZZZ/ItemParas/[Paras]"
+	if {![Paras]} {
+	    # No paragraphs yet, this is first in the item
+	    if {[CloseParagraph [First]]} PAdvance
+	} else {
+	    # More paragraphs in the item
+	    if {[CloseParagraph [Other]]} PAdvance
+	}
+    } else {
+	#puts_stderr "    ZZZ/CloseCurrent/Plain"
+	# Currently in a regular paragraph
+	CloseParagraph
+    }
+}
+
+proc GetCurrent {} {
+    if {[IsDef]} {
+	#puts_stderr "    ZZZ/GetCurrent/Definitions"
+	# Currently in a definition list.
+	return [Def]
+    } elseif {[IsPara]} {
+	#puts_stderr "    ZZZ/GetCurrent/UOL"
+	# Currently in an (un)ordered list.
+	#puts_stderr "    ZZZ/ItemParas/[Paras]"
+	if {![Paras]} {
+	    set res [First]
+	} else {
+	    set res [Other]
+	}
+	PAdvance
+	return $res
+    } else {
+	#puts_stderr "    ZZZ/GetCurrent/Plain"
+	# Currently in a regular paragraph
+	return {}
+    }
+}
+
+# # ## ### ##### ########
+##
+
+c_holdBuffers require
+
+rename fmt_initialize   BaseInitialize
+proc fmt_initialize {} {BaseInitialize ; TextInitialize ; return}
+
+proc fmt_postprocess {text} { text_postprocess $text }
+
+# # ## ### ##### ########
+## Implementations of the formatting commands.
+
+c_pass 1 fmt_plain_text {text} NOP
+c_pass 2 fmt_plain_text {text} { text_plain_text $text }
+
+c_pass 1 fmt_manpage_begin {title section version} NOP
+c_pass 2 fmt_manpage_begin {title section version} {
+    Off
+    set module      [dt_module]
+    set shortdesc   [c_get_module]
+    set description [c_get_title]
+
+    set     hdr [list]
+    lappend hdr "$title - $shortdesc"
+    lappend hdr [c_provenance]
+    lappend hdr "[string trimleft $title :]($section) $version $module \"$shortdesc\""
+    set     hdr [join $hdr \n]
+
+    Text $hdr
+    CloseParagraph [Verbatim]
+    Section NAME
+    Text "$title - $description"
+    CloseParagraph
+    return
+}
+
+c_pass 1 fmt_moddesc   {desc} {c_set_module $desc}
+c_pass 2 fmt_moddesc   {desc} NOP
+
+c_pass 1 fmt_titledesc {desc} {c_set_title $desc}
+c_pass 2 fmt_titledesc {desc} NOP
+
+c_pass 1 fmt_copyright {desc} {c_set_copyright $desc}
+c_pass 2 fmt_copyright {desc} NOP
+
+c_pass 1 fmt_manpage_end {} NOP
+c_pass 2 fmt_manpage_end {} {
+    set sa [c_xref_seealso]
+    set kw [c_xref_keywords]
+    set ca [c_xref_category]
+    set ct [c_get_copyright]
+
+    CloseParagraph
+    if {[llength $sa] > 0} {Section {SEE ALSO} ; Text [join [lsort $sa] ", "] ; CloseParagraph}
+    if {[llength $kw] > 0} {Section KEYWORDS   ; Text [join [lsort $kw] ", "] ; CloseParagraph}
+    if {$ca ne ""}         {Section CATEGORY   ; Text $ca                     ; CloseParagraph}
+    if {$ct != {}}         {Section COPYRIGHT  ; Text $ct ; CloseParagraph [Verbatim]}
+    return
+}
+
+c_pass 1 fmt_section     {name {id {}}} NOP
+c_pass 2 fmt_section     {name {id {}}} {CloseParagraph ; Section $name ; return}
+
+c_pass 1 fmt_subsection  {name {id {}}} NOP
+c_pass 2 fmt_subsection  {name {id {}}} {CloseParagraph ; Subsection $name ; return}
+
+c_pass 1 fmt_para {} NOP
+c_pass 2 fmt_para {} {
+    CloseCurrent
+    #puts_stderr "AAA/fmt_para/START"
+    return
+}
+
+# NL is an alias of PARA
+# See also fmt_example_begin
+c_pass 1 fmt_nl {} NOP
+c_pass 2 fmt_nl {} {CloseCurrent ; return }
+
+c_pass 2 fmt_require {pkg {version {}}} NOP
+c_pass 1 fmt_require {pkg {version {}}} {
+    set result "package require $pkg"
+    if {$version != {}} {append result " $version"}
+    c_hold require $result
+    return
+}
+
+c_pass 1 fmt_usage {cmd args} {c_hold synopsis "$cmd [join $args " "]"}
+c_pass 2 fmt_usage {cmd args} NOP
+
+c_pass 1 fmt_call  {cmd args} {c_hold synopsis "$cmd [join $args " "]"}
+c_pass 2 fmt_call  {cmd args} {fmt_lst_item "$cmd [join $args " "]"}
+
+
+c_pass 1 fmt_description {id} NOP
+c_pass 2 fmt_description {id} {
+    On
+    set syn [c_held synopsis]
+    set req [c_held require]
+
+    if {$syn != {} || $req != {}} {
+	Section SYNOPSIS
+	if {($req != {}) && ($syn != {})} {
+	    Text $req\n\n$syn
+	} else {
+	    if {$req != {}} {Text $req}
+	    if {$syn != {}} {Text $syn}
+	}
+	CloseParagraph [Verbatim]
+    }
+
+    Section DESCRIPTION
+    return
+}
+
+# # ## ### ##### ########
+##
+
+c_pass 1 fmt_list_begin {what {hint {}}} NOP
+c_pass 2 fmt_list_begin {what {hint {}}} {
+    CloseCurrent
+
+    #puts_stderr "AAA/fmt_list_begin/Setup $what"
+
+    ContextPush ;# push outer
+    NewList $what ;# base/controller of current/new/inner
+    Off
+    PSave
+
+    #puts_stderr "AAA/fmt_list_begin/Enter"
+    return
+}
+
+c_pass 1 fmt_list_end {} NOP
+c_pass 2 fmt_list_end {} {
+    CloseCurrent
+
+    #puts_stderr "AAA/fmt_list_end/Exit"
+
+    ContextPop ;# return to outer
+    PRestore
+
+    #puts_stderr "AAA/fmt_list_end/Done"
+    return
+}
+
+c_pass 1 fmt_lst_item {text} NOP
+c_pass 2 fmt_lst_item {text} {
+    if {[IsOff]} { On } else { CloseParagraph [Def] }
+
+    #puts_stderr "AAA/fmt_lst_item/(($text))"
+
+    Text $text
+    CloseParagraph [Term]
+
+    #puts_stderr "AAA/fmt_lst_item/Done"
+    return
+}
+
+c_pass 1 fmt_bullet {} NOP
+c_pass 2 fmt_bullet {} {
+    if {[IsOff]} { On } else { CloseCurrent }
+
+    #puts_stderr "AAA/fmt_bullet/START"
+    PReset
+    return
+}
+
+c_pass 1 fmt_enum {} NOP
+c_pass 2 fmt_enum {} {
+    if {[IsOff]} { On } else { CloseCurrent }
+
+    #puts_stderr "AAA/fmt_enum/START"
+    PReset
+    return
+}
+
+c_pass 1 fmt_cmd_def  {command} NOP
+c_pass 2 fmt_cmd_def  {command} {fmt_lst_item [fmt_cmd $command]}
+
+c_pass 1 fmt_arg_def {type name {mode {}}} NOP
+c_pass 2 fmt_arg_def {type name {mode {}}} {
+    set text "$type [fmt_arg $name]"
+    if {$mode != {}} {append text " ($mode)"}
+    fmt_lst_item $text
+    return
+}
+
+c_pass 1 fmt_opt_def {name {arg {}}} NOP
+c_pass 2 fmt_opt_def {name {arg {}}} {
+    set text [fmt_option $name]
+    if {$arg != {}} {append text " $arg"}
+    fmt_lst_item $text
+    return
+}
+
+c_pass 1 fmt_tkoption_def {name dbname dbclass} NOP
+c_pass 2 fmt_tkoption_def {name dbname dbclass} {
+    set    text ""
+    append text "Command-Line Switch:\t[fmt_option $name]\n"
+    append text "Database Name:\t[Strong $dbname]\n"
+    append text "Database Class:\t[Strong $dbclass]\n"
+    fmt_lst_item $text
+}
+
+# # ## ### ##### ########
+##
+
+c_pass 1 fmt_example_begin {} NOP
+c_pass 2 fmt_example_begin {} {
+    #puts_stderr "AAA/fmt_example_begin"
+
+    CloseCurrent
+
+    #puts_stderr "AAA/fmt_example_begin/Done"
+    return
+}
+
+c_pass 1 fmt_example_end {} NOP
+c_pass 2 fmt_example_end {} {
+    #puts_stderr "AAA/fmt_example_end"
+    #puts_stderr AAA/EIN=[string map [list \1 \\1 \t \\t { } \\s] <<[join [split [Text?] \n] >>\n<<]>>]
+
+    # Flush markup from preceding commands into the text buffer.
+    TextPlain ""
+    
+    TextTrimLeadingSpace
+
+    # Look for and convert continuation lines protected from Tcl
+    # substitution into a regular continuation line.
+    set t [string map [list \\\\\n \\\n] [Text?]]
+    TextClear
+    Text $t
+
+    #puts_stderr AAA/EFT=[string map [list \1\\1 \t \\t { } \\s] <<[join [split [Text?] \n] >>\n<<]>>]
+    
+    set penv [GetCurrent]
+    if {$penv != {}} {
+	# In a list we save the current list context, activate the
+	# proper paragraph context and create its example
+	# variant. After closing the paragraph using the example we
+	# restore and reactivate the list context.
+	ContextPush
+	ContextSet $penv
+	#if {[CloseParagraph [Example]]} PAdvance
+	CloseParagraph [Example]
+	ContextPop
+    } else {
+	# In a regular paragraph we simple close the example
+	#if {[CloseParagraph [Example]]} PAdvance
+	CloseParagraph [Example]
+    }
+
+    #puts_stderr "AAA/fmt_example_end/Done"
+    return
+}
+
+c_pass 1 fmt_example {code} NOP
+c_pass 2 fmt_example {code} {
+    fmt_example_begin
+    fmt_plain_text $code
+    fmt_example_end
+    return
+}
+
+# # ## ### ##### ########
+## Visual markup of words and phrases.
+
+proc fmt_arg     {text} { return $text }
+proc fmt_cmd     {text} { return $text }
+proc fmt_emph	 {text} { Em     $text }
+proc fmt_opt     {text} { return "?$text?" }
+proc fmt_comment {text} { return }
+proc fmt_sectref {text {label {}}} {
+    if {![string length $label]} {set label $text}
+    return "-> $text"
+}
+
+proc fmt_syscmd  {text} { Strong $text }
+proc fmt_method  {text} { return $text }
+proc fmt_option  {text} { return $text }
+proc fmt_widget  {text} { Strong $text }
+proc fmt_fun     {text} { Strong $text }
+proc fmt_type    {text} { Strong $text }
+proc fmt_package {text} { Strong $text }
+proc fmt_class   {text} { Strong $text }
+proc fmt_var     {text} { Strong $text }
+proc fmt_file    {text} { return "\"$text\"" }
+proc fmt_namespace     {text} { Strong $text }
+proc fmt_uri     {text {label {}}} {
+    if {$label == {}} {
+	# Without label we use the link directly as part of the text.
+	return "<URL:$text>"
+    } else {
+	return "[Em $label] <URL:$text>"
+    }
+}
+proc fmt_image {text {label {}}} {
+    # text = symbolic name of the image.
+
+    set img [dt_imgdata $text {txt}]
+    if {$img != {}} {
+	if {$label == {}} {
+	    return "IMAGE: $text"
+	} else {
+	    return "IMAGE: $text $label"
+	}
+    }
+
+    return $img
+}
+
+proc fmt_term    {text} { Em     $text }
+proc fmt_const   {text} { Strong $text }
+proc fmt_mdash {} { return " --- " }
+proc fmt_ndash {} { return " -- " }
+
+# # ## ### ##### ########
+return

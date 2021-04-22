@@ -1,0 +1,13 @@
+[comment { -- List 4 - enumerated }]
+[manpage_begin test-enumerated 1 n]
+[description]
+lorem ipsum dolores
+[list_begin enumerated]
+[enum] lorem ipsum dolores
+[enum] lorem ipsum dolores
+[para] lorem ipsum dolores
+[enum] lorem ipsum dolores
+[para] lorem ipsum dolores
+[para] lorem ipsum dolores
+[list_end]
+[manpage_end]

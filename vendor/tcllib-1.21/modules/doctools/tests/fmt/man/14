@@ -1,0 +1,15 @@
+[comment { -- List 7 - enumerated examples }]
+[manpage_begin test-enumerated-examples 1 n]
+[description]
+lorem ipsum dolores
+[list_begin enumerated]
+[enum]
+[example { A1 lorem ipsum dolores }]
+[enum] lorem ipsum dolores
+[example { B2 lorem ipsum dolores }]
+lorem ipsum dolores
+[enum] lorem ipsum dolores
+[example { C3 lorem ipsum dolores }]
+[enum] lorem ipsum dolores
+[list_end]
+[manpage_end]

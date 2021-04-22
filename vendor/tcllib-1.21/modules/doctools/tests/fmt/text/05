@@ -1,0 +1,86 @@
+
+BASIC - 
+Generated from file '.FILE.' by tcllib/doctools with format 'text'
+BASIC(a) 5 .MODULE. ""
+
+NAME
+====
+
+BASIC -
+
+SYNOPSIS
+========
+
+a-command 
+
+DESCRIPTION
+===========
+
+OK
+
+    integer argument-1
+
+        verification
+
+    string argument-2 (out)
+
+        mogrification
+
+    command-a
+
+        explanation
+
+    command-b
+
+        elucidation
+
+    term
+
+        definition
+
+    a-command
+
+        semantic
+
+    [1] A
+
+    [2] B
+
+        C
+
+        D
+
+    *   1
+
+    *   2
+
+        2a
+
+        2b
+
+    option-1
+
+        meaning
+
+    option-2 value
+
+        elaboration
+
+    Command-Line Switch:	background
+    Database Name:	*Background*
+    Database Class:	*Color*
+
+        candy
+
+    Command-Line Switch:	foreground
+    Database Name:	*Foreground*
+    Database Class:	*Color*
+
+        caramel
+
+KO
+
+COPYRIGHT
+=========
+
+Copyright (c) .COPYRIGHT.

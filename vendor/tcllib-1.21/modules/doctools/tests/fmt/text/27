@@ -1,0 +1,29 @@
+
+TEST - 
+Generated from file '.FILE.' by tcllib/doctools with format 'text'
+TEST(T) 0 .MODULE. ""
+
+NAME
+====
+
+TEST -
+
+DESCRIPTION
+===========
+
+= = == === ===== ======== =============
+
+| [bar \
+|   foo]
+
+= = == === ===== ======== =============
+
+| _many lines_
+| _highlighted_
+
+= = == === ===== ======== =============
+
+COPYRIGHT
+=========
+
+Copyright (c) .COPYRIGHT.

@@ -1,0 +1,63 @@
+'\"
+'\" Generated from file '\&.FILE\&.' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) \&.COPYRIGHT\&.
+'\"
+.TH "test-enumerated-definitions" 1 n \&.MODULE\&. ""
+.so man.macros
+.BS
+.SH NAME
+test-enumerated-definitions \-
+.SH DESCRIPTION
+lorem ipsum dolores
+.IP [1]
+lorem ipsum dolores
+.RS
+.TP
+lorem
+ipsum dolores
+.TP
+lorem
+ipsum dolores
+.sp
+lorem ipsum dolores
+.TP
+lorem
+ipsum dolores
+.sp
+lorem ipsum dolores
+.sp
+lorem ipsum dolores
+.RE
+.IP [2]
+lorem ipsum dolores
+.sp
+lorem ipsum dolores
+.IP [3]
+lorem ipsum dolores
+.sp
+lorem ipsum dolores
+.RS
+.TP
+lorem
+ipsum dolores
+.TP
+lorem
+ipsum dolores
+.sp
+lorem ipsum dolores
+.TP
+lorem
+ipsum dolores
+.sp
+lorem ipsum dolores
+.sp
+lorem ipsum dolores
+.RE
+.sp
+lorem ipsum dolores
+.PP
+.SH COPYRIGHT
+.nf
+Copyright (c) \&.COPYRIGHT\&.
+
+.fi

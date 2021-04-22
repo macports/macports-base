@@ -1,0 +1,563 @@
+# -*- tcl -*-
+# figurate.test --
+#    Test cases for the ::math::figurate package (figurate numbers)
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2022 by Arjen Markus.  All rights reserved.
+
+# -------------------------------------------------------------------------
+
+source [file join \
+        [file dirname [file dirname [file join [pwd] [info script]]]] \
+        devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 2.1
+
+testing {
+    useLocal figurate.tcl math::figurate
+}
+
+# -------------------------------------------------------------------------
+
+# Compare the integers in lists
+
+proc matchNumbers {expected actual} {
+    set match 1
+    foreach a $actual e $expected {
+        if { $a != $e } {
+            set match 0
+            break
+        }
+    }
+    return $match
+}
+
+::tcltest::customMatch numbers matchNumbers
+
+#
+# Test the summation procedures
+#
+test "sum-1.1" "Sum of successive integers" \
+    -match numbers -body {
+        set power 1
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set sumN     [::math::figurate::sum_sequence $n]
+            set sumNmin1 [::math::figurate::sum_sequence [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$n**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-1.2" "Sum of successive squares" \
+    -match numbers -body {
+        set power 2
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set sumN     [::math::figurate::sum_squares $n]
+            set sumNmin1 [::math::figurate::sum_squares [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$n**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-1.3" "Sum of successive cubes" \
+    -match numbers -body {
+        set power 3
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set sumN     [::math::figurate::sum_cubes $n]
+            set sumNmin1 [::math::figurate::sum_cubes [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$n**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-1.4" "Sum of successive 4th powers" \
+    -match numbers -body {
+        set power 4
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set sumN     [::math::figurate::sum_4th_power $n]
+            set sumNmin1 [::math::figurate::sum_4th_power [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$n**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-1.5" "Sum of successive 5th powers" \
+    -match numbers -body {
+        set power 5
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set sumN     [::math::figurate::sum_5th_power $n]
+            set sumNmin1 [::math::figurate::sum_5th_power [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$n**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-1.6" "Sum of successive 6th powers" \
+    -match numbers -body {
+        set power 6
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set sumN     [::math::figurate::sum_6th_power $n]
+            set sumNmin1 [::math::figurate::sum_6th_power [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$n**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-1.7" "Sum of successive 7th powers" \
+    -match numbers -body {
+        set power 7
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set sumN     [::math::figurate::sum_7th_power $n]
+            set sumNmin1 [::math::figurate::sum_7th_power [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$n**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-1.8" "Sum of successive 8th powers" \
+    -match numbers -body {
+        set power 8
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set sumN     [::math::figurate::sum_8th_power $n]
+            set sumNmin1 [::math::figurate::sum_8th_power [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$n**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-1.9" "Sum of successive 9th powers" \
+    -match numbers -body {
+        set power 9
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set sumN     [::math::figurate::sum_9th_power $n]
+            set sumNmin1 [::math::figurate::sum_9th_power [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$n**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-1.10" "Sum of successive 10th powers" \
+    -match numbers -body {
+        set power 10
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set sumN     [::math::figurate::sum_10th_power $n]
+            set sumNmin1 [::math::figurate::sum_10th_power [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$n**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-odd-1.1" "Sum of successive odd integers" \
+    -match numbers -body {
+        set power 1
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set odd      [expr {2*$n-1}]
+            set sumN     [::math::figurate::sum_sequence_odd $n]
+            set sumNmin1 [::math::figurate::sum_sequence_odd [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$odd**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-odd-1.2" "Sum of successive odd squares" \
+    -match numbers -body {
+        set power 2
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set odd      [expr {2*$n-1}]
+            set sumN     [::math::figurate::sum_squares_odd $n]
+            set sumNmin1 [::math::figurate::sum_squares_odd [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$odd**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-odd-1.3" "Sum of successive odd cubes" \
+    -match numbers -body {
+        set power 3
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set odd      [expr {2*$n-1}]
+            set sumN     [::math::figurate::sum_cubes_odd $n]
+            set sumNmin1 [::math::figurate::sum_cubes_odd [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$odd**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-odd-1.4" "Sum of successive odd 4th powers" \
+    -match numbers -body {
+        set power 4
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set odd      [expr {2*$n-1}]
+            set sumN     [::math::figurate::sum_4th_power_odd $n]
+            set sumNmin1 [::math::figurate::sum_4th_power_odd [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$odd**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-odd-1.5" "Sum of successive odd 5th powers" \
+    -match numbers -body {
+        set power 5
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set odd      [expr {2*$n-1}]
+            set sumN     [::math::figurate::sum_5th_power_odd $n]
+            set sumNmin1 [::math::figurate::sum_5th_power_odd [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$odd**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-odd-1.6" "Sum of successive odd 6th powers" \
+    -match numbers -body {
+        set power 6
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set odd      [expr {2*$n-1}]
+            set sumN     [::math::figurate::sum_6th_power_odd $n]
+            set sumNmin1 [::math::figurate::sum_6th_power_odd [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$odd**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-odd-1.7" "Sum of successive odd 7th powers" \
+    -match numbers -body {
+        set power 7
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set odd      [expr {2*$n-1}]
+            set sumN     [::math::figurate::sum_7th_power_odd $n]
+            set sumNmin1 [::math::figurate::sum_7th_power_odd [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$odd**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-odd-1.8" "Sum of successive odd 8th powers" \
+    -match numbers -body {
+        set power 8
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set odd      [expr {2*$n-1}]
+            set sumN     [::math::figurate::sum_8th_power_odd $n]
+            set sumNmin1 [::math::figurate::sum_8th_power_odd [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$odd**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-odd-1.9" "Sum of successive odd 9th powers" \
+    -match numbers -body {
+        set power 9
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set odd      [expr {2*$n-1}]
+            set sumN     [::math::figurate::sum_9th_power_odd $n]
+            set sumNmin1 [::math::figurate::sum_9th_power_odd [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$odd**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+test "sum-odd-1.10" "Sum of successive odd 10th powers" \
+    -match numbers -body {
+        set power 10
+
+        set result {}
+
+        for {set n 1} {$n < 10} {incr n} {
+            set odd      [expr {2*$n-1}]
+            set sumN     [::math::figurate::sum_10th_power_odd $n]
+            set sumNmin1 [::math::figurate::sum_10th_power_odd [expr {$n-1}]]
+            set diff     [expr {$sumN - $sumNmin1}]
+            set expected [expr {$odd**$power}]
+
+            lappend result [expr {$diff == $expected}]
+        }
+        set result
+    } -result {1 1 1  1 1 1  1 1 1}
+
+
+# Values copied from OEIS
+# Series start at n = 0
+
+test "figurate-1.1" "Oblong numbers (pronic)" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::oblong $n]
+        }
+        set result
+    } -result {0 2 6  12 20 30  42 56 72 90}
+
+test "figurate-1.1b" "Oblong numbers (pronic)" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::pronic $n]
+        }
+        set result
+    } -result {0 2 6  12 20 30  42 56 72 90}
+
+test "figurate-1.2" "Triangular numbers" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::triangular $n]
+        }
+        set result
+    } -result {0 1 3  6 10 15  21 28 36 45}
+
+test "figurate-1.3" "Centered square numbers" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::centeredSquare $n]
+        }
+        set result
+    } -result {0 1 5 13  25 41 61  85 113 145}
+
+test "figurate-1.4" "Centered cube numbers" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::centeredCube $n]
+        }
+        set result
+    } -result {0 1 9 35  91 189 341  559 855 1241}
+
+test "figurate-1.5" "Centered pentagonal numbers" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::centeredPentagonal $n]
+        }
+        set result
+    } -result {0 1 6 16  31 51 76  106 141 181}
+
+test "figurate-1.6" "Centered hexagonal numbers" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::centeredHexagonal $n]
+        }
+        set result
+    } -result {0 1 7 19  37 61 91  127 169 217}
+
+test "figurate-1.7" "Decagonal numbers" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::decagonal $n]
+        }
+        set result
+    } -result {0 1 10  27 52 85  126 175 232 297}
+
+test "figurate-1.8" "Heptagonal numbers" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::heptagonal $n]
+        }
+        set result
+    } -result {0 1 7  18 34 55  81 112 148 189}
+
+test "figurate-1.9" "Hexagonal numbers" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::hexagonal $n]
+        }
+        set result
+    } -result {0 1 6  15 28 45  66 91 120 153}
+
+test "figurate-1.10" "Octagonal numbers" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::octagonal $n]
+        }
+        set result
+    } -result {0 1 8  21 40 65  96 133 176 225}
+
+# OEIS A00326 - pentagonal numbers
+test "figurate-1.10" "Pentagonal numbers" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::pentagonal $n]
+        }
+        set result
+    } -result {0 1 5  12 22 35  51 70 92 117}
+
+test "figurate-1.11" "Square pyramidal numbers" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::squarePyramidal $n]
+        }
+        set result
+    } -result {0 1 5  14 30 55  91 140 204 285}
+
+test "figurate-1.12" "Tetrahedral numbers" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::tetrahedral $n]
+        }
+        set result
+    } -result {0 1 4  10 20 35  56 84 120 165}
+
+test "figurate-1.13" "Pentatope numbers" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::pentatope $n]
+        }
+        set result
+    } -result {0 1 5  15 35 70  126 210 330 495}
+
+test "figurate-1.14" "Centered triangular numbers" \
+    -match numbers -body {
+        set result {}
+
+        for {set n 0} {$n < 10} {incr n} {
+            lappend result [::math::figurate::centeredTriangular $n]
+        }
+        set result
+    } -result {0 1 4 10 19 31 46 64 85 109}
+
+
+# Skipping as trivial: square, cubic, biquadratic
+
+# End of test cases
+testsuiteCleanup

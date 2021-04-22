@@ -1,0 +1,59 @@
+[vset VERSION 0.3.3]
+[manpage_begin udpcluster n [vset VERSION]]
+[keywords {name service}]
+[keywords server]
+[copyright {2016-2018 Sean Woods <yoda@etoyoc.com>}]
+[moddesc   {Lightweight UDP based tool for cluster node discovery}]
+[titledesc {UDP Peer-to-Peer cluster}]
+[category  Networking]
+[require Tcl 8.5]
+[require udpcluster [opt [vset VERSION]]]
+[require ip]
+[require nettool]
+[require comm]
+[require interp]
+[require dicttool]
+[require cron]
+[description]
+
+This package is a lightweight alternative to Zeroconf. It utilizes UDP packets to
+populate a table of services provided by each node on a local network. Each participant
+broadcasts a key/value list in plain UTF-8 which lists what ports are open, and what
+protocols are expected on those ports. Developers are free to add any additional key/value
+pairs beyond those.
+
+[para]
+
+Using udpcluster.
+[para]
+For every service you wish to publish invoke:
+[para]
+[example {
+cluster::publish echo@[cluster::macid] {port 10000 protocol echo}
+}]
+[para]
+To query what services are available on the local network:
+[example {
+set results [cluster::search PATTERN]
+# And inside that result...
+echo@LOCALMACID {
+   port 10000
+   protocol echo
+}
+}]
+[para]
+To unpublish a service:
+[example {
+cluster::unpublish echo@[cluster::macid]
+}]
+[para]
+
+Results will
+Historical Notes:
+[para]
+This tool was originally known as nns::cluster, but as development progressed, it was
+clear that it wasn't interacting with any of the other facilities in NNS.
+
+[vset CATEGORY nameserv]
+[include ../common-text/feedback.inc]
+[manpage_end]

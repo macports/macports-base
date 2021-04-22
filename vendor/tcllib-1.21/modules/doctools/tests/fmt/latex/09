@@ -1,0 +1,34 @@
+% Generated from file '.FILE.' by tcllib/doctools with format 'latex'
+% Copyright (c) .COPYRIGHT.
+% TEST.z
+\documentclass{article}
+\usepackage{alltt}
+\begin{document}
+\author{@USR@}
+\title{.MODULE. / TEST --  : }
+\maketitle
+\section{Description}\label{section1}
+lorem
+\begin{alltt}
+1 lorem ipsum dolores
+\end{alltt}
+ipsum
+\begin{alltt}
+ 2 lorem ipsum dolores \end{alltt}
+dolores
+\begin{alltt}
+3 lorem ipsum dolores
+\end{alltt}
+lorem
+\begin{alltt}
+ 4 lorem ipsum dolores
+\end{alltt}
+ipsum
+\begin{alltt}
+5 lorem ipsum dolores \end{alltt}
+dolores
+\section{Copyright}\label{copyright}
+\begin{flushleft}
+Copyright (c) .COPYRIGHT.\linebreak
+\end{flushleft}
+\end{document}

@@ -1,0 +1,52 @@
+# -*- tcl -*-
+# machineparameters.test --
+#   Unit tests for machineparameters.tcl
+#
+# Copyright 2008 Michael Baudin
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.1
+
+testing {
+    useLocal machineparameters.tcl math::machineparameters
+}
+
+# -------------------------------------------------------------------------
+
+#
+# Check all parameters are there
+#
+test checkall {check epsilon, rounding mode} -setup {
+    set pp [machineparameters create %AUTO%]
+    $pp configure -verbose 0
+    $pp compute
+} -body {
+    set epsilon  [$pp get -epsilon]
+    set rounding [$pp get -rounding]
+    set basis    [$pp get -basis]
+    set mantissa [$pp get -mantissa]
+    set emax     [$pp get -exponentmax]
+    #$pp print
+    set res {}
+    # The following property on epsilon must hold false (yes : epsilon is THAT small !)
+    lappend res [expr {1.0+$epsilon>1.0}]
+    lappend res [expr {$rounding!=""}]
+    lappend res [expr {$basis> 1}]
+    lappend res [expr {$mantissa> 1}]
+} -cleanup {
+    $pp destroy
+    unset pp
+} -result {0 1 1 1}
+
+# -------------------------------------------------------------------------
+#
+# Shutdown tests
+#
+tcltest::cleanupTests
+

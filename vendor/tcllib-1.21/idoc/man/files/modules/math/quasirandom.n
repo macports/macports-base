@@ -1,0 +1,394 @@
+'\"
+'\" Generated from file 'quasirandom\&.man' by tcllib/doctools with format 'nroff'
+'\"
+.TH "math::quasirandom" n 1 tcllib "Tcl Math Library"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+math::quasirandom \- Quasi-random points for integration and Monte Carlo type methods
+.SH SYNOPSIS
+package require \fBTcl  8\&.6\fR
+.sp
+package require \fBTclOO \fR
+.sp
+package require \fBmath::quasirandom  1\fR
+.sp
+\fB::math::quasirandom::qrpoint create\fR \fINAME\fR \fIDIM\fR ?ARGS?
+.sp
+\fBgen next\fR
+.sp
+\fBgen set-start\fR \fIindex\fR
+.sp
+\fBgen set-evaluations\fR \fInumber\fR
+.sp
+\fBgen integral\fR \fIfunc\fR \fIminmax\fR \fIargs\fR
+.sp
+.BE
+.SH DESCRIPTION
+.PP
+In many applications pseudo-random numbers and pseudo-random points in a (limited)
+sample space play an important role\&. For instance in any type of Monte Carlo simulation\&.
+Pseudo-random numbers, however, may be too random and as a consequence a large
+number of data points is required to reduce the error or fluctuation in the results
+to the desired value\&.
+.PP
+Quasi-random numbers can be used as an alternative: instead of "completely" arbitrary
+points, points are generated that are diverse enough to cover the entire sample space
+in a more or less uniform way\&. As a consequence convergence to the limit can be
+much faster, when such quasi-random numbers are well-chosen\&.
+.PP
+The package defines a \fIclass\fR "qrpoint" that creates a command to generate
+quasi-random points in 1, 2 or more dimensions\&. The command can either generate
+separate points, so that they can be used in a user-defined algorithm or use these
+points to calculate integrals of functions defined over 1, 2 or more dimensions\&.
+It also holds several other common algorithms\&. (NOTE: these are not implemented yet)
+.PP
+One particular characteristic of the generators is that there are no tuning parameters
+involved, which makes the use particularly simple\&.
+.SH COMMANDS
+A quasi-random point generator is created using the \fIqrpoint\fR class:
+.TP
+\fB::math::quasirandom::qrpoint create\fR \fINAME\fR \fIDIM\fR ?ARGS?
+This command takes the following arguments:
+.RS
+.TP
+string \fINAME\fR
+The name of the command to be created (alternatively: the \fInew\fR subcommand
+will generate a unique name)
+.TP
+integer/string \fIDIM\fR
+The number of dimensions or one of: "circle", "disk", "sphere" or "ball"
+.TP
+strings \fIARGS\fR
+Zero or more key-value pairs\&. The supported options are:
+.RS
+.IP \(bu
+\fI-start index\fR: The index for the next point to be generated (default: 1)
+.IP \(bu
+\fI-evaluations number\fR: The number of evaluations to be used by default (default: 100)
+.RE
+.RE
+.PP
+The points that are returned lie in the hyperblock [0,1[^n (n the number of dimensions)
+or on the unit circle, within the unit disk, on the unit sphere or within the unit ball\&.
+.PP
+Each generator supports the following subcommands:
+.TP
+\fBgen next\fR
+Return the coordinates of the next quasi-random point
+.sp
+.TP
+\fBgen set-start\fR \fIindex\fR
+Reset the index for the next quasi-random point\&. This is useful to control which list of points is returned\&.
+Returns the new or the current value, if no value is given\&.
+.sp
+.TP
+\fBgen set-evaluations\fR \fInumber\fR
+Reset the default number of evaluations in compound algorithms\&. Note that the actual number is the
+smallest 4-fold larger or equal to the given number\&. (The 4-fold plays a role in the detailed integration
+routine\&.)
+.sp
+.TP
+\fBgen integral\fR \fIfunc\fR \fIminmax\fR \fIargs\fR
+Calculate the integral of the given function over the block (or the circle, sphere etc\&.)
+.RS
+.TP
+string \fIfunc\fR
+The name of the function to be integrated
+.TP
+list \fIminmax\fR
+List of pairs of minimum and maximum coordinates\&. This can be used to
+map the quasi-random coordinates to the desired hyper-block\&.
+.sp
+If the space is a circle, disk etc\&. then this argument should be a single value, the radius\&.
+The circle, disk, etc\&. is centred at the origin\&. If this is not what is required, then a coordinate
+transformation should be made within the function\&.
+.TP
+strings \fIargs\fR
+Zero or more key-value pairs\&. The following options are supported:
+.RS
+.IP \(bu
+\fI-evaluations number\fR: The number of evaluations to be used\&. If not specified use the
+default of the generator object\&.
+.RE
+.RE
+.PP
+.SH TODO
+Implement other algorithms and variants
+.PP
+Implement more unit tests\&.
+.PP
+Comparison to pseudo-random numbers for integration\&.
+.SH REFERENCES
+Various algorithms exist for generating quasi-random numbers\&. The generators created in this package are based on:
+\fIhttp://extremelearning\&.com\&.au/unreasonable-effectiveness-of-quasirandom-sequences/\fR
+.SH KEYWORDS
+mathematics, quasi-random
+.SH CATEGORY
+Mathematics
