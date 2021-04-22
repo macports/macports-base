@@ -1,0 +1,34 @@
+# Tests for the 'list' module in the 'struct' library. -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2003 by Kevin B. Kenny. All rights reserved.
+#
+# RCS: @(#) $Id: list.test,v 1.32 2011/09/17 14:35:36 mic42 Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+testing {
+    useLocal list.tcl struct::list
+}
+
+# -------------------------------------------------------------------------
+
+
+testing {
+    useLocal list.test.tcl struct::list::test
+	interp alias {} ::struct::list::test::lcs {} ::struct::list::list longestCommonSubsequence
+	::struct::list::test::main
+}
+
+#----------------------------------------------------------------------
+testsuiteCleanup

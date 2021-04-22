@@ -1,0 +1,210 @@
+# defer.test - Copyright (c) 2017 Roy Keene
+# -*- tcl -*-
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 2
+
+testing {
+	useLocal defer.tcl defer
+}
+
+# -------------------------------------------------------------------------
+
+# Series 1: defer::defer
+test defer-1.0 {defer::defer simple} -setup {
+	set deferTest FAIL
+} -body {
+	apply {{} {
+		defer::defer apply {{} {
+			uplevel 2 {set deferTest PASS}
+		}}
+	}}
+
+	set deferTest
+} -cleanup {
+	unset -nocomplain deferTest
+} -result {PASS}
+
+test defer-1.1 {defer::defer fd} -setup {
+	set fd [file tempfile]
+} -body {
+	apply {{fd} {
+		defer::defer close $fd
+	}} $fd
+
+	lsearch -exact [chan names] $fd
+} -cleanup {
+	catch {
+		close $fd
+	}
+	unset fd
+} -result {-1}
+
+# Series 2: defer::with
+test defer-2.0 {defer::with simple} -setup {
+	set deferTest FAIL
+} -body {
+	apply {{} {
+		set withCheck true
+		defer::with withCheck {
+			if {$withCheck} {
+				uplevel 1 {set deferTest PASS}
+			}
+		}
+	}}
+
+	set deferTest
+} -cleanup {
+	unset -nocomplain deferTest
+} -result {PASS}
+
+test defer-2.1 {defer::with fd} -setup {
+	set fd [file tempfile]
+} -body {
+	apply {{fd} {
+		defer::with fd {
+			close $fd
+		}
+	}} $fd
+
+	lsearch -exact [chan names] $fd
+} -cleanup {
+	catch {
+		close $fd
+	}
+	unset fd
+} -result {-1}
+
+# Series 3: defer::autowith
+test defer-3.0 {defer::autowith simple} -setup {
+	set deferTest FAIL
+} -body {
+	apply {{} {
+		set autoWithCheck true
+
+		defer::autowith {
+			if {$autoWithCheck} {
+				uplevel 1 {set deferTest PASS}
+			}
+		}
+	}}
+
+	set deferTest
+} -cleanup {
+	unset -nocomplain deferTest
+} -result {PASS}
+
+test defer-3.1 {defer::autowith fd} -setup {
+	set fd [file tempfile]
+} -body {
+	apply {{fd} {
+		defer::autowith {
+			close $fd
+		}
+	}} $fd
+
+	lsearch -exact [chan names] $fd
+} -cleanup {
+	catch {
+		close $fd
+	}
+	unset fd
+} -result {-1}
+
+# Series 4: defer::cancel
+test defer-4.0 {defer::cancel simple} -setup {
+	set deferTest FAIL-1
+} -body {
+	apply {{} {
+		set defId [defer::with "" {
+			uplevel 1 {set deferTest FAIL-2}
+		}]
+
+		defer::with "" {
+			uplevel 1 {set deferTest PASS}
+		}
+
+		defer::cancel $defId
+	}}
+
+	set deferTest
+} -cleanup {
+	unset -nocomplain deferTest
+} -result {PASS}
+
+# Series 5: Order is LIFO
+test defer-5.0 {defer is LIFO} -setup {
+	set deferTest "INVALID"
+} -body {
+	apply {{} {
+		for {set i 0} {$i < 10} {incr i} {
+			defer::defer uplevel 1 [list set deferTest "RESULT:$i"]
+		}
+	}}
+
+	set deferTest
+} -cleanup {
+	unset -nocomplain deferTest
+} -result {RESULT:0}
+
+# Series 6: Usage checks
+test defer-6.0 {defer::defer global fails} -body {
+	defer::defer info patchlevel
+} -returnCodes ERROR -result {defer may not be used from the global scope}
+
+test defer-6.1 {defer::defer with no args works} -body {
+	apply {{} {
+		defer::defer
+
+		return "PASS"
+	}}
+} -result {PASS}
+
+test defer-6.2 {defer::with syntax too few args} -body {
+	apply {{} {
+		defer::with
+	}}
+} -returnCodes ERROR -match glob -result {wrong # args: *}
+
+test defer-6.3 {defer::with syntax too many args} -body {
+	apply {{} {
+		defer::with [list] error BADARG
+	}}
+} -returnCodes ERROR -match glob -result {wrong # args: *}
+
+test defer-6.4 {defer::autowith syntax too few args} -body {
+	apply {{} {
+		defer::autowith
+	}}
+} -returnCodes ERROR -match glob -result {wrong # args: *}
+
+test defer-6.5 {defer::autowith syntax too many args} -body {
+	apply {{} {
+		defer::autowith error BADARG
+	}}
+} -returnCodes ERROR -match glob -result {wrong # args: *}
+
+test defer-6.6 {defer::cancel syntax too few args} -body {
+	apply {{} {
+		defer::cancel
+
+		return "PASS"
+	}}
+} -result {PASS}
+
+test defer-6.7 {defer::cancel syntax too many args} -body {
+	apply {{} {
+		defer::cancel A B
+
+		return "PASS"
+	}}
+} -result {PASS}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup

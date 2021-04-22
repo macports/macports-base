@@ -1,0 +1,418 @@
+source [file join \
+        [file dirname [file dirname [file join [pwd] [info script]]]] \
+        devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 2.0
+
+package require TclOO
+
+support {
+    use virtchannel_core/events.tcl tcl::chan::events
+    use virtchannel_base/variable.tcl tcl::chan::variable
+}
+
+testing {
+    useLocal picoirc.tcl picoirc
+}
+
+proc contextReset {{data {}}} {
+    array set ::picoirc::irc $::picoirc::defaults
+    set ::picoirc::irc(callback) callback
+    set ::picoirc::irc(nick) anonymous
+    set ::picoirc::irc(data) "$data\n"
+    set ::picoirc::irc(socket) [tcl::chan::variable ::picoirc::irc(data)]
+    chan configure $::picoirc::irc(socket) -buffering line
+    foreach _ [split $data \n] {
+        ::picoirc::Read ::picoirc::irc
+    }
+    return
+}
+
+proc send {channel msg} {
+    ::picoirc::post ::picoirc::irc $channel $msg
+    return
+}
+
+proc contextResult {} {
+    close $::picoirc::irc(socket)
+    return [lindex [split $::picoirc::irc(data) \n] end-1]
+}
+
+proc contextItemResult {key} {
+    close $::picoirc::irc(socket)
+    return $::picoirc::irc($key)
+}
+
+proc callback {_ args} {
+    global data
+    set data $args
+    if {$args == "version"} {
+        return "PicoIRC:1.0:Tcl 8.6 tls 1.7.22"
+    }
+    return
+}
+
+proc callbackResult {} {
+    global data
+    return $data
+}
+
+test picoirc-1.0 {irc:// schema} -body {
+    ::picoirc::Splituri irc://chat.freenode.net
+} -result [list chat.freenode.net 6667 {} 0]
+
+test picoirc-1.1 {irc:// schema with port} -body {
+    ::picoirc::Splituri irc://irc.choopa.net:6654
+} -result [list irc.choopa.net 6654 {} 0]
+
+test picoirc-1.2 {irc:// schema with channel} -body {
+    ::picoirc::Splituri irc://chat.freenode.net/#tcl
+} -result [list chat.freenode.net 6667 #tcl 0]
+
+test picoirc-1.3 {irc:// schema with channel and port} -body {
+    ::picoirc::Splituri irc://chat.freenode.net:5347/#go-nuts
+} -result [list chat.freenode.net 5347 #go-nuts 0]
+
+test picoirc-1.4 {ircs:// schema} -body {
+    ::picoirc::Splituri ircs://185.98.4.3
+} -result [list 185.98.4.3 6697 {} 1]
+
+test picoirc-1.5 {ircs:// schema with port} -body {
+    ::picoirc::Splituri ircs://chat.freenode.net:69654
+} -result [list chat.freenode.net 69654 {} 1]
+
+test picoirc-1.6 {ircs:// schema with channel} -body {
+    ::picoirc::Splituri ircs://chat.freenode.net/#tcl
+} -result [list chat.freenode.net 6697 #tcl 1]
+
+test picoirc-1.7 {ircs:// schema with channel and port} -body {
+    ::picoirc::Splituri ircs://chat.freenode.net:76556/#go-nuts
+} -result [list chat.freenode.net 76556 #go-nuts 1]
+
+test picoirc-1.8 {address} -body {
+    ::picoirc::Splituri irc.freenode.net
+} -result [list irc.freenode.net 6667 {} 0]
+
+test picoirc-1.9 {address with port} -body {
+    ::picoirc::Splituri 243.75.9.4:8697
+} -result [list 243.75.9.4 8697 {} 0]
+
+test picoirc-1.10 {address with channel} -body {
+    ::picoirc::Splituri #tcl@chat.freenode.net
+} -result [list chat.freenode.net 6667 #tcl 0]
+
+test picoirc-1.11 {address with channel and port} -body {
+    ::picoirc::Splituri #go-nuts@chat.freenode.net:765
+} -result [list chat.freenode.net 765 #go-nuts 0]
+
+test picoirc-1.12 {irc:// schema with multiple channels} -body {
+    ::picoirc::Splituri irc://chat.freenode.net/#tcl,#go-nuts,#twtxt
+} -result [list chat.freenode.net 6667 {{#tcl} #go-nuts #twtxt} 0]
+
+test picoirc-1.13 {irc:// schema with channel and special params} -body {
+    ::picoirc::Splituri irc://chat.freenode.net/#tcl,needkey,needpass
+} -result [list chat.freenode.net 6667 #tcl 0]
+
+test picoirc-1.14 {address with multiple channels} -body {
+    ::picoirc::Splituri #tcl,#go-nuts,#twtxt@chat.freenode.net
+} -result [list chat.freenode.net 6667 {{#tcl} #go-nuts #twtxt} 0]
+
+test picoirc-1.15 {address with channel and special params} -body {
+    ::picoirc::Splituri #tcl,needkey,needpass@chat.freenode.net
+} -result [list chat.freenode.net 6667 #tcl 0]
+
+test picoirc-2.0 {channel message} -body {
+    contextReset ":tcler!~anon@127.0.0.1 PRIVMSG #tcl :hello #tcl"
+    callbackResult
+} -result [list chat #tcl tcler {hello #tcl} {}]
+
+test picoirc-2.1 {channel message with action} -body {
+    contextReset ":tcler!~anon@127.0.0.1 PRIVMSG #tcl :\001ACTION fixing scripts\001"
+    callbackResult
+} -result [list chat #tcl tcler {fixing scripts} ACTION]
+
+test picoirc-2.2 {channel message with version} -body {
+    contextReset ":tcler!~anon@127.0.0.1 PRIVMSG #tcl :\001VERSION\001"
+    contextResult
+} -result "NOTICE tcler :\001VERSION PicoIRC:1.0:Tcl 8.6 tls 1.7.22\001"
+
+test picoirc-2.3 {private message} -body {
+    contextReset ":tcler!~anon@127.0.0.1 PRIVMSG anonymous :hey there"
+    callbackResult
+} -result [list chat anonymous tcler {hey there} {}]
+
+test picoirc-2.4 {private message with action} -body {
+    contextReset ":tcler!~anon@127.0.0.1 PRIVMSG anonymous :\001ACTION feels good\001"
+    callbackResult
+} -result [list chat anonymous tcler {feels good} ACTION]
+
+test picoirc-2.5 {private message with version} -body {
+    contextReset ":tcler!~anon@127.0.0.1 PRIVMSG anonymous :\001VERSION\001"
+    contextResult
+} -result "NOTICE tcler :\001VERSION PicoIRC:1.0:Tcl 8.6 tls 1.7.22\001"
+
+test picoirc-2.6 {user list} -body {
+    contextReset [join [list \
+        ":card.freenode.net 353 tcler @ #tcl :tcler +aku +curiousgay +kbk +rkeene +sebres" \
+        ":card.freenode.net 366 tcler #tcl :End of /NAMES list." \
+    ] "\n"]
+    callbackResult
+} -result [list userlist #tcl {tcler +aku +curiousgay +kbk +rkeene +sebres}]
+
+test picoirc-2.7 {whois} -body {
+    contextReset [join [list \
+        ":kornbluth.freenode.net 311 tcler anonymous ~anon 192.168.1.1 * :PicoIRC 1.0 user" \
+        ":kornbluth.freenode.net 319 tcler anonymous :+#go-nuts #haskell #tcl " \
+        ":kornbluth.freenode.net 312 tcler anonymous beckett.freenode.net :DE" \
+        ":kornbluth.freenode.net 671 tcler anonymous :is using a secure connection" \
+        ":kornbluth.freenode.net 330 tcler anonymous anonymous :is logged in as" \
+        ":kornbluth.freenode.net 318 tcler anonymous :End of /WHOIS list." \
+    ] "\n"]
+    callbackResult
+} -result [list userinfo anonymous \
+                [list name ~anon \
+                      host 192.168.1.1 \
+                      userinfo {PicoIRC 1.0 user} \
+                      channels {+#go-nuts #haskell #tcl }]]
+
+test picoirc-2.8 {join channel} -body {
+    contextReset ":tcler!~anon@127.0.0.1 JOIN #tcl"
+    callbackResult
+} -result [list traffic entered #tcl tcler]
+
+test picoirc-2.9 {change nick} -body {
+    contextReset ":tcler!~anon@127.0.0.1 NICK :gopher"
+    callbackResult
+} -result [list traffic nickchange {} tcler gopher]
+
+test picoirc-2.10 {quit channel} -body {
+    contextReset ":tcler!~anon@127.0.0.1 PART #tcl"
+    callbackResult
+} -result [list traffic left #tcl tcler]
+
+test picoirc-2.11 {quit server} -body {
+    contextReset ":tcler!~anon@127.0.0.1 QUIT"
+    callbackResult
+} -result [list traffic left {} tcler]
+
+test picoirc-2.12 {mode self} -body {
+    contextReset ":anonymous MODE anonymous :+RZi"
+    callbackResult
+} -result [list mode {} anonymous +RZi]
+
+test picoirc-2.13 {mode channel} -body {
+    contextReset ":egan.freenode.net MODE #tcl-hacks :+ns"
+    callbackResult
+} -result [list mode {} #tcl-hacks +ns]
+
+test picoirc-2.14 {mode channel with parameter} -body {
+    contextReset ":ChanServ!ChanServ@services. MODE #tcl-hacks :+v newbie"
+    callbackResult
+} -result [list mode ChanServ #tcl-hacks "+v newbie"]
+
+test picoirc-2.15 {mode channel with parameter without colon} -body {
+    contextReset ":ChanServ!ChanServ@services. MODE #tcl-hacks +v newbie"
+    callbackResult
+} -result [list mode ChanServ #tcl-hacks "+v newbie"]
+
+test picoirc-2.16 {mode channel with trailing space and without colon} -body {
+    contextReset ":ChanServ!ChanServ@services. MODE #tcl-hacks -s "
+    callbackResult
+} -result [list mode ChanServ #tcl-hacks "-s "]
+
+test picoirc-2.17 {channel notice} -body {
+    contextReset ":ChanServ!ChanServ@services. NOTICE #tcl :Tcl is the productive programming language."
+    callbackResult
+} -result [list chat #tcl ChanServ {Tcl is the productive programming language.} NOTICE]
+
+test picoirc-2.18 {private notice} -body {
+    contextReset ":NickServ!NickServ@services. NOTICE anonymous :This nickname is registered."
+    callbackResult
+} -result [list chat {} NickServ {This nickname is registered.} NOTICE]
+
+test picoirc-2.19 {global notice} -body {
+    contextReset ":beckett.freenode.net NOTICE * :*** Checking Ident"
+    callbackResult
+} -result [list chat {} {} {*** Checking Ident} NOTICE]
+
+test picoirc-3.0 {/me} -body {
+    contextReset
+    send #tcl "/me testing picoirc"
+    list [contextResult] [callbackResult]
+} -result [list "PRIVMSG #tcl :\001ACTION testing picoirc\001" \
+          [list chat #tcl anonymous "testing picoirc" ACTION]]
+
+test picoirc-3.1 {/nick} -body {
+    contextReset
+    send #tcl "/nick anon"
+    contextResult
+} -result "NICK anon"
+
+test picoirc-3.2 {/quit} -body {
+    contextReset
+    send #tcl "/quit"
+    contextResult
+} -result "QUIT"
+
+test picoirc-3.3 {/part} -body {
+    contextReset
+    send #tcl "/part"
+    contextResult
+} -result "PART #tcl"
+
+test picoirc-3.4 {/names} -body {
+    contextReset
+    send #tcl "/names"
+    contextResult
+} -result "NAMES #tcl"
+
+test picoirc-3.5 {/whois inside channel} -body {
+    contextReset
+    send #tcl "/whois aku"
+    contextResult
+} -result "WHOIS aku"
+
+test picoirc-3.6 {/whois} -body {
+    contextReset
+    send {} "/whois aku"
+    contextResult
+} -result "WHOIS aku"
+
+test picoirc-3.7 {/kick} -body {
+    contextReset
+    send #tcl "/kick bastard too much spamming"
+    contextResult
+} -result "KICK #tcl bastard :too much spamming"
+
+test picoirc-3.8 {/kick no reason} -body {
+    contextReset
+    send #tcl "/kick bastard"
+    contextResult
+} -result "KICK #tcl bastard :"
+
+test picoirc-3.9 {/mode} -body {
+    contextReset
+    send #tcl "/mode #tcl-hacks +s"
+    contextResult
+} -result "MODE #tcl-hacks +s"
+
+test picoirc-3.10 {/topic} -body {
+    contextReset
+    send #tcl "/topic Tcl is the best scripting language in the world!"
+    contextResult
+} -result "TOPIC #tcl :Tcl is the best scripting language in the world!"
+
+test picoirc-3.11 {/quote} -body {
+    contextReset
+    send #tcl "/quote JOIN #go-nuts"
+    contextResult
+} -result "JOIN #go-nuts"
+
+test picoirc-3.12 {/part} -body {
+    contextReset
+    send #tcl "/join #haskell"
+    contextResult
+} -result "JOIN #haskell"
+
+test picoirc-3.13 {/version} -body {
+    contextReset
+    send #tcl "/version #haskell"
+    contextResult
+} -result "PRIVMSG #haskell :\001VERSION\001"
+
+test picoirc-3.14 {/msg} -body {
+    contextReset
+    send #tcl "/msg NickServ help me please"
+    list [contextResult] [callbackResult]
+} -result [list "PRIVMSG NickServ :help me please" \
+          [list chat NickServ anonymous "help me please" {}]]
+
+test picoirc-3.15 {/notice} -body {
+    contextReset
+    send #tcl "/notice #haskell declarative programming is amazing"
+    list [contextResult] [callbackResult]
+} -result [list "NOTICE #haskell :declarative programming is amazing" \
+          [list chat #haskell anonymous "declarative programming is amazing" "NOTICE"]]
+
+test picoirc-3.16 {unknown command} -body {
+    contextReset
+    send #tcl "/compile chromium"
+    callbackResult
+} -result [list system #tcl {unknown command /compile}]
+
+test picoirc-4.0 {channel message ipv6} -body {
+     contextReset ":tcler!~anon@fd0a:7439:215b:fd8f:0:1:2:3 PRIVMSG #tcl :hello #tcl"
+     callbackResult
+} -result [list chat #tcl tcler {hello #tcl} {}]
+
+test picoirc-4.1 {channel message with action ipv6} -body {
+     contextReset ":tcler!~anon@fd0a:7439:215b:fd8f:0:1:2:3 PRIVMSG #tcl :\001ACTION fixing scripts\001"
+     callbackResult
+} -result [list chat #tcl tcler {fixing scripts} ACTION]
+
+test picoirc-4.2 {channel message with version ipv6} -body {
+    contextReset ":tcler!~anon@fd0a:7439:215b:fd8f:0:1:2:3 PRIVMSG #tcl :\001VERSION\001"
+    contextResult
+} -result "NOTICE tcler :\001VERSION PicoIRC:1.0:Tcl 8.6 tls 1.7.22\001"
+
+test picoirc-4.3 {private message ipv6} -body {
+    contextReset ":tcler!~anon@fd0a:7439:215b:fd8f:0:1:2:3 PRIVMSG anonymous :hey there"
+    callbackResult
+} -result [list chat anonymous tcler {hey there} {}]
+
+test picoirc-4.4 {private message with action ipv6} -body {
+    contextReset ":tcler!~anon@fd0a:7439:215b:fd8f:0:1:2:3 PRIVMSG anonymous :\001ACTION feels good\001"
+    callbackResult
+} -result [list chat anonymous tcler {feels good} ACTION]
+
+test picoirc-4.5 {private message with version ipv6} -body {
+    contextReset ":tcler!~anon@fd0a:7439:215b:fd8f:0:1:2:3 PRIVMSG anonymous :\001VERSION\001"
+    contextResult
+} -result "NOTICE tcler :\001VERSION PicoIRC:1.0:Tcl 8.6 tls 1.7.22\001"
+
+# picoirc-4.6 : not ipv6 specific
+
+test picoirc-4.7 {whois ipv6} -body {
+     contextReset [join [list \
+         ":zinc.libera.chat 311 tcler anonymous ~anon client.example.com * :PicoIRC 1.0 user" \
+         ":zinc.libera.chat 319 tcler anonymous :#tcl #tcltest" \
+         ":zinc.libera.chat 312 tcler anonymous zinc.libera.chat :Espoo, FI" \
+         ":zinc.libera.chat 338 tcler anonymous fd0a:7439:215b:fd8f:0:1:2:3 :actually using host" \
+         ":zinc.libera.chat 317 tcler anonymous 149 1624142406 :seconds idle, signon time" \
+         ":zinc.libera.chat 330 tcler anonymous anonymous :is logged in as" \
+         ":zinc.libera.chat 318 tcler anonymous :End of /WHOIS list." \
+     ] "\n"]
+     callbackResult
+} -result [list userinfo anonymous \
+              [list name ~anon \
+                    host client.example.com \
+                    userinfo {PicoIRC 1.0 user} \
+                    channels {#tcl #tcltest}]]
+
+test picoirc-4.8 {join channel ipv6} -body {
+    contextReset ":tcler!~anon@fd0a:7439:215b:fd8f:0:1:2:3 JOIN #tcl"
+    callbackResult
+} -result {traffic entered #tcl tcler}
+
+test picoirc-4.9 {change nick ipv6} -body {
+    contextReset ":tcler!~anon@fd0a:7439:215b:fd8f:0:1:2:3 NICK :gopher"
+    callbackResult
+} -result {traffic nickchange {} tcler gopher}
+
+test picoirc-4.10 {quit channel ipv6} -body {
+    contextReset ":tcler!~anon@fd0a:7439:215b:fd8f:0:1:2:3 PART #tcl"
+    callbackResult
+} -result {traffic left #tcl tcler}
+
+test picoirc-4.11 {quit server ipv6} -body {
+    contextReset ":tcler!~anon@fd0a:7439:215b:fd8f:0:1:2:3 QUIT"
+    callbackResult
+} -result {traffic left {} tcler}
+
+test picoirc-5.0 {capabilities list} -body {
+    contextReset ":zinc.libera.chat CAP tcler LS :multi-prefix tls sasl"
+    contextItemResult caps
+} -result {multi-prefix tls sasl}
+
+testsuiteCleanup

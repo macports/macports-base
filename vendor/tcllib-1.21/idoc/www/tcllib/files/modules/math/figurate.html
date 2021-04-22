@@ -1,0 +1,469 @@
+<!DOCTYPE html><html><head>
+<title>math::figurate - Tcl Math Library</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'figurate.man' by tcllib/doctools with format 'html'
+   -->
+<!-- math::figurate.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+&#124; <a href="../../../../toc.html">Main Table Of Contents</a>
+&#124; <a href="../../../toc.html">Table Of Contents</a>
+&#124; <a href="../../../../index.html">Keyword Index</a>
+&#124; <a href="../../../../toc0.html">Categories</a>
+&#124; <a href="../../../../toc1.html">Modules</a>
+&#124; <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::figurate(n) 1.0 tcllib &quot;Tcl Math Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::figurate - Evaluate figurate numbers</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">PROCEDURES</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">math::figurate 1.0</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::figurate::sum_sequence</b> <i class="arg">n</i></a></li>
+<li><a href="#2"><b class="cmd">::math::figurate::sum_squares</b> <i class="arg">n</i></a></li>
+<li><a href="#3"><b class="cmd">::math::figurate::sum_cubes</b> <i class="arg">n</i></a></li>
+<li><a href="#4"><b class="cmd">::math::figurate::sum_4th_power</b> <i class="arg">n</i></a></li>
+<li><a href="#5"><b class="cmd">::math::figurate::sum_5th_power</b> <i class="arg">n</i></a></li>
+<li><a href="#6"><b class="cmd">::math::figurate::sum_6th_power</b> <i class="arg">n</i></a></li>
+<li><a href="#7"><b class="cmd">::math::figurate::sum_7th_power</b> <i class="arg">n</i></a></li>
+<li><a href="#8"><b class="cmd">::math::figurate::sum_8th_power</b> <i class="arg">n</i></a></li>
+<li><a href="#9"><b class="cmd">::math::figurate::sum_9th_power</b> <i class="arg">n</i></a></li>
+<li><a href="#10"><b class="cmd">::math::figurate::sum_10th_power</b> <i class="arg">n</i></a></li>
+<li><a href="#11"><b class="cmd">::math::figurate::sum_sequence_odd</b> <i class="arg">n</i></a></li>
+<li><a href="#12"><b class="cmd">::math::figurate::sum_squares_odd</b> <i class="arg">n</i></a></li>
+<li><a href="#13"><b class="cmd">::math::figurate::sum_cubes_odd</b> <i class="arg">n</i></a></li>
+<li><a href="#14"><b class="cmd">::math::figurate::sum_4th_power_odd</b> <i class="arg">n</i></a></li>
+<li><a href="#15"><b class="cmd">::math::figurate::sum_5th_power_odd</b> <i class="arg">n</i></a></li>
+<li><a href="#16"><b class="cmd">::math::figurate::sum_6th_power_odd</b> <i class="arg">n</i></a></li>
+<li><a href="#17"><b class="cmd">::math::figurate::sum_7th_power_odd</b> <i class="arg">n</i></a></li>
+<li><a href="#18"><b class="cmd">::math::figurate::sum_8th_power_odd</b> <i class="arg">n</i></a></li>
+<li><a href="#19"><b class="cmd">::math::figurate::sum_9th_power_odd</b> <i class="arg">n</i></a></li>
+<li><a href="#20"><b class="cmd">::math::figurate::sum_10th_power_odd</b> <i class="arg">n</i></a></li>
+<li><a href="#21"><b class="cmd">::math::figurate::oblong</b> <i class="arg">n</i></a></li>
+<li><a href="#22"><b class="cmd">::math::figurate::pronic</b> <i class="arg">n</i></a></li>
+<li><a href="#23"><b class="cmd">::math::figurate::triangular</b> <i class="arg">n</i></a></li>
+<li><a href="#24"><b class="cmd">::math::figurate::square</b> <i class="arg">n</i></a></li>
+<li><a href="#25"><b class="cmd">::math::figurate::cubic</b> <i class="arg">n</i></a></li>
+<li><a href="#26"><b class="cmd">::math::figurate::biquadratic</b> <i class="arg">n</i></a></li>
+<li><a href="#27"><b class="cmd">::math::figurate::centeredTriangular</b> <i class="arg">n</i></a></li>
+<li><a href="#28"><b class="cmd">::math::figurate::centeredSquare</b> <i class="arg">n</i></a></li>
+<li><a href="#29"><b class="cmd">::math::figurate::centeredPentagonal</b> <i class="arg">n</i></a></li>
+<li><a href="#30"><b class="cmd">::math::figurate::centeredHexagonal</b> <i class="arg">n</i></a></li>
+<li><a href="#31"><b class="cmd">::math::figurate::centeredCube</b> <i class="arg">n</i></a></li>
+<li><a href="#32"><b class="cmd">::math::figurate::decagonal</b> <i class="arg">n</i></a></li>
+<li><a href="#33"><b class="cmd">::math::figurate::heptagonal</b> <i class="arg">n</i></a></li>
+<li><a href="#34"><b class="cmd">::math::figurate::hexagonal</b> <i class="arg">n</i></a></li>
+<li><a href="#35"><b class="cmd">::math::figurate::octagonal</b> <i class="arg">n</i></a></li>
+<li><a href="#36"><b class="cmd">::math::figurate::octahedral</b> <i class="arg">n</i></a></li>
+<li><a href="#37"><b class="cmd">::math::figurate::pentagonal</b> <i class="arg">n</i></a></li>
+<li><a href="#38"><b class="cmd">::math::figurate::squarePyramidral</b> <i class="arg">n</i></a></li>
+<li><a href="#39"><b class="cmd">::math::figurate::tetrahedral</b> <i class="arg">n</i></a></li>
+<li><a href="#40"><b class="cmd">::math::figurate::pentatope</b> <i class="arg">n</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Sums of numbers that follow a particular pattern are called figurate numbers.
+A simple example is the sum of integers 1, 2, ... up to n. You can arrange
+1, 1+2=3, 1+2+3=6, ... objects in a triangle, hence the name triangular
+numbers:</p>
+<pre class="doctools_example">
+       *
+       *  *
+       *  *  *
+       *  *  *  *
+       ...
+</pre>
+<p>The <b class="package">math::figurate</b> package consists of a collection of procedures to
+evaluate a wide variety of figurate numbers. While all formulae are
+straightforward, the details are sometimes puzzling.
+<em>Note:</em> The procedures consider arguments lower than zero as to mean &quot;no objects to be counted&quot;
+and therefore return 0.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">PROCEDURES</a></h2>
+<p>The procedures can be arranged in a few categories: sums of integers raised to a
+particular power, sums of odd integers and general figurate numbers, for
+instance the pentagonal numbers.</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::figurate::sum_sequence</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of integers 1, 2, ..., n.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd">::math::figurate::sum_squares</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of squares 1**2, 2**2, ..., n**2.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="3"><b class="cmd">::math::figurate::sum_cubes</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of cubes 1**3, 2**3, ..., n**3.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="4"><b class="cmd">::math::figurate::sum_4th_power</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of 4th powers 1**4, 2**4, ..., n**4.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="5"><b class="cmd">::math::figurate::sum_5th_power</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of 5th powers 1**5, 2**5, ..., n**5.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="6"><b class="cmd">::math::figurate::sum_6th_power</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of 6th powers 1**6, 2**6, ..., n**6.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="7"><b class="cmd">::math::figurate::sum_7th_power</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of 7th powers 1**7, 2**7, ..., n**7.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="8"><b class="cmd">::math::figurate::sum_8th_power</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of 8th powers 1**8, 2**8, ..., n**8.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="9"><b class="cmd">::math::figurate::sum_9th_power</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of 9th powers 1**9, 2**9, ..., n**9.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="10"><b class="cmd">::math::figurate::sum_10th_power</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of 10th powers 1**10, 2**10, ..., n**10.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="11"><b class="cmd">::math::figurate::sum_sequence_odd</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of odd integers 1, 3, ..., 2n-1</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="12"><b class="cmd">::math::figurate::sum_squares_odd</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of odd squares 1**2, 3**2, ..., (2n-1)**2.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="13"><b class="cmd">::math::figurate::sum_cubes_odd</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of odd cubes 1**3, 3**3, ..., (2n-1)**3.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="14"><b class="cmd">::math::figurate::sum_4th_power_odd</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of odd 4th powers 1**4, 2**4, ..., (2n-1)**4.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="15"><b class="cmd">::math::figurate::sum_5th_power_odd</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of odd 5th powers 1**5, 2**5, ..., (2n-1)**5.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="16"><b class="cmd">::math::figurate::sum_6th_power_odd</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of odd 6th powers 1**6, 2**6, ..., (2n-1)**6.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="17"><b class="cmd">::math::figurate::sum_7th_power_odd</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of odd 7th powers 1**7, 2**7, ..., (2n-1)**7.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="18"><b class="cmd">::math::figurate::sum_8th_power_odd</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of odd 8th powers 1**8, 2**8, ..., (2n-1)**8.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="19"><b class="cmd">::math::figurate::sum_9th_power_odd</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of odd 9th powers 1**9, 2**9, ..., (2n-1)**9.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="20"><b class="cmd">::math::figurate::sum_10th_power_odd</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the sum of odd 10th powers 1**10, 2**10, ..., (2n-1)**10.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Highest base integer in the sum</p></dd>
+</dl></dd>
+<dt><a name="21"><b class="cmd">::math::figurate::oblong</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth oblong number (twice the nth triangular number)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="22"><b class="cmd">::math::figurate::pronic</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth pronic number (synonym for oblong)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="23"><b class="cmd">::math::figurate::triangular</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth triangular number</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="24"><b class="cmd">::math::figurate::square</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth square number</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="25"><b class="cmd">::math::figurate::cubic</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth cubic number</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="26"><b class="cmd">::math::figurate::biquadratic</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth biquaratic number (i.e. n**4)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="27"><b class="cmd">::math::figurate::centeredTriangular</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth centered triangular number (items arranged in concentric
+squares)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="28"><b class="cmd">::math::figurate::centeredSquare</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth centered square number (items arranged in concentric squares)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="29"><b class="cmd">::math::figurate::centeredPentagonal</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth centered pentagonal number (items arranged in concentric
+pentagons)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="30"><b class="cmd">::math::figurate::centeredHexagonal</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth centered hexagonal number (items arranged in concentric
+hexagons)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="31"><b class="cmd">::math::figurate::centeredCube</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth centered cube number (items arranged in concentric
+cubes)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="32"><b class="cmd">::math::figurate::decagonal</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth decagonal number (items arranged in decagons with one common
+vertex)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="33"><b class="cmd">::math::figurate::heptagonal</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth heptagonal number (items arranged in heptagons with one
+common vertex)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="34"><b class="cmd">::math::figurate::hexagonal</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth hexagonal number (items arranged in hexagons with one
+common vertex)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="35"><b class="cmd">::math::figurate::octagonal</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth octagonal number (items arranged in octagons with one
+common vertex)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="36"><b class="cmd">::math::figurate::octahedral</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth octahedral number (items arranged in octahedrons with a
+common centre)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="37"><b class="cmd">::math::figurate::pentagonal</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth pentagonal number (items arranged in pentagons with one
+common vertex)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="38"><b class="cmd">::math::figurate::squarePyramidral</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth square pyramidral number (items arranged in a square pyramid)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="39"><b class="cmd">::math::figurate::tetrahedral</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth tetrahedral number (items arranged in a triangular pyramid)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+<dt><a name="40"><b class="cmd">::math::figurate::pentatope</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the nth pentatope number (items arranged in the four-dimensional analogue
+of a triangular pyramid)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Required index</p></dd>
+</dl></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>math :: figurate</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+<p>When proposing code changes, please provide <em>unified diffs</em>,
+i.e the output of <b class="const">diff -u</b>.</p>
+<p>Note further that <em>attachments</em> are strongly preferred over
+inlined patches. Attachments can be made by going to the <b class="const">Edit</b>
+form of the ticket immediately after its creation, and then using the
+left-most button in the secondary navigation bar.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#figurate_numbers">figurate numbers</a>, <a href="../../../../index.html#mathematics">mathematics</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+</div></body></html>

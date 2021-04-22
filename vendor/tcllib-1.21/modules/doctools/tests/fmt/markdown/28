@@ -1,0 +1,27 @@
+
+[//000000001]: # (TEST \- )
+[//000000002]: # (Generated from file '\.FILE\.' by tcllib/doctools with format 'markdown')
+[//000000003]: # (Copyright &copy; 2019 Me)
+[//000000004]: # (Copyright &copy; 2019 Myself)
+[//000000005]: # (Copyright &copy; 2019 And I)
+[//000000006]: # (TEST\(z\) 1\.1\.23\.58132\.1 \.MODULE\. "")
+
+# NAME
+
+TEST \-
+
+# <a name='toc'></a>Table Of Contents
+
+  - [Table Of Contents](#toc)
+
+  - [Description](#section1)
+
+  - [Copyright](#copyright)
+
+# <a name='description'></a>DESCRIPTION
+
+# <a name='copyright'></a>COPYRIGHT
+
+Copyright &copy; 2019 Me  
+Copyright &copy; 2019 Myself  
+Copyright &copy; 2019 And I

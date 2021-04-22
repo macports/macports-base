@@ -1,0 +1,55 @@
+'\"
+'\" Generated from file '\&.FILE\&.' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) \&.COPYRIGHT\&.
+'\"
+.TH "TEST" z 3\&.14\&.15\&.926 \&.MODULE\&. ""
+.so man.macros
+.BS
+.SH NAME
+TEST \-
+.SH DESCRIPTION
+.IP \(bu
+1
+.sp
+2
+.sp
+3
+.IP \(bu
+.RS
+.IP [1]
+a
+.sp
+b
+.sp
+c
+.IP [2]
+.RS
+.TP
+foo
+snafu
+.TP
+bar
+barf
+.TP
+roo
+gork
+.RE
+.IP [3]
+a
+.sp
+b
+.sp
+c
+.RE
+.IP \(bu
+4
+.sp
+5
+.sp
+6
+.PP
+.SH COPYRIGHT
+.nf
+Copyright (c) \&.COPYRIGHT\&.
+
+.fi

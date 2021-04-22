@@ -1,0 +1,29 @@
+[comment { -- List 15 - itemized definitions }]
+[manpage_begin test-itemized-definitions 1 n]
+[description]
+lorem ipsum dolores
+[list_begin itemized]
+[item] lorem ipsum dolores
+[list_begin definitions]
+[def lorem] ipsum dolores
+[def lorem] ipsum dolores
+[para] lorem ipsum dolores
+[def lorem] ipsum dolores
+[para] lorem ipsum dolores
+[para] lorem ipsum dolores
+[list_end]
+[item] lorem ipsum dolores
+[para] lorem ipsum dolores
+[item] lorem ipsum dolores
+[para] lorem ipsum dolores
+[list_begin definitions]
+[def lorem] ipsum dolores
+[def lorem] ipsum dolores
+[para] lorem ipsum dolores
+[def lorem] ipsum dolores
+[para] lorem ipsum dolores
+[para] lorem ipsum dolores
+[list_end]
+[para] lorem ipsum dolores
+[list_end]
+[manpage_end]

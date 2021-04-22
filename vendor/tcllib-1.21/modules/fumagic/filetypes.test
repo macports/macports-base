@@ -1,0 +1,343 @@
+# -*- tcl -*-
+#
+# Testing "fumagic" (FileUtil Magic). Filetype recognizer.
+#
+# Sourcing this file into Tcl runs the tests and generates output for errors.
+# No output means no errors were found.
+#
+# Copyright (c) 2005-2006 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+
+# -------------------------------------------------------------------------
+
+package require tcltest
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 1.0
+
+catch {namespace delete ::fileutil::magic}
+support {
+    useLocalFile fumagic.testsupport
+    useLocal     rtcore.tcl fileutil::magic::rt
+}
+testing {
+    useLocal filetypes.tcl fileutil::magic::filetype
+}
+
+# -------------------------------------------------------------------------
+# Now the package specific tests....
+
+set path [makeFile {} bogus]
+removeFile bogus
+
+
+test fumagic.filetype-1.1 {test file non-existance} {
+    set res [catch {fileutil::magic::filetype $path} msg]
+    list $res $msg
+} [list 1 "file not found: \"$path\""]
+
+
+test fumagic.filetype-1.2 {test file directory} {
+    set f [makeDirectory fileTypeTest]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    regsub {file[0-9]+} $msg {fileXXX} msg
+    removeDirectory fileTypeTest
+    list $res $msg
+} {0 {directory application/x-directory {}}}
+
+
+test fumagic.filetype-1.3 {test file empty} {
+    set f [makeEmptyFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeEmptyFile
+    list $res $msg
+} {0 {empty {} {}}}
+
+
+test fumagic.filetype-1.4 {test simple binary} {
+    set f [makeBinFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeBinFile
+    list $res $msg
+} {0 {binary {} {}}}
+
+
+test fumagic.filetype-1.5 {test elf executable} {
+    set f [makeElfFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeElfFile
+    list $res $msg
+} {0 {{ELF 32-bit LSB executable {*unknown arch 0x0*} SYSV} {application x-executable} {}}}
+
+
+test fumagic.filetype-1.6 {test simple text} {
+    set f [makeTextFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeTextFile
+    list $res $msg
+} {0 {text {} {}}}
+
+
+test fumagic.filetype-1.7 {test script file} {
+    set f [makeScriptFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeScriptFile
+    list $res $msg
+} {0 {{a {/bin/tclsh script text executable}} {} {}}}
+
+
+test fumagic.filetype-1.8 {test html text} {
+    set f [makeHtmlFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeHtmlFile
+    list $res $msg
+} {0 {{{HTML document text}} {text html} {}}}
+
+
+test fumagic.filetype-1.9 {test xml text} {
+    set f [makeXmlFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeXmlFile
+    list $res $msg
+} {0 {{XML {1.0 document text}} {text xml} {}}}
+
+
+test fumagic.filetype-1.10 {test xml with dtd text} {
+    set f [makeXmlDTDFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeXmlDTDFile
+    list $res $msg
+} {0 {{XML {1.0 document text}} {text xml} {}}}
+
+
+test fumagic.filetype-1.11 {
+	test PGP message. Their are multiple matches, and the longest match should
+	carry greater weight, and thus be the one returned.  If the match is "PGP
+	armored data message", this isn't happening.
+} {
+    set f [makePGPFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removePGPFile
+    list $res $msg
+} {0 {{{PGP message}} {application pgp} {}}}
+
+
+test fumagic.filetype-1.12.0 {test binary graphic jpeg} {
+    set f [makeJpegFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeJpegFile
+    list $res $msg
+} {0 {{{JPEG image data} {JFIF standard 1.02} {resolution DPI} {density 300x316} {segment length 16}} {image jpeg} {jpeg jpg jpe jfif}}}
+
+
+#the result should actually be 128x112, but current magic files indicate "byte" instead of "ubyte"
+test fumagic.filetype-1.12.1 {test binary graphic jpeg} {
+    set f [makeJpeg2File]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeJpeg2File
+    list $res $msg
+} {0 {{{JPEG image data} {JFIF standard 1.02} {resolution DPI} {density 300x316} {segment length 16} {thumbnail -128x112}} {image jpeg} {jpeg jpg jpe jfif}}}
+
+
+test fumagic.filetype-1.13 {test binary graphic gif} {
+    set f [makeGifFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeGifFile
+    list $res $msg
+} {0 {{{GIF image data} {version 89a} {43 x} 64} {image gif} {}}}
+
+
+test fumagic.filetype-1.14 {test binary graphic png} {
+    set f [makePngFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removePngFile
+    list $res $msg
+} {0 {{{PNG image data} {0 x} 0 0-bit} {image png} {}}}
+
+
+#{To do} {implement a "wild guess" mode}
+#test fumagic.filetype-1.14.1 {test binary graphic png} {
+#    set f [makePngFile]
+#    set res [catch {fileutil::magic::filetype $f} msg]
+#    removePngFile
+#    list $res $msg
+#} {0 {PNG image data, CORRUPTED, PNG image data, CORRUPTED}}
+
+
+test fumagic.filetype-1.15 {test binary graphic tiff} {
+    set f [makeTiffFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeTiffFile
+    list $res $msg
+} {0 {{{TIFF image data} big-endian direntries=0} {image tiff} {}}}
+
+
+test fumagic.filetype-1.16 {test binary pdf} {
+    set f [makePdfFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removePdfFile
+    list $res $msg
+} {0 {{{PDF document} {version 1.2}} {application pdf} {}}}
+
+
+test fumagic.filetype-1.17 {test text ps} {
+    set f [makePSFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removePSFile
+    list $res $msg
+} {0 {{{PostScript document text}} {application postscript} {}}}
+
+
+test fumagic.filetype-1.18 {test text eps} {
+    set f [makeEPSFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeEPSFile
+    list $res $msg
+} {0 {{{PostScript document text}} {application postscript} {}}}
+
+
+test fumagic.filetype-1.19 {test binary gravity_wave_data_frame} {
+    set f [makeIgwdFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeIgwdFile
+    list $res $msg
+} {0 {binary {} {}}}
+
+
+test fumagic.filetype-1.20 {test binary compressed bzip} {
+    set f [makeBzipFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeBzipFile
+    list $res $msg
+} {0 {{{bzip2 compressed data} {block size = 900k}} {application x-bzip2} {}}}
+
+
+test fumagic.filetype-1.21 {test binary compressed gzip} {
+    set f [makeGzipFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeGzipFile
+    list $res $msg
+} {0 {{{gzip compressed data} {reserved method} ASCII {original size 0}} {application x-gzip} {}}}
+
+
+test fumagic.filetype-1.22 {test pstring} {
+    set f [makeWsdlFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeWsdlFile
+    list $res $msg
+} {0 {{{PHP WSDL cache} {version 0x03} {created 7} uri hello source {some source} target_ns {and a target}} {} {}}}
+
+ 
+test fumagic.filetype-1.23 {regular expressions} {
+    set f [makeCSourceFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeCSourceFile
+    list $res $msg
+} {0 {{{C source text}} {text x-c} {}}}
+
+
+# XZ is the one format whose magic record is of type "ustring"
+test fumagic.filetype-1.24 {ustring} {
+    set f [makeXzFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removeXzFile
+    list $res $msg
+} {0 {{{XZ compressed data}} {application x-xz} {}}}
+
+
+test fumagic.filetype-1.25 {
+    tests negative relative offsets
+} {
+    set f [makePdf2File]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removePdf2File
+    list $res $msg
+} {0 {{{PDF document} {version 1.3}} {application pdf} {}}}
+
+
+test fumagic.filetype-1.25.1 {
+    matches and strengths
+} {
+    set f [makePdf2File]
+
+    set chan [open $f]
+
+    set matches {}
+
+    try {
+        file stat $f stats
+        set finfo [array get stats]
+        dict set finfo name $f
+
+        set coro [coroutine [info cmdcount] \
+            ::fileutil::magic::rt::new $finfo $chan \
+		$::fileutil::magic::filetype::named [
+        	list [namespace which ::fileutil::magic::filetype::analyze]]]
+	set class [$coro]
+        while 1 {
+            lassign [$coro] weight result mimetype ext 
+            dict update matches $weight weight {
+        	lappend weight [list $result $mimetype $ext]
+            }
+        }
+    } finally {
+        close $chan
+    }
+
+    removePdf2File
+    return $matches
+} [list \
+    5.0  [
+	list [
+	    list [
+		list {tar archive V7} type {} \
+		    %PDF-1.3 {mode 5} {uid ndobj} {gid xref} {size 870 00000 n} {seconds xref} {linkname xref} comment
+	] {application x-tar} tar]
+] \
+    66.0 {{{{PDF document} {version 1.3}} {application pdf} {}} {{{PDF document} {version 1.3}} {application pdf} {}}}]
+
+
+test fumagic.filetype-1.26 {
+    Tests comparisons against the empty string when a file is malformed or
+    missing data at specified offsets.
+} {
+    set f [makePeFile]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removePeFile
+    list $res $msg
+} {0 {{{MS-DOS executable}} {application x-dosexec} {}}}
+
+
+test fumagic.filetype-1.27 {
+    Tests indirect offsets, as well as the "default" test type. 
+} {
+    set f [makePe2File]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removePe2File
+    list $res $msg
+} {0 {{{PE32 executable} {Unknown PE signature} 0x10ba GUI {Intel 80386} {for MS Windows}} {application x-dosexec} {}}}
+
+if 0 {
+	to do
+
+	ebml and webm both have a belong at 440786851
+
+		make sure this is handled correctly
+}
+
+test fumagic.filetype-1.28 {
+    Tests the "indirect" type and typed interpretation of values to be AND'ed with
+    a numeric value.
+} {
+    set f [makeMp3File]
+    set res [catch {fileutil::magic::filetype $f} msg]
+    removePeFile
+    list $res $msg
+} {0 {{{Audio file with ID3 version 2.3.0} contains {MPEG ADTS} {layer III} v1 {128 kbps} {44.1 kHz} JntStereo} {audio mpeg} {}}}
+
+
+testsuiteCleanup
+return

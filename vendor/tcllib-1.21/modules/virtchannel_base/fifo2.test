@@ -1,0 +1,82 @@
+# -------------------------------------------------------------------------
+# fifo2.test -*- tcl -*-
+# (C) 2019 Andreas Kupries. BSD licensed.
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+testsNeed        TclOO 1
+
+support {
+    use virtchannel_core/core.tcl   tcl::chan::core
+    use virtchannel_core/events.tcl tcl::chan::events
+}
+testing {
+    useLocal halfpipe.tcl tcl::chan::halfpipe
+    useLocal fifo2.tcl    tcl::chan::fifo2
+}
+
+# -------------------------------------------------------------------------
+
+test tcl-chan-fifo2-1.1 {constructor wrong\#args} -body {
+    tcl::chan::fifo2 X
+} -returnCodes error \
+    -result {wrong # args: should be "tcl::chan::fifo2"}
+
+test tcl-chan-fifo2-1.2 {destructor kills both sides and coordinator} -setup {
+    lassign [tcl::chan::fifo2] a b
+} -match glob -body {
+    lappend r [lsort -dict [file channels]]
+    lappend r [info class instances ::tcl::chan::fifo2::implementation]
+    close $a
+    lappend r [lsort -dict [file channels]]
+    lappend r [info class instances ::tcl::chan::fifo2::implementation]
+} -cleanup {
+    unset a b r
+} -result {{rc4 rc5 stderr stdin stdout} ::oo::Obj* {stderr stdin stdout} {}}
+
+# -------------------------------------------------------------------------
+
+test tcl-chan-fifo2-2.0 {tell, initial, empty} -setup {
+    lassign [tcl::chan::fifo2] a b
+} -body {
+    list [tell $a] [tell $b]
+} -cleanup {
+    close $a
+    unset a b
+} -result {-1 -1}
+
+# -------------------------------------------------------------------------
+
+test tcl-chan-fifo2-tkt-3f48fd6ea2 {fixed misindexing} -setup {
+    lassign [tcl::chan::fifo2] a b
+    chan configure $a -buffersize 1
+    chan configure $b -buffering none
+    chan puts -nonewline $b foobar ;# push 6 chars
+    chan read $a 2	     	   ;# read 2
+    chan read $a 4		   ;# read 4, fifo has nothing left
+    chan puts -nonewline $b baz	   ;# push 3 more
+} -body {
+    chan read $a 1	;# read 1, the `b`
+} -cleanup {
+    close $a
+    unset a b
+} -result b
+
+# -------------------------------------------------------------------------
+# Explicit cleanup of loaded (support) classes.
+rename tcl::chan::events   {}
+rename tcl::chan::core     {}
+rename tcl::chan::halfpipe {}
+rename tcl::chan::fifo2    {}
+testsuiteCleanup
+return
+
+# Local Variables:
+#  mode: tcl
+#  indent-tabs-mode: nil
+# End:

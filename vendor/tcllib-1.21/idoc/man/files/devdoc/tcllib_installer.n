@@ -1,0 +1,597 @@
+'\"
+'\" Generated from file 'tcllib_installer\&.man' by tcllib/doctools with format 'nroff'
+'\"
+.TH "tcllib_install_guide" n 1 tcllib ""
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+tcllib_install_guide \- Tcllib - The Installer's Guide
+.SH DESCRIPTION
+Welcome to Tcllib, the Tcl Standard Library\&. Note that Tcllib is not a
+package itself\&. It is a collection of (semi-independent) \fITcl\fR
+packages that provide utility functions useful to a large collection
+of Tcl programmers\&.
+.PP
+The audience of this document is anyone wishing to build and install
+the packages found in Tcllib, for either themselves, or others\&.
+.PP
+For developers intending to work on the packages themselves we
+additionally provide
+.IP [1]
+\fITcllib - The Developer's Guide\fR\&.
+.PP
+.PP
+Please read \fITcllib - How To Get The Sources\fR first, if that
+was not done already\&. Here we assume that the sources are already
+available in a directory of your choice\&.
+.PP
+.SH REQUISITES
+Before Tcllib can be build and used a number of requisites must be installed\&.
+These are:
+.IP [1]
+The scripting language Tcl\&.
+For details see \fBTcl\fR\&.
+.IP [2]
+Optionally, the \fBcritcl\fR package (C embedding) for \fBTcl\fR\&.
+For details see \fBCriTcl\fR\&.
+.PP
+This list assumes that the machine where Tcllib is to be installed is
+essentially clean\&. Of course, if parts of the dependencies listed
+below are already installed the associated steps can be skipped\&. It is
+still recommended to read their sections though, to validate that the
+dependencies they talk about are indeed installed\&.
+.SS TCL
+As we are installing a number of Tcl packages and applications it
+should be pretty much obvious that a working installation of Tcl
+itself is needed, and I will not belabor the point\&.
+.PP
+Out of the many possibilities use whatever you are comfortable
+with, as long as it provides at the very least Tcl 8\&.2, or higher\&.
+This may be a Tcl installation provided by your operating system
+distribution, from a distribution-independent vendor, or built by
+yourself\&.
+.PP
+\fINote\fR that the packages in Tcllib have begun to require
+8\&.4, 8\&.5, and even 8\&.6\&. Older versions of Tcl will not be able to use
+such packages\&. Trying to use them will result in
+\fIpackage not found\fR errors, as their package index files will
+not register them in versions of the core unable to use them\&.
+.PP
+Myself, I used (and still use)
+\fIActiveState's\fR [http://www\&.activestate\&.com]
+ActiveTcl 8\&.5 distribution during development, as I am most familiar
+with it\&.
+.PP
+\fI(Disclosure: I, Andreas Kupries, worked for ActiveState until 2016, maintaining ActiveTcl and TclDevKit for them)\&.\fR\&.
+I am currently working for SUSE Software Canada ULC, although not in
+Tcl-related areas\&.
+.PP
+This distribution can be found at
+\fIhttp://www\&.activestate\&.com/activetcl\fR\&. Retrieve the archive of
+ActiveTcl 8\&.5 (or higher) for your platform and install it as directed
+by ActiveState\&.
+.PP
+For those wishing to build and install Tcl on their own, the
+relevant sources can be found at
+.TP
+Tcl
+\fIhttp://core\&.tcl-lang\&.org/tcl/\fR
+.PP
+together with the necessary instructions on how to build it\&.
+.PP
+If there are problems with building, installing, or using Tcl,
+please file a ticket against \fITcl\fR, or the vendor of your
+distribution, and \fInot\fR \fITcllib\fR\&.
+.SS CRITCL
+The \fBcritcl\fR tool is an \fIoptional\fR dependency\&.
+.PP
+It is only required when trying to build the C-based
+\fIaccelerators\fR for a number of packages, as explained in
+\fBCritcl & Accelerators\fR
+.PP
+Tcllib's build system looks for it in the ,
+using the name \fBcritcl\fR\&. This is for Unix\&.
+On Windows on the other hand the search is more complex\&. First we look
+for a proper application \fBcritcl\&.exe\fR\&. When that is not found
+we look for a combination of interpreter (\fBtclkitsh\&.exe\fR,
+\fBtclsh\&.exe\fR) and starkit (\fBcritcl\&.kit\fR, \fBcritcl\fR)
+instead\&. \fINote\fR that the choice of starkit can be overriden via
+the environment variable \&.
+.PP
+Tcllib requires Critcl version 2 or higher\&.
+.PP
+The github repository providing releases of version 2 and
+higher, and the associated sources, can be found at
+\fIhttps://andreas-kupries\&.github\&.io/critcl\fR\&.
+.PP
+Any branch of the repository can be used (if not using the
+prebuild starkit or starpack), although the use of the stable branch
+\fImaster\fR is recommended\&.
+.PP
+At the above url is also an explanation on how to build and
+install Critcl, including a list of its dependencies\&.
+.PP
+Its instructions will not be repeated here\&. If there are
+problems with these directions please file a ticket against the
+\fICritcl\fR project, and not Tcllib\&.
+.SH "BUILD & INSTALLATION INSTRUCTIONS"
+As Tcllib is mainly a bundle of packages written in pure Tcl building
+it is the same as installing it\&. The exceptions to this have their own
+subsection, \fBCritcl & Accelerators\fR, later on\&.
+.PP
+Before that however comes the standard case, differentiated by
+the platforms with material differences in the instruction, i\&.e\&.
+\fIUnix\fR-like, versus \fIWindows\fR\&.
+.PP
+Regarding the latter it should also be noted that it is
+possible set up an \fIUnix\fR-like environment using projects
+like \fIMSYS\fR, \fICygwin\fR, and others\&. In that case the
+user has the choice of which instructions to follow\&.
+.PP
+Regardless of environment or platform, a suitable \fITcl\fR
+has to be installed, and its \fBtclsh\fR should be placed on
+the  (\fIUnix\fR) or associated with
+"\fI\&.tcl\fR" files (\fIWindows\fR)\&.
+.SS "INSTALLING ON UNIX"
+For \fIUnix\fR-like environments Tcllib comes with the standard set
+of files to make
+.CS
+
+
+  \&./configure
+  make install
+
+.CE
+a suitable way of installing it\&.
+This is a standard non-interactive install automatically figuring out
+where to place everything, i\&.e\&. packages, applications, and the
+manpages\&.
+.PP
+To get a graphical installer invoke
+.CS
+
+
+  \&./installer\&.tcl
+
+.CE
+instead\&.
+.SS "INSTALLING ON WINDOWS"
+In a Windows environment we have the \fBinstaller\&.tcl\fR script to
+perform installation\&.
+.PP
+If the desired \fBtclsh\fR is associated "\fI\&.tcl\fR" files
+then double-clicking / opening the \fBinstaller\&.tcl\fR is
+enough to invoke it in graphical mode\&.
+This assumes that \fITk\fR is installed and available as well\&.
+.PP
+Without \fITk\fR the only way to invoke the installer are to
+open a DOS window, i\&.e\&. \fBcmd\&.exe\fR, and then to invoke
+.CS
+
+
+  \&./installer\&.tcl
+
+.CE
+inside it\&.
+.SS "CRITCL & ACCELERATORS"
+While the majority of Tcllib consists of packages written in pure Tcl
+a number of packages also have \fIaccelerators\fR associated with them\&.
+These are \fBcritcl\fR-based C packages whose use will boost the
+performance of the packages using them\&.
+These accelerators are optional, and they are not built by default\&.
+If they are built according to the instructions below then they will
+also be installed as well\&.
+.PP
+To build the accelerators the normally optional dependency on
+\fBcritcl\fR becomes required\&.
+.PP
+To build and install Tcllib with the accelerators in a
+Unix-like environment invoke:
+.CS
+
+
+  \&./configure
+  make critcl  # Builds the shared library and package holding
+               # the accelerators, tcllibc
+  make install # Installs all packages, including the new tcllibc\&.
+
+.CE
+.PP
+The underlying tool is "\fIsak\&.tcl\fR" in the toplevel directory
+of Tcllib and the command \fBmake critcl\fR is just a wrapper around
+.CS
+
+
+  \&./sak\&.tcl critcl
+
+.CE
+.PP
+Therefore in a Windows environment instead invoke
+.CS
+
+
+  \&./sak\&.tcl critcl
+  \&./installer\&.tcl
+
+.CE
+from within a DOS window, i\&.e\&. \fBcmd\&.exe\fR\&.
+.SS TOOLING
+The core of Tcllib's build system is the script "\fIinstaller\&.tcl\fR"
+found in the toplevel directory of a checkout or release\&.
+.PP
+The
+.CS
+
+
+         configure ; make install
+
+.CE
+setup available to
+developers on Unix-like systems is just a wrapper around it\&.
+To go beyond the standard embodied in the wrapper it is
+necessary to directly invoke this script\&.
+.PP
+On Windows system using it directly is the only way to invoke
+it\&.
+.PP
+For basic help invoke it as
+.CS
+
+
+         \&./installer\&.tcl -help
+
+.CE
+This will print a short list of all the available options to
+the standard output channel\&.
+.PP
+The commands associated with the various \fIinstall\fR targets
+in the \fIMakefile\&.in\fR for Unix can be used as additional
+examples on how to use this tool as well\&.
+.PP
+The installer can operate in GUI and CLI modes\&.
+By default it chooses the mode automatically, based on if the
+Tcl package \fBTk\fR can be used or not\&.
+The option \fB-no-gui\fR can be used to force CLI mode\&.
+.PP
+Note that it is possible to specify options on the command line
+even if the installer ultimatively selects GUI mode\&. In that
+case the hardwired defaults and the options determine the data
+presented to the user for editing\&.
+.PP
+The installer will select a number of defaults for the
+locations of packages, examples, and documentation, and also
+the format of the documentation\&. The user can overide these
+defaults in the GUI, or by specifying additional options\&.
+The defaults depend on the platform detected (Unix/Windows) and
+on the \fBtclsh\fR executable used to run the installer\&.
+.PP
+\fIOptions\fR
+.TP
+\fB-help\fR
+Show the list of options explained here on the standard output channel
+and exit\&.
+.TP
+\fB+excluded\fR
+Include deprecated packages in the installation\&.
+.TP
+\fB-no-gui\fR
+Force command line operation of the installer
+.TP
+\fB-no-wait\fR
+In CLI mode the installer will by default ask the user to confirm that
+the chosen configuration (destination paths, things to install) is
+correct before performing any action\&. Using this option causes the
+installer to skip this query and immediately jump to installation\&.
+.TP
+\fB-app-path\fR \fIpath\fR
+.TP
+\fB-example-path\fR \fIpath\fR
+.TP
+\fB-html-path\fR \fIpath\fR
+.TP
+\fB-nroff-path\fR \fIpath\fR
+.TP
+\fB-pkg-path\fR \fIpath\fR
+Declare the destination paths for the applications, examples, html
+documentation, nroff manpages, and packages\&. The defaults are derived
+from the location of the \fBtclsh\fR used to run the installer\&.
+.TP
+\fB-dry-run\fR
+.TP
+\fB-simulate\fR
+Run the installer without modifying the destination directories\&.
+.TP
+\fB-apps\fR
+.TP
+\fB-no-apps\fR
+.TP
+\fB-examples\fR
+.TP
+\fB-no-examples\fR
+.TP
+\fB-pkgs\fR
+.TP
+\fB-no-pkgs\fR
+.TP
+\fB-html\fR
+.TP
+\fB-no-html\fR
+.TP
+\fB-nroff\fR
+.TP
+\fB-no-nroff\fR
+(De)activate the installation of applications, examples, packages,
+html documentation, and nroff manpages\&.
+.sp
+Applications, examples, and packages are installed by default\&.
+.sp
+On Windows the html documentation is installed by default\&.
+.sp
+On Unix the nroff manpages are installed by default\&.
+.PP

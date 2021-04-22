@@ -1,0 +1,2446 @@
+# Tests for the uri module.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2000 by Zveno Pty Ltd.
+#
+# RCS: @(#) $Id: uri.test,v 1.25 2011/03/23 04:39:54 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.2
+testsNeedTcltest 1.0
+
+testing {
+    useLocal uri.tcl uri
+}
+
+# -------------------------------------------------------------------------
+# Quirk Option NoInitialSlash
+# -------------------------------------------------------------------------
+#   uri::split, uri::join
+# - Commands uri::split, uri::join have separate tests for each boolean
+#   value of the quirk option NoInitialSlash.
+# - Tests *-0, *-1 use [::uri::setQuirkOption NoInitialSlash] values
+#   0, 1 respectively.
+# - For tests of uri::split, the results of tests *-1 remove the leading "/"
+#   from the path, and define key pbare.
+# - Any other differences in the test script or the results are noted in the
+#   test description with the words "differs from".
+#
+#   uri::isrelative, uri::resolve, uri::canonicalize
+# - Command uri::isrelative does not involve option NoInitialSlash.
+# - Commands uri::resolve, uri::canonicalize should give results that are
+#   independent of NoInitialSlash, and so do not have separate tests for
+#   each case.  The non-default value of NoInitialSlash can be tested by
+#   setting the value of BaseValue(NoInitialSlash) below.
+# -------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------
+# Quirk Options NoExtraKeys and (for Windows) HostAsDriveLetter
+# -------------------------------------------------------------------------
+# Some tests will fail if these options are set true.
+# Separate tests have not been written for these cases.
+# -------------------------------------------------------------------------
+
+set BaseValue(NoInitialSlash) [::uri::setQuirkOption NoInitialSlash]
+# set BaseValue(NoInitialSlash) 1
+
+::uri::setQuirkOption NoInitialSlash $BaseValue(NoInitialSlash)
+# ::uri::setQuirkOption NoExtraKeys         0
+# ::uri::setQuirkOption HostAsDriveLetter   0
+# set ::tcl_platform(platform)              windows
+# ::uri::setQuirkOption RemoveDoubleSlashes 1
+
+# -------------------------------------------------------------------------
+# Split tests
+
+test uri-1.0-0 {uri::split - http w/- nested query} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://test.net/path/path2?query=url?otherquery]
+} {fragment {} host test.net path /path/path2 port {} pwd {} query query=url?otherquery scheme http user {}}
+
+test uri-1.1-0 {uri::split - http w/- query} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://test.net/path/path2?query]
+} {fragment {} host test.net path /path/path2 port {} pwd {} query query scheme http user {}}
+
+test uri-1.2-0 {uri::split - https w/- query} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split https://test.net/path/path2?query]
+} {fragment {} host test.net path /path/path2 port {} pwd {} query query scheme https user {}}
+
+test uri-1.3-0 {uri::split - http w/- port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://test.net:8080]
+} {fragment {} host test.net path {} port 8080 pwd {} query {} scheme http user {}}
+
+test uri-1.4-0 {uri::split - https w/- port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split https://test.net:8888]
+} {fragment {} host test.net path {} port 8888 pwd {} query {} scheme https user {}}
+
+test uri-1.5-0 {uri::split - ftp} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split ftp://ftp.test.net/path/to/resource]
+} {host ftp.test.net path /path/to/resource port {} pwd {} scheme ftp type {} user {}}
+
+test uri-1.6-0 {uri::split - ftp with userinfo} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split {ftp://user:passwd@localhost/a/b/c.d}]
+} {host localhost path /a/b/c.d port {} pwd passwd scheme ftp type {} user user}
+
+test uri-1.7-0 {uri::split - ftp with type} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split {ftp://localhost/a/b/c.d;type=i}]
+} {host localhost path /a/b/c.d port {} pwd {} scheme ftp type i user {}}
+
+test uri-1.8-0 {uri::split - ftp with port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split {ftp://localhost:21/a/b/c.d}]
+} {host localhost path /a/b/c.d port 21 pwd {} scheme ftp type {} user {}}
+
+test uri-1.9-0 {uri::split - news with message-id} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split {news:87lm40t3v7.fsf@dedasys.com}]
+} {message-id 87lm40t3v7.fsf@dedasys.com scheme news}
+
+test uri-1.10-0 {uri::split - news with newsgroup-name} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split {news:comp.lang.tcl}]
+} {newsgroup-name comp.lang.tcl scheme news}
+
+test uri-1.11-0 {uri::split - ldap simple} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split {ldap://ldaphost}]
+} {attrs {} dn {} extensions {} filter {} host ldaphost port {} scheme ldap scope {}}
+
+test uri-1.12-0 {uri::split - ldaps with port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split {ldaps://h:636/}]
+} {attrs {} dn {} extensions {} filter {} host h port 636 scheme ldaps scope {}}
+
+test uri-1.13-0 {uri::split - ldap search} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split {ldap://ldaphost/o=mycomp?uid,mail?sub?(uid=pda)}]
+} {attrs {uid mail} dn o=mycomp extensions {} filter (uid=pda) host ldaphost port {} scheme ldap scope sub}
+
+test uri-1.14-0 {uri::split - ldap search with implicit scope an attributes} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split {ldap://ldaphost:999/o=mycomp???(uid=pda)}]
+} {attrs {} dn o=mycomp extensions {} filter (uid=pda) host ldaphost port 999 scheme ldap scope {}}
+
+test uri-1.15-0 {uri::split - https with IPv6} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split {https://[2001:db8::7]:8080?foo=bar}]
+} {fragment {} host {[2001:db8::7]} path {} port 8080 pwd {} query foo=bar scheme https user {}}
+
+test uri-1.16-0 {uri::split - ftp with auth and IPv6} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split {ftp://user:pass@[2001:db8::7]/alt}]
+} {host {[2001:db8::7]} path /alt port {} pwd pass scheme ftp type {} user user}
+
+test uri-1.17-0 {uri::split - ldaps IPv6 search with port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split {ldaps://[2001:db8::7]:987/o=mycomp?uid,mail?sub?(uid=pda)}]
+} {attrs {uid mail} dn o=mycomp extensions {} filter (uid=pda) host {[2001:db8::7]} port 987 scheme ldaps scope sub}
+
+test uri-1.18-0 {uri::split - http w/- valid hostname on local network} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://test-host/path/path2?query]
+} {fragment {} host test-host path /path/path2 port {} pwd {} query query scheme http user {}}
+
+test uri-1.19-0 {uri::split - http w/- valid hostname on local network FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://test-host./path/path2?query]
+} {fragment {} host test-host. path /path/path2 port {} pwd {} query query scheme http user {}}
+
+test uri-1.20-0 {uri::split - http w/- valid hostname on local network and port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://test-host:8080/path/path2?query]
+} {fragment {} host test-host path /path/path2 port 8080 pwd {} query query scheme http user {}}
+
+test uri-1.21-0 {uri::split - http w/- valid hostname on local network FQDN and port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://test-host.:8080/path/path2?query]
+} {fragment {} host test-host. path /path/path2 port 8080 pwd {} query query scheme http user {}}
+
+test uri-1.22-0 {uri::split - http w/- valid hostname "9" on local network} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://9/path/path2?query]
+} {fragment {} host 9 path /path/path2 port {} pwd {} query query scheme http user {}}
+
+test uri-1.23-0 {uri::split - http w/- valid hostname "9" on local network FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://9./path/path2?query]
+} {fragment {} host 9. path /path/path2 port {} pwd {} query query scheme http user {}}
+
+test uri-1.24-0 {uri::split - http w/- valid hostname "9" on local network and port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://9:8080/path/path2?query]
+} {fragment {} host 9 path /path/path2 port 8080 pwd {} query query scheme http user {}}
+
+test uri-1.25-0 {uri::split - http w/- valid hostname "9" on local network FQDN and port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://9.:8080/path/path2?query]
+} {fragment {} host 9. path /path/path2 port 8080 pwd {} query query scheme http user {}}
+
+test uri-1.26-0 {uri::split - http w/- valid hostname "0-9" on local network} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://0-9/path/path2?query]
+} {fragment {} host 0-9 path /path/path2 port {} pwd {} query query scheme http user {}}
+
+test uri-1.27-0 {uri::split - http w/- valid hostname "0-9" on local network FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://0-9./path/path2?query]
+} {fragment {} host 0-9. path /path/path2 port {} pwd {} query query scheme http user {}}
+
+test uri-1.28-0 {uri::split - http w/- valid hostname "0-9" on local network and port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://0-9:8080/path/path2?query]
+} {fragment {} host 0-9 path /path/path2 port 8080 pwd {} query query scheme http user {}}
+
+test uri-1.29-0 {uri::split - http w/- valid hostname "0-9" on local network FQDN and port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://0-9.:8080/path/path2?query]
+} {fragment {} host 0-9. path /path/path2 port 8080 pwd {} query query scheme http user {}}
+
+test uri-1.30-0 {uri::split - http w/- nested query and FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://test.net./path/path2?query=url?otherquery]
+} {fragment {} host test.net. path /path/path2 port {} pwd {} query query=url?otherquery scheme http user {}}
+
+test uri-1.31-0 {uri::split - http w/- nested query and FQDN and port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://test.net.:8080/path/path2?query=url?otherquery]
+} {fragment {} host test.net. path /path/path2 port 8080 pwd {} query query=url?otherquery scheme http user {}}
+
+test uri-1.32-0 {uri::split - http w/- query test / in query} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://test.net/path/path2?fetch=dir/file.txt]
+} {fragment {} host test.net path /path/path2 port {} pwd {} query fetch=dir/file.txt scheme http user {}}
+
+test uri-1.33-0 {uri::split - http w/- fragment test / ? in fragment} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://test.net/path/path2?fetch=dir/file.txt#ab5/s?too]
+} {fragment ab5/s?too host test.net path /path/path2 port {} pwd {} query fetch=dir/file.txt scheme http user {}}
+
+test uri-1.34-0 {uri::split - http w/- fragment test {}# in fragment - illegal chars see [7b5c6cb477]} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://test.net/path/path2?fetch=dir/file.txt#ab5/s?to#o{and}fg]
+} {fragment ab5/s?to#o{and}fg host test.net path /path/path2 port {} pwd {} query fetch=dir/file.txt scheme http user {}}
+
+test uri-1.35-0 {uri::split - http w/- fragment test {}# in fragment - illegal chars see [7b5c6cb477]} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://test.net/path/path2#ab5/s?to#o{and}fg]
+} {fragment ab5/s?to#o{and}fg host test.net path /path/path2 port {} pwd {} query {} scheme http user {}}
+
+test uri-1.36-0 {uri::split - http w/- fragment test {}# in fragment - illegal chars see [7b5c6cb477]} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://test.net/#ab5/s?to#o{and}fg]
+} {fragment ab5/s?to#o{and}fg host test.net path / port {} pwd {} query {} scheme http user {}}
+
+test uri-1.37-0 {uri::split - http w/- fragment test {}# in fragment - illegal chars see [7b5c6cb477]} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://test.net#ab5/s?to#o{and}fg]
+} {fragment ab5/s?to#o{and}fg host test.net path {} port {} pwd {} query {} scheme http user {}}
+
+test uri-1.38-0 {uri::split - relative URI} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split //test.net#ab5/s?to#o{and}fg]
+} {fragment ab5/s?to#o{and}fg host test.net path {} port {} pwd {} query {} scheme http user {}}
+
+test uri-1.39-0 {uri::split - relative URI} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split //test.net#ab5/s?to#o{and}fg https]
+} {fragment ab5/s?to#o{and}fg host test.net path {} port {} pwd {} query {} scheme https user {}}
+
+test uri-1.40-0 {uri::split - relative URI {}} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split {}]
+} {fragment {} host {} path {} port {} pwd {} query {} scheme http user {}}
+
+test uri-1.41-0 {uri::split - relative URI http cf bug 2798448} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split host.td]
+} {fragment {} host host.td path {} port {} pwd {} query {} scheme http user {}}
+
+test uri-1.42-0 {uri::split - relative URI http cf bug 2798448} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://host.td]
+} {fragment {} host host.td path {} port {} pwd {} query {} scheme http user {}}
+
+test uri-1.43-0 {uri::split - relative URI ftp cf bug 2798448} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split host.td ftp]
+} {host host.td path {} port {} pwd {} scheme ftp type {} user {}}
+
+test uri-1.44-0 {uri::split - relative URI ftp cf bug 2798448} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split ftp://host.td]
+} {host host.td path {} port {} pwd {} scheme ftp type {} user {}}
+
+test uri-1.45-0 {uri::split relative URI http/https/ftp path} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [::uri::split gone/away]
+} {fragment {} host gone path /away port {} pwd {} query {} scheme http user {}}
+
+test uri-1.46-0 {uri::split relative URI http/https/ftp path} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [::uri::split /gone/away]
+} {fragment {} host {} path /gone/away port {} pwd {} query {} scheme http user {}}
+
+test uri-1.47-0 {uri::split relative URI http/https/ftp path} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [::uri::split //gone/away]
+} {fragment {} host gone path /away port {} pwd {} query {} scheme http user {}}
+
+test uri-1.48-0 {uri::split relative URI http/https/ftp path} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [::uri::split ///gone/away]
+} {fragment {} host {} path /gone/away port {} pwd {} query {} scheme http user {}}
+
+test uri-1.49-0 {uri::split relative URI http/https/ftp path - result significantly differs from 1.49-1 - excess leading slashes are NOT removed} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [::uri::split ////gone/away]
+} {fragment {} host {} path //gone/away port {} pwd {} query {} scheme http user {}}
+
+test uri-1.50-0 {uri::split relative URI file path} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [::uri::split gone/away file]
+} {path gone/away scheme file}
+
+test uri-1.51-0 {uri::split relative URI file path} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [::uri::split /gone/away file]
+} {path /gone/away scheme file}
+
+test uri-1.52-0 {uri::split relative URI file path} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [::uri::split //gone/away file]
+} {host gone path /away scheme file}
+
+test uri-1.53-0 {uri::split relative URI file path} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [::uri::split ///gone/away file]
+} {path /gone/away scheme file}
+
+test uri-1.54-0 {uri::split relative URI file path - in scheme "file" excess leading slashes are retained} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [::uri::split ////gone/away file]
+} {path //gone/away scheme file}
+
+# ---
+
+test uri-1.0-1 {uri::split - http w/- nested query} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://test.net/path/path2?query=url?otherquery]
+} {fragment {} host test.net path path/path2 pbare 0 port {} pwd {} query query=url?otherquery scheme http user {}}
+
+test uri-1.1-1 {uri::split - http w/- query} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://test.net/path/path2?query]
+} {fragment {} host test.net path path/path2 pbare 0 port {} pwd {} query query scheme http user {}}
+
+test uri-1.2-1 {uri::split - https w/- query} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split https://test.net/path/path2?query]
+} {fragment {} host test.net path path/path2 pbare 0 port {} pwd {} query query scheme https user {}}
+
+test uri-1.3-1 {uri::split - http w/- port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://test.net:8080]
+} {fragment {} host test.net path {} pbare 1 port 8080 pwd {} query {} scheme http user {}}
+
+test uri-1.4-1 {uri::split - https w/- port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split https://test.net:8888]
+} {fragment {} host test.net path {} pbare 1 port 8888 pwd {} query {} scheme https user {}}
+
+test uri-1.5-1 {uri::split - ftp} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split ftp://ftp.test.net/path/to/resource]
+} {host ftp.test.net path path/to/resource pbare 0 port {} pwd {} scheme ftp type {} user {}}
+
+test uri-1.6-1 {uri::split - ftp with userinfo} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split {ftp://user:passwd@localhost/a/b/c.d}]
+} {host localhost path a/b/c.d pbare 0 port {} pwd passwd scheme ftp type {} user user}
+
+test uri-1.7-1 {uri::split - ftp with type} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split {ftp://localhost/a/b/c.d;type=i}]
+} {host localhost path a/b/c.d pbare 0 port {} pwd {} scheme ftp type i user {}}
+
+test uri-1.8-1 {uri::split - ftp with port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split {ftp://localhost:21/a/b/c.d}]
+} {host localhost path a/b/c.d pbare 0 port 21 pwd {} scheme ftp type {} user {}}
+
+test uri-1.9-1 {uri::split - news with message-id} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split {news:87lm40t3v7.fsf@dedasys.com}]
+} {message-id 87lm40t3v7.fsf@dedasys.com scheme news}
+
+test uri-1.10-1 {uri::split - news with newsgroup-name} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split {news:comp.lang.tcl}]
+} {newsgroup-name comp.lang.tcl scheme news}
+
+test uri-1.11-1 {uri::split - ldap simple} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split {ldap://ldaphost}]
+} {attrs {} dn {} extensions {} filter {} host ldaphost port {} scheme ldap scope {}}
+
+test uri-1.12-1 {uri::split - ldaps with port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split {ldaps://h:636/}]
+} {attrs {} dn {} extensions {} filter {} host h port 636 scheme ldaps scope {}}
+
+test uri-1.13-1 {uri::split - ldap search} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split {ldap://ldaphost/o=mycomp?uid,mail?sub?(uid=pda)}]
+} {attrs {uid mail} dn o=mycomp extensions {} filter (uid=pda) host ldaphost port {} scheme ldap scope sub}
+
+test uri-1.14-1 {uri::split - ldap search with implicit scope an attributes} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split {ldap://ldaphost:999/o=mycomp???(uid=pda)}]
+} {attrs {} dn o=mycomp extensions {} filter (uid=pda) host ldaphost port 999 scheme ldap scope {}}
+
+test uri-1.15-1 {uri::split - https with IPv6} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split {https://[2001:db8::7]:8080?foo=bar}]
+} {fragment {} host {[2001:db8::7]} path {} pbare 1 port 8080 pwd {} query foo=bar scheme https user {}}
+
+test uri-1.16-1 {uri::split - ftp with auth and IPv6} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split {ftp://user:pass@[2001:db8::7]/alt}]
+} {host {[2001:db8::7]} path alt pbare 0 port {} pwd pass scheme ftp type {} user user}
+
+test uri-1.17-1 {uri::split - ldaps IPv6 search with port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split {ldaps://[2001:db8::7]:987/o=mycomp?uid,mail?sub?(uid=pda)}]
+} {attrs {uid mail} dn o=mycomp extensions {} filter (uid=pda) host {[2001:db8::7]} port 987 scheme ldaps scope sub}
+
+test uri-1.18-1 {uri::split - http w/- valid hostname on local network} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://test-host/path/path2?query]
+} {fragment {} host test-host path path/path2 pbare 0 port {} pwd {} query query scheme http user {}}
+
+test uri-1.19-1 {uri::split - http w/- valid hostname on local network FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://test-host./path/path2?query]
+} {fragment {} host test-host. path path/path2 pbare 0 port {} pwd {} query query scheme http user {}}
+
+test uri-1.20-1 {uri::split - http w/- valid hostname on local network and port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://test-host:8080/path/path2?query]
+} {fragment {} host test-host path path/path2 pbare 0 port 8080 pwd {} query query scheme http user {}}
+
+test uri-1.21-1 {uri::split - http w/- valid hostname on local network FQDN and port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://test-host.:8080/path/path2?query]
+} {fragment {} host test-host. path path/path2 pbare 0 port 8080 pwd {} query query scheme http user {}}
+
+test uri-1.22-1 {uri::split - http w/- valid hostname "9" on local network} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://9/path/path2?query]
+} {fragment {} host 9 path path/path2 pbare 0 port {} pwd {} query query scheme http user {}}
+
+test uri-1.23-1 {uri::split - http w/- valid hostname "9" on local network FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://9./path/path2?query]
+} {fragment {} host 9. path path/path2 pbare 0 port {} pwd {} query query scheme http user {}}
+
+test uri-1.24-1 {uri::split - http w/- valid hostname "9" on local network and port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://9:8080/path/path2?query]
+} {fragment {} host 9 path path/path2 pbare 0 port 8080 pwd {} query query scheme http user {}}
+
+test uri-1.25-1 {uri::split - http w/- valid hostname "9" on local network FQDN and port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://9.:8080/path/path2?query]
+} {fragment {} host 9. path path/path2 pbare 0 port 8080 pwd {} query query scheme http user {}}
+
+test uri-1.26-1 {uri::split - http w/- valid hostname "0-9" on local network} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://0-9/path/path2?query]
+} {fragment {} host 0-9 path path/path2 pbare 0 port {} pwd {} query query scheme http user {}}
+
+test uri-1.27-1 {uri::split - http w/- valid hostname "0-9" on local network FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://0-9./path/path2?query]
+} {fragment {} host 0-9. path path/path2 pbare 0 port {} pwd {} query query scheme http user {}}
+
+test uri-1.28-1 {uri::split - http w/- valid hostname "0-9" on local network and port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://0-9:8080/path/path2?query]
+} {fragment {} host 0-9 path path/path2 pbare 0 port 8080 pwd {} query query scheme http user {}}
+
+test uri-1.29-1 {uri::split - http w/- valid hostname "0-9" on local network FQDN and port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://0-9.:8080/path/path2?query]
+} {fragment {} host 0-9. path path/path2 pbare 0 port 8080 pwd {} query query scheme http user {}}
+
+test uri-1.30-1 {uri::split - http w/- nested query and FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://test.net./path/path2?query=url?otherquery]
+} {fragment {} host test.net. path path/path2 pbare 0 port {} pwd {} query query=url?otherquery scheme http user {}}
+
+test uri-1.31-1 {uri::split - http w/- nested query and FQDN and port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://test.net.:8080/path/path2?query=url?otherquery]
+} {fragment {} host test.net. path path/path2 pbare 0 port 8080 pwd {} query query=url?otherquery scheme http user {}}
+
+test uri-1.32-1 {uri::split - http w/- query test / in query} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://test.net/path/path2?fetch=dir/file.txt]
+} {fragment {} host test.net path path/path2 pbare 0 port {} pwd {} query fetch=dir/file.txt scheme http user {}}
+
+test uri-1.33-1 {uri::split - http w/- fragment test / ? in fragment} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://test.net/path/path2?fetch=dir/file.txt#ab5/s?too]
+} {fragment ab5/s?too host test.net path path/path2 pbare 0 port {} pwd {} query fetch=dir/file.txt scheme http user {}}
+
+test uri-1.34-1 {uri::split - http w/- fragment test {}# in fragment - illegal chars see [7b5c6cb477]} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://test.net/path/path2?fetch=dir/file.txt#ab5/s?to#o{and}fg]
+} {fragment ab5/s?to#o{and}fg host test.net path path/path2 pbare 0 port {} pwd {} query fetch=dir/file.txt scheme http user {}}
+
+test uri-1.35-1 {uri::split - http w/- fragment test {}# in fragment - illegal chars see [7b5c6cb477]} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://test.net/path/path2#ab5/s?to#o{and}fg]
+} {fragment ab5/s?to#o{and}fg host test.net path path/path2 pbare 0 port {} pwd {} query {} scheme http user {}}
+
+test uri-1.36-1 {uri::split - http w/- fragment test {}# in fragment - illegal chars see [7b5c6cb477]} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://test.net/#ab5/s?to#o{and}fg]
+} {fragment ab5/s?to#o{and}fg host test.net path {} pbare 0 port {} pwd {} query {} scheme http user {}}
+
+test uri-1.37-1 {uri::split - http w/- fragment test {}# in fragment - illegal chars see [7b5c6cb477]} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://test.net#ab5/s?to#o{and}fg]
+} {fragment ab5/s?to#o{and}fg host test.net path {} pbare 1 port {} pwd {} query {} scheme http user {}}
+
+test uri-1.38-1 {uri::split - relative URI} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split //test.net#ab5/s?to#o{and}fg]
+} {fragment ab5/s?to#o{and}fg host test.net path {} pbare 1 port {} pwd {} query {} scheme http user {}}
+
+test uri-1.39-1 {uri::split - relative URI} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split //test.net#ab5/s?to#o{and}fg https]
+} {fragment ab5/s?to#o{and}fg host test.net path {} pbare 1 port {} pwd {} query {} scheme https user {}}
+
+test uri-1.40-1 {uri::split - relative URI {}} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split {}]
+} {fragment {} host {} path {} pbare 1 port {} pwd {} query {} scheme http user {}}
+
+test uri-1.41-1 {uri::split - relative URI http cf bug 2798448} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split host.td]
+} {fragment {} host host.td path {} pbare 1 port {} pwd {} query {} scheme http user {}}
+
+test uri-1.42-1 {uri::split - relative URI http cf bug 2798448} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://host.td]
+} {fragment {} host host.td path {} pbare 1 port {} pwd {} query {} scheme http user {}}
+
+test uri-1.43-1 {uri::split - relative URI ftp cf bug 2798448} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split host.td ftp]
+} {host host.td path {} pbare 1 port {} pwd {} scheme ftp type {} user {}}
+
+test uri-1.44-1 {uri::split - relative URI ftp cf bug 2798448} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split ftp://host.td]
+} {host host.td path {} pbare 1 port {} pwd {} scheme ftp type {} user {}}
+
+test uri-1.45-1 {uri::split relative URI http/https/ftp path} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [::uri::split gone/away]
+} {fragment {} host gone path away pbare 0 port {} pwd {} query {} scheme http user {}}
+
+test uri-1.46-1 {uri::split relative URI http/https/ftp path} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [::uri::split /gone/away]
+} {fragment {} host {} path gone/away pbare 0 port {} pwd {} query {} scheme http user {}}
+
+test uri-1.47-1 {uri::split relative URI http/https/ftp path} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [::uri::split //gone/away]
+} {fragment {} host gone path away pbare 0 port {} pwd {} query {} scheme http user {}}
+
+test uri-1.48-1 {uri::split relative URI http/https/ftp path} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [::uri::split ///gone/away]
+} {fragment {} host {} path gone/away pbare 0 port {} pwd {} query {} scheme http user {}}
+
+test uri-1.49-1 {uri::split relative URI http/https/ftp path - result significantly differs from 1.49-0 - excess leading slashes are removed} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [::uri::split ////gone/away]
+} {fragment {} host {} path gone/away pbare 0 port {} pwd {} query {} scheme http user {}}
+
+test uri-1.50-1 {uri::split relative URI file path} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [::uri::split gone/away file]
+} {path gone/away scheme file}
+
+test uri-1.51-1 {uri::split relative URI file path} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [::uri::split /gone/away file]
+} {path /gone/away scheme file}
+
+test uri-1.52-1 {uri::split relative URI file path} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [::uri::split //gone/away file]
+} {host gone path /away scheme file}
+
+test uri-1.53-1 {uri::split relative URI file path} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [::uri::split ///gone/away file]
+} {path /gone/away scheme file}
+
+test uri-1.54-1 {uri::split relative URI file path - in scheme "file" excess leading slashes are retained} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [::uri::split ////gone/away file]
+} {path //gone/away scheme file}
+
+# -------------------------------------------------------------------------
+test uri-2.1-0 {uri::join - http} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme http path / host www.w3.org
+} http://www.w3.org/
+
+test uri-2.2-0 {uri::join - https} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https path / host www.w3.org
+} https://www.w3.org/
+
+test uri-2.3-0 {uri::join - http w/- query} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme http query abc=def&ghi=jkl host www.test.net path /path/
+} http://www.test.net/path/?abc=def&ghi=jkl
+
+test uri-2.4-0 {uri::join - https w/- query} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host www.test.net path /path/
+} https://www.test.net/path/?abc=def&ghi=jkl
+
+test uri-2.5-0 {uri::join - http w/- port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme http port 8080 host www.test.net path /path/
+} http://www.test.net:8080/path/
+
+test uri-2.6-0 {uri::join - https w/- port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https port 8888 host www.test.net path /path/
+} https://www.test.net:8888/path/
+
+test uri-2.7-0 {uri::join - ftp} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join host ftp.test.net path /my/file scheme ftp
+} ftp://ftp.test.net/my/file
+
+test uri-2.8-0 {uri::join - identity function} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    eval uri::join [uri::split http://www.w3.org/XML/?abc=def]
+} http://www.w3.org/XML/?abc=def
+
+test uri-2.9-0 {uri::join - ftp userinfo check} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    eval uri::join scheme ftp host localhost port 21 path /filename user user pwd passwd
+} {ftp://user:passwd@localhost:21/filename}
+
+test uri-2.10-0 {uri::join - ftp userinfo check with no passwd} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    eval uri::join scheme ftp host localhost path /filename user user
+} {ftp://user@localhost/filename}
+
+test uri-2.11-0 {uri::join - ftp path prefix} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    eval uri::join scheme ftp host localhost path a/b/c.d
+} ftp://localhost/a/b/c.d
+
+test uri-2.12-0 {uri::join - ftp w/- image type} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    eval uri::join scheme ftp host localhost path a/b/c.d type i
+} {ftp://localhost/a/b/c.d;type=i}
+
+test uri-2.13-0 {uri::join - ftp w/- ascii type} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    eval uri::join scheme ftp host localhost path a/b/c.d type a
+} {ftp://localhost/a/b/c.d;type=a}
+
+# I am not sure that this shouldn't produce an error. The semi-colon is 
+# reserved so in this case with an invalid suffix the semi-colon should
+# probably be quoted. [PT]
+test uri-2.14-0 {uri::join - ftp w/- invalid type} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    eval uri::join scheme ftp host localhost path a/b/c.d type X
+} {ftp://localhost/a/b/c.d;type=X}
+
+test uri-2.15-0 {uri::join - news message-id} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    eval uri::join scheme news message-id 87lm40t3v7.fsf@dedasys.com
+} {news:87lm40t3v7.fsf@dedasys.com}
+
+test uri-2.16-0 {uri::join - news newsgroup-name} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    eval uri::join scheme news newsgroup-name comp.lang.tcl
+} {news:comp.lang.tcl}
+
+test uri-2.17-0 {uri::join - ldap simple} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme ldap host ldaphost
+} {ldap://ldaphost}
+
+test uri-2.18-0 {uri::join - ldaps with default port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme ldaps host ldaphost port 636
+} {ldaps://ldaphost}
+
+test uri-2.19-0 {uri::join - ldaps with port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme ldaps host ldaphost port 999
+} {ldaps://ldaphost:999}
+
+test uri-2.20-0 {uri::join - ldap search} {
+    # I should use "attrs {uid mail}" and not "attrs uid,mail"
+    # but this is a perverse effect of the "eval" command
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join attrs uid,mail dn o=mycomp filter (uid=pda) host ldaphost scheme ldap scope sub
+} {ldap://ldaphost/o=mycomp?uid,mail?sub?(uid=pda)}
+
+test uri-2.21-0 {uri::join - ldap search with implicit scope an attributes} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join dn o=mycomp filter (uid=pda) host ldaphost port 999 scheme ldap
+} {ldap://ldaphost:999/o=mycomp???(uid=pda)}
+
+test uri-2.22-0 {uri::join - https w/- query user pwd frag} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host www.test.net path /path/ user user pwd passwd fragment f
+} https://user:passwd@www.test.net/path/?abc=def&ghi=jkl#f
+
+test uri-2.23-0 {uri::join - https w/- query user pwd frag FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host www.test.net. path /path/ user user pwd passwd fragment f
+} https://user:passwd@www.test.net./path/?abc=def&ghi=jkl#f
+
+test uri-2.24-0 {uri::join - https w/- query user pwd frag port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host www.test.net path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@www.test.net:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.25-0 {uri::join - https w/- query user pwd frag FQDN port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host www.test.net. path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@www.test.net.:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.26-0 {uri::join - https w/- query user pwd frag valid hostname on local network} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host test-host path /path/ user user pwd passwd fragment f
+} https://user:passwd@test-host/path/?abc=def&ghi=jkl#f
+
+test uri-2.27-0 {uri::join - https w/- query user pwd frag valid hostname on local network FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host test-host. path /path/ user user pwd passwd fragment f
+} https://user:passwd@test-host./path/?abc=def&ghi=jkl#f
+
+test uri-2.28-0 {uri::join - https w/- query user pwd frag valid hostname on local network port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host test-host path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@test-host:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.29-0 {uri::join - https w/- query user pwd frag valid hostname on local network FQDN port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host test-host. path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@test-host.:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.30-0 {uri::join - https w/- query user pwd frag valid hostname "9" on local network} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host 9 path /path/ user user pwd passwd fragment f
+} https://user:passwd@9/path/?abc=def&ghi=jkl#f
+
+test uri-2.31-0 {uri::join - https w/- query user pwd frag valid hostname "9" on local network FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host 9. path /path/ user user pwd passwd fragment f
+} https://user:passwd@9./path/?abc=def&ghi=jkl#f
+
+test uri-2.32-0 {uri::join - https w/- query user pwd frag valid hostname "9" on local network port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host 9 path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@9:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.33-0 {uri::join - https w/- query user pwd frag valid hostname "9" on local network FQDN port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host 9. path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@9.:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.34-0 {uri::join - https w/- query user pwd frag valid hostname "0-9" on local network} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host 0-9 path /path/ user user pwd passwd fragment f
+} https://user:passwd@0-9/path/?abc=def&ghi=jkl#f
+
+test uri-2.35-0 {uri::join - https w/- query user pwd frag valid hostname "0-9" on local network FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host 0-9. path /path/ user user pwd passwd fragment f
+} https://user:passwd@0-9./path/?abc=def&ghi=jkl#f
+
+test uri-2.36-0 {uri::join - https w/- query user pwd frag valid hostname "0-9" on local network port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host 0-9 path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@0-9:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.37-0 {uri::join - https w/- query user pwd frag valid hostname "0-9" on local network FQDN port} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme https query abc=def&ghi=jkl host 0-9. path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@0-9.:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.38-0 {uri::join -- scheme file, do not use first segment of path as host} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    ::uri::join path b/c/d scheme file
+} file:///b/c/d
+
+test uri-2.39-0 {uri::join -- scheme file, usual case} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    ::uri::join path /b/c/d scheme file
+} file:///b/c/d
+
+test uri-2.40-0 {uri::join -- scheme file, trimleft excess "/", do not use first segment of path as host} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    ::uri::join path //b/c/d scheme file
+} file:////b/c/d
+# file:///b/c/d
+test uri-2.41-0 {uri::join -- scheme file, trimleft excess "/", do not use first segment of path as host} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    ::uri::join path ///b/c/d scheme file
+} file://///b/c/d
+# file:///b/c/d
+test uri-2.42-0 {uri::join -- scheme file, trimleft excess "/", do not use first segment of path as host} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    ::uri::join path ////b/c/d scheme file
+} file://////b/c/d
+# file:///b/c/d
+test uri-2.43-0 {uri::join -- with uri::split, identity function preserves user:pwd for http} {
+    ::uri::setQuirkOption NoInitialSlash 0
+  eval ::uri::join [::uri::split http://anonymous:passw0rd@core.tcl.tk]
+} http://anonymous:passw0rd@core.tcl.tk
+
+test uri-2.44-0 {uri::join -- with uri::split, identity function preserves user:pwd and port for http} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    eval ::uri::join [::uri::split http://anonymous:passw0rd@core.tcl.tk:8080/foo]
+} http://anonymous:passw0rd@core.tcl.tk:8080/foo
+
+test uri-2.45-0 {uri::join -- with uri::split, identity function preserves user:pwd and port for http FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    eval ::uri::join [::uri::split http://anonymous:passw0rd@core.tcl.tk.:8080/foo]
+} http://anonymous:passw0rd@core.tcl.tk.:8080/foo
+
+test uri-2.46-0 {uri::join - http - pbare is irrelevant - result differs from 2.46.1} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme http path {} host www.w3.org
+} http://www.w3.org
+
+test uri-2.47-0 {uri::join - http - pbare is irrelevant} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme http path {} host www.w3.org pbare 1
+} http://www.w3.org
+
+test uri-2.48-0 {uri::join - http - pbare is irrelevant - result differs from 2.48.1} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme http path {} host www.w3.org pbare 0
+} http://www.w3.org
+
+test uri-2.49-0 {uri::join - http - pbare is irrelevant} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme http path / host www.w3.org
+} http://www.w3.org/
+
+test uri-2.50-0 {uri::join - http - pbare is irrelevant} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme http path / host www.w3.org pbare 1
+} http://www.w3.org/
+
+test uri-2.51-0 {uri::join - http - pbare is irrelevant} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join scheme http path / host www.w3.org pbare 0
+} http://www.w3.org/
+
+# ---
+
+test uri-2.1-1 {uri::join - http} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme http path / host www.w3.org
+} http://www.w3.org/
+
+test uri-2.2-1 {uri::join - https} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https path / host www.w3.org
+} https://www.w3.org/
+
+test uri-2.3-1 {uri::join - http w/- query} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme http query abc=def&ghi=jkl host www.test.net path /path/
+} http://www.test.net/path/?abc=def&ghi=jkl
+
+test uri-2.4-1 {uri::join - https w/- query} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host www.test.net path /path/
+} https://www.test.net/path/?abc=def&ghi=jkl
+
+test uri-2.5-1 {uri::join - http w/- port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme http port 8080 host www.test.net path /path/
+} http://www.test.net:8080/path/
+
+test uri-2.6-1 {uri::join - https w/- port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https port 8888 host www.test.net path /path/
+} https://www.test.net:8888/path/
+
+test uri-2.7-1 {uri::join - ftp} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join host ftp.test.net path /my/file scheme ftp
+} ftp://ftp.test.net/my/file
+
+test uri-2.8-1 {uri::join - identity function} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    eval uri::join [uri::split http://www.w3.org/XML/?abc=def]
+} http://www.w3.org/XML/?abc=def
+
+test uri-2.9-1 {uri::join - ftp userinfo check} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    eval uri::join scheme ftp host localhost port 21 path /filename user user pwd passwd
+} {ftp://user:passwd@localhost:21/filename}
+
+test uri-2.10-1 {uri::join - ftp userinfo check with no passwd} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    eval uri::join scheme ftp host localhost path /filename user user
+} {ftp://user@localhost/filename}
+
+test uri-2.11-1 {uri::join - ftp path prefix} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    eval uri::join scheme ftp host localhost path a/b/c.d
+} ftp://localhost/a/b/c.d
+
+test uri-2.12-1 {uri::join - ftp w/- image type} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    eval uri::join scheme ftp host localhost path a/b/c.d type i
+} {ftp://localhost/a/b/c.d;type=i}
+
+test uri-2.13-1 {uri::join - ftp w/- ascii type} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    eval uri::join scheme ftp host localhost path a/b/c.d type a
+} {ftp://localhost/a/b/c.d;type=a}
+
+# I am not sure that this shouldn't produce an error. The semi-colon is 
+# reserved so in this case with an invalid suffix the semi-colon should
+# probably be quoted. [PT]
+test uri-2.14-1 {uri::join - ftp w/- invalid type} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    eval uri::join scheme ftp host localhost path a/b/c.d type X
+} {ftp://localhost/a/b/c.d;type=X}
+
+test uri-2.15-1 {uri::join - news message-id} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    eval uri::join scheme news message-id 87lm40t3v7.fsf@dedasys.com
+} {news:87lm40t3v7.fsf@dedasys.com}
+
+test uri-2.16-1 {uri::join - news newsgroup-name} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    eval uri::join scheme news newsgroup-name comp.lang.tcl
+} {news:comp.lang.tcl}
+
+test uri-2.17-1 {uri::join - ldap simple} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme ldap host ldaphost
+} {ldap://ldaphost}
+
+test uri-2.18-1 {uri::join - ldaps with default port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme ldaps host ldaphost port 636
+} {ldaps://ldaphost}
+
+test uri-2.19-1 {uri::join - ldaps with port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme ldaps host ldaphost port 999
+} {ldaps://ldaphost:999}
+
+test uri-2.20-1 {uri::join - ldap search} {
+    # I should use "attrs {uid mail}" and not "attrs uid,mail"
+    # but this is a perverse effect of the "eval" command
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join attrs uid,mail dn o=mycomp filter (uid=pda) host ldaphost scheme ldap scope sub
+} {ldap://ldaphost/o=mycomp?uid,mail?sub?(uid=pda)}
+
+test uri-2.21-1 {uri::join - ldap search with implicit scope an attributes} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join dn o=mycomp filter (uid=pda) host ldaphost port 999 scheme ldap
+} {ldap://ldaphost:999/o=mycomp???(uid=pda)}
+
+test uri-2.22-1 {uri::join - https w/- query user pwd frag} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host www.test.net path /path/ user user pwd passwd fragment f
+} https://user:passwd@www.test.net/path/?abc=def&ghi=jkl#f
+
+test uri-2.23-1 {uri::join - https w/- query user pwd frag FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host www.test.net. path /path/ user user pwd passwd fragment f
+} https://user:passwd@www.test.net./path/?abc=def&ghi=jkl#f
+
+test uri-2.24-1 {uri::join - https w/- query user pwd frag port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host www.test.net path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@www.test.net:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.25-1 {uri::join - https w/- query user pwd frag FQDN port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host www.test.net. path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@www.test.net.:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.26-1 {uri::join - https w/- query user pwd frag valid hostname on local network} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host test-host path /path/ user user pwd passwd fragment f
+} https://user:passwd@test-host/path/?abc=def&ghi=jkl#f
+
+test uri-2.27-1 {uri::join - https w/- query user pwd frag valid hostname on local network FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host test-host. path /path/ user user pwd passwd fragment f
+} https://user:passwd@test-host./path/?abc=def&ghi=jkl#f
+
+test uri-2.28-1 {uri::join - https w/- query user pwd frag valid hostname on local network port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host test-host path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@test-host:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.29-1 {uri::join - https w/- query user pwd frag valid hostname on local network FQDN port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host test-host. path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@test-host.:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.30-1 {uri::join - https w/- query user pwd frag valid hostname "9" on local network} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host 9 path /path/ user user pwd passwd fragment f
+} https://user:passwd@9/path/?abc=def&ghi=jkl#f
+
+test uri-2.31-1 {uri::join - https w/- query user pwd frag valid hostname "9" on local network FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host 9. path /path/ user user pwd passwd fragment f
+} https://user:passwd@9./path/?abc=def&ghi=jkl#f
+
+test uri-2.32-1 {uri::join - https w/- query user pwd frag valid hostname "9" on local network port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host 9 path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@9:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.33-1 {uri::join - https w/- query user pwd frag valid hostname "9" on local network FQDN port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host 9. path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@9.:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.34-1 {uri::join - https w/- query user pwd frag valid hostname "0-9" on local network} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host 0-9 path /path/ user user pwd passwd fragment f
+} https://user:passwd@0-9/path/?abc=def&ghi=jkl#f
+
+test uri-2.35-1 {uri::join - https w/- query user pwd frag valid hostname "0-9" on local network FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host 0-9. path /path/ user user pwd passwd fragment f
+} https://user:passwd@0-9./path/?abc=def&ghi=jkl#f
+
+test uri-2.36-1 {uri::join - https w/- query user pwd frag valid hostname "0-9" on local network port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host 0-9 path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@0-9:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.37-1 {uri::join - https w/- query user pwd frag valid hostname "0-9" on local network FQDN port} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme https query abc=def&ghi=jkl host 0-9. path /path/ user user pwd passwd fragment f port 8080
+} https://user:passwd@0-9.:8080/path/?abc=def&ghi=jkl#f
+
+test uri-2.38-1 {uri::join -- scheme file, do not use first segment of path as host} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    ::uri::join path b/c/d scheme file
+} file:///b/c/d
+
+test uri-2.39-1 {uri::join -- scheme file, usual case} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    ::uri::join path /b/c/d scheme file
+} file:///b/c/d
+
+test uri-2.40-1 {uri::join -- scheme file, trimleft excess "/", do not use first segment of path as host} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    ::uri::join path //b/c/d scheme file
+} file:////b/c/d
+# file:///b/c/d
+test uri-2.41-1 {uri::join -- scheme file, trimleft excess "/", do not use first segment of path as host} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    ::uri::join path ///b/c/d scheme file
+} file://///b/c/d
+# file:///b/c/d
+test uri-2.42-1 {uri::join -- scheme file, trimleft excess "/", do not use first segment of path as host} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    ::uri::join path ////b/c/d scheme file
+} file://////b/c/d
+# file:///b/c/d
+test uri-2.43-1 {uri::join -- with uri::split, identity function preserves user:pwd for http} {
+    ::uri::setQuirkOption NoInitialSlash 1
+  eval ::uri::join [::uri::split http://anonymous:passw0rd@core.tcl.tk]
+} http://anonymous:passw0rd@core.tcl.tk
+
+test uri-2.44-1 {uri::join -- with uri::split, identity function preserves user:pwd and port for http} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    eval ::uri::join [::uri::split http://anonymous:passw0rd@core.tcl.tk:8080/foo]
+} http://anonymous:passw0rd@core.tcl.tk:8080/foo
+
+test uri-2.45-1 {uri::join -- with uri::split, identity function preserves user:pwd and port for http FQDN} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    eval ::uri::join [::uri::split http://anonymous:passw0rd@core.tcl.tk.:8080/foo]
+} http://anonymous:passw0rd@core.tcl.tk.:8080/foo
+
+test uri-2.46-1 {uri::join - http - controlled by pbare - result differs from 2.46.0} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme http path {} host www.w3.org
+} http://www.w3.org/
+
+test uri-2.47-1 {uri::join - http - controlled by pbare} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme http path {} host www.w3.org pbare 1
+} http://www.w3.org
+
+test uri-2.48-1 {uri::join - http - controlled by pbare - result differs from 2.48.0} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme http path {} host www.w3.org pbare 0
+} http://www.w3.org/
+
+test uri-2.49-1 {uri::join - http - not controlled by pbare} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme http path / host www.w3.org
+} http://www.w3.org/
+
+test uri-2.50-1 {uri::join - http - not controlled by pbare} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme http path / host www.w3.org pbare 1
+} http://www.w3.org/
+
+test uri-2.51-1 {uri::join - http - not controlled by pbare} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join scheme http path / host www.w3.org pbare 0
+} http://www.w3.org/
+
+# -------------------------------------------------------------------------
+::uri::setQuirkOption NoInitialSlash $BaseValue(NoInitialSlash)
+
+test uri-3.1 {uri::resolve - relative URL, base trailing slash} {
+    uri::resolve http://www.w3.org/path/ test.html
+} http://www.w3.org/path/test.html
+
+test uri-3.2 {uri::resolve - relative URL path, base trailing slash} {
+    uri::resolve http://www.w3.org/path/ relpath/test.html
+} http://www.w3.org/path/relpath/test.html
+
+test uri-3.3 {uri::resolve - relative URL, base no trailing slash} {
+    uri::resolve http://www.w3.org/path test.html
+} http://www.w3.org/test.html
+
+test uri-3.4 {uri::resolve - relative URL path, base no trailing slash} {
+    uri::resolve http://www.w3.org/path relpath/test.html
+} http://www.w3.org/relpath/test.html
+
+test uri-3.5 {uri::resolve - relative URL w/- query} {
+    uri::resolve http://www.w3.org/path/ test.html?abc=def
+} http://www.w3.org/path/test.html?abc=def
+
+test uri-3.6 {uri::resolve - absolute URL} {
+    uri::resolve http://www.w3.org/path/ http://test.net/test.html
+} http://test.net/test.html
+
+test uri-3.7 {uri::resolve - two queries - one sans path} {
+    uri::resolve http://www.example.com/foo/bar.rvt?foo=bar ?shoo=bee
+} http://www.example.com/foo/bar.rvt?shoo=bee
+
+test uri-3.8 {uri::resolve - two queries} {
+    uri::resolve http://www.example.com/baz/?foo=bar ?shoo=bee
+} http://www.example.com/baz/?shoo=bee
+
+test uri-3.9 {uri::resolve - two absolute URL's with queries} {
+    uri::resolve http://www.example.com/?foo=bar http://www.example.com/?shoo=bee
+} http://www.example.com/?shoo=bee
+
+test uri-3.10 {uri::resolve - two queries,
+    one absolute URL, one absolute path} {
+    uri::resolve http://www.example.com/baz?foo=bar /baz?shoo=bee
+} http://www.example.com/baz?shoo=bee
+
+test uri-3.11 {uri::resolve - scheme-relative url with authority, rfc3986 4.2} {
+    uri::resolve http://www.foo.com/ //www.bar.com/
+}  http://www.bar.com/
+
+test uri-3.12 {uri::resolve - scheme-relative url with authority, rfc3986 4.2} {
+    uri::resolve https://www.foo.com/ //www.bar.com/
+}  https://www.bar.com/
+
+test uri-3.13 {uri::resolve - scheme-relative url with authority, rfc3986 4.2} {
+    uri::resolve https://www.foo.com/ //www.bar.com
+}  https://www.bar.com
+
+test uri-3.14 {uri::resolve - two queries,
+    one absolute URL, one absolute path, port} {
+    uri::resolve http://www.example.com:8080/baz?foo=bar /baz?shoo=bee
+} http://www.example.com:8080/baz?shoo=bee
+
+test uri-3.15 {uri::resolve - two queries,
+    one absolute URL, one absolute path, FQDN} {
+    uri::resolve http://www.example.com./baz?foo=bar /baz?shoo=bee
+} http://www.example.com./baz?shoo=bee
+
+test uri-3.16 {uri::resolve - two queries,
+    one absolute URL, one absolute path, FQDN, port} {
+    uri::resolve http://www.example.com.:8080/baz?foo=bar /baz?shoo=bee
+} http://www.example.com.:8080/baz?shoo=bee
+
+test uri-3.17 {uri::resolve - two queries,
+    one absolute URL, one absolute path, valid hostname "9" on local network} {
+    uri::resolve http://9/baz?foo=bar /baz?shoo=bee
+} http://9/baz?shoo=bee
+
+test uri-3.18 {uri::resolve - two queries,
+    one absolute URL, one absolute path, valid hostname "9" on local network, port} {
+    uri::resolve http://9:8080/baz?foo=bar /baz?shoo=bee
+} http://9:8080/baz?shoo=bee
+
+test uri-3.19 {uri::resolve - two queries,
+    one absolute URL, one absolute path, valid hostname "0-9" on local network} {
+    uri::resolve http://0-9/baz?foo=bar /baz?shoo=bee
+} http://0-9/baz?shoo=bee
+
+test uri-3.20 {uri::resolve - two queries,
+    one absolute URL, one absolute path, valid hostname "0-9" on local network, port} {
+    uri::resolve http://0-9:8080/baz?foo=bar /baz?shoo=bee
+} http://0-9:8080/baz?shoo=bee
+
+test uri-3.21 {uri::resolve - two queries,
+    one absolute URL, one absolute path, valid hostname "9" on local network, FQDN} {
+    uri::resolve http://9./baz?foo=bar /baz?shoo=bee
+} http://9./baz?shoo=bee
+
+test uri-3.22 {uri::resolve - two queries,
+    one absolute URL, one absolute path, valid hostname "9" on local network, FQDN, port} {
+    uri::resolve http://9.:8080/baz?foo=bar /baz?shoo=bee
+} http://9.:8080/baz?shoo=bee
+
+test uri-3.23 {uri::resolve - two queries,
+    one absolute URL, one absolute path, valid hostname "0-9" on local network, FQDN} {
+    uri::resolve http://0-9./baz?foo=bar /baz?shoo=bee
+} http://0-9./baz?shoo=bee
+
+test uri-3.24 {uri::resolve - two queries,
+    one absolute URL, one absolute path, valid hostname "0-9" on local network, FQDN, port} {
+    uri::resolve http://0-9.:8080/baz?foo=bar /baz?shoo=bee
+} http://0-9.:8080/baz?shoo=bee
+
+test uri-3.25 {uri::resolve -- user:pwd for http} {
+    ::uri::resolve http://anonymous:passw0rd@core.tcl.tk/foo/bar /some 
+} http://anonymous:passw0rd@core.tcl.tk/some
+
+test uri-3.26 {uri::resolve -- user:pwd for http} {
+    ::uri::resolve http://anonymous:passw0rd@core.tcl.tk/foo/bar //www.tcl.tk/foo/bar
+} http://www.tcl.tk/foo/bar
+
+test uri-3.27 {uri::resolve -- user:pwd for http} {
+    ::uri::resolve http://anonymous:passw0rd@core.tcl.tk/foo/bar //core.tcl.tk/foo/bar
+} http://core.tcl.tk/foo/bar
+
+test uri-3.28 {uri::resolve -- port for http} {
+    ::uri::resolve http://core.tcl.tk:8080/foo/bar //core.tcl.tk/foo/bar
+} http://core.tcl.tk/foo/bar
+
+test uri-3.29 {uri::resolve -- user:pwd and port for http} {
+    ::uri::resolve http://anonymous:passw0rd@core.tcl.tk:8080/foo/bar //core.tcl.tk/foo/bar
+} http://core.tcl.tk/foo/bar
+
+# -------------------------------------------------------------------------
+
+test uri-4.1 {uri::geturl} {
+    set data [info commands]
+    set file [makeFile {} __testdata]
+    set f [open $file w]
+    puts -nonewline $f $data
+    close $f
+
+    set token [uri::geturl file://$file]
+    removeFile __testdata
+    string compare $data [set [subst $token](data)]
+} 0
+
+# -------------------------------------------------------------------------
+
+test uri-5.1-2 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/path1/./remove/../path2/resource
+} http://www.test.net/path1/path2/resource
+
+test uri-5.2-2 {uri::canonicalize infinite loop} {
+    uri::canonicalize http://www.test.net/../path2/resource
+} {http://www.test.net/path2/resource}
+
+test uri-5.3-2 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/./path1/./remove/../path2/../resource
+} http://www.test.net/path1/resource
+
+test uri-5.4-2 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/./././path1/./remove/../path2/../resource
+} http://www.test.net/path1/resource
+
+test uri-5.5-2 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/./././path1/./remove/path2/../../resource
+} http://www.test.net/path1/resource
+
+test uri-5.6-2 {uri::canonicalize infinite loop} {
+    uri::canonicalize http://www.test.net/../../../path2/resource
+} {http://www.test.net/path2/resource}
+
+test uri-5.7-2 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/path1/./remove/../path.html/resource
+} http://www.test.net/path1/path.html/resource
+
+test uri-5.8-2 {uri::canonicalize infinite loop} {
+    uri::canonicalize http://www.test.net/../path.html/resource
+} {http://www.test.net/path.html/resource}
+
+test uri-5.9-2 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/./path1/./remove/../path.html/../resource
+} http://www.test.net/path1/resource
+
+test uri-5.10-2 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/./././path1/./remove/../path.html/../resource
+} http://www.test.net/path1/resource
+
+test uri-5.11-2 {uri::canonicalize} {
+    uri::canonicalize http://www.test.net/./././path1/./remove/path.html/../../resource
+} http://www.test.net/path1/resource
+
+test uri-5.12-2 {uri::canonicalize infinite loop} {
+    uri::canonicalize http://www.test.net/../../../path.html/resource
+} {http://www.test.net/path.html/resource}
+
+test uri-5.13-2 {uri::canonicalize} {
+    uri::canonicalize http://www.eldritchpress.org/jc/../help.html
+} {http://www.eldritchpress.org/help.html}
+
+test uri-5.14-2 {uri::canonicalize trailing ..} {
+    uri::canonicalize http://www.example.com/foo/bar/..
+} {http://www.example.com/foo/}
+
+test uri-5.15-2 {uri::canonicalize trailing ..} {
+    uri::canonicalize http://www.example.com/..
+} {http://www.example.com/}
+
+test uri-5.16-2 {uri::canonicalize not ..s} {
+    uri::canonicalize http://www.example.com/..s
+} {http://www.example.com/..s}
+
+test uri-5.17-2 {uri::canonicalize not ..s} {
+    uri::canonicalize http://www.example.com/..s/
+} {http://www.example.com/..s/}
+
+test uri-5.18-2 {uri::canonicalize not ..s} {
+    uri::canonicalize http://www.example.com/path1/..s
+} {http://www.example.com/path1/..s}
+
+test uri-5.19-2 {uri::canonicalize not ..s} {
+    uri::canonicalize http://www.example.com/path1/..s/
+} {http://www.example.com/path1/..s/}
+
+test uri-5.20-2 {uri::canonicalize not ..s} {
+    uri::canonicalize http://www.example.com/path1/..s/path2
+} {http://www.example.com/path1/..s/path2}
+
+test uri-5.21-2 {uri::canonicalize not ..s} {
+    uri::canonicalize http://www.example.com/path1/..s/path2/
+} {http://www.example.com/path1/..s/path2/}
+
+test uri-5.22-2 {uri::canonicalize not ..s} {
+    uri::canonicalize http://www.example.com/..s/path1
+} {http://www.example.com/..s/path1}
+
+test uri-5.23-2 {uri::canonicalize not ..s} {
+    uri::canonicalize http://www.example.com/..s/path1/
+} {http://www.example.com/..s/path1/}
+
+test uri-5.24-2 {uri::canonicalize not .s} {
+    uri::canonicalize http://www.example.com/.s
+} {http://www.example.com/.s}
+
+test uri-5.25-2 {uri::canonicalize not .s} {
+    uri::canonicalize http://www.example.com/.s/
+} {http://www.example.com/.s/}
+
+test uri-5.26-2 {uri::canonicalize not .s} {
+    uri::canonicalize http://www.example.com/path1/.s
+} {http://www.example.com/path1/.s}
+
+test uri-5.27-2 {uri::canonicalize not .s} {
+    uri::canonicalize http://www.example.com/path1/.s/
+} {http://www.example.com/path1/.s/}
+
+test uri-5.28-2 {uri::canonicalize not .s} {
+    uri::canonicalize http://www.example.com/path1/.s/path2
+} {http://www.example.com/path1/.s/path2}
+
+test uri-5.29-2 {uri::canonicalize not .s} {
+    uri::canonicalize http://www.example.com/path1/.s/path2/
+} {http://www.example.com/path1/.s/path2/}
+
+test uri-5.30-2 {uri::canonicalize not .s} {
+    uri::canonicalize http://www.example.com/.s/path1
+} {http://www.example.com/.s/path1}
+
+test uri-5.31-2 {uri::canonicalize not .s} {
+    uri::canonicalize http://www.example.com/.s/path1/
+} {http://www.example.com/.s/path1/}
+
+test uri-5.32-2 {uri::canonicalize not s..} {
+    uri::canonicalize http://www.example.com/s..
+} {http://www.example.com/s..}
+
+test uri-5.33-2 {uri::canonicalize not s..} {
+    uri::canonicalize http://www.example.com/s../
+} {http://www.example.com/s../}
+
+test uri-5.34-2 {uri::canonicalize not s..} {
+    uri::canonicalize http://www.example.com/path1/s..
+} {http://www.example.com/path1/s..}
+
+test uri-5.35-2 {uri::canonicalize not s..} {
+    uri::canonicalize http://www.example.com/path1/s../
+} {http://www.example.com/path1/s../}
+
+test uri-5.36-2 {uri::canonicalize not s..} {
+    uri::canonicalize http://www.example.com/path1/s../path2
+} {http://www.example.com/path1/s../path2}
+
+test uri-5.37-2 {uri::canonicalize not s..} {
+    uri::canonicalize http://www.example.com/path1/s../path2/
+} {http://www.example.com/path1/s../path2/}
+
+test uri-5.38-2 {uri::canonicalize not s..} {
+    uri::canonicalize http://www.example.com/s../path1
+} {http://www.example.com/s../path1}
+
+test uri-5.39-2 {uri::canonicalize not s..} {
+    uri::canonicalize http://www.example.com/s../path1/
+} {http://www.example.com/s../path1/}
+
+test uri-5.40-2 {uri::canonicalize not s.} {
+    uri::canonicalize http://www.example.com/s.
+} {http://www.example.com/s.}
+
+test uri-5.41-2 {uri::canonicalize not s.} {
+    uri::canonicalize http://www.example.com/s./
+} {http://www.example.com/s./}
+
+test uri-5.42-2 {uri::canonicalize not s.} {
+    uri::canonicalize http://www.example.com/path1/s.
+} {http://www.example.com/path1/s.}
+
+test uri-5.43-2 {uri::canonicalize not s.} {
+    uri::canonicalize http://www.example.com/path1/s./
+} {http://www.example.com/path1/s./}
+
+test uri-5.44-2 {uri::canonicalize not s.} {
+    uri::canonicalize http://www.example.com/path1/s./path2
+} {http://www.example.com/path1/s./path2}
+
+test uri-5.45-2 {uri::canonicalize not s.} {
+    uri::canonicalize http://www.example.com/path1/s./path2/
+} {http://www.example.com/path1/s./path2/}
+
+test uri-5.46-2 {uri::canonicalize not s.} {
+    uri::canonicalize http://www.example.com/s./path1
+} {http://www.example.com/s./path1}
+
+test uri-5.47-2 {uri::canonicalize not s.} {
+    uri::canonicalize http://www.example.com/s./path1/
+} {http://www.example.com/s./path1/}
+
+test uri-5.48-2 {uri::canonicalize infinite loop, valid hostname on local network} {
+    uri::canonicalize http://test-host/../path.html/resource
+} {http://test-host/path.html/resource}
+
+test uri-5.49-2 {uri::canonicalize infinite loop, valid hostname "9" on local network} {
+    uri::canonicalize http://9/../path.html/resource
+} {http://9/path.html/resource}
+
+test uri-5.50-2 {uri::canonicalize infinite loop, valid hostname "0-9" on local network} {
+    uri::canonicalize http://0-9/../path.html/resource
+} {http://0-9/path.html/resource}
+
+test uri-5.51-2 {uri::canonicalize infinite loop, valid hostname on local network, FQDN} {
+    uri::canonicalize http://test-host./../path.html/resource
+} {http://test-host./path.html/resource}
+
+test uri-5.52-2 {uri::canonicalize infinite loop, valid hostname "9" on local network, FQDN} {
+    uri::canonicalize http://9./../path.html/resource
+} {http://9./path.html/resource}
+
+test uri-5.53-2 {uri::canonicalize infinite loop, valid hostname "0-9" on local network, FQDN} {
+    uri::canonicalize http://0-9./../path.html/resource
+} {http://0-9./path.html/resource}
+
+test uri-5.1-3 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/path1/./remove/../path2/resource
+} ftp://ftp.test.net/path1/path2/resource
+
+test uri-5.2-3 {uri::canonicalize infinite loop} {
+    uri::canonicalize ftp://ftp.test.net/../path2/resource
+} {ftp://ftp.test.net/path2/resource}
+
+test uri-5.3-3 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/./path1/./remove/../path2/../resource
+} ftp://ftp.test.net/path1/resource
+
+test uri-5.4-3 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/./././path1/./remove/../path2/../resource
+} ftp://ftp.test.net/path1/resource
+
+test uri-5.5-3 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/./././path1/./remove/path2/../../resource
+} ftp://ftp.test.net/path1/resource
+
+test uri-5.6-3 {uri::canonicalize infinite loop} {
+    uri::canonicalize ftp://ftp.test.net/../../../path2/resource
+} {ftp://ftp.test.net/path2/resource}
+
+test uri-5.7-3 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/path1/./remove/../path.html/resource
+} ftp://ftp.test.net/path1/path.html/resource
+
+test uri-5.8-3 {uri::canonicalize infinite loop} {
+    uri::canonicalize ftp://ftp.test.net/../path.html/resource
+} {ftp://ftp.test.net/path.html/resource}
+
+test uri-5.9-3 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/./path1/./remove/../path.html/../resource
+} ftp://ftp.test.net/path1/resource
+
+test uri-5.10-3 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/./././path1/./remove/../path.html/../resource
+} ftp://ftp.test.net/path1/resource
+
+test uri-5.11-3 {uri::canonicalize} {
+    uri::canonicalize ftp://ftp.test.net/./././path1/./remove/path.html/../../resource
+} ftp://ftp.test.net/path1/resource
+
+test uri-5.12-3 {uri::canonicalize infinite loop} {
+    uri::canonicalize ftp://ftp.test.net/../../../path.html/resource
+} {ftp://ftp.test.net/path.html/resource}
+
+test uri-5.13-3 {uri::canonicalize} {
+    uri::canonicalize ftp://www.eldritchpress.org/jc/../help.html
+} {ftp://www.eldritchpress.org/help.html}
+
+test uri-5.14-3 {uri::canonicalize trailing ..} {
+    uri::canonicalize ftp://www.example.com/foo/bar/..
+} {ftp://www.example.com/foo/}
+
+test uri-5.15-3 {uri::canonicalize trailing ..} {
+    uri::canonicalize ftp://www.example.com/..
+} {ftp://www.example.com/}
+
+test uri-5.16-3 {uri::canonicalize not ..s} {
+    uri::canonicalize ftp://ftp.test.net/..s
+} {ftp://ftp.test.net/..s}
+
+test uri-5.17-3 {uri::canonicalize not ..s} {
+    uri::canonicalize ftp://ftp.test.net/..s/
+} {ftp://ftp.test.net/..s/}
+
+test uri-5.18-3 {uri::canonicalize not ..s} {
+    uri::canonicalize ftp://ftp.test.net/path1/..s
+} {ftp://ftp.test.net/path1/..s}
+
+test uri-5.19-3 {uri::canonicalize not ..s} {
+    uri::canonicalize ftp://ftp.test.net/path1/..s/
+} {ftp://ftp.test.net/path1/..s/}
+
+test uri-5.20-3 {uri::canonicalize not ..s} {
+    uri::canonicalize ftp://ftp.test.net/path1/..s/path2
+} {ftp://ftp.test.net/path1/..s/path2}
+
+test uri-5.21-3 {uri::canonicalize not ..s} {
+    uri::canonicalize ftp://ftp.test.net/path1/..s/path2/
+} {ftp://ftp.test.net/path1/..s/path2/}
+
+test uri-5.22-3 {uri::canonicalize not ..s} {
+    uri::canonicalize ftp://ftp.test.net/..s/path1
+} {ftp://ftp.test.net/..s/path1}
+
+test uri-5.23-3 {uri::canonicalize not ..s} {
+    uri::canonicalize ftp://ftp.test.net/..s/path1/
+} {ftp://ftp.test.net/..s/path1/}
+
+test uri-5.24-3 {uri::canonicalize not .s} {
+    uri::canonicalize ftp://ftp.test.net/.s
+} {ftp://ftp.test.net/.s}
+
+test uri-5.25-3 {uri::canonicalize not .s} {
+    uri::canonicalize ftp://ftp.test.net/.s/
+} {ftp://ftp.test.net/.s/}
+
+test uri-5.26-3 {uri::canonicalize not .s} {
+    uri::canonicalize ftp://ftp.test.net/path1/.s
+} {ftp://ftp.test.net/path1/.s}
+
+test uri-5.27-3 {uri::canonicalize not .s} {
+    uri::canonicalize ftp://ftp.test.net/path1/.s/
+} {ftp://ftp.test.net/path1/.s/}
+
+test uri-5.28-3 {uri::canonicalize not .s} {
+    uri::canonicalize ftp://ftp.test.net/path1/.s/path2
+} {ftp://ftp.test.net/path1/.s/path2}
+
+test uri-5.29-3 {uri::canonicalize not .s} {
+    uri::canonicalize ftp://ftp.test.net/path1/.s/path2/
+} {ftp://ftp.test.net/path1/.s/path2/}
+
+test uri-5.30-3 {uri::canonicalize not .s} {
+    uri::canonicalize ftp://ftp.test.net/.s/path1
+} {ftp://ftp.test.net/.s/path1}
+
+test uri-5.31-3 {uri::canonicalize not .s} {
+    uri::canonicalize ftp://ftp.test.net/.s/path1/
+} {ftp://ftp.test.net/.s/path1/}
+
+test uri-5.32-3 {uri::canonicalize not s..} {
+    uri::canonicalize ftp://ftp.test.net/s..
+} {ftp://ftp.test.net/s..}
+
+test uri-5.33-3 {uri::canonicalize not s..} {
+    uri::canonicalize ftp://ftp.test.net/s../
+} {ftp://ftp.test.net/s../}
+
+test uri-5.34-3 {uri::canonicalize not s..} {
+    uri::canonicalize ftp://ftp.test.net/path1/s..
+} {ftp://ftp.test.net/path1/s..}
+
+test uri-5.35-3 {uri::canonicalize not s..} {
+    uri::canonicalize ftp://ftp.test.net/path1/s../
+} {ftp://ftp.test.net/path1/s../}
+
+test uri-5.36-3 {uri::canonicalize not s..} {
+    uri::canonicalize ftp://ftp.test.net/path1/s../path2
+} {ftp://ftp.test.net/path1/s../path2}
+
+test uri-5.37-3 {uri::canonicalize not s..} {
+    uri::canonicalize ftp://ftp.test.net/path1/s../path2/
+} {ftp://ftp.test.net/path1/s../path2/}
+
+test uri-5.38-3 {uri::canonicalize not s..} {
+    uri::canonicalize ftp://ftp.test.net/s../path1
+} {ftp://ftp.test.net/s../path1}
+
+test uri-5.39-3 {uri::canonicalize not s..} {
+    uri::canonicalize ftp://ftp.test.net/s../path1/
+} {ftp://ftp.test.net/s../path1/}
+
+test uri-5.40-3 {uri::canonicalize not s.} {
+    uri::canonicalize ftp://ftp.test.net/s.
+} {ftp://ftp.test.net/s.}
+
+test uri-5.41-3 {uri::canonicalize not s.} {
+    uri::canonicalize ftp://ftp.test.net/s./
+} {ftp://ftp.test.net/s./}
+
+test uri-5.42-3 {uri::canonicalize not s.} {
+    uri::canonicalize ftp://ftp.test.net/path1/s.
+} {ftp://ftp.test.net/path1/s.}
+
+test uri-5.43-3 {uri::canonicalize not s.} {
+    uri::canonicalize ftp://ftp.test.net/path1/s./
+} {ftp://ftp.test.net/path1/s./}
+
+test uri-5.44-3 {uri::canonicalize not s.} {
+    uri::canonicalize ftp://ftp.test.net/path1/s./path2
+} {ftp://ftp.test.net/path1/s./path2}
+
+test uri-5.45-3 {uri::canonicalize not s.} {
+    uri::canonicalize ftp://ftp.test.net/path1/s./path2/
+} {ftp://ftp.test.net/path1/s./path2/}
+
+test uri-5.46-3 {uri::canonicalize not s.} {
+    uri::canonicalize ftp://ftp.test.net/s./path1
+} {ftp://ftp.test.net/s./path1}
+
+test uri-5.47-3 {uri::canonicalize not s.} {
+    uri::canonicalize ftp://ftp.test.net/s./path1/
+} {ftp://ftp.test.net/s./path1/}
+
+test uri-5.48-3 {uri::canonicalize infinite loop, valid hostname on local network} {
+    uri::canonicalize ftp://test-host/../path.html/resource
+} {ftp://test-host/path.html/resource}
+
+test uri-5.49-3 {uri::canonicalize infinite loop, valid hostname "9" on local network} {
+    uri::canonicalize ftp://9/../path.html/resource
+} {ftp://9/path.html/resource}
+
+test uri-5.50-3 {uri::canonicalize infinite loop, valid hostname "0-9" on local network} {
+    uri::canonicalize ftp://0-9/../path.html/resource
+} {ftp://0-9/path.html/resource}
+
+test uri-5.51-3 {uri::canonicalize infinite loop, valid hostname on local network, FQDN} {
+    uri::canonicalize ftp://test-host./../path.html/resource
+} {ftp://test-host./path.html/resource}
+
+test uri-5.52-3 {uri::canonicalize infinite loop, valid hostname "9" on local network, FQDN} {
+    uri::canonicalize ftp://9./../path.html/resource
+} {ftp://9./path.html/resource}
+
+test uri-5.53-3 {uri::canonicalize infinite loop, valid hostname "0-9" on local network, FQDN} {
+    uri::canonicalize ftp://0-9./../path.html/resource
+} {ftp://0-9./path.html/resource}
+
+test uri-5.1-4 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/path1/./remove/../path2/resource
+} file://goo.test.net/path1/path2/resource
+
+test uri-5.2-4 {uri::canonicalize infinite loop} {
+    uri::canonicalize file://goo.test.net/../path2/resource
+} {file://goo.test.net/path2/resource}
+
+test uri-5.3-4 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/./path1/./remove/../path2/../resource
+} file://goo.test.net/path1/resource
+
+test uri-5.4-4 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/./././path1/./remove/../path2/../resource
+} file://goo.test.net/path1/resource
+
+test uri-5.5-4 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/./././path1/./remove/path2/../../resource
+} file://goo.test.net/path1/resource
+
+test uri-5.6-4 {uri::canonicalize infinite loop} {
+    uri::canonicalize file://goo.test.net/../../../path2/resource
+} {file://goo.test.net/path2/resource}
+
+test uri-5.7-4 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/path1/./remove/../path.html/resource
+} file://goo.test.net/path1/path.html/resource
+
+test uri-5.8-4 {uri::canonicalize infinite loop} {
+    uri::canonicalize file://goo.test.net/../path.html/resource
+} {file://goo.test.net/path.html/resource}
+
+test uri-5.9-4 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/./path1/./remove/../path.html/../resource
+} file://goo.test.net/path1/resource
+
+test uri-5.10-4 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/./././path1/./remove/../path.html/../resource
+} file://goo.test.net/path1/resource
+
+test uri-5.11-4 {uri::canonicalize} {
+    uri::canonicalize file://goo.test.net/./././path1/./remove/path.html/../../resource
+} file://goo.test.net/path1/resource
+
+test uri-5.12-4 {uri::canonicalize infinite loop} {
+    uri::canonicalize file://goo.test.net/../../../path.html/resource
+} {file://goo.test.net/path.html/resource}
+
+test uri-5.13-4 {uri::canonicalize} {
+    uri::canonicalize file://www.eldritchpress.org/jc/../help.html
+} {file://www.eldritchpress.org/help.html}
+
+test uri-5.14-4 {uri::canonicalize trailing ..} {
+    uri::canonicalize file://www.example.com/foo/bar/..
+} {file://www.example.com/foo/}
+
+test uri-5.15-4 {uri::canonicalize trailing ..} {
+    uri::canonicalize file://www.example.com/..
+} {file://www.example.com/}
+
+test uri-5.16-4 {uri::canonicalize not ..s} {
+    uri::canonicalize file://goo.test.net/..s
+} {file://goo.test.net/..s}
+
+test uri-5.17-4 {uri::canonicalize not ..s} {
+    uri::canonicalize file://goo.test.net/..s/
+} {file://goo.test.net/..s/}
+
+test uri-5.18-4 {uri::canonicalize not ..s} {
+    uri::canonicalize file://goo.test.net/path1/..s
+} {file://goo.test.net/path1/..s}
+
+test uri-5.19-4 {uri::canonicalize not ..s} {
+    uri::canonicalize file://goo.test.net/path1/..s/
+} {file://goo.test.net/path1/..s/}
+
+test uri-5.20-4 {uri::canonicalize not ..s} {
+    uri::canonicalize file://goo.test.net/path1/..s/path2
+} {file://goo.test.net/path1/..s/path2}
+
+test uri-5.21-4 {uri::canonicalize not ..s} {
+    uri::canonicalize file://goo.test.net/path1/..s/path2/
+} {file://goo.test.net/path1/..s/path2/}
+
+test uri-5.22-4 {uri::canonicalize not ..s} {
+    uri::canonicalize file://goo.test.net/..s/path1
+} {file://goo.test.net/..s/path1}
+
+test uri-5.23-4 {uri::canonicalize not ..s} {
+    uri::canonicalize file://goo.test.net/..s/path1/
+} {file://goo.test.net/..s/path1/}
+
+test uri-5.24-4 {uri::canonicalize not .s} {
+    uri::canonicalize file://goo.test.net/.s
+} {file://goo.test.net/.s}
+
+test uri-5.25-4 {uri::canonicalize not .s} {
+    uri::canonicalize file://goo.test.net/.s/
+} {file://goo.test.net/.s/}
+
+test uri-5.26-4 {uri::canonicalize not .s} {
+    uri::canonicalize file://goo.test.net/path1/.s
+} {file://goo.test.net/path1/.s}
+
+test uri-5.27-4 {uri::canonicalize not .s} {
+    uri::canonicalize file://goo.test.net/path1/.s/
+} {file://goo.test.net/path1/.s/}
+
+test uri-5.28-4 {uri::canonicalize not .s} {
+    uri::canonicalize file://goo.test.net/path1/.s/path2
+} {file://goo.test.net/path1/.s/path2}
+
+test uri-5.29-4 {uri::canonicalize not .s} {
+    uri::canonicalize file://goo.test.net/path1/.s/path2/
+} {file://goo.test.net/path1/.s/path2/}
+
+test uri-5.30-4 {uri::canonicalize not .s} {
+    uri::canonicalize file://goo.test.net/.s/path1
+} {file://goo.test.net/.s/path1}
+
+test uri-5.31-4 {uri::canonicalize not .s} {
+    uri::canonicalize file://goo.test.net/.s/path1/
+} {file://goo.test.net/.s/path1/}
+
+test uri-5.32-4 {uri::canonicalize not s..} {
+    uri::canonicalize file://goo.test.net/s..
+} {file://goo.test.net/s..}
+
+test uri-5.33-4 {uri::canonicalize not s..} {
+    uri::canonicalize file://goo.test.net/s../
+} {file://goo.test.net/s../}
+
+test uri-5.34-4 {uri::canonicalize not s..} {
+    uri::canonicalize file://goo.test.net/path1/s..
+} {file://goo.test.net/path1/s..}
+
+test uri-5.35-4 {uri::canonicalize not s..} {
+    uri::canonicalize file://goo.test.net/path1/s../
+} {file://goo.test.net/path1/s../}
+
+test uri-5.36-4 {uri::canonicalize not s..} {
+    uri::canonicalize file://goo.test.net/path1/s../path2
+} {file://goo.test.net/path1/s../path2}
+
+test uri-5.37-4 {uri::canonicalize not s..} {
+    uri::canonicalize file://goo.test.net/path1/s../path2/
+} {file://goo.test.net/path1/s../path2/}
+
+test uri-5.38-4 {uri::canonicalize not s..} {
+    uri::canonicalize file://goo.test.net/s../path1
+} {file://goo.test.net/s../path1}
+
+test uri-5.39-4 {uri::canonicalize not s..} {
+    uri::canonicalize file://goo.test.net/s../path1/
+} {file://goo.test.net/s../path1/}
+
+test uri-5.40-4 {uri::canonicalize not s.} {
+    uri::canonicalize file://goo.test.net/s.
+} {file://goo.test.net/s.}
+
+test uri-5.41-4 {uri::canonicalize not s.} {
+    uri::canonicalize file://goo.test.net/s./
+} {file://goo.test.net/s./}
+
+test uri-5.42-4 {uri::canonicalize not s.} {
+    uri::canonicalize file://goo.test.net/path1/s.
+} {file://goo.test.net/path1/s.}
+
+test uri-5.43-4 {uri::canonicalize not s.} {
+    uri::canonicalize file://goo.test.net/path1/s./
+} {file://goo.test.net/path1/s./}
+
+test uri-5.44-4 {uri::canonicalize not s.} {
+    uri::canonicalize file://goo.test.net/path1/s./path2
+} {file://goo.test.net/path1/s./path2}
+
+test uri-5.45-4 {uri::canonicalize not s.} {
+    uri::canonicalize file://goo.test.net/path1/s./path2/
+} {file://goo.test.net/path1/s./path2/}
+
+test uri-5.46-4 {uri::canonicalize not s.} {
+    uri::canonicalize file://goo.test.net/s./path1
+} {file://goo.test.net/s./path1}
+
+test uri-5.47-4 {uri::canonicalize not s.} {
+    uri::canonicalize file://goo.test.net/s./path1/
+} {file://goo.test.net/s./path1/}
+
+test uri-5.48-4 {uri::canonicalize infinite loop, valid hostname on local network} {
+    uri::canonicalize file://test-host/../path.html/resource
+} {file://test-host/path.html/resource}
+
+test uri-5.49-4 {uri::canonicalize infinite loop, valid hostname "9" on local network} {
+    uri::canonicalize file://9/../path.html/resource
+} {file://9/path.html/resource}
+
+test uri-5.50-4 {uri::canonicalize infinite loop, valid hostname "0-9" on local network} {
+    uri::canonicalize file://0-9/../path.html/resource
+} {file://0-9/path.html/resource}
+
+test uri-5.51-4 {uri::canonicalize infinite loop, valid hostname on local network, FQDN} {
+    uri::canonicalize file://test-host./../path.html/resource
+} {file://test-host./path.html/resource}
+
+test uri-5.52-4 {uri::canonicalize infinite loop, valid hostname "9" on local network, FQDN} {
+    uri::canonicalize file://9./../path.html/resource
+} {file://9./path.html/resource}
+
+test uri-5.53-4 {uri::canonicalize infinite loop, valid hostname "0-9" on local network, FQDN} {
+    uri::canonicalize file://0-9./../path.html/resource
+} {file://0-9./path.html/resource}
+
+test uri-5.1-5 {uri::canonicalize} {
+    uri::canonicalize file:///path1/./remove/../path2/resource
+} file:///path1/path2/resource
+
+test uri-5.2-5 {uri::canonicalize infinite loop} {
+    uri::canonicalize file:///../path2/resource
+} {file:///path2/resource}
+
+test uri-5.3-5 {uri::canonicalize} {
+    uri::canonicalize file:///./path1/./remove/../path2/../resource
+} file:///path1/resource
+
+test uri-5.4-5 {uri::canonicalize} {
+    uri::canonicalize file:///./././path1/./remove/../path2/../resource
+} file:///path1/resource
+
+test uri-5.5-5 {uri::canonicalize} {
+    uri::canonicalize file:///./././path1/./remove/path2/../../resource
+} file:///path1/resource
+
+test uri-5.6-5 {uri::canonicalize infinite loop} {
+    uri::canonicalize file:///../../../path2/resource
+} {file:///path2/resource}
+
+test uri-5.7-5 {uri::canonicalize} {
+    uri::canonicalize file:///path1/./remove/../path.html/resource
+} file:///path1/path.html/resource
+
+test uri-5.8-5 {uri::canonicalize infinite loop} {
+    uri::canonicalize file:///../path.html/resource
+} {file:///path.html/resource}
+
+test uri-5.9-5 {uri::canonicalize} {
+    uri::canonicalize file:///./path1/./remove/../path.html/../resource
+} file:///path1/resource
+
+test uri-5.10-5 {uri::canonicalize} {
+    uri::canonicalize file:///./././path1/./remove/../path.html/../resource
+} file:///path1/resource
+
+test uri-5.11-5 {uri::canonicalize} {
+    uri::canonicalize file:///./././path1/./remove/path.html/../../resource
+} file:///path1/resource
+
+test uri-5.12-5 {uri::canonicalize infinite loop} {
+    uri::canonicalize file:///../../../path.html/resource
+} {file:///path.html/resource}
+
+test uri-5.13-5 {uri::canonicalize} {
+    uri::canonicalize file:///jc/../help.html
+} {file:///help.html}
+
+test uri-5.14-5 {uri::canonicalize trailing ..} {
+    uri::canonicalize file:///foo/bar/..
+} {file:///foo/}
+
+test uri-5.15-5 {uri::canonicalize trailing ..} {
+    uri::canonicalize file:///..
+} {file:///}
+
+test uri-5.16-5 {uri::canonicalize not ..s} {
+    uri::canonicalize file:///..s
+} {file:///..s}
+
+test uri-5.17-5 {uri::canonicalize not ..s} {
+    uri::canonicalize file:///..s/
+} {file:///..s/}
+
+test uri-5.18-5 {uri::canonicalize not ..s} {
+    uri::canonicalize file:///path1/..s
+} {file:///path1/..s}
+
+test uri-5.19-5 {uri::canonicalize not ..s} {
+    uri::canonicalize file:///path1/..s/
+} {file:///path1/..s/}
+
+test uri-5.20-5 {uri::canonicalize not ..s} {
+    uri::canonicalize file:///path1/..s/path2
+} {file:///path1/..s/path2}
+
+test uri-5.21-5 {uri::canonicalize not ..s} {
+    uri::canonicalize file:///path1/..s/path2/
+} {file:///path1/..s/path2/}
+
+test uri-5.22-5 {uri::canonicalize not ..s} {
+    uri::canonicalize file:///..s/path1
+} {file:///..s/path1}
+
+test uri-5.23-5 {uri::canonicalize not ..s} {
+    uri::canonicalize file:///..s/path1/
+} {file:///..s/path1/}
+
+test uri-5.24-5 {uri::canonicalize not .s} {
+    uri::canonicalize file:///.s
+} {file:///.s}
+
+test uri-5.25-5 {uri::canonicalize not .s} {
+    uri::canonicalize file:///.s/
+} {file:///.s/}
+
+test uri-5.26-5 {uri::canonicalize not .s} {
+    uri::canonicalize file:///path1/.s
+} {file:///path1/.s}
+
+test uri-5.27-5 {uri::canonicalize not .s} {
+    uri::canonicalize file:///path1/.s/
+} {file:///path1/.s/}
+
+test uri-5.28-5 {uri::canonicalize not .s} {
+    uri::canonicalize file:///path1/.s/path2
+} {file:///path1/.s/path2}
+
+test uri-5.29-5 {uri::canonicalize not .s} {
+    uri::canonicalize file:///path1/.s/path2/
+} {file:///path1/.s/path2/}
+
+test uri-5.30-5 {uri::canonicalize not .s} {
+    uri::canonicalize file:///.s/path1
+} {file:///.s/path1}
+
+test uri-5.31-5 {uri::canonicalize not .s} {
+    uri::canonicalize file:///.s/path1/
+} {file:///.s/path1/}
+
+test uri-5.32-5 {uri::canonicalize not s..} {
+    uri::canonicalize file:///s..
+} {file:///s..}
+
+test uri-5.33-5 {uri::canonicalize not s..} {
+    uri::canonicalize file:///s../
+} {file:///s../}
+
+test uri-5.34-5 {uri::canonicalize not s..} {
+    uri::canonicalize file:///path1/s..
+} {file:///path1/s..}
+
+test uri-5.35-5 {uri::canonicalize not s..} {
+    uri::canonicalize file:///path1/s../
+} {file:///path1/s../}
+
+test uri-5.36-5 {uri::canonicalize not s..} {
+    uri::canonicalize file:///path1/s../path2
+} {file:///path1/s../path2}
+
+test uri-5.37-5 {uri::canonicalize not s..} {
+    uri::canonicalize file:///path1/s../path2/
+} {file:///path1/s../path2/}
+
+test uri-5.38-5 {uri::canonicalize not s..} {
+    uri::canonicalize file:///s../path1
+} {file:///s../path1}
+
+test uri-5.39-5 {uri::canonicalize not s..} {
+    uri::canonicalize file:///s../path1/
+} {file:///s../path1/}
+
+test uri-5.40-5 {uri::canonicalize not s.} {
+    uri::canonicalize file:///s.
+} {file:///s.}
+
+test uri-5.41-5 {uri::canonicalize not s.} {
+    uri::canonicalize file:///s./
+} {file:///s./}
+
+test uri-5.42-5 {uri::canonicalize not s.} {
+    uri::canonicalize file:///path1/s.
+} {file:///path1/s.}
+
+test uri-5.43-5 {uri::canonicalize not s.} {
+    uri::canonicalize file:///path1/s./
+} {file:///path1/s./}
+
+test uri-5.44-5 {uri::canonicalize not s.} {
+    uri::canonicalize file:///path1/s./path2
+} {file:///path1/s./path2}
+
+test uri-5.45-5 {uri::canonicalize not s.} {
+    uri::canonicalize file:///path1/s./path2/
+} {file:///path1/s./path2/}
+
+test uri-5.46-5 {uri::canonicalize not s.} {
+    uri::canonicalize file:///s./path1
+} {file:///s./path1}
+
+test uri-5.47-5 {uri::canonicalize not s.} {
+    uri::canonicalize file:///s./path1/
+} {file:///s./path1/}
+
+# There are no counterparts uri-5.48-5 to uri-5.53-5 for the tests
+# uri-5.48-* to uri-5.53-*, *=2,3,4 because these tests try different
+# hosts, while the tests *=5 are for the file scheme without a host.
+
+# -------------------------------------------------------------------------
+
+test uri-6.0 {uri::canonicalize} {
+    uri::canonicalize telnet://goo.test.net/
+} telnet://goo.test.net/
+
+# -------------------------------------------------------------------------
+
+test uri-7.0-0 {uri::split & uri::join with unusual fragment including pseudo-query} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    eval uri::join [uri::split http://tcl.apache.org/websh/faq.ws3\#generic?foo=bar]
+} {http://tcl.apache.org/websh/faq.ws3#generic?foo=bar}
+
+test uri-7.0-1 {uri::split & uri::join with unusual fragment including pseudo-query} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    eval uri::join [uri::split http://tcl.apache.org/websh/faq.ws3\#generic?foo=bar]
+} {http://tcl.apache.org/websh/faq.ws3#generic?foo=bar}
+
+# -------------------------------------------------------------------------
+
+test uri-8.0-0 {uri::split bug #676976, ill. char in scheme} -body {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::split ht,tp://tcl.apache.org/websh
+} -returnCodes error -result {{invalid url} ,tp://tcl.apache.org/websh ht,tp://tcl.apache.org/websh}
+
+test uri-8.0-1 {uri::split bug #676976, ill. char in scheme} -body {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::split ht,tp://tcl.apache.org/websh
+} -returnCodes error -result {{invalid url} ,tp://tcl.apache.org/websh ht,tp://tcl.apache.org/websh}
+
+# -------------------------------------------------------------------------
+
+test uri-9.0-0 {uri::split bug #936064, user information} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://foo:bar@baz.com:80/bla/]
+} {fragment {} host baz.com path /bla/ port 80 pwd bar query {} scheme http user foo}
+
+test uri-9.0-1 {uri::split bug #936064, user information} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://foo:bar@baz.com:80/bla/]
+} {fragment {} host baz.com path bla/ pbare 0 port 80 pwd bar query {} scheme http user foo}
+
+# -------------------------------------------------------------------------
+
+test uri-10.0-0 {uri::split bug #3235340, fragments after queries} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split  http://baz.com/foo?bar=baz#quux]
+} {fragment quux host baz.com path /foo port {} pwd {} query bar=baz scheme http user {}}
+
+test uri-10.1-0 {uri::join bug #3235340, fragments after queries - test differs from 10.1-1} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    uri::join fragment quux host baz.com path /foo port {} pwd {} query bar=baz scheme http user {}
+} {http://baz.com/foo?bar=baz#quux}
+
+test uri-10.0-1 {uri::split bug #3235340, fragments after queries} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split  http://baz.com/foo?bar=baz#quux]
+} {fragment quux host baz.com path foo pbare 0 port {} pwd {} query bar=baz scheme http user {}}
+
+test uri-10.1-1 {uri::join bug #3235340, fragments after queries - test differs from 10.1-0} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    uri::join fragment quux host baz.com path foo pbare 0 port {} pwd {} query bar=baz scheme http user {}
+} {http://baz.com/foo?bar=baz#quux}
+
+# -------------------------------------------------------------------------
+
+test uri-11.0-0 {uri::split, case-insensitive schemata, ticket dc50cc65ea} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split hTTp://foo:bar@baz.com:80/bla/]
+} {fragment {} host baz.com path /bla/ port 80 pwd bar query {} scheme http user foo}
+
+test uri-11.0-1 {uri::split, case-insensitive schemata, ticket dc50cc65ea} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split hTTp://foo:bar@baz.com:80/bla/]
+} {fragment {} host baz.com path bla/ pbare 0 port 80 pwd bar query {} scheme http user foo}
+
+# -------------------------------------------------------------------------
+
+test uri-12.0-0 {uri::split, host-only without scheme, ticket cfb76ff494} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split www.test.de]
+} {fragment {} host www.test.de path {} port {} pwd {} query {} scheme http user {}}
+
+test uri-12.1-0 {uri::split, host-only without scheme, ticket cfb76ff494} {
+    ::uri::setQuirkOption NoInitialSlash 0
+    dictsort [uri::split http://www.test.de]
+} {fragment {} host www.test.de path {} port {} pwd {} query {} scheme http user {}}
+
+test uri-12.0-1 {uri::split, host-only without scheme, ticket cfb76ff494} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split www.test.de]
+} {fragment {} host www.test.de path {} pbare 1 port {} pwd {} query {} scheme http user {}}
+
+test uri-12.1-1 {uri::split, host-only without scheme, ticket cfb76ff494} {
+    ::uri::setQuirkOption NoInitialSlash 1
+    dictsort [uri::split http://www.test.de]
+} {fragment {} host www.test.de path {} pbare 1 port {} pwd {} query {} scheme http user {}}
+
+# -------------------------------------------------------------------------
+
+::uri::setQuirkOption NoInitialSlash $BaseValue(NoInitialSlash)
+
+test uri-13.0 {uri::isrelative rfc3986 Section 3.1} {
+    ::uri::isrelative https://example.com/
+} 0
+
+test uri-13.1 {uri::isrelative rfc3986 Section 3.1} {
+    ::uri::isrelative //example.com/
+} 1
+
+test uri-13.2 {uri::isrelative rfc3986 Section 3.1} {
+    ::uri::isrelative /foo/bar.html
+} 1
+
+test uri-13.3 {uri::isrelative rfc3986 Section 3.1} {
+    ::uri::isrelative ?a=b&c=d
+} 1
+
+test uri-13.4 {uri::isrelative rfc3986 Section 3.1} {
+    ::uri::isrelative #top
+} 1
+
+test uri-13.5 {uri::isrelative rfc3986 Section 3.1 valid scheme} {
+    ::uri::isrelative test:foo
+} 0
+
+test uri-13.6 {uri::isrelative rfc3986 Section 3.1 valid scheme} {
+    ::uri::isrelative TEST:foo
+} 0
+
+test uri-13.7 {uri::isrelative rfc3986 Section 3.1 valid scheme} {
+    ::uri::isrelative Test:foo
+} 0
+
+test uri-13.8 {uri::isrelative rfc3986 Section 3.1 valid scheme} {
+    ::uri::isrelative tesT:foo
+} 0
+
+test uri-13.9 {uri::isrelative rfc3986 Section 3.1 valid scheme} {
+    ::uri::isrelative te.st:foo
+} 0
+
+test uri-13.10 {uri::isrelative rfc3986 Section 3.1 valid scheme} {
+    ::uri::isrelative te+st:foo
+} 0
+
+test uri-13.11 {uri::isrelative rfc3986 Section 3.1 valid scheme} {
+    ::uri::isrelative te9st:foo
+} 0
+
+test uri-13.12 {uri::isrelative rfc3986 Section 3.1 valid scheme} {
+    ::uri::isrelative te-st:foo
+} 0
+
+test uri-13.13 {uri::isrelative rfc3986 Section 3.1 valid scheme} {
+    ::uri::isrelative test-:foo
+} 0
+
+test uri-13.14 {uri::isrelative rfc3986 Section 3.1 need initial letter} {
+    ::uri::isrelative 9est:foo
+} 1
+
+test uri-13.15 {uri::isrelative rfc3986 Section 3.1 need initial letter} {
+    ::uri::isrelative -est:foo
+} 1
+
+test uri-13.16 {uri::isrelative rfc3986 Section 3.1 need initial letter} {
+    ::uri::isrelative .est:foo
+} 1
+
+test uri-13.17 {uri::isrelative rfc3986 Section 3.1 need initial letter} {
+    ::uri::isrelative +est:foo
+} 1
+
+test uri-13.18 {uri::isrelative rfc3986 Section 3.1 bad character} {
+    ::uri::isrelative te,st:foo
+} 1
+
+test uri-13.19 {uri::isrelative rfc3986 Section 3.1 correct but unhelpful result} {
+    ::uri::isrelative www.example.com:80
+} 0
+
+test uri-13.20 {uri::isrelative rfc3986 Section 3.1 correct but unhelpful result} {
+    ::uri::isrelative c:/windows/welcome.html
+} 0
+
+test uri-13.21 {uri::isrelative rfc3986 Section 3.1 correct but unhelpful result} {
+    ::uri::isrelative C:/WINDOWS/welcome.html
+} 0
+
+# -------------------------------------------------------------------------
+# More tests on uri::resolve - scheme-relative url with authority
+
+test uri-14.0 {uri::resolve - scheme-relative url with authority, rfc3986 4.2} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-14.4 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, FQDN} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //www.bar.com./dir/dir22?a=b&c=d#g
+}  http://www.bar.com./dir/dir22?a=b&c=d#g
+
+test uri-14.8 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, port} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //www.bar.com:8080/dir/dir22?a=b&c=d#g
+}  http://www.bar.com:8080/dir/dir22?a=b&c=d#g
+
+test uri-14.12 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, FQDN, port} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //www.bar.com.:8080/dir/dir22?a=b&c=d#g
+}  http://www.bar.com.:8080/dir/dir22?a=b&c=d#g
+
+test uri-14.1 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname on local network} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //test-host
+}  http://test-host
+
+test uri-14.2 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "9" on local network} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //9
+}  http://9
+
+test uri-14.3 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "0-9" on local network} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //0-9
+}  http://0-9
+
+test uri-14.5 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname on local network, FQDN} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //test-host.
+}  http://test-host.
+
+test uri-14.6 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "9" on local network, FQDN} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //9.
+}  http://9.
+
+test uri-14.7 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "0-9" on local network, FQDN} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //0-9.
+}  http://0-9.
+
+test uri-14.9 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname on local network, port} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //test-host:8080
+}  http://test-host:8080
+
+test uri-14.10 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "9" on local network, port} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //9:8080
+}  http://9:8080
+
+test uri-14.11 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "0-9" on local network, port} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //0-9:8080
+}  http://0-9:8080
+
+test uri-14.13 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname on local network, FQDN, port} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //test-host.:8080
+}  http://test-host.:8080
+
+test uri-14.14 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "9" on local network, FQDN, port} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //9.:8080
+}  http://9.:8080
+
+test uri-14.15 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "0-9" on local network, FQDN, port} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //0-9.:8080
+}  http://0-9.:8080
+
+# -------------------------------------------------------------------------
+
+test uri-15.0 {uri::resolve - scheme-relative url with authority, rfc3986 4.2} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-15.1 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname on local network} {
+    uri::resolve http://test-host/path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-15.2 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "9" on local network} {
+    uri::resolve http://9/path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-15.3 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "0-9" on local network} {
+    uri::resolve http://0-9/path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-15.4 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, FQDN} {
+    uri::resolve http://www.foo.com/path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-15.5 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname on local network, FQDN} {
+    uri::resolve http://test-host./path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-15.6 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "9" on local network, FQDN} {
+    uri::resolve http://9./path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-15.7 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "0-9" on local network, FQDN} {
+    uri::resolve http://0-9./path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-15.8 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, port} {
+    uri::resolve http://www.foo.com:8080/path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-15.9 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname on local network, port} {
+    uri::resolve http://test-host:8080/path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-15.10 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "9" on local network, port} {
+    uri::resolve http://9:8080/path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-15.11 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "0-9" on local network, port} {
+    uri::resolve http://0-9:8080/path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-15.12 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, FQDN, port} {
+    uri::resolve http://www.foo.com.:8080/path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-15.13 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname on local network, FQDN, port} {
+    uri::resolve http://test-host.:8080/path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-15.14 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "9" on local network, FQDN, port} {
+    uri::resolve http://9.:8080/path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+test uri-15.15 {uri::resolve - scheme-relative url with authority, rfc3986 4.2, valid hostname "0-9" on local network, FQDN, port} {
+    uri::resolve http://0-9.:8080/path/path2?query=url?otherquery#f //www.bar.com/dir/dir22?a=b&c=d#g
+}  http://www.bar.com/dir/dir22?a=b&c=d#g
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return
+
+# -------------------------------------------------------------------------
+# Local Variables:
+#   mode: tcl
+#   indent-tabs-mode: nil
+# End:

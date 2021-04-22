@@ -1,0 +1,93 @@
+
+[//000000001]: # (BASIC \- )
+[//000000002]: # (Generated from file '\.FILE\.' by tcllib/doctools with format 'markdown')
+[//000000003]: # (Copyright &copy; \.COPYRIGHT\.)
+[//000000004]: # (BASIC\(a\) 5 \.MODULE\. "")
+
+# NAME
+
+BASIC \-
+
+# <a name='toc'></a>Table Of Contents
+
+  - [Table Of Contents](#toc)
+
+  - [Synopsis](#synopsis)
+
+  - [Description](#section1)
+
+  - [Copyright](#copyright)
+
+# <a name='synopsis'></a>SYNOPSIS
+
+[a\-command](#1)  
+
+# <a name='description'></a>DESCRIPTION
+
+OK
+
+  - integer *argument\-1*
+
+    verification
+
+  - string *argument\-2* \(out\)
+
+    mogrification
+
+  - __command\-a__
+
+    explanation
+
+  - __command\-b__
+
+    elucidation
+
+  - term
+
+    definition
+
+  - <a name='1'></a>a\-command
+
+    semantic
+
+  1. A
+
+  1. B
+
+     C
+
+     D
+
+  - 1
+
+  - 2
+
+    2a
+
+    2b
+
+  - __option\-1__
+
+    meaning
+
+  - __option\-2__ value
+
+    elaboration
+
+  - Command\-Line Switch:	__background__  
+    Database Name:	__Background__  
+    Database Class:	__Color__
+
+    candy
+
+  - Command\-Line Switch:	__foreground__  
+    Database Name:	__Foreground__  
+    Database Class:	__Color__
+
+    caramel
+
+KO
+
+# <a name='copyright'></a>COPYRIGHT
+
+Copyright &copy; \.COPYRIGHT\.

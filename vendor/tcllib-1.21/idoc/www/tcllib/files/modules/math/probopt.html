@@ -1,0 +1,286 @@
+<!DOCTYPE html><html><head>
+<title>math::probopt - Tcl Math Library</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'probopt.man' by tcllib/doctools with format 'html'
+   -->
+<!-- math::probopt.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+&#124; <a href="../../../../toc.html">Main Table Of Contents</a>
+&#124; <a href="../../../toc.html">Table Of Contents</a>
+&#124; <a href="../../../../index.html">Keyword Index</a>
+&#124; <a href="../../../../toc0.html">Categories</a>
+&#124; <a href="../../../../toc1.html">Modules</a>
+&#124; <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::probopt(n) 1 tcllib &quot;Tcl Math Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::probopt - Probabilistic optimisation methods</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">DETAILS ON THE ALGORITHMS</a></li>
+<li class="doctools_section"><a href="#section3">References</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">TclOO</b></li>
+<li>package require <b class="pkgname">math::probopt 1</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::probopt::pso</b> <i class="arg">function</i> <i class="arg">bounds</i> <i class="arg">args</i></a></li>
+<li><a href="#2"><b class="cmd">::math::probopt::sce</b> <i class="arg">function</i> <i class="arg">bounds</i> <i class="arg">args</i></a></li>
+<li><a href="#3"><b class="cmd">::math::probopt::diffev</b> <i class="arg">function</i> <i class="arg">bounds</i> <i class="arg">args</i></a></li>
+<li><a href="#4"><b class="cmd">::math::probopt::lipoMax</b> <i class="arg">function</i> <i class="arg">bounds</i> <i class="arg">args</i></a></li>
+<li><a href="#5"><b class="cmd">::math::probopt::adaLipoMax</b> <i class="arg">function</i> <i class="arg">bounds</i> <i class="arg">args</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The purpose of the <b class="package">math::probopt</b> package is to provide various optimisation
+algorithms that are based on probabilistic techniques. The results of these algorithms
+may therefore vary from one run to the next. The algorithms are all well-known and
+well described and proponents generally claim they are efficient and reliable.</p>
+<p>As most of these algorithms have one or more tunable parameters or even variations,
+the interface to each accepts options to set these parameters or the select
+the variation. These take the form of key-value pairs, for instance, <i class="term">-iterations 100</i>.</p>
+<p>This manual does not offer any recommendations with regards to these algorithms, nor
+does it provide much in the way of guidelines for the parameters. For this we refer to
+online articles on the algorithms in question.</p>
+<p>A few notes, however:</p>
+<ul class="doctools_itemized">
+<li><p>With the exception of LIPO, the algorithms are capable of dealing with irregular (non-smooth) and even discontinuous
+functions.</p></li>
+<li><p>The results depend on the random number seeding and are likely not to be very accurate, especially if the function
+varies slowly in the vicinty of the optimum. They do give a good starting point for a deterministic algorithm.</p></li>
+</ul>
+<p>The collection consists of the following algorithms:</p>
+<ul class="doctools_itemized">
+<li><p>PSO - particle swarm optimisation</p></li>
+<li><p>SCE - shuffled complexes evolution</p></li>
+<li><p>DE - differential evolution</p></li>
+<li><p>LIPO - Lipschitz optimisation</p></li>
+</ul>
+<p>The various procedures have a uniform interface:</p>
+<pre class="doctools_example">
+   set result [::math::probopt::algorithm function bounds args]
+</pre>
+<p>The arguments have the following meaning:</p>
+<ul class="doctools_itemized">
+<li><p>The argument <i class="term">function</i> is the name of the procedure that evaluates the function.
+Its interface is:</p>
+<pre class="doctools_example">
+    set value [function coords]
+</pre>
+<p>where <i class="term">coords</i> is a list of coordinates at which to evaluate the function. It is
+supposed to return the function value.</p></li>
+<li><p>The argument <i class="term">bounds</i> is a list of pairs of minimum and maximum for each coordinate.
+This list implicitly determines the dimension of the coordinate space in which the optimum
+is to be sought, for instance for a function like <i class="term">x**2 + (y-1)**4</i>, you may specify
+the bounds as <i class="term">{{-1 1} {-1 1}}</i>, that is, two pairs for the two coordinates.</p></li>
+<li><p>The rest (<i class="term">args</i>) consists of zero or more key-value pairs to specify the options. Which
+options are supported by which algorithm, is documented below.</p></li>
+</ul>
+<p>The result of the various optimisation procedures is a dictionary containing at least the
+following elements:</p>
+<ul class="doctools_itemized">
+<li><p><i class="term">optimum-coordinates</i> is a list containing the coordinates of the optimum that was found.</p></li>
+<li><p><i class="term">optimum-value</i> is the function value at those coordinates.</p></li>
+<li><p><i class="term">evaluations</i> is the number of function evaluations.</p></li>
+<li><p><i class="term">best-values</i> is a list of successive best values, obtained as
+part of the iterations.</p></li>
+</ul>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">DETAILS ON THE ALGORITHMS</a></h2>
+<p>The algorithms in the package are the following:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::probopt::pso</b> <i class="arg">function</i> <i class="arg">bounds</i> <i class="arg">args</i></a></dt>
+<dd><p>The &quot;particle swarm optimisation&quot; algorithm uses the idea that the candidate
+optimum points should swarm around the best point found so far, with
+variations to allow for improvements.</p>
+<p>It recognises the following options:</p>
+<ul class="doctools_itemized">
+<li><p><i class="term">-swarmsize number</i>: Number of particles to consider (default: 50)</p></li>
+<li><p><i class="term">-vweight    value</i>: Weight for the current &quot;velocity&quot; (0-1, default: 0.5)</p></li>
+<li><p><i class="term">-pweight    value</i>: Weight for the individual particle's best position (0-1, default: 0.3)</p></li>
+<li><p><i class="term">-gweight    value</i>: Weight for the &quot;best&quot; overall position as per particle (0-1, default: 0.3)</p></li>
+<li><p><i class="term">-type       local/global</i>: Type of optimisation</p></li>
+<li><p><i class="term">-neighbours number</i>: Size of the neighbourhood (default: 5, used if &quot;local&quot;)</p></li>
+<li><p><i class="term">-iterations number</i>: Maximum number of iterations</p></li>
+<li><p><i class="term">-tolerance  value</i>: Absolute minimal improvement for minimum value</p></li>
+</ul></dd>
+<dt><a name="2"><b class="cmd">::math::probopt::sce</b> <i class="arg">function</i> <i class="arg">bounds</i> <i class="arg">args</i></a></dt>
+<dd><p>The &quot;shuffled complex evolution&quot; algorithm is an extension of the Nelder-Mead algorithm that
+uses multiple complexes and reorganises these complexes to find the &quot;global&quot; optimum.</p>
+<p>It recognises the following options:</p>
+<ul class="doctools_itemized">
+<li><p><i class="term">-complexes           number</i>: Number of particles to consider (default: 2)</p></li>
+<li><p><i class="term">-mincomplexes        number</i>: Minimum number of complexes (default: 2; not currently used)</p></li>
+<li><p><i class="term">-newpoints           number</i>: Number of new points to be generated (default: 1)</p></li>
+<li><p><i class="term">-shuffle             number</i>: Number of iterations after which to reshuffle the complexes (if set to 0, the default, a number will be calculated from the number of dimensions)</p></li>
+<li><p><i class="term">-pointspercomplex    number</i>: Number of points per complex (if set to 0, the default, a number will be calculated from the number of dimensions)</p></li>
+<li><p><i class="term">-pointspersubcomplex number</i>: Number of points per subcomplex (used to select the best points in each complex; if set to 0, the default, a number will be calculated from the number of dimensions)</p></li>
+<li><p><i class="term">-iterations          number</i>: Maximum number of iterations (default: 100)</p></li>
+<li><p><i class="term">-maxevaluations      number</i>: Maximum number of function evaluations (when this number is reached the iteration is broken off. Default: 1000 million)</p></li>
+<li><p><i class="term">-abstolerance        value</i>: Absolute minimal improvement for minimum value (default: 0.0)</p></li>
+<li><p><i class="term">-reltolerance        value</i>: Relative minimal improvement for minimum value (default: 0.001)</p></li>
+</ul></dd>
+<dt><a name="3"><b class="cmd">::math::probopt::diffev</b> <i class="arg">function</i> <i class="arg">bounds</i> <i class="arg">args</i></a></dt>
+<dd><p>The &quot;differential evolution&quot; algorithm uses a number of initial points that are then updated using randomly selected points. It is more or less akin
+to genetic algorithms. It is controlled by two parameters, factor and lambda, where the first determines the update via random points and the second
+the update with the best point found sofar.</p>
+<p>It recognises the following options:</p>
+<ul class="doctools_itemized">
+<li><p><i class="term">-iterations          number</i>: Maximum number of iterations (default: 100)</p></li>
+<li><p><i class="term">-number              number</i>: Number of point to work with (if set to 0, the default, it is calculated from the number of dimensions)</p></li>
+<li><p><i class="term">-factor              value</i>: Weight of randomly selected points in the updating (0-1, default: 0.6)</p></li>
+<li><p><i class="term">-lambda              value</i>: Weight of the best point found so far in the updating (0-1, default: 0.0)</p></li>
+<li><p><i class="term">-crossover           value</i>: Fraction of new points to be considered for replacing the old ones (0-1, default: 0.5)</p></li>
+<li><p><i class="term">-maxevaluations      number</i>: Maximum number of function evaluations (when this number is reached the iteration is broken off. Default: 1000 million)</p></li>
+<li><p><i class="term">-abstolerance        value</i>: Absolute minimal improvement for minimum value (default: 0.0)</p></li>
+<li><p><i class="term">-reltolerance        value</i>: Relative minimal improvement for minimum value (default: 0.001)</p></li>
+</ul></dd>
+<dt><a name="4"><b class="cmd">::math::probopt::lipoMax</b> <i class="arg">function</i> <i class="arg">bounds</i> <i class="arg">args</i></a></dt>
+<dd><p>The &quot;Lipschitz optimisation&quot; algorithm uses the &quot;Lipschitz&quot; property of the given function to find a <em>maximum</em> in the given bounding box. There are
+two variants, <i class="term">lipoMax</i> assumes a fixed estimate for the Lipschitz parameter.</p>
+<p>It recognises the following options:</p>
+<ul class="doctools_itemized">
+<li><p><i class="term">-iterations          number</i>: Number of iterations (equals the actual number of function evaluations, default: 100)</p></li>
+<li><p><i class="term">-lipschitz           value</i>: Estimate of the Lipschitz parameter (default: 10.0)</p></li>
+</ul></dd>
+<dt><a name="5"><b class="cmd">::math::probopt::adaLipoMax</b> <i class="arg">function</i> <i class="arg">bounds</i> <i class="arg">args</i></a></dt>
+<dd><p>The &quot;adaptive Lipschitz optimisation&quot; algorithm uses the &quot;Lipschitz&quot; property of the given function to find a <em>maximum</em> in the given bounding box. The adaptive
+variant actually uses two phases to find a suitable estimate for the Lipschitz parameter. This is controlled by the &quot;Bernoulli&quot; parameter.</p>
+<p>When you specify a large number of iterations, the algorithm may take a very long time to complete as it is trying to improve on the Lipschitz parameter and
+the chances of hitting a better estimate diminish fast.</p>
+<p>It recognises the following options:</p>
+<ul class="doctools_itemized">
+<li><p><i class="term">-iterations          number</i>: Number of iterations (equals the actual number of function evaluations, default: 100)</p></li>
+<li><p><i class="term">-bernoulli           value</i>: Parameter for random decisions (exploration versus exploitation, default: 0.1)</p></li>
+</ul></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">References</a></h2>
+<p>The various algorithms have been described in on-line publications. Here are a few:</p>
+<ul class="doctools_itemized">
+<li><p><i class="term">PSO</i>: Maurice Clerc, Standard Particle Swarm Optimisation (2012)
+<a href="https://hal.archives-ouvertes.fr/file/index/docid/764996/filename/SPSO_descriptions.pdf">https://hal.archives-ouvertes.fr/file/index/docid/764996/filename/SPSO_descriptions.pdf</a></p>
+<p>Alternatively: <a href="https://en.wikipedia.org/wiki/Particle_swarm_optimization">https://en.wikipedia.org/wiki/Particle_swarm_optimization</a></p></li>
+<li><p><i class="term">SCE</i>: Qingyuan Duan, Soroosh Sorooshian, Vijai K. Gupta, Optimal use offo the SCE-UA global optimization method for calibrating watershed models
+(1994), Journal of Hydrology 158, pp 265-284</p>
+<p><a href="https://www.researchgate.net/publication/223408756_Optimal_Use_of_the_SCE-UA_Global_Optimization_Method_for_Calibrating_Watershed_Models">https://www.researchgate.net/publication/223408756_Optimal_Use_of_the_SCE-UA_Global_Optimization_Method_for_Calibrating_Watershed_Models</a></p></li>
+<li><p><i class="term"><a href="../../../../index.html#de">DE</a></i>: Rainer Storn and Kenneth Price, Differential Evolution - A simple and efficient adaptivescheme for globaloptimization over continuous spaces
+(1996)</p>
+<p><a href="http://www1.icsi.berkeley.edu/~storn/TR-95-012.pdf">http://www1.icsi.berkeley.edu/~storn/TR-95-012.pdf</a></p></li>
+<li><p><i class="term">LIPO</i>: Cedric Malherbe and Nicolas Vayatis, Global optimization of Lipschitz functions,
+(june 2017)</p>
+<p><a href="https://arxiv.org/pdf/1703.02628.pdf">https://arxiv.org/pdf/1703.02628.pdf</a></p></li>
+</ul>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#mathematics">mathematics</a>, <a href="../../../../index.html#optimisation">optimisation</a>, <a href="../../../../index.html#probabilistic_calculations">probabilistic calculations</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+</div></body></html>

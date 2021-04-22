@@ -1,0 +1,160 @@
+[comment {-*- mode: tcl ;fill-column: 90 -*- doctools manpage}]
+[vset VERSION 0.7.0]
+[manpage_begin mkdoc n [vset VERSION]]
+[copyright {2019-2022, Detlef Groth <detlef(at)dgroth(dot)de>}]
+[moddesc   {Source code documentation using Markdown}]
+[titledesc {Extracts and optionally converts Markdown comments in source code to HTML}]
+[category  {Text processing}]
+[require Tcl 8.6]
+[require Markdown [opt 1.2.1]]
+[require yaml [opt 0.4.1]]
+[require mkdoc [opt [vset VERSION]]]
+[require hook]
+[description]
+
+The package [package mkdoc] provides a command to extract documentation embedded in code
+and optionally convert these comments into HTML.
+
+The latter uses Tcllib's [package Markdown] package.
+
+Each line of the embedded documentation begins with the special comment marker
+[const "#'"].
+
+[list_begin definitions]
+
+[call [cmd ::mkdoc::mkdoc] [arg infile] [arg outfile] [opt "[option -css] [arg cssfile]"]]
+
+The command reads the specified [arg infile] and extracts the code comments introduced by
+the [const " #'"] marker.  If the [arg outfile] is either a [file .html] or [file .htm]
+file the Markdown is converted into HTML using either a default style or the specified
+style sheet [arg cssfile].
+
+[para] All arguments are paths to the files to read from or write to.
+
+[para] The result of the command is the empty string.
+
+[para] See section [sectref Formatting] for the supported Markdown syntax and extensions
+to it.
+
+[call [cmd ::mkdoc::run] [arg infile]]
+
+The command reads the specified [arg infile], extracts the embedded documentation, and
+then executes the contents of the first example, i.e. [const ```]-quoted block, found in
+the [const Example] section.
+
+[para] Here is such an example which will be executed by the Tcl interpreter
+
+[example {
+    #' ## <a name="example">Example</a>
+    #' 
+    #' ```
+    #' puts "Hello mkdoc package"
+    #' puts "I am in the example section"
+    #' ```
+}]
+
+[para] [strong {DANGER, BEWARE}].
+Failing to open the [arg infile] causes the command to [strong exit] the entire process.
+
+[para] Use of this command in a general context is not recommended.
+
+[list_end]
+
+[section Examples]
+
+The example below demonstrates the conversion of the documentation embedded into the file
+[file mkdoc.tcl] itself:
+
+[para][example {
+    package require mkdoc
+    # extracting the Markdown
+    mkdoc::mkdoc mkdoc.tcl mkdoc.md
+    # converting Markdown to HTML
+    mkdoc::mkdoc mkdoc.md mkdoc.html
+    # direct conversion without intermediate file
+    mkdoc::mkdoc mkdoc.tcl mkdoc.html
+}]
+
+[section Formatting]
+
+The package supports the syntax supported by Tcllib's [package Markdown] package.
+
+[para] It further supports a set of simple YAML headers whose information is inserted into
+appropriate HTML [const meta]-tags. The supported keys are
+
+[list_begin definitions]
+[def [const author]] Set the document author. Defaults to [const NN].
+[def [const title]] Set the document title. Defaults to [const "Documentation "][var filename]].
+[def [const date]] Sets the document date. Defaults to the current day.
+[def [const css]] Sets a custom CSS stylesheet. Defaults to the internal mkdoc sheet.
+[list_end]
+
+[para] [emph Note] that in Markdown output mode these headers are simply passed through
+into the result. This is proper, as processors like [syscmd pandoc] are able to use them
+as well.
+
+[para] See the example below for the syntax:
+
+[example {
+    #' ---
+    #' title: mkdoc::mkdoc 0.7.0
+    #' author: Detlef Groth, Schwielowsee, Germany
+    #' date: 2022-04-17 
+    #' css: mini.css 
+    #' ---
+    #'
+}]
+
+
+[para] Another extension over standard Markdown is the support of a single level of includes.
+
+[para] See the example below for the syntax:
+
+[example {
+    #' #include "path/to/include/file"
+}]
+
+[para] [emph Note], the double-quotes around the path are part of the syntax.
+
+[para] [strong Beware] further that relative paths are resolved relative to the current
+working directory, and [strong not] relative to the location of the including file.
+
+[section "Bugs, Ideas, Feedback"]
+
+This document, and the package it describes, will undoubtedly contain bugs and other
+problems. Please report such to the author of this package. Please also report any ideas
+for enhancements you may have for either package and/or documentation.
+
+[section "Code Copyright"]
+
+BSD License type:
+
+[para] The following terms apply to all files a ssociated with the software unless
+explicitly disclaimed in individual files.
+
+[para] The authors hereby grant permission to use, copy, modify, distribute, and license
+this software and its documentation for any purpose, provided that existing copyright
+notices are retained in all copies and that this notice is included verbatim in any
+distributions. No written agreement, license, or royalty fee is required for any of the
+authorized uses.  Modifications to this software may be copyrighted by their authors and
+need not follow the licensing terms described here, provided that the new terms are
+clearly indicated on the first page of each file where they apply.
+
+[para] In no event shall the authors or distributors be liable to any party for direct,
+indirect, special, incidental, or consequential damages arising out of the use of this
+software, its documentation, or any derivatives thereof, even if the authors have been
+advised of the possibility of such damage.
+
+[para] The authors and distributors specifically disclaim any warranties, including, but
+not limited to, the implied warranties of merchantability, fitness for a particular
+purpose, and non-infringement.
+
+This software is provided on an "as is" basis, and the authors and distributors have no
+obligation to provide maintenance, support, updates, enhancements, or modifications.
+
+[para] [strong {RESTRICTED RIGHTS}]: Use, duplication or disclosure by the government is
+subject to the restrictions as set forth in subparagraph (c) (1) (ii) of the Rights in
+Technical Data and Computer Software Clause as DFARS 252.227-7013 and FAR 52.227-19.
+
+[vset CATEGORY mkdoc]
+[manpage_end]

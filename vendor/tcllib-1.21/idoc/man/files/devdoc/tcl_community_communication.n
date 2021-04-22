@@ -1,0 +1,434 @@
+'\"
+'\" Generated from file 'tcl_community_communication\&.man' by tcllib/doctools with format 'nroff'
+'\"
+.TH "tcl_community_communication" n 1 tcllib ""
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+tcl_community_communication \- Tcl Community - Kind Communication
+.SH DESCRIPTION
+The Tcl Community encourages contributions from anyone who wishes to
+advance the development of:
+.IP \(bu
+The Tcl Language
+.IP \(bu
+Tcl derived languages
+.IP \(bu
+Tcl related libraries
+.IP \(bu
+Tcl extensions
+.IP \(bu
+External Projects that Integrate Tcl
+.PP
+.PP
+We welcome those contributions from anyone\&. We are blind to
+gender, race, religion, cultural background, cybernetic nature, and
+any other demographic characteristics, as well as personal political
+views\&.
+.PP
+A community lives and dies by communications\&. And occasionally
+our communications are peppered with patterns that are harsh,
+unfriendly, unwelcoming and/or otherwise unkind\&. As a volunteer
+community, we need all of the help we can get\&. Therefore, we ask all
+contributors to make a conscious effort, in Tcl Community discussions,
+to communicate in ways that are welcoming\&. Ways that are
+friendly\&. Ways that are, in a word: kind\&.
+.PP
+These guidelines suggest specific ways to accomplish that goal\&.
+.PP
+Please note: for the balance of this document any reference to
+"People", "Persons", "anybody" or "somebody" can refer to any sentient
+being, not merely corporeal members of the species Homo Sapien\&.
+.TP
+We are a Sanctuary not a Clubhouse
+The Tcl Community is a collective of amateurs and professionals who
+code, test, and use tools\&. Our community is open to all\&. There is no
+velvet rope\&. There is no bouncer at the door\&. There are no secret
+handshakes\&. Any sentient being who enters our midst is welcome\&. If
+someone is ever asked to leave, it is only because they are being
+disruptive to the functioning of the community\&.
+.TP
+We Merit Ideas, Not People
+A good idea can come from anyone, regardless of how little time they
+have been with us\&. A bad idea can come from anyone, regardless of how
+much time or how little time they have been with us\&. We judge a
+concept by how it stands up to scrutiny of logic, implementation, and
+regression testing\&. We don’t judge ideas based on who had the idea
+first, who agrees with the idea, or who disagrees with it\&.
+.TP
+Treat Everyone with Respect
+Everyone is deserving of respect and courtesy at all times\&.
+.TP
+Refer to people by the names they use\&.
+If grammar requires you to state a gender for a person, honor their
+preferences about their gender identity\&. If you are unsure as to the
+gender of an individual, ask\&. If someone had to guess about your
+gender and got it wrong, please correct them and do not take it
+personally\&.
+.TP
+Do not take a harsh tone towards other participants\&.
+Do not make personal attacks against anyone (participant or not\&.)
+.sp
+Criticize statements and actions, never people\&.
+.TP
+Don’t Take Things Personally
+When in doubt, assume the best in people\&. A criticism of your
+statements is not a personal attack on you\&.
+.TP
+Persons, not People
+Stereotypes are an unhelpful tool on many accounts\&. They are generally
+oversimplified\&. They are usually flat out wrong\&. And even if "right"
+they are of absolutely no utility in determining the capabilities,
+motivations, or fitness of an individual\&.
+.sp
+Don’t use them in Tcl Community communications\&.
+.TP
+Mistakes Happen
+The human condition is a series of trials and errors\&. Progress is when
+we get one more trial than error\&. Being wrong or making a mistake is
+the default state of humanity\&. Accept the errors of your fellow
+sentient beings, and be aware that you are also fallible\&.
+.TP
+Keep it Real
+Please respond to what people actually say\&. We are all amazing
+individuals, but none among us are mind readers\&. If you find yourself
+responding to what you imagine someone is thinking, odds are you are
+going to be wrong\&.
+.sp
+If you must criticize someone, stick to things they have
+actually done\&. Never criticize for something you speculate they have
+done\&. Or imagine they have done\&. Or something someone who shares some
+attribute with them has done in the past\&.
+.sp
+Keep discussions about any non-Tcl subjects to what can be
+stated factually and without emotion or judgement\&.
+.TP
+When Trouble Arises, Don’t Escalate
+If you feel you are being personally attacked or offended, take the
+high road\&. Punching back in a public forum will only makes things
+worse\&. Address the matter in a private correspondence\&. Be
+polite\&. Express your feelings, but note that you are expressing your
+feelings\&. When writing, look for a way to calm matters down\&. And when
+in doubt, sleep on your letter before pressing send\&. And when not in
+doubt, sleep on it for another day after that\&.
+.sp
+If you are a spectator to a fight in progress, politely request
+the two parties take the matter to a more private forum\&.
+.TP
+Always get the Last Word: I’m Sorry
+If an personal argument does arise, be the first to apologize\&. An
+apology does not concede a logical point\&. It merely acknowledges that
+at some point the discussion left either logic, community decency, or
+both\&. Return to the topic when cooler heads can prevail\&.
+.TP
+Nobody is Keeping Score
+There is no prize for being right\&. There is no cost for being wrong\&. A
+hard sell is not going to advance your idea along any more than a
+logical argument\&. You aren’t running for office\&. This isn’t debate
+club\&. If you find yourself continuing a discussion beyond where a
+topic can be logically discussed, stop\&.
+.TP
+No Evangelizing
+The Tcl Community is not the place to promote your chosen operating
+system, political outlook, religion, marketing scheme, or economic
+model\&. Period\&.
+.sp
+(And if you do bring it up, be prepared to have your chosen
+topic discussed logically\&. And odds are, not favorably\&.)
+.TP
+Respect the Community
+If the Community has come to a decision on a course of action, please
+stop arguing\&.
+.sp
+If someone complains about how you are expressing your ideas,
+listen\&.
+.sp
+If your words are hurting people, stop\&. There is no amount of
+being "right" that makes up for someone leaving our midst because they
+felt insulted, threatened, or ignored\&.
+.PP
+By following these guidelines, we will build our community, encourage
+more contribution to our projects, and our discussions will be
+friendlier and reach conclusions more easily\&.
+.PP
+Thank You\&.
+.SH SIGNATORIES
+.IP \(bu
+Sean "the Hypnotoad" Woods
+.IP \(bu
+Andreas Kupries
+.PP
+.SH AUTHORS
+.TP
+Primary
+Sean "the Hypnotoad" Woods
+.TP
+Light editing
+Andreas Kupries
+.PP

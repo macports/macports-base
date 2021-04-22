@@ -1,0 +1,444 @@
+# combinatoricsExt.test --
+#     Tests for the math::combinatorics package (the extended set of procedures)
+#
+source [file join \
+        [file dirname [file dirname [file join [pwd] [info script]]]] \
+        devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 1.0
+
+support {
+    useLocal math.tcl math
+}
+testing {
+    useLocal combinatoricsExt.tcl math::combinatorics
+}
+
+
+test counts-1.0 {Calculation of the number of permutations} -body {
+    set number {}
+    foreach n {1 2 5 10 20 30} {
+        lappend number [::math::combinatorics::permutations $n]
+    }
+
+    set number
+} -result {1 2 120 3628800 2432902008176640000 265252859812191058636308480000000}
+
+test counts-1.1 {Permutations for zero or negative count} -body {
+    set number {}
+    foreach n {-1 0} {
+        lappend number [::math::combinatorics::permutations $n]
+    }
+
+    set number
+} -result {1 1}
+
+test counts-2.0 {Calculation of the number of variations} -body {
+    set number {}
+    foreach n {1 2 5 10} {
+        foreach k {1 2 5 6 7 8 9} {
+            if { $k <= $n } {
+                lappend number [::math::combinatorics::variations $n $k]
+            }
+        }
+    }
+
+    set number
+} -result {1 2 2 5 20 120 10 90 30240 151200 604800 1814400 3628800}
+
+test counts-2.1 {Variations for zero or negative counts} -body {
+    set number {}
+    foreach n {-1 0 1 2 5} {
+        foreach k {-1 0 1 2 6} {
+            lappend number [::math::combinatorics::variations $n $k]
+        }
+    }
+
+    set number
+} -result {0 0 0 0 0 0 1 0 0 0 0 1 1 0 0 0 1 2 2 0 0 1 5 20 0}
+
+test counts-3.0 {Calculation of the number of combinations} -body {
+    set number {}
+    foreach n {1 2 5 10} {
+        foreach k {1 2 5 6 7 8 9} {
+            if { $k <= $n } {
+                lappend number [::math::combinatorics::combinations $n $k]
+            }
+        }
+    }
+
+    set number
+} -result {1 2 1 5 10 1 10 45 252 210 120 45 10}
+
+test counts-3.1 {Combinations for zero or negative counts} -body {
+    set number {}
+    foreach n {-1 0 1 2 5} {
+        foreach k {-1 0 1 2 6} {
+            lappend number [::math::combinatorics::combinations $n $k]
+        }
+    }
+
+    set number
+} -result {0 0 0 0 0 0 1 0 0 0 0 1 1 0 0 0 1 2 1 0 0 1 5 10 0}
+
+test counts-4.0 {Calculation of the number of derangements} -body {
+    set number {}
+    foreach n {1 2 3 4 5 6 7} {
+        lappend number [::math::combinatorics::derangements $n]
+    }
+
+    set number
+} -result {0 1 2 9 44 265 1854}
+
+test counts-4.1 {Derangements for zero or negative counts} -body {
+    set number {}
+    foreach n {-1 0} {
+        lappend number [::math::combinatorics::derangements $n]
+    }
+
+    set number
+} -result {0 0}
+
+#
+# The reference numbers come from https://mathworld.wolfram.com
+#
+test numbers-1.0 {First few Catalan numbers} -body {
+    set number {}
+    foreach n {1 2 3 4 5 6 7 8 9 10} {
+        lappend number [::math::combinatorics::catalan $n]
+    }
+
+    set number
+} -result {1 2 5 14 42 132 429 1430 4862 16796}
+
+test numbers-2.0 {Stirling numbers of the first kind} -body {
+    set number {}
+    foreach n {1 2 3 4 5} {
+        foreach k {1 2 3 4 5} {
+            if { $k <= $n } {
+                lappend number [::math::combinatorics::firstStirling $n $k]
+            }
+        }
+    }
+
+    set number
+} -result {1 -1 1 2 -3 1 -6 11 -6 1 24 -50 35 -10 1}
+
+test numbers-2.1 {Stirling numbers of the second kind} -body {
+    set number {}
+    foreach n {1 2 3 4 5 6} {
+        foreach k {1 2 3 4 5 6} {
+            if { $k <= $n } {
+                lappend number [::math::combinatorics::secondStirling $n $k]
+            }
+        }
+    }
+
+    set number
+} -result {1 1 1 1 3 1 1 7 6 1 1 15 25 10 1 1 31 90 65 15 1}
+
+#
+# Generate collection of permutations, etc.
+#
+test lists-1.0 {Small number of permutations} -body {
+    set collection [::math::combinatorics::list-permutations 4]
+} -result {{3 2 1 0} {2 3 1 0} {2 1 3 0} {2 1 0 3} {3 1 2 0} {1 3 2 0} {1 2 3 0} {1 2 0 3} {3 1 0 2} {1 3 0 2} {1 0 3 2} {1 0 2 3} {3 2 0 1} {2 3 0 1} {2 0 3 1} {2 0 1 3} {3 0 2 1} {0 3 2 1} {0 2 3 1} {0 2 1 3} {3 0 1 2} {0 3 1 2} {0 1 3 2} {0 1 2 3}}
+
+test lists-1.1 {Check properties of the collection of permutations} -body {
+    set collection [::math::combinatorics::list-permutations 5]
+
+    # Number of elements should be 5! = 120
+    set correct_number [expr {[llength $collection] == 120}]
+
+    # All elements should have 5 entries
+    set five_entries 1
+    foreach c $collection {
+        if { [llength $c] != 5 } {
+            set five_entries 0
+            break
+        }
+    }
+
+    # All entries in the elements should be unique
+    set unique_entries 1
+    foreach c $collection {
+        if { [llength [lsort -unique $c]] != 5 } {
+            set unique_entries 0
+            break
+        }
+    }
+
+    # All elements of the collection should be unique
+    set unique_elements [expr {[llength [lsort -unique $collection]] == 120}]
+
+    # Report our findings
+    set result [list $correct_number $five_entries $unique_entries $unique_elements]
+} -result {1 1 1 1}
+
+test lists-2.0 {Small number of variations} -body {
+    set collection [::math::combinatorics::list-variations 4 2]
+} -result {{0 1} {1 0} {0 2} {2 0} {0 3} {3 0} {1 2} {2 1} {1 3} {3 1} {2 3} {3 2}}
+
+test lists-2.1 {Check properties of the collection of variations} -body {
+    set collection [::math::combinatorics::list-variations 5 2]
+
+    # Number of elements should be 20
+    set correct_number [expr {[llength $collection] == 20}]
+
+    # All elements should have 2 entries
+    set two_entries 1
+    foreach c $collection {
+        if { [llength $c] != 2 } {
+            set two_entries 0
+            break
+        }
+    }
+
+    # All entries in the elements should be unique
+    set unique_entries 1
+    foreach c $collection {
+        if { [llength [lsort -unique $c]] != 2 } {
+            set unique_entries 0
+            break
+        }
+    }
+
+    # All elements of the collection should be unique
+    set unique_elements [expr {[llength [lsort -unique $collection]] == 20}]
+
+    # Report our findings
+    set result [list $correct_number $two_entries $unique_entries $unique_elements]
+} -result {1 1 1 1}
+
+test lists-3.0 {Small number of combinations} -body {
+    set collection [::math::combinatorics::list-combinations 4 2]
+} -result {{0 1} {0 2} {0 3} {1 2} {1 3} {2 3}}
+
+test lists-3.1 {Check properties of the collection of combinations} -body {
+    set collection [::math::combinatorics::list-combinations 5 2]
+
+    set correct_number [expr {[llength $collection] == 10}]
+
+    # All elements should have 2 entries
+    set two_entries 1
+    foreach c $collection {
+        if { [llength $c] != 2 } {
+            set two_entries 0
+            break
+        }
+    }
+
+    # All entries in the elements should be unique
+    set unique_entries 1
+    foreach c $collection {
+        if { [llength [lsort -unique $c]] != 2 } {
+            set unique_entries 0
+            break
+        }
+    }
+
+    # All elements of the collection should be unique
+    set unique_elements [expr {[llength [lsort -unique $collection]] == 10}]
+
+    # Report our findings
+    set result [list $correct_number $two_entries $unique_entries $unique_elements]
+} -result {1 1 1 1}
+
+test lists-4.0 {Small number of derangements} -body {
+    set collection [::math::combinatorics::list-derangements 4]
+} -result {{3 2 1 0} {2 3 1 0} {1 2 3 0} {1 3 0 2} {1 0 3 2} {3 2 0 1} {2 3 0 1} {2 0 3 1} {3 0 1 2}}
+
+test lists-4.1 {Check properties of the collection of derangements} -body {
+    set collection [::math::combinatorics::list-derangements 5]
+
+    # Number of elements should be 44
+    set correct_number [expr {[llength $collection] == 44}]
+
+    # All elements should have 5 entries
+    set five_entries 1
+    foreach c $collection {
+        if { [llength $c] != 5 } {
+            set five_entries 0
+            break
+        }
+    }
+
+    # All entries in the elements should be unique
+    set unique_entries 1
+    foreach c $collection {
+        if { [llength [lsort -unique $c]] != 5 } {
+            set unique_entries 0
+            break
+        }
+    }
+
+    # All elements of the collection should be unique
+    set unique_elements [expr {[llength [lsort -unique $collection]] == 44}]
+
+    # All entries should be in a different place than its numeric value - {0 2 1} is not a valid derangement
+    set correct_derangement 1
+    foreach c $collection {
+        foreach i {0 1 2 3 4} v $c {
+            if { $i == $v } {
+                set correct_derangement 0
+                break
+            }
+        }
+    }
+
+    # Report our findings
+    set result [list $correct_number $five_entries $unique_entries $unique_elements $correct_derangement]
+} -result {1 1 1 1 1}
+
+test lists-5.0 {Return the power set of a small set} -body {
+    set powerset [::math::combinatorics::list-powerset 4]
+} -result {{} 0 1 2 3 {0 1} {0 2} {0 3} {1 2} {1 3} {2 3} {0 1 2} {0 1 3} {0 2 3} {1 2 3} {0 1 2 3}}
+
+test lists-5.1 {Check properties of the power set} -body {
+    set collection [::math::combinatorics::list-powerset 5]
+
+    # Number of elements should be 32
+    set correct_number [expr {[llength $collection] == 32}]
+
+    # All elements should have 5 or less entries
+    set max_five_entries 1
+    foreach c $collection {
+        if { [llength $c] > 5 } {
+            set max_five_entries 0
+            break
+        }
+    }
+
+    # All entries in the elements should be unique
+    set unique_entries 1
+    foreach c $collection {
+        if { [llength [lsort -unique $c]] != [llength $c] } {
+            set unique_entries 0
+            break
+        }
+    }
+
+    # All elements of the collection should be unique
+    set unique_elements [expr {[llength [lsort -unique $collection]] == 32}]
+
+    # Report our findings
+    set result [list $correct_number $max_five_entries $unique_entries $unique_elements]
+} -result {1 1 1 1}
+
+#
+# Permutation and combination objects
+#
+test objects-1.0 {List the permutations one by one} -body {
+    set n   0
+    set obj [::math::combinatorics::permutationObj new 4]
+
+    set permutations {}
+
+    while {1} {
+        set permutation [$obj next]
+
+        if { $permutation eq {} } {
+            break
+        }
+
+        # Extra check
+        if { [llength $permutation] ne 4 } {
+            break
+        }
+        lappend permutations $permutation
+    }
+
+    return [llength [lsort -unique $permutations]]
+} -result 24
+
+test objects-1.1 {Permute a given set of elements} -body {
+    set n   0
+    set obj [::math::combinatorics::permutationObj new 4]
+
+    $obj setElements {A B C D}
+
+    set permutations {}
+
+    while {1} {
+        set permutation [$obj nextElements]
+
+        if { $permutation eq {} } {
+            break
+        }
+
+        set okay 1
+        foreach elem {A B C D} {
+            if { $elem ni $permutation } {
+                set okay 0
+                break
+            }
+        }
+
+        # Extra check
+        if { [llength $permutation] != 4 } {
+            break
+        }
+
+        if { $okay } {
+            lappend permutations $permutation
+        }
+    }
+
+    return [llength [lsort -unique $permutations]]
+} -result 24
+
+test objects-2.0 {List the combinations one by one} -body {
+    set n   0
+    set obj [::math::combinatorics::combinationObj new 5 2]
+
+    set combinations {}
+
+    while {1} {
+        set combination [$obj next]
+
+        if { $combination eq {} } {
+            break
+        }
+
+        # Extra check
+        if { [llength $combination] != 2 } {
+            break
+        }
+        lappend combinations $combination
+    }
+
+    return [llength [lsort -unique $combinations]]
+} -result 10
+
+test objects-2.1 {List combinations of a given set of elements} -body {
+    set n   0
+    set obj [::math::combinatorics::combinationObj new 5 2]
+
+    set combinations {}
+
+    $obj setElements {A B C D E}
+
+    while {1} {
+        set combination [$obj nextElements]
+
+        if { $combination eq {} } {
+            break
+        }
+
+        set okay 1
+        foreach elem $combination {
+            if { $elem ni {A B C D E} } {
+                set okay 0
+                break
+            }
+        }
+
+        if { $okay } {
+            lappend combinations $combination
+        }
+    }
+
+    return [llength [lsort -unique $combinations]]
+} -result 10
+

@@ -1,0 +1,40 @@
+# mkzip.test - Copyright (C) 2019 Andreas Kupries <andreas_kupriess@users.sf.net>
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 2
+
+testing {
+    useLocal mkzip.tcl zipfile::mkzip
+}
+
+# -------------------------------------------------------------------------
+
+test zipfile-mkzip-mkzip-1.0 {mkzip, wrong args, not enough} -body {
+    zipfile::mkzip::mkzip
+} -returnCodes error -result {wrong # args: should be "zipfile::mkzip::mkzip filename ?arg ...?"}
+
+test zipfile-mkzip-mkzip-2.0 {mkzip, tkt b9725d990b} -setup {
+    tcltest::makeDirectory foo
+    tcltest::makeDirectory foo/-1
+} -cleanup {
+    tcltest::removeDirectory foo
+    file delete foo.zip
+} -body {
+    zipfile::mkzip::mkzip foo.zip -directory foo
+} -result {}
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+
+# -------------------------------------------------------------------------
+# Local Variables:
+#   mode: tcl
+#   indent-tabs-mode: nil
+# End:

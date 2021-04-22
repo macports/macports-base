@@ -1,0 +1,140 @@
+# -*- tcl -*-
+# eliptic.test --
+#    Test cases for the ::math::special package (Elliptic integrals)
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2004 by Arjen Markus.  All rights reserved.
+#
+# RCS: @(#) $Id: elliptic.test,v 1.12 2007/08/21 17:33:00 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5;# statistics,linalg!
+testsNeedTcltest 2.1
+
+support {
+    useLocal math.tcl        math
+    useLocal constants.tcl   math::constants
+    useLocal linalg.tcl      math::linearalgebra ;# for statistics
+    useLocal statistics.tcl  math::statistics
+    useLocal polynomials.tcl math::polynomials
+}
+testing {
+    useLocal special.tcl math::special
+}
+
+# -------------------------------------------------------------------------
+
+# As the values were given with four digits, an absolute
+# error is most appropriate
+
+proc matchNumbers {expected actual} {
+    set match 1
+    foreach a $actual e $expected {
+	#puts "abs($a-$e) = [expr {abs($a-$e)}]"
+	if {abs($a-$e) > 0.1e-5} {
+	    set match 0
+	    break
+	}
+    }
+    return $match
+}
+
+::tcltest::customMatch numbers matchNumbers
+
+# -------------------------------------------------------------------------
+
+test "Elliptic-1.0" "Complete elliptic integral of the first kind" \
+    -match numbers -body {
+	set result {}
+	foreach k2 {0.0 0.1 0.2 0.4 0.5 0.7 0.8 0.95} {
+	    set k [expr {sqrt($k2)}]
+	    lappend result [::math::special::elliptic_K $k]
+	}
+	set result
+    } -result {1.570796 1.612441 1.659624 1.777519 1.854075
+	2.075363 2.257205 2.908337}
+
+test "Elliptic-2.0" "Complete elliptic integral of the second kind" \
+    -match numbers -body {
+	set result {}
+	foreach k2 {0.0 0.1 0.2 0.4 0.5 0.7 0.8 0.95} {
+	    set k [expr {sqrt($k2)}]
+	    lappend result [::math::special::elliptic_E $k]
+	}
+	set result
+    } -result {1.570796 1.530758 1.489035 1.399392 1.350644
+	1.241671 1.17849  1.060474}
+
+# Jacobi elliptic functions: cn, sn and dn
+
+set um_pairs {
+0       0
+0       0.1
+0       0.8
+0.1     0.1
+0.1     0.2
+0.1     0.5
+0.1     0.7
+0.1     0.8
+0.2     0.01
+0.2     0.1
+0.2     0.5
+0.3     0.01
+0.3     0.1
+0.3     0.5
+0.4     0.01
+0.5     0.01
+0.5     0.1
+0.6     0.1
+0.7     0.1
+0.8     0.1
+0.8     0.5
+0.9     0.01
+0.9     0.1
+0.9     0.5
+0.99    0.5
+}
+
+test "Elliptic-3.1" "Jacobi elliptic cn function" \
+    -match numbers -body {
+	set result {}
+	foreach {u m} $um_pairs {
+	    set k [expr {sqrt($m)}]
+	    lappend result [::math::special::cn $u $k]
+	}
+	set result
+     } -result {1.000000 1.000000 1.000000 0.995006 0.995007 0.995012 0.995016 0.995017 0.980069 0.980093 0.980198 0.955350 0.955467
+0.955986 0.921101 0.877678 0.878530 0.827220 0.768165 0.702062 0.722917 0.622418 0.629653 0.660895 0.602576}
+
+test "Elliptic-3.2" "Jacobi elliptic sn function" \
+    -match numbers -body {
+	set result {}
+	foreach {u m} $um_pairs {
+	    set k [expr {sqrt($m)}]
+	    lappend result [::math::special::sn $u $k]
+	}
+	set result
+    } -result {0.000000 0.000000 0.000000 0.0998169 0.0998003 0.0997507 0.0997176 0.0997011 0.198656 0.198540 0.198022 0.295478 0.295098
+0.293413 0.389323 0.479252 0.477687  0.561878  0.640252  0.712115  0.690935  0.782685 0.776876 0.750478 0.798062}
+
+test "Elliptic-3.3" "Jacobi elliptic dn function" \
+    -match numbers -body {
+	set result {}
+	foreach {u m} $um_pairs {
+	    set k [expr {sqrt($m)}]
+	    lappend result [::math::special::dn $u $k]
+	}
+	set result
+    } -result {1.000000 1.000000 1.000000 0.999502 0.999003 0.997509 0.996514 0.996016 0.999803 0.998027 0.990148 0.999563 0.995636
+0.978241 0.999242 0.998851 0.988525 0.984088 0.979289 0.974315 0.872528 0.996932 0.969354 0.847580 0.825560}
+
+# End of test cases
+testsuiteCleanup

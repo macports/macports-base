@@ -1,0 +1,96 @@
+'\"
+'\" Generated from file '\&.FILE\&.' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) \&.COPYRIGHT\&.
+'\"
+.TH "BASIC" a 5 \&.MODULE\&. ""
+.so man.macros
+.BS
+.SH NAME
+BASIC \-
+.SH SYNOPSIS
+a-command
+.sp
+.BE
+.SH DESCRIPTION
+OK
+.PP
+.TP
+integer \fIargument-1\fR
+verification
+.TP
+string \fIargument-2\fR (out)
+mogrification
+.PP
+.PP
+.TP
+\fBcommand-a\fR
+explanation
+.TP
+\fBcommand-b\fR
+elucidation
+.PP
+.PP
+.TP
+term
+definition
+.TP
+a-command
+semantic
+.PP
+.PP
+.IP [1]
+A
+.IP [2]
+B
+.sp
+C
+.sp
+D
+.PP
+.PP
+.IP \(bu
+1
+.IP \(bu
+2
+.sp
+2a
+.sp
+2b
+.PP
+.PP
+.TP
+\fBoption-1\fR
+meaning
+.TP
+\fBoption-2\fR value
+elaboration
+.PP
+.PP
+.LP
+.nf
+.ta 6c
+Command-Line Switch:	\fBbackground\fR
+Database Name:	\fBBackground\fR
+Database Class:	\fBColor\fR
+
+.fi
+.IP
+candy
+.LP
+.nf
+.ta 6c
+Command-Line Switch:	\fBforeground\fR
+Database Name:	\fBForeground\fR
+Database Class:	\fBColor\fR
+
+.fi
+.IP
+caramel
+.PP
+.PP
+KO
+.SH COPYRIGHT
+.nf
+Copyright (c) \&.COPYRIGHT\&.
+
+.fi

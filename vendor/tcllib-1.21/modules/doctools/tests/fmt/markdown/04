@@ -1,0 +1,32 @@
+
+[//000000001]: # (TEST \- )
+[//000000002]: # (Generated from file '\.FILE\.' by tcllib/doctools with format 'markdown')
+[//000000003]: # (Copyright &copy; \.COPYRIGHT\.)
+[//000000004]: # (TEST\(z\) 3\.14\.15\.926 \.MODULE\. "")
+
+# NAME
+
+TEST \-
+
+# <a name='toc'></a>Table Of Contents
+
+  - [Table Of Contents](#toc)
+
+  - [Description](#section1)
+
+  - [Copyright](#copyright)
+
+# <a name='description'></a>DESCRIPTION
+
+BEGINNE HIER
+
+    Example Block  More Lines
+
+    Inlined Example \
+    Next Line
+
+FERTIG
+
+# <a name='copyright'></a>COPYRIGHT
+
+Copyright &copy; \.COPYRIGHT\.

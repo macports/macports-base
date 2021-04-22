@@ -1,0 +1,982 @@
+<!DOCTYPE html><html><head>
+<title>tcllib_devguide - </title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'tcllib_devguide.man' by tcllib/doctools with format 'html'
+   -->
+<!-- tcllib_devguide.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../home">Tcllib Home</a>
+&#124; <a href="../../../toc.html">Main Table Of Contents</a>
+&#124; <a href="../../toc.html">Table Of Contents</a>
+&#124; <a href="../../../index.html">Keyword Index</a>
+&#124; <a href="../../../toc0.html">Categories</a>
+&#124; <a href="../../../toc1.html">Modules</a>
+&#124; <a href="../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">tcllib_devguide(n) 1 tcllib &quot;&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>tcllib_devguide - Tcllib - The Developer's Guide</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">Commitments</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Contributor</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Maintainer</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section3">Branching and Workflow</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection3">Package Dependencies</a></li>
+<li class="doctools_subsection"><a href="#subsection4">Trunk</a></li>
+<li class="doctools_subsection"><a href="#subsection5">Branches</a></li>
+<li class="doctools_subsection"><a href="#subsection6">Working with Branches</a></li>
+<li class="doctools_subsection"><a href="#subsection7">Version numbers</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">Structural Overview</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection8">Main Directories</a></li>
+<li class="doctools_subsection"><a href="#subsection9">More Directories</a></li>
+<li class="doctools_subsection"><a href="#subsection10">Top Files</a></li>
+<li class="doctools_subsection"><a href="#subsection11">File Types</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section5">Testsuite Tooling</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection12">Invoke the testsuites of a specific module</a></li>
+<li class="doctools_subsection"><a href="#subsection13">Invoke the testsuites of all modules</a></li>
+<li class="doctools_subsection"><a href="#subsection14">Detailed Test Logs</a></li>
+<li class="doctools_subsection"><a href="#subsection15">Shell Selection</a></li>
+<li class="doctools_subsection"><a href="#subsection16">Help</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section6">Documentation Tooling</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection17">Generate documentation for a specific module</a></li>
+<li class="doctools_subsection"><a href="#subsection18">Generate documentation for all modules</a></li>
+<li class="doctools_subsection"><a href="#subsection19">Available output formats, help</a></li>
+<li class="doctools_subsection"><a href="#subsection20">Validation without output</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section7">Notes On Writing A Testsuite</a></li>
+<li class="doctools_section"><a href="#section8">Installation Tooling</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd"><a href="../../../index.html#module">Module</a></b> <i class="arg">name</i> <i class="arg">code-action</i> <i class="arg">doc-action</i> <i class="arg">example-action</i></a></li>
+<li><a href="#2"><b class="cmd"><a href="../../../index.html#application">Application</a></b> <i class="arg">name</i></a></li>
+<li><a href="#3"><b class="cmd">Exclude</b> <i class="arg">name</i></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Welcome to Tcllib, the Tcl Standard Library. Note that Tcllib is not a
+package itself. It is a collection of (semi-independent) <i class="term"><a href="../../../index.html#tcl">Tcl</a></i>
+packages that provide utility functions useful to a large collection
+of Tcl programmers.</p>
+<p>This document is a guide for developers working on Tcllib,
+i.e. maintainers fixing bugs, extending the collection's
+functionality, etc.</p>
+<p>Please read</p>
+<ol class="doctools_enumerated">
+<li><p><i class="term"><a href="tcllib_sources.html">Tcllib - How To Get The Sources</a></i> and</p></li>
+<li><p><i class="term"><a href="tcllib_installer.html">Tcllib - The Installer's Guide</a></i></p></li>
+</ol>
+<p>first, if that was not done already.</p>
+<p>Here we assume that the sources are already available in a
+directory of your choice, and that you not only know how to build and
+install them, but also have all the necessary requisites to actually
+do so. The guide to the sources in particular also explains which
+source code management system is used, where to find it, how to set it
+up, etc.</p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Commitments</a></h2>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Contributor</a></h3>
+<p>As a contributor to Tcllib you are committing yourself to:</p>
+<ol class="doctools_enumerated">
+<li><p>keep the guidelines written down in
+       <i class="term"><a href="tcl_community_communication.html">Tcl Community - Kind Communication</a></i> in your mind.
+       The main point to take away from there is
+       <em>to be kind to each other</em>.</p></li>
+<li><p>Your contributions getting distributed under a BSD/MIT license.
+       For the details see <i class="term"><a href="tcllib_license.html">Tcllib - License</a></i></p></li>
+</ol>
+<p>Contributions are made by entering tickets into our tracker, providing
+patches, bundles or branches of code for inclusion, or posting to the
+Tcllib related mailing lists.</p>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Maintainer</a></h3>
+<p>When contributing one or more packages for full inclusion into Tcllib
+you are committing yourself to</p>
+<ol class="doctools_enumerated">
+<li><p>Keep the guidelines written down in
+       <i class="term"><a href="tcl_community_communication.html">Tcl Community - Kind Communication</a></i>
+       (as any contributor) in your mind. The main point to take away
+       from there is <em>to be kind to each other</em>.</p></li>
+<li><p>Your packages getting distributed under a BSD/MIT license.  For
+       the details see <i class="term"><a href="tcllib_license.html">Tcllib - License</a></i></p></li>
+<li><p>Maintenance of the new packages for a period of two years under
+       the following rules, and responsibilities:</p>
+<ol class="doctools_enumerated">
+       
+<li><p>A maintainer may step down after the mandatory period as
+       	      they see fit.</p></li>
+<li><p>A maintainer may step down before the end of the
+      	      mandatory period, under the condition that a replacement
+      	      maintainer is immediately available and has agreed to
+      	      serve the remainder of the period, plus their own
+      	      mandatory period (see below).</p></li>
+<li><p>When stepping down without a replacement maintainer
+      	      taking over the relevant packages have to be flagged as
+      	      <b class="const">unmaintained</b>.</p></li>
+<li><p>When a replacement mantainer is brought in for a package
+      	      it is (kept) marked as <b class="const">maintained</b> (again).</p>
+<p>A replacement maintainer is bound by the same rules as
+	      the original maintainer, except that the mandatory
+	      period of maintenance is shortened to one year.</p></li>
+<li><p>For any <b class="const">unmaintained</b> package a contributor
+       	      interested in becoming its maintainer can become so by
+       	      flagging them as <b class="const">maintained</b> with their name and
+       	      contact information, committing themselves to the rules
+       	      of a replacement maintainer (see previous point).</p></li>
+<li><p>For any already <b class="const">maintained</b> package a contributor
+       	      interested in becoming a co-maintainer can become so
+       	      with the agreement of the existing maintainer(s),
+       	      committing themselves to the rules of a replacement
+       	      maintainer (see two points previous).</p></li>
+</ol>
+<p>The responsibilities as a maintainer include:</p>
+<ol class="doctools_enumerated">
+       
+<li><p>Watching Tcllib's ticket tracker for bugs, bug fixes,
+       	      and feature requests related to the new packages.</p></li>
+<li><p>Reviewing the aforementioned tickets, rejecting or
+       	      applying them</p></li>
+<li><p>Coordination and discussion with ticket submitter during
+       	      the development and/or application of bug fixes.</p></li>
+</ol>
+</li>
+<li><p>Follow the <span class="sectref"><a href="#section3">Branching and Workflow</a></span> of this guide.</p></li>
+</ol>
+</div>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Branching and Workflow</a></h2>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Package Dependencies</a></h3>
+<p>Regarding packages and dependencies between them Tcllib occupies a
+middle position between two extremes:</p>
+<ol class="doctools_enumerated">
+<li><p>On one side a strongly interdependent set of packages, usually
+       by a single author, for a single project. Looking at my
+       (Andreas Kupries) own work examples of such are
+       <a href="https://core.tcl.tk/akupries/marpa/index">Marpa</a>,
+       <a href="https://core.tcl.tk/akupries/crimp/index">CRIMP</a>,
+       <a href="https://core.tcl.tk/akupries/kinetcl/index">Kinetcl</a>, etc.</p>
+<p>For every change the author of the project handles all the
+       modifications cascading from any incompatibilities it
+       introduced to the system.</p></li>
+<li><p>On the other side, the world of semi-independent projects by
+       many different authors where authors know what packages their
+       own creations depend on, yet usually do not know who else
+       depends on them.</p>
+<p>The best thing an author making an (incompatible) change to
+       their project can do is to for one announce such changes in
+       some way, and for two use versioning to distinguish the code
+       before and after the change.</p>
+<p>The world is then responsible for adapting, be it by updating
+       their own projects to the new version, or by sticking to the
+       old.</p></li>
+</ol>
+<p>As mentioned already, Tcllib lives in the middle of that.</p>
+<p>While we as maintainers cannot be aware of all users of
+       Tcllib's packages, and thus have to rely on the mechanisms
+       touched on in point 2 above for that, the dependencies between
+       the packages contained in Tcllib are a different matter.</p>
+<p>As we are collectively responsible for the usability of Tcllib
+       in toto to the outside world, it behooves us to be individually
+       mindful even of Tcllib packages we are not directly
+       maintaining, when they depend on packages under our
+       maintainership.
+       This may be as simple as coordinating with the maintainers of
+       the affected packages.
+       It may also require us to choose how to adapt affected packages
+       which do not have maintainers, i.e. modify them to use our
+       changed package properly, or modify them to properly depend on
+       the unchanged version of our package.</p>
+<p>Note that the above is not only a chore but an opportunity as
+       well.
+       Additional insight can be had by forcing ourselves to look at
+       our package and the planned change(s) from an outside
+       perspective, to consider the ramifications of our actions on
+       others in general, and on dependent packages in particular.</p>
+</div>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Trunk</a></h3>
+<p>The management and use of branches is an important part of working
+with a <i class="term">Distributed Version Control System</i> (<i class="term">DVCS</i>) like
+<a href="https://www.fossil-scm.org/">fossil</a>.</p>
+<p>For Tcllib the main branch of the collection is
+       <i class="term">trunk</i>. In <i class="term"><a href="../../../index.html#git">git</a></i> this branch would be called
+       <i class="term">master</i>, and this is exactly the case in the
+       <a href="https://github.com/tcltk/tcllib/">github mirror</a> of
+       Tcllib.</p>
+<p>To properly support debugging <em>each commit</em> on this
+       branch <em>has to pass the entire testsuite</em> of the
+       collection. Using bisection to determine when an issue appeared
+       is an example of an action made easier by this constraint.</p>
+<p>This is part of our collective responsibility for the usability
+       of Tcllib in toto to the outside world.
+       As <i class="term"><a href="../../../index.html#fossil">fossil</a></i> has no mechanism to enforce this condition
+       this is handled on the honor system for developers and maintainers.</p>
+<p>To make the task easier Tcllib comes with a tool
+       (&quot;<b class="file">sak.tcl</b>&quot;) providing a number of commands in
+       support. These commands are explained in the following sections
+       of this guide.</p>
+<p>While it is possible and allowed to commit directly to trunk
+       remember the above constraint regarding the testsuite, and the
+       coming notes about other possible issues with a commit.</p>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">Branches</a></h3>
+<p>Given the constraints placed on the <i class="term">trunk</i> branch of the
+repository it is (strongly) recommended to perform any development
+going beyond trivial changes on a non-trunk branch.</p>
+<p>Outside of the trunk developers are allowed to commit
+       intermediate broken states of their work.
+       Only at the end of a development cycle, when the relevant
+       branch is considered ready for merging, will it be necessary to
+       perform full the set of validations ensuring that the merge to
+       come will create a good commit on trunk.</p>
+<p>Note that while a review from a second developer is not a
+       required condition for merging a branch it is recommended to
+       seek out such an independent opinion as a means of
+       cross-checking the work.</p>
+<p>It also recommended to give any new branch a name which aids in
+       determining additional details about it. Examples of good
+       things to stick into a branch name would be</p>
+<ul class="doctools_itemized">
+<li><p>Developer (nick)name</p></li>
+<li><p>Ticket hash/reference</p></li>
+<li><p>One or two keywords applicable to the work</p></li>
+<li><p>...</p></li>
+</ul>
+<p>Further, while most development branches are likely quite
+       short-lived, no prohibitions exist against making longer-lived
+       branches.
+       Creators should however be mindful that the longer such a
+       branch exists without merges the more divergent they will tend
+       to be, with an associated increase in the effort which will
+       have to be spent on either merging from and merging to trunk.</p>
+</div>
+<div id="subsection6" class="doctools_subsection"><h3><a name="subsection6">Working with Branches</a></h3>
+<p>In the hope of engendering good work practices now a few example
+operations which will come up with branches, and their associated
+fossil command (sequences).</p>
+<dl class="doctools_definitions">
+<dt><em>Awareness</em></dt>
+<dd><p>When developing we have to keep ourselves aware of the context of our
+work. On what branch are we ? What files have we changed ? What new
+files are not yet known to the repository ? What has happened remotely
+since we used our checkout ?
+The answers to these questions become especially important when using
+a long-lived checkout and coming back to it after some time away.</p>
+<p>Commands to answer questions like the above are:</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">fossil pull</b></dt>
+<dd><p>Get all changes done on the remote since the last pull or sync
+       from it. This has to be done first, before any of the commands
+       below.</p>
+<p>Even if the commit in our checkout refers to the branch we want
+       right now control operations committed to the remote may have
+       changed that from underneath us.</p></dd>
+<dt><b class="cmd">fossil info | grep tags</b></dt>
+<dd></dd>
+<dt><b class="cmd">fossil branch list | grep '\*'</b></dt>
+<dd><p>Two different ways of determining the branch our checkout is
+       on.</p></dd>
+<dt><b class="cmd">fossil timeline</b></dt>
+<dd><p>What have we (and others) done recently ?</p>
+<p><em>Attention</em>, this information is very likely outdated, the
+       more the longer we did not use this checkout.
+       Run <b class="cmd">fossil pull</b> first to get latest information from
+       the remote repository of the project.</p></dd>
+<dt><b class="cmd">fossil timeline current</b></dt>
+<dd><p>Place the commit our checkout is based on at the top of the
+       timeline.</p></dd>
+<dt><b class="cmd">fossil changes</b></dt>
+<dd><p>Lists the files we have changed compared to the commit the
+       checkout is based on.</p></dd>
+<dt><b class="cmd">fossil extra</b></dt>
+<dd><p>Lists the files we have in the checkout the repository does not
+       know about. This may be leftover chaff from our work, or
+       something we have forgotten to <b class="cmd">fossil add</b> to the
+       repository yet.</p></dd>
+</dl></dd>
+<dt><em>Clean checkouts</em></dt>
+<dd><p>Be aware of where you are (see first definition).</p>
+<p>For pretty much all the operation recipes below a clean
+       checkout is at least desired, often required.
+       To check that a checkout is clean invoke</p>
+<pre class="doctools_example">
+    fossil changes
+    fossil extra
+</pre>
+<p>How to clean up when uncommitted changes of all sorts are found is
+context-specific and outside of the scope of this guide.</p></dd>
+<dt><em>Starting a new branch</em></dt>
+<dd><p>Be aware of where you are (see first definition).</p>
+<p>Ensure that you have clean checkout (see second definition).
+       It is <em>required</em>.</p>
+<p>In most situations you want to be on branch <i class="term">trunk</i>, and
+       you want to be on the latest commit for it. To get there use</p>
+<pre class="doctools_example">
+    fossil pull
+    fossil update trunk
+</pre>
+<p>If some other branch is desired as the starting point for the coming
+work replace <i class="term">trunk</i> in the commands above with the name of that
+branch.</p>
+<p>With the base line established we now have two ways of creating
+       the new branch, with differing (dis)advantages.
+       The simpler way is to</p>
+<pre class="doctools_example">
+    fossil branch new NAME_OF_NEW_BRANCH
+</pre>
+<p>and start developing. The advantage here is that you cannot forget to
+create the branch. The disadvantages are that we have a branch commit
+unchanged from where we branched from, and that we have to use
+high-handed techniques like hiding or shunning to get rid of the
+commit should we decide to abandon the work before the first actual
+commit on the branch.</p>
+<p>The other way of creating the branch is to start developing,
+and then on the first commit use the option <b class="option">--branch</b> to tell
+<b class="syscmd"><a href="../../../index.html#fossil">fossil</a></b> that we are starting a branch now. I.e. run</p>
+<pre class="doctools_example">
+    fossil commit --branch NAME_OF_NEW_BRANCH ...
+</pre>
+<p>where <i class="term">...</i> are any other options used to supply the commit
+message, files to commit, etc.</p>
+<p>The (dis)advantages are now reversed.</p>
+<p>We have no superflous commit, only what is actually
+       developed. The work is hidden until we commit to make our first
+       commit.</p>
+<p>We may forget to use <b class="option">--branch NAME_OF_NEW_BRANCH</b> and
+       then have to correct that oversight via the fossil web
+       interface (I am currently unaware of ways of doing such from
+       the command line, although some magic incantantion of
+       <b class="cmd">fossil tag create</b> may work).</p>
+<p>It helps to keep awareness, like checking before any commit
+       that we are on the desired branch.</p></dd>
+<dt><em>Merging a branch into trunk</em></dt>
+<dd><p>Be aware of where you are (see first definition).</p>
+<p>Ensure that you have clean checkout (see second definition).
+       In the full-blown sequence (zig-zag) it is <em>required</em>, due
+       to the merging from trunk. In the shorter sequence it is only
+       desired. That said, keeping the checkout clean before
+       any major operations is a good habit to have, in my opinion.</p>
+<p>The full-blown sequencing with checks all the way is to</p>
+<ol class="doctools_enumerated">
+<li><p>Validate the checkout, i.e. last commit on your branch. Run the
+       full test suite and other validations, fix all the issues which
+       have cropped up.</p></li>
+<li><p>Merge the latest state of the <i class="term">trunk</i> (see next definition).</p></li>
+<li><p>Validate the checkout again. The incoming trunk changes may
+       have broken something now. Do any required fixes.</p></li>
+<li><p>Now merge to the trunk using</p>
+<pre class="doctools_example">
+    fossil update trunk
+    fossil merge --integrate YOUR_BRANCH
+</pre>
+</li>
+<li><p>At this point the checkout should be in the same state as at
+       the end of point (3) above, because we resolved any issues with
+       the trunk already. Thus a simple</p>
+<pre class="doctools_example">
+    fossil commit ...
+</pre>
+<p>should be sufficient now to commit the merge back and close the
+       branch (due to the <b class="option">--integrate</b> we used on the merge).</p>
+<p>The more paranoid may validate the checkout a third time before
+       commiting.</p></li>
+</ol>
+<p>I call this a <i class="term">zig-zag merge</i> because of how the arrows
+       look in the timeline, from trunk to feature branch for the
+       first merge, and then back for the final merge.</p>
+<p>A less paranoid can do what I call a <i class="term">simple merge</i>,
+       which moves step (2) after step (4) and skips step (3)
+       entirely. The resulting shorter sequence is</p>
+<ol class="doctools_enumerated">
+<li><p>Validate</p></li>
+<li><p>Merge to trunk</p></li>
+<li><p>Validate again</p></li>
+<li><p>Commit to trunk</p></li>
+</ol>
+<p>The last step after either zig-zag or plain merge is to</p>
+<pre class="doctools_example">
+    fossil sync
+</pre>
+<p>This saves our work to the remote side, and further gives us any other
+work done while we were doing our merge. It especially allows us to
+check if we raced somebody else, resulting in a split trunk.</p>
+<p>When that happens we should coordinate with the other developer
+       on who fixes the split, to ensure that we do not race each
+       other again.</p></dd>
+<dt><em>Merging from trunk</em></dt>
+<dd><p>Be aware of where you are (see first definition).</p>
+<p>Ensure that you have clean checkout (see second definition).
+       It is <em>required</em>.</p>
+<p>In most situations you want to import the latest commit of
+       branch <i class="term">trunk</i> (or other origin). To get it use</p>
+<pre class="doctools_example">
+    fossil pull
+</pre>
+<p>With that done we can now import this commit into our current
+       branch with</p>
+<pre class="doctools_example">
+    fossil merge trunk
+</pre>
+<p>Even if <b class="syscmd"><a href="../../../index.html#fossil">fossil</a></b> does not report any conflicts it is a
+       good idea to check that the operation has not broken the new
+       and/or changed functionality we are working on.</p>
+<p>With the establishment of a good merge we then save the state
+       with</p>
+<pre class="doctools_example">
+    fossil commit ...
+</pre>
+<p>before continuing development.</p></dd>
+</dl>
+</div>
+<div id="subsection7" class="doctools_subsection"><h3><a name="subsection7">Version numbers</a></h3>
+<p>In Tcllib all changes to a package have to come with an increment of
+its version number. What part is incremented (patchlevel, minor, major
+version) depends on the kind of change made. With multiple changes in
+a commit the highest &quot;wins&quot;.</p>
+<p>When working in a development branch the version change can be
+       deferred until it is time to merge, and then has to cover all
+       the changes in the branch.</p>
+<p>Below a list of the kinds of changes and their associated
+       version increments:</p>
+<dl class="doctools_definitions">
+<dt><i class="term">D - documentation</i></dt>
+<dd><p>No increment</p></dd>
+<dt><i class="term">T - testsuite</i></dt>
+<dd><p>No increment</p></dd>
+<dt><i class="term">B - bugfix</i></dt>
+<dd><p>Patchlevel</p></dd>
+<dt><i class="term">I - implementation tweak</i></dt>
+<dd><p>Patchlevel</p></dd>
+<dt><i class="term">P - performance tweak</i></dt>
+<dd><p>Patchlevel</p></dd>
+<dt><i class="term">E - backward-compatible extension</i></dt>
+<dd><p>Minor</p></dd>
+<dt><i class="term">API - incompatible change</i></dt>
+<dd><p>Major</p></dd>
+</dl>
+<p>Note that a commit containing a version increment has to
+       mention the new version number in its commit message, as well
+       as the kind of change which caused it.</p>
+<p>Note further that the version number of a package currently
+       exists in three places. An increment has to update all of them:</p>
+<ol class="doctools_enumerated">
+<li><p>The package implementation.</p></li>
+<li><p>The package index (&quot;<b class="file">pkgIndex.tcl</b>&quot;)</p></li>
+<li><p>The package documentation.</p></li>
+</ol>
+<p>The &quot;<b class="file">sak.tcl</b>&quot; command <b class="cmd">validate version</b> helps
+       finding discrepancies between the first two.
+       All the other <b class="cmd">validate</b> methods are also of interest to
+       any developer. Invoke it with</p>
+<pre class="doctools_example"> sak.tcl help validate </pre>
+<p>to see their documentation.</p>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">Structural Overview</a></h2>
+<div id="subsection8" class="doctools_subsection"><h3><a name="subsection8">Main Directories</a></h3>
+<p>The main directories in the Tcllib toplevel directory and of interest
+to a developer are:</p>
+<dl class="doctools_definitions">
+<dt>&quot;<b class="file">modules</b>&quot;</dt>
+<dd><p>Each child directory represents one or more packages.
+In the case of the latter the packages are usually related in some
+way. Examples are &quot;<b class="file">base64</b>&quot;, &quot;<b class="file">math</b>&quot;, and &quot;<b class="file">struct</b>&quot;, with
+loose (base64) to strong (math) relations between the packages in the
+directory.</p></dd>
+<dt>&quot;<b class="file">apps</b>&quot;</dt>
+<dd><p>This directory contains all the installable applications, with their
+documentation. Note that this directory is currently <em>not</em> split
+into sub-directories.</p></dd>
+<dt>&quot;<b class="file">examples</b>&quot;</dt>
+<dd><p>Each child directory &quot;<b class="file">foo</b>&quot; contains one or more example
+application for the packages in &quot;<b class="file">modules/foo</b>&quot;. These examples are
+generally not polished enough to be considered for installation.</p></dd>
+</dl>
+</div>
+<div id="subsection9" class="doctools_subsection"><h3><a name="subsection9">More Directories</a></h3>
+<dl class="doctools_definitions">
+<dt>&quot;<b class="file">config</b>&quot;</dt>
+<dd><p>This directory contains files supporting the Unix build system,
+i.e. &quot;<b class="file">configure</b>&quot; and &quot;<b class="file">Makefile.in</b>&quot;.</p></dd>
+<dt>&quot;<b class="file">devdoc</b>&quot;</dt>
+<dd><p>This directories contains the doctools sources for the global
+documentation, like this document and its sibling guides.</p></dd>
+<dt>&quot;<b class="file">embedded</b>&quot;</dt>
+<dd><p>This directory contains the entire documentation formatted for
+<i class="term"><a href="../../../index.html#html">HTML</a></i> and styled to properly mix into the web site generated by
+fossil for the repository.</p>
+<p>This is the documentation accessible from the Tcllib home
+directory, represented in the repository as &quot;<b class="file">embedded/index.md</b>&quot;.</p></dd>
+<dt>&quot;<b class="file">idoc</b>&quot;</dt>
+<dd><p>This directory contains the entire documentation formatted for
+<i class="term"><a href="../../../index.html#nroff">nroff</a></i> and <i class="term"><a href="../../../index.html#html">HTML</a></i>, the latter without any styling.
+This is the documentation which will be installed.</p></dd>
+<dt>&quot;<b class="file">support</b>&quot;</dt>
+<dd><p>This directory contains the sources of internal packages and utilities
+used in the implementation of the &quot;<b class="file">installer.tcl</b>&quot; and
+&quot;<b class="file">sak.tcl</b>&quot; scripts/tools.</p></dd>
+</dl>
+</div>
+<div id="subsection10" class="doctools_subsection"><h3><a name="subsection10">Top Files</a></h3>
+<dl class="doctools_definitions">
+<dt>&quot;<b class="file">aclocal.m4</b>&quot;</dt>
+<dd></dd>
+<dt>&quot;<b class="file">configure</b>&quot;</dt>
+<dd></dd>
+<dt>&quot;<b class="file">configure.in</b>&quot;</dt>
+<dd></dd>
+<dt>&quot;<b class="file">Makefile.in</b>&quot;</dt>
+<dd><p>These four files comprise the Unix build system layered on top of the
+&quot;<b class="file">installer.tcl</b>&quot; script.</p></dd>
+<dt>&quot;<b class="file">installer.tcl</b>&quot;</dt>
+<dd><p>The Tcl-based installation script/tool.</p></dd>
+<dt>&quot;<b class="file">project.shed</b>&quot;</dt>
+<dd><p>Configuration file for <i class="term">Sean Wood</i>'s <b class="syscmd"><a href="../modules/practcl/practcl.html">PracTcl</a></b>
+buildsystem.</p></dd>
+<dt>&quot;<b class="file">sak.tcl</b>&quot;</dt>
+<dd><p>This is the main tool for developers and release managers, the
+<i class="term">Swiss Army Knife</i> of management operations on the collection.</p></dd>
+<dt>&quot;<b class="file">ChangeLog</b>&quot;</dt>
+<dd><p>The log of changes to the global support, when the sources were held
+in <i class="term"><a href="../../../index.html#cvs">CVS</a></i>. Not relevant any longer with the switch to the
+<i class="term"><a href="../../../index.html#fossil">fossil</a></i> SCM.</p></dd>
+<dt>&quot;<b class="file">license.terms</b>&quot;</dt>
+<dd><p>The license in plain ASCII. See also <i class="term"><a href="tcllib_license.html">Tcllib - License</a></i> for the
+nicely formatted form. The text is identical.</p></dd>
+<dt>&quot;<b class="file">README.md</b>&quot;</dt>
+<dd></dd>
+<dt>&quot;<b class="file">.github/CONTRIBUTING.md</b>&quot;</dt>
+<dd></dd>
+<dt>&quot;<b class="file">.github/ISSUE_TEMPLATE.md</b>&quot;</dt>
+<dd></dd>
+<dt>&quot;<b class="file">.github/PULL_REQUEST_TEMPLATE.md</b>&quot;</dt>
+<dd><p>These markdown-formatted documents are used and shown by the github
+mirror of these sources, pointing people back to the official location
+and issue trackers.</p></dd>
+<dt>&quot;<b class="file">DESCRIPTION.txt</b>&quot;</dt>
+<dd></dd>
+<dt>&quot;<b class="file">STATUS</b>&quot;</dt>
+<dd></dd>
+<dt>&quot;<b class="file">tcllib.spec</b>&quot;</dt>
+<dd></dd>
+<dt>&quot;<b class="file">tcllib.tap</b>&quot;</dt>
+<dd></dd>
+<dt>&quot;<b class="file">tcllib.yml</b>&quot;</dt>
+<dd><p>????</p></dd>
+</dl>
+</div>
+<div id="subsection11" class="doctools_subsection"><h3><a name="subsection11">File Types</a></h3>
+<p>The most common file types, by file extension, are:</p>
+<dl class="doctools_definitions">
+<dt>&quot;<b class="file">.tcl</b>&quot;</dt>
+<dd><p>Tcl code for a package, application, or example.</p></dd>
+<dt>&quot;<b class="file">.man</b>&quot;</dt>
+<dd><p>Doctools-formatted documentation, usually for a package.</p></dd>
+<dt>&quot;<b class="file">.test</b>&quot;</dt>
+<dd><p>Test suite for a package, or part of.
+Based on <b class="package">tcltest</b>.</p></dd>
+<dt>&quot;<b class="file">.bench</b>&quot;</dt>
+<dd><p>Performance benchmarks for a package, or part of.
+Based on &quot;<b class="file">modules/bench</b>&quot;.</p></dd>
+<dt>&quot;<b class="file">.pcx</b>&quot;</dt>
+<dd><p>Syntax rules for <i class="term">TclDevKit</i>'s <b class="syscmd">tclchecker</b>. Using these
+rules allows the checker to validate the use of commands of a Tcllib
+package <b class="package">foo</b> without having to scan the &quot;<b class="file">.tcl</b>&quot; files
+implementing it.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Testsuite Tooling</a></h2>
+<p>Testsuites in Tcllib are based on Tcl's standard test package
+<b class="package">tcltest</b>, plus utilities found in the directory
+&quot;<b class="file">modules/devtools</b>&quot;</p>
+<p>Tcllib developers invoke the suites through the
+<b class="cmd">test run</b> method of the &quot;<b class="file">sak.tcl</b>&quot; tool, with other methods
+of <b class="cmd"><a href="../../../index.html#test">test</a></b> providing management operations, for example setting a
+list of standard Tcl shells to use.</p>
+<div id="subsection12" class="doctools_subsection"><h3><a name="subsection12">Invoke the testsuites of a specific module</a></h3>
+<p>Invoke either</p>
+<pre class="doctools_example">  ./sak.tcl test run foo </pre>
+<p>or</p>
+<pre class="doctools_example">  ./sak.tcl test run modules/foo </pre>
+<p>to invoke the testsuites found in a specific module &quot;<b class="file">foo</b>&quot;.</p>
+</div>
+<div id="subsection13" class="doctools_subsection"><h3><a name="subsection13">Invoke the testsuites of all modules</a></h3>
+<p>Invoke the tool without a module name, i.e.</p>
+<pre class="doctools_example">  ./sak.tcl test run </pre>
+<p>to invoke the testsuites of all modules.</p>
+</div>
+<div id="subsection14" class="doctools_subsection"><h3><a name="subsection14">Detailed Test Logs</a></h3>
+<p>In all the previous examples the test runner will write a combination
+of progress display and testsuite log to the standard output, showing
+for each module only the tests that passed or failed and how many of
+each in a summary at the end.</p>
+<p>To get a detailed log, it is necessary to invoke the test
+runner with additional options.</p>
+<p>For one:</p>
+<pre class="doctools_example">
+   ./sak.tcl test run --log LOG foo
+</pre>
+<p>While this shows the same short log on the terminal as before, it also
+writes a detailed log to the file &quot;<b class="file">LOG.log</b>&quot;, and excerpts to
+other files (&quot;<b class="file">LOG.summary</b>&quot;, &quot;<b class="file">LOG.failures</b>&quot;, etc.).</p>
+<p>For two:</p>
+<pre class="doctools_example">
+  ./sak.tcl test run -v foo
+</pre>
+<p>This writes the detailed log to the standard output, instead of the
+short log.</p>
+<p>Regardless of form, the detailed log contains a list of all test
+cases executed, which failed, and how they failed (expected versus
+actual results).</p>
+</div>
+<div id="subsection15" class="doctools_subsection"><h3><a name="subsection15">Shell Selection</a></h3>
+<p>By default the test runner will use all the Tcl shells specified via
+<b class="cmd">test add</b> to invoke the specified testsuites, if any. If no
+such are specified it will fall back to the Tcl shell used to run the
+tool itself.</p>
+<p>Use option <b class="option">--shell</b> to explicitly specify the Tcl shell
+to use, like</p>
+<pre class="doctools_example">
+  ./sak.tcl test run --shell /path/to/tclsh ...
+</pre>
+</div>
+<div id="subsection16" class="doctools_subsection"><h3><a name="subsection16">Help</a></h3>
+<p>Invoke the tool as</p>
+<pre class="doctools_example">  ./sak.tcl help test </pre>
+<p>to see the detailed help for all methods of <b class="cmd"><a href="../../../index.html#test">test</a></b>, and the
+associated options.</p>
+</div>
+</div>
+<div id="section6" class="doctools_section"><h2><a name="section6">Documentation Tooling</a></h2>
+<p>The standard format used for documentation of packages and other
+things in Tcllib is <i class="term"><a href="../../../index.html#doctools">doctools</a></i>.
+Its supporting packages are a part of Tcllib, see the directories
+&quot;<b class="file">modules/doctools</b>&quot; and &quot;<b class="file">modules/dtplite</b>&quot;. The latter is
+an application package, with the actual application
+&quot;<b class="file">apps/dtplite</b>&quot; a light wrapper around it.</p>
+<p>Tcllib developers gain access to these through the <b class="cmd">doc</b>
+method of the &quot;<b class="file">sak.tcl</b>&quot; tool, another (internal) wrapper around
+the &quot;<b class="file">modules/dtplite</b>&quot; application package.</p>
+<div id="subsection17" class="doctools_subsection"><h3><a name="subsection17">Generate documentation for a specific module</a></h3>
+<p>Invoke either</p>
+<pre class="doctools_example">  ./sak.tcl doc html foo </pre>
+<p>or</p>
+<pre class="doctools_example">  ./sak.tcl doc html modules/foo </pre>
+<p>to generate HTML for the documentation found in the module &quot;<b class="file">foo</b>&quot;.
+Instead of <b class="const">html</b> any other supported format can be used here,
+of course.</p>
+<p>The generated formatted documentation will be placed into a
+directory &quot;<b class="file">doc</b>&quot; in the current working directory.</p>
+</div>
+<div id="subsection18" class="doctools_subsection"><h3><a name="subsection18">Generate documentation for all modules</a></h3>
+<p>Invoke the tool without a module name, i.e.</p>
+<pre class="doctools_example">  ./sak.tcl doc html </pre>
+<p>to generate HTML for the documentation found in all modules.
+Instead of <b class="const">html</b> any other supported format can be used here,
+of course.</p>
+<p>The generated formatted documentation will be placed into a
+directory &quot;<b class="file">doc</b>&quot; in the current working directory.</p>
+</div>
+<div id="subsection19" class="doctools_subsection"><h3><a name="subsection19">Available output formats, help</a></h3>
+<p>Invoke the tool as</p>
+<pre class="doctools_example">  ./sak.tcl help doc </pre>
+<p>to see the entire set of supported output formats which can be
+generated.</p>
+</div>
+<div id="subsection20" class="doctools_subsection"><h3><a name="subsection20">Validation without output</a></h3>
+<p>Note the special format <b class="const">validate</b>.</p>
+<p>Using this value as the name of the format to generate forces
+the tool to simply check that the documentation is syntactically
+correct, without generating actual output.</p>
+<p>Invoke it as either</p>
+<pre class="doctools_example">  ./sak.tcl doc validate (modules/)foo </pre>
+<p>or</p>
+<pre class="doctools_example">  ./sak.tcl doc validate </pre>
+<p>to either check the packages of a specific module or check all of
+them.</p>
+</div>
+</div>
+<div id="section7" class="doctools_section"><h2><a name="section7">Notes On Writing A Testsuite</a></h2>
+<p>While previous sections talked about running the testsuites for a
+module and the packages therein, this has no meaning if the module in
+question has no testsuites at all.</p>
+<p>This section gives a very basic overview on possible
+methodologies for writing tests and testsuites.</p>
+<p>First there are &quot;drudgery&quot; tests. Written to check absolutely
+basic assumptions which should never fail.</p>
+<p>For example for a command FOO taking two arguments, three tests
+calling it with zero, one, and three arguments. The basic checks that
+the command fails if it has not enough arguments, or too many.</p>
+<p>After that come the tests checking things based on our
+knowledge of the command, about its properties and assumptions. Some
+examples based on the graph operations added during Google's Summer of
+Code 2009 are:</p>
+<ul class="doctools_itemized">
+<li><p>The BellmanFord command in struct::graph::ops takes a
+	<i class="arg">startnode</i> as argument, and this node should be a node of
+	the graph. This equals one test case checking the behavior when the
+	specified node is not a node of the graph.</p>
+<p>This often gives rise to code in the implementation which
+	explicitly checks the assumption and throws an understandable error,
+	instead of letting the algorithm fail later in some weird
+	non-deterministic way.</p>
+<p>It is not always possible to do such checks. The graph argument
+	for example is just a command in itself, and while we expect
+	it to exhibit a certain interface, i.e. a set of sub-commands
+	aka methods, we cannot check that it has them, except by
+	actually trying to use them. That is done by the algorithm
+	anyway, so an explicit check is just overhead we can get by
+	without.</p></li>
+<li><p>IIRC one of the distinguishing characteristic of either
+	BellmanFord and/or Johnson is that they are able to handle
+	negative weights. Whereas Dijkstra requires positive weights.</p>
+<p>This induces (at least) three testcases ... Graph with all
+	positive weights, all negative, and a mix of positive and
+	negative weights.
+	Thinking further does the algorithm handle the weight
+	<b class="const">0</b> as well ? Another test case, or several, if we mix
+	zero with positive and negative weights.</p></li>
+<li><p>The two algorithms we are currently thinking about are about
+	distances between nodes, and distance can be 'Inf'inity,
+	i.e. nodes may not be connected. This means that good test
+	cases are</p>
+<ol class="doctools_enumerated">
+	
+<li><p>Strongly connected graph</p></li>
+<li><p>Connected graph</p></li>
+<li><p>Disconnected graph.</p></li>
+</ol>
+<p>At the extremes of strongly connected and disconnected
+	we have the fully connected graphs and graphs without edges,
+	only nodes, i.e. completely disconnected.</p></li>
+<li><p>IIRC both of the algorithms take weighted arcs, and fill in a
+	default if arcs are left unweighted in the input graph.</p>
+<p>This also induces three test cases:</p>
+<ol class="doctools_enumerated">
+	
+<li><p>Graph will all arcs with explicit weights.</p></li>
+<li><p>Graph without weights at all.</p></li>
+<li><p>Graph with mixture of weighted and unweighted graphs.</p></li>
+</ol>
+</li>
+</ul>
+<p>What was described above via examples is called
+<i class="term">black-box</i> testing. Test cases are designed and written based on
+the developer's knowledge of the properties of the algorithm and its
+inputs, without referencing a particular implementation.</p>
+<p>Going further, a complement to <i class="term">black-box</i> testing is
+<i class="term">white-box</i>. For this we know the implementation of the
+algorithm, we look at it and design our tests cases so that they force
+the code through all possible paths in the implementation. Wherever a
+decision is made we have a test case forcing a specific direction of
+the decision, for all possible combinations and directions. It is easy
+to get a combinatorial explosion in the number of needed test-cases.</p>
+<p>In practice I often hope that the black-box tests I have made
+are enough to cover all the paths, obviating the need for white-box
+tests.</p>
+<p>The above should be enough to make it clear that writing tests
+for an algorithm takes at least as much time as coding the algorithm,
+and often more time. Much more time.
+See for example also <a href="http://sqlite.org/testing.html">http://sqlite.org/testing.html</a>, a writeup
+on how the Sqlite database engine is tested. Another article of
+interest might be <a href="https://www.researchgate.net/publication/298896236">https://www.researchgate.net/publication/298896236</a>.
+While geared to a particular numerical algorithm it still shows that
+even a simple-looking algorithm can lead to an incredible number of
+test cases.</p>
+<p>An interesting connection is to documentation. In one
+direction, the properties checked with black-box testing are exactly
+the properties which should be documented in the algorithm's man
+page. And conversely, the documentation of the properties of an
+algorithm makes a good reference to base the black-box tests on.</p>
+<p>In practice test cases and documentation often get written
+together, cross-influencing each other. And the actual writing of test
+cases is a mix of black and white box, possibly influencing the
+implementation while writing the tests. Like writing a test for a
+condition like <i class="term">startnode not in input graph</i> serving as
+reminder to put a check for this condition into the code.</p>
+</div>
+<div id="section8" class="doctools_section"><h2><a name="section8">Installation Tooling</a></h2>
+<p>A last thing to consider when adding a new package to the collection
+is installation.</p>
+<p>How to <em>use</em> the &quot;<b class="file">installer.tcl</b>&quot; script is documented
+in <i class="term"><a href="tcllib_installer.html">Tcllib - The Installer's Guide</a></i>.</p>
+<p>Here we document how to extend said installer so that it may
+install new package(s) and/or application(s).</p>
+<p>In most cases only a single file has to be modified, the
+&quot;<b class="file">support/installation/modules.tcl</b>&quot; holding one command per module
+and application to install.</p>
+<p>The relevant commands are:</p>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd"><a href="../../../index.html#module">Module</a></b> <i class="arg">name</i> <i class="arg">code-action</i> <i class="arg">doc-action</i> <i class="arg">example-action</i></a></dt>
+<dd><p>Install the packages of module <i class="arg">name</i>, found in
+&quot;<b class="file">modules/<i class="arg">name</i></b>&quot;.</p>
+<p>The <i class="arg">code-action</i> is responsible for installing the
+packages and their index. The system currently provides</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">_tcl</b></dt>
+<dd><p>Copy all &quot;<b class="file">.tcl</b>&quot; files found in
+&quot;<b class="file">modules/<i class="arg">name</i></b>&quot; into the installation.</p></dd>
+<dt><b class="cmd">_tcr</b></dt>
+<dd><p>As <b class="cmd">_tcl</b>, copy the &quot;<b class="file">.tcl</b>&quot; files found in
+the subdirectories of &quot;<b class="file">modules/<i class="arg">name</i></b>&quot; as well.</p></dd>
+<dt><b class="cmd">_tci</b></dt>
+<dd><p>As <b class="cmd">_tcl</b>, and copy the &quot;<b class="file">tclIndex.tcl</b>&quot; file
+as well.</p></dd>
+<dt><b class="cmd">_msg</b></dt>
+<dd><p>As <b class="cmd">_tcl</b>, and copy the subdirectory &quot;<b class="file">msgs</b>&quot;
+as well.</p></dd>
+<dt><b class="cmd">_doc</b></dt>
+<dd><p>As <b class="cmd">_tcl</b>, and copy the subdirectory
+&quot;<b class="file">mpformats</b>&quot; as well.</p></dd>
+<dt><b class="cmd">_tex</b></dt>
+<dd><p>As <b class="cmd">_tcl</b>, and copy &quot;<b class="file">.tex</b>&quot; files as well.</p></dd>
+</dl>
+<p>The <i class="arg">doc-action</i> is responsible for installing the package
+documentation. The system currently provides</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">_null</b></dt>
+<dd><p>No documentation available, do nothing.</p></dd>
+<dt><b class="cmd">_man</b></dt>
+<dd><p>Process the &quot;<b class="file">.man</b>&quot; files found in
+&quot;<b class="file">modules/<i class="arg">name</i></b>&quot; and install the results (nroff and/or HTML)
+in the proper location, as given to the installer.</p>
+<p>This is actually a fallback, normally the installer uses the
+pre-made formatted documentation found under &quot;<b class="file">idoc</b>&quot;.</p></dd>
+</dl>
+<p>The <i class="arg">example-action</i> is responsible for installing the
+examples. The system currently provides</p>
+<dl class="doctools_definitions">
+<dt><b class="cmd">_null</b></dt>
+<dd><p>No examples available, do nothing.</p></dd>
+<dt><b class="cmd">_exa</b></dt>
+<dd><p>Copy the the directory &quot;<b class="file">examples/<i class="arg">name</i></b>&quot;
+recursively to the install location for examples.</p></dd>
+</dl></dd>
+<dt><a name="2"><b class="cmd"><a href="../../../index.html#application">Application</a></b> <i class="arg">name</i></a></dt>
+<dd><p>Install the application with <i class="arg">name</i>, found in &quot;<b class="file">apps</b>&quot;.</p></dd>
+<dt><a name="3"><b class="cmd">Exclude</b> <i class="arg">name</i></a></dt>
+<dd><p>This command signals to the installer which of the listed modules to
+<em>not</em> install. I.e. they name the deprecated modules of Tcllib.</p></dd>
+</dl>
+<p>If, and only if the above actions are not suitable for the new
+module then a second file has to be modified,
+&quot;<b class="file">support/installation/actions.tcl</b>&quot;.</p>
+<p>This file contains the implementations of the available
+actions, and is the place where any custom action needed to handle the
+special circumstances of module has to be added.</p>
+</div>
+</div></body></html>

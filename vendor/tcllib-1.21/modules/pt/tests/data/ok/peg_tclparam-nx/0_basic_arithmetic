@@ -1,0 +1,347 @@
+## -*- tcl -*-
+##
+## NX-based Tcl/PARAM implementation of the parsing
+## expression grammar
+##
+##	TEMPLATE
+##
+## Generated from file	TEST
+##            for user  unknown
+##
+# # ## ### ##### ######## ############# #####################
+## Requirements
+
+package require Tcl 8.5
+package require nx
+package require pt::rde::nx ; # NX-based implementation of the
+			      # PARAM virtual machine
+			      # underlying the Tcl/PARAM code
+			      # used below.
+
+# # ## ### ##### ######## ############# #####################
+##
+
+nx::Class create PARSER -superclasses pt::rde::nx {
+    # # ## ### ##### ######## #############
+    ## Public API
+    
+    :public method parse {channel} {
+	:reset $channel
+	:MAIN ; # Entrypoint for the generated code.
+	return [:complete]
+    }
+
+    :public method parset {text} {
+	:reset {}
+	:data $text
+	:MAIN ; # Entrypoint for the generated code.
+	return [:complete]
+    }
+
+    # # ## ### ###### ######## #############
+    ## BEGIN of GENERATED CODE. DO NOT EDIT.
+
+    #
+    # Grammar Start Expression
+    #
+    
+    :method MAIN {} {
+        : sym_Expression
+        return
+    }
+    
+    #
+    # value Symbol 'AddOp'
+    #
+    
+    :method sym_AddOp {} {
+        # [-+]
+    
+        : si:void_symbol_start AddOp
+        : si:next_class -+
+        : si:void_leaf_symbol_end AddOp
+        return
+    }
+    
+    #
+    # value Symbol 'Digit'
+    #
+    
+    :method sym_Digit {} {
+        # [0123456789]
+    
+        : si:void_symbol_start Digit
+        : si:next_class 0123456789
+        : si:void_leaf_symbol_end Digit
+        return
+    }
+    
+    #
+    # value Symbol 'Expression'
+    #
+    
+    :method sym_Expression {} {
+        # /
+        #     x
+        #         '\('
+        #         (Expression)
+        #         '\)'
+        #     x
+        #         (Factor)
+        #         *
+        #             x
+        #                 (MulOp)
+        #                 (Factor)
+    
+        : si:value_symbol_start Expression
+        : choice_20
+        : si:reduce_symbol_end Expression
+        return
+    }
+    
+    :method choice_20 {} {
+        # /
+        #     x
+        #         '\('
+        #         (Expression)
+        #         '\)'
+        #     x
+        #         (Factor)
+        #         *
+        #             x
+        #                 (MulOp)
+        #                 (Factor)
+    
+        : si:value_state_push
+        : sequence_9
+        : si:valuevalue_branch
+        : sequence_18
+        : si:value_state_merge
+        return
+    }
+    
+    :method sequence_9 {} {
+        # x
+        #     '\('
+        #     (Expression)
+        #     '\)'
+    
+        : si:void_state_push
+        : si:next_char \50
+        : si:voidvalue_part
+        : sym_Expression
+        : si:valuevalue_part
+        : si:next_char \51
+        : si:value_state_merge
+        return
+    }
+    
+    :method sequence_18 {} {
+        # x
+        #     (Factor)
+        #     *
+        #         x
+        #             (MulOp)
+        #             (Factor)
+    
+        : si:value_state_push
+        : sym_Factor
+        : si:valuevalue_part
+        : kleene_16
+        : si:value_state_merge
+        return
+    }
+    
+    :method kleene_16 {} {
+        # *
+        #     x
+        #         (MulOp)
+        #         (Factor)
+    
+        while {1} {
+            : si:void2_state_push
+        : sequence_14
+            : si:kleene_close
+        }
+        return
+    }
+    
+    :method sequence_14 {} {
+        # x
+        #     (MulOp)
+        #     (Factor)
+    
+        : si:value_state_push
+        : sym_MulOp
+        : si:valuevalue_part
+        : sym_Factor
+        : si:value_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'Factor'
+    #
+    
+    :method sym_Factor {} {
+        # x
+        #     (Term)
+        #     *
+        #         x
+        #             (AddOp)
+        #             (Term)
+    
+        : si:value_symbol_start Factor
+        : sequence_30
+        : si:reduce_symbol_end Factor
+        return
+    }
+    
+    :method sequence_30 {} {
+        # x
+        #     (Term)
+        #     *
+        #         x
+        #             (AddOp)
+        #             (Term)
+    
+        : si:value_state_push
+        : sym_Term
+        : si:valuevalue_part
+        : kleene_28
+        : si:value_state_merge
+        return
+    }
+    
+    :method kleene_28 {} {
+        # *
+        #     x
+        #         (AddOp)
+        #         (Term)
+    
+        while {1} {
+            : si:void2_state_push
+        : sequence_26
+            : si:kleene_close
+        }
+        return
+    }
+    
+    :method sequence_26 {} {
+        # x
+        #     (AddOp)
+        #     (Term)
+    
+        : si:value_state_push
+        : sym_AddOp
+        : si:valuevalue_part
+        : sym_Term
+        : si:value_state_merge
+        return
+    }
+    
+    #
+    # value Symbol 'MulOp'
+    #
+    
+    :method sym_MulOp {} {
+        # [*/]
+    
+        : si:void_symbol_start MulOp
+        : si:next_class */
+        : si:void_leaf_symbol_end MulOp
+        return
+    }
+    
+    #
+    # value Symbol 'Number'
+    #
+    
+    :method sym_Number {} {
+        # x
+        #     ?
+        #         (Sign)
+        #     +
+        #         (Digit)
+    
+        : si:value_symbol_start Number
+        : sequence_41
+        : si:reduce_symbol_end Number
+        return
+    }
+    
+    :method sequence_41 {} {
+        # x
+        #     ?
+        #         (Sign)
+        #     +
+        #         (Digit)
+    
+        : si:value_state_push
+        : optional_36
+        : si:valuevalue_part
+        : poskleene_39
+        : si:value_state_merge
+        return
+    }
+    
+    :method optional_36 {} {
+        # ?
+        #     (Sign)
+    
+        : si:void2_state_push
+        : sym_Sign
+        : si:void_state_merge_ok
+        return
+    }
+    
+    :method poskleene_39 {} {
+        # +
+        #     (Digit)
+    
+        : i_loc_push
+        : sym_Digit
+        : si:kleene_abort
+        while {1} {
+            : si:void2_state_push
+        : sym_Digit
+            : si:kleene_close
+        }
+        return
+    }
+    
+    #
+    # value Symbol 'Sign'
+    #
+    
+    :method sym_Sign {} {
+        # [-+]
+    
+        : si:void_symbol_start Sign
+        : si:next_class -+
+        : si:void_leaf_symbol_end Sign
+        return
+    }
+    
+    #
+    # value Symbol 'Term'
+    #
+    
+    :method sym_Term {} {
+        # (Number)
+    
+        : si:value_symbol_start Term
+        : sym_Number
+        : si:reduce_symbol_end Term
+        return
+    }
+    
+    ## END of GENERATED CODE. DO NOT EDIT.
+    # # ## ### ###### ######## #############
+}
+
+# # ## ### ##### ######## ############# #####################
+## Ready
+
+package provide NX_PACKAGE 1
+return

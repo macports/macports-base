@@ -1,0 +1,140 @@
+'\"
+'\" Generated from file '\&.FILE\&.' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) **Copyright**
+'\"
+.TH "ALL" a 5 \&.MODULE\&. "\&.\&.THE_MODULE\&.\&."
+.so man.macros
+.BS
+.SH NAME
+ALL \- \&.\&.THE_TITLE\&.\&.
+.SH SYNOPSIS
+package require \fBAAA \fR
+.sp
+package require \fBBBB  VVV\fR
+.sp
+package require \fBCCC  ?VVV?\fR
+.sp
+CMDNAME \&.\&.\&.
+.sp
+CMDNAME \&.\&.\&.
+.sp
+CMDNAME \&.\&.\&.
+.sp
+.BE
+.SH DESCRIPTION
+.TP
+\fBNAME\fR
+DESCRIPTION ::\fBCommand\fR::
+.TP
+\fBNAME\fR
+DESCRIPTION ::::
+.TP
+\fBNAME\fR
+DESCRIPTION ::\fBConstant\fR::
+.PP
+.SH API
+.TP
+TERM
+DESCRIPTION ::\fIEmphasis\fR::
+.TP
+TERM
+DESCRIPTION ::"\fIFile/Path\fR"::
+.RS
+.LP
+.nf
+.ta 6c
+Command-Line Switch:	\fBNAME\fR
+Database Name:	\fBDBNAME\fR
+Database Class:	\fBCLASS\fR
+
+.fi
+.IP
+DESCRIPTION \fBNARGLE\fR
+.LP
+.nf
+.ta 6c
+Command-Line Switch:	\fBNAME\fR
+Database Name:	\fBDBNAME\fR
+Database Class:	\fBCLASS\fR
+
+.fi
+.IP
+DESCRIPTION ::\fBFunction\fR::
+.LP
+.nf
+.ta 6c
+Command-Line Switch:	\fBNAME\fR
+Database Name:	\fBDBNAME\fR
+Database Class:	\fBCLASS\fR
+
+.fi
+.IP
+DESCRIPTION ::\fBMethod\fR::
+.RE
+.TP
+TERM
+DESCRIPTION
+.TP
+CMDNAME \&.\&.\&.
+DESCRIPTION ::\fBNamespace\fR::
+.RS
+.TP
+TYPE \fINAME\fR
+DESCRIPTION ::\fIArgument\fR::
+.TP
+TYPE \fINAME\fR
+DESCRIPTION ::\fBOption\fR::
+.TP
+TYPE \fINAME\fR (MODE)
+DESCRIPTION ::?Optional?::
+.CS
+
+
+    THE ARGUMENT IS USED IN THIS
+    AND/OR THAT MANNER
+
+.CE
+.RE
+.TP
+CMDNAME \&.\&.\&.
+DESCRIPTION ::\fBPackage\fR::
+.TP
+CMDNAME \&.\&.\&.
+DESCRIPTION ::\fBSystemCommand\fR::
+.RS
+.TP
+\fBNAME\fR
+DESCRIPTION ::\fITerm\fR::
+.TP
+\fBNAME\fR
+DESCRIPTION ::\fBType\fR::
+.TP
+\fBNAME\fR ARGUMENT
+DESCRIPTION ::\fIUri\fR::
+.RE
+.PP
+.SS NARGLE
+.IP [1]
+PARAGRAPH ::\fIUriLabel\fR [Uri]::
+.IP [2]
+PARAGRAPH ::\fBVariable\fR::
+.IP [3]
+PARAGRAPH ::\fBWidget\fR::
+.RS
+.IP \(bu
+PARAGRAPH ::\fBClass\fR::
+.IP \(bu
+PARAGRAPH
+.IP \(bu
+PARAGRAPH
+.RE
+.PP
+.SH "SEE ALSO"
+ELSE, OTHER
+.SH KEYWORDS
+KEYA, KEYZ
+.SH COPYRIGHT
+.nf
+Copyright (c) **Copyright**
+
+.fi

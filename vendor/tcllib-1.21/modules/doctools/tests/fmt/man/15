@@ -1,0 +1,15 @@
+[comment { -- List 8 - definition examples }]
+[manpage_begin test-definition-examples 1 n]
+[description]
+lorem ipsum dolores
+[list_begin definitions]
+[def lorem]
+[example { A1 lorem ipsum dolores }]
+[def lorem] ipsum dolores
+[example { B2 lorem ipsum dolores }]
+lorem ipsum dolores
+[def lorem] ipsum dolores
+[example { C3 lorem ipsum dolores }]
+[def lorem] ipsum dolores
+[list_end]
+[manpage_end]

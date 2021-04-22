@@ -1,0 +1,143 @@
+# -*- tcl -*-
+# map.test:  Testsuite for package struct::map
+#
+# Copyright (c) 2019 by Andreas Kupries <andreas_kupries@users.sourceforge.net>
+# All rights reserved.
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.4
+testsNeedTcltest 2.0
+
+support {
+    use       snit/snit.tcl   snit
+}
+testing {
+    useLocal map.tcl struct::map
+}
+
+# ---------------------------------------------------------------------
+# [] constructor
+# [] destructor
+# [] get
+# [] names
+# [] set
+# [] unset
+
+#----------------------------------------------------------------------
+## Constructor, destructor
+
+test struct-map-1.0 {constructor, wrong args, too many} -body {
+    struct::map M X
+} -returnCodes error -result {Error in constructor: wrong # args: should be "::struct::map::I::Snit_constructor type selfns win self"}
+
+test struct-map-1.1 {instance, bogus method} -setup {
+    struct::map M
+} -cleanup {
+    M destroy
+} -body {
+    M bogus
+} -returnCodes error -result {"::M bogus" is not defined}
+
+#----------------------------------------------------------------------
+## get
+
+test struct-map-2.0 {get, wrong args, too many} -setup {
+    struct::map M
+} -cleanup {
+    M destroy
+} -body {
+    M get X
+} -returnCodes error -result {wrong # args: should be "::struct::map::I::Snit_methodget type selfns win self"}
+
+test struct-map-2.1 {get, base state, none} -setup {
+    struct::map M
+} -cleanup {
+    M destroy
+} -body {
+    M get
+} -result {}
+
+#----------------------------------------------------------------------
+## names
+
+test struct-map-3.0 {names, wrong args, too many} -setup {
+    struct::map M
+} -cleanup {
+    M destroy
+} -body {
+    M names X
+} -returnCodes error -result {wrong # args: should be "::struct::map::I::Snit_methodnames type selfns win self"}
+
+test struct-map-3.1 {names, base state, none} -setup {
+    struct::map M
+} -cleanup {
+    M destroy
+} -body {
+    M names
+} -result {}
+
+#----------------------------------------------------------------------
+## set
+
+test struct-map-4.0 {set, wrong args, not enough} -setup {
+    struct::map M
+} -cleanup {
+    M destroy
+} -body {
+    M set
+} -returnCodes error -result {wrong # args: should be "::struct::map::I::Snit_methodset type selfns win self name ?value?"}
+
+test struct-map-4.1 {set, wrong args, too many} -setup {
+    struct::map M
+} -cleanup {
+    M destroy
+} -body {
+    M set K V X
+} -returnCodes error -result {wrong # args: should be "::struct::map::I::Snit_methodset type selfns win self name ?value?"}
+
+test struct-map-4.2 {set, state change, result} -setup {
+    struct::map M
+} -cleanup {
+    M destroy
+} -body {
+    list [M names] [M get] [M set K V] [M names] [M get]
+} -result {{} {} V K {K V}}
+
+#----------------------------------------------------------------------
+## unset
+
+test struct-map-5.2 {unset, known key, state change, result} -setup {
+    struct::map M
+    M set K V
+} -cleanup {
+    M destroy
+} -body {
+    list [M names] [M get] [M unset K] [M names] [M get]
+} -result {K {K V} {} {} {}}
+
+test struct-map-5.3 {unset, missing key, no state change, result} -setup {
+    struct::map M
+    M set K V
+} -cleanup {
+    M destroy
+} -body {
+    list [M names] [M get] [M unset K'] [M names] [M get]
+} -result {K {K V} {} K {K V}}
+
+test struct-map-5.4 {unset, no pattern, clear, result} -setup {
+    struct::map M
+    M set K V
+} -cleanup {
+    M destroy
+} -body {
+    list [M names] [M get] [M unset] [M names] [M get]
+} -result {K {K V} {} {} {}}
+
+#----------------------------------------------------------------------
+testsuiteCleanup
+return

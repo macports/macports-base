@@ -1,0 +1,1071 @@
+'\"
+'\" Generated from file 'clay\&.man' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) 2018 Sean Woods <yoda@etoyoc\&.com>
+'\"
+.TH "clay" n 0\&.8\&.6 tcllib "Clay Framework"
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+clay \- A minimalist framework for large scale OO Projects
+.SH SYNOPSIS
+package require \fBTcl  8\&.6\fR
+.sp
+package require \fBuuid \fR
+.sp
+package require \fBoo::dialect \fR
+.sp
+proc \fBclay::PROC\fR \fIname\fR \fIarglist\fR \fIbody\fR ?\fIninja\fR \fB\fR?
+.sp
+proc \fBclay::_ancestors\fR \fIresultvar\fR \fIclass\fR
+.sp
+proc \fBclay::ancestors\fR ?\fIargs\fR?
+.sp
+proc \fBclay::args_to_dict\fR ?\fIargs\fR?
+.sp
+proc \fBclay::args_to_options\fR ?\fIargs\fR?
+.sp
+proc \fBclay::dynamic_arguments\fR \fIensemble\fR \fImethod\fR \fIarglist\fR ?\fIargs\fR?
+.sp
+proc \fBclay::dynamic_wrongargs_message\fR \fIarglist\fR
+.sp
+proc \fBclay::is_dict\fR \fId\fR
+.sp
+proc \fBclay::is_null\fR \fIvalue\fR
+.sp
+proc \fBclay::leaf\fR ?\fIargs\fR?
+.sp
+proc \fBclay::K\fR \fIa\fR \fIb\fR
+.sp
+proc \fBclay::noop\fR ?\fIargs\fR?
+.sp
+proc \fBclay::cleanup\fR
+.sp
+proc \fBclay::object_create\fR \fIobjname\fR ?\fIclass\fR \fB\fR?
+.sp
+proc \fBclay::object_rename\fR \fIobject\fR \fInewname\fR
+.sp
+proc \fBclay::object_destroy\fR ?\fIargs\fR?
+.sp
+proc \fBclay::path\fR ?\fIargs\fR?
+.sp
+proc \fBclay::putb\fR ?\fImap\fR? \fItext\fR
+.sp
+proc \fBclay::script_path\fR
+.sp
+proc \fBclay::NSNormalize\fR \fIqualname\fR
+.sp
+proc \fBclay::uuid_generate\fR ?\fIargs\fR?
+.sp
+proc \fBclay::uuid::generate_tcl_machinfo\fR
+.sp
+proc \fBclay::uuid::tostring\fR \fIuuid\fR
+.sp
+proc \fBclay::uuid::fromstring\fR \fIuuid\fR
+.sp
+proc \fBclay::uuid::equal\fR \fIleft\fR \fIright\fR
+.sp
+proc \fBclay::uuid\fR \fIcmd\fR ?\fIargs\fR?
+.sp
+proc \fBclay::tree::sanitize\fR \fIdict\fR
+.sp
+proc \fBclay::tree::_sanitizeb\fR \fIpath\fR \fIvarname\fR \fIdict\fR
+.sp
+proc \fBclay::tree::storage\fR \fIrawpath\fR
+.sp
+proc \fBclay::tree::dictset\fR \fIvarname\fR ?\fIargs\fR?
+.sp
+proc \fBclay::tree::dictmerge\fR \fIvarname\fR ?\fIargs\fR?
+.sp
+proc \fBclay::tree::merge\fR ?\fIargs\fR?
+.sp
+proc \fBdictargs::proc\fR \fIname\fR \fIargspec\fR \fIbody\fR
+.sp
+proc \fBdictargs::method\fR \fIname\fR \fIargspec\fR \fIbody\fR
+.sp
+proc \fBclay::dialect::Push\fR \fIclass\fR
+.sp
+proc \fBclay::dialect::Peek\fR
+.sp
+proc \fBclay::dialect::Pop\fR
+.sp
+proc \fBclay::dialect::create\fR \fIname\fR ?\fIparent\fR \fB\fR?
+.sp
+proc \fBclay::dialect::NSNormalize\fR \fInamespace\fR \fIqualname\fR
+.sp
+proc \fBclay::dialect::DefineThunk\fR \fItarget\fR ?\fIargs\fR?
+.sp
+proc \fBclay::dialect::Canonical\fR \fInamespace\fR \fINSpace\fR \fIclass\fR
+.sp
+proc \fBclay::dialect::Define\fR \fInamespace\fR \fIclass\fR ?\fIargs\fR?
+.sp
+proc \fBclay::dialect::Aliases\fR \fInamespace\fR ?\fIargs\fR?
+.sp
+proc \fBclay::dialect::SuperClass\fR \fInamespace\fR ?\fIargs\fR?
+.sp
+proc \fBclay::dynamic_methods\fR \fIclass\fR
+.sp
+proc \fBclay::dynamic_methods_class\fR \fIthisclass\fR
+.sp
+proc \fBclay::define::Array\fR \fIname\fR ?\fIvalues\fR \fB\fR?
+.sp
+proc \fBclay::define::Delegate\fR \fIname\fR \fIinfo\fR
+.sp
+proc \fBclay::define::constructor\fR \fIarglist\fR \fIrawbody\fR
+.sp
+proc \fBclay::define::Class_Method\fR \fIname\fR \fIarglist\fR \fIbody\fR
+.sp
+proc \fBclay::define::class_method\fR \fIname\fR \fIarglist\fR \fIbody\fR
+.sp
+proc \fBclay::define::clay\fR ?\fIargs\fR?
+.sp
+proc \fBclay::define::destructor\fR \fIrawbody\fR
+.sp
+proc \fBclay::define::Dict\fR \fIname\fR ?\fIvalues\fR \fB\fR?
+.sp
+proc \fBclay::define::Option\fR \fIname\fR ?\fIargs\fR?
+.sp
+proc \fBclay::define::Method\fR \fIname\fR \fIargstyle\fR \fIargspec\fR \fIbody\fR
+.sp
+proc \fBclay::define::Option_Class\fR \fIname\fR ?\fIargs\fR?
+.sp
+proc \fBclay::define::Variable\fR \fIname\fR ?\fIdefault\fR \fB\fR?
+.sp
+proc \fBclay::ensemble_methodbody\fR \fIensemble\fR \fIeinfo\fR
+.sp
+proc \fBclay::define::Ensemble\fR \fIrawmethod\fR ?\fIargs\fR?
+.sp
+proc \fBclay::event::cancel\fR \fIself\fR ?\fItask\fR \fB*\fR?
+.sp
+proc \fBclay::event::generate\fR \fIself\fR \fIevent\fR ?\fIargs\fR?
+.sp
+proc \fBclay::event::nextid\fR
+.sp
+proc \fBclay::event::Notification_list\fR \fIself\fR \fIevent\fR ?\fIstackvar\fR \fB\fR?
+.sp
+proc \fBclay::event::notify\fR \fIrcpt\fR \fIsender\fR \fIevent\fR \fIeventinfo\fR
+.sp
+proc \fBclay::event::process\fR \fIself\fR \fIhandle\fR \fIscript\fR
+.sp
+proc \fBclay::event::schedule\fR \fIself\fR \fIhandle\fR \fIinterval\fR \fIscript\fR
+.sp
+proc \fBclay::event::subscribe\fR \fIself\fR \fIwho\fR \fIevent\fR
+.sp
+proc \fBclay::event::unsubscribe\fR \fIself\fR ?\fIargs\fR?
+.sp
+proc \fBclay::singleton\fR \fIname\fR \fIscript\fR
+.sp
+method \fBclay ancestors\fR
+.sp
+method \fBclay dump\fR
+.sp
+method \fBclay find\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+.sp
+method \fBclay get\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+.sp
+method \fBclay GET\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+.sp
+method \fBclay merge\fR \fIdict\fR ?\fBdict\&.\&.\&.\fR?
+.sp
+method \fBclay replace\fR \fIdictionary\fR
+.sp
+method \fBclay search\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+.sp
+method \fBclay set\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR? \fIvalue\fR
+.sp
+method \fBclay ancestors\fR
+.sp
+method \fBclay cache\fR \fIpath\fR \fIvalue\fR
+.sp
+method \fBclay cget\fR \fIfield\fR
+.sp
+method \fBclay delegate\fR ?\fIstub\fR? ?\fIobject\fR?
+.sp
+method \fBclay dump\fR
+.sp
+method \fBclay ensemble_map\fR
+.sp
+method \fBclay eval\fR \fIscript\fR
+.sp
+method \fBclay evolve\fR
+.sp
+method \fBclay exists\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+.sp
+method \fBclay flush\fR
+.sp
+method \fBclay forward\fR \fImethod\fR \fIobject\fR
+.sp
+method \fBclay get\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+.sp
+method \fBclay leaf\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+.sp
+method \fBclay merge\fR \fIdict\fR ?\fBdict\&.\&.\&.\fR?
+.sp
+method \fBclay mixin\fR \fIclass\fR ?\fBclass\&.\&.\&.\fR?
+.sp
+method \fBclay mixinmap\fR ?\fIstub\fR? ?\fIclasses\fR?
+.sp
+method \fBclay provenance\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+.sp
+method \fBclay replace\fR \fIdictionary\fR
+.sp
+method \fBclay search\fR \fIpath\fR \fIvaluevar\fR \fIisleafvar\fR
+.sp
+method \fBclay source\fR \fIfilename\fR
+.sp
+method \fBclay set\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR? \fIvalue\fR
+.sp
+method \fBInitializePublic\fR
+.sp
+.BE
+.SH DESCRIPTION
+Clay introduces a method ensemble to both \fBoo::class\fR and \fBoo::object\fR called
+clay\&. This ensemble handles all of the high level interactions within the framework\&.
+Clay stores structured data\&. Clan manages method delegation\&. Clay has facilities to
+manage the complex interactions that come about with mixins\&.
+.PP
+The central concept is that inside of every object and class
+(which are actually objects too) is a dict called clay\&. What is stored in that dict is
+left to the imagination\&. But because this dict is exposed via a public method, we can
+share structured data between object, classes, and mixins\&.
+.PP
+.SS "STRUCTURED DATA"
+Clay uses a standardized set of method interactions and introspection that TclOO already provides to perform on-the-fly searches\&. On-the-fly searches mean that the data is never stale, and we avoid many of the sorts of collisions that would arise when objects start mixing in other classes during operation\&.
+.PP
+The \fBclay\fR methods for both classes and objects have a get and a set method\&. For objects, get will search through the local clay dict\&. If the requested leaf is not found, or the query is for a branch, the system will then begin to poll the clay methods of all of the class that implements the object, all of that classes’ ancestors, as well as all of the classes that have been mixed into this object, and all of their ancestors\&.
+.PP
+Intended branches on a tree end with a directory slash (/)\&. Intended leaves are left unadorned\&. This is a guide for the tool that builds the search
+results to know what parts of a dict are intended to be branches and which are intended to be leaves\&.
+For simple cases, branch marking can be ignored:
+.CS
+
+
+::oo::class create ::foo { }
+::foo clay set property/ color blue
+::foo clay set property/ shape round
+
+set A [::foo new]
+$A clay get property/
+{color blue shape round}
+
+$A clay set property/ shape square
+$A clay get property/
+{color blue shape square}
+
+.CE
+.PP
+But when you start storing blocks of text, guessing what field is a dict and what isn’t gets messy:
+.CS
+
+
+::foo clay set description {A generic thing of designated color and shape}
+
+$A clay get description
+{A generic thing of designated color and shape}
+
+Without a convention for discerning branches for leaves what should have been a value can be accidentally parsed as a dictionary, and merged with all of the other values that were never intended to be merge\&. Here is an example of it all going wrong:
+::oo::class create ::foo { }
+# Add description as a leaf
+::foo clay set description  {A generic thing of designated color and shape}
+# Add description as a branch
+::foo clay set description/  {A generic thing of designated color and shape}
+
+::oo::class create ::bar {
+  superclass foo
+}
+# Add description as a leaf
+::bar clay set description  {A drinking establishment of designated color and shape and size}
+# Add description as a branch
+::bar clay set description/  {A drinking establishment of designated color and shape and size}
+
+set B [::bar new]
+# As a leaf we get the value verbatim from he nearest ancestor
+$B clay get description
+  {A drinking establishment of designated color and shape and size}
+# As a branch we get a recursive merge
+$B clay get description/
+{A drinking establishment of designated color and size thing of}
+
+.CE
+.SS "CLAY DIALECT"
+Clay is built using the oo::dialect module from Tcllib\&. oo::dialect allows you to either add keywords directly to clay, or to create your own
+metaclass and keyword set using Clay as a foundation\&. For details on the keywords and what they do, consult the functions in the ::clay::define namespace\&.
+.SS "METHOD DELEGATION"
+Method Delegation
+It is sometimes useful to have an external object that can be invoked as if it were a method of the object\&. Clay provides a delegate ensemble method to perform that delegation, as well as introspect which methods are delegated in that manner\&. All delegated methods are marked with html-like tag markings (< >) around them\&.
+.CS
+
+
+::clay::define counter {
+  Variable counter 0
+  method incr {{howmuch 1}} {
+    my variable counter
+    incr counter $howmuch
+  }
+  method value {} {
+    my variable counter
+    return $counter
+  }
+  method reset {} {
+    my variable counter
+    set counter 0
+  }
+}
+::clay::define example {
+  variable buffer
+  constructor {} {
+    # Build a counter object
+    set obj [namespace current]::counter
+    ::counter create $obj
+    # Delegate the counter
+    my delegate <counter> $obj
+  }
+  method line {text} {
+    my <counter> incr
+    append buffer $text
+  }
+}
+
+set A [example new]
+$A line {Who’s line is it anyway?}
+$A <counter> value
+1
+
+.CE
+.SH COMMANDS
+.TP
+proc \fBclay::PROC\fR \fIname\fR \fIarglist\fR \fIbody\fR ?\fIninja\fR \fB\fR?
+Because many features in this package may be added as
+commands to future tcl cores, or be provided in binary
+form by packages, I need a declaritive way of saying
+\fICreate this command if there isn't one already\fR\&.
+The \fIninja\fR argument is a script to execute if the
+command is created by this mechanism\&.
+.TP
+proc \fBclay::_ancestors\fR \fIresultvar\fR \fIclass\fR
+.TP
+proc \fBclay::ancestors\fR ?\fIargs\fR?
+.TP
+proc \fBclay::args_to_dict\fR ?\fIargs\fR?
+.TP
+proc \fBclay::args_to_options\fR ?\fIargs\fR?
+.TP
+proc \fBclay::dynamic_arguments\fR \fIensemble\fR \fImethod\fR \fIarglist\fR ?\fIargs\fR?
+.TP
+proc \fBclay::dynamic_wrongargs_message\fR \fIarglist\fR
+.TP
+proc \fBclay::is_dict\fR \fId\fR
+.TP
+proc \fBclay::is_null\fR \fIvalue\fR
+.TP
+proc \fBclay::leaf\fR ?\fIargs\fR?
+.TP
+proc \fBclay::K\fR \fIa\fR \fIb\fR
+.TP
+proc \fBclay::noop\fR ?\fIargs\fR?
+Perform a noop\&. Useful in prototyping for commenting out blocks
+of code without actually having to comment them out\&. It also makes
+a handy default for method delegation if a delegate has not been
+assigned yet\&.
+.TP
+proc \fBclay::cleanup\fR
+Process the queue of objects to be destroyed
+.TP
+proc \fBclay::object_create\fR \fIobjname\fR ?\fIclass\fR \fB\fR?
+.TP
+proc \fBclay::object_rename\fR \fIobject\fR \fInewname\fR
+.TP
+proc \fBclay::object_destroy\fR ?\fIargs\fR?
+Mark an objects for destruction on the next cleanup
+.TP
+proc \fBclay::path\fR ?\fIargs\fR?
+.TP
+proc \fBclay::putb\fR ?\fImap\fR? \fItext\fR
+Append a line of text to a variable\&. Optionally apply a string mapping\&.
+.TP
+proc \fBclay::script_path\fR
+.TP
+proc \fBclay::NSNormalize\fR \fIqualname\fR
+.TP
+proc \fBclay::uuid_generate\fR ?\fIargs\fR?
+.TP
+proc \fBclay::uuid::generate_tcl_machinfo\fR
+.TP
+proc \fBclay::uuid::tostring\fR \fIuuid\fR
+.TP
+proc \fBclay::uuid::fromstring\fR \fIuuid\fR
+Convert a string representation of a uuid into its binary format\&.
+.TP
+proc \fBclay::uuid::equal\fR \fIleft\fR \fIright\fR
+Compare two uuids for equality\&.
+.TP
+proc \fBclay::uuid\fR \fIcmd\fR ?\fIargs\fR?
+uuid generate -> string rep of a new uuid
+uuid equal uuid1 uuid2
+.TP
+proc \fBclay::tree::sanitize\fR \fIdict\fR
+Output a dictionary removing any \&. entries added by \fBclay::tree::merge\fR
+.TP
+proc \fBclay::tree::_sanitizeb\fR \fIpath\fR \fIvarname\fR \fIdict\fR
+Helper function for ::clay::tree::sanitize
+Formats the string representation for a dictionary element within
+a human readable stream of lines, and determines if it needs to call itself
+with further indentation to express a sub-branch
+.TP
+proc \fBclay::tree::storage\fR \fIrawpath\fR
+Return the path as a storage path for clay::tree
+with all branch terminators removed\&.
+This command will also break arguments up if they
+contain /\&.
+.sp
+Example:
+.CS
+
+ > clay::tree::storage {foo bar baz bang}
+ foo bar baz bang
+ > clay::tree::storage {foo bar baz bang/}
+ foo bar baz bang
+ > clay::tree::storage {foo bar baz bang:}
+ foo bar baz bang:
+ > clay::tree::storage {foo/bar/baz bang:}
+ foo bar baz bang:
+ > clay::tree::storage {foo/bar/baz/bang}
+ foo bar baz bang
+
+
+
+.CE
+.TP
+proc \fBclay::tree::dictset\fR \fIvarname\fR ?\fIargs\fR?
+Set an element with a recursive dictionary,
+marking all branches on the way down to the
+final element\&.
+If the value does not exists in the nested dictionary
+it is added as a leaf\&. If the value already exists as a branch
+the value given is merged if the value is a valid dict\&. If the
+incoming value is not a valid dict, the value overrides the value
+stored, and the value is treated as a leaf from then on\&.
+.sp
+Example:
+.CS
+
+ > set r {}
+ > ::clay::tree::dictset r option color default Green
+ \&. {} option {\&. {} color {\&. {} default Green}}
+ > ::clay::tree::dictset r option {Something not dictlike}
+ \&. {} option {Something not dictlike}
+ # Note that if the value is not a dict, and you try to force it to be
+ # an error with be thrown on the merge
+ > ::clay::tree::dictset r option color default Blue
+ missing value to go with key
+
+
+
+.CE
+.TP
+proc \fBclay::tree::dictmerge\fR \fIvarname\fR ?\fIargs\fR?
+A recursive form of dict merge, intended for modifying variables in place\&.
+.sp
+Example:
+.CS
+
+ > set mydict {sub/ {sub/ {description {a block of text}}}}
+ > ::clay::tree::dictmerge mydict {sub/ {sub/ {field {another block of text}}}}]
+ > clay::tree::print $mydict
+ sub/ {
+   sub/ {
+     description {a block of text}
+     field {another block of text}
+   }
+ }
+
+
+
+.CE
+.TP
+proc \fBclay::tree::merge\fR ?\fIargs\fR?
+A recursive form of dict merge
+.sp
+A routine to recursively dig through dicts and merge
+adapted from http://stevehavelka\&.com/tcl-dict-operation-nested-merge/
+.sp
+Example:
+.CS
+
+ > set mydict {sub/ {sub/ {description {a block of text}}}}
+ > set odict [clay::tree::merge $mydict {sub/ {sub/ {field {another block of text}}}}]
+ > clay::tree::print $odict
+ sub/ {
+   sub/ {
+     description {a block of text}
+     field {another block of text}
+   }
+ }
+
+
+
+.CE
+.TP
+proc \fBdictargs::proc\fR \fIname\fR \fIargspec\fR \fIbody\fR
+Named Procedures as new command
+.TP
+proc \fBdictargs::method\fR \fIname\fR \fIargspec\fR \fIbody\fR
+.TP
+proc \fBclay::dialect::Push\fR \fIclass\fR
+.TP
+proc \fBclay::dialect::Peek\fR
+.TP
+proc \fBclay::dialect::Pop\fR
+.TP
+proc \fBclay::dialect::create\fR \fIname\fR ?\fIparent\fR \fB\fR?
+This proc will generate a namespace, a "mother of all classes", and a
+rudimentary set of policies for this dialect\&.
+.TP
+proc \fBclay::dialect::NSNormalize\fR \fInamespace\fR \fIqualname\fR
+Support commands; not intended to be called directly\&.
+.TP
+proc \fBclay::dialect::DefineThunk\fR \fItarget\fR ?\fIargs\fR?
+.TP
+proc \fBclay::dialect::Canonical\fR \fInamespace\fR \fINSpace\fR \fIclass\fR
+.TP
+proc \fBclay::dialect::Define\fR \fInamespace\fR \fIclass\fR ?\fIargs\fR?
+Implementation of the languages' define command
+.TP
+proc \fBclay::dialect::Aliases\fR \fInamespace\fR ?\fIargs\fR?
+.TP
+proc \fBclay::dialect::SuperClass\fR \fInamespace\fR ?\fIargs\fR?
+.TP
+proc \fBclay::dynamic_methods\fR \fIclass\fR
+.TP
+proc \fBclay::dynamic_methods_class\fR \fIthisclass\fR
+.TP
+proc \fBclay::define::Array\fR \fIname\fR ?\fIvalues\fR \fB\fR?
+New OO Keywords for clay
+.TP
+proc \fBclay::define::Delegate\fR \fIname\fR \fIinfo\fR
+An annotation that objects of this class interact with delegated
+methods\&. The annotation is intended to be a dictionary, and the
+only reserved key is \fIdescription\fR, a human readable description\&.
+.TP
+proc \fBclay::define::constructor\fR \fIarglist\fR \fIrawbody\fR
+.TP
+proc \fBclay::define::Class_Method\fR \fIname\fR \fIarglist\fR \fIbody\fR
+Specify the a method for the class object itself, instead of for objects of the class
+.TP
+proc \fBclay::define::class_method\fR \fIname\fR \fIarglist\fR \fIbody\fR
+And alias to the new Class_Method keyword
+.TP
+proc \fBclay::define::clay\fR ?\fIargs\fR?
+.TP
+proc \fBclay::define::destructor\fR \fIrawbody\fR
+.TP
+proc \fBclay::define::Dict\fR \fIname\fR ?\fIvalues\fR \fB\fR?
+.TP
+proc \fBclay::define::Option\fR \fIname\fR ?\fIargs\fR?
+Define an option for the class
+.TP
+proc \fBclay::define::Method\fR \fIname\fR \fIargstyle\fR \fIargspec\fR \fIbody\fR
+.TP
+proc \fBclay::define::Option_Class\fR \fIname\fR ?\fIargs\fR?
+Define a class of options
+All field / value pairs will be be inherited by an option that
+specify \fIname\fR as it class field\&.
+.TP
+proc \fBclay::define::Variable\fR \fIname\fR ?\fIdefault\fR \fB\fR?
+This keyword can also be expressed:
+.CS
+
+property variable NAME {default DEFAULT}
+.CE
+.sp
+Variables registered in the variable property are also initialized
+(if missing) when the object changes class via the \fImorph\fR method\&.
+.TP
+proc \fBclay::ensemble_methodbody\fR \fIensemble\fR \fIeinfo\fR
+Produce the body of an ensemble's public dispatch method
+ensemble is the name of the the ensemble\&.
+einfo is a dictionary of methods for the ensemble, and each value is a script
+to execute on dispatch
+.sp
+Example:
+.CS
+
+ ::clay::ensemble_methodbody foo {
+   bar {tailcall my Foo_bar {*}$args}
+   baz {tailcall my Foo_baz {*}$args}
+   clock {return [clock seconds]}
+   default {puts "You gave me $method"}
+ }
+
+
+
+.CE
+.TP
+proc \fBclay::define::Ensemble\fR \fIrawmethod\fR ?\fIargs\fR?
+.TP
+proc \fBclay::event::cancel\fR \fIself\fR ?\fItask\fR \fB*\fR?
+Cancel a scheduled event
+.TP
+proc \fBclay::event::generate\fR \fIself\fR \fIevent\fR ?\fIargs\fR?
+Generate an event
+Adds a subscription mechanism for objects
+to see who has recieved this event and prevent
+spamming or infinite recursion
+.TP
+proc \fBclay::event::nextid\fR
+.TP
+proc \fBclay::event::Notification_list\fR \fIself\fR \fIevent\fR ?\fIstackvar\fR \fB\fR?
+Called recursively to produce a list of
+who recieves notifications
+.TP
+proc \fBclay::event::notify\fR \fIrcpt\fR \fIsender\fR \fIevent\fR \fIeventinfo\fR
+Final delivery to intended recipient object
+.TP
+proc \fBclay::event::process\fR \fIself\fR \fIhandle\fR \fIscript\fR
+Evaluate an event script in the global namespace
+.TP
+proc \fBclay::event::schedule\fR \fIself\fR \fIhandle\fR \fIinterval\fR \fIscript\fR
+Schedule an event to occur later
+.TP
+proc \fBclay::event::subscribe\fR \fIself\fR \fIwho\fR \fIevent\fR
+Subscribe an object to an event pattern
+.TP
+proc \fBclay::event::unsubscribe\fR \fIself\fR ?\fIargs\fR?
+Unsubscribe an object from an event pattern
+.TP
+proc \fBclay::singleton\fR \fIname\fR \fIscript\fR
+An object which is intended to be it's own class\&.
+.PP
+.SH CLASSES
+.SS "CLASS  CLAY::CLASS"
+.PP
+\fBMethods\fR
+.TP
+method \fBclay ancestors\fR
+Return this class and all ancestors in search order\&.
+.TP
+method \fBclay dump\fR
+Return a complete dump of this object's clay data, but only this object's clay data\&.
+.TP
+method \fBclay find\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+Pull a chunk of data from the clay system\&. If the last element of \fIpath\fR is a branch,
+returns a recursive merge of all data from this object and it's constituent classes of the data in that branch\&.
+If the last element is a leaf, search this object for a matching leaf, or search all  constituent classes for a matching
+leaf and return the first value found\&.
+If no value is found, returns an empty string\&.
+If a branch is returned the topmost \&. entry is omitted\&.
+.TP
+method \fBclay get\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+Pull a chunk of data from the class's clay system\&.
+If no value is found, returns an empty string\&.
+If a branch is returned the topmost \&. entry is omitted\&.
+.TP
+method \fBclay GET\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+Pull a chunk of data from the class's clay system\&.
+If no value is found, returns an empty string\&.
+.TP
+method \fBclay merge\fR \fIdict\fR ?\fBdict\&.\&.\&.\fR?
+Recursively merge the dictionaries given into the object's local clay storage\&.
+.TP
+method \fBclay replace\fR \fIdictionary\fR
+Replace the contents of the internal clay storage with the dictionary given\&.
+.TP
+method \fBclay search\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+Return the first matching value for the path in either this class's clay data or one of its ancestors
+.TP
+method \fBclay set\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR? \fIvalue\fR
+Merge the conents of \fBvalue\fR with the object's clay storage at \fBpath\fR\&.
+.PP
+.PP
+.SS "CLASS  CLAY::OBJECT"
+clay::object
+This class is inherited by all classes that have options\&.
+.PP
+\fBMethods\fR
+.TP
+method \fBclay ancestors\fR
+Return the class this object belongs to, all classes mixed into this object, and all ancestors of those classes in search order\&.
+.TP
+method \fBclay cache\fR \fIpath\fR \fIvalue\fR
+Store VALUE in such a way that request in SEARCH for PATH will always return it until the cache is flushed
+.TP
+method \fBclay cget\fR \fIfield\fR
+Pull a value from either the object's clay structure or one of its constituent classes that matches the field name\&.
+The order of search us:
+.sp
+1\&. The as a value in local dict variable config
+.sp
+2\&. The as a value in local dict variable clay
+.sp
+3\&. As a leaf in any ancestor as a root of the clay tree
+.sp
+4\&. As a leaf in any ancestor as \fBconst\fR \fIfield\fR
+.sp
+5\&. As a leaf in any ancestor as \fBoption\fR \fIfield\fR \fBdefault\fR
+.TP
+method \fBclay delegate\fR ?\fIstub\fR? ?\fIobject\fR?
+Introspect or control method delegation\&. With no arguments, the method will return a
+key/value list of stubs and objects\&. With just the \fIstub\fR argument, the method will
+return the object (if any) attached to the stub\&. With a \fIstub\fR and an \fIobject\fR
+this command will forward all calls to the method \fIstub\fR to the \fIobject\fR\&.
+.TP
+method \fBclay dump\fR
+Return a complete dump of this object's clay data, as well as the data from all constituent classes recursively blended in\&.
+.TP
+method \fBclay ensemble_map\fR
+Return a dictionary describing the method ensembles to be assembled for this object
+.TP
+method \fBclay eval\fR \fIscript\fR
+Evaluated a script in the namespace of this object
+.TP
+method \fBclay evolve\fR
+Trigger the \fBInitializePublic\fR private method
+.TP
+method \fBclay exists\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+Returns 1 if \fIpath\fR exists in either the object's clay data\&. Values greater than one indicate the element exists in one of the object's constituent classes\&. A value of zero indicates the path could not be found\&.
+.TP
+method \fBclay flush\fR
+Wipe any caches built by the clay implementation
+.TP
+method \fBclay forward\fR \fImethod\fR \fIobject\fR
+A convenience wrapper for
+.CS
+
+oo::objdefine [self] forward {*}$args
+.CE
+.TP
+method \fBclay get\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+Pull a chunk of data from the clay system\&. If the last element of \fIpath\fR is a branch (ends in a slash /),
+returns a recursive merge of all data from this object and it's constituent classes of the data in that branch\&.
+If the last element is a leaf, search this object for a matching leaf, or search all  constituent classes for a matching
+leaf and return the first value found\&.
+If no value is found, returns an empty string\&.
+.TP
+method \fBclay leaf\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+A modified get which is tailored to pull only leaf elements
+.TP
+method \fBclay merge\fR \fIdict\fR ?\fBdict\&.\&.\&.\fR?
+Recursively merge the dictionaries given into the object's local clay storage\&.
+.TP
+method \fBclay mixin\fR \fIclass\fR ?\fBclass\&.\&.\&.\fR?
+Perform [oo::objdefine [self] mixin] on this object, with a few additional rules:
+Prior to the call, for any class was previously mixed in, but not in the new result, execute the script registered to mixin/ unmap-script (if given\&.)
+For all new classes, that were not present prior to this call, after the native TclOO mixin is invoked, execute the script registered to mixin/ map-script (if given\&.)
+Fall all classes that are now present and “mixed in”, execute the script registered to mixin/ react-script (if given\&.)
+.TP
+method \fBclay mixinmap\fR ?\fIstub\fR? ?\fIclasses\fR?
+With no arguments returns the map of stubs and classes mixed into the current object\&. When only stub is given,
+returns the classes mixed in on that stub\&. When stub and classlist given, replace the classes currently on that stub with the given
+classes and invoke clay mixin on the new matrix of mixed in classes\&.
+.TP
+method \fBclay provenance\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR?
+Return either \fBself\fR if that path exists in the current object, or return the first class (if any) along the clay search path which contains that element\&.
+.TP
+method \fBclay replace\fR \fIdictionary\fR
+Replace the contents of the internal clay storage with the dictionary given\&.
+.TP
+method \fBclay search\fR \fIpath\fR \fIvaluevar\fR \fIisleafvar\fR
+Return true, and set valuevar to the value and isleafar to true for false if PATH was found in the cache\&.
+.TP
+method \fBclay source\fR \fIfilename\fR
+Source the given filename within the object's namespace
+.TP
+method \fBclay set\fR \fIpath\fR ?\fBpath\&.\&.\&.\fR? \fIvalue\fR
+Merge the conents of \fBvalue\fR with the object's clay storage at \fBpath\fR\&.
+.TP
+method \fBInitializePublic\fR
+Instantiate variables\&. Called on object creation and during clay mixin\&.
+.PP
+.PP
+.SH AUTHORS
+Sean Woods \fImailto:<yoda@etoyoc\&.com>\fR
+.PP
+.SH "BUGS, IDEAS, FEEDBACK"
+This document, and the package it describes, will undoubtedly contain
+bugs and other problems\&.
+Please report such in the category \fIoo\fR of the
+\fITcllib Trackers\fR [http://core\&.tcl\&.tk/tcllib/reportlist]\&.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation\&.
+.PP
+When proposing code changes, please provide \fIunified diffs\fR,
+i\&.e the output of \fBdiff -u\fR\&.
+.PP
+Note further that \fIattachments\fR are strongly preferred over
+inlined patches\&. Attachments can be made by going to the \fBEdit\fR
+form of the ticket immediately after its creation, and then using the
+left-most button in the secondary navigation bar\&.
+.SH KEYWORDS
+TclOO, oo
+.SH CATEGORY
+Programming tools
+.SH COPYRIGHT
+.nf
+Copyright (c) 2018 Sean Woods <yoda@etoyoc\&.com>
+
+.fi

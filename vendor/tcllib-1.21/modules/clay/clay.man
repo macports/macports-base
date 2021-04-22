@@ -1,0 +1,729 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset PACKAGE_VERSION 0.8.6]
+[manpage_begin clay n [vset PACKAGE_VERSION]]
+[keywords oo]
+[copyright {2018 Sean Woods <yoda@etoyoc.com>}]
+[moddesc   {Clay Framework}]
+[titledesc {A minimalist framework for large scale OO Projects}]
+[category  {Programming tools}]
+[keywords TclOO]
+[require Tcl 8.6]
+[require uuid]
+[require oo::dialect]
+[description]
+Clay introduces a method ensemble to both [class oo::class] and [class oo::object] called
+clay. This ensemble handles all of the high level interactions within the framework.
+Clay stores structured data. Clan manages method delegation. Clay has facilities to
+manage the complex interactions that come about with mixins.
+[para]
+The central concept is that inside of every object and class
+(which are actually objects too) is a dict called clay. What is stored in that dict is
+left to the imagination. But because this dict is exposed via a public method, we can
+share structured data between object, classes, and mixins.
+[para]
+[subsection {Structured Data}]
+Clay uses a standardized set of method interactions and introspection that TclOO already provides to perform on-the-fly searches. On-the-fly searches mean that the data is never stale, and we avoid many of the sorts of collisions that would arise when objects start mixing in other classes during operation.
+[para]
+The [method clay] methods for both classes and objects have a get and a set method. For objects, get will search through the local clay dict. If the requested leaf is not found, or the query is for a branch, the system will then begin to poll the clay methods of all of the class that implements the object, all of that classes’ ancestors, as well as all of the classes that have been mixed into this object, and all of their ancestors.
+[para]
+Intended branches on a tree end with a directory slash (/). Intended leaves are left unadorned. This is a guide for the tool that builds the search
+results to know what parts of a dict are intended to be branches and which are intended to be leaves.
+For simple cases, branch marking can be ignored:
+[example {
+::oo::class create ::foo { }
+::foo clay set property/ color blue
+::foo clay set property/ shape round
+
+set A [::foo new]
+$A clay get property/
+{color blue shape round}
+
+$A clay set property/ shape square
+$A clay get property/
+{color blue shape square}
+}]
+[para]
+But when you start storing blocks of text, guessing what field is a dict and what isn’t gets messy:
+[example {
+::foo clay set description {A generic thing of designated color and shape}
+
+$A clay get description
+{A generic thing of designated color and shape}
+
+Without a convention for discerning branches for leaves what should have been a value can be accidentally parsed as a dictionary, and merged with all of the other values that were never intended to be merge. Here is an example of it all going wrong:
+::oo::class create ::foo { }
+# Add description as a leaf
+::foo clay set description \
+  {A generic thing of designated color and shape}
+# Add description as a branch
+::foo clay set description/ \
+  {A generic thing of designated color and shape}
+
+::oo::class create ::bar {
+  superclass foo
+}
+# Add description as a leaf
+::bar clay set description \
+  {A drinking establishment of designated color and shape and size}
+# Add description as a branch
+::bar clay set description/ \
+  {A drinking establishment of designated color and shape and size}
+
+set B [::bar new]
+# As a leaf we get the value verbatim from he nearest ancestor
+$B clay get description
+  {A drinking establishment of designated color and shape and size}
+# As a branch we get a recursive merge
+$B clay get description/
+{A drinking establishment of designated color and size thing of}
+}]
+[subsection {Clay Dialect}]
+Clay is built using the oo::dialect module from Tcllib. oo::dialect allows you to either add keywords directly to clay, or to create your own
+metaclass and keyword set using Clay as a foundation. For details on the keywords and what they do, consult the functions in the ::clay::define namespace.
+[subsection {Method Delegation}]
+Method Delegation
+It is sometimes useful to have an external object that can be invoked as if it were a method of the object. Clay provides a delegate ensemble method to perform that delegation, as well as introspect which methods are delegated in that manner. All delegated methods are marked with html-like tag markings (< >) around them.
+[example {
+::clay::define counter {
+  Variable counter 0
+  method incr {{howmuch 1}} {
+    my variable counter
+    incr counter $howmuch
+  }
+  method value {} {
+    my variable counter
+    return $counter
+  }
+  method reset {} {
+    my variable counter
+    set counter 0
+  }
+}
+::clay::define example {
+  variable buffer
+  constructor {} {
+    # Build a counter object
+    set obj [namespace current]::counter
+    ::counter create $obj
+    # Delegate the counter
+    my delegate <counter> $obj
+  }
+  method line {text} {
+    my <counter> incr
+    append buffer $text
+  }
+}
+
+set A [example new]
+$A line {Who’s line is it anyway?}
+$A <counter> value
+1
+}]
+
+
+[section {Commands}]
+[list_begin definitions]
+[call proc [cmd clay::PROC] [arg name] [arg arglist] [arg body] [opt "[arg ninja] [const ""]"]]
+
+ Because many features in this package may be added as
+ commands to future tcl cores, or be provided in binary
+ form by packages, I need a declaritive way of saying
+ [emph {Create this command if there isn't one already}].
+ The [emph ninja] argument is a script to execute if the
+ command is created by this mechanism.
+
+
+
+
+[call proc [cmd clay::_ancestors] [arg resultvar] [arg class]]
+
+
+[call proc [cmd clay::ancestors] [opt "[arg args]"]]
+
+
+[call proc [cmd clay::args_to_dict] [opt "[arg args]"]]
+
+
+[call proc [cmd clay::args_to_options] [opt "[arg args]"]]
+
+
+[call proc [cmd clay::dynamic_arguments] [arg ensemble] [arg method] [arg arglist] [opt "[arg args]"]]
+
+
+
+[call proc [cmd clay::dynamic_wrongargs_message] [arg arglist]]
+
+
+
+[call proc [cmd clay::is_dict] [arg d]]
+
+
+[call proc [cmd clay::is_null] [arg value]]
+
+
+[call proc [cmd clay::leaf] [opt "[arg args]"]]
+
+
+[call proc [cmd clay::K] [arg a] [arg b]]
+
+
+[call proc [cmd clay::noop] [opt "[arg args]"]]
+
+ Perform a noop. Useful in prototyping for commenting out blocks
+ of code without actually having to comment them out. It also makes
+ a handy default for method delegation if a delegate has not been
+ assigned yet.
+
+
+
+[call proc [cmd clay::cleanup]]
+
+ Process the queue of objects to be destroyed
+
+
+
+
+[call proc [cmd clay::object_create] [arg objname] [opt "[arg class] [const ""]"]]
+
+
+[call proc [cmd clay::object_rename] [arg object] [arg newname]]
+
+
+[call proc [cmd clay::object_destroy] [opt "[arg args]"]]
+
+ Mark an objects for destruction on the next cleanup
+
+
+
+
+[call proc [cmd clay::path] [opt "[arg args]"]]
+
+
+[call proc [cmd clay::putb] [opt "[arg map]"] [arg text]]
+
+ Append a line of text to a variable. Optionally apply a string mapping.
+
+
+[call proc [cmd clay::script_path]]
+
+
+[call proc [cmd clay::NSNormalize] [arg qualname]]
+
+
+[call proc [cmd clay::uuid_generate] [opt "[arg args]"]]
+
+
+[call proc [cmd clay::uuid::generate_tcl_machinfo]]
+
+
+[call proc [cmd clay::uuid::tostring] [arg uuid]]
+
+
+[call proc [cmd clay::uuid::fromstring] [arg uuid]]
+ Convert a string representation of a uuid into its binary format.
+
+
+
+
+[call proc [cmd clay::uuid::equal] [arg left] [arg right]]
+ Compare two uuids for equality.
+
+
+
+
+[call proc [cmd clay::uuid] [arg cmd] [opt "[arg args]"]]
+ uuid generate -> string rep of a new uuid
+ uuid equal uuid1 uuid2
+
+
+
+
+[call proc [cmd clay::tree::sanitize] [arg dict]]
+
+ Output a dictionary removing any . entries added by [fun {clay::tree::merge}]
+
+
+
+
+[call proc [cmd clay::tree::_sanitizeb] [arg path] [arg varname] [arg dict]]
+
+ Helper function for ::clay::tree::sanitize
+ Formats the string representation for a dictionary element within
+ a human readable stream of lines, and determines if it needs to call itself
+ with further indentation to express a sub-branch
+
+
+
+
+[call proc [cmd clay::tree::storage] [arg rawpath]]
+
+ Return the path as a storage path for clay::tree
+ with all branch terminators removed.
+ This command will also break arguments up if they
+ contain /.
+
+[para]Example: [example { > clay::tree::storage {foo bar baz bang}
+ foo bar baz bang
+ > clay::tree::storage {foo bar baz bang/}
+ foo bar baz bang
+ > clay::tree::storage {foo bar baz bang:}
+ foo bar baz bang:
+ > clay::tree::storage {foo/bar/baz bang:}
+ foo bar baz bang:
+ > clay::tree::storage {foo/bar/baz/bang}
+ foo bar baz bang
+
+
+}]
+
+[call proc [cmd clay::tree::dictset] [arg varname] [opt "[arg args]"]]
+
+ Set an element with a recursive dictionary,
+ marking all branches on the way down to the
+ final element.
+ If the value does not exists in the nested dictionary
+ it is added as a leaf. If the value already exists as a branch
+ the value given is merged if the value is a valid dict. If the
+ incoming value is not a valid dict, the value overrides the value
+ stored, and the value is treated as a leaf from then on.
+
+[para]Example: [example { > set r {}
+ > ::clay::tree::dictset r option color default Green
+ . {} option {. {} color {. {} default Green}}
+ > ::clay::tree::dictset r option {Something not dictlike}
+ . {} option {Something not dictlike}
+ # Note that if the value is not a dict, and you try to force it to be
+ # an error with be thrown on the merge
+ > ::clay::tree::dictset r option color default Blue
+ missing value to go with key
+
+
+}]
+
+[call proc [cmd clay::tree::dictmerge] [arg varname] [opt "[arg args]"]]
+
+ A recursive form of dict merge, intended for modifying variables in place.
+
+[para]Example: [example { > set mydict {sub/ {sub/ {description {a block of text}}}}
+ > ::clay::tree::dictmerge mydict {sub/ {sub/ {field {another block of text}}}}]
+ > clay::tree::print $mydict
+ sub/ {
+   sub/ {
+     description {a block of text}
+     field {another block of text}
+   }
+ }
+
+
+}]
+
+[call proc [cmd clay::tree::merge] [opt "[arg args]"]]
+
+ A recursive form of dict merge
+ [para]
+ A routine to recursively dig through dicts and merge
+ adapted from http://stevehavelka.com/tcl-dict-operation-nested-merge/
+
+[para]Example: [example { > set mydict {sub/ {sub/ {description {a block of text}}}}
+ > set odict [clay::tree::merge $mydict {sub/ {sub/ {field {another block of text}}}}]
+ > clay::tree::print $odict
+ sub/ {
+   sub/ {
+     description {a block of text}
+     field {another block of text}
+   }
+ }
+
+
+}]
+
+[call proc [cmd dictargs::proc] [arg name] [arg argspec] [arg body]]
+
+ Named Procedures as new command
+
+
+
+
+[call proc [cmd dictargs::method] [arg name] [arg argspec] [arg body]]
+
+
+[call proc [cmd clay::dialect::Push] [arg class]]
+
+
+[call proc [cmd clay::dialect::Peek]]
+
+
+[call proc [cmd clay::dialect::Pop]]
+
+
+[call proc [cmd clay::dialect::create] [arg name] [opt "[arg parent] [const ""]"]]
+
+ This proc will generate a namespace, a "mother of all classes", and a
+ rudimentary set of policies for this dialect.
+
+
+
+
+[call proc [cmd clay::dialect::NSNormalize] [arg namespace] [arg qualname]]
+ Support commands; not intended to be called directly.
+
+
+
+[call proc [cmd clay::dialect::DefineThunk] [arg target] [opt "[arg args]"]]
+
+
+[call proc [cmd clay::dialect::Canonical] [arg namespace] [arg NSpace] [arg class]]
+
+
+[call proc [cmd clay::dialect::Define] [arg namespace] [arg class] [opt "[arg args]"]]
+
+ Implementation of the languages' define command
+
+
+
+
+[call proc [cmd clay::dialect::Aliases] [arg namespace] [opt "[arg args]"]]
+
+
+[call proc [cmd clay::dialect::SuperClass] [arg namespace] [opt "[arg args]"]]
+
+
+[call proc [cmd clay::dynamic_methods] [arg class]]
+
+
+[call proc [cmd clay::dynamic_methods_class] [arg thisclass]]
+
+
+[call proc [cmd clay::define::Array] [arg name] [opt "[arg values] [const ""]"]]
+
+ New OO Keywords for clay
+
+
+
+
+[call proc [cmd clay::define::Delegate] [arg name] [arg info]]
+
+ An annotation that objects of this class interact with delegated
+ methods. The annotation is intended to be a dictionary, and the
+ only reserved key is [emph {description}], a human readable description.
+
+
+
+
+[call proc [cmd clay::define::constructor] [arg arglist] [arg rawbody]]
+
+
+
+[call proc [cmd clay::define::Class_Method] [arg name] [arg arglist] [arg body]]
+
+ Specify the a method for the class object itself, instead of for objects of the class
+
+
+
+
+[call proc [cmd clay::define::class_method] [arg name] [arg arglist] [arg body]]
+
+ And alias to the new Class_Method keyword
+
+
+
+
+[call proc [cmd clay::define::clay] [opt "[arg args]"]]
+
+
+[call proc [cmd clay::define::destructor] [arg rawbody]]
+
+
+
+[call proc [cmd clay::define::Dict] [arg name] [opt "[arg values] [const ""]"]]
+
+
+[call proc [cmd clay::define::Option] [arg name] [opt "[arg args]"]]
+
+ Define an option for the class
+
+
+
+
+[call proc [cmd clay::define::Method] [arg name] [arg argstyle] [arg argspec] [arg body]]
+
+
+[call proc [cmd clay::define::Option_Class] [arg name] [opt "[arg args]"]]
+
+ Define a class of options
+ All field / value pairs will be be inherited by an option that
+ specify [emph name] as it class field.
+
+
+
+
+[call proc [cmd clay::define::Variable] [arg name] [opt "[arg default] [const ""]"]]
+
+    This keyword can also be expressed:
+    [example {property variable NAME {default DEFAULT}}]
+    [para]
+    Variables registered in the variable property are also initialized
+    (if missing) when the object changes class via the [emph morph] method.
+
+
+
+
+[call proc [cmd clay::ensemble_methodbody] [arg ensemble] [arg einfo]]
+
+ Produce the body of an ensemble's public dispatch method
+ ensemble is the name of the the ensemble.
+ einfo is a dictionary of methods for the ensemble, and each value is a script
+ to execute on dispatch
+
+[para]Example: [example { ::clay::ensemble_methodbody foo {
+   bar {tailcall my Foo_bar {*}$args}
+   baz {tailcall my Foo_baz {*}$args}
+   clock {return [clock seconds]}
+   default {puts "You gave me $method"}
+ }
+
+
+}]
+
+[call proc [cmd clay::define::Ensemble] [arg rawmethod] [opt "[arg args]"]]
+
+
+[call proc [cmd clay::event::cancel] [arg self] [opt "[arg task] [const "*"]"]]
+
+Cancel a scheduled event
+
+
+
+
+[call proc [cmd clay::event::generate] [arg self] [arg event] [opt "[arg args]"]]
+
+    Generate an event
+    Adds a subscription mechanism for objects
+    to see who has recieved this event and prevent
+    spamming or infinite recursion
+
+
+
+
+[call proc [cmd clay::event::nextid]]
+
+
+
+[call proc [cmd clay::event::Notification_list] [arg self] [arg event] [opt "[arg stackvar] [const ""]"]]
+
+    Called recursively to produce a list of
+    who recieves notifications
+
+
+
+
+[call proc [cmd clay::event::notify] [arg rcpt] [arg sender] [arg event] [arg eventinfo]]
+
+ Final delivery to intended recipient object
+
+
+
+
+[call proc [cmd clay::event::process] [arg self] [arg handle] [arg script]]
+
+ Evaluate an event script in the global namespace
+
+
+
+
+[call proc [cmd clay::event::schedule] [arg self] [arg handle] [arg interval] [arg script]]
+
+Schedule an event to occur later
+
+
+
+
+[call proc [cmd clay::event::subscribe] [arg self] [arg who] [arg event]]
+
+ Subscribe an object to an event pattern
+
+
+
+
+[call proc [cmd clay::event::unsubscribe] [arg self] [opt "[arg args]"]]
+
+ Unsubscribe an object from an event pattern
+
+
+
+
+[call proc [cmd clay::singleton] [arg name] [arg script]]
+
+ An object which is intended to be it's own class.
+
+
+[list_end]
+
+[section Classes]
+[subsection {Class  clay::class}]
+
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "clay ancestors"]]
+Return this class and all ancestors in search order.
+
+[call method [cmd "clay dump"]]
+Return a complete dump of this object's clay data, but only this object's clay data.
+
+[call method [cmd "clay find"] [arg path] [opt [option "path..."]]]
+
+     Pull a chunk of data from the clay system. If the last element of [emph path] is a branch,
+     returns a recursive merge of all data from this object and it's constituent classes of the data in that branch.
+     If the last element is a leaf, search this object for a matching leaf, or search all  constituent classes for a matching
+     leaf and return the first value found.
+     If no value is found, returns an empty string.
+     If a branch is returned the topmost . entry is omitted.
+   
+
+[call method [cmd "clay get"] [arg path] [opt [option "path..."]]]
+
+     Pull a chunk of data from the class's clay system.
+     If no value is found, returns an empty string.
+     If a branch is returned the topmost . entry is omitted.
+   
+
+[call method [cmd "clay GET"] [arg path] [opt [option "path..."]]]
+
+     Pull a chunk of data from the class's clay system.
+     If no value is found, returns an empty string.
+   
+
+[call method [cmd "clay merge"] [arg dict] [opt [option "dict..."]]]
+Recursively merge the dictionaries given into the object's local clay storage.
+
+[call method [cmd "clay replace"] [arg dictionary]]
+Replace the contents of the internal clay storage with the dictionary given.
+
+[call method [cmd "clay search"] [arg path] [opt [option "path..."]]]
+Return the first matching value for the path in either this class's clay data or one of its ancestors
+
+[call method [cmd "clay set"] [arg path] [opt [option "path..."]] [arg value]]
+Merge the conents of [const value] with the object's clay storage at [const path].
+
+[list_end]
+[para]
+
+[subsection {Class  clay::object}]
+ clay::object
+
+ This class is inherited by all classes that have options.
+
+
+
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "clay ancestors"]]
+Return the class this object belongs to, all classes mixed into this object, and all ancestors of those classes in search order.
+
+[call method [cmd "clay cache"] [arg path] [arg value]]
+Store VALUE in such a way that request in SEARCH for PATH will always return it until the cache is flushed
+
+[call method [cmd "clay cget"] [arg field]]
+
+ Pull a value from either the object's clay structure or one of its constituent classes that matches the field name.
+ The order of search us:
+ [para] 1. The as a value in local dict variable config
+ [para] 2. The as a value in local dict variable clay
+ [para] 3. As a leaf in any ancestor as a root of the clay tree
+ [para] 4. As a leaf in any ancestor as [const const] [emph field]
+ [para] 5. As a leaf in any ancestor as [const option] [emph field] [const default]
+   
+
+[call method [cmd "clay delegate"] [opt "[arg stub]"] [opt "[arg object]"]]
+
+ Introspect or control method delegation. With no arguments, the method will return a
+ key/value list of stubs and objects. With just the [arg stub] argument, the method will
+ return the object (if any) attached to the stub. With a [arg stub] and an [arg object]
+ this command will forward all calls to the method [arg stub] to the [arg object].
+ 
+
+[call method [cmd "clay dump"]]
+Return a complete dump of this object's clay data, as well as the data from all constituent classes recursively blended in.
+
+[call method [cmd "clay ensemble_map"]]
+Return a dictionary describing the method ensembles to be assembled for this object
+
+[call method [cmd "clay eval"] [arg script]]
+Evaluated a script in the namespace of this object
+
+[call method [cmd "clay evolve"]]
+Trigger the [method InitializePublic] private method
+
+[call method [cmd "clay exists"] [arg path] [opt [option "path..."]]]
+Returns 1 if [emph path] exists in either the object's clay data. Values greater than one indicate the element exists in one of the object's constituent classes. A value of zero indicates the path could not be found.
+
+[call method [cmd "clay flush"]]
+Wipe any caches built by the clay implementation
+
+[call method [cmd "clay forward"] [arg method] [arg object]]
+A convenience wrapper for
+ [example {oo::objdefine [self] forward {*}$args}]
+ 
+
+[call method [cmd "clay get"] [arg path] [opt [option "path..."]]]
+Pull a chunk of data from the clay system. If the last element of [emph path] is a branch (ends in a slash /),
+   returns a recursive merge of all data from this object and it's constituent classes of the data in that branch.
+   If the last element is a leaf, search this object for a matching leaf, or search all  constituent classes for a matching
+   leaf and return the first value found.
+   If no value is found, returns an empty string.
+ 
+
+[call method [cmd "clay leaf"] [arg path] [opt [option "path..."]]]
+A modified get which is tailored to pull only leaf elements
+
+[call method [cmd "clay merge"] [arg dict] [opt [option "dict..."]]]
+Recursively merge the dictionaries given into the object's local clay storage.
+
+[call method [cmd "clay mixin"] [arg class] [opt [option "class..."]]]
+
+ Perform [lb]oo::objdefine [lb]self[rb] mixin[rb] on this object, with a few additional rules:
+   Prior to the call, for any class was previously mixed in, but not in the new result, execute the script registered to mixin/ unmap-script (if given.)
+   For all new classes, that were not present prior to this call, after the native TclOO mixin is invoked, execute the script registered to mixin/ map-script (if given.)
+   Fall all classes that are now present and “mixed in”, execute the script registered to mixin/ react-script (if given.)
+ 
+
+[call method [cmd "clay mixinmap"] [opt "[arg stub]"] [opt "[arg classes]"]]
+With no arguments returns the map of stubs and classes mixed into the current object. When only stub is given,
+  returns the classes mixed in on that stub. When stub and classlist given, replace the classes currently on that stub with the given
+  classes and invoke clay mixin on the new matrix of mixed in classes.
+ 
+
+[call method [cmd "clay provenance"] [arg path] [opt [option "path..."]]]
+Return either [const self] if that path exists in the current object, or return the first class (if any) along the clay search path which contains that element.
+
+[call method [cmd "clay replace"] [arg dictionary]]
+Replace the contents of the internal clay storage with the dictionary given.
+
+[call method [cmd "clay search"] [arg path] [arg valuevar] [arg isleafvar]]
+Return true, and set valuevar to the value and isleafar to true for false if PATH was found in the cache.
+
+[call method [cmd "clay source"] [arg filename]]
+Source the given filename within the object's namespace
+
+[call method [cmd "clay set"] [arg path] [opt [option "path..."]] [arg value]]
+Merge the conents of [const value] with the object's clay storage at [const path].
+
+[call method [cmd "InitializePublic"]]
+
+ Instantiate variables. Called on object creation and during clay mixin.
+
+
+
+
+[list_end]
+[para]
+
+[section AUTHORS]
+Sean Woods [uri mailto:<yoda@etoyoc.com>][para]
+[vset CATEGORY oo]
+[include ../common-text/feedback.inc]
+
+[manpage_end]
+

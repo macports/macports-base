@@ -1,0 +1,24 @@
+<!-- Generated from file '.FILE.' by tcllib/doctools with format 'tmml' -->
+<manpage id='.FILE' cat='cmd' title='TEST' version='1.1.23.58132.1' package='.MODULE.'>
+<head>
+<info key='copyright' value='Copyright (c) 2019 Me'/>
+<info key='copyright' value='Copyright (c) 2019 Myself'/>
+<info key='copyright' value='Copyright (c) 2019 And I'/>
+</head>
+<namesection>
+<name>TEST</name>
+<desc></desc>
+
+</namesection>
+
+
+
+
+
+<section id='section1'>
+<title>DESCRIPTION</title>
+</section>
+
+
+
+</manpage>

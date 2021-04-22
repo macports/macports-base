@@ -1,0 +1,244 @@
+## -*- tcl -*-
+##
+## NX-based Tcl/PARAM implementation of the parsing
+## expression grammar
+##
+##	TEMPLATE
+##
+## Generated from file	TEST
+##            for user  unknown
+##
+# # ## ### ##### ######## ############# #####################
+## Requirements
+
+package require Tcl 8.5
+package require nx
+package require pt::rde::nx ; # NX-based implementation of the
+			      # PARAM virtual machine
+			      # underlying the Tcl/PARAM code
+			      # used below.
+
+# # ## ### ##### ######## ############# #####################
+##
+
+nx::Class create PARSER -superclasses pt::rde::nx {
+    # # ## ### ##### ######## #############
+    ## Public API
+    
+    :public method parse {channel} {
+	:reset $channel
+	:MAIN ; # Entrypoint for the generated code.
+	return [:complete]
+    }
+
+    :public method parset {text} {
+	:reset {}
+	:data $text
+	:MAIN ; # Entrypoint for the generated code.
+	return [:complete]
+    }
+
+    # # ## ### ###### ######## #############
+    ## BEGIN of GENERATED CODE. DO NOT EDIT.
+
+    #
+    # Grammar Start Expression
+    #
+    
+    :method MAIN {} {
+        : sym_eos
+        return
+    }
+    
+    #
+    # value Symbol 'eos'
+    #
+    
+    :method sym_eos {} {
+        # x
+        #     (ex)
+        #     *
+        #         x
+        #             +
+        #                 <space>
+        #             (ex)
+    
+        : si:value_symbol_start eos
+        : sequence_11
+        : si:reduce_symbol_end eos
+        return
+    }
+    
+    :method sequence_11 {} {
+        # x
+        #     (ex)
+        #     *
+        #         x
+        #             +
+        #                 <space>
+        #             (ex)
+    
+        : si:value_state_push
+        : sym_ex
+        : si:valuevalue_part
+        : kleene_9
+        : si:value_state_merge
+        return
+    }
+    
+    :method kleene_9 {} {
+        # *
+        #     x
+        #         +
+        #             <space>
+        #         (ex)
+    
+        while {1} {
+            : si:void2_state_push
+        : sequence_7
+            : si:kleene_close
+        }
+        return
+    }
+    
+    :method sequence_7 {} {
+        # x
+        #     +
+        #         <space>
+        #     (ex)
+    
+        : si:void_state_push
+        : poskleene_4
+        : si:voidvalue_part
+        : sym_ex
+        : si:value_state_merge
+        return
+    }
+    
+    :method poskleene_4 {} {
+        # +
+        #     <space>
+    
+        : i_loc_push
+        : si:next_space
+        : si:kleene_abort
+        while {1} {
+            : si:void2_state_push
+        : si:next_space
+            : si:kleene_close
+        }
+        return
+    }
+    
+    #
+    # value Symbol 'ex'
+    #
+    
+    :method sym_ex {} {
+        # x
+        #     +
+        #         x
+        #             !
+        #                 (X)
+        #             [xz]
+        #     ?
+        #         (X)
+    
+        : si:value_symbol_start ex
+        : sequence_25
+        : si:reduce_symbol_end ex
+        return
+    }
+    
+    :method sequence_25 {} {
+        # x
+        #     +
+        #         x
+        #             !
+        #                 (X)
+        #             [xz]
+        #     ?
+        #         (X)
+    
+        : si:void_state_push
+        : poskleene_20
+        : si:voidvalue_part
+        : optional_23
+        : si:value_state_merge
+        return
+    }
+    
+    :method poskleene_20 {} {
+        # +
+        #     x
+        #         !
+        #             (X)
+        #         [xz]
+    
+        : i_loc_push
+        : sequence_18
+        : si:kleene_abort
+        while {1} {
+            : si:void2_state_push
+        : sequence_18
+            : si:kleene_close
+        }
+        return
+    }
+    
+    :method sequence_18 {} {
+        # x
+        #     !
+        #         (X)
+        #     [xz]
+    
+        : si:void_state_push
+        : notahead_15
+        : si:voidvoid_part
+        : si:next_class xz
+        : si:void_state_merge
+        return
+    }
+    
+    :method notahead_15 {} {
+        # !
+        #     (X)
+    
+        : si:value_notahead_start
+        : sym_X
+        : si:value_notahead_exit
+        return
+    }
+    
+    :method optional_23 {} {
+        # ?
+        #     (X)
+    
+        : si:void2_state_push
+        : sym_X
+        : si:void_state_merge_ok
+        return
+    }
+    
+    #
+    # value Symbol 'X'
+    #
+    
+    :method sym_X {} {
+        # 'x'
+    
+        : si:void_symbol_start X
+        : si:next_char x
+        : si:void_leaf_symbol_end X
+        return
+    }
+    
+    ## END of GENERATED CODE. DO NOT EDIT.
+    # # ## ### ###### ######## #############
+}
+
+# # ## ### ##### ######## ############# #####################
+## Ready
+
+package provide NX_PACKAGE 1
+return

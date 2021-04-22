@@ -1,0 +1,39 @@
+
+[//000000001]: # (test\-enumerated\-examples \- )
+[//000000002]: # (Generated from file '\.FILE\.' by tcllib/doctools with format 'markdown')
+[//000000003]: # (Copyright &copy; \.COPYRIGHT\.)
+[//000000004]: # (test\-enumerated\-examples\(1\) n \.MODULE\. "")
+
+# NAME
+
+test\-enumerated\-examples \-
+
+# <a name='toc'></a>Table Of Contents
+
+  - [Table Of Contents](#toc)
+
+  - [Description](#section1)
+
+  - [Copyright](#copyright)
+
+# <a name='description'></a>DESCRIPTION
+
+lorem ipsum dolores
+
+  1.     A1 lorem ipsum dolores
+
+  1. lorem ipsum dolores
+
+         B2 lorem ipsum dolores
+
+     lorem ipsum dolores
+
+  1. lorem ipsum dolores
+
+         C3 lorem ipsum dolores
+
+  1. lorem ipsum dolores
+
+# <a name='copyright'></a>COPYRIGHT
+
+Copyright &copy; \.COPYRIGHT\.

@@ -1,0 +1,67 @@
+
+test-itemized-definitions - 
+Generated from file '.FILE.' by tcllib/doctools with format 'text'
+test-itemized-definitions(1) n .MODULE. ""
+
+NAME
+====
+
+test-itemized-definitions -
+
+DESCRIPTION
+===========
+
+lorem ipsum dolores
+
+    *   lorem ipsum dolores
+
+        lorem
+
+            ipsum dolores
+
+        lorem
+
+            ipsum dolores
+
+            lorem ipsum dolores
+
+        lorem
+
+            ipsum dolores
+
+            lorem ipsum dolores
+
+            lorem ipsum dolores
+
+    *   lorem ipsum dolores
+
+        lorem ipsum dolores
+
+    *   lorem ipsum dolores
+
+        lorem ipsum dolores
+
+        lorem
+
+            ipsum dolores
+
+        lorem
+
+            ipsum dolores
+
+            lorem ipsum dolores
+
+        lorem
+
+            ipsum dolores
+
+            lorem ipsum dolores
+
+            lorem ipsum dolores
+
+        lorem ipsum dolores
+
+COPYRIGHT
+=========
+
+Copyright (c) .COPYRIGHT.

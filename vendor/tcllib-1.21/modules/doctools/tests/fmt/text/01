@@ -1,0 +1,24 @@
+
+TEST - 
+Generated from file '.FILE.' by tcllib/doctools with format 'text'
+TEST(z) 3.14.15.926 .MODULE. ""
+
+NAME
+====
+
+TEST -
+
+DESCRIPTION
+===========
+
+Argument ::Argument:: Class ::*Class*:: Command ::Command:: Comment :::: Const
+::*Constant*:: Emphasis ::_Emphasis_:: File ::"File/Path":: Function
+::*Function*:: Method ::Method:: Namespace ::*Namespace*:: Option ::Option::
+Optional ::?Optional?:: Package ::*Package*:: Syscmd ::*SystemCommand*:: Term
+::_Term_:: Type ::*Type*:: Uri ::<URL:Uri>:: Variable ::*Variable*:: Widget
+::*Widget*::
+
+COPYRIGHT
+=========
+
+Copyright (c) **Copyright**

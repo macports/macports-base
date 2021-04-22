@@ -1,0 +1,5 @@
+[comment { -- basic key }]
+[index_begin KWIC Test]
+[key lorem]
+[manpage ipsum dolores]
+[index_end]

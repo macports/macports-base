@@ -1,0 +1,243 @@
+source [file join \
+            [file dirname [file dirname [file join [pwd] [info script]]]] \
+            devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+# Constraints depending on package availability
+tcltest::testConstraint have_tls   [expr {![catch {package require tls}]}]
+tcltest::testConstraint have_twapi [expr {![catch {package require twapi}]}]
+
+puts "- have_tls   = [expr {![catch {package require tls}]}]"
+puts "- have_twapi = [expr {![catch {package require twapi}]}]"
+
+# uri and base64
+
+testing {
+    useLocal autoproxy.tcl autoproxy
+}
+
+# May need to change these to your proxy
+set proxy_host 147.135.210.114
+set proxy_port 54566
+
+# Clear the autoproxy package state for each test
+proc packageReset {} {
+    array set ::autoproxy::options {
+        authProc "" basic "" no_proxy "" proxy_host "" proxy_port ""
+        tls_package tls
+    }
+}
+
+test autoproxy-1.0.0 "autoproxy::init standard" -setup {
+    packageReset
+} -body {
+    autoproxy::init http://localhost:13128 "hosta,hostb"
+    list [autoproxy::cget -host] \
+        [autoproxy::cget -port] \
+        [autoproxy::cget -no_proxy]
+} -result {localhost 13128 {hosta hostb}}
+
+test autoproxy-1.0.1 "autoproxy::init standard, auth" -setup {
+    packageReset
+} -body {
+    autoproxy::init http://user:secret@localhost:13128 "hosta,hostb"
+    list [autoproxy::cget -host] \
+        [autoproxy::cget -port] \
+        [autoproxy::cget -no_proxy] \
+        [base64::decode [lindex [autoproxy::cget -basic] 1 1]]
+} -result {localhost 13128 {hosta hostb} user:secret}
+
+test autoproxy-1.0.2 "autoproxy::init standard, override" -setup {
+    packageReset
+} -body {
+    autoproxy::init http://proxyone:13128 "hosta,hostb"
+    autoproxy::init http://proxytwo:13129 "hostc,hostd"
+    list [autoproxy::cget -host] \
+        [autoproxy::cget -port] \
+        [autoproxy::cget -no_proxy]
+} -result {proxytwo 13129 {hostc hostd}}
+
+test autoproxy-1.0.3 "autoproxy::init standard, auth, override" -setup {
+    packageReset
+} -body {
+    autoproxy::init http://user:secret@localhost:13128 "hosta,hostb"
+    autoproxy::init http://luser:passwd@proxy:13129 "hostc,hostd"
+    list [autoproxy::cget -host] \
+        [autoproxy::cget -port] \
+        [autoproxy::cget -no_proxy] \
+        [base64::decode [lindex [autoproxy::cget -basic] 1 1]]
+} -result {proxy 13129 {hostc hostd} luser:passwd}
+
+test autoproxy-1.0.4 "autoproxy::init standard, colons" -setup {
+    packageReset
+} -body {
+    autoproxy::init http://localhost:13128 "hosta;hostb"
+    list [autoproxy::cget -host] \
+        [autoproxy::cget -port] \
+        [autoproxy::cget -no_proxy]
+} -result {localhost 13128 {hosta hostb}}
+
+test autoproxy-1.1.0 "autoproxy::configure -host" -setup {
+    packageReset
+} -body {
+    autoproxy::configure -host proxyhost
+    autoproxy::cget -host
+} -result {proxyhost}
+
+test autoproxy-1.1.1 "autoproxy::configure -port" -setup {
+    packageReset
+} -body {
+    autoproxy::configure -port 3128
+    autoproxy::cget -port
+} -result {3128}
+
+test autoproxy-1.1.2 "autoproxy::configure -proxy_host" -setup {
+    packageReset
+} -body {
+    autoproxy::configure -proxy_host proxyhost
+    autoproxy::cget -proxy_host
+} -result {proxyhost}
+
+test autoproxy-1.1.3 "autoproxy::configure -proxy_port" -setup {
+    packageReset
+} -body {
+    autoproxy::configure -proxy_port 3128
+    autoproxy::cget -proxy_port
+} -result {3128}
+
+test autoproxy-1.1.4 "autoproxy::configure -no_proxy" -setup {
+    packageReset
+} -body {
+    autoproxy::configure -no_proxy "localhost otherhost"
+    autoproxy::cget -no_proxy
+} -result {localhost otherhost}
+
+test autoproxy-1.1.5 "autoproxy::configure -no_proxy override" -setup {
+    packageReset
+} -body {
+    autoproxy::configure -no_proxy "localhost otherhost"
+    autoproxy::configure -no_proxy "althost"
+    autoproxy::cget -no_proxy
+} -result {althost}
+
+test autoproxy-1.1.6 "autoproxy::configure -authProc" -setup {
+    packageReset
+} -body {
+    autoproxy::configure -authProc my_auth_proc
+    autoproxy::cget -authProc
+} -result {my_auth_proc}
+
+test autoproxy-1.2.0 "autoproxy::configure -basic set details" -setup {
+    packageReset
+} -body {
+    autoproxy::configure -basic -user test -password secret -realm tcllib
+    autoproxy::cget -basic
+} -result {Proxy-Authorization {Basic dGVzdDpzZWNyZXQ=}}
+
+test autoproxy-1.2.1 "autoproxy::configure -basic confirm encoding" -setup {
+    packageReset
+} -body {
+    autoproxy::configure -basic -user test -password secret -realm tcllib
+    base64::decode [lindex [autoproxy::cget -basic] 1 1]
+} -result {test:secret}
+
+test autoproxy-1.2.2 "autoproxy::configure -basic reset" -setup {
+    packageReset
+    autoproxy::configure -basic -user test -password secret -realm tcllib
+} -body {
+    autoproxy::configure -basic --
+    autoproxy::cget -basic
+} -result {}
+
+test autoproxy-1.2.3 "autoproxy::configure -basic reset (2)" -setup {
+    packageReset
+    autoproxy::configure -basic -user test -password secret -realm tcllib
+} -body {
+    autoproxy::configure -basic
+    autoproxy::cget -basic
+} -result {}
+
+test autoproxy-1.2.4.0 "autoproxy::configure -tls_package tls" -setup {
+    packageReset
+} -body {
+    autoproxy::configure -tls_package tls
+    autoproxy::cget -tls_package
+} -result tls
+
+test autoproxy-1.2.4.1 "autoproxy::configure -tls_package twapi" -setup {
+    packageReset
+} -body {
+    autoproxy::configure -tls_package twapi
+    autoproxy::cget -tls_package
+} -result twapi
+
+test autoproxy-1.2.4.2 "autoproxy::configure -tls_package dummy" -setup {
+    packageReset
+} -body {
+    autoproxy::configure -tls_package dummy
+} -result "Invalid TLS package option 'dummy'. Must be 'tls' or 'twapi'" -returnCodes error
+
+test autoproxy-2.0.0 "autoproxy::tls_socket (tls) with proxy" -constraints {
+    have_tls
+} -setup {
+    packageReset
+    package require http
+    autoproxy::configure -proxy_host $proxy_host -proxy_port $proxy_port
+} -body {
+    http::register https 443 autoproxy::tls_socket
+    set tok [http::geturl https://www.example.com]
+    http::status $tok
+} -cleanup {
+    http::cleanup $tok
+} -result ok
+
+test autoproxy-2.0.1 "autoproxy::tls_socket (twapi) with proxy" -constraints {
+    have_twapi
+} -setup {
+    packageReset
+    package require http
+    autoproxy::configure -proxy_host $proxy_host -proxy_port $proxy_port -tls_package twapi
+} -body {
+    http::register https 443 autoproxy::tls_socket
+    set tok [http::geturl https://www.example.com]
+    http::status $tok
+} -cleanup {
+    http::cleanup $tok
+} -result ok
+
+test autoproxy-2.1.0 "autoproxy::tls_socket (tls) without proxy" -constraints {
+    have_tls
+} -setup {
+    packageReset
+    package require http
+    autoproxy::configure -proxy_host "" -proxy_port $proxy_port
+} -body {
+    http::register https 443 autoproxy::tls_socket
+    set tok [http::geturl https://www.example.com]
+    http::status $tok
+} -cleanup {
+    http::cleanup $tok
+} -result ok
+
+test autoproxy-2.1.1 "autoproxy::tls_socket (twapi) without proxy" -constraints {
+    have_twapi
+} -setup {
+    packageReset
+    package require http
+    autoproxy::configure -proxy_host "" -proxy_port $proxy_port -tls_package twapi
+} -body {
+    http::register https 443 autoproxy::tls_socket
+    set tok [http::geturl https://www.example.com]
+    http::status $tok
+} -cleanup {
+    http::cleanup $tok
+} -result ok
+
+testsuiteCleanup
+
+# Local variables:
+#   mode: tcl
+#   indent-tabs-mode: nil
+# End:

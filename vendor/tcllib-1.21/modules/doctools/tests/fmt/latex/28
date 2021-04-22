@@ -1,0 +1,18 @@
+% Generated from file '.FILE.' by tcllib/doctools with format 'latex'
+% Copyright (c) 2019 Me
+% Copyright (c) 2019 Myself
+% Copyright (c) 2019 And I
+% TEST.z
+\documentclass{article}
+\begin{document}
+\author{@USR@}
+\title{.MODULE. / TEST --  : }
+\maketitle
+\section{Description}\label{section1}
+\section{Copyright}\label{copyright}
+\begin{flushleft}
+Copyright (c) 2019 Me\linebreak
+Copyright (c) 2019 Myself\linebreak
+Copyright (c) 2019 And I\linebreak
+\end{flushleft}
+\end{document}

@@ -1,0 +1,119 @@
+[keywords oo]
+[copyright {2018 Sean Woods <yoda@etoyoc.com>}]
+[moddesc   {Clay Framework}]
+[titledesc {A minimalist framework for large scale OO Projects}]
+[category  {Programming tools}]
+[keywords TclOO]
+[require Tcl 8.6]
+[require uuid]
+[require oo::dialect]
+[description]
+Clay introduces a method ensemble to both [class oo::class] and [class oo::object] called
+clay. This ensemble handles all of the high level interactions within the framework.
+Clay stores structured data. Clan manages method delegation. Clay has facilities to
+manage the complex interactions that come about with mixins.
+[para]
+The central concept is that inside of every object and class
+(which are actually objects too) is a dict called clay. What is stored in that dict is
+left to the imagination. But because this dict is exposed via a public method, we can
+share structured data between object, classes, and mixins.
+[para]
+[subsection {Structured Data}]
+Clay uses a standardized set of method interactions and introspection that TclOO already provides to perform on-the-fly searches. On-the-fly searches mean that the data is never stale, and we avoid many of the sorts of collisions that would arise when objects start mixing in other classes during operation.
+[para]
+The [method clay] methods for both classes and objects have a get and a set method. For objects, get will search through the local clay dict. If the requested leaf is not found, or the query is for a branch, the system will then begin to poll the clay methods of all of the class that implements the object, all of that classes’ ancestors, as well as all of the classes that have been mixed into this object, and all of their ancestors.
+[para]
+Intended branches on a tree end with a directory slash (/). Intended leaves are left unadorned. This is a guide for the tool that builds the search
+results to know what parts of a dict are intended to be branches and which are intended to be leaves.
+For simple cases, branch marking can be ignored:
+[example {
+::oo::class create ::foo { }
+::foo clay set property/ color blue
+::foo clay set property/ shape round
+
+set A [::foo new]
+$A clay get property/
+{color blue shape round}
+
+$A clay set property/ shape square
+$A clay get property/
+{color blue shape square}
+}]
+[para]
+But when you start storing blocks of text, guessing what field is a dict and what isn’t gets messy:
+[example {
+::foo clay set description {A generic thing of designated color and shape}
+
+$A clay get description
+{A generic thing of designated color and shape}
+
+Without a convention for discerning branches for leaves what should have been a value can be accidentally parsed as a dictionary, and merged with all of the other values that were never intended to be merge. Here is an example of it all going wrong:
+::oo::class create ::foo { }
+# Add description as a leaf
+::foo clay set description \
+  {A generic thing of designated color and shape}
+# Add description as a branch
+::foo clay set description/ \
+  {A generic thing of designated color and shape}
+
+::oo::class create ::bar {
+  superclass foo
+}
+# Add description as a leaf
+::bar clay set description \
+  {A drinking establishment of designated color and shape and size}
+# Add description as a branch
+::bar clay set description/ \
+  {A drinking establishment of designated color and shape and size}
+
+set B [::bar new]
+# As a leaf we get the value verbatim from he nearest ancestor
+$B clay get description
+  {A drinking establishment of designated color and shape and size}
+# As a branch we get a recursive merge
+$B clay get description/
+{A drinking establishment of designated color and size thing of}
+}]
+[subsection {Clay Dialect}]
+Clay is built using the oo::dialect module from Tcllib. oo::dialect allows you to either add keywords directly to clay, or to create your own
+metaclass and keyword set using Clay as a foundation. For details on the keywords and what they do, consult the functions in the ::clay::define namespace.
+[subsection {Method Delegation}]
+Method Delegation
+It is sometimes useful to have an external object that can be invoked as if it were a method of the object. Clay provides a delegate ensemble method to perform that delegation, as well as introspect which methods are delegated in that manner. All delegated methods are marked with html-like tag markings (< >) around them.
+[example {
+::clay::define counter {
+  Variable counter 0
+  method incr {{howmuch 1}} {
+    my variable counter
+    incr counter $howmuch
+  }
+  method value {} {
+    my variable counter
+    return $counter
+  }
+  method reset {} {
+    my variable counter
+    set counter 0
+  }
+}
+::clay::define example {
+  variable buffer
+  constructor {} {
+    # Build a counter object
+    set obj [namespace current]::counter
+    ::counter create $obj
+    # Delegate the counter
+    my delegate <counter> $obj
+  }
+  method line {text} {
+    my <counter> incr
+    append buffer $text
+  }
+}
+
+set A [example new]
+$A line {Who’s line is it anyway?}
+$A <counter> value
+1
+}]
+

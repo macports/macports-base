@@ -1,0 +1,306 @@
+# -*- tcl -*-
+#
+# -- doctools NROFF formatting engine.
+#
+# Copyright (c) 2001-2019 Andreas Kupries <andreas_kupries@sourceforge.net>
+#
+# [expand] definitions to convert a tcl based manpage definition into
+# a manpage based upon *roff markup. Additional definition files allow
+# the conversion into HTML and TMML.
+
+
+################################################################
+# Load shared code, load nroff support.
+
+dt_source _common.tcl
+dt_source _nroff.tcl
+
+global _in_example
+set    _in_example 0
+
+################################################################
+# Define the API commands.
+
+# Called to handle plain text from the input
+proc fmt_plain_text {text} {
+    global _in_example
+    if {$_in_example} {
+	set text [string map [list \\\\\n \\\n] $text]
+    }
+    return $text
+}
+
+c_pass 1 fmt_manpage_begin {title section version} c_begin
+c_pass 2 fmt_manpage_begin {title section version} {
+    c_begin
+
+    set module      [dt_module]
+    set shortdesc   [c_get_module]
+    set description [c_get_title]
+    set copyright   [c_get_copyright]
+
+    # compact whitespace
+    foreach v {module shortdesc description copyright} {
+	upvar 0 $v text
+	regsub -all {[ \t]+} $text { } text
+	set text [string trim $text]
+    }
+
+    c_holdBuffers hdr
+
+    c_hold hdr [nr_comment {}]
+    c_hold hdr [nr_comment [c_provenance]]
+    if {$copyright != {}} {
+	c_hold hdr [nr_comment $copyright]
+    }
+    c_hold hdr [nr_comment {}]
+
+    if {[set text [c_held precomments]] != {}} {
+	c_hold hdr $text
+    }
+
+    c_hold hdr [nr_title "\"[string trimleft $title :]\" $section $version $module \"$shortdesc\""]
+    c_hold hdr [nr_read man.macros]
+    c_hold hdr [nr_bolds]
+    c_hold hdr [fmt_section NAME]
+    c_hold hdr "$title \1\\- $description"
+
+    return [c_held hdr]
+}
+
+c_pass 1 fmt_moddesc   {desc} {c_set_module $desc}
+c_pass 2 fmt_moddesc   {desc} NOP
+
+c_pass 1 fmt_titledesc {desc} {c_set_title $desc}
+c_pass 2 fmt_titledesc {desc} NOP
+
+c_pass 1 fmt_copyright {desc} {c_set_copyright $desc}
+c_pass 2 fmt_copyright {desc} NOP
+
+c_pass 1 fmt_manpage_end {} NOP
+c_pass 2 fmt_manpage_end {} {
+
+    # Complete the generation with a copyright
+    # section, if such information is available.
+
+    set nroff ""
+
+    set sa [c_xref_seealso]
+    set kw [c_xref_keywords]
+    set ca [c_xref_category]
+    set ct [c_get_copyright]
+
+    if {[llength $sa] > 0} {
+	append nroff [fmt_section {SEE ALSO}] \n
+	append nroff [join [lsort $sa] ", "] \n
+    }
+    if {[llength $kw] > 0} {
+	append nroff [fmt_section KEYWORDS] \n
+	set kwline [join [lsort $kw] ", "]
+	if { [string match ".*" $kwline] } {
+	    set kwline "\\$kwline" 
+	}
+	append nroff $kwline \n
+    }
+    if {$ca ne ""} {
+	append nroff [fmt_section CATEGORY] \n
+	append nroff $ca \n
+    }
+    if {$ct != {}} {
+	append nroff [fmt_section COPYRIGHT] \n
+	append nroff [nr_nofill] \n
+	append nroff $ct \n
+	append nroff [nr_fill]
+    }
+    return $nroff
+}
+
+proc fmt_postprocess {nroff} { nroff_postprocess $nroff }
+
+proc fmt_section    {name {id {}}} {return [nr_section    $name]}
+proc fmt_subsection {name {id {}}} {return [nr_subsection $name]}
+proc fmt_para {} {
+    if {[dt_lnesting]} { return [nr_item] }
+    nr_p
+}
+
+c_pass 2 fmt_require {pkg {version {}}} NOP
+c_pass 1 fmt_require {pkg {version {}}} {
+    if {$version != {}} {set version " $version"}
+    c_hold synopsis "package require [nr_bld]$pkg $version[nr_rst]\n[nr_vspace]"
+}
+
+c_pass 1 fmt_usage {cmd args} {c_hold synopsis "$cmd [join $args " "]\n[nr_vspace]"}
+c_pass 2 fmt_usage {cmd args} NOP
+
+c_pass 1 fmt_call  {cmd args} {c_hold synopsis       "$cmd [join $args " "]\n[nr_vspace]"}
+c_pass 2 fmt_call  {cmd args} {return "[fmt_lst_item "$cmd [join $args " "]"]"}
+
+c_pass 1 fmt_description {id} NOP
+c_pass 2 fmt_description {id} {
+    set text ""
+    if {[set syn [c_held synopsis]] != {}} {
+	append text [fmt_section SYNOPSIS]\n
+	append text ${syn}\n
+	append text [nr_bolde]\n
+    }
+    append text [fmt_section DESCRIPTION]
+    return $text
+}
+
+################################################################
+
+global    list_state
+array set list_state {level -1}
+
+proc fmt_list_begin {what {hint {}}} {
+    c_cinit
+    if {[dt_lnesting]} { return [nr_in] }
+    return {}
+}
+
+proc fmt_list_end {} {
+    c_creset
+    if {[dt_lnesting]} {
+	return [nr_out][nr_item]
+    } else {
+	return [nr_p]
+    }
+}
+
+proc fmt_enum     {}        {return [nr_item " \[[c_cnext]\]\n"]}
+proc fmt_bullet   {}        {return [nr_item " \1\\(bu\n"]}
+proc fmt_lst_item {text}    {return [nr_blt $text]\n}
+proc fmt_cmd_def  {command} {return [nr_blt [fmt_cmd $command]]\n}
+
+proc fmt_arg_def {type name {mode {}}} {
+    set    text [nr_blt ""]
+    append text "$type [fmt_arg $name]"
+    if {$mode != {}} {append text " ($mode)"}
+    return $text\n
+}
+proc fmt_opt_def {name {arg {}}} {
+    #if {[string match -* $name]} {set name \1\\$name}
+    set name [fmt_option $name]
+    if {$arg != {}} {append name " $arg"}
+    return [nr_blt $name]\n
+}
+proc fmt_tkoption_def {name dbname dbclass} {
+    set    text ""
+    append text "[nr_lp]\n"
+    append text "[nr_nofill]\n"
+    append text "[nr_ta " 6c"]\n"
+    append text "Command-Line Switch:\t[bold $name]\n"
+    append text "Database Name:\t[bold $dbname]\n"
+    append text "Database Class:\t[bold $dbclass]\n"
+    append text "[nr_fill]\n"
+    append text "[nr_item]\n"
+    return $text
+}
+
+################################################################
+
+proc fmt_example_begin {} {
+    global _in_example ; set _in_example 1
+    return [nr_cs]\n
+}
+proc fmt_example_end   {} {
+    global _in_example ; set _in_example 0
+    if {[dt_lnesting]} {
+	return [nr_ce][nr_item]
+    }
+    nr_ce
+}
+proc fmt_example {code} {
+    global _in_example ; set _in_example 1
+    set lines [list "" [nr_cs]]
+    foreach line [split $code "\n"] {
+    	lappend lines [fmt_plain_text $line]
+    }
+    lappend lines [nr_ce] ""
+    set _in_example 0
+    return [join $lines "\n"]
+}
+
+proc fmt_nl     {}     {nr_vspace}
+proc fmt_arg    {text} {underline $text}
+proc fmt_cmd    {text} {bold      $text}
+proc fmt_emph   {text} {underline $text}
+proc fmt_opt    {text} {return   ?$text?}
+
+proc bold {text} {
+    # .B don't work in .TP (nr_blt)
+    if {1||[string match *\n* $text]} {
+	return [nr_bld]$text[nr_rst]
+    } else {
+	return [nr_bldt $text]
+    }
+}
+proc underline {text} {
+    return [nr_ul]$text[nr_rst]
+}
+
+proc fmt_comment {text} {
+    set res [list]
+    foreach l [split $text \n] {
+	lappend res [nr_comment $l]
+    }
+    if {[c_begun]} {
+	return [join $res \n]
+    } else {
+	if {[c_inpass] == 1} {
+	    c_hold precomments [join $res \n]
+	}
+	return ""
+    }
+}
+proc fmt_sectref {text {label {}}} {
+    if {![string length $label]} {set label $text}
+    bold $text
+}
+proc fmt_syscmd  {text} {bold $text}
+proc fmt_method  {text} {bold $text}
+proc fmt_option  {text} {bold $text}
+proc fmt_widget  {text} {bold $text}
+proc fmt_fun     {text} {bold $text}
+proc fmt_type    {text} {bold $text}
+proc fmt_package {text} {bold $text}
+proc fmt_class   {text} {bold $text}
+proc fmt_var     {text} {bold $text}
+proc fmt_file    {text} {return "\"[underline $text]\""}
+proc fmt_namespace     {text} {bold $text}
+proc fmt_uri     {text {label {}}} {
+    if {$label == {}} {
+	# Without label we use the link directly as part of the text.
+	return [underline $text]
+    } else {
+	# with label and link we use the label directly, and the
+	# link comes in parentheses after that.
+
+	return "[underline $label] \[$text\]"
+    }
+}
+proc fmt_image {text {label {}}} {
+    # text = symbolic name of the image.
+
+    set img [dt_imgdata $text {pic}]
+    if {$img ne {}} {
+	return \n\1.PS\n$img\n\1.PE\n
+    }
+    set img [dt_imgdata $text {txt}]
+    if {$img ne {}} {
+	return \n\1.PS\n\1.nf\n$img\n\1.fi\n\1.PE\n
+    }
+    if {$label eq {}} {
+	return "IMAGE: $text"
+    } else {
+	return "IMAGE: $text $label"
+    }
+}
+proc fmt_term    {text} {underline $text}
+proc fmt_const   {text} {bold $text}
+
+proc fmt_mdash {} { return " \1\\(em\n" }
+proc fmt_ndash {} { return " \1\\(en\n" }
+
+################################################################

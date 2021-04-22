@@ -1,0 +1,47 @@
+
+[//000000001]: # (test\-definition\-examples \- )
+[//000000002]: # (Generated from file '\.FILE\.' by tcllib/doctools with format 'markdown')
+[//000000003]: # (Copyright &copy; \.COPYRIGHT\.)
+[//000000004]: # (test\-definition\-examples\(1\) n \.MODULE\. "")
+
+# NAME
+
+test\-definition\-examples \-
+
+# <a name='toc'></a>Table Of Contents
+
+  - [Table Of Contents](#toc)
+
+  - [Description](#section1)
+
+  - [Copyright](#copyright)
+
+# <a name='description'></a>DESCRIPTION
+
+lorem ipsum dolores
+
+  - lorem
+
+        A1 lorem ipsum dolores
+
+  - lorem
+
+    ipsum dolores
+
+        B2 lorem ipsum dolores
+
+    lorem ipsum dolores
+
+  - lorem
+
+    ipsum dolores
+
+        C3 lorem ipsum dolores
+
+  - lorem
+
+    ipsum dolores
+
+# <a name='copyright'></a>COPYRIGHT
+
+Copyright &copy; \.COPYRIGHT\.

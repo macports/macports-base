@@ -1,0 +1,148 @@
+
+[//000000001]: # (ALL \- \.\.THE\_MODULE\.\.)
+[//000000002]: # (Generated from file '\.FILE\.' by tcllib/doctools with format 'markdown')
+[//000000003]: # (Copyright &copy; \*\*Copyright\*\*)
+[//000000004]: # (ALL\(a\) 5 \.MODULE\. "\.\.THE\_MODULE\.\.")
+
+# NAME
+
+ALL \- \.\.THE\_TITLE\.\.
+
+# <a name='toc'></a>Table Of Contents
+
+  - [Table Of Contents](#toc)
+
+  - [Synopsis](#synopsis)
+
+  - [Description](#section1)
+
+  - [API](#section2)
+
+      - [NARGLE](#subsection1)
+
+  - [See Also](#seealso)
+
+  - [Keywords](#keywords)
+
+  - [Copyright](#copyright)
+
+# <a name='synopsis'></a>SYNOPSIS
+
+package require AAA  
+package require BBB VVV  
+package require CCC ?VVV?  
+
+[CMDNAME \.\.\.](#1)  
+[CMDNAME \.\.\.](#2)  
+[CMDNAME \.\.\.](#3)  
+
+# <a name='description'></a>DESCRIPTION
+
+  - __NAME__
+
+    DESCRIPTION ::__Command__::
+
+  - __NAME__
+
+    DESCRIPTION ::::
+
+  - __NAME__
+
+    DESCRIPTION ::__Constant__::
+
+# <a name='section2'></a>API
+
+  - TERM
+
+    DESCRIPTION ::*Emphasis*::
+
+  - TERM
+
+    DESCRIPTION ::"File/Path"::
+
+      * Command\-Line Switch:	__NAME__  
+        Database Name:	__DBNAME__  
+        Database Class:	__CLASS__
+
+        DESCRIPTION [NARGLE](#subsection1)
+
+      * Command\-Line Switch:	__NAME__  
+        Database Name:	__DBNAME__  
+        Database Class:	__CLASS__
+
+        DESCRIPTION ::__Function__::
+
+      * Command\-Line Switch:	__NAME__  
+        Database Name:	__DBNAME__  
+        Database Class:	__CLASS__
+
+        DESCRIPTION ::__Method__::
+
+  - TERM
+
+    DESCRIPTION
+
+  - <a name='1'></a>CMDNAME \.\.\.
+
+    DESCRIPTION ::__Namespace__::
+
+      * TYPE *NAME*
+
+        DESCRIPTION ::*Argument*::
+
+      * TYPE *NAME*
+
+        DESCRIPTION ::__Option__::
+
+      * TYPE *NAME* \(MODE\)
+
+        DESCRIPTION ::?Optional?::
+
+            THE ARGUMENT IS USED IN THIS
+            AND/OR THAT MANNER
+
+  - <a name='2'></a>CMDNAME \.\.\.
+
+    DESCRIPTION ::__Package__::
+
+  - <a name='3'></a>CMDNAME \.\.\.
+
+    DESCRIPTION ::__SystemCommand__::
+
+      * __NAME__
+
+        DESCRIPTION ::*Term*::
+
+      * __NAME__
+
+        DESCRIPTION ::__Type__::
+
+      * __NAME__ ARGUMENT
+
+        DESCRIPTION ::[Uri](Uri)::
+
+## <a name='subsection1'></a>NARGLE
+
+  1. PARAGRAPH ::[UriLabel](Uri)::
+
+  1. PARAGRAPH ::__Variable__::
+
+  1. PARAGRAPH ::__Widget__::
+
+       - PARAGRAPH ::__Class__::
+
+       - PARAGRAPH
+
+       - PARAGRAPH
+
+# <a name='seealso'></a>SEE ALSO
+
+ELSE, OTHER
+
+# <a name='keywords'></a>KEYWORDS
+
+KEYA, KEYZ
+
+# <a name='copyright'></a>COPYRIGHT
+
+Copyright &copy; \*\*Copyright\*\*

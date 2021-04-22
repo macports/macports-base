@@ -1,0 +1,1307 @@
+'\"
+'\" Generated from file 'tcllib_devguide\&.man' by tcllib/doctools with format 'nroff'
+'\"
+.TH "tcllib_devguide" n 1 tcllib ""
+.\" The -*- nroff -*- definitions below are for supplemental macros used
+.\" in Tcl/Tk manual entries.
+.\"
+.\" .AP type name in/out ?indent?
+.\"	Start paragraph describing an argument to a library procedure.
+.\"	type is type of argument (int, etc.), in/out is either "in", "out",
+.\"	or "in/out" to describe whether procedure reads or modifies arg,
+.\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+.\"	needed;  use .AS below instead)
+.\"
+.\" .AS ?type? ?name?
+.\"	Give maximum sizes of arguments for setting tab stops.  Type and
+.\"	name are examples of largest possible arguments that will be passed
+.\"	to .AP later.  If args are omitted, default tab stops are used.
+.\"
+.\" .BS
+.\"	Start box enclosure.  From here until next .BE, everything will be
+.\"	enclosed in one large box.
+.\"
+.\" .BE
+.\"	End of box enclosure.
+.\"
+.\" .CS
+.\"	Begin code excerpt.
+.\"
+.\" .CE
+.\"	End code excerpt.
+.\"
+.\" .VS ?version? ?br?
+.\"	Begin vertical sidebar, for use in marking newly-changed parts
+.\"	of man pages.  The first argument is ignored and used for recording
+.\"	the version when the .VS was added, so that the sidebars can be
+.\"	found and removed when they reach a certain age.  If another argument
+.\"	is present, then a line break is forced before starting the sidebar.
+.\"
+.\" .VE
+.\"	End of vertical sidebar.
+.\"
+.\" .DS
+.\"	Begin an indented unfilled display.
+.\"
+.\" .DE
+.\"	End of indented unfilled display.
+.\"
+.\" .SO ?manpage?
+.\"	Start of list of standard options for a Tk widget. The manpage
+.\"	argument defines where to look up the standard options; if
+.\"	omitted, defaults to "options". The options follow on successive
+.\"	lines, in three columns separated by tabs.
+.\"
+.\" .SE
+.\"	End of list of standard options for a Tk widget.
+.\"
+.\" .OP cmdName dbName dbClass
+.\"	Start of description of a specific option.  cmdName gives the
+.\"	option's name as specified in the class command, dbName gives
+.\"	the option's name in the option database, and dbClass gives
+.\"	the option's class in the option database.
+.\"
+.\" .UL arg1 arg2
+.\"	Print arg1 underlined, then print arg2 normally.
+.\"
+.\" .QW arg1 ?arg2?
+.\"	Print arg1 in quotes, then arg2 normally (for trailing punctuation).
+.\"
+.\" .PQ arg1 ?arg2?
+.\"	Print an open parenthesis, arg1 in quotes, then arg2 normally
+.\"	(for trailing punctuation) and then a closing parenthesis.
+.\"
+.\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+.\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \{\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \{\
+\&\\$1 \\fI\\$2\\fP (\\$3)
+.\".b
+.\}
+.el \{\
+.br
+.ie !"\\$2"" \{\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \{\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+.\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+.\"	# BS - start boxed text
+.\"	# ^y = starting y location
+.\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+.\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \{\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \{\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+.\"	# VS - start vertical sidebar
+.\"	# ^Y = starting y location
+.\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+.\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \{\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+.\"	# Special macro to handle page bottom:  finish off current
+.\"	# box/sidebar if in box/sidebar mode, then invoked standard
+.\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \{\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \{\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \{\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \{\
+.mk ^Y
+.\}
+..
+.\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+.\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+.\"	# SO - start of list of standard options
+.de SO
+'ie '\\$1'' .ds So \\fBoptions\\fR
+'el .ds So \\fB\\$1\\fR
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+.\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\*(So manual entry for details on the standard options.
+..
+.\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.\"	# UL - underline word
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.\"	# QW - apply quotation marks to word
+.de QW
+.ie '\\*(lq'"' ``\\$1''\\$2
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\$2
+..
+.\"	# PQ - apply parens and quotation marks to word
+.de PQ
+.ie '\\*(lq'"' (``\\$1''\\$2)\\$3
+.\"" fix emacs highlighting
+.el (\\*(lq\\$1\\*(rq\\$2)\\$3
+..
+.\"	# QR - quoted range
+.de QR
+.ie '\\*(lq'"' ``\\$1''\\-``\\$2''\\$3
+.\"" fix emacs highlighting
+.el \\*(lq\\$1\\*(rq\\-\\*(lq\\$2\\*(rq\\$3
+..
+.\"	# MT - "empty" string
+.de MT
+.QW ""
+..
+.BS
+.SH NAME
+tcllib_devguide \- Tcllib - The Developer's Guide
+.SH SYNOPSIS
+\fBModule\fR \fIname\fR \fIcode-action\fR \fIdoc-action\fR \fIexample-action\fR
+.sp
+\fBApplication\fR \fIname\fR
+.sp
+\fBExclude\fR \fIname\fR
+.sp
+.BE
+.SH DESCRIPTION
+Welcome to Tcllib, the Tcl Standard Library\&. Note that Tcllib is not a
+package itself\&. It is a collection of (semi-independent) \fITcl\fR
+packages that provide utility functions useful to a large collection
+of Tcl programmers\&.
+.PP
+This document is a guide for developers working on Tcllib,
+i\&.e\&. maintainers fixing bugs, extending the collection's
+functionality, etc\&.
+.PP
+Please read
+.IP [1]
+\fITcllib - How To Get The Sources\fR and
+.IP [2]
+\fITcllib - The Installer's Guide\fR
+.PP
+first, if that was not done already\&.
+.PP
+Here we assume that the sources are already available in a
+directory of your choice, and that you not only know how to build and
+install them, but also have all the necessary requisites to actually
+do so\&. The guide to the sources in particular also explains which
+source code management system is used, where to find it, how to set it
+up, etc\&.
+.SH COMMITMENTS
+.SS CONTRIBUTOR
+As a contributor to Tcllib you are committing yourself to:
+.IP [1]
+keep the guidelines written down in
+\fITcl Community - Kind Communication\fR in your mind\&.
+The main point to take away from there is
+\fIto be kind to each other\fR\&.
+.IP [2]
+Your contributions getting distributed under a BSD/MIT license\&.
+For the details see \fITcllib - License\fR
+.PP
+Contributions are made by entering tickets into our tracker, providing
+patches, bundles or branches of code for inclusion, or posting to the
+Tcllib related mailing lists\&.
+.SS MAINTAINER
+When contributing one or more packages for full inclusion into Tcllib
+you are committing yourself to
+.IP [1]
+Keep the guidelines written down in
+\fITcl Community - Kind Communication\fR
+(as any contributor) in your mind\&. The main point to take away
+from there is \fIto be kind to each other\fR\&.
+.IP [2]
+Your packages getting distributed under a BSD/MIT license\&.  For
+the details see \fITcllib - License\fR
+.IP [3]
+Maintenance of the new packages for a period of two years under
+the following rules, and responsibilities:
+.RS
+.IP [1]
+A maintainer may step down after the mandatory period as
+they see fit\&.
+.IP [2]
+A maintainer may step down before the end of the
+mandatory period, under the condition that a replacement
+maintainer is immediately available and has agreed to
+serve the remainder of the period, plus their own
+mandatory period (see below)\&.
+.IP [3]
+When stepping down without a replacement maintainer
+taking over the relevant packages have to be flagged as
+\fBunmaintained\fR\&.
+.IP [4]
+When a replacement mantainer is brought in for a package
+it is (kept) marked as \fBmaintained\fR (again)\&.
+.sp
+A replacement maintainer is bound by the same rules as
+the original maintainer, except that the mandatory
+period of maintenance is shortened to one year\&.
+.IP [5]
+For any \fBunmaintained\fR package a contributor
+interested in becoming its maintainer can become so by
+flagging them as \fBmaintained\fR with their name and
+contact information, committing themselves to the rules
+of a replacement maintainer (see previous point)\&.
+.IP [6]
+For any already \fBmaintained\fR package a contributor
+interested in becoming a co-maintainer can become so
+with the agreement of the existing maintainer(s),
+committing themselves to the rules of a replacement
+maintainer (see two points previous)\&.
+.RE
+.sp
+The responsibilities as a maintainer include:
+.RS
+.IP [1]
+Watching Tcllib's ticket tracker for bugs, bug fixes,
+and feature requests related to the new packages\&.
+.IP [2]
+Reviewing the aforementioned tickets, rejecting or
+applying them
+.IP [3]
+Coordination and discussion with ticket submitter during
+the development and/or application of bug fixes\&.
+.RE
+.IP [4]
+Follow the \fBBranching and Workflow\fR of this guide\&.
+.PP
+.SH "BRANCHING AND WORKFLOW"
+.SS "PACKAGE DEPENDENCIES"
+Regarding packages and dependencies between them Tcllib occupies a
+middle position between two extremes:
+.IP [1]
+On one side a strongly interdependent set of packages, usually
+by a single author, for a single project\&. Looking at my
+(Andreas Kupries) own work examples of such are
+\fIMarpa\fR [https://core\&.tcl\&.tk/akupries/marpa/index],
+\fICRIMP\fR [https://core\&.tcl\&.tk/akupries/crimp/index],
+\fIKinetcl\fR [https://core\&.tcl\&.tk/akupries/kinetcl/index], etc\&.
+.sp
+For every change the author of the project handles all the
+modifications cascading from any incompatibilities it
+introduced to the system\&.
+.IP [2]
+On the other side, the world of semi-independent projects by
+many different authors where authors know what packages their
+own creations depend on, yet usually do not know who else
+depends on them\&.
+.sp
+The best thing an author making an (incompatible) change to
+their project can do is to for one announce such changes in
+some way, and for two use versioning to distinguish the code
+before and after the change\&.
+.sp
+The world is then responsible for adapting, be it by updating
+their own projects to the new version, or by sticking to the
+old\&.
+.PP
+As mentioned already, Tcllib lives in the middle of that\&.
+.PP
+While we as maintainers cannot be aware of all users of
+Tcllib's packages, and thus have to rely on the mechanisms
+touched on in point 2 above for that, the dependencies between
+the packages contained in Tcllib are a different matter\&.
+.PP
+As we are collectively responsible for the usability of Tcllib
+in toto to the outside world, it behooves us to be individually
+mindful even of Tcllib packages we are not directly
+maintaining, when they depend on packages under our
+maintainership\&.
+This may be as simple as coordinating with the maintainers of
+the affected packages\&.
+It may also require us to choose how to adapt affected packages
+which do not have maintainers, i\&.e\&. modify them to use our
+changed package properly, or modify them to properly depend on
+the unchanged version of our package\&.
+.PP
+Note that the above is not only a chore but an opportunity as
+well\&.
+Additional insight can be had by forcing ourselves to look at
+our package and the planned change(s) from an outside
+perspective, to consider the ramifications of our actions on
+others in general, and on dependent packages in particular\&.
+.SS TRUNK
+The management and use of branches is an important part of working
+with a \fIDistributed Version Control System\fR (\fIDVCS\fR) like
+\fIfossil\fR [https://www\&.fossil-scm\&.org/]\&.
+.PP
+For Tcllib the main branch of the collection is
+\fItrunk\fR\&. In \fIgit\fR this branch would be called
+\fImaster\fR, and this is exactly the case in the
+\fIgithub mirror\fR [https://github\&.com/tcltk/tcllib/] of
+Tcllib\&.
+.PP
+To properly support debugging \fIeach commit\fR on this
+branch \fIhas to pass the entire testsuite\fR of the
+collection\&. Using bisection to determine when an issue appeared
+is an example of an action made easier by this constraint\&.
+.PP
+This is part of our collective responsibility for the usability
+of Tcllib in toto to the outside world\&.
+As \fIfossil\fR has no mechanism to enforce this condition
+this is handled on the honor system for developers and maintainers\&.
+.PP
+To make the task easier Tcllib comes with a tool
+("\fIsak\&.tcl\fR") providing a number of commands in
+support\&. These commands are explained in the following sections
+of this guide\&.
+.PP
+While it is possible and allowed to commit directly to trunk
+remember the above constraint regarding the testsuite, and the
+coming notes about other possible issues with a commit\&.
+.SS BRANCHES
+Given the constraints placed on the \fItrunk\fR branch of the
+repository it is (strongly) recommended to perform any development
+going beyond trivial changes on a non-trunk branch\&.
+.PP
+Outside of the trunk developers are allowed to commit
+intermediate broken states of their work\&.
+Only at the end of a development cycle, when the relevant
+branch is considered ready for merging, will it be necessary to
+perform full the set of validations ensuring that the merge to
+come will create a good commit on trunk\&.
+.PP
+Note that while a review from a second developer is not a
+required condition for merging a branch it is recommended to
+seek out such an independent opinion as a means of
+cross-checking the work\&.
+.PP
+It also recommended to give any new branch a name which aids in
+determining additional details about it\&. Examples of good
+things to stick into a branch name would be
+.IP \(bu
+Developer (nick)name
+.IP \(bu
+Ticket hash/reference
+.IP \(bu
+One or two keywords applicable to the work
+.IP \(bu
+\&.\&.\&.
+.PP
+.PP
+Further, while most development branches are likely quite
+short-lived, no prohibitions exist against making longer-lived
+branches\&.
+Creators should however be mindful that the longer such a
+branch exists without merges the more divergent they will tend
+to be, with an associated increase in the effort which will
+have to be spent on either merging from and merging to trunk\&.
+.SS "WORKING WITH BRANCHES"
+In the hope of engendering good work practices now a few example
+operations which will come up with branches, and their associated
+fossil command (sequences)\&.
+.TP
+\fIAwareness\fR
+When developing we have to keep ourselves aware of the context of our
+work\&. On what branch are we ? What files have we changed ? What new
+files are not yet known to the repository ? What has happened remotely
+since we used our checkout ?
+The answers to these questions become especially important when using
+a long-lived checkout and coming back to it after some time away\&.
+.sp
+Commands to answer questions like the above are:
+.RS
+.TP
+\fBfossil pull\fR
+Get all changes done on the remote since the last pull or sync
+from it\&. This has to be done first, before any of the commands
+below\&.
+.sp
+Even if the commit in our checkout refers to the branch we want
+right now control operations committed to the remote may have
+changed that from underneath us\&.
+.TP
+\fBfossil info | grep tags\fR
+.TP
+\fBfossil branch list | grep '\\*'\fR
+Two different ways of determining the branch our checkout is
+on\&.
+.TP
+\fBfossil timeline\fR
+What have we (and others) done recently ?
+.sp
+\fIAttention\fR, this information is very likely outdated, the
+more the longer we did not use this checkout\&.
+Run \fBfossil pull\fR first to get latest information from
+the remote repository of the project\&.
+.TP
+\fBfossil timeline current\fR
+Place the commit our checkout is based on at the top of the
+timeline\&.
+.TP
+\fBfossil changes\fR
+Lists the files we have changed compared to the commit the
+checkout is based on\&.
+.TP
+\fBfossil extra\fR
+Lists the files we have in the checkout the repository does not
+know about\&. This may be leftover chaff from our work, or
+something we have forgotten to \fBfossil add\fR to the
+repository yet\&.
+.RE
+.TP
+\fIClean checkouts\fR
+Be aware of where you are (see first definition)\&.
+.sp
+For pretty much all the operation recipes below a clean
+checkout is at least desired, often required\&.
+To check that a checkout is clean invoke
+.CS
+
+
+    fossil changes
+    fossil extra
+
+.CE
+.IP
+How to clean up when uncommitted changes of all sorts are found is
+context-specific and outside of the scope of this guide\&.
+.TP
+\fIStarting a new branch\fR
+Be aware of where you are (see first definition)\&.
+.sp
+Ensure that you have clean checkout (see second definition)\&.
+It is \fIrequired\fR\&.
+.sp
+In most situations you want to be on branch \fItrunk\fR, and
+you want to be on the latest commit for it\&. To get there use
+.CS
+
+
+    fossil pull
+    fossil update trunk
+
+.CE
+.IP
+If some other branch is desired as the starting point for the coming
+work replace \fItrunk\fR in the commands above with the name of that
+branch\&.
+.sp
+With the base line established we now have two ways of creating
+the new branch, with differing (dis)advantages\&.
+The simpler way is to
+.CS
+
+
+    fossil branch new NAME_OF_NEW_BRANCH
+
+.CE
+.IP
+and start developing\&. The advantage here is that you cannot forget to
+create the branch\&. The disadvantages are that we have a branch commit
+unchanged from where we branched from, and that we have to use
+high-handed techniques like hiding or shunning to get rid of the
+commit should we decide to abandon the work before the first actual
+commit on the branch\&.
+.sp
+The other way of creating the branch is to start developing,
+and then on the first commit use the option \fB--branch\fR to tell
+\fBfossil\fR that we are starting a branch now\&. I\&.e\&. run
+.CS
+
+
+    fossil commit --branch NAME_OF_NEW_BRANCH \&.\&.\&.
+
+.CE
+.IP
+where \fI\&.\&.\&.\fR are any other options used to supply the commit
+message, files to commit, etc\&.
+.sp
+The (dis)advantages are now reversed\&.
+.sp
+We have no superflous commit, only what is actually
+developed\&. The work is hidden until we commit to make our first
+commit\&.
+.sp
+We may forget to use \fB--branch NAME_OF_NEW_BRANCH\fR and
+then have to correct that oversight via the fossil web
+interface (I am currently unaware of ways of doing such from
+the command line, although some magic incantantion of
+\fBfossil tag create\fR may work)\&.
+.sp
+It helps to keep awareness, like checking before any commit
+that we are on the desired branch\&.
+.TP
+\fIMerging a branch into trunk\fR
+Be aware of where you are (see first definition)\&.
+.sp
+Ensure that you have clean checkout (see second definition)\&.
+In the full-blown sequence (zig-zag) it is \fIrequired\fR, due
+to the merging from trunk\&. In the shorter sequence it is only
+desired\&. That said, keeping the checkout clean before
+any major operations is a good habit to have, in my opinion\&.
+.sp
+The full-blown sequencing with checks all the way is to
+.RS
+.IP [1]
+Validate the checkout, i\&.e\&. last commit on your branch\&. Run the
+full test suite and other validations, fix all the issues which
+have cropped up\&.
+.IP [2]
+Merge the latest state of the \fItrunk\fR (see next definition)\&.
+.IP [3]
+Validate the checkout again\&. The incoming trunk changes may
+have broken something now\&. Do any required fixes\&.
+.IP [4]
+Now merge to the trunk using
+.CS
+
+
+    fossil update trunk
+    fossil merge --integrate YOUR_BRANCH
+
+.CE
+.IP [5]
+At this point the checkout should be in the same state as at
+the end of point (3) above, because we resolved any issues with
+the trunk already\&. Thus a simple
+.CS
+
+
+    fossil commit \&.\&.\&.
+
+.CE
+.IP
+should be sufficient now to commit the merge back and close the
+branch (due to the \fB--integrate\fR we used on the merge)\&.
+.sp
+The more paranoid may validate the checkout a third time before
+commiting\&.
+.RE
+.sp
+I call this a \fIzig-zag merge\fR because of how the arrows
+look in the timeline, from trunk to feature branch for the
+first merge, and then back for the final merge\&.
+.sp
+A less paranoid can do what I call a \fIsimple merge\fR,
+which moves step (2) after step (4) and skips step (3)
+entirely\&. The resulting shorter sequence is
+.RS
+.IP [1]
+Validate
+.IP [2]
+Merge to trunk
+.IP [3]
+Validate again
+.IP [4]
+Commit to trunk
+.RE
+.IP
+The last step after either zig-zag or plain merge is to
+.CS
+
+
+    fossil sync
+
+.CE
+.IP
+This saves our work to the remote side, and further gives us any other
+work done while we were doing our merge\&. It especially allows us to
+check if we raced somebody else, resulting in a split trunk\&.
+.sp
+When that happens we should coordinate with the other developer
+on who fixes the split, to ensure that we do not race each
+other again\&.
+.TP
+\fIMerging from trunk\fR
+Be aware of where you are (see first definition)\&.
+.sp
+Ensure that you have clean checkout (see second definition)\&.
+It is \fIrequired\fR\&.
+.sp
+In most situations you want to import the latest commit of
+branch \fItrunk\fR (or other origin)\&. To get it use
+.CS
+
+
+    fossil pull
+
+.CE
+.sp
+With that done we can now import this commit into our current
+branch with
+.CS
+
+
+    fossil merge trunk
+
+.CE
+.sp
+Even if \fBfossil\fR does not report any conflicts it is a
+good idea to check that the operation has not broken the new
+and/or changed functionality we are working on\&.
+.sp
+With the establishment of a good merge we then save the state
+with
+.CS
+
+
+    fossil commit \&.\&.\&.
+
+.CE
+.IP
+before continuing development\&.
+.PP
+.SS "VERSION NUMBERS"
+In Tcllib all changes to a package have to come with an increment of
+its version number\&. What part is incremented (patchlevel, minor, major
+version) depends on the kind of change made\&. With multiple changes in
+a commit the highest "wins"\&.
+.PP
+When working in a development branch the version change can be
+deferred until it is time to merge, and then has to cover all
+the changes in the branch\&.
+.PP
+Below a list of the kinds of changes and their associated
+version increments:
+.TP
+\fID - documentation\fR
+No increment
+.TP
+\fIT - testsuite\fR
+No increment
+.TP
+\fIB - bugfix\fR
+Patchlevel
+.TP
+\fII - implementation tweak\fR
+Patchlevel
+.TP
+\fIP - performance tweak\fR
+Patchlevel
+.TP
+\fIE - backward-compatible extension\fR
+Minor
+.TP
+\fIAPI - incompatible change\fR
+Major
+.PP
+.PP
+Note that a commit containing a version increment has to
+mention the new version number in its commit message, as well
+as the kind of change which caused it\&.
+.PP
+Note further that the version number of a package currently
+exists in three places\&. An increment has to update all of them:
+.IP [1]
+The package implementation\&.
+.IP [2]
+The package index ("\fIpkgIndex\&.tcl\fR")
+.IP [3]
+The package documentation\&.
+.PP
+.PP
+The "\fIsak\&.tcl\fR" command \fBvalidate version\fR helps
+finding discrepancies between the first two\&.
+All the other \fBvalidate\fR methods are also of interest to
+any developer\&. Invoke it with
+.CS
+
+ sak\&.tcl help validate
+.CE
+to see their documentation\&.
+.SH "STRUCTURAL OVERVIEW"
+.SS "MAIN DIRECTORIES"
+The main directories in the Tcllib toplevel directory and of interest
+to a developer are:
+.TP
+"\fImodules\fR"
+Each child directory represents one or more packages\&.
+In the case of the latter the packages are usually related in some
+way\&. Examples are "\fIbase64\fR", "\fImath\fR", and "\fIstruct\fR", with
+loose (base64) to strong (math) relations between the packages in the
+directory\&.
+.TP
+"\fIapps\fR"
+This directory contains all the installable applications, with their
+documentation\&. Note that this directory is currently \fInot\fR split
+into sub-directories\&.
+.TP
+"\fIexamples\fR"
+Each child directory "\fIfoo\fR" contains one or more example
+application for the packages in "\fImodules/foo\fR"\&. These examples are
+generally not polished enough to be considered for installation\&.
+.PP
+.SS "MORE DIRECTORIES"
+.TP
+"\fIconfig\fR"
+This directory contains files supporting the Unix build system,
+i\&.e\&. "\fIconfigure\fR" and "\fIMakefile\&.in\fR"\&.
+.TP
+"\fIdevdoc\fR"
+This directories contains the doctools sources for the global
+documentation, like this document and its sibling guides\&.
+.TP
+"\fIembedded\fR"
+This directory contains the entire documentation formatted for
+\fIHTML\fR and styled to properly mix into the web site generated by
+fossil for the repository\&.
+.sp
+This is the documentation accessible from the Tcllib home
+directory, represented in the repository as "\fIembedded/index\&.md\fR"\&.
+.TP
+"\fIidoc\fR"
+This directory contains the entire documentation formatted for
+\fInroff\fR and \fIHTML\fR, the latter without any styling\&.
+This is the documentation which will be installed\&.
+.TP
+"\fIsupport\fR"
+This directory contains the sources of internal packages and utilities
+used in the implementation of the "\fIinstaller\&.tcl\fR" and
+"\fIsak\&.tcl\fR" scripts/tools\&.
+.PP
+.SS "TOP FILES"
+.TP
+"\fIaclocal\&.m4\fR"
+.TP
+"\fIconfigure\fR"
+.TP
+"\fIconfigure\&.in\fR"
+.TP
+"\fIMakefile\&.in\fR"
+These four files comprise the Unix build system layered on top of the
+"\fIinstaller\&.tcl\fR" script\&.
+.TP
+"\fIinstaller\&.tcl\fR"
+The Tcl-based installation script/tool\&.
+.TP
+"\fIproject\&.shed\fR"
+Configuration file for \fISean Wood\fR's \fBPracTcl\fR
+buildsystem\&.
+.TP
+"\fIsak\&.tcl\fR"
+This is the main tool for developers and release managers, the
+\fISwiss Army Knife\fR of management operations on the collection\&.
+.TP
+"\fIChangeLog\fR"
+The log of changes to the global support, when the sources were held
+in \fICVS\fR\&. Not relevant any longer with the switch to the
+\fIfossil\fR SCM\&.
+.TP
+"\fIlicense\&.terms\fR"
+The license in plain ASCII\&. See also \fITcllib - License\fR for the
+nicely formatted form\&. The text is identical\&.
+.TP
+"\fIREADME\&.md\fR"
+.TP
+"\fI\&.github/CONTRIBUTING\&.md\fR"
+.TP
+"\fI\&.github/ISSUE_TEMPLATE\&.md\fR"
+.TP
+"\fI\&.github/PULL_REQUEST_TEMPLATE\&.md\fR"
+These markdown-formatted documents are used and shown by the github
+mirror of these sources, pointing people back to the official location
+and issue trackers\&.
+.TP
+"\fIDESCRIPTION\&.txt\fR"
+.TP
+"\fISTATUS\fR"
+.TP
+"\fItcllib\&.spec\fR"
+.TP
+"\fItcllib\&.tap\fR"
+.TP
+"\fItcllib\&.yml\fR"
+????
+.PP
+.SS "FILE TYPES"
+The most common file types, by file extension, are:
+.TP
+"\fI\&.tcl\fR"
+Tcl code for a package, application, or example\&.
+.TP
+"\fI\&.man\fR"
+Doctools-formatted documentation, usually for a package\&.
+.TP
+"\fI\&.test\fR"
+Test suite for a package, or part of\&.
+Based on \fBtcltest\fR\&.
+.TP
+"\fI\&.bench\fR"
+Performance benchmarks for a package, or part of\&.
+Based on "\fImodules/bench\fR"\&.
+.TP
+"\fI\&.pcx\fR"
+Syntax rules for \fITclDevKit\fR's \fBtclchecker\fR\&. Using these
+rules allows the checker to validate the use of commands of a Tcllib
+package \fBfoo\fR without having to scan the "\fI\&.tcl\fR" files
+implementing it\&.
+.PP
+.SH "TESTSUITE TOOLING"
+Testsuites in Tcllib are based on Tcl's standard test package
+\fBtcltest\fR, plus utilities found in the directory
+"\fImodules/devtools\fR"
+.PP
+Tcllib developers invoke the suites through the
+\fBtest run\fR method of the "\fIsak\&.tcl\fR" tool, with other methods
+of \fBtest\fR providing management operations, for example setting a
+list of standard Tcl shells to use\&.
+.SS "INVOKE THE TESTSUITES OF A SPECIFIC MODULE"
+Invoke either
+.CS
+
+  \&./sak\&.tcl test run foo
+.CE
+or
+.CS
+
+  \&./sak\&.tcl test run modules/foo
+.CE
+to invoke the testsuites found in a specific module "\fIfoo\fR"\&.
+.SS "INVOKE THE TESTSUITES OF ALL MODULES"
+Invoke the tool without a module name, i\&.e\&.
+.CS
+
+  \&./sak\&.tcl test run
+.CE
+to invoke the testsuites of all modules\&.
+.SS "DETAILED TEST LOGS"
+In all the previous examples the test runner will write a combination
+of progress display and testsuite log to the standard output, showing
+for each module only the tests that passed or failed and how many of
+each in a summary at the end\&.
+.PP
+To get a detailed log, it is necessary to invoke the test
+runner with additional options\&.
+.PP
+For one:
+.CS
+
+
+   \&./sak\&.tcl test run --log LOG foo
+
+.CE
+While this shows the same short log on the terminal as before, it also
+writes a detailed log to the file "\fILOG\&.log\fR", and excerpts to
+other files ("\fILOG\&.summary\fR", "\fILOG\&.failures\fR", etc\&.)\&.
+.PP
+For two:
+.CS
+
+
+  \&./sak\&.tcl test run -v foo
+
+.CE
+This writes the detailed log to the standard output, instead of the
+short log\&.
+.PP
+Regardless of form, the detailed log contains a list of all test
+cases executed, which failed, and how they failed (expected versus
+actual results)\&.
+.SS "SHELL SELECTION"
+By default the test runner will use all the Tcl shells specified via
+\fBtest add\fR to invoke the specified testsuites, if any\&. If no
+such are specified it will fall back to the Tcl shell used to run the
+tool itself\&.
+.PP
+Use option \fB--shell\fR to explicitly specify the Tcl shell
+to use, like
+.CS
+
+
+  \&./sak\&.tcl test run --shell /path/to/tclsh \&.\&.\&.
+
+.CE
+.SS HELP
+Invoke the tool as
+.CS
+
+  \&./sak\&.tcl help test
+.CE
+to see the detailed help for all methods of \fBtest\fR, and the
+associated options\&.
+.SH "DOCUMENTATION TOOLING"
+The standard format used for documentation of packages and other
+things in Tcllib is \fIdoctools\fR\&.
+Its supporting packages are a part of Tcllib, see the directories
+"\fImodules/doctools\fR" and "\fImodules/dtplite\fR"\&. The latter is
+an application package, with the actual application
+"\fIapps/dtplite\fR" a light wrapper around it\&.
+.PP
+Tcllib developers gain access to these through the \fBdoc\fR
+method of the "\fIsak\&.tcl\fR" tool, another (internal) wrapper around
+the "\fImodules/dtplite\fR" application package\&.
+.SS "GENERATE DOCUMENTATION FOR A SPECIFIC MODULE"
+Invoke either
+.CS
+
+  \&./sak\&.tcl doc html foo
+.CE
+or
+.CS
+
+  \&./sak\&.tcl doc html modules/foo
+.CE
+to generate HTML for the documentation found in the module "\fIfoo\fR"\&.
+Instead of \fBhtml\fR any other supported format can be used here,
+of course\&.
+.PP
+The generated formatted documentation will be placed into a
+directory "\fIdoc\fR" in the current working directory\&.
+.SS "GENERATE DOCUMENTATION FOR ALL MODULES"
+Invoke the tool without a module name, i\&.e\&.
+.CS
+
+  \&./sak\&.tcl doc html
+.CE
+to generate HTML for the documentation found in all modules\&.
+Instead of \fBhtml\fR any other supported format can be used here,
+of course\&.
+.PP
+The generated formatted documentation will be placed into a
+directory "\fIdoc\fR" in the current working directory\&.
+.SS "AVAILABLE OUTPUT FORMATS, HELP"
+Invoke the tool as
+.CS
+
+  \&./sak\&.tcl help doc
+.CE
+to see the entire set of supported output formats which can be
+generated\&.
+.SS "VALIDATION WITHOUT OUTPUT"
+Note the special format \fBvalidate\fR\&.
+.PP
+Using this value as the name of the format to generate forces
+the tool to simply check that the documentation is syntactically
+correct, without generating actual output\&.
+.PP
+Invoke it as either
+.CS
+
+  \&./sak\&.tcl doc validate (modules/)foo
+.CE
+or
+.CS
+
+  \&./sak\&.tcl doc validate
+.CE
+to either check the packages of a specific module or check all of
+them\&.
+.SH "NOTES ON WRITING A TESTSUITE"
+While previous sections talked about running the testsuites for a
+module and the packages therein, this has no meaning if the module in
+question has no testsuites at all\&.
+.PP
+This section gives a very basic overview on possible
+methodologies for writing tests and testsuites\&.
+.PP
+First there are "drudgery" tests\&. Written to check absolutely
+basic assumptions which should never fail\&.
+.PP
+For example for a command FOO taking two arguments, three tests
+calling it with zero, one, and three arguments\&. The basic checks that
+the command fails if it has not enough arguments, or too many\&.
+.PP
+After that come the tests checking things based on our
+knowledge of the command, about its properties and assumptions\&. Some
+examples based on the graph operations added during Google's Summer of
+Code 2009 are:
+.IP \(bu
+The BellmanFord command in struct::graph::ops takes a
+\fIstartnode\fR as argument, and this node should be a node of
+the graph\&. This equals one test case checking the behavior when the
+specified node is not a node of the graph\&.
+.sp
+This often gives rise to code in the implementation which
+explicitly checks the assumption and throws an understandable error,
+instead of letting the algorithm fail later in some weird
+non-deterministic way\&.
+.sp
+It is not always possible to do such checks\&. The graph argument
+for example is just a command in itself, and while we expect
+it to exhibit a certain interface, i\&.e\&. a set of sub-commands
+aka methods, we cannot check that it has them, except by
+actually trying to use them\&. That is done by the algorithm
+anyway, so an explicit check is just overhead we can get by
+without\&.
+.IP \(bu
+IIRC one of the distinguishing characteristic of either
+BellmanFord and/or Johnson is that they are able to handle
+negative weights\&. Whereas Dijkstra requires positive weights\&.
+.sp
+This induces (at least) three testcases \&.\&.\&. Graph with all
+positive weights, all negative, and a mix of positive and
+negative weights\&.
+Thinking further does the algorithm handle the weight
+\fB0\fR as well ? Another test case, or several, if we mix
+zero with positive and negative weights\&.
+.IP \(bu
+The two algorithms we are currently thinking about are about
+distances between nodes, and distance can be 'Inf'inity,
+i\&.e\&. nodes may not be connected\&. This means that good test
+cases are
+.RS
+.IP [1]
+Strongly connected graph
+.IP [2]
+Connected graph
+.IP [3]
+Disconnected graph\&.
+.RE
+.sp
+At the extremes of strongly connected and disconnected
+we have the fully connected graphs and graphs without edges,
+only nodes, i\&.e\&. completely disconnected\&.
+.IP \(bu
+IIRC both of the algorithms take weighted arcs, and fill in a
+default if arcs are left unweighted in the input graph\&.
+.sp
+This also induces three test cases:
+.RS
+.IP [1]
+Graph will all arcs with explicit weights\&.
+.IP [2]
+Graph without weights at all\&.
+.IP [3]
+Graph with mixture of weighted and unweighted graphs\&.
+.RE
+.PP
+.PP
+What was described above via examples is called
+\fIblack-box\fR testing\&. Test cases are designed and written based on
+the developer's knowledge of the properties of the algorithm and its
+inputs, without referencing a particular implementation\&.
+.PP
+Going further, a complement to \fIblack-box\fR testing is
+\fIwhite-box\fR\&. For this we know the implementation of the
+algorithm, we look at it and design our tests cases so that they force
+the code through all possible paths in the implementation\&. Wherever a
+decision is made we have a test case forcing a specific direction of
+the decision, for all possible combinations and directions\&. It is easy
+to get a combinatorial explosion in the number of needed test-cases\&.
+.PP
+In practice I often hope that the black-box tests I have made
+are enough to cover all the paths, obviating the need for white-box
+tests\&.
+.PP
+The above should be enough to make it clear that writing tests
+for an algorithm takes at least as much time as coding the algorithm,
+and often more time\&. Much more time\&.
+See for example also \fIhttp://sqlite\&.org/testing\&.html\fR, a writeup
+on how the Sqlite database engine is tested\&. Another article of
+interest might be \fIhttps://www\&.researchgate\&.net/publication/298896236\fR\&.
+While geared to a particular numerical algorithm it still shows that
+even a simple-looking algorithm can lead to an incredible number of
+test cases\&.
+.PP
+An interesting connection is to documentation\&. In one
+direction, the properties checked with black-box testing are exactly
+the properties which should be documented in the algorithm's man
+page\&. And conversely, the documentation of the properties of an
+algorithm makes a good reference to base the black-box tests on\&.
+.PP
+In practice test cases and documentation often get written
+together, cross-influencing each other\&. And the actual writing of test
+cases is a mix of black and white box, possibly influencing the
+implementation while writing the tests\&. Like writing a test for a
+condition like \fIstartnode not in input graph\fR serving as
+reminder to put a check for this condition into the code\&.
+.SH "INSTALLATION TOOLING"
+A last thing to consider when adding a new package to the collection
+is installation\&.
+.PP
+How to \fIuse\fR the "\fIinstaller\&.tcl\fR" script is documented
+in \fITcllib - The Installer's Guide\fR\&.
+.PP
+Here we document how to extend said installer so that it may
+install new package(s) and/or application(s)\&.
+.PP
+In most cases only a single file has to be modified, the
+"\fIsupport/installation/modules\&.tcl\fR" holding one command per module
+and application to install\&.
+.PP
+The relevant commands are:
+.TP
+\fBModule\fR \fIname\fR \fIcode-action\fR \fIdoc-action\fR \fIexample-action\fR
+Install the packages of module \fIname\fR, found in
+"\fImodules/\fIname\fR\fR"\&.
+.sp
+The \fIcode-action\fR is responsible for installing the
+packages and their index\&. The system currently provides
+.RS
+.TP
+\fB_tcl\fR
+Copy all "\fI\&.tcl\fR" files found in
+"\fImodules/\fIname\fR\fR" into the installation\&.
+.TP
+\fB_tcr\fR
+As \fB_tcl\fR, copy the "\fI\&.tcl\fR" files found in
+the subdirectories of "\fImodules/\fIname\fR\fR" as well\&.
+.TP
+\fB_tci\fR
+As \fB_tcl\fR, and copy the "\fItclIndex\&.tcl\fR" file
+as well\&.
+.TP
+\fB_msg\fR
+As \fB_tcl\fR, and copy the subdirectory "\fImsgs\fR"
+as well\&.
+.TP
+\fB_doc\fR
+As \fB_tcl\fR, and copy the subdirectory
+"\fImpformats\fR" as well\&.
+.TP
+\fB_tex\fR
+As \fB_tcl\fR, and copy "\fI\&.tex\fR" files as well\&.
+.RE
+.sp
+The \fIdoc-action\fR is responsible for installing the package
+documentation\&. The system currently provides
+.RS
+.TP
+\fB_null\fR
+No documentation available, do nothing\&.
+.TP
+\fB_man\fR
+Process the "\fI\&.man\fR" files found in
+"\fImodules/\fIname\fR\fR" and install the results (nroff and/or HTML)
+in the proper location, as given to the installer\&.
+.sp
+This is actually a fallback, normally the installer uses the
+pre-made formatted documentation found under "\fIidoc\fR"\&.
+.RE
+.sp
+The \fIexample-action\fR is responsible for installing the
+examples\&. The system currently provides
+.RS
+.TP
+\fB_null\fR
+No examples available, do nothing\&.
+.TP
+\fB_exa\fR
+Copy the the directory "\fIexamples/\fIname\fR\fR"
+recursively to the install location for examples\&.
+.RE
+.TP
+\fBApplication\fR \fIname\fR
+Install the application with \fIname\fR, found in "\fIapps\fR"\&.
+.TP
+\fBExclude\fR \fIname\fR
+This command signals to the installer which of the listed modules to
+\fInot\fR install\&. I\&.e\&. they name the deprecated modules of Tcllib\&.
+.PP
+.PP
+If, and only if the above actions are not suitable for the new
+module then a second file has to be modified,
+"\fIsupport/installation/actions\&.tcl\fR"\&.
+.PP
+This file contains the implementations of the available
+actions, and is the place where any custom action needed to handle the
+special circumstances of module has to be added\&.

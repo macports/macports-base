@@ -1,0 +1,376 @@
+<!DOCTYPE html><html><head>
+<title>math::combinatorics - Tcl Math Library</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'combinatorics.man' by tcllib/doctools with format 'html'
+   -->
+<!-- math::combinatorics.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+&#124; <a href="../../../../toc.html">Main Table Of Contents</a>
+&#124; <a href="../../../toc.html">Table Of Contents</a>
+&#124; <a href="../../../../index.html">Keyword Index</a>
+&#124; <a href="../../../../toc0.html">Categories</a>
+&#124; <a href="../../../../toc1.html">Modules</a>
+&#124; <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">math::combinatorics(n) 2.0 tcllib &quot;Tcl Math Library&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>math::combinatorics - Combinatorial functions in the Tcl Math Library</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a></li>
+<li class="doctools_section"><a href="#section2">COMMANDS</a></li>
+<li class="doctools_section"><a href="#section3">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.2</b></li>
+<li>package require <b class="pkgname">math <span class="opt">?1.2.3?</span></b></li>
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">TclOO</b></li>
+<li>package require <b class="pkgname">math::combinatorics <span class="opt">?2.0?</span></b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1"><b class="cmd">::math::ln_Gamma</b> <i class="arg">z</i></a></li>
+<li><a href="#2"><b class="cmd">::math::factorial</b> <i class="arg">x</i></a></li>
+<li><a href="#3"><b class="cmd">::math::choose</b> <i class="arg">n k</i></a></li>
+<li><a href="#4"><b class="cmd">::math::Beta</b> <i class="arg">z w</i></a></li>
+<li><a href="#5"><b class="cmd">::math::combinatorics::permutations</b> <i class="arg">n</i></a></li>
+<li><a href="#6"><b class="cmd">::math::combinatorics::variations</b> <i class="arg">n</i> <i class="arg">k</i></a></li>
+<li><a href="#7"><b class="cmd">::math::combinatorics::combinations</b> <i class="arg">n</i> <i class="arg">k</i></a></li>
+<li><a href="#8"><b class="cmd">::math::combinatorics::derangements</b> <i class="arg">n</i></a></li>
+<li><a href="#9"><b class="cmd">::math::combinatorics::catalan</b> <i class="arg">n</i></a></li>
+<li><a href="#10"><b class="cmd">::math::combinatorics::firstStirling</b> <i class="arg">n</i> <i class="arg">m</i></a></li>
+<li><a href="#11"><b class="cmd">::math::combinatorics::secondStirling</b> <i class="arg">n</i> <i class="arg">m</i></a></li>
+<li><a href="#12"><b class="cmd">::math::combinatorics::partitionP</b> <i class="arg">n</i></a></li>
+<li><a href="#13"><b class="cmd">::math::combinatorics::list-permutations</b> <i class="arg">n</i></a></li>
+<li><a href="#14"><b class="cmd">::math::combinatorics::list-variations</b> <i class="arg">n</i> <i class="arg">k</i></a></li>
+<li><a href="#15"><b class="cmd">::math::combinatorics::list-combinations</b> <i class="arg">n</i> <i class="arg">k</i></a></li>
+<li><a href="#16"><b class="cmd">::math::combinatorics::list-derangements</b> <i class="arg">n</i></a></li>
+<li><a href="#17"><b class="cmd">::math::combinatorics::list-powerset</b> <i class="arg">n</i></a></li>
+<li><a href="#18"><b class="cmd">::math::combinatorics::permutationObj</b> new/create NAME <i class="arg">n</i></a></li>
+<li><a href="#19"><b class="cmd">$perm</b> next</a></li>
+<li><a href="#20"><b class="cmd">$perm</b> reset</a></li>
+<li><a href="#21"><b class="cmd">$perm</b> setElements <i class="arg">elements</i></a></li>
+<li><a href="#22"><b class="cmd">$perm</b> setElements</a></li>
+<li><a href="#23"><b class="cmd">::math::combinatorics::combinationObj</b> new/create NAME <i class="arg">n</i> <i class="arg">k</i></a></li>
+<li><a href="#24"><b class="cmd">$combin</b> next</a></li>
+<li><a href="#25"><b class="cmd">$combin</b> reset</a></li>
+<li><a href="#26"><b class="cmd">$combin</b> setElements <i class="arg">elements</i></a></li>
+<li><a href="#27"><b class="cmd">$combin</b> setElements</a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>The <b class="package"><a href="math.html">math</a></b> package contains implementations of several
+functions useful in combinatorial problems. The <b class="package">math::combinatorics</b>
+extends the collections based on features in Tcl 8.6.
+Note: the meaning of the partitionP function, Catalan and Stirling numbers is explained on the
+<a href="http://mathworld.wolfram.com">MathWorld website</a></p>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">COMMANDS</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1"><b class="cmd">::math::ln_Gamma</b> <i class="arg">z</i></a></dt>
+<dd><p>Returns the natural logarithm of the Gamma function for the argument
+<i class="arg">z</i>.</p>
+<p>The Gamma function is defined as the improper integral from zero to
+positive infinity of</p>
+<pre class="doctools_example">
+  t**(x-1)*exp(-t) dt
+</pre>
+<p>The approximation used in the Tcl Math Library is from Lanczos,
+<em>ISIAM J. Numerical Analysis, series B,</em> volume 1, p. 86.
+For &quot;<b class="variable">x</b> &gt; 1&quot;, the absolute error of the result is claimed to be
+smaller than 5.5*10**-10 -- that is, the resulting value of Gamma when</p>
+<pre class="doctools_example">
+  exp( ln_Gamma( x) )
+</pre>
+<p>is computed is expected to be precise to better than nine significant
+figures.</p></dd>
+<dt><a name="2"><b class="cmd">::math::factorial</b> <i class="arg">x</i></a></dt>
+<dd><p>Returns the factorial of the argument <i class="arg">x</i>.</p>
+<p>For integer <i class="arg">x</i>, 0 &lt;= <i class="arg">x</i> &lt;= 12, an exact integer result is
+returned.</p>
+<p>For integer <i class="arg">x</i>, 13 &lt;= <i class="arg">x</i> &lt;= 21, an exact floating-point
+result is returned on machines with IEEE floating point.</p>
+<p>For integer <i class="arg">x</i>, 22 &lt;= <i class="arg">x</i> &lt;= 170, the result is exact to 1
+ULP.</p>
+<p>For real <i class="arg">x</i>, <i class="arg">x</i> &gt;= 0, the result is approximated by
+computing <i class="term">Gamma(x+1)</i> using the <b class="cmd">::math::ln_Gamma</b>
+function, and the result is expected to be precise to better than nine
+significant figures.</p>
+<p>It is an error to present <i class="arg">x</i> &lt;= -1 or <i class="arg">x</i> &gt; 170, or a value
+of <i class="arg">x</i> that is not numeric.</p></dd>
+<dt><a name="3"><b class="cmd">::math::choose</b> <i class="arg">n k</i></a></dt>
+<dd><p>Returns the binomial coefficient <i class="term">C(n, k)</i></p>
+<pre class="doctools_example">
+   C(n,k) = n! / k! (n-k)!
+</pre>
+<p>If both parameters are integers and the result fits in 32 bits, the
+result is rounded to an integer.</p>
+<p>Integer results are exact up to at least <i class="arg">n</i> = 34.  Floating point
+results are precise to better than nine significant figures.</p></dd>
+<dt><a name="4"><b class="cmd">::math::Beta</b> <i class="arg">z w</i></a></dt>
+<dd><p>Returns the Beta function of the parameters <i class="arg">z</i> and <i class="arg">w</i>.</p>
+<pre class="doctools_example">
+   Beta(z,w) = Beta(w,z) = Gamma(z) * Gamma(w) / Gamma(z+w)
+</pre>
+<p>Results are returned as a floating point number precise to better than
+nine significant digits provided that <i class="arg">w</i> and <i class="arg">z</i> are both at
+least 1.</p></dd>
+<dt><a name="5"><b class="cmd">::math::combinatorics::permutations</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the number of permutations of n items. The returned number
+is always an integer, it is not limited by the range of 32-or 64-bits
+integers using the arbitrary precision integers available in Tcl 8.5 and later.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>The number of items to be permuted.</p></dd>
+</dl></dd>
+<dt><a name="6"><b class="cmd">::math::combinatorics::variations</b> <i class="arg">n</i> <i class="arg">k</i></a></dt>
+<dd><p>Return the number of variations k items selected from the total of n items.
+The order of the items is taken into account.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>The number of items to be selected from.</p></dd>
+<dt>int <i class="arg">k</i></dt>
+<dd><p>The number of items to be selected in each variation.</p></dd>
+</dl></dd>
+<dt><a name="7"><b class="cmd">::math::combinatorics::combinations</b> <i class="arg">n</i> <i class="arg">k</i></a></dt>
+<dd><p>Return the number of combinations of k items selected from the total of n items.
+The order of the items is not important.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>The number of items to be selected from.</p></dd>
+<dt>int <i class="arg">k</i></dt>
+<dd><p>The number of items to be selected in each combination.</p></dd>
+</dl></dd>
+<dt><a name="8"><b class="cmd">::math::combinatorics::derangements</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the number of derangements of n items. A derangement is a permutation
+where each item is displaced from the original position.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>The number of items to be rearranged.</p></dd>
+</dl></dd>
+<dt><a name="9"><b class="cmd">::math::combinatorics::catalan</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the n'th Catalan number. The number n is expected to be 1 or larger.
+These numbers occur in various combinatorial problems.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>The index of the Catalan number</p></dd>
+</dl></dd>
+<dt><a name="10"><b class="cmd">::math::combinatorics::firstStirling</b> <i class="arg">n</i> <i class="arg">m</i></a></dt>
+<dd><p>Calculate a Stirling number of the first kind
+(signed version, m cycles in a permutation of n items)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Number of items</p></dd>
+<dt>int <i class="arg">m</i></dt>
+<dd><p>Number of cycles</p></dd>
+</dl></dd>
+<dt><a name="11"><b class="cmd">::math::combinatorics::secondStirling</b> <i class="arg">n</i> <i class="arg">m</i></a></dt>
+<dd><p>Calculate a Stirling number of the second kind
+(m non-empty subsets from n items)</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Number of items</p></dd>
+<dt>int <i class="arg">m</i></dt>
+<dd><p>Number of subsets</p></dd>
+</dl></dd>
+<dt><a name="12"><b class="cmd">::math::combinatorics::partitionP</b> <i class="arg">n</i></a></dt>
+<dd><p>Calculate the number of ways an integer n can be written as the sum of positive integers.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>Number in question</p></dd>
+</dl></dd>
+<dt><a name="13"><b class="cmd">::math::combinatorics::list-permutations</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the list of permutations of the numbers 0, ..., n-1.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>The number of items to be permuted.</p></dd>
+</dl></dd>
+<dt><a name="14"><b class="cmd">::math::combinatorics::list-variations</b> <i class="arg">n</i> <i class="arg">k</i></a></dt>
+<dd><p>Return the list of variations of k numbers selected from the numbers 0, ..., n-1.
+The order of the items is taken into account.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>The number of items to be selected from.</p></dd>
+<dt>int <i class="arg">k</i></dt>
+<dd><p>The number of items to be selected in each variation.</p></dd>
+</dl></dd>
+<dt><a name="15"><b class="cmd">::math::combinatorics::list-combinations</b> <i class="arg">n</i> <i class="arg">k</i></a></dt>
+<dd><p>Return the list of combinations of k numbers selected from the numbers 0, ..., n-1.
+The order of the items is ignored.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>The number of items to be selected from.</p></dd>
+<dt>int <i class="arg">k</i></dt>
+<dd><p>The number of items to be selected in each combination.</p></dd>
+</dl></dd>
+<dt><a name="16"><b class="cmd">::math::combinatorics::list-derangements</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the list of derangements of the numbers 0, ..., n-1.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>The number of items to be rearranged.</p></dd>
+</dl></dd>
+<dt><a name="17"><b class="cmd">::math::combinatorics::list-powerset</b> <i class="arg">n</i></a></dt>
+<dd><p>Return the list of all subsets of the numbers 0, ..., n-1.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>The number of items to be rearranged.</p></dd>
+</dl></dd>
+<dt><a name="18"><b class="cmd">::math::combinatorics::permutationObj</b> new/create NAME <i class="arg">n</i></a></dt>
+<dd><p>Create a TclOO object for returning permutations one by one. If the last permutation
+has been reached an empty list is returned.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>The number of items to be rearranged.</p></dd>
+</dl></dd>
+<dt><a name="19"><b class="cmd">$perm</b> next</a></dt>
+<dd><p>Return the next permutation of n objects.</p></dd>
+<dt><a name="20"><b class="cmd">$perm</b> reset</a></dt>
+<dd><p>Reset the object, so that the command <i class="term">next</i> returns the complete list again.</p></dd>
+<dt><a name="21"><b class="cmd">$perm</b> setElements <i class="arg">elements</i></a></dt>
+<dd><p>Register a list of items to be permuted, using the <i class="term">nextElements</i> command.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">elements</i></dt>
+<dd><p>The list of n items that will be permuted.</p></dd>
+</dl></dd>
+<dt><a name="22"><b class="cmd">$perm</b> setElements</a></dt>
+<dd><p>Return the next permulation of the registered items.</p></dd>
+<dt><a name="23"><b class="cmd">::math::combinatorics::combinationObj</b> new/create NAME <i class="arg">n</i> <i class="arg">k</i></a></dt>
+<dd><p>Create a TclOO object for returning combinations one by one. If the last combination
+has been reached an empty list is returned.</p>
+<dl class="doctools_arguments">
+<dt>int <i class="arg">n</i></dt>
+<dd><p>The number of items to be rearranged.</p></dd>
+</dl></dd>
+<dt><a name="24"><b class="cmd">$combin</b> next</a></dt>
+<dd><p>Return the next combination of n objects.</p></dd>
+<dt><a name="25"><b class="cmd">$combin</b> reset</a></dt>
+<dd><p>Reset the object, so that the command <i class="term">next</i> returns the complete list again.</p></dd>
+<dt><a name="26"><b class="cmd">$combin</b> setElements <i class="arg">elements</i></a></dt>
+<dd><p>Register a list of items to be permuted, using the <i class="term">nextElements</i> command.</p>
+<dl class="doctools_arguments">
+<dt>list <i class="arg">elements</i></dt>
+<dd><p>The list of n items that will be permuted.</p></dd>
+</dl></dd>
+<dt><a name="27"><b class="cmd">$combin</b> setElements</a></dt>
+<dd><p>Return the next combination of the registered items.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>math</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+<p>When proposing code changes, please provide <em>unified diffs</em>,
+i.e the output of <b class="const">diff -u</b>.</p>
+<p>Note further that <em>attachments</em> are strongly preferred over
+inlined patches. Attachments can be made by going to the <b class="const">Edit</b>
+form of the ticket immediately after its creation, and then using the
+left-most button in the secondary navigation bar.</p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Mathematics</p>
+</div>
+</div></body></html>

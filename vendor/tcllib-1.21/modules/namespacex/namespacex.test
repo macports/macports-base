@@ -1,0 +1,716 @@
+# namespacex.test - Copyright (c) 2010 Andreas Kupries
+# $Id: namespacex.test,v 1.2 2011/01/13 02:39:26 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.0
+
+testing {
+    useLocal namespacex.tcl namespacex
+}
+
+# -------------------------------------------------------------------------
+## helpers
+
+proc ns_setup {{parent {}}} {
+    namespace eval ${parent}::X {
+        namespace eval A {}
+        namespace eval B {
+            namespace eval D {}
+        }
+        namespace eval C {}
+    }
+}
+
+proc ns2_setup {{parent {}}} {
+    namespace eval ${parent}::X {
+        variable vXa 1
+        variable vXb aleph
+        namespace eval B {
+            variable vB 3
+        }
+    }
+}
+
+proc ns3_setup {{parent {}}} {
+    namespace eval ${parent}::X {
+        namespace eval B {
+            variable vB mjolnir
+        }
+    }
+}
+
+proc ns4_setup {{parent {}}} {
+    namespace eval ${parent}::X {
+        namespace eval B {
+            variable z1 ; array set z1 {a 1 b 2}
+            variable z2 99
+        }
+    }
+}
+
+if {[package vsatisfies [package present Tcl] 8.6]} {
+    # 8.6+ args => ?arg ...?
+    proc E {text} { string map [list "..." "?arg ...?"] $text }
+} else {
+    # 8.5- args => ...
+    proc E {text} { set text }
+}
+
+# -------------------------------------------------------------------------
+## hook add
+
+test namespacex-hook-add-1.0 {
+    namespacex hook add: add a single hook
+} -setup {
+    variable hadd1 20
+
+    proc h {args} {
+        variable hadd1
+        set hadd1 40
+        return
+    }
+    namespace eval ::testHook {
+        proc testProc {} {
+            foo a b c
+        }
+    }
+} -cleanup {
+    namespace delete ::testHook
+    rename h {}
+} -body {
+    namespacex hook add ::testHook [namespace code h]
+    ::testHook::testProc
+    return $hadd1
+} -result {40}
+
+# -------------------------------------------------------------------------
+## normalize
+
+test namespacex-normalize-1.0 {namespacex normalize, wrong\#args, not enough} -body {
+    namespacex normalize
+} -returnCodes error -result {wrong # args: should be "namespacex normalize ns"}
+
+test namespacex-normalize-1.1 {namespacex normalize, wrong\#args, too many} -body {
+    namespacex normalize N X
+} -returnCodes error -result {wrong # args: should be "namespacex normalize ns"}
+
+test namespacex-normalize-2.0.0 {namespacex normalize, fqn} -body {
+    namespacex normalize ::X
+} -result {::X}
+
+test namespacex-normalize-2.0.1 {namespacex normalize, relative to global} -body {
+    namespacex normalize X
+} -result {::X}
+
+test namespacex-normalize-2.0.2 {namespacex normalize, relative to non-global} -body {
+    namespace eval ::Q {
+        namespacex normalize X
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {::Q::X}
+
+# -------------------------------------------------------------------------
+## strip
+
+test namespacex-strip-1.0 {namespacex strip, wrong\#args, not enough} -body {
+    namespacex strip
+} -returnCodes error -result {wrong # args: should be "namespacex strip ns itemlist"}
+
+test namespacex-strip-1.1 {namespacex strip, wrong\#args, not enough} -body {
+    namespacex strip N
+} -returnCodes error -result {wrong # args: should be "namespacex strip ns itemlist"}
+
+test namespacex-strip-1.2 {namespacex strip, wrong\#args, too many} -body {
+    namespacex strip N I X
+} -returnCodes error -result {wrong # args: should be "namespacex strip ns itemlist"}
+
+test namespacex-strip-2.0 {namespacex strip, bad child, relative} -body {
+    namespacex strip ::X {Q}
+} -returnCodes error -result {Expected ::X as prefix for Q, not found}
+
+test namespacex-strip-2.1 {namespacex strip, bad child, absolute} -body {
+    namespacex strip ::X {::Q}
+} -returnCodes error -result {Expected ::X as prefix for ::Q, not found}
+
+test namespacex-strip-2.1 {namespacex strip, proper children} -body {
+    namespacex strip ::X {::X ::X::Q}
+} -result {{} Q}
+
+# -------------------------------------------------------------------------
+## import
+
+test namespacex-import-1.0 {namespacex import, wrong\#args, not enough} -body {
+    namespacex import
+} -returnCodes error -result [E {wrong # args: should be "namespacex import from ..."}]
+
+test namespacex-import-2.0 {
+    namespacex import from a child namespace
+} -setup {
+    namespace eval importTest {
+        proc t {} {
+            return [namespace current]
+        }
+    }
+} -cleanup {
+    namespace delete importTest
+} -body {
+    namespacex import importTest t
+    t
+} -result ::importTest
+
+test namespacex-import-2.1 {
+    namespacex import from fully qualified namespace
+} -setup {
+    namespace eval ::importTest {
+        proc t {} {
+            return [namespace current]
+        }
+    }
+} -cleanup {
+    namespace delete ::importTest
+} -body {
+    namespacex import ::importTest t
+    t
+} -result {::importTest}
+
+test namespacex-import-2.2 {
+    namespacex import multiple commands
+} -setup {
+    namespace eval ::importTest {
+        proc a {} {
+            return "a: [namespace current]"
+        }
+        proc b {} {
+            return "b: [namespace current]"
+        }
+    }
+} -cleanup {
+    namespace delete ::importTest
+} -body {
+    namespacex import ::importTest a myA b myB
+    append result [myA] " " [myB]
+    return $result
+} -result {a: ::importTest b: ::importTest}
+
+# -------------------------------------------------------------------------
+## info allchildren
+
+test namespacex-info-allchildren-1.0 {namespacex info allchildren, wrong\#args, not enough} -body {
+    namespacex info allchildren
+} -returnCodes error -result {wrong # args: should be "namespacex info allchildren ns"}
+
+test namespacex-info-allchildren-1.1 {namespacex info allchildren, wrong\#args, too many} -body {
+    namespacex info allchildren N X
+} -returnCodes error -result {wrong # args: should be "namespacex info allchildren ns"}
+
+test namespacex-info-allchildren-2.0.0 {namespacex info allchildren, fqn} -setup {
+    ns_setup
+} -body {
+    lsort -dict [namespacex info allchildren ::X]
+} -cleanup {
+    namespace delete ::X
+} -result {::X::A ::X::B ::X::B::D ::X::C}
+
+test namespacex-info-allchildren-2.0.1 {namespacex info allchildren, relative to global} -setup {
+    ns_setup
+} -body {
+    lsort -dict [namespacex info allchildren X]
+} -cleanup {
+    namespace delete ::X
+} -result {::X::A ::X::B ::X::B::D ::X::C}
+
+test namespacex-info-allchildren-2.0.2 {namespacex info allchildren, relative to non-global} -setup {
+    ns_setup ::Q
+} -body {
+    namespace eval ::Q {
+        lsort -dict [namespacex info allchildren X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {::Q::X::A ::Q::X::B ::Q::X::B::D ::Q::X::C}
+
+# -------------------------------------------------------------------------
+## info vars
+
+test namespacex-info-vars-1.0 {namespacex info vars, wrong\#args, not enough} -body {
+    namespacex info vars
+} -returnCodes error -result {wrong # args: should be "namespacex info vars ns ?pattern?"}
+
+test namespacex-info-vars-1.1 {namespacex info vars, wrong\#args, too many} -body {
+    namespacex info vars N P X
+} -returnCodes error -result {wrong # args: should be "namespacex info vars ns ?pattern?"}
+
+test namespacex-info-vars-2.0.0 {namespacex info vars, fqn} -setup {
+    ns2_setup
+} -body {
+    lsort -dict [namespacex info vars ::X]
+} -cleanup {
+    namespace delete ::X
+} -result {vXa vXb}
+
+test namespacex-info-vars-2.0.1 {namespacex info vars, relative to global} -setup {
+    ns2_setup
+} -body {
+    lsort -dict [namespacex info vars X]
+} -cleanup {
+    namespace delete ::X
+} -result {vXa vXb}
+
+test namespacex-info-vars-2.0.2 {namespacex info vars, relative to non-global} -setup {
+    ns2_setup ::Q
+} -body {
+    namespace eval ::Q {
+        lsort -dict [namespacex info vars X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {vXa vXb}
+
+test namespacex-info-vars-2.1 {namespacex info vars} -setup {
+    namespace eval ::X {}
+} -body {
+    lsort -dict [namespacex info vars ::X]
+} -cleanup {
+    namespace delete ::X
+} -result {}
+
+test namespacex-info-vars-2.2.0 {namespacex info vars, fqn} -setup {
+    ns3_setup
+} -body {
+    lsort -dict [namespacex info vars ::X]
+} -cleanup {
+    namespace delete ::X
+} -result {}
+
+test namespacex-info-vars-2.2.1 {namespacex info vars, relative to global} -setup {
+    ns3_setup
+} -body {
+    lsort -dict [namespacex info vars X]
+} -cleanup {
+    namespace delete ::X
+} -result {}
+
+test namespacex-info-vars-2.2.2 {namespacex info vars, relative to non-global} -setup {
+    ns3_setup ::Q
+} -body {
+    namespace eval ::Q {
+        lsort -dict [namespacex info vars X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {}
+
+# -------------------------------------------------------------------------
+## info allvars
+
+test namespacex-info-allvars-1.0 {namespacex info allvars, wrong\#args, not enough} -body {
+    namespacex info allvars
+} -returnCodes error -result {wrong # args: should be "namespacex info allvars ns"}
+
+test namespacex-info-allvars-1.1 {namespacex info allvars, wrong\#args, too many} -body {
+    namespacex info allvars N X
+} -returnCodes error -result {wrong # args: should be "namespacex info allvars ns"}
+
+test namespacex-info-allvars-2.0.0 {namespacex info allvars, fqn} -setup {
+    ns2_setup
+} -body {
+    lsort -dict [namespacex info allvars ::X]
+} -cleanup {
+    namespace delete ::X
+} -result {B::vB vXa vXb}
+
+test namespacex-info-allvars-2.0.1 {namespacex info allvars, relative to global} -setup {
+    ns2_setup
+} -body {
+    lsort -dict [namespacex info allvars X]
+} -cleanup {
+    namespace delete ::X
+} -result {B::vB vXa vXb}
+
+test namespacex-info-allvars-2.0.2 {namespacex info allvars, relative to non-global} -setup {
+    ns2_setup ::Q
+} -body {
+    namespace eval ::Q {
+        lsort -dict [namespacex info allvars X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {B::vB vXa vXb}
+
+test namespacex-info-allvars-2.1.0 {namespacex info allvars, fqn} -setup {
+    namespace eval ::X {}
+} -body {
+    lsort -dict [namespacex info allvars ::X]
+} -cleanup {
+    namespace delete ::X
+} -result {}
+
+test namespacex-info-allvars-2.1.1 {namespacex info allvars, relative to global} -setup {
+    namespace eval ::X {}
+} -body {
+    lsort -dict [namespacex info allvars X]
+} -cleanup {
+    namespace delete ::X
+} -result {}
+
+test namespacex-info-allvars-2.1.2 {namespacex info allvars, relative to non-global} -setup {
+    namespace eval ::Q::X {}
+} -body {
+    namespace eval ::Q {
+        lsort -dict [namespacex info allvars X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {}
+
+test namespacex-info-allvars-2.2.0 {namespacex info allvars, fqn} -setup {
+    ns3_setup
+} -body {
+    lsort -dict [namespacex info allvars ::X]
+} -cleanup {
+    namespace delete ::X
+} -result {B::vB}
+
+test namespacex-info-allvars-2.2.1 {namespacex info allvars, relative to global} -setup {
+    ns3_setup
+} -body {
+    lsort -dict [namespacex info allvars X]
+} -cleanup {
+    namespace delete ::X
+} -result {B::vB}
+
+test namespacex-info-allvars-2.2.2 {namespacex info allvars, relative to non-global} -setup {
+    ns3_setup ::Q
+} -body {
+    namespace eval ::Q {
+        lsort -dict [namespacex info allvars X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {B::vB}
+
+# -------------------------------------------------------------------------
+## state get
+
+test namespacex-state-get-1.0 {namespacex state get, wrong\#args, not enough} -body {
+    namespacex state get
+} -returnCodes error -result {wrong # args: should be "namespacex state get ns"}
+
+test namespacex-state-get-1.1 {namespacex state get, wrong\#args, too many} -body {
+    namespacex state get N X
+} -returnCodes error -result {wrong # args: should be "namespacex state get ns"}
+
+test namespacex-state-get-2.0.0 {namespacex state get, fqn} -setup {
+    ns2_setup
+} -body {
+    dictsort [namespacex state get ::X]
+} -cleanup {
+    namespace delete ::X
+} -result {{S B::vB} 3 {S vXa} 1 {S vXb} aleph}
+
+test namespacex-state-get-2.0.1 {namespacex state get, relative to global} -setup {
+    ns2_setup
+} -body {
+    dictsort [namespacex state get X]
+} -cleanup {
+    namespace delete ::X
+} -result {{S B::vB} 3 {S vXa} 1 {S vXb} aleph}
+
+test namespacex-state-get-2.0.2 {namespacex state get, relative to non-global} -setup {
+    ns2_setup ::Q
+} -body {
+    namespace eval ::Q {
+        dictsort [namespacex state get X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {{S B::vB} 3 {S vXa} 1 {S vXb} aleph}
+
+test namespacex-state-get-2.1.0 {namespacex state get, fqn} -setup {
+    namespace eval ::X {}
+} -body {
+    dictsort [namespacex state get ::X]
+} -cleanup {
+    namespace delete ::X
+} -result {}
+
+test namespacex-state-get-2.1.1 {namespacex state get, relative to global} -setup {
+    namespace eval ::X {}
+} -body {
+    dictsort [namespacex state get X]
+} -cleanup {
+    namespace delete ::X
+} -result {}
+
+test namespacex-state-get-2.1.2 {namespacex state get, relative to non-global} -setup {
+    namespace eval ::Q::X {}
+} -body {
+    namespace eval ::Q {
+        dictsort [namespacex state get X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {}
+
+test namespacex-state-get-2.2.0 {namespacex state get, fqn} -setup {
+    ns3_setup
+} -body {
+    dictsort [namespacex state get ::X]
+} -cleanup {
+    namespace delete ::X
+} -result {{S B::vB} mjolnir}
+
+test namespacex-state-get-2.2.1 {namespacex state get, relative to global} -setup {
+    ns3_setup
+} -body {
+    dictsort [namespacex state get X]
+} -cleanup {
+    namespace delete ::X
+} -result {{S B::vB} mjolnir}
+
+test namespacex-state-get-2.2.2 {namespacex state get, relative to non-global} -setup {
+    ns3_setup ::Q
+} -body {
+    namespace eval ::Q {
+        dictsort [namespacex state get X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {{S B::vB} mjolnir}
+
+test namespacex-state-get-2.3 {namespacex state get, array handling} -setup {
+    ns4_setup ::Q
+} -body {
+    namespace eval ::Q {
+        dictsort [namespacex state get X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {{A B::z1} {a 1 b 2} {S B::z2} 99}
+
+# -------------------------------------------------------------------------
+## state drop
+
+test namespacex-state-drop-1.0 {namespacex state drop, wrong\#args, not enough} -body {
+    namespacex state drop
+} -returnCodes error -result {wrong # args: should be "namespacex state drop ns"}
+
+test namespacex-state-drop-1.1 {namespacex state drop, wrong\#args, too many} -body {
+    namespacex state drop N X
+} -returnCodes error -result {wrong # args: should be "namespacex state drop ns"}
+
+test namespacex-state-drop-2.0.0 {namespacex state drop, fqn} -setup {
+    ns2_setup
+} -body {
+    namespacex state drop ::X
+    dictsort [namespacex state get ::X]
+} -cleanup {
+    namespace delete ::X
+} -result {}
+
+test namespacex-state-drop-2.0.1 {namespacex state drop, relative to global} -setup {
+    ns2_setup
+} -body {
+    namespacex state drop X
+    dictsort [namespacex state get X]
+} -cleanup {
+    namespace delete ::X
+} -result {}
+
+test namespacex-state-drop-2.0.2 {namespacex state drop, relative to non-global} -setup {
+    ns2_setup ::Q
+} -body {
+    namespace eval ::Q {
+        namespacex state drop X
+        dictsort [namespacex state get X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {}
+
+test namespacex-state-drop-2.1.0 {namespacex state drop, fqn} -setup {
+    namespace eval ::X {}
+} -body {
+    namespacex state drop X
+    dictsort [namespacex state get ::X]
+} -cleanup {
+    namespace delete ::X
+} -result {}
+
+test namespacex-state-drop-2.1.1 {namespacex state drop, relative to global} -setup {
+    namespace eval ::X {}
+} -body {
+    namespacex state drop X
+    dictsort [namespacex state get X]
+} -cleanup {
+    namespace delete ::X
+} -result {}
+
+test namespacex-state-drop-2.1.2 {namespacex state drop, relative to non-global} -setup {
+    namespace eval ::Q::X {}
+} -body {
+    namespace eval ::Q {
+        namespacex state drop X
+        dictsort [namespacex state get X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {}
+
+test namespacex-state-drop-2.2.0 {namespacex state drop, fqn} -setup {
+    ns3_setup
+} -body {
+    namespacex state drop X
+    dictsort [namespacex state get ::X]
+} -cleanup {
+    namespace delete ::X
+} -result {}
+
+test namespacex-state-drop-2.2.1 {namespacex state drop, relative to global} -setup {
+    ns3_setup
+} -body {
+    namespacex state drop X
+    dictsort [namespacex state get X]
+} -cleanup {
+    namespace delete ::X
+} -result {}
+
+test namespacex-state-drop-2.2.2 {namespacex state drop, relative to non-global} -setup {
+    ns3_setup ::Q
+} -body {
+    namespace eval ::Q {
+        namespacex state drop X
+        dictsort [namespacex state get X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {}
+
+# -------------------------------------------------------------------------
+## state set
+
+test namespacex-state-set-1.0 {namespacex state set, wrong\#args, not enough} -body {
+    namespacex state set
+} -returnCodes error -result {wrong # args: should be "namespacex state set ns state"}
+
+test namespacex-state-set-1.1 {namespacex state set, wrong\#args, not enough} -body {
+    namespacex state set N
+} -returnCodes error -result {wrong # args: should be "namespacex state set ns state"}
+
+test namespacex-state-set-1.2 {namespacex state set, wrong\#args, too many} -body {
+    namespacex state set N S X
+} -returnCodes error -result {wrong # args: should be "namespacex state set ns state"}
+
+test namespacex-state-set-2.0.0 {namespacex state set, fqn} -setup {
+    ns2_setup
+    set ST [namespacex state get ::X]
+    ns3_setup
+} -body {
+    namespacex state set ::X $ST
+    dictsort [namespacex state get ::X]
+} -cleanup {
+    namespace delete ::X
+} -result {{S B::vB} 3 {S vXa} 1 {S vXb} aleph}
+
+test namespacex-state-set-2.0.1 {namespacex state set, relative to global} -setup {
+    ns2_setup
+    set ST [namespacex state get ::X]
+    ns3_setup
+} -body {
+    namespacex state set X $ST
+    dictsort [namespacex state get X]
+} -cleanup {
+    namespace delete ::X
+} -result {{S B::vB} 3 {S vXa} 1 {S vXb} aleph}
+
+test namespacex-state-set-2.0.1 {namespacex state set, relative to non-global} -setup {
+    ns2_setup
+    set ST [namespacex state get ::X]
+    namespace delete ::X
+    ns3_setup ::Q
+} -body {
+    namespace eval ::Q {
+        namespacex state set X $ST
+        dictsort [namespacex state get X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {{S B::vB} 3 {S vXa} 1 {S vXb} aleph}
+
+test namespacex-state-set-2.1.0 {namespacex state set, fqn} -setup {
+    ns3_setup
+    set ST [namespacex state get ::X]
+    ns2_setup
+} -body {
+    namespacex state set ::X $ST
+    dictsort [namespacex state get ::X]
+} -cleanup {
+    namespace delete ::X
+} -result {{S B::vB} mjolnir}
+
+test namespacex-state-set-2.1.1 {namespacex state set, relative to global} -setup {
+    ns3_setup
+    set ST [namespacex state get ::X]
+    ns2_setup
+} -body {
+    namespacex state set X $ST
+    dictsort [namespacex state get X]
+} -cleanup {
+    namespace delete ::X
+} -result {{S B::vB} mjolnir}
+
+test namespacex-state-set-2.1.2 {namespacex state set, relative to non-global} -setup {
+    ns3_setup
+    set ST [namespacex state get ::X]
+    namespace delete ::X
+    ns2_setup ::Q
+} -body {
+    namespace eval ::Q {
+        namespacex state set X $ST
+        dictsort [namespacex state get X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {{S B::vB} mjolnir}
+
+test namespacex-state-set-2.2 {namespacex state set, array handling} -setup {
+    ns4_setup
+    set ST [namespacex state get ::X]
+    namespace delete ::X
+    ns2_setup ::Q
+} -body {
+    namespace eval ::Q {
+        namespacex state set X $ST
+        dictsort [namespacex state get X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {{A B::z1} {a 1 b 2} {S B::z2} 99}
+
+test namespacex-state-set-2.3 {namespacex state set, old style} -setup {
+    set ST {B::z1 {a 1 b 2} B::z2 99}
+    ns2_setup ::Q
+} -body {
+    namespace eval ::Q {
+        namespacex state set X $ST
+        dictsort [namespacex state get X]
+    }
+} -cleanup {
+    namespace delete ::Q
+} -result {{S B::z1} {a 1 b 2} {S B::z2} 99}
+
+## done
+# -------------------------------------------------------------------------
+testsuiteCleanup
+
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

@@ -1,0 +1,7 @@
+[comment { -- Example 2 }]
+[manpage_begin TEST z 3.14.15.926]
+[description]
+[example {
+Special markdown __non-special__
+}]
+[manpage_end]

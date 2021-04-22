@@ -1,0 +1,99 @@
+# -*- tcl -*-
+# Testsuite support specific to 'fileutil::magic'.
+# ### ### ### ######### ######### #########
+
+package require Tcl 8.5 ;# dict, apply.
+
+# This file can assume that the general testsupport (see
+# devtools/testutilities.tcl) is already loaded and active.
+
+# ### ### ### ######### ######### #########
+## Transient variables to hold more complex texts
+
+set xmlData {<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<foobar></foobar>
+}
+
+set xmlDataWithDTD {<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!DOCTYPE foobar SYSTEM bogus.dtd>
+<foobar></foobar>
+}
+
+set pgpData {-----BEGIN PGP MESSAGE-----
+Version: PGP 6.5.8
+
+abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz
+}
+
+# ### ### ### ######### ######### #########
+## Creates a series of commands for the creation of small data files
+## for various file formats.
+
+set filedata [dict create \
+	Empty  {} \
+	Bin    "\u0000" \
+	Elf    [cat "\x7F" "ELF" "\x01\x01\x01\x00\x00" "\x00\x00\x00\x00\x00\x00\x00" "\x02\x00"] \
+	Bzip   "BZh91AY&SY\x01\x01\x01\x00\x00" \
+	Gzip   "\x1f\x8b\x01\x01\x01\x00\x00" \
+	Jpeg   [cat "\xFF\xD8\xFF\xE0\x00\x10JFIF" "\x00\x01\x02\x01\x01\x2c\x01\x3c"] \
+	Jpeg2   [cat "\xFF\xD8\xFF\xE0\x00\x10JFIF" "\x00\x01\x02\x01\x01\x2c\x01\x3c\x80\x70"] \
+	Gif    "GIF89a\x2b\x00\x40\x00\xf7\xff\x00" \
+	Mp3    [binary format Hu* [join [string trim {
+		    4944 3303 0000 0000 0000 fffb 9240
+		}] {}]] \
+	Png    "\x89PNG\x0D\x0A\x1A\x0A\x00\x00\x00\x0DIHDR" \
+	PngMalformed "\x89PNG\x00\x01\x02\x01\x01\x2c" \
+	Tiff   "MM\x00\*\x00\x01\x02\x01\x01\x2c" \
+	Pdf    "%PDF-1.2 \x00\x01\x02\x01\x01\x2c" \
+	Pdf2   {%PDF-1.3%âãÏÓ
+25 0 obj<< /Linearized 1 /O 29 /H [ 1948 443 ] /L 64573 /E 41907 /N 3 /T 63955 >> endobj                                                          xref25 67 0000000016 00000 n
+0000001687 00000 n
+0000001800 00000 n
+0000001870 00000 n
+0000002391 00000 n
+} \
+	Igwd   "IGWD\x00\x01\x02\x01\x01\x2c" \
+	Xz     \xFD7zXZ\x00 \
+	Wsdl "wsdl\x03 \x07\x00\x00\x00\x05\x00\x00\x00hello\x0b\x00\x00\x00some source\x0c\x00\x00\x00and a targetxxxmore text" 
+	]
+
+	dict set filedata Pe "MZP\0\x02\0\0\0\x04\0\x0f\0ÿÿ\0\0¸\0\0\0\0\0\0\0@\0\x1a\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x01\0\0º\x10\0\x0e\x1f´\x09Í!¸\x01LÍ!\x90\x90This program must be run under Win32"
+	dict set filedata Pe2 "[dict get $filedata Pe]\n\$7\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x00PE\0\x00L\x01\b\x00Z¬\x98V\0\0\0\0\0\0\0\x00à\0\x8f\x81\v\x01\x02\x19\x00þ\0\0\0\x16\x01\0\0\0\0\x00¼\x13\x01\0\0\x10\0\0\x00 \x01\0\0\x00@\0\0\x10\0\0\0\x02\0\0\x05\0\0\0\x06\0\0\0\x05\0\0\0\0\0\0\0\x00À\x02\0\0\x04\0\x005w\x0e\0\x02\x00@\x81\0\0\x10\0\0"
+
+
+foreach {name data} $filedata { 
+    proc make${name}File   {} [list makeBinaryFile $data $name]
+    proc remove${name}File {} [list removeFile           $name]
+}
+
+foreach {name data} [dict create \
+	BinData [join [apply {{} {
+		for {set i 0} {$i < 256} {incr i} {
+			append result [binary format c $i]
+		}
+		return [string repeat $result 5]
+	}}] {}] \
+	CSource "#include <stdio.h>\nint main(int argc, char *argv[]) {int a;}" \
+	PS     "%!PS-ADOBO-123 EPSF-1.4" \
+	EPS    "%!PS-ADOBO-123 EPSF-1.4" \
+	Text   "simple text" \
+	Script "#!/bin/tclsh" \
+	Html   "<html></html>" \
+	Xml    $xmlData \
+	XmlDTD $xmlDataWithDTD \
+	PGP    $pgpData
+	] {
+    proc make${name}File   {} [list makeFile $data $name]
+    proc remove${name}File {} [list removeFile     $name]
+}
+
+# ### ### ### ######### ######### #########
+## Clean up the transient globals.
+
+unset xmlData
+unset xmlDataWithDTD
+unset pgpData
+
+# ### ### ### ######### ######### #########

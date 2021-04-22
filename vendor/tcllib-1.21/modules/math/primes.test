@@ -1,0 +1,231 @@
+##
+## This is the file `primes.test',
+## generated with the SAK utility
+## (sak docstrip/regen).
+##
+## The original source files were:
+##
+## numtheory.dtx  (with options: `test_primes test_common')
+##
+## In other words:
+## **************************************
+## * This Source is not the True Source *
+## **************************************
+## the true source is the file from which this one was generated.
+##
+# -*- tcl -*-
+# primes.test --
+#    Additional test cases for the ::math::numtheory package
+#
+# Note:
+#    The tests assume tcltest 2.1, in order to compare
+#    list of integer results
+
+# -------------------------------------------------------------------------
+
+source [file join\
+  [file dirname [file dirname [file join [pwd] [info script]]]]\
+  devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.1
+
+support {
+    useLocal math.tcl math
+}
+
+testing {
+    useLocal numtheory.tcl math::numtheory
+}
+
+proc matchLists { expected actual } {
+   set match 1
+   foreach a $actual e $expected {
+      if { $a != $e } {
+         set match 0
+         break
+      }
+   }
+   return $match
+}
+
+proc matchNestedLists { expected actual } {
+   set match 1
+   foreach a $actual e $expected {
+      if { ! [matchLists $a $e] } {
+         set match 0
+         break
+      }
+   }
+   return $match
+}
+
+customMatch equalLists matchLists
+customMatch equalNestedLists matchNestedLists
+
+test first-few-primes-1 "First 10 primes" -match equalLists -body {
+    ::math::numtheory::firstNprimes 10
+} -result {2 3 5 7 11 13 17 19 23 29}
+
+test first-few-primes-2 "First 12 primes" -match equalLists -body {
+    ::math::numtheory::firstNprimes 12
+} -result {2 3 5 7 11 13 17 19 23 29 31 37}
+
+test first-few-primes-3 "First 20 primes" -match equalLists -body {
+    ::math::numtheory::firstNprimes 20
+} -result {2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71}
+
+test primes-lower-than-1 "Primes lower/equal 101" -match equalLists -body {
+    ::math::numtheory::primesLowerThan 101
+} -result {2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97 101}
+
+test primes-lower-than-2 "Primes lower/equal 2" -match equalLists -body {
+    ::math::numtheory::primesLowerThan 2
+} -result {2}
+
+test primes-lower-than-3 "Primes lower/equal 4" -match equalLists -body {
+    ::math::numtheory::primesLowerThan 4
+} -result {2 3}
+
+test primes-lower-than-4 "Primes lower/equal 102" -match equalLists -body {
+    ::math::numtheory::primesLowerThan 102
+} -result {2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97 101}
+
+test prime-factors-1 "Prime factors 100" -match equalLists -body {
+    ::math::numtheory::primeFactors 100
+} -result {2 2 5 5}
+
+test prime-factors-2 "Unique prime factors 100" -match equalLists -body {
+    ::math::numtheory::uniquePrimeFactors 100
+} -result {2 5}
+
+test prime-factors-3 "Prime factors 2900" -match equalLists -body {
+    ::math::numtheory::primeFactors 2900
+} -result {2 2 5 5 29}
+
+test prime-factors-4 "Unique prime factors 2900" -match equalLists -body {
+    ::math::numtheory::uniquePrimeFactors 2900
+} -result {2 5 29}
+
+test prime-factors-5 "Prime factors 964" -match equalLists -body {
+    ::math::numtheory::primeFactors 964
+} -result {2 2 241}
+
+test prime-factors-6 "Prime factors 960" -match equalLists -body {
+    ::math::numtheory::primeFactors 960
+} -result {2 2 2 2 2 2 3 5}
+
+test prime-factors-7 "Prime factors 914" -match equalLists -body {
+    ::math::numtheory::primeFactors 914
+} -result {2 457}
+
+test totient-1 "Totient 15" -body {
+    ::math::numtheory::totient 15
+} -result 8
+
+test totient-2 "Totient 30" -body {
+    ::math::numtheory::totient 30
+} -result 8
+
+test totient-3 "Totient 35" -body {
+    ::math::numtheory::totient 35
+} -result 24
+
+test totient-4 "Totient 105" -body {
+    ::math::numtheory::totient 105
+} -result 48
+
+test totient-5 "Totient 1-12" -match equalLists -body {
+    set result {}
+    for {set n 1} {$n <= 12} {incr n} {
+        lappend result [::math::numtheory::totient $n]
+    }
+    set result
+} -result {1 1 2 2 4 2 6 4 6 4 10 4}
+
+test factors-1 "All factors 30" -match equalLists -body {
+    ::math::numtheory::factors 30
+} -result {1 2 3 5 6 10 15 30}
+
+test factors-1 "All factors 128" -match equalLists -body {
+    ::math::numtheory::factors 128
+} -result {1 2 4 8 16 32 64 128}
+
+test factors-1 "All factors 250" -match equalLists -body {
+    ::math::numtheory::factors 250
+} -result {1 2 5 10 25 50 125 250}
+
+test moebius-1 "Moebius for first 19 numbers" -match equalLists -body {
+    set result {}
+    for {set n 1} {$n < 20} {incr n} {
+        lappend result [::math::numtheory::moebius $n]
+    }
+    set result
+} -result {1 -1 -1 0 -1 1 -1 0 0 1 -1 0 -1 1 1 0 -1 0 -1}
+
+test legendre-1 "Legendre symbol (-1/3)" -body {
+    ::math::numtheory::legendre -1 3
+} -result -1
+test legendre-2 "Legendre symbol (-3/7)" -body {
+    ::math::numtheory::legendre -3 7
+} -result 1
+
+test jacobi-1 "Jacobi symbol (6/7)" -body {
+    ::math::numtheory::jacobi 6 7
+} -result -1
+
+test jacobi-2 "Jacobi symbol (6/9)" -body {
+    ::math::numtheory::jacobi 6 9
+} -result 0
+
+test jacobi-3 "Jacobi symbol (3/11)" -body {
+    ::math::numtheory::jacobi 3 11
+} -result 1
+
+test gcd-1 "Greatest common divisor 2 and 3" -body {
+    ::math::numtheory::gcd 2 3
+} -result 1
+
+test gcd-2 "Greatest common divisor 20 and 12" -body {
+    ::math::numtheory::gcd 20 12
+} -result 4
+
+test gcd-3 "Greatest common divisor 600 and 125" -body {
+    ::math::numtheory::gcd 600 125
+} -result 25
+
+test lcm-1 "Lowest common multiple 3 and 4" -body {
+    ::math::numtheory::lcm 3 4
+} -result 12
+
+test lcm-2 "Lowest common multiple 12 and 20" -body {
+    ::math::numtheory::lcm 12 20
+} -result 60
+
+test number-primes "Exercise prime estimators" -match equalLists -body {
+    set estimate1 [::math::numtheory::numberPrimesGauss 1000]
+    set estimate2 [::math::numtheory::numberPrimesLegendre 1000]
+    set estimate3 [::math::numtheory::numberPrimesLegendreModified 1000]
+    set result [list [expr {int($estimate1)}] [expr {int($estimate2)}] [expr {int($estimate3)}]]
+} -result {144 169 171}
+
+test list-primes-1 "Pairs of primes - twins" -match equalNestedLists -body {
+    ::math::numtheory::listPrimePairs 3 100
+} -result {{3 5} {5 7} {11 13} {17 19} {29 31} {41 43} {59 61} {71 73}}
+
+test list-primes-2 "Pairs of primes differing by 6 " -match equalNestedLists -body {
+    ::math::numtheory::listPrimePairs 3 100 6
+} -result {{5 11} {7 13} {11 17} {13 19} {17 23} {23 29} {31 37} {37 43} {41 47} {47 53} {53 59} {61 67} {67 73} {73 79} {83 89} {97 103}}
+
+test list-primes-3 "Progressions of primes differing by 2 " -match equalNestedLists -body {
+    ::math::numtheory::listPrimeProgressions 3 100 2
+} -result {{3 5 7} {11 13} {17 19} {29 31} {41 43} {59 61} {71 73}}
+
+test list-primes-4 "Progressions of primes differing by 6 " -match equalNestedLists -body {
+    ::math::numtheory::listPrimeProgressions 3 100 6
+} -result {{5 11 17 23 29} {7 13 19} {31 37 43} {41 47 53 59} {61 67 73 79} {83 89}}
+
+testsuiteCleanup
+##
+##
+## End of file `primes.test'.

@@ -1,0 +1,239 @@
+# -*- tcl -*-
+# Tests for special functions in math library  -*- tcl -*-
+#
+# This file contains a collection of tests for one or more of the Tcllib
+# procedures.  Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# $Id: special.test,v 1.13 2007/08/21 17:33:00 andreas_kupries Exp $
+#
+# Copyright (c) 2004 by Arjen Markus
+# All rights reserved.
+#
+
+# -------------------------------------------------------------------------
+
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.5;# statistics,linalg!
+testsNeedTcltest 2.1
+
+support {
+    useLocal math.tcl        math
+    useLocal constants.tcl   math::constants
+    useLocal linalg.tcl      math::linearalgebra
+    useLocal statistics.tcl  math::statistics
+    useLocal polynomials.tcl math::polynomials
+}
+testing {
+    useLocal special.tcl math::special
+}
+
+# -------------------------------------------------------------------------
+
+#
+# Expect an accuracy of at least four decimals
+#
+proc matchNumbers {expected actual} {
+    set match 1
+    foreach a $actual e $expected {
+        if {abs($a-$e) > 1.0e-4} {
+            set match 0
+            break
+        }
+    }
+    return $match
+}
+
+#
+# Expect an accuracy of some three decimals (Fresnel)
+#
+proc matchFresnel {expected actual} {
+    set match 1
+    foreach a $actual e $expected {
+        if {abs($a-$e) > 2.0e-3} {
+            set match 0
+            break
+        }
+    }
+    return $match
+}
+
+#
+# Expect an accuracy of eight decimals (incomplete Beta and digamma)
+#
+proc matchAccurate {expected actual} {
+    set match 1
+    foreach a $actual e $expected {
+        if {abs($a-$e) > 1.0e-8} {
+            set match 0
+            break
+        }
+    }
+    return $match
+}
+
+
+customMatch numbers          matchNumbers
+customMatch numbers-fresnel  matchFresnel
+customMatch numbers-accurate matchAccurate
+
+test "Erf-1.0" "Values of the error function" \
+    -match numbers -body {
+    set result {}
+    foreach x {0.0 0.1 0.2 0.5 1.0 2.0 -0.1 -0.2 -0.5 -1.0 -2.0} {
+        lappend result [::math::special::erf $x]
+    }
+    set result
+} -result {0.0  0.1124629  0.2227026  0.5204999  0.8427008  0.9953227
+               -0.1124629 -0.2227026 -0.5204999 -0.8427008 -0.9953227}
+
+proc make_erfc {erf_values} {
+    set result {}
+    foreach v $erf_values {
+        lappend result [expr {1.0-$v}]
+    }
+    return $result
+}
+
+test "Erf-1.1" "Values of the complementary error function" \
+    -match numbers -body {
+    set result {}
+    foreach x {0.0 0.1 0.2 0.5 1.0 2.0 -0.1 -0.2 -0.5 -1.0 -2.0} {
+        lappend result [::math::special::erfc $x]
+    }
+    set result
+} -result [make_erfc {0.0  0.1124629  0.2227026  0.5204999  0.8427008 0.9953227
+                          -0.1124629 -0.2227026 -0.5204999 -0.8427008 -0.9953227}]
+
+
+test "Fresnel-1.0" "Values of the Fresnel C intergral" \
+   -match numbers-fresnel -body {
+   set result {}
+   foreach x {0.0 0.1 0.2 0.5 1.0 1.5 2.0 3.0 4.0 5.0} {
+      lappend result [::math::special::fresnel_C $x]
+   }
+   set result
+} -result {0.0  0.09999 0.19992 0.49234 0.77989 0.44526
+           0.48825 0.60572 0.49842 0.56363}
+
+
+test "Fresnel-1.1" "Values of the Fresnel S intergral" \
+   -match numbers-fresnel -body {
+   set result {}
+   foreach x {0.0 0.1 0.2 0.5 1.0 1.5 2.0 3.0 4.0 5.0} {
+      lappend result [::math::special::fresnel_S $x]
+   }
+   set result
+} -result {0.0  0.00052 0.00419 0.06473 0.43826 0.69750
+           0.34342 0.49631 0.42052 0.49919}
+
+
+test "invnorm-1.0" "Values of the inverse normal distribution" \
+   -match numbers -body {
+   set result {}
+   foreach p {0.001 0.01 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 0.99 0.999} {
+       lappend result [::math::special::invnorm $p]
+   }
+   set result
+} -result {-3.090232304709404 -2.326347874388028 -1.2815515641401563 -0.8416212327266185 -0.5244005132792953 -0.2533471028599986
+           0.0 0.2533471028599986 0.5244005132792952 0.8416212327266186 1.2815515641401563 2.326347874388028 3.090232304709404}
+
+
+test "sinc-1.0" "Values of the sinc function" \
+   -match numbers -body {
+   set result [::math::special::sinc 0.0]
+} -result 1.0
+
+
+test "digamma-1.0" "Values of the digamma function"  \
+   -match numbers-accurate -body {
+   set result {}
+   foreach x {-2.5 -1.5 -0.5 0.1 0.25 0.5 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 11.0 15.0 20 30.0} {
+      lappend result [::math::special::digamma $x]
+   }
+   set result
+} -result {1.103156640645243187226 0.7031566406452431872257 0.03648997397857652055902 -10.42375494041107679517 -4.22745353337626540809 -1.963510026021423479441
+           -0.5772156649015328606065 0.4227843351 0.9227843351 1.256117668 1.506117668431800472727 1.706117668431800472727 1.872784335098467139394
+           2.015641477955609996536 2.140641477955609996536 2.251752589066721107647 2.351752589066721107647 2.67434666166079370172 2.970523992242149050877
+           3.384438132685524876562}
+
+
+test "incBeta-1.0" "Values of the incomplete Beta function (a,b = 0.5,3)"  \
+   -match numbers-accurate -body {
+   set result {}
+   set a 0.5
+   set b 3.0
+   foreach x {0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0} {
+      lappend result [::math::special::incBeta $a $b $x]
+   }
+   set result
+} -result {0 0.591556741 0.782325650 0.896074104 0.968078601 1.01351972 1.04105792 1.05642273 1.06377207 1.06632003 1.06666667}
+
+test "incBeta-1.1" "Values of the incomplete Beta function (a,b = 2.0,1.3)"  \
+   -match numbers-accurate -body {
+   set result {}
+   set a 2.0
+   set b 1.3
+   foreach x {0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0} {
+      lappend result [::math::special::incBeta $a $b $x]
+   }
+   set result
+} -result {0 0.00489724885 0.0191537005 0.0420524051 0.0727690680 0.110331697 0.153553061 0.200905566 0.250250898 0.298074371 0.334448161}
+
+test "incBeta-2.0" "Values of the regularized incomplete Beta function (a,b = 0.5,3)"  \
+   -match numbers-accurate -body {
+   set result {}
+   set a 0.5
+   set b 3.0
+   foreach x {0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0} {
+      lappend result [::math::special::regIncBeta $a $b $x]
+   }
+   set result
+} -result {0 0.554584445 0.733430297 0.840069473 0.907573688 0.950174737 0.975991803 0.990396306 0.997286318 0.999675025 1}
+
+test "incBeta-2.1" "Values of the regularized incomplete Beta function (a,b = 2.0,1.3)"  \
+   -match numbers-accurate -body {
+   set result {}
+   set a 2.0
+   set b 1.3
+   foreach x {0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0} {
+      lappend result [::math::special::regIncBeta $a $b $x]
+   }
+   set result
+} -result {0 0.0146427741 0.0572695646 0.125736691 0.217579513 0.329891773 0.459123651 0.600707642 0.748250184 0.891242370 1}
+
+
+#
+# Euler and Bernoulli numbers - as they come from tables, merely check that the procedures work
+#
+test "eulerBernoulli-1.0" "Euler number within range" -body {
+   set result {}
+   foreach index {0 1 2 3 4} {
+      lappend result [::math::special::eulerNumber $index]
+   }
+   set result
+} -result {1 0 -1 0 5}
+
+test "eulerBernoulli-1.1" "Euler number out of range" -body {
+   ::math::special::eulerNumber -10
+   return {}
+} -returnCodes {error} -result {Index (-10) out of range - should be between 0 and 54}
+
+test "eulerBernoulli-2.0" "Bernoulli number within range" -match numbers-accurate -body {
+   set result {}
+   foreach index {0 1 2 3 4} {
+      # Multiply by 30 to get integer values
+      lappend result [expr { 30.0 * [::math::special::bernoulliNumber $index] }]
+   }
+   set result
+} -result {30.0 -15.0 5.0 0.0 -1.0}
+
+test "eulerBernoulli-1.0" "Bernoulli number out of range" -body {
+   ::math::special::bernoulliNumber -10
+} -returnCodes {error} -result {Index (-10) out of range - should be between 0 and 52}
+
+# End of test cases
+testsuiteCleanup

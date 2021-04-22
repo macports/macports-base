@@ -1,0 +1,51 @@
+# -*- tcl -*-
+# Test procedures for the disjoint set structure implementation
+# Author: Alejandro Eduardo Cruz Paz
+# 5 August 2008
+# Copyright (c) 2018 by Kevin B. Kenny - reworked to a proper disjoint-sets
+# data structure, added 'add-element', 'exemplars' and 'find-exemplar'.
+
+package require tcltest
+source [file join \
+	[file dirname [file dirname [file join [pwd] [info script]]]] \
+	devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 1.0
+
+support {
+}
+testing {
+    useLocal disjointset.tcl struct::disjointset
+}
+
+############################################################
+# Helper functions
+# - Create a disjoint set of many partitions.
+# - Sort a set of partitions into a canonical order for comparison.
+
+proc testset {} {
+    ::struct::disjointset DS
+    DS add-partition {1 2 3 4}
+    DS add-partition {5 6}
+    DS add-partition 0
+    DS add-partition {9 8}
+    DS add-partition {10 7}
+    return
+}
+
+proc canonset {partitions} {
+    set res {}
+    foreach x $partitions {
+	lappend res [lsort -dict $x]
+    }
+    return [lsort -dict $res]
+}
+
+proc djstate {ds} {
+    list [canonset [$ds partitions]] [$ds num-partitions]
+}
+
+source [localPath disjointset.testsuite]
+
+testsuiteCleanup

@@ -1,0 +1,397 @@
+# pki.test - Copyright (c) 2010 Roy Keene, Andreas Kupries, Ashok P. Nadkarni
+#
+# the test-values are taken from:
+#    ??
+
+# -------------------------------------------------------------------------
+
+source [file join [file dirname [file dirname [
+	file join [pwd] [info script]]]] devtools testutilities.tcl]
+
+testsNeedTcl     8.6
+testsNeedTcltest 2
+
+support {
+    use asn/asn.tcl       asn
+    use base64/base64.tcl base64
+    use des/des.tcl       des
+    use math/bignum.tcl   math::bignum
+	# md5 2.x!
+    use md5/md5x.tcl      md5
+    use sha1/sha1.tcl     sha1
+    use sha1/sha256.tcl   sha256
+    use aes/aes.tcl       aes
+}
+testing {
+    useLocal pki.tcl pki
+}
+
+# -------------------------------------------------------------------------
+
+
+variable password ARoseIsARoseIsARose
+
+variable setup1 {
+    set privkey [asset-get test.key.aes]
+}
+
+variable cleanup1 {
+	unset privkey
+}
+
+variable setup2 {
+    set privkey [asset-get test.key.des]
+    set privkey [::pki::pkcs::parse_key $privkey $password]
+}
+
+variable setup3 {
+    set pubkey [asset-get test-v1.crt]
+}
+
+variable setup4 {
+    set pubkey [asset-get test-v3.crt]
+}
+
+variable setup5 {
+    set pubkey [asset-get CA.crt]
+}
+
+variable setup6 {
+    set cacert  [asset-get CA.crt]
+    set cakey   [asset-get CA.key]
+    array set ca_arr [::pki::pkcs::parse_key $cakey $password]
+    array set ca_arr [::pki::x509::parse_cert $cacert]
+    set ca [array get ca_arr]
+}
+
+
+variable setup7 {
+    set csr [::pki::pkcs::parse_csr [
+		::pki::pkcs::create_csr $privkey [
+			list C US ST Florida L Tampa O Tcllib OU RSA CN TestCert]]]
+}
+
+variable cleanup3 {
+	unset pubkey
+}
+
+proc defcertproc {name} {
+    # $name should be file name of certificate (without the path) which should
+    # reside wherever asset-get finds stuff. For example,
+    #   defcertproc pkitest.crt
+    # Then [pkitest.crt] will return the parsed cert
+    # First time the defined proc is called, it will read and parse the cert file.
+    # Then it redefines itself to just return the parsed cert on subsequence calls.
+    proc $name {} {
+        set cert [::pki::x509::parse_cert [asset-get [info level 0]]]
+        proc [info level 0] {} [list return $cert]
+        [info level 0]
+    }
+}
+defcertproc google-com.crt
+defcertproc pkitest-ca.crt
+defcertproc pkitest-ca2.crt
+defcertproc pkitest.crt
+defcertproc dell.crt
+defcertproc CA.crt
+
+test rsa-parse-aeskey-1.0 {parse_key} -setup $setup1 -body {
+    dictsort [::pki::pkcs::parse_key $privkey $password]
+} -cleanup $cleanup1 -result [asset-get result/aes-key]
+
+
+test rsa-parse-deskey-1.0 {parse_key} -setup $setup1 -body {
+    dictsort [::pki::pkcs::parse_key $privkey $password]
+} -cleanup $cleanup1 -result [asset-get result/des-key]
+
+
+test rsa-generate-csr-1.0 csr -setup $setup2 -body {
+    ::pki::pkcs::create_csr $privkey [
+		list C US ST Florida L Tampa O Tcllib OU RSA CN TestCert] 1
+} -cleanup $cleanup1 -result [asset-get result/des-csr]
+
+
+test rsa-parse-certv1-1.0 parse_cert -setup $setup3 -body {
+    dictsort [::pki::x509::parse_cert $pubkey]
+} -cleanup $cleanup3  -result [asset-get result/cert1]
+
+
+test rsa-parse-certv3-1.0 parse_cert -setup $setup4 -body {
+    dictsort [::pki::x509::parse_cert $pubkey]
+} -cleanup $cleanup3 -result [asset-get result/cert3]
+
+
+test rsa-parse-cacert-1.0 parse_cert -setup $setup5 -body {
+    dictsort [::pki::x509::parse_cert $pubkey]
+} -cleanup $cleanup3 -result [asset-get result/certCA]
+
+# Certificate extension tests.
+
+proc testext {ext id comment cert result args} {
+    test rsa-parse-cert-$ext-$id "$comment $ext" -body [list dict get $cert extensions $ext] -result $result {*}$args
+}
+
+# ext - authorityInfoAccess
+testext authorityInfoAccess 1.0 "ocsp, caIssuer" [google-com.crt] \
+    {0 {{accessMethod id-ad-ocsp accessLocation {uniformResourceIdentifier http://ocsp.pki.goog/gts1c3}} {accessMethod id-ad-caIssuers accessLocation {uniformResourceIdentifier http://pki.goog/repo/certs/gts1c3.der}}}}
+testext authorityInfoAccess 2.0 "ocsp, unknown IRD" [pkitest.crt] \
+    {0 {{accessMethod id-ad-ocsp accessLocation {uniformResourceIdentifier http://ocsp.test.tcllib/}} {accessMethod 1.2.3.4 accessLocation {registeredID 1.2.3.4.5}}}}
+
+# ext - authorityKeyIdentifier
+testext authorityKeyIdentifier 1.0 "key id, no issuer" [pkitest-ca2.crt] \
+    [list 0 {keyIdentifier fb77fbe9904655f8351a19affdc32de5747acdae}]
+testext authorityKeyIdentifier 2.0 "issuer name and serial, no key id" [pkitest.crt] \
+    {0 {authorityCertIssuer {directoryName {CN=Tcllib PKI Test CA, C=US, O=Tcllib, OU=PKI, EMAIL=admin@test.tcllib}} authorityCertSerialNumber 113023831105663938744474826664962251151227877120}}
+testext authorityKeyIdentifier 3.0 "key id AND issuer" [CA.crt] \
+    {0 {keyIdentifier 852c1d09b76b0fa10e35d7aa4bcb48b2deb254d5 authorityCertIssuer {directoryName {C=US, ST=Florida, L=Tampa, O=Tcllib, OU=RSA, CN=TestCA}} authorityCertSerialNumber 11180668503388403151}}
+
+# ext - basicConstraints
+testext id-ce-basicConstraints 1.0 "CA false - (deprecated naming)" [google-com.crt] {1 0 -1}
+testext basicConstraints 1.0 "CA false" [google-com.crt] {1 {0 -1}}
+testext basicConstraints 2.0 "CA true" [pkitest-ca.crt] {1 {1 -1}}
+testext basicConstraints 3.0 "CA false, restricted depth" [pkitest-ca2.crt] {1 {1 0}}
+
+# ext - cRLDistributionPoints
+testext cRLDistributionPoints 1.0 "single fullname" [google-com.crt] \
+    {0 {{distributionPoint {fullName {uniformResourceIdentifier http://crls.pki.goog/gts1c3/QqFxbi9M48c.crl}}}}}
+testext cRLDistributionPoints 2.0 "multiple values with missing optional fields" [pkitest.crt] \
+    {0 {{distributionPoint {fullName {uniformResourceIdentifier http://test.tcllib/my.crl}} reasons {195 keyCompromise certificateHold privilegeWithdrawn} cRLIssuer {directoryName {C=US, O=Tcllib, CN=Tcllib CRL Issuer}}} {distributionPoint {nameRelativeToCRLIssuer {CN=Tcllib CRL DP}} reasons {15 keyCompromise cACompromise affiliationChanged}} {distributionPoint {fullName {uniformResourceIdentifier http://crl.test.tcllib}} cRLIssuer {directoryName {C=US, O=Tcllib, CN=Tcllib CRL Issuer}}}}}
+
+# ext - certificatePolicies
+testext certificatePolicies 1.0 "" [google-com.crt] \
+    {0 {{policyIdentifier 2.23.140.1.2.1} {policyIdentifier 1.3.6.1.4.1.11129.2.5.3}}}
+testext certificatePolicies 1.0 "with policy qualifiers" [dell.crt] \
+    {0 {{policyIdentifier 2.23.140.1.4.1 policyQualifiers {cps https://d.symcb.com/cps unotice {explicitText https://d.symcb.com/rpa}}}}}
+
+# ext - extKeyUsage
+testext extKeyUsage 1.0 "CA" [google-com.crt] {0 serverAuth}
+testext extKeyUsage 2.0 "End system full set inc. non-RF5280" [pkitest.crt] \
+    {1 {serverAuth clientAuth codeSigning emailProtection timeStamping OCSPSigning 1.3.6.1.4.1.311.2.1.21 1.3.6.1.4.1.311.2.1.22 1.3.6.1.4.1.311.10.3.1 1.3.6.1.4.1.311.10.3.4 1.3.6.1.5.5.7.3.17 ipsecEndSystem ipsecTunnel ipsecUser}}
+
+# ext - freshestCRL
+testext freshestCRL 1.0 "" [pkitest.crt] \
+    {0 {{distributionPoint {fullName {uniformResourceIdentifier http://crl.test.tcllib}} cRLIssuer {directoryName {C=US, O=Tcllib, CN=Tcllib CRL Issuer}}}}}
+
+# ext - inhibitAnyPolicy
+testext inhibitAnyPolicy 1.0 "" [pkitest-ca2.crt] {1 2}
+
+# ext - issuerAltName
+testext issuerAltName 1.0 "" [pkitest.crt] \
+    {0 {dNSName ca.test.tcllib}}
+
+# ext - keyUsage
+testext keyUsage 1.0 "single use" [google-com.crt] {1 {1 digitalSignature}}
+testext keyUsage 2.0 "full set" [pkitest.crt] \
+    {1 {511 digitalSignature nonRepudiation keyEncipherment dataEncipherment keyAgreement keyCertSign cRLSign encipherOnly decipherOnly}}
+
+# ext - nameConstraints
+testext nameConstraints 1.0 "" [pkitest-ca2.crt] \
+    {1 {permittedSubtrees {{base {rfc822Name .somedomain.com} minimum 0} {base {iPAddress {192.168.0.0 255.255.0.0}} minimum 0}} excludedSubtrees {{base {dNSName deny.com} minimum 0}}}}
+
+# ext - policyConstraints
+testext policyConstraints 1.0 "" [pkitest-ca2.crt] \
+    {1 {requireExplicitPolicy 3 inhibitPolicyMapping 2}}
+
+# ext - policyMappings
+testext policyMappings 1.0 "" [pkitest-ca2.crt] {0 {1.2.3.4.5.6.99 1.2.3.4.5.6.7.99 1.2.3.4.5.6.100 1.2.3.4.5.6.7.100}}
+
+# ext - subjectAltName
+test rsa-parse-cert-subjectAltName-1.0 "parse_cert subjectAltName long list" -body {
+    lassign [dict get [google-com.crt] extensions subjectAltName] critical names
+    list $critical [llength $names] [lrange $names 0 1] [lrange $names end-1 end]
+} -result {0 258 {dNSName *.google.com} {dNSName source.android.google.cn}}
+testext subjectAltName 2.0 "all formats" [pkitest.crt] \
+    {0 {dNSName test.tcllib.nosuchdomain dNSName www.test.tcllib.nosuchdomain iPAddress 192.168.1.1 iPAddress 0013:0000:0000:0000:0000:0000:0000:0017 uniformResourceIdentifier http://test.tcllib rfc822Name noone@test.tcllib registeredID 1.6.7.8.11 directoryName {C=UK, CN=PKI Developer} otherName {1.2.3.4 a0170c15537472696e6720696e207574663820666f726d6174}}}
+
+# ext - subjectDirectoryAttributes - need a cert. OpenSSL does not handle this
+testext subjectDirectoryAttributes 1.0 "TODO" "" "" -constraints TODO
+
+# ext - subjectInfoAccess
+testext subjectInfoAccess 1.0 "timeStamping, caRepository" [pkitest-ca2.crt] \
+    {0 {{accessMethod id-ad-timeStamping accessLocation {uniformResourceIdentifier http//timestamp.test.tcllib}} {accessMethod id-ad-caRepository accessLocation {uniformResourceIdentifier http//repository.test.tcllib}}}}
+
+# ext - subjectKeyIdentifier
+testext subjectKeyIdentifier 1.0 "" [pkitest.crt] \
+    {0 0a7c8c381b250b29b6f880950b26883d5c3b86e2}
+
+
+test rsa-generate-cert-1.0 cert -setup $setup2$setup6$setup7 -body {
+    ::pki::x509::create_cert $csr $ca 20100809075203 1281340325 1596959525 0 {} 1
+} -cleanup {
+    unset privkey cakey cacert ca_arr ca csr
+} -result [asset-get result/cert]
+
+test rsa-generate-cacert-1.0 {cert} -setup $setup2$setup6$setup7 -body {
+    ::pki::x509::create_cert $csr $ca 20100809075203 1281340325 1596959525 1 {} 1
+} -cleanup {
+    unset privkey cakey cacert ca_arr ca csr
+} -result [asset-get result/cert-b]
+
+
+test rsa-verify-certv1-1.0 {verify_cert} -setup {
+    set pubcert [pki::x509::parse_cert [asset-get test-v1.crt]]
+    set cacert [pki::x509::parse_cert [asset-get CA.crt]]
+} -body {
+    ::pki::x509::verify_cert $pubcert [list $cacert] {validate args} -ignoretime 
+} -cleanup {
+    unset pubcert cacert
+} -result true
+
+
+test rsa-verify-certv3-1.0 {verify_cert} -setup {
+    set pubcert [asset-get test-v3.crt]
+    set cacert [asset-get CA.crt]
+    set pubcert [::pki::x509::parse_cert $pubcert]
+    set cacert [::pki::x509::parse_cert $cacert]
+} -body {
+    ::pki::x509::verify_cert $pubcert [list $cacert] {validate args} -ignoretime
+} -cleanup {
+    unset pubcert cacert
+} -result true
+
+
+test rsa-verify-badcertv1-1.0 {verify_cert} -setup {
+    set pubcert [asset-get test-v1.crt]
+    set cacert [asset-get test-v1.crt]
+    set pubcert [::pki::x509::parse_cert $pubcert]
+    set cacert [::pki::x509::parse_cert $cacert]
+} -body {
+    ::pki::x509::verify_cert $pubcert [list $cacert]
+} -cleanup {
+    unset pubcert cacert
+} -result {false}
+
+
+test rsa-verify-badcertv3-1.0 {verify_cert} -setup {
+    set pubcert [asset-get test-v3.crt]
+    set cacert [asset-get test-v3.crt]
+    set pubcert [::pki::x509::parse_cert $pubcert]
+    set cacert [::pki::x509::parse_cert $cacert]
+} -body {
+    ::pki::x509::verify_cert $pubcert [list $cacert]
+} -cleanup {
+    unset pubcert cacert
+} -result {false}
+
+
+test rsa-verify-badcertv3-2.0 {verify_cert} -setup {
+    set pubcert [asset-get test-v3.crt]
+    set cacert [asset-get CA.crt]
+    set pubcert [::pki::x509::parse_cert $pubcert]
+    set cacert [::pki::x509::parse_cert $cacert]
+
+    # Remove all extensions from CA cert
+    array set cacert_arr $cacert
+    set cacert_arr(extensions) {} 
+    set cacert [array get cacert_arr]
+} -body {
+    ::pki::x509::verify_cert $pubcert [list $cacert]
+} -cleanup {
+    unset pubcert cacert
+} -result {false}
+
+# CSR tests
+test rsa-parse-csr-1.0 {Parse end system CSR} -setup {
+    set csr [asset-get pkitest.csr]
+} -body {
+    ::pki::pkcs::parse_csr $csr
+} -result [asset-get result/pkitest.csr.result]
+test rsa-parse-csr-2.0 {Parse CA CSR} -setup {
+    set csr [asset-get pkitest-ca2.csr]
+} -body {
+    ::pki::pkcs::parse_csr $csr
+} -result [asset-get result/pkitest-ca2.csr.result]
+
+# Crypto tests
+
+test rsa-crypt-roundtrip-1.0 {encrypt, decrypt} -setup {
+    set data      {This is a test}
+    set privkey [asset-get test.key.des]
+    set pubkey [asset-get test-v1.crt]
+
+    array set key [::pki::pkcs::parse_key $privkey $password]
+    array set key [::pki::x509::parse_cert $pubkey]
+    set keylist   [array get key]
+    unset privkey pubkey key
+} -body {
+    set ciphertext [::pki::encrypt -binary -pub  -- $data       $keylist]
+    set plaintext  [::pki::decrypt -binary -priv -- $ciphertext $keylist]
+} -cleanup {
+    unset -nocomplain data ciphertext plaintext
+} -result {This is a test}
+
+test rsa-sign-verify-1.0 {sign, verify} -setup {
+    set data      {This is a test}
+    set privkey [asset-get test.key.des]
+    set pubkey [asset-get test-v1.crt]
+
+    array set key [::pki::pkcs::parse_key $privkey $password]
+    array set key [::pki::x509::parse_cert $pubkey]
+    set keylist   [array get key]
+    unset privkey pubkey key
+} -body {
+    set ciphertext [::pki::encrypt -binary -priv -- $data $keylist]
+    set plaintext  [::pki::decrypt -binary -pub  -- $ciphertext $keylist]
+} -cleanup {
+    unset -nocomplain data ciphertext plaintext
+} -result {This is a test}
+
+
+foreach keylen {256 512 1024 2048} {
+    # Just one key for the whole round and its tests. Its possible to
+    # generate one for each test, but that is really to
+    # much effort on the setup of each test.
+    set key [::pki::rsa::generate $keylen]
+
+    test rsa-crypt-roundtrip-2.0.$keylen {
+		encrypt, decrypt pub/priv for keylen $keylen
+	} -body {
+        set plain    {Pub/priv test}
+        set cipher   [::pki::encrypt -binary -pub --  $plain  $key]
+        set uncipher [::pki::decrypt -binary -priv -- $cipher $key]
+
+        string equal $plain $uncipher
+    } -cleanup {
+        unset -nocomplain plain cipher uncipher
+    } -result 1
+
+    test rsa-crypt-roundtrip-2.1.$keylen {
+		encrypt, decrypt priv/pub for keylen $keylen
+	} -body {
+        set plain    {Priv/pub test}
+        set cipher   [::pki::encrypt -binary -priv -- $plain  $key]
+        set uncipher [::pki::decrypt -binary -pub  -- $cipher $key]
+
+        string equal $plain $uncipher
+    } -cleanup {
+        unset -nocomplain plain cipher uncipher
+    } -result 1
+
+    if {$keylen >= 512} {
+        foreach {i hash} {
+            0 md5
+            1 sha1
+            2 sha256
+        } {
+            test rsa-sign-verify-2.$i.$keylen {
+				sign, verify $hash for keylen $keylen
+			} -body {
+                set plain    {This message is so long, it will never fit into a key}
+                set signed   [::pki::sign $plain $key $hash]
+                set verified [::pki::verify $signed $plain $key]
+            } -cleanup {
+                unset -nocomplain plain signed verified
+            } -result true
+        }
+    }
+
+    unset key
+}
+
+# -------------------------------------------------------------------------
+testsuiteCleanup
+return
+# Local variables:
+# mode: tcl
+# indent-tabs-mode: nil
+# End:

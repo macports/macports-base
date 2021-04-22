@@ -1,0 +1,19 @@
+'\"
+'\" Generated from file '\&.FILE\&.' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) 2019 Me
+'\" Copyright (c) 2019 Myself
+'\" Copyright (c) 2019 And I
+'\"
+.TH "TEST" z 1\&.1\&.23\&.58132\&.1 \&.MODULE\&. ""
+.so man.macros
+.BS
+.SH NAME
+TEST \-
+.SH DESCRIPTION
+.SH COPYRIGHT
+.nf
+Copyright (c) 2019 Me
+Copyright (c) 2019 Myself
+Copyright (c) 2019 And I
+
+.fi

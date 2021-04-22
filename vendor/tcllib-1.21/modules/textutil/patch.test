@@ -1,0 +1,112 @@
+# -*- tcl -*-
+# patch.test:  tests for application of `diff -ruN` patches.
+
+# -------------------------------------------------------------------------
+
+source [file join [
+    file dirname [file dirname [file join [pwd] [info script]]]
+] devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2
+
+testing {
+    useLocal patch.tcl textutil::patch
+}
+
+# -------------------------------------------------------------------------
+set m {wrong # args: should be "textutil::patch apply dir striplevel patch reportcmd"}
+
+test textutil-patch-1.0 {wrong args, not enough} -body {
+    textutil::patch apply
+} -returnCodes error -result $m
+
+test textutil-patch-1.1 {wrong args, not enough} -body {
+    textutil::patch apply D
+} -returnCodes error -result $m
+
+test textutil-patch-1.2 {wrong args, not enough} -body {
+    textutil::patch apply D S
+} -returnCodes error -result $m
+
+test textutil-patch-1.3 {wrong args, not enough} -body {
+    textutil::patch apply D S P
+} -returnCodes error -result $m
+
+test textutil-patch-1.4 {wrong args, too many} -body {
+    textutil::patch apply D S P R X
+} -returnCodes error -result $m
+
+unset m
+
+variable scratchdir [file join [file dirname [asset pkgIndex.tcl]] scratch]
+
+# -------------------------------------------------------------------------
+## Patch application. All ok.
+
+proc setup-scratch {} {
+    variable scratchdir
+    # Create a temp directory hierarchy where we can perform patch application.
+    # scratch
+    # \- pkgIndex.tcl
+
+    file mkdir $scratchdir
+    file copy  [asset pkgIndex.tcl] [file join $scratchdir pkgIndex.tcl]
+    set ::trace {}
+    return    
+}
+
+proc cleanup-scratch {} {
+    variable scratchdir
+    # Drop scratch area again.
+    unset ::trace
+    file delete -force $scratchdir
+    return
+}
+
+proc record args { lappend ::trace $args }
+
+proc recorded {} {
+    variable scratchdir
+    lappend ::trace === [tcltest::viewFile [file join $scratchdir pkgIndex.tcl]]
+    join $::trace \n
+}
+
+foreach {tool striplevel} {
+    diff-ruN    1
+    git-diff    2
+    fossil-diff 2
+} {
+    incr k
+    test textutil-patch-2.$k "apply $tool" -setup {
+	setup-scratch
+    } -cleanup {
+	cleanup-scratch
+    } -body {
+	# Apply patch `pkgIndex.tcl.<tool>` to `scratch/pkgIndex.tcl`.
+	# The result should match `pkgIndex.tcl.patched`.
+	textutil::patch apply \
+	    $scratchdir $striplevel \
+	    [asset-get pkgIndex.tcl.$tool] \
+	    record
+	recorded
+    } -result [join \
+		   [list \
+			[list apply [file join $scratchdir pkgIndex.tcl]] \
+			=== \
+			[tcltest::viewFile [asset pkgIndex.tcl.patched]]] \
+		   \n]
+}
+unset k
+
+catch { unset trace }
+rename setup-scratch {}
+rename cleanup-scratch {}
+
+# -------------------------------------------------------------------------
+## Patch application. Trigger the various failures. TODO
+
+# -------------------------------------------------------------------------
+
+testsuiteCleanup
+return

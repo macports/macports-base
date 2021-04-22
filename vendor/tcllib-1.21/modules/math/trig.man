@@ -1,0 +1,195 @@
+[vset VERSION 1.0.0]
+[manpage_begin math::trig n [vset VERSION]]
+[keywords math trigonometry]
+[copyright {2018 Arjen Markus}]
+[moddesc   {Tcl Math Library}]
+[titledesc {Trigonometric anf hyperbolic functions}]
+[category  Mathematics]
+[require Tcl 8.5]
+[require math::trig [vset VERSION]]
+[description]
+[para]
+The [term math::trig] package defines a set of trigonomic and hyperbolic functions
+and their inverses. In addition it defines versions of the trigonomic functions
+that take arguments in degrees instead of radians.
+[para]
+For easy use these functions may be imported into the [term tcl::mathfunc] namespace,
+so that they can be used directly in the [term expr] command.
+
+[section "FUNCTIONS"]
+The functions [term radian_reduced] and [term degree_reduced] return a reduced angle, in
+respectively radians and degrees, in the intervals [lb]0, 2pi) and [lb]0, 360):
+
+[list_begin definitions]
+
+[call [cmd ::math::trig::radian_reduced] [arg angle]]
+Return the equivalent angle in the interval [lb]0, 2pi).
+[list_begin arguments]
+[arg_def float angle] Angle (in radians)
+[list_end]
+
+[call [cmd ::math::trig::degree_reduced] [arg angle]]
+Return the equivalent angle in the interval [lb]0, 360).
+[list_begin arguments]
+[arg_def float angle] Angle (in degrees)
+[list_end]
+
+[list_end]
+
+
+The following trigonomic functions are defined in addition to the ones defined
+in the [term expr] command:
+
+[list_begin definitions]
+
+[call [cmd ::math::trig::cosec] [arg angle]]
+Calculate the cosecant of the angle (1/cos(angle))
+[list_begin arguments]
+[arg_def float angle] Angle (in radians)
+[list_end]
+
+[call [cmd ::math::trig::sec] [arg angle]]
+Calculate the secant of the angle (1/sin(angle))
+[list_begin arguments]
+[arg_def float angle] Angle (in radians)
+[list_end]
+
+[call [cmd ::math::trig::cotan] [arg angle]]
+Calculate the cotangent of the angle (1/tan(angle))
+[list_begin arguments]
+[arg_def float angle] Angle (in radians)
+[list_end]
+
+[list_end]
+
+
+For these functions also the inverses are defined:
+
+[list_begin definitions]
+
+[call [cmd ::math::trig::acosec] [arg value]]
+Calculate the arc cosecant of the value
+[list_begin arguments]
+[arg_def float value] Value of the argument
+[list_end]
+
+[call [cmd ::math::trig::asec] [arg value]]
+Calculate the arc secant of the value
+[list_begin arguments]
+[arg_def float value] Value of the argument
+[list_end]
+
+[call [cmd ::math::trig::acotan] [arg value]]
+Calculate the arc cotangent of the value
+[list_begin arguments]
+[arg_def float value] Value of the argument
+[list_end]
+
+[list_end]
+
+The following hyperbolic and inverse hyperbolic functions are defined:
+
+[list_begin definitions]
+
+[call [cmd ::math::trig::cosech] [arg value]]
+Calculate the hyperbolic cosecant of the value (1/sinh(value))
+[list_begin arguments]
+[arg_def float value] Value of the argument
+[list_end]
+
+[call [cmd ::math::trig::sech] [arg value]]
+Calculate the hyperbolic secant of the value (1/cosh(value))
+[list_begin arguments]
+[arg_def float value] Value of the argument
+[list_end]
+
+[call [cmd ::math::trig::cotanh] [arg value]]
+Calculate the hyperbolic cotangent of the value (1/tanh(value))
+[list_begin arguments]
+[arg_def float value] Value of the argument
+[list_end]
+
+[call [cmd ::math::trig::asinh] [arg value]]
+Calculate the arc hyperbolic sine of the value
+[list_begin arguments]
+[arg_def float value] Value of the argument
+[list_end]
+
+[call [cmd ::math::trig::acosh] [arg value]]
+Calculate the arc hyperbolic cosine of the value
+[list_begin arguments]
+[arg_def float value] Value of the argument
+[list_end]
+
+[call [cmd ::math::trig::atanh] [arg value]]
+Calculate the arc hyperbolic tangent of the value
+[list_begin arguments]
+[arg_def float value] Value of the argument
+[list_end]
+
+[call [cmd ::math::trig::acosech] [arg value]]
+Calculate the arc hyperbolic cosecant of the value
+[list_begin arguments]
+[arg_def float value] Value of the argument
+[list_end]
+
+[call [cmd ::math::trig::asech] [arg value]]
+Calculate the arc hyperbolic secant of the value
+[list_begin arguments]
+[arg_def float value] Value of the argument
+[list_end]
+
+[call [cmd ::math::trig::acotanh] [arg value]]
+Calculate the arc hyperbolic cotangent of the value
+[list_begin arguments]
+[arg_def float value] Value of the argument
+[list_end]
+
+[list_end]
+
+The following versions of the common trigonometric functions and their
+inverses are defined:
+
+[list_begin definitions]
+
+[call [cmd ::math::trig::sind] [arg angle]]
+Calculate the sine of the angle (in degrees)
+[list_begin arguments]
+[arg_def float angle] Angle (in degrees)
+[list_end]
+
+[call [cmd ::math::trig::cosd] [arg angle]]
+Calculate the cosine of the angle (in degrees)
+[list_begin arguments]
+[arg_def float angle] Angle (in radians)
+[list_end]
+
+[call [cmd ::math::trig::tand] [arg angle]]
+Calculate the cotangent of the angle (in degrees)
+[list_begin arguments]
+[arg_def float angle] Angle (in degrees)
+[list_end]
+
+[call [cmd ::math::trig::cosecd] [arg angle]]
+Calculate the cosecant of the angle (in degrees)
+[list_begin arguments]
+[arg_def float angle] Angle (in degrees)
+[list_end]
+
+[call [cmd ::math::trig::secd] [arg angle]]
+Calculate the secant of the angle (in degrees)
+[list_begin arguments]
+[arg_def float angle] Angle (in degrees)
+[list_end]
+
+[call [cmd ::math::trig::cotand] [arg angle]]
+Calculate the cotangent of the angle (in degrees)
+[list_begin arguments]
+[arg_def float angle] Angle (in degrees)
+[list_end]
+
+[list_end]
+
+[vset CATEGORY {math :: trig}]
+[include ../common-text/feedback.inc]
+[manpage_end]

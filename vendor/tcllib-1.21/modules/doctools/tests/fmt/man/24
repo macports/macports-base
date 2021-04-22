@@ -1,0 +1,29 @@
+[comment { -- List 17 - definitions enumerated }]
+[manpage_begin test-definitions-enumerated 1 n]
+[description]
+lorem ipsum dolores
+[list_begin definitions]
+[def lorem] ipsum dolores
+[list_begin enumerated]
+[enum] lorem ipsum dolores
+[enum] lorem ipsum dolores
+[para] lorem ipsum dolores
+[enum] lorem ipsum dolores
+[para] lorem ipsum dolores
+[para] lorem ipsum dolores
+[list_end]
+[def lorem] ipsum dolores
+[para] lorem ipsum dolores
+[def lorem] ipsum dolores
+[para] lorem ipsum dolores
+[list_begin enumerated]
+[enum] lorem ipsum dolores
+[enum] lorem ipsum dolores
+[para] lorem ipsum dolores
+[enum] lorem ipsum dolores
+[para] lorem ipsum dolores
+[para] lorem ipsum dolores
+[list_end]
+[para] lorem ipsum dolores
+[list_end]
+[manpage_end]

@@ -1,0 +1,226 @@
+[vset VERSION 1]
+[manpage_begin math::probopt n [vset VERSION]]
+[keywords {probabilistic calculations}]
+[keywords optimisation]
+[keywords mathematics]
+[moddesc {Tcl Math Library}]
+[titledesc {Probabilistic optimisation methods}]
+[category  Mathematics]
+[require Tcl 8.6]
+[require TclOO]
+[require math::probopt [vset VERSION]]
+[description]
+[para]
+
+The purpose of the [package math::probopt] package is to provide various optimisation
+algorithms that are based on probabilistic techniques. The results of these algorithms
+may therefore vary from one run to the next. The algorithms are all well-known and
+well described and proponents generally claim they are efficient and reliable.
+[para]
+
+As most of these algorithms have one or more tunable parameters or even variations,
+the interface to each accepts options to set these parameters or the select
+the variation. These take the form of key-value pairs, for instance, [term {-iterations 100}].
+[para]
+
+This manual does not offer any recommendations with regards to these algorithms, nor
+does it provide much in the way of guidelines for the parameters. For this we refer to
+online articles on the algorithms in question.
+[para]
+
+A few notes, however:
+[list_begin itemized]
+[item]
+With the exception of LIPO, the algorithms are capable of dealing with irregular (non-smooth) and even discontinuous
+functions.
+[item]
+The results depend on the random number seeding and are likely not to be very accurate, especially if the function
+varies slowly in the vicinty of the optimum. They do give a good starting point for a deterministic algorithm.
+[list_end]
+
+[para]
+The collection consists of the following algorithms:
+[list_begin itemized]
+[item]
+PSO - particle swarm optimisation
+
+[item]
+SCE - shuffled complexes evolution
+
+[item]
+DE - differential evolution
+
+[item]
+LIPO - Lipschitz optimisation
+[list_end]
+
+The various procedures have a uniform interface:
+[example {
+   set result [::math::probopt::algorithm function bounds args]
+}]
+
+The arguments have the following meaning:
+[list_begin itemized]
+[item]
+The argument [term function] is the name of the procedure that evaluates the function.
+Its interface is:
+[example {
+    set value [function coords]
+}]
+
+where [term coords] is a list of coordinates at which to evaluate the function. It is
+supposed to return the function value.
+
+[item]
+The argument [term bounds] is a list of pairs of minimum and maximum for each coordinate.
+This list implicitly determines the dimension of the coordinate space in which the optimum
+is to be sought, for instance for a function like [term {x**2 + (y-1)**4}], you may specify
+the bounds as [term "{{-1 1} {-1 1}}"], that is, two pairs for the two coordinates.
+
+[item]
+The rest ([term args]) consists of zero or more key-value pairs to specify the options. Which
+options are supported by which algorithm, is documented below.
+[list_end]
+
+The result of the various optimisation procedures is a dictionary containing at least the
+following elements:
+[list_begin itemized]
+[item]
+[term optimum-coordinates] is a list containing the coordinates of the optimum that was found.
+
+[item]
+[term optimum-value] is the function value at those coordinates.
+
+[item]
+[term evaluations] is the number of function evaluations.
+
+[item]
+[term best-values] is a list of successive best values, obtained as
+part of the iterations.
+[list_end]
+
+[section "DETAILS ON THE ALGORITHMS"]
+The algorithms in the package are the following:
+
+[list_begin definitions]
+
+[call [cmd ::math::probopt::pso] [arg function] [arg bounds] [arg args]]
+The "particle swarm optimisation" algorithm uses the idea that the candidate
+optimum points should swarm around the best point found so far, with
+variations to allow for improvements.
+[para]
+
+It recognises the following options:
+[list_begin itemized]
+[item] [term {-swarmsize number}]: Number of particles to consider (default: 50)
+[item] [term {-vweight    value}]: Weight for the current "velocity" (0-1, default: 0.5)
+[item] [term {-pweight    value}]: Weight for the individual particle's best position (0-1, default: 0.3)
+[item] [term {-gweight    value}]: Weight for the "best" overall position as per particle (0-1, default: 0.3)
+[item] [term {-type       local/global}]: Type of optimisation
+[item] [term {-neighbours number}]: Size of the neighbourhood (default: 5, used if "local")
+[item] [term {-iterations number}]: Maximum number of iterations
+[item] [term {-tolerance  value}]: Absolute minimal improvement for minimum value
+[list_end]
+
+
+[call [cmd ::math::probopt::sce] [arg function] [arg bounds] [arg args]]
+The "shuffled complex evolution" algorithm is an extension of the Nelder-Mead algorithm that
+uses multiple complexes and reorganises these complexes to find the "global" optimum.
+[para]
+
+It recognises the following options:
+[list_begin itemized]
+[item] [term {-complexes           number}]: Number of particles to consider (default: 2)
+[item] [term {-mincomplexes        number}]: Minimum number of complexes (default: 2; not currently used)
+[item] [term {-newpoints           number}]: Number of new points to be generated (default: 1)
+[item] [term {-shuffle             number}]: Number of iterations after which to reshuffle the complexes (if set to 0, the default, a number will be calculated from the number of dimensions)
+[item] [term {-pointspercomplex    number}]: Number of points per complex (if set to 0, the default, a number will be calculated from the number of dimensions)
+[item] [term {-pointspersubcomplex number}]: Number of points per subcomplex (used to select the best points in each complex; if set to 0, the default, a number will be calculated from the number of dimensions)
+[item] [term {-iterations          number}]: Maximum number of iterations (default: 100)
+[item] [term {-maxevaluations      number}]: Maximum number of function evaluations (when this number is reached the iteration is broken off. Default: 1000 million)
+[item] [term {-abstolerance        value}]: Absolute minimal improvement for minimum value (default: 0.0)
+[item] [term {-reltolerance        value}]: Relative minimal improvement for minimum value (default: 0.001)
+[list_end]
+
+
+[call [cmd ::math::probopt::diffev] [arg function] [arg bounds] [arg args]]
+The "differential evolution" algorithm uses a number of initial points that are then updated using randomly selected points. It is more or less akin
+to genetic algorithms. It is controlled by two parameters, factor and lambda, where the first determines the update via random points and the second
+the update with the best point found sofar.
+[para]
+
+It recognises the following options:
+[list_begin itemized]
+[item] [term {-iterations          number}]: Maximum number of iterations (default: 100)
+[item] [term {-number              number}]: Number of point to work with (if set to 0, the default, it is calculated from the number of dimensions)
+[item] [term {-factor              value}]: Weight of randomly selected points in the updating (0-1, default: 0.6)
+[item] [term {-lambda              value}]: Weight of the best point found so far in the updating (0-1, default: 0.0)
+[item] [term {-crossover           value}]: Fraction of new points to be considered for replacing the old ones (0-1, default: 0.5)
+[item] [term {-maxevaluations      number}]: Maximum number of function evaluations (when this number is reached the iteration is broken off. Default: 1000 million)
+[item] [term {-abstolerance        value}]: Absolute minimal improvement for minimum value (default: 0.0)
+[item] [term {-reltolerance        value}]: Relative minimal improvement for minimum value (default: 0.001)
+[list_end]
+
+
+[call [cmd ::math::probopt::lipoMax] [arg function] [arg bounds] [arg args]]
+The "Lipschitz optimisation" algorithm uses the "Lipschitz" property of the given function to find a [emph maximum] in the given bounding box. There are
+two variants, [term lipoMax] assumes a fixed estimate for the Lipschitz parameter.
+[para]
+
+It recognises the following options:
+[list_begin itemized]
+[item] [term {-iterations          number}]: Number of iterations (equals the actual number of function evaluations, default: 100)
+[item] [term {-lipschitz           value}]: Estimate of the Lipschitz parameter (default: 10.0)
+[list_end]
+
+
+[call [cmd ::math::probopt::adaLipoMax] [arg function] [arg bounds] [arg args]]
+The "adaptive Lipschitz optimisation" algorithm uses the "Lipschitz" property of the given function to find a [emph maximum] in the given bounding box. The adaptive
+variant actually uses two phases to find a suitable estimate for the Lipschitz parameter. This is controlled by the "Bernoulli" parameter.
+[para]
+When you specify a large number of iterations, the algorithm may take a very long time to complete as it is trying to improve on the Lipschitz parameter and
+the chances of hitting a better estimate diminish fast.
+
+[para]
+It recognises the following options:
+[list_begin itemized]
+[item] [term {-iterations          number}]: Number of iterations (equals the actual number of function evaluations, default: 100)
+[item] [term {-bernoulli           value}]: Parameter for random decisions (exploration versus exploitation, default: 0.1)
+[list_end]
+
+
+[list_end]
+
+
+[section References]
+
+The various algorithms have been described in on-line publications. Here are a few:
+
+[list_begin itemized]
+[item]
+[term PSO]: Maurice Clerc, Standard Particle Swarm Optimisation (2012)
+[uri https://hal.archives-ouvertes.fr/file/index/docid/764996/filename/SPSO_descriptions.pdf]
+[para]
+Alternatively: [uri https://en.wikipedia.org/wiki/Particle_swarm_optimization]
+
+[item]
+[term SCE]: Qingyuan Duan, Soroosh Sorooshian, Vijai K. Gupta, Optimal use offo the SCE-UA global optimization method for calibrating watershed models
+(1994), Journal of Hydrology 158, pp 265-284
+[para]
+[uri https://www.researchgate.net/publication/223408756_Optimal_Use_of_the_SCE-UA_Global_Optimization_Method_for_Calibrating_Watershed_Models]
+
+[item]
+[term DE]: Rainer Storn and Kenneth Price, Differential Evolution - A simple and efficient adaptivescheme for globaloptimization over continuous spaces
+(1996)
+[para]
+[uri http://www1.icsi.berkeley.edu/~storn/TR-95-012.pdf]
+
+[item]
+[term LIPO]: Cedric Malherbe and Nicolas Vayatis, Global optimization of Lipschitz functions,
+(june 2017)
+[para]
+[uri https://arxiv.org/pdf/1703.02628.pdf]
+
+[list_end]
+
+[manpage_end]

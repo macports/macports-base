@@ -1,0 +1,14 @@
+[comment { -- Example 4 }]
+[manpage_begin TEST T 0]
+[description]
+= = == === ===== ======== =============
+[example_begin][lb][cmd bar] \
+  foo[rb][example_end]
+= = == === ===== ======== =============
+[example_begin]
+[emph {  many lines
+  highlighted
+}]
+[example_end]
+= = == === ===== ======== =============
+[manpage_end]

@@ -1,0 +1,926 @@
+[comment {-*- tcl -*- doctools manpage}]
+[vset PACKAGE_VERSION 4.3.5]
+[manpage_begin httpd n [vset PACKAGE_VERSION]]
+[keywords WWW]
+[copyright {2018 Sean Woods <yoda@etoyoc.com>}]
+[moddesc   {Tcl Web Server}]
+[titledesc {A TclOO and coroutine based web server}]
+[category  Networking]
+[keywords TclOO]
+[keywords http]
+[keywords httpd]
+[keywords httpserver]
+[keywords services]
+[require Tcl 8.6]
+[require uuid]
+[require clay]
+[require coroutine]
+[require fileutil]
+[require fileutil::magic::filetype]
+[require websocket]
+[require mime]
+[require cron]
+[require uri]
+[require Markdown]
+[description]
+[para]
+
+This module implements a web server, suitable for embedding in an
+application. The server is object oriented, and contains all of the
+fundamentals needed for a full service website.
+
+[para]
+
+[section {Minimal Example}]
+
+Starting a web service requires starting a class of type
+[cmd httpd::server], and providing that server with one or more URIs
+to service, and [cmd httpd::reply] derived classes to generate them.
+
+[example {
+oo::class create ::reply.hello {
+  method content {} {
+    my puts "<HTML><HEAD><TITLE>IRM Dispatch Server</TITLE></HEAD><BODY>"
+    my puts "<h1>Hello World!</h1>"
+    my puts </BODY></HTML>
+  }
+}
+::httpd::server create HTTPD port 8015 myaddr 127.0.0.1 doc_root ~/htdocs
+HTTPD plugin dispatch httpd::server::dispatch
+HTTPD uri add * /hello [list mixin reply.hello]
+}]
+
+The bare module does have facilities to hose a files from a file system. Files that end in a .tml will be substituted in the style of Tclhttpd:
+
+[example {
+<!-- hello.tml -->
+[my html_header {Hello World!}]
+Your Server is running.
+<p>
+The time is now [clock format [clock seconds]]
+[my html_footer]
+}]
+
+A complete example of an httpd server is in the /examples directory of Tcllib. It also show how to dispatch URIs to other processes via SCGI and HTTP proxies.
+
+[example {
+cd ~/tcl/sandbox/tcllib
+tclsh examples/httpd.tcl
+}]
+
+[section Classes]
+[subsection {Class  httpd::mime}]
+
+ A metaclass for MIME handling behavior across a live socket
+
+
+
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "ChannelCopy"] [arg in] [arg out] [opt "[arg args]"]]
+
+
+[call method [cmd "html_header"] [opt "[arg title] [const ""]"] [opt "[arg args]"]]
+
+ Returns a block of HTML
+
+
+
+[call method [cmd "html_footer"] [opt "[arg args]"]]
+
+
+[call method [cmd "http_code_string"] [arg code]]
+
+
+[call method [cmd "HttpHeaders"] [arg sock] [opt "[arg debug] [const ""]"]]
+
+
+[call method [cmd "HttpHeaders_Default"]]
+
+
+[call method [cmd "HttpServerHeaders"]]
+
+
+[call method [cmd "MimeParse"] [arg mimetext]]
+
+ Converts a block of mime encoded text to a key/value list. If an exception is encountered,
+ the method will generate its own call to the [cmd error] method, and immediately invoke
+ the [cmd output] method to produce an error code and close the connection.
+
+
+
+
+[call method [cmd "Url_Decode"] [arg data]]
+ De-httpizes a string.
+
+
+
+[call method [cmd "Url_PathCheck"] [arg urlsuffix]]
+
+
+[call method [cmd "wait"] [arg mode] [arg sock]]
+
+
+[list_end]
+[para]
+
+[subsection {Class  httpd::reply}]
+[emph "ancestors"]: [class httpd::mime]
+[para]
+
+ A class which shephards a request through the process of generating a
+ reply.
+
+ The socket associated with the reply is available at all times as the [arg chan]
+ variable.
+
+ The process of generating a reply begins with an [cmd httpd::server] generating a
+ [cmd http::class] object, mixing in a set of behaviors and then invoking the reply
+ object's [cmd dispatch] method.
+
+ In normal operations the [cmd dispatch] method:
+
+ [list_begin enumerated]
+ [enum]
+ Invokes the [cmd reset] method for the object to populate default headers.
+ [enum]
+ Invokes the [cmd HttpHeaders] method to stream the MIME headers out of the socket
+ [enum]
+ Invokes the [cmd {request parse}] method to convert the stream of MIME headers into a
+ dict that can be read via the [cmd request] method.
+ [enum]
+ Stores the raw stream of MIME headers in the [arg rawrequest] variable of the object.
+ [enum]
+ Invokes the [cmd content] method for the object, generating an call to the [cmd error]
+ method if an exception is raised.
+ [enum]
+ Invokes the [cmd output] method for the object
+ [list_end]
+ [para]
+
+ Developers have the option of streaming output to a buffer via the [cmd puts] method of the
+ reply, or simply populating the [arg reply_body] variable of the object.
+ The information returned by the [cmd content] method is not interpreted in any way.
+
+ If an exception is thrown (via the [cmd error] command in Tcl, for example) the caller will
+ auto-generate a 500 {Internal Error} message.
+
+ A typical implementation of [cmd content] look like:
+
+ [example {
+
+ clay::define ::test::content.file {
+ 	superclass ::httpd::content.file
+ 	# Return a file
+ 	# Note: this is using the content.file mixin which looks for the reply_file variable
+ 	# and will auto-compute the Content-Type
+ 	method content {} {
+ 	  my reset
+     set doc_root [my request get DOCUMENT_ROOT]
+     my variable reply_file
+     set reply_file [file join $doc_root index.html]
+ 	}
+ }
+ clay::define ::test::content.time {
+   # return the current system time
+ 	method content {} {
+ 		my variable reply_body
+     my reply set Content-Type text/plain
+ 		set reply_body [clock seconds]
+ 	}
+ }
+ clay::define ::test::content.echo {
+ 	method content {} {
+ 		my variable reply_body
+     my reply set Content-Type [my request get CONTENT_TYPE]
+ 		set reply_body [my PostData [my request get CONTENT_LENGTH]]
+ 	}
+ }
+ clay::define ::test::content.form_handler {
+ 	method content {} {
+ 	  set form [my FormData]
+ 	  my reply set Content-Type {text/html; charset=UTF-8}
+     my puts [my html_header {My Dynamic Page}]
+     my puts "<BODY>"
+     my puts "You Sent<p>"
+     my puts "<TABLE>"
+     foreach {f v} $form {
+       my puts "<TR><TH>$f</TH><TD><verbatim>$v</verbatim></TD>"
+     }
+     my puts "</TABLE><p>"
+     my puts "Send some info:<p>"
+     my puts "<FORM action=/[my request get REQUEST_PATH] method POST>"
+     my puts "<TABLE>"
+     foreach field {name rank serial_number} {
+       set line "<TR><TH>$field</TH><TD><input name=\"$field\" "
+       if {[dict exists $form $field]} {
+         append line " value=\"[dict get $form $field]\"""
+       }
+       append line " /></TD></TR>"
+       my puts $line
+     }
+     my puts "</TABLE>"
+     my puts [my html footer]
+ 	}
+ }
+
+ }]
+
+
+
+[para]
+[class {Variable}]
+[list_begin definitions]
+[call variable [cmd ChannelRegister]]
+
+[call variable [cmd reply]]
+ A dictionary which will converted into the MIME headers of the reply
+
+
+
+
+[call variable [cmd request]]
+ A dictionary containing the SCGI transformed HTTP headers for the request
+
+
+
+
+[list_end]
+[para]
+[class {Delegate}]
+[list_begin definitions]
+[call delegate [cmd <server>]]The server object which spawned this reply
+
+[list_end]
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "constructor"] [arg ServerObj] [opt "[arg args]"]]
+
+
+[call method [cmd "destructor"] [opt "[arg dictargs]"]]
+
+ clean up on exit
+
+
+
+
+[call method [cmd "ChannelRegister"] [opt "[arg args]"]]
+ Registers a channel to be closed by the close method
+
+
+
+[call method [cmd "close"]]
+
+ Close channels opened by this object
+
+
+
+
+[call method [cmd "Log_Dispatched"]]
+
+ Record a dispatch event
+
+
+
+
+[call method [cmd "dispatch"] [arg newsock] [arg datastate]]
+
+ Accept the handoff from the server object of the socket
+ [emph newsock] and feed it the state [emph datastate].
+ Fields the [emph datastate] are looking for in particular are:
+ [para]
+ * [const mixin] - A key/value list of slots and classes to be mixed into the
+ object prior to invoking [cmd Dispatch].
+ [para]
+ * [const http] - A key/value list of values to populate the object's [emph request]
+ ensemble
+ [para]
+ All other fields are passed along to the [method clay] structure of the object.
+
+
+
+
+[call method [cmd "Dispatch"]]
+
+
+[call method [cmd "html_header"] [arg title] [opt "[arg args]"]]
+
+
+[call method [cmd "html_footer"] [opt "[arg args]"]]
+
+
+[call method [cmd "error"] [arg code] [opt "[arg msg] [const ""]"] [opt "[arg errorInfo] [const ""]"]]
+
+
+[call method [cmd "content"]]
+
+ REPLACE ME:
+ This method is the "meat" of your application.
+ It writes to the result buffer via the "puts" method
+ and can tweak the headers via "clay put header_reply"
+
+
+
+
+[call method [cmd "EncodeStatus"] [arg status]]
+
+ Formulate a standard HTTP status header from he string provided.
+
+
+
+
+[call method [cmd "log"] [arg type] [opt "[arg info] [const ""]"]]
+
+
+[call method [cmd "CoroName"]]
+
+
+[call method [cmd "DoOutput"]]
+
+ Generates the the HTTP reply, streams that reply back across [arg chan],
+ and destroys the object.
+
+
+
+
+[call method [cmd "FormData"]]
+
+ For GET requests, converts the QUERY_DATA header into a key/value list.
+
+ For POST requests, reads the Post data and converts that information to
+ a key/value list for application/x-www-form-urlencoded posts. For multipart
+ posts, it composites all of the MIME headers of the post to a singular key/value
+ list, and provides MIME_* information as computed by the [cmd mime] package, including
+ the MIME_TOKEN, which can be fed back into the mime package to read out the contents.
+
+
+
+
+[call method [cmd "PostData"] [arg length]]
+ Stream [arg length] bytes from the [arg chan] socket, but only of the request is a
+ POST or PUSH. Returns an empty string otherwise.
+
+
+
+[call method [cmd "Session_Load"]]
+ Manage session data
+
+
+
+[call method [cmd "puts"] [arg line]]
+ Appends the value of [arg string] to the end of [arg reply_body], as well as a trailing newline
+ character.
+
+
+
+[call method [cmd "RequestFind"] [arg field]]
+
+
+[call method [cmd "request"] [arg subcommand] [opt "[arg args]"]]
+
+
+[call method [cmd "reply"] [arg subcommand] [opt "[arg args]"]]
+
+
+[call method [cmd "reset"]]
+ Clear the contents of the [arg reply_body] variable, and reset all headers in the [cmd reply]
+ structure back to the defaults for this object.
+
+
+
+[call method [cmd "timeOutCheck"]]
+ Called from the [cmd http::server] object which spawned this reply. Checks to see
+ if too much time has elapsed while waiting for data or generating a reply, and issues
+ a timeout error to the request if it has, as well as destroy the object and close the
+ [arg chan] socket.
+
+
+
+[call method [cmd "timestamp"]]
+
+ Return the current system time in the format: [example {%a, %d %b %Y %T %Z}]
+
+
+
+
+[list_end]
+[para]
+
+[subsection {Class  httpd::server}]
+[emph "ancestors"]: [class httpd::mime]
+[para]
+
+[para]
+[class {Variable}]
+[list_begin definitions]
+[call variable [cmd template]]
+
+[call variable [cmd url_patterns]]
+
+[list_end]
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "constructor"] [arg args] [opt "[arg port] [const "auto"]"] [opt "[arg myaddr] [const "127.0.0.1"]"] [opt "[arg string] [const "auto"]"] [opt "[arg name] [const "auto"]"] [opt "[arg doc_root] [const ""]"] [opt "[arg reverse_dns] [const "0"]"] [opt "[arg configuration_file] [const ""]"] [opt "[arg protocol] [const "HTTP/1.1"]"]]
+
+
+[call method [cmd "destructor"] [opt "[arg dictargs]"]]
+
+
+[call method [cmd "connect"] [arg sock] [arg ip] [arg port]]
+
+ Reply to an open socket. This method builds a coroutine to manage the remainder
+ of the connection. The coroutine's operations are driven by the [cmd Connect] method.
+
+
+
+
+[call method [cmd "ServerHeaders"] [arg ip] [arg http_request] [arg mimetxt]]
+
+
+[call method [cmd "Connect"] [arg uuid] [arg sock] [arg ip]]
+
+ This method reads HTTP headers, and then consults the [cmd dispatch] method to
+ determine if the request is valid, and/or what kind of reply to generate. Under
+ normal cases, an object of class [cmd ::http::reply] is created, and that class's
+ [cmd dispatch] method.
+ This action passes control of the socket to
+ the reply object. The reply object manages the rest of the transaction, including
+ closing the socket.
+
+
+
+
+[call method [cmd "counter"] [arg which]]
+ Increment an internal counter.
+
+
+
+[call method [cmd "CheckTimeout"]]
+
+ Check open connections for a time out event.
+
+
+
+
+[call method [cmd "debug"] [opt "[arg args]"]]
+
+
+[call method [cmd "dispatch"] [arg data]]
+
+ Given a key/value list of information, return a data structure describing how
+ the server should reply.
+
+
+
+
+[call method [cmd "Dispatch_Default"] [arg reply]]
+
+ Method dispatch method of last resort before returning a 404 NOT FOUND error.
+ The default behavior is to look for a file in [emph DOCUMENT_ROOT] which
+ matches the query.
+
+
+
+
+[call method [cmd "Dispatch_Local"] [arg data]]
+
+ Method dispatch method invoked prior to invoking methods implemented by plugins.
+ If this method returns a non-empty dictionary, that structure will be passed to
+ the reply. The default is an empty implementation.
+
+
+
+
+[call method [cmd "Headers_Local"] [arg varname]]
+
+ Introspect and possibly modify a data structure destined for a reply. This
+ method is invoked before invoking Header methods implemented by plugins.
+ The default implementation is empty.
+
+
+
+
+[call method [cmd "Headers_Process"] [arg varname]]
+
+ Introspect and possibly modify a data structure destined for a reply. This
+ method is built dynamically by the [cmd plugin] method.
+
+
+
+
+[call method [cmd "HostName"] [arg ipaddr]]
+
+ Convert an ip address to a host name. If the server/ reverse_dns flag
+ is false, this method simply returns the IP address back.
+ Internally, this method uses the [emph dns] module from tcllib.
+
+
+
+
+[call method [cmd "log"] [opt "[arg args]"]]
+
+ Log an event. The input for args is free form. This method is intended
+ to be replaced by the user, and is a noop for a stock http::server object.
+
+
+
+
+[call method [cmd "plugin"] [arg slot] [opt "[arg class] [const ""]"]]
+
+ Incorporate behaviors from a plugin.
+ This method dynamically rebuilds the [cmd Dispatch] and [cmd Headers]
+ method. For every plugin, the server looks for the following entries in
+ [emph "clay plugin/"]:
+ [para]
+ [emph load] - A script to invoke in the server's namespace during the [cmd plugin] method invokation.
+ [para]
+ [emph dispatch] - A script to stitch into the server's [cmd Dispatch] method.
+ [para]
+ [emph headers] - A script to stitch into the server's [cmd Headers] method.
+ [para]
+ [emph thread] - A script to stitch into the server's [cmd Thread_start] method.
+
+
+
+
+[call method [cmd "port_listening"]]
+ Return the actual port that httpd is listening on.
+
+
+
+[call method [cmd "PrefixNormalize"] [arg prefix]]
+ For the stock version, trim trailing /'s and *'s from a prefix. This
+ method can be replaced by the end user to perform any other transformations
+ needed for the application.
+
+
+
+[call method [cmd "source"] [arg filename]]
+
+
+[call method [cmd "start"]]
+ Open the socket listener.
+
+
+
+[call method [cmd "stop"]]
+ Shut off the socket listener, and destroy any pending replies.
+
+
+
+[call method [cmd "SubObject {} db"]]
+
+
+[call method [cmd "SubObject {} default"]]
+
+
+[call method [cmd "template"] [arg page]]
+ Return a template for the string [arg page]
+
+
+
+[call method [cmd "TemplateSearch"] [arg page]]
+ Perform a search for the template that best matches [arg page]. This
+ can include local file searches, in-memory structures, or even
+ database lookups. The stock implementation simply looks for files
+ with a .tml or .html extension in the [opt doc_root] directory.
+
+
+
+[call method [cmd "Thread_start"]]
+
+ Built by the [cmd plugin] method. Called by the [cmd start] method. Intended
+ to allow plugins to spawn worker threads.
+
+
+
+
+[call method [cmd "Uuid_Generate"]]
+
+ Generate a GUUID. Used to ensure every request has a unique ID.
+ The default implementation is:
+ [example {
+   return [::clay::uuid generate]
+ }]
+
+
+
+
+[call method [cmd "Validate_Connection"] [arg sock] [arg ip]]
+
+ Given a socket and an ip address, return true if this connection should
+ be terminated, or false if it should be allowed to continue. The stock
+ implementation always returns 0. This is intended for applications to
+ be able to implement black lists and/or provide security based on IP
+ address.
+
+
+
+
+[list_end]
+[para]
+
+[subsection {Class  httpd::server::dispatch}]
+[emph "ancestors"]: [class httpd::server]
+[para]
+
+ Provide a backward compadible alias
+
+
+
+[para]
+
+[subsection {Class  httpd::content.redirect}]
+
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "reset"]]
+
+
+[call method [cmd "content"]]
+
+
+[list_end]
+[para]
+
+[subsection {Class  httpd::content.cache}]
+
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "Dispatch"]]
+
+
+[list_end]
+[para]
+
+[subsection {Class  httpd::content.template}]
+
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "content"]]
+
+
+[list_end]
+[para]
+
+[subsection {Class  httpd::content.file}]
+
+ Class to deliver Static content
+ When utilized, this class is fed a local filename
+ by the dispatcher
+
+
+
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "FileName"]]
+
+
+[call method [cmd "DirectoryListing"] [arg local_file]]
+
+
+[call method [cmd "content"]]
+
+
+[call method [cmd "Dispatch"]]
+
+
+[list_end]
+[para]
+
+[subsection {Class  httpd::content.exec}]
+
+[para]
+[class {Variable}]
+[list_begin definitions]
+[call variable [cmd exename]]
+
+[list_end]
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "CgiExec"] [arg execname] [arg script] [arg arglist]]
+
+
+[call method [cmd "Cgi_Executable"] [arg script]]
+
+
+[list_end]
+[para]
+
+[subsection {Class  httpd::content.proxy}]
+[emph "ancestors"]: [class httpd::content.exec]
+[para]
+
+ Return data from an proxy process
+
+
+
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "proxy_channel"]]
+
+
+[call method [cmd "proxy_path"]]
+
+
+[call method [cmd "ProxyRequest"] [arg chana] [arg chanb]]
+
+
+[call method [cmd "ProxyReply"] [arg chana] [arg chanb] [opt "[arg args]"]]
+
+
+[call method [cmd "Dispatch"]]
+
+
+[list_end]
+[para]
+
+[subsection {Class  httpd::content.cgi}]
+[emph "ancestors"]: [class httpd::content.proxy]
+[para]
+
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "FileName"]]
+
+
+[call method [cmd "proxy_channel"]]
+
+
+[call method [cmd "ProxyRequest"] [arg chana] [arg chanb]]
+
+
+[call method [cmd "ProxyReply"] [arg chana] [arg chanb] [opt "[arg args]"]]
+
+
+[call method [cmd "DirectoryListing"] [arg local_file]]
+
+ For most CGI applications a directory list is vorboten
+
+
+
+
+[list_end]
+[para]
+
+[subsection {Class  httpd::protocol.scgi}]
+
+ Return data from an SCGI process
+
+
+
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "EncodeStatus"] [arg status]]
+
+
+[list_end]
+[para]
+
+[subsection {Class  httpd::content.scgi}]
+[emph "ancestors"]: [class httpd::content.proxy]
+[para]
+
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "scgi_info"]]
+
+
+[call method [cmd "proxy_channel"]]
+
+
+[call method [cmd "ProxyRequest"] [arg chana] [arg chanb]]
+
+
+[call method [cmd "ProxyReply"] [arg chana] [arg chanb] [opt "[arg args]"]]
+
+
+[list_end]
+[para]
+
+[subsection {Class  httpd::server.scgi}]
+[emph "ancestors"]: [class httpd::server]
+[para]
+
+ Act as an  SCGI Server
+
+
+
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "debug"] [opt "[arg args]"]]
+
+
+[call method [cmd "Connect"] [arg uuid] [arg sock] [arg ip]]
+
+
+[list_end]
+[para]
+
+[subsection {Class  httpd::content.websocket}]
+
+ Upgrade a connection to a websocket
+
+
+
+[para]
+
+[subsection {Class  httpd::plugin}]
+
+ httpd plugin template
+
+
+
+[para]
+
+[subsection {Class  httpd::plugin.dict_dispatch}]
+
+ A rudimentary plugin that dispatches URLs from a dict
+ data structure
+
+
+
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "Dispatch_Dict"] [arg data]]
+
+ Implementation of the dispatcher
+
+
+
+
+[call method [cmd "uri {} add"] [arg vhosts] [arg patterns] [arg info]]
+
+
+
+
+
+[call method [cmd "uri {} direct"] [arg vhosts] [arg patterns] [arg info] [arg body]]
+
+
+[list_end]
+[para]
+
+[subsection {Class  httpd::reply.memchan}]
+[emph "ancestors"]: [class httpd::reply]
+[para]
+
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "output"]]
+
+
+[call method [cmd "DoOutput"]]
+
+
+[call method [cmd "close"]]
+
+
+[list_end]
+[para]
+
+[subsection {Class  httpd::plugin.local_memchan}]
+
+[para]
+[class {Methods}]
+[list_begin definitions]
+[call method [cmd "local_memchan"] [arg command] [opt "[arg args]"]]
+
+
+[call method [cmd "Connect_Local"] [arg uuid] [arg sock] [opt "[arg args]"]]
+
+ A modified connection method that passes simple GET request to an object
+ and pulls data directly from the reply_body data variable in the object
+
+ Needed because memchan is bidirectional, and we can't seem to communicate that
+ the server is one side of the link and the reply is another
+
+
+
+
+[list_end]
+[para]
+
+[section AUTHORS]
+Sean Woods
+
+[vset CATEGORY network]
+[include ../common-text/feedback.inc]
+
+[manpage_end]
+

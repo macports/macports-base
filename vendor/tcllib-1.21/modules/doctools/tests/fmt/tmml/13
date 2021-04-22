@@ -1,0 +1,43 @@
+<!-- Generated from file '.FILE.' by tcllib/doctools with format 'tmml' -->
+<manpage id='.FILE' cat='cmd' title='test-itemized-examples' version='n' package='.MODULE.'>
+<head>
+<info key='copyright' value='Copyright (c) .COPYRIGHT.'/>
+</head>
+<namesection>
+<name>test-itemized-examples</name>
+<desc></desc>
+
+</namesection>
+
+
+<section id='section1'>
+<title>DESCRIPTION</title>
+lorem ipsum dolores
+
+<ul>
+
+<li>
+
+<example> A lorem ipsum dolores 
+</example>
+</li>
+<li> lorem ipsum dolores
+
+<example> B lorem ipsum dolores 
+</example>
+lorem ipsum dolores
+</li>
+<li> lorem ipsum dolores
+
+<example> C lorem ipsum dolores 
+</example>
+</li>
+<li> lorem ipsum dolores
+</li>
+
+</ul>
+</section>
+
+
+
+</manpage>

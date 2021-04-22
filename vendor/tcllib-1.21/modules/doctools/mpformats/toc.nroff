@@ -1,0 +1,70 @@
+# -*- tcl -*-
+# Engine to convert a doctoc document into nroff.
+#
+# Copyright (c) 2003-2019 Andreas Kupries <andreas_kupries@sourceforge.net>
+# Freely redistributable.
+#
+######################################################################
+
+dt_source _toc_common.tcl
+dt_source _nroff.tcl
+
+######################################################################
+# Conversion specification.
+#
+# One-pass processing.
+
+proc toc_postprocess {nroff} {
+    # Postprocessing after generation ...
+    # Strip empty lines out of the generated nroff source
+    # and trim leading blanks, except in code samples.
+
+    set lines [list]
+    foreach line [split $nroff "\n"] {
+	set line [string trim $line]
+	if {0 == [string length $line]} {
+	    continue
+	}
+	lappend lines $line
+    } 
+    return [nroff_postprocess [join $lines \n]]
+}
+
+#proc fmt_plain_text {text} {if {$text != {}} {return \n} else {return {}}}
+proc fmt_plain_text {text} {return {}}
+
+################################################################
+## Backend for TMML markup
+
+global prec ok
+set    prec ""
+set    ok   0
+
+proc fmt_toc_begin {label title} {
+    global prec ok
+    set ok 1
+    set     hdr [nr_comment {}]\n
+    if {$prec != {}} {
+	set hdr [nr_comment $prec]\n
+    }
+    append  hdr [nr_comment [c_provenance]]\n
+    append  hdr [nr_title "\"[string trimleft $label :]\" n"]\n
+    append  hdr [nr_read man.macros]\n
+    append  hdr [nr_bolds]\n
+    append  hdr [nr_section CONTENTS]\n
+    append  hdr $title[nr_in]\n
+    return $hdr
+}
+proc fmt_toc_end        {}           {}
+proc fmt_division_start {title symfile} {return [nr_blt $title][nr_in]\n}
+proc fmt_division_end   {}              {return [nr_out]\n}
+proc fmt_item           {file label desc} {return "[nr_blt [nr_bld]$label[nr_rst]]\n[nr_ul]$file[nr_rst]: $desc\n"}
+
+proc fmt_comment {text} {
+    global prec ok
+    if {$ok} {return [nr_comment $text]}
+    append prec $text \n
+    return {}
+}
+
+################################################################

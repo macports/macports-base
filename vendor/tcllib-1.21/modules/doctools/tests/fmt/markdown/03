@@ -1,0 +1,57 @@
+
+[//000000001]: # (TEST \- )
+[//000000002]: # (Generated from file '\.FILE\.' by tcllib/doctools with format 'markdown')
+[//000000003]: # (Copyright &copy; \.COPYRIGHT\.)
+[//000000004]: # (TEST\(z\) 3\.14\.15\.926 \.MODULE\. "")
+
+# NAME
+
+TEST \-
+
+# <a name='toc'></a>Table Of Contents
+
+  - [Table Of Contents](#toc)
+
+  - [Description](#section1)
+
+  - [AaA](#section2)
+
+  - [BbB](#section3)
+
+      - [BbB\.cCc](#subsection1)
+
+      - [BbB\.dDd](#subsection2)
+
+  - [EeE](#section4)
+
+  - [Copyright](#copyright)
+
+# <a name='description'></a>DESCRIPTION
+
+# <a name='section2'></a>AaA
+
+1
+
+# <a name='section3'></a>BbB
+
+22
+
+## <a name='subsection1'></a>BbB\.cCc
+
+333
+
+## <a name='subsection2'></a>BbB\.dDd
+
+4444
+
+# <a name='section4'></a>EeE
+
+5555
+
+At [AaA](#section2)\.
+
+At __\_\_undefined\_\___\.
+
+# <a name='copyright'></a>COPYRIGHT
+
+Copyright &copy; \.COPYRIGHT\.

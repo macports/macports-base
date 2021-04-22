@@ -1,0 +1,42 @@
+'\"
+'\" Generated from file '\&.FILE\&.' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) \&.COPYRIGHT\&.
+'\"
+.TH "test-definition-examples" 1 n \&.MODULE\&. ""
+.so man.macros
+.BS
+.SH NAME
+test-definition-examples \-
+.SH DESCRIPTION
+lorem ipsum dolores
+.TP
+lorem
+.CS
+
+ A1 lorem ipsum dolores
+.CE
+.TP
+lorem
+ipsum dolores
+.CS
+
+ B2 lorem ipsum dolores
+.CE
+.IP
+lorem ipsum dolores
+.TP
+lorem
+ipsum dolores
+.CS
+
+ C3 lorem ipsum dolores
+.CE
+.TP
+lorem
+ipsum dolores
+.PP
+.SH COPYRIGHT
+.nf
+Copyright (c) \&.COPYRIGHT\&.
+
+.fi

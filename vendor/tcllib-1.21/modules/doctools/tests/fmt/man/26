@@ -1,0 +1,23 @@
+[comment { -- Example 3 }]
+[manpage_begin TEST z 3.14.15.926]
+[description]
+[example {
+Example Block \
+More Lines \\
+Ever More
+Never
+}]
+[para]
+............... Weiter .............
+[para]
+[example_begin]
+Second \
+Continuing Lines \\
+Done
+[example_end]
+............... Vorwaerts ..........
+[example_begin]
+   [cmd command]    x \\
+-- [cmd command] --
+[example_end]
+[manpage_end]

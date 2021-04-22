@@ -1,0 +1,719 @@
+<!DOCTYPE html><html><head>
+<title>clay - Clay Framework</title>
+<style type="text/css"><!--
+    HTML {
+	background: 	#FFFFFF;
+	color: 		black;
+    }
+    BODY {
+	background: 	#FFFFFF;
+	color:	 	black;
+    }
+    DIV.doctools {
+	margin-left:	10%;
+	margin-right:	10%;
+    }
+    DIV.doctools H1,DIV.doctools H2 {
+	margin-left:	-5%;
+    }
+    H1, H2, H3, H4 {
+	margin-top: 	1em;
+	font-family:	sans-serif;
+	font-size:	large;
+	color:		#005A9C;
+	background: 	transparent;
+	text-align:		left;
+    }
+    H1.doctools_title {
+	text-align: center;
+    }
+    UL,OL {
+	margin-right: 0em;
+	margin-top: 3pt;
+	margin-bottom: 3pt;
+    }
+    UL LI {
+	list-style: disc;
+    }
+    OL LI {
+	list-style: decimal;
+    }
+    DT {
+	padding-top: 	1ex;
+    }
+    UL.doctools_toc,UL.doctools_toc UL, UL.doctools_toc UL UL {
+	font:		normal 12pt/14pt sans-serif;
+	list-style:	none;
+    }
+    LI.doctools_section, LI.doctools_subsection {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding: 	0em;
+    }
+    PRE {
+	display: 	block;
+	font-family:	monospace;
+	white-space:	pre;
+	margin:		0%;
+	padding-top:	0.5ex;
+	padding-bottom:	0.5ex;
+	padding-left:	1ex;
+	padding-right:	1ex;
+	width:		100%;
+    }
+    PRE.doctools_example {
+	color: 		black;
+	background: 	#f5dcb3;
+	border:		1px solid black;
+    }
+    UL.doctools_requirements LI, UL.doctools_syntax LI {
+	list-style: 	none;
+	margin-left: 	0em;
+	text-indent:	0em;
+	padding:	0em;
+    }
+    DIV.doctools_synopsis {
+	color: 		black;
+	background: 	#80ffff;
+	border:		1px solid black;
+	font-family:	serif;
+	margin-top: 	1em;
+	margin-bottom: 	1em;
+    }
+    UL.doctools_syntax {
+	margin-top: 	1em;
+	border-top:	1px solid black;
+    }
+    UL.doctools_requirements {
+	margin-bottom: 	1em;
+	border-bottom:	1px solid black;
+    }
+--></style>
+</head>
+<!-- Generated from file 'clay.man' by tcllib/doctools with format 'html'
+   -->
+<!-- Copyright &amp;copy; 2018 Sean Woods &amp;lt;yoda@etoyoc.com&amp;gt;
+   -->
+<!-- clay.n
+   -->
+<body><hr> [
+   <a href="../../../../../../../../home">Tcllib Home</a>
+&#124; <a href="../../../../toc.html">Main Table Of Contents</a>
+&#124; <a href="../../../toc.html">Table Of Contents</a>
+&#124; <a href="../../../../index.html">Keyword Index</a>
+&#124; <a href="../../../../toc0.html">Categories</a>
+&#124; <a href="../../../../toc1.html">Modules</a>
+&#124; <a href="../../../../toc2.html">Applications</a>
+ ] <hr>
+<div class="doctools">
+<h1 class="doctools_title">clay(n) 0.8.6 tcllib &quot;Clay Framework&quot;</h1>
+<div id="name" class="doctools_section"><h2><a name="name">Name</a></h2>
+<p>clay - A minimalist framework for large scale OO Projects</p>
+</div>
+<div id="toc" class="doctools_section"><h2><a name="toc">Table Of Contents</a></h2>
+<ul class="doctools_toc">
+<li class="doctools_section"><a href="#toc">Table Of Contents</a></li>
+<li class="doctools_section"><a href="#synopsis">Synopsis</a></li>
+<li class="doctools_section"><a href="#section1">Description</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection1">Structured Data</a></li>
+<li class="doctools_subsection"><a href="#subsection2">Clay Dialect</a></li>
+<li class="doctools_subsection"><a href="#subsection3">Method Delegation</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section2">Commands</a></li>
+<li class="doctools_section"><a href="#section3">Classes</a>
+<ul>
+<li class="doctools_subsection"><a href="#subsection4">Class  clay::class</a></li>
+<li class="doctools_subsection"><a href="#subsection5">Class  clay::object</a></li>
+</ul>
+</li>
+<li class="doctools_section"><a href="#section4">AUTHORS</a></li>
+<li class="doctools_section"><a href="#section5">Bugs, Ideas, Feedback</a></li>
+<li class="doctools_section"><a href="#keywords">Keywords</a></li>
+<li class="doctools_section"><a href="#category">Category</a></li>
+<li class="doctools_section"><a href="#copyright">Copyright</a></li>
+</ul>
+</div>
+<div id="synopsis" class="doctools_section"><h2><a name="synopsis">Synopsis</a></h2>
+<div class="doctools_synopsis">
+<ul class="doctools_requirements">
+<li>package require <b class="pkgname">Tcl 8.6</b></li>
+<li>package require <b class="pkgname">uuid</b></li>
+<li>package require <b class="pkgname">oo::dialect</b></li>
+</ul>
+<ul class="doctools_syntax">
+<li><a href="#1">proc <b class="cmd">clay::PROC</b> <i class="arg">name</i> <i class="arg">arglist</i> <i class="arg">body</i> <span class="opt">?<i class="arg">ninja</i> <b class="const"></b>?</span></a></li>
+<li><a href="#2">proc <b class="cmd">clay::_ancestors</b> <i class="arg">resultvar</i> <i class="arg">class</i></a></li>
+<li><a href="#3">proc <b class="cmd">clay::ancestors</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#4">proc <b class="cmd">clay::args_to_dict</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#5">proc <b class="cmd">clay::args_to_options</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#6">proc <b class="cmd">clay::dynamic_arguments</b> <i class="arg">ensemble</i> <i class="arg">method</i> <i class="arg">arglist</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#7">proc <b class="cmd">clay::dynamic_wrongargs_message</b> <i class="arg">arglist</i></a></li>
+<li><a href="#8">proc <b class="cmd">clay::is_dict</b> <i class="arg">d</i></a></li>
+<li><a href="#9">proc <b class="cmd">clay::is_null</b> <i class="arg">value</i></a></li>
+<li><a href="#10">proc <b class="cmd">clay::leaf</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#11">proc <b class="cmd">clay::K</b> <i class="arg">a</i> <i class="arg">b</i></a></li>
+<li><a href="#12">proc <b class="cmd">clay::noop</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#13">proc <b class="cmd">clay::cleanup</b></a></li>
+<li><a href="#14">proc <b class="cmd">clay::object_create</b> <i class="arg">objname</i> <span class="opt">?<i class="arg">class</i> <b class="const"></b>?</span></a></li>
+<li><a href="#15">proc <b class="cmd">clay::object_rename</b> <i class="arg">object</i> <i class="arg">newname</i></a></li>
+<li><a href="#16">proc <b class="cmd">clay::object_destroy</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#17">proc <b class="cmd">clay::path</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#18">proc <b class="cmd">clay::putb</b> <span class="opt">?<i class="arg">map</i>?</span> <i class="arg">text</i></a></li>
+<li><a href="#19">proc <b class="cmd">clay::script_path</b></a></li>
+<li><a href="#20">proc <b class="cmd">clay::NSNormalize</b> <i class="arg">qualname</i></a></li>
+<li><a href="#21">proc <b class="cmd">clay::uuid_generate</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#22">proc <b class="cmd">clay::uuid::generate_tcl_machinfo</b></a></li>
+<li><a href="#23">proc <b class="cmd">clay::uuid::tostring</b> <i class="arg">uuid</i></a></li>
+<li><a href="#24">proc <b class="cmd">clay::uuid::fromstring</b> <i class="arg">uuid</i></a></li>
+<li><a href="#25">proc <b class="cmd">clay::uuid::equal</b> <i class="arg">left</i> <i class="arg">right</i></a></li>
+<li><a href="#26">proc <b class="cmd">clay::uuid</b> <i class="arg">cmd</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#27">proc <b class="cmd">clay::tree::sanitize</b> <i class="arg">dict</i></a></li>
+<li><a href="#28">proc <b class="cmd">clay::tree::_sanitizeb</b> <i class="arg">path</i> <i class="arg">varname</i> <i class="arg">dict</i></a></li>
+<li><a href="#29">proc <b class="cmd">clay::tree::storage</b> <i class="arg">rawpath</i></a></li>
+<li><a href="#30">proc <b class="cmd">clay::tree::dictset</b> <i class="arg">varname</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#31">proc <b class="cmd">clay::tree::dictmerge</b> <i class="arg">varname</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#32">proc <b class="cmd">clay::tree::merge</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#33">proc <b class="cmd">dictargs::proc</b> <i class="arg">name</i> <i class="arg">argspec</i> <i class="arg">body</i></a></li>
+<li><a href="#34">proc <b class="cmd">dictargs::method</b> <i class="arg">name</i> <i class="arg">argspec</i> <i class="arg">body</i></a></li>
+<li><a href="#35">proc <b class="cmd">clay::dialect::Push</b> <i class="arg">class</i></a></li>
+<li><a href="#36">proc <b class="cmd">clay::dialect::Peek</b></a></li>
+<li><a href="#37">proc <b class="cmd">clay::dialect::Pop</b></a></li>
+<li><a href="#38">proc <b class="cmd">clay::dialect::create</b> <i class="arg">name</i> <span class="opt">?<i class="arg">parent</i> <b class="const"></b>?</span></a></li>
+<li><a href="#39">proc <b class="cmd">clay::dialect::NSNormalize</b> <i class="arg">namespace</i> <i class="arg">qualname</i></a></li>
+<li><a href="#40">proc <b class="cmd">clay::dialect::DefineThunk</b> <i class="arg">target</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#41">proc <b class="cmd">clay::dialect::Canonical</b> <i class="arg">namespace</i> <i class="arg">NSpace</i> <i class="arg">class</i></a></li>
+<li><a href="#42">proc <b class="cmd">clay::dialect::Define</b> <i class="arg">namespace</i> <i class="arg">class</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#43">proc <b class="cmd">clay::dialect::Aliases</b> <i class="arg">namespace</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#44">proc <b class="cmd">clay::dialect::SuperClass</b> <i class="arg">namespace</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#45">proc <b class="cmd">clay::dynamic_methods</b> <i class="arg">class</i></a></li>
+<li><a href="#46">proc <b class="cmd">clay::dynamic_methods_class</b> <i class="arg">thisclass</i></a></li>
+<li><a href="#47">proc <b class="cmd">clay::define::Array</b> <i class="arg">name</i> <span class="opt">?<i class="arg">values</i> <b class="const"></b>?</span></a></li>
+<li><a href="#48">proc <b class="cmd">clay::define::Delegate</b> <i class="arg">name</i> <i class="arg">info</i></a></li>
+<li><a href="#49">proc <b class="cmd">clay::define::constructor</b> <i class="arg">arglist</i> <i class="arg">rawbody</i></a></li>
+<li><a href="#50">proc <b class="cmd">clay::define::Class_Method</b> <i class="arg">name</i> <i class="arg">arglist</i> <i class="arg">body</i></a></li>
+<li><a href="#51">proc <b class="cmd">clay::define::class_method</b> <i class="arg">name</i> <i class="arg">arglist</i> <i class="arg">body</i></a></li>
+<li><a href="#52">proc <b class="cmd">clay::define::clay</b> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#53">proc <b class="cmd">clay::define::destructor</b> <i class="arg">rawbody</i></a></li>
+<li><a href="#54">proc <b class="cmd">clay::define::Dict</b> <i class="arg">name</i> <span class="opt">?<i class="arg">values</i> <b class="const"></b>?</span></a></li>
+<li><a href="#55">proc <b class="cmd">clay::define::Option</b> <i class="arg">name</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#56">proc <b class="cmd">clay::define::Method</b> <i class="arg">name</i> <i class="arg">argstyle</i> <i class="arg">argspec</i> <i class="arg">body</i></a></li>
+<li><a href="#57">proc <b class="cmd">clay::define::Option_Class</b> <i class="arg">name</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#58">proc <b class="cmd">clay::define::Variable</b> <i class="arg">name</i> <span class="opt">?<i class="arg">default</i> <b class="const"></b>?</span></a></li>
+<li><a href="#59">proc <b class="cmd">clay::ensemble_methodbody</b> <i class="arg">ensemble</i> <i class="arg">einfo</i></a></li>
+<li><a href="#60">proc <b class="cmd">clay::define::Ensemble</b> <i class="arg">rawmethod</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#61">proc <b class="cmd">clay::event::cancel</b> <i class="arg">self</i> <span class="opt">?<i class="arg">task</i> <b class="const">*</b>?</span></a></li>
+<li><a href="#62">proc <b class="cmd">clay::event::generate</b> <i class="arg">self</i> <i class="arg">event</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#63">proc <b class="cmd">clay::event::nextid</b></a></li>
+<li><a href="#64">proc <b class="cmd">clay::event::Notification_list</b> <i class="arg">self</i> <i class="arg">event</i> <span class="opt">?<i class="arg">stackvar</i> <b class="const"></b>?</span></a></li>
+<li><a href="#65">proc <b class="cmd">clay::event::notify</b> <i class="arg">rcpt</i> <i class="arg">sender</i> <i class="arg">event</i> <i class="arg">eventinfo</i></a></li>
+<li><a href="#66">proc <b class="cmd">clay::event::process</b> <i class="arg">self</i> <i class="arg">handle</i> <i class="arg">script</i></a></li>
+<li><a href="#67">proc <b class="cmd">clay::event::schedule</b> <i class="arg">self</i> <i class="arg">handle</i> <i class="arg">interval</i> <i class="arg">script</i></a></li>
+<li><a href="#68">proc <b class="cmd">clay::event::subscribe</b> <i class="arg">self</i> <i class="arg">who</i> <i class="arg">event</i></a></li>
+<li><a href="#69">proc <b class="cmd">clay::event::unsubscribe</b> <i class="arg">self</i> <span class="opt">?<i class="arg">args</i>?</span></a></li>
+<li><a href="#70">proc <b class="cmd">clay::singleton</b> <i class="arg">name</i> <i class="arg">script</i></a></li>
+<li><a href="#71">method <b class="cmd">clay ancestors</b></a></li>
+<li><a href="#72">method <b class="cmd">clay dump</b></a></li>
+<li><a href="#73">method <b class="cmd">clay find</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></li>
+<li><a href="#74">method <b class="cmd">clay get</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></li>
+<li><a href="#75">method <b class="cmd">clay GET</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></li>
+<li><a href="#76">method <b class="cmd">clay merge</b> <i class="arg">dict</i> <span class="opt">?<b class="option">dict...</b>?</span></a></li>
+<li><a href="#77">method <b class="cmd">clay replace</b> <i class="arg">dictionary</i></a></li>
+<li><a href="#78">method <b class="cmd">clay search</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></li>
+<li><a href="#79">method <b class="cmd">clay set</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span> <i class="arg">value</i></a></li>
+<li><a href="#80">method <b class="cmd">clay ancestors</b></a></li>
+<li><a href="#81">method <b class="cmd">clay cache</b> <i class="arg">path</i> <i class="arg">value</i></a></li>
+<li><a href="#82">method <b class="cmd">clay cget</b> <i class="arg">field</i></a></li>
+<li><a href="#83">method <b class="cmd">clay delegate</b> <span class="opt">?<i class="arg">stub</i>?</span> <span class="opt">?<i class="arg">object</i>?</span></a></li>
+<li><a href="#84">method <b class="cmd">clay dump</b></a></li>
+<li><a href="#85">method <b class="cmd">clay ensemble_map</b></a></li>
+<li><a href="#86">method <b class="cmd">clay eval</b> <i class="arg">script</i></a></li>
+<li><a href="#87">method <b class="cmd">clay evolve</b></a></li>
+<li><a href="#88">method <b class="cmd">clay exists</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></li>
+<li><a href="#89">method <b class="cmd">clay flush</b></a></li>
+<li><a href="#90">method <b class="cmd">clay forward</b> <i class="arg">method</i> <i class="arg">object</i></a></li>
+<li><a href="#91">method <b class="cmd">clay get</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></li>
+<li><a href="#92">method <b class="cmd">clay leaf</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></li>
+<li><a href="#93">method <b class="cmd">clay merge</b> <i class="arg">dict</i> <span class="opt">?<b class="option">dict...</b>?</span></a></li>
+<li><a href="#94">method <b class="cmd">clay mixin</b> <i class="arg">class</i> <span class="opt">?<b class="option">class...</b>?</span></a></li>
+<li><a href="#95">method <b class="cmd">clay mixinmap</b> <span class="opt">?<i class="arg">stub</i>?</span> <span class="opt">?<i class="arg">classes</i>?</span></a></li>
+<li><a href="#96">method <b class="cmd">clay provenance</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></li>
+<li><a href="#97">method <b class="cmd">clay replace</b> <i class="arg">dictionary</i></a></li>
+<li><a href="#98">method <b class="cmd">clay search</b> <i class="arg">path</i> <i class="arg">valuevar</i> <i class="arg">isleafvar</i></a></li>
+<li><a href="#99">method <b class="cmd">clay source</b> <i class="arg">filename</i></a></li>
+<li><a href="#100">method <b class="cmd">clay set</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span> <i class="arg">value</i></a></li>
+<li><a href="#101">method <b class="cmd">InitializePublic</b></a></li>
+</ul>
+</div>
+</div>
+<div id="section1" class="doctools_section"><h2><a name="section1">Description</a></h2>
+<p>Clay introduces a method ensemble to both <b class="class">oo::class</b> and <b class="class">oo::object</b> called
+clay. This ensemble handles all of the high level interactions within the framework.
+Clay stores structured data. Clan manages method delegation. Clay has facilities to
+manage the complex interactions that come about with mixins.</p>
+<p>The central concept is that inside of every object and class
+(which are actually objects too) is a dict called clay. What is stored in that dict is
+left to the imagination. But because this dict is exposed via a public method, we can
+share structured data between object, classes, and mixins.</p>
+<div id="subsection1" class="doctools_subsection"><h3><a name="subsection1">Structured Data</a></h3>
+<p>Clay uses a standardized set of method interactions and introspection that TclOO already provides to perform on-the-fly searches. On-the-fly searches mean that the data is never stale, and we avoid many of the sorts of collisions that would arise when objects start mixing in other classes during operation.</p>
+<p>The <b class="method">clay</b> methods for both classes and objects have a get and a set method. For objects, get will search through the local clay dict. If the requested leaf is not found, or the query is for a branch, the system will then begin to poll the clay methods of all of the class that implements the object, all of that classes’ ancestors, as well as all of the classes that have been mixed into this object, and all of their ancestors.</p>
+<p>Intended branches on a tree end with a directory slash (/). Intended leaves are left unadorned. This is a guide for the tool that builds the search
+results to know what parts of a dict are intended to be branches and which are intended to be leaves.
+For simple cases, branch marking can be ignored:</p>
+<pre class="doctools_example">
+::oo::class create ::foo { }
+::foo clay set property/ color blue
+::foo clay set property/ shape round
+set A [::foo new]
+$A clay get property/
+{color blue shape round}
+$A clay set property/ shape square
+$A clay get property/
+{color blue shape square}
+</pre>
+<p>But when you start storing blocks of text, guessing what field is a dict and what isn’t gets messy:</p>
+<pre class="doctools_example">
+::foo clay set description {A generic thing of designated color and shape}
+$A clay get description
+{A generic thing of designated color and shape}
+Without a convention for discerning branches for leaves what should have been a value can be accidentally parsed as a dictionary, and merged with all of the other values that were never intended to be merge. Here is an example of it all going wrong:
+::oo::class create ::foo { }
+# Add description as a leaf
+::foo clay set description  {A generic thing of designated color and shape}
+# Add description as a branch
+::foo clay set description/  {A generic thing of designated color and shape}
+::oo::class create ::bar {
+  superclass foo
+}
+# Add description as a leaf
+::bar clay set description  {A drinking establishment of designated color and shape and size}
+# Add description as a branch
+::bar clay set description/  {A drinking establishment of designated color and shape and size}
+set B [::bar new]
+# As a leaf we get the value verbatim from he nearest ancestor
+$B clay get description
+  {A drinking establishment of designated color and shape and size}
+# As a branch we get a recursive merge
+$B clay get description/
+{A drinking establishment of designated color and size thing of}
+</pre>
+</div>
+<div id="subsection2" class="doctools_subsection"><h3><a name="subsection2">Clay Dialect</a></h3>
+<p>Clay is built using the oo::dialect module from Tcllib. oo::dialect allows you to either add keywords directly to clay, or to create your own
+metaclass and keyword set using Clay as a foundation. For details on the keywords and what they do, consult the functions in the ::clay::define namespace.</p>
+</div>
+<div id="subsection3" class="doctools_subsection"><h3><a name="subsection3">Method Delegation</a></h3>
+<p>Method Delegation
+It is sometimes useful to have an external object that can be invoked as if it were a method of the object. Clay provides a delegate ensemble method to perform that delegation, as well as introspect which methods are delegated in that manner. All delegated methods are marked with html-like tag markings (&lt; &gt;) around them.</p>
+<pre class="doctools_example">
+::clay::define counter {
+  Variable counter 0
+  method incr {{howmuch 1}} {
+    my variable counter
+    incr counter $howmuch
+  }
+  method value {} {
+    my variable counter
+    return $counter
+  }
+  method reset {} {
+    my variable counter
+    set counter 0
+  }
+}
+::clay::define example {
+  variable buffer
+  constructor {} {
+    # Build a counter object
+    set obj [namespace current]::counter
+    ::counter create $obj
+    # Delegate the counter
+    my delegate &lt;counter&gt; $obj
+  }
+  method line {text} {
+    my &lt;counter&gt; incr
+    append buffer $text
+  }
+}
+set A [example new]
+$A line {Who’s line is it anyway?}
+$A &lt;counter&gt; value
+1
+</pre>
+</div>
+</div>
+<div id="section2" class="doctools_section"><h2><a name="section2">Commands</a></h2>
+<dl class="doctools_definitions">
+<dt><a name="1">proc <b class="cmd">clay::PROC</b> <i class="arg">name</i> <i class="arg">arglist</i> <i class="arg">body</i> <span class="opt">?<i class="arg">ninja</i> <b class="const"></b>?</span></a></dt>
+<dd><p>Because many features in this package may be added as
+ commands to future tcl cores, or be provided in binary
+ form by packages, I need a declaritive way of saying
+ <em>Create this command if there isn't one already</em>.
+ The <em>ninja</em> argument is a script to execute if the
+ command is created by this mechanism.</p></dd>
+<dt><a name="2">proc <b class="cmd">clay::_ancestors</b> <i class="arg">resultvar</i> <i class="arg">class</i></a></dt>
+<dd></dd>
+<dt><a name="3">proc <b class="cmd">clay::ancestors</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="4">proc <b class="cmd">clay::args_to_dict</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="5">proc <b class="cmd">clay::args_to_options</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="6">proc <b class="cmd">clay::dynamic_arguments</b> <i class="arg">ensemble</i> <i class="arg">method</i> <i class="arg">arglist</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="7">proc <b class="cmd">clay::dynamic_wrongargs_message</b> <i class="arg">arglist</i></a></dt>
+<dd></dd>
+<dt><a name="8">proc <b class="cmd">clay::is_dict</b> <i class="arg">d</i></a></dt>
+<dd></dd>
+<dt><a name="9">proc <b class="cmd">clay::is_null</b> <i class="arg">value</i></a></dt>
+<dd></dd>
+<dt><a name="10">proc <b class="cmd">clay::leaf</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="11">proc <b class="cmd">clay::K</b> <i class="arg">a</i> <i class="arg">b</i></a></dt>
+<dd></dd>
+<dt><a name="12">proc <b class="cmd">clay::noop</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Perform a noop. Useful in prototyping for commenting out blocks
+ of code without actually having to comment them out. It also makes
+ a handy default for method delegation if a delegate has not been
+ assigned yet.</p></dd>
+<dt><a name="13">proc <b class="cmd">clay::cleanup</b></a></dt>
+<dd><p>Process the queue of objects to be destroyed</p></dd>
+<dt><a name="14">proc <b class="cmd">clay::object_create</b> <i class="arg">objname</i> <span class="opt">?<i class="arg">class</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+<dt><a name="15">proc <b class="cmd">clay::object_rename</b> <i class="arg">object</i> <i class="arg">newname</i></a></dt>
+<dd></dd>
+<dt><a name="16">proc <b class="cmd">clay::object_destroy</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Mark an objects for destruction on the next cleanup</p></dd>
+<dt><a name="17">proc <b class="cmd">clay::path</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="18">proc <b class="cmd">clay::putb</b> <span class="opt">?<i class="arg">map</i>?</span> <i class="arg">text</i></a></dt>
+<dd><p>Append a line of text to a variable. Optionally apply a string mapping.</p></dd>
+<dt><a name="19">proc <b class="cmd">clay::script_path</b></a></dt>
+<dd></dd>
+<dt><a name="20">proc <b class="cmd">clay::NSNormalize</b> <i class="arg">qualname</i></a></dt>
+<dd></dd>
+<dt><a name="21">proc <b class="cmd">clay::uuid_generate</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="22">proc <b class="cmd">clay::uuid::generate_tcl_machinfo</b></a></dt>
+<dd></dd>
+<dt><a name="23">proc <b class="cmd">clay::uuid::tostring</b> <i class="arg">uuid</i></a></dt>
+<dd></dd>
+<dt><a name="24">proc <b class="cmd">clay::uuid::fromstring</b> <i class="arg">uuid</i></a></dt>
+<dd><p>Convert a string representation of a uuid into its binary format.</p></dd>
+<dt><a name="25">proc <b class="cmd">clay::uuid::equal</b> <i class="arg">left</i> <i class="arg">right</i></a></dt>
+<dd><p>Compare two uuids for equality.</p></dd>
+<dt><a name="26">proc <b class="cmd">clay::uuid</b> <i class="arg">cmd</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>uuid generate -&gt; string rep of a new uuid
+ uuid equal uuid1 uuid2</p></dd>
+<dt><a name="27">proc <b class="cmd">clay::tree::sanitize</b> <i class="arg">dict</i></a></dt>
+<dd><p>Output a dictionary removing any . entries added by <b class="function">clay::tree::merge</b></p></dd>
+<dt><a name="28">proc <b class="cmd">clay::tree::_sanitizeb</b> <i class="arg">path</i> <i class="arg">varname</i> <i class="arg">dict</i></a></dt>
+<dd><p>Helper function for ::clay::tree::sanitize
+ Formats the string representation for a dictionary element within
+ a human readable stream of lines, and determines if it needs to call itself
+ with further indentation to express a sub-branch</p></dd>
+<dt><a name="29">proc <b class="cmd">clay::tree::storage</b> <i class="arg">rawpath</i></a></dt>
+<dd><p>Return the path as a storage path for clay::tree
+ with all branch terminators removed.
+ This command will also break arguments up if they
+ contain /.</p>
+<p>Example:</p>
+<pre class="doctools_example"> &gt; clay::tree::storage {foo bar baz bang}
+ foo bar baz bang
+ &gt; clay::tree::storage {foo bar baz bang/}
+ foo bar baz bang
+ &gt; clay::tree::storage {foo bar baz bang:}
+ foo bar baz bang:
+ &gt; clay::tree::storage {foo/bar/baz bang:}
+ foo bar baz bang:
+ &gt; clay::tree::storage {foo/bar/baz/bang}
+ foo bar baz bang
+</pre>
+</dd>
+<dt><a name="30">proc <b class="cmd">clay::tree::dictset</b> <i class="arg">varname</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Set an element with a recursive dictionary,
+ marking all branches on the way down to the
+ final element.
+ If the value does not exists in the nested dictionary
+ it is added as a leaf. If the value already exists as a branch
+ the value given is merged if the value is a valid dict. If the
+ incoming value is not a valid dict, the value overrides the value
+ stored, and the value is treated as a leaf from then on.</p>
+<p>Example:</p>
+<pre class="doctools_example"> &gt; set r {}
+ &gt; ::clay::tree::dictset r option color default Green
+ . {} option {. {} color {. {} default Green}}
+ &gt; ::clay::tree::dictset r option {Something not dictlike}
+ . {} option {Something not dictlike}
+ # Note that if the value is not a dict, and you try to force it to be
+ # an error with be thrown on the merge
+ &gt; ::clay::tree::dictset r option color default Blue
+ missing value to go with key
+</pre>
+</dd>
+<dt><a name="31">proc <b class="cmd">clay::tree::dictmerge</b> <i class="arg">varname</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>A recursive form of dict merge, intended for modifying variables in place.</p>
+<p>Example:</p>
+<pre class="doctools_example"> &gt; set mydict {sub/ {sub/ {description {a block of text}}}}
+ &gt; ::clay::tree::dictmerge mydict {sub/ {sub/ {field {another block of text}}}}]
+ &gt; clay::tree::print $mydict
+ sub/ {
+   sub/ {
+     description {a block of text}
+     field {another block of text}
+   }
+ }
+</pre>
+</dd>
+<dt><a name="32">proc <b class="cmd">clay::tree::merge</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>A recursive form of dict merge</p>
+<p>A routine to recursively dig through dicts and merge
+ adapted from http://stevehavelka.com/tcl-dict-operation-nested-merge/</p>
+<p>Example:</p>
+<pre class="doctools_example"> &gt; set mydict {sub/ {sub/ {description {a block of text}}}}
+ &gt; set odict [clay::tree::merge $mydict {sub/ {sub/ {field {another block of text}}}}]
+ &gt; clay::tree::print $odict
+ sub/ {
+   sub/ {
+     description {a block of text}
+     field {another block of text}
+   }
+ }
+</pre>
+</dd>
+<dt><a name="33">proc <b class="cmd">dictargs::proc</b> <i class="arg">name</i> <i class="arg">argspec</i> <i class="arg">body</i></a></dt>
+<dd><p>Named Procedures as new command</p></dd>
+<dt><a name="34">proc <b class="cmd">dictargs::method</b> <i class="arg">name</i> <i class="arg">argspec</i> <i class="arg">body</i></a></dt>
+<dd></dd>
+<dt><a name="35">proc <b class="cmd">clay::dialect::Push</b> <i class="arg">class</i></a></dt>
+<dd></dd>
+<dt><a name="36">proc <b class="cmd">clay::dialect::Peek</b></a></dt>
+<dd></dd>
+<dt><a name="37">proc <b class="cmd">clay::dialect::Pop</b></a></dt>
+<dd></dd>
+<dt><a name="38">proc <b class="cmd">clay::dialect::create</b> <i class="arg">name</i> <span class="opt">?<i class="arg">parent</i> <b class="const"></b>?</span></a></dt>
+<dd><p>This proc will generate a namespace, a &quot;mother of all classes&quot;, and a
+ rudimentary set of policies for this dialect.</p></dd>
+<dt><a name="39">proc <b class="cmd">clay::dialect::NSNormalize</b> <i class="arg">namespace</i> <i class="arg">qualname</i></a></dt>
+<dd><p>Support commands; not intended to be called directly.</p></dd>
+<dt><a name="40">proc <b class="cmd">clay::dialect::DefineThunk</b> <i class="arg">target</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="41">proc <b class="cmd">clay::dialect::Canonical</b> <i class="arg">namespace</i> <i class="arg">NSpace</i> <i class="arg">class</i></a></dt>
+<dd></dd>
+<dt><a name="42">proc <b class="cmd">clay::dialect::Define</b> <i class="arg">namespace</i> <i class="arg">class</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Implementation of the languages' define command</p></dd>
+<dt><a name="43">proc <b class="cmd">clay::dialect::Aliases</b> <i class="arg">namespace</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="44">proc <b class="cmd">clay::dialect::SuperClass</b> <i class="arg">namespace</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="45">proc <b class="cmd">clay::dynamic_methods</b> <i class="arg">class</i></a></dt>
+<dd></dd>
+<dt><a name="46">proc <b class="cmd">clay::dynamic_methods_class</b> <i class="arg">thisclass</i></a></dt>
+<dd></dd>
+<dt><a name="47">proc <b class="cmd">clay::define::Array</b> <i class="arg">name</i> <span class="opt">?<i class="arg">values</i> <b class="const"></b>?</span></a></dt>
+<dd><p>New OO Keywords for clay</p></dd>
+<dt><a name="48">proc <b class="cmd">clay::define::Delegate</b> <i class="arg">name</i> <i class="arg">info</i></a></dt>
+<dd><p>An annotation that objects of this class interact with delegated
+ methods. The annotation is intended to be a dictionary, and the
+ only reserved key is <em>description</em>, a human readable description.</p></dd>
+<dt><a name="49">proc <b class="cmd">clay::define::constructor</b> <i class="arg">arglist</i> <i class="arg">rawbody</i></a></dt>
+<dd></dd>
+<dt><a name="50">proc <b class="cmd">clay::define::Class_Method</b> <i class="arg">name</i> <i class="arg">arglist</i> <i class="arg">body</i></a></dt>
+<dd><p>Specify the a method for the class object itself, instead of for objects of the class</p></dd>
+<dt><a name="51">proc <b class="cmd">clay::define::class_method</b> <i class="arg">name</i> <i class="arg">arglist</i> <i class="arg">body</i></a></dt>
+<dd><p>And alias to the new Class_Method keyword</p></dd>
+<dt><a name="52">proc <b class="cmd">clay::define::clay</b> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="53">proc <b class="cmd">clay::define::destructor</b> <i class="arg">rawbody</i></a></dt>
+<dd></dd>
+<dt><a name="54">proc <b class="cmd">clay::define::Dict</b> <i class="arg">name</i> <span class="opt">?<i class="arg">values</i> <b class="const"></b>?</span></a></dt>
+<dd></dd>
+<dt><a name="55">proc <b class="cmd">clay::define::Option</b> <i class="arg">name</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Define an option for the class</p></dd>
+<dt><a name="56">proc <b class="cmd">clay::define::Method</b> <i class="arg">name</i> <i class="arg">argstyle</i> <i class="arg">argspec</i> <i class="arg">body</i></a></dt>
+<dd></dd>
+<dt><a name="57">proc <b class="cmd">clay::define::Option_Class</b> <i class="arg">name</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Define a class of options
+ All field / value pairs will be be inherited by an option that
+ specify <em>name</em> as it class field.</p></dd>
+<dt><a name="58">proc <b class="cmd">clay::define::Variable</b> <i class="arg">name</i> <span class="opt">?<i class="arg">default</i> <b class="const"></b>?</span></a></dt>
+<dd><p>This keyword can also be expressed:</p>
+<pre class="doctools_example">property variable NAME {default DEFAULT}</pre>
+<p>Variables registered in the variable property are also initialized
+    (if missing) when the object changes class via the <em>morph</em> method.</p></dd>
+<dt><a name="59">proc <b class="cmd">clay::ensemble_methodbody</b> <i class="arg">ensemble</i> <i class="arg">einfo</i></a></dt>
+<dd><p>Produce the body of an ensemble's public dispatch method
+ ensemble is the name of the the ensemble.
+ einfo is a dictionary of methods for the ensemble, and each value is a script
+ to execute on dispatch</p>
+<p>Example:</p>
+<pre class="doctools_example"> ::clay::ensemble_methodbody foo {
+   bar {tailcall my Foo_bar {*}$args}
+   baz {tailcall my Foo_baz {*}$args}
+   clock {return [clock seconds]}
+   default {puts &quot;You gave me $method&quot;}
+ }
+</pre>
+</dd>
+<dt><a name="60">proc <b class="cmd">clay::define::Ensemble</b> <i class="arg">rawmethod</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd></dd>
+<dt><a name="61">proc <b class="cmd">clay::event::cancel</b> <i class="arg">self</i> <span class="opt">?<i class="arg">task</i> <b class="const">*</b>?</span></a></dt>
+<dd><p>Cancel a scheduled event</p></dd>
+<dt><a name="62">proc <b class="cmd">clay::event::generate</b> <i class="arg">self</i> <i class="arg">event</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Generate an event
+    Adds a subscription mechanism for objects
+    to see who has recieved this event and prevent
+    spamming or infinite recursion</p></dd>
+<dt><a name="63">proc <b class="cmd">clay::event::nextid</b></a></dt>
+<dd></dd>
+<dt><a name="64">proc <b class="cmd">clay::event::Notification_list</b> <i class="arg">self</i> <i class="arg">event</i> <span class="opt">?<i class="arg">stackvar</i> <b class="const"></b>?</span></a></dt>
+<dd><p>Called recursively to produce a list of
+    who recieves notifications</p></dd>
+<dt><a name="65">proc <b class="cmd">clay::event::notify</b> <i class="arg">rcpt</i> <i class="arg">sender</i> <i class="arg">event</i> <i class="arg">eventinfo</i></a></dt>
+<dd><p>Final delivery to intended recipient object</p></dd>
+<dt><a name="66">proc <b class="cmd">clay::event::process</b> <i class="arg">self</i> <i class="arg">handle</i> <i class="arg">script</i></a></dt>
+<dd><p>Evaluate an event script in the global namespace</p></dd>
+<dt><a name="67">proc <b class="cmd">clay::event::schedule</b> <i class="arg">self</i> <i class="arg">handle</i> <i class="arg">interval</i> <i class="arg">script</i></a></dt>
+<dd><p>Schedule an event to occur later</p></dd>
+<dt><a name="68">proc <b class="cmd">clay::event::subscribe</b> <i class="arg">self</i> <i class="arg">who</i> <i class="arg">event</i></a></dt>
+<dd><p>Subscribe an object to an event pattern</p></dd>
+<dt><a name="69">proc <b class="cmd">clay::event::unsubscribe</b> <i class="arg">self</i> <span class="opt">?<i class="arg">args</i>?</span></a></dt>
+<dd><p>Unsubscribe an object from an event pattern</p></dd>
+<dt><a name="70">proc <b class="cmd">clay::singleton</b> <i class="arg">name</i> <i class="arg">script</i></a></dt>
+<dd><p>An object which is intended to be it's own class.</p></dd>
+</dl>
+</div>
+<div id="section3" class="doctools_section"><h2><a name="section3">Classes</a></h2>
+<div id="subsection4" class="doctools_subsection"><h3><a name="subsection4">Class  clay::class</a></h3>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="71">method <b class="cmd">clay ancestors</b></a></dt>
+<dd><p>Return this class and all ancestors in search order.</p></dd>
+<dt><a name="72">method <b class="cmd">clay dump</b></a></dt>
+<dd><p>Return a complete dump of this object's clay data, but only this object's clay data.</p></dd>
+<dt><a name="73">method <b class="cmd">clay find</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></dt>
+<dd><p>Pull a chunk of data from the clay system. If the last element of <em>path</em> is a branch,
+     returns a recursive merge of all data from this object and it's constituent classes of the data in that branch.
+     If the last element is a leaf, search this object for a matching leaf, or search all  constituent classes for a matching
+     leaf and return the first value found.
+     If no value is found, returns an empty string.
+     If a branch is returned the topmost . entry is omitted.</p></dd>
+<dt><a name="74">method <b class="cmd">clay get</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></dt>
+<dd><p>Pull a chunk of data from the class's clay system.
+     If no value is found, returns an empty string.
+     If a branch is returned the topmost . entry is omitted.</p></dd>
+<dt><a name="75">method <b class="cmd">clay GET</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></dt>
+<dd><p>Pull a chunk of data from the class's clay system.
+     If no value is found, returns an empty string.</p></dd>
+<dt><a name="76">method <b class="cmd">clay merge</b> <i class="arg">dict</i> <span class="opt">?<b class="option">dict...</b>?</span></a></dt>
+<dd><p>Recursively merge the dictionaries given into the object's local clay storage.</p></dd>
+<dt><a name="77">method <b class="cmd">clay replace</b> <i class="arg">dictionary</i></a></dt>
+<dd><p>Replace the contents of the internal clay storage with the dictionary given.</p></dd>
+<dt><a name="78">method <b class="cmd">clay search</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></dt>
+<dd><p>Return the first matching value for the path in either this class's clay data or one of its ancestors</p></dd>
+<dt><a name="79">method <b class="cmd">clay set</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span> <i class="arg">value</i></a></dt>
+<dd><p>Merge the conents of <b class="const">value</b> with the object's clay storage at <b class="const">path</b>.</p></dd>
+</dl>
+</div>
+<div id="subsection5" class="doctools_subsection"><h3><a name="subsection5">Class  clay::object</a></h3>
+<p>clay::object
+ This class is inherited by all classes that have options.</p>
+<p><b class="class">Methods</b></p>
+<dl class="doctools_definitions">
+<dt><a name="80">method <b class="cmd">clay ancestors</b></a></dt>
+<dd><p>Return the class this object belongs to, all classes mixed into this object, and all ancestors of those classes in search order.</p></dd>
+<dt><a name="81">method <b class="cmd">clay cache</b> <i class="arg">path</i> <i class="arg">value</i></a></dt>
+<dd><p>Store VALUE in such a way that request in SEARCH for PATH will always return it until the cache is flushed</p></dd>
+<dt><a name="82">method <b class="cmd">clay cget</b> <i class="arg">field</i></a></dt>
+<dd><p>Pull a value from either the object's clay structure or one of its constituent classes that matches the field name.
+ The order of search us:</p>
+<p>1. The as a value in local dict variable config</p>
+<p>2. The as a value in local dict variable clay</p>
+<p>3. As a leaf in any ancestor as a root of the clay tree</p>
+<p>4. As a leaf in any ancestor as <b class="const">const</b> <em>field</em></p>
+<p>5. As a leaf in any ancestor as <b class="const">option</b> <em>field</em> <b class="const">default</b></p></dd>
+<dt><a name="83">method <b class="cmd">clay delegate</b> <span class="opt">?<i class="arg">stub</i>?</span> <span class="opt">?<i class="arg">object</i>?</span></a></dt>
+<dd><p>Introspect or control method delegation. With no arguments, the method will return a
+ key/value list of stubs and objects. With just the <i class="arg">stub</i> argument, the method will
+ return the object (if any) attached to the stub. With a <i class="arg">stub</i> and an <i class="arg">object</i>
+ this command will forward all calls to the method <i class="arg">stub</i> to the <i class="arg">object</i>.</p></dd>
+<dt><a name="84">method <b class="cmd">clay dump</b></a></dt>
+<dd><p>Return a complete dump of this object's clay data, as well as the data from all constituent classes recursively blended in.</p></dd>
+<dt><a name="85">method <b class="cmd">clay ensemble_map</b></a></dt>
+<dd><p>Return a dictionary describing the method ensembles to be assembled for this object</p></dd>
+<dt><a name="86">method <b class="cmd">clay eval</b> <i class="arg">script</i></a></dt>
+<dd><p>Evaluated a script in the namespace of this object</p></dd>
+<dt><a name="87">method <b class="cmd">clay evolve</b></a></dt>
+<dd><p>Trigger the <b class="method">InitializePublic</b> private method</p></dd>
+<dt><a name="88">method <b class="cmd">clay exists</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></dt>
+<dd><p>Returns 1 if <em>path</em> exists in either the object's clay data. Values greater than one indicate the element exists in one of the object's constituent classes. A value of zero indicates the path could not be found.</p></dd>
+<dt><a name="89">method <b class="cmd">clay flush</b></a></dt>
+<dd><p>Wipe any caches built by the clay implementation</p></dd>
+<dt><a name="90">method <b class="cmd">clay forward</b> <i class="arg">method</i> <i class="arg">object</i></a></dt>
+<dd><p>A convenience wrapper for</p>
+<pre class="doctools_example">oo::objdefine [self] forward {*}$args</pre>
+</dd>
+<dt><a name="91">method <b class="cmd">clay get</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></dt>
+<dd><p>Pull a chunk of data from the clay system. If the last element of <em>path</em> is a branch (ends in a slash /),
+   returns a recursive merge of all data from this object and it's constituent classes of the data in that branch.
+   If the last element is a leaf, search this object for a matching leaf, or search all  constituent classes for a matching
+   leaf and return the first value found.
+   If no value is found, returns an empty string.</p></dd>
+<dt><a name="92">method <b class="cmd">clay leaf</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></dt>
+<dd><p>A modified get which is tailored to pull only leaf elements</p></dd>
+<dt><a name="93">method <b class="cmd">clay merge</b> <i class="arg">dict</i> <span class="opt">?<b class="option">dict...</b>?</span></a></dt>
+<dd><p>Recursively merge the dictionaries given into the object's local clay storage.</p></dd>
+<dt><a name="94">method <b class="cmd">clay mixin</b> <i class="arg">class</i> <span class="opt">?<b class="option">class...</b>?</span></a></dt>
+<dd><p>Perform [oo::objdefine [self] mixin] on this object, with a few additional rules:
+   Prior to the call, for any class was previously mixed in, but not in the new result, execute the script registered to mixin/ unmap-script (if given.)
+   For all new classes, that were not present prior to this call, after the native TclOO mixin is invoked, execute the script registered to mixin/ map-script (if given.)
+   Fall all classes that are now present and “mixed in”, execute the script registered to mixin/ react-script (if given.)</p></dd>
+<dt><a name="95">method <b class="cmd">clay mixinmap</b> <span class="opt">?<i class="arg">stub</i>?</span> <span class="opt">?<i class="arg">classes</i>?</span></a></dt>
+<dd><p>With no arguments returns the map of stubs and classes mixed into the current object. When only stub is given,
+  returns the classes mixed in on that stub. When stub and classlist given, replace the classes currently on that stub with the given
+  classes and invoke clay mixin on the new matrix of mixed in classes.</p></dd>
+<dt><a name="96">method <b class="cmd">clay provenance</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span></a></dt>
+<dd><p>Return either <b class="const">self</b> if that path exists in the current object, or return the first class (if any) along the clay search path which contains that element.</p></dd>
+<dt><a name="97">method <b class="cmd">clay replace</b> <i class="arg">dictionary</i></a></dt>
+<dd><p>Replace the contents of the internal clay storage with the dictionary given.</p></dd>
+<dt><a name="98">method <b class="cmd">clay search</b> <i class="arg">path</i> <i class="arg">valuevar</i> <i class="arg">isleafvar</i></a></dt>
+<dd><p>Return true, and set valuevar to the value and isleafar to true for false if PATH was found in the cache.</p></dd>
+<dt><a name="99">method <b class="cmd">clay source</b> <i class="arg">filename</i></a></dt>
+<dd><p>Source the given filename within the object's namespace</p></dd>
+<dt><a name="100">method <b class="cmd">clay set</b> <i class="arg">path</i> <span class="opt">?<b class="option">path...</b>?</span> <i class="arg">value</i></a></dt>
+<dd><p>Merge the conents of <b class="const">value</b> with the object's clay storage at <b class="const">path</b>.</p></dd>
+<dt><a name="101">method <b class="cmd">InitializePublic</b></a></dt>
+<dd><p>Instantiate variables. Called on object creation and during clay mixin.</p></dd>
+</dl>
+</div>
+</div>
+<div id="section4" class="doctools_section"><h2><a name="section4">AUTHORS</a></h2>
+<p>Sean Woods <a href="mailto:<yoda@etoyoc.com>">mailto:&lt;yoda@etoyoc.com&gt;</a></p>
+</div>
+<div id="section5" class="doctools_section"><h2><a name="section5">Bugs, Ideas, Feedback</a></h2>
+<p>This document, and the package it describes, will undoubtedly contain
+bugs and other problems.
+Please report such in the category <em>oo</em> of the
+<a href="http://core.tcl.tk/tcllib/reportlist">Tcllib Trackers</a>.
+Please also report any ideas for enhancements you may have for either
+package and/or documentation.</p>
+<p>When proposing code changes, please provide <em>unified diffs</em>,
+i.e the output of <b class="const">diff -u</b>.</p>
+<p>Note further that <em>attachments</em> are strongly preferred over
+inlined patches. Attachments can be made by going to the <b class="const">Edit</b>
+form of the ticket immediately after its creation, and then using the
+left-most button in the secondary navigation bar.</p>
+</div>
+<div id="keywords" class="doctools_section"><h2><a name="keywords">Keywords</a></h2>
+<p><a href="../../../../index.html#tcloo">TclOO</a>, <a href="../../../../index.html#oo">oo</a></p>
+</div>
+<div id="category" class="doctools_section"><h2><a name="category">Category</a></h2>
+<p>Programming tools</p>
+</div>
+<div id="copyright" class="doctools_section"><h2><a name="copyright">Copyright</a></h2>
+<p>Copyright &copy; 2018 Sean Woods &lt;yoda@etoyoc.com&gt;</p>
+</div>
+</div></body></html>

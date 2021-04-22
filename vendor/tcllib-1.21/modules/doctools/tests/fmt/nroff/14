@@ -1,0 +1,38 @@
+'\"
+'\" Generated from file '\&.FILE\&.' by tcllib/doctools with format 'nroff'
+'\" Copyright (c) \&.COPYRIGHT\&.
+'\"
+.TH "test-enumerated-examples" 1 n \&.MODULE\&. ""
+.so man.macros
+.BS
+.SH NAME
+test-enumerated-examples \-
+.SH DESCRIPTION
+lorem ipsum dolores
+.IP [1]
+.CS
+
+ A1 lorem ipsum dolores
+.CE
+.IP [2]
+lorem ipsum dolores
+.CS
+
+ B2 lorem ipsum dolores
+.CE
+.IP
+lorem ipsum dolores
+.IP [3]
+lorem ipsum dolores
+.CS
+
+ C3 lorem ipsum dolores
+.CE
+.IP [4]
+lorem ipsum dolores
+.PP
+.SH COPYRIGHT
+.nf
+Copyright (c) \&.COPYRIGHT\&.
+
+.fi

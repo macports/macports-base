@@ -1,0 +1,29 @@
+[comment { -- List 12 - itemized enumerated }]
+[manpage_begin test-itemized-enumerated 1 n]
+[description]
+lorem ipsum dolores
+[list_begin itemized]
+[item] lorem ipsum dolores
+[list_begin enumerated]
+[enum] lorem ipsum dolores
+[enum] lorem ipsum dolores
+[para] lorem ipsum dolores
+[enum] lorem ipsum dolores
+[para] lorem ipsum dolores
+[para] lorem ipsum dolores
+[list_end]
+[item] lorem ipsum dolores
+[para] lorem ipsum dolores
+[item] lorem ipsum dolores
+[para] lorem ipsum dolores
+[list_begin enumerated]
+[enum] lorem ipsum dolores
+[enum] lorem ipsum dolores
+[para] lorem ipsum dolores
+[enum] lorem ipsum dolores
+[para] lorem ipsum dolores
+[para] lorem ipsum dolores
+[list_end]
+[para] lorem ipsum dolores
+[list_end]
+[manpage_end]

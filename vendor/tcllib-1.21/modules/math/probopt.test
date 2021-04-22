@@ -1,0 +1,315 @@
+# -*- tcl -*-
+# Tests for the math::probopt pacakge
+#
+# RCS: @(#) $Id: geometry.test,v 1.13 2010/04/06 17:02:25 andreas_kupries Exp $
+
+# -------------------------------------------------------------------------
+
+source [file join \
+        [file dirname [file dirname [file join [pwd] [info script]]]] \
+        devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 1.0
+
+support {
+    useLocal math.tcl math
+}
+testing {
+    useLocal probopt.tcl math::probopt
+}
+
+# setRand --
+#     Make sure we always get the same results:
+#     Use srand() to ensure that the random numbers follow
+#     the same sequence.
+#
+proc setRand {} {
+    expr {srand(100000)}
+}
+
+#
+# Simple quadratic function
+#
+proc f {coords} {
+    lassign $coords x y
+
+    return [expr {($x-1.0)**2 + ($y-1.0)**2}]
+}
+
+#
+# Rosenbrock function
+#
+proc rosenbrock {coords} {
+    lassign $coords x y
+
+    return [expr {100.0 * ($y - $x ** 2) ** 2 + (1.0 - $x) ** 2}]
+}
+
+#
+# Slightly distorted sombrero - minimum at (1,0)
+#
+proc sombrero {coords} {
+    lassign $coords x y
+
+    set r [expr {hypot($x,$y)}]
+    return [expr {(1.0 - $r ** 2) ** 2 + 0.01 * (1.0 - $x)**2}]
+}
+
+#
+# Wavy function (3D) - absolute minimum at (x,y,z) = (0,0,0), but lots of local minima
+#
+proc wavy3d {coords} {
+    lassign $coords x y z
+
+    return [expr {1.0 - cos(10.0*$x) * cos(10.0*$y) * cos(10.0*$z) + 0.01 * ($x**2 + $y**2 + $z**2)}]
+}
+
+#
+# Discontinuous function with a clear global minimum at (x,y) = (0,0)
+#
+proc halfparabola {coords} {
+    lassign $coords x y
+
+    if { $x > 0.0 } {
+        set f [expr {$x**2 + $y**2}]
+    } else {
+        set f [expr {-$x + abs($y) + 1.0}]
+    }
+
+    return $f
+}
+
+#
+# 3D function with maximum - bounds slightly beyond [-1,1]
+#
+proc sombrero3D {coords} {
+    lassign $coords x y z
+
+    set r2 [expr {$x**2 + $y**2 + $z**2}]
+    return [expr {(10.0 - $r2)**2}]
+}
+
+#
+# Procedure in a namespace
+#
+namespace eval testcase {
+    proc ftest {coords} {
+        lassign $coords x y
+
+        return [expr {($x-1.0)**2 + ($y-1.0)**2}]
+    }
+}
+
+#
+# Create and register (in that order!) custom matching procedures
+#
+proc matchTolerant { expected actual } {
+   set match 1
+   foreach a $actual e $expected {
+       if { $e != 0.0 } {
+           if { abs($e-$a)>0.005*abs($e) &&
+                abs($e-$a)>0.005*abs($a)     } {
+               set match 0
+               break
+           }
+       } else {
+           if { abs($a) > 0.0001 } {
+               set match 0
+           }
+       }
+   }
+   return $match
+}
+
+::tcltest::customMatch tolerant matchTolerant
+
+
+# Test cases --
+#
+
+#
+# PSO
+#
+test "PSO-0.1" "Check known options" -body {
+    set coords_value [::math::probopt::pso f {{0.0 4.0} {0.0 4.0}} -swarmsize 10 -iterations 50 -vweight 0.2 -pweight 0.1 -gweight 03 -type local -neighbours 4 -tolerance 1e-3]
+    set result "OK"
+} -returnCodes {ok} -result "OK"
+
+test "PSO-0.2" "Check unknown options" -body {
+    set coords_value [::math::probopt::pso f {{0.0 4.0} {0.0 4.0}} -UNKNOWN 10]
+    set result "OK"
+} -returnCodes {error} -result "Unknown option: -UNKNOWN"
+
+test "PSO-0.3" "Check content of dictionary" -body {
+    set coords_value [::math::probopt::pso f {{0.0 4.0} {0.0 4.0}}]
+    foreach key {optimum-coordinates optimum-value evaluations best-values} {
+         set r [dict get $coords_value $key]
+    }
+    set result "OK"
+} -returnCodes {ok} -result "OK"
+
+
+test "PSO-1.1" "Two-dimensional paraboloid" -match tolerant -setup setRand -body {
+    set coords_value [::math::probopt::pso f {{0.0 4.0} {0.0 4.0}} -iterations 50]
+    set result [concat [dict get $coords_value optimum-coordinates] [dict get $coords_value optimum-value]]
+} -result {1.0 1.0  0.0}
+
+test "PSO-1.2" "Two-dimensional paraboloid - namespace" -match tolerant -setup setRand -body {
+    global coords_value
+
+    namespace eval testcase {
+        global coords_value
+        set coords_value [::math::probopt::pso ftest {{0.0 4.0} {0.0 4.0}} -iterations 50]
+    }
+    set result [concat [dict get $coords_value optimum-coordinates] [dict get $coords_value optimum-value]]
+} -result {1.0 1.0  0.0}
+
+
+test "PSO-2.1" "Tilted sombrero - 2D" -match tolerant -setup setRand -body {
+    set coords_value [::math::probopt::pso sombrero {{-4.0 4.0} {-4.0 4.0}} -iterations 50]
+    set result [concat [dict get $coords_value optimum-coordinates] [dict get $coords_value optimum-value]]
+} -result {0.9784 0.2080 0.0}
+
+test "PSO-2.2" "Tilted sombrero - 2D, local method" -match tolerant -setup setRand -body {
+    set coords_value [::math::probopt::pso sombrero {{-4.0 4.0} {-4.0 4.0}} -iterations 50 -type local]
+    set result [concat [dict get $coords_value optimum-coordinates] [dict get $coords_value optimum-value]]
+} -result {0.9605 0.2820 0.0}
+
+test "PSO-2.3" "Tilted sombrero - 2D, more particles" -match tolerant -setup setRand -body {
+    set coords_value [::math::probopt::pso sombrero {{-4.0 4.0} {-4.0 4.0}} -iterations 50 -swarmsize 200]
+    set result [concat [dict get $coords_value optimum-coordinates] [dict get $coords_value optimum-value]]
+} -result {0.970 -0.2419 0.0}
+
+test "PSO-3.1" "Wavy function - 3D" -match tolerant -setup setRand -body {
+    set coords_value [::math::probopt::pso wavy3d {{0.0 4.0} {0.0 4.0} {0.0 4.0}} -iterations 50]
+    set result [concat [dict get $coords_value optimum-coordinates] [dict get $coords_value optimum-value]]
+} -result {2.8405 1.9068 2.2180 0.2157}
+
+test "PSO-3.2" "Wavy function - 3D" -match tolerant -setup setRand -body {
+    set coords_value [::math::probopt::pso wavy3d {{0.0 4.0} {0.0 4.0} {0.0 4.0}} -iterations 50 -swarmsize 100 -neighbours 6]
+    set result [concat [dict get $coords_value optimum-coordinates] [dict get $coords_value optimum-value]]
+} -result {1.5703 0.9424 1.2564 0.0493}
+
+test "PSO-4.1" "Discontinuous function - 2D" -match tolerant -setup setRand -body {
+    set coords_value [::math::probopt::pso halfparabola {{-4.0 4.0} {-4.0 4.0}} -iterations 50]
+    set result [concat [dict get $coords_value optimum-coordinates] [dict get $coords_value optimum-value]]
+} -result {0.0 0.0  0.0}
+
+#
+# SCE
+#
+test "SCE-0.1" "Check known options" -body {
+    set coords_value [::math::probopt::sce f {{0.0 4.0} {0.0 4.0}} -complexes 2 -mincomplexes 2 -newpoints 1 -shuffle 0 -pointspercomplex 0 -pointspersubcomplex 0 \
+                                                                   -iterations 100 -maxevaluations 1.0e9 -abstolerance 0.0 -reltolerance 0.001]
+    set result "OK"
+} -returnCodes {ok} -result "OK"
+
+test "SCE-0.2" "Check unknown options" -body {
+    set coords_value [::math::probopt::sce f {{0.0 4.0} {0.0 4.0}} -UNKNOWN 10]
+    set result "OK"
+} -returnCodes {error} -result "Unknown option: -UNKNOWN"
+
+test "SCE-0.3" "Check content of dictionary" -body {
+    set coords_value [::math::probopt::sce f {{0.0 4.0} {0.0 4.0}}]
+    foreach key {optimum-coordinates optimum-value evaluations best-values} {
+         set r [dict get $coords_value $key]
+    }
+    set result "OK"
+} -returnCodes {ok} -result "OK"
+
+
+test "SCE-1.1" "Two-dimensional paraboloid" -match tolerant -setup setRand -body {
+    set coords_value [::math::probopt::sce f {{0.0 4.0} {0.0 4.0}} -iterations 50]
+    set result [concat [dict get $coords_value optimum-coordinates] [dict get $coords_value optimum-value]]
+} -result {1.0064 1.0082 0.0001078}
+
+
+#
+# DE
+#
+test "DE-0.1" "Check known options" -body {
+    set coords_value [::math::probopt::diffev f {{0.0 4.0} {0.0 4.0}} -number 0 -factor 0.6 -lambda 0.0 -crossover 0.5 \
+                                                                      -iterations 100 -maxevaluations 1.0e9 -abstolerance 0.0 -reltolerance 0.001]
+    set result "OK"
+} -returnCodes {ok} -result "OK"
+
+test "DE-0.2" "Check unknown options" -body {
+    set coords_value [::math::probopt::diffev f {{0.0 4.0} {0.0 4.0}} -UNKNOWN 10]
+    set result "OK"
+} -returnCodes {error} -result "Unknown option: -UNKNOWN"
+
+test "DE-0.3" "Check content of dictionary" -body {
+    set coords_value [::math::probopt::diffev f {{0.0 4.0} {0.0 4.0}}]
+    foreach key {optimum-coordinates optimum-value evaluations best-values} {
+         set r [dict get $coords_value $key]
+    }
+    set result "OK"
+} -returnCodes {ok} -result "OK"
+
+
+test "DE-1.1" "Two-dimensional paraboloid" -match tolerant -setup setRand -body {
+    set coords_value [::math::probopt::diffev f {{0.0 4.0} {0.0 4.0}} -iterations 50]
+    set result [concat [dict get $coords_value optimum-coordinates] [dict get $coords_value optimum-value]]
+} -result {1.0068 1.0096 0.0001387}
+
+#
+# LIPO
+#
+test "LIPO-0.1" "Check known options" -body {
+    set coords_value [::math::probopt::lipoMax f {{0.0 4.0} {0.0 4.0}} -iterations 100 -lipschitz 10.0]
+    set result "OK"
+} -returnCodes {ok} -result "OK"
+
+test "LIPO-0.2" "Check unknown options" -body {
+    set coords_value [::math::probopt::lipoMax f {{0.0 4.0} {0.0 4.0}} -UNKNOWN 10]
+    set result "OK"
+} -returnCodes {error} -result "Unknown option: -UNKNOWN"
+
+test "LIPO-0.3" "Check content of dictionary" -body {
+    set coords_value [::math::probopt::lipoMax f {{0.0 4.0} {0.0 4.0}}]
+    foreach key {optimum-coordinates optimum-value evaluations best-values} {
+         set r [dict get $coords_value $key]
+    }
+    set result "OK"
+} -returnCodes {ok} -result "OK"
+
+
+test "LIPO-1.1" "Three-dimensional sombrero" -match tolerant -setup setRand -body {
+    set coords_value [::math::probopt::lipoMax sombrero3D {{-1.2 1.2} {-1.2 1.2} {-1.2 1.2}} -iterations 5000]
+    set result [concat [dict get $coords_value optimum-coordinates] [dict get $coords_value optimum-value]]
+} -result {-0.0447 -0.0710 -0.0956 99.6769}
+
+test "ADALIPO-0.1" "Check known options" -body {
+    set coords_value [::math::probopt::adaLipoMax f {{0.0 4.0} {0.0 4.0}} -iterations 100 -bernoulli 0.1]
+    set result "OK"
+} -returnCodes {ok} -result "OK"
+
+test "ADALIPO-0.2" "Check unknown options" -body {
+    set coords_value [::math::probopt::adaLipoMax f {{0.0 4.0} {0.0 4.0}} -UNKNOWN 10]
+    set result "OK"
+} -returnCodes {error} -result "Unknown option: -UNKNOWN"
+
+test "ADALIPO-0.3" "Check content of dictionary" -body {
+    set coords_value [::math::probopt::adaLipoMax f {{0.0 4.0} {0.0 4.0}}]
+    foreach key {optimum-coordinates optimum-value evaluations best-values} {
+         set r [dict get $coords_value $key]
+    }
+    set result "OK"
+} -returnCodes {ok} -result "OK"
+
+# Odd behaviour: 5000 iterations and the thing hangs?
+#test "ADALIPO-1.1" "Three-dimensional sombrero" -match tolerant -setup setRand -body {
+#    set coords_value [::math::probopt::adaLipoMax sombrero3D {{-1.2 1.2} {-1.2 1.2} {-1.2 1.2}} -iterations 5000]
+#    set result [concat [dict get $coords_value optimum-coordinates] [dict get $coords_value optimum-value]]
+#} -result {0.0 0.0  1.0}
+
+test "ADALIPO-1.1" "Three-dimensional sombrero" -match tolerant -setup setRand -body {
+    set coords_value [::math::probopt::adaLipoMax sombrero3D {{-1.2 1.2} {-1.2 1.2} {-1.2 1.2}} -iterations 500]
+    set result [concat [dict get $coords_value optimum-coordinates] [dict get $coords_value optimum-value]]
+} -result {-0.0971 -0.0577 0.1905 99.0216}
+
+
+
+#set coords_value [::math::probopt::pso halfparabola {{-4.0 4.0} {-4.0 4.0}} -iterations 50]
+#puts $coords_value

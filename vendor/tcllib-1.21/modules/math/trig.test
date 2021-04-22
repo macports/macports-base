@@ -1,0 +1,369 @@
+# -*- tcl -*-
+# trig.test --
+#    Test cases for the ::math::trig package
+#
+# Note:
+#    The tests assume tcltest 2.1, in order to compare
+#    floating-point results
+
+# -------------------------------------------------------------------------
+
+source [file join \
+        [file dirname [file dirname [file join [pwd] [info script]]]] \
+        devtools testutilities.tcl]
+
+testsNeedTcl     8.5
+testsNeedTcltest 2.1
+
+support {
+    useLocal math.tcl math
+    useLocal linalg.tcl math::linearalgebra
+}
+testing {
+    useLocal trig.tcl math::trig
+}
+#
+# Create and register (in that order!) custom matching procedures
+#
+proc matchTolerant { expected actual } {
+   set match 1
+   foreach a $actual e $expected {
+      if { abs($e-$a)>0.0001*abs($e) &&
+           abs($e-$a)>0.0001*abs($a)     } {
+         set match 0
+         break
+      }
+   }
+   return $match
+}
+
+proc matchExact { expected actual } {
+   set match 1
+   foreach a $actual e $expected {
+      if { abs($e-$a) != 0.0 } {
+         set match 0
+         break
+      }
+   }
+   return $match
+}
+
+customMatch tolerant   matchTolerant
+customMatch exact      matchExact
+
+#
+# Test cases: reduction routines
+#
+set pi [expr {acos(-1.0)}]
+test "Trig-1.1" "Reduction function - radians" -match tolerant -body {
+    global pi
+    set result {}
+    foreach a {-4 -3 -2 -1 0 1 2 3 4} {
+        set angle [expr {$a * $pi}]
+        lappend result [::math::trig::radian_reduced $angle]
+    }
+    return $result
+} -result [list 0.0 $pi 0.0 $pi 0.0 $pi 0.0 $pi 0.0]
+
+test "Trig-1.2" "Reduction function - degrees" -match tolerant -body {
+    set result {}
+    foreach a {-4 -3 -2 -1 0 1 2 3 4} {
+        set angle [expr {$a * 180.0}]
+        lappend result [::math::trig::degree_reduced $angle]
+    }
+    return $result
+} -result [list 0.0 180.0 0.0 180.0 0.0 180.0 0.0 180.0 0.0]
+
+#
+# Test cases: additional trigonometric functions and their inverses
+#
+test "Trig-2.1" "Additional trigonometric functions - cosecant" -match tolerant -body {
+    set result {}
+    for {set i 1} {$i <= 100} {incr i} {
+        set angle [expr {0.1 * $i}]
+        lappend result [expr { sin($angle) * [::math::trig::cosec $angle]}]
+    }
+    return $result
+} -result [lrepeat 100 1.0]
+
+test "Trig-2.2" "Additional trigonometric functions - secant" -match tolerant -body {
+    set result {}
+    for {set i 0} {$i < 100} {incr i} {
+        set angle [expr {0.1 * $i}]
+        lappend result [expr { cos($angle) * [::math::trig::sec $angle]}]
+    }
+    return $result
+} -result [lrepeat 100 1.0]
+
+test "Trig-2.3" "Additional trigonometric functions - cotangent" -match tolerant -body {
+    set result {}
+    for {set i 1} {$i <= 100} {incr i} {
+        set angle [expr {0.1 * $i}]
+        lappend result [expr { tan($angle) * [::math::trig::cotan $angle]}]
+    }
+    return $result
+} -result [lrepeat 100 1.0]
+
+# Make sure the values are in the interval (0,pi) for sec and cotan to avoid infinity
+# and (-pi/2,pi/2) for cosec
+set argvalues_pi {}
+set argvalues_halfpi {}
+for {set i 1} {$i <= 30} {incr i} {
+    set angle_pi     [expr {0.1 * $i}]
+    set angle_halfpi [expr {0.1 * ($i-15)}]
+    lappend argvalues $angle
+}
+
+test "Trig-3.1" "Inverse trigonometric functions - arc-cosecant" -match tolerant -body {
+    global argvalues_halfpi
+    set result {}
+    foreach angle $argvalues_halfpi {
+        set value [::math::trig::cosec $angle]
+        lappend result [::math::trig::acosec $value]
+    }
+    return $result
+} -result $argvalues_halfpi
+
+test "Trig-3.2" "Inverse trigonometric functions - arc-secant" -match tolerant -body {
+    global argvalues_pi
+    set result {}
+    foreach angle $argvalues_pi {
+        set value [::math::trig::sec $angle]
+        lappend result [::math::trig::asec $value]
+    }
+    return $result
+} -result $argvalues_pi
+
+test "Trig-3.3" "Inverse trigonometric functions - arc-cotangent" -match tolerant -body {
+    global argvalues_pi
+    set result {}
+    foreach angle $argvalues_pi {
+        set value [::math::trig::cotan $angle]
+        lappend result [::math::trig::acotan $value]
+    }
+    return $result
+} -result $argvalues_pi
+
+#
+# Test cases: hyperbolic functions and their inverses
+#
+test "Trig-4.1" "Additional hyperbolic functions - hyperbolic cosecant" -match tolerant -body {
+    set result {}
+    for {set i -20} {$i <= 20} {incr i} {
+        set arg   [expr {$i * 0.2 + 0.01}] ;# Avoid zero
+        lappend result [expr {sinh($arg) * [::math::trig::cosech $arg]}]
+    }
+    return $result
+} -result [lrepeat 41 1.0]
+
+test "Trig-4.2" "Additional hyperbolic functions - hyperbolic secant" -match tolerant -body {
+    set result {}
+    for {set i -20} {$i <= 20} {incr i} {
+        set arg   [expr {$i * 0.2 + 0.01}] ;# Avoid zero, for symmetry only
+        lappend result [expr {cosh($arg) * [::math::trig::sech $arg]}]
+    }
+    return $result
+} -result [lrepeat 41 1.0]
+
+test "Trig-4.3" "Additional hyperbolic functions - hyperbolic contangent" -match tolerant -body {
+    set result {}
+    for {set i -20} {$i <= 20} {incr i} {
+        set arg   [expr {$i * 0.2 + 0.01}] ;# Avoid zero
+        lappend result [expr {tanh($arg) * [::math::trig::cotanh $arg]}]
+    }
+    return $result
+} -result [lrepeat 41 1.0]
+
+
+set argvalues {}
+set argvalues_pos {}
+for {set i -20} {$i <= 20} {incr i} {
+    lappend argvalues     [expr {$i * 0.2 + 0.01}] ;# Avoid zero
+    lappend argvalues_pos [expr {abs($i * 0.2 + 0.01)}] ;# Positive values
+}
+
+test "Trig-5.1" "Inverse hyperbolic functions - hyperbolic arc sine" -match tolerant -body {
+    global argvalues
+    set result {}
+    foreach arg $argvalues {
+        set value [expr {sinh($arg)}]
+        lappend result [::math::trig::asinh $value]
+    }
+    return $result
+} -result $argvalues
+
+test "Trig-5.2" "Inverse hyperbolic functions - hyperbolic arc cosine" -match tolerant -body {
+    global argvalues
+    set result {}
+    foreach arg $argvalues {
+        set value [expr {cosh($arg)}]
+        lappend result [::math::trig::acosh $value]
+    }
+    return $result
+} -result $argvalues_pos
+
+test "Trig-5.3" "Inverse hyperbolic functions - hyperbolic arc tangent" -match tolerant -body {
+    global argvalues
+    set result {}
+    foreach arg $argvalues {
+        set value [expr {tanh($arg)}]
+        lappend result [::math::trig::atanh $value]
+    }
+    return $result
+} -result $argvalues
+
+test "Trig-5.4" "Inverse hyperbolic functions - hyperbolic arc cosecant" -match tolerant -body {
+    global argvalues
+    set result {}
+    foreach arg $argvalues {
+        set value [::math::trig::cosech $arg]
+        lappend result [::math::trig::acosech $value]
+    }
+    return $result
+} -result $argvalues
+
+test "Trig-5.5" "Inverse hyperbolic functions - hyperbolic arc secant" -match tolerant -body {
+    global argvalues
+    set result {}
+    foreach arg $argvalues {
+        set value [::math::trig::sech $arg]
+        lappend result [::math::trig::asech $value]
+    }
+    return $result
+} -result $argvalues_pos
+
+test "Trig-5.6" "Inverse hyperbolic functions - hyperbolic arc cotangent" -match tolerant -body {
+    global argvalues
+    set result {}
+    foreach arg $argvalues {
+        set value [::math::trig::cotanh $arg]
+        lappend result [::math::trig::acotanh $value]
+    }
+    return $result
+} -result $argvalues
+
+#
+# Test cases: trigonometric functions - degree variants
+#
+set hsqrt2      [expr {0.5 * sqrt(2.0)}]
+set hsqrt3      [expr {0.5 * sqrt(3.0)}]
+set minhsqrt2   [expr {-0.5 * sqrt(2.0)}]
+set minhsqrt3   [expr {-0.5 * sqrt(3.0)}]
+set invsqrt3    [expr {1.0 / sqrt(3.0)}]
+set sqrt3       [expr {sqrt(3.0)}]
+set minsqrt3    [expr {-sqrt(3.0)}]
+set mininvsqrt3 [expr {-1.0 / sqrt(3.0)}]
+set minhsqrt3   [expr {-0.5 * sqrt(3.0)}]
+set minhsqrt2   [expr {-0.5 * sqrt(2.0)}]
+
+test "Trig-6.1" "Trigonometric functions - multiples of 90 degrees" -match exact -body {
+    set result {}
+    foreach angle {0  90  180 270 360 -90 -180 -270 -360} {
+        lappend result [::math::trig::sind $angle] [::math::trig::cosd $angle]
+    }
+    foreach angle {0 180 360 -180 -360} {
+        lappend result [::math::trig::tand $angle]
+    }
+    return $result
+} -result {0.0 1.0  1.0 0.0  0.0 -1.0  -1.0 0.0  0.0 1.0 -1.0 0.0  0.0 -1.0  1.0 0.0  0.0 1.0
+           0.0 0.0 0.0 0.0  0.0}
+#          0        90       180       270       360     -90       -180      -270     -360
+#          0   180 360 -180 -360
+
+test "Trig-6.2" "Trigonometric functions - sine (degrees)" -match tolerant -body {
+    set result {}
+    foreach angle {0  30  45  60  90 120 135 150 180 210 225 240 270 300 315 330 360} {
+        lappend result [::math::trig::sind $angle]
+    }
+    return $result
+} -result [list 0.0 0.5 $hsqrt2 $hsqrt3 1.0  $hsqrt3 $hsqrt2 0.5  0.0  -0.5  $minhsqrt2 $minhsqrt3 -1.0 $minhsqrt3 $minhsqrt2 -0.5  0.0]
+#               0   30  45      60      90   120     135     150  180  210   225        240       270  300         315        330   360
+
+test "Trig-6.3" "Trigonometric functions - cosine (degrees)" -match tolerant -body {
+    set result {}
+    foreach angle {0  30  45  60  90 120 135 150 180 210 225 240 270 300 315 330 360} {
+        lappend result [::math::trig::cosd $angle]
+    }
+    return $result
+} -result [list 1.0 $hsqrt3 $hsqrt2 0.5 0.0 -0.5 $minhsqrt2 $minhsqrt3 -1.0 $minhsqrt3 $minhsqrt2 -0.5  0.0  0.5 $hsqrt2 $hsqrt3 1.0]
+#               0   30      45      60  90  120  135        150        180   210       225        240   270  300 315     330     360
+
+test "Trig-6.4" "Trigonometric functions - tangent (degrees)" -match tolerant -body {
+    set result {}
+    foreach angle {0  30  45  60  120 135 150 180} {
+        lappend result [::math::trig::tand $angle]
+    }
+    return $result
+} -result [list 0.0 $invsqrt3 1.0 $sqrt3 $minsqrt3 -1.0 $mininvsqrt3 0.0]
+#               0   30        45      60 120       135  150          180
+
+# Inverse trigonometric functions with degrees
+# Make sure the values are in the interval (0,180) for cos, sec and cotan to avoid infinity
+# and (-pi/2,pi/2) for sin, cosec and tan
+set argvalues_180 {}
+set argvalues_90 {}
+for {set i 1} {$i <= 30} {incr i} {
+    set angle_180     [expr {0.1 * $i}]
+    set angle_90      [expr {0.1 * ($i-15)}]
+    lappend argvalues $angle
+}
+
+test "Trig-7.1" "Inverse trigonometric functions (degrees) - arc-sine" -match tolerant -body {
+    global argvalues_90
+    set result {}
+    foreach angle $argvalues_90 {
+        set value [::math::trig::sind $angle]
+        lappend result [::math::trig::asind $value]
+    }
+    return $result
+} -result $argvalues_90
+
+test "Trig-7.2" "Inverse trigonometric functions (degrees) - arc-cosine" -match tolerant -body {
+    global argvalues_180
+    set result {}
+    foreach angle $argvalues_180 {
+        set value [::math::trig::cosd $angle]
+        lappend result [::math::trig::acosd $value]
+    }
+    return $result
+} -result $argvalues_180
+
+test "Trig-7.3" "Inverse trigonometric functions (degrees) - arc-tangent" -match tolerant -body {
+    global argvalues_90
+    set result {}
+    foreach angle $argvalues_90 {
+        set value [::math::trig::tand $angle]
+        lappend result [::math::trig::atand $value]
+    }
+    return $result
+} -result $argvalues_90
+
+test "Trig-7.4" "Inverse trigonometric functions (degrees) - arc-secant" -match tolerant -body {
+    global argvalues_180
+    set result {}
+    foreach angle $argvalues_180 {
+        set value [::math::trig::secd $angle]
+        lappend result [::math::trig::asecd $value]
+    }
+    return $result
+} -result $argvalues_180
+
+test "Trig-7.5" "Inverse trigonometric functions (degrees) - arc-cosecant" -match tolerant -body {
+    global argvalues_90
+    set result {}
+    foreach angle $argvalues_90 {
+        set value [::math::trig::cosecd $angle]
+        lappend result [::math::trig::acosecd $value]
+    }
+    return $result
+} -result $argvalues_90
+
+test "Trig-7.6" "Inverse trigonometric functions (degrees) - arc-cotangent" -match tolerant -body {
+    global argvalues_180
+    set result {}
+    foreach angle $argvalues_180 {
+        set value [::math::trig::cotand $angle]
+        lappend result [::math::trig::acotand $value]
+    }
+    return $result
+} -result $argvalues_180
