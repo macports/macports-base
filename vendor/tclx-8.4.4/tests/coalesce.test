@@ -1,0 +1,104 @@
+#
+# coalesce.test
+#
+# Tests for the loop command.
+#---------------------------------------------------------------------------
+# Copyright 2017 Karl Lehenbauer and Mark Diekhans.
+#
+# Permission to use, copy, modify, and distribute this software and its
+# documentation for any purpose and without fee is hereby granted, provided
+# that the above copyright notice appear in all copies.  Karl Lehenbauer and
+# Mark Diekhans make no representations about the suitability of this
+# software for any purpose.  It is provided "as is" without express or
+# implied warranty.
+#------------------------------------------------------------------------------
+#
+
+package require Tclx
+if {[cequal [info procs Test] {}]} {
+    source [file join [file dirname [info script]] testlib.tcl]
+}
+
+Test coalesce-1.1 {coalesce tests} {
+    coalesce a b c d
+} 0 {}
+
+Test coalesce-1.2 {coalesce tests} {
+	coalesce
+} 1 {wrong # args: coalesce ?-default value? var ?var...?}
+
+Test coalesce-1.3 {coalesce tests} {
+	coalesce a
+} 0 {}
+
+Test coalesce-1.4 {coalesce tests} {
+	coalesce -default
+} 1 {wrong # args: coalesce ?-default value? var ?var...?}
+
+Test coalesce-1.5 {coalesce tests} {
+	coalesce -default default
+} 1 {wrong # args: coalesce ?-default value? var ?var...?}
+
+Test coalesce-1.6 {coalesce tests} {
+	coalesce -default 0 a
+} 0 {0}
+
+Test coalesce-1.8 {coalesce tests} {
+	set a pluto
+    coalesce a b c d
+} 0 {pluto}
+
+Test coalesce-1.9 {coalesce tests} {
+	set a pluto
+    coalesce -default default a b c d
+} 0 {pluto}
+
+Test coalesce-1.10 {coalesce tests} {
+	unset a
+	set b goofy
+    coalesce a b c d
+} 0 {goofy}
+
+Test coalesce-1.11 {coalesce tests} {
+    coalesce -default default a b c d
+} 0 {goofy}
+
+Test coalesce-1.12 {coalesce tests} {
+	set a pluto
+	set b goofy
+    coalesce a b c d
+} 0 {pluto}
+
+Test coalesce-1.13 {coalesce tests} {
+    coalesce -default default a b c d
+} 0 {pluto}
+
+Test coalesce-1.14 {coalesce tests} {
+	unset a b
+	set c minnie
+    coalesce a b c d
+} 0 {minnie}
+
+Test coalesce-1.15 {coalesce tests} {
+    coalesce -default default a b c d
+} 0 {minnie}
+
+Test coalesce-1.16 {coalesce tests} {
+	unset c
+	set d mickey
+    coalesce a b c d
+} 0 {mickey}
+
+Test coalesce-1.17 {coalesce tests} {
+    coalesce -default default a b c d
+} 0 {mickey}
+
+Test coalesce-1.18 {coalesce tests} {
+	unset d
+	set default no-way
+    coalesce -default default a b c d
+} 0 {default}
+
+# cleanup
+::tcltest::cleanupTests
+return

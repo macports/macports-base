@@ -34,7 +34,7 @@
 #set -x
 
 # Script identification:
-VERSION=2.6
+VERSION=2.7
 
 # Abstraction variables:
 PREFIX="@prefix@"
@@ -55,7 +55,7 @@ OUR_STRING="${OUR_BASESTRING} on ${TIMESTAMP}"
 OLD_MACPORTS_TCL_DIR=${PREFIX}/share/macports/Tcl
 OLD_TCL_PACKAGE_DIR=/Library/Tcl
 OLD_TCL_FILES="tcl8/8.4/http-2.7.12.tm tcl8/8.4/platform-1.0.12.tm tcl8/8.4/platform-1.0.13.tm tcl8/8.5/tcltest-2.3.5.tm"
-OLD_VENDOR_DIRS="thread2.7.0 thread2.7.2 tcllib1.15 tcllib1.17"
+OLD_VENDOR_DIRS="thread2.7.0 thread2.7.2 thread2.7.3 tcllib1.15 tcllib1.17 tcllib1.18 tclx8.4"
 
 # Create config files from defaults if not present
 function setup_configs {

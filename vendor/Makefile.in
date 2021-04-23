@@ -1,9 +1,6 @@
 TCL_SUBDIR=			@VENDOR_TCL_SUBDIR@
 TCL_TARGETS=		@VENDOR_TCL_INSTALL@
 
-TCLTHREAD_SUBDIR=	@VENDOR_TCLTHREAD_SUBDIR@
-TCLTREHAD_TARGETS=	@VENDOR_TCLTHREAD_INSTALL@
-
 TCLX_SUBDIR=		@VENDOR_TCLX_SUBDIR@
 TCLX_TARGETS=		@VENDOR_TCLX_INSTALL@
 
@@ -14,9 +11,9 @@ PREFIX=			@prefix@
 DESTROOT=   		@abs_top_builddir@/vendor/vendor-destroot
 
 .PHONY: all clean distclean install destroot test
-.PHONY: destroot-tcl destroot-tcllthread destroot-tclx destroot-tcllib
-.PHONY: install-tcl install-tcllthread install-tclx install-tcllib
-.PHONY: %-tcl %-tcllthread %-tclx %-tcllib
+.PHONY: destroot-tcl destroot-tclx destroot-tcllib
+.PHONY: install-tcl install-tclx install-tcllib
+.PHONY: %-tcl %-tclx %-tcllib
 
 # for make all, run destroot (where destroot will depend on all of each
 # subpackage)
@@ -25,13 +22,6 @@ all: destroot
 %-tcl:
 	@echo ===\> making $(@:%-tcl=%) in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ $(@:%-tcl=%)
-
-%-tclthread:
-	@echo ===\> making $(@:%-tclthread=%) in ${DIRPRFX}@VENDOR_TCLTHREAD_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCLTHREAD_SUBDIR@ $(@:%-tclthread=%)
-
-# thread links against libtclstub
-all-tclthread: all-tcl
 
 %-tclx:
 	@echo ===\> making $(@:%-tclx=%) in ${DIRPRFX}@VENDOR_TCLX_SUBDIR@
@@ -47,14 +37,10 @@ all-tclx: all-tcl
 # tcllib requires a working tclsh
 all-tcllib: all-tcl
 
-destroot: destroot-tcl destroot-tclthread destroot-tclx destroot-tcllib
+destroot: destroot-tcl destroot-tclx destroot-tcllib
 destroot-tcl: all-tcl
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCL_INSTALL@
-
-destroot-tclthread: all-tclthread
-	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCLTHREAD_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCLTHREAD_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCLTHREAD_INSTALL@
 
 destroot-tclx: all-tclx
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCLX_SUBDIR@
@@ -65,42 +51,44 @@ destroot-tcllib: all-tcllib
 	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ DESTDIR=${DESTROOT} TCLSH_PROG=@INTREE_TCLSH@ @VENDOR_TCLLIB_INSTALL@
 	@chmod -R ugo+rX ${DESTROOT}${PREFIX}/libexec/macports/lib/tcllib*
 
-install: install-tcl install-tclthread install-tclx install-tcllib
+install: install-tcl install-tclx install-tcllib
 
 TCL_PACKAGE_PATH=@TCL_PACKAGE_PATH@
-OLD_TCL_FILES=  $(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.4/http-2.7.12.tm \
-                $(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.4/platform-1.0.12.tm \
-                $(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.4/platform-1.0.13.tm \
-                $(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.5/tcltest-2.3.5.tm
+TCL_PREFIX=@TCL_PREFIX@
+OLD_TCL_FILES=	$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.4 \
+				$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.5 \
+				$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8.5 \
+				$(DESTDIR)$(TCL_PREFIX)/bin/tclsh8.5 \
+				$(DESTDIR)$(TCL_PREFIX)/lib/libtcl8.5@SHLIB_SUFFIX@ \
+				$(DESTDIR)$(TCL_PREFIX)/lib/libtclstub8.5.a \
+				$(DESTDIR)$(TCL_PACKAGE_PATH)/thread2.7.{0,2,3}
+
 install-tcl:
 	rm -rf $(OLD_TCL_FILES)
 	@echo ===\> making $(@:%-tcl=%) in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ @VENDOR_TCL_INSTALL@
 
-install-tclthread:
-	rm -rf $(DESTDIR)$(TCL_PACKAGE_PATH)/thread2.7.{0,2}
-	@echo ===\> making $(@:%-tclthrad=%) in ${DIRPRFX}@VENDOR_TCLTHREAD_SUBDIR@
-	@umask 0022; $(MAKE) -C @VENDOR_TCLTHREAD_SUBDIR@ @VENDOR_TCLTHREAD_INSTALL@
-
 install-tclx:
+	rm -rf $(DESTDIR)$(TCL_PACKAGE_PATH)/tclx8.4
 	@echo ===\> making $(@:%-tclx=%) in ${DIRPRFX}@VENDOR_TCLX_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCLX_SUBDIR@ @VENDOR_TCLX_INSTALL@
 
 install-tcllib:
-	rm -rf $(DESTDIR)$(TCL_PACKAGE_PATH)/tcllib1.1{5,7}
+	rm -rf $(DESTDIR)$(TCL_PACKAGE_PATH)/tcllib1.1{5,7,8}
 	@echo ===\> making $(@:%-tcllib=%) in ${DIRPRFX}@VENDOR_TCLLIB_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ @VENDOR_TCLLIB_INSTALL@
 	@chmod -R ugo+rX $(DESTDIR)${PREFIX}/libexec/macports/lib/tcllib*
 
 test:
 
-clean: clean-tcl clean-tcllib clean-tclx clean-tclthread
+clean: clean-tcl clean-tcllib clean-tclx
 	rm -rf ${DESTROOT}
 
-distclean: distclean-tcl distclean-tcllib distclean-tclx distclean-tclthread
+distclean: distclean-tcl distclean-tcllib distclean-tclx
 	rm -f Makefile
 	rm -rf vendor-destroot
 	rm -f tclsh
 
-codesign:: tcl/unix/libtcl8.5.dylib tcl/unix/tclsh thread/libthread2.7.3.dylib tclx/libtclx8.4.dylib
+codesign:: tcl/unix/libtcl8.6.dylib tcl/unix/tclsh tclx/libtclx8.6.dylib tcl/unix/pkgs/itcl4.2.2/libitcl4.2.2.dylib tcl/unix/pkgs/tdbc1.1.3/libtdbc1.1.3.dylib tcl/unix/pkgs/tdbcpostgres1.1.3/libtdbcpostgres1.1.3.dylib tcl/unix/pkgs/thread2.8.7/libthread2.8.7.dylib tcl/unix/pkgs/tdbcmysql1.1.3/libtdbcmysql1.1.3.dylib tcl/unix/pkgs/tdbcodbc1.1.3/libtdbcodbc1.1.3.dylib tcl/unix/pkgs/sqlite3.36.0/libsqlite3.36.0.dylib
 	../src/codesign.sh $?
+
