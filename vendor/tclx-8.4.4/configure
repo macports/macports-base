@@ -9069,7 +9069,7 @@ main ()
 {
 extern long timezone;
 	    timezone += 1;
-	    exit (0);
+	    return (0);
   ;
   return 0;
 }
@@ -9105,7 +9105,7 @@ main ()
 {
 extern time_t timezone;
 		timezone += 1;
-		exit (0);
+		return (0);
   ;
   return 0;
 }
@@ -9190,7 +9190,7 @@ main() {
     struct tms cpu;
     times(&cpu);
     sleep(2);
-    exit ((times(&cpu) > 0) ? 0 : 1);
+    return ((times(&cpu) > 0) ? 0 : 1);
 }
 
 _ACEOF
@@ -9516,7 +9516,7 @@ int
 main ()
 {
 
-    	    if (catclose ((nl_catd) 0) == 0) exit (0);
+    	    if (catclose ((nl_catd) 0) == 0) return (0);
   ;
   return 0;
 }
