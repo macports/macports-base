@@ -2727,25 +2727,20 @@ is set to the empty string and the entire former value is returned.
 Has the same usage semantics as
 .Xr lindex n .
 .It Xo
-.Ic try
+.Ic macports_try
+.Op Ar -pass_signal
 .Ar body
 .Oo
-.Nm catch Nm {
-.Ar type-list
-.Op Ar ecvar
-.Op Ar msgvar
-.Op Ar infovar
-.Nm }
-.Ar body Ar \&...
+.Ar handler Ar \&...
 .Oc
-.Op Nm finally Ar body
+.Op Nm finally Ar script
 .Xc
-Implements a try-catch-finally block as defined in TIP #89.
+Tcl try block with optional signal pass-thru. When signal pass-thru is not required, use the native try.
 .br
 .Sy Example:
-Basic try-finally construct.
+Basic try-finally construct with signal passing.
 .Bd -literal -offset indent -compact
-try {
+macports_try -pass_signal {
     set fd [open $file r]
     # do stuff here
 } finally {
@@ -2753,43 +2748,28 @@ try {
 }
 .Ed
 .Sy Example:
-Basic try-catch construct
+Basic try-on error construct
 .Bd -literal -offset indent -compact
-try {
+macports_try -pass_signal {
     set result [expr $num / $div]
-} catch {{ARITH DIVZERO}} {
+} trap {ARITH DIVZERO} {eMessage eOptions} {
     set result -1
 }
 .Ed
 .Sy Example:
-Basic try with multiple catches construct
+Basic try with multiple handlers construct
 .Bd -literal -offset indent -compact
-try {
+macports_try -pass_signal {
     set fd [open $file r]
     # do stuff here
-} catch {{POSIX ENOENT} {} msgvar} {
-    puts stderr $msgvar
-} catch {*} {
+} trap {POSIX ENOENT} {eMessage eOptions} {
+    puts stderr $eMessage
+} on error {_ eOptions} {
     puts stderr "An error occurred while processing the file"
     close $fd
-    throw
+    throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
 }
 .Ed
-.It Xo
-.Ic throw
-.Op Ar type
-.Op Ar message
-.Op Ar info
-.Xc
-Throws an exception.
-If given arguments, works just like
-.Ic error
-.Ar message
-.Ar info
-.Ar type .
-If called with no arguments from within a
-.Ic catch
-block, re-throws the caught exception.
 .El
 .Pp
 .Bl -tag -width lc -compact

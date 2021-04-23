@@ -149,22 +149,6 @@ test lunshift {
 
 
 
-test throw {
-    Throw unit test.
-} -setup {
-    proc test_proc {arg} {
-        catch {throw $arg} res
-        return $res
-    }
-} -body {
-    if {[test_proc {7 msg info}] != "error: 7 msg info"} {
-        return "FAIL: wrong error returneed"
-    }
-    if {[catch {test_proc ""}] != 0} {
-        return "FAIL: wrong value returned"
-    }
-    return "throw successful."
-} -result "throw successful."
 
 
 test try {
