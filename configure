@@ -674,8 +674,6 @@ VENDOR_TCLLIB_INSTALL
 VENDOR_TCLLIB_SUBDIR
 VENDOR_TCLX_INSTALL
 VENDOR_TCLX_SUBDIR
-VENDOR_TCLTHREAD_INSTALL
-VENDOR_TCLTHREAD_SUBDIR
 VENDOR_DESTROOT
 VENDOR_TCL_INSTALL
 VENDOR_TCL_SUBDIR
@@ -8851,16 +8849,6 @@ printf "%s\n" "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
 
 
 
-			mp_arg="--srcdir=$ac_srcdir"
-					case $mp_arg in
-		*\'*)
-			mp_arg=$(printf "%s\n" "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
-		;;
-	esac
-	mp_arg="'$mp_arg'"
-	as_fn_append mp_sub_configure_args " $mp_arg"
-
-
 			mp_arg="CC=$CC"
 					case $mp_arg in
 		*\'*)
@@ -8889,328 +8877,6 @@ VENDOR_TCL_INSTALL="install-binaries install-libraries install-packages"
 
 # Set up some variables needed by MacPorts' Tcl setup
 VENDOR_DESTROOT=vendor/vendor-destroot
-
-
-## Tcl Thread package
-# Tcl supports Threads internally, but to use threads from Tcl code we need
-# this package
-
-
-	ac_dir="vendor/thread"
-
-	mp_popdir=$(pwd)
-
-	as_dir="$ac_dir"; as_fn_mkdir_p
-	ac_builddir=.
-
-case "$ac_dir" in
-.) ac_dir_suffix= ac_top_builddir_sub=. ac_top_build_prefix= ;;
-*)
-  ac_dir_suffix=/`printf "%s\n" "$ac_dir" | sed 's|^\.[\\/]||'`
-  # A ".." for each directory in $ac_dir_suffix.
-  ac_top_builddir_sub=`printf "%s\n" "$ac_dir_suffix" | sed 's|/[^\\/]*|/..|g;s|/||'`
-  case $ac_top_builddir_sub in
-  "") ac_top_builddir_sub=. ac_top_build_prefix= ;;
-  *)  ac_top_build_prefix=$ac_top_builddir_sub/ ;;
-  esac ;;
-esac
-ac_abs_top_builddir=$ac_pwd
-ac_abs_builddir=$ac_pwd$ac_dir_suffix
-# for backward compatibility:
-ac_top_builddir=$ac_top_build_prefix
-
-case $srcdir in
-  .)  # We are building in place.
-    ac_srcdir=.
-    ac_top_srcdir=$ac_top_builddir_sub
-    ac_abs_top_srcdir=$ac_pwd ;;
-  [\\/]* | ?:[\\/]* )  # Absolute name.
-    ac_srcdir=$srcdir$ac_dir_suffix;
-    ac_top_srcdir=$srcdir
-    ac_abs_top_srcdir=$srcdir ;;
-  *) # Relative name.
-    ac_srcdir=$ac_top_build_prefix$srcdir$ac_dir_suffix
-    ac_top_srcdir=$ac_top_build_prefix$srcdir
-    ac_abs_top_srcdir=$ac_pwd/$srcdir ;;
-esac
-ac_abs_srcdir=$ac_abs_top_srcdir$ac_dir_suffix
-
-	cd "$ac_dir"
-
-	if test "$no_recursion" != yes || test ! -f "$ac_srcdir/config.status"; then
-		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&5
-printf "%s\n" "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
-		if test -f "$ac_srcdir/configure"; then
-			# Run 'make distclean' first, ignoring errors; unfortunately some
-			# of our projects are not reconfigure-safe and will not correctly
-			# pick up modified configure variables or recompile files affected
-			# by such variables. See
-			# https://github.com/macports/macports-base/pull/79 and
-			# https://github.com/macports/macports-base/pull/80
-			make distclean || true
-
-			mp_sub_configure_args=
-			mp_sub_configure_keys=
-			# Compile a list of keys that have been given to the MP_CONFIG_SUBDIR
-			# macro; we want to skip copying those parameters from the original
-			# configure invocation.
-			for mp_arg in --prefix=${macports_libexec_dir}; do
-				case $mp_arg in
-					--*=* | -*=*)
-							mp_arg_key=$(printf "%s\n" "$mp_arg" | sed -E 's/^--?([^=]+)=.*$/\1/')
-								case $mp_arg_key in
-		*\'*)
-			mp_arg_key=$(printf "%s\n" "$mp_arg_key" | sed "s/'/'\\\\\\\\''/g")
-		;;
-	esac
-	mp_arg_key="'$mp_arg_key'"
-	as_fn_append mp_sub_configure_keys " $mp_arg_key"
-
-					;;
-				esac
-						case $mp_arg in
-		*\'*)
-			mp_arg=$(printf "%s\n" "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
-		;;
-	esac
-	mp_arg="'$mp_arg'"
-	as_fn_append mp_sub_configure_args " $mp_arg"
-
-			done
-			# Walk the list of arguments given to the original configure script;
-			# filter out a few common ones we likely would not want to pass along,
-			# add --disable-option-checking and filter those already given as
-			# argument to MP_CONFIG_SUBDIR.
-			# Most of this code is adapted from _AC_OUTPUT_SUBDIRS in
-			# $prefix/share/autoconf/autoconf/status.m4.
-			mp_prev=
-			eval "set x $ac_configure_args"
-			shift
-			for mp_arg; do
-				if test -n "$mp_prev"; then
-					mp_prev=
-					continue
-				fi
-				case $mp_arg in
-					  -cache-file \
-					| --cache-file \
-					| --cache-fil \
-					| --cache-fi \
-					| --cache-f \
-					| --cache- \
-					| --cache \
-					| --cach \
-					| --cac \
-					| --ca \
-					| --c)
-						mp_prev=cache_file
-					;;
-					  -cache-file=* \
-					| --cache-file=* \
-					| --cache-fil=* \
-					| --cache-fi=* \
-					| --cache-f=* \
-					| --cache-=* \
-					| --cache=* \
-					| --cach=* \
-					| --cac=* \
-					| --ca=* \
-					| --c=*)
-						# ignore --cache-file
-					;;
-					  --config-cache \
-					| -C)
-						# ignore -C
-					;;
-					  -srcdir \
-					| --srcdir \
-					| -srcdi \
-					| -srcd \
-					| -src \
-					| -sr)
-						mp_prev=srcdir
-					;;
-					  -srcdir=* \
-					| --srcdir=* \
-					| --srcdi=* \
-					| --srcd=* \
-					| --src=* \
-					| --sr=*)
-						# ignore --srcdir
-					;;
-					  -prefix \
-					| --prefix \
-					| --prefi \
-					| --pref \
-					| --pre \
-					| --pr \
-					| --p)
-						mp_prev=prefix
-					;;
-					  -prefix=* \
-					| --prefix=* \
-					| --prefi=* \
-					| --pref=* \
-					| --pre=* \
-					| --pr=* \
-					| --p=*)
-						# ignore --prefix
-					;;
-					--disable-option-checking)
-						# ignore --disable-option-checking
-					;;
-					--*=* | -*=*)
-							mp_arg_key=$(printf "%s\n" "$mp_arg" | sed -E 's/^--?([^=]+)=.*$/\1/')
-							mp_list_contains_present=
-	eval "mp_list_contains_list=\"$mp_sub_configure_keys\""
-	for mp_list_contains_entry in $mp_list_contains_list; do
-		test -z "$mp_list_contains_entry" && continue
-		if test "x$mp_arg_key" = "x$mp_list_contains_entry"; then
-			mp_list_contains_present=1
-			break
-		fi
-	done
-	if test "x$mp_list_contains_present" = "x"; then
-		:
-		else
-									case $mp_arg in
-		*\'*)
-			mp_arg=$(printf "%s\n" "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
-		;;
-	esac
-	mp_arg="'$mp_arg'"
-	as_fn_append mp_sub_configure_args " $mp_arg"
-
-
-	fi
-
-					;;
-					*)
-						# always pass positional arguments
-								case $mp_arg in
-		*\'*)
-			mp_arg=$(printf "%s\n" "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
-		;;
-	esac
-	mp_arg="'$mp_arg'"
-	as_fn_append mp_sub_configure_args " $mp_arg"
-
-					;;
-				esac
-			done
-
-			# Now prepend some arguments that should always be present unless
-			# overriden, such as --prefix, --silent, --disable-option-checking,
-			# --cache-file, --srcdir
-			# Pass --prefix unless already given
-			mp_arg_key=prefix
-				mp_list_contains_present=
-	eval "mp_list_contains_list=\"$mp_sub_configure_args\""
-	for mp_list_contains_entry in $mp_list_contains_list; do
-		test -z "$mp_list_contains_entry" && continue
-		if test "x$mp_arg_key" = "x$mp_list_contains_entry"; then
-			mp_list_contains_present=1
-			break
-		fi
-	done
-	if test "x$mp_list_contains_present" = "x"; then
-		:
-		else
-				mp_arg="--prefix=$prefix"
-						case $mp_arg in
-		*\'*)
-			mp_arg=$(printf "%s\n" "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
-		;;
-	esac
-	mp_arg="'$mp_arg'"
-			mp_fn_var_prepend mp_sub_configure_args "$mp_arg "
-
-
-
-	fi
-
-
-			# Pass --silent
-			if test "$silent" = yes; then
-				mp_arg="--silent"
-						case $mp_arg in
-		*\'*)
-			mp_arg=$(printf "%s\n" "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
-		;;
-	esac
-	mp_arg="'$mp_arg'"
-			mp_fn_var_prepend mp_sub_configure_args "$mp_arg "
-
-
-			fi
-
-			# Always prepend --disable-option-checking to silence warnings, since
-			# different subdirs can have different --enable and --with options.
-			mp_arg="--disable-option-checking"
-					case $mp_arg in
-		*\'*)
-			mp_arg=$(printf "%s\n" "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
-		;;
-	esac
-	mp_arg="'$mp_arg'"
-			mp_fn_var_prepend mp_sub_configure_args "$mp_arg "
-
-
-
-			# Make the cache file name correct relative to the subdirectory.
-			case $cache_file in
-				[\\/]* | ?:[\\/]* )
-					mp_sub_cache_file=$cache_file
-				;;
-				*) # Relative name.
-					mp_sub_cache_file=$ac_top_build_prefix$cache_file
-				;;
-			esac
-			mp_arg="--cache-file=$mp_sub_cache_file"
-					case $mp_arg in
-		*\'*)
-			mp_arg=$(printf "%s\n" "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
-		;;
-	esac
-	mp_arg="'$mp_arg'"
-			mp_fn_var_prepend mp_sub_configure_args "$mp_arg "
-
-
-
-			mp_arg="--srcdir=$ac_srcdir"
-					case $mp_arg in
-		*\'*)
-			mp_arg=$(printf "%s\n" "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
-		;;
-	esac
-	mp_arg="'$mp_arg'"
-	as_fn_append mp_sub_configure_args " $mp_arg"
-
-
-			mp_arg="CC=$CC"
-					case $mp_arg in
-		*\'*)
-			mp_arg=$(printf "%s\n" "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
-		;;
-	esac
-	mp_arg="'$mp_arg'"
-	as_fn_append mp_sub_configure_args " $mp_arg"
-
-
-			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: running $SHELL $ac_srcdir/configure $mp_sub_configure_args in $ac_dir" >&5
-printf "%s\n" "$as_me: running $SHELL $ac_srcdir/configure $mp_sub_configure_args in $ac_dir" >&6;}
-			eval "\$SHELL \$ac_srcdir/configure $mp_sub_configure_args" || as_fn_error $? "configure failed for $ac_dir" "$LINENO" 5
-		else
-			as_fn_error $? "no configure script found in $ac_dir" "$LINENO" 5
-		fi
-		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: === finished configuring in $ac_dir ($mp_popdir/$ac_dir)" >&5
-printf "%s\n" "$as_me: === finished configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
-	fi
-	cd "$mp_popdir"
-
-VENDOR_TCLTHREAD_SUBDIR=thread
-VENDOR_TCLTHREAD_INSTALL="install-binaries install-libraries"
-
 
 
 ## TclX package
@@ -9496,16 +9162,6 @@ printf "%s\n" "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
 	mp_arg="'$mp_arg'"
 			mp_fn_var_prepend mp_sub_configure_args "$mp_arg "
 
-
-
-			mp_arg="--srcdir=$ac_srcdir"
-					case $mp_arg in
-		*\'*)
-			mp_arg=$(printf "%s\n" "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
-		;;
-	esac
-	mp_arg="'$mp_arg'"
-	as_fn_append mp_sub_configure_args " $mp_arg"
 
 
 			mp_arg="CC=$CC"
@@ -9821,16 +9477,6 @@ printf "%s\n" "$as_me: === configuring in $ac_dir ($mp_popdir/$ac_dir)" >&6;}
 
 
 
-			mp_arg="--srcdir=$ac_srcdir"
-					case $mp_arg in
-		*\'*)
-			mp_arg=$(printf "%s\n" "$mp_arg" | sed "s/'/'\\\\\\\\''/g")
-		;;
-	esac
-	mp_arg="'$mp_arg'"
-	as_fn_append mp_sub_configure_args " $mp_arg"
-
-
 			mp_arg="CC=$CC"
 					case $mp_arg in
 		*\'*)
@@ -9955,8 +9601,7 @@ SHLIB_CFLAGS=${TCL_SHLIB_CFLAGS}
 SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
 TCLSH=${TCL_EXEC_PREFIX}/bin/tclsh${TCL_VERSION}
 INTREE_TCLSH=`(cd vendor; pwd)`/tclsh
-# strip possible whitespace at the end of TCL_PACKAGE_PATH
-eval "TCL_PACKAGE_PATH=${TCL_PACKAGE_PATH}"
+TCL_PACKAGE_PATH="$macports_libexec_dir/lib"
 
 
 
