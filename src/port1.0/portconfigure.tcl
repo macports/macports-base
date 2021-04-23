@@ -1787,21 +1787,21 @@ default configure.checks.implicit_function_declaration.whitelist {[portconfigure
 
 proc portconfigure::check_implicit_function_declarations {} {
     global \
-        configure.dir \
+        workpath \
         configure.checks.implicit_function_declaration.whitelist
 
     # Map from function name to config.log that used it without declaration
     array set undeclared_functions {}
 
-    fs-traverse -tails file [list ${configure.dir}] {
-        if {[file tail $file] eq "config.log" && [file isfile [file join ${configure.dir} $file]]} {
+    fs-traverse -tails file [list ${workpath}] {
+        if {[file tail $file] in [list config.log CMakeError.log meson-log.txt] && [file isfile [file join ${workpath} $file]]} {
             # We could do the searching ourselves, but using a tool optimized for this purpose is likely much faster
             # than using Tcl.
             #
             # Using /usr/bin/fgrep here, so we don't accidentally pick up a macports-installed grep which might
             # currently not be runnable due to a missing library.
             set args [list "/usr/bin/fgrep" "--" "-Wimplicit-function-declaration"]
-            lappend args [file join ${configure.dir} $file]
+            lappend args [file join ${workpath} $file]
 
             if {![catch {set result [exec -- {*}$args]}]} {
                 foreach line [split $result "\n"] {
