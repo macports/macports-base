@@ -306,12 +306,12 @@ proc macports::ui_init {priority args} {
     # Simplify ui_$priority.
     try {
         set prefix [ui_prefix $priority]
-    } catch * {
+    } on error {} {
         set prefix [ui_prefix_default $priority]
     }
     try {
         ::ui_init $priority $prefix $channels($priority) {*}$args
-    } catch * {
+    } on error {} {
         interp alias {} ui_$priority {} ui_message $priority $prefix
     }
 }
@@ -394,9 +394,9 @@ proc macports::findBinary {prog {autoconf_hint {}}} {
     if {$autoconf_hint ne "" && [file executable $autoconf_hint]} {
         return $autoconf_hint
     } else {
-        try -pass_signal {
+        macports_try -pass_signal {
             return [macports::binaryInPath $prog]
-        } catch {{*} eCode eMessage} {
+        } on error {eMessage} {
             error "$eMessage or at its MacPorts configuration time location, did you move it?"
         }
     }
@@ -427,12 +427,12 @@ proc macports::setxcodeinfo {name1 name2 op} {
     trace remove variable macports::xcodeversion read macports::setxcodeinfo
     trace remove variable macports::xcodebuildcmd read macports::setxcodeinfo
 
-    try -pass_signal {
+    macports_try -pass_signal {
         set xcodebuild [findBinary xcodebuild $macports::autoconf::xcodebuild_path]
         if {![info exists xcodeversion]} {
             # Determine xcode version
             set macports::xcodeversion 2.0orlower
-            try -pass_signal {
+            macports_try -pass_signal {
                 set xcodebuildversion [exec -- $xcodebuild -version 2> /dev/null]
                 if {[regexp {Xcode ([0-9.]+)} $xcodebuildversion - xcode_v] == 1} {
                     set macports::xcodeversion $xcode_v
@@ -480,14 +480,14 @@ proc macports::setxcodeinfo {name1 name2 op} {
                         set macports::xcodeversion 2.1
                     }
                 }
-            } catch {*} {
+            } on error {} {
                 set macports::xcodeversion none
             }
         }
         if {![info exists xcodebuildcmd]} {
             set macports::xcodebuildcmd $xcodebuild
         }
-    } catch {*} {
+    } on error {} {
         if {![info exists xcodeversion]} {
             set macports::xcodeversion none
         }
@@ -504,18 +504,18 @@ proc macports::set_developer_dir {name1 name2 op} {
     trace remove variable macports::developer_dir read macports::set_developer_dir
 
     # Look for xcodeselect, and make sure it has a valid value
-    try -pass_signal {
+    macports_try -pass_signal {
         set xcodeselect [findBinary xcode-select $macports::autoconf::xcode_select_path]
 
         # We have xcode-select: ask it where xcode is and check if it's valid.
         # If no xcode is selected, xcode-select will fail, so catch that
-        try -pass_signal {
+        macports_try -pass_signal {
             set devdir [exec $xcodeselect -print-path 2> /dev/null]
             if {[_is_valid_developer_dir $devdir]} {
                 set macports::developer_dir $devdir
                 return
             }
-        } catch {*} {}
+        } on error {} {}
 
         # The directory from xcode-select isn't correct.
 
@@ -523,10 +523,10 @@ proc macports::set_developer_dir {name1 name2 op} {
         # searching by bundle identifier for various Xcode versions (3.x and 4.x)
         set installed_xcodes {}
 
-        try -pass_signal {
+        macports_try -pass_signal {
             set mdfind [findBinary mdfind $macports::autoconf::mdfind_path]
             set installed_xcodes [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.Xcode' || kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"]
-        } catch {*} {}
+        } on error {} {}
 
         # In case mdfind metadata wasn't complete, also look in two well-known locations for Xcode.app
         foreach app {/Applications/Xcode.app /Developer/Applications/Xcode.app} {
@@ -540,7 +540,7 @@ proc macports::set_developer_dir {name1 name2 op} {
 
         # Present instructions to the user
         ui_error
-        try -pass_signal {
+        macports_try -pass_signal {
             if {[llength $installed_xcodes] == 0} {
                 error "No Xcode installation was found."
             }
@@ -568,12 +568,12 @@ proc macports::set_developer_dir {name1 name2 op} {
                     ui_error "    # malformed Xcode at ${xcode}, version $vers"
                 }
             }
-        } catch {*} {
+        } on error {} {
             ui_error "No Xcode installation was found."
             ui_error "Please install Xcode and/or run xcode-select to specify its location."
         }
         ui_error
-    } catch {*} {}
+    } on error {} {}
 
     # Try the default
     if {$os_major >= 11 && [vercmp $xcodeversion 4.3] >= 0} {
@@ -756,10 +756,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             # macOS
             set os_subplatform macosx
             if {[file executable /usr/bin/sw_vers]} {
-                try -pass_signal {
+                macports_try -pass_signal {
                     set macos_version [exec /usr/bin/sw_vers -productVersion]
-                } catch {* ec result} {
-                    ui_debug "sw_vers exists but running it failed: $result"
+                } on error {eMessage} {
+                    ui_debug "sw_vers exists but running it failed: $eMessage"
                 }
             }
         } else {
@@ -1269,9 +1269,9 @@ match macports.conf.default."
     # might slow builds down considerably. You can avoid this by touching
     # $portdbpath/.nohide.
     if {$os_platform eq "darwin" && ![file exists [file join $portdbpath .nohide]] && [file writable $portdbpath] && [file attributes $portdbpath -hidden] == 0} {
-        try -pass_signal {
+        macports_try -pass_signal {
             file attributes $portdbpath -hidden yes
-        } catch {{*} eCode eMessage} {
+        } on error {eMessage} {
             ui_debug "error setting hidden flag for $portdbpath: $eMessage"
         }
     }
@@ -1383,11 +1383,11 @@ match macports.conf.default."
     set env(CCACHE_DIR) $macports::ccache_dir
 
     # load cached ping times
-    try -pass_signal {
+    macports_try -pass_signal {
         set pingfile -1
         set pingfile [open ${macports::portdbpath}/pingtimes r]
         array set macports::ping_cache [gets $pingfile]
-    } catch {*} {
+    } on error {} {
         array set macports::ping_cache {}
     } finally {
         if {$pingfile != -1} {
@@ -1465,21 +1465,21 @@ proc macports::copy_xcode_plist {target_homedir} {
     file delete -force "${target_dir}/com.apple.dt.Xcode.plist"
     if {[file isfile $user_plist]} {
         if {![file isdirectory $target_dir]} {
-            try -pass_signal {
+            macports_try -pass_signal {
                 file mkdir $target_dir
-            } catch {{*} eCode eMessage} {
+            } on error {eMessage} {
                 ui_warn "Failed to create Library/Preferences in ${target_homedir}: $eMessage"
                 return
             }
         }
-        try -pass_signal {
+        macports_try -pass_signal {
             if {![file writable $target_dir]} {
                 error "${target_dir} is not writable"
             }
             ui_debug "Copying $user_plist to $target_dir"
             file copy -force $user_plist $target_dir
             file attributes ${target_dir}/com.apple.dt.Xcode.plist -owner $macportsuser -permissions 0644
-        } catch {{*} eCode eMessage} {
+        } on error {eMessage} {
             ui_warn "Failed to copy com.apple.dt.Xcode.plist to ${target_dir}: $eMessage"
         }
     }
@@ -2780,9 +2780,9 @@ proc mportsync {{optionslist {}}} {
                 if {[_source_is_obsolete_svn_repo $portdir]} {
                     set obsoletesvn 1
                 }
-                try -pass_signal {
+                macports_try -pass_signal {
                     set repoInfo [macports::GetVCSUpdateCmd $portdir] 
-                } catch {*} {
+                } on error {} {
                     ui_debug $::errorInfo
                     ui_info "Could not access contents of $portdir"
                     incr numfailed
@@ -2791,9 +2791,9 @@ proc mportsync {{optionslist {}}} {
                 }
                 if {[llength $repoInfo]} {
                     lassign $repoInfo vcs cmd dir
-                    try -pass_signal {
+                    macports_try -pass_signal {
                         macports::UpdateVCS $cmd $dir
-                    } catch {*} {
+                    } on error {} {
                         ui_debug $::errorInfo
                         ui_info "Syncing local $vcs ports tree failed"
                         incr numfailed
@@ -2829,9 +2829,9 @@ proc mportsync {{optionslist {}}} {
                 }
                 # Do rsync fetch
                 set rsync_commandline "$macports::autoconf::rsync_path $rsync_options $include_option $exclude_option $srcstr $destdir"
-                try -pass_signal {
+                macports_try -pass_signal {
                     system $rsync_commandline
-                } catch {*} {
+                } on error {} {
                     ui_error "Synchronization of the local ports tree failed doing rsync"
                     incr numfailed
                     continue
@@ -2845,12 +2845,12 @@ proc mportsync {{optionslist {}}} {
                     set openssl [macports::findBinary openssl $macports::autoconf::openssl_path]
                     set verified 0
                     foreach pubkey $macports::archivefetch_pubkeys {
-                        try -pass_signal {
+                        macports_try -pass_signal {
                             exec $openssl dgst -ripemd160 -verify $pubkey -signature $signature $tarball
                             set verified 1
                             ui_debug "successful verification with key $pubkey"
                             break
-                        } catch {{*} eCode eMessage} {
+                        } on error {eMessage} {
                             ui_debug "failed verification with key $pubkey"
                             ui_debug "openssl output: $eMessage"
                         }
@@ -2865,9 +2865,9 @@ proc mportsync {{optionslist {}}} {
                     set tar [macports::findBinary tar $macports::autoconf::tar_path]
                     file mkdir ${destdir}/tmp
                     set tar_cmd "$tar -C ${destdir}/tmp -xf $tarball"
-                    try -pass_signal {
+                    macports_try -pass_signal {
                         system $tar_cmd
-                    } catch {{*} eCode eMessage} {
+                    } on error {eMessage} {
                         ui_error "Failed to extract ports tree from tarball: $eMessage"
                         incr numfailed
                         continue
@@ -2897,7 +2897,7 @@ proc mportsync {{optionslist {}}} {
                     }
                     set remote_indexfile "${index_source}PortIndex_${macports::os_platform}_${macports::os_major}_${macports::os_arch}/PortIndex"
                     set rsync_commandline "$macports::autoconf::rsync_path $rsync_options $remote_indexfile $destdir"
-                    try -pass_signal {
+                    macports_try -pass_signal {
                         system $rsync_commandline
                         
                         set ok 1
@@ -2909,13 +2909,13 @@ proc mportsync {{optionslist {}}} {
                             set rsync_commandline "$macports::autoconf::rsync_path $rsync_options ${remote_indexfile}.rmd160 $destdir"
                             system $rsync_commandline
                             foreach pubkey $macports::archivefetch_pubkeys {
-                                try -pass_signal {
+                                macports_try -pass_signal {
                                     exec $openssl dgst -ripemd160 -verify $pubkey -signature ${destdir}/PortIndex.rmd160 ${destdir}/PortIndex
                                     set ok 1
                                     set needs_portindex false
                                     ui_debug "successful verification with key $pubkey"
                                     break
-                                } catch {{*} eCode eMessage} {
+                                } on error {eMessage} {
                                     ui_debug "failed verification with key $pubkey"
                                     ui_debug "openssl output: $eMessage"
                                 }
@@ -2928,13 +2928,13 @@ proc mportsync {{optionslist {}}} {
                         if {$ok} {
                             mports_generate_quickindex $indexfile
                         }
-                    } catch {*} {
+                    } on error {} {
                         ui_debug "Synchronization of the PortIndex failed doing rsync"
                     }
                 }
-                try -pass_signal {
+                macports_try -pass_signal {
                     system [list chmod -R a+r $destdir]
-                } catch {*} {
+                } on error {} {
                     ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
                 }
             }
@@ -2975,9 +2975,9 @@ proc mportsync {{optionslist {}}} {
                     set progressflag "--progress ${macports::ui_options(progress_download)}"
                     set verboseflag ""
                 }
-                try -pass_signal {
+                macports_try -pass_signal {
                     curl fetch {*}$progressflag $source $tarpath
-                } catch {{*} eCode eMessage} {
+                } on error {eMessage} {
                     ui_error [msgcat::mc "Fetching %s failed: %s" $source $eMessage]
                     incr numfailed
                     continue
@@ -3107,10 +3107,10 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
     foreach source $sources {
         set source [lindex $source 0]
         set protocol [macports::getprotocol $source]
-        try -pass_signal {
+        macports_try -pass_signal {
             set fd [open [macports::getindex $source] r]
 
-            try -pass_signal {
+            macports_try -pass_signal {
                 incr found 1
                 while {[gets $fd line] >= 0} {
                     array unset portinfo
@@ -3186,13 +3186,13 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                         lappend matches $line
                     }
                 }
-            } catch * {
+            } on error {_ eOptions} {
                 ui_warn "It looks like your PortIndex file for $source may be corrupt."
-                throw
+                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
             } finally {
                 close $fd
             }
-        } catch {*} {
+        } on error {} {
             ui_warn "Can't open index file for source: $source"
         }
     }
@@ -3237,7 +3237,7 @@ proc mportlookup {name} {
         if {[catch {set fd [open [macports::getindex $source] r]} result]} {
             ui_warn "Can't open index file for source: $source"
         } else {
-            try -pass_signal {
+            macports_try -pass_signal {
                 seek $fd $offset
                 gets $fd line
                 set name [lindex $line 0]
@@ -3264,8 +3264,9 @@ proc mportlookup {name} {
                 }
                 lappend matches $name
                 lappend matches $line
-            } catch * {
+            } on error {_ eOptions} {
                 ui_warn "It looks like your PortIndex file for $source may be corrupt."
+                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
             } finally {
                 close $fd
             }
@@ -3296,10 +3297,10 @@ proc mportlistall {} {
     foreach source $sources {
         set source [lindex $source 0]
         set protocol [macports::getprotocol $source]
-        try -pass_signal {
+        macports_try -pass_signal {
             set fd [open [macports::getindex $source] r]
 
-            try -pass_signal {
+            macports_try -pass_signal {
                 incr found 1
                 while {[gets $fd line] >= 0} {
                     array unset portinfo
@@ -3327,13 +3328,13 @@ proc mportlistall {} {
                     }
                     lappend matches $name $line
                 }
-            } catch * {
+            } on error {_ eOptions} {
                 ui_warn "It looks like your PortIndex file for $source may be corrupt."
-                throw
+                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
             } finally {
                 close $fd
             }
-        } catch {*} {
+        } on error {} {
             ui_warn "Can't open index file for source: $source"
         }
     }
@@ -3365,18 +3366,18 @@ proc _mports_load_quickindex {} {
         }
         if {![file exists ${index}.quick]} {
             ui_warn "No quick index file found, attempting to generate one for source: $source"
-            try -pass_signal {
+            macports_try -pass_signal {
                 set quicklist [mports_generate_quickindex $index]
-            } catch {*} {
+            } on error {} {
                 incr sourceno
                 continue
             }
         }
         # only need to read the quick index file if we didn't just update it
         if {![info exists quicklist]} {
-            try -pass_signal {
+            macports_try -pass_signal {
                 set fd [open ${index}.quick r]
-            } catch {*} {
+            } on error {} {
                 ui_warn "Can't open quick index file for source: $source"
                 incr sourceno
                 continue
@@ -3409,16 +3410,16 @@ proc _mports_load_quickindex {} {
 #         is corrupt), or the quick index generation failed for some other
 #         reason.
 proc mports_generate_quickindex {index} {
-    try -pass_signal {
+    macports_try -pass_signal {
         set indexfd -1
         set quickfd -1
         set indexfd [open $index r]
         set quickfd [open ${index}.quick w]
-    } catch {*} {
+    } on error {} {
         ui_warn "Can't open index file: $index"
         return -code error
     }
-    try -pass_signal {
+    macports_try -pass_signal {
         set offset [tell $indexfd]
         set quicklist {}
         while {[gets $indexfd line] >= 0} {
@@ -3433,9 +3434,9 @@ proc mports_generate_quickindex {index} {
             set offset [tell $indexfd]
         }
         puts -nonewline $quickfd $quicklist
-    } catch {{*} eCode eMessage} {
+    } on error {_ eOptions} {
         ui_warn "It looks like your PortIndex file $index may be corrupt."
-        throw
+        throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
     } finally {
         if {$indexfd != -1} {
             close $indexfd
@@ -3601,9 +3602,9 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             }
             if {$parse} {
                 # Find the porturl
-                try -pass_signal {
+                macports_try -pass_signal {
                     set res [mportlookup $dep_portname]
-                } catch {{*} eCode eMessage} {
+                } on error {eMessage} {
                     ui_msg {}
                     ui_debug $::errorInfo
                     ui_error "Internal error: port lookup failed: $eMessage"
@@ -3981,9 +3982,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
     # check if the port is in tree
     set result ""
-    try {
+    macports_try {
         set result [mportlookup $portname]
-    } catch {{*} eCode eMessage} {
+    } on error {eMessage} {
         ui_debug $::errorInfo
         ui_error "port lookup failed: $eMessage"
         return 1
@@ -4777,13 +4778,13 @@ proc macports::reclaim_check_and_run {} {
 
     try {
         return [reclaim::check_last_run]
-    } catch {{POSIX SIG SIGINT} eCode eMessage} {
+    } trap {POSIX SIG SIGINT} {} {
         ui_error [msgcat::mc "reclaim aborted: SIGINT received."]
         return 2
-    } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+    } trap {POSIX SIG SIGTERM} {} {
         ui_error [msgcat::mc "reclaim aborted: SIGTERM received."]
         return 2
-    } catch {{*} eCode eMessage} {
+    } on error {eMessage} {
         ui_debug "reclaim failed: $::errorInfo"
         ui_error [msgcat::mc "reclaim failed: %s" $eMessage]
         return 1
@@ -4800,13 +4801,13 @@ proc macports::reclaim_main {opts} {
 
     try {
         reclaim::main $opts
-    } catch {{POSIX SIG SIGINT} eCode eMessage} {
+    } trap {POSIX SIG SIGINT} {} {
         ui_error [msgcat::mc "reclaim aborted: SIGINT received."]
         return 2
-    } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+    } trap {POSIX SIG SIGTERM} {} {
         ui_error [msgcat::mc "reclaim aborted: SIGTERM received."]
         return 2
-    } catch {{*} eCode eMessage} {
+    } on error {eMessage} {
         ui_debug "reclaim failed: $::errorInfo"
         ui_error [msgcat::mc "reclaim failed: %s" $eMessage]
         return 1
@@ -4891,14 +4892,14 @@ proc macports::revupgrade {opts} {
             set run_loop [revupgrade_scanandrebuild broken_port_counts $opts]
         }
         return 0
-    } catch {{POSIX SIG SIGINT} eCode eMessage} {
+    } trap {POSIX SIG SIGINT} {} {
         ui_debug "rev-upgrade failed: $::errorInfo"
         ui_error [msgcat::mc "rev-upgrade aborted: SIGINT received."]
         return 2
-    } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+    } trap {POSIX SIG SIGTERM} {} {
         ui_error [msgcat::mc "rev-upgrade aborted: SIGTERM received."]
         return 2
-    } catch {{*} eCode eMessage} {
+    } on error {eMessage} {
         ui_debug "rev-upgrade failed: $::errorInfo"
         ui_error [msgcat::mc "rev-upgrade failed: %s" $eMessage]
         return 1
@@ -4937,19 +4938,19 @@ proc macports::revupgrade_update_binary {fancy_output {revupgrade_progress ""}} 
 
                     try {
                         $f binary [fileIsBinary $fpath]
-                    } catch {{POSIX SIG SIGINT} eCode eMessage} {
+                    } trap {POSIX SIG SIGINT} {_ eOptions} {
                         if {$fancy_output} {
                             $revupgrade_progress intermission
                         }
                         ui_debug [msgcat::mc "Aborted: SIGINT signal received"]
-                        throw
-                    } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+                        throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                    } trap {POSIX SIG SIGTERM} {_ eOptions} {
                         if {$fancy_output} {
                             $revupgrade_progress intermission
                         }
                         ui_debug [msgcat::mc "Aborted: SIGTERM signal received"]
-                        throw
-                    } catch {{*} eCode eMessage} {
+                        throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                    } on error {eMessage} {
                         if {$fancy_output} {
                             $revupgrade_progress intermission
                         }
@@ -4958,12 +4959,12 @@ proc macports::revupgrade_update_binary {fancy_output {revupgrade_progress ""}} 
                         ui_warn "A file belonging to the `[[registry::entry owner $fpath] name]' port is missing or unreadable. Consider reinstalling it."
                     }
                 }
-            } catch {*} {
+            } on error {_ eOptions} {
                 if {${fancy_output}} {
                     $revupgrade_progress intermission
                 }
                 ui_error "Updating database of binaries failed"
-                throw
+                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
             } finally {
                 foreach f $files {
                     registry::file close $f
@@ -5144,19 +5145,19 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                                         ui_warn "This is probably a bug in the $portname port and might cause problems in libraries linking against this file"
                                     }
                                 }
-                            } catch {{POSIX SIG SIGINT} eCode eMessage} {
+                            } trap {POSIX SIG SIGINT} {_ eOptions} {
                                 if {$fancy_output} {
                                     $revupgrade_progress intermission
                                 }
                                 ui_debug [msgcat::mc "Aborted: SIGINT signal received"]
-                                throw
-                            } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+                                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                            } trap {POSIX SIG SIGTERM} {_ eOptions} {
                                 if {$fancy_output} {
                                     $revupgrade_progress intermission
                                 }
                                 ui_debug [msgcat::mc "Aborted: SIGTERM signal received"]
-                                throw
-                            } catch {*} {}
+                                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                            }
                         }
                     }
 
@@ -5172,21 +5173,21 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     while {$loadcommand ne "NULL"} {
                         try {
                             set filepath [revupgrade_handle_special_paths $bpath [$loadcommand cget -mlt_install_name]]
-                        } catch {{POSIX SIG SIGINT} eCode eMessage} {
+                        } trap {POSIX SIG SIGINT} {_ eOptions} {
                             if {$fancy_output} {
                                 $revupgrade_progress intermission
                             }
                             ui_debug [msgcat::mc "Aborted: SIGINT signal received"]
-                            throw
-                        } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+                            throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                        } trap {POSIX SIG SIGTERM} {_ eOptions} {
                             if {$fancy_output} {
                                 $revupgrade_progress intermission
                             }
                             ui_debug [msgcat::mc "Aborted: SIGTERM signal received"]
-                            throw
-                        } catch {*} {
+                            throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                        } on error {} {
                             set loadcommand [$loadcommand cget -next]
-                            continue;
+                            continue
                         }
 
                         set libresultlist [machista::parse_file $handle $filepath]
@@ -5249,11 +5250,11 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     set architecture [$architecture cget -next]
                 }
             }
-        } catch {*} {
+        } on error {_ eOptions} {
             if {$fancy_output} {
                 $revupgrade_progress intermission
             }
-            throw
+            throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
         } finally {
             foreach b $binaries {
                 registry::file close $b

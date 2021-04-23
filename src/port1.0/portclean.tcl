@@ -179,9 +179,9 @@ proc portclean::clean_work {args} {
 
     if {[file isdirectory $subbuildpath]} {
         ui_debug "Removing directory: ${subbuildpath}"
-        try -pass_signal {
+        macports_try -pass_signal {
             delete $subbuildpath
-        } catch {{*} eCode eMessage} {
+        } on error {eMessage} {
             ui_debug "$::errorInfo"
             ui_error "$eMessage"
         }

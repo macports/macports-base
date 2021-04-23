@@ -546,12 +546,12 @@ proc portfetch::fetchfiles {args} {
             foreach site $urlmap($url_var) {
                 ui_notice "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
                 set file_url [portfetch::assemble_url $site $distfile]
-                try -pass_signal {
+                macports_try -pass_signal {
                     curl fetch {*}$fetch_options $file_url "${distpath}/${distfile}.TMP"
                     file rename -force "${distpath}/${distfile}.TMP" "${distpath}/${distfile}"
                     set fetched 1
                     break
-                } catch {{*} eCode eMessage} {
+                } on error {eMessage} {
                     ui_debug [msgcat::mc "Fetching distfile failed: %s" $eMessage]
                     set lastError $eMessage
                 } finally {

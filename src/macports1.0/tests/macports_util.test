@@ -151,23 +151,35 @@ test lunshift {
 
 
 
-test try {
+test macports_try {
     Try unit test.
 } -setup {
-    proc test_proc {} {try {return 7} catch * {return 6}}
-    proc test_proc2 {} {try {error "msg" "info" 3} catch * {return 6}}
+    proc test_proc {} {
+        macports_try {
+            return 7
+        } on error {} {
+            return 6
+        }
+    }
+    proc test_proc2 {} {
+        macports_try {
+            error "msg" "info" 3
+        } on error {} {
+            return 6
+        }
+    }
 } -body {
     if {[test_proc] != 7} {
-        return "FAIL: try clause not working"
+        return "FAIL: macports_try clause not working"
     }
     if {[test_proc2] != 6} {
-        return "FAIL: catch clause not working"
+        return "FAIL: on error clause not working"
     }
-    if {[catch {try}] != 1} {
+    if {[catch {macports_try}] != 1} {
         return "FAIL: no args err not detected"
     }
-    return "try successful."
-} -result "try successful."
+    return "macports_try successful."
+} -result "macports_try successful."
 
 
 cleanupTests
