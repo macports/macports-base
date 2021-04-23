@@ -1770,9 +1770,11 @@ proc portconfigure::configure_main {args} {
 
         # Execute the command (with the new environment).
         if {[catch {command_exec {*}${callback} configure} result]} {
-            global configure.dir
-            if {[file exists ${configure.dir}/config.log]} {
-                ui_error "[format [msgcat::mc "Failed to configure %s, consult %s/config.log"] [option subport] ${configure.dir}]"
+            global configure.dir build.dir
+            foreach error_log [list ${configure.dir}/config.log ${configure.dir}/CMakeFiles/CMakeError.log ${build.dir}/meson-logs/meson-log.txt] {
+                if {[file exists ${error_log}]} {
+                    ui_error "[format [msgcat::mc "Failed to configure %s: consult %s"] [option subport] ${error_log}]"
+                }
             }
             return -code error "[format [msgcat::mc "%s failure: %s"] configure $result]"
         }
