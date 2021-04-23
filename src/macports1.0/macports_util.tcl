@@ -243,173 +243,217 @@ proc filesize {fil {unit {}}} {
 }
 
 
-################################
-# try/catch exception handling #
-################################
-# modelled after TIP #89 <http://www.tcl.tk/cgi-bin/tct/tip/89>
+################################################################
+# try/on/trap exception handling with signal pass-thru support #
+################################################################
 
-if {![namespace exists ::_trycatch]} {
-    namespace eval ::_trycatch {
-        variable catchStack {}
-    }
-}
+##
+# macports_try ?-pass_signal? body ?handler...? body ?finally script?
+#
+# Extension of the tcllib try module (which provides a Tcl 8.6-compatible try
+# implementation) with a flag that will in no cases catch signals but rather
+# always bubble them up the call stack.
+#
+# Use this whenever you're not aborting execution anyway if an error occurs
+# within a try block, so that the user is quickly able to abort execution of
+# macports tasks. Do not use this is you actually need to manually react to
+# signals.
+#
+# You should prefer using the builtin try, since that's implemented in C, and
+# this is a Tcl re-implementation.
+#
+# Note that this re-implementation uses ::builtin_catch, since mpcommon1.0
+# replaces the original ::catch with a modified version, but we really need the
+# original behavior.
+#
+# This code is originally:
+# (C) 2008-2011 Donal K. Fellows, Andreas Kupries, BSD licensed.
+namespace eval macports_util::tcl::control {
+    # These are not local, since this allows us to [uplevel] a [catch] rather
+    # than [catch] the [uplevel]ing of something, resulting in a cleaner
+    # -errorinfo:
+    variable em {}
+    variable opts {}
 
-# throw ?type? ?message? ?info?
-# Works like error, but arguments are reordered to encourage use of types
-# If called with no arguments in a catch block, re-throws the caught exception
-proc throw {args} {
-    if {[llength $args] == 0} {
-        # re-throw
-        if {[llength $::_trycatch::catchStack] == 0} {
-            return -code error "error: throw with no parameters outside of a catch"
-        } else {
-            set errorNode [lpop ::_trycatch::catchStack]
-            set errCode [lindex $errorNode 0]
-            set errMsg  [lindex $errorNode 1]
-            set errInfo [lindex $errorNode 2]
-            return -code error -errorinfo $errInfo -errorcode $errCode $errMsg
-        }
-    } elseif {[llength $args] > 3} {
-        return -code error "wrong # args: should be \"throw ?type? ?message? ?info?\""
-    } else {
-        set errCode [lindex $args 0]
-        if {[llength $args] > 1} {
-            set errMsg  [lindex $args 1]
-        } else {
-            set errMsg "error: $errCode"
-        }
-        if {[llength $args] > 2} {
-            set errInfo [lindex $args 2]
-        } else {
-            set errInfo $errMsg
-        }
-        return -code error -errorinfo $errInfo -errorcode $errCode $errMsg
-    }
-}
+    variable magicCodes { ok 0 error 1 return 2 break 3 continue 4 }
 
-# try ?-pass_signal? body ?catch {type_list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?
-# implementation of try as specified in TIP #89
-# option -pass_signal passes SIGINT and SIGTERM signals up the stack
-proc try {args} {
-    # validate and interpret the arguments
-    set catchList {}
-    if {[llength $args] == 0} {
-        return -code error "wrong # args: \
-            should be \"try ?-pass_signal? body ?catch {type-list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?\""
-    }
-    if {[lindex $args 0] eq "-pass_signal"} {
-        lpush catchList {{POSIX SIG SIGINT} eCode eMessage} {
-            ui_debug [msgcat::mc "Aborted: SIGINT signal received"]
-            throw
+    namespace export macports_try
+
+    # macports_util::tcl::control::macports_try --
+    #
+    #   Advanced error handling construct.
+    #
+    # Arguments:
+    #   See try(n) for details
+    proc macports_try {args} {
+        variable magicCodes
+
+        # ----- Parse arguments -----
+
+        set pass_signal no
+        if {[lindex $args 0] eq "-pass_signal"} {
+            set pass_signal yes
+            set args [lreplace $args 0 0]
         }
-        lpush catchList {{POSIX SIG SIGTERM} eCode eMessage} {
-            ui_debug [msgcat::mc "Aborted: SIGTERM signal received"]
-            throw
-        }
-        lshift args
-    }
-    set body [lshift args]
-    while {[llength $args] > 0} {
-        set arg [lshift args]
-        switch $arg {
-            catch {
-                set elem [lshift args]
-                if {[llength $args] == 0 || [llength $elem] > 4} {
-                    return -code error "invalid syntax in catch clause: \
-                        should be \"catch {type-list ?ecvar? ?msgvar? ?infovar?} body\""
-                } elseif {[llength [lindex $elem 0 0]] == 0} {
-                    return -code error "invalid syntax in catch clause: type-list must contain at least one type"
+        set trybody [lindex $args 0]
+        set finallybody {}
+        set handlers [list]
+        set i 1
+
+        while {$i < [llength $args]} {
+            switch -- [lindex $args $i] {
+                "on" {
+                    incr i
+                    set code [lindex $args $i]
+                    if {[dict exists $magicCodes $code]} {
+                        set code [dict get $magicCodes $code]
+                    } elseif {![string is integer -strict $code]} {
+                        set msgPart [join [dict keys $magicCodes] {", "}]
+                            error "bad code '[lindex $args $i]': must be\
+                                integer or \"$msgPart\""
+                    }
+                    lappend handlers [lrange $args $i $i] \
+                        [format %d $code] {} {*}[lrange $args $i+1 $i+2]
+                    incr i 3
                 }
-                lpush catchList $elem [lshift args]
-            }
-            finally {
-                if {[llength $args] == 0} {
-                    return -code error "invalid syntax in finally clause: should be \"finally body\""
-                } elseif {[llength $args] > 1} {
-                    return -code error "trailing args after finally clause"
+                "trap" {
+                    incr i
+                    if {![string is list [lindex $args $i]]} {
+                        error "bad prefix '[lindex $args $i]':\
+                            must be a list"
+                    }
+                    lappend handlers [lrange $args $i $i] 1 \
+                        {*}[lrange $args $i $i+2]
+                    incr i 3
                 }
-                set finallyBody [lshift args]
-            }
-            default {
-                return -code error "invalid syntax: \
-                    should be \"try body ?catch {type-list ?ecvar? ?msgvar? ?infovar?} body ...? ?finally body?\""
-            }
-        }
-    }
-
-    # at this point, we've processed all args'
-    # builtin_catch is the normal Tcl catch command, rather than the wrapper
-    # defined in common/catch.tcl and sourced by macports.tcl
-    if {[set err [builtin_catch {uplevel 1 $body} result]] == 1} {
-        set savedErrorCode $::errorCode
-        set savedErrorInfo $::errorInfo
-        # rip out the last "invoked from within" - we want to hide our internals
-        set savedErrorInfo [regsub -linestop {(\n    \(.*\))?\n    invoked from within\n"uplevel 1 \$body"\Z} \
-                            $savedErrorInfo ""]
-        # add to the throw stack
-        lpush ::_trycatch::catchStack [list $savedErrorCode $result $savedErrorInfo]
-        # call the first matching catch block
-        foreach {elem catchBody} $catchList {
-            set typeList [lshift elem]
-            set match? 1
-            set typeList [lrange $typeList 0 [expr {[llength $savedErrorCode] - 1}]]
-            set codeList [lrange $savedErrorCode 0 [expr {[llength $typeList] - 1}]]
-            foreach type $typeList code $codeList {
-                if {![string match $type $code]} {
-                    set match? 0
+                "finally" {
+                    incr i
+                    set finallybody [lindex $args $i]
+                    incr i
                     break
                 }
+                default {
+                    error "bad handler '[lindex $args $i]': must be\
+                        \"on code varlist body\", or\
+                        \"trap prefix varlist body\""
+                }
             }
-            if {${match?}} {
-                # found a block
-                if {[set ecvar [lshift elem]] ne ""} {
-                    uplevel 1 set [list $ecvar] [list $savedErrorCode]
-                }
-                if {[set msgvar [lshift elem]] ne ""} {
-                    uplevel 1 set [list $msgvar] [list $result]
-                }
-                if {[set infovar [lshift elem]] ne ""} {
-                    uplevel 1 set [list $infovar] [list $savedErrorInfo]
-                }
-                if {[set err [builtin_catch {uplevel 1 $catchBody} result]] == 1} {
-                    # error in the catch block, save it
-                    set savedErrorCode $::errorCode
-                    set savedErrorInfo $::errorInfo
-                    # rip out the last "invoked from within" - we want to hide our internals
-                    set savedErrorInfo [regsub -linestop \
-                                        {(\n    \(.*\))?\n    invoked from within\n"uplevel 1 \$catchBody"\Z} \
-                                        $savedErrorInfo ""]
-                    # also rip out an "invoked from within" for throw
-                    set savedErrorInfo [regsub -linestop \
-                                        {\n    invoked from within\n"throw"\Z} $savedErrorInfo ""]
-                }
+        }
+
+        if {($i != [llength $args]) || ([lindex $handlers end] eq "-")} {
+            error "wrong # args: should be\
+                \"try body ?handler ...? ?finally body?\""
+        }
+
+        # ----- Execute 'try' body -----
+
+        variable em
+        variable opts
+        set EMVAR  [namespace which -variable em]
+        set OPTVAR [namespace which -variable opts]
+        set code [uplevel 1 [list ::builtin_catch $trybody $EMVAR $OPTVAR]]
+
+        if {$code == 1} {
+            set line [dict get $opts -errorline]
+            dict append opts -errorinfo \
+                "\n    (\"[lindex [info level 0] 0]\" body line $line)"
+        }
+
+        # Keep track of the original error message & options
+        set _em $em
+        set _opts $opts
+
+        # ----- Find and execute handler -----
+
+        set errorcode {}
+        if {[dict exists $opts -errorcode]} {
+            set errorcode [dict get $opts -errorcode]
+        }
+        set found false
+        foreach {descrip oncode pattern varlist body} $handlers {
+            if {$pass_signal && $code == 1 && {POSIX SIG} eq [lrange $errorcode 0 1]} {
+                # Treat the signal as if there was no handler for it, i.e. stop
+                # searching for handlers.
                 break
             }
+            if {!$found} {
+                if {
+                    ($code != $oncode) || ([lrange $pattern 0 end] ne
+                    [lrange $errorcode 0 [llength $pattern]-1] )
+                } then {
+                    continue
+                }
+            }
+            set found true
+            if {$body eq "-"} {
+                continue
+            }
+
+            # Handler found ...
+
+            # Assign trybody results into variables
+            lassign $varlist resultsVarName optionsVarName
+            if {[llength $varlist] >= 1} {
+                upvar 1 $resultsVarName resultsvar
+                set resultsvar $em
+            }
+            if {[llength $varlist] >= 2} {
+                upvar 1 $optionsVarName optsvar
+                set optsvar $opts
+            }
+
+            # Execute the handler
+            set code [uplevel 1 [list ::builtin_catch $body $EMVAR $OPTVAR]]
+
+            if {$code == 1} {
+                set line [dict get $opts -errorline]
+                dict append opts -errorinfo \
+                    "\n    (\"[lindex [info level 0] 0] ... $descrip\"\
+                    body line $line)"
+                # On error chain to original outcome
+                dict set opts -during $_opts
+            }
+
+            # Handler result replaces the original result (whether success or
+            # failure); capture context of original exception for reference.
+            set _em $em
+            set _opts $opts
+
+            # Handler has been executed - stop looking for more
+            break
         }
-        # remove from the throw stack
-        lpop ::_trycatch::catchStack
-    }
-    # execute finally block
-    if {[info exists finallyBody]} {
-        # catch errors here so we can strip our uplevel
-        set savedErr $err
-        set savedResult $result
-        if {[set err [builtin_catch {uplevel 1 $finallyBody} result]] == 1} {
-            set savedErrorCode $::errorCode
-            set savedErrorInfo $::errorInfo
-            # rip out the last "invoked from within" - we want to hide our internals
-            set savedErrorInfo [regsub -linestop \
-                                {(\n    \(.*\))?\n    invoked from within\n"uplevel 1 \$finallyBody"\Z} \
-                                $savedErrorInfo ""]
-        } elseif {$err == 0} {
-            set err $savedErr
-            set result $savedResult
+
+        # No catch handler found -- error falls through to caller
+        # OR catch handler executed -- result falls through to caller
+
+        # ----- If we have a finally block then execute it -----
+
+        if {$finallybody ne {}} {
+            set code [uplevel 1 [list ::builtin_catch $finallybody $EMVAR $OPTVAR]]
+
+            # Finally result takes precedence except on success
+
+            if {$code == 1} {
+                set line [dict get $opts -errorline]
+                dict append opts -errorinfo \
+                    "\n    (\"[lindex [info level 0] 0] ... finally\"\
+                    body line $line)"
+                # On error chain to original outcome
+                dict set opts -during $_opts
+            }
+            if {$code != 0} {
+                set _em $em
+                set _opts $opts
+            }
+
+            # Otherwise our result is not affected
         }
-    }
-    # aaaand return
-    if {$err == 1} {
-        return -code $err -errorinfo $savedErrorInfo -errorcode $savedErrorCode $result
-    } else {
-        return -code $err $result
+
+        # Propagate the error or the result of the executed catch body to the
+        # caller.
+        dict incr _opts -level
+        return -options $_opts $_em
     }
 }
+
+namespace import macports_util::tcl::control::macports_try
