@@ -275,9 +275,6 @@ AC_DEFUN([MP_CONFIG_SUBDIR], [
 			mp_arg="--cache-file=$mp_sub_cache_file"
 			_MP_LIST_PREPEND_QUOTED([mp_sub_configure_args], [mp_arg])
 
-			mp_arg="--srcdir=$ac_srcdir"
-			_MP_LIST_APPEND_QUOTED([mp_sub_configure_args], [mp_arg])
-
 			mp_arg="CC=$CC"
 			_MP_LIST_APPEND_QUOTED([mp_sub_configure_args], [mp_arg])
 
