@@ -343,15 +343,6 @@ AC_SUBST(VENDOR_TCL_INSTALL)
 VENDOR_DESTROOT=vendor/vendor-destroot
 AC_SUBST(VENDOR_DESTROOT)
 
-## Tcl Thread package
-# Tcl supports Threads internally, but to use threads from Tcl code we need
-# this package
-MP_CONFIG_SUBDIR([vendor/thread], [--prefix=${macports_libexec_dir}])
-VENDOR_TCLTHREAD_SUBDIR=thread
-VENDOR_TCLTHREAD_INSTALL="install-binaries install-libraries"
-AC_SUBST(VENDOR_TCLTHREAD_SUBDIR)
-AC_SUBST(VENDOR_TCLTHREAD_INSTALL)
-
 ## TclX package
 # TclX is required for signal handling
 MP_CONFIG_SUBDIR([vendor/tclx], [--prefix=${macports_libexec_dir}])
@@ -384,8 +375,7 @@ SHLIB_CFLAGS=${TCL_SHLIB_CFLAGS}
 SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
 TCLSH=${TCL_EXEC_PREFIX}/bin/tclsh${TCL_VERSION}
 INTREE_TCLSH=`(cd vendor; pwd)`/tclsh
-# strip possible whitespace at the end of TCL_PACKAGE_PATH
-eval "TCL_PACKAGE_PATH=${TCL_PACKAGE_PATH}"
+TCL_PACKAGE_PATH="$macports_libexec_dir/lib"
 
 AC_SUBST(SHLIB_LD)
 AC_SUBST(STLIB_LD)
