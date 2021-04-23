@@ -1,25 +1,26 @@
-From 599111920090326d17a90853f9db5fd3c617b336 Mon Sep 17 00:00:00 2001
+From ced4caca9d31f3e396e4236f478e07082ab41fc3 Mon Sep 17 00:00:00 2001
 From: Jeremy Huddleston Sequoia <jeremyhu@macports.org>
 Date: Mon, 22 Jun 2020 00:30:24 -0700
 Subject: [PATCH] tclx8.4: Use Tcl_Panic instead of deprecated / implicitly
  declared panic()
 
 Signed-off-by: Jeremy Huddleston Sequoia <jeremyhu@macports.org>
+(cherry picked from commit 599111920090326d17a90853f9db5fd3c617b336)
 ---
- vendor/tclx8.4/generic/tclExtdInt.h  |  2 +-
- vendor/tclx8.4/generic/tclXdup.c     |  2 +-
- vendor/tclx8.4/generic/tclXfcntl.c   |  4 ++--
- vendor/tclx8.4/generic/tclXhandles.c |  2 +-
- vendor/tclx8.4/generic/tclXprofile.c | 12 ++++++------
- vendor/tclx8.4/generic/tclXsignal.c  |  6 +++---
- vendor/tclx8.4/generic/tclXstring.c  |  2 +-
- vendor/tclx8.4/generic/tclXutil.c    | 10 +++++-----
- 8 files changed, 20 insertions(+), 20 deletions(-)
+ vendor/tclx-8.4.4/generic/tclExtdInt.h  |  2 +-
+ vendor/tclx-8.4.4/generic/tclXdup.c     |  2 +-
+ vendor/tclx-8.4.4/generic/tclXfcntl.c   |  4 ++--
+ vendor/tclx-8.4.4/generic/tclXhandles.c |  2 +-
+ vendor/tclx-8.4.4/generic/tclXprofile.c |  8 ++++----
+ vendor/tclx-8.4.4/generic/tclXsignal.c  |  6 +++---
+ vendor/tclx-8.4.4/generic/tclXstring.c  |  2 +-
+ vendor/tclx-8.4.4/generic/tclXutil.c    | 10 +++++-----
+ 8 files changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/vendor/tclx8.4/generic/tclExtdInt.h b/vendor/tclx8.4/generic/tclExtdInt.h
-index fd3812ff6..ffa8b30ac 100644
---- a/vendor/tclx8.4/generic/tclExtdInt.h
-+++ b/vendor/tclx8.4/generic/tclExtdInt.h
+diff --git a/vendor/tclx-8.4.4/generic/tclExtdInt.h b/vendor/tclx-8.4.4/generic/tclExtdInt.h
+index e92a6596e..dcd1e8b85 100644
+--- a/vendor/tclx-8.4.4/generic/tclExtdInt.h
++++ b/vendor/tclx-8.4.4/generic/tclExtdInt.h
 @@ -47,7 +47,7 @@
   */
  #ifdef TCLX_DEBUG
@@ -29,11 +30,11 @@ index fd3812ff6..ffa8b30ac 100644
                                      __FILE__, __LINE__, "expr"))
  #else
  #   define TclX_Assert(expr)
-diff --git a/vendor/tclx8.4/generic/tclXdup.c b/vendor/tclx8.4/generic/tclXdup.c
-index 41f3eec39..263e5d483 100644
---- a/vendor/tclx8.4/generic/tclXdup.c
-+++ b/vendor/tclx8.4/generic/tclXdup.c
-@@ -76,7 +76,7 @@ DupChannelOptions (interp, srcChannel, targetChannel)
+diff --git a/vendor/tclx-8.4.4/generic/tclXdup.c b/vendor/tclx-8.4.4/generic/tclXdup.c
+index 7e83fdaa4..87ae811d0 100644
+--- a/vendor/tclx-8.4.4/generic/tclXdup.c
++++ b/vendor/tclx-8.4.4/generic/tclXdup.c
+@@ -75,7 +75,7 @@ DupChannelOptions (Tcl_Interp *interp,
          goto errorExit;
      }
      if ((optArgc % 2) != 0) {
@@ -42,20 +43,20 @@ index 41f3eec39..263e5d483 100644
      }
  
      for (idx = 0; idx < optArgc; idx += 2) {
-diff --git a/vendor/tclx8.4/generic/tclXfcntl.c b/vendor/tclx8.4/generic/tclXfcntl.c
-index 43a26117b..a83e8af15 100644
---- a/vendor/tclx8.4/generic/tclXfcntl.c
-+++ b/vendor/tclx8.4/generic/tclXfcntl.c
-@@ -211,7 +211,7 @@ GetFcntlAttr (interp, channel, mode, attrib)
+diff --git a/vendor/tclx-8.4.4/generic/tclXfcntl.c b/vendor/tclx-8.4.4/generic/tclXfcntl.c
+index 070caa313..0da14307c 100644
+--- a/vendor/tclx-8.4.4/generic/tclXfcntl.c
++++ b/vendor/tclx-8.4.4/generic/tclXfcntl.c
+@@ -204,7 +204,7 @@ GetFcntlAttr (Tcl_Interp *interp, Tcl_Channel channel, int mode, int attrib)
              return TCL_ERROR;
          break;
        default:
 -        panic ("bug in fcntl get attrib");
 +        Tcl_Panic ("bug in fcntl get attrib");
+         value = 0; /* suppress compiler warning for initialized value */
      }
  
-     Tcl_SetIntObj (Tcl_GetObjResult (interp), value != 0);
-@@ -267,7 +267,7 @@ SetFcntlAttrObj (interp, channel, attrib, valueObj)
+@@ -260,7 +260,7 @@ SetFcntlAttrObj (Tcl_Interp *interp,
        case ATTR_KEEPALIVE:
          return TclXOSsetsockopt (interp, channel, SO_KEEPALIVE, value);
        default:
@@ -64,11 +65,11 @@ index 43a26117b..a83e8af15 100644
      }
      return TCL_ERROR;  /* Should never be reached */
  }
-diff --git a/vendor/tclx8.4/generic/tclXhandles.c b/vendor/tclx8.4/generic/tclXhandles.c
-index 83159139f..cc854367e 100644
---- a/vendor/tclx8.4/generic/tclXhandles.c
-+++ b/vendor/tclx8.4/generic/tclXhandles.c
-@@ -567,7 +567,7 @@ TclX_HandleFree (headerPtr, entryPtr)
+diff --git a/vendor/tclx-8.4.4/generic/tclXhandles.c b/vendor/tclx-8.4.4/generic/tclXhandles.c
+index 97c09ff90..0de292c03 100644
+--- a/vendor/tclx-8.4.4/generic/tclXhandles.c
++++ b/vendor/tclx-8.4.4/generic/tclXhandles.c
+@@ -539,7 +539,7 @@ TclX_HandleFree (void_pt headerPtr, void_pt entryPtr)
  
      entryHdrPtr = HEADER_AREA (entryPtr);
      if (entryHdrPtr->freeLink != ALLOCATED_IDX)
@@ -77,11 +78,11 @@ index 83159139f..cc854367e 100644
  
      entryHdrPtr->freeLink = tblHdrPtr->freeHeadIdx;
      tblHdrPtr->freeHeadIdx =
-diff --git a/vendor/tclx8.4/generic/tclXprofile.c b/vendor/tclx8.4/generic/tclXprofile.c
-index e45b78669..7444aa7f3 100644
---- a/vendor/tclx8.4/generic/tclXprofile.c
-+++ b/vendor/tclx8.4/generic/tclXprofile.c
-@@ -240,7 +240,7 @@ PushEntry (infoPtr, cmdName, isProc, procLevel, scopeLevel, evalLevel)
+diff --git a/vendor/tclx-8.4.4/generic/tclXprofile.c b/vendor/tclx-8.4.4/generic/tclXprofile.c
+index 9143a6645..9cf66e066 100644
+--- a/vendor/tclx-8.4.4/generic/tclXprofile.c
++++ b/vendor/tclx-8.4.4/generic/tclXprofile.c
+@@ -228,7 +228,7 @@ PushEntry (profInfo_t *infoPtr,
           * Only global level can be NULL.
           */
          if (scanPtr == NULL)
@@ -90,35 +91,25 @@ index e45b78669..7444aa7f3 100644
      }
      entryPtr->prevScopePtr = scanPtr;
      infoPtr->scopeChainPtr = entryPtr;
-@@ -450,7 +450,7 @@ ProfCommandEvalSetup (infoPtr, isProcPtr)
+@@ -434,7 +434,7 @@ ProfCommandEvalSetup (profInfo_t *infoPtr, int *isProcPtr)
          UpdateTOSTimes (infoPtr);
-     while (infoPtr->stackPtr->procLevel > procLevel) {
-         if (infoPtr->stackPtr->evalLevel != UNKNOWN_LEVEL) 
--            panic (PROF_PANIC, 2);  /* Not an initial entry */
-+            Tcl_Panic (PROF_PANIC, 2);  /* Not an initial entry */
-         PopEntry (infoPtr);
+         do {
+             if (infoPtr->stackPtr->evalLevel != UNKNOWN_LEVEL) 
+-                panic (PROF_PANIC, 2);  /* Not an initial entry */
++                Tcl_Panic (PROF_PANIC, 2);  /* Not an initial entry */
+             PopEntry (infoPtr);
+         } while (infoPtr->stackPtr->procLevel > procLevel);
      }
+@@ -569,7 +569,7 @@ ProfTraceRoutine (ClientData  clientData,
+     Tcl_CmdInfo cmdInfo;
  
-@@ -595,15 +595,15 @@ ProfTraceRoutine (clientData, interp, evalLevel, command, cmdProc,
-     Tcl_Command cmd;
- 
-     if (infoPtr->currentCmdPtr != NULL)
--        panic (PROF_PANIC, 3);
-+        Tcl_Panic (PROF_PANIC, 3);
- 
-     cmd = Tcl_FindCommand (interp, argv [0], NULL, 0);
      if (cmd == NULL)
 -        panic (PROF_PANIC, 4);
 +        Tcl_Panic (PROF_PANIC, 4);
-     cmdPtr = (Command *) cmd;
  
-     if ((cmdPtr->proc != cmdProc) || (cmdPtr->clientData != cmdClientData))
--        panic (PROF_PANIC, 5);
-+        Tcl_Panic (PROF_PANIC, 5);
- 
-     /*
-      * If command is to be compiled, we can't profile it.
-@@ -740,7 +740,7 @@ TurnOnProfiling (infoPtr, commandMode, evalMode)
+     //TIP #571: We don' want to profile the tailcall itself. As it can only be called in a procedure/lambda context
+     if ( ! strcmp((*objv)->bytes, "tailcall") ) {
+@@ -701,7 +701,7 @@ TurnOnProfiling (profInfo_t *infoPtr, int commandMode, int evalMode)
           * Only global level can be NULL.
           */
          if (scanPtr == NULL)
@@ -127,11 +118,11 @@ index e45b78669..7444aa7f3 100644
      }
      infoPtr->scopeChainPtr = scanPtr;
  
-diff --git a/vendor/tclx8.4/generic/tclXsignal.c b/vendor/tclx8.4/generic/tclXsignal.c
-index 21c226cb6..96942a5f5 100644
---- a/vendor/tclx8.4/generic/tclXsignal.c
-+++ b/vendor/tclx8.4/generic/tclXsignal.c
-@@ -649,11 +649,11 @@ SignalTrap (signalNum)
+diff --git a/vendor/tclx-8.4.4/generic/tclXsignal.c b/vendor/tclx-8.4.4/generic/tclXsignal.c
+index 385601ae2..e163e605f 100644
+--- a/vendor/tclx-8.4.4/generic/tclXsignal.c
++++ b/vendor/tclx-8.4.4/generic/tclXsignal.c
+@@ -631,11 +631,11 @@ SignalTrap (int signalNum)
  #ifdef SIGCHLD
      if (signalNum != SIGCHLD) {
          if (SetSignalState (signalNum, SignalTrap, FALSE) == TCL_ERROR)
@@ -145,7 +136,7 @@ index 21c226cb6..96942a5f5 100644
  #endif /* SIGCHLD */
  #endif /* NO_SIGACTION */
  }
-@@ -1581,7 +1581,7 @@ SignalCmdCleanUp (clientData, interp)
+@@ -1540,7 +1540,7 @@ SignalCmdCleanUp (ClientData clientData, Tcl_Interp *interp)
              break;
      }
      if (idx == numInterps)
@@ -154,11 +145,11 @@ index 21c226cb6..96942a5f5 100644
  
      interpTable [idx] = interpTable [--numInterps];
  
-diff --git a/vendor/tclx8.4/generic/tclXstring.c b/vendor/tclx8.4/generic/tclXstring.c
-index 93e8b1e39..761148fee 100644
---- a/vendor/tclx8.4/generic/tclXstring.c
-+++ b/vendor/tclx8.4/generic/tclXstring.c
-@@ -677,7 +677,7 @@ TclX_CtypeObjCmd (dummy, interp, objc, objv)
+diff --git a/vendor/tclx-8.4.4/generic/tclXstring.c b/vendor/tclx-8.4.4/generic/tclXstring.c
+index 2c4216936..76ab80a8f 100644
+--- a/vendor/tclx-8.4.4/generic/tclXstring.c
++++ b/vendor/tclx-8.4.4/generic/tclXstring.c
+@@ -666,7 +666,7 @@ TclX_CtypeObjCmd (ClientData clientData,
  #define IS_8BIT_UNICHAR(c) (c <= 255)
  
      if (TCL_UTF_MAX > sizeof(number)) {
@@ -167,11 +158,11 @@ index 93e8b1e39..761148fee 100644
      }
  
      /*FIX: Split into multiple procs */
-diff --git a/vendor/tclx8.4/generic/tclXutil.c b/vendor/tclx8.4/generic/tclXutil.c
-index 633e19ba8..d0ed7a487 100644
---- a/vendor/tclx8.4/generic/tclXutil.c
-+++ b/vendor/tclx8.4/generic/tclXutil.c
-@@ -503,7 +503,7 @@ ParseTranslationOption (strValue)
+diff --git a/vendor/tclx-8.4.4/generic/tclXutil.c b/vendor/tclx-8.4.4/generic/tclXutil.c
+index 90cc9d1ae..e1fe3ed50 100644
+--- a/vendor/tclx-8.4.4/generic/tclXutil.c
++++ b/vendor/tclx-8.4.4/generic/tclXutil.c
+@@ -476,7 +476,7 @@ ParseTranslationOption (char *strValue)
      } else if (STREQU (strValue, "platform")) {
          return TCLX_TRANSLATE_PLATFORM;
      }
@@ -180,7 +171,7 @@ index 633e19ba8..d0ed7a487 100644
      return TCL_ERROR;  /* Not reached */
  }
  
-@@ -535,7 +535,7 @@ FormatTranslationOption (value)
+@@ -507,7 +507,7 @@ FormatTranslationOption (int value)
        case TCLX_TRANSLATE_PLATFORM:
          return "platform";
        default:
@@ -189,7 +180,7 @@ index 633e19ba8..d0ed7a487 100644
      }
      return NULL;  /* Not reached */
  }
-@@ -649,7 +649,7 @@ TclX_GetChannelOption (interp, channel, option, valuePtr)
+@@ -620,7 +620,7 @@ TclX_GetChannelOption (Tcl_Interp  *interp,
      return TCL_OK;
  
    fatalError:
@@ -198,7 +189,7 @@ index 633e19ba8..d0ed7a487 100644
      return 0;  /* Not reached */
  }
  
-@@ -745,7 +745,7 @@ TclX_SetChannelOption (interp, channel, option, value)
+@@ -715,7 +715,7 @@ TclX_SetChannelOption (Tcl_Interp *interp,
      return Tcl_SetChannelOption (interp, channel, strOption, strValue);
  
    fatalError:
@@ -207,7 +198,7 @@ index 633e19ba8..d0ed7a487 100644
      return TCL_ERROR;  /* Not reached */
  }
  
-@@ -965,7 +965,7 @@ TclX_RestoreResultErrorInfo (interp, saveObjPtr)
+@@ -926,7 +926,7 @@ TclX_RestoreResultErrorInfo (Tcl_Interp *interp, Tcl_Obj *saveObjPtr)
  	/*
  	 * This should never happen
  	 */
@@ -216,3 +207,6 @@ index 633e19ba8..d0ed7a487 100644
      }
  
      Tcl_SetVar2Ex(interp, ERRORCODE, NULL, saveObjv[2], TCL_GLOBAL_ONLY);
+-- 
+2.31.1
+
