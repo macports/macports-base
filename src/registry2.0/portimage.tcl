@@ -382,7 +382,7 @@ proc extract_archive_to_tmpdir {location} {
         if {[catch {cd $extractdir} err]} {
             throw MACPORTS $err
         }
-    
+
         # clagged straight from unarchive... this really needs to be factored
         # out, but it's a little tricky as the places where it's used run in
         # different interpreter contexts with access to different packages.
@@ -509,7 +509,7 @@ proc extract_archive_to_tmpdir {location} {
                 throw MACPORTS "Unsupported port archive type '${unarchive.type}'!"
             }
         }
-        
+
         # and finally, reinvent command_exec
         if {${unarchive.pipe_cmd} eq ""} {
             set cmdstring "${unarchive.cmd} ${unarchive.pre_args} ${unarchive.args}"
@@ -517,9 +517,9 @@ proc extract_archive_to_tmpdir {location} {
             set cmdstring "${unarchive.pipe_cmd} ( ${unarchive.cmd} ${unarchive.pre_args} ${unarchive.args} )"
         }
         system $cmdstring
-    } catch {*} {
+    } on error {_ eOptions} {
         ::file delete -force $extractdir
-        throw
+        throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
     } finally {
         cd $startpwd
     }
@@ -671,27 +671,27 @@ proc _activate_contents {port {rename_list {}}} {
                 # here so that this information cannot be inconsistent with the
                 # state of the files on disk.
                 $port state installed
-            } catch {{POSIX SIG SIGINT} eCode eMessage} {
+            } trap {POSIX SIG SIGINT} {_ eOptions} {
                 # Pressing ^C will (often?) print "^C" to the terminal; send
                 # a linebreak so our message appears after that.
                 ui_msg ""
                 ui_msg "Control-C pressed, rolling back, please wait."
                 # can't do it here since we're already inside a transaction
                 set deactivate_this yes
-                throw
-            } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+            } trap {POSIX SIG SIGTERM} {_ eOptions} {
                 ui_msg "SIGTERM received, rolling back, please wait."
                 # can't do it here since we're already inside a transaction
                 set deactivate_this yes
-                throw
-            } catch {*} {
+                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+            } on error {_ eOptions} {
                 ui_debug "Activation failed, rolling back."
                 # can't do it here since we're already inside a transaction
                 set deactivate_this yes
-                throw
+                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
             }
         }
-    } catch {*} {
+    } on error {_ eOptions} {
         # This code must run to completion, or the installation might be left
         # in an inconsistent state. We store the old signal handling state,
         # block the critical signals and restore to the previous state instead
@@ -727,7 +727,7 @@ proc _activate_contents {port {rename_list {}}} {
             signal set $osignals
         }
 
-        throw
+        throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
     } finally {
         #foreach entry [array names todeactivate] {
         #    registry::entry close $entry

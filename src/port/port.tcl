@@ -4714,10 +4714,10 @@ proc process_cmd { argv } {
 
         try {
             set locked [lock_reg_if_needed $action]
-        } catch {{POSIX SIG SIGINT} eCode eMessage} {
+        } trap {POSIX SIG SIGINT} {} {
             set action_status 1
             break
-        } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+        } trap {POSIX SIG SIGTERM} {} {
             set action_status 1
             break
         }
@@ -5405,11 +5405,11 @@ namespace eval portclient::questions {
         while {$timeout >= 0} {
             try {
                 set inp [read stdin]
-            } catch {*} {
+            } on error {_ eOptions} {
                 # An error occurred, print a newline so the error message
                 # doesn't occur on the prompt line and re-throw
                 puts ""
-                throw
+                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
             }
             if {$inp eq "\n"} {
                 return $def
@@ -5512,11 +5512,11 @@ namespace eval portclient::questions {
             signal error {TERM INT}
             try {
                 set input [gets stdin]
-            } catch {*} {
+            } on error {_ eOptions} {
                 # An error occurred, print a newline so the error message
                 # doesn't occur on the prompt line and re-throw
                 puts ""
-                throw
+                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
             }
             signal -restart error {TERM INT}
             if {$input in {y Y}} {
@@ -5551,11 +5551,11 @@ namespace eval portclient::questions {
             signal error {TERM INT}
             try {
                 set input [gets stdin]
-            } catch {*} {
+            } on error {_ eOptions} {
                 # An error occurred, print a newline so the error message
                 # doesn't occur on the prompt line and re-throw
                 puts ""
-                throw
+                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
             }
             signal -restart error {TERM INT}
             if {[string is wideinteger -strict $input] && $input <= [llength $ports] && $input > 0} {
@@ -5592,11 +5592,11 @@ namespace eval portclient::questions {
             signal error {TERM INT}
             try {
                 set input [gets stdin]
-            } catch {*} {
+            } on error {_ eOptions} {
                 # An error occurred, print a newline so the error message
                 # doesn't occur on the prompt line and re-throw
                 puts ""
-                throw
+                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
             }
             signal -restart error {TERM INT}
             # check if input is non-empty and otherwise fine
@@ -5690,11 +5690,11 @@ namespace eval portclient::questions {
             signal error {TERM INT}
             try {
                 set input [gets stdin]
-            } catch {*} {
+            } on error {_ eOptions} {
                 # An error occurred, print a newline so the error message
                 # doesn't occur on the prompt line and re-throw
                 puts ""
-                throw
+                throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
             }
             set input [string tolower $input]
             if {[info exists alternatives($input)]} {
@@ -5827,17 +5827,17 @@ if { [llength $remaining_args] > 0 } {
     try {
         # If there are remaining arguments, process those as a command
         set exit_status [process_cmd $remaining_args]
-    } catch {{POSIX SIG SIGINT} eCode eMessage} {
+    } trap {POSIX SIG SIGINT} {} {
         ui_debug "process_cmd aborted: $::errorInfo"
         ui_error [msgcat::mc "Aborted: SIGINT received."]
         set exit_status 2
         set aborted_by_signal yes
-    } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+    } trap {POSIX SIG SIGTERM} {} {
         ui_debug "process_cmd aborted: $::errorInfo"
         ui_error [msgcat::mc "Aborted: SIGTERM received."]
         set exit_status 2
         set aborted_by_signal yes
-    } catch {{*} eCode eMessage} {
+    } on error {eMessage} {
         ui_debug "process_cmd failed: $::errorInfo"
         ui_error [msgcat::mc "process_cmd failed: %s" $eMessage]
         set exit_status 1
@@ -5849,15 +5849,15 @@ if { ($exit_status == 0 || [macports::ui_isset ports_processall]) && [info exist
         && ![info exists aborted_by_signal]} {
     try {
         set exit_status [process_command_files $ui_options(ports_commandfiles)]
-    } catch {{POSIX SIG SIGINT} eCode eMessage} {
+    } trap {POSIX SIG SIGINT} {} {
         ui_debug "process_command_files aborted: $::errorInfo"
         ui_error [msgcat::mc "Aborted: SIGINT received."]
         set exit_status 2
-    } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+    } trap {POSIX SIG SIGTERM} {} {
         ui_debug "process_command_files aborted: $::errorInfo"
         ui_error [msgcat::mc "Aborted: SIGTERM received."]
         set exit_status 2
-    } catch {{*} eCode eMessage} {
+    } on error {eMessage} {
         ui_debug "process_command_files failed: $::errorInfo"
         ui_error [msgcat::mc "process_command_files failed: %s" $eMessage]
         set exit_status 1

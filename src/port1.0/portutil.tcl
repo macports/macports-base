@@ -2385,7 +2385,7 @@ proc adduser {name args} {
     if {${os.platform} eq "darwin"} {
         set dscl [findBinary dscl $portutil::autoconf::dscl_path]
         set failed? 0
-        try {
+        macports_try {
             exec -ignorestderr $dscl . -create /Users/${name} UniqueID ${uid}
 
             # These are implicitly added on Mac OS X Lion.  AuthenticationAuthority
@@ -2402,7 +2402,7 @@ proc adduser {name args} {
             exec -ignorestderr $dscl . -create /Users/${name} PrimaryGroupID ${gid}
             exec -ignorestderr $dscl . -create /Users/${name} NFSHomeDirectory ${home}
             exec -ignorestderr $dscl . -create /Users/${name} UserShell ${shell}
-        } catch {{CHILDKILLED *} eCode eMessage} {
+        } on error {{CHILDKILLED *} eCode eMessage} {
             # the foreachs are a simple workaround for Tcl 8.4, which doesn't
             # seem to have lassign
             foreach {- pid sigName msg} $eCode {
@@ -2411,14 +2411,14 @@ proc adduser {name args} {
             }
 
             set failed? 1
-        } catch {{CHILDSTATUS *} eCode eMessage} {
+        } on error {{CHILDSTATUS *} eCode eMessage} {
             foreach {- pid code} $eCode {
                 ui_error "dscl($pid) terminated with an exit status of $code"
                 ui_debug "dscl printed: $eMessage"
             }
             
             set failed? 1
-        } catch {{POSIX *} eCode eMessage} {
+        } on error {{POSIX *} eCode eMessage} {
             foreach {- errName msg} {
                 ui_error "failed to execute $dscl: $errName: $msg"
                 ui_debug "dscl printed: $eMessage"
@@ -2431,17 +2431,17 @@ proc adduser {name args} {
                 # anyway, try to delete the half-created user to revert to the
                 # state before the error
                 ui_debug "Attempting to clean up failed creation of user $name"
-                try {
+                macports_try {
                     exec -ignorestderr $dscl . -delete /Users/${name}
-                } catch {{CHILDKILLED *} eCode eMessage} {
+                } on error {{CHILDKILLED *} eCode eMessage} {
                     foreach {- pid sigName msg} {
                         ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of user $name."
                         ui_debug "dscl printed: $eMessage"
                     }
-                } catch {{CHILDSTATUS *} eCode eMessage} {
+                } on error {{CHILDSTATUS *} eCode eMessage} {
                     # ignoring childstatus failure, because that probably means
                     # the first call failed and the user wasn't even created
-                } catch {{POSIX *} eCode eMessage} {
+                } on error {{POSIX *} eCode eMessage} {
                     foreach {- errName msg} {
                         ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of user $name."
                         ui_debug "dscl printed: $eMessage"
@@ -2501,14 +2501,14 @@ proc addgroup {name args} {
     if {${os.platform} eq "darwin"} {
         set dscl [findBinary dscl $portutil::autoconf::dscl_path]
         set failed? 0
-        try {
+        macports_try {
             exec -ignorestderr $dscl . -create /Groups/${name} Password ${passwd}
             exec -ignorestderr $dscl . -create /Groups/${name} RealName ${realname}
             exec -ignorestderr $dscl . -create /Groups/${name} PrimaryGroupID ${gid}
             if {${users} ne ""} {
                 exec -ignorestderr $dscl . -create /Groups/${name} GroupMembership ${users}
             }
-        } catch {{CHILDKILLED *} eCode eMessage} {
+        } on error {{CHILDKILLED *} eCode eMessage} {
             # the foreachs are a simple workaround for Tcl 8.4, which doesn't
             # seem to have lassign
             foreach {- pid sigName msg} $eCode {
@@ -2517,14 +2517,14 @@ proc addgroup {name args} {
             }
 
             set failed? 1
-        } catch {{CHILDSTATUS *} eCode eMessage} {
+        } on error {{CHILDSTATUS *} eCode eMessage} {
             foreach {- pid code} $eCode {
                 ui_error "dscl($pid) terminated with an exit status of $code"
                 ui_debug "dscl printed: $eMessage"
             }
             
             set failed? 1
-        } catch {{POSIX *} eCode eMessage} {
+        } on error {{POSIX *} eCode eMessage} {
             foreach {- errName msg} {
                 ui_error "failed to execute $dscl: $errName: $msg"
                 ui_debug "dscl printed: $eMessage"
@@ -2537,17 +2537,17 @@ proc addgroup {name args} {
                 # anyway, try to delete the half-created user to revert to the
                 # state before the error
                 ui_debug "Attempting to clean up failed creation of group $name"
-                try {
+                macports_try {
                     exec -ignorestderr $dscl . -delete /Groups/${name}
-                } catch {{CHILDKILLED *} eCode eMessage} {
+                } on error {{CHILDKILLED *} eCode eMessage} {
                     foreach {- pid sigName msg} {
                         ui_warn "dscl($pid) was killed by $sigName: $msg while trying to clean up failed creation of group $name."
                         ui_debug "dscl printed: $eMessage"
                     }
-                } catch {{CHILDSTATUS *} eCode eMessage} {
+                } on error {{CHILDSTATUS *} eCode eMessage} {
                     # ignoring childstatus failure, because that probably means
                     # the first call failed and the user wasn't even created
-                } catch {{POSIX *} eCode eMessage} {
+                } on error {{POSIX *} eCode eMessage} {
                     foreach {- errName msg} {
                         ui_warn "failed to execute $dscl: $errName: $msg while trying to clean up failed creation of group $name."
                         ui_debug "dscl printed: $eMessage"

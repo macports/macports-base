@@ -237,15 +237,15 @@ proc portarchivefetch::fetchfiles {args} {
                     curl fetch --effective-url effectiveURL {*}$fetch_options $file_url "${incoming_path}/${archive}.TMP"
                     set fetched 1
                     break
-                } catch {{POSIX SIG SIGINT} eCode eMessage} {
+                } trap {POSIX SIG SIGINT} {_ eOptions} {
                     ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
                     file delete -force "${incoming_path}/${archive}.TMP"
-                    throw
-                } catch {{POSIX SIG SIGTERM} eCode eMessage} {
+                    throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                } trap {POSIX SIG SIGTERM} {_ eOptions} {
                     ui_debug [msgcat::mc "Aborted fetching archive due to SIGTERM"]
                     file delete -force "${incoming_path}/${archive}.TMP"
-                    throw
-                } catch {{*} eCode eMessage} {
+                    throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                } on error {eMessage} {
                     ui_debug [msgcat::mc "Fetching archive failed: %s" $eMessage]
                     set lastError $eMessage
                     file delete -force "${incoming_path}/${archive}.TMP"

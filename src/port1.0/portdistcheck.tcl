@@ -83,13 +83,13 @@ proc portdistcheck::distcheck_main {args} {
                 foreach site $urlmap($url_var) {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
                     set file_url [portfetch::assemble_url $site $distfile]
-                    try -pass_signal {
+                    macports_try -pass_signal {
                         set urlnewer [curl isnewer {*}$curl_options $file_url $port_moddate]
                         if {$urlnewer} {
                             ui_warn "port $subport: $file_url is newer than Portfile"
                         }
                         incr count
-                    } catch {{*} eCode eMessage} {
+                    } on error {eMessage} {
                         ui_debug [msgcat::mc "couldn't fetch %s for %s (%s)" $file_url $subport $eMessage]
                     }
                 }
@@ -101,7 +101,7 @@ proc portdistcheck::distcheck_main {args} {
                 foreach site $urlmap($url_var) {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
                     set file_url [portfetch::assemble_url $site $distfile]
-                    try -pass_signal {
+                    macports_try -pass_signal {
                         set urlsize [curl getsize {*}$curl_options $file_url]
                         incr count
                         if {$urlsize > 0} {
@@ -109,7 +109,7 @@ proc portdistcheck::distcheck_main {args} {
                             incr totalsize $urlsize
                             break
                         }
-                    } catch {{*} eCode eMessage} {
+                    } on error {eMessage} {
                         ui_debug [msgcat::mc "couldn't fetch %s for %s (%s)" $file_url $subport $eMessage]
                     }
                 }

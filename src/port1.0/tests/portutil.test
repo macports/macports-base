@@ -321,28 +321,26 @@ test delete {
     set root "/tmp/macports-portutil-delete"
     file delete -force $root
 
-    try {
-        mtree $root {
-            a               directory
-            a/a             file
-            a/b             file
-            a/c             directory
-            a/c/a           file
-            a/c/b           {link ../b}
-            a/c/c           {link ../../b}
-            a/c/d           directory
-            a/c/d/a         file
-            a/c/d/b         directory
-            a/c/d/c         file
-            a/d             file
-            b               directory
-            b/a             file
-            b/b             {link q}
-            b/c             directory
-            b/c/a           file
-            b/c/b           file
-            b/d             file
-        }
+    mtree $root {
+        a               directory
+        a/a             file
+        a/b             file
+        a/c             directory
+        a/c/a           file
+        a/c/b           {link ../b}
+        a/c/c           {link ../../b}
+        a/c/d           directory
+        a/c/d/a         file
+        a/c/d/b         directory
+        a/c/d/c         file
+        a/d             file
+        b               directory
+        b/a             file
+        b/b             {link q}
+        b/c             directory
+        b/c/a           file
+        b/c/b           file
+        b/d             file
     }
 
 } -body {
