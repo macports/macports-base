@@ -335,7 +335,7 @@ exec_prefix=$oldexec_prefix
 ## Tcl package
 MP_CONFIG_SUBDIR([vendor/tcl/unix], [--prefix=${macports_libexec_dir} --enable-threads])
 VENDOR_TCL_SUBDIR=tcl/unix
-VENDOR_TCL_INSTALL="install-binaries install-libraries"
+VENDOR_TCL_INSTALL="install-binaries install-libraries install-packages"
 AC_SUBST(VENDOR_TCL_SUBDIR)
 AC_SUBST(VENDOR_TCL_INSTALL)
 

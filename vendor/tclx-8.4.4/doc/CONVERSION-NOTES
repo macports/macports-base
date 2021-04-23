@@ -1,0 +1,76 @@
+
+$Id: CONVERSION-NOTES,v 8.1 1997/06/12 21:08:01 markd Exp $
+
+Notes on converting to the new object system:
+
+Since the old system is supported, we recommend changing the names of
+routines as you port them.  That way, also, you will catch any errors
+in header files or calls.
+
+Hopefully your application has tests that can be run as routines are
+upgraded.  We recommend that you make your changes one command at a
+time and then test, to not get into the problem of breaking things
+so much that they won't come up, or at least if you do, that you have
+a pretty good idea where the problem is because your changes are
+localized to the area you were just working on.
+
+As for a naming convention, we are fairly much following Tcl's.
+For example, TclX's TclX_CtypeCommand became TclX_CtypeObjCommand.
+
+C COMMAND CALLING ARGUMENTS HAVE CHANGED
+
+Object commands still take four arguments, but now instead of the
+argument vector being a pointer to an array of pointers to char *
+it is now a pointer to an array of pointers of Tcl_Obj *'s, Tcl
+objects.
+
+Thus,
+
+
+int
+TclX_LassignCmd (clientData, interp, argc, argv)
+    ClientData   clientData;     
+    Tcl_Interp  *interp;
+    int          argc;
+    char       **argv;
+
+...became...
+
+int
+TclX_LassignObjCmd (clientData, interp, objc, objv)
+    ClientData   clientData;     
+    Tcl_Interp  *interp;
+    int          objc;
+    Tcl_Obj    **objv;
+
+
+You will then of course need to edit your .h files that contain the
+prototypes for these functions.
+
+CALL TO INSTALL THE COMMAND HAS CHANGE
+
+Next the call to create the command within Tcl has changed:
+
+    Tcl_CreateCommand (interp, "fcntl", Tcl_FcntlCmd,
+                       (ClientData) NULL, (Tcl_CmdDeleteProc*) NULL);
+    
+...becomes...
+
+    Tcl_CreateObjCommand (interp, "fcntl", -1,
+                          Tcl_FcntlObjCmd, (ClientData) NULL,
+                          (Tcl_CmdDeleteProc*) NULL);
+ 
+The "-1" is the length of the command name where, if negative, it means
+that the name stops at the first null byte (a standard C string).
+(The groundwork has been laid for Tcl to be fully eight bit clean,
+including being able to handle null bytes, and this is part of it.
+It's unlikely you'd have a command name that contained a null byte,
+however, so we feel fairly safe in using -1.)
+
+RETURNING ERRORS HAS CHANGED
+
+Now routines either return errors the old way or the new way.  The old
+way you built up errors by manipulating interp->result, through
+commands like Tcl_AddErrInfo, Tcl_SetResult, etc.  Object-based commands
+return object results.  If an object command tries to return a result
+the old way, no result will be returned at all!

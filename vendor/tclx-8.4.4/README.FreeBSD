@@ -1,0 +1,11 @@
+#
+# This makes sure that TEA knows about all the necessary bits and stuffs them into configure from configure.in
+#
+autoreconf
+
+#
+# This keeps configure honest if you have both clang and gcc installed
+#
+CC=clang CXX=clang++ ./configure --prefix=/usr/local --with-tcl=/usr/local/lib/tcl8.6
+
+# Then "make clean" and "make"
