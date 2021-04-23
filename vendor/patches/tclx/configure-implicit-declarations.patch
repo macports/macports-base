@@ -1,52 +1,8 @@
-https://github.com/macports/macports-base/commit/aeda00dfd7aa26fa4b78ac30d76ea64cdf0a4408
-
-diff --git a/vendor/tclx8.4/configure b/vendor/tclx8.4/configure
-index be63b1795..154515ccc 100755
---- a/vendor/tclx8.4/configure
-+++ b/vendor/tclx8.4/configure
-@@ -3214,6 +3214,7 @@ cat confdefs.h >>conftest.$ac_ext
- cat >>conftest.$ac_ext <<_ACEOF
- /* end confdefs.h.  */
- #include <ctype.h>
-+#include <stdlib.h>
- #if ((' ' & 0x0FF) == 0x020)
- # define ISLOWER(c) ('a' <= (c) && (c) <= 'z')
- # define TOUPPER(c) (ISLOWER(c) ? 'A' + ((c) - 'a') : (c))
-@@ -10766,6 +10767,7 @@ cat >>conftest.$ac_ext <<_ACEOF
- 
- #include <sys/types.h>
- #include <sys/times.h>
-+#include <unistd.h>
- main() {
-     struct tms cpu;
-     times(&cpu);
-diff --git a/vendor/tclx8.4/configure.in b/vendor/tclx8.4/configure.in
-index 173ec261f..d1be5550e 100755
---- a/vendor/tclx8.4/configure.in
-+++ b/vendor/tclx8.4/configure.in
-@@ -194,6 +194,7 @@ WIFEXITED(x);	/* Generates compiler error if WIFEXITED uses an int. */
-     AC_TRY_RUN([
- #include <sys/types.h>
- #include <sys/times.h>
-+#include <unistd.h>
- main() {
-     struct tms cpu;
-     times(&cpu);
-diff --git a/vendor/tclx8.4/tclconfig/tcl.m4 b/vendor/tclx8.4/tclconfig/tcl.m4
-index 18d71343f..6b6ab41e4 100644
---- a/vendor/tclx8.4/tclconfig/tcl.m4
-+++ b/vendor/tclx8.4/tclconfig/tcl.m4
-@@ -2441,6 +2441,7 @@ AC_DEFUN(TEA_BUGGY_STRTOD, [
-     if test "$tcl_strtod" = 1; then
- 	AC_CACHE_CHECK([for Solaris2.4/Tru64 strtod bugs], tcl_cv_strtod_buggy,[
- 	    AC_TRY_RUN([
-+		#include <stdlib.h>
- 		extern double strtod();
- 		int main() {
- 		    char *infString="Inf", *nanString="NaN", *spaceString=" ";
---- a/vendor/tclx8.4/configure.orig	2020-12-22 21:08:08.000000000 +1100
-+++ b/vendor/tclx8.4/configure	2020-12-22 21:14:04.000000000 +1100
-@@ -10559,7 +10559,7 @@
+diff --git a/vendor/tclx-8.4.4/configure b/vendor/tclx-8.4.4/configure
+index 824b4bcdf..8c17d5683 100755
+--- a/vendor/tclx-8.4.4/configure
++++ b/vendor/tclx-8.4.4/configure
+@@ -9069,7 +9069,7 @@ main ()
  {
  extern long timezone;
  	    timezone += 1;
@@ -55,7 +11,7 @@ index 18d71343f..6b6ab41e4 100644
    ;
    return 0;
  }
-@@ -10624,7 +10624,7 @@
+@@ -9105,7 +9105,7 @@ main ()
  {
  extern time_t timezone;
  		timezone += 1;
@@ -64,7 +20,7 @@ index 18d71343f..6b6ab41e4 100644
    ;
    return 0;
  }
-@@ -10772,7 +10772,7 @@
+@@ -9190,7 +9190,7 @@ main() {
      struct tms cpu;
      times(&cpu);
      sleep(2);
@@ -73,7 +29,7 @@ index 18d71343f..6b6ab41e4 100644
  }
  
  _ACEOF
-@@ -13012,7 +13012,7 @@
+@@ -9516,7 +9516,7 @@ int
  main ()
  {
  
@@ -82,3 +38,55 @@ index 18d71343f..6b6ab41e4 100644
    ;
    return 0;
  }
+diff --git a/vendor/tclx-8.4.4/configure.in b/vendor/tclx-8.4.4/configure.in
+index 20ee02148..315fdb1df 100755
+--- a/vendor/tclx-8.4.4/configure.in
++++ b/vendor/tclx-8.4.4/configure.in
+@@ -199,7 +199,7 @@ main() {
+     struct tms cpu;
+     times(&cpu);
+     sleep(2);
+-    exit ((times(&cpu) > 0) ? 0 : 1);
++    return ((times(&cpu) > 0) ? 0 : 1);
+ }
+ ], [AC_MSG_RESULT(elapsed real time)],
+        [AC_MSG_RESULT(a status)
+@@ -269,7 +269,7 @@ main() {
+     AC_CHECK_FUNC(catgets,
+     	[AC_MSG_CHECKING([catclose return value])
+     	 AC_TRY_COMPILE([#include <nl_types.h>], [
+-    	    if (catclose ((nl_catd) 0) == 0) exit (0);],
++    	    if (catclose ((nl_catd) 0) == 0) return (0);],
+     	    AC_MSG_RESULT(ok), [
+     	    AC_MSG_RESULT([broken catclose return type])
+     	    AC_DEFINE(BAD_CATCLOSE)])],
+diff --git a/vendor/tclx-8.4.4/tclconfig/tcl.m4 b/vendor/tclx-8.4.4/tclconfig/tcl.m4
+index 16e4896d0..f610f9529 100644
+--- a/vendor/tclx-8.4.4/tclconfig/tcl.m4
++++ b/vendor/tclx-8.4.4/tclconfig/tcl.m4
+@@ -2528,7 +2528,7 @@ AC_DEFUN([TEA_TIME_HANDLER], [
+ 	AC_TRY_COMPILE([#include <time.h>],
+ 	    [extern long timezone;
+ 	    timezone += 1;
+-	    exit (0);],
++	    return (0);],
+ 	    tcl_cv_timezone_long=yes, tcl_cv_timezone_long=no)])
+     if test $tcl_cv_timezone_long = yes ; then
+ 	AC_DEFINE(HAVE_TIMEZONE_VAR, 1, [Should we use the global timezone variable?])
+@@ -2540,7 +2540,7 @@ AC_DEFUN([TEA_TIME_HANDLER], [
+ 	    AC_TRY_COMPILE([#include <time.h>],
+ 		[extern time_t timezone;
+ 		timezone += 1;
+-		exit (0);],
++		return (0);],
+ 		tcl_cv_timezone_time=yes, tcl_cv_timezone_time=no)])
+ 	if test $tcl_cv_timezone_time = yes ; then
+ 	    AC_DEFINE(HAVE_TIMEZONE_VAR, 1, [Should we use the global timezone variable?])
+@@ -2572,6 +2572,7 @@ AC_DEFUN([TEA_BUGGY_STRTOD], [
+     if test "$tcl_strtod" = 1; then
+ 	AC_CACHE_CHECK([for Solaris2.4/Tru64 strtod bugs], tcl_cv_strtod_buggy,[
+ 	    AC_TRY_RUN([
++		#include <stdlib.h>
+ 		extern double strtod();
+ 		int main() {
+ 		    char *infString="Inf", *nanString="NaN", *spaceString=" ";

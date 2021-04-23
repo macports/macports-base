@@ -2528,7 +2528,7 @@ AC_DEFUN([TEA_TIME_HANDLER], [
 	AC_TRY_COMPILE([#include <time.h>],
 	    [extern long timezone;
 	    timezone += 1;
-	    exit (0);],
+	    return (0);],
 	    tcl_cv_timezone_long=yes, tcl_cv_timezone_long=no)])
     if test $tcl_cv_timezone_long = yes ; then
 	AC_DEFINE(HAVE_TIMEZONE_VAR, 1, [Should we use the global timezone variable?])
@@ -2540,7 +2540,7 @@ AC_DEFUN([TEA_TIME_HANDLER], [
 	    AC_TRY_COMPILE([#include <time.h>],
 		[extern time_t timezone;
 		timezone += 1;
-		exit (0);],
+		return (0);],
 		tcl_cv_timezone_time=yes, tcl_cv_timezone_time=no)])
 	if test $tcl_cv_timezone_time = yes ; then
 	    AC_DEFINE(HAVE_TIMEZONE_VAR, 1, [Should we use the global timezone variable?])
@@ -2572,6 +2572,7 @@ AC_DEFUN([TEA_BUGGY_STRTOD], [
     if test "$tcl_strtod" = 1; then
 	AC_CACHE_CHECK([for Solaris2.4/Tru64 strtod bugs], tcl_cv_strtod_buggy,[
 	    AC_TRY_RUN([
+		#include <stdlib.h>
 		extern double strtod();
 		int main() {
 		    char *infString="Inf", *nanString="NaN", *spaceString=" ";
