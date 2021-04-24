@@ -130,8 +130,13 @@ proc portbuild::build_getmaketype {args} {
 }
 
 proc portbuild::build_getjobs {args} {
-    global buildmakejobs
+    global buildmakejobs use_parallel_build
     set jobs $buildmakejobs
+    # If parallel disabled disabled, return 1
+    if {![tbool use_parallel_build]} {
+        ui_debug "port disallows a parallel build, setting build jobs to 1"
+        set jobs 1
+    }
     # if set to '0', use the number of cores for the number of jobs
     if {$jobs == 0} {
         try -pass_signal {
@@ -167,21 +172,15 @@ proc portbuild::build_getargs {args} {
 }
 
 proc portbuild::build_getjobsarg {args} {
-    # check if port allows a parallel build
-    global use_parallel_build
-    if {![tbool use_parallel_build]} {
-        ui_debug "port disallows a parallel build"
-        return ""
-    }
-
     if {![exists build.jobs] || \
             !([string match "*make*" [option build.cmd]] || \
               [string match "*ninja*" [option build.cmd]] || \
               [string match "*scons*" [option build.cmd]])} {
         return ""
     }
+    
     set jobs [option build.jobs]
-    if {![string is integer -strict $jobs] || $jobs <= 1} {
+    if {![string is integer -strict $jobs] || $jobs < 1} {
         return ""
     }
     return " -j$jobs"
