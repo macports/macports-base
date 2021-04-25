@@ -4047,7 +4047,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     # Relies on all negated variants being at the end of requested_variants
     set splitvariant [split $oldrequestedvariant -]
     set minusvariant [lrange $splitvariant 1 end]
-    set plusvariant [lrange [split $splitvariant +] 1 end]
+    set splitvariant [split [lindex $splitvariant 0] +]
+    set plusvariant [lrange $splitvariant 1 end]
     ui_debug "Merging existing requested variants '${oldrequestedvariant}' into variants"
     set oldvariantlist [list]
     foreach v $plusvariant {
