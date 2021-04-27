@@ -5063,6 +5063,21 @@ namespace eval portclient::progress {
         }
     }
 
+    proc barWidth {reservedCols} {
+        global env
+        variable maxWidth
+
+        if {![info exists env(COLUMNS)]} {
+            return $maxWidth
+        }
+
+        if {$reservedCols > $env(COLUMNS)} {
+            return [expr {min($maxWidth, $env(COLUMNS)}]
+        } else {
+            return [expr {min($maxWidth, $env(COLUMNS) - $reservedCols)}]
+        }
+    }
+
     ##
     # Progress callback for generic operations executed by macports 1.0.
     #
@@ -5093,9 +5108,9 @@ namespace eval portclient::progress {
                         set barPrefix "      "
                         set barPrefixLen [string length $barPrefix]
                         if {$total != 0} {
-                            progressbar $now $total [expr {min($maxWidth, $env(COLUMNS) - $barPrefixLen)}] $barPrefix
+                            progressbar $now $total [barWidth $barPrefixLen] $barPrefix
                         } else {
-                            unprogressbar [expr {min($maxWidth, $env(COLUMNS) - $barPrefixLen)}] $barPrefix
+                            unprogressbar [barWidth $barPrefixLen] $barPrefix
                         }
                     }
                 }
@@ -5147,15 +5162,15 @@ namespace eval portclient::progress {
                         if {$total != 0} {
                             set barSuffix [format "        speed: %-13s" "[bytesize $speed {} "%.1f"]/s"]
                             set barSuffixLen [string length $barSuffix]
+                            set barWidth [barWidth [expr {$barPrefixLen + $barSuffixLen}]]
 
-                            set barLen [expr {min($maxWidth, $env(COLUMNS) - $barPrefixLen - $barSuffixLen)}]
-                            progressbar $now $total $barLen $barPrefix $barSuffix
+                            progressbar $now $total $barWidth $barPrefix $barSuffix
                         } else {
                             set barSuffix [format " %-10s     speed: %-13s" [bytesize $now {} "%6.1f"] "[bytesize $speed {} "%.1f"]/s"]
                             set barSuffixLen [string length $barSuffix]
+                            set barWidth [barWidth [expr {$barPrefixLen + $barSuffixLen}]]
 
-                            set barLen [expr {min($maxWidth, $env(COLUMNS) - $barPrefixLen - $barSuffixLen)}]
-                            unprogressbar $barLen $barPrefix $barSuffix
+                            unprogressbar $barWidth $barPrefix $barSuffix
                         }
                     }
                 }
