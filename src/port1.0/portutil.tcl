@@ -3342,15 +3342,15 @@ proc _check_xcode_version {} {
                 set ok 11.3
                 set rec 11.7
             }
-            11.0 {
+            11 {
                 set min 12.2
                 set ok 12.2
-                set rec 12.2
+                set rec 12.5
             }
             default {
                 set min 12.2
                 set ok 12.2
-                set rec 12.2
+                set rec 12.5
             }
         }
         if {$xcodeversion eq "none"} {

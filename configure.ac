@@ -44,7 +44,7 @@ case "$MACOSX_VERSION" in
     AC_MSG_WARN([This version of macOS is out of date])
     AC_MSG_WARN([Please use the Mac App Store to update it])
     ;;
-  10.14|10.14.[[1-5]]|10.15|10.15.[[1-6]]|11.0)
+  10.14|10.14.[[1-5]]|10.15|10.15.[[1-6]]|11.[[0-2]]|11.[[0-2]].*)
     AC_MSG_WARN([This version of macOS is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;
@@ -96,10 +96,8 @@ case "$XCODE_VERSION" in
     AC_MSG_WARN([This version of Xcode Tools is out of date])
     AC_MSG_WARN([Please consider upgrading as some ports fail compiling])
     ;;
-  2.*|3.*|4.*|5.*|6.*|7.*|8.*|9.*|10.*|11.*)
-    dnl Supported version
-    ;;
   *)
+    dnl Not a known problematic version
     ;;
 esac
 
