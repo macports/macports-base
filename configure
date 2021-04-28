@@ -3104,7 +3104,7 @@ printf "%s\n" "$as_me: WARNING: This version of macOS is out of date" >&2;}
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Please use the Mac App Store to update it" >&5
 printf "%s\n" "$as_me: WARNING: Please use the Mac App Store to update it" >&2;}
     ;;
-  10.14|10.14.[1-5]|10.15|10.15.[1-6]|11.0)
+  10.14|10.14.[1-5]|10.15|10.15.[1-6]|11.[0-2]|11.[0-2].*)
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: This version of macOS is out of date" >&5
 printf "%s\n" "$as_me: WARNING: This version of macOS is out of date" >&2;}
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Please run Software Update to update it" >&5
@@ -3165,10 +3165,8 @@ printf "%s\n" "$as_me: WARNING: This version of Xcode Tools is out of date" >&2;
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Please consider upgrading as some ports fail compiling" >&5
 printf "%s\n" "$as_me: WARNING: Please consider upgrading as some ports fail compiling" >&2;}
     ;;
-  2.*|3.*|4.*|5.*|6.*|7.*|8.*|9.*|10.*|11.*)
-        ;;
   *)
-    ;;
+        ;;
 esac
 
 # Checks for programs.
