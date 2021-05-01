@@ -7573,12 +7573,15 @@ fi
 done
 		ac_save_LIBS="$LIBS"
 		LIBS="-lmd $LIBS"
-		ac_fn_c_check_func "$LINENO" "SHA1_File" "ac_cv_func_SHA1_File"
-if test "x$ac_cv_func_SHA1_File" = xyes
+		ac_fn_check_decl "$LINENO" "SHA1_File" "ac_cv_have_decl_SHA1_File" "#include <sha.h>
+" "$ac_c_undeclared_builtin_options" "CFLAGS"
+if test "x$ac_cv_have_decl_SHA1_File" = xyes
 then :
-  printf "%s\n" "#define HAVE_SHA1_FILE 1" >>confdefs.h
-
+  ac_have_decl=1
+else $as_nop
+  ac_have_decl=0
 fi
+printf "%s\n" "#define HAVE_DECL_SHA1_FILE $ac_have_decl" >>confdefs.h
 
 		LIBS="$ac_save_LIBS"
 		ac_fn_c_check_header_compile "$LINENO" "ripemd.h" "ac_cv_header_ripemd_h" "$ac_includes_default"
