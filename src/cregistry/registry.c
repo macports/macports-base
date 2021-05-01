@@ -178,7 +178,7 @@ int reg_close(reg_registry* reg, reg_error* errPtr) {
 int reg_configure(reg_registry* reg) {
     sqlite3_stmt* stmt = NULL;
     int result = 0;
-#if SQLITE_VERSION_NUMBER >= 3002000
+#if SQLITE_VERSION_NUMBER >= 3022000
     /* Ensure WAL files persist. */
     int persist = 1;
     sqlite3_file_control(reg->db, "registry", SQLITE_FCNTL_PERSIST_WAL, &persist);
