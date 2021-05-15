@@ -45,83 +45,13 @@ set_ui_prefix
 
 set check_deptypes [list depends_build depends_lib]
 
-# Notes:
-# 'Restrictive/Distributable' means a non-free license that nonetheless allows
-# distributing binaries.
-# 'Restrictive' means a non-free license that does not allow distributing
-# binaries, and is thus not in the list.
-# 'Permissive' is a catchall for other licenses that allow
-# modification and distribution of source and binaries.
-# 'Copyleft' means a license that requires source code to be made available,
-# and derivative works to be licensed the same as the original.
-# 'GPLConflict' should be added if the license conflicts with the GPL (and its
-# variants like CeCILL and the AGPL) and is not in the list of licenses known
-# to do so below.
-# 'Noncommercial' means a license that prohibits commercial use.
-set good_licenses [list afl agpl apache apsl artistic autoconf beopen bitstreamvera \
-                   boost bsd bsd-old cc-by cc-by-sa cddl cecill cecill-b cecill-c cnri copyleft \
-                   cpl curl epl fpll fontconfig freetype gd gfdl gpl \
-                   gplconflict ibmpl ijg isc jasper lgpl libtool lppl mit \
-                   mpl ncsa noncommercial openldap openssl permissive php \
-                   psf public-domain qpl restrictive/distributable ruby \
-                   sleepycat ssleay tcl/tk vim w3c wtfpl wxwidgets x11 zlib zpl]
-foreach lic $good_licenses {
-    set license_good($lic) 1
-}
-
 proc portlicensecheck::all_licenses_except { args } {
-    set remaining $::good_licenses
+    set remaining $licenses::good_licenses
     foreach arg $args {
         set remaining [lsearch -inline -all -not -exact $remaining $arg]
     }
     return $remaining
 }
-
-# keep these values sorted
-array set license_conflicts \
-    [list \
-    afl [list agpl cecill gpl] \
-    agpl [list afl apache-1 apache-1.1 apsl beopen bsd-old cc-by-1 cc-by-2 cc-by-2.5 cc-by-3 cc-by-sa cddl cecill cnri cpl epl gd gpl-1 gpl-2 gplconflict ibmpl lppl mpl noncommercial openssl php qpl restrictive/distributable ruby ssleay zpl-1] \
-    agpl-1 [list apache freetype gpl-3 gpl-3+ lgpl-3 lgpl-3+] \
-    apache [list agpl-1 cecill gpl-1 gpl-2] \
-    apache-1 [list agpl gpl] \
-    apache-1.1 [list agpl gpl] \
-    apsl [list agpl cecill gpl] \
-    beopen [list agpl cecill gpl] \
-    bsd-old [list agpl cecill gpl] \
-    cc-by-1 [list agpl cecill gpl] \
-    cc-by-2 [list agpl cecill gpl] \
-    cc-by-2.5 [list agpl cecill gpl] \
-    cc-by-3 [list agpl cecill gpl] \
-    cc-by-sa [list agpl cecill gpl] \
-    cddl [list agpl cecill gpl] \
-    cecill [list afl agpl apache apsl beopen bsd-old cc-by-1 cc-by-2 cc-by-2.5 cc-by-3 cc-by-sa cddl cnri cpl epl gd gplconflict ibmpl lppl mpl noncommercial openssl php qpl restrictive/distributable ruby ssleay zpl-1] \
-    cnri [list agpl cecill gpl] \
-    cpl [list agpl cecill gpl] \
-    epl [list agpl cecill gpl] \
-    freetype [list agpl-1 gpl-2] \
-    gd [list agpl cecill gpl] \
-    gpl [list afl apache-1 apache-1.1 apsl beopen bsd-old cc-by-1 cc-by-2 cc-by-2.5 cc-by-3 cc-by-sa cddl cnri cpl epl gd gplconflict ibmpl lppl mpl noncommercial openssl php qpl restrictive/distributable ruby ssleay zpl-1] \
-    gpl-1 [list agpl apache gpl-3 gpl-3+ lgpl-3 lgpl-3+] \
-    gpl-2 [list agpl apache freetype gpl-3 gpl-3+ lgpl-3 lgpl-3+] \
-    gpl-3 [list agpl-1 gpl-1 gpl-2] \
-    gpl-3+ [list agpl-1 gpl-1 gpl-2] \
-    gplconflict [list agpl cecill gpl] \
-    ibmpl [list agpl cecill gpl] \
-    lgpl-3 [list agpl-1 gpl-1 gpl-2] \
-    lgpl-3+ [list agpl-1 gpl-1 gpl-2] \
-    lppl [list agpl cecill gpl] \
-    mpl [list agpl cecill gpl] \
-    noncommercial [list agpl cecill gpl] \
-    openssl [list agpl cecill gpl] \
-    opensslexception [portlicensecheck::all_licenses_except openssl ssleay] \
-    php [list agpl cecill gpl] \
-    qpl [list agpl cecill gpl] \
-    restrictive/distributable [list agpl cecill gpl] \
-    ruby [list agpl cecill gpl] \
-    ssleay [list agpl cecill gpl] \
-    zpl-1 [list agpl cecill gpl] \
-    ]
 
 # return deps and license for given port
 proc portlicensecheck::infoForPort {portName variantInfo} {
@@ -180,6 +110,16 @@ proc portlicensecheck::licensecheck_start {args} {
 }
 
 proc portlicensecheck::licensecheck_main {args} {
+    # Obtain licenses from '_resources/port1.0/licenses/licenses.tcl'.
+    namespace eval ::licenses {
+        set license_file [getdefaultportresourcepath "port1.0/licenses/licenses.tcl"]
+        ui_debug "Loading license data from: '${license_file}'"
+        if {[catch {source ${license_file}} result]} {
+            ui_warn "Result from failed license data load attempt: $::errorInfo: result"
+            return -code 1 "License data could not be loaded from: '${license_file}'."
+        }
+    }
+
     global UI_PREFIX subport portvariants PortInfo
 
     array set portSeen {}
@@ -204,7 +144,7 @@ proc portlicensecheck::licensecheck_main {args} {
             set lic [remove_version $full_lic]
             # add name to the list for later
             lappend sub_names $lic
-            if {[info exists ::license_good([string tolower $lic])]} {
+            if {[info exists licenses::license_good([string tolower $lic])]} {
                 set any_good 1
             }
         }
@@ -254,7 +194,7 @@ proc portlicensecheck::licensecheck_main {args} {
             # check that this dependency's license(s) are good
             foreach full_lic $sublist {
                 set lic [remove_version [string tolower $full_lic]]
-                if {[info exists ::license_good($lic)]} {
+                if {[info exists licenses::license_good($lic)]} {
                     set any_good 1
                 } else {
                     # no good being compatible with other licenses if it's not distributable itself
@@ -266,9 +206,9 @@ proc portlicensecheck::licensecheck_main {args} {
                 foreach top_sublist [concat $top_license $top_license_names] {
                     set any_sub_compatible 0
                     foreach top_lic $top_sublist {
-                        if {![info exists ::license_conflicts([string tolower $top_lic])]
-                            || ([lsearch -sorted $::license_conflicts([string tolower $top_lic]) $lic] == -1
-                            && [lsearch -sorted $::license_conflicts([string tolower $top_lic]) [string tolower $full_lic]] == -1)} {
+                        if {![info exists licenses::license_conflicts([string tolower $top_lic])]
+                            || ([lsearch -sorted $licenses::license_conflicts([string tolower $top_lic]) $lic] == -1
+                            && [lsearch -sorted $licenses::license_conflicts([string tolower $top_lic]) [string tolower $full_lic]] == -1)} {
                             set any_sub_compatible 1
                             break
                         }
