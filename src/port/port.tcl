@@ -4352,6 +4352,7 @@ array set action_array [list \
     install     [list action_target         [ACTION_ARGS_PORTS]] \
     clean       [list action_target         [ACTION_ARGS_PORTS]] \
     test        [list action_target         [ACTION_ARGS_PORTS]] \
+    licensecheck [list action_target        [ACTION_ARGS_PORTS]] \
     lint        [list action_target         [ACTION_ARGS_PORTS]] \
     livecheck   [list action_target         [ACTION_ARGS_PORTS]] \
     distcheck   [list action_target         [ACTION_ARGS_PORTS]] \
