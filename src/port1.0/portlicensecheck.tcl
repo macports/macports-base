@@ -308,7 +308,7 @@ proc portlicensecheck::licensecheck_main {args} {
     }
 
     if {$result eq 0} {
-        ui_info "\"$subport\" is distributable"
+        ui_msg "\"$subport\" is distributable"
     }
 
     return $result
