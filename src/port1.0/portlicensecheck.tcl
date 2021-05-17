@@ -115,7 +115,7 @@ proc portlicensecheck::licensecheck_main {args} {
         set license_file [getdefaultportresourcepath "port1.0/licenses/licenses.tcl"]
         ui_debug "Loading license data from: '${license_file}'"
         if {[catch {source ${license_file}} result]} {
-            ui_warn "Result from failed license data load attempt: $::errorInfo: result"
+            ui_debug "Result from failed license data load attempt: $::errorInfo: result"
             return -code 1 "License data could not be loaded from: '${license_file}'."
         }
     }
