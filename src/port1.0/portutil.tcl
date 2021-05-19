@@ -2031,8 +2031,6 @@ proc eval_variants {variations} {
     # Check to make sure the requested variations are available with this
     # port, if one is not, warn the user and remove the variant from the
     # array.
-    # Save the originally requested set in requested_variations.
-    array set requested_variations [array get upvariations]
     foreach key [array names upvariations *] {
         if {![info exists PortInfo(variants)] ||
             $key ni $PortInfo(variants)} {
@@ -2086,16 +2084,22 @@ proc eval_variants {variations} {
     set PortInfo(active_variants) $activevariants
     set PortInfo(canonical_active_variants) $portvariants
 
-    # now set the requested variants
+    # Now set the requested variants string, based on the requested_variations
+    # array, but narrowed down to the variants that this port actually has,
+    # as per the chosen and negated lists.
     set requested_list [list]
     foreach dvar $chosen {
         set thevar [ditem_key $dvar provides]
-        lappend requested_list $thevar "+"
+        if {[info exists requested_variations($thevar)]} {
+            lappend requested_list $thevar "+"
+        }
     }
     set negated_list [list]
     foreach dvar $negated {
         set thevar [ditem_key $dvar provides]
-        lappend negated_list $thevar "-"
+        if {[info exists requested_variations($thevar)]} {
+            lappend negated_list $thevar "-"
+        }
     }
     set requested_variants [canonicalize_variants $requested_list "+"][canonicalize_variants $negated_list "-"]
 
