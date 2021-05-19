@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.7.0 (unreleased)
+Release 2.7.0 (2021-05-19 by jmr)
     - The 'platforms' option now has a default value of 'darwin'.
       (jmr in d918190)
 
