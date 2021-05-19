@@ -1579,7 +1579,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     }
 
     foreach {var val} $variations {
-        $workername eval "set variations($var) $val"
+        $workername eval [list set variations($var) $val]
+        $workername eval [list set requested_variations($var) $val]
     }
 }
 
