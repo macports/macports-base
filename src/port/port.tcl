@@ -2438,6 +2438,9 @@ proc action_selfupdate { action portlist opts } {
     }
 
     if {$base_updated} {
+        ui_msg "Rerunning selfupdate with updated version of MacPorts\n"
+        execl $::argv0 $::argv
+        
         # exit immediately if in batch/shell mode
         return -999
     } else {
