@@ -515,7 +515,7 @@ proc wrapline {line maxlen {indent ""} {indentfirstline 1}} {
     if {$maxlen <= 0} {
         if {![info exists env(COLUMNS)]} {
             # no width for wrapping
-            return $string
+            return $line
         }
         set maxlen [expr {$env(COLUMNS) + $maxlen}]
     }
