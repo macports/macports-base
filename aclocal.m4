@@ -1166,10 +1166,10 @@ AC_DEFUN([MP_WERROR],[
 #------------------------------------------------------------------------
 # MP_CHECK_SQLITE_VERSION --
 #
-#	Check for a specific SQLite version and execute commands depending on availability
+#	Check the version of SQLite that was found
 #
 # Arguments:
-#       Required SQLite version for the test to succeed in the form of SQLITE_VERSION_NUMBER
+#       None.
 #
 # Requires:
 #       MP_SQLITE3_FLAGS
@@ -1180,58 +1180,72 @@ AC_DEFUN([MP_WERROR],[
 # Results:
 #		Result is cached.
 #
-#       sets mp_sqlite_version_ge_$1 to yes or no
+#       Sets mp_sqlite_version to the older of the SQLite versions
+#       found in the header and at runtime, in the same numeric format
+#       as SQLITE_VERSION_NUMBER.
+#       (Runtime check is skipped if cross-compiling and the result is
+#       then always the header version.)
 #
 #------------------------------------------------------------------------
 AC_DEFUN(MP_CHECK_SQLITE_VERSION, [
 	AC_REQUIRE([MP_SQLITE3_FLAGS])
 
-	AC_MSG_CHECKING([for SQLite >= $1])
+	AC_MSG_CHECKING([for SQLite version in header])
 
 	mp_check_sqlite_version_cppflags_save=$CPPFLAGS
+	mp_check_sqlite_version_ldflags_save=$LDFLAGS
 	CPPFLAGS="$CPPFLAGS $CFLAGS_SQLITE3"
+	LDFLAGS="$LDFLAGS $LDFLAGS_SQLITE3"
 
-	AC_CACHE_VAL(mp_cv_sqlite_version_defined, [
+	AC_CACHE_VAL([mp_cv_sqlite_version], [
 		AC_PREPROC_IFELSE(
 			[AC_LANG_SOURCE(
 				[[
 					#include <sqlite3.h>
 					#ifndef SQLITE_VERSION_NUMBER
 					#  error "SQLITE_VERSION_NUMBER undefined"
+					#else
+					int mp_sqlite_version = SQLITE_VERSION_NUMBER;
 					#endif
 				]]
 			)],
-			[mp_cv_sqlite_version_defined="yes"],
+			[mp_cv_sqlite_version=`grep '^[[[:space:]]]*int mp_sqlite_version = [[0-9]]*;$' conftest.i | sed -E 's/[[^0-9]]*([[0-9]]+);/\1/'`],
 			[AC_MSG_ERROR("SQLITE_VERSION_NUMBER undefined or sqlite3.h not found")]
 		)
 	])
 
-	if test x"${mp_cv_sqlite_version_defined}" = "xno"; then
-		AC_MSG_RESULT([SQLite version not found])
-		mp_sqlite_version_ge_$1="no"
-	else
-		AC_CACHE_VAL(mp_cv_sqlite_version_ge_$1, [
-			AC_PREPROC_IFELSE(
-				[AC_LANG_SOURCE(
-					[[
-						#include <sqlite3.h>
-						#if (SQLITE_VERSION_NUMBER >= $1)
-						/* Everything is fine */
-						#else
-						#  error "SQLite version too old"
-						#endif
-					]]
-				)],
-				[mp_cv_sqlite_version_ge_$1="yes"],
-				[mp_cv_sqlite_version_ge_$1="no"]
-			)
-		])
+	AC_MSG_RESULT(${mp_cv_sqlite_version})
+	mp_sqlite_version=${mp_cv_sqlite_version}
 
-		AC_MSG_RESULT(${mp_cv_sqlite_version_ge_$1})
-		mp_sqlite_version_ge_$1=${mp_cv_sqlite_version_ge_$1}
-	fi
+    AC_MSG_CHECKING([for SQLite version at runtime])
+    AC_CACHE_VAL([mp_cv_sqlite_run_version], [
+        AC_RUN_IFELSE(
+            [AC_LANG_SOURCE(
+				[[
+				    #include <stdio.h>
+					#include <sqlite3.h>
+					int main(int argc, char* argv[])
+					{
+					    int vers = sqlite3_libversion_number();
+					    if (argc > 1) {
+					        printf("%d\n", vers);
+					    }
+					    return 0;
+					}
+				]]
+			)],
+			[mp_cv_sqlite_run_version=`./conftest$EXEEXT noisy`],
+			[AC_MSG_ERROR("Failed to run sqlite3_libversion_number test program")],
+			[mp_cv_sqlite_run_version=$mp_cv_sqlite_version]
+		)
+    ])
+    AC_MSG_RESULT(${mp_cv_sqlite_run_version})
+    if test "$mp_cv_sqlite_run_version" -lt "$mp_cv_sqlite_version"; then
+        mp_sqlite_version=$mp_cv_sqlite_run_version
+    fi
 
 	CPPFLAGS=$mp_check_sqlite_version_cppflags_save
+	LDFLAGS=$mp_check_sqlite_version_ldflags_save
 ])
 
 #------------------------------------------------------------------------

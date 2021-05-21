@@ -237,6 +237,9 @@
 /* Lowest non-system-reserved UID. */
 #undef MIN_USABLE_UID
 
+/* SQLite version found */
+#undef MP_SQLITE_VERSION
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 

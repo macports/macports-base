@@ -288,8 +288,9 @@ MP_LIBCURL_FLAGS
 ## sqlite3
 MP_SQLITE3_FLAGS
 
-MP_CHECK_SQLITE_VERSION(3003011)
-if test "x${mp_sqlite_version_ge_3003011}" = "xno"; then
+MP_CHECK_SQLITE_VERSION
+AC_DEFINE_UNQUOTED([MP_SQLITE_VERSION], [$mp_sqlite_version], [SQLite version found])
+if test "$mp_sqlite_version" -lt 3003011; then
 	AC_DEFINE([sqlite3_prepare_v2], [sqlite3_prepare], [define sqlite3_prepare to sqlite_prepare_v2 if the latter is not available])
 fi
 
