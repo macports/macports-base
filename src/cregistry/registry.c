@@ -130,7 +130,9 @@ int reg_open(reg_registry** regPtr, reg_error* errPtr) {
         /* Enable extended result codes, requires SQLite >= 3.3.8
          * Check added for compatibility with Tiger. */
 #if SQLITE_VERSION_NUMBER >= 3003008
-        sqlite3_extended_result_codes(reg->db, 1);
+        if (sqlite3_libversion_number() >= 3003008) {
+            sqlite3_extended_result_codes(reg->db, 1);
+        }
 #endif
 
         sqlite3_busy_timeout(reg->db, 25);
@@ -180,8 +182,10 @@ int reg_configure(reg_registry* reg) {
     int result = 0;
 #if SQLITE_VERSION_NUMBER >= 3022000
     /* Ensure WAL files persist. */
-    int persist = 1;
-    sqlite3_file_control(reg->db, "registry", SQLITE_FCNTL_PERSIST_WAL, &persist);
+    if (sqlite3_libversion_number() >= 3022000) {
+        int persist = 1;
+        sqlite3_file_control(reg->db, "registry", SQLITE_FCNTL_PERSIST_WAL, &persist);
+    }
 #endif
     /* Turn on fullfsync. */
     if (sqlite3_prepare_v2(reg->db, "PRAGMA fullfsync = 1", -1, &stmt, NULL) == SQLITE_OK) {
@@ -515,11 +519,13 @@ int reg_vacuum(char *db_path) {
 int reg_checkpoint(reg_registry* reg, reg_error* errPtr) {
 
 #if SQLITE_VERSION_NUMBER >= 3022000
-    if (sqlite3_db_readonly(reg->db, "registry") == 0
-            && sqlite3_wal_checkpoint_v2(reg->db, "registry",
-            SQLITE_CHECKPOINT_PASSIVE, NULL, NULL) != SQLITE_OK) {
-        reg_sqlite_error(reg->db, errPtr, NULL);
-        return 0;
+    if (sqlite3_libversion_number() >= 3022000) {
+        if (sqlite3_db_readonly(reg->db, "registry") == 0
+                && sqlite3_wal_checkpoint_v2(reg->db, "registry",
+                SQLITE_CHECKPOINT_PASSIVE, NULL, NULL) != SQLITE_OK) {
+            reg_sqlite_error(reg->db, errPtr, NULL);
+            return 0;
+        }
     }
 #endif
     return 1;
