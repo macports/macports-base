@@ -324,7 +324,7 @@ namespace eval diagnose {
         output "HomeBrew"
 
         if {[file exists "/usr/local/Cellar"]} {
-            ui_warn "it seems you have Homebrew installed on this system -- Because Homebrew uses /usr/local, this can potentially cause issues \
+            ui_warn "it seems you have Homebrew installed on this system -- Because Homebrew uses /usr/local, this can potentially cause issues\
                      with MacPorts. We'd recommend you either uninstall it, or move it from /usr/local for now."
 
             success_fail 0
@@ -336,7 +336,7 @@ namespace eval diagnose {
 
         output "Fink"
         if {[file exists "/sw"]} {
-            ui_warn "it seems you have Fink installed on your system -- This could potentially cause issues with MacPorts. We'd recommend you \
+            ui_warn "it seems you have Fink installed on your system -- This could potentially cause issues with MacPorts. We'd recommend you\
                      either uninstall it, or move it from /sw for now."
 
             success_fail 0
@@ -456,7 +456,7 @@ namespace eval diagnose {
         output "dylibs in /usr/local/lib"
 
         if {[glob -nocomplain -directory "/usr/local/lib" *.dylib *.la *.prl] ne ""} {
-            ui_warn "found dylibs in your /usr/local/lib directory. These are known to cause problems. We'd recommend \
+            ui_warn "found dylibs in your /usr/local/lib directory. These are known to cause problems. We'd recommend\
                      you remove them."
 
             success_fail 0
@@ -469,7 +469,7 @@ namespace eval diagnose {
         output "header files in /usr/local/include"
 
         if {[glob -nocomplain -directory "/usr/local/include" *.h *.hpp *.hxx] ne ""} {
-            ui_warn "found header files in your /usr/local/include directory. These are known to cause problems. We'd recommend \
+            ui_warn "found header files in your /usr/local/include directory. These are known to cause problems. We'd recommend\
                      you remove them."
 
             success_fail 0
@@ -493,8 +493,8 @@ namespace eval diagnose {
             output "X11.app on Mac OS X 10.6 systems"
 
             if {[file exists /Applications/X11.app]} {
-                ui_error "it seems you have Mac OS X 10.6 installed, and are using X11 from \"X11.app\". This has been known to cause issues. \
-                         To fix this, please install xorg-server, by using the command 'sudo port install xorg-server', or installing it from \
+                ui_error "it seems you have Mac OS X 10.6 installed, and are using X11 from \"X11.app\". This has been known to cause issues.\
+                         To fix this, please install xorg-server, by using the command 'sudo port install xorg-server', or installing it from\
                          their website, https://www.xquartz.org/releases/."
 
                 success_fail 0
@@ -521,7 +521,7 @@ namespace eval diagnose {
         set available       [lindex $disk_info 3]
 
         if {$available < 5} {
-            ui_warn "you have less than 5 GiB of free disk space! This can cause serious errors. We recommend trying to clear out unnecessary \
+            ui_warn "you have less than 5 GiB of free disk space! This can cause serious errors. We recommend trying to clear out unnecessary\
                      programs and files by running 'sudo port reclaim', or manually uninstalling/deleting programs and folders on your drive."
 
             success_fail 0
@@ -563,7 +563,7 @@ namespace eval diagnose {
         output "for '$app'"
 
         if {![file exists /usr/bin/$app]} {
-            ui_error "$app is needed by MacPorts to function normally, but wasn't found on this system. We'd recommend \
+            ui_error "$app is needed by MacPorts to function normally, but wasn't found on this system. We'd recommend\
                       installing it for continued use of MacPorts."
             success_fail 0
             return
