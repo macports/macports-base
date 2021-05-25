@@ -2,6 +2,16 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.7.1 (unreleased)
+    - Fixed SQL error when MacPorts was built against the 10.15 SDK but
+      run on 10.14. (#62929, jmr in 0249b3c)
+
+    - Fixed poor performance when installing ports containing tens of
+      thousands of files. (#56793, jmr in fc212a0)
+
+    - Fixed a stack trace being printed after an error occurred if
+      COLUMNS was not set in the environment. (#62935, jmr in 13eeabd)
+
 Release 2.7.0 (2021-05-19 by jmr)
     - The 'platforms' option now has a default value of 'darwin'.
       (jmr in d918190)
