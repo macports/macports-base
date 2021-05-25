@@ -47,7 +47,7 @@ typedef struct {
 
 #define END_FLAGS 0
 
-char* unique_name(Tcl_Interp* interp, char* prefix, int* lower_bound);
+char* unique_name(Tcl_Interp* interp, char* prefix, unsigned int* lower_bound);
 
 int parse_flags(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[], int* start,
         option_spec options[], int* flags);
@@ -72,15 +72,15 @@ int recast(void* userdata, cast_function* fn, void* castcalldata,
         reg_error* errPtr);
 
 int entry_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_entry* entry,
-        int* lower_bound, reg_error* errPtr);
+        void* param UNUSED, reg_error* errPtr);
 int list_entry_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
         reg_entry** entries, int entry_count, reg_error* errPtr);
 int file_to_obj(Tcl_Interp* interp, Tcl_Obj** ibj, reg_file* file,
-        int* lower_bound, reg_error* errPtr);
+        void* param UNUSED, reg_error* errPtr);
 int list_file_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
         reg_file** files, int file_count, reg_error* errPtr);
 int portgroup_to_obj(Tcl_Interp* interp, Tcl_Obj** ibj, reg_portgroup* portgroup,
-        int* lower_bound, reg_error* errPtr);
+        void* param UNUSED, reg_error* errPtr);
 int list_portgroup_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
         reg_portgroup** portgroups, int portgroup_count, reg_error* errPtr);
 
