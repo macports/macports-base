@@ -416,6 +416,7 @@ proc portinstall::install_main {args} {
             foreach f [array names portinstall::file_is_binary] {
                 set fileref [registry::file open [$regref id] $f]
                 $fileref binary $portinstall::file_is_binary($f)
+                registry::file close $fileref
             }
         }
 
@@ -455,6 +456,8 @@ proc portinstall::install_main {args} {
             }
         }
     }
+
+    registry::entry close $regref
 
     _cd $oldpwd
     return 0
