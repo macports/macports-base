@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.7.1 (unreleased)
+Release 2.7.1 (2021-05-26 by jmr)
     - Fixed SQL error when MacPorts was built against the 10.15 SDK but
       run on 10.14. (#62929, jmr in 0249b3c)
 
