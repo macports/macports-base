@@ -135,6 +135,20 @@ static void ui_message(Tcl_Interp *interp, const char *severity, const char *for
     free(tclcmd);
 }
 
+__attribute__((format(printf, 3, 0)))
+static void ui_debug_x(Tcl_Interp *interp, unsigned int level, const char *format, va_list va) {
+    char cLevel[21];
+    int cLevel_size = ( sizeof(cLevel) - 1 );
+
+    // Ensure our dest string is null-terminated, even if overflow occurs
+    cLevel[cLevel_size] = '\0';
+
+    // Note: Specifying buf size one less than actual, so we'll always be null-terminated
+    // p.s. This shouldn't be needed for C99 and later. But better to be safe.
+    snprintf(cLevel, cLevel_size, "debug%u", level);
+    ui_message(interp, cLevel, format, va);
+}
+
 __attribute__((format(printf, 2, 3)))
 void ui_error(Tcl_Interp *interp, const char *format, ...) {
     va_list va;
@@ -184,6 +198,33 @@ void ui_debug(Tcl_Interp *interp, const char *format, ...) {
 
     va_start(va, format);
     ui_message(interp, "debug", format, va);
+    va_end(va);
+}
+
+__attribute__((format(printf, 2, 3)))
+void ui_debug1(Tcl_Interp *interp, const char *format, ...) {
+    va_list va;
+
+    va_start(va, format);
+    ui_debug_x(interp, 1 /*debug level*/, format, va);
+    va_end(va);
+}
+
+__attribute__((format(printf, 2, 3)))
+void ui_debug2(Tcl_Interp *interp, const char *format, ...) {
+    va_list va;
+
+    va_start(va, format);
+    ui_debug_x(interp, 2 /*debug level*/, format, va);
+    va_end(va);
+}
+
+__attribute__((format(printf, 2, 3)))
+void ui_debug3(Tcl_Interp *interp, const char *format, ...) {
+    va_list va;
+
+    va_start(va, format);
+    ui_debug_x(interp, 3 /*debug level*/, format, va);
     va_end(va);
 }
 

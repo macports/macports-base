@@ -12,6 +12,15 @@ set failures 0
 proc ui_debug {args} {
     # ignored
 }
+proc ui_debug1 {args} {
+    # ignored
+}
+proc ui_debug2 {args} {
+    # ignored
+}
+proc ui_debug3 {args} {
+    # ignored
+}
 proc ui_info {args} {
     global output
     append output "$args\n"

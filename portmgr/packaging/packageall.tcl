@@ -37,7 +37,8 @@ set portdir .
 
 # UI Instantiations
 array set ui_options {}
-# ui_options(ports_debug) - If set, output debugging messages.
+# ui_options(ports_debug_x) - If set, output additional debugging messages up to level 'debug<level>'
+# ui_options(ports_debug) - If set, output debugging messages at standard level
 # ui_options(ports_verbose) - If set, output info messages (ui_info)
 # ui_options(ports_quiet) - If set, don't output "standard messages"
 
@@ -52,10 +53,30 @@ proc ui_isset {val} {
 	return 0
 }
 
+proc ui_debug_x_enabled {priority} {
+	global ui_options
+	set debug_enabled 0
+
+	if {[info exists ui_options(ports_debug_x)]} {
+		set ports_debug_x \
+			$ui_options(ports_debug_x)
+
+		if {[string compare ${priority} ${ports_debug_x}] <= 0} {
+			set debug_enabled 1
+		}
+	}
+
+	return ${debug_enabled}
+}
+
 # UI Callback
 
 proc ui_prefix {priority} {
-	switch $priority {
+	switch -regexp -- $priority {
+		debug[0-9] {
+			set debug_level [regsub {debug(\d)} ${priority} {\1}]
+			return "DEBUG${debug_level}: "
+		}
 		debug {
 			return "DEBUG: "
 		}
@@ -73,7 +94,14 @@ proc ui_prefix {priority} {
 
 proc ui_channels {priority} {
 	global logfd
-	switch $priority {
+	switch -regexp -- $priority {
+		debug[0-9] {
+			if {[ui_debug_x_enabled ${priority}]} {
+				return {stdout}
+			} else {
+				return {}
+			}
+		}
 		debug {
 			if {[ui_isset ports_debug]} {
 				return {stdout}
