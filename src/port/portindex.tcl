@@ -309,6 +309,12 @@ for {set i 0} {$i < $argc} {incr i} {
         {^-.+} {
             if {$arg eq "-d"} { # Turn on debug output
                 set ui_options(ports_debug) yes
+            } elseif {[regexp {\-[0-3]} ${arg}] == 1} { # Turn on debugX output
+                set ui_options(ports_debug) yes
+
+                set debug_level [regsub {\-(\d)} ${arg} {\1}]
+                set ui_options(ports_debug_x) "debug${debug_level}"
+                unset debug_level
             } elseif {$arg eq "-o"} { # Set output directory
                 incr i
                 set outdir [file join [pwd] [lindex $argv $i]]
