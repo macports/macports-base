@@ -374,8 +374,8 @@ proc portconfigure::configure_start {args} {
     if {![info exists compiler_name]} {
         return -code error "Invalid value for configure.compiler: $compiler"
     }
-    ui_debug "Preferred compilers: [option compiler.fallback]"
-    ui_debug "Using compiler '$compiler_name'"
+    ui_debug1 "Preferred compilers: [option compiler.fallback]"
+    ui_debug1 "Using compiler '$compiler_name'"
 
     # Additional ccache directory setup
     global configure.ccache ccache_dir ccache_size macportsuser
@@ -1169,7 +1169,7 @@ proc portconfigure::get_clang_compilers {} {
     if {[file exists ${compiler_file}]} {
         source ${compiler_file}
     } else {
-        ui_debug "clang_compilers.tcl not found in ports tree, using built-in selections"
+        ui_debug1 "clang_compilers.tcl not found in ports tree, using built-in selections"
         # clang 9.0 and older build on 10.6+ (darwin 10)
         # clang 7.0 and older build on 10.5+ (darwin 9)
         # clang 3.4 and older build on 10.4+ (darwin 8)
@@ -1205,7 +1205,7 @@ proc portconfigure::get_gcc_compilers {} {
     if {[file exists ${compiler_file}]} {
         source ${compiler_file}
     } else {
-        ui_debug "gcc_compilers.tcl not found in ports tree, using built-in selections"
+        ui_debug1 "gcc_compilers.tcl not found in ports tree, using built-in selections"
         if {${os.major} >= 10} {
             # see https://trac.macports.org/ticket/57135
             lappend compilers macports-gcc-8
@@ -1543,13 +1543,13 @@ proc portconfigure::add_automatic_compiler_dependencies {} {
     }
 
     if {[compiler_is_port ${configure.compiler}]} {
-        ui_debug "Chosen compiler ${configure.compiler} is provided by a port, adding dependency"
+        ui_debug1 "Chosen compiler ${configure.compiler} is provided by a port, adding dependency"
         portconfigure::add_compiler_port_dependencies ${configure.compiler}
     }
 
     if {[option compiler.require_fortran] && [portconfigure::configure_get_compiler fc ${configure.compiler}] eq ""} {
         # Fortran is required, but compiler does not provide it
-        ui_debug "Adding Fortran compiler dependency"
+        ui_debug1 "Adding Fortran compiler dependency"
         portconfigure::add_compiler_port_dependencies [portconfigure::configure_get_fortran_compiler]
     }
 }
@@ -1565,12 +1565,12 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
     set compiler_port [portconfigure::compiler_port_name ${compiler}]
     if {$compiler eq "apple-gcc-4.0"} {
         # compiler links against ${prefix}/lib/apple-gcc40/lib/libgcc_s.1.dylib
-        ui_debug "Adding depends_lib port:$compiler_port"
+        ui_debug1 "Adding depends_lib port:$compiler_port"
         depends_lib-delete port:$compiler_port
         depends_lib-append port:$compiler_port
     } elseif {[regexp {^macports-(mpich|openmpi)-(default|clang|gcc)(?:-(\d+(?:\.\d+)?))?$} $compiler -> mpi clang_or_gcc version]} {
         # MPI compilers link against MPI libraries
-        ui_debug "Adding depends_lib port:$compiler_port"
+        ui_debug1 "Adding depends_lib port:$compiler_port"
         if {${mpi} eq "openmpi"} {
             set pkgname ompi.pc
         } else {
@@ -1579,7 +1579,7 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
         depends_lib-delete "path:lib/$compiler_port/pgkconfig/${pkgname}:${compiler_port}"
         depends_lib-append "path:lib/$compiler_port/pkgconfig/${pkgname}:${compiler_port}"
     } else {
-        ui_debug "Adding depends_build port:$compiler_port"
+        ui_debug1 "Adding depends_build port:$compiler_port"
         depends_build-delete port:$compiler_port
         depends_build-append port:$compiler_port
         license_noconflict-append $compiler_port
@@ -1591,7 +1591,7 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
             if {[file exists ${dependencies_file}]} {
                 source ${dependencies_file}
             } else {
-                ui_debug "gcc_dependencies.tcl not found in ports tree, using built-in data"
+                ui_debug1 "gcc_dependencies.tcl not found in ports tree, using built-in data"
                 # compiler links against libraries in libgcc\d* and/or libgcc-devel
                 if {[vercmp ${gcc_version} 4.6] < 0} {
                     set libgccs "path:lib/libgcc/libgcc_s.1.dylib:libgcc port:libgcc45"
@@ -1606,24 +1606,24 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
                 }
             }
             foreach libgcc_dep $libgccs {
-                ui_debug "Adding depends_lib $libgcc_dep"
+                ui_debug1 "Adding depends_lib $libgcc_dep"
                 depends_lib-delete $libgcc_dep
                 depends_lib-append $libgcc_dep
             }
         } elseif {[regexp {^macports-clang(?:-(\d+(?:\.\d+)?))$} $compiler -> clang_version]} {
             if {[option configure.cxx_stdlib] eq "macports-libstdc++"} {
                 # see https://trac.macports.org/ticket/54766
-                ui_debug "Adding depends_lib path:lib/libgcc/libgcc_s.1.dylib:libgcc"
+                ui_debug1 "Adding depends_lib path:lib/libgcc/libgcc_s.1.dylib:libgcc"
                 depends_lib-delete "path:lib/libgcc/libgcc_s.1.dylib:libgcc"
                 depends_lib-append "path:lib/libgcc/libgcc_s.1.dylib:libgcc"
             } elseif {[option configure.cxx_stdlib] eq "libc++" && ${os.major} < 11} {
                 # libc++ does not exist on these systems
-                ui_debug "Adding depends_lib libcxx"
+                ui_debug1 "Adding depends_lib libcxx"
                 depends_lib-delete "port:libcxx"
                 depends_lib-append "port:libcxx"
             }
             if {[option compiler.openmp_version] ne ""} {
-                ui_debug "Adding depends_lib port:libomp"
+                ui_debug1 "Adding depends_lib port:libomp"
                 depends_lib-delete "port:libomp"
                 depends_lib-append "port:libomp"
             }
@@ -1631,7 +1631,7 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
     }
 
     if {[arch_flag_supported $compiler]} {
-        ui_debug "Adding depends_skip_archcheck $compiler_port"
+        ui_debug1 "Adding depends_skip_archcheck $compiler_port"
         depends_skip_archcheck-delete $compiler_port
         depends_skip_archcheck-append $compiler_port
     }
@@ -1818,7 +1818,7 @@ proc portconfigure::check_implicit_function_declarations {} {
                         if {!$is_whitelisted} {
                             ::struct::set include undeclared_functions($function) $file
                         } else {
-                            ui_debug [format "Ignoring implicit declaration of function '%s' because it is whitelisted" $function]
+                            ui_debug1 [format "Ignoring implicit declaration of function '%s' because it is whitelisted" $function]
                         }
                     }
                 }
