@@ -54,9 +54,9 @@ namespace eval port {
 	proc run_callbacks {} {
 		variable _callback_list
 		foreach callback ${_callback_list} {
-			ui_debug "Running callback ${callback}"
+			ui_debug1 "Running callback ${callback}"
 			${callback}
-			ui_debug "Finished running callback ${callback}"
+			ui_debug1 "Finished running callback ${callback}"
 		}
 		set _callback_list [list]
 	}
