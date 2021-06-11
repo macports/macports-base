@@ -35,8 +35,11 @@
 #include <tcl.h>
 
 #include "util.h"
+#include "entry.h"
 #include "entryobj.h"
+#include "file.h"
 #include "fileobj.h"
+#include "portgroup.h"
 #include "portgroupobj.h"
 
 /**
@@ -182,7 +185,7 @@ int set_object(Tcl_Interp* interp, char* name, void* value, char* type,
  */
 int set_entry(Tcl_Interp* interp, char* name, reg_entry* entry,
         reg_error* errPtr) {
-    if (set_object(interp, name, entry, "entry", entry_obj_cmd, NULL,
+    if (set_object(interp, name, entry, "entry", entry_obj_cmd, delete_entry,
                 errPtr)) {
         entry->proc = strdup(name);
         if (!entry->proc) {
@@ -205,7 +208,7 @@ int set_entry(Tcl_Interp* interp, char* name, reg_entry* entry,
  */
 int set_file(Tcl_Interp* interp, char* name, reg_file* file,
         reg_error* errPtr) {
-    if (set_object(interp, name, file, "file", file_obj_cmd, NULL,
+    if (set_object(interp, name, file, "file", file_obj_cmd, delete_file,
                 errPtr)) {
         file->proc = strdup(name);
         if (!file->proc) {
@@ -228,7 +231,7 @@ int set_file(Tcl_Interp* interp, char* name, reg_file* file,
  */
 int set_portgroup(Tcl_Interp* interp, char* name, reg_portgroup* portgroup,
         reg_error* errPtr) {
-    if (set_object(interp, name, portgroup, "portgroup", portgroup_obj_cmd, NULL,
+    if (set_object(interp, name, portgroup, "portgroup", portgroup_obj_cmd, delete_portgroup,
                 errPtr)) {
         portgroup->proc = strdup(name);
         if (!portgroup->proc) {
