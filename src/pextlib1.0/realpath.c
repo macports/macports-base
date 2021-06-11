@@ -63,6 +63,7 @@ int RealpathCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 
     if (objc != 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "path");
+        free(rpath);
         return TCL_ERROR;
     }
 

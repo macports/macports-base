@@ -134,7 +134,11 @@ int reg_all_objects(reg_registry* reg, char* query, int query_len,
     int result_count = 0;
     int result_space = 10;
     sqlite3_stmt* stmt = NULL;
-    if (!results || !fn) {
+    if (!results) {
+        return -1;
+    }
+    if (!fn) {
+        free(results);
         return -1;
     }
     if (sqlite3_prepare_v2(reg->db, query, query_len, &stmt, NULL) == SQLITE_OK) {

@@ -208,6 +208,15 @@ static int portgroup_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
         vals = malloc(key_count * sizeof(char*));
         strats = malloc(key_count * sizeof(int));
         if (!keys || !vals || !strats) {
+            if (keys) {
+                free(keys);
+            }
+            if (vals) {
+                free(vals);
+            }
+            if (strats) {
+                free(strats);
+            }
             return TCL_ERROR;
         }
         for (i = 2, j = 0; i < objc && j < key_count; j++) {
