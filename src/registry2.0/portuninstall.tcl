@@ -59,14 +59,15 @@ proc generate_deplist {port {optslist ""}} {
         # append those from the registry (could be different because of path deps)
         foreach dep [$port dependencies] {
             lappend all_dependencies [$dep name]
+            #registry::entry close $dep
         }
     } else {
         # grab the deps from the dep map
-        set portname [$port name]
-        set depmaplist [registry::list_depends $portname [$port version] [$port revision] [$port variants]]
-        foreach dep $depmaplist {
-            lappend all_dependencies [lindex $dep 0]
+        foreach dep [$port dependencies] {
+            lappend all_dependencies [$dep name]
+            #registry::entry close $dep
         }
+        set portname [$port name]
         # and the ones from the current portfile
         if {![catch {mportlookup $portname} result] && [llength $result] >= 2} {
             array set depportinfo [lindex $result 1]
@@ -174,8 +175,14 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
                 set uport [lindex $sortedlist $index]
                 uninstall [$uport name] [$uport version] [$uport revision] [$uport variants]
             }
+            #foreach i $ilist {
+            #    registry::entry close $i
+            #}
             return 0
         }
+        #foreach i $ilist {
+        #    registry::entry close $i
+        #}
         throw registry::invalid "Registry error: Please specify the full version as recorded in the port registry."
     } elseif { [llength $ilist] == 1 } {
         set port [lindex $ilist 0]
@@ -206,6 +213,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
                     registry_uninstall::uninstall [$depport name] [$depport version] [$depport revision] [$depport variants] $optionslist
                 }
             }
+            #catch {registry::entry close $depport}
         }
         if {[info exists orig_follow_dependencies]} {
             set options(ports_uninstall_follow-dependencies) $orig_follow_dependencies
@@ -215,6 +223,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         # check its dependents
         set userinput [registry::check_dependents $port ${uninstall.force} "uninstall"]
         if {$userinput eq "quit"} {
+            #registry::entry close $port
             return 0
         }
     }
@@ -252,20 +261,20 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s"] $portname $composite_spec]"
 
         # Get the full path to the image file
-        set ref $port
-        set imagefile [registry::property_retrieve $ref location]
+        set imagefile [$port location]
         file delete $imagefile
         # Try to delete the port's image dir; will fail if there are more image
         # files so just ignore the failure
         catch {file delete [::file dirname $imagefile]}
 
         # We want to delete the portfile if not referenced by any other ports
-        set portfile [$ref portfile]
+        set portfile [$port portfile]
 
         # and likewise the portgroups
         set portgroups [list]
-        foreach pg [$ref groups_used] {
+        foreach pg [$port groups_used] {
             lappend portgroups [list [$pg name] [$pg version] [$pg size] [$pg sha256]]
+            registry::portgroup close $pg
         }
 
         registry::write {
@@ -273,10 +282,14 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         }
 
         set portfile_path [file join ${registry.path} registry portfiles ${portname}-${version}_${revision} $portfile]
-        if {[registry::entry search portfile $portfile name $portname version $version revision $revision] eq {}} {
+        set other_entries [registry::entry search portfile $portfile name $portname version $version revision $revision]
+        if {$other_entries eq {}} {
             file delete -force $portfile_path
             catch {file delete [file dirname $portfile_path]}
         }
+        #foreach e $other_entries {
+        #    registry::entry close $e
+        #}
 
         set reg_portgroups_dir [file join ${registry.path} registry portgroups]
         foreach pg $portgroups {
@@ -284,10 +297,14 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
             set pgversion [lindex $pg 1]
             set pgsize [lindex $pg 2]
             set pgsha256 [lindex $pg 3]
-            if {[registry::portgroup search name $pgname version $pgversion size $pgsize sha256 $pgsha256] eq {}} {
+            set other_pgs [registry::portgroup search name $pgname version $pgversion size $pgsize sha256 $pgsha256]
+            if {$other_pgs eq {}} {
                 set pg_reg_dir [file join $reg_portgroups_dir ${pgsha256}-${pgsize}]
                 file delete -force ${pg_reg_dir}/${pgname}-${pgversion}.tcl
                 catch {file delete $pg_reg_dir}
+            }
+            foreach p $other_pgs {
+                registry::portgroup close $p
             }
         }
     }
@@ -302,27 +319,31 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
         for {set j 0} {$j < [llength $alldeps]} {incr j} {
             set dep [lindex $alldeps $j]
             set uninstalling_this_dep 0
-            if {![catch {set ilist [registry::installed $dep]}]} {
+            if {![catch {set ilist [registry::entry imaged $dep]}]} {
                 foreach i $ilist {
-                    lassign $i dep iversion irevision ivariants
-                    if {[list $dep $iversion $irevision $ivariants] in $uports} {
+                    if {[list [$i name] [$i version] [$i revision] [$i variants]] in $uports} {
+                        #registry::entry close $i
                         continue
                     }
-                    set regref [registry::open_entry $dep $iversion $irevision $ivariants [lindex $i 5]]
-                    if {![registry::property_retrieve $regref requested]} {
+                    if {![$i requested]} {
                         set all_dependents_uninstalling 1
-                        foreach depdt [$regref dependents] {
+                        set depdts [$i dependents]
+                        foreach depdt $depdts {
                             if {[list [$depdt name] [$depdt version] [$depdt revision] [$depdt variants]] ni $uports} {
                                 set all_dependents_uninstalling 0
                                 break
                             }
                         }
+                        #foreach depdt $depdts {
+                        #    registry::entry close $depdt
+                        #}
                         if {$all_dependents_uninstalling} {
-                            lappend uports [list $dep $iversion $irevision $ivariants]
-                            lappend portilist $dep@${iversion}_${irevision}${ivariants}
+                            lappend uports [list [$i name] [$i version] [$i revision] [$i variants]]
+                            lappend portilist [$i name]@[$i version]_[$i revision][$i variants]
                             set uninstalling_this_dep 1
                         }
                     }
+                    #registry::entry close $i
                 }
             }
             if {$uninstalling_this_dep} {
@@ -334,6 +355,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
                             lappend alldeps $d 
                         }
                     }
+                    #registry::entry close $depref
                 }
             }
         }
@@ -348,7 +370,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
     # uninstall all dependencies in order from uports
     foreach dp $uports {
         lassign $dp iname iversion irevision ivariants
-        if {![catch {registry::open_entry $iname $iversion $irevision $ivariants ""} regref]} {
+        if {![catch {registry::entry open $iname $iversion $irevision $ivariants ""} regref]} {
             if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
                 if {$iname ne $portname} {
                     ui_msg "For $iname @${iversion}_${irevision}${ivariants}: skipping uninstall (dry run)"
@@ -358,6 +380,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
                     registry_uninstall::uninstall $iname $iversion $irevision $ivariants [array get options]
                 }
             }
+            #registry::entry close $regref
         }
     }
 

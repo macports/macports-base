@@ -36,6 +36,7 @@ if {[registry::metadata get portfiles_update_needed] == 1} {
 
                 $portref portfile $hash_size
             }
+            registry::entry close $portref
         }
         registry::metadata del portfiles_update_needed
     }

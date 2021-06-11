@@ -39,10 +39,12 @@ foreach portname $known_ports {
                 set binary_files {}
                 foreach filehandle [registry::file search id [$entry id] binary 1] {
                     lappend binary_files [$filehandle actual_path]
+                    registry::file close $filehandle
                 }
                 $entry cxx_stdlib [macports::get_actual_cxx_stdlib $binary_files]
                 $entry cxx_stdlib_overridden 1
             }
+            registry::entry close $entry
         }
     }
 }

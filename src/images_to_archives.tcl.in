@@ -19,7 +19,7 @@ mportinit ui_options
 set tarcmd [macports::findBinary tar ${macports::autoconf::tar_path}]
 set bzip2cmd [macports::findBinary bzip2 ${macports::autoconf::bzip2_path}]
 
-if {[catch {set ilist [registry::installed]}]} {
+if {[catch {set ilist [registry::entry imaged]}]} {
     # no ports installed
     puts "No ports installed to convert."
     exit 0
@@ -35,17 +35,16 @@ set counter 0
 
 foreach installed $ilist {
     incr counter
-    set iname [lindex $installed 0]
-    set iversion [lindex $installed 1]
-    set irevision [lindex $installed 2]
-    set ivariants [lindex $installed 3]
-    set iepoch [lindex $installed 5]
-    set iref [registry::open_entry $iname $iversion $irevision $ivariants $iepoch]
-    set installtype [registry::property_retrieve $iref installtype]
+    set iname [$installed name]
+    set iversion [$installed version]
+    set irevision [$installed revision]
+    set ivariants [$installed variants]
+    set iepoch [$installed epoch]
+    set installtype [$installed installtype]
     if {$installtype eq "image"} {
-        set location [registry::property_retrieve $iref location]
+        set location [$installed location]
         if {$location == 0} {
-            set location [registry::property_retrieve $iref imagedir]
+            set location [$installed imagedir]
         }
     } else {
         set location ""
@@ -53,7 +52,7 @@ foreach installed $ilist {
 
     if {$location eq "" || ![file isfile $location]} {
         # no image archive present, so make one
-        set archs [registry::property_retrieve $iref archs]
+        set archs [$installed archs]
         if {$archs eq "" || $archs == 0} {
             set archs ${macports::os_arch}
         }
@@ -91,7 +90,7 @@ foreach installed $ilist {
             set targetdir [file join ${macports::registry.path} software ${iname}]
         }
         if {$location eq "" || ![file isdirectory $location]} {
-            set contents [$iref imagefiles]
+            set contents [$installed imagefiles]
         }
         file mkdir $targetdir
         set newlocation [file join $targetdir $archivename]
@@ -114,7 +113,9 @@ foreach installed $ilist {
             file delete -force ${targetdir}/tarlist ${targetdir}/error.log
         }
 
-        lappend archived_list [list $installtype $iref $location $newlocation]
+        lappend archived_list [list $installtype $installed $location $newlocation]
+    } else {
+        registry::entry close $installed
     }
 }
 
@@ -139,6 +140,7 @@ registry::write {
     
         # set the new location in the registry and delete the old dir
         $iref location $newlocation
+        registry::entry close $iref
     }
 }
 

@@ -369,6 +369,7 @@ namespace eval diagnose {
                 set activeApps([$app name]) $files
                 incr totalFiles [llength $files]
             }
+            #registry::entry close $app
         }
 
         set fancyOutput [expr {   ![macports::ui_isset ports_debug] \
@@ -440,6 +441,7 @@ namespace eval diagnose {
             if {![file exists [$port location]]} {
                 ui_warn "couldn't find the archive for '[$port name] @[$port version]_[$port revision][$port variants]'. Please uninstall and reinstall this port."
             }
+            #registry::entry close $port
         }
     }
 
