@@ -424,6 +424,7 @@ int reg_entry_search(reg_registry* reg, const char** keys, const char** vals,
         /* get the strategy */
         op = reg_strategy_op(strategies[i], errPtr);
         if (op == NULL) {
+            free(query);
             return -1;
         }
         char* cond = sqlite3_mprintf(op, keys[i], vals[i]);
