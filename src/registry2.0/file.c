@@ -66,8 +66,11 @@ static reg_file* get_file(Tcl_Interp* interp, char* name, reg_error* errPtr) {
 void delete_file(ClientData clientData) {
     reg_file* file = (reg_file*)clientData;
     free(file->proc);
-    free(file->key.path);
     file->proc = NULL;
+    /* Not freeing file->key.path here. As long as 'file' exists in
+       reg->open_files, cregistry assumes it's valid and can return it
+       in future. We can generate a new proc in that case but can't
+       figure out the path if it's gone. */
 }
 
 /**

@@ -332,7 +332,12 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
                             curr != NULL; curr = Tcl_NextHashEntry(&search)) {
                         reg_file* file = Tcl_GetHashValue(curr);
 
-                        free(file->proc);
+                        if (file->proc) {
+                            free(file->proc);
+                        }
+                        /* The rest of the reg_file structure is not
+                           cleaned up by delete_file, so this should
+                           always be safe. */
                         free(file->key.path);
                         free(file);
                     }
