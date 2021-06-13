@@ -181,7 +181,7 @@ proc main {pextlibname} {
 
     registry::close
 
-    file delete test.db
+    file delete -force test.db test.db-shm test.db-wal
 }
 
 source tests/common.tcl
