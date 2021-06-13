@@ -315,3 +315,31 @@ reg_portgroup* reg_portgroup_open(reg_registry* reg, char *id, char* name, char*
     }
     return portgroup;
 }
+
+/**
+ * Fetches a list of all open portgroups.
+ *
+ * @param [in] reg      registry to fetch portgroups from
+ * @param [out] portgroups a list of open portgroups
+ * @return              the number of open portgroups, -1 on error
+ */
+int reg_all_open_portgroups(reg_registry* reg, reg_portgroup*** portgroups) {
+    reg_portgroup* portgroup;
+    int portgroup_count = 0;
+    int portgroup_space = 10;
+    Tcl_HashEntry* hash;
+    Tcl_HashSearch search;
+    *portgroups = malloc(portgroup_space * sizeof(reg_portgroup*));
+    if (!*portgroups) {
+        return -1;
+    }
+    for (hash = Tcl_FirstHashEntry(&reg->open_portgroups, &search); hash != NULL;
+            hash = Tcl_NextHashEntry(&search)) {
+        portgroup = Tcl_GetHashValue(hash);
+        if (!reg_listcat((void***)portgroups, &portgroup_count, &portgroup_space, portgroup)) {
+            free(*portgroups);
+            return -1;
+        }
+    }
+    return portgroup_count;
+}

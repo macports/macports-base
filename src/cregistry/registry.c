@@ -310,7 +310,6 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
     }
     if (sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
         int r;
-        reg_entry* entry;
         Tcl_HashEntry* curr;
         Tcl_HashSearch search;
         /* XXX: Busy waiting, consider using sqlite3_busy_handler/timeout */
@@ -321,13 +320,14 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
                 case SQLITE_OK:
                     for (curr = Tcl_FirstHashEntry(&reg->open_entries, &search);
                             curr != NULL; curr = Tcl_NextHashEntry(&search)) {
-                        entry = Tcl_GetHashValue(curr);
+                        reg_entry* entry = Tcl_GetHashValue(curr);
                         if (entry->proc) {
                             free(entry->proc);
                         }
                         free(entry);
                     }
                     Tcl_DeleteHashTable(&reg->open_entries);
+
                     for (curr = Tcl_FirstHashEntry(&reg->open_files, &search);
                             curr != NULL; curr = Tcl_NextHashEntry(&search)) {
                         reg_file* file = Tcl_GetHashValue(curr);
@@ -342,6 +342,17 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
                         free(file);
                     }
                     Tcl_DeleteHashTable(&reg->open_files);
+
+                    for (curr = Tcl_FirstHashEntry(&reg->open_portgroups, &search);
+                            curr != NULL; curr = Tcl_NextHashEntry(&search)) {
+                        reg_portgroup* portgroup = Tcl_GetHashValue(curr);
+                        if (portgroup->proc) {
+                            free(portgroup->proc);
+                        }
+                        free(portgroup);
+                    }
+                    Tcl_DeleteHashTable(&reg->open_portgroups);
+
                     reg->status &= ~reg_attached;
                     result = 1;
                     break;

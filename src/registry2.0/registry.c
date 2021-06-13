@@ -85,29 +85,42 @@ int registry_tcl_detach(Tcl_Interp* interp, reg_registry* reg,
         reg_error* errPtr) {
     reg_entry** entries;
     reg_file** files;
-    int entry_count;
-    int file_count;
+    reg_portgroup** portgroups;
+    int count;
     int i;
-    entry_count = reg_all_open_entries(reg, &entries);
-    if (entry_count == -1) {
+
+    count = reg_all_open_entries(reg, &entries);
+    if (count == -1) {
         return 0;
     }
-    for (i=0; i<entry_count; i++) {
+    for (i = 0; i < count; i++) {
         if (entries[i]->proc) {
             Tcl_DeleteCommand(interp, entries[i]->proc);
         }
     }
     free(entries);
-    file_count = reg_all_open_files(reg, &files);
-    if (file_count == -1) {
+
+    count = reg_all_open_files(reg, &files);
+    if (count == -1) {
         return 0;
     }
-    for (i = 0; i < file_count; i++) {
+    for (i = 0; i < count; i++) {
         if (files[i]->proc) {
             Tcl_DeleteCommand(interp, files[i]->proc);
         }
     }
     free(files);
+
+    count = reg_all_open_portgroups(reg, &portgroups);
+    if (count == -1) {
+        return 0;
+    }
+    for (i = 0; i < count; i++) {
+        if (portgroups[i]->proc) {
+            Tcl_DeleteCommand(interp, portgroups[i]->proc);
+        }
+    }
+    free(portgroups);
     if (!reg_detach(reg, errPtr)) {
         return registry_failed(interp, errPtr);
     }

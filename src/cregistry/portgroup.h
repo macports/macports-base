@@ -51,5 +51,6 @@ int reg_portgroup_propget(reg_portgroup* portgroup, char* key, char** value,
         reg_error* errPtr);
 int reg_portgroup_propset(reg_portgroup* portgroup, char* key, char* value,
         reg_error* errPtr);
+int reg_all_open_portgroups(reg_registry* reg, reg_portgroup*** portgroups);
 
 #endif /* _CPORTGROUP_H */
