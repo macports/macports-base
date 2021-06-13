@@ -146,6 +146,17 @@ static int entry_delete(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
         if (!reg_entry_delete(entry, &error)) {
             return registry_failed(interp, &error);
         }
+        /* We want to delete the command but not free the entry object,
+           since we may want to restore it (delete_entry_list will free
+           it if the transaction is not rolled back). So remove the
+           command's associated deleteProc first. The reg_entry_free
+           below will take care of it if there is no transaction in
+           progress. */
+        Tcl_CmdInfo info;
+        if (Tcl_GetCommandInfo(interp, Tcl_GetString(objv[2]), &info)) {
+            info.deleteProc = NULL;
+            Tcl_SetCommandInfo(interp, Tcl_GetString(objv[2]), &info);
+        }
         /* if there's a transaction going on, record this entry in a list so we
          * can roll it back if necessary
          */
