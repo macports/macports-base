@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="1">
     <title>MacPorts</title>
-    <options customize="never"/>
+    <options customize="never"__ARCHS__/>
     <allowed-os-versions><os-version min="__XVERS__" before="__NEXT_XVERS__"/></allowed-os-versions>
     <installation-check script="InstallationCheck();"/>
     <script><![CDATA[
