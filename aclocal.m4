@@ -915,7 +915,7 @@ AC_DEFUN([MP_LIBCURL_FLAGS],[
 #
 # Results:
 #   defines some help strings.
-#   sets CFLAGS_SQLITE3 and LDFLAGS_SQLITE3
+#   sets CFLAGS_SQLITE3 and LIBS_SQLITE3
 #---------------------------------------
 AC_DEFUN([MP_SQLITE3_FLAGS],[
     # first sqlite3 itself
@@ -925,7 +925,7 @@ AC_DEFUN([MP_SQLITE3_FLAGS],[
 
 	if test "x$sqlite3prefix" = "x"; then
 		# see if it's somewhere like /usr that needs no extra flags
-		LDFLAGS_SQLITE3="-lsqlite3"
+		LIBS_SQLITE3="-lsqlite3"
 		AC_CHECK_HEADER(sqlite3.h, [],[
 		    # nope - try pkg-config
 			AC_PATH_PROG([PKG_CONFIG], [pkg-config])
@@ -933,7 +933,7 @@ AC_DEFUN([MP_SQLITE3_FLAGS],[
 				AC_MSG_ERROR([cannot find sqlite3 header])
 			else
 				CFLAGS_SQLITE3=$($PKG_CONFIG --cflags sqlite3)
-				LDFLAGS_SQLITE3=$($PKG_CONFIG --libs sqlite3)
+				LIBS_SQLITE3=$($PKG_CONFIG --libs sqlite3)
 				# for tclsqlite below
 				mp_sqlite3_dir=$($PKG_CONFIG --variable=prefix sqlite3)
             			if test "x$mp_sqlite3_dir" != "x"; then
@@ -943,7 +943,7 @@ AC_DEFUN([MP_SQLITE3_FLAGS],[
 		])
 	else
 	    CFLAGS_SQLITE3="-I${sqlite3prefix}/include"
-		LDFLAGS_SQLITE3="-L${sqlite3prefix}/lib -lsqlite3"
+		LIBS_SQLITE3="-L${sqlite3prefix}/lib -lsqlite3"
 	fi
 
 	# check if we have sqlite3ext.h, using the appropriate cppflags
@@ -953,7 +953,7 @@ AC_DEFUN([MP_SQLITE3_FLAGS],[
 	CPPFLAGS="${CPPFLAGS_OLD}"
 
 	AC_SUBST(CFLAGS_SQLITE3)
-	AC_SUBST(LDFLAGS_SQLITE3)
+	AC_SUBST(LIBS_SQLITE3)
 ])
 
 dnl This macro tests if the compiler supports GCC's
@@ -1195,7 +1195,7 @@ AC_DEFUN(MP_CHECK_SQLITE_VERSION, [
 	mp_check_sqlite_version_cppflags_save=$CPPFLAGS
 	mp_check_sqlite_version_libs_save=$LIBS
 	CPPFLAGS="$CPPFLAGS $CFLAGS_SQLITE3"
-	LIBS="$LIBS $LDFLAGS_SQLITE3"
+	LIBS="$LIBS $LIBS_SQLITE3"
 
 	AC_CACHE_VAL([mp_cv_sqlite_version], [
 		AC_PREPROC_IFELSE(
