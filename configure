@@ -687,6 +687,7 @@ TRACEMODE_SUPPORT
 EGREP
 GREP
 CPP
+LIBS_SQLITE3
 LDFLAGS_SQLITE3
 CFLAGS_SQLITE3
 PKG_CONFIG
@@ -7987,7 +7988,8 @@ fi
 
 	if test "x$sqlite3prefix" = "x"; then
 		# see if it's somewhere like /usr that needs no extra flags
-		LDFLAGS_SQLITE3="-lsqlite3"
+		LIBS_SQLITE3="-lsqlite3"
+		LDFLAGS_SQLITE3=""
 		ac_fn_c_check_header_compile "$LINENO" "sqlite3.h" "ac_cv_header_sqlite3_h" "$ac_includes_default"
 if test "x$ac_cv_header_sqlite3_h" = xyes
 then :
@@ -8044,7 +8046,8 @@ fi
 				as_fn_error $? "cannot find sqlite3 header" "$LINENO" 5
 			else
 				CFLAGS_SQLITE3=$($PKG_CONFIG --cflags sqlite3)
-				LDFLAGS_SQLITE3=$($PKG_CONFIG --libs sqlite3)
+				LDFLAGS_SQLITE3=$($PKG_CONFIG --libs-only-L --libs-only-other sqlite3)
+				LIBS_SQLITE3=$($PKG_CONFIG --libs-only-l sqlite3)
 				# for tclsqlite below
 				mp_sqlite3_dir=$($PKG_CONFIG --variable=prefix sqlite3)
             			if test "x$mp_sqlite3_dir" != "x"; then
@@ -8056,7 +8059,8 @@ fi
 
 	else
 	    CFLAGS_SQLITE3="-I${sqlite3prefix}/include"
-		LDFLAGS_SQLITE3="-L${sqlite3prefix}/lib -lsqlite3"
+	    LIBS_SQLITE3="-lsqlite3"
+		LDFLAGS_SQLITE3="-L${sqlite3prefix}/lib"
 	fi
 
 	# check if we have sqlite3ext.h, using the appropriate cppflags
@@ -8070,6 +8074,7 @@ then :
 fi
 
 	CPPFLAGS="${CPPFLAGS_OLD}"
+
 
 
 
@@ -8216,8 +8221,10 @@ printf %s "checking for SQLite version in header... " >&6; }
 
 	mp_check_sqlite_version_cppflags_save=$CPPFLAGS
 	mp_check_sqlite_version_ldflags_save=$LDFLAGS
+	mp_check_sqlite_version_libs_save=$LIBS
 	CPPFLAGS="$CPPFLAGS $CFLAGS_SQLITE3"
 	LDFLAGS="$LDFLAGS $LDFLAGS_SQLITE3"
+	LIBS="$LIBS $LIBS_SQLITE3"
 
 	if test ${mp_cv_sqlite_version+y}
 then :
@@ -8301,6 +8308,7 @@ printf "%s\n" "${mp_cv_sqlite_run_version}" >&6; }
 
 	CPPFLAGS=$mp_check_sqlite_version_cppflags_save
 	LDFLAGS=$mp_check_sqlite_version_ldflags_save
+	LIBS=$mp_check_sqlite_version_libs_save
 
 
 printf "%s\n" "#define MP_SQLITE_VERSION $mp_sqlite_version" >>confdefs.h
