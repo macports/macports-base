@@ -918,7 +918,7 @@ AC_DEFUN([MP_LIBCURL_FLAGS],[
 #   sets CFLAGS_SQLITE3 and LIBS_SQLITE3
 #---------------------------------------
 AC_DEFUN([MP_SQLITE3_FLAGS],[
-    # first sqlite3 itself
+	# first sqlite3 itself
 	AC_ARG_WITH(sqlite3prefix,
 		   [  --with-sqlite3prefix    base directory for the sqlite3 install ('/usr', '/usr/local', ...)],
 		   [  sqlite3prefix=$withval ])
@@ -927,7 +927,7 @@ AC_DEFUN([MP_SQLITE3_FLAGS],[
 		# see if it's somewhere like /usr that needs no extra flags
 		LIBS_SQLITE3="-lsqlite3"
 		AC_CHECK_HEADER(sqlite3.h, [],[
-		    # nope - try pkg-config
+			# nope - try pkg-config
 			AC_PATH_PROG([PKG_CONFIG], [pkg-config])
 			if test "x$PKG_CONFIG" = "x" || ! $PKG_CONFIG --exists sqlite3; then
 				AC_MSG_ERROR([cannot find sqlite3 header])
@@ -936,13 +936,13 @@ AC_DEFUN([MP_SQLITE3_FLAGS],[
 				LIBS_SQLITE3=$($PKG_CONFIG --libs sqlite3)
 				# for tclsqlite below
 				mp_sqlite3_dir=$($PKG_CONFIG --variable=prefix sqlite3)
-            			if test "x$mp_sqlite3_dir" != "x"; then
-                			mp_sqlite3_dir=${mp_sqlite3_dir}/lib/sqlite3
-            			fi
+				if test "x$mp_sqlite3_dir" != "x"; then
+					mp_sqlite3_dir=${mp_sqlite3_dir}/lib/sqlite3
+				fi
 			fi
 		])
 	else
-	    CFLAGS_SQLITE3="-I${sqlite3prefix}/include"
+		CFLAGS_SQLITE3="-I${sqlite3prefix}/include"
 		LIBS_SQLITE3="-L${sqlite3prefix}/lib -lsqlite3"
 	fi
 
@@ -1166,7 +1166,7 @@ AC_DEFUN([MP_WERROR],[
 #------------------------------------------------------------------------
 # MP_CHECK_SQLITE_VERSION --
 #
-#	Check the version of SQLite that was found
+#       Check the version of SQLite that was found
 #
 # Arguments:
 #       None.
@@ -1175,10 +1175,10 @@ AC_DEFUN([MP_WERROR],[
 #       MP_SQLITE3_FLAGS
 #
 # Depends:
-#		AC_LANG_SOURCE
+#       AC_LANG_SOURCE
 #
 # Results:
-#		Result is cached.
+#       Result is cached.
 #
 #       Sets mp_sqlite_version to the older of the SQLite versions
 #       found in the header and at runtime, in the same numeric format
@@ -1217,20 +1217,20 @@ AC_DEFUN(MP_CHECK_SQLITE_VERSION, [
 	AC_MSG_RESULT(${mp_cv_sqlite_version})
 	mp_sqlite_version=${mp_cv_sqlite_version}
 
-    AC_MSG_CHECKING([for SQLite version at runtime])
-    AC_CACHE_VAL([mp_cv_sqlite_run_version], [
-        AC_RUN_IFELSE(
-            [AC_LANG_SOURCE(
+	AC_MSG_CHECKING([for SQLite version at runtime])
+	AC_CACHE_VAL([mp_cv_sqlite_run_version], [
+		AC_RUN_IFELSE(
+			[AC_LANG_SOURCE(
 				[[
-				    #include <stdio.h>
+					#include <stdio.h>
 					#include <sqlite3.h>
 					int main(int argc, char* argv[])
 					{
-					    int vers = sqlite3_libversion_number();
-					    if (argc > 1) {
-					        printf("%d\n", vers);
-					    }
-					    return 0;
+						int vers = sqlite3_libversion_number();
+						if (argc > 1) {
+							printf("%d\n", vers);
+						}
+						return 0;
 					}
 				]]
 			)],
@@ -1238,11 +1238,11 @@ AC_DEFUN(MP_CHECK_SQLITE_VERSION, [
 			[AC_MSG_ERROR("Failed to run sqlite3_libversion_number test program")],
 			[mp_cv_sqlite_run_version=$mp_cv_sqlite_version]
 		)
-    ])
-    AC_MSG_RESULT(${mp_cv_sqlite_run_version})
-    if test "$mp_cv_sqlite_run_version" -lt "$mp_cv_sqlite_version"; then
-        mp_sqlite_version=$mp_cv_sqlite_run_version
-    fi
+	])
+	AC_MSG_RESULT(${mp_cv_sqlite_run_version})
+	if test "$mp_cv_sqlite_run_version" -lt "$mp_cv_sqlite_version"; then
+		mp_sqlite_version=$mp_cv_sqlite_run_version
+	fi
 
 	CPPFLAGS=$mp_check_sqlite_version_cppflags_save
 	LIBS=$mp_check_sqlite_version_libs_save
