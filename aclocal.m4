@@ -1193,9 +1193,9 @@ AC_DEFUN(MP_CHECK_SQLITE_VERSION, [
 	AC_MSG_CHECKING([for SQLite version in header])
 
 	mp_check_sqlite_version_cppflags_save=$CPPFLAGS
-	mp_check_sqlite_version_ldflags_save=$LDFLAGS
+	mp_check_sqlite_version_libs_save=$LIBS
 	CPPFLAGS="$CPPFLAGS $CFLAGS_SQLITE3"
-	LDFLAGS="$LDFLAGS $LDFLAGS_SQLITE3"
+	LIBS="$LIBS $LDFLAGS_SQLITE3"
 
 	AC_CACHE_VAL([mp_cv_sqlite_version], [
 		AC_PREPROC_IFELSE(
@@ -1245,7 +1245,7 @@ AC_DEFUN(MP_CHECK_SQLITE_VERSION, [
     fi
 
 	CPPFLAGS=$mp_check_sqlite_version_cppflags_save
-	LDFLAGS=$mp_check_sqlite_version_ldflags_save
+	LIBS=$mp_check_sqlite_version_libs_save
 ])
 
 #------------------------------------------------------------------------
