@@ -1204,18 +1204,17 @@ AC_DEFUN(MP_CHECK_SQLITE_VERSION, [
 	LIBS="$LIBS $LIBS_SQLITE3"
 
 	AC_CACHE_VAL([mp_cv_sqlite_version], [
+		CPPFLAGS="-dM $CPPFLAGS"
 		AC_PREPROC_IFELSE(
 			[AC_LANG_SOURCE(
 				[[
 					#include <sqlite3.h>
 					#ifndef SQLITE_VERSION_NUMBER
 					#  error "SQLITE_VERSION_NUMBER undefined"
-					#else
-					int mp_sqlite_version = SQLITE_VERSION_NUMBER;
 					#endif
 				]]
 			)],
-			[mp_cv_sqlite_version=`grep '^[[[:space:]]]*int mp_sqlite_version = [[0-9]]*;$' conftest.i | sed -E 's/[[^0-9]]*([[0-9]]+);/\1/'`],
+			[mp_cv_sqlite_version=`fgrep SQLITE_VERSION_NUMBER conftest.i | sed -E 's/[[^0-9]]*([[0-9]]+)/\1/'`],
 			[AC_MSG_ERROR("SQLITE_VERSION_NUMBER undefined or sqlite3.h not found")]
 		)
 	])
@@ -1225,6 +1224,7 @@ AC_DEFUN(MP_CHECK_SQLITE_VERSION, [
 
     AC_MSG_CHECKING([for SQLite version at runtime])
     AC_CACHE_VAL([mp_cv_sqlite_run_version], [
+        CPPFLAGS="$mp_check_sqlite_version_cppflags_save $CFLAGS_SQLITE3"
         AC_RUN_IFELSE(
             [AC_LANG_SOURCE(
 				[[
