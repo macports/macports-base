@@ -3922,9 +3922,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     set portname $portinfo(name)
     set options(subport) $portname
 
-    set ilist {}
-    if {[catch {set ilist [registry::entry imaged $portname]} result]} {
-        if {$result eq "Registry error: $portname not registered as installed."} {
+    if {[catch {registry::entry imaged $portname} result] || $result eq {}} {
+        if {$result eq {}} {
             ui_debug "$portname is *not* installed by MacPorts"
 
             # We need to pass _mportispresent a reference to the mport that is
@@ -3986,6 +3985,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     } else {
         # we'll now take care of upgrading it, so we can add it to the cache
         set depscache(port:$portname) 1
+        set ilist $result
     }
 
     # set version_in_tree and revision_in_tree

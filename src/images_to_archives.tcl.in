@@ -19,7 +19,7 @@ mportinit ui_options
 set tarcmd [macports::findBinary tar ${macports::autoconf::tar_path}]
 set bzip2cmd [macports::findBinary bzip2 ${macports::autoconf::bzip2_path}]
 
-if {[catch {set ilist [registry::entry imaged]}]} {
+if {[catch {registry::entry imaged} ilist] || $ilist eq {}} {
     # no ports installed
     puts "No ports installed to convert."
     exit 0
