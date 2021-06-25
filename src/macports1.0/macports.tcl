@@ -3922,66 +3922,64 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     set portname $portinfo(name)
     set options(subport) $portname
 
-    if {[catch {registry::entry imaged $portname} result] || $result eq {}} {
-        if {$result eq {}} {
-            ui_debug "$portname is *not* installed by MacPorts"
+    if {[catch {registry::entry imaged $portname} result]} {
+        ui_error "Checking installed version failed: $result"
+        return 1
+    } elseif {$result eq {}} {
+        ui_debug "$portname is *not* installed by MacPorts"
 
-            # We need to pass _mportispresent a reference to the mport that is
-            # actually declaring the dependency on the one we're checking for.
-            # We got here via _upgrade_dependencies, so we grab it from 2 levels up.
-            upvar 2 mport parentmport
-            if {![_mportispresent $parentmport $dspec]} {
-                # open porthandle
-                set porturl $portinfo(porturl)
-                if {![info exists porturl]} {
-                    set porturl file://./
-                }
-                # Grab the variations from the parent
-                upvar 2 variations variations
-
-                if {[catch {set mport [mportopen $porturl [array get options] [array get variations]]} result]} {
-                    ui_debug $::errorInfo
-                    ui_error "Unable to open port: $result"
-                    return 1
-                }
-                # While we're at it, update the portinfo
-                array unset portinfo
-                array set portinfo [mportinfo $mport]
-
-                # mark it in the cache now to guard against circular dependencies
-                set depscache(port:$portname) 1
-                # upgrade its dependencies first
-                set status [_upgrade_dependencies portinfo depscache variationslist options]
-                if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
-                    catch {mportclose $mport}
-                    return $status
-                }
-                # now install it
-                if {[catch {set result [mportexec $mport activate]} result]} {
-                    ui_debug $::errorInfo
-                    ui_error "Unable to exec port: $result"
-                    catch {mportclose $mport}
-                    return 1
-                }
-                if {$result > 0} {
-                    ui_error "Problem while installing $portname"
-                    catch {mportclose $mport}
-                    return $result
-                }
-                mportclose $mport
-            } else {
-                # dependency is satisfied by something other than the named port
-                ui_debug "$portname not installed, soft dependency satisfied"
-                # mark this depspec as satisfied in the cache
-                set depscache($dspec) 1
+        # We need to pass _mportispresent a reference to the mport that is
+        # actually declaring the dependency on the one we're checking for.
+        # We got here via _upgrade_dependencies, so we grab it from 2 levels up.
+        upvar 2 mport parentmport
+        if {![_mportispresent $parentmport $dspec]} {
+            # open porthandle
+            set porturl $portinfo(porturl)
+            if {![info exists porturl]} {
+                set porturl file://./
             }
-            # the rest of the proc doesn't matter for a port that is freshly
-            # installed or not installed
-            return 0
+            # Grab the variations from the parent
+            upvar 2 variations variations
+
+            if {[catch {set mport [mportopen $porturl [array get options] [array get variations]]} result]} {
+                ui_debug $::errorInfo
+                ui_error "Unable to open port: $result"
+                return 1
+            }
+            # While we're at it, update the portinfo
+            array unset portinfo
+            array set portinfo [mportinfo $mport]
+
+            # mark it in the cache now to guard against circular dependencies
+            set depscache(port:$portname) 1
+            # upgrade its dependencies first
+            set status [_upgrade_dependencies portinfo depscache variationslist options]
+            if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
+                catch {mportclose $mport}
+                return $status
+            }
+            # now install it
+            if {[catch {set result [mportexec $mport activate]} result]} {
+                ui_debug $::errorInfo
+                ui_error "Unable to exec port: $result"
+                catch {mportclose $mport}
+                return 1
+            }
+            if {$result > 0} {
+                ui_error "Problem while installing $portname"
+                catch {mportclose $mport}
+                return $result
+            }
+            mportclose $mport
         } else {
-            ui_error "Checking installed version failed: $result"
-            return 1
+            # dependency is satisfied by something other than the named port
+            ui_debug "$portname not installed, soft dependency satisfied"
+            # mark this depspec as satisfied in the cache
+            set depscache($dspec) 1
         }
+        # the rest of the proc doesn't matter for a port that is freshly
+        # installed or not installed
+        return 0
     } else {
         # we'll now take care of upgrading it, so we can add it to the cache
         set depscache(port:$portname) 1
