@@ -29,7 +29,7 @@ jobs:
       - name: Build MacPorts Base
         run: |
           set -eu
-          make
+          make -j$(sysctl -n hw.activecpu)
       - name: Install MacPorts Base
         run: |
           set -eu

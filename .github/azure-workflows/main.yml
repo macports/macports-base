@@ -29,7 +29,7 @@ jobs:
         displayName: "Configure MacPorts Base"
       - bash: |
           set -eu
-          make
+          make -j$(sysctl -n hw.activecpu)
         displayName: "Build MacPorts Base"
       - bash: |
           set -eu
