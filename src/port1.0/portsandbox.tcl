@@ -101,8 +101,7 @@ proc portsandbox::set_profile {target} {
         lappend perms file-write-setugid
     }
 
-
-    # If ${prefix} is own its own volume, grant access to its
+    # If ${prefix} is on its own volume, grant access to its
     # temporary items directory, used by Xcode tools
     if {[catch {get_mountpoint ${prefix_frozen}} mountpoint]} {
         ui_debug "get_mountpoint failed: $mountpoint"
