@@ -808,7 +808,7 @@ AC_DEFUN([MP_LIB_MD5],[
 		])
 		ac_save_LIBS="$LIBS"
 		LIBS="-lmd $LIBS"
-		AC_CHECK_FUNCS([SHA1_File])
+		AC_CHECK_DECLS([SHA1_File], [], [], [[#include <sha.h>]])
 		LIBS="$ac_save_LIBS"
 		AC_CHECK_HEADERS([ripemd.h sha256.h])
 		AC_DEFINE([HAVE_LIBMD], ,[Define if you have the `md' library (-lmd).])

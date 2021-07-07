@@ -40,6 +40,10 @@
    `rl_username_completion_function', and to 0 if you don't. */
 #undef HAVE_DECL_RL_USERNAME_COMPLETION_FUNCTION
 
+/* Define to 1 if you have the declaration of `SHA1_File', and to 0 if you
+   don't. */
+#undef HAVE_DECL_SHA1_FILE
+
 /* Define to 1 if you have the declaration of `username_completion_function',
    and to 0 if you don't. */
 #undef HAVE_DECL_USERNAME_COMPLETION_FUNCTION
@@ -143,9 +147,6 @@
 
 /* Define to 1 if you have the `setmode' function. */
 #undef HAVE_SETMODE
-
-/* Define to 1 if you have the `SHA1_File' function. */
-#undef HAVE_SHA1_FILE
 
 /* Define to 1 if you have the <sha256.h> header file. */
 #undef HAVE_SHA256_H
