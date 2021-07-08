@@ -2700,6 +2700,11 @@ proc mportsync {{optionslist {}}} {
         switch -regexp -- [macports::getprotocol $source] {
             {^file$} {
                 set portdir [macports::getportdir $source]
+                if {![file exists ${portdir}]} {
+                    ui_info "Could not access contents of $portdir"
+                    incr numfailed
+                    continue
+                }
                 if {[_source_is_obsolete_svn_repo $portdir]} {
                     set obsoletesvn 1
                 }
