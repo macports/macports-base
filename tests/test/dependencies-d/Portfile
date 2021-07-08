@@ -29,6 +29,7 @@ depends_lib     port:-i_want_b:dependencies-a
 # Check that macports doesn't chunk on this junk, but just generates a warning.
 depends {configure {dependencies-a +i_want_b >= 1}}
 
+test.run    yes
 test {
     # testing consists in processing dependencies
 }

@@ -33,6 +33,7 @@ destroot {
     system "touch ${destroot}${prefix}/lib/${name}"
 }
 
+test.run    yes
 test {
     # test is actually running the fetch target
 }

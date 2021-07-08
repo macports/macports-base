@@ -27,6 +27,7 @@ variant i_want_b {
     depends_lib-append  port:dependencies-b
 }
 
+test.run    yes
 test {
     # testing consists in processing dependencies
 }
