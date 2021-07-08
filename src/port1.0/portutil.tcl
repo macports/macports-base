@@ -1062,7 +1062,7 @@ proc reinplace {args}  {
         close $tmpfd
 
         if {!$quiet && ![catch {exec -ignorestderr cmp -s $file $tmpfile}]} {
-            ui_warn "[format [msgcat::mc "reinplace %1\$s didn't change anything in %2\$s"] $pattern $file]"
+            return -code error "[format [msgcat::mc "reinplace %1\$s didn't change anything in %2\$s"] $pattern $file]"
         }
 
         set attributes [file attributes $file]
