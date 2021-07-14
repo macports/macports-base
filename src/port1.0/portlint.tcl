@@ -454,7 +454,7 @@ proc portlint::lint_main {args} {
             }
     
             if {!$hashline
-                    && ![regexp {^\s*(?:PortSystem|PortGroup|version|license|[A-Za-z0-9_]+\.setup)\s} $line]
+                    && ![regexp {^\s*(?:PortSystem|PortGroup|version|python\.versions|(?:perl5|php|ruby)\.branch(?:es)?|license|[A-Za-z0-9_]+\.setup)\s} $line]
                     && [string first [option version] $line] != -1} {
                 ui_warn "Line $lineno seems to hardcode the version number, consider using \${version} instead"
                 incr warnings
