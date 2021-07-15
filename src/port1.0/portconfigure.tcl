@@ -407,12 +407,14 @@ proc portconfigure::configure_start {args} {
 # configure.universal_archs based on supported_archs and build_arch or
 # universal_archs, plus the SDK being used
 proc portconfigure::choose_supported_archs {archs} {
-    global supported_archs configure.sdk_version
+    global supported_archs configure.sdk_version macos_version_major
 
     if {${configure.sdk_version} ne ""} {
         # Figure out which archs are supported by the SDK
         if {[vercmp ${configure.sdk_version} 11] >= 0} {
             set sdk_archs [list arm64 x86_64]
+        } elseif {${configure.sdk_version} eq "10.14" && $macos_version_major eq "10.14" && [file exists /usr/include/sys/cdefs.h]} {
+            set sdk_archs [list x86_64 i386]
         } elseif {[vercmp ${configure.sdk_version} 10.14] >= 0} {
             set sdk_archs x86_64
         } elseif {[vercmp ${configure.sdk_version} 10.7] >= 0} {
