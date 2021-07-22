@@ -1003,21 +1003,21 @@ proc portconfigure::get_min_gcc {} {
 
     set min_value 1.0
     if {${compiler.c_standard} >= 2017} {
-        set min_value [max_version $min_value 8.0]
+        set min_value [max_version $min_value 8]
     } elseif {${compiler.c_standard} >= 2011} {
         set min_value [max_version $min_value 4.3]
     }  elseif {${compiler.c_standard} >= 1999} {
         set min_value [max_version $min_value 4.0]
     }
     if {${compiler.cxx_standard} >= 2017} {
-        set min_value [max_version $min_value 7.0]
+        set min_value [max_version $min_value 7]
     } elseif {${compiler.cxx_standard} >= 2014} {
-        set min_value [max_version $min_value 5.0]
+        set min_value [max_version $min_value 5]
     } elseif {${compiler.cxx_standard} >= 2011} {
-        set min_value [max_version $min_value 4.8.1]
+        set min_value [max_version $min_value 4.8]
     }
     if {[vercmp ${compiler.openmp_version} 4.5] >= 0} {
-        set min_value [max_version $min_value 8.1]
+        set min_value [max_version $min_value 8]
     } elseif {[vercmp ${compiler.openmp_version} 4.0] >= 0} {
         set min_value [max_version $min_value 4.9]
     } elseif {[vercmp ${compiler.openmp_version} 3.1] >= 0} {
@@ -1035,7 +1035,7 @@ proc portconfigure::get_min_gcc {} {
         ([option compiler.limit_flags] || [option compiler.support_environment_sdkroot]) &&
         [option configure.sdkroot] ne ""
     } {
-        set min_value [max_version $min_value 7.0]
+        set min_value [max_version $min_value 7]
     }
     return ${min_value}
 }
@@ -1044,7 +1044,7 @@ proc portconfigure::get_min_gfortran {} {
     global compiler.openmp_version compiler.thread_local_storage
     set min_value 1.0
     if {[vercmp ${compiler.openmp_version} 4.5] >= 0} {
-        set min_value [max_version $min_value 8.1]
+        set min_value [max_version $min_value 8]
     } elseif {[vercmp ${compiler.openmp_version} 4.0] >= 0} {
         set min_value [max_version $min_value 4.9]
     } elseif {[vercmp ${compiler.openmp_version} 3.1] >= 0} {
@@ -1060,7 +1060,7 @@ proc portconfigure::get_min_gfortran {} {
         ([option compiler.limit_flags] || [option compiler.support_environment_sdkroot]) &&
         [option configure.sdkroot] ne ""
     } {
-        set min_value [max_version $min_value 7.0]
+        set min_value [max_version $min_value 7]
     }
     return ${min_value}
 }
