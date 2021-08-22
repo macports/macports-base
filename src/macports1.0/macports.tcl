@@ -1142,7 +1142,11 @@ match macports.conf.default."
                 }
             } else {
                 if {$os_arch eq "powerpc"} {
-                    set macports::build_arch ppc
+                    if {[sysctl hw.vectorunit] == 1} {
+                        set macports::build_arch ppc7400
+                    } else {
+                        set macports::build_arch ppc
+                    }
                 } else {
                     set macports::build_arch i386
                 }

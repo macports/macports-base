@@ -420,10 +420,10 @@ proc portconfigure::choose_supported_archs {archs} {
         } elseif {[vercmp ${configure.sdk_version} 10.6] >= 0} {
             set sdk_archs [list x86_64 i386 ppc]
         } elseif {[vercmp ${configure.sdk_version} 10.5] >= 0} {
-            set sdk_archs [list x86_64 i386 ppc ppc64]
+            set sdk_archs [list x86_64 i386 ppc ppc7400 ppc64]
         } else {
             # 10.4u
-            set sdk_archs [list i386 ppc ppc64]
+            set sdk_archs [list i386 ppc ppc7400 ppc64]
         }
 
         # Set intersection_archs to the intersection of what's supported by
@@ -456,20 +456,25 @@ proc portconfigure::choose_supported_archs {archs} {
     # e.g. if build_arch is x86_64 it's still possible to build a port
     # that sets supported_archs to "i386 ppc" if the SDK allows it.
     array set arch_demotions [list \
-                                arm64 x86_64 \
-                                x86_64 i386 \
-                                ppc64 ppc \
-                                i386 ppc]
+                                arm64 {x86_64} \
+                                x86_64 {i386} \
+                                ppc64 {ppc7400 ppc} \
+                                ppc7400 {ppc} \
+                                i386 {ppc}]
     foreach arch $archs {
         if {$arch in $intersection_archs} {
-            set add_arch $arch
-        } elseif {[info exists arch_demotions($arch)] && $arch_demotions($arch) in $intersection_archs} {
-            set add_arch $arch_demotions($arch)
-        } else {
-            continue
-        }
-        if {$add_arch ni $ret} {
-            lappend ret $add_arch
+            if {$arch ni $ret} {
+                lappend ret $arch
+            }
+        } elseif {[info exists arch_demotions($arch)]} {
+            foreach demoted_arch $arch_demotions($arch) {
+                if {$demoted_arch in $intersection_archs} {
+                    if {$demoted_arch ni $ret} {
+                        lappend ret $demoted_arch
+                    }
+                    break
+                }
+            }
         }
     }
     return $ret
@@ -487,7 +492,16 @@ proc portconfigure::configure_get_archflags {tool} {
         if {[arch_flag_supported ${configure.compiler}] &&
             $tool in {cc cxx objc objcxx}
         } then {
-            set flags "-arch ${configure.build_arch}"
+            # ppc7400 is PPC + Altivec; it's up to the ports to declare support
+            # for the ppc7400 architecture and to enable/disable Altivec. At the
+            # compiler level, this is done with -maltivec/-mno-altivec, but
+            # projects often have separate compilation paths for Altivec, so
+            # leave these top-level flags alone.
+            if {${configure.build_arch} eq "ppc7400"} {
+                set flags "-arch ppc"
+            } else {
+                set flags "-arch ${configure.build_arch}"
+            }
         } elseif {${configure.build_arch} in [list arm64 ppc64 x86_64]} {
             set flags "-m64"
         } elseif {${configure.compiler} ne "gcc-3.3"} {
@@ -1290,7 +1304,9 @@ proc portconfigure::get_compiler_fallback {} {
     set compilers ""
     lappend compilers {*}${system_compilers}
     # when building for PowerPC architectures, prefer GCC to Clang
-    if {[option configure.build_arch] eq "ppc" || [option configure.build_arch] eq "ppc64"} {
+    if {[option configure.build_arch] eq "ppc" ||
+        [option configure.build_arch] eq "ppc7400" ||
+        [option configure.build_arch] eq "ppc64"} {
         lappend compilers {*}${gcc_compilers}
         lappend compilers {*}${clang_compilers}
     } else {

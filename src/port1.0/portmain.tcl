@@ -118,8 +118,8 @@ default distname {${name}-${version}}
 default worksrcdir {$distname}
 default filespath {[file join $portpath [join $filesdir]]}
 default worksrcpath {[file join $workpath [join $worksrcdir]]}
-# empty list means all archs are supported
-default supported_archs {}
+# Exclude ppc7400, which is an opt-in architecture
+default supported_archs {ppc ppc64 i386 x86_64 arm64}
 default depends_skip_archcheck {}
 default add_users {}
 

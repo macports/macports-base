@@ -412,6 +412,7 @@ proc portlint::lint_main {args} {
                 arm64 arm
                 intel i386
                 ppc powerpc
+                ppc7400 powerpc
                 ppc64 powerpc
                 x86_64 i386
             } {
