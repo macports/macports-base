@@ -91,7 +91,7 @@ namespace eval diagnose {
 
         array set config_options    [list]
         set parser_options          [list macports_location profile_path shell_location \
-                                    xcode_version_${macports::macos_version_major} xcode_build]
+                                    xcode_build]
 
         set user_config_path        "${macports::autoconf::macports_conf_path}/port_diagnose.ini"
         set xcode_config_path       [macports::getdefaultportresourcepath "macports1.0/xcode_versions.ini"]
@@ -600,10 +600,42 @@ namespace eval diagnose {
         if {$xcode_current in $xcode_versions} {
             success_fail 1
         } else {
-            ui_error "currently installed version of Xcode, $xcode_current, is not supported by MacPorts. \
-                      For your currently installed system, only the following versions of Xcode are supported: \
-                      $xcode_versions"
-            success_fail 0
+            foreach ver $xcode_versions {
+                if {[vercmp $xcode_current $ver] < 0} {
+                    # installed Xcode is older than a known good version
+                    set too_old 1
+                    break
+                }
+            }
+            if {![info exists too_old]} {
+                foreach osvers_var [array names config -glob xcode_version_*] {
+                    set osvers [string range $osvers_var [string length xcode_version_] end]
+                    if {[vercmp $osvers $mac_version] > 0} {
+                        foreach xcvers $config(xcode_version_$osvers) {
+                            if {[vercmp $xcode_current $xcvers] >= 0} {
+                                # installed Xcode is for a newer OS version
+                                set too_new 1
+                                break
+                            }
+                        }
+                        if {[info exists too_new]} {
+                            break
+                        }
+                    }
+                }
+            }
+            if {[info exists too_old] || [info exists too_new]} {
+                ui_error "The installed version of Xcode, $xcode_current, is not supported by MacPorts.\
+                          For your currently installed system, the following versions of Xcode are supported:\
+                          $xcode_versions"
+                success_fail 0
+            } else {
+                ui_warn "The installed version of Xcode, $xcode_current, is newer than the versions\
+                         currently known to MacPorts. It most likely works, but has not been tested.\
+                         For your currently installed system, the following versions of Xcode are known to work:\
+                         $xcode_versions"
+                success_fail 1
+            }
         }
     }
 
@@ -658,15 +690,15 @@ namespace eval diagnose {
             #The tokens
             set tokens [split $line "="]
 
-            # Only care about things that are in $parser_options
-            if {[lindex $tokens 0] in $parser_options} {
+            # Only care about things that are in $parser_options or are lists of xcode versions
+            if {[lindex $tokens 0] in $parser_options || [string match xcode_version_* [lindex $tokens 0]]} {
                 set config([lindex $tokens 0]) [lindex $tokens 1]
 
             # Ignore whitespace
             } elseif {[lindex $tokens 0] eq ""} {
                 continue
 
-            } elseif {![string match xcode_version_* [lindex $tokens 0]]} {
+            } else {
                 ui_error "unrecognized config option in file $path: [lindex $tokens 0]"
             }
         }
