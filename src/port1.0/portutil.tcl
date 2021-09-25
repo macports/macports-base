@@ -2606,7 +2606,7 @@ proc PortGroup {group version} {
             set groupFile ${dir}/${group}-${version}.tcl
             if {[file exists $groupFile]} {
                 lappend PortInfo(portgroups) [list $group $version $groupFile]
-                uplevel "source $groupFile"
+                uplevel [list source $groupFile]
                 ui_debug "Sourcing PortGroup $group $version from $groupFile"
                 return
             }
@@ -2617,7 +2617,7 @@ proc PortGroup {group version} {
 
     if {[file exists $groupFile]} {
         lappend PortInfo(portgroups) [list $group $version $groupFile]
-        uplevel "source $groupFile"
+        uplevel [list source $groupFile]
         ui_debug "Sourcing PortGroup $group $version from $groupFile"
     } else {
         ui_error "${subport}: PortGroup ${group} ${version} could not be located. ${group}-${version}.tcl does not exist."
