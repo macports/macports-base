@@ -1,0 +1,33 @@
+"Fix unsafe buffer lifetime" (Tcl bug exposed by LLVM Clang 13 optimization)
+https://core.tcl-lang.org/tcl/info/98af80f133
+
+Index: generic/tclIO.c
+==================================================================
+--- a/vendor/tcl8.5.19/generic/tclIO.c
++++ b/vendor/tcl8.5.19/generic/tclIO.c
+@@ -3811,10 +3811,11 @@
+ {
+     ChannelState *statePtr = chanPtr->state;
+ 				/* State info for channel */
+     char *nextNewLine = NULL;
+     int endEncoding, saved = 0, total = 0, flushed = 0, needNlFlush = 0;
++    char safe[BUFFER_PADDING];
+ 
+     if (srcLen) {
+         WillWrite(chanPtr);
+     }
+ 
+@@ -3829,11 +3830,11 @@
+ 	nextNewLine = memchr(src, '\n', srcLen);
+     }
+ 
+     while (srcLen + saved + endEncoding > 0) {
+ 	ChannelBuffer *bufPtr;
+-	char *dst, safe[BUFFER_PADDING];
++	char *dst;
+ 	int result, srcRead, dstLen, dstWrote, srcLimit = srcLen;
+ 
+ 	if (nextNewLine) {
+ 	    srcLimit = nextNewLine - src;
+ 	}
+
