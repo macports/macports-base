@@ -332,7 +332,7 @@ proc require_portlist { nameportlist {is_upgrade "no"} } {
 
 # Execute the enclosed block once for every element in the portlist
 # When the block is entered, the following variables will have been set:
-#   portspec, porturl, portname, portversion, options, variations, requested_variations
+#   portspec, porturl, portname, portversion, options, variations, requested_variations, portmetadata
 proc foreachport {portlist block} {
     set savedir [pwd]
     foreach portspec $portlist {
@@ -349,6 +349,10 @@ proc foreachport {portlist block} {
             array set requested_variations $portspec(requested_variants)
             array unset options
             array set options $portspec(options)
+            array unset portmetadata
+            if {[info exists portspec(metadata)]} {
+                array set portmetadata $portspec(metadata)
+            }
         }
 
         # Invoke block
@@ -1388,12 +1392,16 @@ proc element { resname } {
             set name [url_to_portname $token]
             if {$name ne ""} {
                 parsePortSpec version requested_variants options
-                add_to_portlist reslist [list url $token \
+                set templist [list url $token \
                   name $name \
                   version $version \
                   requested_variants [array get requested_variants] \
                   variants [array get requested_variants] \
                   options [array get options]]
+                if {$version ne ""} {
+                    lappend templist metadata [list explicit_version 1]
+                }
+                add_to_portlist reslist $templist
                 set el 1
             } else {
                 ui_error "Can't open URL '$token' as a port"
@@ -1404,12 +1412,16 @@ proc element { resname } {
         default             { # Treat anything else as a portspec (portname, version, variants, options
             # or some combination thereof).
             parseFullPortSpec url name version requested_variants options
-            add_to_portlist reslist [list url $url \
+            set templist [list url $url \
               name $name \
               version $version \
               requested_variants [array get requested_variants] \
               variants [array get requested_variants] \
               options [array get options]]
+            if {$version ne ""} {
+                lappend templist metadata [list explicit_version 1]
+            }
+            add_to_portlist reslist $templist
             set el 1
         }
     }
@@ -1427,7 +1439,10 @@ proc add_multiple_ports { resname ports {remainder ""} } {
     parsePortSpec version variants options $remainder
 
     array unset overrides
-    if {$version ne ""} { set overrides(version) $version }
+    if {$version ne ""} {
+        set overrides(version) $version
+        set overrides(metadata) [list explicit_version 1]
+    }
     if {[array size variants]} {
         # we always record the requested variants separately,
         # but requested ones always override existing ones
@@ -4148,7 +4163,8 @@ proc action_target { action portlist opts } {
         if {[string length $portversion]} {
             if {$action eq "clean"} {
                 set options(ports_version_glob) $portversion
-            } elseif {$portversion ne "$portinfo(version)_$portinfo(revision)" && $portversion ne $portinfo(version)} {
+            } elseif {[info exists portmetadata(explicit_version)] && [info exists portinfo(version)] \
+                    && $portversion ne "$portinfo(version)_$portinfo(revision)" && $portversion ne $portinfo(version)} {
                 break_softcontinue "$portname version $portversion is not available (current version is $portinfo(version)_$portinfo(revision))" 1 status
             }
         }
