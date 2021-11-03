@@ -3404,9 +3404,16 @@ proc _check_xcode_version {} {
                 }
             }
 
-            if {${os.major} >= 18 && [option configure.sdk_version] ne "" && ![string match MacOSX[option configure.sdk_version]*.sdk [file tail [option configure.sdkroot]]]} {
-                ui_warn "The macOS [option configure.sdk_version] SDK does not appear to be installed. Ports may not build correctly."
-                ui_warn "You can install it as part of the Xcode Command Line Tools package by running `xcode-select --install'."
+            if {${os.major} >= 18 && [option configure.sdk_version] ne "" &&
+                ![string match MacOSX[option configure.sdk_version]*.sdk [file tail [option configure.sdkroot]]]} {
+                if { [option configure.sdkroot] eq "" } {
+                    ui_warn "The macOS [option configure.sdk_version] SDK is requested but configure.sdkroot is set to"
+                    ui_warn "a NULL string. Ports may not build correctly with this configuration."
+                } else {
+                    ui_warn "The macOS [option configure.sdk_version] SDK does not appear to be match the configured"
+                    ui_warn "SDKROOT '[option configure.sdkroot]'. Ports may not build correctly."
+                    ui_warn "You can install it as part of the Xcode Command Line Tools package by running `xcode-select --install'."
+                }
             }
 
             # Check whether users have agreed to the Xcode license agreement
