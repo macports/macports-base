@@ -1679,7 +1679,7 @@ proc portconfigure::configure_main {args} {
         }
 
         parse_environment xmkmf
-        if {[catch {command_exec {*}${callback} "cd ${worksrcpath} && make Makefiles" -varprefix xmkmf} result]} {
+        if {[catch {command_exec {*}${callback} -varprefix xmkmf "cd ${worksrcpath} && make Makefiles"} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] "make Makefiles" $result]"
         }
     } elseif {[tbool use_configure]} {
