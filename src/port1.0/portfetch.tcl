@@ -364,7 +364,7 @@ proc portfetch::cvsfetch {args} {
         set cvs.cmd "echo ${cvs.password} | ${cvs.cmd}"
         set cvs.args login
         set cvs.post_args ""
-        if {[catch {command_exec cvs -notty "" "2>&1"} result]} {
+        if {[catch {command_exec -notty cvs "" "2>&1"} result]} {
             return -code error [msgcat::mc "CVS login failed"]
         }
         set cvs.cmd ${savecmd}
