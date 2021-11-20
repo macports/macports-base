@@ -378,6 +378,7 @@ proc command_exec {args} {
     set notty ""
     set command_prefix ""
     set command_suffix ""
+    set varprefix ""
 
     while {[llength $args] > 0} {
         switch -glob -- [lindex $args 0] {
@@ -411,7 +412,9 @@ proc command_exec {args} {
     }
 
     set command [lindex $args 0]
-    set varprefix "${command}"
+    if {$varprefix eq ""} {
+        set varprefix "$command"
+    }
 
     if {[llength $args] > 1} {
         set command_prefix [lindex $args 1]
