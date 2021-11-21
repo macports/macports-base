@@ -457,7 +457,7 @@ proc portinstall::install_main {args} {
         }
     }
 
-    registry::entry close $regref
+    #registry::entry close $regref
 
     _cd $oldpwd
     return 0
