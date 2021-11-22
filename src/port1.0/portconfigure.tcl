@@ -1554,6 +1554,15 @@ proc portconfigure::add_automatic_compiler_dependencies {} {
         ui_debug "Adding Fortran compiler dependency"
         portconfigure::add_compiler_port_dependencies [portconfigure::configure_get_fortran_compiler]
     }
+
+    # Clang (LLVM or Xcode) requires OpenMP runtime from libomp
+    # (GCC will use OpenMP runtime from libgcc)
+    if {[option compiler.openmp_version] ne "" && [string match *clang* ${configure.compiler}]} {
+        ui_debug "Adding depends_lib port:libomp"
+        depends_lib-delete "port:libomp"
+        depends_lib-append "port:libomp"
+    }
+
 }
 # Register the above procedure as a callback after Portfile evaluation
 port::register_callback portconfigure::add_automatic_compiler_dependencies
@@ -1623,11 +1632,6 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
                 ui_debug "Adding depends_lib libcxx"
                 depends_lib-delete "port:libcxx"
                 depends_lib-append "port:libcxx"
-            }
-            if {[option compiler.openmp_version] ne ""} {
-                ui_debug "Adding depends_lib port:libomp"
-                depends_lib-delete "port:libomp"
-                depends_lib-append "port:libomp"
             }
         }
     }
