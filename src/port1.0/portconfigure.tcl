@@ -858,9 +858,9 @@ proc portconfigure::max_version {verA verB} {
 #----------------------------------------------------------------
 #| OpenMP Version |  Clang  |  Xcode Clang  |  Xcode  |   GCC   |
 #|---------------------------------------------------------------
-#|      2.5       |   3.8   |    Future?    | Future? |   4.2   |
-#|      3.0       |   3.8   |    Future?    | Future? |   4.4   |
-#|      3.1       |   3.8   |    Future?    | Future? |   4.7   |
+#|      2.5       |   3.8   |   703.0.29    |   7.3   |   4.2   |
+#|      3.0       |   3.8   |   703.0.29    |   7.3   |   4.4   |
+#|      3.1       |   3.8   |   703.0.29    |   7.3   |   4.7   |
 #|      4.0       | Partial |    Future?    | Future? |   4.9   |
 #|      4.5       | Partial |    Future?    | Future? |   ???   |
 #----------------------------------------------------------------
@@ -885,8 +885,10 @@ proc portconfigure::get_min_command_line {compiler} {
     global compiler.c_standard compiler.cxx_standard compiler.openmp_version compiler.thread_local_storage os.major
     set min_value 1.0
 
-    if {${compiler.openmp_version} ne ""} {
-        return none
+    if {[vercmp ${compiler.openmp_version} 4.0] >= 0} {
+        set min_value [max_version $min_value 1000.11.45.2]
+    } elseif {[vercmp ${compiler.openmp_version} 2.5] >= 0} {
+        set min_value [max_version $min_value 703.0.29]
     }
     if {${compiler.thread_local_storage} && ${os.major} < 11} {
         # thread-local storage only works on Mac OS X Lion and above
