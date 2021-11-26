@@ -4322,6 +4322,10 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             _upgrade_cleanup
             return 1
         }
+        # newregref is rendered invalid if the port was uninstalled
+        if {!$is_dryrun} {
+            unset newregref
+        }
         if {!$force_cur} {
             unset options(ports_force)
         }
@@ -4405,6 +4409,10 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     }
 
     if {[info exists uninstall_later] && $uninstall_later} {
+        if {[catch {registry::entry imaged $portname} ilist]} {
+            ui_error "Checking installed version failed: $ilist"
+            return 1
+        }
         foreach i $ilist {
             set version [$i version]
             set revision [$i revision]
@@ -4412,7 +4420,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             if {$version eq $version_in_tree && $revision == $revision_in_tree && $variant eq $portinfo(canonical_active_variants) && $portname eq $newname} {
                 continue
             }
-            set epoch [$i epoch]
             ui_debug "Uninstalling $portname ${version}_${revision}$variant"
             if {$is_dryrun} {
                 ui_msg "Skipping uninstall $portname @${version}_${revision}$variant (dry run)"
