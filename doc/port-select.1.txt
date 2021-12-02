@@ -20,6 +20,9 @@ SYNOPSIS
 [cmdsynopsis]
 *port* [*-dv*] *select* [--set] 'group' 'option'
 
+[cmdsynopsis]
+*port* [*-dv*] *select* [--add] 'group' 'target' 'name':'link' ['name':'link'...]
+
 DESCRIPTION
 -----------
 *port select* provides a mechanism to choose from different implementations of
@@ -60,6 +63,11 @@ OPTIONS
     Make 'option' the primary selection for the 'group' group. This is the
     default when *port select* is called with two arguments.
 
+*--add* 'group' 'target' 'name':'link' ['name':'link'...]::
+    Add a new select group 'group' that provides 'target' with the available
+    selections. Each 'link' in a 'name':'link' can be either a relative or
+    absolute path (relative paths are relative to the MacPorts prefix).
+
 include::global-flags.txt[]
 
 EXAMPLES
@@ -71,6 +79,12 @@ $> sudo port select --set mysql $option
 ----
 where '$option' is 'mysql56' if you want the version from MySQL, or 'percona',
 if you want the version from Percona.
+
+If you have two versions of clang installed (say, clang-12 and clang-13) and you
+want to provide a default clangd at ${prefix}/bin/clangd, use
+---
+$> sudo port select --add clangd bin/clangd clangd-12:bin/clangd-mp-12 clangd-13:bin/clangd-mp-13
+---
 
 SEE ALSO
 --------
