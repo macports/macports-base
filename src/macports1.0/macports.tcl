@@ -4525,14 +4525,17 @@ proc macports::_upgrade_dependencies {portinfoname depscachename variationslistn
 #   * command: The only valid commands are list, set, show and summary
 #   * group: This argument should correspond to a directory under
 #            ${macports::prefix}/etc/select.
-#   * version: This argument is only used by the 'set' command.
+#   * version: This argument is only used by the 'set' and 'add' commands.
+#   * args: Remaining args used by the 'add' command.
 # On error mportselect returns with the code 'error'.
-proc mportselect {command {group ""} {version {}}} {
-    ui_debug "mportselect \[$command] \[$group] \[$version]"
+proc mportselect {command {group ""} {version {}} args} {
+    ui_debug "mportselect \[$command] \[$group] \[$version] \[$args]"
 
     set conf_path ${macports::prefix}/etc/select/$group
-    if {![file isdirectory $conf_path]} {
+    if {$command != "add" && ![file isdirectory $conf_path]} {
         return -code error "The specified group '$group' does not exist."
+    } elseif {$command == "add" && [file isdirectory $conf_path]} {
+        return -code error "The specified group '$group' already exists."
     }
 
     switch -- $command {
@@ -4632,6 +4635,32 @@ proc mportselect {command {group ""} {version {}}} {
                 return none
             } else {
                 return [file readlink $selected_version]
+            }
+        }
+        add {
+            set target $version
+
+            file mkdir ${conf_path}
+            if {[catch {set tgt_file [open ${conf_path}/base w]} result]} {
+                ui_debug "${result}: $::errorInfo"
+                return -code error [concat "The configuration file" \
+                                           "'${conf_path}/base' could not be" \
+                                           "opened."]
+            }
+            puts $tgt_file $target
+            close $tgt_file
+
+            foreach item $args {
+                ui_debug "adding $item"
+                set fields [split $item ":"]
+                lassign $fields name link
+                if {$name eq "" || $name eq "base" || $name eq "current"
+                        || [catch {set src_file [open "${conf_path}/$name" w]} result]} {
+                    ui_debug "${result}: $::errorInfo"
+                    return -code error "The specified name '$name' is not valid."
+                }
+                puts $src_file $link
+                close $src_file
             }
         }
     }
