@@ -70,7 +70,7 @@ tests/libmachista-test: tests/libmachista-test.c libmachista.h libmachista.o has
 # (which didn't matter, since libSystem.B.dylib was still universal on those).
 #
 # The if expression below is basically the equivalent from aclocal.m4 for
-# UNIVERSAL_ARCHS, except that we're always forcing some kind of universiality.
+# UNIVERSAL_ARCHS, except that we're always forcing some kind of universality.
 tests/%${SHLIB_SUFFIX}:
 ifeq (darwin,@OS_PLATFORM@)
 	${SHLIB_LD} \

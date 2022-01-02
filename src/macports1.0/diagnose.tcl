@@ -576,7 +576,7 @@ namespace eval diagnose {
 
     proc check_xcode {config_options} {
 
-        # Checks to see if the currently installed version of Xcode works with the curent OS version.
+        # Checks to see if the currently installed version of Xcode works with the current OS version.
         #
         # Args:
         #           config_options - The associative array containing all options in the config files

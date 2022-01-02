@@ -26,7 +26,7 @@
 #    (relative to ${RSYNCROOT}: dpupdate1 --> release).
 #
 # 
-# Futhermore the ${RSYNCROOT}/trunk path must also hold a (relative) `dports'
+# Furthermore the ${RSYNCROOT}/trunk path must also hold a (relative) `dports'
 # symlink to `../release/ports', so that a sync operation against
 # `dpupdate/ports' for the ports tree works on legacy MacPorts installations
 # (DarwinPorts namespace). Overall, the ${RSYNCROOT} skeleton should look like:

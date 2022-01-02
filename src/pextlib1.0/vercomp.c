@@ -139,7 +139,7 @@ static int vercmp (const char *versionA, const char *versionB) {
 	}
 
 	/* If both pointers are null, all alphanumeric
-	 * characters were identical and only seperating
+	 * characters were identical and only separating
 	 * characters differed. According to RPM, these
 	 * version strings are equal */
 	if (*ptrA == '\0' && *ptrB == '\0')

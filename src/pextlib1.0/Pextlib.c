@@ -511,7 +511,7 @@ static int fileIsBinaryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int
 
     path = Tcl_GetString(objv[1]);
     if (-1 == lstat(path, &st)) {
-        /* an error occured */
+        /* an error occurred */
         Tcl_SetErrno(errno);
         Tcl_ResetResult(interp);
         Tcl_AppendResult(interp, "lstat(", path, "):", (char *)Tcl_PosixError(interp), NULL);

@@ -112,7 +112,7 @@ test option {
 
 
 test exists {
-    Exists unit test. Checks for existance of a Portfile option.
+    Exists unit test. Checks for existence of a Portfile option.
 } -body {
     set vara a
     if {[exists vara] != 1} {return "FAIL: option exists but not detected"}
@@ -168,7 +168,7 @@ test options {
     Options unit test.
 } -body {
     options date
-    if {[date macports] != "macports"} {return "FAIL: incorect options"}
+    if {[date macports] != "macports"} {return "FAIL: incorrect options"}
     return "Options successful."
 } -result "Options successful."
 

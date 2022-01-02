@@ -3911,7 +3911,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         ui_error "port lookup failed: $eMessage"
         return 1
     }
-    # argh! port doesnt exist!
+    # argh! port doesn't exist!
     if {$result eq ""} {
         ui_warn "No port $portname found in the index."
         return 2
@@ -4681,7 +4681,7 @@ proc macports::diagnose_main {opts} {
 ##
 # Run reclaim if necessary
 #
-# @return 0 on success, 1 if an exception occured during the execution
+# @return 0 on success, 1 if an exception occurred during the execution
 #         of reclaim, 2 if the execution was aborted on user request.
 proc macports::reclaim_check_and_run {} {
     if {[macports::ui_isset ports_quiet]} {
@@ -4793,7 +4793,7 @@ proc macports::get_actual_cxx_stdlib {binaries} {
 #        ID load command of binaries should be check for sanity. This is mostly
 #        useful for maintainers.
 # @return 0 if report-only mode is enabled, no ports are broken, or the
-#         rebuilds finished successfully. 1 if an exception occured during the
+#         rebuilds finished successfully. 1 if an exception occurred during the
 #         execution of rev-upgrade, 2 if the execution was aborted on user
 #         request.
 proc macports::revupgrade {opts} {
@@ -5687,7 +5687,7 @@ proc macports::shellescape {arg} {
 ##
 # Given a list of maintainers as recorded in a Portfile, return a list of lists
 # in [key value ...] format describing all maintainers. Valid keys are 'email'
-# which denotes a maintainer's email address, 'github', which preceeds the
+# which denotes a maintainer's email address, 'github', which precedes the
 # GitHub username of the maintainer and 'keyword', which contains a special
 # maintainer keyword such as 'openmaintainer' or 'nomaintainer'.
 #

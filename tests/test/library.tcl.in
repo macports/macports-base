@@ -138,7 +138,7 @@ proc port_uninstall {{name "current"}} {
     return $result
 }
 
-# Returns the line containint a given string
+# Returns the line containing a given string
 # from a given file, or -1 if nothing is found.
 proc get_line {filename lookup} {
     set fp [open $filename r]
@@ -154,7 +154,7 @@ proc get_line {filename lookup} {
     return -1
 }
 
-# This proc contains all the steps necesary
+# This proc contains all the steps necessary
 # to install a port and save the output to a file.
 # Needed for the majority of regression tests.
 proc initial_setup {} {

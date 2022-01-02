@@ -70,7 +70,7 @@ typedef struct macho_loadcmd {
                                        macho_loadcmd_t's (NULL if there's no further element) */
 } macho_loadcmd_t;
 
-/** Stucture describing an architecture within a Mach-O file */
+/** Structure describing an architecture within a Mach-O file */
 typedef struct macho_arch {
     char *mat_install_name;         /* install name of the library or NULL if none */
     char *mat_rpath;                /* rpath of the binary of NULL if none */
@@ -122,7 +122,7 @@ const char *macho_get_arch_name(cpu_type_t cputype);
 
 /**
  * Parses the Mach-O file indicated by filepath and writes a pointer to a macho_t describing the
- * Mach-O file into the location idicated by res. Returns MACHO_SUCCESS on success or any of the
+ * Mach-O file into the location indicated by res. Returns MACHO_SUCCESS on success or any of the
  * following error codes on error:
  *
  * code             description                                     errno set?

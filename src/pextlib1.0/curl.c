@@ -504,7 +504,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		/* a CURLOPT_ACCEPT_ENCODING of "" means to let cURL write the
 		 * Accept-Encoding header for you, based on what the library
 		 * was compiled to support.
-		 * A value of NULL disables all attemps at decompressing responses.
+		 * A value of NULL disables all attempts at decompressing responses.
 		*/
 #ifdef _CURL_ENCODING
 		theCurlCode = curl_easy_setopt(theHandle, _CURL_ENCODING, acceptEncoding);

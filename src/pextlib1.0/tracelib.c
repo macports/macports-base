@@ -833,7 +833,7 @@ static int TracelibRunCmd(Tcl_Interp *in) {
                     /* new data is available, and its processing tells us to
                      * close the socket */
                     || (!process_line(res_kevents[i].ident))) {
-                        /* an error occured or process_line suggested closing
+                        /* an error occurred or process_line suggested closing
                          * this socket */
                         close(res_kevents[i].ident);
                         /* closing the socket will automatically remove it from the
@@ -905,7 +905,7 @@ static int TracelibRunCmd(Tcl_Interp *in) {
                     // We found a PID for the remote side
                     peerpid_list_enqueue(s, peer_pid);
                 } else {
-                    // Error occured, process has probably already terminated
+                    // Error occurred, process has probably already terminated
                     close(s);
                     continue;
                 }

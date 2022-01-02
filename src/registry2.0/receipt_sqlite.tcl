@@ -180,7 +180,7 @@ proc port_registered {name} {
 # @param property
 #        Name of the property to retrieve.
 # @return Return value depends on the property queried. Returns 0 if an error
-#         occured while trying to access the property (but note that 0 may be
+#         occurred while trying to access the property (but note that 0 may be
 #         a perfectly valid value for the key you're querying).
 proc property_retrieve {ref property} {
     switch $property {

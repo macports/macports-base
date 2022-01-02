@@ -41,7 +41,7 @@ package provide macports_dlist 1.0
 # requirements.
 
 # Conceptually a dlist is an ordered list of ditem elements.
-# The order perserves the dependency hierarchy.
+# The order preserves the dependency hierarchy.
 
 # A dlist is an ordinary TCL list.
 # A ditem should be created with the [ditem_create] procedure,
@@ -275,7 +275,7 @@ proc dlist_get_next {dlist statusdict} {
 #              should return {-1, 0, 1}
 #   handler  - the handler to invoke on each ditem
 #   canfail  - If 1, then progress will not stop when a failure
-#              occures; if 0, then dlist_eval will return on the
+#              occurs; if 0, then dlist_eval will return on the
 #              first failure
 #   selector - the selector for determining eligibility
 #   reason_var - variable name to return failure reason in

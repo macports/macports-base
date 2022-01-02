@@ -43,7 +43,7 @@ namespace eval macports_util {
     # Given a list of maintainers as recorded in a Portfile, return a list of
     # lists in [key value ...] format describing all maintainers. Valid keys
     # are 'email' which denotes a maintainer's email address, 'github', which
-    # preceeds the GitHub username of the maintainer and 'keyword', which
+    # precedes the GitHub username of the maintainer and 'keyword', which
     # contains a special maintainer keyword such as 'openmaintainer' or
     # 'nomaintainer'.
     #

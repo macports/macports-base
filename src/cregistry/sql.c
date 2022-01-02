@@ -293,7 +293,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             return 0;
         }
         if (r != SQLITE_ROW) {
-            /* an error occured querying */
+            /* an error occurred querying */
             break;
         }
         if (NULL == (version = (const char *)sqlite3_column_text(stmt, 0))) {

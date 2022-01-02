@@ -343,7 +343,7 @@ int *range;
 
     /*
      * Get the action. 
-     * s = substitue and g = global.
+     * s = substitute and g = global.
      * anything else is invalid.
      *
      * If one of these is present, the next char is the delimiter.
@@ -1255,7 +1255,7 @@ int who;
      * and so on.
      *
      * This function will remember two strings and will return
-     * the next charcter in the range specified by 'who'. This
+     * the next character in the range specified by 'who'. This
      * makes the building of the transliteration table above
      * a trivial loop.
      *
@@ -1362,7 +1362,7 @@ int who;
 int size;
 {
     /*
-     * Get 'size' bytes of memeory one way or another.
+     * Get 'size' bytes of memory one way or another.
      *
      * The 'mem_slots' array holds currently allocated hunks.
      * If we can use one that's already in use then do so, otherwise

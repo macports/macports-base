@@ -207,7 +207,7 @@ do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varna
             }
             case FTS_F:   /* regular file */
             case FTS_SL:  /* symbolic link */
-            case FTS_SLNONE: /* symbolic link with non-existant target */
+            case FTS_SLNONE: /* symbolic link with non-existent target */
             case FTS_DEFAULT: /* file type not otherwise handled (e.g., fifo) */
             {
                 Tcl_Obj *rpath, *path;

@@ -499,7 +499,7 @@ test mportshutdown {
 
 } -body {
     if {[mportshutdown] ne ""} {
-        return "FAIL: errors occured"
+        return "FAIL: errors occurred"
     }
 
     set res ""

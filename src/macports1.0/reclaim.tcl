@@ -35,7 +35,7 @@
 # TODO:
 
 # Finished:
-# Add ui_debug statments
+# Add ui_debug statements
 # Catch some error-prone areas.
 # Remove the useless/structure comments and add actual docstrings.
 # Add copyright notice

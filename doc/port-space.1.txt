@@ -28,7 +28,7 @@ pseudo-port expressions). The last line of output will contain a total.
 If you are only interested in the total of all ports (e.g. if you want to get
 the total amount of space used by your installed ports) use the *--total* flag.
 If you want to sort the output by file size, you can pipe the results of *port
-space* to *sort -n*. Since *port space* defauts to using a suitable unit, you
+space* to *sort -n*. Since *port space* defaults to using a suitable unit, you
 should specify a unit to allow for meaningful numeric sorting, e.g. *port space
 --units KiB* to get all output in KiB.
 

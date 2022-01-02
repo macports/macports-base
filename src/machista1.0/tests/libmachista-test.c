@@ -243,7 +243,7 @@ error_out:
  */
 static void forked_test_handle(void) {
 	macho_handle_t *handle = macho_create_handle();
-	bool result = check(handle != NULL, "Error creating handle (epxected non-NULL, but was NULL)");
+	bool result = check(handle != NULL, "Error creating handle (expected non-NULL, but was NULL)");
 	macho_destroy_handle(handle);
 	exit(!result);
 }
