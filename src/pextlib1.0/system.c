@@ -608,7 +608,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
                 if (event != NULL)
                     SystemCmd_Event_SetSignaled(callback, event, interrupted_by);
 
-                /* set errorCode [list POSIX SIG <SIGNAME> <signal descripton>] */
+                /* set errorCode [list POSIX SIG <SIGNAME> <signal description>] */
                 Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("POSIX", -1));
                 Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("SIG", -1));
                 Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalId(interrupted_by), -1));
@@ -626,7 +626,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
                 if (event != NULL)
                     SystemCmd_Event_SetSignaled(callback, event, WTERMSIG(ret));
 
-                /* set errorCode [list CHILDKILLED <pid> <SIGNAME> <signal descripton>] */
+                /* set errorCode [list CHILDKILLED <pid> <SIGNAME> <signal description>] */
                 Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDKILLED", -1));
                 Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewWideIntObj(pid));
                 Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj(Tcl_SignalId(WTERMSIG(ret)), -1));

@@ -5,7 +5,7 @@
 #
 # For an rsync: repository, if it is the standard MacPorts one and not
 # already tagged, then make it default, if another wasn't already default.
-# For a file:// respository, if it is an svn checkout from the MacPorts
+# For a file:// repository, if it is an svn checkout from the MacPorts
 # server, then make it default if another hasn't already been tagged.
 #
 

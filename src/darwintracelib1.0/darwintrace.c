@@ -315,7 +315,7 @@ static void __darwintrace_get_filemap() {
 #endif
 
 	/*
-	 * ensure we have a filemap present; this might be called simultanously
+	 * ensure we have a filemap present; this might be called simultaneously
 	 * from multiple threads and needs to work without leaking and in a way
 	 * that ensures a filemap has been set before any of the calls return. We
 	 * achieve that by using non-blocking synchronization. Blocking

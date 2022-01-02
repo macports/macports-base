@@ -676,7 +676,7 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
 proc portconfigure::configure_get_developer_dir {} {
     global use_xcode developer_dir
     set cltpath "/Library/Developer/CommandLineTools"
-    # Assume that the existence of libxcselect indiciates the earliest version of
+    # Assume that the existence of libxcselect indicates the earliest version of
     # macOS that places CLT in /Library/Developer/CommandLineTools
     # If port is Xcode-dependent or CommandLineTools directory is invalid, set to developer_dir
     if {[tbool use_xcode]} {
@@ -1088,7 +1088,7 @@ proc portconfigure::get_apple_compilers_xcode_version {} {
     global xcodeversion
     # https://developer.apple.com/library/content/releasenotes/DeveloperTools/RN-Xcode/Chapters/Introduction.html
     # https://developer.apple.com/library/content/documentation/CompilerTools/Conceptual/LLVMCompilerOverview/index.html
-    # Xcode 3.2 relase notes (Link?)
+    # Xcode 3.2 release notes (Link?)
     # About Xcode 3.1 Tools (about_xcode_tools_3.1.pdf, Link?)
     # About Xcode 3.2 (about_xcode_3.2.pdf, Link?)
     #

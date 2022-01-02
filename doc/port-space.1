@@ -33,7 +33,7 @@ port-space \- Show the disk usage of the given ports
 .sp
 By default, \fBport space\fR will print a line with the size in an appropriate unit followed by the name of a port for each port given on the command line (or expanded from a pseudo\-port expression given; see \fBport\fR(1) for more info on pseudo\-port expressions)\&. The last line of output will contain a total\&.
 .sp
-If you are only interested in the total of all ports (e\&.g\&. if you want to get the total amount of space used by your installed ports) use the \fB\-\-total\fR flag\&. If you want to sort the output by file size, you can pipe the results of \fBport space\fR to \fBsort \-n\fR\&. Since \fBport space\fR defauts to using a suitable unit, you should specify a unit to allow for meaningful numeric sorting, e\&.g\&. \fBport space \-\-units KiB\fR to get all output in KiB\&.
+If you are only interested in the total of all ports (e\&.g\&. if you want to get the total amount of space used by your installed ports) use the \fB\-\-total\fR flag\&. If you want to sort the output by file size, you can pipe the results of \fBport space\fR to \fBsort \-n\fR\&. Since \fBport space\fR defaults to using a suitable unit, you should specify a unit to allow for meaningful numeric sorting, e\&.g\&. \fBport space \-\-units KiB\fR to get all output in KiB\&.
 .SH "OPTIONS"
 .PP
 \fB\-\-total\fR*

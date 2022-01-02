@@ -509,7 +509,7 @@ int macho_parse_file(macho_handle_t *handle, const char *filepath, const macho_t
             ret = MACHO_EMEM;
         }
     } else {
-        /* An error occured, free mt */
+        /* An error occurred, free mt */
         free_macho_t((macho_t *)*res);
         *res = NULL;
     }

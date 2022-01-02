@@ -223,9 +223,9 @@ DoHelp(void)
         "escape or quote the ';' to protect it from special handling by your shell.\n"
         "\n"
         "daemondo runs in one of two modes: (1) If no stop-cmd is given, daemondo\n"
-        "executes start-cmd asyncronously, and tracks the process id; that process id\n"
+        "executes start-cmd asynchronously, and tracks the process id; that process id\n"
         "is used to signal the daemon for later stop and/or restart. (2) If stop-cmd\n"
-        "is given, then both start-cmd and stop-cmd are issued syncronously, and are\n"
+        "is given, then both start-cmd and stop-cmd are issued synchronously, and are\n"
         "assumed to do all the work of controlling the daemon. In such cases there is\n"
         "no process id to track. In either mode, restart-cmd, if present, is used to\n"
         "restart the daemon. If in mode 1, restart-cmd must not disrupt the process id.\n"
@@ -360,7 +360,7 @@ DeletePreexistingPidFile(void)
     if (pid != -1) {
 	    if (unlink(pidFile)) {
 	    	if (verbosity >= 3)
-		  		LogMessage("Error %d while trying to cleanup prexisting pidfile %s\n", errno, pidFile);
+		  		LogMessage("Error %d while trying to cleanup preexisting pidfile %s\n", errno, pidFile);
 	  	} else {
  	  		if (verbosity >= 3)
 		  		LogMessage("Deleted preexisting pidfile %s\n", pidFile);

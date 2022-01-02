@@ -473,7 +473,7 @@ proc command_exec {args} {
     # TODO: move that to the system native call?
     # Save the environment.
     array set saved_env [array get env]
-    # Set the overriden variables from the portfile.
+    # Set the overridden variables from the portfile.
     array set env [array get ${varprefix}.env_array]
     # Call the command.
     set fullcmdstring "$command_prefix $cmdstring $command_suffix"

@@ -232,7 +232,7 @@ static inline int check_interpreter(const char *restrict path) {
 			strsep(&interp_end, " \t");
 		}
 
-		/* check the iterpreter against the sandbox */
+		/* check the interpreter against the sandbox */
 		if (!__darwintrace_is_in_sandbox(interp, DT_REPORT | DT_ALLOWDIR | DT_FOLLOWSYMS)) {
 			return ENOENT;
 		}

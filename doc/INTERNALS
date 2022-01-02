@@ -7,7 +7,7 @@ The MacPorts system is composed of three TCL libraries:
 
     These three TCL libraries are grouped as TCL "packages". They allow
 for complex versioning and have a provide/require model of use, making
-them well suited for maintaining a backwards compatable ports system.
+them well suited for maintaining a backwards compatible ports system.
 
     The "macports" TCL Library provides a public API into the MacPorts
 system. Any external application wishing to manipulate a port can

@@ -29,7 +29,7 @@ for {set i 0} {$i < $argc} {incr i} {
             set a [$a cget -next]
         }
     } else {
-        puts "An error occured: [machista::strerror [lindex $rlist 0]]"
+        puts "An error occurred: [machista::strerror [lindex $rlist 0]]"
     }
 }
 machista::destroy_handle $h

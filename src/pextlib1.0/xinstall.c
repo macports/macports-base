@@ -1032,7 +1032,7 @@ strip(const char *to_name)
 
 /*
  * install_dir --
- *	build directory heirarchy
+ *	build directory hierarchy
  */
 int
 install_dir(Tcl_Interp *interp, char *path)

@@ -95,9 +95,9 @@ static int reg_stmt_to_file(void* userdata, void** file, void* stmt,
  * Opens an existing file in the registry.
  *
  * @param [in] reg      registry to open entry in
- * @param [in] id       port id in the dabatase
+ * @param [in] id       port id in the database
  * @param [in] name     file path in the database
- * @param [out] errPtr  on error, a description of the error that occures
+ * @param [out] errPtr  on error, a description of the error that occurs
  * @return              the file if success, NULL if failure
  */
 reg_file* reg_file_open(reg_registry* reg, char* id, char* name,

@@ -4744,7 +4744,7 @@ proc process_cmd { argv } {
         }
 
         # Parse options that will be unique to this action
-        # (to avoid abiguity with -variants and a default port, either -- must be
+        # (to avoid ambiguity with -variants and a default port, either -- must be
         # used to terminate option processing, or the pseudo-port current must be specified).
         if {[catch {parse_options $action ui_options global_options} result]} {
             ui_debug $::errorInfo
@@ -4855,7 +4855,7 @@ proc complete_action { text state } {
 }
 
 proc attempt_completion { text word start end } {
-    # If the word starts with '~', or contains '.' or '/', then use the build-in
+    # If the word starts with '~', or contains '.' or '/', then use the built-in
     # completion to complete the word
     if { [regexp {^~|[/.]} $word] } {
         return ""
@@ -4864,7 +4864,7 @@ proc attempt_completion { text word start end } {
     # Decide how to do completion based on where we are in the string
     set prefix [string range $text 0 [expr {$start - 1}]]
 
-    # If only whitespace characters preceed us, or if the
+    # If only whitespace characters precede us, or if the
     # previous non-whitespace character was a ;, then we're
     # an action (the first word of a command)
     if { [regexp {(^\s*$)|(;\s*$)} $prefix] } {
@@ -5224,7 +5224,7 @@ namespace eval portclient::progress {
         set barWidth      [expr {entier($width) - $percentageWidth - 2}]
 
         # Map the range (0, $total) to (0, 4 * $width) where $width is the maximum
-        # numebr of characters to be printed for the progress bar. Multiply the
+        # number of characters to be printed for the progress bar. Multiply the
         # upper bound with 8 because we have 8 sub-states per character.
         set barProgress   [expr {entier(round(($current * $barWidth * 8) / $total))}]
 
@@ -5397,7 +5397,7 @@ namespace eval portclient::questions {
     # @param time
     #        The amount of time for which a timeout is to occur.
     # @param def
-    #        The default action to be taken in the occurence of a timeout.
+    #        The default action to be taken in the occurrence of a timeout.
     proc ui_timeout {def timeout} {
         fconfigure stdin -blocking 0
 
