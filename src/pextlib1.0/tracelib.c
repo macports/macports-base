@@ -920,7 +920,7 @@ static int TracelibRunCmd(Tcl_Interp *in) {
 error_unlocked:
     pthread_mutex_lock(&evloop_mutex);
 error_locked:
-    // Close remainig sockets to avoid dangling processes
+    // Close remaining sockets to avoid dangling processes
     if (opensockcount > 0) {
 #ifdef HAVE_PEERPID_LIST
         ui_warn(interp, "tracelib: %d open sockets leaking at end of runcmd, closing, sending SIGTERM and SIGKILL", opensockcount);
