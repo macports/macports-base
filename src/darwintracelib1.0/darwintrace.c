@@ -357,7 +357,7 @@ void __darwintrace_close() {
 
 /**
  * Ensures darwintrace is correctly set up by opening a socket connection to
- * the MacPorts-side of trace mode. Will close an re-open this connection when
+ * the MacPorts-side of trace mode. Will close and re-open this connection when
  * called after \c fork(2), i.e. when the current PID doesn't match the one
  * stored when the function was called last.
  */
