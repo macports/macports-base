@@ -77,7 +77,16 @@ option_proc configure.objcxxflags portconfigure::stdlib_trace
 proc portconfigure::should_add_stdlib {} {
     set has_stdlib [expr {[option configure.cxx_stdlib] ne ""}]
     set is_clang [string match *clang* [option configure.cxx]]
-    return [expr {$has_stdlib && $is_clang}]
+    # GCC also supports -stdlib starting with GCC 10 (and devel)
+    set is_gcc_with_stdlib no
+    if { [string match *g*-mp-* [option configure.cxx]] } {
+        # Extract gcc version from value after last -
+        set gcc_ver [lindex [split [option configure.cxx] "-"] end]
+        if { ${gcc_ver} eq "devel" || ${gcc_ver} >= 10 } {
+            set is_gcc_with_stdlib yes
+        }
+    }
+    return [expr {$has_stdlib && ($is_clang || $is_gcc_with_stdlib)}]
 }
 proc portconfigure::should_add_cxx_abi {} {
     # prior to OS X Mavericks, libstdc++ was the default C++ runtime, so
