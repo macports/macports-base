@@ -103,7 +103,7 @@ default hg.dir {${workpath}}
 default hg.tag tip
 
 # Set distfiles
-default distfiles {[list [portfetch::suffix $distname]]}
+default distfiles {[list [portfetch::suffix [join $distname]]]}
 default dist_subdir {${name}}
 
 # user name & password
@@ -220,7 +220,7 @@ set_ui_prefix
 # Given a distname, return the distname with extract.suffix appended
 proc portfetch::suffix {distname} {
     global extract.suffix
-    return "${distname}${extract.suffix}"
+    return ${distname}[join ${extract.suffix}]
 }
 # XXX import suffix into the global namespace as it is currently used from
 # Portfiles, but should better go somewhere else
