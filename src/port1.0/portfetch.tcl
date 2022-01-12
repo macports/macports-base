@@ -103,7 +103,7 @@ default hg.dir {${workpath}}
 default hg.tag tip
 
 # Set distfiles
-default distfiles {[portfetch::suffix $distname]}
+default distfiles {[list [portfetch::suffix $distname]]}
 default dist_subdir {${name}}
 
 # user name & password
