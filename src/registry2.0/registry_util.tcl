@@ -127,8 +127,14 @@ proc run_target {port target options} {
     }
 
     if {![catch {set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] $options]}]} {
-        if {[catch {set result [mportexec $mport $target]} result] || $result != 0} {
+        set failed 0
+        if {[catch {mportexec $mport $target} result]} {
             ui_debug $::errorInfo
+            set failed 1
+        } elseif {$result != 0} {
+            set failed 1
+        }
+        if {$failed} {
             catch {mportclose $mport}
             ui_warn "Failed to execute portfile from registry for $portspec"
             switch $target {
