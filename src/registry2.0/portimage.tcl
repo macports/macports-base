@@ -773,7 +773,7 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     set files [list]
 
     foreach file $imagefiles {
-        if { [::file exists $file] || (![catch {::file type $file}] && [::file type $file] eq "link") } {
+        if { [::file exists $file] || (![catch {::file type $file} ft] && $ft eq "link") } {
             # Normalize the file path to avoid removing the intermediate
             # symlinks (remove the empty directories instead)
             # Remark: paths in the registry may be not normalized.
