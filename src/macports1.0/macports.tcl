@@ -3937,13 +3937,12 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                     return $status
                 }
                 # now install it
-                if {[catch {set result [mportexec $mport activate]} result]} {
+                if {[catch {mportexec $mport activate} result]} {
                     ui_debug $::errorInfo
                     ui_error "Unable to exec port: $result"
                     catch {mportclose $mport}
                     return 1
-                }
-                if {$result > 0} {
+                } elseif {$result != 0} {
                     ui_error "Problem while installing $portname"
                     catch {mportclose $mport}
                     return $result
@@ -4350,8 +4349,14 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         }
         ui_msg "Skipping activate $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
     } else {
+        set failed 0
         if {[catch {mportexec $mport activate} result]} {
             ui_debug $::errorInfo
+            set failed 1
+        } elseif {$result != 0} {
+            set failed 1
+        }
+        if {$failed} {
             ui_error "Couldn't activate $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants): $result"
             catch {mportclose $mport}
             return 1
@@ -4360,6 +4365,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             $workername eval "set ::portstartupitem::load_only [list $loaded_startupitems]"
             if {[catch {mportexec $mport load} result]} {
                 ui_debug $::errorInfo
+                ui_warn "Error loading startupitem(s) for ${newname}: $result"
+            } elseif {$result != 0} {
                 ui_warn "Error loading startupitem(s) for ${newname}: $result"
             }
             $workername eval "unset ::portstartupitem::load_only"
