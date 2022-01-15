@@ -4254,28 +4254,31 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             # doing this instead of just running install ensures that we have the
             # new copy ready but not yet installed, so we can safely uninstall the
             # existing one.
-            if {[catch {set result [mportexec $mport archivefetch]} result] || $result != 0} {
-                if {[info exists ::errorInfo]} {
-                    ui_debug $::errorInfo
-                }
+            if {[catch {mportexec $mport archivefetch} result]} {
+                ui_debug $::errorInfo
+                catch {mportclose $mport}
+                return 1
+            } elseif {$result != 0} {
                 catch {mportclose $mport}
                 return 1
             }
             # the following is a noop if archivefetch found an archive
-            if {[catch {set result [mportexec $mport destroot]} result] || $result != 0} {
-                if {[info exists ::errorInfo]} {
-                    ui_debug $::errorInfo
-                }
+            if {[catch {mportexec $mport destroot} result]} {
+                ui_debug $::errorInfo
+                catch {mportclose $mport}
+                return 1
+            } elseif {$result != 0} {
                 catch {mportclose $mport}
                 return 1
             }
         } else {
             # Normal non-forced case
             # install version_in_tree (but don't activate yet)
-            if {[catch {set result [mportexec $mport install]} result] || $result != 0} {
-                if {[info exists ::errorInfo]} {
-                    ui_debug $::errorInfo
-                }
+            if {[catch {mportexec $mport install} result]} {
+                ui_debug $::errorInfo
+                catch {mportclose $mport}
+                return 1
+            } elseif {$result != 0} {
                 catch {mportclose $mport}
                 return 1
             }
