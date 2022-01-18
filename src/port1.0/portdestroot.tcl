@@ -205,88 +205,73 @@ proc portdestroot::destroot_finish {args} {
     set bunzip2 "[findBinary bzip2 ${portutil::autoconf::bzip2_path}] -d"
     if {[file isdirectory ${manpath}] && [file type ${manpath}] eq "directory"} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Compressing man pages for %s"] ${subport}]"
-        set found 0
+        set manfiles [list]
         set manlinks [list]
         set mandir_re {^(cat|man)(.)$}
 
-        foreach mandir [readdir "${manpath}"] {
-            if {![regexp ${mandir_re} ${mandir} match ignore manindex]} { continue }
-            set gzfile_re "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$"
-            set bz2file_re "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$"
-            set normalfile_re "\[.\]${manindex}\[a-z\]*\$"
+        # Get an inventory of manpages and symlinks.
+        foreach mandir [readdir ${manpath}] {
+            if {![regexp ${mandir_re} ${mandir} -> ignore manindex]} {continue}
             set mandirpath [file join ${manpath} ${mandir}]
-            if {[file isdirectory ${mandirpath}] && [file type ${mandirpath}] eq "directory"} {
-                ui_debug "Scanning ${mandir}"
-                foreach manfile [readdir ${mandirpath}] {
-                    set manfilepath [file join ${mandirpath} ${manfile}]
-                    if {[file isfile ${manfilepath}] && [file type ${manfilepath}] eq "file"} {
-                        if {[regexp ${gzfile_re} ${manfile} gzfile manfile]} {
-                            set found 1
-                            system -W ${manpath} \
-                            "$gunzip -f [file join ${mandir} ${gzfile}] && \
-                            $gzip -9vnf [file join ${mandir} ${manfile}]"
-                        } elseif {[regexp ${bz2file_re} ${manfile} bz2file manfile]} {
-                            set found 1
-                            system -W ${manpath} \
-                            "$bunzip2 -f [file join ${mandir} ${bz2file}] && \
-                            $gzip -9vnf [file join ${mandir} ${manfile}]"
-                        } elseif {[regexp ${normalfile_re} ${manfile}]} {
-                            set found 1
-                            system -W ${manpath} \
-                            "$gzip -9vnf [file join ${mandir} ${manfile}]"
-                        }
-                        set gzmanfile ${manfile}.gz
-                        set gzmanfilepath [file join ${mandirpath} ${gzmanfile}]
-                        if {[file exists ${gzmanfilepath}]} {
-                            set desired 00444
-                            set current [file attributes ${gzmanfilepath} -permissions]
-                            if {$current != $desired} {
-                                ui_info "[file join ${mandir} ${gzmanfile}]: changing permissions from $current to $desired"
-                                file attributes ${gzmanfilepath} -permissions $desired
-                            }
-                        }
-                    } elseif {[file type ${manfilepath}] eq "link"} {
-                        lappend manlinks [file join ${mandir} ${manfile}]
+            if {!([file isdirectory ${mandirpath}] && [file type ${mandirpath}] eq "directory")} {continue}
+            ui_debug "Scanning ${mandir}"
+            set manfile_re "^(.+\\.${manindex}\[a-z\]*)(|\\.bz2|\\.gz)\$"
+            set manlinksrc_re {^(.+?)(|\.bz2|\.gz)$}
+            foreach manfile [readdir ${mandirpath}] {
+                set manfilepath [file join ${mandirpath} ${manfile}]
+                if {![regexp ${manfile_re} ${manfile} -> manfile manfileext]} {continue}
+                if {[file isfile ${manfilepath}] && [file type ${manfilepath}] eq "file"} {
+                    lappend manfiles ${mandir} ${manfile} ${manfileext}
+                } elseif {[file type ${manfilepath}] eq "link"} {
+                    set manlinksrc [file readlink ${manfilepath}]
+                    if {[file pathtype ${manlinksrc}] eq "absolute"} {
+                        set manlinksrcpath ${destroot}${manlinksrc}
+                    } else {
+                        set manlinksrcpath ${mandirpath}/${manlinksrc}
                     }
+                    if {![regexp ${manlinksrc_re} ${manlinksrc} -> manlinksrc manlinksrcext]} {continue}
+                    if {${manlinksrcext} eq ".gz"} {continue}
+                    if {[catch {set manlinksrctype [file type ${manlinksrcpath}]}]} {continue}
+                    if {${manlinksrctype} ni [list file link]} {continue}
+                    lappend manlinks ${mandir} ${manfile} ${manfileext} ${manlinksrc} ${manlinksrcext}
                 }
             }
         }
-        if {$found == 1} {
-            # check man page links and rename/repoint them if necessary
-            set gzext_re "\[.\]gz\$"
-            foreach manlink $manlinks {
-                set manlinkpath [file join $manpath $manlink]
-                # if link destination is not gzipped, check it
-                set manlinksrc [file readlink $manlinkpath]
-                if {![regexp ${gzext_re} ${manlinksrc}]} {
-                    set mandir [file dirname $manlink]
-                    set mandirpath [file join $manpath $mandir]
-                    set pwd [pwd]
-                    if {[catch {_cd $mandirpath} err]} {
-                        puts $err
-                        return
+        if {[llength ${manfiles}] > 0} {
+            # Recompress manpages.
+            foreach {mandir manfile manfileext} ${manfiles} {
+                set mandirpath [file join ${manpath} ${mandir}]
+                set manfilepath [file join ${mandirpath} ${manfile}]
+                switch ${manfileext} {
+                    .bz2 {
+                        system "${bunzip2} -f [shellescape ${manfilepath}.bz2]"
                     }
-                    # if link source is an absolute path, check for it under destroot
-                    set mls_check "$manlinksrc"
-                    if {[file pathtype $mls_check] eq "absolute"} {
-                        set mls_check "${destroot}${mls_check}"
+                    .gz {
+                        system "${gunzip} -f [shellescape ${manfilepath}.gz]"
                     }
-                    # if gzipped destination exists, fix link
-                    if {[file isfile ${mls_check}.gz]} {
-                        # if actual link name does not end with gz, rename it
-                        if {![regexp ${gzext_re} ${manlink}]} {
-                            ui_debug "renaming link: $manlink to ${manlink}.gz"
-                            file rename $manlinkpath ${manlinkpath}.gz
-                            set manlink ${manlink}.gz
-                            set manlinkpath [file join $manpath $manlink]
-                        }
-                        # repoint the link
-                        ui_debug "repointing link: $manlink from $manlinksrc to ${manlinksrc}.gz"
-                        file delete $manlinkpath
-                        ln -s "${manlinksrc}.gz" "${manlinkpath}"
-                    }
-                    _cd $pwd
                 }
+                system "${gzip} -9vnf [shellescape ${manfilepath}]"
+                set gzmanfile ${manfile}.gz
+                set gzmanfilepath [file join ${mandirpath} ${gzmanfile}]
+                if {![file exists ${gzmanfilepath}]} {continue}
+                set desired 00444
+                set current [file attributes ${gzmanfilepath} -permissions]
+                if {${current} == ${desired}} {continue}
+                ui_info "[file join ${mandir} ${gzmanfile}]: changing permissions from ${current} to ${desired}"
+                file attributes ${gzmanfilepath} -permissions ${desired}
+            }
+
+            # Fix symlinks.
+            foreach {mandir manfile manfileext manlinksrc manlinksrcext} ${manlinks} {
+                set mandirpath [file join ${manpath} ${mandir}]
+                set manfilepath [file join ${mandirpath} ${manfile}]
+                set mandirfile [file join ${mandir} ${manfile}]
+                if {${manfileext} ne ".gz"} {
+                    ui_debug "renaming link: ${mandirfile}${manfileext} to ${mandirfile}.gz"
+                }
+                ui_debug "repointing link: ${mandirfile}.gz from ${manlinksrc}${manlinksrcext} to ${manlinksrc}.gz"
+                file delete ${manfilepath}${manfileext}
+                ln -s ${manlinksrc}.gz ${manfilepath}.gz
             }
         } else {
             ui_debug "No man pages found to compress."
