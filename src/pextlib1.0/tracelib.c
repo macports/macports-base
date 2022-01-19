@@ -113,6 +113,15 @@ static Tcl_Interp *interp;
 
 static mount_cs_cache_t *mount_cs_cache;
 
+typedef struct path_cache_value {
+    char answer;
+} path_cache_value_t;
+/* Querying the SQLite database is surprisingly expensive. Cache all previous
+ * lookups we've done in a hash map to avoid hitting the database multiple
+ * times for the same entries. */
+static Tcl_HashTable path_cache;
+static bool path_cache_initialized = false;
+
 /**
  * Mutex that shall be acquired to exclusively lock checking and acting upon
  * the value of kq, indicating whether the event loop has started. If it has
@@ -611,13 +620,23 @@ static int pointer_strcmp(const char** a, const char** b) {
 static void dep_check(int sock, char *path) {
     char *port = 0;
     int fs_cs = -1;
+    int is_new = 0;
     reg_registry *reg;
     reg_entry entry;
     reg_error error;
 
+    Tcl_HashEntry *cache_entry = Tcl_FindHashEntry(&path_cache, path);
+    if (cache_entry) {
+        const char* cache_value = Tcl_GetHashValue(cache_entry);
+        if (cache_value != NULL) {
+            answer(sock, cache_value);
+            return;
+        }
+    }
+
     if (NULL == (reg = registry_for(interp, reg_attached))) {
         ui_error(interp, "%s", Tcl_GetStringResult(interp));
-        /* send unexpected output to make the build fail */
+        /* send unexpected output to make the build fail; do not cache */
         answer(sock, "#");
     }
 
@@ -642,14 +661,17 @@ static void dep_check(int sock, char *path) {
     entry.proc = NULL;
     entry.id = reg_entry_owner_id(reg, path, fs_cs);
     if (entry.id == 0) {
-        /* file isn't known to MacPorts */
+        /* file isn't known to MacPorts, cache this result */
+        Tcl_HashEntry *cache_entry = Tcl_CreateHashEntry(&path_cache, path, &is_new);
+        Tcl_SetHashValue(cache_entry, "?");
+
         answer(sock, "?");
         return;
     }
 
     /* find the port's name to compare with out list */
     if (!reg_entry_propget(&entry, "name", &port, &error)) {
-        /* send unexpected output to make the build fail */
+        /* send unexpected output to make the build fail, but do not cache this result */
         ui_error(interp, "%s", error.description);
         answer(sock, "#");
     }
@@ -658,9 +680,17 @@ static void dep_check(int sock, char *path) {
     if (NULL != bsearch(&port, depends, dependsLength, sizeof(*depends),
                         (int (*)(const void*, const void*)) pointer_strcmp)) {
         free(port);
+        /* access granted, cache this result */
+        Tcl_HashEntry *cache_entry = Tcl_CreateHashEntry(&path_cache, path, &is_new);
+        Tcl_SetHashValue(cache_entry, "+");
+
         answer(sock, "+");
     } else {
         free(port);
+        /* access denied, cache this result */
+        Tcl_HashEntry *cache_entry = Tcl_CreateHashEntry(&path_cache, path, &is_new);
+        Tcl_SetHashValue(cache_entry, "!");
+
         answer(sock, "!");
     }
 }
@@ -738,6 +768,13 @@ static int TracelibRunCmd(Tcl_Interp *in) {
     else {
         mount_cs_cache = new_mount_cs_cache();
     }
+
+    /* (Re-)initialize path cache */
+    if (path_cache_initialized) {
+        Tcl_DeleteHashTable(&path_cache);
+    }
+    Tcl_InitHashTable(&path_cache, TCL_STRING_KEYS);
+    path_cache_initialized = true;
 
     pthread_mutex_lock(&evloop_mutex);
     /* bring all variables into a defined state so the cleanup code can be
@@ -950,6 +987,12 @@ error_locked:
 
         free(mount_cs_cache);
         mount_cs_cache = NULL;
+    }
+
+    /* Free path cache. */
+    if (path_cache_initialized) {
+        Tcl_DeleteHashTable(&path_cache);
+        path_cache_initialized = false;
     }
 
     return retval;
