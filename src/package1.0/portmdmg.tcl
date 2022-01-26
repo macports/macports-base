@@ -86,14 +86,14 @@ proc portmdmg::package_mdmg {portname portversion portrevision} {
     }
 
     set hdiutil [findBinary hdiutil $portutil::autoconf::hdiutil_path]
-    if {[system "$hdiutil create -quiet -fs HFS+ -volname ${imagename} -srcfolder ${mpkgpath} ${tmp_image}"] ne ""} {
+    if {[system "$hdiutil create -quiet -fs HFS+ -volname ${imagename} -srcfolder [shellescape ${mpkgpath}] [shellescape ${tmp_image}]"] ne ""} {
         return -code error [format [msgcat::mc "Failed to create temporary image: %s"] ${imagename}]
     }
-    if {[system "$hdiutil convert ${tmp_image} -format UDCO -o ${final_image} -quiet"] ne ""} {
+    if {[system "$hdiutil convert [shellescape ${tmp_image}] -format UDCO -o [shellescape ${final_image}] -quiet"] ne ""} {
         return -code error [format [msgcat::mc "Failed to convert to final image: %s"] ${final_image}]
     }
     # internet-enable verb removed from hdiutil in Catalina
-    if {${os.major} < 19 && [system "$hdiutil internet-enable -quiet -yes ${final_image}"] ne ""} {
+    if {${os.major} < 19 && [system "$hdiutil internet-enable -quiet -yes [shellescape ${final_image}]"] ne ""} {
         return -code error [format [msgcat::mc "Failed to internet-enable: %s"] ${final_image}]
     }
     file delete -force "${tmp_image}"

@@ -2908,13 +2908,13 @@ proc mportsync {{optionslist {}}} {
                 set striparg "--strip-components=1"
 
                 set tar [macports::findBinary tar $macports::autoconf::tar_path]
-                if {[catch {system -W "${destdir}" "$tar $verboseflag $striparg $extflag -xf $tarpath"} error]} {
+                if {[catch {system -W ${destdir} "$tar $verboseflag $striparg $extflag -xf [macports::shellescape $tarpath]"} error]} {
                     ui_error "Extracting $source failed ($error)"
                     incr numfailed
                     continue
                 }
 
-                if {[catch {system "chmod -R a+r \"$destdir\""}]} {
+                if {[catch {system "chmod -R a+r [macports::shellescape $destdir]"}]} {
                     ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
                 }
 
@@ -2944,7 +2944,7 @@ proc mportsync {{optionslist {}}} {
             if {![info exists options(no_reindex)]} {
                 global macports::prefix
                 set indexdir [file dirname [macports::getindex $source]]
-                if {[catch {system "${macports::prefix}/bin/portindex $indexdir"}]} {
+                if {[catch {system "${macports::prefix}/bin/portindex [macports::shellescape $indexdir]"}]} {
                     ui_error "updating PortIndex for $source failed"
                 }
             }

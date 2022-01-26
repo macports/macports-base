@@ -137,8 +137,8 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
         set packages_path ${mpkgpath}/Contents/Packages
         set resources_path ${mpkgpath}/Contents/Resources
     }
-    system "mkdir -p -m 0755 ${packages_path}"
-    system "mkdir -p -m 0755 ${resources_path}"
+    system "mkdir -p -m 0755 [shellescape ${packages_path}]"
+    system "mkdir -p -m 0755 [shellescape ${resources_path}]"
 
     set dependencies {}
     # get deplist
@@ -166,7 +166,7 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
     }
 
     # copy our own pkg into the mpkg
-    system "cp -PR ${pkgpath} ${packages_path}"
+    system "cp -PR [shellescape ${pkgpath}] [shellescape ${packages_path}]"
 
     if {!${package.flat} || ${os.major} < 10} {
         portpkg::write_PkgInfo ${mpkgpath}/Contents/PkgInfo
@@ -189,7 +189,7 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
         write_distribution ${workpath}/Distribution $portname $dependencies
         set productbuild [findBinary productbuild]
         set v [portpkg::mp_version_to_apple_version $portepoch $portversion $portrevision]
-        set cmdline "$productbuild --resources ${resources_path} --identifier org.macports.mpkg.${portname} --distribution ${workpath}/Distribution --package-path ${packages_path} --version ${v} ${mpkgpath}"
+        set cmdline "$productbuild --resources [shellescape ${resources_path}] --identifier org.macports.mpkg.${portname} --distribution [shellescape ${workpath}/Distribution] --package-path [shellescape ${packages_path}] --version ${v} [shellescape ${mpkgpath}]"
         ui_debug "Running command line: $cmdline"
         system $cmdline
     }

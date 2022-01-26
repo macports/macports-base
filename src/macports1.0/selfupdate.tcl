@@ -69,7 +69,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
     # sync the MacPorts sources
     ui_msg "$macports::ui_prefix Updating MacPorts base sources using rsync"
     try -pass_signal {
-        system "$rsync_path $rsync_options rsync://${rsync_server}/$rsync_dir $mp_source_path"
+        system "$rsync_path $rsync_options [macports::shellescape rsync://${rsync_server}/$rsync_dir] [macports::shellescape $mp_source_path]"
     } catch {{*} eCode eMessage} {
         error "Error synchronizing MacPorts sources: $eMessage"
     }
@@ -78,7 +78,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
         # verify signature for tarball
         global macports::archivefetch_pubkeys
         try -pass_signal {
-            system "$rsync_path $rsync_options rsync://${rsync_server}/${rsync_dir}.rmd160 $mp_source_path"
+            system "$rsync_path $rsync_options [macports::shellescape rsync://${rsync_server}/${rsync_dir}.rmd160] [macports::shellescape $mp_source_path]"
         } catch {{*} eCode eMessage} {
             error "Error synchronizing MacPorts source signature: $eMessage"
         }
@@ -104,7 +104,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
         # extract tarball and move into place
         set tar [macports::findBinary tar $macports::autoconf::tar_path]
         file mkdir ${mp_source_path}/tmp
-        set tar_cmd "$tar -C ${mp_source_path}/tmp -xf $tarball"
+        set tar_cmd "$tar -C [macports::shellescape ${mp_source_path}/tmp] -xf [macports::shellescape $tarball]"
         try -pass_signal {
             system $tar_cmd
         } catch {*} {
@@ -200,7 +200,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
                     foreach check_dir $check_dirs {
                         set sdk ${check_dir}/MacOSX${sdk_version}.sdk
                         if {[file exists $sdk]} {
-                            set sdk_arg "SDKROOT=${sdk} "
+                            set sdk_arg "SDKROOT=[macports::shellescape ${sdk}] "
                             break
                         } elseif {$::macports::os_major >= 20} {
                             set matches [glob -nocomplain -directory ${check_dir} MacOSX${sdk_version}*.sdk]
@@ -208,7 +208,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
                                 set matches [lsort -decreasing -command vercmp $matches]
                             }
                             if {[llength $matches] > 0} {
-                                set sdk_arg "SDKROOT=[lindex $matches 0] "
+                                set sdk_arg "SDKROOT=[macports::shellescape [lindex $matches 0]] "
                                 break
                             }
                         }
