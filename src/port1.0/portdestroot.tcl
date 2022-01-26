@@ -112,12 +112,12 @@ proc portdestroot::destroot_start {args} {
 
     file mkdir "${destroot}"
     if { ${os.platform} eq "darwin" } {
-        system -W ${destroot} "${mtree} -e -U -f [file join ${portsharepath} install macosx.mtree]"
+        system -W ${destroot} "${mtree} -e -U -f [shellescape [file join ${portsharepath} install macosx.mtree]]"
         file mkdir "${destroot}${applications_dir}"
         file mkdir "${destroot}${frameworks_dir}"
     }
     file mkdir "${destroot}${prefix}"
-    system -W ${destroot}${prefix} "${mtree} -e -U -f [file join ${portsharepath} install prefix.mtree]"
+    system -W ${destroot}${prefix} "${mtree} -e -U -f [shellescape [file join ${portsharepath} install prefix.mtree]]"
 
     # Create startup-scripts/items
     portstartupitem::startupitem_create
@@ -223,17 +223,17 @@ proc portdestroot::destroot_finish {args} {
                         if {[regexp ${gzfile_re} ${manfile} gzfile manfile]} {
                             set found 1
                             system -W ${manpath} \
-                            "$gunzip -f [file join ${mandir} ${gzfile}] && \
-                            $gzip -9vnf [file join ${mandir} ${manfile}]"
+                            "$gunzip -f [shellescape [file join ${mandir} ${gzfile}]] && \
+                            $gzip -9vnf [shellescape [file join ${mandir} ${manfile}]]"
                         } elseif {[regexp ${bz2file_re} ${manfile} bz2file manfile]} {
                             set found 1
                             system -W ${manpath} \
-                            "$bunzip2 -f [file join ${mandir} ${bz2file}] && \
-                            $gzip -9vnf [file join ${mandir} ${manfile}]"
+                            "$bunzip2 -f [shellescape [file join ${mandir} ${bz2file}]] && \
+                            $gzip -9vnf [shellescape [file join ${mandir} ${manfile}]]"
                         } elseif {[regexp ${normalfile_re} ${manfile}]} {
                             set found 1
                             system -W ${manpath} \
-                            "$gzip -9vnf [file join ${mandir} ${manfile}]"
+                            "$gzip -9vnf [shellescape [file join ${mandir} ${manfile}]]"
                         }
                         set gzmanfile ${manfile}.gz
                         set gzmanfilepath [file join ${mandirpath} ${gzmanfile}]
