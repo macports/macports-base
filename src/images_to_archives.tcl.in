@@ -99,7 +99,7 @@ foreach installed $ilist {
             file rename $oldarchivefullpath $newlocation
         } elseif {$installtype eq "image" && [file isdirectory $location]} {
             # create archive from image dir
-            system -W $location "$tarcmd -cjf $newlocation * > ${targetdir}/error.log 2>&1"
+            system -W $location "$tarcmd -cjf [macports::shellescape $newlocation] * > [macports::shellescape ${targetdir}/error.log] 2>&1"
             file delete -force ${targetdir}/error.log
         } else {
             # direct mode (or missing image dir), create archive from installed files
@@ -109,7 +109,7 @@ foreach installed $ilist {
                 puts $fd $entry
             }
             close $fd
-            system "$tarcmd -cjf $newlocation -T ${targetdir}/tarlist > ${targetdir}/error.log 2>&1"
+            system "$tarcmd -cjf [macports::shellescape $newlocation] -T [macports::shellescape ${targetdir}/tarlist] > [macports::shellescape ${targetdir}/error.log] 2>&1"
             file delete -force ${targetdir}/tarlist ${targetdir}/error.log
         }
 

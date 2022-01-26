@@ -446,14 +446,14 @@ proc portfetch::gitfetch {args} {
         # if we're just using HEAD, we can make a shallow repo
         append options " --depth=1"
     }
-    set cmdstring "${git.cmd} clone $options ${git.url} ${worksrcpath} 2>&1"
+    set cmdstring "${git.cmd} clone $options ${git.url} [shellescape ${worksrcpath}] 2>&1"
     ui_debug "Executing: $cmdstring"
     if {[catch {system $cmdstring} result]} {
         return -code error [msgcat::mc "Git clone failed"]
     }
 
     if {${git.branch} ne ""} {
-        set env "GIT_DIR=${worksrcpath}/.git GIT_WORK_TREE=${worksrcpath}"
+        set env "GIT_DIR=[shellescape ${worksrcpath}/.git] GIT_WORK_TREE=[shellescape ${worksrcpath}]"
         set cmdstring "$env ${git.cmd} checkout -q ${git.branch} 2>&1"
         ui_debug "Executing $cmdstring"
         if {[catch {system $cmdstring} result]} {
@@ -478,7 +478,7 @@ proc portfetch::hgfetch {args} {
         set insecureflag " --insecure"
     }
 
-    set cmdstring "${hg.cmd} clone${insecureflag} --rev \"${hg.tag}\" ${hg.url} ${worksrcpath} 2>&1"
+    set cmdstring "${hg.cmd} clone${insecureflag} --rev \"${hg.tag}\" ${hg.url} [shellescape ${worksrcpath}] 2>&1"
     ui_debug "Executing: $cmdstring"
     if {[catch {system $cmdstring} result]} {
         return -code error [msgcat::mc "Mercurial clone failed"]

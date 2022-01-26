@@ -151,19 +151,19 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
         if {${os.major} >= 9} {
             if {${package.flat}} {
                 set pkgtarget "10.5"
-                set pkgresources " --scripts ${package.scripts}"
+                set pkgresources " --scripts [shellescape ${package.scripts}]"
                 set infofile "${workpath}/PackageInfo"
                 write_package_info $infofile
             } else {
                 set pkgtarget "10.3"
-                set pkgresources " --resources ${package.resources} --title \"$portname-$portversion\""
+                set pkgresources " --resources [shellescape ${package.resources}] --title \"$portname-$portversion\""
                 set infofile "${workpath}/Info.plist"
                 write_info_plist $infofile $portname $portversion $portrevision
             }
             if {$using_pkgbuild} {
-                set cmdline "$pkgbuild --root ${destpath} ${pkgresources} --info $infofile --install-location / --identifier org.macports.$portname"
+                set cmdline "$pkgbuild --root [shellescape ${destpath}] ${pkgresources} --info [shellescape $infofile] --install-location / --identifier org.macports.$portname"
             } else {
-                set cmdline "PMResourceLocale=${language} $packagemaker --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
+                set cmdline "PMResourceLocale=${language} $packagemaker --root [shellescape ${destpath}] --out [shellescape ${pkgpath}] ${pkgresources} --info [shellescape $infofile] --target $pkgtarget --domain system --id org.macports.$portname"
             }
             if {${os.major} >= 10} {
                 set v [mp_version_to_apple_version $portepoch $portversion $portrevision]
@@ -186,14 +186,14 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
                 file rename -force ${pkgpath} ${componentpath}
                 # Generate a distribution
                 set productbuild [findBinary productbuild]
-                set cmdline "$productbuild --resources ${package.resources} --identifier org.macports.${portname} --distribution ${workpath}/Distribution --package-path ${package.destpath} ${pkgpath}"
+                set cmdline "$productbuild --resources [shellescape ${package.resources}] --identifier org.macports.${portname} --distribution [shellescape ${workpath}/Distribution] --package-path [shellescape ${package.destpath}] [shellescape ${pkgpath}]"
                 ui_debug "Running command line: $cmdline"
                 system $cmdline
             }
         } else {
             write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
             write_description_plist ${workpath}/Description.plist $portname $portversion $description
-            system "$packagemaker -build -f ${destpath} -p ${pkgpath} -r ${package.resources} -i ${workpath}/Info.plist -d ${workpath}/Description.plist"
+            system "$packagemaker -build -f [shellescape ${destpath}] -p [shellescape ${pkgpath}] -r [shellescape ${package.resources}] -i [shellescape ${workpath}/Info.plist] -d [shellescape ${workpath}/Description.plist]"
         }
 
         file delete ${workpath}/Info.plist \
@@ -213,8 +213,8 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
         write_PkgInfo ${pkgpath}/Contents/PkgInfo
         write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $portrevision
 
-        system "[findBinary mkbom $portutil::autoconf::mkbom_path] ${destpath} ${pkgpath}/Contents/Archive.bom"
-        system -W ${destpath} "[findBinary pax $portutil::autoconf::pax_path] -x cpio -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
+        system "[findBinary mkbom $portutil::autoconf::mkbom_path] [shellescape ${destpath}] [shellescape ${pkgpath}/Contents/Archive.bom]"
+        system -W ${destpath} "[findBinary pax $portutil::autoconf::pax_path] -x cpio -w -z . > [shellescape ${pkgpath}/Contents/Archive.pax.gz]"
 
         write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
         write_sizes_file ${pkgpath}/Contents/Resources/Archive.sizes ${pkgpath} ${destpath}
