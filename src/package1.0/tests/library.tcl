@@ -65,6 +65,7 @@ proc macports_worker_init {} {
     interp alias {} getportdir                      {} macports::getportdir
     interp alias {} findBinary                      {} macports::findBinary
     interp alias {} binaryInPath                    {} macports::binaryInPath
+    interp alias {} shellescape                     {} macports::shellescape
 
     # New Registry/Receipts stuff
     interp alias {} registry_new                    {} registry::new_entry
