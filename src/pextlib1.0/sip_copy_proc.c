@@ -17,7 +17,7 @@
  * 3. Neither the name of The MacPorts Project nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -342,8 +342,30 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
     // we can safely copy the source file with all metadata.
     // This cannot use COPYFILE_CLONE as it does not follow symlinks,
     // see https://trac.macports.org/ticket/55575
-    if (copyfile(path, target_path_temp, NULL, COPYFILE_ALL) != 0) {
+    if (copyfile(path, target_path_temp, NULL, COPYFILE_ACL | COPYFILE_XATTR | COPYFILE_DATA | COPYFILE_EXCL) != 0) {
         fprintf(stderr, "sip_copy_proc: copyfile(%s, %s): %s\n", path, target_path_temp, strerror(errno));
+        goto lazy_copy_out;
+    }
+
+    // Re-open the copied file in outfd, because copyfile(3) with COPYFILE_ALL
+    // (or COPYFILE_STAT, for that matter) does not seem to copy the file
+    // creation time correctly, so we need another futimes(2) to fix that.
+#ifdef O_CLOEXEC
+    if (-1 == (outfd = open(target_path_temp, O_RDWR | O_CLOEXEC))) {
+        fprintf(stderr, "sip_copy_proc: open(%s, O_RDWR | O_CLOEXEC): %s\n", target_path_temp, strerror(errno));
+#else
+    if (-1 == (outfd = open(target_path_temp, O_RDWR))) {
+        fprintf(stderr, "sip_copy_proc: open(%s, O_RDWR): %s\n", target_path_temp, strerror(errno));
+#endif
+        goto lazy_copy_out;
+    }
+
+    // Since we removed COPYFILE_STAT from the copyfile(3) invocation above, we
+    // need to restore the permissions on the copy. Note that the futimes(2)
+    // later on should still succeed even if we remove write permissions here,
+    // because we already have a file descriptor open.
+    if (-1 == fchmod(outfd, in_st->st_mode)) {
+        fprintf(stderr, "sip_copy_proc: fchmod(%s, %o): %s\n", target_path_temp, in_st->st_mode, strerror(errno));
         goto lazy_copy_out;
     }
 #else /* !HAVE_COPYFILE */
@@ -406,6 +428,7 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
     if (bytes_read < 0 || bytes_written < 0) {
         goto lazy_copy_out;
     }
+#endif /* HAVE_COPYFILE */
 
     struct timeval times[2];
     TIMESPEC_TO_TIMEVAL(&times[0], &in_st->st_mtimespec);
@@ -414,7 +437,6 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
         fprintf(stderr, "sip_copy_proc: futimes(%s): %s\n", target_path_temp, strerror(errno));
         goto lazy_copy_out;
     }
-#endif /* HAVE_COPYFILE */
 
     if (-1 == rename(target_path_temp, target_path)) {
         fprintf(stderr, "sip_copy_proc: rename(%s, %s): %s\n", target_path_temp, target_path, strerror(errno));
