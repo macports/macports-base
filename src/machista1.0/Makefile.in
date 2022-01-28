@@ -64,10 +64,7 @@ tests/libmachista-test: tests/libmachista-test.c libmachista.h libmachista.o has
 # we need a different alternative.
 #
 # Build a library that's dual arch, relying on $OS_MAJOR to figure out whatever
-# dual arch means on the current platform. Note the use of -nostdlib, because
-# later versions of macOS actually didn't ship support for i386 stdlibs for
-# a while, so no universal compiling was possible on those machines at all
-# (which didn't matter, since libSystem.B.dylib was still universal on those).
+# dual arch means on the current platform.
 #
 # The if expression below is basically the equivalent from aclocal.m4 for
 # UNIVERSAL_ARCHS, except that we're always forcing some kind of universality.
@@ -75,7 +72,6 @@ tests/%${SHLIB_SUFFIX}:
 ifeq (darwin,@OS_PLATFORM@)
 	${SHLIB_LD} \
 		$$(if [ @OS_MAJOR@ -lt 10 ]; then echo "-arch i386 -arch ppc"; elif [ @OS_MAJOR@ -lt 20 ]; then echo "-arch x86_64 -arch i386"; else echo "-arch x86_64 -arch arm64"; fi) \
-		-nostdlib \
 		-install_name $@ \
 		$^ \
 		-o $@
