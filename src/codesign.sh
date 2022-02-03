@@ -29,4 +29,9 @@ for f in "$@"; do
         chown "$FILE_OWNER" "$f"
         chown "$DIR_OWNER" "$DIR"
     fi
+
+    pkgindex=$(dirname "$f")/pkgIndex.tcl
+    if [ -e "$pkgindex" ]; then
+        touch "$pkgindex"
+    fi
 done
