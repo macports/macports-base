@@ -60,114 +60,114 @@
 static int vercmp (const char *versionA, int lengthA, const char *versionB,
         int lengthB) {
     const char *endA, *endB;
-	const char *ptrA, *ptrB;
-	const char *eptrA, *eptrB;
+    const char *ptrA, *ptrB;
+    const char *eptrA, *eptrB;
 
     if (lengthA < 0)
         lengthA = (int)strlen(versionA);
     if (lengthB < 0)
         lengthB = (int)strlen(versionB);
 
-	/* if versions equal, return zero */
-	if(lengthA == lengthB && !strncmp(versionA, versionB, (size_t)lengthA))
-		return 0;
+    /* if versions equal, return zero */
+    if (lengthA == lengthB && !strncmp(versionA, versionB, (size_t)lengthA))
+        return 0;
 
-	ptrA = versionA;
-	ptrB = versionB;
+    ptrA = versionA;
+    ptrB = versionB;
     endA = versionA + lengthA;
     endB = versionB + lengthB;
-	while (ptrA != endA && ptrB != endB) {
-		/* skip all non-alphanumeric characters */
-		while (ptrA != endB && !isalnum(*ptrA))
-			ptrA++;
-		while (ptrB != endB && !isalnum(*ptrB))
-			ptrB++;
+    while (ptrA != endA && ptrB != endB) {
+        /* skip all non-alphanumeric characters */
+        while (ptrA != endB && !isalnum(*ptrA))
+            ptrA++;
+        while (ptrB != endB && !isalnum(*ptrB))
+            ptrB++;
 
-		eptrA = ptrA;
-		eptrB = ptrB;
+        eptrA = ptrA;
+        eptrB = ptrB;
 
-		/* Somewhat arbitrary rules as per RPM's implementation.
-		 * This code could be more clever, but we're aiming
-		 * for clarity instead. */
+        /* Somewhat arbitrary rules as per RPM's implementation.
+         * This code could be more clever, but we're aiming
+         * for clarity instead. */
 
-		/* If versionB's segment is not a digit segment, but
-		 * versionA's segment IS a digit segment, return 1.
-		 * (Added for redhat compatibility. See redhat bugzilla
-		 * #50977 for details) */
-		if (!isdigit(*ptrB)) {
-			if (isdigit(*ptrA))
-				return 1;
-		}
+        /* If versionB's segment is not a digit segment, but
+         * versionA's segment IS a digit segment, return 1.
+         * (Added for redhat compatibility. See redhat bugzilla
+         * #50977 for details) */
+        if (!isdigit(*ptrB)) {
+            if (isdigit(*ptrA))
+                return 1;
+        }
 
-		/* Otherwise, if the segments are of different types,
-		 * return -1 */
+        /* Otherwise, if the segments are of different types,
+         * return -1 */
 
-		if ((isdigit(*ptrA) && isalpha(*ptrB)) || (isalpha(*ptrA) && isdigit(*ptrB)))
-			return -1;
+        if ((isdigit(*ptrA) && isalpha(*ptrB)) || (isalpha(*ptrA) && isdigit(*ptrB)))
+            return -1;
 
-		/* Find the first segment composed of entirely alphabetical
-		 * or numeric members */
-		if (isalpha(*ptrA)) {
-			while (eptrA != endA && isalpha(*eptrA))
-				eptrA++;
+        /* Find the first segment composed of entirely alphabetical
+         * or numeric members */
+        if (isalpha(*ptrA)) {
+            while (eptrA != endA && isalpha(*eptrA))
+                eptrA++;
 
-			while (eptrB != endB && isalpha(*eptrB))
-				eptrB++;
-		} else {
-			int countA = 0, countB = 0;
-			while (eptrA != endA && isdigit(*eptrA)) {
-				countA++;
-				eptrA++;
-			}
-			while (eptrB != endB && isdigit(*eptrB)) {
-				countB++;
-				eptrB++;
-			}
+            while (eptrB != endB && isalpha(*eptrB))
+                eptrB++;
+        } else {
+            int countA = 0, countB = 0;
+            while (eptrA != endA && isdigit(*eptrA)) {
+                countA++;
+                eptrA++;
+            }
+            while (eptrB != endB && isdigit(*eptrB)) {
+                countB++;
+                eptrB++;
+            }
 
-			/* skip leading '0' characters */
-			while (ptrA != eptrA && *ptrA == '0') {
-				ptrA++;
-				countA--;
-			}
-			while (ptrB != eptrB && *ptrB == '0') {
-				ptrB++;
-				countB--;
-			}
+            /* skip leading '0' characters */
+            while (ptrA != eptrA && *ptrA == '0') {
+                ptrA++;
+                countA--;
+            }
+            while (ptrB != eptrB && *ptrB == '0') {
+                ptrB++;
+                countB--;
+            }
 
-			/* If A is longer than B, return 1 */
-			if (countA > countB)
-				return 1;
+            /* If A is longer than B, return 1 */
+            if (countA > countB)
+                return 1;
 
-			/* If B is longer than A, return -1 */
-			if (countB > countA)
-				return -1;
-		}
-		/* Compare strings lexicographically */
-		while (ptrA != eptrA && ptrB != eptrB && *ptrA == *ptrB) {
-				ptrA++;
-				ptrB++;
-		}
-		if (ptrA != eptrA && ptrB != eptrB)
-			return *ptrA - *ptrB;
+            /* If B is longer than A, return -1 */
+            if (countB > countA)
+                return -1;
+        }
+        /* Compare strings lexicographically */
+        while (ptrA != eptrA && ptrB != eptrB && *ptrA == *ptrB) {
+                ptrA++;
+                ptrB++;
+        }
+        if (ptrA != eptrA && ptrB != eptrB)
+            return *ptrA - *ptrB;
 
-		ptrA = eptrA;
-		ptrB = eptrB;
-	}
+        ptrA = eptrA;
+        ptrB = eptrB;
+    }
 
-	/* If both pointers are null, all alphanumeric
-	 * characters were identical and only separating
-	 * characters differed. According to RPM, these
-	 * version strings are equal */
-	if (ptrA == endA && ptrB == endB)
-		return 0;
+    /* If both pointers are null, all alphanumeric
+     * characters were identical and only separating
+     * characters differed. According to RPM, these
+     * version strings are equal */
+    if (ptrA == endA && ptrB == endB)
+        return 0;
 
-	/* If A has unchecked characters, return 1
-	 * Otherwise, if B has remaining unchecked characters,
-	 * return -1 */
-	if (ptrA != endA)
-		return 1;
-	else
-		return -1;
+    /* If A has unchecked characters, return 1
+     * Otherwise, if B has remaining unchecked characters,
+     * return -1 */
+    if (ptrA != endA)
+        return 1;
+    else
+        return -1;
 }
 
 /**
