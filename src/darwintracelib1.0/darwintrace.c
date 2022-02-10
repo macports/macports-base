@@ -623,6 +623,9 @@ static char *__send(const char *buf, uint32_t len, int answer) {
 	}
 
 	recv_buf = malloc(recv_len + 1);
+	if (recv_buf == NULL) {
+		return NULL;
+	}
 	recv_buf[recv_len] = '\0';
 	frecv(recv_buf, recv_len);
 
