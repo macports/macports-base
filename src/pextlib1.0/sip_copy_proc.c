@@ -169,6 +169,7 @@ static copy_needed_return_t copy_needed(const char *path, char *const argv[],
             char *ctxt;
             char *word;
             size_t idx;
+            fclose(f);
             // do word splitting on the interpreter line and store it in new_argv
             for (idx = 0, word = strtok_r(linep, " \t\n", &ctxt);
                     word != NULL;
@@ -212,6 +213,8 @@ static copy_needed_return_t copy_needed(const char *path, char *const argv[],
                 // interpreter found, check that instead of given path
                 realpath = *new_argv;
             }
+        } else {
+            fclose(f);
         }
     }
 
