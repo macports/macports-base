@@ -495,6 +495,7 @@ int sip_copy_execve(const char *path, char *const argv[], char *const envp[]) {
 
                 char *new_path = lazy_copy(to_be_copied, &st);
                 if (!new_path) {
+                    free_argv(outargv);
                     return -1;
                 }
 
@@ -544,6 +545,7 @@ int sip_copy_posix_spawn(
 
                 char *new_path = lazy_copy(to_be_copied, &st);
                 if (!new_path) {
+                    free_argv(outargv);
                     return -1;
                 }
 
