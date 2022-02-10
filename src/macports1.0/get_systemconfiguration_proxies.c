@@ -152,6 +152,8 @@ int appendProxyInformationForKeys( CFDictionaryRef proxies, Tcl_Obj *tclList, co
             }
             else
                 result = -1;
+
+            free( hostname );
         }
         else
             result = -1;
