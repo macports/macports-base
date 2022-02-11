@@ -216,6 +216,8 @@ static copy_needed_return_t copy_needed(const char *path, char *const argv[],
         } else {
             fclose(f);
         }
+    } else {
+        fclose(f);
     }
 
     // check whether the binary has SF_RESTRICTED and isn't SUID/SGID
