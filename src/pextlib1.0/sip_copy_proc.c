@@ -169,7 +169,6 @@ static copy_needed_return_t copy_needed(const char *path, char *const argv[],
             char *ctxt;
             char *word;
             size_t idx;
-            fclose(f);
             // do word splitting on the interpreter line and store it in new_argv
             for (idx = 0, word = strtok_r(linep, " \t\n", &ctxt);
                     word != NULL;
@@ -178,6 +177,7 @@ static copy_needed_return_t copy_needed(const char *path, char *const argv[],
                 if (new_argv == NULL) {
                     if ((new_argv = malloc(2 * sizeof(*new_argv))) == NULL) {
                         free(linep);
+                        fclose(f);
                         return copy_needed_error;
                     }
                     new_argc = 1;
@@ -192,6 +192,7 @@ static copy_needed_return_t copy_needed(const char *path, char *const argv[],
                     if ((new_argv = realloc(oldargv, (idx + 2) * sizeof(*new_argv))) == NULL) {
                         free_argv(oldargv);
                         free(linep);
+                        fclose(f);
                         return copy_needed_error;
                     }
                     new_argc = idx + 1;
@@ -202,6 +203,7 @@ static copy_needed_return_t copy_needed(const char *path, char *const argv[],
                 if (!new_argv[idx]) {
                     free_argv(new_argv);
                     free(linep);
+                    fclose(f);
                     return copy_needed_error;
                 }
                 new_argv[idx + 1] = NULL;
@@ -213,12 +215,9 @@ static copy_needed_return_t copy_needed(const char *path, char *const argv[],
                 // interpreter found, check that instead of given path
                 realpath = *new_argv;
             }
-        } else {
-            fclose(f);
         }
-    } else {
-        fclose(f);
     }
+    fclose(f);
 
     // check whether the binary has SF_RESTRICTED and isn't SUID/SGID
     if (-1 == stat(realpath, st)) {
