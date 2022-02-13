@@ -2,6 +2,7 @@
  * filemap.c
  *
  * Copyright (c) 2004 Paul Guyot, The MacPorts Project.
+ * Copyright (c) 2004-2022 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -227,11 +228,7 @@ Load(
 		theFileSize = theFileInfo.st_size;
 		if (theFileSize == 0)
 		{
-			SNode* theRoot = (SNode*) ckalloc(sizeof(SNode) - sizeof(SHeader*));
-			theRoot->fSubnodesCount = 0;
-			theRoot->fHeader.fNodeType = kNode;
-			theRoot->fHeader.fKeySubpart[0] = '\0';
-			*outTree = theRoot;
+			Create(outTree);
 			break;
 		}
 		
