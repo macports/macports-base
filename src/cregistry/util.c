@@ -130,9 +130,9 @@ char* reg_strategy_op(reg_strategy strategy, reg_error* errPtr) {
 int reg_all_objects(reg_registry* reg, char* query, int query_len,
         void*** objects, cast_function* fn, void* castcalldata,
         free_function* del, reg_error* errPtr) {
-    void** results = malloc(10*sizeof(void*));
+    void** results = malloc(REG_RESULT_INITIAL_SPACE*sizeof(void*));
     int result_count = 0;
-    int result_space = 10;
+    int result_space = REG_RESULT_INITIAL_SPACE;
     sqlite3_stmt* stmt = NULL;
     if (!results) {
         return -1;

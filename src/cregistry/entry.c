@@ -952,9 +952,9 @@ int reg_entry_imagefiles(reg_entry* entry, char*** files, reg_error* errPtr) {
     char* query = "SELECT path FROM registry.files WHERE id=? ORDER BY path";
     if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
-        char** result = malloc(10*sizeof(char*));
+        char** result = malloc(REG_RESULT_INITIAL_SPACE*sizeof(char*));
         int result_count = 0;
-        int result_space = 10;
+        int result_space = REG_RESULT_INITIAL_SPACE;
         int r;
         const char *text;
         char* element;
@@ -1020,9 +1020,9 @@ int reg_entry_files(reg_entry* entry, char*** files, reg_error* errPtr) {
         "AND active ORDER BY actual_path";
     if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
-        char** result = malloc(10*sizeof(char*));
+        char** result = malloc(REG_RESULT_INITIAL_SPACE*sizeof(char*));
         int result_count = 0;
-        int result_space = 10;
+        int result_space = REG_RESULT_INITIAL_SPACE;
         int r;
         const char *text;
         char* element;
