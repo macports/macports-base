@@ -134,7 +134,8 @@ static int entry_delete(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 1, objv, "delete entry");
         return TCL_ERROR;
-    } if (reg == NULL) {
+    }
+    if (reg == NULL) {
         return TCL_ERROR;
     } else {
         reg_error error;
