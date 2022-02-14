@@ -34,6 +34,8 @@
 
 #include "registry.h"
 
+#define REG_RESULT_INITIAL_SPACE 10
+
 typedef enum {
     reg_strategy_exact = 1,
     reg_strategy_glob = 2,
