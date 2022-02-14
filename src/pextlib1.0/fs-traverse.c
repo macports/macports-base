@@ -234,6 +234,7 @@ do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varna
                     fts_close(root_fts);
                     return rval;
                 }
+                break;
             }
             case FTS_DC:  /* directory that causes a cycle */
                 break;    /* ignore it */
