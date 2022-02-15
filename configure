@@ -9996,6 +9996,8 @@ ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/
 
 ac_config_files="$ac_config_files vendor/tclsh"
 
+ac_config_files="$ac_config_files src/reg_init_distfiles.tcl"
+
 ac_config_files="$ac_config_files src/cxx_stdlib_overridden.tcl"
 
 ac_config_files="$ac_config_files src/dedup_portfiles.tcl"
@@ -10730,6 +10732,7 @@ do
     "tests/test/trace/test.tcl") CONFIG_FILES="$CONFIG_FILES tests/test/trace/test.tcl" ;;
     "vendor/Makefile") CONFIG_FILES="$CONFIG_FILES vendor/Makefile" ;;
     "vendor/tclsh") CONFIG_FILES="$CONFIG_FILES vendor/tclsh" ;;
+    "src/reg_init_distfiles.tcl") CONFIG_FILES="$CONFIG_FILES src/reg_init_distfiles.tcl" ;;
     "src/cxx_stdlib_overridden.tcl") CONFIG_FILES="$CONFIG_FILES src/cxx_stdlib_overridden.tcl" ;;
     "src/dedup_portfiles.tcl") CONFIG_FILES="$CONFIG_FILES src/dedup_portfiles.tcl" ;;
     "src/images_to_archives.tcl") CONFIG_FILES="$CONFIG_FILES src/images_to_archives.tcl" ;;
@@ -11288,6 +11291,7 @@ printf "%s\n" "$as_me: $ac_file is unchanged" >&6;}
 
   case $ac_file$ac_mode in
     "vendor/tclsh":F) chmod +x vendor/tclsh ;;
+    "src/reg_init_distfiles.tcl":F) chmod +x src/reg_init_distfiles.tcl ;;
     "src/cxx_stdlib_overridden.tcl":F) chmod +x src/cxx_stdlib_overridden.tcl ;;
     "src/dedup_portfiles.tcl":F) chmod +x src/dedup_portfiles.tcl ;;
     "src/images_to_archives.tcl":F) chmod +x src/images_to_archives.tcl ;;

@@ -79,6 +79,7 @@ function update_macports {
     "${TCLSH}" "${SCRIPT_DIR}/images_to_archives.tcl"
     "${TCLSH}" "${SCRIPT_DIR}/dedup_portfiles.tcl"
     "${TCLSH}" "${SCRIPT_DIR}/cxx_stdlib_overridden.tcl"
+    "${TCLSH}" "${SCRIPT_DIR}/reg_init_distfiles.tcl"
 
     echo "Synchronizing the MacPorts installation with the project's rsync server..."
     if ! "${BINPATH}/port" -v selfupdate; then 
