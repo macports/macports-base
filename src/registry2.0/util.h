@@ -39,6 +39,7 @@
 #include <cregistry/portgroup.h>
 #include <cregistry/entry.h>
 #include <cregistry/file.h>
+#include <cregistry/distfile.h>
 
 typedef struct {
     char* option;

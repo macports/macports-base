@@ -80,6 +80,7 @@ typedef struct {
     int status;
     Tcl_HashTable open_entries;
     Tcl_HashTable open_files;
+    Tcl_HashTable open_distfiles;
     Tcl_HashTable open_portgroups;
 } reg_registry;
 

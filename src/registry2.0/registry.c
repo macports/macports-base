@@ -85,6 +85,7 @@ int registry_tcl_detach(Tcl_Interp* interp, reg_registry* reg,
         reg_error* errPtr) {
     reg_entry** entries;
     reg_file** files;
+    reg_distfile** distfiles;
     reg_portgroup** portgroups;
     int count;
     int i;
@@ -110,6 +111,17 @@ int registry_tcl_detach(Tcl_Interp* interp, reg_registry* reg,
         }
     }
     free(files);
+
+    count = reg_all_open_distfiles(reg, &distfiles);
+    if (count == -1) {
+        return 0;
+    }
+    for (i = 0; i < count; i++) {
+        if (distfiles[i]->proc) {
+            Tcl_DeleteCommand(interp, distfiles[i]->proc);
+        }
+    }
+    free(distfiles);
 
     count = reg_all_open_portgroups(reg, &portgroups);
     if (count == -1) {

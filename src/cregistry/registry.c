@@ -34,6 +34,7 @@
 #include "portgroup.h"
 #include "entry.h"
 #include "file.h"
+#include "distfile.h"
 #include "sql.h"
 
 #include <stdio.h>
@@ -258,6 +259,8 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
                                     sizeof(sqlite_int64)/sizeof(int));
                             Tcl_InitHashTable(&reg->open_files,
                                     TCL_STRING_KEYS);
+                            Tcl_InitHashTable(&reg->open_distfiles,
+                                    TCL_STRING_KEYS);
                             Tcl_InitHashTable(&reg->open_portgroups,
                                     sizeof(sqlite_int64)/sizeof(int));
                             reg->status |= reg_attached;
@@ -342,6 +345,22 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
                         free(file);
                     }
                     Tcl_DeleteHashTable(&reg->open_files);
+
+                    for (curr = Tcl_FirstHashEntry(&reg->open_distfiles, &search);
+                            curr != NULL; curr = Tcl_NextHashEntry(&search)) {
+                        reg_distfile* distfile = Tcl_GetHashValue(curr);
+
+                        if (distfile->proc) {
+                            free(distfile->proc);
+                        }
+                        /* The rest of the reg_distfile structure is not
+                           cleaned up by delete_distfile, so this should
+                           always be safe. */
+                        free(distfile->key.subdir);
+                        free(distfile->key.path);
+                        free(distfile);
+                    }
+                    Tcl_DeleteHashTable(&reg->open_distfiles);
 
                     for (curr = Tcl_FirstHashEntry(&reg->open_portgroups, &search);
                             curr != NULL; curr = Tcl_NextHashEntry(&search)) {

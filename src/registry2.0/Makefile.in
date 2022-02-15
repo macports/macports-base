@@ -9,6 +9,7 @@ SRCS = registry.tcl registry_util.tcl receipt_flat.tcl receipt_sqlite.tcl portim
 OBJS = registry.o util.o \
 	entry.o entryobj.o \
 	file.o fileobj.o \
+	distfileobj.o \
 	portgroup.o portgroupobj.o
 
 SHLIB_NAME= registry${SHLIB_SUFFIX}
