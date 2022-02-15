@@ -300,7 +300,7 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
                                         break;
                                 }
                             } while (r == SQLITE_BUSY);
-                            if (r == SQLITE_ERROR) {
+                            if (result == 0) {
                                 break;
                             }
                         }
