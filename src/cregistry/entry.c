@@ -304,6 +304,7 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
                                 break;
                             }
                         }
+                        break;
                     } else {
                         errPtr->code = REG_INVALID;
                         errPtr->description = "an invalid entry was passed";
