@@ -297,13 +297,13 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
                                         reg_sqlite_error(reg->db,
                                                 errPtr, NULL);
                                         result = 0;
-                                        goto stmt_finish;
                                         break;
                                 }
                             } while (r == SQLITE_BUSY);
+                            if (r == SQLITE_ERROR) {
+                                break;
+                            }
                         }
-stmt_finish:
-                        break;
                     } else {
                         errPtr->code = REG_INVALID;
                         errPtr->description = "an invalid entry was passed";
