@@ -844,6 +844,37 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             continue;
         }
 
+        if (sql_version(NULL, -1, version, -1, "1.215") < 0) {
+            static char* version_1_215_queries[] = {
+                /* distfiles table */
+                "CREATE TABLE registry.distfiles ("
+                      "id INTEGER"
+                    ", subdir TEXT"
+                    ", path TEXT"
+                    ", FOREIGN KEY(id) REFERENCES ports(id)"
+                    ", PRIMARY KEY (id, subdir, path))",
+
+                "CREATE INDEX registry.distfile_port ON distfiles(id)",
+
+                "UPDATE registry.metadata SET value = '1.215' WHERE key = 'version'",
+                "INSERT INTO registry.metadata (key, value) VALUES ('distfiles_update_needed', 1)",
+
+                "COMMIT",
+                NULL
+            };
+
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+
+            if (!do_queries(db, version_1_215_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
 
         /* add new versions here, but remember to:
          *  - finalize the version query statement and set stmt to NULL
@@ -854,7 +885,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
          *  - update the current version number below
          */
 
-        if (sql_version(NULL, -1, version, -1, "1.210") > 0) {
+        if (sql_version(NULL, -1, version, -1, "1.215") > 0) {
             /* the registry was already upgraded to a newer version and cannot be used anymore */
             reg_throw(errPtr, REG_INVALID, "Version number in metadata table is newer than expected.");
             sqlite3_finalize(stmt);
