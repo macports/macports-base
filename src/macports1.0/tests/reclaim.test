@@ -97,7 +97,7 @@ test walk_files {
 } -body {
     set errors [list]
     set unused_list [list]
-    reclaim::walk_files $dir $good_dist unused_list 
+    reclaim::walk_files $dir "" $good_dist unused_list
 
     foreach badfile $bad_dist {
         if {[lsearch -exact $unused_list $badfile] == -1} {
