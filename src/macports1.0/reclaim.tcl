@@ -182,22 +182,25 @@ namespace eval reclaim {
         }
     }
 
-    proc walk_files {dir files_in_use unused_name} {
+    proc walk_files {root dir files_in_use unused_name} {
         # Recursively walk the given directory $dir and build a list of all files that are present on-disk but not listed in $files_in_use.
         # The list of unused files will be stored in the variable given by $unused_name
         #
         # Args:
-        #           dir             - A string path of the given directory to walk through
-        #           files_in_use    - A sorted list of the full paths for all distfiles from installed ports
+        #           root            - The root directory of relative paths
+        #           dir             - Relative path of the given directory to walk through
+        #           files_in_use    - A sorted list of the relative paths for all distfiles from installed ports
         #           unused_name     - The name of a list in the caller to which unused files will be appended
 
         upvar $unused_name unused
 
-        foreach item [readdir $dir] {
+        set fullDir [file join $root $dir]
+        foreach item [readdir $fullDir] {
             set currentPath [file join $dir $item]
-            switch -exact -- [file type $currentPath] {
+            set fullPath [file join $root $currentPath]
+            switch -exact -- [file type $fullPath] {
                 directory {
-                    walk_files $currentPath $files_in_use unused
+                    walk_files $root $currentPath $files_in_use unused
                 }
                 file {
                     if {$item eq ".turd_MacPorts" || $item eq ".DS_Store"} {
@@ -210,8 +213,8 @@ namespace eval reclaim {
                         continue
                     }
                     if {[lsearch -exact -sorted $files_in_use $currentPath] == -1} {
-                        ui_info "Found unused distfile $currentPath"
-                        lappend unused $currentPath
+                        ui_info "Found unused distfile $fullPath"
+                        lappend unused $fullPath
                     }
                 }
             }
@@ -252,47 +255,13 @@ namespace eval reclaim {
         $progress start
 
         foreach port $installed_ports {
-            # Get mport reference
-            try -pass_signal {
-                set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] {}]
-            } catch {{*} eCode eMessage} {
-                $progress intermission
-                ui_warn [msgcat::mc "Failed to open port %s from registry: %s" [$port name] $eMessage]
-                #registry::entry close $port
-                continue
+            foreach distfile [registry::distfile search id [$port id]] {
+                lappend files_in_use [file join [$distfile subdir] [$distfile path]]
+                registry::distfile close $distfile
             }
 
-            # Setup sub-Tcl-interpreter that executed the installed port
-            set workername [ditem_key $mport workername]
-
-            # Append that port's distfiles to the list
-            set dist_subdir [$workername eval {set dist_subdir}]
-            set distfiles   [$workername eval {set distfiles}]
-            if {[catch {$workername eval {set patchfiles}} patchfiles]} {
-                set patchfiles {}
-            }
-
-            foreach file [concat $distfiles $patchfiles] {
-                # split distfile into filename and disttag
-                set distfile [$workername eval [list getdistname $file]]
-                set root_path [file join $root_dist $dist_subdir $distfile]
-                set home_path [file join $home_dist $dist_subdir $distfile]
-
-                # Add the full file path to the list, depending where it's located.
-                if {[file isfile $root_path]} {
-                    ui_info "Keeping $root_path"
-                    lappend files_in_use $root_path
-                }
-                if {[file isfile $home_path]} {
-                    ui_info "Keeping $home_path"
-                    lappend files_in_use $home_path
-                }
-            }
-
-            mportclose $mport
-
+            registry::entry close $port
             $progress update $i $port_count
-            #registry::entry close $port
             incr i
         }
 
@@ -306,11 +275,11 @@ namespace eval reclaim {
         ui_debug "Calling walk_files on root directory."
 
         set superfluous_files [list]
-        walk_files $root_dist $files_in_use superfluous_files
+        walk_files $root_dist "" $files_in_use superfluous_files
 
         if {[file exists $home_dist]} {
             ui_debug "Calling walk_files on home directory."
-            walk_files $home_dist $files_in_use superfluous_files
+            walk_files $home_dist "" $files_in_use superfluous_files
         }
 
         set num_superfluous_files [llength $superfluous_files]
