@@ -257,12 +257,14 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
     errPtr->free = NULL;
 
     sqlite3_stmt* ports = NULL;
-    sqlite3_stmt* followups[] = { NULL, NULL, NULL };
+    sqlite3_stmt* followups[] = { NULL, NULL, NULL, NULL };
     sqlite3_stmt** pFiles = &followups[0];
-    sqlite3_stmt** pDependencies = &followups[1];
-    sqlite3_stmt** pPortgroups = &followups[2];
+    sqlite3_stmt** pDistfiles = &followups[1];
+    sqlite3_stmt** pDependencies = &followups[2];
+    sqlite3_stmt** pPortgroups = &followups[3];
     char* ports_query = "DELETE FROM registry.ports WHERE id=?";
     char* files_query = "DELETE FROM registry.files WHERE id=?";
+    char* distfiles_query = "DELETE FROM registry.distfiles WHERE id=?";
     char* dependencies_query = "DELETE FROM registry.dependencies WHERE id=?";
     char* portgroups_query = "DELETE FROM registry.portgroups WHERE id=?";
     if ((sqlite3_prepare_v2(reg->db, ports_query, -1, &ports, NULL) == SQLITE_OK)
@@ -271,6 +273,9 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
             && (sqlite3_prepare_v2(reg->db, files_query, -1, pFiles, NULL)
                 == SQLITE_OK)
             && (sqlite3_bind_int64(*pFiles, 1, entry->id) == SQLITE_OK)
+            && (sqlite3_prepare_v2(reg->db, distfiles_query, -1, pDistfiles, NULL)
+                == SQLITE_OK)
+            && (sqlite3_bind_int64(*pDistfiles, 1, entry->id) == SQLITE_OK)
             && (sqlite3_prepare_v2(reg->db, dependencies_query, -1, pDependencies,
                     NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(*pDependencies, 1, entry->id) == SQLITE_OK)
