@@ -912,6 +912,120 @@ int reg_entry_unmap(reg_entry* entry, char** files, int file_count,
 }
 
 /**
+ * Maps distfiles to the given port in the distfilemap. The list of distfiles must not
+ * contain distfiles that are already mapped to the given port.
+ *
+ * @param [in] entry      the entry to map the distfiles to
+ * @param [in] distfiles      a list of distfiles to map
+ * @param [in] distfile_count the number of distfiles
+ * @param [out] errPtr    on error, a description of the error that occurred
+ * @return                true if success; false if failure
+ */
+int reg_entry_distmap(reg_entry* entry, char* subdir, char** distfiles, int distfile_count,
+        reg_error* errPtr) {
+    reg_registry* reg = entry->reg;
+    int result = 1;
+    sqlite3_stmt* stmt = NULL;
+    char* insert = "INSERT INTO registry.distfiles (id, subdir, path) "
+        "VALUES (?, ?, ?)";
+    if ((sqlite3_prepare_v2(reg->db, insert, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_text(stmt, 2, subdir, -1, SQLITE_STATIC) == SQLITE_OK)
+            && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
+        int i;
+        for (i=0; i<distfile_count && result; i++) {
+            if (sqlite3_bind_text(stmt, 3, distfiles[i], -1, SQLITE_STATIC)
+                    == SQLITE_OK) {
+                int r;
+                do {
+                    r = sqlite3_step(stmt);
+                    switch (r) {
+                        case SQLITE_DONE:
+                            sqlite3_reset(stmt);
+                            break;
+                        case SQLITE_BUSY:
+                            break;
+                        default:
+                            reg_sqlite_error(reg->db, errPtr, insert);
+                            result = 0;
+                            break;
+                    }
+                } while (r == SQLITE_BUSY);
+            } else {
+                reg_sqlite_error(reg->db, errPtr, insert);
+                result = 0;
+            }
+        }
+    } else {
+        reg_sqlite_error(reg->db, errPtr, insert);
+        result = 0;
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+    return result;
+}
+
+/**
+ * Unmaps distfiles from the given port in the distfilemap. The distfiles must be owned by
+ * the given entry.
+ *
+ * @param [in] entry      the entry to unmap the distfiles from
+ * @param [in] distfiles      a list of distfiles to unmap
+ * @param [in] distfile_count the number of distfiles
+ * @param [out] errPtr    on error, a description of the error that occurred
+ * @return                true if success; false if failure
+ */
+int reg_entry_distunmap(reg_entry* entry, char* subdir, char** distfiles, int distfile_count,
+        reg_error* errPtr) {
+    reg_registry* reg = entry->reg;
+    int result = 1;
+    sqlite3_stmt* stmt = NULL;
+    char* query = "DELETE FROM registry.distfiles "
+                  "WHERE subdir=? AND path=? AND id=?";
+    if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_text(stmt, 1, subdir, -1, SQLITE_STATIC) == SQLITE_OK)
+            && (sqlite3_bind_int64(stmt, 3, entry->id) == SQLITE_OK)) {
+        int i;
+        for (i=0; i<distfile_count && result; i++) {
+            if (sqlite3_bind_text(stmt, 2, distfiles[i], -1, SQLITE_STATIC)
+                    == SQLITE_OK) {
+                int r;
+                do {
+                    r = sqlite3_step(stmt);
+                    switch (r) {
+                        case SQLITE_DONE:
+                            if (sqlite3_changes(reg->db) == 0) {
+                                reg_throw(errPtr, REG_INVALID, "%s is not "
+                                        "owned by this entry", distfiles[i]);
+                                result = 0;
+                            } else {
+                                sqlite3_reset(stmt);
+                            }
+                            break;
+                        case SQLITE_BUSY:
+                            break;
+                        default:
+                            reg_sqlite_error(reg->db, errPtr, query);
+                            result = 0;
+                            break;
+                    }
+                } while (r == SQLITE_BUSY);
+            } else {
+                reg_sqlite_error(reg->db, errPtr, query);
+                result = 0;
+            }
+        }
+    } else {
+        reg_sqlite_error(reg->db, errPtr, query);
+        result = 0;
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+    return result;
+}
+
+/**
  * Gets a list of files provided by the given port. These files are in the port
  * image and do not necessarily correspond to active files on the filesystem.
  *

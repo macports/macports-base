@@ -33,6 +33,7 @@
 
 package provide portinstall 1.0
 package require portutil 1.0
+package require portfetch 1.0
 package require registry2 2.0
 package require machista 1.0
 
@@ -335,6 +336,7 @@ proc portinstall::install_main {args} {
     global subport version portpath depends_run revision user_options \
     portvariants requested_variants depends_lib PortInfo epoch \
     os.platform os.major portarchivetype installPlist registry.path porturl \
+    dist_subdir all_dist_files \
     portinstall::file_is_binary portinstall::actual_cxx_stdlib portinstall::cxx_stdlib_overridden
 
     set oldpwd [pwd]
@@ -418,6 +420,19 @@ proc portinstall::install_main {args} {
                 $fileref binary $portinstall::file_is_binary($f)
                 registry::file close $fileref
             }
+        }
+
+        # from portfetch... process the files and patches
+        set fetch_urls {}
+        portfetch::checkfiles fetch_urls
+
+        if {[info exists all_dist_files]} {
+            set distfileList {}
+
+            foreach {url_var distfile} $fetch_urls {
+                lappend distfileList $distfile
+            }
+            $regref distmap $dist_subdir $distfileList
         }
 
         # store portfile

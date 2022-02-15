@@ -156,6 +156,54 @@ static int entry_obj_filemap(Tcl_Interp* interp, reg_entry* entry, int objc,
     }
 }
 
+typedef struct {
+    char* name;
+    int (*function)(reg_entry* entry, char* subdir, char** files, int file_count,
+            reg_error* errPtr);
+} distfilemap_op;
+
+static distfilemap_op distfilemap_cmds[] = {
+    { "distmap", reg_entry_distmap },
+    { "distunmap", reg_entry_distunmap },
+    { NULL, NULL }
+};
+
+static int entry_obj_distfilemap(Tcl_Interp* interp, reg_entry* entry, int objc,
+        Tcl_Obj* CONST objv[]) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    int op;
+    if (objc != 4) {
+        Tcl_WrongNumArgs(interp, 2, objv, "subdir distfile-list");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else if (Tcl_GetIndexFromObjStruct(interp, objv[1], distfilemap_cmds,
+                sizeof(distfilemap_op), "cmd", 0, &op) != TCL_OK) {
+        return TCL_ERROR;
+    } else {
+        char** distfiles;
+        char* subdir = Tcl_GetString(objv[2]);
+        reg_error error;
+        Tcl_Obj** listv;
+        int listc;
+        int result = TCL_ERROR;
+        if (Tcl_ListObjGetElements(interp, objv[3], &listc, &listv) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (list_obj_to_string(&distfiles, listv, listc, &error)) {
+            if (distfilemap_cmds[op].function(entry, subdir, distfiles, listc, &error)) {
+                result = TCL_OK;
+            } else {
+                result = registry_failed(interp, &error);
+            }
+            free(distfiles);
+        } else {
+            result = registry_failed(interp, &error);
+        }
+        return result;
+    }
+}
+
 static int entry_obj_files(Tcl_Interp* interp, reg_entry* entry, int objc,
         Tcl_Obj* CONST objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
@@ -436,6 +484,8 @@ static entry_obj_cmd_type entry_cmds[] = {
     /* filemap */
     { "map", entry_obj_filemap },
     { "unmap", entry_obj_filemap },
+    { "distmap", entry_obj_distfilemap },
+    { "undistmap", entry_obj_distfilemap },
     { "files", entry_obj_files },
     { "imagefiles", entry_obj_imagefiles },
     { "activate", entry_obj_activate },

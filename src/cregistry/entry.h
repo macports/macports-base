@@ -80,6 +80,11 @@ int reg_entry_map(reg_entry* entry, char** files, int file_count,
 int reg_entry_unmap(reg_entry* entry, char** files, int file_count,
         reg_error* errPtr);
 
+int reg_entry_distmap(reg_entry* entry, char* subdir, char** files, int file_count,
+        reg_error* errPtr);
+int reg_entry_distunmap(reg_entry* entry, char* subdir, char** files, int file_count,
+        reg_error* errPtr);
+
 int reg_entry_files(reg_entry* entry, char*** files, reg_error* errPtr);
 int reg_entry_imagefiles(reg_entry* entry, char*** files, reg_error* errPtr);
 
