@@ -39,6 +39,8 @@
 #include "entryobj.h"
 #include "file.h"
 #include "fileobj.h"
+#include "distfile.h"
+#include "distfileobj.h"
 #include "portgroup.h"
 #include "portgroupobj.h"
 
@@ -220,6 +222,29 @@ int set_file(Tcl_Interp* interp, char* name, reg_file* file,
 }
 
 /**
+ * Sets a given name to be a distfile object.
+ *
+ * @param [in] interp  Tcl interpreter to create the distfile within
+ * @param [in] name    name to associate the given distfile with
+ * @param [in] distfile    distfile to associate with the given name
+ * @param [out] errPtr description of error if it couldn't be set
+ * @return             true if success; false if failure
+ * @see set_object
+ */
+int set_distfile(Tcl_Interp* interp, char* name, reg_distfile* distfile,
+        reg_error* errPtr) {
+    if (set_object(interp, name, distfile, "distfile", distfile_obj_cmd, delete_distfile,
+                errPtr)) {
+        distfile->proc = strdup(name);
+        if (!distfile->proc) {
+            return 0;
+        }
+        return 1;
+    }
+    return 0;
+}
+
+/**
  * Sets a given name to be a portgroup object.
  *
  * @param [in] interp  Tcl interpreter to create the portgroup within
@@ -328,6 +353,24 @@ int file_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_file* file,
     return 1;
 }
 
+int distfile_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_distfile* distfile,
+        void* param UNUSED, reg_error* errPtr) {
+    static unsigned int lower_bound = 0;
+    if (distfile->proc == NULL) {
+        char* name = unique_name(interp, "::registry::distfile", &lower_bound);
+        if (!name) {
+            return 0;
+        }
+        if (!set_distfile(interp, name, distfile, errPtr)) {
+            free(name);
+            return 0;
+        }
+        free(name);
+    }
+    *obj = Tcl_NewStringObj(distfile->proc, -1);
+    return 1;
+}
+
 int portgroup_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_portgroup* portgroup,
         void* param UNUSED, reg_error* errPtr) {
     static unsigned int lower_bound = 0;
@@ -356,6 +399,12 @@ int list_file_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
         reg_file** files, int file_count, reg_error* errPtr) {
     return recast(interp, (cast_function*)file_to_obj, NULL, NULL,
             (void***)objs, (void**)files, file_count, errPtr);
+}
+
+int list_distfile_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
+        reg_distfile** distfiles, int distfile_count, reg_error* errPtr) {
+    return recast(interp, (cast_function*)distfile_to_obj, NULL, NULL,
+            (void***)objs, (void**)distfiles, distfile_count, errPtr);
 }
 
 int list_portgroup_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,

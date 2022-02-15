@@ -70,7 +70,7 @@ static int reg_stmt_to_distfile(void* userdata, void** distfile, void* stmt,
         return 0;
     }
 
-    hashkey = sqlite3_mprintf("%lld:%s", key.id, key.path);
+    hashkey = sqlite3_mprintf("%lld:%s/%s", key.id, key.subdir, key.path);
     if (!hashkey) {
         free(key.subdir);
         free(key.path);

@@ -44,6 +44,7 @@
 #include "entry.h"
 #include "entryobj.h"
 #include "file.h"
+#include "distfile.h"
 #include "portgroup.h"
 #include "registry.h"
 #include "util.h"
@@ -416,6 +417,7 @@ int Registry_Init(Tcl_Interp* interp) {
     Tcl_CreateObjCommand(interp, "registry::write", registry_write, NULL, NULL);
     Tcl_CreateObjCommand(interp, "registry::entry", entry_cmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "registry::file", file_cmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "registry::distfile", distfile_cmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "registry::portgroup", portgroup_cmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "registry::metadata", metadata_cmd, NULL, NULL);
     if (Tcl_PkgProvide(interp, "registry2", "2.0") != TCL_OK) {
