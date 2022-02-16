@@ -234,7 +234,13 @@ int reg_distfile_propget(reg_distfile* distfile, char* key, char** value,
                     text = (const char*)sqlite3_column_text(stmt, 0);
                     if (text) {
                         *value = strdup(text);
-                        result = 1;
+                        if (*value) {
+                            result = 1;
+                        } else {
+                            errPtr->code = REG_OUT_OF_MEMORY;
+                            errPtr->description = "cannot allocate memory";
+                            errPtr->free = NULL;
+                        }
                     } else {
                         reg_sqlite_error(reg->db, errPtr, query);
                     }

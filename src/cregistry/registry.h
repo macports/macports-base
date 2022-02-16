@@ -43,6 +43,7 @@
 #define REG_MISUSE          (registry_err_misuse)
 #define REG_CANNOT_INIT     (registry_err_cannot_init)
 #define REG_ALREADY_ACTIVE  (registry_err_already_active)
+#define REG_OUT_OF_MEMORY   (registry_err_out_of_memory)
 
 extern char *const registry_err_not_found;
 extern char *const registry_err_invalid;
@@ -51,6 +52,7 @@ extern char *const registry_err_sqlite_error;
 extern char *const registry_err_misuse;
 extern char *const registry_err_cannot_init;
 extern char *const registry_err_already_active;
+extern char *const registry_err_out_of_memory;
 
 typedef void reg_error_destructor(const char* description);
 

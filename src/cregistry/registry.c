@@ -68,6 +68,7 @@ char *const registry_err_sqlite_error   = "registry::sqlite-error";
 char *const registry_err_misuse         = "registry::misuse";
 char *const registry_err_cannot_init    = "registry::cannot-init";
 char *const registry_err_already_active = "registry::already-active";
+char *const registry_err_out_of_memory  = "registry::oom";
 
 /**
  * Destroys a `reg_error` object. This should be called on any reg_error when a
