@@ -147,7 +147,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
 
         /* metadata table */
         "CREATE TABLE registry.metadata (key UNIQUE, value)",
-        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.210')",
+        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.211')",
         "INSERT INTO registry.metadata (key, value) VALUES ('created', strftime('%s', 'now'))",
 
         /* ports table */
@@ -188,6 +188,15 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         "CREATE INDEX registry.file_path ON files(path)",
         "CREATE INDEX registry.file_actual ON files(actual_path)",
         "CREATE INDEX registry.file_actual_nocase ON files(actual_path COLLATE NOCASE)",
+
+        /* distfiles map */
+        "CREATE TABLE registry.distfiles ("
+                "id INTEGER"
+            ", subdir TEXT"
+            ", path TEXT"
+            ", FOREIGN KEY(id) REFERENCES ports(id)"
+            ", PRIMARY KEY (id, subdir, path))",
+        "CREATE INDEX registry.distfile_port ON distfiles(id)",
 
         /* dependency map */
         "CREATE TABLE registry.dependencies ("
