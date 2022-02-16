@@ -260,7 +260,7 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
                             Tcl_InitHashTable(&reg->open_files,
                                     TCL_STRING_KEYS);
                             Tcl_InitHashTable(&reg->open_distfiles,
-                                    TCL_STRING_KEYS);
+                                    sizeof(sqlite_int64)/sizeof(int));
                             Tcl_InitHashTable(&reg->open_portgroups,
                                     sizeof(sqlite_int64)/sizeof(int));
                             reg->status |= reg_attached;
@@ -356,8 +356,6 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
                         /* The rest of the reg_distfile structure is not
                            cleaned up by delete_distfile, so this should
                            always be safe. */
-                        free(distfile->key.subdir);
-                        free(distfile->key.path);
                         free(distfile);
                     }
                     Tcl_DeleteHashTable(&reg->open_distfiles);

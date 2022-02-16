@@ -38,19 +38,12 @@
 #include <sqlite3.h>
 
 typedef struct {
-    /* rowid, subdir and path form the primary key */
     sqlite_int64 id; /* rowid in the database */
-    char* subdir; /* subdir in the database */
-    char* path; /* path in the database */
-} reg_distfile_pk;
-
-typedef struct {
-    reg_distfile_pk key;
     reg_registry* reg; /* associated registry */
     char* proc; /* name of Tcl proc, if using Tcl */
 } reg_distfile;
 
-reg_distfile* reg_distfile_open(reg_registry* reg, char* id, char* subdir, char* path,
+reg_distfile* reg_distfile_open(reg_registry* reg, const char* id, const char* subdir, const char* path,
         reg_error* errPtr);
 
 int reg_distfile_search(reg_registry* reg, char** keys, char** vals, int* strats,

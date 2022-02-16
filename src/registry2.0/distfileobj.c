@@ -96,11 +96,7 @@ static distfile_obj_cmd_type distfile_cmds[] = {
 
 /* ${distfile} cmd ?arg ...? */
 /* This function implements the command that will be called when a distfile
- * created by `registry::distfile` is used as a procedure. Since all data is kept
- * in a temporary sqlite3 database that is created for the current interpreter,
- * none of the sqlite3 functions used have any error checking. That should be a
- * safe assumption, since nothing outside of registry:: should ever have the
- * chance to touch it.
+ * created by `registry::distfile` is used as a procedure.
  */
 int distfile_obj_cmd(ClientData clientData, Tcl_Interp* interp, int objc,
         Tcl_Obj* CONST objv[]) {

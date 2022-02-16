@@ -41,60 +41,36 @@
 #include <string.h>
 
 /**
- * Converts a `sqlite3_stmt` into a `reg_distfile`. The first column of the stmt's
- * row must be the id of a distfile; the second column must be the path of a distfile;
- * the third either `SQLITE_NULL` or the address of the entry in memory.
+ * Converts a `sqlite3_stmt` into a `reg_distfile`. The first column of the
+ * stmt's row must be the ROWID of a distfile.
  *
- * @param [in] userdata sqlite3 database
- * @param [out] distfile    distfile described by `stmt`
- * @param [in] stmt     `sqlite3_stmt` with appropriate columns
- * @param [out] errPtr  unused
- * @return              true if success; false if failure
+ * @param [in] userdata    sqlite3 database
+ * @param [out] distfile   distfile described by `stmt`
+ * @param [in] stmt        `sqlite3_stmt` with appropriate columns
+ * @param [out] errPtr     unused
+ * @return                 true if success; false if failure
  */
 static int reg_stmt_to_distfile(void* userdata, void** distfile, void* stmt,
         void* calldata UNUSED, reg_error* errPtr UNUSED) {
     int is_new;
     reg_registry* reg = (reg_registry*)userdata;
-    reg_distfile_pk key;
     Tcl_HashEntry* hash;
-    char* hashkey;
 
-    key.id = sqlite3_column_int64(stmt, 0);
-    key.subdir = strdup((const char*) sqlite3_column_text(stmt, 1));
-    if (!key.subdir) {
-        return 0;
-    }
-    key.path = strdup((const char*) sqlite3_column_text(stmt, 2));
-    if (!key.path) {
-        free(key.subdir);
-        return 0;
-    }
-
-    hashkey = sqlite3_mprintf("%lld:%s/%s", key.id, key.subdir, key.path);
-    if (!hashkey) {
-        free(key.subdir);
-        free(key.path);
-        return 0;
-    }
+    sqlite_int64 id = sqlite3_column_int64(stmt, 0);
     hash = Tcl_CreateHashEntry(&reg->open_distfiles,
-            hashkey, &is_new);
-    sqlite3_free(hashkey);
-
+            (const char*)&id, &is_new);
     if (is_new) {
         reg_distfile* f = malloc(sizeof(reg_distfile));
         if (!f) {
-            free(key.subdir);
-            free(key.path);
+            Tcl_DeleteHashEntry(hash);
             return 0;
         }
         f->reg = reg;
-        f->key = key;
+        f->id = id;
         f->proc = NULL;
         *distfile = f;
         Tcl_SetHashValue(hash, f);
     } else {
-        free(key.subdir);
-        free(key.path);
         *distfile = Tcl_GetHashValue(hash);
     }
     return 1;
@@ -109,11 +85,11 @@ static int reg_stmt_to_distfile(void* userdata, void** distfile, void* stmt,
  * @param [out] errPtr  on error, a description of the error that occurs
  * @return              the distfile if success, NULL if failure
  */
-reg_distfile* reg_distfile_open(reg_registry* reg, char* id, char* subdir, char* path,
+reg_distfile* reg_distfile_open(reg_registry* reg, const char* id, const char* subdir, const char* path,
         reg_error* errPtr) {
     sqlite3_stmt* stmt = NULL;
     reg_distfile* distfile = NULL;
-    char* query = "SELECT id, subdir, path FROM registry.distfiles "
+    char* query = "SELECT ROWID FROM registry.distfiles "
         "WHERE id=? AND subdir=? AND path=?";
     int lower_bound = 0;
 
@@ -178,14 +154,14 @@ static int reg_all_distfiles(reg_registry* reg, char* query, int query_len,
  * Bad keys should cause sqlite3 errors but not permit SQL injection attacks.
  * Pass it good keys anyway.
  *
- * @param [in] reg       registry to search in
- * @param [in] keys      a list of keys to search by
- * @param [in] vals      a list of values to search by, matching keys
- * @param [in] strats    a list of strategies to use when searching
- * @param [in] key_count the number of key/value pairs passed
- * @param [out] distfiles    a list of matching distfiles
- * @param [out] errPtr   on error, a description of the error that occurred
- * @return               the number of entries if success; false if failure
+ * @param [in] reg          registry to search in
+ * @param [in] keys         a list of keys to search by
+ * @param [in] vals         a list of values to search by, matching keys
+ * @param [in] strats       a list of strategies to use when searching
+ * @param [in] key_count    the number of key/value pairs passed
+ * @param [out] distfiles   a list of matching distfiles
+ * @param [out] errPtr      on error, a description of the error that occurred
+ * @return                  the number of entries if success; false if failure
  */
 int reg_distfile_search(reg_registry* reg, char** keys, char** vals, int* strats,
         int key_count, reg_distfile*** distfiles, reg_error* errPtr) {
@@ -196,7 +172,7 @@ int reg_distfile_search(reg_registry* reg, char** keys, char** vals, int* strats
     int result;
 
     /* build the query */
-    query = strdup("SELECT id, subdir, path FROM registry.distfiles");
+    query = strdup("SELECT ROWID FROM registry.distfiles");
     if (!query) {
         return -1;
     }
@@ -233,11 +209,11 @@ int reg_distfile_search(reg_registry* reg, char** keys, char** vals, int* strats
  * `reg_distfile_propset`. The property named must be one that exists in the table
  * and must not be one with internal meaning such as `id`.
  *
- * @param [in] distfile    distfile to get property from
- * @param [in] key     property to get
- * @param [out] value  the value of the property
- * @param [out] errPtr on error, a description of the error that occurred
- * @return             true if success; false if failure
+ * @param [in] distfile   distfile to get property from
+ * @param [in] key        property to get
+ * @param [out] value     the value of the property
+ * @param [out] errPtr    on error, a description of the error that occurred
+ * @return                true if success; false if failure
  */
 int reg_distfile_propget(reg_distfile* distfile, char* key, char** value,
         reg_error* errPtr) {
@@ -247,9 +223,8 @@ int reg_distfile_propget(reg_distfile* distfile, char* key, char** value,
     char* query;
     const char *text;
     query = sqlite3_mprintf(
-            "SELECT %q FROM registry.distfiles "
-            "WHERE id=%lld AND subdir='%q' AND path='%q'", key,
-            distfile->key.id, distfile->key.subdir, distfile->key.path);
+            "SELECT %q FROM registry.distfiles WHERE ROWID=%lld", key,
+            distfile->id);
     if (sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
         int r;
         do {
@@ -289,9 +264,9 @@ int reg_distfile_propget(reg_distfile* distfile, char* key, char** value,
 /**
  * Fetches a list of all open distfiles
  *
- * @param [in] reg      registry to fetch distfiles from
+ * @param [in] reg          registry to fetch distfiles from
  * @param [out] distfiles   a list of open distfiles
- * @return              the number of open entries, -1 on error
+ * @return                  the number of open entries, -1 on error
  */
 int reg_all_open_distfiles(reg_registry* reg, reg_distfile*** distfiles) {
     reg_distfile* distfile;
