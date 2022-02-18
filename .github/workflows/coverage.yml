@@ -1,0 +1,53 @@
+---
+name: "Report Coverage"
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-11]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 64
+      - name: Cleanup /usr/local
+        run: |
+          sudo mkdir /opt/local.old
+          sudo mv /usr/local/* /opt/local.old
+      - name: Configure MacPorts Base
+        run: |
+          set -eu
+          ./configure CFLAGS="-fprofile-instr-generate -fcoverage-mapping" LDFLAGS="-fprofile-instr-generate"
+      - name: Build MacPorts Base
+        run: |
+          set -eu
+          make -j$(sysctl -n hw.activecpu)
+      - name: Install MacPorts Base
+        run: |
+          set -eu
+          sudo make install
+      - name: Test MacPorts Base
+        run: |
+          set -eu
+          LLVM_PROFILE_FILE="$PWD/cov-%p.profraw" make test
+      - name: Report Coverage
+        run: |
+          set -eu
+          xcrun llvm-profdata merge --sparse --output=cov.profdata cov-*.profraw
+          # tracelib cannot be profiled
+          OBJ_FILES="$(find src -type f "(" -name "*.dylib" -o -name "*.a" ")" | grep -Fv darwintracelib1.0 | sed 's/^/--arch=x86_64 --object=/')"
+          xcrun llvm-cov show --format=html --output-dir=covreport --ignore-filename-regex=vendor/ --instr-profile=cov.profdata $OBJ_FILES
+          xcrun llvm-cov report --ignore-filename-regex=vendor/ --instr-profile=cov.profdata $OBJ_FILES
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v2
+        with:
+          name: code-coverage-report
+          path: covreport/
