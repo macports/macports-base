@@ -284,11 +284,8 @@ InstallCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *
 	}
 
 	/* must have at least two arguments, except when creating directories */
-	if (objc < 2 && !dodir) {
-		usage(interp);
-		return TCL_ERROR;
-	}
-	else if (dodir && !objc) {
+	if ((objc < 2 && !dodir) ||
+		(dodir && !objc)) {
 		usage(interp);
 		return TCL_ERROR;
 	}
