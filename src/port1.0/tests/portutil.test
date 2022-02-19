@@ -802,11 +802,20 @@ test get_portimage_name {
     set configure.build_arch no
     set portarchivetype tgz
     set subport testport
-    set portvariants {var1}
+    set portvariants {+var1}
     set supported_archs {}
 
     set res [get_portimage_name]
-    if {$res != "testport-1.0_2var1.darwin_10.no.tgz"} {
+    if {$res != "testport-1.0_2+var1.darwin_10.no.tgz"} {
+        return "FAIL: invalid portimage_name"
+    }
+
+    # +arg1+arg2+...
+    for {set i 2} {$i <= 40} {incr i} {
+        set portvariants "$portvariants+var$i"
+    }
+    set res [get_portimage_name]
+    if {$res != "testport-1.0_2+9ef57c364ca3d2c29383b378c846bdd5bacc2bf1.darwin_10.no.tgz"} {
         return "FAIL: invalid portimage_name"
     }
     return "Get portimage_name successful."
