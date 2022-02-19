@@ -1031,7 +1031,7 @@ strip(const char *to_name)
  * install_dir --
  *	build directory hierarchy
  */
-int
+static int
 install_dir(Tcl_Interp *interp, char *path)
 {
 	char *p;
@@ -1097,7 +1097,7 @@ usage(Tcl_Interp *interp)
  * trymmap --
  *	return true (1) if mmap should be tried, false (0) if not.
  */
-int
+static int
 #ifdef MFSNAMELEN
 trymmap(int fd)
 #else
