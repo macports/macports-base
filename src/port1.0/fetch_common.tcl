@@ -268,6 +268,7 @@ proc portfetch::sortsites {urls default_listvar} {
         }
 
         set max_hosts_to_ping 50
+        set ping_phase_timeout 10
         set len [llength $hosts]
         if {$len > $max_hosts_to_ping} {
             # randomize them
@@ -281,9 +282,12 @@ proc portfetch::sortsites {urls default_listvar} {
         }
 
         set pinged_hosts [list]
+        set ping_start_time [clock seconds]
         foreach host $hosts {
             if {[llength $pinged_hosts] < $max_hosts_to_ping} {
-                if {[catch {set fds($host) [open "|ping -noq -c3 -t3 $host"]}]} {
+                if {[clock seconds] - $ping_start_time > $ping_phase_timeout} {
+                    # ping phase took too long, give up and set fallback values
+                } elseif {[catch {set fds($host) [open "|ping -noq -c3 -t3 $host"]}]} {
                     ui_debug "Spawning ping for $host failed"
                 } else {
                     lappend pinged_hosts $host
