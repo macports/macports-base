@@ -3487,6 +3487,7 @@ proc _archive_available {} {
         append site [option archive.subdir]
     }
     set url [portfetch::assemble_url $site $archivename]
+    ui_debug "Fetching $archivename archive size"
     # curl getsize can return -1 instead of throwing an error for
     # nonexistent files on FTP sites.
     if {![catch {curl getsize $url} size] && $size > 0} {
