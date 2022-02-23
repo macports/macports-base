@@ -218,6 +218,26 @@ namespace eval reclaim {
         }
     }
 
+    # return the variations that would be used when upgrading a port
+    # installed with the given requested variants
+    proc get_variations {installed_variants} {
+        array set vararray {}
+        foreach v [array names macports::global_variations] {
+            set vararray($v) $macports::global_variations($v)
+        }
+        set splitvariant [split $installed_variants -]
+        set minusvariant [lrange $splitvariant 1 end]
+        set splitvariant [split [lindex $splitvariant 0] +]
+        set plusvariant [lrange $splitvariant 1 end]
+        foreach v $plusvariant {
+            set vararray($v) +
+        }
+        foreach v $minusvariant {
+            set vararray($v) -
+        }
+        return [array get varray]
+    }
+
     proc remove_distfiles {} {
         # Check for distfiles in both the root, and home directories. If found, delete them.
         # Args:
@@ -252,17 +272,28 @@ namespace eval reclaim {
         $progress start
 
         foreach port $installed_ports {
+            # skip additional versions installed with the same variants
+            if {[info exists seen([$port name],[$port requested_variants])]} {
+                continue
+            }
+            set seen([$port name],[$port requested_variants]) 1
+            array unset portinfo
             # Get mport reference
             try -pass_signal {
-                set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] {}]
+                if {[catch {mportlookup [$port name]} lookup_result] || [llength $lookup_result] < 2} {
+                     ui_warn [msgcat::mc "Port %s not found: %s" [$port name] $lookup_result]
+                    continue
+                }
+                array set portinfo [lindex $lookup_result 1]
+                set mport [mportopen $portinfo(porturl) [list subport $portinfo(name)] [get_variations [$port requested_variants]]]
             } catch {{*} eCode eMessage} {
                 $progress intermission
-                ui_warn [msgcat::mc "Failed to open port %s from registry: %s" [$port name] $eMessage]
+                ui_warn [msgcat::mc "Failed to open port %s %s: %s" [$port name] [$port requested_variants] $eMessage]
                 #registry::entry close $port
                 continue
             }
 
-            # Setup sub-Tcl-interpreter that executed the installed port
+            # Get sub-Tcl-interpreter that executed the installed port
             set workername [ditem_key $mport workername]
 
             # Append that port's distfiles to the list
@@ -295,6 +326,8 @@ namespace eval reclaim {
             #registry::entry close $port
             incr i
         }
+        array unset seen
+        array unset portinfo
 
         $progress finish
 
