@@ -238,6 +238,40 @@ namespace eval reclaim {
         return [array get varray]
     }
 
+    proc load_distfile_cache {varname} {
+        upvar $varname var
+        try -pass_signal {
+            set fd [open |[list $macports::autoconf::gzip_path -d < [file join $macports::portdbpath reclaim distfiles.gz]] r]
+            set data [gets $fd]
+            close $fd
+            array set var $data
+            if {$var(:global_variations) ne [array get macports::global_variations]} {
+                array unset var
+                array set var [list]
+            } else {
+                unset var(:global_variations)
+            }
+        } catch {{*} eCode eMessage} {
+            ui_debug "Failed to load distfiles cache: $eMessage"
+            array set var [list]
+            catch {close $fd}
+        }
+    }
+
+    proc save_distfile_cache {varname} {
+        upvar $varname var
+        try -pass_signal {
+            file mkdir [file join $macports::portdbpath reclaim]
+            set fd [open |[list $macports::autoconf::gzip_path > [file join $macports::portdbpath reclaim distfiles.gz]] w]
+            set var(:global_variations) [array get macports::global_variations]
+            puts $fd [array get var]
+            close $fd
+        } catch {{*} eCode eMessage} {
+            ui_debug "Failed to save distfiles cache: $eMessage"
+            catch {close $fd}
+        }
+    }
+
     proc remove_distfiles {} {
         # Check for distfiles in both the root, and home directories. If found, delete them.
         # Args:
@@ -266,6 +300,7 @@ namespace eval reclaim {
         }
 
         ui_msg "$macports::ui_prefix Building list of distfiles still in use"
+        load_distfile_cache distfile_cache_prev
         set installed_ports [registry::entry imaged]
         set port_count [llength $installed_ports]
         set i 1
@@ -273,41 +308,68 @@ namespace eval reclaim {
 
         foreach port $installed_ports {
             # skip additional versions installed with the same variants
-            if {[info exists seen([$port name],[$port requested_variants])]} {
+            set cache_key [$port name],[$port requested_variants]
+            if {[info exists distfile_cache_new($cache_key)]} {
                 continue
             }
-            set seen([$port name],[$port requested_variants]) 1
+
+            array unset cacheinfo
             array unset portinfo
-            # Get mport reference
-            try -pass_signal {
-                if {[catch {mportlookup [$port name]} lookup_result] || [llength $lookup_result] < 2} {
-                     ui_warn [msgcat::mc "Port %s not found: %s" [$port name] $lookup_result]
+            if {[catch {mportlookup [$port name]} lookup_result] || [llength $lookup_result] < 2} {
+                ui_warn [msgcat::mc "Port %s not found: %s" [$port name] $lookup_result]
+                continue
+            }
+            array set portinfo [lindex $lookup_result 1]
+
+            set parse_needed yes
+            set portfile_hash [sha256 file [file join [macports::getportdir $portinfo(porturl)] Portfile]]
+            set fingerprint $portinfo(version)_$portinfo(revision)_${portfile_hash}
+            if {[info exists distfile_cache_prev($cache_key)]} {
+                array set cacheinfo $distfile_cache_prev($cache_key)
+                if {$cacheinfo(fingerprint) eq $fingerprint} {
+                    set parse_needed no
+                    set distfile_cache_new($cache_key) $distfile_cache_prev($cache_key)
+                }
+            }
+
+            if {$parse_needed} {
+                set cacheinfo(fingerprint) $fingerprint
+                # Get mport reference
+                try -pass_signal {
+                    set mport [mportopen $portinfo(porturl) [list subport $portinfo(name)] [get_variations [$port requested_variants]]]
+                } catch {{*} eCode eMessage} {
+                    $progress intermission
+                    ui_warn [msgcat::mc "Failed to open port %s %s: %s" [$port name] [$port requested_variants] $eMessage]
+                    #registry::entry close $port
                     continue
                 }
-                array set portinfo [lindex $lookup_result 1]
-                set mport [mportopen $portinfo(porturl) [list subport $portinfo(name)] [get_variations [$port requested_variants]]]
-            } catch {{*} eCode eMessage} {
-                $progress intermission
-                ui_warn [msgcat::mc "Failed to open port %s %s: %s" [$port name] [$port requested_variants] $eMessage]
-                #registry::entry close $port
-                continue
+
+                # Get sub-Tcl-interpreter that executed the installed port
+                set workername [ditem_key $mport workername]
+
+                # Append that port's distfiles to the list
+                set cacheinfo(dist_subdir) [$workername eval {set dist_subdir}]
+                set distfiles   [$workername eval {set distfiles}]
+                if {[catch {$workername eval {set patchfiles}} patchfiles]} {
+                    set patchfiles [list]
+                }
+                set filespath [$workername eval {set filespath}]
+
+                set cacheinfo(distfiles) [list]
+                foreach file [concat $distfiles $patchfiles] {
+                    # get filename without any tag
+                    set distfile [$workername eval [list getdistname $file]]
+                    if {![file exists [file join $filespath $distfile]]} {
+                        lappend cacheinfo(distfiles) $distfile
+                    }
+                }
+                set distfile_cache_new($cache_key) [array get cacheinfo]
+                mportclose $mport
             }
 
-            # Get sub-Tcl-interpreter that executed the installed port
-            set workername [ditem_key $mport workername]
-
-            # Append that port's distfiles to the list
-            set dist_subdir [$workername eval {set dist_subdir}]
-            set distfiles   [$workername eval {set distfiles}]
-            if {[catch {$workername eval {set patchfiles}} patchfiles]} {
-                set patchfiles {}
-            }
-
-            foreach file [concat $distfiles $patchfiles] {
-                # split distfile into filename and disttag
-                set distfile [$workername eval [list getdistname $file]]
-                set root_path [file join $root_dist $dist_subdir $distfile]
-                set home_path [file join $home_dist $dist_subdir $distfile]
+            foreach distfile $cacheinfo(distfiles) {
+                set root_path [file join $root_dist $cacheinfo(dist_subdir) $distfile]
+                set home_path [file join $home_dist $cacheinfo(dist_subdir) $distfile]
 
                 # Add the full file path to the list, depending where it's located.
                 if {[file isfile $root_path]} {
@@ -320,14 +382,13 @@ namespace eval reclaim {
                 }
             }
 
-            mportclose $mport
-
             $progress update $i $port_count
             #registry::entry close $port
             incr i
         }
-        array unset seen
-        array unset portinfo
+        array unset distfile_cache_prev
+        save_distfile_cache distfile_cache_new
+        array unset distfile_cache_new
 
         $progress finish
 
