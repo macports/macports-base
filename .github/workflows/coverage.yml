@@ -1,17 +1,25 @@
 ---
-name: "Report Coverage"
+name: "Static Analysis"
 
 on:
-  - push
-  - pull_request
+  push:
+    branches: [ master, release-* ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ master ]
 
 jobs:
-  build:
+  analyze:
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     strategy:
       matrix:
         os: [macos-11]
+        language: ['cpp']
 
     steps:
       - name: Checkout repository
@@ -22,23 +30,36 @@ jobs:
         run: |
           sudo mkdir /opt/local.old
           sudo mv /usr/local/* /opt/local.old
-      - name: Configure MacPorts Base
-        run: |
-          set -eu
-          ./configure CFLAGS="-fprofile-instr-generate -fcoverage-mapping" LDFLAGS="-fprofile-instr-generate"
+
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: ${{ matrix.language }}
+          # If you wish to specify custom queries, you can do so here or in a config file.
+          # By default, queries listed here will override any specified in a config file.
+          # Prefix the list here with "+" to use these queries and those in the config file.
+          # queries: ./path/to/local/query, your-org/your-repo/queries@main
+
       - name: Build MacPorts Base
         run: |
-          set -eu
-          make -j$(sysctl -n hw.activecpu)
+         ./configure CFLAGS="-fprofile-instr-generate -fcoverage-mapping" LDFLAGS="-fprofile-instr-generate"
+         make -j$(sysctl -n hw.activecpu)
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
+
       - name: Install MacPorts Base
         run: |
           set -eu
           sudo make install
+
       - name: Test MacPorts Base
         run: |
           set -eu
           LLVM_PROFILE_FILE="$PWD/cov-%p.profraw" make test
-      - name: Report Coverage
+
+      - name: Scan Coverage
         run: |
           set -eu
           xcrun llvm-profdata merge --sparse --output=cov.profdata cov-*.profraw
@@ -46,6 +67,7 @@ jobs:
           OBJ_FILES="$(find src -type f "(" -name "*.dylib" -o -name "*.a" ")" | grep -Fv darwintracelib1.0 | sed 's/^/--arch=x86_64 --object=/')"
           xcrun llvm-cov show --format=html --output-dir=covreport --ignore-filename-regex=vendor/ --instr-profile=cov.profdata $OBJ_FILES
           xcrun llvm-cov report --ignore-filename-regex=vendor/ --instr-profile=cov.profdata $OBJ_FILES
+
       - name: Archive code coverage results
         uses: actions/upload-artifact@v2
         with:
