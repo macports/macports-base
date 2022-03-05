@@ -1170,18 +1170,30 @@ proc portconfigure::get_clang_compilers {} {
         source ${compiler_file}
     } else {
         ui_debug "clang_compilers.tcl not found in ports tree, using built-in selections"
-        # clang 9.0 and older build on 10.6+ (darwin 10)
-        # clang 7.0 and older build on 10.5+ (darwin 9)
-        # clang 3.4 and older build on 10.4+ (darwin 8)
+
+        # clang 11  and older build on 10.6+  (darwin 10)
+        # clang 7.0 and older build on 10.5+  (darwin 9)
+        # clang 3.4 and older build on 10.4+  (darwin 8)
+        # Clang 11 and newer only on Apple Silicon
+        # Clang 9.0 and newer only on 11+ (Darwin 20)
+
+        if {${os.major} >= 11} {
+            lappend compilers macports-clang-13 macports-clang-12
+        }
         if {${os.major} >= 10} {
-            lappend compilers macports-clang-9.0 \
-                macports-clang-8.0
+            lappend compilers macports-clang-11
+            if {[option build_arch] ne "arm64"} {
+                lappend compilers macports-clang-10 macports-clang-9.0
+                if {${os.major} < 20} {
+                    lappend compilers macports-clang-8.0
+                }
+            }
         }
 
-        if {${os.major} >= 9} {
+        if {${os.major} >= 9 && ${os.major} < 20} {
             lappend compilers macports-clang-7.0 \
-                macports-clang-6.0 \
-                macports-clang-5.0
+                              macports-clang-6.0 \
+                              macports-clang-5.0
         }
 
         if {${os.major} < 16} {
@@ -1199,18 +1211,30 @@ proc portconfigure::get_clang_compilers {} {
 }
 # utility procedure: get GCC compilers based on os.major
 proc portconfigure::get_gcc_compilers {} {
-    global os.major porturl
+    global os.major os.arch porturl
     set compilers ""
     set compiler_file [getportresourcepath $porturl "port1.0/compilers/gcc_compilers.tcl"]
     if {[file exists ${compiler_file}]} {
         source ${compiler_file}
     } else {
         ui_debug "gcc_compilers.tcl not found in ports tree, using built-in selections"
+
         if {${os.major} >= 10} {
-            # see https://trac.macports.org/ticket/57135
-            lappend compilers macports-gcc-8
+            lappend compilers macports-gcc-11 macports-gcc-10
         }
-        lappend compilers macports-gcc-7 macports-gcc-6 macports-gcc-5
+
+        if {${os.arch} ne "arm"} {
+            if {${os.major} >= 10} {
+                lappend compilers macports-gcc-9 macports-gcc-8
+            }
+            if {${os.major} < 20} {
+                lappend compilers macports-gcc-7 macports-gcc-6 macports-gcc-5
+            }
+        }
+
+        if {${os.major} >= 11} {
+            lappend compilers macports-gcc-devel
+        }
     }
     return ${compilers}
 }
@@ -1592,17 +1616,27 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
                 source ${dependencies_file}
             } else {
                 ui_debug "gcc_dependencies.tcl not found in ports tree, using built-in data"
+
+                # GCC version providing the primary runtime
+                # Note settings here *must* match those in the lang/libgcc port and compilers PG
+                if {${os.major} < 10} {
+                    set gcc_main_version 7
+                } else {
+                    set gcc_main_version 11
+                }
+
                 # compiler links against libraries in libgcc\d* and/or libgcc-devel
                 if {[vercmp ${gcc_version} 4.6] < 0} {
-                    set libgccs "path:lib/libgcc/libgcc_s.1.dylib:libgcc port:libgcc45"
+                    set libgccs "path:share/doc/libgcc/README:libgcc port:libgcc45"
                 } elseif {[vercmp ${gcc_version} 7] < 0} {
-                    set libgccs "path:lib/libgcc/libgcc_s.1.dylib:libgcc port:libgcc6"
-                } elseif {[vercmp ${gcc_version} 8] < 0} {
-                    set libgccs "path:lib/libgcc/libgcc_s.1.dylib:libgcc port:libgcc7"
-                } elseif {[vercmp ${gcc_version} 9] < 0} {
-                    set libgccs "path:lib/libgcc/libgcc_s.1.dylib:libgcc port:libgcc8"
+                    set libgccs "path:share/doc/libgcc/README:libgcc port:libgcc6"
+                } elseif {[vercmp ${gcc_version} ${gcc_main_version}] < 0} {
+                    set libgccs "path:share/doc/libgcc/README:libgcc port:libgcc${gcc_version}"
                 } else {
-                    set libgccs "path:lib/libgcc/libgcc_s.1.dylib:libgcc"
+                    # Using primary GCC version
+                    # Do not depend directly on primary runtime port, as implied by libgcc
+                    # and doing so prevents libgcc-devel being used as an alternative.
+                    set libgccs "path:share/doc/libgcc/README:libgcc"
                 }
             }
             foreach libgcc_dep $libgccs {
