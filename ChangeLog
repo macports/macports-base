@@ -2,6 +2,37 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.7.2 (unreleased)
+    - Fixed poor trace mode performance on newer OS versions.
+      (cal in 3b949cc)
+
+    - Added escaping of shell-unsafe characters when compressing man
+      pages in the destroot phase. (#64531, jmr in b6bac45)
+
+    - Fixed several cases of unrelated errorInfo being printed when
+      something failed. (jmr in e5e7dff, b864109)
+
+    - Fixed handling of distname containing spaces.
+      (#64419, jmr in 690fab1)
+
+    - Fixed use_xmkmf. (#64011, ryandesign in ce42354, c8ff808)
+
+    - Fixed fetch.type cvs. (#63931, ryandesign in c118fb2)
+
+    - Avoided error about specified version being unavailable when the
+      version came from a pseudo-portname like 'outdated'.
+      (#63438, jmr in db498e0)
+
+    - Fixed failure in PortGroup command when the ports tree path
+      contains spaces. (#63534, jmr in b83c743)
+
+    - Fixed incorrect compiler selection logic for certain GCC
+      versions. (#63281, jmr in 087ce29)
+
+    - Added metadata so Installer won't erroneously claim that the
+      MacPorts .pkg requires Rosetta 2 to install on Apple Silicon.
+      (#63096, jmr in 09c4373)
+
 Release 2.7.1 (2021-05-26 by jmr)
     - Fixed SQL error when MacPorts was built against the 10.15 SDK but
       run on 10.14. (#62929, jmr in 0249b3c)
