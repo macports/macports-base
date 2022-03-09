@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.7.2 (unreleased)
+Release 2.7.2 (2022-03-09 by jmr)
     - Fixed poor trace mode performance on newer OS versions.
       (cal in 3b949cc)
 
