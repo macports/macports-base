@@ -228,12 +228,16 @@ for {set i 0} {$i < $argc} {incr i} {
                         } else {
                             set cxx_stdlib libc++
                         }
+                    } elseif {$os_platform eq "linux"} {
+                        set cxx_stdlib libstdc++
                     }
                     set os_arch [lindex $platlist 2]
                 }
                 if {$os_platform eq "macosx"} {
                     lappend port_options os.subplatform $os_platform os.universal_supported yes cxx_stdlib $cxx_stdlib
                     set os_platform darwin
+                } elseif {$os_platform eq "linux"} {
+                    lappend cxx_stdlib $cxx_stdlib
                 }
                 lappend port_options os.platform $os_platform os.major $os_major os.arch $os_arch
             } elseif {$arg eq "-f"} { # Completely rebuild index
