@@ -2611,22 +2611,34 @@ proc macports::GetVCSUpdateCmd portDir {
     }
 
     # Git
-    if {![catch {macports::findBinary git} git] &&
-        ![catch {exec $git rev-parse --is-inside-work-tree}]
-    } then {
-        if {![catch {exec $git config --local --get svn-remote.svn.url}]} {
-            # git-svn repository
-            return [list git-svn "$git svn rebase" $portDir]
+    if {![catch {macports::findBinary git} git] } {
+        # Get git version
+        set gitversion 0.0.0
+        if { ![catch {exec $git --version} git_version_string] } {
+            if { [regexp -nocase "git version (\[^ ]+)" $git_version_string -> gitversion] } {
+                ui_debug "Found GIT ${git} version ${gitversion}"
+            }
         }
-        # regular git repository
-        set autostash ""
-        if {![catch {exec $git --version} git_version_string] && \
-            [regexp -nocase "git version (\[^ ]+)" $git_version_string -> gitversion] && \
-            [vercmp $gitversion 2.9.0] >= 0} {
-            # https://github.com/git/git/blob/v2.9.0/Documentation/RelNotes/2.9.0.txt#L84-L86
-            set autostash " --autostash"
+        # https://github.blog/2022-04-12-git-security-vulnerability-announced/
+        # As of version 2.35.2 git will not access a git repo owned by someone else
+        # else it is declared as a 'safe directory'
+        if { [vercmp $gitversion 2.35.2] >= 0} {
+            exec $git config --global --add safe.directory $portDir
         }
-        return [list Git "$git pull --rebase${autostash}" $portDir]
+        # check we are in a valid git tree
+        if { ![catch {exec $git rev-parse --is-inside-work-tree}] } {
+            if {![catch {exec $git config --local --get svn-remote.svn.url}]} {
+                # git-svn repository
+                return [list git-svn "$git svn rebase" $portDir]
+            }
+            # regular git repository
+            set autostash ""
+            if { [vercmp $gitversion 2.9.0] >= 0} {
+                # https://github.com/git/git/blob/v2.9.0/Documentation/RelNotes/2.9.0.txt#L84-L86
+                set autostash " --autostash"
+            }
+            return [list Git "$git pull --rebase${autostash}" $portDir]
+        }
     }
 
     # Add new VCSes here!
