@@ -2590,10 +2590,10 @@ proc macports::getindex {source} {
 # @param portDir Path to directory to prepare to operate on.
 # @param state Variable name to save relevant state in. Pass this to
 #              VCSCleanup after running the VCS commands.
-proc macports::VCSPrepare {dir state} {
+proc macports::VCSPrepare {dir statevar} {
     if {[getuid] == 0} {
         global env macports::user_ssh_auth_sock
-        upvar $state state
+        upvar $statevar state
         # Must change egid before dropping root euid.
         set state(oldEGID) [getegid]
         set newEGID [name_to_gid [file attributes $dir -group]]
@@ -2618,9 +2618,9 @@ proc macports::VCSPrepare {dir state} {
 # including restoring privileges.
 #
 # @param state Variable name that was passed to VCSPrepare previously.
-proc macports::VCSCleanup {state} {
+proc macports::VCSCleanup {statevar} {
     if {[getuid] == 0} {
-        upvar $state state
+        upvar $statevar state
         seteuid $state(oldEUID)
         setegid $state(oldEGID)
         array unset env *
