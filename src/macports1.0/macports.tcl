@@ -2581,6 +2581,54 @@ proc macports::getindex {source} {
     return [file join [macports::getsourcepath $source] PortIndex]
 }
 
+# macports::VCSPrepare
+#
+# Prepare to run a VCS command in the given directory, including
+# dropping privileges by taking on the euid of the owner of the
+# directory, if running as root.
+#
+# @param portDir Path to directory to prepare to operate on.
+# @param state Variable name to save relevant state in. Pass this to
+#              VCSCleanup after running the VCS commands.
+proc macports::VCSPrepare {dir state} {
+    if {[getuid] == 0} {
+        global env macports::user_ssh_auth_sock
+        upvar $state state
+        # Must change egid before dropping root euid.
+        set state(oldEGID) [getegid]
+        set newEGID [name_to_gid [file attributes $dir -group]]
+        setegid $newEGID
+        set state(oldEUID) [geteuid]
+        set newEUID [name_to_uid [file attributes $dir -owner]]
+        seteuid $newEUID
+        set state(oldEnv) [array get env]
+        set env(HOME) [getpwuid $newEUID dir]
+        set envdebug "HOME=$env(HOME)"
+        if {[info exists macports::user_ssh_auth_sock]} {
+            set env(SSH_AUTH_SOCK) $macports::user_ssh_auth_sock
+            append envdebug " SSH_AUTH_SOCK=$env(SSH_AUTH_SOCK)"
+        }
+        ui_debug "euid/egid changed to: $newEUID/$newEGID, env: $envdebug"
+    }
+}
+
+# macports::VCSCleanup
+#
+# Clean up after running VCS commands. Undoes the effects of VCSPrepare
+# including restoring privileges.
+#
+# @param state Variable name that was passed to VCSPrepare previously.
+proc macports::VCSCleanup {state} {
+    if {[getuid] == 0} {
+        upvar $state state
+        seteuid $state(oldEUID)
+        setegid $state(oldEGID)
+        array unset env *
+        array set env $state(oldEnv)
+        ui_debug "euid/egid restored to: $state(oldEUID)/$state(oldEGID), env restored"
+    }
+}
+
 # macports::GetVCSUpdateCmd --
 #
 # Determine whether the given directory is associated with a repository
@@ -2597,7 +2645,9 @@ proc macports::getindex {source} {
 # If the directory is not associated with any supported system, return
 # an empty list.
 #
-proc macports::GetVCSUpdateCmd portDir {
+# @param portDir The directory to check.
+#
+proc macports::GetVCSUpdateCmd {portDir} {
 
     set oldPWD [pwd]
     cd $portDir
@@ -2637,40 +2687,18 @@ proc macports::GetVCSUpdateCmd portDir {
 
 # macports::UpdateVCS --
 #
-# Execute the given command in a shell. If called with superuser
-# privileges, execute the command as the user/group that owns the given
-# directory, restoring privileges before returning.
+# Execute the given command in a shell. Should be run as the
+# user/group that owns the given directory by calling VCSPrepare
+# beforehand.
 #
 # This proc could probably be generalized and used elsewhere.
 #
+# @param cmd The command to run.
+# @param dir The directory to run the command in.
+#
 proc macports::UpdateVCS {cmd dir} {
-    global env macports::user_ssh_auth_sock
-    if {[getuid] == 0} {
-        # Must change egid before dropping root euid.
-        set oldEGID [getegid]
-        set newEGID [name_to_gid [file attributes $dir -group]]
-        setegid $newEGID
-        set oldEUID [geteuid]
-        set newEUID [name_to_uid [file attributes $dir -owner]]
-        seteuid $newEUID
-        array set oldEnv [array get env]
-        set env(HOME) [getpwuid $newEUID dir]
-        set envdebug "HOME=$env(HOME)"
-        if {[info exists macports::user_ssh_auth_sock]} {
-            set env(SSH_AUTH_SOCK) $macports::user_ssh_auth_sock
-            append envdebug " SSH_AUTH_SOCK=$env(SSH_AUTH_SOCK)"
-        }
-        ui_debug "euid/egid changed to: $newEUID/$newEGID, env: $envdebug"
-    }
     ui_debug $cmd
     catch {system -W $dir $cmd} result options
-    if {[getuid] == 0} {
-        seteuid $oldEUID
-        setegid $oldEGID
-        array unset env *
-        array set env [array get oldEnv]
-        ui_debug "euid/egid restored to: $oldEUID/$oldEGID, env restored"
-    }
     return -options $options $result
 }
 
@@ -2700,6 +2728,7 @@ proc mportsync {{optionslist {}}} {
         switch -regexp -- [macports::getprotocol $source] {
             {^file$} {
                 set portdir [macports::getportdir $source]
+                macports::VCSPrepare $portdir statevar
                 if {[_source_is_obsolete_svn_repo $portdir]} {
                     set obsoletesvn 1
                 }
@@ -2709,6 +2738,7 @@ proc mportsync {{optionslist {}}} {
                     ui_debug $::errorInfo
                     ui_info "Could not access contents of $portdir"
                     incr numfailed
+                    macports::VCSCleanup statevar
                     continue
                 }
                 if {[llength $repoInfo]} {
@@ -2719,9 +2749,11 @@ proc mportsync {{optionslist {}}} {
                         ui_debug $::errorInfo
                         ui_info "Syncing local $vcs ports tree failed"
                         incr numfailed
+                        macports::VCSCleanup statevar
                         continue
                     }
                 }
+                macports::VCSCleanup statevar
                 set needs_portindex true
             }
             {^rsync$} {
