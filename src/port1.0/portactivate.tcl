@@ -51,8 +51,8 @@ options activate.asroot
 default activate.asroot no
 
 proc portactivate::activate_start {args} {
-    global prefix
-    if {![file writable $prefix] || ([getuid] == 0 && [geteuid] != 0)} {
+    global prefix_frozen
+    if {![file writable $prefix_frozen] || ([getuid] == 0 && [geteuid] != 0)} {
         # if install location is not writable, need root privileges
         elevateToRoot "activate"
     }
