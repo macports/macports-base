@@ -20,11 +20,12 @@ macports_worker_init
 
 
 set activate_start_fixture_setup {
-    global prefix
+    global prefix prefix_frozen
 
     set _save_prefix ${prefix}
     file mkdir ${pwd}/tmpdir
     set prefix ${pwd}/tmpdir
+    set prefix_frozen ${pwd}/tmpdir
 
     rename getuid _save_getuid
     rename geteuid _save_geteuid
