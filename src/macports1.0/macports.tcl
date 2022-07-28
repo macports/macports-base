@@ -699,12 +699,19 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # set up platform info variables
     set os_arch $tcl_platform(machine)
     # Set os_arch to match `uname -p`
-    if {$os_arch eq "Power Macintosh"} {
-        set os_arch "powerpc"
-    } elseif {$os_arch eq "i586" || $os_arch eq "i686" || $os_arch eq "x86_64"} {
-        set os_arch "i386"
-    } elseif {$os_arch eq "arm64"} {
-        set os_arch "arm"
+    switch -glob $os_arch {
+       "Power Macintosh" -
+       ppc* {
+           set os_arch powerpc
+       }
+       i[3-7]86 -
+       x86_64 {
+           set os_arch i386
+       }
+       arm* -
+       aarch* {
+           set os_arch arm
+       }
     }
     set os_version $tcl_platform(osVersion)
     set os_major [lindex [split $os_version .] 0]
@@ -1148,11 +1155,24 @@ match macports.conf.default."
                 }
             }
         } else {
-            # List of currently supported CPU architectures
-            if {$tcl_platform(machine) in [list arm64 x86_64 i386 ppc]} {
-                set macports::build_arch $tcl_platform(machine)
-            } else {
-                set macports::build_arch {}
+            switch -glob $tcl_platform(machine) {
+               "Power Macintosh" -
+               ppc* {
+                   set macports::build_arch ppc
+               }
+               i[3-7]86 {
+                   set macports::build_arch i386
+               }
+               x86_64 {
+                   set macports::build_arch x86_64
+               }
+               arm* -
+               aarch* {
+                   set macports::build_arch arm64
+               }
+               default {
+                   set macports::build_arch {}
+               }
             }
         }
     } else {
