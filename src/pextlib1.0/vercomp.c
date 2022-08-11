@@ -154,23 +154,53 @@ static int vercmp (const char *versionA, const char *versionB) {
 		return -1;
 }
 
+static int vercmp_op(const char *versionA, const char *operator, const char *versionB)
+{
+    int cmpres = vercmp(versionA, versionB);
+    if (strcmp(operator, "==") == 0) {
+        return (cmpres == 0);
+    } else if (strcmp(operator, "!=") == 0) {
+        return (cmpres != 0);
+    } else if (strcmp(operator, ">") == 0) {
+        return (cmpres > 0);
+    } else if (strcmp(operator, "<") == 0) {
+        return (cmpres < 0);
+    } else if (strcmp(operator, ">=") == 0) {
+        return (cmpres >= 0);
+    } else if (strcmp(operator, "<=") == 0) {
+        return (cmpres <= 0);
+    }
+
+    return -1;
+}
+
 int VercompCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Tcl_Obj *tcl_result;
-	const char *versionA, *versionB;
+	const char *versionA, *versionB, *operator;
 	int rval;
 
-	if (objc != 3) {
-		Tcl_WrongNumArgs(interp, 1, objv, "versionA versionB");
+	if (objc < 3 || objc > 4) {
+		Tcl_WrongNumArgs(interp, 1, objv, "versionA [operator] versionB");
 		return TCL_ERROR;
 	}
 
 	versionA = Tcl_GetString(objv[1]);
-	versionB = Tcl_GetString(objv[2]);
+	if (objc == 3) {
+	    versionB = Tcl_GetString(objv[2]);
+	    rval = vercmp(versionA, versionB);
+	    tcl_result = Tcl_NewIntObj(rval);
+	} else {
+	    operator = Tcl_GetString(objv[2]);
+	    versionB = Tcl_GetString(objv[3]);
+	    rval = vercmp_op(versionA, operator, versionB);
+	    if (rval == -1) {
+	        Tcl_SetResult(interp, "invalid operator, must be one of == != > < >= <=", TCL_STATIC);
+	        return TCL_ERROR;
+	    }
+	    tcl_result = Tcl_NewBooleanObj(rval);
+	}
 
-	rval = vercmp(versionA, versionB);
-
-	tcl_result = Tcl_NewIntObj(rval);
 	Tcl_SetObjResult(interp, tcl_result);
 
 	return TCL_OK;
