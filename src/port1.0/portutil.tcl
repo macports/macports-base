@@ -3393,7 +3393,7 @@ proc _check_xcode_version {} {
             }
 
             # Check whether /usr/include and /usr/bin/make exist and tell users to install the command line tools, if they don't
-            if {${os.major} <= 17 && (![file isdirectory [file join $cltpath usr include]] || ![file executable  [file join $cltpath usr bin make]])} {
+            if {${os.major} <= 17 && (![file isdirectory [file join $cltpath usr include]] || ![file executable [file join $cltpath usr bin make]])} {
                 if {[vercmp $xcodeversion 10.0] >= 0} {
                     ui_warn "System headers do not appear to be installed. Ports may not build correctly due to Xcode 10 only providing a 10.14 SDK."
                 } else {
@@ -3407,15 +3407,21 @@ proc _check_xcode_version {} {
                 }
             }
 
-            if {${os.major} >= 18 && [option configure.sdk_version] ne "" &&
-                ![string match MacOSX[option configure.sdk_version]*.sdk [file tail [option configure.sdkroot]]]} {
-                if { [option configure.sdkroot] eq "" } {
-                    ui_warn "The macOS [option configure.sdk_version] SDK is requested but configure.sdkroot is set to"
-                    ui_warn "a NULL string. Ports may not build correctly with this configuration."
-                } else {
-                    ui_warn "The macOS [option configure.sdk_version] SDK does not appear to be match the configured"
-                    ui_warn "SDKROOT '[option configure.sdkroot]'. Ports may not build correctly."
-                    ui_warn "You can install it as part of the Xcode Command Line Tools package by running `xcode-select --install'."
+            if {${os.major} >= 18} {
+                global xcodecltversion configure.sdk_version macosx_sdk_version
+                if {$xcodecltversion eq "none" && [file executable [file join $cltpath usr bin make]]} {
+                    ui_warn "The Xcode Command Line Tools package appears to be installed, but its receipt appears to be missing."
+                    ui_warn "The Command Line Tools may be outdated, which can cause problems."
+                    ui_warn "Please see: <https://trac.macports.org/wiki/ProblemHotlist#reinstall-clt>"
+                } elseif {${configure.sdk_version} ne "" && ![string match MacOSX${configure.sdk_version}*.sdk \
+                        [file tail [portconfigure::configure_get_sdkroot ${configure.sdk_version}]]]} {
+                    if {${configure.sdk_version} eq ${macosx_sdk_version}} {
+                        ui_warn "The macOS ${configure.sdk_version} SDK does not appear to be installed. Ports may not build correctly."
+                        ui_warn "You can install it as part of the Xcode Command Line Tools package by running `xcode-select --install'."
+                        ui_warn "If already installed, update with Software Update, or manually: <https://trac.macports.org/wiki/ProblemHotlist#reinstall-clt>"
+                    } else {
+                        ui_warn "The macOS ${configure.sdk_version} SDK does not appear to be installed. This port may not build correctly."
+                    }
                 }
             }
 

@@ -50,7 +50,7 @@ namespace eval macports {
         portarchivetype hfscompression portautoclean \
         porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_autostart startupitem_type startupitem_install \
-        place_worksymlink xcodeversion xcodebuildcmd \
+        place_worksymlink xcodeversion xcodebuildcmd xcodecltversion \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_sdk_version macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
@@ -75,7 +75,7 @@ namespace eval macports {
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
     # they are not exported to the interpreter in system_options array.
-    variable portinterp_deferred_options "xcodeversion xcodebuildcmd developer_dir"
+    variable portinterp_deferred_options "developer_dir xcodeversion xcodebuildcmd xcodecltversion"
 
     variable open_mports {}
 
@@ -166,13 +166,13 @@ proc macports::ch_logging {mport} {
 
 # log platform information
 proc macports::_log_sysinfo {} {
-    global macports::current_phase
-    global macports::os_platform macports::os_subplatform \
+    global macports::current_phase \
+           macports::os_platform macports::os_subplatform \
            macports::os_version macports::os_major macports::os_minor \
            macports::os_endian macports::os_arch \
            macports::macos_version macports::macosx_sdk_version macports::macosx_deployment_target \
-           macports::xcodeversion
-    global tcl_platform
+           macports::xcodeversion macports::xcodecltversion \
+           tcl_platform
 
     set previous_phase ${macports::current_phase}
     set macports::current_phase "sysinfo"
@@ -197,7 +197,7 @@ proc macports::_log_sysinfo {} {
     ui_debug "$os_version_string ($os_platform/$os_version) arch $os_arch"
     ui_debug "MacPorts [macports::version]"
     if {$os_platform eq "darwin" && $os_subplatform eq "macosx"} {
-        ui_debug "Xcode ${xcodeversion}"
+        ui_debug "Xcode ${xcodeversion}, CLT ${xcodecltversion}"
         ui_debug "SDK ${macosx_sdk_version}"
         ui_debug "MACOSX_DEPLOYMENT_TARGET: ${macosx_deployment_target}"
     }
@@ -604,6 +604,42 @@ proc macports::_is_valid_developer_dir {dir} {
     return 1
 }
 
+# deferred calculation of xcodecltversion
+proc macports::set_xcodecltversion {name1 name2 op} {
+    global macports::xcodecltversion
+
+    trace remove variable macports::xcodecltversion read macports::set_xcodecltversion
+
+    # Potential names for the CLTs pkg on different OS versions.
+    set pkgnames [list CLTools_Executables CLTools_Base DeveloperToolsCLI DeveloperToolsCLILeo]
+
+    if {[catch {exec -ignorestderr /usr/sbin/pkgutil --pkgs=com\\.apple\\.pkg\\.([join $pkgnames |])} result]} {
+        set macports::xcodecltversion none
+        return
+    }
+    set pkgs [split $result \n]
+    # Check in order from newest to oldest, just in case something
+    # stuck around from an older OS version.
+    foreach pkgname $pkgnames {
+        set fullpkgname com.apple.pkg.${pkgname}
+        if {$fullpkgname in $pkgs} {
+            if {![catch {exec -ignorestderr /usr/sbin/pkgutil --pkg-info $fullpkgname} result]} {
+                foreach line [split $result \n] {
+                    lassign [split $line] name val
+                    if {$name eq "version:"} {
+                        set macports::xcodecltversion $val
+                        return
+                    }
+                }
+            } else {
+                ui_debug "set_xcodecltversion: Failed to get info for installed pkg ${fullpkgname}: $result"
+            }
+        }
+    }
+
+    set macports::xcodecltversion none
+}
+
 
 proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # Disable unknown(n)'s behavior of running unknown commands in the system
@@ -657,6 +693,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::frameworks_dir_frozen \
         macports::xcodebuildcmd \
         macports::xcodeversion \
+        macports::xcodecltversion \
         macports::configureccache \
         macports::ccache_dir \
         macports::ccache_size \
@@ -1259,6 +1296,13 @@ match macports.conf.default."
         # We'll resolve these later (if needed)
         trace add variable macports::xcodeversion read macports::setxcodeinfo
         trace add variable macports::xcodebuildcmd read macports::setxcodeinfo
+    }
+    if {![info exists xcodecltversion]} {
+        if {$os_platform eq "darwin"} {
+            trace add variable macports::xcodecltversion read macports::set_xcodecltversion
+        } else {
+            set macports::xcodecltversion {}
+        }
     }
 
     if {![info exists developer_dir]} {
