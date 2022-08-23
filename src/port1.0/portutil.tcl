@@ -2604,6 +2604,23 @@ proc set_ui_prefix {} {
 proc PortGroup {group version} {
     global porturl PortInfo _portgroup_search_dirs subport
 
+    if {[info exists PortInfo(portgroups)]} {
+        set existing_list [lsearch -all -exact -index 0 -inline $PortInfo(portgroups) $group]
+        set should_return 0
+        foreach existing $existing_list {
+            set ex_vers [lindex $existing 1]
+            if {$ex_vers eq $version} {
+                ui_debug "PortGroup $group $version included previously, not sourcing again"
+                set should_return 1
+            } else {
+                ui_warn "PortGroup $group $version included, but version $ex_vers was included previously"
+            }
+        }
+        if {$should_return} {
+            return
+        }
+    }
+
     if {[info exists _portgroup_search_dirs]} {
         foreach dir $_portgroup_search_dirs {
             set groupFile ${dir}/${group}-${version}.tcl
