@@ -1273,12 +1273,21 @@ proc ln {args} {
         set target [lindex $args end]
     }
 
+    set target_dir 0
+    set append_path 0
+    if {[file isdirectory $target]} {
+        set target_dir 1
+        if {[file type $target] ne "link" || ![info exists options(h)]} {
+            set append_path 1
+        }
+    }
+
     foreach file $files {
         if {[file isdirectory $file] && ![info exists options(s)]} {
             return -code error "ln: $file: Is a directory"
         }
 
-        if {[file isdirectory $target] && ([file type $target] ne "link" || ![info exists options(h)])} {
+        if {$append_path} {
             set linktarget [file join $target [file tail $file]]
         } else {
             set linktarget $target
@@ -1292,10 +1301,10 @@ proc ln {args} {
             }
         }
 
-        if {[llength $files] > 2} {
-            if {![file exists $linktarget]} {
+        if {[llength $files] > 1} {
+            if {!$append_path && ![file exists $linktarget]} {
                 return -code error "ln: $linktarget: No such file or directory"
-            } elseif {![file isdirectory $target]} {
+            } elseif {!$target_dir} {
                 # this error isn't strictly what BSD ln gives, but I think it's more useful
                 return -code error "ln: $target: Not a directory"
             }
