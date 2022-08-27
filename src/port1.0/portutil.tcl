@@ -567,7 +567,7 @@ proc handle_option_string {option action args} {
                 }
 
                 # Remove indent on first line
-                set arg [string replace $arg 0 [expr {$i - 1}]]
+                set arg [string replace $arg 0 $i-1]
                 # Remove indent on each other line
                 set arg [string map "\"\n$indent\" \"\n\"" $arg]
 
@@ -600,7 +600,7 @@ proc variant {args} {
         return -code error "Malformed variant specification"
     }
     set code [lindex $args end]
-    set args [lrange $args 0 [expr {$len - 2}]]
+    set args [lrange $args 0 end-1]
 
     set ditem [variant_new "temp-variant"]
 
@@ -816,7 +816,7 @@ proc platform {args} {
     }
     set code [lindex $args end]
     set os [lindex $args 0]
-    set args [lrange $args 1 [expr {$len - 2}]]
+    set args [lrange $args 1 end-1]
 
     set release_re {(^[0-9]+$)}
     set arch_re {([a-zA-Z0-9]*)}
@@ -1269,7 +1269,7 @@ proc ln {args} {
         set files $args
         set target ./
     } else {
-        set files [lrange $args 0 [expr {[llength $args] - 2}]]
+        set files [lrange $args 0 end-1]
         set target [lindex $args end]
     }
 
@@ -3058,7 +3058,7 @@ proc fileAttrsAsRoot {file attributes} {
         }
     } else {
         # not root, so can't set owner/group
-        set permissions [lindex $attributes [expr {[lsearch $attributes "-permissions"] + 1}]]
+        set permissions [lindex $attributes [lsearch -exact $attributes "-permissions"]+1]
         file attributes $file -permissions $permissions
     }
 }
@@ -3181,7 +3181,7 @@ proc _libtest {depspec {return_match 0}} {
 
     set i [string first . $depline]
     if {$i < 0} {set i [string length $depline]}
-    set depname [string range $depline 0 [expr {$i - 1}]]
+    set depname [string range $depline 0 $i-1]
     set depversion [string range $depline $i end]
     regsub {\.} $depversion {\.} depversion
     if {${os.platform} eq "darwin"} {
