@@ -23,6 +23,9 @@ namespace eval portutil {
     }
 }
 
+proc ui_progress_download {args} {
+}
+
 test filter_sites {
     Filter sites unit test.
 } -setup {
@@ -101,6 +104,7 @@ test fetchfiles {
 } -body {
 
     set archivefetch.pubkeys $pwd
+    set portutil::archive_available_result 0
     if {[catch {portarchivefetch::fetchfiles}] != 0} {
         return "FAIL: cannot fetch archive"
     }

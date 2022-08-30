@@ -14,12 +14,16 @@ long_description    ${description}
 homepage            https://github.com/kelseyhightower/nocode
 distfiles
 
+extract {
+    xinstall -d ${worksrcpath}
+}
+patchfiles
 patch {
     foreach patch $patchfiles {
         set fd [open ${filespath}/${patch} r]
         set var [gets $fd]
         close $fd
-        set fd [open ${workpath}/${distname}/test_patch w+]
+        set fd [open ${worksrcpath}/test_patch w+]
         puts $fd $var
         close $fd
     }
@@ -27,8 +31,8 @@ patch {
 use_configure       no
 build {}
 destroot {
-    install -d -m755 ${destroot}${prefix}/share
-    install -d -m755 ${destroot}${prefix}/share/${name}
+    xinstall -d ${destroot}${prefix}/share
+    xinstall -d ${destroot}${prefix}/share/${name}
     touch ${destroot}${prefix}/share/${name}/EMPTY
 }
 test {

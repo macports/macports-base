@@ -37,7 +37,7 @@ test patch_main {
 } -setup {
     set macos_version 11.0.1
 
-    set subport gcc_select
+    set subport emptyport
     set filespath $pwd/files
     set distpath $pwd/dist
 
@@ -60,7 +60,7 @@ test patch_main {
     if {[$workername eval eval_targets patch]} {
         return "FAIL: cannot run patch"
     }
-    if {![file exists $pwd/work/select-0.1/test_patch]} {
+    if {![file exists $pwd/work/emptyport-0.2/test_patch]} {
         return "FAIL: missing patched file"
     }
     return "Patch successful."

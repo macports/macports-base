@@ -5,12 +5,10 @@ PortSystem              1.0
 name                    fondu
 version                 060102
 revision                1
-platforms               darwin
 categories              print
 license                 BSD
 maintainers             nomaintainer
 homepage                http://fondu.sourceforge.net/
-master_sites            http://fondu.sourceforge.net/
 
 description             A set of programs to interconvert between Mac font \
                         formats and pfb, ttf, otf and bdf files on UNIX.
@@ -22,23 +20,19 @@ long_description        Dealing with Mac fonts is hard on other operating \
                         from either a MacBinary file or a BinHex file. Ufond \
                         will create a resource fork inside a MacBinary file.
 
-checksums               md5     e20861beacddc1ab392bef7813641bf8
-extract.suffix          .tgz
-distfiles               ${name}_src-${version}${extract.suffix}
-
-post-patch {
-    reinplace "s|^CFLAGS = -g \$(WFLAGS)|CFLAGS = -g \$(WFLAGS) ${configure.cppflags} ${configure.cflags} ${configure.ldflags} [get_canonical_archflags]|g" ${worksrcpath}/Makefile.in
+distfiles
+extract {
+    xinstall -d ${worksrcpath}
 }
 
 # Avoid dependencies on libcxx and a macports-clang compiler, because
 # the mpkg test is fragile and assumes no dependencies.
 configure.cxx_stdlib
 
-configure.args          --bindir=${prefix}/bin \
-                        --mandir=${prefix}/share/man
+use_configure   no
+build {}
 
-post-destroot {
-    xinstall -m 644 {*}[glob ${worksrcpath}/*.1] ${destroot}${prefix}/share/man/man1/
+destroot {
+    touch ${worksrcpath}/testfile
+    xinstall -m 644 ${worksrcpath}/testfile ${destroot}${prefix}/bin
 }
-
-test.run                yes

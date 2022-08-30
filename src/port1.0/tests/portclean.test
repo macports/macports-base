@@ -94,7 +94,7 @@ test clean_work {
     root
 } -body {
     set portpath portpath
-    set subbuildpath /subbuild
+    set subbuildpath $pwd/subbuild
     set worksymlink $pwd/symlink
 
     # create files

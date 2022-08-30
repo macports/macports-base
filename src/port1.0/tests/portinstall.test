@@ -30,9 +30,9 @@ set supported_archs {}
 set configure.build_arch build_arch
 set portarchivetype tgz
 
-set subport gcc_select
-set version 0.1
-set revision 4
+set subport emptyport
+set version 0.2
+set revision 0
 
 
 test install_start {

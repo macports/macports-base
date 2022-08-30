@@ -13,6 +13,13 @@ array set ui_options {}
 #set ui_options(ports_verbose) yes
 mportinit ui_options
 
+set os_platform darwin
+set os_version 20.0.1
+set os_arch i386
+set os_subplatform macosx
+set macos_version 11.0.1
+package require port 1.0
+package require portstartupitem 1.0
 package require portload 1.0
 source ../port_autoconf.tcl
 
@@ -23,7 +30,7 @@ test load_main {
     root
 
 } -setup {
-    set path /Library/test/files
+    set path $pwd/opt/local/etc/test
     file mkdir $path
 
     # Create dummy plist
@@ -43,7 +50,10 @@ test load_main {
 } -body {
     set launchctl_path ${portutil::autoconf::launchctl_path}
     set startupitem.location test
-    set startupitem.plist files/file.plist
+    set startupitem.install no
+    set startupitem.plist file.plist
+    set prefix $pwd/opt/local
+    set subport test
 
     if {[portload::load_main] != ""} {
         return "FAIL: unable to load plist"
@@ -51,8 +61,8 @@ test load_main {
     return "Load successful."
 
 } -cleanup {
-    exec -ignorestderr $launchctl_path unload -w $path
-    file delete -force /Library/test
+    exec -ignorestderr $launchctl_path unload -w $path/file.plist
+    file delete -force $pwd/opt
 
 } -result "Load successful."
 

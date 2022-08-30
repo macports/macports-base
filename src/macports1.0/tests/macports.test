@@ -148,7 +148,7 @@ test ch_logging {
     file delete -force $logname
 
 } -body {
-    if {[macports::ch_logging $mport] != 0} {
+    if {[catch {macports::ch_logging $mport}]} {
         return "FAIL: channels not set"
     }
     if {![file exists $logname]} {
