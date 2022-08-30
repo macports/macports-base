@@ -838,5 +838,74 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     }
 }
 
+# Create a new registry entry using the given metadata array
+proc install {metadata} {
+    global macports::registry.path
+    array set m $metadata
+    registry::write {
+        # store portfile
+        set portfile_sha256 [sha256 file $m(portfile_path)]
+        set portfile_size [file size $m(portfile_path)]
+        set portfile_reg_dir [file join ${registry.path} registry portfiles $m(name)-$m(version)_$m(revision) ${portfile_sha256}-${portfile_size}]
+        set portfile_reg_path ${portfile_reg_dir}/Portfile
+        file mkdir $portfile_reg_dir
+        if {![file isfile $portfile_reg_path] || [file size $portfile_reg_path] != $portfile_size
+                || [sha256 file $portfile_reg_path] ne $portfile_sha256} {
+            file copy -force $m(portfile_path) $portfile_reg_dir
+            file attributes $portfile_reg_path -permissions 0644
+        }
+
+        # store portgroups
+        if {[info exists m(portgroups)]} {
+            foreach {pgname pgversion groupFile} $m(portgroups) {
+                set pgsha256 [sha256 file $groupFile]
+                set pgsize [file size $groupFile]
+                set pg_reg_dir [file join ${registry.path} registry portgroups ${pgsha256}-${pgsize}]
+                set pg_reg_path ${pg_reg_dir}/${pgname}-${pgversion}.tcl
+                lappend portgroups [list $pgname $pgversion $pgsha256 $pgsize]
+                if {![file isfile $pg_reg_path] || [file size $pg_reg_path] != $pgsize || [sha256 file $pg_reg_path] ne $pgsha256} {
+                    file mkdir $pg_reg_dir
+                    file copy -force $groupFile $pg_reg_dir
+                }
+                file attributes $pg_reg_path -permissions 0644
+            }
+            unset m(portgroups)
+        }
+
+        set regref [registry::entry create $m(name) $m(version) $m(revision) $m(variants) $m(epoch)]
+        $regref installtype image
+        $regref state imaged
+        $regref portfile ${portfile_sha256}-${portfile_size}
+        if {[info exists portgroups]} {
+            foreach p $portgroups {
+                $regref addgroup {*}$p
+            }
+        }
+        foreach dep_portname $m(depends) {
+            $regref depends $dep_portname
+        }
+        if {[info exists m(files)]} {
+            # register files
+            $regref map $m(files)
+            unset m(files)
+        }
+        if {[info exists m(binary)]} {
+            foreach {f isbinary} $m(binary) {
+                set fileref [registry::file open [$regref id] $f]
+                $fileref binary $isbinary
+                registry::file close $fileref
+            }
+            unset m(binary)
+        }
+        unset m(name) m(version) m(revision) m(variants) m(epoch) m(depends) \
+              m(portfile_path)
+
+        # remaining metadata maps directly to reg entry fields
+        foreach key [array names m] {
+            $regref $key $m($key)
+        }
+    }
+}
+
 # End of portimage namespace
 }

@@ -33,7 +33,6 @@
 
 package provide portinstall 1.0
 package require portutil 1.0
-package require registry2 2.0
 package require machista 1.0
 
 set org.macports.install [target_new org.macports.install portinstall::install_main]
@@ -55,7 +54,7 @@ set_ui_prefix
 
 proc portinstall::install_start {args} {
     global UI_PREFIX subport version revision portvariants \
-           prefix_frozen registry_open registry.path
+           prefix_frozen
     ui_notice "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $subport $version $revision $portvariants]"
     
     # start gsoc08-privileges
@@ -66,11 +65,6 @@ proc portinstall::install_start {args} {
         elevateToRoot "install"
     }
     # end gsoc08-privileges
-    
-    if {![info exists registry_open]} {
-        registry::open [file join ${registry.path} registry registry.db]
-        set registry_open yes
-    }
 
     # create any users and groups needed by the port
     handle_add_users
@@ -334,7 +328,7 @@ proc portinstall::extract_contents {location type} {
 proc portinstall::install_main {args} {
     global subport version portpath depends_run revision user_options \
     portvariants requested_variants depends_lib PortInfo epoch \
-    os.platform os.major portarchivetype installPlist registry.path porturl \
+    os.platform os.major portarchivetype installPlist porturl \
     portinstall::file_is_binary portinstall::actual_cxx_stdlib portinstall::cxx_stdlib_overridden
 
     set oldpwd [pwd]
@@ -376,88 +370,62 @@ proc portinstall::install_main {args} {
         }
     }
 
-    registry::write {
-
-        set regref [registry::entry create $subport $version $revision $portvariants $epoch]
-
-        if {[info exists user_options(ports_requested)]} {
-            $regref requested $user_options(ports_requested)
-        } else {
-            $regref requested 0
-        }
-        $regref os_platform ${os.platform}
-        $regref os_major ${os.major}
-        $regref archs [get_canonical_archs]
-        if {${portinstall::actual_cxx_stdlib} ne ""} {
-            $regref cxx_stdlib ${portinstall::actual_cxx_stdlib}
-            $regref cxx_stdlib_overridden ${portinstall::cxx_stdlib_overridden}
-        } else {
-            # no info in the archive
-            global configure.cxx_stdlib cxx_stdlib
-            $regref cxx_stdlib_overridden [expr {${configure.cxx_stdlib} ne $cxx_stdlib}]
-        }
-        # Trick to have a portable GMT-POSIX epoch-based time.
-        $regref date [expr {[clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]}]
-        if {[info exists requested_variants]} {
-            $regref requested_variants $requested_variants
-        }
-
-        foreach dep_portname $dep_portnames {
-            $regref depends $dep_portname
-        }
-
-        $regref installtype image
-        $regref state imaged
-        $regref location $location
-
-        if {[info exists installPlist]} {
-            # register files
-            $regref map $installPlist
-            foreach f [array names portinstall::file_is_binary] {
-                set fileref [registry::file open [$regref id] $f]
-                $fileref binary $portinstall::file_is_binary($f)
-                registry::file close $fileref
-            }
-        }
-
-        # store portfile
-        set portfile_path [file join $portpath Portfile]
-        set portfile_sha256 [sha256 file $portfile_path]
-        set portfile_size [file size $portfile_path]
-        set portfile_reg_dir [file join ${registry.path} registry portfiles ${subport}-${version}_${revision} ${portfile_sha256}-${portfile_size}]
-        file mkdir $portfile_reg_dir
-        set portfile_reg_path ${portfile_reg_dir}/Portfile
-        if {![file isfile $portfile_reg_path] || [file size $portfile_reg_path] != $portfile_size || [sha256 file $portfile_reg_path] ne $portfile_sha256} {
-            file copy -force $portfile_path $portfile_reg_dir
-            file attributes $portfile_reg_path -permissions 0644
-        }
-        $regref portfile ${portfile_sha256}-${portfile_size}
-
-        # store portgroups
-        if {[info exists PortInfo(portgroups)]} {
-            foreach pg $PortInfo(portgroups) {
-                set pgname [lindex $pg 0]
-                set pgversion [lindex $pg 1]
-                set groupFile [lindex $pg 2]
-                if {[file isfile $groupFile]} {
-                    set pgsha256 [sha256 file $groupFile]
-                    set pgsize [file size $groupFile]
-                    set pg_reg_dir [file join ${registry.path} registry portgroups ${pgsha256}-${pgsize}]
-                    set pg_reg_path ${pg_reg_dir}/${pgname}-${pgversion}.tcl
-                    if {![file isfile $pg_reg_path] || [file size $pg_reg_path] != $pgsize || [sha256 file $pg_reg_path] ne $pgsha256} {
-                        file mkdir $pg_reg_dir
-                        file copy -force $groupFile $pg_reg_dir
-                    }
-                    file attributes $pg_reg_path -permissions 0644
-                    $regref addgroup $pgname $pgversion $pgsha256 $pgsize
-                } else {
-                    ui_debug "install_main: no portgroup ${pgname}-${pgversion}.tcl found"
-                }
-            }
-        }
+    lappend regref name $subport
+    lappend regref version $version
+    lappend regref revision $revision
+    lappend regref variants $portvariants
+    lappend regref epoch $epoch
+    if {[info exists user_options(ports_requested)]} {
+        lappend regref requested $user_options(ports_requested)
+    } else {
+        lappend regref requested 0
+    }
+    lappend regref os_platform ${os.platform}
+    lappend regref os_major ${os.major}
+    lappend regref archs [get_canonical_archs]
+    if {${portinstall::actual_cxx_stdlib} ne ""} {
+        lappend regref cxx_stdlib ${portinstall::actual_cxx_stdlib}
+        lappend regref cxx_stdlib_overridden ${portinstall::cxx_stdlib_overridden}
+    } else {
+        # no info in the archive
+        global configure.cxx_stdlib cxx_stdlib
+        lappend regref cxx_stdlib_overridden [expr {${configure.cxx_stdlib} ne $cxx_stdlib}]
+    }
+    # Trick to have a portable GMT-POSIX epoch-based time.
+    lappend regref date [expr {[clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]}]
+    if {[info exists requested_variants]} {
+        lappend regref requested_variants $requested_variants
     }
 
-    #registry::entry close $regref
+    lappend regref depends $dep_portnames
+
+    lappend regref location $location
+
+    if {[info exists installPlist]} {
+        lappend regref files $installPlist
+        lappend regref binary [array get portinstall::file_is_binary]
+    }
+
+    # portfile info
+    lappend regref portfile_path [file join $portpath Portfile]
+
+    # portgroup info
+    if {[info exists PortInfo(portgroups)]} {
+        set regref_pgs [list]
+        foreach pg $PortInfo(portgroups) {
+            set pgname [lindex $pg 0]
+            set pgversion [lindex $pg 1]
+            set groupFile [lindex $pg 2]
+            if {[file isfile $groupFile]} {
+                lappend regref_pgs $pgname $pgversion $groupFile
+            } else {
+                ui_debug "install_main: no portgroup ${pgname}-${pgversion}.tcl found"
+            }
+        }
+        lappend regref portgroups $regref_pgs
+    }
+
+    registry_install $regref
 
     _cd $oldpwd
     return 0

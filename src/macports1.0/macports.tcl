@@ -1572,6 +1572,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias registry_activate portimage::activate
     $workername alias registry_deactivate portimage::deactivate
     $workername alias registry_deactivate_composite portimage::deactivate_composite
+    $workername alias registry_install portimage::install
     $workername alias registry_uninstall registry_uninstall::uninstall
     $workername alias registry_register_deps registry::register_dependencies
     $workername alias registry_fileinfo_for_index registry::fileinfo_for_index
@@ -2263,8 +2264,6 @@ proc _mportexec {target mport} {
             catch {cd $portpath}
             $workername eval {eval_targets clean}
         }
-        # XXX hack to avoid running out of fds due to sqlite temp files, ticket #24857
-        interp delete $workername
         macports::pop_log
         return 0
     } else {
@@ -3467,10 +3466,7 @@ proc mportclose {mport} {
     if {$refcnt == 0} {
         dlist_delete macports::open_mports $mport
         set workername [ditem_key $mport workername]
-        # the hack in _mportexec might have already deleted the worker
-        if {[interp exists $workername]} {
-            interp delete $workername
-        }
+        interp delete $workername
         set porturl [ditem_key $mport porturl]
         #if {[info exists macports::extracted_portdirs($porturl)]} {
             # TODO port.tcl calls mportopen multiple times on the same port to

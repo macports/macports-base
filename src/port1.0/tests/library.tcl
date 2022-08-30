@@ -33,6 +33,7 @@ proc macports_worker_init {} {
     interp alias {} registry_activate               {} portimage::activate
     interp alias {} registry_deactivate             {} portimage::deactivate
     interp alias {} registry_deactivate_composite   {} portimage::deactivate_composite
+    interp alias {} registry_install                {} portimage::install
     interp alias {} registry_uninstall              {} registry_uninstall::uninstall
     interp alias {} registry_register_deps          {} registry::register_dependencies
     interp alias {} registry_fileinfo_for_index     {} registry::fileinfo_for_index
