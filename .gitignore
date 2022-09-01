@@ -49,6 +49,8 @@ vendor/tcl8.*/unix/Tclsh-Info.plist
 vendor/tcl8.*/unix/tcl.pc
 vendor/tcl8.*/unix/tclConfig.sh
 vendor/tcl8.*/unix/tclsh
+vendor/tcl8.*/unix/pkgs/itcl*/itclConfig.sh
+vendor/tcl8.*/unix/pkgs/tdbc*/tdbcConfig.sh
 
 !*.in
 
