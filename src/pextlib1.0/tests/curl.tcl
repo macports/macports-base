@@ -20,8 +20,8 @@ proc main {pextlibname} {
     test "dummy404" {[catch {curl fetch $dummyfile/404 $tempfile}]}
 
     # check the modification date of the dummy file.
-    test "mtime1" {[curl isnewer $dummyfile [clock scan 2019-10-20Z]]}
-    test "mtime2" {![curl isnewer $dummyfile [clock scan 2019-10-21Z]]}
+    test "mtime1" {[curl isnewer $dummyfile [clock scan 2019-10-20 -timezone :UTC -format {%Y-%m-%d}]]}
+    test "mtime2" {![curl isnewer $dummyfile [clock scan 2019-10-21 -timezone :UTC -format {%Y-%m-%d}]]}
 
     # use --disable-epsv
     #curl fetch --disable-epsv ftp://ftp.cup.hp.com/dist/networking/benchmarks/netperf/archive/netperf-2.2pl5.tar.gz $tempfile
