@@ -32,10 +32,10 @@ proc main {pextlibname} {
     #curl fetch -u "I accept www.opensource.org/licenses/cpl:." http://www.research.att.com/~gsf/download/tgz/sfio.2005-02-01.tgz $tempfile
     #test {[md5 file $tempfile] == "48f45c7c77c23ab0ccca48c22b3870de"}
 
-    curl fetch --enable-compression https://www.whatsmyip.org/http-compression-test/ $tempfile
+    curl fetch --enable-compression --ignore-ssl-cert https://www.whatsmyip.org/http-compression-test/ $tempfile
     grepper $tempfile {gz_yes}
 
-    curl fetch https://www.whatsmyip.org/http-compression-test/ $tempfile
+    curl fetch --ignore-ssl-cert https://www.whatsmyip.org/http-compression-test/ $tempfile
     grepper $tempfile {gz_no}
 
     file delete -force $tempfile
