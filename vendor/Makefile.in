@@ -55,8 +55,10 @@ install: install-tcl install-tclx install-tcllib
 
 TCL_PACKAGE_PATH=@TCL_PACKAGE_PATH@
 TCL_PREFIX=@TCL_PREFIX@
-OLD_TCL_FILES=	$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.4 \
-				$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.5 \
+OLD_TCL_FILES=	$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.4/http-2.7.1{2,3}.tm \
+				$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.4/platform-1.0.1{2,3,4}.tm \
+				$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.5/msgcat-1.5.2.tm \
+				$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8/8.5/tcltest-2.3.{5,8}.tm \
 				$(DESTDIR)$(TCL_PACKAGE_PATH)/tcl8.5 \
 				$(DESTDIR)$(TCL_PREFIX)/bin/tclsh8.5 \
 				$(DESTDIR)$(TCL_PREFIX)/lib/libtcl8.5@SHLIB_SUFFIX@ \
