@@ -1,0 +1,30 @@
+Allow tcllib's configure to run without tclsh. Remember to update the
+version numbers to match support/installation/version.tcl when updating
+tclllib.
+
+--- tcllib-1.21/configure.orig	2022-09-07 22:20:50.000000000 +1000
++++ tcllib-1.21/configure	2022-09-08 01:07:43.000000000 +1000
+@@ -1301,9 +1301,7 @@
+ 	echo "$as_me:$LINENO: result: $TCLSH_PROG" >&5
+ echo "${ECHO_T}$TCLSH_PROG" >&6
+     else
+-	{ { echo "$as_me:$LINENO: error: No tclsh found in PATH:  $search_path" >&5
+-echo "$as_me: error: No tclsh found in PATH:  $search_path" >&2;}
+-   { (exit 1); exit 1; }; }
++	TCLSH_PROG=tclsh
+     fi
+ 
+ 
+@@ -1314,9 +1312,9 @@
+ 
+ SAK=`$CYGPATH ${srcdir}/sak.tcl`
+ 
+-PACKAGE=`$TCLSH_PROG "${SAK}" name`
+-MAJOR_VERSION=`$TCLSH_PROG "${SAK}" major`
+-MINOR_VERSION=`$TCLSH_PROG "${SAK}" minor`
++PACKAGE=tcllib
++MAJOR_VERSION=1
++MINOR_VERSION=21
+ PATCHLEVEL=""
+ 
+ VERSION=${MAJOR_VERSION}.${MINOR_VERSION}${PATCHLEVEL}
