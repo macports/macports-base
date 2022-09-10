@@ -2349,7 +2349,8 @@ AC_DEFUN([SC_TIME_HANDLER], [
     # (like convex) have timezone functions, etc.
     #
     AC_CACHE_CHECK([long timezone variable], tcl_cv_timezone_long, [
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <time.h>]],
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <time.h>
+#include <stdlib.h>]],
 	[[extern long timezone;
 	    timezone += 1;
 	    exit (0);]])],
@@ -2361,7 +2362,8 @@ AC_DEFUN([SC_TIME_HANDLER], [
 	# On some systems (eg IRIX 6.2), timezone is a time_t and not a long.
 	#
 	AC_CACHE_CHECK([time_t timezone variable], tcl_cv_timezone_time, [
-	    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <time.h>]],
+	    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <time.h>
+#include <stdlib.h>]],
 	    [[extern time_t timezone;
 		timezone += 1;
 		exit (0);]])],

@@ -14133,12 +14133,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #include <time.h>
+#include <stdlib.h>
 int
 main ()
 {
 extern long timezone;
 	    timezone += 1;
-	    return (0);
+	    exit (0);
   ;
   return 0;
 }
@@ -14199,12 +14200,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #include <time.h>
+#include <stdlib.h>
 int
 main ()
 {
 extern time_t timezone;
 		timezone += 1;
-		return (0);
+		exit (0);
   ;
   return 0;
 }
