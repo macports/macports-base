@@ -596,7 +596,9 @@ proc portfetch::fetch_addfilestomap {filemapname} {
 proc portfetch::fetch_init {args} {
     variable fetch_urls
 
-    portfetch::checkfiles fetch_urls
+    if {${fetch_urls} eq ""} {
+        portfetch::checkfiles fetch_urls
+    }
 }
 
 proc portfetch::fetch_start {args} {
