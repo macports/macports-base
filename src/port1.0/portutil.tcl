@@ -1643,8 +1643,12 @@ proc target_run {ditem} {
 proc recursive_collect_deps {portname {depsfound {}}} \
 {
     # Get the active port from the registry
-    # There can be only one port active at a time, so take the first result only
-    set regentry [lindex [registry_active $portname] 0]
+    if {[catch {registry_active $portname} result]} {
+        ui_warn "recursive_collect_deps: '$portname' is registered as a dependency but is not active"
+        return $depsfound
+    }
+    # There can be only one port version active at a time, so take the first result only
+    set regentry [lindex $result 0]
     # Get port dependencies from the registry
     set deplist [registry_list_depends [lindex $regentry 0] [lindex $regentry 1] [lindex $regentry 2] [lindex $regentry 3]]
 
