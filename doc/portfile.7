@@ -230,6 +230,7 @@ Archs currently supported by macOS are:
 .Em i386 ,
 .Em ppc ,
 .Em ppc64 ,
+.Em ppc7400 ,
 and
 .Em x86_64 .
 If this option is not set, it is assumed that the port can build for all
@@ -255,10 +256,10 @@ In this case, the port will be built in 32-bit mode.
 .Em optional
 .br
 .Sy Values:
-.Em i386 x86_64 ppc ppc64 noarch
+.Em arm64 i386 x86_64 ppc ppc7400 ppc64 noarch
 .br
 .Sy Default:
-.Em i386 x86_64 ppc ppc64
+.Em arm64 i386 x86_64 ppc ppc64
 .br
 .Sy Examples:
 .Dl supported_archs i386 x86_64
