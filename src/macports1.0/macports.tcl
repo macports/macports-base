@@ -4018,6 +4018,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             }
             # Grab the variations from the parent
             upvar 2 variations variations
+            # Don't inherit requested status from the depending port
+            unset -nocomplain options(ports_requested)
 
             if {[catch {set mport [mportopen $porturl [array get options] [array get variations]]} result]} {
                 ui_debug $::errorInfo
