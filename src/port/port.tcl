@@ -4185,6 +4185,19 @@ proc action_target { action portlist opts } {
 
         # if installing, mark the port as explicitly requested
         if {$action eq "install"} {
+            if {[info exists portinfo(replaced_by)] && ![info exists options(ports_install_no-replace)]} {
+                ui_notice "$portname is replaced by $portinfo(replaced_by)"
+                set portname $portinfo(replaced_by)
+                array unset portinfo
+                if {[catch {mportlookup $portname} result]} {
+                    ui_debug $::errorInfo
+                    break_softcontinue "lookup of portname $portname failed: $result" 1 status
+                } elseif {[llength $result] < 2} {
+                    break_softcontinue "Port $portname not found" 1 status
+                }
+                array set portinfo [lindex $result 1]
+                set porturl $portinfo(porturl)
+            }
             if {![info exists options(ports_install_unrequested)]} {
                 set options(ports_requested) 1
             }
@@ -4470,7 +4483,7 @@ array set cmd_opts_array {
     space       {{units 1} total}
     activate    {no-exec}
     deactivate  {no-exec}
-    install     {no-rev-upgrade unrequested}
+    install     {no-replace no-rev-upgrade unrequested}
     uninstall   {follow-dependents follow-dependencies no-exec}
     variants    {index}
     clean       {all archive dist work logs}
