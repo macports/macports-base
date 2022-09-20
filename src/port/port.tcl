@@ -4183,7 +4183,6 @@ proc action_target { action portlist opts } {
             }
         }
 
-        # if installing, mark the port as explicitly requested
         if {$action eq "install"} {
             if {[info exists portinfo(replaced_by)] && ![info exists options(ports_install_no-replace)]} {
                 ui_notice "$portname is replaced by $portinfo(replaced_by)"
@@ -4198,6 +4197,18 @@ proc action_target { action portlist opts } {
                 array set portinfo [lindex $result 1]
                 set porturl $portinfo(porturl)
             }
+            if {[info exists portinfo(known_fail)] && [string is true -strict $portinfo(known_fail)]
+                && ![info exists options(ports_install_allow-failing)]} {
+                if {[info exists macports::ui_options(questions_yesno)]} {
+                    set retvalue [$macports::ui_options(questions_yesno) "$portname is known to fail." "KnownFail" {} {n} 0 "Try to install anyway?"]
+                    if {$retvalue != 0} {
+                        break_softcontinue "$portname is known to fail" 1 status
+                    }
+                } else {
+                    break_softcontinue "$portname is known to fail (use --allow-failing to try to install anyway)" 1 status
+                }
+            }
+            # mark the port as explicitly requested
             if {![info exists options(ports_install_unrequested)]} {
                 set options(ports_requested) 1
             }
@@ -4483,7 +4494,7 @@ array set cmd_opts_array {
     space       {{units 1} total}
     activate    {no-exec}
     deactivate  {no-exec}
-    install     {no-replace no-rev-upgrade unrequested}
+    install     {allow-failing no-replace no-rev-upgrade unrequested}
     uninstall   {follow-dependents follow-dependencies no-exec}
     variants    {index}
     clean       {all archive dist work logs}
