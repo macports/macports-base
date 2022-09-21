@@ -2237,6 +2237,26 @@ proc _mporterrorifconflictsinstalled {mport} {
     }
 }
 
+# check if an error should be raised due to known_fail being set in a port
+proc _mportcheck_known_fail {optionsvar portinfovar} {
+    upvar $optionsvar options
+    upvar $portinfovar portinfo
+    if {([info exists portinfo(known_fail)] && [string is true -strict $portinfo(known_fail)])
+            && !([info exists options(ignore_known_fail)] && [string is true -strict $options(ignore_known_fail)])} {
+        if {[info exists macports::ui_options(questions_yesno)]} {
+            set retvalue [$macports::ui_options(questions_yesno) "$portinfo(name) is known to fail." "_mportcheck_known_fail" {} {n} 0 "Try to install anyway?"]
+            if {$retvalue != 0} {
+                ui_error "$portinfo(name) is known to fail"
+                return 1
+            }
+        } else {
+            ui_error "$portinfo(name) is known to fail"
+            return 1
+        }
+    }
+    return 0
+}
+
 ### _mportexec is private; may change without notice
 
 proc _mportexec {target mport} {
@@ -3526,7 +3546,12 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
         flush stdout
     }
 
+    array set optionsarray [ditem_key $mport options]
+
     if {$target in {{} install activate}} {
+        if {$target eq {} && [_mportcheck_known_fail optionsarray portinfo]} {
+            return 1
+        }
         if {[catch {_mporterrorifconflictsinstalled $mport}]} {
             return 1
         }
@@ -3537,7 +3562,6 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 
     set depPorts {}
     if {[llength $deptypes] > 0} {
-        array set optionsarray [ditem_key $mport options]
         # avoid propagating requested flag from parent
         unset -nocomplain optionsarray(ports_requested)
         # subport will be different for deps

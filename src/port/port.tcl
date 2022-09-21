@@ -4208,6 +4208,9 @@ proc action_target { action portlist opts } {
                     break_softcontinue "$portname is known to fail (use --allow-failing to try to install anyway)" 1 status
                 }
             }
+            if {[info exists options(ports_install_allow-failing)]} {
+                set options(ignore_known_fail) 1
+            }
             # mark the port as explicitly requested
             if {![info exists options(ports_install_unrequested)]} {
                 set options(ports_requested) 1
