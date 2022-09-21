@@ -844,6 +844,67 @@ proc platform {args} {
     }
 }
 
+# Check platforms for compatibility
+# Expected format: list of {os operator version}
+# Incompatible if any evaluate to false.
+# Version can be a glob if operator is == or !=.
+proc _handle_platforms {option action args} {
+    global os.platform os.subplatform os.version
+    if {$action ne "set"} {
+        return
+    }
+    set compatible 1
+    foreach p [lindex $args 0] {
+        # Other forms like "darwin" or "darwin any" can exist, but
+        # don't affect this check.
+        if {[llength $p] < 3} {
+            continue
+        }
+        set osname [lindex $p 0]
+        if {${os.platform} eq $osname || ${os.subplatform} eq $osname} {
+            foreach {op vers} [lrange $p 1 end] {
+                if {$op eq "=="} {
+                    if {[string match $vers ${os.version}]} {
+                        continue
+                    }
+                    set compatible 0
+                    break
+                } elseif {$op eq "!="} {
+                    if {![string match $vers ${os.version}]} {
+                        continue
+                    }
+                    set compatible 0
+                    break
+                } elseif {![vercmp ${os.version} $op $vers]} {
+                    set compatible 0
+                    break
+                }
+            }
+        }
+        if {!$compatible} {
+            break
+        }
+    }
+    if {!$compatible} {
+        default known_fail yes
+    }
+}
+
+# Platform specifier for binary archive name
+# "any" in platforms means the built archive will work on any OS
+# "darwin any" means it will work on any darwin version
+proc _get_archive_platform {} {
+    global platforms os.platform os.major
+    foreach p $platforms {
+        if {$p eq "any"} {
+            return any_any
+        } elseif {[lindex $p 0] eq ${os.platform} && [lindex $p 1] eq "any"} {
+            return ${os.platform}_any
+        }
+    }
+    return ${os.platform}_${os.major}
+}
+
 # Portfiles may define more than one port.
 # This executes the given code in 'body' if we were opened as the specified
 # subport, and also adds it to the list of subports that are defined.
@@ -2661,12 +2722,12 @@ proc PortGroup {group version} {
 # return filename of the archive for this port
 proc get_portimage_name {} {
     global subport version revision portvariants os.platform os.major portarchivetype
-    set ret "${subport}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"
+    set ret "${subport}-${version}_${revision}${portvariants}.[_get_archive_platform].[join [get_canonical_archs] -].${portarchivetype}"
     # should really look up NAME_MAX here, but it's 255 for all macOS so far
     # (leave 10 chars for an extension like .rmd160 on the sig file)
     if {[string length $ret] > 245 && ${portvariants} ne ""} {
         # try hashing the variants
-        set ret "${subport}-${version}_${revision}+[rmd160 string ${portvariants}].${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"
+        set ret "${subport}-${version}_${revision}+[rmd160 string ${portvariants}].[_get_archive_platform].[join [get_canonical_archs] -].${portarchivetype}"
     }
     if {[string length $ret] > 245} {
         error "filename too long: $ret"
