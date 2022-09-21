@@ -1,10 +1,13 @@
 proc env_init {} {
-    global os.platform os.major os.arch epoch destpath package.destpath build_arch configure.build_arch \
-        subport version revision package.flat maintainers description categories homepage \
-        supported_archs porturl workpath distname license filespath portpath pwd name
+    global os.platform os.subplatform os.major os.arch epoch destpath package.destpath build_arch \
+        configure.build_arch subport version revision package.flat maintainers description \
+        categories homepage supported_archs porturl workpath distname license filespath portpath \
+        pwd name platforms
 
     set os.platform darwin
+    set os.subplatform macosx
     set os.major 9
+    set os.version 9.0.0
     set os.arch i386
     set epoch 0
 
@@ -22,6 +25,7 @@ proc env_init {} {
     set version 060102
     set distname fondu_src-060102
     set revision 1
+    set platforms darwin
     set license BSD
     set package.flat no
     set maintainers {test@macports.org}

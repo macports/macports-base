@@ -2721,7 +2721,7 @@ proc PortGroup {group version} {
 
 # return filename of the archive for this port
 proc get_portimage_name {} {
-    global subport version revision portvariants os.platform os.major portarchivetype
+    global subport version revision portvariants portarchivetype
     set ret "${subport}-${version}_${revision}${portvariants}.[_get_archive_platform].[join [get_canonical_archs] -].${portarchivetype}"
     # should really look up NAME_MAX here, but it's 255 for all macOS so far
     # (leave 10 chars for an extension like .rmd160 on the sig file)

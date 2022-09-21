@@ -29,17 +29,19 @@ proc ui_progress_download {args} {
 test filter_sites {
     Filter sites unit test.
 } -setup {
-    global os.platform os.major os.arch destpath package.destpath configure.build_arch
-    global subport version revision package.flat maintainers description categories
-    global supported_archs name porturl portdbpath portpath workpath distname filespath license
+    global os.platform os.subplatform os.major os.version os.arch destpath package.destpath \
+        configure.build_arch subport version revision package.flat maintainers description \
+        categories supported_archs name porturl portdbpath portpath workpath distname \
+        filespath license platforms
     env_init
 
     set portvariants {var1}
     set porturl http://www.fondu.sourceforge.net/fondu-060102_1var1.darwin_9.noarch.tgz
 
 } -body {
-    if {[portarchivefetch::filter_sites] != "http://www.fondu.sourceforge.net/:tgz"} {
-        return "FAIL: couldn't fetch file"
+    set result [portarchivefetch::filter_sites]
+    if {$result ne "http://www.fondu.sourceforge.net/:tgz"} {
+        return "FAIL: portarchivefetch::filter_sites returned '$result'"
     }
 
     return "Filter sites successful."
@@ -49,9 +51,10 @@ test filter_sites {
 test checkarchivefiles {
     Check archive files unit test.
 } -setup {
-    global os.platform os.major os.arch destpath package.destpath configure.build_arch
-    global subport version revision package.flat maintainers description categories
-    global supported_archs name porturl portdbpath portpath workpath distname filespath license
+    global os.platform os.subplatform os.major os.version os.arch destpath package.destpath \
+        configure.build_arch subport version revision package.flat maintainers \
+        description categories supported_archs name porturl portdbpath portpath \
+        workpath distname filespath license platforms
     env_init
 
     set urls {www.a.com www.b.com}
@@ -63,10 +66,10 @@ test checkarchivefiles {
     if {[catch {portarchivefetch::checkarchivefiles $urls}] != 0} {
         return "FAIL: cannot run checkarchivefiles"
     }
-    if {[lindex $all_archive_files 0] != "fondu-060102_1var1.darwin_9.noarch.zip"} {
+    if {[lindex $all_archive_files 0] ne "fondu-060102_1var1.darwin_9.noarch.zip"} {
         return "FAIL: invalid archive file name"
     }
-    if {[lindex $all_archive_files 1] != "fondu-060102_1var1.darwin_9.noarch.tgz"} {
+    if {[lindex $all_archive_files 1] ne "fondu-060102_1var1.darwin_9.noarch.tgz"} {
         return "FAIL: invalid archive file name"
     }
     return "Check archive files successful."
@@ -82,9 +85,10 @@ test fetchfiles {
 } -constraints {
     root
 } -setup {
-    global os.platform os.major os.arch destpath package.destpath configure.build_arch
-    global subport version revision package.flat maintainers description categories
-    global supported_archs name porturl portdbpath portpath workpath distname filespath license
+    global os.platform os.subplatform os.major os.version os.arch destpath package.destpath \
+        configure.build_arch subport version revision package.flat maintainers description \
+        categories supported_archs name porturl portdbpath portpath workpath distname \
+        filespath license platforms
     env_init
 
     array set ::portfetch::urlmap {
