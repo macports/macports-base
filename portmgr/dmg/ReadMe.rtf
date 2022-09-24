@@ -8,9 +8,9 @@
 \f0\fs24 \cf0 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural
 
-\f1\b \cf0 NEW:
+\f1\b \cf0 A Brief Request
 \f0\b0 \
-Please consider installing the "mpstats" port to opt in to contributing anonymous information about your system and installed ports. The statistics collected can be viewed with our new {\field{\*\fldinst{HYPERLINK "https://ports.macports.org/"}}{\fldrslt online ports database}}.\
+Please consider installing the "mpstats" port to opt in to contributing anonymous information about your system and installed ports. The statistics collected can be viewed with our {\field{\*\fldinst{HYPERLINK "https://ports.macports.org/"}}{\fldrslt online ports database}}.\
 \
 \
 
@@ -24,7 +24,7 @@ MacPorts provides an infrastructure for building, installing, and packaging open
 System Requirements:
 \f0\b0 \
 \
-This installer is built for macOS __XVERS__.x and requires valid curl and OpenSSL installations to function - all present by default on macOS. We recommend you install the Xcode Command Line Tools by running "xcode-select --install" in your terminal. Also required, for most GUI applications, is the installation of Apple's Xcode development suite, available from the Mac App Store or from {\field{\*\fldinst{HYPERLINK "https://developer.apple.com/xcode/"}}{\fldrslt Apple's Developer site}}. It is also available as a separate installation on Mac OS X CDs and DVDs.\
+This installer is built for macOS __XVERS__.x and requires the curl and OpenSSL libraries provided by macOS. To build ports locally, you will need to install the Xcode Command Line Tools by running "xcode-select --install" in your terminal. Also required for many GUI applications is the installation of Apple's Xcode development suite, available from the Mac App Store or from {\field{\*\fldinst{HYPERLINK "https://developer.apple.com/xcode/"}}{\fldrslt Apple's Developer site}}. It is also available as a separate installation on Mac OS X CDs and DVDs.\
 \
 \
 
@@ -51,7 +51,7 @@ Aside from a few MacPorts executable commands in __PREFIX__/bin, most MacPorts f
 Shell Environment:
 \f0\b0 \
 \
-A file named ~/.profile is created for the "bash" shell (default on Mac OS X 10.3 and newer) during the MacPorts installation. It contains the necessary statements to append MacPorts' binary paths within __PREFIX__/ to your shell environment, so MacPorts is available to you on subsequent terminal sessions. You may have to quit and restart your terminal application for this change to take effect.\
+An appropriate configuration file for your chosen shell (such as ~/.profile, ~/.zprofile, or ~/.tcshrc) is created or updated during the MacPorts installation. It contains the necessary statements to append MacPorts' binary paths within __PREFIX__/ to your shell environment, so MacPorts is available to you on subsequent terminal sessions. You may have to quit and restart your terminal application for this change to take effect.\
 \
 
 \f1\b \
