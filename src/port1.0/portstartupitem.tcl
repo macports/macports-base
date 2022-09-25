@@ -81,16 +81,17 @@ namespace eval portstartupitem {
 }
 
 options startupitems startupitem.autostart startupitem.debug \
-        startupitem.create startupitem.executable \
-        startupitem.user startupitem.group \
+        startupitem.create startupitem.custom_file \
+        startupitem.executable startupitem.group \
         startupitem.init startupitem.install startupitem.location \
         startupitem.logevents startupitem.logfile startupitem.name \
         startupitem.netchange startupitem.pidfile startupitem.plist \
         startupitem.requires startupitem.restart startupitem.start \
         startupitem.stop startupitem.type startupitem.uniquename \
-        startupitem.daemondo.verbosity
+        startupitem.user startupitem.daemondo.verbosity
 
 default startupitem.autostart   no
+default startupitem.custom_file ""
 default startupitem.debug       no
 default startupitem.executable  ""
 default startupitem.group       ""
@@ -141,10 +142,10 @@ proc portstartupitem::get_startupitem_type {} {
 # each startupitem that has been defined in the portfile
 proc portstartupitem::foreach_startupitem {body} {
     global startupitems
-    set vars [list autostart debug create executable group init install \
-              location logevents logfile name netchange pidfile plist \
-              requires restart start stop type uniquename user \
-              daemondo.verbosity]
+    set vars [list autostart create custom_file debug executable group \
+              init install location logevents logfile name netchange \
+              pidfile plist requires restart start stop type \
+              uniquename user daemondo.verbosity]
 
     array set startupitems_dict {}
     if {[info exists startupitems] && $startupitems ne ""} {
@@ -259,29 +260,48 @@ proc portstartupitem::add_notes {} {
 # Register the above procedure as a callback after Portfile evaluation
 port::register_callback portstartupitem::add_notes
 
+# Helper: link given .plist into the correct location
+proc portstartupitem::install_darwin_launchd {srcpath dstdir install} {
+    global destroot prefix
+    if {[getuid] == 0 && $install} {
+        file mkdir ${destroot}/Library/${dstdir}
+        ln -sf $srcpath ${destroot}/Library/${dstdir}
+    } else {
+        ln -sf $srcpath ${destroot}${prefix}/etc/${dstdir}
+    }
+}
+
 proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
     global UI_PREFIX prefix destroot destroot.keepdirs subport macosx_deployment_target
 
     array set si $attrs
 
-    set scriptdir ${prefix}/etc/startup
-
-    set itemname        $si(name)
     set uniquename      $si(uniquename)
     set plistname       $si(plist)
     set daemondest      $si(location)
     set itemdir         ${prefix}/etc/${daemondest}/${uniquename}
+
+    file mkdir ${destroot}${itemdir}
+    if {[getuid] == 0} {
+        file attributes ${destroot}${itemdir} -owner root -group wheel
+    }
+
+    if {$si(custom_file) ne ""} {
+        # The port is supplying its own plist
+        file copy $si(custom_file) ${destroot}${itemdir}/${plistname}
+        install_darwin_launchd ${itemdir}/${plistname} $daemondest $si(install)
+        return
+    }
+
+    set scriptdir ${prefix}/etc/startup
+
+    set itemname        $si(name)
     set username        $si(user)
     set groupname       $si(group)
     set args            [list \
                           "${prefix}/bin/daemondo" \
                           "--label=${itemname}" \
                         ]
-
-    file mkdir ${destroot}${itemdir}
-    if {[getuid] == 0} {
-        file attributes ${destroot}${itemdir} -owner root -group wheel
-    }
 
     if {$si(executable) ne "" &&
         $si(init) eq "" &&
@@ -480,20 +500,19 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
 
     close ${plist}
 
-    if {[getuid] == 0 && $si(install)} {
-        file mkdir "${destroot}/Library/${daemondest}"
-        ln -sf "${itemdir}/${plistname}" "${destroot}/Library/${daemondest}"
-    } else {
-        ln -sf ${itemdir}/${plistname} ${destroot}${prefix}/etc/${daemondest}
-    }
+    install_darwin_launchd ${itemdir}/${plistname} $daemondest $si(install)
 }
 
 proc portstartupitem::startupitem_create {} {
     global UI_PREFIX
 
     foreach_startupitem {
-        if {${si_type} ne "none" && [tbool si_create]} {
-            ui_notice "$UI_PREFIX [msgcat::mc "Creating ${si_type} control script '$si_name'"]"
+        if {${si_type} ne "none" && ([tbool si_create] || $si_custom_file ne "")} {
+            if {[tbool si_create]} {
+                ui_notice "$UI_PREFIX [msgcat::mc "Creating ${si_type} control script '$si_name'"]"
+            } else {
+                ui_notice "$UI_PREFIX [msgcat::mc "Installing ${si_type} control script '$si_name'"]"
+            }
 
             switch -- ${si_type} {
                 launchd         { startupitem_create_darwin_launchd [array get si_dict] }
