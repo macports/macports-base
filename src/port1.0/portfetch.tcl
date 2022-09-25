@@ -41,7 +41,6 @@ target_requires ${org.macports.fetch} main
 target_prerun ${org.macports.fetch} portfetch::fetch_start
 
 namespace eval portfetch {
-    namespace export suffix
     variable fetch_urls {}
 }
 
@@ -222,9 +221,6 @@ proc portfetch::suffix {distname} {
     global extract.suffix
     return ${distname}[join ${extract.suffix}]
 }
-# XXX import suffix into the global namespace as it is currently used from
-# Portfiles, but should better go somewhere else
-namespace import portfetch::suffix
 
 # Checks patch files and their tags to assemble url lists for later fetching
 proc portfetch::checkpatchfiles {urls} {
