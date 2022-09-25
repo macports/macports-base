@@ -40,7 +40,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
     global macports::prefix macports::portdbpath macports::rsync_server macports::rsync_dir \
            macports::rsync_options macports::autoconf::macports_version \
            macports::autoconf::rsync_path tcl_platform macports::autoconf::openssl_path \
-           macports::autoconf::tar_path
+           macports::autoconf::tar_path macports::buildmakejobs
     array set options $optionslist
 
     # variable that indicates whether we actually updated base
@@ -189,8 +189,18 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
             # Choose a sane compiler and SDK
             set cc_arg {}
             set sdk_arg {}
+            if {$buildmakejobs != 0} {
+                set jobs ${buildmakejobs}
+            }
             if {$::macports::os_platform eq "darwin"} {
                 set cc_arg "CC=/usr/bin/cc "
+                if {$buildmakejobs == 0 && ![catch {sysctl hw.activecpu} cpus]} {
+                    set jobs $cpus
+                    if {![catch {sysctl hw.memsize} memsize]
+                            && $jobs > $memsize / (1024 * 1024 * 1024) + 1} {
+                        set jobs [expr {$memsize / (1024 * 1024 * 1024) + 1}]
+                    }
+                }
                 if {$::macports::os_major >= 18 || ![file exists /usr/include/sys/cdefs.h]} {
                     set cltpath /Library/Developer/CommandLineTools
                     set sdk_version $::macports::macos_version_major
@@ -214,12 +224,15 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
                         }
                     }
                 }
+            } elseif {$buildmakejobs == 0} {
+                # non-darwin
+                set jobs 2
             }
 
             # do the actual configure, build and installation of new base
             ui_msg "Installing new MacPorts release in $prefix as ${owner}:${group}; permissions ${perms}\n"
             try {
-                system -W $mp_source_path "${cc_arg}${sdk_arg}./configure $configure_args && ${sdk_arg}make SELFUPDATING=1 && make install SELFUPDATING=1"
+                system -W $mp_source_path "${cc_arg}${sdk_arg}./configure $configure_args && ${sdk_arg}make -j${jobs} SELFUPDATING=1 && make install SELFUPDATING=1"
             } on error {eMessage} {
                 error "Error installing new MacPorts base: $eMessage"
             }
