@@ -69,13 +69,15 @@ proc portmirror::mirror_main {args} {
         portfetch::fetch_main $args
 
         # checksum the files.
-        if {[catch {portchecksum::checksum_main $args}]} {
+        if {[catch {portchecksum::checksum_main $args} result]} {
             # delete the files.
             portfetch::fetch_deletefiles $args
-        } else {
-            # add the list of files.
-            portfetch::fetch_addfilestomap mirror_filemap
+            filemap close mirror_filemap
+            error "portmirror: checksum failed: $result"
         }
+
+        # add the list of files.
+        portfetch::fetch_addfilestomap mirror_filemap
     }
 
     # close the filemap.
