@@ -342,6 +342,9 @@ proc portinstall::install_main {args} {
         set install_dir [file dirname $location]
         file mkdir $install_dir
         file rename -force $archive_path $install_dir
+        # Clean up statefile so the state is consistent now that the
+        # archive is moved, in case anything fails from here on.
+        delete [file join [option workpath] .macports.${subport}.state]
         set location [file join $install_dir [file tail $archive_path]]
         set current_archive_type [string range [file extension $location] 1 end]
         set contents [extract_contents $location $current_archive_type]
