@@ -191,6 +191,8 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
             set sdk_arg {}
             if {$buildmakejobs != 0} {
                 set jobs ${buildmakejobs}
+            } else {
+                set jobs 2
             }
             if {$::macports::os_platform eq "darwin"} {
                 set cc_arg "CC=/usr/bin/cc "
@@ -224,9 +226,6 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
                         }
                     }
                 }
-            } elseif {$buildmakejobs == 0} {
-                # non-darwin
-                set jobs 2
             }
 
             # do the actual configure, build and installation of new base
