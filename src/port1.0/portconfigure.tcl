@@ -484,7 +484,7 @@ proc portconfigure::configure_get_archflags {tool} {
     } elseif {[tbool configure.m32]} {
         set flags "-m32"
     } elseif {${configure.build_arch} ne ""} {
-        if {[arch_flag_supported ${configure.compiler}] &&
+        if {[arch_flag_supported ${configure.compiler} ${configure.build_arch}] &&
             $tool in {cc cxx objc objcxx}
         } then {
             set flags "-arch ${configure.build_arch}"
@@ -503,7 +503,7 @@ proc portconfigure::configure_get_archflags {tool} {
 # ld directly. So we punt and let portfiles deal with that case.
 proc portconfigure::configure_get_ld_archflags {} {
     global configure.build_arch configure.compiler
-    if {${configure.build_arch} ne "" && [arch_flag_supported ${configure.compiler}]} {
+    if {${configure.build_arch} ne "" && [arch_flag_supported ${configure.compiler} ${configure.build_arch}]} {
         return "-arch ${configure.build_arch}"
     } else {
         return ""
@@ -700,18 +700,23 @@ proc portconfigure::configure_get_universal_archflags {} {
     return $flags
 }
 
-# internal proc to determine if the compiler supports -arch
-proc portconfigure::arch_flag_supported {compiler {multiple_arch_flags no}} {
-    if {${multiple_arch_flags}} {
-        return [regexp {^gcc-4|llvm|apple|clang} ${compiler}]
+# internal proc to determine if the compiler supports a single -arch flag
+# ppc is the default in the second arg because it is the least compatible with -arch
+proc portconfigure::arch_flag_supported {compiler {build_arch "ppc"}} {
+    # GCC prior to 4.7 does not accept -arch flag
+    if {[regexp {^macports(?:-[^-]+)?-gcc-4\.[0-6]} ${compiler}]} {
+        return no
+    # GCC prior to 6 does not accept -arch flag for PPC
+    } elseif {[regexp {^macports(?:-[^-]+)?-gcc-[4-5]} ${compiler}] && [regexp {^ppc} ${build_arch}]} {
+        return no
     } else {
-        # GCC prior to 4.7 does not accept -arch flag
-        if {[regexp {^macports(?:-[^-]+)?-gcc-4\.[0-6]} ${compiler}]} {
-            return no
-        } else {
-            return yes
-        }
+        return yes
     }
+}
+
+# internal proc to determine if the compiler supports multiple -arch flags
+proc portconfigure::multiple_arch_flags_supported {compiler} {
+    return [regexp {^gcc-4|llvm|apple|clang} ${compiler}]
 }
 
 proc portconfigure::compiler_port_name {compiler} {

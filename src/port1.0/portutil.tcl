@@ -2247,7 +2247,7 @@ proc universal_setup {args} {
         ui_debug "OS doesn't support universal builds, so not adding the default universal variant"
     } elseif {[llength [option configure.universal_archs]] <= 1} {
         ui_debug "only one arch supported, so not adding the default universal variant"
-    } elseif {![portconfigure::arch_flag_supported [option configure.compiler] yes]} {
+    } elseif {![portconfigure::multiple_arch_flags_supported [option configure.compiler]]} {
         ui_debug "Compiler doesn't support universal builds, so not adding the default universal variant"
     } else {
         ui_debug "adding the default universal variant"
