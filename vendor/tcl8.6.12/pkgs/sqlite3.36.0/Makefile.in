@@ -154,7 +154,7 @@ SHARED_BUILD	= @SHARED_BUILD@
 INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@ -I$(srcdir)/..
 #INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@ @TK_INCLUDES@ @TK_XINCLUDES@
 
-PKG_CFLAGS	= @PKG_CFLAGS@ -DSQLITE_API=MODULE_SCOPE -DSQLITE_EXTERN=
+PKG_CFLAGS	= @PKG_CFLAGS@
 
 # TCL_DEFS is not strictly need here, but if you remove it, then you
 # must make sure that configure.in checks for the necessary components

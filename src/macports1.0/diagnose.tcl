@@ -40,7 +40,6 @@
 # Check for any DYLD_* environment variables
 # Check for '.la' in dylib and '.prl'
 # Check if installed files are readable
-# Check for sqlite
 # Check for openssl
 # Crowd-source more ideas from the mailing-list
 # Check if $PATH is first
@@ -123,7 +122,6 @@ namespace eval diagnose {
         check_for_app curl
         check_for_app rsync
         check_for_app openssl
-        check_for_app sqlite3
         check_macports_location
         check_free_space
         check_for_x11

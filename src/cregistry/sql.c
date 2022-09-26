@@ -39,12 +39,6 @@
 #include <tcl.h>
 #include <time.h>
 
-/*** Keep all SQL compatible with SQLite 3.1.3 as shipped with Tiger.
- *** (Conditionally doing things a better way when possible based on
- *** MP_SQLITE_VERSION is OK.)
- ***/
-
-
 /**
  * Executes a null-terminated list of queries. Pass it a list of queries, it'll
  * execute them. This is mainly intended for initialization, when you have a
@@ -139,7 +133,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
            But the DB would need to be changed back to a non-WAL journal_mode
            after doing a SQLITE_CHECKPOINT_RESTART whenever the last writer
            closes it. */
-#if MP_SQLITE_VERSION >= 3022000
+#if SQLITE_VERSION_NUMBER >= 3022000
         "PRAGMA journal_mode=WAL",
 #endif
 
@@ -313,7 +307,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             /* we need to update to 1.1, add binary field and index to files
              * table */
             static char* version_1_1_queries[] = {
-#if MP_SQLITE_VERSION >= 3002000
+#if SQLITE_VERSION_NUMBER >= 3002000
                 "ALTER TABLE registry.files ADD COLUMN binary BOOL",
 #else
                 /*
@@ -409,7 +403,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             /* Delete the file_binary index, since it's a low-quality index
              * according to https://www.sqlite.org/queryplanner-ng.html#howtofix */
             static char* version_1_201_queries[] = {
-#if MP_SQLITE_VERSION >= 3003000
+#if SQLITE_VERSION_NUMBER >= 3003000
                 "DROP INDEX IF EXISTS registry.file_binary",
 #else
                 "DROP INDEX registry.file_binary",
@@ -634,7 +628,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
         if (sql_version(NULL, -1, version, -1, "1.204") < 0) {
             /* add */
             static char* version_1_204_queries[] = {
-#if MP_SQLITE_VERSION >= 3002000
+#if SQLITE_VERSION_NUMBER >= 3002000
                 "ALTER TABLE registry.ports ADD COLUMN cxx_stdlib TEXT",
                 "ALTER TABLE registry.ports ADD COLUMN cxx_stdlib_overridden INTEGER",
 #else
@@ -728,7 +722,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
                 "UPDATE registry.metadata SET value = '1.205' WHERE key = 'version'",
                 "COMMIT",
                 "PRAGMA fullfsync = 1",
-#if MP_SQLITE_VERSION >= 3022000
+#if SQLITE_VERSION_NUMBER >= 3022000
                 "PRAGMA journal_mode=WAL",
 #endif
                 NULL
@@ -749,7 +743,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
         if (sql_version(NULL, -1, version, -1, "1.210") < 0) {
             /* add */
             static char* version_1_210_queries[] = {
-#if MP_SQLITE_VERSION >= 3025000
+#if SQLITE_VERSION_NUMBER >= 3025000
                 "ALTER TABLE registry.ports RENAME COLUMN negated_variants TO requested_variants",
 #else
 

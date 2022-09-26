@@ -652,6 +652,8 @@ ac_includes_default="\
 ac_header_c_list=
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+SQLITE3_LIBNAME
+SQLITE3_CPPFLAGS
 INCLUDES
 INTREE_TCLSH
 TCLSH
@@ -685,10 +687,6 @@ TRACEMODE_SUPPORT
 EGREP
 GREP
 CPP
-LIBS_SQLITE3
-LDFLAGS_SQLITE3
-CFLAGS_SQLITE3
-PKG_CONFIG
 LDFLAGS_LIBCURL
 CFLAGS_LIBCURL
 CURL_CONFIG
@@ -868,7 +866,6 @@ with_startupitems
 with_universal_archs
 enable_readline
 with_curlprefix
-with_sqlite3prefix
 enable_shared
 '
       ac_precious_vars='build_alias
@@ -1551,7 +1548,6 @@ Optional Packages:
   --with-universal-archs="CPU"
                           universal CPU architectures (space separated)
   --with-curlprefix       base directory for the curl install ('/usr', '/usr/local', ...)
-  --with-sqlite3prefix    base directory for the sqlite3 install ('/usr', '/usr/local', ...)
 
 Some influential environment variables:
   CC          C compiler command
@@ -1914,49 +1910,6 @@ fi
   as_fn_set_status $ac_retval
 
 } # ac_fn_c_try_cpp
-
-# ac_fn_c_try_run LINENO
-# ----------------------
-# Try to run conftest.$ac_ext, and return whether this succeeded. Assumes that
-# executables *can* be run.
-ac_fn_c_try_run ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  if { { ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-printf "%s\n" "$ac_try_echo"; } >&5
-  (eval "$ac_link") 2>&5
-  ac_status=$?
-  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } && { ac_try='./conftest$ac_exeext'
-  { { case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-printf "%s\n" "$ac_try_echo"; } >&5
-  (eval "$ac_try") 2>&5
-  ac_status=$?
-  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }
-then :
-  ac_retval=0
-else $as_nop
-  printf "%s\n" "$as_me: program exited with status $ac_status" >&5
-       printf "%s\n" "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-       ac_retval=$ac_status
-fi
-  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-  as_fn_set_status $ac_retval
-
-} # ac_fn_c_try_run
 ac_configure_args_raw=
 for ac_arg
 do
@@ -7973,111 +7926,7 @@ fi
 
 
 
-## sqlite3
-
-    # first sqlite3 itself
-
-# Check whether --with-sqlite3prefix was given.
-if test ${with_sqlite3prefix+y}
-then :
-  withval=$with_sqlite3prefix;   sqlite3prefix=$withval
-fi
-
-
-	if test "x$sqlite3prefix" = "x"; then
-		# see if it's somewhere like /usr that needs no extra flags
-		LIBS_SQLITE3="-lsqlite3"
-		LDFLAGS_SQLITE3=""
-		ac_fn_c_check_header_compile "$LINENO" "sqlite3.h" "ac_cv_header_sqlite3_h" "$ac_includes_default"
-if test "x$ac_cv_header_sqlite3_h" = xyes
-then :
-
-else $as_nop
-
-		    # nope - try pkg-config
-			# Extract the first word of "pkg-config", so it can be a program name with args.
-set dummy pkg-config; ac_word=$2
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-printf %s "checking for $ac_word... " >&6; }
-if test ${ac_cv_path_PKG_CONFIG+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  case $PKG_CONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  case $as_dir in #(((
-    '') as_dir=./ ;;
-    */) ;;
-    *) as_dir=$as_dir/ ;;
-  esac
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
-    ac_cv_path_PKG_CONFIG="$as_dir$ac_word$ac_exec_ext"
-    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-PKG_CONFIG=$ac_cv_path_PKG_CONFIG
-if test -n "$PKG_CONFIG"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
-printf "%s\n" "$PKG_CONFIG" >&6; }
-else
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-fi
-
-
-			if test "x$PKG_CONFIG" = "x" || ! $PKG_CONFIG --exists sqlite3; then
-				as_fn_error $? "cannot find sqlite3 header" "$LINENO" 5
-			else
-				CFLAGS_SQLITE3=$($PKG_CONFIG --cflags sqlite3)
-				LDFLAGS_SQLITE3=$($PKG_CONFIG --libs-only-L --libs-only-other sqlite3)
-				LIBS_SQLITE3=$($PKG_CONFIG --libs-only-l sqlite3)
-				# for tclsqlite below
-				mp_sqlite3_dir=$($PKG_CONFIG --variable=prefix sqlite3)
-            			if test "x$mp_sqlite3_dir" != "x"; then
-                			mp_sqlite3_dir=${mp_sqlite3_dir}/lib/sqlite3
-            			fi
-			fi
-
-fi
-
-	else
-	    CFLAGS_SQLITE3="-I${sqlite3prefix}/include"
-	    LIBS_SQLITE3="-lsqlite3"
-		LDFLAGS_SQLITE3="-L${sqlite3prefix}/lib"
-	fi
-
-	# check if we have sqlite3ext.h, using the appropriate cppflags
-	CPPFLAGS_OLD="${CPPFLAGS}"
-	CPPFLAGS="${CPPFLAGS} ${CFLAGS_SQLITE3}"
-	ac_fn_c_check_header_compile "$LINENO" "sqlite3ext.h" "ac_cv_header_sqlite3ext_h" "$ac_includes_default"
-if test "x$ac_cv_header_sqlite3ext_h" = xyes
-then :
-  printf "%s\n" "#define HAVE_SQLITE3EXT_H 1" >>confdefs.h
-
-fi
-
-	CPPFLAGS="${CPPFLAGS_OLD}"
-
-
-
-
-
-
+# check whether trace mode is supported on this platform
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -8211,113 +8060,6 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-
-
-
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for SQLite version in header" >&5
-printf %s "checking for SQLite version in header... " >&6; }
-
-	mp_check_sqlite_version_cppflags_save=$CPPFLAGS
-	mp_check_sqlite_version_ldflags_save=$LDFLAGS
-	mp_check_sqlite_version_libs_save=$LIBS
-	CPPFLAGS="$CPPFLAGS $CFLAGS_SQLITE3"
-	LDFLAGS="$LDFLAGS $LDFLAGS_SQLITE3"
-	LIBS="$LIBS $LIBS_SQLITE3"
-
-	if test ${mp_cv_sqlite_version+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-
-		CPPFLAGS="-dM $CPPFLAGS"
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-					#include <sqlite3.h>
-					#ifndef SQLITE_VERSION_NUMBER
-					#  error "SQLITE_VERSION_NUMBER undefined"
-					#endif
-
-
-_ACEOF
-if ac_fn_c_try_cpp "$LINENO"
-then :
-  mp_cv_sqlite_version=`fgrep SQLITE_VERSION_NUMBER conftest.i | sed -E 's/[^0-9]*([0-9]+)/\1/'`
-else $as_nop
-  as_fn_error $? "\"SQLITE_VERSION_NUMBER undefined or sqlite3.h not found\"" "$LINENO" 5
-
-fi
-rm -f conftest.err conftest.i conftest.$ac_ext
-
-fi
-
-
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: ${mp_cv_sqlite_version}" >&5
-printf "%s\n" "${mp_cv_sqlite_version}" >&6; }
-	mp_sqlite_version=${mp_cv_sqlite_version}
-
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for SQLite version at runtime" >&5
-printf %s "checking for SQLite version at runtime... " >&6; }
-    if test ${mp_cv_sqlite_run_version+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-
-        CPPFLAGS="$mp_check_sqlite_version_cppflags_save $CFLAGS_SQLITE3"
-        if test "$cross_compiling" = yes
-then :
-  mp_cv_sqlite_run_version=$mp_cv_sqlite_version
-
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-				    #include <stdio.h>
-					#include <sqlite3.h>
-					int main(int argc, char* argv[])
-					{
-					    int vers = sqlite3_libversion_number();
-					    if (argc > 1) {
-					        printf("%d\n", vers);
-					    }
-					    return 0;
-					}
-
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"
-then :
-  mp_cv_sqlite_run_version=`./conftest$EXEEXT noisy`
-else $as_nop
-  as_fn_error $? "\"Failed to run sqlite3_libversion_number test program\"" "$LINENO" 5
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-fi
-
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: ${mp_cv_sqlite_run_version}" >&5
-printf "%s\n" "${mp_cv_sqlite_run_version}" >&6; }
-    if test "$mp_cv_sqlite_run_version" -lt "$mp_cv_sqlite_version"; then
-        mp_sqlite_version=$mp_cv_sqlite_run_version
-    fi
-
-	CPPFLAGS=$mp_check_sqlite_version_cppflags_save
-	LDFLAGS=$mp_check_sqlite_version_ldflags_save
-	LIBS=$mp_check_sqlite_version_libs_save
-
-
-printf "%s\n" "#define MP_SQLITE_VERSION $mp_sqlite_version" >>confdefs.h
-
-if test "$mp_sqlite_version" -lt 3003011; then
-
-printf "%s\n" "#define sqlite3_prepare_v2 sqlite3_prepare" >>confdefs.h
-
-fi
-
-# check whether trace mode is supported on this platform
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for grep that handles long lines and -e" >&5
 printf %s "checking for grep that handles long lines and -e... " >&6; }
 if test ${ac_cv_path_GREP+y}
@@ -9617,6 +9359,12 @@ TCL_PACKAGE_PATH="$macports_libexec_dir/lib"
 
 
 INCLUDES="-I.. -I. $INCLUDES"
+
+
+## sqlite3
+SQLITE3_CPPFLAGS=-I`echo ${TCL_SRC_DIR}/pkgs/sqlite3*/compat/sqlite3`
+SQLITE3_LIBNAME=`basename ${TCL_SRC_DIR}/pkgs/sqlite3*`
+
 
 
 # Check if there's an existing DP/MP install too old to upgrade

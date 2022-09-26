@@ -5,12 +5,8 @@
 #include "vercomp.h"
 
 #include <string.h>
-#if HAVE_SQLITE3EXT_H
 #include <sqlite3ext.h>
 SQLITE_EXTENSION_INIT1
-#else
-#include <sqlite3.h>
-#endif
 
 /**
  * Extension for sqlite3 defining collates being used in our DB. This can be

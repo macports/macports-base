@@ -7527,7 +7527,7 @@ fi
 
 fi
 	    # TEA specific: use LDFLAGS_DEFAULT instead of LDFLAGS
-	    SHLIB_LD='${CC} -dynamiclib ${CFLAGS} ${LDFLAGS_DEFAULT}'
+	    SHLIB_LD='${CC} -dynamiclib ${CFLAGS} ${LDFLAGS_DEFAULT} -install_name $(pkglibdir)/$(PKG_LIB_FILE)'
 	    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if ld accepts -single_module flag" >&5
 printf %s "checking if ld accepts -single_module flag... " >&6; }
 if test ${tcl_cv_ld_single_module+y}

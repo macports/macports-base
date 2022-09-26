@@ -159,9 +159,6 @@
 /* Define to 1 if you have the <spawn.h> header file. */
 #undef HAVE_SPAWN_H
 
-/* Define to 1 if you have the <sqlite3ext.h> header file. */
-#undef HAVE_SQLITE3EXT_H
-
 /* Define to 1 if you have the <stdatomic.h> header file. */
 #undef HAVE_STDATOMIC_H
 
@@ -237,9 +234,6 @@
 /* Lowest non-system-reserved UID. */
 #undef MIN_USABLE_UID
 
-/* SQLite version found */
-#undef MP_SQLITE_VERSION
-
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
@@ -268,7 +262,3 @@
 
 /* Attribute to mark unused variables */
 #undef UNUSED
-
-/* define sqlite3_prepare to sqlite_prepare_v2 if the latter is not available
-   */
-#undef sqlite3_prepare_v2

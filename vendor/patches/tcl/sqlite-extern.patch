@@ -1,0 +1,24 @@
+Make the normal sqlite3 API externally visible (until we switch to tdbc...)
+
+--- vendor/tcl/pkgs/sqlite3.36.0/Makefile.in.orig	2022-09-26 15:22:47.000000000 +1000
++++ vendor/tcl/pkgs/sqlite3.36.0/Makefile.in	2022-09-26 15:23:22.000000000 +1000
+@@ -154,7 +154,7 @@
+ INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@ -I$(srcdir)/..
+ #INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@ @TK_INCLUDES@ @TK_XINCLUDES@
+ 
+-PKG_CFLAGS	= @PKG_CFLAGS@ -DSQLITE_API=MODULE_SCOPE -DSQLITE_EXTERN=
++PKG_CFLAGS	= @PKG_CFLAGS@
+ 
+ # TCL_DEFS is not strictly need here, but if you remove it, then you
+ # must make sure that configure.in checks for the necessary components
+--- vendor/tcl/pkgs/sqlite3.36.0/configure.orig	2022-09-07 19:26:45.000000000 +1000
++++ vendor/tcl/pkgs/sqlite3.36.0/configure	2022-09-26 23:05:51.000000000 +1000
+@@ -7527,7 +7527,7 @@
+ 
+ fi
+ 	    # TEA specific: use LDFLAGS_DEFAULT instead of LDFLAGS
+-	    SHLIB_LD='${CC} -dynamiclib ${CFLAGS} ${LDFLAGS_DEFAULT}'
++	    SHLIB_LD='${CC} -dynamiclib ${CFLAGS} ${LDFLAGS_DEFAULT} -install_name $(pkglibdir)/$(PKG_LIB_FILE)'
+ 	    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if ld accepts -single_module flag" >&5
+ printf %s "checking if ld accepts -single_module flag... " >&6; }
+ if test ${tcl_cv_ld_single_module+y}

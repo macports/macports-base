@@ -1,6 +1,6 @@
 #!/bin/sh
 
-LIB_PATH="@TCL_BIN_DIR@"
+LIB_PATH="@TCL_BIN_DIR@:@TCL_BIN_DIR@/pkgs/@SQLITE3_LIBNAME@"
 
 # For macOS
 if [ -z "$DYLD_LIBRARY_PATH" ]; then

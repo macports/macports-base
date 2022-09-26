@@ -187,13 +187,13 @@ reg_entry* reg_entry_open(reg_registry* reg, char* name, char* version,
     char* query;
     if (strlen(epoch) > 0) {
         query = "SELECT id FROM registry.ports "
-#if MP_SQLITE_VERSION >= 3006004
+#if SQLITE_VERSION_NUMBER >= 3006004
                 "INDEXED BY port_name "
 #endif
                 "WHERE name=? AND version=? AND revision=? AND variants=? AND epoch=?";
     } else {
         query = "SELECT id FROM registry.ports "
-#if MP_SQLITE_VERSION >= 3006004
+#if SQLITE_VERSION_NUMBER >= 3006004
                 "INDEXED BY port_name "
 #endif
                 "WHERE name=? AND version=? AND revision=? AND variants=? AND epoch!=?";
@@ -490,7 +490,7 @@ int reg_entry_installed(reg_registry* reg, char* name, reg_entry*** entries,
         format = "%s WHERE state='installed'";
     } else {
         format = "%s "
-#if MP_SQLITE_VERSION >= 3006004
+#if SQLITE_VERSION_NUMBER >= 3006004
                 "INDEXED BY port_name "
 #endif
                 "WHERE state='installed' AND name='%q'";
@@ -521,8 +521,8 @@ int reg_entry_owner(reg_registry* reg, char* path, int cs, reg_entry** entry,
     char *query = NULL;
 
     asprintf(&query, "SELECT id FROM registry.files %s WHERE (actual_path = ? %s) AND active",
-#if MP_SQLITE_VERSION >= 3003013
-#if MP_SQLITE_VERSION >= 3006004
+#if SQLITE_VERSION_NUMBER >= 3003013
+#if SQLITE_VERSION_NUMBER >= 3006004
              cs ? "INDEXED BY file_actual" : "INDEXED BY file_actual_nocase",
 #else
              "",
@@ -588,8 +588,8 @@ sqlite_int64 reg_entry_owner_id(reg_registry* reg, char* path, int cs) {
     char *query = NULL;
 
     asprintf(&query, "SELECT id FROM registry.files %s WHERE (actual_path = ? %s) AND active",
-#if MP_SQLITE_VERSION >= 3003013
-#if MP_SQLITE_VERSION >= 3006004
+#if SQLITE_VERSION_NUMBER >= 3003013
+#if SQLITE_VERSION_NUMBER >= 3006004
              cs ? "INDEXED BY file_actual" : "INDEXED BY file_actual_nocase",
 #else
              "",
@@ -866,7 +866,7 @@ int reg_entry_unmap(reg_entry* entry, char** files, int file_count,
     int result = 1;
     sqlite3_stmt* stmt = NULL;
     char* query = "DELETE FROM registry.files "
-#if MP_SQLITE_VERSION >= 3006004
+#if SQLITE_VERSION_NUMBER >= 3006004
                   "INDEXED BY file_path "
 #endif
                   "WHERE path=? AND id=?";
@@ -1071,7 +1071,7 @@ int reg_entry_activate(reg_entry* entry, char** files, char** as_files,
     char* select_query = "SELECT id FROM registry.files WHERE actual_path=? "
         "AND active";
     char* update_query = "UPDATE registry.files "
-#if MP_SQLITE_VERSION >= 3006004
+#if SQLITE_VERSION_NUMBER >= 3006004
         /* if the version of SQLite supports it force the usage of the index on
          * path, rather than the one on id which has a lot less discriminative
          * power and leads to very slow queries. This is needed for the new
@@ -1180,7 +1180,7 @@ int reg_entry_deactivate(reg_entry* entry, char** files, int file_count,
     int i;
     sqlite3_stmt* stmt = NULL;
     char* query = "UPDATE registry.files "
-#if MP_SQLITE_VERSION >= 3006004
+#if SQLITE_VERSION_NUMBER >= 3006004
         /* if the version of SQLite supports it force the usage of the index on
          * path, rather than the one on id which has a lot less discriminative
          * power and leads to very slow queries. This is needed for the new
