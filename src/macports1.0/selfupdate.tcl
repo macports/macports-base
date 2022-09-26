@@ -49,16 +49,23 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
         set updatestatus no
     }
 
+    set rsync_url rsync://${rsync_server}/
     # are we syncing a tarball? (implies detached signature)
     set is_tarball 0
     if {[string range $rsync_dir end-3 end] eq ".tar"} {
         set is_tarball 1
-        set mp_source_path [file join $portdbpath sources $rsync_server [file dirname $rsync_dir]]
+        set tarballs_dir [file dirname $rsync_dir]
+        append rsync_url ${tarballs_dir}/
+        set mp_source_path [file join $portdbpath sources $rsync_server $tarballs_dir]
+        set tarfile [file tail $rsync_dir]
+        set include_options " --include=[macports::shellescape /${tarfile}] --include=[macports::shellescape /${tarfile}.rmd160] --exclude=*"
     } else {
         if {[string index $rsync_dir end] ne "/"} {
             append rsync_dir /
         }
+        append rsync_url $rsync_dir
         set mp_source_path [file join $portdbpath sources $rsync_server $rsync_dir]
+        set include_options ""
     }
     # create the path to the to be downloaded sources if it doesn't exist
     if {![file exists $mp_source_path]} {
@@ -69,7 +76,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
     # sync the MacPorts sources
     ui_msg "$macports::ui_prefix Updating MacPorts base sources using rsync"
     macports_try -pass_signal {
-        system "$rsync_path $rsync_options [macports::shellescape rsync://${rsync_server}/$rsync_dir] [macports::shellescape $mp_source_path]"
+        system "$rsync_path ${rsync_options}${include_options} [macports::shellescape $rsync_url] [macports::shellescape $mp_source_path]"
     } on error {eMessage} {
         error "Error synchronizing MacPorts sources: $eMessage"
     }
@@ -77,13 +84,8 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
     if {$is_tarball} {
         # verify signature for tarball
         global macports::archivefetch_pubkeys
-        macports_try -pass_signal {
-            system "$rsync_path $rsync_options [macports::shellescape rsync://${rsync_server}/${rsync_dir}.rmd160] [macports::shellescape $mp_source_path]"
-        } on error {eMessage} {
-            error "Error synchronizing MacPorts source signature: $eMessage"
-        }
         set openssl [macports::findBinary openssl $macports::autoconf::openssl_path]
-        set tarball ${mp_source_path}/[file tail $rsync_dir]
+        set tarball ${mp_source_path}/${tarfile}
         set signature ${tarball}.rmd160
         set verified 0
         foreach pubkey $macports::archivefetch_pubkeys {

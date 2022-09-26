@@ -2909,14 +2909,16 @@ proc mportsync {{optionslist {}}} {
                 # now sync the index if the local file is missing or older than a day
                 if {![file isfile $indexfile] || [clock seconds] - [file mtime $indexfile] > 86400
                       || [info exists options(no_reindex)]} {
+                    set include_option "--include=/PortIndex --exclude=*"
                     if {$is_tarball} {
                         # chop ports.tar off the end
                         set index_source [string range $source 0 end-[string length [file tail $source]]]
+                        set include_option "--include=/PortIndex.rmd160 ${include_option}"
                     } else {
                         set index_source $source
                     }
-                    set remote_indexfile "${index_source}PortIndex_${macports::os_platform}_${macports::os_major}_${macports::os_arch}/PortIndex"
-                    set rsync_commandline "$macports::autoconf::rsync_path $rsync_options $remote_indexfile $destdir"
+                    set remote_indexdir "${index_source}PortIndex_${macports::os_platform}_${macports::os_major}_${macports::os_arch}/"
+                    set rsync_commandline "$macports::autoconf::rsync_path $rsync_options $include_option $remote_indexdir $destdir"
                     macports_try -pass_signal {
                         system $rsync_commandline
                         
@@ -2926,8 +2928,6 @@ proc mportsync {{optionslist {}}} {
                             set ok 0
                             set needs_portindex true
                             # verify signature for PortIndex
-                            set rsync_commandline "$macports::autoconf::rsync_path $rsync_options ${remote_indexfile}.rmd160 $destdir"
-                            system $rsync_commandline
                             foreach pubkey $macports::archivefetch_pubkeys {
                                 macports_try -pass_signal {
                                     exec $openssl dgst -ripemd160 -verify $pubkey -signature ${destdir}/PortIndex.rmd160 ${destdir}/PortIndex
