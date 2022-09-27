@@ -51,6 +51,7 @@ include $(srcdir)/../../Mk/macports.tea.mk
 # tracelib.o has an additional dependency
 tracelib.o: ../darwintracelib1.0/sandbox_actions.h
 
+CPPFLAGS := ${SQLITE3_CPPFLAGS} ${CPPFLAGS}
 CFLAGS+= ${CURL_CFLAGS} ${MD5_CFLAGS} ${READLINE_CFLAGS}
 LIBS+= ${CURL_LIBS} ${MD5_LIBS} ${READLINE_LIBS}
 ifeq (darwin,@OS_PLATFORM@)
