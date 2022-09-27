@@ -8613,7 +8613,7 @@ printf "%s\n" "$as_me: === finished configuring in $ac_dir ($mp_popdir/$ac_dir)"
 	cd "$mp_popdir"
 
 VENDOR_TCL_SUBDIR=tcl/unix
-VENDOR_TCL_INSTALL="install-binaries install-libraries install-packages"
+VENDOR_TCL_INSTALL="install-binaries install-headers install-libraries install-msgs install-packages"
 
 
 
