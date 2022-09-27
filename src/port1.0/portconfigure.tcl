@@ -1272,26 +1272,31 @@ proc portconfigure::get_compiler_fallback {} {
         return $default_compilers
     }
 
-    # Check for platforms without Xcode
-    if {$xcodeversion eq "none" || $xcodeversion eq ""} {
-        set available_apple_compilers [portconfigure::get_apple_compilers_os_version]
-    } else {
-        set available_apple_compilers [portconfigure::get_apple_compilers_xcode_version]
-    }
-    set system_compilers [list]
-    foreach c ${available_apple_compilers} {
-        set vmin [portconfigure::get_min_command_line $c]
-        if {$vmin ne "none"} {
-            if {$c eq "apple-gcc-4.2"} {
-                # provided by a port, should be the latest version
-                lappend system_compilers $c
-                continue
-            }
-            set v [compiler.command_line_tools_version $c]
-            if {[vercmp ${vmin} $v] <= 0} {
-                lappend system_compilers $c
+    if {[option os.subplatform] eq "macosx"} {
+        # Check for macOS without Xcode (i.e. CLTs only)
+        if {$xcodeversion eq "none" || $xcodeversion eq ""} {
+            set available_apple_compilers [portconfigure::get_apple_compilers_os_version]
+        } else {
+            set available_apple_compilers [portconfigure::get_apple_compilers_xcode_version]
+        }
+        set system_compilers [list]
+        foreach c ${available_apple_compilers} {
+            set vmin [portconfigure::get_min_command_line $c]
+            if {$vmin ne "none"} {
+                if {$c eq "apple-gcc-4.2"} {
+                    # provided by a port, should be the latest version
+                    lappend system_compilers $c
+                    continue
+                }
+                set v [compiler.command_line_tools_version $c]
+                if {[vercmp ${vmin} $v] <= 0} {
+                    lappend system_compilers $c
+                }
             }
         }
+    } else {
+        # not macosx
+        set system_compilers [list cc]
     }
     set clang_compilers [list]
     set vmin [portconfigure::get_min_clang]
