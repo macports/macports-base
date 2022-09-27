@@ -2,6 +2,62 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.8.0 (unreleased)
+    - Fixed an error that occurred in the very specific but apparently
+      somewhat common circumstances where a port was installed but
+      failed to activate (usually because of a conflict with an
+      existing file), and then the port was uninstalled, and later
+      installed again without cleaning it in between.
+      (#55445, jmr in bdd0a13)
+
+    - Added startupitem.custom_file option, which can be used to
+      specify the path to an existing .plist file that should be
+      installed instead of generating one. (jmr in dadc533)
+
+    - The platforms option can now indicate which OS versions a port
+      works on, and known_fail is automatically set on other versions.
+      (#15712, jmr in 2866618)
+
+    - The user is now informed before installing if a port sets
+      known_fail, with the option to try installing anyway if you
+      really want to. (#60566, jmr in d863a7e, 3406c5d)
+
+    - Attempting to install a port with replaced_by set will now
+      install the replacement instead. (jmr in 4da66a2)
+
+    - Fixed new dependencies installed when upgrading a requested port
+      being incorrectly marked as requested. (#60648, jmr in 31e10a8)
+
+    - The SQLite included with Tcl is now used instead of the system
+      version. (jmr in 11d2b06)
+
+    - MacPorts can now be built without a pre-existing tclsh.
+      (#61253, jmr in 2eeba4d)
+
+    - Updated the bundled Tcl to 8.6.12, as well as tcllib 1.21 and
+      tclx 8.4.4. (cal in 89abece, 24c34a9, d7cf914, d3d9e4b, etc.)
+
+    - Fixed the 'ln' command erroring when told to link more than two
+      files into a directory. (jmr in b75c464)
+
+    - The PortGroup command now prevents multiple inclusion of the same
+      portgroup. (jmr in 4215012)
+
+    - Added xcodecltversion variable containing the installed version
+      of the Command Line Tools for Xcode. (jmr in d05ebde)
+
+    - The vercmp command can now take a comparison operator.
+      (jmr in 35daead)
+
+    - Fixed error when installing ports that change prefix without root
+      privileges. (#65313, jmr in a594e01, fbfcb9f)
+
+    - Fixed possible directory ownership error when syncing with recent
+      versions of git. (jmr in e0338e8)
+
+    - Improved the message printed by 'port diagnose' when the Xcode
+      version is newer than any we know about. (#63377, jmr in 733d6e7)
+
 Release 2.7.2 (2022-03-09 by jmr)
     - Fixed poor trace mode performance on newer OS versions.
       (cal in 3b949cc)
