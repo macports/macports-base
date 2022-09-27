@@ -706,7 +706,8 @@ proc portconfigure::arch_flag_supported {compiler {multiple_arch_flags no}} {
         return [regexp {^gcc-4|llvm|apple|clang} ${compiler}]
     } else {
         # GCC prior to 4.7 does not accept -arch flag
-        if {[regexp {^macports(?:-[^-]+)?-gcc-4\.[0-6]} ${compiler}]} {
+        if {[regexp {^macports(?:-[^-]+)?-gcc-4\.[0-6]} ${compiler}]
+                || ([option os.subplatform] ne "macosx" && ${compiler} in {cc gcc})} {
             return no
         } else {
             return yes
