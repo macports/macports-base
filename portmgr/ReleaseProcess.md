@@ -188,6 +188,12 @@ Mac OS X 10.6.)
 For macOS 10.14 Mojave and later, the pkg should also be submitted for
 notarization after signing:
 
+    xcrun notarytool submit MacPorts-2.0.0-10.14-Mojave.pkg \
+        --apple-id <your-apple-id> --keychain-profile "notarytool" \
+        --wait
+
+or, with altool in older Xcode versions (deprecated method):
+
     xcrun altool --notarize-app --primary-bundle-id org.macports.base \
         --username <your-apple-id> --password @keychain:altool \
         --file MacPorts-2.0.0-10.14-Mojave.pkg
