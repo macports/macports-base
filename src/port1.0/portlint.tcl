@@ -557,11 +557,12 @@ proc portlint::lint_main {args} {
 
     if {[info exists platforms]} {
         foreach platform $platforms {
-            if {$platform ni $lint_platforms} {
-                ui_error "Unknown platform: $platform"
+            set platname [lindex $platform 0]
+            if {$platname ni $lint_platforms} {
+                ui_error "Unknown platform: $platname"
                 incr errors
             } else {
-                ui_info "OK: Found platform: $platform"
+                ui_info "OK: Found platform: $platname"
             }
         }
     }
