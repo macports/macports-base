@@ -555,6 +555,11 @@ proc portlint::lint_main {args} {
         }
     }
 
+    if {[info exists version] && [string match *+* $version]} {
+        ui_warn "Version '$version' contains '+' character, which makes it difficult to specify on the command line due to conflict with variant syntax."
+        incr warnings
+    }
+
     if {[info exists platforms]} {
         foreach platform $platforms {
             set platname [lindex $platform 0]
