@@ -1,6 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 #
-# Copyright (c) 2007 - 2018, 2020 The MacPorts Project
+# Copyright (c) 2007 - 2018, 2020, 2022 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -551,6 +551,13 @@ proc portlint::lint_main {args} {
     if {[info exists name]} {
         if {[regexp {[^[:alnum:]_.-]} $name]} {
             ui_error "Port name '$name' contains unsafe characters. Names should only contain alphanumeric characters, underscores, dashes or dots."
+            incr errors
+        }
+    }
+
+    if {[info exists version]} {
+        if {[string first + $version] != -1} {
+            ui_error "Port version '$version' is invalid. The '+' character is reserved for enabling variants."
             incr errors
         }
     }
