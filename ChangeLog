@@ -4,11 +4,11 @@
 
 Release 2.8.0 (unreleased)
     - Fixed an error that occurred in the very specific but apparently
-      somewhat common circumstances where a port was installed but
-      failed to activate (usually because of a conflict with an
-      existing file), and then the port was uninstalled, and later
-      installed again without cleaning it in between.
-      (#55445, jmr in bdd0a13)
+      somewhat common circumstances where a port was installed from a
+      binary archive but failed to activate (usually because of a
+      conflict with an existing file), and then the port was
+      uninstalled, and later installed again without cleaning it in
+      between. (#55445, jmr in bdd0a13)
 
     - Added startupitem.custom_file option, which can be used to
       specify the path to an existing .plist file that should be
