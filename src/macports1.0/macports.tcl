@@ -4168,8 +4168,13 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     set requestedflag [$regref requested]
     set os_platform_installed [$regref os_platform]
     set os_major_installed [$regref os_major]
-    set cxx_stdlib_installed [$regref cxx_stdlib]
-    set cxx_stdlib_overridden [$regref cxx_stdlib_overridden]
+    # These might error if the info is not present in the registry.
+    if {[catch {$regref cxx_stdlib} cxx_stdlib_installed]} {
+        set cxx_stdlib_installed ""
+    }
+    if {[catch {$regref cxx_stdlib_overridden} cxx_stdlib_overridden]} {
+        set cxx_stdlib_overridden 0
+    }
 
     # Before we do
     # dependencies, we need to figure out the final variants,
