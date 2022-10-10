@@ -141,7 +141,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
 
         /* metadata table */
         "CREATE TABLE registry.metadata (key UNIQUE, value)",
-        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.210')",
+        "INSERT INTO registry.metadata (key, value) VALUES ('version', '1.211')",
         "INSERT INTO registry.metadata (key, value) VALUES ('created', strftime('%s', 'now'))",
 
         /* ports table */
@@ -838,6 +838,27 @@ int update_db(sqlite3* db, reg_error* errPtr) {
             continue;
         }
 
+        if (sql_version(NULL, -1, version, -1, "1.211") < 0) {
+            /* enable WAL for systems that previously used an older system sqlite */
+            static char* version_1_211_queries[] = {
+                "UPDATE registry.metadata SET value = '1.211' WHERE key = 'version'",
+                "COMMIT",
+                "PRAGMA journal_mode=WAL",
+                NULL
+            };
+
+            sqlite3_finalize(stmt);
+            stmt = NULL;
+
+            if (!do_queries(db, version_1_211_queries, errPtr)) {
+                rollback_db(db);
+                return 0;
+            }
+
+            did_update = 1;
+            continue;
+        }
+
 
         /* add new versions here, but remember to:
          *  - finalize the version query statement and set stmt to NULL
@@ -848,7 +869,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
          *  - update the current version number below
          */
 
-        if (sql_version(NULL, -1, version, -1, "1.210") > 0) {
+        if (sql_version(NULL, -1, version, -1, "1.211") > 0) {
             /* the registry was already upgraded to a newer version and cannot be used anymore */
             reg_throw(errPtr, REG_INVALID, "Version number in metadata table is newer than expected.");
             sqlite3_finalize(stmt);
