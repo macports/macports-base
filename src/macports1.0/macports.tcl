@@ -613,7 +613,7 @@ proc macports::set_xcodecltversion {name1 name2 op} {
     # Potential names for the CLTs pkg on different OS versions.
     set pkgnames [list CLTools_Executables CLTools_Base DeveloperToolsCLI DeveloperToolsCLILeo]
 
-    if {[catch {exec -ignorestderr /usr/sbin/pkgutil --pkgs=com\\.apple\\.pkg\\.([join $pkgnames |])} result]} {
+    if {[catch {exec -ignorestderr /usr/sbin/pkgutil --pkgs=com\\.apple\\.pkg\\.([join $pkgnames |]) 2> /dev/null} result]} {
         set macports::xcodecltversion none
         return
     }
@@ -623,7 +623,7 @@ proc macports::set_xcodecltversion {name1 name2 op} {
     foreach pkgname $pkgnames {
         set fullpkgname com.apple.pkg.${pkgname}
         if {$fullpkgname in $pkgs} {
-            if {![catch {exec -ignorestderr /usr/sbin/pkgutil --pkg-info $fullpkgname} result]} {
+            if {![catch {exec -ignorestderr /usr/sbin/pkgutil --pkg-info $fullpkgname 2> /dev/null} result]} {
                 foreach line [split $result \n] {
                     lassign [split $line] name val
                     if {$name eq "version:"} {
