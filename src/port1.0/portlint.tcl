@@ -48,6 +48,7 @@ set lint_portsystem \
     "1.0"
 
 set lint_platforms [list \
+    "any" \
     "darwin" \
     "freebsd" \
     "linux" \
