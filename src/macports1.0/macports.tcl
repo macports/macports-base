@@ -5835,3 +5835,21 @@ proc macports::shellescape {arg} {
 proc macports::unobscure_maintainers {list} {
     return [macports_util::unobscure_maintainers $list]
 }
+
+# Get actual number of parallel jobs based on buildmakejobs, which may
+# be 0 for automatic selection.
+proc macports:get_parallel_jobs {{mem_restrict yes}} {
+    if {[string is integer -strict $::macports::buildmakejobs] && $::macports::buildmakejobs > 0} {
+        set jobs $::macports::buildmakejobs
+    } elseif {$::macports::os_platform eq "darwin" && $::macports::buildmakejobs == 0
+              && ![catch {sysctl hw.activecpu} cpus]} {
+        set jobs $cpus
+        if {$mem_restrict && ![catch {sysctl hw.memsize} memsize]
+                && $jobs > $memsize / (1024 * 1024 * 1024) + 1} {
+            set jobs [expr {$memsize / (1024 * 1024 * 1024) + 1}]
+        }
+    } else {
+        set jobs 2
+    }
+    return $jobs
+}
