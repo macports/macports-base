@@ -1422,8 +1422,10 @@ match macports.conf.default."
     }
     array set macports::host_cache {}
 
-    # load the quick index
-    _mports_load_quickindex
+    # load the quick index unless told not to
+    if {![macports::global_option_isset ports_no_load_quick_index]} {
+        _mports_load_quickindex
+    }
 
     if {![info exists macports::ui_options(ports_no_old_index_warning)]} {
         set default_source_url [lindex $sources_default 0]

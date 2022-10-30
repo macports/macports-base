@@ -14,7 +14,7 @@ set stats(failed) 0
 set stats(skipped) 0
 set extended_mode 0
 array set ui_options        [list ports_no_old_index_warning 1]
-array set global_options    [list]
+array set global_options    [list ports_no_load_quick_index 1]
 array set global_variations [list]
 set port_options            [list]
 
@@ -201,11 +201,12 @@ proc init_threads {} {
         [list array set qindex [array get ::qindex]] \n \
         [list array set keepkeys [array get ::keepkeys]] \n \
         [list array set ui_options [array get ::ui_options]] \n \
+        [list array set global_options [array get ::global_options]] \n \
         [list set port_options $::port_options] \n \
         [list set save_prefix $::save_prefix] \n \
         [list set directory $::directory] \n \
         [list set full_reindex $::full_reindex] \n \
-        [list mportinit ui_options] \n \
+        [list mportinit ui_options global_options] \n \
         [list signal default {TERM INT}]
     if {[info exists ::oldfd]} {
         append ::worker_init_script \n \
