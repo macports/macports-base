@@ -232,6 +232,7 @@ proc handle_completed_jobs {} {
             return -code break "Interrupt"
         } elseif {$status == 1} {
             incr ::stats(failed)
+            incr ::stats(total)
         } else {
             # queue jobs for subports
             if {[tsv::exists $portdir subports]} {
@@ -239,12 +240,12 @@ proc handle_completed_jobs {} {
                     tsv::set ${portdir}/${subport} status 99
                     set jobid [tpool::post -nowait $::poolid [list pindex $portdir $subport]]
                     set ::pending_jobs($jobid) ${portdir}/${subport}
-                    incr ::stats(total)
                 }
             }
             if {$status == -1} {
                 incr ::stats(skipped)
             } else {
+                incr ::stats(total)
                 tsv::get $portdir mtime mtime
                 if {$mtime > $::newest} {
                     set ::newest $mtime
@@ -272,7 +273,6 @@ proc pindex_queue {portdir} {
     tsv::set $portdir status 99
     set jobid [tpool::post -nowait $::poolid [list pindex $portdir {}]]
     set ::pending_jobs($jobid) $portdir
-    incr ::stats(total)
 }
 
 proc process_remaining {} {
