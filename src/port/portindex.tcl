@@ -45,12 +45,14 @@ package require Thread
 
 proc _read_index {idx} {
     set offset $::qindex($idx)
+    thread::mutex lock [tsv::get PortIndex mutex]
     seek $::oldfd $offset
     gets $::oldfd line
 
-    set name [lindex $line 0]
     set len  [lindex $line 1]
     set line [read $::oldfd [expr {$len - 1}]]
+    thread::mutex unlock [tsv::get PortIndex mutex]
+    set name [lindex $line 0]
 
     return [list $name $len $line]
 }
@@ -217,6 +219,7 @@ proc init_threads {} {
     set ::maxjobs [macports:get_parallel_jobs no]
     set ::poolid [tpool::create -minworkers $::maxjobs -maxworkers $::maxjobs -initcmd $::worker_init_script]
     array set ::pending_jobs {}
+    tsv::set PortIndex mutex [thread::mutex create]
 }
 
 proc handle_completed_jobs {} {
@@ -281,6 +284,7 @@ proc process_remaining {} {
         handle_completed_jobs
     }
     tpool::release $::poolid
+    thread::mutex destroy [tsv::get PortIndex mutex]
 }
 
 if {$argc > 8} {
