@@ -47,14 +47,14 @@ proc _read_index {idx} {
     set offset $::qindex($idx)
     thread::mutex lock [tsv::get PortIndex mutex]
     seek $::oldfd $offset
-    gets $::oldfd line
+    gets $::oldfd in_line
 
-    set len  [lindex $line 1]
-    set line [read $::oldfd [expr {$len - 1}]]
+    set len  [lindex $in_line 1]
+    set out_line [read $::oldfd [expr {$len - 1}]]
     thread::mutex unlock [tsv::get PortIndex mutex]
-    set name [lindex $line 0]
+    set name [lindex $in_line 0]
 
-    return [list $name $len $line]
+    return [list $name $len $out_line]
 }
 
 proc _index_from_portinfo {portinfoname {is_subport no}} {
