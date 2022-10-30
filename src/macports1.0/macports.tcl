@@ -1969,9 +1969,9 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
 
     # Will download if remote and extract if tarball.
     set portpath [macports::getportdir $porturl]
-    ui_debug "Changing to port directory: $portpath"
-    cd $portpath
-    if {![file isfile Portfile]} {
+    ui_debug "Opening port in directory: $portpath"
+    set portfilepath [file join $portpath Portfile]
+    if {![file isfile $portfilepath]} {
         return -code error "Could not find Portfile in $portpath"
     }
 
@@ -1988,7 +1988,7 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
 
     macports::worker_init $workername $portpath $porturl [macports::getportbuildpath $portpath] $options $variations
 
-    if {[catch {$workername eval {source Portfile}} result]} {
+    if {[catch {$workername eval [list source $portfilepath]} result]} {
         mportclose $mport
         ui_debug $::errorInfo
         error $result

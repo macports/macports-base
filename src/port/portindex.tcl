@@ -4,7 +4,7 @@
 # if requested
 
 package require macports
-package require Pextlib
+package require Thread
 
 # Globals
 set full_reindex 0
@@ -23,8 +23,7 @@ mportinit ui_options global_options global_variations
 
 # Standard procedures
 proc print_usage args {
-    global argv0
-    puts "Usage: $argv0 \[-dfe\] \[-o output directory\] \[-p plat_ver_\[cxxlib_\]arch\] \[directory\]"
+    puts "Usage: $::argv0 \[-dfe\] \[-o output directory\] \[-p plat_ver_\[cxxlib_\]arch\] \[directory\]"
     puts "-d:\tOutput debugging information"
     puts "-f:\tDo a full re-index instead of updating"
     puts "-e:\tExit code indicates if ports failed to parse"
@@ -33,34 +32,34 @@ proc print_usage args {
     puts "-x:\tInclude extra (optional) information in the PortIndex, like variant description and port notes."
 }
 
-proc _read_index {idx} {
-    global qindex oldfd
+proc _write_index {name len line} {
+    puts $::fd [list $name $len]
+    puts $::fd $line
+}
 
-    set offset $qindex($idx)
-    seek $oldfd $offset
-    gets $oldfd line
+# Code that runs in worker threads
+set worker_init_script {
+
+package require macports
+package require Thread
+
+proc _read_index {idx} {
+    set offset $::qindex($idx)
+    seek $::oldfd $offset
+    gets $::oldfd line
 
     set name [lindex $line 0]
     set len  [lindex $line 1]
-    set line [read $oldfd [expr {$len - 1}]]
+    set line [read $::oldfd [expr {$len - 1}]]
 
     return [list $name $len $line]
 }
 
-proc _write_index {name len line} {
-    global fd
-
-    puts $fd [list $name $len]
-    puts $fd $line
-}
-
-proc _write_index_from_portinfo {portinfoname {is_subport no}} {
-    global keepkeys
-
+proc _index_from_portinfo {portinfoname {is_subport no}} {
     upvar $portinfoname portinfo
 
     array set keep_portinfo {}
-    foreach key [array names keepkeys] {
+    foreach key [array names ::keepkeys] {
         # filter keys
         if {![info exists portinfo($key)]} {
             continue
@@ -77,11 +76,10 @@ proc _write_index_from_portinfo {portinfoname {is_subport no}} {
 
     set output [array get keep_portinfo]
     set len [expr {[string length $output] + 1}]
-    _write_index $portinfo(name) $len $output
+    return [list $portinfo(name) $len $output]
 }
 
 proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}} {
-    global save_prefix
     upvar $portinfo_name portinfo
     upvar $port_options_name port_options
 
@@ -97,93 +95,192 @@ proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}
         }
     } finally {
         # Restore prefix to the previous value
-        set macports::prefix $save_prefix
+        set macports::prefix $::save_prefix
     }
 
-    if {[array exists portinfo]} {
-        array unset portinfo
-    }
+    array unset portinfo
     array set portinfo [mportinfo $interp]
     mportclose $interp
 
     set portinfo(portdir) $portdir
 }
 
-proc pindex {portdir} {
-    global oldmtime newest qindex directory stats full_reindex \
-           ui_options port_options
-
-    set qname [string tolower [file tail $portdir]]
-    set absportdir [file join $directory $portdir]
+proc pindex {portdir {subport {}}} {
+    if {$subport eq ""} {
+        set tsv_varname $portdir
+        set is_subport 0
+    } else {
+        set tsv_varname ${portdir}/${subport}
+        set is_subport 1
+    }
+    set absportdir [file join $::directory $portdir]
     set portfile [file join $absportdir Portfile]
-    # try to reuse the existing entry if it's still valid
-    if {$full_reindex != 1 && [info exists qindex($qname)]} {
-        macports_try -pass_signal {
-            set mtime [file mtime $portfile]
-            if {$oldmtime >= $mtime} {
-                lassign [_read_index $qname] name len line
-                array set portinfo $line
+    try {
+        if {$is_subport} {
+            set qname [string tolower $subport]
+        } else {
+            set qname [string tolower [file tail $portdir]]
+        }
+        # try to reuse the existing entry if it's still valid
+        if {$::full_reindex != 1 && [info exists ::qindex($qname)]} {
+            macports_try -pass_signal {
+                set mtime [file mtime $portfile]
+                if {$::oldmtime >= $mtime} {
+                    lassign [_read_index $qname] name len line
+                    array set portinfo $line
 
-                # reuse entry if it was made from the same portdir
-                if {[info exists portinfo(portdir)] && $portinfo(portdir) eq $portdir} {
-                    _write_index $name $len $line
-                    incr stats(skipped)
+                    # reuse entry if it was made from the same portdir
+                    if {[info exists portinfo(portdir)] && $portinfo(portdir) eq $portdir} {
+                        tsv::set $tsv_varname output [list $name $len $line]
 
-                    if {[info exists ui_options(ports_debug)]} {
-                        puts "Reusing existing entry for $portdir"
-                    }
+                        if {!$is_subport} {
+                            if {[info exists ::ui_options(ports_debug)]} {
+                                puts "Reusing existing entry for $portdir"
+                            }
 
-                    # also reuse the entries for its subports
-                    if {![info exists portinfo(subports)]} {
+                            # report any subports
+                            if {[info exists portinfo(subports)]} {
+                                tsv::set $tsv_varname subports $portinfo(subports)
+                            }
+                        }
+
+                        tsv::set $tsv_varname status -1
                         return
                     }
-                    foreach sub $portinfo(subports) {
-                        _write_index {*}[_read_index [string tolower $sub]]
-                        incr stats(skipped)
-                    }
-
-                    return
+                }
+            } on error {} {
+                ui_warn "Failed to open old entry for ${portdir}, making a new one"
+                if {[info exists ::ui_options(ports_debug)]} {
+                    puts "$::errorInfo"
                 }
             }
-        } on error {} {
-            ui_warn "Failed to open old entry for ${portdir}, making a new one"
-            if {[info exists ui_options(ports_debug)]} {
-                puts "$::errorInfo"
+        }
+
+        macports_try -pass_signal {
+            _open_port portinfo $portdir $absportdir ::port_options $subport
+            if {$is_subport} {
+                puts "Adding subport $subport"
+            } else {
+                puts "Adding port $portdir"
             }
-        }
-    }
 
-    incr stats(total)
-    macports_try -pass_signal {
-        _open_port portinfo $portdir $absportdir port_options
-        puts "Adding port $portdir"
+            tsv::set $tsv_varname output [_index_from_portinfo portinfo $is_subport]
+            tsv::set $tsv_varname mtime [file mtime $portfile]
 
-        _write_index_from_portinfo portinfo
-        set mtime [file mtime $portfile]
-        if {$mtime > $newest} {
-            set newest $mtime
-        }
-
-        # now index this portfile's subports (if any)
-        if {![info exists portinfo(subports)]} {
+            # report this portfile's subports (if any)
+            if {!$is_subport && [info exists portinfo(subports)]} {
+                tsv::set $tsv_varname subports $portinfo(subports)
+            }
+        } on error {eMessage} {
+            if {$is_subport} {
+                puts stderr "Failed to parse file $portdir/Portfile with subport '${subport}': $eMessage"
+            } else {
+                puts stderr "Failed to parse file $portdir/Portfile: $eMessage"
+            }
+            tsv::set $tsv_varname status 1
             return
         }
-        foreach sub $portinfo(subports) {
-            incr stats(total)
-            macports_try -pass_signal {
-                _open_port portinfo $portdir $absportdir port_options $sub
-                puts "Adding subport $sub"
 
-                _write_index_from_portinfo portinfo yes
-            } on error {eMessage} {
-                puts stderr "Failed to parse file $portdir/Portfile with subport '${sub}': $eMessage"
-                incr stats(failed)
-            }
-        }
-    } on error {eMessage} {
-        puts stderr "Failed to parse file $portdir/Portfile: $eMessage"
-        incr stats(failed)
+        tsv::set $tsv_varname status 0
+    } trap {POSIX SIG SIGINT} {} {
+        puts stderr "SIGINT received, terminating."
+        tsv::set $tsv_varname status 99
+    } trap {POSIX SIG SIGTERM} {} {
+        puts stderr "SIGTERM received, terminating."
+        tsv::set $tsv_varname status 99
     }
+}
+
+}
+# End worker_init_script
+
+proc init_threads {} {
+    append ::worker_init_script \
+        [list array set qindex [array get ::qindex]] \n \
+        [list array set keepkeys [array get ::keepkeys]] \n \
+        [list array set ui_options [array get ::ui_options]] \n \
+        [list set port_options $::port_options] \n \
+        [list set save_prefix $::save_prefix] \n \
+        [list set directory $::directory] \n \
+        [list set full_reindex $::full_reindex] \n \
+        [list mportinit ui_options] \n \
+        [list signal default {TERM INT}]
+    if {[info exists ::oldfd]} {
+        append ::worker_init_script \n \
+            [list set outpath $::outpath] \n \
+            {set oldfd [open $outpath r]} \n
+    }
+    if {[info exists ::oldmtime]} {
+        append ::worker_init_script \
+            [list set oldmtime $::oldmtime] \n
+    }
+    set ::maxjobs [macports:get_parallel_jobs no]
+    set ::poolid [tpool::create -minworkers $::maxjobs -maxworkers $::maxjobs -initcmd $::worker_init_script]
+    array set ::pending_jobs {}
+}
+
+proc handle_completed_jobs {} {
+    set completed_jobs [tpool::wait $::poolid [array names ::pending_jobs]]
+    foreach completed_job $completed_jobs {
+        set portdir $::pending_jobs($completed_job)
+        unset ::pending_jobs($completed_job)
+        tsv::get $portdir status status
+        # -1 = skipped, 0 = success, 1 = fail, 99 = exit
+        if {$status == 99} {
+            set ::exit_fail 1
+            array unset ::pending_jobs
+            return -code break "Interrupt"
+        } elseif {$status == 1} {
+            incr ::stats(failed)
+        } else {
+            # queue jobs for subports
+            if {[tsv::exists $portdir subports]} {
+                foreach subport [tsv::get $portdir subports] {
+                    tsv::set ${portdir}/${subport} status 99
+                    set jobid [tpool::post -nowait $::poolid [list pindex $portdir $subport]]
+                    set ::pending_jobs($jobid) ${portdir}/${subport}
+                    incr ::stats(total)
+                }
+            }
+            if {$status == -1} {
+                incr ::stats(skipped)
+            } else {
+                tsv::get $portdir mtime mtime
+                if {$mtime > $::newest} {
+                    set ::newest $mtime
+                }
+            }
+            _write_index {*}[tsv::get $portdir output]
+        }
+        tsv::unset $portdir
+    }
+}
+
+# post new job to the pool
+proc pindex_queue {portdir} {
+    # Wait for a free thread
+    while {[array size ::pending_jobs] >= $::maxjobs} {
+        handle_completed_jobs
+    }
+    if {$::exit_fail} {
+        error "Interrupt"
+    }
+
+    # Now queue the new job.
+    # Start with worst status so we get it when the thread
+    # returns due to ctrl-c etc.
+    tsv::set $portdir status 99
+    set jobid [tpool::post -nowait $::poolid [list pindex $portdir {}]]
+    set ::pending_jobs($jobid) $portdir
+    incr ::stats(total)
+}
+
+proc process_remaining {} {
+    # let remaining jobs finish
+    while {[array size ::pending_jobs] > 0} {
+        handle_completed_jobs
+    }
+    tpool::release $::poolid
 }
 
 if {$argc > 8} {
@@ -322,7 +419,11 @@ if {$extended_mode eq 1 } {
 
 set exit_fail 0
 try {
-    mporttraverse pindex $directory
+    init_threads
+    # process list of portdirs
+    mporttraverse pindex_queue $directory
+    # handle completed jobs
+    process_remaining
 } trap {POSIX SIG SIGINT} {} {
     puts stderr "SIGINT received, terminating."
     set exit_fail 1
