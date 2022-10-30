@@ -180,25 +180,31 @@
  * with the address to be returned.
  */
 
-#define RETURN(n)     \
-    mem_free(n);      \
+#define RETURN(n, s)     \
+    mem_free(n, s);      \
     if (exp_regs != NULL) \
     free(exp_regs); \
     return (char *)n
 
-static struct {
+typedef struct {
     char *s;
     int size;
     int used;
-} mem_slots[MEM_SLOTS];
+} memslot_t;
 
+typedef struct {
+    char *what[2];
+    char last[2];
+    int increment[2];
+    int pos[2];
+} nextch_state_t;
 
 #define more_space(need)                                                   \
     if (need > 0 && space != -1){                                          \
         if (space - (need) < 0){                                           \
             buf_sz += buf_inc + (need) - space;                            \
             if (!(new_str = (char *)realloc(new_str, (unsigned)buf_sz))){  \
-                RETURN(0);                                                 \
+                RETURN(NULL, mem_slots);                                                 \
             }                                                              \
 	    mem_slots[MEM_NEWSTR].s = new_str;                             \
 	    mem_slots[MEM_NEWSTR].size = buf_sz;                           \
@@ -221,94 +227,81 @@ static struct {
 /* ------------------------------------------------------------------------- **
  * Prototypes
  * ------------------------------------------------------------------------- */
-static char *mem(int, int);
-static void mem_init(void);
-static void mem_free(char *);
-static char *build_map(char *, char *);
-static char nextch(char *, int);
-static void mem_save(int);
-static int mem_find(int);
-char *backslash_eliminate(char *, int, int);
+static char *mem(int, int, memslot_t*);
+static memslot_t *mem_init(void);
+static void mem_free(char *, memslot_t*);
+static char *build_map(char *, char *, memslot_t*);
+static char nextch(char *, int, nextch_state_t *);
+static void mem_save(int, memslot_t*);
+static int mem_find(int, memslot_t*);
+char *backslash_eliminate(char *, int, int, memslot_t*);
 
 /* ------------------------------------------------------------------------- **
  * strsed
  * ------------------------------------------------------------------------- */
 char *
-strsed(string, pattern, range)
-register char *string;
-register char *pattern;
-int *range;
+strsed(char *string, char *pattern, int *range)
 {
 
 #ifdef GNU_REGEX
     extern char *re_compile_pattern();
     extern int re_search();
-    static struct re_pattern_buffer re_comp_buf;
+    struct re_pattern_buffer re_comp_buf;
     struct re_registers regs;
-    static struct re_registers empty_regs;
+    struct re_registers empty_regs;
 #endif
 
 #ifdef HS_REGEX
-    static regmatch_t *exp_regs = NULL;
-    static regex_t exp;
+    regmatch_t *exp_regs = NULL;
+    regex_t exp;
 #endif
-    
-    char *from;
-    char *new_str;
-    char *pat;
-    char *str;
-    char *tmp;
-    char *to;
-    static char map[1 << BYTEWIDTH];
-    int buf_sz;
-    int buf_inc;
+
+    char *from = NULL;
+    char *new_str = NULL;
+    char *pat = NULL;
+    char *str = NULL;
+    char *tmp = NULL;
+    char *to = NULL;
+    char map[1 << BYTEWIDTH];
+    int buf_sz = 0;
+    int buf_inc = 0;
     int global = 0;
-    int match;
+    int match = 0;
     int new_pos = 0;
     int search_only = 0;
     int seenbs = 0;
-    int space;
+    int space = 0;
     int match_all = 0;
-    register int str_len;
-    static int first_time = 1;
-    static char *last_exp = (char *)0;
-    int repeat;
-    char delimiter;
+    int str_len = 0;
+    char delimiter = 0;
+    memslot_t *mem_slots = NULL;
 
     if (!string || !pattern){
-        RETURN(0);
+        RETURN(NULL, NULL);
     }
-    
+
     /*
      * If this is the first time we've been called, clear the memory slots.
      */
-    if (first_time){
-#ifdef GNU_REGEX
-	register int i;
-#endif
-	mem_init();
+	mem_slots = mem_init();
+	if (mem_slots == NULL) {
+	    RETURN(NULL, NULL);
+	}
 #ifdef GNU_REGEX
 	/* Zero the fake regs that we use if the regex is ".*" */
-	for (i = 0; i < RE_NREGS; i++){
+	for (int i = 0; i < RE_NREGS; i++){
 	    empty_regs.start[i] = empty_regs.end[i] = EMPTY_REGISTER;
 	} 
 #endif
-
-#ifdef HS_REGEX
-	/* We use first_time again if we are GNU_REGEX, and reset it later. */
-	first_time = 0;
-
-#endif
-    }
 
     /*
      * Take our own copies of the string and pattern since we promised
      * in the man page not to hurt the originals.
      */
-    str = mem(MEM_STR, strlen(string) + 1);
+    str = mem(MEM_STR, strlen(string) + 1, mem_slots);
     str[0] = '\0';
     strcat(str, string);
-    pat = mem(MEM_PAT, strlen(pattern) + 1);
+    pat = mem(MEM_PAT, strlen(pattern) + 1, mem_slots);
     pat[0] = '\0';
     strcat(pat, pattern);
 
@@ -318,13 +311,13 @@ int *range;
      * or are in any doubt, don't define ESCAPED_STRING.
      */
 #ifndef ESCAPED_STRING
-    if (!(str = backslash_eliminate(str, NORMAL, MEM_STR))){
-        RETURN(0);
+    if (!(str = backslash_eliminate(str, NORMAL, MEM_STR, mem_slots))){
+        RETURN(NULL, mem_slots);
     }
 #endif
 
     str_len = strlen(str);
-    
+
     /*
      * Set up the size of our buffer (in which we build the
      * newstring, and the size by which we increment it when
@@ -373,7 +366,7 @@ int *range;
     }
 
     if (!*pat){
-        RETURN(0);
+        RETURN(NULL, mem_slots);
     }
     
     delimiter = *pat++;
@@ -405,7 +398,7 @@ int *range;
     }
 
     if (!*to){
-        RETURN(0);
+        RETURN(NULL, mem_slots);
     }
 
     *to++ = '\0';
@@ -420,7 +413,7 @@ int *range;
 	 */
 
         if (*tmp != delimiter || *(tmp - 1) == '\\'){
-            RETURN(0);
+            RETURN(NULL, mem_slots);
         }
 
         *tmp = '\0';
@@ -442,7 +435,7 @@ int *range;
          */
 	
 	if (!range){
-	    RETURN(0);
+	    RETURN(NULL, mem_slots);
 	}
 	
         global = 0;
@@ -456,11 +449,11 @@ int *range;
      *
      */
 
-    if (!(from = backslash_eliminate(from, REGEX, MEM_FROM))){
-        RETURN(0);
+    if (!(from = backslash_eliminate(from, REGEX, MEM_FROM, mem_slots))){
+        RETURN(NULL, mem_slots);
     }
-    if (to && !(to = backslash_eliminate(to, REPLACEMENT, MEM_TO))){
-        RETURN(0);
+    if (to && !(to = backslash_eliminate(to, REPLACEMENT, MEM_TO, mem_slots))){
+        RETURN(NULL, mem_slots);
     }
     
     /*
@@ -480,8 +473,8 @@ int *range;
      */
     
     if (*to){
-        if (!(new_str = mem(MEM_NEWSTR, buf_sz + 1))){
-            RETURN(0);
+        if (!(new_str = mem(MEM_NEWSTR, buf_sz + 1, mem_slots))){
+            RETURN(NULL, mem_slots);
         }
         space = buf_sz;
     }
@@ -490,29 +483,6 @@ int *range;
         space = -1;
     }
 
-    
-    /*
-     * Check to see if the regexp is the same as last time.
-     * If so, we can save ourselves a call to regexec (or whatever
-     * function your regex package uses).
-     *
-     */
-    
-    if (last_exp){
-	if (!strcmp(from, last_exp)){
-	    repeat = 1;
-	}
-	else{
-	    free(last_exp);
-	    last_exp = strdup(from);
-	    repeat = 0;
-	}
-    }
-    else {
-	last_exp = strdup(from);
-	repeat = 0;
-    }
-    
     /*
      * Initialise the range integers to -1, since they may be checked after we
      * return, even if we are not just searching.
@@ -552,23 +522,18 @@ int *range;
      * want to do this if the regex is ".*", even if it is our first time.
      */
     else{
-	if (first_time){
 	    if (!(re_comp_buf.buffer = (char *)malloc((unsigned)200))){
-		RETURN(0);
+		RETURN(NULL, mem_slots);
 	    }
-	    
+
 	    re_comp_buf.allocated = 200;
-	    
+
 	    if (!(re_comp_buf.fastmap = (char *)malloc((unsigned)1 << BYTEWIDTH))){
-		RETURN(0);
+		RETURN(NULL, mem_slots);
 	    }
-	    first_time = 0;
-	}
-	
-	if (!repeat){
+
 	    re_comp_buf.translate = 0;
 	    re_comp_buf.used = 0;
-	}
     }
 #endif
 
@@ -577,16 +542,16 @@ int *range;
      * compile the regular expression.
      */
 
-    if (!match_all && !repeat){
+    if (!match_all){
 #ifdef GNU_REGEX
 	if (re_compile_pattern(from, strlen(from), &re_comp_buf)){
-	    RETURN(0);
+	    RETURN(NULL, mem_slots);
 	}
 #endif
 
 #ifdef HS_REGEX
 	if (regcomp(&exp, from, 0) != 0){
-	    RETURN(0);
+	    RETURN(NULL, mem_slots);
 	}
 #endif
     }
@@ -599,7 +564,7 @@ int *range;
 #ifdef HS_REGEX
 	    /* XXX Not even trying to use custom memory routines */
 	    if (!(exp_regs = calloc(str_len, sizeof(regmatch_t)))) {
-		return 0;
+		RETURN(NULL, mem_slots);
 	    }
 #endif
 	if (match_all){
@@ -627,17 +592,19 @@ int *range;
 #ifdef GNU_REGEX
 	    range[0] = match == NO_MATCH ? -1 : regs.start[0];
 	    range[1] = match == NO_MATCH ? -1 : regs.end[0];
+	    free(re_comp_buf.fastmap);
+	    free(re_comp_buf.buffer);
 #endif
 #ifdef HS_REGEX
 	    range[0] = match == NO_MATCH ? -1 : exp_regs[0].rm_so;
 	    range[1] = match == NO_MATCH ? -1 : exp_regs[0].rm_eo;
 #endif
-            RETURN(str);
+            RETURN(str, mem_slots);
         }
 
 	
         if (match != NO_MATCH){
-	    register int need;
+	    int need;
 
 	    /* Set up the range so it can be used later if the caller wants it. */
 	    if (range){
@@ -682,7 +649,7 @@ int *range;
 
                     /* A register reference. */
 
-                    register int reg = *(tmp + 1) - '0';
+                    int reg = *(tmp + 1) - '0';
                     int translit = 0;
 #ifdef GNU_REGEX
                     need = regs.end[reg] - regs.start[reg];
@@ -697,8 +664,8 @@ int *range;
                      */
 		    if (*(tmp + 2) == '{'){
 			/* A transliteration table. Build the map. */
-			if (!(tmp = build_map(tmp + 2, map))){
-			    RETURN(0);
+			if (!(tmp = build_map(tmp + 2, map, mem_slots))){
+			    RETURN(NULL, mem_slots);
 			}
 			translit = 1;
 		    }
@@ -715,7 +682,7 @@ int *range;
 		     */
 #ifdef GNU_REGEX
                     if (regs.start[reg] != EMPTY_REGISTER){
-			register int i;
+			int i;
                         for (i = regs.start[reg]; i < regs.end[reg]; i++){
                             new_str[new_pos++] = translit ? map[str[i]] : str[i];
                         }
@@ -724,7 +691,7 @@ int *range;
 
 #ifdef HS_REGEX
                     if (exp_regs[0].rm_so != EMPTY_REGISTER){
-			register regoff_t s;
+			regoff_t s;
                         for (s = exp_regs[0].rm_so; s < exp_regs[0].rm_eo; s++){
                             new_str[new_pos++] = translit ? map[s] : s;
                         }
@@ -761,16 +728,17 @@ int *range;
      */
     more_space(str_len);
     (void) memmove(new_str + new_pos, str, strlen(str) + 1);
-    RETURN(new_str);
+#ifdef GNU_REGEX
+    free(re_comp_buf.buffer);
+    free(re_comp_buf.fastmap);
+#endif
+    RETURN(new_str, mem_slots);
 }
 
 #define DIGIT(x) (isdigit(x) ? (x) - '0' : islower(x) ? (x) + 10 - 'a' : (x) + 10 - 'A')
 
 char *
-backslash_eliminate(str, type, who)
-char *str;
-int type;
-int who;
+backslash_eliminate(char *str, int type, int who, memslot_t *mem_slots)
 {
     /*
      * Remove backslashes from the strings. Turn \040 etc. into a single
@@ -817,16 +785,16 @@ int who;
      *
      */
 
-    char *new_str;
+    char *new_str = NULL;
     int extra = 100;
     int seenlb = 0;
-    register int i = 0;
-    register int seenbs = 0;
+    int i = 0;
+    int seenbs = 0;
     int first_half = 0;
 
     if (type == REPLACEMENT){
-	if (!(new_str = mem(who, strlen(str) + 1 + extra))){
-	    return 0;
+	if (!(new_str = mem(who, strlen(str) + 1 + extra, mem_slots))){
+	    return NULL;
 	}
     }
     else{
@@ -1087,9 +1055,7 @@ int who;
 }
 
 static char *
-build_map(s, map)
-char *s;
-char *map;
+build_map(char *s, char *map, memslot_t *mem_slots)
 {
     /*
      * Produce a mapping table for the given transliteration.
@@ -1111,16 +1077,14 @@ char *map;
      *
      */
 
-    char *in;
-    char *out;
-    char *str;
-    char *tmp;
-    char c;
+    char *in = NULL;
+    char *out = NULL;
+    char *str = NULL;
+    char *tmp = NULL;
+    char c = 0;
     int i = 0;
     int range_count = 0;
     int seenbs = 0;
-    static char *last = 0;
-    static int last_len;
 
     out = 0;
 
@@ -1128,22 +1092,15 @@ char *map;
         return 0;
     }
 
-    if (last && !strncmp(s, last, last_len)){
-        /* Re-use the map. */
-        return s + last_len;
-    }
-    else{
 	/*
 	 * Make a copy of s in both 'last' and 'str'
 	 */
 	int len = strlen(s) + 1;
-        if (!(str = mem(MEM_MAP, len)) || !(last = mem(MEM_MAP_SAVE, len))){
-            return 0;
+        if (!(str = mem(MEM_MAP, len, mem_slots))){
+            return NULL;
         }
-	str[0] = last[0] = '\0';
+	str[0] = '\0';
 	strcat(str, s);
-	strcat(last, s);
-    }
 
     tmp = str + 1;
     in = str;
@@ -1202,8 +1159,6 @@ char *map;
         return 0;
     }
 
-    last_len = tmp - str;
-
     /*
      * Now 'out' and 'in' both point to character ranges.
      * These will look something like "A-Z" but may be 
@@ -1219,8 +1174,12 @@ char *map;
      * Ready the range expanding function.
      *
      */
-    (void) nextch(in, 0);
-    (void) nextch(out, 1);
+    nextch_state_t *nextch_state = calloc(1, sizeof(nextch_state_t));
+    if (nextch_state == NULL) {
+        return NULL;
+    }
+    (void) nextch(in, 0, nextch_state);
+    (void) nextch(out, 1, nextch_state);
 
     /*
      * For each char in 'in', assign it a value in
@@ -1228,17 +1187,16 @@ char *map;
      *
      */
 
-    while ((c = nextch((char *)0, 0))){
-        map[(int) c] = nextch((char *)0, 1);
+    while ((c = nextch((char *)0, 0, nextch_state))){
+        map[(int) c] = nextch((char *)0, 1, nextch_state);
     }
+    free(nextch_state);
 
     return tmp;
 }
 
 static char
-nextch(str, who)
-char *str;
-int who;
+nextch(char *str, int who, nextch_state_t *state)
 {
     /*
      * Given a range like {a-z0237-9}
@@ -1264,38 +1222,33 @@ int who;
      *
      */
 
-    static char *what[2] = {0, 0};
-    static char last[2] = {0, 0};
-    static int increment[2];
-    static int pos[2];
-
     if (who < 0 || who > 1){
         return 0;
     }
 
     if (str){
         /* Set up for this string. */
-        what[who] = str;
-        pos[who] = 0;
+        state->what[who] = str;
+        state->pos[who] = 0;
         return 1;
     }
-    else if (!what[who]){
+    else if (!state->what[who]){
         return 0;
     }
 
-    if (!pos[who] && what[who][0] == '-'){
+    if (!state->pos[who] && state->what[who][0] == '-'){
         return 0;
     }
 
-    switch (what[who][pos[who]]){
+    switch (state->what[who][state->pos[who]]){
         
         case '-':{
             /* we're in mid-range. */
-            last[who] += increment[who];
-            if (what[who][pos[who] + 1] == last[who]){
-                pos[who] += 2;
+            state->last[who] += state->increment[who];
+            if (state->what[who][state->pos[who] + 1] == state->last[who]){
+                state->pos[who] += 2;
             }
-            return last[who];
+            return state->last[who];
         }
 
         case '\0':{
@@ -1304,18 +1257,18 @@ int who;
              * last thing you saw if who = 1.
              */
             if (who){
-                return last[1];
+                return state->last[1];
             }
             return 0;
         }
 
         /* FALLTHROUGH */
         case '\\':{
-            pos[who]++;
+            state->pos[who]++;
         }
 
         default:{
-            last[who] = what[who][pos[who]++];
+            state->last[who] = state->what[who][state->pos[who]++];
             /*
              * If we have reached a '-' then this is the start of a
              * range. Keep on moving forward until we see a sensible 
@@ -1325,41 +1278,39 @@ int who;
              *
              */
 
-            while (what[who][pos[who]] == '-'){
+            while (state->what[who][state->pos[who]] == '-'){
                 int inc = 1;
-                if (what[who][pos[who] + inc] == '\\'){
+                if (state->what[who][state->pos[who] + inc] == '\\'){
                     inc++;
                 }
-                if (!what[who][pos[who] + inc]){
+                if (!state->what[who][state->pos[who] + inc]){
                     return 0;
                 }
-                if (what[who][pos[who] + inc + 1] == '-'){
-                    pos[who] += inc + 1;
+                if (state->what[who][state->pos[who] + inc + 1] == '-'){
+                    state->pos[who] += inc + 1;
                     continue;
                 }
-                increment[who] = what[who][pos[who] + inc] - last[who];
-                if (!increment[who]){
-                    pos[who] += 2;
+                state->increment[who] = state->what[who][state->pos[who] + inc] - state->last[who];
+                if (!state->increment[who]){
+                    state->pos[who] += 2;
                     continue;
                 }
-                if (increment[who] > 0){
-                    increment[who] = 1;
+                if (state->increment[who] > 0){
+                    state->increment[who] = 1;
                     break;
                 }
-                else if (increment[who] < 0){
-                    increment[who] = -1;
+                else if (state->increment[who] < 0){
+                    state->increment[who] = -1;
                     break;
                 }
             }
-            return last[who];
+            return state->last[who];
         }
     }
 }
 
 static char *
-mem(who, size)
-int who;
-int size;
+mem(int who, int size, memslot_t *mem_slots)
 {
     /*
      * Get 'size' bytes of memory one way or another.
@@ -1372,7 +1323,7 @@ int size;
      */
     
     if (who < 0 || who >= MEM_SLOTS){
-	return 0;
+	return NULL;
     }
     
     if (mem_slots[who].used){
@@ -1385,7 +1336,7 @@ int size;
 	    return mem_slots[who].s;
 	}
 	else{
-	    mem_save(who);
+	    mem_save(who, mem_slots);
 	}
     }
     else{
@@ -1403,15 +1354,17 @@ int size;
 	}
 	
 	if (mem_slots[who].s){
-	    mem_save(who);
+	    mem_save(who, mem_slots);
 	}
 	else{
-	    int x = mem_find(size);
+	    int x = mem_find(size, mem_slots);
 	    if (x != -1){
 		mem_slots[who].s = mem_slots[x].s;
 		mem_slots[who].size = mem_slots[x].size;
 		mem_slots[who].used = 1;
-		mem_slots[x].s = (char *)0;
+		mem_slots[x].s = (char *)NULL;
+		mem_slots[x].size = 0;
+		mem_slots[x].used = 0;
 		return mem_slots[who].s;
 	    }
 	}
@@ -1431,17 +1384,14 @@ int size;
 }
 
 static int
-mem_find(size)
-int size;
+mem_find(int size, memslot_t *mem_slots)
 {
     /*
      * See if we can find an unused but allocated slot with 'size' 
      * (or more) space available. Return the index, or -1 if not.
      */
-     
-    register int i;
     
-    for (i = 0; i < MEM_SLOTS; i++){
+    for (int i = 0; i < MEM_SLOTS; i++){
 	if (!mem_slots[i].used && mem_slots[i].s && mem_slots[i].size >= size){
 	    return i;
 	}
@@ -1450,8 +1400,7 @@ int size;
 }
 
 static void
-mem_save(x)
-int x;
+mem_save(int x, memslot_t *mem_slots)
 {
     /*
      * There is some memory in mem_slots[x] and we try to save it rather
@@ -1463,37 +1412,39 @@ int x;
      *
      */
 
-    register int i;
-    register int saved = 0;
-    
+    int saved = 0;
+
     /*
      * First we try to find somewhere unused and with no present allocation.
      */
-    for (i = 0; i < MEM_SLOTS; i++){
+    for (int i = 0; i < MEM_SLOTS; i++) {
 	if (!mem_slots[i].used && !mem_slots[i].s){
 	    saved = 1;
 	    mem_slots[i].s = mem_slots[x].s;
 	    mem_slots[i].size = mem_slots[x].size;
 	    mem_slots[i].used = 0;
+	    mem_slots[x].s = NULL;
+	    mem_slots[x].size = 0;
+	    mem_slots[x].used = 0;
 	    break;
 	}
     }
-    
+
     /*
      * No luck yet. Try for a place that is not being used but which has
      * space allocated, and which is smaller than us (and all other such spots). 
      * Pick on the smallest, yeah.
      */
     if (!saved){
-	register int small = -1;
-	register int small_val = 32767; /* Be nice to 16 bit'ers. Non-crucial if it's too low. */
-	for (i = 0; i < MEM_SLOTS; i++){
+	int small = -1;
+	int small_val = 32767; /* Be nice to 16 bit'ers. Non-crucial if it's too low. */
+	for (int i = 0; i < MEM_SLOTS; i++) {
 	    if (!mem_slots[i].used && mem_slots[i].size < mem_slots[x].size && mem_slots[i].size < small_val){
 		small_val = mem_slots[i].size;
 		small = i;
 	    }
 	}
-	
+
 	if (small != -1){
 	    saved = 1;
 	    /* We got one, now clobber it... */
@@ -1502,55 +1453,48 @@ int x;
 	    mem_slots[small].s = mem_slots[x].s;
 	    mem_slots[small].size = mem_slots[x].size;
 	    mem_slots[small].used = 0;
+	    mem_slots[x].s = NULL;
+	    mem_slots[x].size = 0;
+	    mem_slots[x].used = 0;
 	}
     }
-    
+
     if (!saved){
 	/* Have to toss it away. */
 	free(mem_slots[x].s);
+	mem_slots[x].s = NULL;
+	mem_slots[x].size = 0;
+	mem_slots[x].used = 0;
     }
 }
 
-static void
-mem_init()
+static memslot_t *
+mem_init(void)
 {
     /*
      * Clear all the memory slots.
      */
 
-    register int i;
-    
-    for (i = 0; i < MEM_SLOTS; i++){
-	mem_slots[i].s = (char *)0;
+    memslot_t *mem_slots = malloc(MEM_SLOTS * sizeof(memslot_t));
+    if (mem_slots == NULL) {
+        return NULL;
+    }
+
+    for (int i = 0; i < MEM_SLOTS; i++) {
+	mem_slots[i].s = (char *)NULL;
+	mem_slots[i].size = 0;
 	mem_slots[i].used = 0;
     }
+    return mem_slots;
 }
 
 static void
-mem_free(except)
-char *except;
+mem_free(char *except, memslot_t *mem_slots)
 {
-    /*
-     * "Clear out" all the memory slots. Actually we do no freeing since
-     * we may well be called again. We just mark the slots as unused. Next
-     * time round they might be useful - the addresses and sizes are still there.
-     *
-     * For the slot (if any) whose address is 'except', we actually set the
-     * address to 0. This is done because we are called ONLY from the macro
-     * RETURN() in strsed() and we intend to return the value in 'except'.
-     * Once this is done, strsed should (in theory) have no knowledge at all
-     * of the address it passed back last time. That way we won't clobber it
-     * and cause all sorts of nasty problems.
-     */
-
-    register int i;
-    
-    for (i = 0; i < MEM_SLOTS; i++){
-	mem_slots[i].used = 0;
-	if (mem_slots[i].s == except){
-	    mem_slots[i].s = (char *)0;
-	    mem_slots[i].size = 0;
-	}
-    } 
+    for (int i = 0; i < MEM_SLOTS; i++) {
+        if (mem_slots[i].s != NULL && mem_slots[i].s != except) {
+            free(mem_slots[i].s);
+        }
+    }
+    free(mem_slots);
 }
-
