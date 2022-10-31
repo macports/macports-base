@@ -46,12 +46,15 @@ package require Thread
 proc _read_index {idx} {
     set offset $::qindex($idx)
     thread::mutex lock [tsv::get PortIndex mutex]
-    seek $::oldfd $offset
-    gets $::oldfd in_line
+    try {
+        seek $::oldfd $offset
+        gets $::oldfd in_line
 
-    set len  [lindex $in_line 1]
-    set out_line [read $::oldfd [expr {$len - 1}]]
-    thread::mutex unlock [tsv::get PortIndex mutex]
+        set len  [lindex $in_line 1]
+        set out_line [read $::oldfd [expr {$len - 1}]]
+    } finally {
+        thread::mutex unlock [tsv::get PortIndex mutex]
+    }
     set name [lindex $in_line 0]
 
     return [list $name $len $out_line]
@@ -115,9 +118,10 @@ proc pindex {portdir {subport {}}} {
         set tsv_varname ${portdir}/${subport}
         set is_subport 1
     }
-    set absportdir [file join $::directory $portdir]
-    set portfile [file join $absportdir Portfile]
     try {
+        tsv::set $tsv_varname status 1
+        set absportdir [file join $::directory $portdir]
+        set portfile [file join $absportdir Portfile]
         if {$is_subport} {
             set qname [string tolower $subport]
         } else {
@@ -179,11 +183,11 @@ proc pindex {portdir {subport {}}} {
             } else {
                 puts stderr "Failed to parse file $portdir/Portfile: $eMessage"
             }
-            tsv::set $tsv_varname status 1
             return
         }
 
         tsv::set $tsv_varname status 0
+        return
     } trap {POSIX SIG SIGINT} {} {
         puts stderr "SIGINT received, terminating."
         tsv::set $tsv_varname status 99
@@ -237,7 +241,7 @@ proc handle_completed_jobs {} {
         } elseif {$status == 1} {
             incr ::stats(failed)
             incr ::stats(total)
-        } else {
+        } elseif {$status == 0 || $status == -1} {
             # queue jobs for subports
             if {[tsv::exists $portdir subports]} {
                 foreach subport [tsv::get $portdir subports] {
@@ -256,6 +260,8 @@ proc handle_completed_jobs {} {
                 }
             }
             _write_index {*}[tsv::get $portdir output]
+        } else {
+            error "Unknown status for ${portdir}: $status"
         }
         tsv::unset $portdir
     }
