@@ -45,7 +45,7 @@ package require Thread
 
 proc _read_index {idx} {
     set offset $::qindex($idx)
-    thread::mutex lock [tsv::get PortIndex mutex]
+    thread::mutex lock [tsv::get mutexes PortIndex]
     try {
         seek $::oldfd $offset
         gets $::oldfd in_line
@@ -53,7 +53,7 @@ proc _read_index {idx} {
         set len  [lindex $in_line 1]
         set out_line [read $::oldfd [expr {$len - 1}]]
     } finally {
-        thread::mutex unlock [tsv::get PortIndex mutex]
+        thread::mutex unlock [tsv::get mutexes PortIndex]
     }
     set name [lindex $in_line 0]
 
@@ -110,22 +110,17 @@ proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}
     set portinfo(portdir) $portdir
 }
 
-proc pindex {portdir {subport {}}} {
-    if {$subport eq ""} {
-        set tsv_varname $portdir
-        set is_subport 0
-    } else {
-        set tsv_varname ${portdir}/${subport}
-        set is_subport 1
-    }
+proc pindex {portdir jobnum {subport {}}} {
     try {
-        tsv::set $tsv_varname status 1
+        tsv::set status $jobnum 1
         set absportdir [file join $::directory $portdir]
         set portfile [file join $absportdir Portfile]
-        if {$is_subport} {
+        if {$subport ne ""} {
             set qname [string tolower $subport]
+            set is_subport 1
         } else {
             set qname [string tolower [file tail $portdir]]
+            set is_subport 0
         }
         # try to reuse the existing entry if it's still valid
         if {$::full_reindex != 1 && [info exists ::qindex($qname)]} {
@@ -137,7 +132,7 @@ proc pindex {portdir {subport {}}} {
 
                     # reuse entry if it was made from the same portdir
                     if {[info exists portinfo(portdir)] && $portinfo(portdir) eq $portdir} {
-                        tsv::set $tsv_varname output [list $name $len $line]
+                        tsv::set output $jobnum [list $name $len $line]
 
                         if {!$is_subport} {
                             if {[info exists ::ui_options(ports_debug)]} {
@@ -146,11 +141,11 @@ proc pindex {portdir {subport {}}} {
 
                             # report any subports
                             if {[info exists portinfo(subports)]} {
-                                tsv::set $tsv_varname subports $portinfo(subports)
+                                tsv::set subports $jobnum $portinfo(subports)
                             }
                         }
 
-                        tsv::set $tsv_varname status -1
+                        tsv::set status $jobnum -1
                         return
                     }
                 }
@@ -170,12 +165,12 @@ proc pindex {portdir {subport {}}} {
                 puts "Adding port $portdir"
             }
 
-            tsv::set $tsv_varname output [_index_from_portinfo portinfo $is_subport]
-            tsv::set $tsv_varname mtime [file mtime $portfile]
+            tsv::set output $jobnum [_index_from_portinfo portinfo $is_subport]
+            tsv::set mtime $jobnum [file mtime $portfile]
 
             # report this portfile's subports (if any)
             if {!$is_subport && [info exists portinfo(subports)]} {
-                tsv::set $tsv_varname subports $portinfo(subports)
+                tsv::set subports $jobnum $portinfo(subports)
             }
         } on error {eMessage} {
             if {$is_subport} {
@@ -186,14 +181,14 @@ proc pindex {portdir {subport {}}} {
             return
         }
 
-        tsv::set $tsv_varname status 0
+        tsv::set status $jobnum 0
         return
     } trap {POSIX SIG SIGINT} {} {
         puts stderr "SIGINT received, terminating."
-        tsv::set $tsv_varname status 99
+        tsv::set status $jobnum 99
     } trap {POSIX SIG SIGTERM} {} {
         puts stderr "SIGTERM received, terminating."
-        tsv::set $tsv_varname status 99
+        tsv::set status $jobnum 99
     }
 }
 
@@ -224,15 +219,16 @@ proc init_threads {} {
     set ::maxjobs [macports:get_parallel_jobs no]
     set ::poolid [tpool::create -minworkers $::maxjobs -maxworkers $::maxjobs -initcmd $::worker_init_script]
     array set ::pending_jobs {}
-    tsv::set PortIndex mutex [thread::mutex create]
+    set ::nextjobnum 0
+    tsv::set mutexes PortIndex [thread::mutex create]
 }
 
 proc handle_completed_jobs {} {
     set completed_jobs [tpool::wait $::poolid [array names ::pending_jobs]]
     foreach completed_job $completed_jobs {
-        set portdir $::pending_jobs($completed_job)
+        lassign $::pending_jobs($completed_job) jobnum portdir subport
         unset ::pending_jobs($completed_job)
-        tsv::get $portdir status status
+        tsv::get status $jobnum status
         # -1 = skipped, 0 = success, 1 = fail, 99 = exit
         if {$status == 99} {
             set ::exit_fail 1
@@ -243,27 +239,31 @@ proc handle_completed_jobs {} {
             incr ::stats(total)
         } elseif {$status == 0 || $status == -1} {
             # queue jobs for subports
-            if {[tsv::exists $portdir subports]} {
-                foreach subport [tsv::get $portdir subports] {
-                    tsv::set ${portdir}/${subport} status 99
-                    set jobid [tpool::post -nowait $::poolid [list pindex $portdir $subport]]
-                    set ::pending_jobs($jobid) ${portdir}/${subport}
+            if {$subport eq "" && [tsv::exists subports $jobnum]} {
+                foreach nextsubport [tsv::get subports $jobnum] {
+                    tsv::set status $::nextjobnum 99
+                    set jobid [tpool::post -nowait $::poolid [list pindex $portdir $::nextjobnum $nextsubport]]
+                    set ::pending_jobs($jobid) [list $::nextjobnum $portdir $nextsubport]
+                    incr ::nextjobnum
                 }
+                tsv::unset subports $jobnum
             }
             if {$status == -1} {
                 incr ::stats(skipped)
             } else {
                 incr ::stats(total)
-                tsv::get $portdir mtime mtime
+                tsv::get mtime $jobnum mtime
                 if {$mtime > $::newest} {
                     set ::newest $mtime
                 }
+                tsv::unset mtime $jobnum
             }
-            _write_index {*}[tsv::get $portdir output]
+            _write_index {*}[tsv::get output $jobnum]
         } else {
-            error "Unknown status for ${portdir}: $status"
+            error "Unknown status for job $jobnum (${portdir} $subport): $status"
         }
-        tsv::unset $portdir
+        tsv::unset status $jobnum
+        tsv::unset output $jobnum
     }
 }
 
@@ -280,9 +280,10 @@ proc pindex_queue {portdir} {
     # Now queue the new job.
     # Start with worst status so we get it when the thread
     # returns due to ctrl-c etc.
-    tsv::set $portdir status 99
-    set jobid [tpool::post -nowait $::poolid [list pindex $portdir {}]]
-    set ::pending_jobs($jobid) $portdir
+    tsv::set status $::nextjobnum 99
+    set jobid [tpool::post -nowait $::poolid [list pindex $portdir $::nextjobnum {}]]
+    set ::pending_jobs($jobid) [list $::nextjobnum $portdir {}]
+    incr ::nextjobnum
 }
 
 proc process_remaining {} {
@@ -291,7 +292,7 @@ proc process_remaining {} {
         handle_completed_jobs
     }
     tpool::release $::poolid
-    thread::mutex destroy [tsv::get PortIndex mutex]
+    thread::mutex destroy [tsv::get mutexes PortIndex]
 }
 
 if {$argc > 8} {
