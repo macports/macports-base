@@ -237,6 +237,9 @@ proc handle_completed_jobs {} {
         } elseif {$status == 1} {
             incr ::stats(failed)
             incr ::stats(total)
+            if {[tsv::exists output $jobnum]} {
+                tsv::unset output $jobnum
+            }
         } elseif {$status == 0 || $status == -1} {
             # queue jobs for subports
             if {$subport eq "" && [tsv::exists subports $jobnum]} {
@@ -259,11 +262,11 @@ proc handle_completed_jobs {} {
                 tsv::unset mtime $jobnum
             }
             _write_index {*}[tsv::get output $jobnum]
+            tsv::unset output $jobnum
         } else {
             error "Unknown status for job $jobnum (${portdir} $subport): $status"
         }
         tsv::unset status $jobnum
-        tsv::unset output $jobnum
     }
 }
 
