@@ -80,10 +80,13 @@ proc portconfigure::should_add_stdlib {} {
     # GCC also supports -stdlib starting with GCC 10 (and devel)
     set is_gcc_with_stdlib no
     if { [string match *g*-mp-* [option configure.cxx]] } {
-        # Extract gcc version from value after last -
-        set gcc_ver [lindex [split [option configure.cxx] "-"] end]
-        if { ${gcc_ver} eq "devel" || ${gcc_ver} >= 10 } {
-            set is_gcc_with_stdlib yes
+        # -stdlib is not available with PPC builds
+        if { [option configure.build_arch] ni [list ppc ppc64] } {
+            # Extract gcc version from value after last -
+            set gcc_ver [lindex [split [option configure.cxx] "-"] end]
+            if { ${gcc_ver} eq "devel" || ${gcc_ver} >= 10 } {
+                set is_gcc_with_stdlib yes
+            }
         }
     }
     return [expr {$has_stdlib && ($is_clang || $is_gcc_with_stdlib)}]
