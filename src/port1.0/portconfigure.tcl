@@ -82,10 +82,16 @@ proc portconfigure::should_add_stdlib {} {
     if { [string match *g*-mp-* [option configure.cxx]] } {
         # -stdlib is not available with PPC builds
         if { [option configure.build_arch] ni [list ppc ppc64] } {
-            # Extract gcc version from value after last -
-            set gcc_ver [lindex [split [option configure.cxx] "-"] end]
-            if { ${gcc_ver} eq "devel" || ${gcc_ver} >= 10 } {
-                set is_gcc_with_stdlib yes
+            # Do not pass stdlib to gcc if it is MacPorts custom macports-libstdc++ setting
+            # as gcc does not uderstand this. Instead do nothing, which means gcc will
+            # default to using its own libstdc++, which is in fact what we mean by
+            # configure.cxx_stdlib=macports-libstdc++
+            if { [option configure.cxx_stdlib] ne "macports-libstdc++" } {
+                # Extract gcc version from value after last -
+                set gcc_ver [lindex [split [option configure.cxx] "-"] end]
+                if { ${gcc_ver} eq "devel" || ${gcc_ver} >= 10 } {
+                    set is_gcc_with_stdlib yes
+                }
             }
         }
     }
