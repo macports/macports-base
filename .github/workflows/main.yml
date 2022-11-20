@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-11, macos-12]
+        os: [macos-11, macos-12, ubuntu-latest]
 
     steps:
       - name: Checkout repository
@@ -19,9 +19,16 @@ jobs:
         with:
           fetch-depth: 64
       - name: Cleanup /usr/local
+        if: startsWith(matrix.os,'macos')
         run: |
           sudo mkdir /opt/local.old
           sudo mv /usr/local/* /opt/local.old
+      - name: Install Linux Dependencies
+        if: startsWith(matrix.os,'ubuntu')
+        run: >
+          sudo apt update &&
+          sudo apt install mtree-netbsd
+          libcurl4-openssl-dev
       - name: Configure MacPorts Base
         run: |
           set -eu
@@ -29,12 +36,19 @@ jobs:
       - name: Build MacPorts Base
         run: |
           set -eu
-          make -j$(sysctl -n hw.activecpu)
+          platform=$(uname -s)
+          case ${platform} in
+            Darwin) make -j$(sysctl -n hw.activecpu)
+            ;;
+            Linux) make -j$(nproc)
+            ;;
+          esac
       - name: Install MacPorts Base
         run: |
           set -eu
           sudo make install
       - name: Test MacPorts Base
+        if: startsWith(matrix.os,'macos')
         run: |
           set -eu
           make test
