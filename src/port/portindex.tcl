@@ -347,7 +347,7 @@ for {set i 0} {$i < $argc} {incr i} {
                     lappend port_options os.subplatform $os_platform os.universal_supported yes cxx_stdlib $cxx_stdlib
                     set os_platform darwin
                 }
-                lappend port_options os.platform $os_platform os.major $os_major os.arch $os_arch
+                lappend port_options os.platform $os_platform os.major $os_major os.version ${os_major}.0.0 os.arch $os_arch
             } elseif {$arg eq "-f"} { # Completely rebuild index
                 set full_reindex 1
             } elseif {$arg eq "-x"} { # Build extended portindex (include extra information , eg.: notes, variant description, conflicts etc.)
