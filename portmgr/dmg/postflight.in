@@ -55,12 +55,17 @@ OUR_STRING="${OUR_BASESTRING} on ${TIMESTAMP}"
 OLD_MACPORTS_TCL_DIR=${PREFIX}/share/macports/Tcl
 OLD_TCL_PACKAGE_DIR=/Library/Tcl
 OLD_TCL_FILES="tcl8/8.4/http-2.7.12.tm tcl8/8.4/http-2.7.13.tm \
+tcl8/8.6/http-2.9.5.tm \
 tcl8/8.4/platform-1.0.12.tm tcl8/8.4/platform-1.0.13.tm \
-tcl8/8.4/platform-1.0.14.tm tcl8/8.5/msgcat-1.5.2.tm \
-tcl8/8.5/tcltest-2.3.5.tm tcl8/8.5/tcltest-2.3.8.tm
+tcl8/8.4/platform-1.0.14.tm tcl8/8.4/platform-1.0.18.tm \
+tcl8/8.5/msgcat-1.5.2.tm \
+tcl8/8.5/tcltest-2.3.5.tm tcl8/8.5/tcltest-2.3.8.tm \
+tcl8/8.5/tcltest-2.5.3.tm \
+tcl8/8.6/tdbc/sqlite3-1.1.3.tm \
 libtcl8.5.dylib libtclstub8.5.a"
-OLD_VENDOR_DIRS="thread2.7.0 thread2.7.2 thread2.7.3 tcllib1.15 \
-tcllib1.17 tcllib1.18 tclx8.4 tcl8.5"
+OLD_VENDOR_DIRS="thread2.7.0 thread2.7.2 thread2.7.3 thread2.8.7 \
+tcllib1.15 tcllib1.17 tcllib1.18 tclx8.4 tcl8.5 itcl4.2.2 \
+sqlite3.36.0 tdbc1.1.3 tdbcmysql1.1.3 tdbcodbc1.1.3 tdbcpostgres1.1.3"
 
 # Create config files from defaults if not present
 function setup_configs {
