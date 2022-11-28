@@ -862,7 +862,12 @@ proc _handle_platforms {option action args} {
         }
         set osname [lindex $p 0]
         if {${os.platform} eq $osname || ${os.subplatform} eq $osname} {
-            foreach {op vers} [lrange $p 1 end] {
+            if {[lindex $p 1] ne "any"} {
+                set startindex 1
+            } else {
+                set startindex 2
+            }
+            foreach {op vers} [lrange $p $startindex end] {
                 if {$op eq "=="} {
                     if {[string match $vers ${os.version}]} {
                         continue
