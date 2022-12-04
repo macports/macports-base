@@ -124,7 +124,7 @@ proc portextract::extract_start {args} {
 }
 
 proc portextract::extract_main {args} {
-    global UI_PREFIX filespath workpath worksrcdir worksrcpath extract.dir use_dmg
+    global UI_PREFIX filespath worksrcpath extract.dir use_dmg
 
     if {![exists distfiles] && ![exists extract.only]} {
         # nothing to do
@@ -155,17 +155,6 @@ proc portextract::extract_main {args} {
         }
 
         chownAsRoot ${extract.dir}
-    }
-
-    # If expected path of extract doesn't exist && worksrcdir is
-    # not explicitly set to subdirectory, symlink to actual path.
-    if {![file isdirectory $worksrcpath] && [regexp {^[^/]+$} $worksrcdir]} {
-        set workdirs [glob -nocomplain -types d [file join $workpath *]]
-        if {[llength $workdirs] == 1} {
-            set dir [file tail [lindex $workdirs 0]]
-            ui_debug [format [msgcat::mc "Symlink: %s -> %s"] $worksrcpath $dir]
-            symlink $dir $worksrcpath
-        }
     }
     return 0
 }
