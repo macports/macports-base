@@ -43,7 +43,7 @@ namespace eval portextract {
 }
 
 # define options
-options extract.only extract.mkdir extract.asroot
+options extract.only extract.mkdir extract.rename extract.asroot
 commands extract
 
 # Set up defaults
@@ -57,6 +57,7 @@ default extract.cmd {[findBinary gzip ${portutil::autoconf::gzip_path}]}
 default extract.pre_args -dc
 default extract.post_args {| ${portutil::autoconf::tar_command} -xf -}
 default extract.mkdir no
+default extract.rename no
 
 set_ui_prefix
 
@@ -124,7 +125,7 @@ proc portextract::extract_start {args} {
 }
 
 proc portextract::extract_main {args} {
-    global UI_PREFIX filespath worksrcpath extract.dir use_dmg
+    global filespath extract.dir use_dmg
 
     if {![exists distfiles] && ![exists extract.only]} {
         # nothing to do
@@ -132,7 +133,7 @@ proc portextract::extract_main {args} {
     }
 
     foreach distfile [option extract.only] {
-        ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile]"
+        ui_info "$::UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile]"
         if {[file exists $filespath/$distfile]} {
             option extract.args "'$filespath/$distfile'"
         } else {
@@ -156,5 +157,21 @@ proc portextract::extract_main {args} {
 
         chownAsRoot ${extract.dir}
     }
+
+    if {[option extract.rename]} {
+        global workpath
+        # rename whatever directory exists in $workpath to $worksrcdir
+        set worksubdirs [glob -nocomplain -types d -directory $workpath *]
+        if {[llength $worksubdirs] == 1} {
+            set origpath [lindex $worksubdirs 0]
+            ui_debug [format [msgcat::mc "extract.rename: Renaming %s -> %s"] [file tail $origpath] [option worksrcdir]]
+            move $origpath [option worksrcpath]
+        } elseif {[llength $worksubdirs] == 0} {
+            return -code error "extract.rename: no directories exist in $workpath"
+        } else {
+            return -code error "extract.rename: multiple directories exist in ${workpath}: $worksubdirs"
+        }
+    }
+
     return 0
 }
