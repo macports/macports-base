@@ -3005,10 +3005,13 @@ proc action_deps { action portlist opts } {
     set separator ""
 
     foreachport $portlist {
-        if {[info exists options(ports_${action}_no-build)] && [string is true -strict $options(ports_${action}_no-build)]} {
-            set deptypes {depends_lib depends_run}
-        } else {
-            set deptypes {depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test}
+        set deptypes [list]
+        if {!([info exists options(ports_${action}_no-build)] && [string is true -strict $options(ports_${action}_no-build)])} {
+            lappend deptypes depends_fetch depends_extract depends_patch depends_build
+        }
+        lappend deptypes depends_lib depends_run
+        if {!([info exists options(ports_${action}_no-test)] && [string is true -strict $options(ports_${action}_no-test)])} {
+            lappend deptypes depends_test
         }
 
         array unset portinfo
@@ -4484,8 +4487,8 @@ array set cmd_opts_array {
                  maintainer maintainers name patchfiles platform platforms portdir
                  pretty replaced_by revision subports variant variants version}
     contents    {size {units 1}}
-    deps        {index no-build}
-    rdeps       {index no-build full}
+    deps        {index no-build no-test}
+    rdeps       {index no-build no-test full}
     rdependents {full}
     search      {case-sensitive category categories depends_fetch
                  depends_extract depends_patch
