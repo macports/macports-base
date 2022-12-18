@@ -110,12 +110,11 @@ function write_setting () {
             update_macports
             exit 1
         }
-        echo -e "\n##\n# Your previous ${HOME}/.${CONF_FILE} file was backed up as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}\n##" >> "${HOME}/.${CONF_FILE}"
+        echo -e "\n### Your previous ${HOME}/.${CONF_FILE} file was backed up as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}" >> "${HOME}/.${CONF_FILE}"
     fi
     {
-        echo -e "\n# ${OUR_STRING}: adding an appropriate ${1} variable for use with MacPorts."
+        echo -e "# ${OUR_STRING}: adding an appropriate ${1} variable for use with MacPorts."
         echo "${ENV_COMMAND} ${1}${ASSIGN}${2}"
-        echo -e "# Finished adapting your ${1} environment variable for use with MacPorts.\n"
     } >> "${HOME}/.${CONF_FILE}"
     chown "${USER}" "${HOME}/.${CONF_FILE}" || echo "Warning: unable to adapt permissions on your ${HOME}/.${CONF_FILE} shell configuration file!"
     echo "An appropriate ${1} variable has been added to your shell environment by the MacPorts installer."
