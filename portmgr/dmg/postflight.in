@@ -114,8 +114,8 @@ function write_setting () {
     fi
     {
         echo -e "\n# ${OUR_STRING}: adding an appropriate ${1} variable for use with MacPorts."
-        echo "${ENV_COMMAND} ${1}${ASSIGN}${2}"
         echo -e "# Finished adapting your ${1} environment variable for use with MacPorts.\n"
+        echo "${ENV_COMMAND}${ENV_SEP}${1}${ASSIGN}${2}"
     } >> "${HOME}/.${CONF_FILE}"
     chown "${USER}" "${HOME}/.${CONF_FILE}" || echo "Warning: unable to adapt permissions on your ${HOME}/.${CONF_FILE} shell configuration file!"
     echo "An appropriate ${1} variable has been added to your shell environment by the MacPorts installer."
@@ -237,6 +237,7 @@ case "${USHELL}" in
     */tcsh)
         echo "Detected the tcsh shell."
         ENV_COMMAND="setenv"
+        ENV_SEP=" "
         ASSIGN=" "
         if [[ -f "${HOME}/.tcshrc" ]]; then
             CONF_FILE=tcshrc
@@ -249,6 +250,7 @@ case "${USHELL}" in
     */bash)
         echo "Detected the bash shell."
         ENV_COMMAND="export"
+        ENV_SEP=" "
         ASSIGN="="
         if [[ -f "${HOME}/.bash_profile" ]]; then
             CONF_FILE=bash_profile
@@ -261,8 +263,21 @@ case "${USHELL}" in
     */zsh)
         echo "Detected the zsh shell."
         ENV_COMMAND="export"
+        ENV_SEP=" "
         ASSIGN="="
         CONF_FILE="zprofile"
+        ;;
+    */xonsh)
+        echo "Detected the 🐚xonsh shell."
+        ENV_COMMAND='$'
+        ENV_SEP=""
+        ASSIGN="="
+        IS_XONSH=true
+        if [[ -f "${HOME}/.config/xonsh/rc.xsh" ]]; then
+            CONF_FILE="config/xonsh/rc.xsh"
+        else
+            CONF_FILE=xonshrc
+        fi
         ;;
     *)
         echo "Unknown shell ($USHELL)! Please set your MacPorts compatible environment manually."
@@ -280,7 +295,17 @@ esac
 if /usr/bin/su "${USER}" -l -c "/usr/bin/printenv PATH" | tail -n 1 | tr ":" "\n" | grep "^${BINPATH}$" > /dev/null; then
     echo "Your shell already has the right PATH environment variable for use with MacPorts!"
 else
-    write_setting PATH "\"${BINPATH}:${SBINPATH}:\$PATH\""
+    if $IS_XONSH; then
+        # ↓"${ENV_COMMAND}${ENV_SEP}${1}${ASSIGN}${2}"
+        #  "$PATH.add('${PATH_TO_ADD}' ,front=True)"
+        backupASSIGN=${ASSIGN}
+        export ASSIGN=".add('"
+        write_setting PATH "${SBINPATH}',front=True)"
+        write_setting PATH "${BINPATH}' ,front=True)"
+        export ASSIGN=${backupASSIGN}
+    else
+        write_setting PATH "\"${BINPATH}:${SBINPATH}:\$PATH\""
+    fi
 fi
 
 # Adding our setting to the MANPATH variable only if it exists:
@@ -289,7 +314,16 @@ if /usr/bin/su "${USER}" -l -c "/usr/bin/printenv MANPATH" > /dev/null; then
     if /usr/bin/su "${USER}" -l -c "/usr/bin/printenv MANPATH" | tail -n 1 | tr ":" "\n" | grep "^${MANPAGES}$" >/dev/null; then
         echo "Your shell already has the right MANPATH environment variable for use with MacPorts!"
     else
-        write_setting MANPATH "\"${MANPAGES}:\$MANPATH\""
+        if $IS_XONSH; then
+            # ↓"${ENV_COMMAND}${ENV_SEP}${1}${ASSIGN}${2}"
+            #  "$PATH.add('${PATH_TO_ADD}' ,front=True)"
+            backupASSIGN=${ASSIGN}
+            export ASSIGN=".add('"
+            write_setting MANPATH "${MANPAGES}',front=True)"
+            export ASSIGN=${backupASSIGN}
+        else
+            write_setting MANPATH "\"${MANPAGES}:\$MANPATH\""
+        fi
     fi
 fi
 
