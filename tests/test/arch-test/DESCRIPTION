@@ -1,0 +1,5 @@
+This test checks that the architecture checks in the test phase work
+correctly. The portfile is tested with each combination of its
+variants, which make it declare itself noarch and install no
+architecture-specific files. Two combinations should produce warnings,
+the other two should not.

@@ -142,6 +142,7 @@ proc port_uninstall {{name "current"}} {
 # from a given file, or -1 if nothing is found.
 proc get_line {filename lookup} {
     set fp [open $filename r]
+    set lookup [string tolower $lookup]
 
     while {[gets $fp line] != -1} {
         set line [string tolower $line]
@@ -151,6 +152,7 @@ proc get_line {filename lookup} {
             return $line
         }
     }
+    close $fp
     return -1
 }
 

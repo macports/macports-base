@@ -1,0 +1,36 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+PortSystem      1.0
+
+name            arch-test
+version         1
+categories      test
+maintainers     nomaintainer
+description     Test port for architecture tests
+homepage        https://www.macports.org/
+configure.cxx_stdlib
+
+long_description {*}${description}
+
+distfiles
+use_configure   no
+
+variant declare_noarch description {Declare the port noarch} {
+    supported_archs noarch
+}
+variant be_noarch description {Install noarch files} {}
+
+if {[variant_isset be_noarch]} {
+    build           {}
+    destroot {
+        system "touch ${destroot}${prefix}/share/${name}"
+    }
+} else {
+    build {
+        system -W ${workpath} "echo 'int main(void) { return 0; }' > exe.c"
+        system -W ${workpath} "${configure.cc} ${configure.cc_archflags} -o exe exe.c"
+    }
+    destroot {
+        xinstall ${workpath}/exe ${destroot}${prefix}/bin/exe
+    }
+}
