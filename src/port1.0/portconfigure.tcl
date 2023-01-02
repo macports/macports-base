@@ -1338,7 +1338,11 @@ proc portconfigure::get_compiler_fallback {} {
     set compilers [list]
     lappend compilers {*}${system_compilers}
     # when building for PowerPC architectures, prefer GCC to Clang
-    if {[option configure.build_arch] eq "ppc" || [option configure.build_arch] eq "ppc64"} {
+    set cur_arch [option configure.build_arch]
+    if {$cur_arch eq ""} {
+        set cur_arch [option build_arch]
+    }
+    if {$cur_arch in [list ppc ppc64]} {
         lappend compilers {*}${gcc_compilers}
         lappend compilers {*}${clang_compilers}
     } else {
