@@ -2,6 +2,33 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.8.1 (unreleased)
+    - Fixed 'port lint' complaining about 'platforms any'.
+      (jmr in 84d8683)
+
+    - Specifiers like {darwin any >= 10} are now allowed in platforms.
+      This means one archive will be shared by all darwin versions, but
+      it only works on the specified versions.
+      (jmr in 3d9856b)
+
+    - The -stdlib option is now passed to GCC when supported.
+      (jonesc in ebd2261)
+
+    - Fixed the PortIndex not getting correct known_fail values based
+      on the platforms option when using 'portindex -p'.
+      (#66301, jmr in a82021a)
+
+    - Updated the bundled Tcl to 8.6.13. (jmr in 9edb436)
+
+    - No longer automatically creating a symlink in $workpath when the
+      expected worksrcdir doesn't exist, as this broke some ports.
+      Either set worksrcdir correctly, or if it can't be determined in
+      advance, set the new 'extract.rename' option to 'yes'.
+      (jmr in ffdb7d9, 8ae0d73)
+
+    - Added --no-test option for 'port rdeps' to exclude depends_test.
+      (jmr in f1de2b6)
+
 Release 2.8.0 (2022-10-20 by jmr)
     - Fixed an error that occurred in the very specific but apparently
       somewhat common circumstances where a port was installed from a
