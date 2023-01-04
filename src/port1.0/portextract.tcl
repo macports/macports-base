@@ -159,13 +159,16 @@ proc portextract::extract_main {args} {
     }
 
     if {[option extract.rename]} {
-        global workpath
-        # rename whatever directory exists in $workpath to $worksrcdir
+        global workpath distname
+        # rename whatever directory exists in $workpath to $distname
         set worksubdirs [glob -nocomplain -types d -directory $workpath *]
         if {[llength $worksubdirs] == 1} {
             set origpath [lindex $worksubdirs 0]
-            ui_debug [format [msgcat::mc "extract.rename: Renaming %s -> %s"] [file tail $origpath] [option worksrcdir]]
-            move $origpath [option worksrcpath]
+            set newpath [file join $workpath $distname]
+            if {$newpath ne $origpath} {
+                ui_debug [format [msgcat::mc "extract.rename: Renaming %s -> %s"] [file tail $origpath] $distname]
+                move $origpath $newpath
+            }
         } elseif {[llength $worksubdirs] == 0} {
             return -code error "extract.rename: no directories exist in $workpath"
         } else {
