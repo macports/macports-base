@@ -3678,7 +3678,9 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                     # Figure out the depport. Check the open_mports list first, since
                     # we potentially leak mport references if we mportopen each time,
                     # because mportexec only closes each open mport once.
-                    set depport [dlist_match_multi $macports::open_mports [list porturl $dep_portinfo(porturl) options $dep_options]]
+                    set depport_matches [dlist_match_multi $macports::open_mports [list porturl $dep_portinfo(porturl) options $dep_options]]
+                    # if multiple matches, the most recently opened one is more likely what we want
+                    set depport [lindex $depport_matches end]
 
                     if {$depport eq ""} {
                         # We haven't opened this one yet.
