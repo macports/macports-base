@@ -191,6 +191,14 @@ proc ditem_contains {ditem key args} {
 	return [macports_dlist::ditem_contains $ditem $key {*}$args]
 }
 
+# ditem_as_string
+# Returns a string representation of the ditem. For debugging only,
+# don't rely on this having a stable format.
+#   ditem - the dependency item to operate on
+proc ditem_as_string {ditem} {
+	return [macports_dlist::ditem_as_string $ditem]
+}
+
 # dlist_append_dependents
 # Returns the ditems which are dependents of the ditem specified.
 #   dlist - the dependency list to search
@@ -436,6 +444,11 @@ proc ditem_contains {ditem key args} {
 			return 0
 		}
 	}
+}
+
+proc ditem_as_string {ditem} {
+	variable $ditem
+	return [array get $ditem]
 }
 
 # End of macports_dlist namespace
