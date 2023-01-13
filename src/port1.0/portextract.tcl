@@ -158,7 +158,7 @@ proc portextract::extract_main {args} {
         chownAsRoot ${extract.dir}
     }
 
-    if {[option extract.rename]} {
+    if {[option extract.rename] && ![file exists [option worksrcpath]]} {
         global workpath distname
         # rename whatever directory exists in $workpath to $distname
         set worksubdirs [glob -nocomplain -types d -directory $workpath *]
