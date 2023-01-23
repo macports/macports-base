@@ -3082,10 +3082,10 @@ proc mportsync {{optionslist {}}} {
         }
     }
 
-    # refresh the quick index if necessary (batch or shell mode run)
-    if {[info exists macports::ui_options(ports_commandfiles)]} {
-        _mports_load_quickindex
-    }
+    # Aways refresh the quick index - in addition to batch or shell
+    # mode, it's possible to run multiple actions like:
+    # port sync \; upgrade outdated
+    _mports_load_quickindex
 
     if {$numfailed == 1} {
         return -code error "Synchronization of 1 source failed"
