@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.8.1 (unreleased)
+Release 2.8.1 (2023-01-31 by jmr)
     - Fixed 'port lint' complaining about 'platforms any'.
       (jmr in 84d8683)
 
