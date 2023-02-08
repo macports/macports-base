@@ -429,7 +429,7 @@ proc command_exec {args} {
         file mkdir ${dir}
     }
 
-    global ${varprefix}.env_array ${varprefix}.nice env
+    global ${varprefix}.env_array ${varprefix}.nice env target_state_fd
 
     # Set the environment.
     # If the array doesn't exist, we create it with the value
@@ -455,6 +455,9 @@ proc command_exec {args} {
     set ${varprefix}.env_array(DEVELOPER_DIR) [option configure.developer_dir]
     if {[option configure.sdkroot] ne ""} {
         set ${varprefix}.env_array(SDKROOT) [option configure.sdkroot]
+    }
+    if {[get_statefile_value "SOURCE_DATE_EPOCH" $target_state_fd source_date_epoch] != 0} {
+        set ${varprefix}.env_array(SOURCE_DATE_EPOCH) $source_date_epoch
     }
 
     # Debug that.
@@ -3215,6 +3218,24 @@ proc exec_as_uid {uid code} {
     }
 
     return -code $retcode $result
+}
+
+# See https://trac.macports.org/ticket/59672
+proc set_source_date_epoch {dir} {
+    global target_state_fd
+    set source_date_epoch 0
+    if { [file exists $dir] } {
+        fs-traverse i [list ${dir}] {
+            if {[file isfile ${i}]} {
+                set t [file mtime ${i}]
+                if {${t} > ${source_date_epoch}} {
+                    set source_date_epoch ${t}
+                }
+            }
+        }
+        ui_debug "Setting SOURCE_DATE_EPOCH to ${source_date_epoch}"
+        write_statefile "SOURCE_DATE_EPOCH" ${source_date_epoch} $target_state_fd
+    }
 }
 
 # dependency analysis helpers

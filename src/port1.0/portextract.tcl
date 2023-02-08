@@ -165,6 +165,7 @@ proc portextract::extract_main {args} {
         if {[llength $worksubdirs] == 1} {
             set origpath [lindex $worksubdirs 0]
             set newpath [file join $workpath $distname]
+            set_source_date_epoch [lindex $worksubdirs 0]
             if {$newpath ne $origpath} {
                 ui_debug [format [msgcat::mc "extract.rename: Renaming %s -> %s"] [file tail $origpath] $distname]
                 move $origpath $newpath
@@ -174,6 +175,9 @@ proc portextract::extract_main {args} {
         } else {
             return -code error "extract.rename: multiple directories exist in ${workpath}: $worksubdirs"
         }
+    } else {
+        global worksrcpath
+        set_source_date_epoch $worksrcpath
     }
 
     return 0
