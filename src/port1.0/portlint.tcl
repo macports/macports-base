@@ -127,19 +127,21 @@ proc portlint::lint_checksum_type_list {types} {
     set issues [list]
     set using_secure false
 
-    foreach preferred $portchecksum::default_checksum_types {
+    foreach preferred $portchecksum::secure_checksum_types {
         if {$preferred ni $types} {
             lappend issues "missing recommended checksum type: $preferred"
-        } elseif {$preferred in $portchecksum::secure_checksum_types} {
+        } else {
             set using_secure true
         }
+    }
+    global ports_lint_nitpick
+    if {[tbool ports_lint_nitpick] && "size" ni $types} {
+        lappend issues "missing recommended checksum type: size"
     }
 
     if {!$using_secure} {
         foreach type $types {
-            if {$type ni $portchecksum::default_checksum_types} {
-                lappend issues "checksum type is insecure on its own: $type"
-            }
+            lappend issues "checksum type is insecure on its own: $type"
         }
     }
 

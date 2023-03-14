@@ -32,6 +32,7 @@ test test_lint_checksum_type_list_missing_recommended {
     Verify that we are warned about a missing recommended field in the
     list of checksums types passed to lint_checksum_type_list.
 } -body {
+    set ports_lint_nitpick yes
     set preferred_checksum_types [list rmd160 sha256]
     set results [portlint::lint_checksum_type_list $preferred_checksum_types]
 
@@ -94,15 +95,15 @@ test test_lint_checksum_type_list_mixed {
     Verify that we are warned about a missing recommended field when
     multiple fields are specified
 } -body {
-    set preferred_checksum_types [list md5 rmd160 sha256]
+    set preferred_checksum_types [list md5 sha256 size]
     set results [portlint::lint_checksum_type_list $preferred_checksum_types]
 
     if {[llength $results] == 0} {
         return "FAIL: unexpected results: no results returned"
     }
 
-    if {[lsearch -regexp $results {missing.+size}] == -1} {
-        return "FAIL: no mention of missing recommended size field: $results"
+    if {[lsearch -regexp $results {missing.+rmd160}] == -1} {
+        return "FAIL: no mention of missing recommended rmd160 field: $results"
     }
 
     return "lint_checksum_type_list_mixed passed"
