@@ -172,15 +172,16 @@ proc portbuild::build_getargs {args} {
 }
 
 proc portbuild::build_getjobsarg {args} {
+    set cmdname [file tail [lindex [option build.cmd] 0]]
     if {![exists build.jobs] || \
-            !([string match "*make*" [option build.cmd]] || \
-              [string match "*ninja*" [option build.cmd]] || \
-              [string match "*scons*" [option build.cmd]])} {
+            !([string match "*make" $cmdname] || \
+              "ninja" eq $cmdname || \
+              "scons" eq $cmdname)} {
         return ""
     }
-    
+
     set jobs [option build.jobs]
-    if {![string is integer -strict $jobs] || $jobs < 1} {
+    if {![string is integer -strict $jobs] || $jobs < 1 || ($cmdname ne "ninja" && $jobs < 2)} {
         return ""
     }
     return " -j$jobs"
