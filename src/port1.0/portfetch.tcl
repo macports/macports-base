@@ -417,6 +417,10 @@ proc portfetch::svnfetch {args} {
         append svn.url "@${svn.revision}"
     }
 
+    if {[option fetch.ignore_sslcert]} {
+        svn.pre_args-append --trust-server-cert
+    }
+
     set proxy_args [svn_proxy_args ${svn.url}]
 
     set svn.args "${svn.method} ${svn.args} ${proxy_args} ${svn.url}"
