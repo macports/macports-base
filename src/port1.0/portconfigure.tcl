@@ -869,7 +869,7 @@ proc portconfigure::max_version {verA verB} {
 #| 2011 (C++11) |    3.3    |   500.2.75     |    5.0    |    4.8.1    |
 #| 2014 (C++14) |    3.4    |   602.0.49     |    6.3    |      5      |
 #| 2017 (C++17) |    5.0    |  1000.11.45.2  |   10.0    |      7      |
-#| 2020 (C++20) |    14     |  1400.0.29.102 |   14.0    |     11      |
+#| 2020 (C++20) |    16     |  1400.0.29.102 |   14.0    |     12      |
 #-----------------------------------------------------------------------
 #
 # https://openmp.llvm.org
@@ -984,7 +984,7 @@ proc portconfigure::get_min_clang {} {
         set min_value [max_version $min_value 3.1]
     }
     if       {${compiler.cxx_standard} >= 2020} {
-        set min_value [max_version $min_value 14]
+        set min_value [max_version $min_value 16]
     } elseif {${compiler.cxx_standard} >= 2017} {
         set min_value [max_version $min_value 5.0]
     } elseif {${compiler.cxx_standard} >= 2014} {
@@ -1034,7 +1034,7 @@ proc portconfigure::get_min_gcc {} {
         set min_value [max_version $min_value 4.0]
     }
     if       {${compiler.cxx_standard} >= 2020} {
-        set min_value [max_version $min_value 11]
+        set min_value [max_version $min_value 12]
     } elseif {${compiler.cxx_standard} >= 2017} {
         set min_value [max_version $min_value 7]
     } elseif {${compiler.cxx_standard} >= 2014} {
