@@ -60,7 +60,7 @@ CHECKSUMFile(SHA1_, SHA_CTX)
 #ifndef SHA_DIGEST_LENGTH
 #define SHA_DIGEST_LENGTH 20
 #endif
-#ifndef HAVE_SHA1_FILE
+#if (!(defined(HAVE_DECL_SHA1_FILE))) || (!(HAVE_DECL_SHA1_FILE))
 #define SHA1_File(x,y) SHAFile(x,y)
 #endif
 #elif defined(HAVE_LIBCRYPTO) && defined(HAVE_OPENSSL_SHA_H)

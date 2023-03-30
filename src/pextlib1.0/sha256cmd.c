@@ -78,8 +78,8 @@ CHECKSUMFile(SHA256_, SHA256_CTX)
  * let's use our own version of sha256* libraries.
  */
 #include <sys/types.h>
-#include "sha2.h"
-#include "sha2.c"
+#include "sha2/sha2.h"
+#include "sha2/sha2.c"
 
 #include "md_wrappers.h"
 CHECKSUMEnd(SHA256_, SHA256_CTX, SHA256_DIGEST_LENGTH)
