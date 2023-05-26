@@ -1876,7 +1876,7 @@ proc portconfigure::check_implicit_function_declarations {} {
 
             if {![catch {set result [exec -- {*}$args]}]} {
                 foreach line [split $result "\n"] {
-                    if {[regexp -- "(?:implicit declaration of function|implicitly declaring library function) '(\[^']+)'" $line -> function]} {
+                    if {[regexp -- "(?:implicit declaration of function|implicitly declaring library function|call to undeclared function|call to undeclared library function) '(\[^']+)'" $line -> function]} {
                         set is_whitelisted no
                         foreach whitelisted ${configure.checks.implicit_function_declaration.whitelist} {
                             if {[string match -nocase $whitelisted $function]} {
