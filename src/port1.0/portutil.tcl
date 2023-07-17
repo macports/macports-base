@@ -903,7 +903,7 @@ proc _get_archive_platform {} {
     foreach p $platforms {
         if {$p eq "any"} {
             return any_any
-        } elseif {[lindex $p 0] eq ${os.platform} && [lindex $p 1] eq "any"} {
+        } elseif {[lindex $p 0] in [list ${os.platform} ${os.subplatform}] && [lindex $p 1] eq "any"} {
             return ${os.platform}_any
         }
     }
