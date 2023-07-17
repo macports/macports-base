@@ -899,7 +899,7 @@ proc _handle_platforms {option action args} {
 # "any" in platforms means the built archive will work on any OS
 # "darwin any" means it will work on any darwin version
 proc _get_archive_platform {} {
-    global platforms os.platform os.major
+    global platforms os.platform os.subplatform os.major
     foreach p $platforms {
         if {$p eq "any"} {
             return any_any
