@@ -47,9 +47,9 @@ namespace eval portfetch::mirror_sites {
 # percent-encode all characters in str that are not unreserved in URIs
 proc portfetch::percent_encode {str} {
     set outstr ""
-    while {$str ne ""} {
-        set char [string index $str 0]
-        set str [string range $str 1 end]
+    set len [string length $str]
+    for {set i 0} {$i < $len} {incr i} {
+        set char [string index $str $i]
         switch -- $char {
             {-} -
             {.} -
