@@ -705,6 +705,7 @@ MPFRAMEWORKSDIR
 MPAPPLICATIONSDIR
 DSTMODE
 RUNUSR
+DSTGID
 DSTGRP
 DSTUSR
 MPCONFIGDIR
@@ -6834,6 +6835,9 @@ printf %s "checking for install group... " >&6; }
 		DSTGRP=`id -gn`
 		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $DSTGRP" >&5
 printf "%s\n" "$DSTGRP" >&6; }
+		DSTGID=`id -g`
+		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $DSTGID" >&5
+printf "%s\n" "$DSTGID" >&6; }
 
 
 		# Set run-user to current user

@@ -7,3 +7,6 @@ env PATH=/usr/bin:/bin:/usr/sbin:/sbin CFLAGS="-pipe -Os" ./configure --enable-r
 
 # If you want to use a different prefix, add this to the above:
 # --prefix=/some/path --with-applications-dir=/some/path/Applications
+
+# If you do not have root privileges, also add (this implies using --prefix):
+# --with-no-root-privileges

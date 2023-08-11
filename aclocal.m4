@@ -571,6 +571,9 @@ AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
 		DSTGRP=`id -gn`
 		AC_MSG_RESULT([$DSTGRP])
 		AC_SUBST(DSTGRP)
+		DSTGID=`id -g`
+		AC_MSG_RESULT([$DSTGID])
+		AC_SUBST(DSTGID)
 
 		# Set run-user to current user
 		AC_MSG_CHECKING([for macports user])
