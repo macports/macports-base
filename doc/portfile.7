@@ -2037,6 +2037,34 @@ machine's network state is detected.
 .br
 .Sy Example:
 .Dl startupitem.netchange yes
+.It Ic startupitem.user
+Run the daemon via the specified user.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none
+.br
+.Sy Values:
+.Em username
+.br
+.Sy Example:
+.Dl startupitem.user my_daemon_username
+.It Ic startupitem.group
+Run the daemon via the specified group.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none
+.br
+.Sy Values:
+.Em groupname
+.br
+.Sy Example:
+.Dl startupitem.group my_daemon_groupname
 .It Ic startupitems
 Used when a port needs to install more than one startupitem, this option
 consists of a list where alternating elements represent keys and values.
