@@ -53,8 +53,15 @@
 #       We create and destroy the pidfile to track the pid we receive from the executable
 #
 #   startupitem.logfile     logpath
-#       Log to the specified file -- if not specified then output to /dev/null
-#       - for launchd, just set this as the standard out key
+#       Log stdout to the specified logfile
+#       - If not specified, then output to /dev/null
+#       - For launchd, set the stdout plist key
+#
+#   startupitem.logfile.stderr logpath
+#       Log stderr to the specified logfile
+#       - If not specified, defaults to startupitem.logfile
+#       - If cleared, disables stderr logging
+#       - For launchd, set the stderr plist key
 #
 #   startupitem.logevents   yes/no
 #       Log events to the log
@@ -84,7 +91,8 @@ options startupitems startupitem.autostart startupitem.debug \
         startupitem.create startupitem.custom_file \
         startupitem.executable startupitem.group \
         startupitem.init startupitem.install startupitem.location \
-        startupitem.logevents startupitem.logfile startupitem.name \
+        startupitem.logevents startupitem.logfile \
+        startupitem.logfile.stderr startupitem.name \
         startupitem.netchange startupitem.pidfile startupitem.plist \
         startupitem.requires startupitem.restart startupitem.start \
         startupitem.stop startupitem.type startupitem.uniquename \
@@ -100,6 +108,7 @@ default startupitem.install     {$system_options(startupitem_install)}
 default startupitem.location    LaunchDaemons
 default startupitem.logevents   no
 default startupitem.logfile     ""
+default startupitem.logfile.stderr {${startupitem.logfile}}
 default startupitem.name        {${subport}}
 default startupitem.netchange   no
 default startupitem.pidfile     ""
@@ -143,8 +152,8 @@ proc portstartupitem::get_startupitem_type {} {
 proc portstartupitem::foreach_startupitem {body} {
     global startupitems
     set vars [list autostart create custom_file debug executable group \
-              init install location logevents logfile name netchange \
-              pidfile plist requires restart start stop type \
+              init install location logevents logfile logfile.stderr \
+              name netchange pidfile plist requires restart start stop type \
               uniquename user daemondo.verbosity]
 
     array set startupitems_dict {}
@@ -489,6 +498,10 @@ proc portstartupitem::startupitem_create_darwin_launchd {attrs} {
 
     if {$si(logfile) ne ""} {
         puts ${plist} "<key>StandardOutPath</key><string>$si(logfile)</string>"
+    }
+
+    if {$si(logfile.stderr) ne ""} {
+        puts ${plist} "<key>StandardErrorPath</key><string>$si(logfile.stderr)</string>"
     }
 
     if {$si(debug)} {
