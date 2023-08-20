@@ -1996,6 +1996,20 @@ standard output from the daemon may also be directed to the logfile.
 .br
 .Sy Example:
 .Dl startupitem.logfile ${prefix}/var/log/mydaemon.log
+.It Ic startupitem.logfile.stderr
+Path to a logfile for capturing standard error output from the daemon.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em startupitem.logfile
+.br
+.Sy Values:
+.Em path
+.br
+.Sy Example:
+.Dl startupitem.logfile.stderr ${prefix}/var/log/mydaemon.log
 .It Ic startupitem.logevents
 Control whether or not to log events to the log file.
 If this option is set, events with timestamps are logged to the logfile.
