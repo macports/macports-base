@@ -1507,6 +1507,17 @@ macOS SDK version to build against.
 .br
 .Sy Example:
 .Dl configure.sdk_version 10.8
+.It Ic configure.sdkroot
+The path to the macOS SDK to build against.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em Automatically set by MacPorts; varies by macOS release, whether Xcode installed, etc.
+.br
+.Sy Example:
+.Dl configure.sdkroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk
 .\" FOOBAR
 .El
 .Ss UNIVERSAL TARGET HOOKS
