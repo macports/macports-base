@@ -76,7 +76,8 @@ variants_conf       	@MPCONFIGDIR_EXPANDED@/variants.conf
 # must exist in one of the directories in binpath.
 #configureccache     	no
 
-# Directory for ccache's cached compiler output.
+# Directory for ccache's cached compiler output. To prevent sandbox
+# violation errors, the path must contain no symlinks.
 #ccache_dir          	@localstatedir_expanded@/macports/build/.ccache
 
 # Maximum size of files stored in ccache's cache. Append "G", "M", or
