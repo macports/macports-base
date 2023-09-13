@@ -433,7 +433,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
             # Determine xcode version
             set macports::xcodeversion 2.0orlower
             macports_try -pass_signal {
-                set xcodebuildversion [exec -- $xcodebuild -version 2> /dev/null]
+                set xcodebuildversion [exec -ignorestderr -- $xcodebuild -version 2> /dev/null]
                 if {[regexp {Xcode ([0-9.]+)} $xcodebuildversion - xcode_v] == 1} {
                     set macports::xcodeversion $xcode_v
                 } elseif {[regexp {DevToolsCore-(.*);} $xcodebuildversion - devtoolscore_v] == 1} {
@@ -510,7 +510,7 @@ proc macports::set_developer_dir {name1 name2 op} {
         # We have xcode-select: ask it where xcode is and check if it's valid.
         # If no xcode is selected, xcode-select will fail, so catch that
         macports_try -pass_signal {
-            set devdir [exec $xcodeselect -print-path 2> /dev/null]
+            set devdir [exec -ignorestderr $xcodeselect -print-path 2> /dev/null]
             if {[_is_valid_developer_dir $devdir]} {
                 set macports::developer_dir $devdir
                 return
@@ -525,7 +525,7 @@ proc macports::set_developer_dir {name1 name2 op} {
 
         macports_try -pass_signal {
             set mdfind [findBinary mdfind $macports::autoconf::mdfind_path]
-            set installed_xcodes [exec $mdfind "kMDItemCFBundleIdentifier == 'com.apple.Xcode' || kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'"]
+            set installed_xcodes [exec -ignorestderr $mdfind "kMDItemCFBundleIdentifier == 'com.apple.Xcode' || kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'" 2> /dev/null]
         } on error {} {}
 
         # In case mdfind metadata wasn't complete, also look in two well-known locations for Xcode.app
@@ -551,7 +551,7 @@ proc macports::set_developer_dir {name1 name2 op} {
             ui_error "No valid Xcode installation is properly selected."
             ui_error "Please use xcode-select to select an Xcode installation:"
             foreach xcode $installed_xcodes {
-                set vers [exec $mdls -raw -name kMDItemVersion $xcode]
+                set vers [exec -ignorestderr $mdls -raw -name kMDItemVersion $xcode 2> /dev/null]
                 if {$vers eq {(null)}} {set vers unknown}
                 if {[_is_valid_developer_dir ${xcode}/Contents/Developer]} {
                     # Though xcode-select shipped with xcode 4.3 supports and encourages
@@ -764,7 +764,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             set os_subplatform macosx
             if {[file executable /usr/bin/sw_vers]} {
                 macports_try -pass_signal {
-                    set macos_version [exec /usr/bin/sw_vers -productVersion]
+                    set macos_version [exec -ignorestderr /usr/bin/sw_vers -productVersion 2> /dev/null]
                 } on error {eMessage} {
                     ui_debug "sw_vers exists but running it failed: $eMessage"
                 }
@@ -796,10 +796,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::user_home $env(HOME)
         set macports::macports_user_dir [file normalize $macports::autoconf::macports_user_dir]
     } elseif {[info exists env(SUDO_USER)] && $os_platform eq "darwin"} {
-        set macports::user_home [exec dscl -q . -read /Users/$env(SUDO_USER) NFSHomeDirectory | cut -d ' ' -f 2]
+        set macports::user_home [exec -ignorestderr dscl -q . -read /Users/$env(SUDO_USER) NFSHomeDirectory | cut -d ' ' -f 2]
         set macports::macports_user_dir [file join $macports::user_home [string range $macports::autoconf::macports_user_dir 2 end]]
     } elseif {[exec id -u] != 0 && $os_platform eq "darwin"} {
-        set macports::user_home [exec dscl -q . -read /Users/[exec id -un] NFSHomeDirectory | cut -d ' ' -f 2]
+        set macports::user_home [exec -ignorestderr dscl -q . -read /Users/[exec -ignorestderr id -un 2> /dev/null] NFSHomeDirectory | cut -d ' ' -f 2]
         set macports::macports_user_dir [file join $macports::user_home [string range $macports::autoconf::macports_user_dir 2 end]]
     } else {
         # Otherwise define the user directory as a directory that will never exist
@@ -5734,7 +5734,7 @@ proc macports::get_tool_path {tool} {
     set toolpath "/usr/bin/${tool}"
     if {![file executable $toolpath]} {
         # Use xcode's xcrun to find the named tool.
-        if {[catch {exec [findBinary xcrun $portutil::autoconf::xcrun_path] -find ${tool}} toolpath]} {
+        if {[catch {exec -ignorestderr [findBinary xcrun $portutil::autoconf::xcrun_path] -find ${tool} 2> /dev/null} toolpath]} {
             set toolpath ""
         }
     }
