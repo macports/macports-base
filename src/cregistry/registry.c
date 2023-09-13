@@ -535,10 +535,16 @@ int reg_vacuum(char *db_path) {
 int reg_checkpoint(reg_registry* reg, reg_error* errPtr) {
 
 #if SQLITE_VERSION_NUMBER >= 3022000
-    if (sqlite3_libversion_number() >= 3022000) {
-        if (sqlite3_db_readonly(reg->db, "registry") == 0
-                && sqlite3_wal_checkpoint_v2(reg->db, "registry",
-                SQLITE_CHECKPOINT_PASSIVE, NULL, NULL) != SQLITE_OK) {
+    int result;
+    if (sqlite3_libversion_number() >= 3022000
+            && sqlite3_db_readonly(reg->db, "registry") == 0) {
+        /* The busy handler (as set in reg_open) should time out if
+           exclusive write access can't be obtained quickly. In that
+           case, we should still get the effect of SQLITE_CHECKPOINT_PASSIVE
+           and a return value of SQLITE_BUSY. Call that success. */
+        result = sqlite3_wal_checkpoint_v2(reg->db, "registry",
+                SQLITE_CHECKPOINT_TRUNCATE, NULL, NULL);
+        if (result != SQLITE_OK && result != SQLITE_BUSY) {
             reg_sqlite_error(reg->db, errPtr, NULL);
             return 0;
         }
