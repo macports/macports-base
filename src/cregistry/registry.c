@@ -497,6 +497,8 @@ int reg_vacuum(char *db_path) {
     sqlite3_stmt* stmt = NULL;
     int result = 0;
     reg_error err;
+    int r;
+    sqlite3_int64 dbsize, freesize;
 
     if (sqlite3_open(db_path, &db) == SQLITE_OK) {
         if (!init_db(db, &err)) {
@@ -507,20 +509,40 @@ int reg_vacuum(char *db_path) {
         return 0;
     }
 
-    if (sqlite3_prepare_v2(db, "VACUUM", -1, &stmt, NULL) == SQLITE_OK) {
-        int r;
-        /* XXX: Busy waiting, consider using sqlite3_busy_handler/timeout */
-        do {
+    sqlite3_busy_timeout(db, 25);
+
+    /* Get db size & size of unused space */
+    if (sqlite3_prepare_v2(db, "SELECT page_count * page_size AS dbsize,"
+            " freelist_count * page_size AS freesize FROM pragma_page_count(),"
+            " pragma_freelist_count(), pragma_page_size()",
+            -1, &stmt, NULL) == SQLITE_OK) {
+        r = sqlite3_step(stmt);
+        if (r == SQLITE_ROW) {
+            dbsize = sqlite3_column_int64(stmt, 0);
+            freesize = sqlite3_column_int64(stmt, 1);
+            result = 1;
+        }
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+
+    /* Don't vacuum unless free space is at least 1 MB and also at
+       least 1% of the total db size. */
+    if (result && freesize >= 1000000 && dbsize > 0 && ((double)freesize / (double)dbsize) >= 0.01) {
+        result = 0;
+        if (sqlite3_prepare_v2(db, "VACUUM", -1, &stmt, NULL) == SQLITE_OK) {
             sqlite3_step(stmt);
             r = sqlite3_reset(stmt);
             if (r == SQLITE_OK) {
                 result = 1;
             }
-        } while (r == SQLITE_BUSY);
+        }
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
     }
-    if (stmt) {
-        sqlite3_finalize(stmt);
-    }
+
     sqlite3_close(db);
     return result;
 }
