@@ -163,7 +163,7 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
             if {$using_pkgbuild} {
                 set cmdline "$pkgbuild --root [shellescape ${destpath}] ${pkgresources} --info [shellescape $infofile] --install-location / --identifier org.macports.$portname"
             } else {
-                set cmdline "PMResourceLocale=${language} $packagemaker --root [shellescape ${destpath}] --out [shellescape ${pkgpath}] ${pkgresources} --info [shellescape $infofile] --target $pkgtarget --domain system --id org.macports.$portname"
+                set cmdline "PMResourceLocale=${language} [shellescape $packagemaker] --root [shellescape ${destpath}] --out [shellescape ${pkgpath}] ${pkgresources} --info [shellescape $infofile] --target $pkgtarget --domain system --id org.macports.$portname"
             }
             if {${os.major} >= 10} {
                 set v [mp_version_to_apple_version $portepoch $portversion $portrevision]
@@ -193,7 +193,7 @@ proc portpkg::package_pkg {portname portepoch portversion portrevision} {
         } else {
             write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
             write_description_plist ${workpath}/Description.plist $portname $portversion $description
-            system "$packagemaker -build -f [shellescape ${destpath}] -p [shellescape ${pkgpath}] -r [shellescape ${package.resources}] -i [shellescape ${workpath}/Info.plist] -d [shellescape ${workpath}/Description.plist]"
+            system "[shellescape $packagemaker] -build -f [shellescape ${destpath}] -p [shellescape ${pkgpath}] -r [shellescape ${package.resources}] -i [shellescape ${workpath}/Info.plist] -d [shellescape ${workpath}/Description.plist]"
         }
 
         file delete ${workpath}/Info.plist \
