@@ -1833,7 +1833,7 @@ proc open_statefile {args} {
             return -code error "$statefile is not writable - check permission on port directory"
         }
         if {[file mtime ${portpath}/Portfile] > [clock seconds]} {
-            return -code error "Portfile is from the future - check date and time of your system"
+            return -code error "Portfile for $subport is from the future - check date and time of your system"
         }
         if {![tbool ports_ignore_different]} {
             # start by assuming the statefile is current
@@ -1883,13 +1883,13 @@ proc open_statefile {args} {
             }
             if {[tbool portfile_changed]} {
                 if {![tbool ports_dryrun]} {
-                    ui_notice "Portfile changed since last build; discarding previous state."
+                    ui_notice "Portfile for $subport changed since last build; discarding previous state."
                     chownAsRoot $subbuildpath
                     delete $workpath
                     file mkdir $workpath
                     set fresh_build yes
                 } else {
-                    ui_notice "Portfile changed since last build but not discarding previous state (dry run)"
+                    ui_notice "Portfile for $subport changed since last build but not discarding previous state (dry run)"
                 }
             }
             close $readfd
