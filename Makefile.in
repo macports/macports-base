@@ -71,20 +71,23 @@ ifeq ($(DESTDIR),)
                 echo "Not creating user \"${RUNUSR}\" (not root)" ; \
             fi ; \
         fi ; \
-        if test "$$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" = "NFSHomeDirectory: /var/empty" ; then \
-            if test `id -u` -eq 0; then \
-                echo "Updating home directory location for user \"${RUNUSR}\"" ; \
-                ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${localstatedir}/macports/home" ; \
-            else \
-                echo "Not updating home directory location for user \"${RUNUSR}\" (not root)" ; \
+        RUNUSR_UID=$$(${DSCL} -q . -read "/Users/${RUNUSR}" UniqueID | /usr/bin/awk '{print $$2}'); \
+        if test "$$RUNUSR_UID" -gt 500; then \
+            if test "$$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" != "NFSHomeDirectory: ${localstatedir}/macports/home" ; then \
+                if test `id -u` -eq 0; then \
+                    echo "Updating home directory location for user \"${RUNUSR}\"" ; \
+                    ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${localstatedir}/macports/home" ; \
+                else \
+                    echo "Not updating home directory location for user \"${RUNUSR}\" (not root)" ; \
+                fi ; \
             fi ; \
-        fi ; \
-        if test "@OS_MAJOR@" -eq 8 -a `id -u` -eq 0; then \
-            GID=`${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $$2}'` ; \
-            if test "`${DSCL} -q . -read "/Users/${RUNUSR}" PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $$2}'`" != "$$GID"; then \
-                echo "Fixing PrimaryGroupID for user \"${RUNUSR}\"" ; \
-                ${DSCL} -q . -create "/Users/${RUNUSR}" PrimaryGroupID $$GID ; \
-                ${DSCL} -q . -create "/Users/${RUNUSR}" RealName MacPorts ; \
+            if test "@OS_MAJOR@" -eq 8 -a `id -u` -eq 0; then \
+                GID=`${DSCL} -q . -read "/Groups/${RUNUSR}" PrimaryGroupID | /usr/bin/awk '{print $$2}'` ; \
+                if test "`${DSCL} -q . -read "/Users/${RUNUSR}" PrimaryGroupID 2>/dev/null | /usr/bin/awk '{print $$2}'`" != "$$GID"; then \
+                    echo "Fixing PrimaryGroupID for user \"${RUNUSR}\"" ; \
+                    ${DSCL} -q . -create "/Users/${RUNUSR}" PrimaryGroupID $$GID ; \
+                    ${DSCL} -q . -create "/Users/${RUNUSR}" RealName MacPorts ; \
+                fi ; \
             fi ; \
         fi ; \
     else \
