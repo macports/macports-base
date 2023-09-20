@@ -3597,7 +3597,8 @@ proc _archive_available {} {
     ui_debug "Fetching $archivename archive size"
     # curl getsize can return -1 instead of throwing an error for
     # nonexistent files on FTP sites.
-    if {![catch {curl getsize $url} size] && $size > 0} {
+    if {![catch {curl getsize $url} size] && $size > 0
+          && ![catch {curl getsize ${url}.rmd160} sigsize] && $sigsize > 0} {
         set archive_available_result 1
         return 1
     }
