@@ -193,6 +193,14 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
             set sdk_arg {}
             set jobs [macports:get_parallel_jobs yes]
             if {$::macports::os_platform eq "darwin"} {
+                catch {exec /usr/bin/cc 2>@1} output
+                set output [join [lrange [split $output "\n"] 0 end-1] "\n"]
+                if {[string match -nocase *license* $output]} {
+                    ui_error "It seems you have not accepted the Xcode license; unable to build."
+                    ui_error "Agree to the license by opening Xcode or running `sudo xcodebuild -license'."
+                    return -code error "Xcode license acceptance required"
+                }
+
                 set cc_arg "CC=/usr/bin/cc "
                 if {$::macports::os_major >= 18 || ![file exists /usr/include/sys/cdefs.h]} {
                     set cltpath /Library/Developer/CommandLineTools
