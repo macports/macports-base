@@ -225,6 +225,7 @@ proc entry_for_portlist {portentry} {
     #   requested_variants array  (variant=>+-)
     #   options array   (key=>value)
     #   fullname        (name/version_revision+-variants)
+    #       Note: name always normalised to lower case in fullname
 
     array set port $portentry
     if {![info exists port(url)]}       { set port(url) "" }
@@ -246,7 +247,7 @@ proc entry_for_portlist {portentry} {
     }
 
     # Form the fully discriminated portname: portname/version_revison+-variants
-    set port(fullname) "$port(name)/[composite_version $port(version) $port(variants)]"
+    set port(fullname) [string tolower $port(name)]/[composite_version $port(version) $port(variants)]
 
     return [array get port]
 }
@@ -1507,11 +1508,11 @@ proc opIntersection { a b } {
         # Quote the fullname and portname to avoid special characters messing up the regexp
         set safefullname [regex_pat_sanitize $port(fullname)]
 
-        set simpleform [expr { "$port(name)/" eq $port(fullname) }]
+        set simpleform [string equal -nocase "$port(name)/" $port(fullname)]
         if {$simpleform} {
             set pat "^${safefullname}"
         } else {
-            set safename [regex_pat_sanitize $port(name)]
+            set safename [regex_pat_sanitize [string tolower $port(name)]]
             set pat "^${safefullname}$|^${safename}/$"
         }
 
@@ -1551,11 +1552,11 @@ proc opComplement { a b } {
         # Quote the fullname and portname to avoid special characters messing up the regexp
         set safefullname [regex_pat_sanitize $port(fullname)]
 
-        set simpleform [expr { "$port(name)/" eq $port(fullname) }]
+        set simpleform [string equal -nocase "$port(name)/" $port(fullname)]
         if {$simpleform} {
             set pat "^${safefullname}"
         } else {
-            set safename [regex_pat_sanitize $port(name)]
+            set safename [regex_pat_sanitize [string tolower $port(name)]]
             set pat "^${safefullname}$|^${safename}/$"
         }
 
