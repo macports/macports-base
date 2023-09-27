@@ -381,8 +381,8 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
 
     // check whether copying is needed; it isn't if the file exists and the
     // modification times match
-    struct stat out_st;
-    if (   -1 != stat(target_path, &out_st)
+    struct stat out_st = {0};
+    if (-1 != stat(target_path, &out_st)
         && in_st->st_mtimespec.tv_sec == out_st.st_mtimespec.tv_sec
         && in_st->st_mtimespec.tv_nsec == out_st.st_mtimespec.tv_nsec) {
         // copying not needed
