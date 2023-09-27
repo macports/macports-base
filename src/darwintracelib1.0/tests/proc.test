@@ -235,13 +235,19 @@ test spawn_sip_suid_binary "Test that posix_spawn(2) works on a SIP-protected SU
     -cleanup [expect {}] \
     -body {
         set status 0
-        if {[catch {exec -ignorestderr -- ./posix_spawn /usr/bin/crontab -l} results options]} {
-            puts $::errorInfo
-            set details [dict get $options -errorcode]
-            if {[lindex $details 0] eq "CHILDSTATUS"} {
-                set status [lindex $details 2]
+        if {[catch {exec -ignorestderr -- ./posix_spawn /usr/bin/crontab -l 2>@1} results options]} {
+            if {[string match "crontab: no crontab for *" $results]} {
+                # The current user has no crontab; that will cause crontab -l
+                # to fail, but we don't care; hide the error.
+                set status 0
             } else {
-                return -options $options -level 0 $results
+                puts $::errorInfo
+                set details [dict get $options -errorcode]
+                if {[lindex $details 0] eq "CHILDSTATUS"} {
+                    set status [lindex $details 2]
+                } else {
+                    return -options $options -level 0 $results
+                }
             }
         }
         return $status
