@@ -101,6 +101,23 @@ case "$XCODE_VERSION" in
     ;;
 esac
 
+# Check whether the source location is valid; Tcl does not build in
+# locations containing spaces, and we don't support out-of-source
+# builds.
+AC_MSG_CHECKING(for in-tree build)
+if test "x$srcdir" != "x."; then
+   AC_MSG_ERROR([failed; out-of-source builds not supported])
+else
+  AC_MSG_RESULT([ok])
+fi
+
+AC_MSG_CHECKING(whether source directory location is valid)
+if echo "$ac_abs_confdir" | grep -q ' '; then
+   AC_MSG_ERROR([failed; path to source directory must not contain spaces])
+else
+  AC_MSG_RESULT([ok])
+fi
+
 # Checks for programs.
 AC_PROG_CC([clang cc gcc])
 AC_PROG_INSTALL
@@ -409,7 +426,7 @@ AC_CONFIG_FILES([
 	src/Makefile
 	src/cregistry/Makefile
 	src/compat/Makefile
-	src/darwintracelib1.0/Makefile
+	src/darwintrace1.0/Makefile
 	src/machista1.0/Makefile
 	src/macports1.0/Makefile
 	src/macports1.0/macports_autoconf.tcl
@@ -432,6 +449,7 @@ AC_CONFIG_FILES([
 	vendor/Makefile
 ])
 
+AC_CONFIG_FILES([port.sh], [chmod +x port.sh])
 AC_CONFIG_FILES([vendor/tclsh], [chmod +x vendor/tclsh])
 AC_CONFIG_FILES([src/cxx_stdlib_overridden.tcl], [chmod +x src/cxx_stdlib_overridden.tcl])
 AC_CONFIG_FILES([src/dedup_portfiles.tcl], [chmod +x src/dedup_portfiles.tcl])
