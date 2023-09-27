@@ -277,6 +277,61 @@ static copy_needed_return_t copy_needed(const char *path, char *const argv[],
 #endif /* defined(SF_RESTRICTED) */
 }
 
+static int resign(const char *filepath) {
+    int result = -1;
+    int exitstatus = 0;
+    pid_t pid = (pid_t) -1;
+    posix_spawn_file_actions_t action = NULL;
+
+    char *path = strdup(filepath);
+    if (!path) {
+        goto resign_out;
+    }
+
+    char * const argv[] = {"codesign", "-s", "-", "-f", path, NULL};
+    char * const envp[] = {NULL};
+
+    if ((errno = posix_spawn_file_actions_init(&action)) != 0) {
+        fprintf(stderr, "posix_spawn_file_actions_init() failed: %s\n", strerror(errno));
+        goto resign_out;
+    }
+    if ((errno = posix_spawn_file_actions_addopen(&action, STDOUT_FILENO, "/dev/null", O_WRONLY|O_APPEND, 0)) != 0) {
+        fprintf(stderr, "posix_spawn_file_actions_addopen(STDOUT_FILENO, /dev/null) failed: %s", strerror(errno));
+        goto resign_out;
+    }
+    if ((errno = posix_spawn_file_actions_addopen(&action, STDERR_FILENO, "/dev/null", O_WRONLY|O_APPEND, 0)) != 0) {
+        fprintf(stderr, "posix_spawn_file_actions_addopen(STDERR_FILENO, /dev/null) failed: %s", strerror(errno));
+        goto resign_out;
+    }
+
+    if (0 != (errno = posix_spawn(&pid, "/usr/bin/codesign", &action, NULL, argv, envp))) {
+        fprintf(stderr, "Failed to spawn /usr/bin/codesign -s - -f %s: %s\n", path, strerror(errno));
+        goto resign_out;
+    }
+
+    if (pid != waitpid(pid, &exitstatus, 0)) {
+        fprintf(stderr, "waitpid(%d): %s\n", pid, strerror(errno));
+        goto resign_out;
+    }
+
+    if (WIFEXITED(exitstatus) && WEXITSTATUS(exitstatus) == 0) {
+        result = 0;
+    } else {
+        if (WIFSIGNALED(exitstatus)) {
+            fprintf(stderr, "codesign %s terminated with signal %d\n", path, WTERMSIG(exitstatus));
+        } else {
+            fprintf(stderr, "codesign %s exited with non-zero status %d\n", path, WEXITSTATUS(exitstatus));
+        }
+        goto resign_out;
+    }
+
+resign_out:
+    if (action != NULL)
+        posix_spawn_file_actions_destroy(&action);
+    free(path);
+    return result;
+}
+
 static char *lazy_copy(const char *path, struct stat *in_st) {
     char *retval = NULL;
     uid_t euid = geteuid();
@@ -363,15 +418,6 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
 #endif
         goto lazy_copy_out;
     }
-
-    // Since we removed COPYFILE_STAT from the copyfile(3) invocation above, we
-    // need to restore the permissions on the copy. Note that the futimes(2)
-    // later on should still succeed even if we remove write permissions here,
-    // because we already have a file descriptor open.
-    if (-1 == fchmod(outfd, in_st->st_mode)) {
-        fprintf(stderr, "sip_copy_proc: fchmod(%s, %o): %s\n", target_path_temp, in_st->st_mode, strerror(errno));
-        goto lazy_copy_out;
-    }
 #else /* !HAVE_COPYFILE */
     // create temporary file to copy into and then later atomically replace
     // target file
@@ -434,11 +480,24 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
     }
 #endif /* HAVE_COPYFILE */
 
+    if (-1 == resign(target_path_temp)) {
+        fprintf(stderr, "sip_copy_proc: resign(%s) failed\n", target_path_temp);
+        goto lazy_copy_out;
+    }
+
     struct timeval times[2];
     TIMESPEC_TO_TIMEVAL(&times[0], &in_st->st_mtimespec);
     TIMESPEC_TO_TIMEVAL(&times[1], &in_st->st_mtimespec);
-    if (-1 == futimes(outfd, times)) {
-        fprintf(stderr, "sip_copy_proc: futimes(%s): %s\n", target_path_temp, strerror(errno));
+    if (-1 == utimes(target_path_temp, times)) {
+        fprintf(stderr, "sip_copy_proc: utimes(%s): %s\n", target_path_temp, strerror(errno));
+        goto lazy_copy_out;
+    }
+
+    // Since we removed COPYFILE_STAT from the copyfile(3) invocation above, we
+    // need to restore the permissions on the copy. Keep this after the
+    // utimes(2) call, or setting the times may fail due to lack of write permissions
+    if (-1 == chmod(target_path_temp, in_st->st_mode)) {
+        fprintf(stderr, "sip_copy_proc: chmod(%s, %o): %s\n", target_path_temp, in_st->st_mode, strerror(errno));
         goto lazy_copy_out;
     }
 
