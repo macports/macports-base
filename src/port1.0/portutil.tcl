@@ -3458,12 +3458,17 @@ proc _check_xcode_version {} {
             13 {
                 set min 14.1
                 set ok 14.1
-                set rec 14.2
+                set rec 14.3.1
+            }
+            14 {
+                set min 15.0
+                set ok 15.0
+                set rec 15.0
             }
             default {
-                set min 14.1
-                set ok 14.1
-                set rec 14.2
+                set min 15.0
+                set ok 15.0
+                set rec 15.0
             }
         }
         if {$xcodeversion eq "none"} {
