@@ -7,6 +7,7 @@ SRCS = \
 	access.c \
 	close.c \
 	dup2.c \
+	env.c \
 	execve.c \
 	fork.c \
 	lstat.c \
@@ -25,14 +26,11 @@ OBJS = $(SRCS:%.c=%.o)
 BINS = $(SRCS:%.c=%)
 TESTS = $(sort $(wildcard *.test))
 
-# Create a copy of env that doesn't have Apple's restricted bits set in order
-# to preserve DYLD* variables.
-env:
-	dd if=/usr/bin/env of=env
-	chmod +x env
+env: env.o
+	$(CC) $(LDFLAGS) -o $@ $^
 
 %: %.o ../darwintrace.dylib
-	$(CC) -o $@ $^
+	$(CC) $(LDFLAGS) -o $@ $^
 
 # Generate dependency information
 %.d : %.c
@@ -47,7 +45,7 @@ clean::
 distclean:: clean
 	rm -f Makefile
 
-test:: env $(BINS)
+test:: $(BINS)
 	$(foreach test,$(TESTS),DARWINTRACE_SIP_WORKAROUND_PATH=@DARWINTRACE_SIP_WORKAROUND_PATH@ LC_ALL=C $(TCLSH) "$(srcdir)/$(test)";)
 
 ifeq (,$(findstring clean,$(MAKECMDGOALS)))
