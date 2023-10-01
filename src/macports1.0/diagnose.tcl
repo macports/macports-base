@@ -138,8 +138,8 @@ namespace eval diagnose {
     proc check_for_clt {} {
 
         # Checks to see if the Xcode Command Line Tools are installed by checking if the file
-        # /Library/Developer/CommandLineTools exists if the system is running 10.9, or if they're
-        # running an older version, if the command xcode-select -p outputs something.
+        # /Library/Developer/CommandLineTools exists if the system is running 10.9+, or if they're
+        # running an older version, if /usr/include exists.
         #
         # Args:
         #           None
@@ -148,26 +148,29 @@ namespace eval diagnose {
 
         output "command line tools"
 
-        if {${macports::macos_version_major} eq "10.9"} {
+        if {[vercmp ${macports::macos_version_major} >= "10.9"]} {
 
             if {![file exists "/Library/Developer/CommandLineTools/"]} {
 
-                ui_warn "Xcode Command Line Tools are not installed! To install them, please enter the command:
+                ui_warn "Xcode Command Line Tools do not appear to be installed. To install them, please enter the command:
                                     xcode-select --install"
                 success_fail 0
                 return
+            } elseif {$macports::xcodecltversion eq "none"} {
+                ui_warn "The Xcode Command Line Tools package appears to be installed, but its receipt appears to be missing."
+                ui_warn "The Command Line Tools may be outdated, which can cause problems."
+                ui_warn "Please see: <https://trac.macports.org/wiki/ProblemHotlist#reinstall-clt>"
             }
             success_fail 1
             return
 
         } else {
 
-            set xcode_select [exec xcode-select -print-path]
+            if {![file exists "/usr/include"]} {
 
-            if {$xcode_select eq ""} {
-
-                ui_warn "Xcode Command Line Tools are not installed! To install them, please enter the command:
-                                    xcode-select --install"
+                ui_warn "Xcode Command Line Tools do not appear to be installed. \
+                         To install them, please follow the instructions for your OS version at:
+                                    <https://guide.macports.org/#installing.xcode>"
                 success_fail 0
                 return
             }
