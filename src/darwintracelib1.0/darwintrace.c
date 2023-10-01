@@ -36,6 +36,7 @@
 #define DARWINTRACE_USE_PRIVATE_API 1
 #include "darwintrace.h"
 #include "sandbox_actions.h"
+#include "strlcpy.h"
 
 #ifdef HAVE_STDATOMIC_H
 #include <stdatomic.h>

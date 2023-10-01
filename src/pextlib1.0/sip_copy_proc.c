@@ -52,6 +52,8 @@
 #include <copyfile.h>
 #endif
 
+#include "getline.h"
+
 #include "sip_copy_proc.h"
 
 #ifndef DARWINTRACE_SIP_WORKAROUND_PATH

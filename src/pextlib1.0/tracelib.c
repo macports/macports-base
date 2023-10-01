@@ -71,24 +71,9 @@
 #include "Pextlib.h"
 
 #include "strlcat.h"
+#include "strlcpy.h"
 
 #ifdef HAVE_TRACEMODE_SUPPORT
-#ifndef HAVE_STRLCPY
-/* Define strlcpy if it's not available. */
-size_t strlcpy(char *dst, const char *src, size_t size);
-size_t strlcpy(char *dst, const char *src, size_t size) {
-    size_t result = strlen(src);
-    if (size > 0) {
-        size_t copylen = size - 1;
-        if (copylen > result) {
-            copylen = result;
-        }
-        memcpy(dst, src, copylen);
-        dst[copylen] = 0;
-    }
-    return result;
-}
-#endif
 
 #ifdef HAVE_PEERPID_LIST
 static bool peerpid_list_enqueue(int sock, pid_t pid);
