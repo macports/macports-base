@@ -34,6 +34,7 @@
  */
 
 #include "darwintrace.h"
+#include "strlcat.h"
 
 #include <errno.h>
 #include <fcntl.h>

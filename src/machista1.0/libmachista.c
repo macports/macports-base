@@ -61,6 +61,7 @@
 
 #include "libmachista.h"
 #include "hashmap.h"
+#include "strlcpy.h"
 
 #ifdef __MACH__
 /* Tiger compatibility */
