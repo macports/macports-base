@@ -1742,6 +1742,10 @@ proc eval_targets {target} {
             return 0
         } elseif {$target eq "activate"} {
             set regref [registry_open $subport $version $revision $portvariants ""]
+            # Set requested flag in the registry if in options
+            if {[info exists ::user_options(ports_requested)]} {
+                registry_prop_store $regref requested $::user_options(ports_requested)
+            }
             if {[registry_prop_retr $regref active] != 0} {
                 # Something to close the registry entry may be called here, if it existed.
                 ui_debug "Skipping $target ($subport @${version}_${revision}${portvariants}) since this port is already active"
