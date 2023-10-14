@@ -118,11 +118,12 @@ namespace eval diagnose {
 
         # Start the checks
         check_path $config_options(macports_location) $config_options(profile_path) $config_options(shell_location)
+        check_macports_location
+        check_permissions
         check_xcode config_options
         check_for_app curl
         check_for_app rsync
         check_for_app openssl
-        check_macports_location
         check_free_space
         check_for_x11
         check_for_files_in_usr_local
@@ -766,4 +767,81 @@ namespace eval diagnose {
             }
        }
    }
+
+    proc check_permissions {} {
+        # check that everyone has rx permissions on macports directories,
+        # and that they are not world writable
+        set no_r_dirs [list]
+        set no_x_dirs [list]
+        set ww_dirs [list]
+        foreach subdir [list build distfiles incoming logs registry software] {
+            lappend check_paths [file join $macports::portdbpath $subdir]
+        }
+        while {[llength $check_paths] > 0} {
+            set path [lindex $check_paths end]
+            set check_paths [lreplace ${check_paths}[set check_paths {}] end end]
+            set perms [file attributes $path -permissions]
+            if {$perms & 0002 && $path ni $ww_dirs} {
+                lappend ww_dirs $path
+            }
+            if {!($perms & 0001) && $path ni $no_x_dirs} {
+                lappend no_x_dirs $path
+            }
+            if {!($perms & 0004) && $path ni $no_r_dirs} {
+                lappend no_r_dirs $path
+            }
+            set parent [file dirname $path]
+            if {$parent ni $check_paths && $path ne $macports::prefix && $parent ne "/"} {
+                lappend check_paths $parent
+            }
+        }
+        # don't complain about writable parent dirs of prefix or sources
+        set check_paths [list [file dirname $macports::prefix]]
+        foreach source $macports::sources {
+            set sourcedir [macports::getportdir [lindex $source 0]]
+            if {$sourcedir ni $check_paths} {
+                lappend check_paths $sourcedir
+            }
+        }
+        while {[llength $check_paths] > 0} {
+            set path [lindex $check_paths end]
+            set check_paths [lreplace ${check_paths}[set check_paths {}] end end]
+            set perms [file attributes $path -permissions]
+            if {!($perms & 0001) && $path ni $no_x_dirs} {
+                lappend no_x_dirs $path
+            }
+            if {!($perms & 0004) && $path ni $no_r_dirs} {
+                lappend no_r_dirs $path
+            }
+            set parent [file dirname $path]
+            if {$parent ni $check_paths && $parent ne "/"} {
+                lappend check_paths $parent
+            }
+        }
+        set problem 0
+        if {[llength $no_r_dirs] > 0} {
+            set problem 1
+            ui_warn "The following directories are not readable by all users:"
+            foreach p $no_r_dirs {
+                ui_msg "  $p"
+            }
+        }
+        if {[llength $no_x_dirs] > 0} {
+            set problem 1
+            ui_warn "The following directories are not searchable by all users:"
+            foreach p $no_x_dirs {
+                ui_msg "  $p"
+            }
+        }
+        if {[llength $ww_dirs] > 0} {
+            set problem 1
+            ui_warn "The following directories are writable by all users:"
+            foreach p $ww_dirs {
+                ui_msg "  $p"
+            }
+        }
+        if {$problem} {
+            ui_warn "Recommended directory permissions are 0755; use 'chmod 0755 <path>' to correct."
+        }
+    }
 }
