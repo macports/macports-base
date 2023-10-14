@@ -1504,7 +1504,7 @@ CurlCmd(
  * libcurl will never be cleaned (where should I plug the hook?)
  */
 void
-CurlInit()
+CurlInit(void)
 {
 	curl_global_init(CURL_GLOBAL_ALL);
 }
