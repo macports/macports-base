@@ -5239,6 +5239,14 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     set loadcommand [$architecture cget -mat_loadcmds]
 
                     while {$loadcommand ne "NULL"} {
+                        # see https://trac.macports.org/ticket/52700
+                        set LC_LOAD_WEAK_DYLIB 0x80000018
+                        if {[$loadcommand cget -mlt_type] == $LC_LOAD_WEAK_DYLIB} {
+                            ui_debug "[msgcat::mc "Skipping weakly-linked"] [$loadcommand cget -mlt_install_name]"
+                            set loadcommand [$loadcommand cget -next]
+                            continue
+                        }
+
                         try {
                             set filepath [revupgrade_handle_special_paths $bpath [$loadcommand cget -mlt_install_name]]
                         } trap {POSIX SIG SIGINT} {_ eOptions} {
