@@ -119,6 +119,7 @@ namespace eval diagnose {
         # Start the checks
         check_path $config_options(macports_location) $config_options(profile_path) $config_options(shell_location)
         check_macports_location
+        check_archs
         check_permissions
         check_xcode config_options
         check_for_app curl
@@ -842,6 +843,29 @@ namespace eval diagnose {
         }
         if {$problem} {
             ui_warn "Recommended directory permissions are 0755; use 'chmod 0755 <path>' to correct."
+        }
+    }
+
+    proc check_archs {} {
+        set known_archs [list arm64 i386 ppc ppc64 x86_64]
+        if {($macports::os_subplatform eq "macosx" && [llength $macports::build_arch] != 1)
+                || [llength $macports::build_arch] > 1} {
+            ui_warn "build_arch should contain one architecture name, but it is currently '$macports::build_arch'"
+        } elseif {$macports::build_arch ni $known_archs} {
+            ui_warn "build_arch should be one of '$known_archs', but it is currently '$macports::build_arch'"
+        }
+        if {$macports::os_subplatform eq "macosx" && [llength $macports::universal_archs] > 0} {
+            if {[llength $macports::build_arch] == 1 && $macports::build_arch ni $macports::universal_archs} {
+                ui_warn "universal_archs ($macports::universal_archs) should contain build_arch ($macports::build_arch)"
+            }
+            if {[llength $macports::universal_archs] < 2 && $macports::os_major ni [list 18 19]} {
+                ui_warn "universal_archs should contain at least 2 archs, but it is currently '$macports::universal_archs'"
+            }
+            foreach arch $macports::universal_archs {
+                if {$arch ni $known_archs} {
+                    ui_warn "universal_archs contains '$arch' which is not one of '$known_archs'"
+                }
+            }
         }
     }
 }
