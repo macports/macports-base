@@ -417,11 +417,13 @@ proc portlist_sortint { list } {
 proc portlist_sortdependents { portlist } {
     foreach p $portlist {
         array set pvals $p
-        lappend entries($pvals(name)) $p
-        if {![info exists dependents($pvals(name))]} {
-            set dependents($pvals(name)) {}
+        # normalise port name to lower case
+        set norm_name [string tolower $pvals(name)]
+        lappend entries($norm_name) $p
+        if {![info exists dependents($norm_name)]} {
+            set dependents($norm_name) [list]
             foreach result [registry::list_dependents $pvals(name)] {
-                lappend dependents($pvals(name)) [lindex $result 2]
+                lappend dependents($norm_name) [string tolower [lindex $result 2]]
             }
         }
         array unset pvals
@@ -439,7 +441,7 @@ proc portlist_sortdependents_helper {p up_entries up_dependents up_seen up_retli
         set seen($p) 1
         upvar $up_entries entries $up_dependents dependents $up_retlist retlist
         array set pvals $p
-        foreach dependent $dependents($pvals(name)) {
+        foreach dependent $dependents([string tolower $pvals(name)]) {
             if {[info exists entries($dependent)]} {
                 foreach entry $entries($dependent) {
                     portlist_sortdependents_helper $entry entries dependents seen retlist
