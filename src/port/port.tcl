@@ -986,11 +986,20 @@ proc get_dep_ports {portname recursive} {
 
     # look up portname
     if {[catch {mportlookup $portname} result]} {
-        ui_debug "$::errorInfo"
-        return -code error "lookup of portname $portname failed: $result"
-    }
-    if {[llength $result] < 2} {
-        return -code error "Port $portname not found"
+        ui_debug $::errorInfo
+        if {[macports::ui_isset ports_processall]} {
+            ui_error "lookup of portname $portname failed"
+            return [list]
+        } else {
+            return -code error "lookup of portname $portname failed: $result"
+        }
+    } elseif {[llength $result] < 2} {
+        if {[macports::ui_isset ports_processall]} {
+            ui_error "Port $portname not found"
+            return [list]
+        } else {
+            return -code error "Port $portname not found"
+        }
     }
     array unset portinfo
     array set portinfo [lindex $result 1]
@@ -998,16 +1007,21 @@ proc get_dep_ports {portname recursive} {
 
     # open portfile
     if {[catch {set mport [mportopen $porturl [list subport $portinfo(name)] [array get global_variations]]} result]} {
-        ui_debug "$::errorInfo"
-        return -code error "Unable to open port: $result"
+        ui_debug $::errorInfo
+        if {[macports::ui_isset ports_processall]} {
+            ui_error "Unable to open port $portinfo(name): $result"
+            return [list]
+        } else {
+            return -code error "Unable to open port $portinfo(name): $result"
+        }
     }
     array unset portinfo
     array set portinfo [mportinfo $mport]
     mportclose $mport
 
     # gather its deps
-    set results {}
-    set deptypes {depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test}
+    set results [list]
+    set deptypes [list depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test]
 
     set deplist {}
     foreach type $deptypes {
@@ -1031,10 +1045,10 @@ proc get_dep_ports {portname recursive} {
 
                     # look up the dep
                     if {[catch {mportlookup $depname} result]} {
-                        ui_debug "$::errorInfo"
-                        return -code error "lookup of portname $depname failed: $result"
-                    }
-                    if {[llength $result] < 2} {
+                        ui_debug $::errorInfo
+                        ui_error "lookup of portname $depname failed: $result"
+                        continue
+                    } elseif {[llength $result] < 2} {
                         ui_error "Port $depname not found"
                         continue
                     }
@@ -1044,8 +1058,8 @@ proc get_dep_ports {portname recursive} {
 
                     # open its portfile
                     if {[catch {set mport [mportopen $porturl [list subport $portinfo(name)] [array get global_variations]]} result]} {
-                        ui_debug "$::errorInfo"
-                        ui_error "Unable to open port: $result"
+                        ui_debug $::errorInfo
+                        ui_error "Unable to open port $depname: $result"
                         continue
                     }
                     array unset portinfo
@@ -1087,11 +1101,20 @@ proc get_subports {portname} {
 
     # look up portname
     if {[catch {mportlookup $portname} result]} {
-        ui_debug "$::errorInfo"
-        return -code error "lookup of portname $portname failed: $result"
-    }
-    if {[llength $result] < 2} {
-        return -code error "Port $portname not found"
+        ui_debug $::errorInfo
+        if {[macports::ui_isset ports_processall]} {
+            ui_error "lookup of portname $portname failed"
+            return [list]
+        } else {
+            return -code error "lookup of portname $portname failed: $result"
+        }
+    } elseif {[llength $result] < 2} {
+        if {[macports::ui_isset ports_processall]} {
+            ui_error "Port $portname not found"
+            return [list]
+        } else {
+            return -code error "Port $portname not found"
+        }
     }
     array unset portinfo
     array set portinfo [lindex $result 1]
@@ -1099,8 +1122,13 @@ proc get_subports {portname} {
 
     # open portfile
     if {[catch {set mport [mportopen $porturl [list subport $portinfo(name)] [array get global_variations]]} result]} {
-        ui_debug "$::errorInfo"
-        return -code error "Unable to open port: $result"
+        ui_debug $::errorInfo
+        if {[macports::ui_isset ports_processall]} {
+            ui_error "Unable to open port $portinfo(name): $result"
+            return [list]
+        } else {
+            return -code error "Unable to open port $portinfo(name): $result"
+        }
     }
     array unset portinfo
     array set portinfo [mportinfo $mport]
