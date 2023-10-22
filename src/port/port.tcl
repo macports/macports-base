@@ -4265,12 +4265,12 @@ proc action_target { action portlist opts } {
         }
         if {[catch {set workername [mportopen $porturl [array get options] [array get requested_variations]]} result]} {
             ui_debug $::errorInfo
-            break_softcontinue "Unable to open port: $result" 1 status
+            break_softcontinue "Unable to open port $portname: $result" 1 status
         }
         if {[catch {mportexec $workername $target} result]} {
             ui_debug $::errorInfo
             mportclose $workername
-            break_softcontinue "Unable to execute port: $result" 1 status
+            break_softcontinue "Unable to execute port $portname: $result" 1 status
         }
 
         mportclose $workername
