@@ -95,7 +95,7 @@ extern FILE *__darwintrace_stderr;
  * whether this process was fork(2)'d or clone(2)'d since the last call. Call
  * this before calling any other functions from this library.
  */
-void __darwintrace_setup();
+void __darwintrace_setup(void);
 
 /**
  * Close the darwintrace socket and set it to \c NULL. Since this uses \c
@@ -103,7 +103,7 @@ void __darwintrace_setup();
  * library and this library prevents closing the socket to MacPorts, we use \c
  * __darwintrace_close_sock to allow closing specific FDs.
  */
-void __darwintrace_close();
+void __darwintrace_close(void);
 
 /**
  * Check a path against the current sandbox
@@ -173,7 +173,7 @@ extern pthread_key_t sock_key;
  * consider this part of public API. It is only needed to prevent closing and
  * duplicating over darwintrace's socket FDs.
  */
-static inline FILE *__darwintrace_sock() {
+static inline FILE *__darwintrace_sock(void) {
 	return (FILE *) pthread_getspecific(sock_key);
 }
 
@@ -192,18 +192,18 @@ static inline void __darwintrace_sock_set(FILE *stream) {
 /**
  * Initialize TLS variables.
  */
-void __darwintrace_setup_tls();
+void __darwintrace_setup_tls(void);
 
 /**
  * Grab environment variables at startup.
  */
-void __darwintrace_store_env();
+void __darwintrace_store_env(void);
 
 /**
  * Runs our "constructors". By this point all of the system libraries we link
  * against should be fully initialized, so we can call their functions safely.
  * Once our initialization is complete we may begin interposing.
  */
-void __darwintrace_run_constructors() __attribute__((constructor));
+void __darwintrace_run_constructors(void) __attribute__((constructor));
 
 #endif /* defined(DARWINTRACE_USE_PRIVATE_API) */
