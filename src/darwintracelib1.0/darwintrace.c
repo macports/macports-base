@@ -130,12 +130,12 @@ volatile bool __darwintrace_initialized = false;
  * interposed functions might end up being called first) we'll run them manually
  * before we interpose anything.
  */
-static void (*constructors[])() = {
+static void (*constructors[])(void) = {
 	__darwintrace_setup_tls,
 	__darwintrace_store_env,
 };
 
-void __darwintrace_run_constructors() {
+void __darwintrace_run_constructors(void) {
 	for (size_t i = 0; i < sizeof(constructors) / sizeof(*constructors); ++i) {
 		constructors[i]();
 	}
@@ -153,7 +153,7 @@ static void __darwintrace_sock_destructor(FILE *dtsock) {
  * Setup method called as constructor to set up thread-local storage for the
  * thread id and the darwintrace socket.
  */
-void __darwintrace_setup_tls() {
+void __darwintrace_setup_tls(void) {
 	if (0 != (errno = pthread_key_create(&tid_key, NULL))) {
 		perror("darwintrace: pthread_key_create");
 		abort();
@@ -176,7 +176,7 @@ static inline pthread_t __darwintrace_tid() {
 /**
  * Convenience setter function for the thread-local darwintrace socket
  */
-static inline void __darwintrace_tid_set() {
+static inline void __darwintrace_tid_set(void) {
 	if (0 != (errno = pthread_setspecific(tid_key, (const void *) pthread_self()))) {
 		perror("darwintrace: pthread_setspecific");
 		abort();
@@ -290,7 +290,7 @@ static inline char *__darwintrace_filemap_iter(char *command, filemap_iterator_t
  * Request sandbox boundaries from tracelib (the MacPorts base-controlled side
  * of the trace setup) and store it.
  */
-static void __darwintrace_get_filemap() {
+static void __darwintrace_get_filemap(void) {
 	char *newfilemap;
 #if DARWINTRACE_DEBUG && 0
 	filemap_iterator_t it;
@@ -346,7 +346,7 @@ static void __darwintrace_get_filemap() {
  * library and this library prevents closing the socket to MacPorts, we use \c
  * __darwintrace_close_sock to allow closing specific FDs.
  */
-void __darwintrace_close() {
+void __darwintrace_close(void) {
 	FILE *dtsock = __darwintrace_sock();
 	if (dtsock) {
 		__darwintrace_close_sock = fileno(dtsock);
@@ -362,7 +362,7 @@ void __darwintrace_close() {
  * called after \c fork(2), i.e. when the current PID doesn't match the one
  * stored when the function was called last.
  */
-void __darwintrace_setup() {
+void __darwintrace_setup(void) {
 	/*
 	 * Check whether this is a child process and we've inherited the socket. We
 	 * want to avoid race conditions with our parent process when communicating
@@ -739,7 +739,7 @@ typedef struct {
  *
  * @return Pointer to the new path_t on success, NULL on error.
  */
-static path_t *path_new() {
+static path_t *path_new(void) {
 	path_t *path = NULL;
 
 	path = malloc(sizeof(path_t));

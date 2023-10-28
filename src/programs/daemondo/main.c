@@ -408,14 +408,14 @@ MonitorChild(pid_t childPid)
 
 
 void
-UnmonitorChild()
+UnmonitorChild(void)
 {
     runningPid = 0;
 }
 
 
 int
-MonitoringChild()
+MonitoringChild(void)
 {
     return runningPid != 0;
 }

@@ -344,7 +344,7 @@ error_out:
 }
 #endif
 
-int main() {
+int main(void) {
 #ifdef __MACH__
 	bool result = true;
 	result &= test_destroy_null();

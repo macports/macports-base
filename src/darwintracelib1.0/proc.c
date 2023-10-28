@@ -74,7 +74,7 @@ static char *__env_full_darwintrace_log;
  * Copy the environment variables, if they're defined. This is run as
  * a constructor at startup.
  */
-void __darwintrace_store_env() {
+void __darwintrace_store_env(void) {
 #define COPYENV(name, variable, valuevar) do {\
 		char *val;\
 		if (NULL != (val = getenv(#name))) {\
