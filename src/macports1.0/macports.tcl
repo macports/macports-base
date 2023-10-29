@@ -5538,8 +5538,16 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         set status 0
         array set my_options [array get macports::global_options]
         set my_options(ports_revupgrade) yes
+
+        # Depending on the options, calling macports::upgrade could
+        # uninstall later entries in this list. So get the info we need
+        # from all the entries first.
+        set topsort_portnames [list]
         foreach port $topsort_ports {
-            set portname [$port name]
+            lappend topsort_portnames [$port name]
+            #registry::entry close $port
+        }
+        foreach portname $topsort_portnames {
             if {![info exists depscache(port:$portname)]} {
                 unset -nocomplain my_options(ports_revupgrade_second_run) \
                                   my_options(ports_nodeps)
@@ -5561,7 +5569,6 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     error "Error rebuilding $portname"
                 }
             }
-            #registry::entry close $port
         }
 
         if {[info exists options(ports_dryrun)] && $options(ports_dryrun)} {
