@@ -4179,6 +4179,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     if {[catch {$regref cxx_stdlib_overridden} cxx_stdlib_overridden]} {
         set cxx_stdlib_overridden 0
     }
+    if {[info exists options(ports_do_dependents)]} {
+        set dependents_list [$regref dependents]
+    }
 
     # Before we do
     # dependencies, we need to figure out the final variants,
@@ -4371,10 +4374,13 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             # We do dependents ..
             set options(ports_nodeps) 1
 
-            set deplist [$regref dependents]
-
-            foreach dep $deplist {
-                set mpname [$dep name]
+            # Get names from all registry entries in advance, since the
+            # recursive upgrade calls could invalidate them.
+            set dependents_names [list]
+            foreach dep $dependents_list {
+                lappend dependents_names [$dep name]
+            }
+            foreach mpname $dependents_names {
                 if {![info exists depscache(port:$mpname)]} {
                     set status [macports::_upgrade $mpname port:$mpname $variationslist [array get options] depscache]
                     if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
@@ -4533,14 +4539,16 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             if {![info exists newregref]} {
                 set newregref [registry::entry open $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants) ""]
             }
-            set deplist [$newregref dependents]
-        } else {
-            set deplist [list]
+            lappend dependents_list {*}[$newregref dependents]
         }
-        set deplist [concat $deplist [$regref dependents]]
 
-        foreach dep $deplist {
-            set mpname [$dep name]
+        # Get names from all registry entries in advance, since the
+        # recursive upgrade calls could invalidate them.
+        set dependents_names [list]
+        foreach dep $dependents_list {
+            lappend dependents_names [$dep name]
+        }
+        foreach mpname $dependents_names {
             if {![info exists depscache(port:$mpname)]} {
                 set status [macports::_upgrade $mpname port:$mpname $variationslist [array get options] depscache]
                 if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
@@ -5443,7 +5451,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         array set visited {}
         foreach port $broken_ports {
             # stack of broken nodes we've come across
-            set stack {}
+            set stack [list]
             lappend stack $port
 
             # build graph
