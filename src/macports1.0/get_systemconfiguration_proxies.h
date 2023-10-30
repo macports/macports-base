@@ -34,7 +34,7 @@
 
 #include <tcl.h> 
 
-int GetSystemConfigurationProxiesCmd( ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[] ); 
+int GetSystemConfigurationProxiesCmd( ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[] ); 
 
 #endif   /* _GETSYSTEMCONFIGURATIONPROXIES_H */
 

@@ -174,7 +174,7 @@ static int vercmp_op(const char *versionA, const char *operator, const char *ver
     return -1;
 }
 
-int VercompCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int VercompCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	Tcl_Obj *tcl_result;
 	const char *versionA, *versionB, *operator;

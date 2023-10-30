@@ -29,4 +29,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-int PipeCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
+int PipeCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *const objv[]);

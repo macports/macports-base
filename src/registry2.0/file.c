@@ -78,7 +78,7 @@ void delete_file(ClientData clientData) {
  *
  * Opens a file matching the given parameters.
  */
-static int file_open(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int file_open(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) {
 	reg_registry* reg = registry_for(interp, reg_attached);
 	if (objc != 4) {
 		Tcl_WrongNumArgs(interp, 1, objv, "open portid path");
@@ -107,7 +107,7 @@ static int file_open(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
  *
  * Closes a file. It will remain in the registry.
  */
-static int file_close(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int file_close(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) {
 	if (objc != 3) {
 		Tcl_WrongNumArgs(interp, 1, objv, "close file");
 		return TCL_ERROR;
@@ -146,7 +146,7 @@ static strategy_type strategies[] = {
  * For each key, can be given an option of -exact, -glob, -regexp or -null to
  * specify the matching strategy; defaults to exact.
  */
-static int file_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int file_search(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) {
     int i, j;
     reg_registry* reg = registry_for(interp, reg_attached);
     if (reg == NULL) {
@@ -271,7 +271,7 @@ static int file_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
 
 typedef struct {
     char* name;
-    int (*function)(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+    int (*function)(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
 } file_cmd_type;
 
 static file_cmd_type file_cmds[] = {
@@ -288,7 +288,7 @@ static file_cmd_type file_cmds[] = {
  * Commands manipulating file entries in the registry. This can be called `registry::file`
  */
 int file_cmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc,
-        Tcl_Obj* CONST objv[]) {
+        Tcl_Obj* const objv[]) {
     int cmd_index;
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "cmd ?arg ...?");

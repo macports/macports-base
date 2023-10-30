@@ -30,4 +30,4 @@
  */
 
 /* Read-only wrapper for sysctlbyname(3) */
-int SysctlCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
+int SysctlCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *const objv[]);

@@ -46,7 +46,7 @@
  *
  * Synopsis: readdir directory
  */
-int ReaddirCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int ReaddirCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	DIR *dirp;
 	struct dirent *mp;

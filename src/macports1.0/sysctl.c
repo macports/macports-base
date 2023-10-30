@@ -51,7 +51,7 @@
 /*
  * Read-only wrapper for sysctlbyname(3). Only works for values of type CTLTYPE_INT and CTLTYPE_QUAD.
  */
-int SysctlCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int SysctlCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 #if defined HAVE_SYSCTLBYNAME && !defined __linux__
     const char error_message[] = "sysctl failed: ";

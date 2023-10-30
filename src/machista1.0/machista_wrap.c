@@ -828,8 +828,8 @@ typedef struct swig_const_info {
     swig_type_info **ptype;
 } swig_const_info;
 
-typedef int   (*swig_wrapper)(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST []);
-typedef int   (*swig_wrapper_func)(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST []);
+typedef int   (*swig_wrapper)(ClientData, Tcl_Interp *, int, Tcl_Obj *const []);
+typedef int   (*swig_wrapper_func)(ClientData, Tcl_Interp *, int, Tcl_Obj *const []);
 typedef char *(*swig_variable_func)(ClientData, Tcl_Interp *, char *, char *, int);
 typedef void  (*swig_delete_func)(ClientData);
 
@@ -868,7 +868,7 @@ typedef struct swig_instance {
 /* Structure for command table */
 typedef struct {
   const char *name;
-  int       (*wrapper)(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST []);
+  int       (*wrapper)(ClientData, Tcl_Interp *, int, Tcl_Obj *const []);
   ClientData  clientdata;
 } swig_command_info;
 
@@ -1213,7 +1213,7 @@ SWIG_Tcl_ObjectDelete(ClientData clientData) {
 
 /* Function to invoke object methods given an instance */
 SWIGRUNTIME int
-SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST _objv[]) {
+SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const _objv[]) {
   char *method,   *attrname;
   swig_instance   *inst = (swig_instance *) clientData;
   swig_method     *meth;
@@ -1418,7 +1418,7 @@ SWIG_Tcl_NewInstanceObj(Tcl_Interp *interp, void *thisvalue, swig_type_info *typ
 
 /* Function to create objects */
 SWIGRUNTIME int
-SWIG_Tcl_ObjectConstructor(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+SWIG_Tcl_ObjectConstructor(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   Tcl_Obj          *newObj = 0;
   void             *thisvalue = 0;
   swig_instance   *newinst = 0;
@@ -1498,7 +1498,7 @@ SWIG_Tcl_ObjectConstructor(ClientData clientData, Tcl_Interp *interp, int objc, 
  *   Get arguments 
  * -----------------------------------------------------------------------------*/
 SWIGRUNTIME int
-SWIG_Tcl_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fmt, ...) {
+SWIG_Tcl_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], const char *fmt, ...) {
   int        argno = 0, opt = 0;
   long       tempi;
   double     tempd;
@@ -1854,7 +1854,7 @@ static swig_class *swig_macho_handle_bases[] = {0};
 static const char * swig_macho_handle_base_names[] = {0};
 static swig_class _wrap_class_macho_handle = { "macho_handle", &SWIGTYPE_p_macho_handle,0,0, swig_macho_handle_methods, swig_macho_handle_attributes, swig_macho_handle_bases,swig_macho_handle_base_names, &swig_module };
 SWIGINTERN int
-_wrap_macho_loadcmd_mlt_install_name_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_macho_loadcmd_mlt_install_name_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho_loadcmd *arg1 = (struct macho_loadcmd *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -1875,7 +1875,7 @@ fail:
 
 
 SWIGINTERN int
-_wrap_macho_loadcmd_mlt_type_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_macho_loadcmd_mlt_type_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho_loadcmd *arg1 = (struct macho_loadcmd *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -1896,7 +1896,7 @@ fail:
 
 
 SWIGINTERN int
-_wrap_macho_loadcmd_mlt_comp_version_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_macho_loadcmd_mlt_comp_version_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho_loadcmd *arg1 = (struct macho_loadcmd *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -1917,7 +1917,7 @@ fail:
 
 
 SWIGINTERN int
-_wrap_macho_loadcmd_mlt_version_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_macho_loadcmd_mlt_version_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho_loadcmd *arg1 = (struct macho_loadcmd *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -1938,7 +1938,7 @@ fail:
 
 
 SWIGINTERN int
-_wrap_macho_loadcmd_next_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_macho_loadcmd_next_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho_loadcmd *arg1 = (struct macho_loadcmd *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -1973,7 +1973,7 @@ static swig_class *swig_macho_loadcmd_bases[] = {0};
 static const char * swig_macho_loadcmd_base_names[] = {0};
 static swig_class _wrap_class_macho_loadcmd = { "macho_loadcmd", &SWIGTYPE_p_macho_loadcmd,0,0, swig_macho_loadcmd_methods, swig_macho_loadcmd_attributes, swig_macho_loadcmd_bases,swig_macho_loadcmd_base_names, &swig_module };
 SWIGINTERN int
-_wrap_macho_arch_mat_install_name_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_macho_arch_mat_install_name_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho_arch *arg1 = (struct macho_arch *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -1994,7 +1994,7 @@ fail:
 
 
 SWIGINTERN int
-_wrap_macho_arch_mat_rpath_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_macho_arch_mat_rpath_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho_arch *arg1 = (struct macho_arch *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -2015,7 +2015,7 @@ fail:
 
 
 SWIGINTERN int
-_wrap_macho_arch_mat_arch_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_macho_arch_mat_arch_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho_arch *arg1 = (struct macho_arch *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -2036,7 +2036,7 @@ fail:
 
 
 SWIGINTERN int
-_wrap_macho_arch_mat_comp_version_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_macho_arch_mat_comp_version_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho_arch *arg1 = (struct macho_arch *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -2057,7 +2057,7 @@ fail:
 
 
 SWIGINTERN int
-_wrap_macho_arch_mat_version_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_macho_arch_mat_version_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho_arch *arg1 = (struct macho_arch *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -2078,7 +2078,7 @@ fail:
 
 
 SWIGINTERN int
-_wrap_macho_arch_mat_loadcmds_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_macho_arch_mat_loadcmds_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho_arch *arg1 = (struct macho_arch *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -2099,7 +2099,7 @@ fail:
 
 
 SWIGINTERN int
-_wrap_macho_arch_next_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_macho_arch_next_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho_arch *arg1 = (struct macho_arch *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -2136,7 +2136,7 @@ static swig_class *swig_macho_arch_bases[] = {0};
 static const char * swig_macho_arch_base_names[] = {0};
 static swig_class _wrap_class_macho_arch = { "macho_arch", &SWIGTYPE_p_macho_arch,0,0, swig_macho_arch_methods, swig_macho_arch_attributes, swig_macho_arch_bases,swig_macho_arch_base_names, &swig_module };
 SWIGINTERN int
-_wrap_macho_mt_archs_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_macho_mt_archs_get(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho *arg1 = (struct macho *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -2167,7 +2167,7 @@ static swig_class *swig_macho_bases[] = {0};
 static const char * swig_macho_base_names[] = {0};
 static swig_class _wrap_class_macho = { "macho", &SWIGTYPE_p_macho,0,0, swig_macho_methods, swig_macho_attributes, swig_macho_bases,swig_macho_base_names, &swig_module };
 SWIGINTERN int
-_wrap_create_handle(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_create_handle(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho_handle *result = 0 ;
   
   if (SWIG_GetArgs(interp, objc, objv,":machista::create_handle ") == TCL_ERROR) SWIG_fail;
@@ -2180,7 +2180,7 @@ fail:
 
 
 SWIGINTERN int
-_wrap_destroy_handle(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_destroy_handle(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho_handle *arg1 = (struct macho_handle *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -2200,7 +2200,7 @@ fail:
 
 
 SWIGINTERN int
-_wrap_parse_file(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_parse_file(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   struct macho_handle *arg1 = (struct macho_handle *) 0 ;
   char *arg2 = (char *) 0 ;
   struct macho **arg3 = (struct macho **) 0 ;
@@ -2240,7 +2240,7 @@ fail:
 
 
 SWIGINTERN int
-_wrap_strerror(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_strerror(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   int arg1 ;
   int val1 ;
   int ecode1 = 0 ;
@@ -2261,7 +2261,7 @@ fail:
 
 
 SWIGINTERN int
-_wrap_get_arch_name(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_get_arch_name(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   cpu_type_t arg1 ;
   int val1 ;
   int ecode1 = 0 ;
@@ -2282,7 +2282,7 @@ fail:
 
 
 SWIGINTERN int
-_wrap_format_dylib_version(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_format_dylib_version(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   uint32_t arg1 ;
   unsigned int val1 ;
   int ecode1 = 0 ;

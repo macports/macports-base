@@ -37,6 +37,6 @@
 extern const char* portgroup_props[];
 
 int portgroup_obj_cmd(ClientData clientData, Tcl_Interp* interp, int objc,
-        Tcl_Obj* CONST objv[]);
+        Tcl_Obj* const objv[]);
 
 #endif /* _PORTGROUP_OBJ_CMD_H */

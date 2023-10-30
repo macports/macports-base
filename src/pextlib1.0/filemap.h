@@ -85,7 +85,7 @@
  * filemap unset filemapVarName path
  *	remove a key,value pair from the database.
  */
-int FilemapCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+int FilemapCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
 
 #endif
 		/* _FILEMAP_H */

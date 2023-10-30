@@ -42,6 +42,6 @@ typedef struct {
 extern const char* entry_props[];
 
 int entry_obj_cmd(ClientData clientData, Tcl_Interp* interp, int objc,
-        Tcl_Obj* CONST objv[]);
+        Tcl_Obj* const objv[]);
 
 #endif /* _ENTRY_OBJ_CMD_H */

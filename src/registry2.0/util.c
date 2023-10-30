@@ -99,7 +99,7 @@ char* unique_name(Tcl_Interp* interp, char* prefix, unsigned int* lower_bound) {
  * use for this yet, so it's not a priority, but it should be there for
  * completeness.
  */
-int parse_flags(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[], int* start,
+int parse_flags(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[], int* start,
         option_spec options[], int* flags) {
     int i;
     int index;

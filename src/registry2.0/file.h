@@ -37,7 +37,7 @@
 void delete_file(ClientData clientData);
 
 int file_cmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc,
-        Tcl_Obj* CONST objv[]);
+        Tcl_Obj* const objv[]);
 
 #endif /* _FILE_H */
 

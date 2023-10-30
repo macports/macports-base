@@ -50,7 +50,7 @@
 
 #include "mktemp.h"
 
-int MkdtempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int MkdtempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	char *template, *sp;
 	Tcl_Obj *tcl_result;
@@ -76,7 +76,7 @@ int MkdtempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 	return TCL_OK;
 }
 
-int MktempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int MktempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	char *template, *sp;
 	Tcl_Obj *tcl_result;
@@ -102,7 +102,7 @@ int MktempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	return TCL_OK;
 }
 
-int MkstempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int MkstempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	Tcl_Channel channel;
 	char *template, *channelname;

@@ -58,7 +58,7 @@
  *      tracelib enablefence
  *          - enable dep/sandbox checking
  */
-int TracelibCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+int TracelibCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
 
 #endif
 /* _PEXTLIB_TRACELIB_H */

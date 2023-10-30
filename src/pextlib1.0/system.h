@@ -29,4 +29,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-int SystemCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
+int SystemCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *const objv[]);

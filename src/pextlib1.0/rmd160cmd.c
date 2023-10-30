@@ -75,7 +75,7 @@ CHECKSUMFile(RMD160, RMD160_CTX)
 CHECKSUMData(RMD160, RMD160_CTX)
 #endif
 
-int RMD160Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int RMD160Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	char *file, *instr, *action;
 	int inlen;

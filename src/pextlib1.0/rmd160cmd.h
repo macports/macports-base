@@ -37,7 +37,7 @@
 /**
  * A native command for rmd160 checksums.
  */
-int RMD160Cmd(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
+int RMD160Cmd(ClientData, Tcl_Interp *, int, Tcl_Obj *const objv[]);
 
 #endif
 	/* _RMD160CMD_H */
