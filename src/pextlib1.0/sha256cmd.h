@@ -37,7 +37,7 @@
 /**
  * A native command for sha256 checksums.
  */
-int SHA256Cmd(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
+int SHA256Cmd(ClientData, Tcl_Interp *, int, Tcl_Obj *const objv[]);
 
 #endif
 	/* _SHA256CMD_H */

@@ -334,7 +334,7 @@ static int error2tcl(const char *msg, int err, Tcl_Interp *interp) {
  * \param[in] objv the parameters
  * \return a Tcl return code
  */
-static int TracelibSetNameCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+static int TracelibSetNameCmd(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "number of arguments should be exactly 3");
         return TCL_ERROR;
@@ -363,7 +363,7 @@ static int TracelibSetNameCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
  * \param[in] objv the parameters
  * \return a Tcl return code
  */
-static int TracelibSetSandboxCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+static int TracelibSetSandboxCmd(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     char *src, *dst;
     enum { NORMAL, ACTION, ESCAPE } state = NORMAL;
 
@@ -1038,7 +1038,7 @@ static int TracelibCloseSocketCmd(Tcl_Interp *interp UNUSED) {
     return TCL_OK;
 }
 
-static int TracelibSetDeps(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+static int TracelibSetDeps(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     Tcl_Obj **objects;
     int length;
     if (objc != 3) {
@@ -1095,7 +1095,7 @@ static int TracelibEnableFence(Tcl_Interp *interp UNUSED) {
 }
 #endif /* defined(HAVE_TRACEMODE_SUPPORT) */
 
-int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     int result = TCL_OK;
 
     /* There is no args for commands now. */

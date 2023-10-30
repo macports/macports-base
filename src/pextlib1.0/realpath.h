@@ -43,6 +43,6 @@
  *  Fixes a problem with Tcl installations affected by not defining HAVE_REALPATH (this is
  *  the case with the Tcl in Mac OS X prior to 10.6)
  */
-int RealpathCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+int RealpathCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
 
 #endif /* _REALPATH_H */

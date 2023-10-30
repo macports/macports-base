@@ -50,7 +50,7 @@
  * Return a list with the file descriptors of the pipe. The first item is the
  * readable fd.
  */
-int PipeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int PipeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	Tcl_Obj* result;
 	int fildes[2];

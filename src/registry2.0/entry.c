@@ -95,7 +95,7 @@ static int list_obj_to_entry(Tcl_Interp* interp, reg_entry*** entries,
  * required. That's OK because there's only one place this function is called,
  * and it's called with all of them there.
  */
-static int entry_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int entry_create(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
     if (objc != 7) {
         Tcl_WrongNumArgs(interp, 2, objv, "name version revision variants "
@@ -129,7 +129,7 @@ static int entry_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
  * Deletes an entry from the registry (then closes it). If this is done within a
  * transaction and the transaction is rolled back, the entry will remain valid.
  */
-static int entry_delete(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int entry_delete(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 1, objv, "delete entry");
@@ -187,7 +187,7 @@ static int entry_delete(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
  *
  * Opens an entry matching the given parameters.
  */
-static int entry_open(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int entry_open(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
     if (objc != 7) {
         Tcl_WrongNumArgs(interp, 1, objv, "open portname version revision "
@@ -221,7 +221,7 @@ static int entry_open(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
  *
  * Closes an entry. It will remain in the registry until next time.
  */
-static int entry_close(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int entry_close(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) {
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 1, objv, "close entry");
         return TCL_ERROR;
@@ -260,7 +260,7 @@ static strategy_type strategies[] = {
  * Can be given an option of -exact, -glob, -regexp or -null to specify the
  * matching strategy; defaults to exact.
  */
-static int entry_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST *objv) {
+static int entry_search(Tcl_Interp* interp, int objc, Tcl_Obj* const *objv) {
     reg_registry *reg = registry_for(interp, reg_attached);
     if (!reg) {
         return TCL_ERROR;
@@ -355,7 +355,7 @@ cleanup_error:
  * simply checks if the given string is a valid entry object in the current
  * interp. No query to the database will be made.
  */
-static int entry_exists(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int entry_exists(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) {
     reg_error error;
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "name");
@@ -389,7 +389,7 @@ static int entry_exists(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
  *
  * TODO: add more arguments (epoch, revision, variants), maybe
  */
-static int entry_imaged(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int entry_imaged(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
     if (objc == 5 || objc > 6) {
         Tcl_WrongNumArgs(interp, 2, objv, "?name ?version ?revision variants???");
@@ -432,7 +432,7 @@ static int entry_imaged(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
  * installed ports in 'direct' mode. That is, any port which is capable of
  * satisfying a dependency.
  */
-static int entry_installed(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]){
+static int entry_installed(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]){
     reg_registry* reg = registry_for(interp, reg_attached);
     if (objc > 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "?name?");
@@ -470,7 +470,7 @@ static int entry_installed(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]){
  *
  * Returns the port that owns the given filename (empty string if none).
  */
-static int entry_owner(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
+static int entry_owner(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
     int cs = 1;
 
@@ -508,7 +508,7 @@ static int entry_owner(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
 
 typedef struct {
     char* name;
-    int (*function)(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+    int (*function)(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
 } entry_cmd_type;
 
 static entry_cmd_type entry_cmds[] = {
@@ -533,7 +533,7 @@ static entry_cmd_type entry_cmds[] = {
  * represents ports too, but not those in the registry.
  */
 int entry_cmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc,
-        Tcl_Obj* CONST objv[]) {
+        Tcl_Obj* const objv[]) {
     int cmd_index;
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "cmd ?arg ...?");

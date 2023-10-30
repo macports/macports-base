@@ -53,7 +53,7 @@
  * @param objc			number of parameters
  * @param objv			parameters
  */
-int RealpathCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int RealpathCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
     const char error_message[] = "realpath failed: ";
     Tcl_Obj *tcl_result;

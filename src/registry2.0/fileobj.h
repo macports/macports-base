@@ -38,6 +38,6 @@
 extern const char* file_props[];
 
 int file_obj_cmd(ClientData clientData, Tcl_Interp* interp, int objc,
-        Tcl_Obj* CONST objv[]);
+        Tcl_Obj* const objv[]);
 
 #endif /* _FILE_OBJ_CMD_H */

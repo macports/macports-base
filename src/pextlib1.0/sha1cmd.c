@@ -73,7 +73,7 @@ CHECKSUMFile(SHA1_, SHA_CTX)
 #error CommonCrypto, libmd or libcrypto required
 #endif
 
-int SHA1Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int SHA1Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	char *file, *action;
 	char buf[2*SHA_DIGEST_LENGTH + 1];

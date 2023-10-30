@@ -46,7 +46,7 @@
 #include "tty.h"
 
 int
-IsattyCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+IsattyCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
     Tcl_Obj *tcl_result;
     Tcl_Channel chan;
@@ -80,7 +80,7 @@ IsattyCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *C
 }
 
 int
-TermGetSizeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+TermGetSizeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
     Tcl_Obj *tcl_result;
     Tcl_Channel chan;

@@ -36,6 +36,6 @@
 void delete_portgroup(ClientData clientData);
 
 int portgroup_cmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc,
-        Tcl_Obj* CONST objv[]);
+        Tcl_Obj* const objv[]);
 
 #endif /* _PORTGROUP_H */

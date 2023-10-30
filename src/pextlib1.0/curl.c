@@ -87,10 +87,10 @@ static CURL* theHandle = NULL;
  * ------------------------------------------------------------------------- */
 int SetResultFromCurlErrorCode(Tcl_Interp* interp, CURLcode inErrorCode);
 int SetResultFromCurlMErrorCode(Tcl_Interp* interp, CURLMcode inErrorCode);
-int CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
-int CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
-int CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
-int CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+int CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
+int CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
+int CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
+int CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
 
 typedef struct {
 	Tcl_Interp *interp;
@@ -163,7 +163,7 @@ SetResultFromCurlMErrorCode(Tcl_Interp *interp, CURLMcode inErrorCode)
  * @param objv			parameters
  */
 int
-CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theResult = TCL_OK;
 	bool handleAdded = false;
@@ -756,7 +756,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
  * @param objv			parameters
  */
 int
-CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theResult = TCL_OK;
 	FILE* theFile = NULL;
@@ -992,7 +992,7 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
  * @param objv			parameters
  */
 int
-CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theResult = TCL_OK;
 	FILE* theFile = NULL;
@@ -1200,7 +1200,7 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
  * @param objv			parameters
  */
 int
-CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theResult = TCL_OK;
 	FILE* theFile = NULL;
@@ -1448,7 +1448,7 @@ CurlCmd(
 		ClientData clientData UNUSED,
 		Tcl_Interp* interp,
 		int objc,
-		Tcl_Obj* CONST objv[])
+		Tcl_Obj* const objv[])
 {
 	typedef enum {
 		kCurlFetch,

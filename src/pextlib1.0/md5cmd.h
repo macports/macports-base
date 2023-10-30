@@ -29,4 +29,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-int MD5Cmd(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
+int MD5Cmd(ClientData, Tcl_Interp *, int, Tcl_Obj *const objv[]);

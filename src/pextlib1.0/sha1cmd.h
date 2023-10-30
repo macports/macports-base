@@ -30,4 +30,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-int SHA1Cmd(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
+int SHA1Cmd(ClientData, Tcl_Interp *, int, Tcl_Obj *const objv[]);

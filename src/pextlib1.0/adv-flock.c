@@ -60,7 +60,7 @@ static void alarmHandler(int sig UNUSED) {
 }
 
 int
-AdvFlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+AdvFlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     static const char errorstr[] = "use one of \"-shared\", \"-exclusive\", or \"-unlock\", and optionally \"-noblock\"";
     int operation = 0, fd, i, ret, sigret = TCL_OK;
     int errnoval = 0;

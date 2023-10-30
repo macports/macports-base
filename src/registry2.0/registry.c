@@ -200,7 +200,7 @@ reg_registry* registry_for(Tcl_Interp* interp, int status) {
 }
 
 static int registry_open(ClientData clientData UNUSED, Tcl_Interp* interp,
-        int objc, Tcl_Obj* CONST objv[]) {
+        int objc, Tcl_Obj* const objv[]) {
     if (objc != 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "db-file");
         return TCL_ERROR;
@@ -224,7 +224,7 @@ static int registry_open(ClientData clientData UNUSED, Tcl_Interp* interp,
 }
 
 static int registry_close(ClientData clientData UNUSED, Tcl_Interp* interp,
-        int objc, Tcl_Obj* CONST objv[]) {
+        int objc, Tcl_Obj* const objv[]) {
     if (objc != 1) {
         Tcl_WrongNumArgs(interp, 1, objv, NULL);
         return TCL_ERROR;
@@ -252,7 +252,7 @@ static int registry_close(ClientData clientData UNUSED, Tcl_Interp* interp,
 }
 
 static int registry_read(ClientData clientData UNUSED, Tcl_Interp* interp,
-        int objc, Tcl_Obj* CONST objv[]) {
+        int objc, Tcl_Obj* const objv[]) {
     if (objc != 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "command");
         return TCL_ERROR;
@@ -288,7 +288,7 @@ static int registry_read(ClientData clientData UNUSED, Tcl_Interp* interp,
 }
 
 static int registry_write(ClientData clientData UNUSED, Tcl_Interp* interp,
-        int objc, Tcl_Obj* CONST objv[]) {
+        int objc, Tcl_Obj* const objv[]) {
     if (objc != 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "command");
         return TCL_ERROR;
@@ -343,7 +343,7 @@ static int registry_write(ClientData clientData UNUSED, Tcl_Interp* interp,
  * Commands manipulating metadata in the registry. This can be called `registry::metadata`
  */
 int metadata_cmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc,
-        Tcl_Obj* CONST objv[]) {
+        Tcl_Obj* const objv[]) {
     if (objc < 3) {
         Tcl_WrongNumArgs(interp, 1, objv, "cmd key ?value?");
         return TCL_ERROR;
