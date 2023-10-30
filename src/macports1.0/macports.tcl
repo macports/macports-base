@@ -4404,26 +4404,26 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             # but we don't know if we want to do this at that point.
             $workername eval {set force_archive_refresh yes}
 
-            # run archivefetch and destroot for version_in_tree
+            # run archivefetch and (if needed) destroot for version_in_tree
             # doing this instead of just running install ensures that we have the
             # new copy ready but not yet installed, so we can safely uninstall the
             # existing one.
+            set archivefetch_failed 0
             if {[catch {mportexec $mport archivefetch} result]} {
                 ui_debug $::errorInfo
-                _upgrade_cleanup
-                return 1
+                set archivefetch_failed 1
             } elseif {$result != 0} {
-                _upgrade_cleanup
-                return 1
+                set archivefetch_failed 1
             }
-            # the following is a noop if archivefetch found an archive
-            if {[catch {mportexec $mport destroot} result]} {
-                ui_debug $::errorInfo
-                _upgrade_cleanup
-                return 1
-            } elseif {$result != 0} {
-                _upgrade_cleanup
-                return 1
+            if {$archivefetch_failed || [$workername eval [list find_portarchive_path]] eq ""} {
+                if {[catch {mportexec $mport destroot} result]} {
+                    ui_debug $::errorInfo
+                    _upgrade_cleanup
+                    return 1
+                } elseif {$result != 0} {
+                    _upgrade_cleanup
+                    return 1
+                }
             }
         } else {
             # Normal non-forced case
