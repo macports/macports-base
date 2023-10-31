@@ -56,7 +56,7 @@ void delete_snapshot(ClientData clientData) {
 }
 
 /*
- * registry::snaphot create note
+ * registry::snapshot create note
  * note is required
  */
 static int snapshot_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
@@ -69,10 +69,10 @@ static int snapshot_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) 
     } else {
         char* note = Tcl_GetString(objv[2]);
         reg_error error;
-        reg_snapshot* new_snaphot = reg_snapshot_create(reg, note, &error);
-        if (new_snaphot != NULL) {
+        reg_snapshot* new_snapshot = reg_snapshot_create(reg, note, &error);
+        if (new_snapshot != NULL) {
             Tcl_Obj* result;
-            if (snapshot_to_obj(interp, &result, new_snaphot, NULL, &error)) {
+            if (snapshot_to_obj(interp, &result, new_snapshot, NULL, &error)) {
                 Tcl_SetObjResult(interp, result);
                 return TCL_OK;
             }
@@ -82,7 +82,7 @@ static int snapshot_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) 
 }
 
 /*
- * registry::snaphot get snapshot_id
+ * registry::snapshot get snapshot_id
  * snapshot_id is required
  */
 static int snapshot_get(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
@@ -108,7 +108,7 @@ static int snapshot_get(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
 }
 
 /*
- * registry::snaphot get_last
+ * registry::snapshot get_last
  */
 static int snapshot_get_last(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
@@ -140,7 +140,7 @@ static int snapshot_get_last(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]
 }
 
 /*
- * registry::snaphot get_all
+ * registry::snapshot get_all
  */
 static int snapshot_get_list(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
