@@ -41,11 +41,6 @@
 // TODO: extend it to support requested variants
 
 typedef struct {
-    char* variant_name;
-    char* variant_sign;
-} variant;
-
-typedef struct {
     char* name;     /* port name */
     int requested;  /* 1 if port os requested, else 0 */
     char* state;    /* 'imaged' or 'installed' */
@@ -61,9 +56,6 @@ typedef struct {
     char* proc; /* name of Tcl proc, if using Tcl */
 } reg_snapshot;
 
-// helper to parse variants into 'struct variant' form
-int get_parsed_variants(char* variants_str, variant* all_variants,
-    char* delim, int* variant_count);
 // get snapshot using id
 reg_snapshot* reg_snapshot_open(reg_registry* reg, sqlite_int64 id,
         reg_error* errPtr);

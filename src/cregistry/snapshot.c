@@ -42,32 +42,6 @@
 #include <string.h>
 
 /**
- * helper to parse variants into 'struct variant' form
- *
- * @param [in] variants_str     the string to parse the variants from
- * @param [in] delim            delimiter '+' for +ve variants, else '-'
- * @param [out] all_variants    list of 'struct variant's
- * @param [out] variant_count   count of variants parsed till now
- * @return                      false
- */
-
-int get_parsed_variants(char* variants_str, variant* all_variants,
-    char* delim, int* variant_count) {
-
-    char *token;
-    char *rest = variants_str;
-    while ((token = strtok_r(rest, delim, &rest))) {
-        variant v;
-        v.variant_name = token;
-        v.variant_sign = delim;
-
-        *(all_variants + *variant_count) = v;
-        *variant_count = *variant_count + 1;
-    }
-    return 0;
-}
-
-/**
  * Converts a `sqlite3_stmt` into a `reg_snapshot`. The first column of the stmt's
  * row must be the id of an snapshot; the second either `SQLITE_NULL` or the
  * address of the snapshot in memory.
