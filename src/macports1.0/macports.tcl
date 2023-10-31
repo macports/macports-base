@@ -2520,7 +2520,7 @@ proc macports::_upgrade_mport_deps {mport target} {
 
                 # check that the dep has the required archs
                 set active_archs [_active_archs $dep_portname]
-                if {$deptype ni {depends_fetch depends_extract} && $active_archs ni {{} noarch}
+                if {[_deptype_needs_archcheck $deptype] && $active_archs ni {{} noarch}
                     && $required_archs ne "noarch" && $dep_portname ni $depends_skip_archcheck} {
                     set missing [list]
                     foreach arch $required_archs {
@@ -3636,7 +3636,7 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             }
 
             set check_archs 0
-            if {$dep_portname ne "" && $deptype ni {depends_fetch depends_extract}
+            if {$dep_portname ne "" && [_deptype_needs_archcheck $deptype]
                 && $dep_portname ni $depends_skip_archcheck} {
                 set check_archs 1
             }
@@ -3952,6 +3952,11 @@ proc macports::_deptypes_for_target {target workername} {
         }
     }
     return {}
+}
+
+# Return true if the given dependency type needs to have matching archs
+proc macports::_deptype_needs_archcheck {deptype} {
+    return [expr {$deptype ni [list depends_fetch depends_extract depends_patch]}]
 }
 
 # selfupdate procedure
