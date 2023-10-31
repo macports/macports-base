@@ -62,11 +62,9 @@ static int snapshot_obj_id(Tcl_Interp* interp, reg_snapshot* snapshot, int objc,
     }
     if (objc == 2) {
         /* ${snapshot} id; return the current value */
-        char value[sizeof(snapshot->id)+1];
-        sprintf(value, "%lld", snapshot->id);
         if (Tcl_GetIndexFromObj(interp, objv[1], snapshot_props, "prop", 0, &index)
                 == TCL_OK) {
-            Tcl_Obj* result = Tcl_NewStringObj(value, -1);
+            Tcl_Obj* result = Tcl_NewLongObj(snapshot->id);
             Tcl_SetObjResult(interp, result);
             return TCL_OK;
         }
