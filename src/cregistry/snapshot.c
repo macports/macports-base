@@ -315,7 +315,6 @@ int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* err
         int result_count = 0;
         int r;
 
-        sqlite_int64 snapshot_port_id;
         int requested;
 
         do {
@@ -323,7 +322,6 @@ int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* err
             switch (r) {
                 case SQLITE_ROW:
 
-                    snapshot_port_id = sqlite3_column_int64(stmt, 0);
                     port_name = (const char*) sqlite3_column_text(stmt, 2);
                     requested = (int) sqlite3_column_int64(stmt, 3);
                     state = (const char*) sqlite3_column_text(stmt, 4);
