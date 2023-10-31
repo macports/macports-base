@@ -55,7 +55,7 @@ namespace eval snapshot {
             set inactive_ports  [list]
             foreach port [registry::entry imaged] {
                 if {[$port state] eq "imaged"} {
-                    lappend inactive_ports "[$port name] @[$port version]_[$port revision] [$port variants][$port negated_variants]"
+                    lappend inactive_ports "[$port name] @[$port version]_[$port revision] [$port variants]"
                 }
             }
             if {[llength $inactive_ports] != 0} {
