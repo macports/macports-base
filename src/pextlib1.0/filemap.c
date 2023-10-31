@@ -1125,7 +1125,7 @@ Delete(SNode** ioRoot, const char* inPath)
 void
 FreeFilemapInternalRep(Tcl_Obj* inObjPtr)
 {
-	SFilemapObject* theObject = (SFilemapObject*) inObjPtr->internalRep.otherValuePtr;
+	SFilemapObject* theObject = inObjPtr->internalRep.otherValuePtr;
 	if ((--theObject->fRefCount) == 0)
 	{
 		SNode* theRoot = theObject->fRoot;
@@ -1155,11 +1155,11 @@ void
 DupFilemapInternalRep(Tcl_Obj* inSrcPtr, Tcl_Obj* inDupPtr)
 {
 	/* increment the ref count */
-	SFilemapObject* theObject = (SFilemapObject*) inSrcPtr->internalRep.otherValuePtr;
+	SFilemapObject* theObject = inSrcPtr->internalRep.otherValuePtr;
 	theObject->fRefCount++;
 	
 	/* duplicate the Tcl's obj stuff */
-	inDupPtr->internalRep.otherValuePtr = (VOID*) theObject;
+	inDupPtr->internalRep.otherValuePtr = theObject;
 	inDupPtr->typePtr = inSrcPtr->typePtr;
 }
 
@@ -1299,8 +1299,7 @@ GetObjectFromVarName(Tcl_Interp* interp, Tcl_Obj* inVarName)
 		{
 			Tcl_SetResult(interp, "variable is not a filemap", TCL_STATIC);
 		} else {
-			theResult =
-				(SFilemapObject*) theTclObject->internalRep.otherValuePtr;
+			theResult = theTclObject->internalRep.otherValuePtr;
 		}
 	}
 	
@@ -1392,7 +1391,7 @@ FilemapCreateCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 	theFilemapObject->fIsReadOnly = 0;
 	theFilemapObject->fIsRAMOnly = 1;
 	theFilemapObject->fIsDirty = 0;
-	theObject->internalRep.otherValuePtr = (VOID*) theFilemapObject;
+	theObject->internalRep.otherValuePtr = theFilemapObject;
 	theObject->typePtr = &tclFilemapType;
 	
 	/* Save it in global variable */
@@ -1692,7 +1691,7 @@ FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		theFilemapObject->fIsReadOnly = isReadOnly;
 		theFilemapObject->fIsDirty = 0;
 		theFilemapObject->fIsRAMOnly = 0;
-		theObject->internalRep.otherValuePtr = (VOID*) theFilemapObject;
+		theObject->internalRep.otherValuePtr = theFilemapObject;
 		theObject->typePtr = &tclFilemapType;
 		
 		/* Save it in global variable */
