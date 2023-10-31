@@ -194,30 +194,7 @@ namespace eval restore {
             if {[lindex $port 2] eq "installed"} {
                 set active 1
             }
-            set variantstr [lindex $port 3]
-            if {$variantstr eq "(null)"} {
-                set variantstr ""
-            }
-            set variants ""
-            if {[info exists variantstr]} {
-                while 1 {
-                    set nextplus [string last + $variantstr]
-                    set nextminus [string last - $variantstr]
-                    if {$nextplus > $nextminus} {
-                        set next $nextplus
-                        set sign +
-                    } else {
-                        set next $nextminus
-                        set sign -
-                    }
-                    if {$next == -1} {
-                        break
-                    }
-                    set v [string range $variantstr [expr $next + 1] end]
-                    lappend variants $v $sign
-                    set variantstr [string range $variantstr 0 [expr $next - 1]]
-                }
-            }
+            set requested_variants [lindex $port 4]
             if {![info exists port_in_list($name)]} {
                 set port_in_list($name) 1
                 set port_installed($name) 0
@@ -225,10 +202,10 @@ namespace eval restore {
                 incr port_in_list($name)
             }
 
-            if {![info exists port_deps(${name},${variants})]} {
-                set port_deps(${name},${variants}) [portlist_sort_dependencies_first_helper $name $variants]
+            if {![info exists port_deps(${name},${requested_variants})]} {
+                set port_deps(${name},${requested_variants}) [portlist_sort_dependencies_first_helper $name $requested_variants]
             }
-            lappend new_list [list $name $variants $active]
+            lappend new_list [list $name $requested_variants $active]
         }
 
         set operation_list [list]
@@ -236,22 +213,22 @@ namespace eval restore {
 
             set oldLen [llength $new_list]
             foreach port $new_list {
-                foreach {name variants active} $port break
+                lassign $port name requested_variants active
 
                 if {$active && $port_installed($name) < ($port_in_list($name) - 1)} {
                     continue
                 }
                 set installable 1
-                foreach dep $port_deps(${name},${variants}) {
+                foreach dep $port_deps(${name},${requested_variants}) {
                     if {[info exists port_installed($dep)] && $port_installed($dep) == 0} {
                         set installable 0
                         break
                     }
                 }
                 if {$installable} {
-                    lappend operation_list [list $name $variants $active]
+                    lappend operation_list [list $name $requested_variants $active]
                     incr port_installed($name)
-                    set index [lsearch $new_list [list $name $variants $active]]
+                    set index [lsearch $new_list [list $name $requested_variants $active]]
                     set new_list [lreplace $new_list $index $index]
                 }
             }
@@ -262,7 +239,7 @@ namespace eval restore {
         return $operation_list
     }
 
-    proc portlist_sort_dependencies_first_helper {portname variant_info} {
+    proc portlist_sort_dependencies_first_helper {portname requested_variants} {
         set dependency_list [list]
         set port_search_result [mportlookup $portname]
         if {[llength $port_search_result] < 2} {
@@ -270,7 +247,7 @@ namespace eval restore {
             return $dependency_list
         }
         array set portinfo [lindex $port_search_result 1]
-        if {[catch {set mport [mportopen $portinfo(porturl) [list subport $portinfo(name)] $variant_info]} result]} {
+        if {[catch {set mport [mportopen $portinfo(porturl) [list subport $portinfo(name)] $requested_variants]} result]} {
             global errorInfo
             puts stderr "$errorInfo"
             return -code error "Unable to open port '$portname': $result"
@@ -298,12 +275,13 @@ namespace eval restore {
             # 1: requested (0/1)
             # 2: state (imaged/installed, i.e. inactive/active)
             # 3: variants
+            # 4: requested_variants
             if {[lindex $port 1] == 1} {
                 # Hide unrequested ports
                 if {[lindex $port 2] eq "installed"} {
-                    ui_msg "   [lindex $port 0] [lindex $port 3]"
+                    ui_msg "   [lindex $port 0] [lindex $port 3] (requested: [lindex $port 4])"
                 } else {
-                    ui_msg "   [lindex $port 0] [lindex $port 3] (inactive)"
+                    ui_msg "   [lindex $port 0] [lindex $port 3] (requested: [lindex $port 4]) (inactive)"
                 }
             }
         }

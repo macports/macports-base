@@ -219,7 +219,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
             ", requested INTEGER"
             ", state TEXT COLLATE NOCASE"
             ", variants TEXT"
-            ", negated_variants TEXT"
+            ", requested_variants TEXT"
             ", FOREIGN KEY(snapshots_id) REFERENCES snapshots(id)"
             " ON DELETE CASCADE"
             ")",
@@ -899,7 +899,7 @@ int update_db(sqlite3* db, reg_error* errPtr) {
                     ", requested INTEGER"
                     ", state TEXT COLLATE NOCASE"
                     ", variants TEXT"
-                    ", negated_variants TEXT"
+                    ", requested_variants TEXT"
                     ", FOREIGN KEY(snapshots_id) REFERENCES snapshots(id)"
                     " ON DELETE CASCADE"
                     ")",

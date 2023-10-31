@@ -130,11 +130,12 @@ static int snapshot_obj_ports(Tcl_Interp* interp, reg_snapshot* snapshot, int ob
                 for(i = 0; i < port_count; i++){
                     port* current_port = ports[i];
                     portstrs[i] = NULL;
-                    if (asprintf(&portstrs[i], "%s %d %s %s",
+                    if (asprintf(&portstrs[i], "%s %d %s %s %s",
                             current_port->name,
                             current_port->requested,
                             current_port->state,
-                            current_port->variants) < 0) {
+                            current_port->variants,
+                            current_port->requested_variants) < 0) {
                         return TCL_ERROR;
                     }
                 }

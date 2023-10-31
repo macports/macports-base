@@ -38,14 +38,13 @@
 
 #include <sqlite3.h>
 
-// TODO: extend it to support requested variants
-
 typedef struct {
     char* name;     /* port name */
     int requested;  /* 1 if port os requested, else 0 */
     char* state;    /* 'imaged' or 'installed' */
     int variant_count;  /* total number of variants */
     char* variants; /* string of the form: +var1-var2+var3 */
+    char* requested_variants; /* string of the form: +var1-var2 */
 } port;
 
 typedef struct {
