@@ -2521,7 +2521,7 @@ proc macports::_upgrade_mport_deps {mport target} {
                 # check that the dep has the required archs
                 set active_archs [_active_archs $dep_portname]
                 if {[_deptype_needs_archcheck $deptype] && $active_archs ni {{} noarch}
-                    && $required_archs ne "noarch" && $dep_portname ni $depends_skip_archcheck} {
+                    && $required_archs ne "noarch" && [lsearch -exact -nocase $depends_skip_archcheck $dep_portname] == -1} {
                     set missing [list]
                     foreach arch $required_archs {
                         if {$arch ni $active_archs} {
@@ -3636,8 +3636,8 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             }
 
             set check_archs 0
-            if {$dep_portname ne "" && [_deptype_needs_archcheck $deptype]
-                && $dep_portname ni $depends_skip_archcheck} {
+            if {$dep_portname ne "" && [macports::_deptype_needs_archcheck $deptype]
+                && [lsearch -exact -nocase $depends_skip_archcheck $dep_portname] == -1} {
                 set check_archs 1
             }
 
@@ -4069,14 +4069,18 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             if {![info exists porturl]} {
                 set porturl file://./
             }
-            # Grab the variations from the parent
-            upvar 2 variations variations
+            # Merge in global variants
+            array set variations $variationslist
+            foreach {variation value} [array get macports::global_variations] {
+                if {![info exists variations($variation)]} {
+                    set variations($variation) $value
+                }
+            }
+            ui_debug "fully merged portvariants: [array get variations]"
             # Don't inherit requested status from the depending port
             unset -nocomplain options(ports_requested)
 
-            if {[catch {set mport [mportopen $porturl [array get options] [array get variations]]} result]} {
-                ui_debug $::errorInfo
-                ui_error "Unable to open port: $result"
+            if {[catch {_mport_open_with_archcheck $porturl $dspec $parentmport [array get options] [array get variations]} mport]} {
                 return 1
             }
             # While we're at it, update the portinfo
@@ -4599,6 +4603,60 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
     _upgrade_cleanup
     return 0
+}
+
+# Open the given port, adding +universal if needed to satisfy the arch
+# requirements of the dependent mport.
+proc macports::_mport_open_with_archcheck {porturl depspec dependent_mport options variations} {
+    if {[catch {set mport [mportopen $porturl $options $variations]} result]} {
+        ui_debug $::errorInfo
+        ui_error "Unable to open port ($depspec): $result"
+        error "mportopen failed"
+    }
+    array set portinfo [mportinfo $mport]
+
+    if {[info exists portinfo(installs_libs)] && !$portinfo(installs_libs)} {
+        return $mport
+    }
+    set skip_archcheck [_mportkey $dependent_mport depends_skip_archcheck]
+    set required_archs [_mport_archs $dependent_mport]
+    if {[lsearch -exact -nocase $skip_archcheck $portinfo(name)] >= 0
+            || [_mport_supports_archs $mport $required_archs]} {
+        return $mport
+    }
+    # Check if the dependent used a dep type that needs matching archs
+    set dependent_workername [ditem_key $dependent_mport workername]
+    set dtypes [_deptypes_for_target install $dependent_workername]
+    array set dependent_portinfo [mportinfo $dependent_mport]
+    set archcheck_needed 0
+    foreach dtype $dtypes {
+        if {[_deptype_needs_archcheck $dtype] && [info exists dependent_portinfo($dtype)]
+             && [lsearch -exact -nocase $dependent_portinfo($dtype) $depspec] >= 0} {
+            set archcheck_needed 1
+            break
+        }
+    }
+    if {!$archcheck_needed} {
+        return $mport
+    }
+
+    # Reopen with +universal if possible
+    set has_universal [expr {[info exists portinfo(variants)] && "universal" in $portinfo(variants)}]
+    if {"universal" ni $variations && $has_universal
+            && [llength [_mport_archs $mport]] < 2} {
+        mportclose $mport
+        lappend variations universal +
+        if {[catch {set mport [mportopen $porturl $options $variations]} result]} {
+            ui_debug $::errorInfo
+            ui_error "Unable to open port $portinfo(name): $result"
+            error "mportopen failed"
+        }
+        if {[_mport_supports_archs $mport $required_archs]} {
+            return $mport
+        }
+    }
+    _explain_arch_mismatch $dependent_portinfo(name) $portinfo(name) $required_archs [_mportkey $mport supported_archs] $has_universal
+    error "architecture mismatch"
 }
 
 # _upgrade calls this to clean up before returning
