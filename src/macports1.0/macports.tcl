@@ -4344,8 +4344,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         }
     }
 
-    array unset interp_options
-
     set will_build no
     set already_installed [registry::entry_exists $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]
     # avoid building again unnecessarily
@@ -4408,14 +4406,19 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             # doing this instead of just running install ensures that we have the
             # new copy ready but not yet installed, so we can safely uninstall the
             # existing one.
-            set archivefetch_failed 0
-            if {[catch {mportexec $mport archivefetch} result]} {
-                ui_debug $::errorInfo
-                set archivefetch_failed 1
-            } elseif {$result != 0} {
-                set archivefetch_failed 1
+            set archivefetch_failed 1
+            if {![info exists interp_options(ports_source_only)]} {
+                if {[catch {mportexec $mport archivefetch} result]} {
+                    ui_debug $::errorInfo
+                } elseif {$result == 0 && [$workername eval [list find_portarchive_path]] ne ""} {
+                    set archivefetch_failed 0
+                }
             }
-            if {$archivefetch_failed || [$workername eval [list find_portarchive_path]] eq ""} {
+            if {$archivefetch_failed} {
+                if {[info exists interp_options(ports_binary_only)]} {
+                    _upgrade_cleanup
+                    return 1
+                }
                 if {[catch {mportexec $mport destroot} result]} {
                     ui_debug $::errorInfo
                     _upgrade_cleanup
@@ -4438,6 +4441,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             }
         }
     }
+
+    array unset interp_options
 
     # check if the startupitem is loaded, so we can load again it after upgrading
     # (deactivating the old version will unload the startupitem)
