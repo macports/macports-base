@@ -339,6 +339,18 @@ int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* err
                     current_port->variants = strdup(variants);
                     current_port->requested_variants = strdup(requested_variants);
 
+                    if (current_port->name == NULL
+                            || current_port->state == NULL
+                            || current_port->variants == NULL
+                            || current_port->requested_variants == NULL) {
+                        free(current_port->name);
+                        free(current_port->state);
+                        free(current_port->variants);
+                        free(current_port->requested_variants);
+                        r = SQLITE_ERROR;
+                        break;
+                    }
+
                     if (!reg_listcat((void***)&result, &result_count, &result_space, current_port)) {
                             r = SQLITE_ERROR;
                     }
