@@ -304,16 +304,15 @@ int reg_snapshot_ports_get(reg_snapshot* snapshot, port*** ports, reg_error* err
 
     if ((sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
         && (sqlite3_bind_int64(stmt, 1, snapshot->id) == SQLITE_OK )) {
+        int result_space = 10;
 
-        // TODO: why 10?
-        port** result = (port**)malloc(10 * sizeof(port*));
+        port** result = (port**)malloc(result_space * sizeof(port*));
 
         if (!result) {
             return -1;
         }
 
         int result_count = 0;
-        int result_space = 10;
         int r;
 
         sqlite_int64 snapshot_port_id;
