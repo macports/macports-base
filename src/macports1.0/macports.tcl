@@ -4724,14 +4724,11 @@ proc macports::_upgrade_dependencies {portinfoname depscachename variationslistn
         if {[info exists portinfo($dtype)]} {
             foreach i $portinfo($dtype) {
                 set d [$parentworker eval "_get_dep_port $i"]
+                if {$d eq ""} {
+                    set d [lindex [split $i :] end]
+                }
                 if {![info exists depscache(port:$d)] && ![info exists depscache($i)]} {
-                    if {$d ne ""} {
-                        set dspec port:$d
-                    } else {
-                        set dspec $i
-                        set d [lindex [split $i :] end]
-                    }
-                    set status [macports::_upgrade $d $dspec $variationslist [array get options] depscache]
+                    set status [macports::_upgrade $d $i $variationslist [array get options] depscache]
                     if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} break
                 }
             }
