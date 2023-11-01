@@ -2249,23 +2249,23 @@ proc check_variants {target} {
 proc universal_setup {args} {
     if {[variant_exists universal]} {
         if {[llength [option configure.universal_archs]] >= 2} {
-            ui_debug "universal variant already exists, so not adding the default one"
+            ui_debug1 "universal variant already exists, so not adding the default one"
         } else {
-            ui_debug "removing universal variant due to < 2 supported universal_archs"
+            ui_debug1 "removing universal variant due to < 2 supported universal_archs"
             variant_delete universal
         }
     } elseif {[exists universal_variant] && ![option universal_variant]} {
-        ui_debug "universal_variant is false, so not adding the default universal variant"
+        ui_debug1 "universal_variant is false, so not adding the default universal variant"
     } elseif {[exists use_xmkmf] && [option use_xmkmf]} {
-        ui_debug "using xmkmf, so not adding the default universal variant"
+        ui_debug1 "using xmkmf, so not adding the default universal variant"
     } elseif {![exists os.universal_supported] || ![option os.universal_supported]} {
-        ui_debug "OS doesn't support universal builds, so not adding the default universal variant"
+        ui_debug1 "OS doesn't support universal builds, so not adding the default universal variant"
     } elseif {[llength [option configure.universal_archs]] <= 1} {
-        ui_debug "only one arch supported, so not adding the default universal variant"
+        ui_debug1 "only one arch supported, so not adding the default universal variant"
     } elseif {![portconfigure::arch_flag_supported [option configure.compiler] yes]} {
-        ui_debug "Compiler doesn't support universal builds, so not adding the default universal variant"
+        ui_debug1 "Compiler doesn't support universal builds, so not adding the default universal variant"
     } else {
-        ui_debug "adding the default universal variant"
+        ui_debug1 "adding the default universal variant"
         variant universal {}
     }
 }
@@ -2716,7 +2716,7 @@ proc PortGroup {group version} {
             if {[file exists $groupFile]} {
                 lappend PortInfo(portgroups) [list $group $version $groupFile]
                 uplevel [list source $groupFile]
-                ui_debug "Sourcing PortGroup $group $version from $groupFile"
+                ui_debug1 "Sourcing PortGroup $group $version from $groupFile"
                 return
             }
         }
@@ -2727,7 +2727,7 @@ proc PortGroup {group version} {
     if {[file exists $groupFile]} {
         lappend PortInfo(portgroups) [list $group $version $groupFile]
         uplevel [list source $groupFile]
-        ui_debug "Sourcing PortGroup $group $version from $groupFile"
+        ui_debug1 "Sourcing PortGroup $group $version from $groupFile"
     } else {
         ui_error "${subport}: PortGroup ${group} ${version} could not be located. ${group}-${version}.tcl does not exist."
         return -code error "PortGroup not found"

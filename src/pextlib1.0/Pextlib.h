@@ -35,6 +35,9 @@ void ui_msg(Tcl_Interp *interp, const char *format, ...) __attribute__((format(p
 void ui_notice(Tcl_Interp *interp, const char *format, ...) __attribute__((format(printf, 2, 3)));
 void ui_info(Tcl_Interp *interp, const char *format, ...) __attribute__((format(printf, 2, 3)));
 void ui_debug(Tcl_Interp *interp, const char *format, ...) __attribute__((format(printf, 2, 3)));
+void ui_debug1(Tcl_Interp *interp, const char *format, ...) __attribute__((format(printf, 2, 3)));
+void ui_debug2(Tcl_Interp *interp, const char *format, ...) __attribute__((format(printf, 2, 3)));
+void ui_debug3(Tcl_Interp *interp, const char *format, ...) __attribute__((format(printf, 2, 3)));
 
 /* Mount point file system case-sensitivity caching infrastructure. */
 typedef struct _mount_cs_cache mount_cs_cache_t;

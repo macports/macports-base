@@ -79,7 +79,7 @@ namespace eval macports {
 
     variable open_mports {}
 
-    variable ui_priorities "error warn msg notice info debug any"
+    variable ui_priorities "error warn msg notice info debug debug1 debug2 debug3 any"
     variable current_phase main
 
     variable ui_prefix "---> "
@@ -125,13 +125,27 @@ proc macports::ui_isset {val} {
     return 0
 }
 
-
 # global_options accessor
 proc macports::global_option_isset {val} {
     if {[info exists macports::global_options($val)]} {
         return [string is true -strict $macports::global_options($val)]
     }
     return 0
+}
+
+proc macports::ui_debug_x_enabled {priority} {
+    set debug_enabled 0
+
+    if {[info exists macports::ui_options(ports_debug_x)]} {
+        set ports_debug_x \
+            $macports::ui_options(ports_debug_x)
+
+        if {[string compare ${priority} ${ports_debug_x}] <= 0} {
+            set debug_enabled 1
+        }
+    }
+
+    return ${debug_enabled}
 }
 
 proc macports::init_logging {mport} {
@@ -318,7 +332,11 @@ proc macports::ui_init {priority args} {
 
 # Default implementation of ui_prefix
 proc macports::ui_prefix_default {priority} {
-    switch -- $priority {
+    switch -regexp -- $priority {
+        debug[0-9] {
+            set debug_level [regsub {debug(\d)} ${priority} {\1}]
+            return "DEBUG${debug_level}: "
+        }
         debug {
             return "DEBUG: "
         }
@@ -335,11 +353,19 @@ proc macports::ui_prefix_default {priority} {
 }
 
 # Default implementation of ui_channels:
-# ui_options(ports_debug) - If set, output debugging messages
+# ui_options(ports_debug_x) - If set, output additional debugging messages up to level 'debug<level>'
+# ui_options(ports_debug) - If set, output debugging messages at standard level
 # ui_options(ports_verbose) - If set, output info messages (ui_info)
 # ui_options(ports_quiet) - If set, don't output "standard messages"
 proc macports::ui_channels_default {priority} {
-    switch -- $priority {
+    switch -regexp -- $priority {
+        debug[0-9] {
+            if {[ui_debug_x_enabled ${priority}]} {
+                return stderr
+            } else {
+                return {}
+            }
+        }
         debug {
             if {[ui_isset ports_debug]} {
                 return stderr

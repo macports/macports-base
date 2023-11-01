@@ -9,7 +9,7 @@ port - Command line interface for MacPorts
 SYNOPSIS
 --------
 [cmdsynopsis]
-*port* [*-bcdfknNopqRstuvy*] [*-D* 'portdir'|'portname'] [*-F* 'cmdfile'] ['action'] ['actionflags']
+*port* [*-bcdfknNopqRstuvy0123*] [*-D* 'portdir'|'portname'] [*-F* 'cmdfile'] ['action'] ['actionflags']
      [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
      [['@version'] [+/-variant ...] ... [option=value ...]]
 
@@ -125,7 +125,19 @@ The port command recognizes several global flags and options.
     Verbose mode, generates verbose messages
 
 -d::
-    Debug mode, generate debugging messages, implies -v
+    Debug mode, generate debugging messages at standard level, implies -v
+
+-0::
+    Debug mode, generate debugging messages at standard level, implies -v
+
+-1::
+    Debug mode, generate debugging messages at level one, implies -d
+
+-2::
+    Debug mode, generate debugging messages at level two, implies -d
+
+-3::
+    Debug mode, generate debugging messages at level three, implies -d
 
 -q::
     Quiet mode, suppress informational messages to a minimum, implies -N

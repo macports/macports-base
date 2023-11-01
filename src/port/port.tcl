@@ -50,7 +50,7 @@ package require Pextlib 1.0
 proc print_usage {{verbose 1}} {
     global cmdname
     set syntax {
-        [-bcdfknNopqRstuvy] [-D portdir|portname] [-F cmdfile] action [actionflags]
+        [-bcdfknNopqRstuvy0123] [-D portdir|portname] [-F cmdfile] action [actionflags]
         [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
     }
 
@@ -4645,7 +4645,7 @@ proc parse_options { action ui_options_name global_options_name } {
             # Process short arg(s)
             set opts [string range $arg 1 end]
             foreach c [split $opts {}] {
-                switch -- $c {
+                switch -regexp -- $c {
                     v {
                         set ui_options(ports_verbose) yes
                     }
@@ -4653,6 +4653,13 @@ proc parse_options { action ui_options_name global_options_name } {
                         set ui_options(ports_debug) yes
                         # debug implies verbose
                         set ui_options(ports_verbose) yes
+                    }
+                    [0-3] {    # Debug levels: 0 (synonymous with -d), plus 1-3
+                        set ui_options(ports_debug) yes
+                        # debug implies verbose
+                        set ui_options(ports_verbose) yes
+
+                        set ui_options(ports_debug_x) "debug${c}"
                     }
                     q {
                         set ui_options(ports_quiet) yes
