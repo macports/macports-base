@@ -3921,22 +3921,22 @@ proc macports::_target_needs_toolchain {workername target} {
 proc macports::_deptypes_for_target {target workername} {
     switch -- $target {
         fetch       -
-        checksum    {return depends_fetch}
-        extract     {return "depends_fetch depends_extract"}
-        patch       {return "depends_fetch depends_extract depends_patch"}
+        checksum    {return [list depends_fetch]}
+        extract     {return [list depends_fetch depends_extract]}
+        patch       {return [list depends_fetch depends_extract depends_patch]}
         configure   -
-        build       {return "depends_fetch depends_extract depends_patch depends_build depends_lib"}
-        test        {return "depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test"}
-        destroot    {return "depends_fetch depends_extract depends_patch depends_build depends_lib depends_run"}
+        build       {return [list depends_fetch depends_extract depends_patch depends_build depends_lib]}
+        test        {return [list depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test]}
+        destroot    {return [list depends_fetch depends_extract depends_patch depends_build depends_lib depends_run]}
         dmg         -
         pkg         -
         mdmg        -
         mpkg        {
             if {[global_option_isset ports_binary_only] ||
                 (![global_option_isset ports_source_only] && [$workername eval {_archive_available}])} {
-                return "depends_lib depends_run"
+                return [list depends_lib depends_run]
             } else {
-                return "depends_fetch depends_extract depends_patch depends_build depends_lib depends_run"
+                return [list depends_fetch depends_extract depends_patch depends_build depends_lib depends_run]
             }
         }
         install     -
@@ -3945,13 +3945,13 @@ proc macports::_deptypes_for_target {target workername} {
             if {[global_option_isset ports_binary_only] ||
                 [$workername eval {registry_exists $subport $version $revision $portvariants}]
                 || (![global_option_isset ports_source_only] && [$workername eval {_archive_available}])} {
-                return "depends_lib depends_run"
+                return [list depends_lib depends_run]
             } else {
-                return "depends_fetch depends_extract depends_patch depends_build depends_lib depends_run"
+                return [list depends_fetch depends_extract depends_patch depends_build depends_lib depends_run]
             }
         }
     }
-    return {}
+    return [list]
 }
 
 # All valid depends_* options
