@@ -4322,9 +4322,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         } elseif {[info exists options(ports_upgrade_enforce-variants)] && $options(ports_upgrade_enforce-variants)
                   && [info exists portinfo(canonical_active_variants)] && $portinfo(canonical_active_variants) ne $oldvariant} {
             ui_debug "variant override ... upgrading!"
-        } elseif {$os_platform_installed ne "" && $os_major_installed ne "" && $os_platform_installed != 0
+        } elseif {$os_platform_installed ni [list any "" 0] && $os_major_installed ne ""
                   && ([_mportkey $mport os.platform] ne $os_platform_installed
-                  || [_mportkey $mport os.major] != $os_major_installed)} {
+                  || ($os_major_installed ne "any" && [_mportkey $mport os.major] != $os_major_installed))} {
             ui_debug "platform mismatch ... upgrading!"
             set build_override 1
         } elseif {$cxx_stdlib_overridden == 0 && ($cxx_stdlib_installed eq "libstdc++" || $cxx_stdlib_installed eq "libc++")

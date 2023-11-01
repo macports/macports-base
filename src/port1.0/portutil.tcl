@@ -895,19 +895,25 @@ proc _handle_platforms {option action args} {
     }
 }
 
-# Platform specifier for binary archive name
-# "any" in platforms means the built archive will work on any OS
+# Platform and major version this port will be compatible with in built form
+# "any" in platforms means the built port will work on any OS
 # "darwin any" means it will work on any darwin version
-proc _get_archive_platform {} {
-    global platforms os.platform os.subplatform os.major
-    foreach p $platforms {
+# Returns a list: {platform major}
+proc _get_compatible_platform {} {
+    global os.platform
+    foreach p [option platforms] {
         if {$p eq "any"} {
-            return any_any
-        } elseif {[lindex $p 0] in [list ${os.platform} ${os.subplatform}] && [lindex $p 1] eq "any"} {
-            return ${os.platform}_any
+            return [list any any]
+        } elseif {[lindex $p 0] in [list ${os.platform} [option os.subplatform]] && [lindex $p 1] eq "any"} {
+            return [list ${os.platform} any]
         }
     }
-    return ${os.platform}_${os.major}
+    return [list ${os.platform} [option os.major]]
+}
+
+# Platform specifier string for binary archive name
+proc _get_archive_platform {} {
+    return [join [_get_compatible_platform] _]
 }
 
 # Portfiles may define more than one port.

@@ -383,8 +383,9 @@ proc portinstall::install_main {args} {
     } else {
         lappend regref requested 0
     }
-    lappend regref os_platform ${os.platform}
-    lappend regref os_major ${os.major}
+    lassign [_get_compatible_platform] os_platform os_major
+    lappend regref os_platform $os_platform
+    lappend regref os_major $os_major
     lappend regref archs [get_canonical_archs]
     if {${portinstall::actual_cxx_stdlib} ne ""} {
         lappend regref cxx_stdlib ${portinstall::actual_cxx_stdlib}
