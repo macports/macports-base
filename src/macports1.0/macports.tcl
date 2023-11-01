@@ -3954,9 +3954,16 @@ proc macports::_deptypes_for_target {target workername} {
     return {}
 }
 
+# All valid depends_* options
+set macports::all_dep_types [list depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test]
+# Which depends_* types need to have matching archs when installing
+set macports::archcheck_install_dep_types [list depends_build depends_lib depends_run]
+# Which depends_* types need to have matching archs if used
+set macports::archcheck_dep_types [list {*}${macports::archcheck_install_dep_types} depends_test]
+
 # Return true if the given dependency type needs to have matching archs
 proc macports::_deptype_needs_archcheck {deptype} {
-    return [expr {$deptype ni [list depends_fetch depends_extract depends_patch]}]
+    return [expr {$deptype in ${macports::archcheck_dep_types}}]
 }
 
 # selfupdate procedure
@@ -4625,12 +4632,10 @@ proc macports::_mport_open_with_archcheck {porturl depspec dependent_mport optio
         return $mport
     }
     # Check if the dependent used a dep type that needs matching archs
-    set dependent_workername [ditem_key $dependent_mport workername]
-    set dtypes [_deptypes_for_target install $dependent_workername]
     array set dependent_portinfo [mportinfo $dependent_mport]
     set archcheck_needed 0
-    foreach dtype $dtypes {
-        if {[_deptype_needs_archcheck $dtype] && [info exists dependent_portinfo($dtype)]
+    foreach dtype ${macports::archcheck_install_dep_types} {
+        if {[info exists dependent_portinfo($dtype)]
              && [lsearch -exact -nocase $dependent_portinfo($dtype) $depspec] >= 0} {
             set archcheck_needed 1
             break
