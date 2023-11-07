@@ -242,7 +242,7 @@ proc portchecksum::checksum_start {args} {
 # Target main procedure. Verifies the checksums of all distfiles.
 #
 proc portchecksum::checksum_main {args} {
-    global UI_PREFIX all_dist_files checksums_array portverbose checksum.skip
+    global UI_PREFIX all_dist_files checksums_array checksum.skip
 
     # If no files have been downloaded, there is nothing to checksum.
     if {![info exists all_dist_files]} {

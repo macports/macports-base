@@ -125,6 +125,24 @@ proc macports::ui_isset {val} {
     return 0
 }
 
+# Return all current ui options
+proc macports::get_ui_options {} {
+    return [array get macports::ui_options]
+}
+# Set all ui options
+# Takes a value previously returned by get_ui_options
+proc macports::set_ui_options {opts} {
+    global macports::ui_options
+    array unset macports::ui_options
+    array set macports::ui_options $opts
+    # This is also a config file option, so needs special handling
+    if {[info exists macports::ui_options(ports_verbose)]} {
+        set macports::portverbose $macports::ui_options(ports_verbose)
+    } else {
+        set macports::portverbose $macports::portverbose_frozen
+    }
+}
+
 
 # global_options accessor
 proc macports::global_option_isset {val} {
@@ -133,6 +151,27 @@ proc macports::global_option_isset {val} {
     }
     return 0
 }
+
+# Return all current global options
+proc macports::get_global_options {} {
+    return [array get macports::global_options]
+}
+# Set all global options
+# Takes a value previously returned by get_global_options
+proc macports::set_global_options {opts} {
+    global macports::global_options
+    array unset macports::global_options
+    array set macports::global_options $opts
+    # Options that can also be set in the config file need special handling
+    foreach {opt var} {ports_autoclean portautoclean ports_trace porttrace} {
+        if {[info exists macports::global_options($opt)]} {
+            set macports::$var $macports::global_options($opt)
+        } else {
+            set macports::$var [set macports::${var}_frozen]
+        }
+    }
+}
+
 
 proc macports::init_logging {mport} {
     if {[getuid] == 0 && [geteuid] != 0} {
@@ -293,14 +332,20 @@ proc ui_message {priority prefix args} {
     }
 }
 
+# Init (or re-init) all ui channels
+proc macports::ui_init_all {} {
+    foreach priority $macports::ui_priorities {
+        ui_init $priority
+    }
+}
+
 proc macports::ui_init {priority args} {
     global macports::channels
-    set default_channel [macports::ui_channels_default $priority]
     # Get the list of channels.
     if {[llength [info commands ui_channels]] > 0} {
         set channels($priority) [ui_channels $priority]
     } else {
-        set channels($priority) $default_channel
+        set channels($priority) [macports::ui_channels_default $priority]
     }
 
     # Simplify ui_$priority.
@@ -664,10 +709,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         upvar $up_variations variations
     }
 
-    # Initialize ui_*
-    foreach priority $macports::ui_priorities {
-        macports::ui_init $priority
-    }
+    # Initialize ui_* channels
+    macports::ui_init_all
 
     package require Pextlib 1.0
     package require registry 1.0
@@ -984,6 +1027,7 @@ Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarbal
         set macports::portautoclean yes
         global macports::portautoclean
     }
+    set macports::portautoclean_frozen $portautoclean
     # whether to keep logs after successful builds
     if {![info exists keeplogs]} {
         set macports::keeplogs no
@@ -1001,6 +1045,7 @@ Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarbal
         set macports::porttrace no
         global macports::porttrace
     }
+    set macports::porttrace_frozen $porttrace
     # Check command line override for trace
     if {[info exists macports::global_options(ports_trace)]} {
         if {$macports::global_options(ports_trace) ne $porttrace} {
@@ -1042,6 +1087,7 @@ Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarbal
         set macports::portverbose no
         global macports::portverbose
     }
+    set macports::portverbose_frozen $portverbose
     if {[info exists macports::ui_options(ports_verbose)]} {
         if {$macports::ui_options(ports_verbose) ne $portverbose} {
             set macports::portverbose $macports::ui_options(ports_verbose)

@@ -4749,7 +4749,9 @@ proc lock_reg_if_needed {action} {
 
 proc process_cmd { argv } {
     global cmd_argc cmd_argv cmd_argn \
-           global_options global_options_base private_options ui_options \
+           global_options global_options_base private_options \
+           ui_options ui_options_base \
+           mp_global_options_base mp_ui_options_base \
            current_portdir
     set cmd_argv $argv
     set cmd_argc [llength $argv]
@@ -4788,6 +4790,8 @@ proc process_cmd { argv } {
         # Reset global_options from base before each action, as we munge it just below...
         array unset global_options
         array set global_options $global_options_base
+        array unset ui_options
+        array set ui_options $ui_options_base
 
         # Find an action to execute
         set actions [find_action $action]
@@ -4813,6 +4817,20 @@ proc process_cmd { argv } {
             set action_status 1
             break
         }
+
+        # Merge new options into the macports API options
+        array unset mp_global_options
+        array set mp_global_options $mp_global_options_base
+        array set mp_global_options [array get global_options]
+        macports::set_global_options [array get mp_global_options]
+
+        array unset mp_ui_options
+        array set mp_ui_options $mp_ui_options_base
+        array set mp_ui_options [array get ui_options]
+        macports::set_ui_options [array get mp_ui_options]
+
+        # Some options could change verbosity, so re-init ui channels
+        macports::ui_init_all
 
         # What kind of arguments does the command expect?
         set expand [action_needs_portlist $action]
@@ -5881,6 +5899,10 @@ set current_portdir [pwd]
 # Freeze global_options into global_options_base; global_options
 # will be reset to global_options_base prior to processing each command.
 set global_options_base [array get global_options]
+set ui_options_base [array get ui_options]
+# Also save those used by the macports API
+set mp_global_options_base [macports::get_global_options]
+set mp_ui_options_base [macports::get_ui_options]
 
 # First process any remaining args as action(s)
 set exit_status 0
