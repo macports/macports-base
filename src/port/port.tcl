@@ -5896,6 +5896,14 @@ if {[info exists global_options(ports_dir)]} {
 # Set up some global state for our code
 set current_portdir [pwd]
 
+# Remove question settings from ui_options - these are only used via 
+# macports::ui_options and could be removed internally, and we don't
+# want to re-add them if so.
+unset -nocomplain ui_options(questions_yesno)
+unset -nocomplain ui_options(questions_singlechoice)
+unset -nocomplain ui_options(questions_multichoice)
+unset -nocomplain ui_options(questions_alternative)
+
 # Freeze global_options into global_options_base; global_options
 # will be reset to global_options_base prior to processing each command.
 set global_options_base [array get global_options]
