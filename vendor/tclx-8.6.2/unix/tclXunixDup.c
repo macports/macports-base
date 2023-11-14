@@ -17,6 +17,7 @@
  */
 
 #include "tclExtdInt.h"
+#include <stdint.h>
 
 
 /*-----------------------------------------------------------------------------
@@ -75,7 +76,8 @@ TclXOSDupChannel(Tcl_Interp *interp, Tcl_Channel srcChannel, int mode, char *tar
     ClientData handle;
     const Tcl_ChannelType *channelType;
     Tcl_Channel newChannel = NULL;
-    int srcFileNum, newFileNum = -1;
+    intptr_t srcFileNum;
+    int newFileNum = -1;
 
     /*
      * On Unix, the channels we can dup share the same file for the read and
@@ -86,7 +88,7 @@ TclXOSDupChannel(Tcl_Interp *interp, Tcl_Channel srcChannel, int mode, char *tar
     } else {
         Tcl_GetChannelHandle (srcChannel, TCL_WRITABLE, &handle);
     }
-    srcFileNum = (int) handle;
+    srcFileNum = (intptr_t) handle;
     channelType = Tcl_GetChannelType (srcChannel);
 
     /*

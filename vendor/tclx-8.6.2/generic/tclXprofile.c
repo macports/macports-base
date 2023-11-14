@@ -83,7 +83,7 @@ typedef struct profInfo_t {
 } profInfo_t;
 
 /*
- * Argument to panic on logic errors.  Takes an id number.
+ * Argument to Tcl_Panic on logic errors.  Takes an id number.
  */
 static const char *PROF_PANIC = "TclX profile bug id = %d\n";
 
@@ -228,7 +228,7 @@ PushEntry (profInfo_t *infoPtr,
          * Only global level can be NULL.
          */
         if (scanPtr == NULL)
-            panic (PROF_PANIC, 1);
+            Tcl_Panic (PROF_PANIC, 1);
     }
     entryPtr->prevScopePtr = scanPtr;
     infoPtr->scopeChainPtr = entryPtr;
@@ -434,7 +434,7 @@ ProfCommandEvalSetup (profInfo_t *infoPtr, int *isProcPtr)
         UpdateTOSTimes (infoPtr);
         do {
             if (infoPtr->stackPtr->evalLevel != UNKNOWN_LEVEL) 
-                panic (PROF_PANIC, 2);  /* Not an initial entry */
+                Tcl_Panic (PROF_PANIC, 2);  /* Not an initial entry */
             PopEntry (infoPtr);
         } while (infoPtr->stackPtr->procLevel > procLevel);
     }
@@ -569,7 +569,7 @@ ProfTraceRoutine (ClientData  clientData,
     Tcl_CmdInfo cmdInfo;
 
     if (cmd == NULL)
-        panic (PROF_PANIC, 4);
+        Tcl_Panic (PROF_PANIC, 4);
 
     //TIP #571: We don' want to profile the tailcall itself. As it can only be called in a procedure/lambda context
     if ( ! strcmp((*objv)->bytes, "tailcall") ) {
@@ -701,7 +701,7 @@ TurnOnProfiling (profInfo_t *infoPtr, int commandMode, int evalMode)
          * Only global level can be NULL.
          */
         if (scanPtr == NULL)
-            panic (PROF_PANIC, 6);
+            Tcl_Panic (PROF_PANIC, 6);
     }
     infoPtr->scopeChainPtr = scanPtr;
 

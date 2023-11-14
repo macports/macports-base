@@ -122,7 +122,10 @@ Tclxcmd_Init (Tcl_Interp *interp)
     TclX_ProfileInit (interp);
     TclX_SelectInit (interp);
     TclX_StringInit (interp);
+	
+	#if !defined(_WIN32) && !defined(_WIN64) 
     TclX_ChannelFdInit(interp);
+	#endif
 
     if (!Tcl_IsSafe(interp)) {
 	/*

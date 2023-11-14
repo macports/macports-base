@@ -21,6 +21,11 @@ set ::tcltest::testsDirectory [file dir [info script]]
 ::tcltest::configure -testdir [file dirname [file normalize [info script]]]
 ::tcltest::configure {*}$argv
 
+# Skip these tests on a per-build basis
+if {[info exists env(SKIPFILES)]} {
+	lappend ::tcltest::skipFiles {*}$env(SKIPFILES)
+}
+
 puts stdout "Tests running in interp:       [info nameofexecutable]"
 puts stdout "Tests running with pwd:        [pwd]"
 puts stdout "Tests running in working dir:  $::tcltest::testsDirectory"

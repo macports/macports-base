@@ -22,6 +22,7 @@
  */
 
 #include "tclExtdInt.h"
+#include <stdint.h>
 
 #ifndef NO_GETPRIORITY
 #include <sys/resource.h>
@@ -113,7 +114,7 @@ ChannelToFnum (Tcl_Channel channel, int direction)
             return -1;
 	}
     }
-    return (int) handle;
+    return (intptr_t) handle;
 }
 
 /*-----------------------------------------------------------------------------
@@ -401,7 +402,7 @@ TclXOSsystem (Tcl_Interp *interp, char *command, int *exitCode)
     if (pid == 0) {
         close (errPipes [0]);
         execl ("/bin/sh", "sh", "-c", command, (char *) NULL);
-        write (errPipes [1], &errno, sizeof (errno));
+        if (write (errPipes [1], &errno, sizeof (errno))) {}
         _exit (127);
     }
 
@@ -918,8 +919,9 @@ TclXOSgetpeername (Tcl_Interp *interp, Tcl_Channel channel, void *sockaddr, sock
 int
 TclXOSgetsockname (Tcl_Interp *interp, Tcl_Channel channel, void *sockaddr, int sockaddrSize)
 {
+    socklen_t siz = sockaddrSize;
     if (getsockname (ChannelToFnum (channel, 0),
-		(struct sockaddr *) sockaddr, &sockaddrSize) < 0) {
+		(struct sockaddr *) sockaddr, &siz) < 0) {
 	TclX_AppendObjResult (interp, Tcl_GetChannelName (channel), ": ",
 		Tcl_PosixError (interp), (char *) NULL);
 	return TCL_ERROR;
@@ -943,7 +945,7 @@ TclXOSgetsockname (Tcl_Interp *interp, Tcl_Channel channel, void *sockaddr, int 
 int
 TclXOSgetsockopt (Tcl_Interp *interp, Tcl_Channel channel, int option, socklen_t *valuePtr)
 {
-    int valueLen = sizeof (*valuePtr);
+    socklen_t valueLen = sizeof (*valuePtr);
 
     if (getsockopt (ChannelToFnum (channel, 0), SOL_SOCKET, option, 
 		(void*) valuePtr, &valueLen) != 0) {
@@ -1385,7 +1387,7 @@ TclXOSGetSelectFnum (Tcl_Interp *interp, Tcl_Channel channel, int direction, int
                               (char *) NULL);
         return TCL_ERROR;
     }
-    *fnumPtr = (int) handle;
+    *fnumPtr = (intptr_t) handle;
     return TCL_OK;
 }
 

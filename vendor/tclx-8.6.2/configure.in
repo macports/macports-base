@@ -6,7 +6,7 @@ dnl	to configure the system for the local environment.
 # RCS: @(#) $Id: configure.in,v 1.17 2006/01/26 00:30:54 hobbs Exp $
 
 AC_INIT([tclx], [8.6])
-FULL_VERSION="8.6.0"
+FULL_VERSION="8.6.2"
 
 TEA_INIT([3.9])
 
@@ -193,9 +193,11 @@ WIFEXITED(x);	/* Generates compiler error if WIFEXITED uses an int. */
     
     AC_MSG_CHECKING(checking to see what 'times' returns)
     AC_TRY_RUN([
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/times.h>
-main() {
+#include <unistd.h>
+int main(void) {
     struct tms cpu;
     times(&cpu);
     sleep(2);
@@ -253,6 +255,7 @@ main() {
     
     AC_CHECK_FUNC(inet_aton, , [AC_DEFINE(NO_INET_ATON)])
     AC_CHECK_FUNC(gethostname, , [AC_DEFINE(NO_GETHOSTNAME)])
+    AC_CHECK_FUNCS([rresvport])
     
     #-------------------------------------------------------------------------
     # Check for additional libraries the Tcl/Tk does not check for.
@@ -268,7 +271,8 @@ main() {
     
     AC_CHECK_FUNC(catgets,
     	[AC_MSG_CHECKING([catclose return value])
-    	 AC_TRY_COMPILE([#include <nl_types.h>], [
+    	 AC_TRY_COMPILE([#include <stdlib.h>
+         #include <nl_types.h>], [
     	    if (catclose ((nl_catd) 0) == 0) exit (0);],
     	    AC_MSG_RESULT(ok), [
     	    AC_MSG_RESULT([broken catclose return type])

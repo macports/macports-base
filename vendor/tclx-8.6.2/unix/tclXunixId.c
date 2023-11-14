@@ -447,18 +447,18 @@ IdHost (Tcl_Interp *interp, int objc, Tcl_Obj*CONST objv[])
     if (objc != 2)
         return TclX_WrongArgs (interp, objv [0], "host");
 
-	if (gethostname (hostNameBuf, MAXHOSTNAMELEN) < 0) {
-            TclX_AppendObjResult (interp, Tcl_PosixError (interp),
-                                  (char *) NULL);
-	    return TCL_ERROR;
-	}
-	hostNameBuf[MAXHOSTNAMELEN-1] = '\0';
-	Tcl_SetObjResult (interp, Tcl_NewStringObj (hostNameBuf, -1));
-	return TCL_OK;
-#else
-        TclX_AppendObjResult (interp, "host name unavailable on this system ",
-                              "(no gethostname function)", (char *) NULL);
+    if (gethostname (hostNameBuf, MAXHOSTNAMELEN) < 0) {
+        TclX_AppendObjResult (interp, Tcl_PosixError (interp),
+                              (char *) NULL);
         return TCL_ERROR;
+    }
+    hostNameBuf[MAXHOSTNAMELEN-1] = '\0';
+    Tcl_SetObjResult (interp, Tcl_NewStringObj (hostNameBuf, -1));
+    return TCL_OK;
+#else
+    TclX_AppendObjResult (interp, "host name unavailable on this system ",
+                              "(no gethostname function)", (char *) NULL);
+    return TCL_ERROR;
 #endif
 }
 
