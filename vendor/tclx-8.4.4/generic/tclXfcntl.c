@@ -204,7 +204,7 @@ GetFcntlAttr (Tcl_Interp *interp, Tcl_Channel channel, int mode, int attrib)
             return TCL_ERROR;
         break;
       default:
-        Tcl_Panic ("bug in fcntl get attrib");
+        panic ("bug in fcntl get attrib");
         value = 0; /* suppress compiler warning for initialized value */
     }
 
@@ -260,7 +260,7 @@ SetFcntlAttrObj (Tcl_Interp *interp,
       case ATTR_KEEPALIVE:
         return TclXOSsetsockopt (interp, channel, SO_KEEPALIVE, value);
       default:
-        Tcl_Panic ("buf in fcntl set attrib");
+        panic ("buf in fcntl set attrib");
     }
     return TCL_ERROR;  /* Should never be reached */
 }

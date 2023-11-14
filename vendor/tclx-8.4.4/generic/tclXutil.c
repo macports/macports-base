@@ -476,7 +476,7 @@ ParseTranslationOption (char *strValue)
     } else if (STREQU (strValue, "platform")) {
         return TCLX_TRANSLATE_PLATFORM;
     }
-    Tcl_Panic ("ParseTranslationOption bug");
+    panic ("ParseTranslationOption bug");
     return TCL_ERROR;  /* Not reached */
 }
 
@@ -507,7 +507,7 @@ FormatTranslationOption (int value)
       case TCLX_TRANSLATE_PLATFORM:
         return "platform";
       default:
-        Tcl_Panic ("FormatTranslationOption bug");
+        panic ("FormatTranslationOption bug");
     }
     return NULL;  /* Not reached */
 }
@@ -620,7 +620,7 @@ TclX_GetChannelOption (Tcl_Interp  *interp,
     return TCL_OK;
 
   fatalError:
-    Tcl_Panic ("TclX_GetChannelOption bug");  /* FIX: return error. */
+    panic ("TclX_GetChannelOption bug");  /* FIX: return error. */
     return 0;  /* Not reached */
 }
 
@@ -715,7 +715,7 @@ TclX_SetChannelOption (Tcl_Interp *interp,
     return Tcl_SetChannelOption (interp, channel, strOption, strValue);
 
   fatalError:
-    Tcl_Panic ("TclX_SetChannelOption bug");
+    panic ("TclX_SetChannelOption bug");
     return TCL_ERROR;  /* Not reached */
 }
 
@@ -926,7 +926,7 @@ TclX_RestoreResultErrorInfo (Tcl_Interp *interp, Tcl_Obj *saveObjPtr)
 	/*
 	 * This should never happen
 	 */
-        Tcl_Panic ("invalid TclX result save object");
+        panic ("invalid TclX result save object");
     }
 
     Tcl_SetVar2Ex(interp, ERRORCODE, NULL, saveObjv[2], TCL_GLOBAL_ONLY);
