@@ -199,7 +199,7 @@ main() {
     struct tms cpu;
     times(&cpu);
     sleep(2);
-    return ((times(&cpu) > 0) ? 0 : 1);
+    exit ((times(&cpu) > 0) ? 0 : 1);
 }
 ], [AC_MSG_RESULT(elapsed real time)],
        [AC_MSG_RESULT(a status)
@@ -269,7 +269,7 @@ main() {
     AC_CHECK_FUNC(catgets,
     	[AC_MSG_CHECKING([catclose return value])
     	 AC_TRY_COMPILE([#include <nl_types.h>], [
-    	    if (catclose ((nl_catd) 0) == 0) return (0);],
+    	    if (catclose ((nl_catd) 0) == 0) exit (0);],
     	    AC_MSG_RESULT(ok), [
     	    AC_MSG_RESULT([broken catclose return type])
     	    AC_DEFINE(BAD_CATCLOSE)])],
