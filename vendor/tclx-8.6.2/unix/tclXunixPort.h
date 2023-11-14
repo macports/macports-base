@@ -37,10 +37,6 @@
 extern int h_errno;
 #endif
 
-#ifdef __APPLE__
-# undef panic
-#endif
-
 /*
  * Included the tcl file tclUnixPort.h after other system files, as it checks
  * if certain things are defined.

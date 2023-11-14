@@ -2,7 +2,7 @@
 #
 # Microsoft Visual C++ makefile for use with nmake.exe v1.62+ (VC++ 5.0+)
 #
-# This makefile is based upon the Tcl 8.4 Makefile.vc and modified to 
+# This makefile is based upon the Tcl 8.6 Makefile.vc and modified to 
 # make it suitable as a general package makefile. Look for the word EDIT
 # which marks sections that may need modification. As a minumum you will
 # need to change the PROJECT, DOTVERSION and DLLOBJS variables to values
@@ -164,8 +164,8 @@ PROJECT = tclx
 #PROJECT_REQUIRES_TK=1
 !include "rules.vc"
 
-FULL_VERSION    = 8.4.0
-DOTVERSION      = 8.4
+FULL_VERSION    = 8.6.12
+DOTVERSION      = 8.6
 VERSION         = $(DOTVERSION:.=)
 STUBPREFIX      = $(PROJECT)stub
 
@@ -203,6 +203,7 @@ DLLOBJS = \
 	$(TMP_DIR)\tclXwinOS.obj \
 	$(TMP_DIR)\random.obj \
 	$(TMP_DIR)\getopt.obj \
+	$(TMP_DIR)\tclXcoalesce.obj \
 !if !$(STATIC_BUILD)
 	$(TMP_DIR)\tclx.res
 !endif
@@ -366,7 +367,7 @@ test: setup $(PROJECT)
 !else
 	@set PATH=$(_TCLDIR)\win\$(BUILDDIRTOP);$(PATH)
 !endif
-	@$(CPY) $(LIBDIR) $(OUT_DIR)\tclx8.4
+	@$(CPY) $(LIBDIR) $(OUT_DIR)\tclx8.6
 !if "$(OS)" == "Windows_NT"  || "$(MSVCDIR)" == "IDE"
 	$(DEBUGGER) $(TCLSH) "$(ROOT)/tests/all.tcl" $(TESTFLAGS)
 !else
@@ -383,7 +384,7 @@ shell: setup $(PROJECT)
 !else
 	@set PATH=$(_TCLDIR)\win\$(BUILDDIRTOP);$(PATH)
 !endif
-	@$(CPY) $(LIBDIR) $(OUT_DIR)\tclx8.4
+	@$(CPY) $(LIBDIR) $(OUT_DIR)\tclx8.6
 	$(DEBUGGER) $(TCLSH) $(SCRIPT)
 
 setup:

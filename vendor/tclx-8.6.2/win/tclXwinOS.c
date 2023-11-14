@@ -1483,7 +1483,7 @@ LockUnlockSetup (Tcl_Interp     *interp,
       case TCLX_WIN_CONSOLE:
         break;  /* FIX: Is this legal?? */
       default:
-        panic ("unknown win channel type %d\n", type);
+        Tcl_Panic ("unknown win channel type %d\n", type);
     }
     
     /*
