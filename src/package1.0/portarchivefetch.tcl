@@ -222,48 +222,67 @@ proc portarchivefetch::fetchfiles {args} {
                 set urlmap($url_var) $urlmap(archive_sites)
             }
             set failed_sites 0
-            unset -nocomplain fetched
+            set archive_fetched 0
             set lastError ""
+            # there should be an rmd160 digest of the archive signed with one of the trusted keys
+            set signature ${incoming_path}/${archive}.rmd160
+            set sig_fetched 0
             foreach site $urlmap($url_var) {
                 if {[string index $site end] ne "/"} {
                     append site "/[option archive.subdir]"
                 } else {
                     append site [option archive.subdir]
                 }
-                ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $archive ${site}]"
                 set file_url [portfetch::assemble_url $site $archive]
-                set effectiveURL ""
-                try {
-                    curl fetch --effective-url effectiveURL {*}$fetch_options $file_url "${incoming_path}/${archive}.TMP"
-                    set fetched 1
-                    break
-                } trap {POSIX SIG SIGINT} {_ eOptions} {
-                    ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
-                    file delete -force "${incoming_path}/${archive}.TMP"
-                    throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
-                } trap {POSIX SIG SIGTERM} {_ eOptions} {
-                    ui_debug [msgcat::mc "Aborted fetching archive due to SIGTERM"]
-                    file delete -force "${incoming_path}/${archive}.TMP"
-                    throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
-                } on error {eMessage} {
-                    ui_debug [msgcat::mc "Fetching archive failed: %s" $eMessage]
-                    set lastError $eMessage
-                    file delete -force "${incoming_path}/${archive}.TMP"
-                    incr failed_sites
-                    if {$failed_sites > 2 && ![tbool ports_binary_only] && ![_archive_available]} {
-                        break
+                # fetch archive
+                if {!$archive_fetched} {
+                    ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $archive ${site}]"
+                    try {
+                        curl fetch {*}$fetch_options $file_url ${incoming_path}/${archive}.TMP
+                        set archive_fetched 1
+                    } trap {POSIX SIG SIGINT} {_ eOptions} {
+                        ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
+                        file delete -force ${incoming_path}/${archive}.TMP $signature
+                        throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                    } trap {POSIX SIG SIGTERM} {_ eOptions} {
+                        ui_debug [msgcat::mc "Aborted fetching archive due to SIGTERM"]
+                        file delete -force ${incoming_path}/${archive}.TMP $signature
+                        throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                    } on error {eMessage} {
+                        ui_debug [msgcat::mc "Fetching archive failed: %s" $eMessage]
+                        set lastError $eMessage
+                        file delete -force ${incoming_path}/${archive}.TMP
+                        incr failed_sites
+                        if {$failed_sites > 2 && ![tbool ports_binary_only] && ![_archive_available]} {
+                            break
+                        }
                     }
                 }
-            }
-            if {[info exists fetched]} {
-                # there should be an rmd160 digest of the archive signed with one of the trusted keys
-                set signature "${incoming_path}/${archive}.rmd160"
-                ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] ${archive}.rmd160 $site]"
-                # reusing $file_url from the last iteration of the loop above
-                if {[catch {curl fetch --effective-url effectiveURL {*}$fetch_options ${file_url}.rmd160 $signature} result]} {
-                    ui_debug "$::errorInfo"
-                    return -code error "Failed to fetch signature for archive: $result"
+                # fetch signature
+                if {!$sig_fetched} {
+                    ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] ${archive}.rmd160 $site]"
+                    try {
+                        curl fetch {*}$fetch_options ${file_url}.rmd160 $signature
+                        set sig_fetched 1
+                    } trap {POSIX SIG SIGINT} {_ eOptions} {
+                        ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
+                        file delete -force ${incoming_path}/${archive}.TMP $signature
+                        throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                    } trap {POSIX SIG SIGTERM} {_ eOptions} {
+                        ui_debug [msgcat::mc "Aborted fetching archive due to SIGTERM"]
+                        file delete -force ${incoming_path}/${archive}.TMP $signature
+                        throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
+                    } on error {eMessage} {
+                        ui_debug [msgcat::mc "Fetching archive signature failed: %s" $eMessage]
+                        set lastError $eMessage
+                        file delete -force $signature
+                    }
                 }
+                if {$archive_fetched && $sig_fetched} {
+                    break
+                }
+            }
+            if {$archive_fetched && $sig_fetched} {
                 set openssl [findBinary openssl $portutil::autoconf::openssl_path]
                 set verified 0
                 foreach pubkey [option archivefetch.pubkeys] {
