@@ -189,17 +189,11 @@ proc portbump::bump_main {args} {
         # root -> owner id
         exec_as_uid $owneruid {
             # Create temporary Portfile.bump.XXXXXX
-            if {[catch {set tmpfile [mkstemp "${portpath}/Portfile.bump.XXXXXX"]} error]} {
+            if {[catch {set tmpfd [file tempfile tmpfile "${portpath}/Portfile.bump.XXXXXX"]} error]} {
                 ui_debug $::errorInfo
-                ui_error "mkstemp: $error"
-                return -code error "mkstemp failed"
+                ui_error "file tempfile: $error"
+                return -code error "file tempfile failed"
             }
-
-            # Extract the Tcl Channel number
-            set tmpfd [lindex $tmpfile 0]
-
-            # Set tmpfile to only the file name
-            set tmpfile [join [lrange $tmpfile 1 end]]
 
             # Get Portfile attributes
             set attributes [file attributes $portfile]
