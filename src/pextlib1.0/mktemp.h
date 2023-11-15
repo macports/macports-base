@@ -31,4 +31,3 @@
 
 int MkdtempCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *const objv[]);
 int MktempCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *const objv[]);
-int MkstempCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *const objv[]);

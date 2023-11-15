@@ -1076,7 +1076,6 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "adv-flock", AdvFlockCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "readdir", ReaddirCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "strsed", StrsedCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "mkstemp", MkstempCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "mktemp", MktempCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "mkdtemp", MkdtempCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "existsuser", ExistsuserCmd, NULL, NULL);
