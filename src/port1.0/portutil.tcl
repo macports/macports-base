@@ -1087,15 +1087,10 @@ proc reinplace {args}  {
         # absolute path, otherwise it is $dir/$file
         set file [file join $dir $file]
 
-        if {[catch {set tmpfile [mkstemp "${tempdir}/[file tail $file].sed.XXXXXXXX"]} error]} {
+        if {[catch {lassign [mkstemp "${tempdir}/[file tail $file].sed.XXXXXXXX"] tmpfd tmpfile} error]} {
             ui_debug $::errorInfo
             ui_error "reinplace: $error"
             return -code error "reinplace failed"
-        } else {
-            # Extract the Tcl Channel number
-            set tmpfd [lindex $tmpfile 0]
-            # Set tmpfile to only the file name
-            set tmpfile [join [lrange $tmpfile 1 end]]
         }
 
         set cmdline {}

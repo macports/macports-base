@@ -43,6 +43,7 @@
 
 #include <errno.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -105,7 +106,9 @@ int MktempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 int MkstempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	Tcl_Channel channel;
-	char *template, *channelname;
+	char *template;
+	const char *channelname;
+	Tcl_Obj *tcl_result, *robjv[2];
 	int fd;
 
 	if (objc != 2) {
@@ -125,8 +128,11 @@ int MkstempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 
 	channel = Tcl_MakeFileChannel((ClientData)(intptr_t)fd, TCL_READABLE|TCL_WRITABLE);
 	Tcl_RegisterChannel(interp, channel);
-	channelname = (char *)Tcl_GetChannelName(channel);
-	Tcl_AppendResult(interp, channelname, " ", template, NULL);
+	channelname = Tcl_GetChannelName(channel);
+	robjv[0] = Tcl_NewStringObj(channelname, -1);
+	robjv[1] = Tcl_NewStringObj(template, -1);
+	tcl_result = Tcl_NewListObj(2, robjv);
+	Tcl_SetObjResult(interp, tcl_result);
 	free(template);
 	return TCL_OK;
 }
