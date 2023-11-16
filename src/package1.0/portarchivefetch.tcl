@@ -242,11 +242,11 @@ proc portarchivefetch::fetchfiles {args} {
                         set archive_fetched 1
                     } trap {POSIX SIG SIGINT} {_ eOptions} {
                         ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
-                        file delete -force ${incoming_path}/${archive}.TMP $signature
+                        file delete -force ${incoming_path}/${archive}.TMP
                         throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
                     } trap {POSIX SIG SIGTERM} {_ eOptions} {
                         ui_debug [msgcat::mc "Aborted fetching archive due to SIGTERM"]
-                        file delete -force ${incoming_path}/${archive}.TMP $signature
+                        file delete -force ${incoming_path}/${archive}.TMP
                         throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
                     } on error {eMessage} {
                         ui_debug [msgcat::mc "Fetching archive failed: %s" $eMessage]
@@ -259,11 +259,12 @@ proc portarchivefetch::fetchfiles {args} {
                     }
                 }
                 # fetch signature
-                if {!$sig_fetched} {
+                if {$archive_fetched} {
                     ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] ${archive}.rmd160 $site]"
                     try {
                         curl fetch {*}$fetch_options ${file_url}.rmd160 $signature
                         set sig_fetched 1
+                        break
                     } trap {POSIX SIG SIGINT} {_ eOptions} {
                         ui_debug [msgcat::mc "Aborted fetching archive due to SIGINT"]
                         file delete -force ${incoming_path}/${archive}.TMP $signature
@@ -277,9 +278,6 @@ proc portarchivefetch::fetchfiles {args} {
                         set lastError $eMessage
                         file delete -force $signature
                     }
-                }
-                if {$archive_fetched && $sig_fetched} {
-                    break
                 }
             }
             if {$archive_fetched && $sig_fetched} {
