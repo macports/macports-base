@@ -2401,7 +2401,7 @@ proc mportexec {mport target} {
     }
 
     # Before we build the port, we must build its dependencies.
-    set dlist {}
+    set dlist [list]
     if {[macports::_target_needs_deps $target] && [macports::_mport_has_deptypes $mport [macports::_deptypes_for_target $target $workername]]} {
         registry::exclusive_lock
         # see if we actually need to build this port
@@ -2419,7 +2419,7 @@ proc mportexec {mport target} {
             # play nice with debug messages
             ui_msg {}
         }
-        if {[mportdepends $mport $target] != 0} {
+        if {[mportdepends $mport $target 1 1 0 dlist] != 0} {
             if {$log_needs_pop} {
                 macports::pop_log
             }
@@ -2428,12 +2428,6 @@ proc mportexec {mport target} {
         if {![macports::ui_isset ports_debug]} {
             ui_msg {}
         }
-
-        # Select out the dependents along the critical path,
-        # but exclude this mport; we might not be installing it.
-        set dlist [dlist_append_dependents $macports::open_mports $mport {}]
-
-        dlist_delete dlist $mport
 
         # print the dep list
         if {[llength $dlist] > 0} {
@@ -3598,14 +3592,20 @@ proc _mportkey {mport key} {
 # skipSatisfied -> cut the search tree when encountering installed/satisfied
 #                  dependencies ports.
 # accDeps -> accumulator for recursive calls
+# depListName -> Variable name to return the list of dependencies in. If not set,
+#                they are only added to the global open_mports.
 # return 0 if everything was ok, an non zero integer otherwise.
-proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 0}} {
+proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 0} {depListName {}}} {
 
     array set portinfo [mportinfo $mport]
     if {$accDeps} {
         upvar port_seen port_seen
     } else {
         array set port_seen {}
+    }
+    if {$depListName ne {}} {
+        upvar $depListName depList
+        set depListName depList
     }
 
     # progress indicator
@@ -3721,16 +3721,20 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                 if {$parse} {
                     set dep_options $options
                     lappend dep_options subport $dep_portinfo(name)
-                    # Figure out the depport. Check the open_mports list first, since
+                    # Figure out the depport. Check the depList (or open_mports) first, since
                     # we potentially leak mport references if we mportopen each time,
                     # because mportexec only closes each open mport once.
-                    set depport_matches [dlist_match_multi $macports::open_mports [list porturl $dep_portinfo(porturl) options $dep_options]]
+                    set matchlistname [expr {$depListName ne {} ? "depList" : "macports::open_mports"}]
+                    set depport_matches [dlist_match_multi [set $matchlistname] [list porturl $dep_portinfo(porturl) options $dep_options]]
                     # if multiple matches, the most recently opened one is more likely what we want
                     set depport [lindex $depport_matches end]
 
                     if {$depport eq ""} {
                         # We haven't opened this one yet.
                         set depport [mportopen $dep_portinfo(porturl) $dep_options $variations]
+                        if {$depListName ne {}} {
+                            lappend depList $depport
+                        }
                     }
                 }
             }
@@ -3743,6 +3747,9 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                 array unset variation_array
                 array set variation_array [[ditem_key $depport workername] eval {array get requested_variations}]
                 mportclose $depport
+                if {$depListName ne {}} {
+                    dlist_delete depList $depport
+                }
                 set arch_mismatch 1
                 set has_universal 0
                 if {[info exists dep_portinfo(variants)] && {universal} in $dep_portinfo(variants)} {
@@ -3754,6 +3761,9 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                         set depport [mportopen $dep_portinfo(porturl) $dep_options [array get variation_array]]
                         if {[macports::_mport_supports_archs $depport $required_archs]} {
                             set arch_mismatch 0
+                            if {$depListName ne {}} {
+                                lappend depList $depport
+                            }
                         }
                     }
                 }
@@ -3788,7 +3798,7 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             # Any of these may have been closed by a previous recursive call
             # and replaced by a universal version. This is fine, just skip.
             if {[ditem_key $depport] ne ""} {
-                set res [mportdepends $depport {} $recurseDeps $skipSatisfied 1]
+                set res [mportdepends $depport {} $recurseDeps $skipSatisfied 1 $depListName]
                 if {$res != 0} {
                     return $res
                 }
