@@ -36,6 +36,16 @@ port-install \- Install a new port
 Global variants will be applied as specified in \fBvariants.conf\fR(5)\&.
 .SH "OPTIONS"
 .PP
+\fB\-\-allow\-failing\fR
+.RS 4
+Attempt installation even if the specified port or one of its dependencies indicates that it is known to fail\&.
+.RE
+.PP
+\fB\-\-no\-replace\fR
+.RS 4
+Attempt to install the specified port even if it indicates that it is replaced by another port\&. Without this option, the replacement would be installed instead\&.
+.RE
+.PP
 \fB\-\-no\-rev\-upgrade\fR
 .RS 4
 Do not run rev\-upgrade after installation\&. See
