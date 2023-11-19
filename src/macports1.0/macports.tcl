@@ -2311,6 +2311,10 @@ proc _mportcheck_known_fail {optionsvar portinfovar} {
     upvar $portinfovar portinfo
     if {([info exists portinfo(known_fail)] && [string is true -strict $portinfo(known_fail)])
             && !([info exists options(ignore_known_fail)] && [string is true -strict $options(ignore_known_fail)])} {
+        # "Computing dependencies for" won't be followed by a newline yet
+        if {![macports::ui_isset ports_debug]} {
+            ui_msg {}
+        }
         if {[info exists macports::ui_options(questions_yesno)]} {
             set retvalue [$macports::ui_options(questions_yesno) "$portinfo(name) is known to fail." "_mportcheck_known_fail" {} {n} 0 "Try to install anyway?"]
             if {$retvalue != 0} {
