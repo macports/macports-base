@@ -83,7 +83,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
 
     if {$is_tarball} {
         # verify signature for tarball
-        global macports::archivefetch_pubkeys
+        global macports::archivefetch_pubkeys macports::hfscompression
         set openssl [macports::findBinary openssl $macports::autoconf::openssl_path]
         set tarball ${mp_source_path}/${tarfile}
         set signature ${tarball}.rmd160
@@ -103,8 +103,15 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
             return -code error "Failed to verify signature for MacPorts source!"
         }
 
+        if {${macports::hfscompression} && [getuid] == 0 &&
+                ![catch {macports::binaryInPath bsdtar}] &&
+                ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]} {
+            ui_debug "Using bsdtar with HFS+ compression (if valid)"
+            set tar "bsdtar --hfsCompression"
+        } else {
+            set tar [macports::findBinary tar $macports::autoconf::tar_path]
+        }
         # extract tarball and move into place
-        set tar [macports::findBinary tar $macports::autoconf::tar_path]
         file mkdir ${mp_source_path}/tmp
         set tar_cmd "$tar -C [macports::shellescape ${mp_source_path}/tmp] -xf [macports::shellescape $tarball]"
         macports_try -pass_signal {

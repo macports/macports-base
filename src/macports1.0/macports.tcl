@@ -2925,7 +2925,7 @@ proc mportsync {{optionslist {}}} {
 
                 if {$is_tarball} {
                     # verify signature for tarball
-                    global macports::archivefetch_pubkeys
+                    global macports::archivefetch_pubkeys macports::hfscompression
                     set tarball ${destdir}/[file tail $source]
                     set signature ${tarball}.rmd160
                     set openssl [macports::findBinary openssl $macports::autoconf::openssl_path]
@@ -2947,8 +2947,15 @@ proc mportsync {{optionslist {}}} {
                         continue
                     }
 
+                    if {${macports::hfscompression} && [getuid] == 0 &&
+                            ![catch {macports::binaryInPath bsdtar}] &&
+                            ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]} {
+                        ui_debug "Using bsdtar with HFS+ compression (if valid)"
+                        set tar "bsdtar --hfsCompression"
+                    } else {
+                        set tar [macports::findBinary tar $macports::autoconf::tar_path]
+                    }
                     # extract tarball and move into place
-                    set tar [macports::findBinary tar $macports::autoconf::tar_path]
                     file mkdir ${destdir}/tmp
                     set tar_cmd "$tar -C ${destdir}/tmp -xf $tarball"
                     macports_try -pass_signal {
