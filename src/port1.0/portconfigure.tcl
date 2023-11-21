@@ -432,7 +432,7 @@ proc portconfigure::choose_supported_archs {archs} {
         if {[vercmp ${configure.sdk_version} 11] >= 0} {
             set sdk_archs [list arm64 x86_64]
         } elseif {[vercmp ${configure.sdk_version} 10.14] >= 0} {
-            set sdk_archs x86_64
+            set sdk_archs [list x86_64]
         } elseif {[vercmp ${configure.sdk_version} 10.7] >= 0} {
             set sdk_archs [list x86_64 i386]
         } elseif {[vercmp ${configure.sdk_version} 10.6] >= 0} {
@@ -458,7 +458,7 @@ proc portconfigure::choose_supported_archs {archs} {
             }
             if {$intersection_archs eq ""} {
                 # No archs in common.
-                return ""
+                return [list]
             }
         }
     } elseif {$supported_archs eq ""} {
@@ -1645,7 +1645,7 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
 
         # add C++ runtime dependency if necessary
         if {[regexp {^macports-gcc-(\d+(?:\.\d+)?)?$} ${compiler} -> gcc_version]} {
-            set libgccs ""
+            set libgccs [list]
             set dependencies_file [getportresourcepath $porturl "port1.0/compilers/gcc_dependencies.tcl"]
             if {[file exists ${dependencies_file}]} {
                 source ${dependencies_file}
@@ -1662,16 +1662,16 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
 
                 # compiler links against libraries in libgcc\d* and/or libgcc-devel
                 if {[vercmp ${gcc_version} 4.6] < 0} {
-                    set libgccs "path:share/doc/libgcc/README:libgcc port:libgcc45"
+                    set libgccs [list path:share/doc/libgcc/README:libgcc port:libgcc45]
                 } elseif {[vercmp ${gcc_version} 7] < 0} {
-                    set libgccs "path:share/doc/libgcc/README:libgcc port:libgcc6"
+                    set libgccs [list path:share/doc/libgcc/README:libgcc port:libgcc6]
                 } elseif {[vercmp ${gcc_version} ${gcc_main_version}] < 0} {
-                    set libgccs "path:share/doc/libgcc/README:libgcc port:libgcc${gcc_version}"
+                    set libgccs [list path:share/doc/libgcc/README:libgcc port:libgcc${gcc_version}]
                 } else {
                     # Using primary GCC version
                     # Do not depend directly on primary runtime port, as implied by libgcc
                     # and doing so prevents libgcc-devel being used as an alternative.
-                    set libgccs "path:share/doc/libgcc/README:libgcc"
+                    set libgccs [list path:share/doc/libgcc/README:libgcc]
                 }
             }
             foreach libgcc_dep $libgccs {

@@ -591,7 +591,7 @@ proc variant {args} {
     #   * is_default: This key exists iff the variant is a default variant.
     #   * requires
     if {![info exists PortInfo(vinfo)]} {
-        set PortInfo(vinfo) {}
+        set PortInfo(vinfo) [list]
     }
     array set vinfo $PortInfo(vinfo)
 
@@ -640,7 +640,7 @@ proc variant {args} {
     } else {
         # Create an array to contain the variant's information.
         if {![info exists vinfo($variant_provides)]} {
-            set vinfo($variant_provides) {}
+            set vinfo($variant_provides) [list]
         }
         array set variant $vinfo($variant_provides)
 
@@ -1098,7 +1098,7 @@ proc reinplace {args}  {
             set tmpfile [join [lrange $tmpfile 1 end]]
         }
 
-        set cmdline {}
+        set cmdline [list]
         lappend cmdline $portutil::autoconf::sed_command
         if {$extended} {
             lappend cmdline -E
@@ -1535,31 +1535,31 @@ proc target_run {ditem} {
                     set tracing yes
 
                     # collect deps
-                    set depends {}
-                    set deptypes {}
+                    set depends [list]
+                    set deptypes [list]
 
                     # Determine deptypes to look for based on target
                     switch $target {
                         fetch       -
-                        checksum    { set deptypes "depends_fetch" }
-                        extract     { set deptypes "depends_fetch depends_extract" }
-                        patch       { set deptypes "depends_fetch depends_extract depends_patch" }
+                        checksum    { set deptypes [list depends_fetch] }
+                        extract     { set deptypes [list depends_fetch depends_extract] }
+                        patch       { set deptypes [list depends_fetch depends_extract depends_patch] }
                         configure   -
-                        build       { set deptypes "depends_fetch depends_extract depends_patch depends_lib depends_build" }
-                        test        { set deptypes "depends_fetch depends_extract depends_patch depends_lib depends_build depends_run depends_test" }
+                        build       { set deptypes [list depends_fetch depends_extract depends_patch depends_lib depends_build] }
+                        test        { set deptypes [list depends_fetch depends_extract depends_patch depends_lib depends_build depends_run depends_test] }
                         destroot    -
                         dmg         -
                         pkg         -
                         portpkg     -
                         mpkg        -
                         mdmg        -
-                        ""          { set deptypes "depends_fetch depends_extract depends_patch depends_lib depends_build depends_run" }
+                        ""          { set deptypes [list depends_fetch depends_extract depends_patch depends_lib depends_build depends_run] }
 
                         # install may be run given an archive, which means
                         # depends_fetch, _extract, _build dependencies have
                         # never been installed
                         activate    -
-                        install     { set deptypes "depends_lib depends_run" }
+                        install     { set deptypes [list depends_lib depends_run] }
                     }
 
                     # Gather the dependencies for deptypes
@@ -2159,7 +2159,7 @@ proc eval_variants {variations} {
     foreach dvar $newlist {
         set thevar [ditem_key $dvar provides]
         if {[info exists upvariations($thevar)] && $upvariations($thevar) eq "-"} {
-            set chosenlist ""
+            set chosenlist [list]
             foreach choice $chosen {
                 lappend chosenlist +[ditem_key $choice provides]
             }
@@ -2386,7 +2386,7 @@ proc handle_default_variants {option action {value ""}} {
         set|append {
             # Retrieve the information associated with each variant.
             if {![info exists PortInfo(vinfo)]} {
-                set PortInfo(vinfo) {}
+                set PortInfo(vinfo) [list]
             }
             array set vinfo $PortInfo(vinfo)
             set re {([-+])([-A-Za-z0-9_.]+)}
@@ -2760,7 +2760,7 @@ proc get_portimage_path {} {
 proc supportedArchiveTypes {} {
     global supported_archive_types
     if {![info exists supported_archive_types]} {
-        set supported_archive_types {}
+        set supported_archive_types [list]
         foreach type {tbz2 tbz tgz tar txz tlz xar zip cpgz cpio} {
             if {[catch {archiveTypeIsSupported $type}] == 0} {
                 lappend supported_archive_types $type
@@ -3011,11 +3011,11 @@ proc merge {base} {
     global destroot configure.universal_archs
 
     # test which architectures are available, set one as base-architecture
-    set archs ""
+    set archs [list]
     set base_arch ""
     foreach arch ${configure.universal_archs} {
         if {[file exists "${base}/${arch}"]} {
-            set archs [concat ${archs} ${arch}]
+            lappend archs ${arch}
             set base_arch ${arch}
         }
     }

@@ -62,7 +62,7 @@ proc portdistfiles::distfiles_main {args} {
     }
 
     # from portfetch... process the sites, files and patches
-    set fetch_urls {}
+    set fetch_urls [list]
     portfetch::checkfiles fetch_urls
 
     # also give up on ports that don't have any distfiles

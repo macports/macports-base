@@ -58,7 +58,7 @@ proc portdistcheck::distcheck_main {args} {
 
     ui_debug "Portfile modification date is [clock format $port_moddate]"
 
-    set curl_options {}
+    set curl_options [list]
     if {[tbool fetch.ignore_sslcert]} {
         lappend curl_options "--ignore-ssl-cert"
     }
@@ -67,7 +67,7 @@ proc portdistcheck::distcheck_main {args} {
     if {"${distcheck.type}" ne "none"
         && "${fetch.type}" eq "standard"} {
         # portfetch 1.0::checkfiles sets fetch_urls list.
-        set fetch_urls {}
+        set fetch_urls [list]
         portfetch::checkfiles fetch_urls
         set totalsize 0
 

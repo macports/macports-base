@@ -645,7 +645,7 @@ proc portlint::lint_main {args} {
         incr variantnumber
     }
 
-    set all_depends {}
+    set all_depends [list]
     if {[info exists depends_fetch]} {
         lappend all_depends {*}$depends_fetch
     }

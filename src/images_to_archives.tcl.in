@@ -29,7 +29,7 @@ puts "This could take a while..."
 
 # list of ports we successfully create an archive of, to be used to update
 # the registry only after we know all creation attempts were successful.
-set archived_list {}
+set archived_list [list]
 set installed_len [llength $ilist]
 set counter 0
 

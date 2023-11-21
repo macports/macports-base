@@ -67,7 +67,7 @@ proc portactivate::activate_main {args} {
     }
 
     set optionlist [array get user_options]
-    set renames {}
+    set renames [list]
     portstartupitem::foreach_startupitem {
         if {$si_install} {
             lappend renames ${prefix}/etc/${si_location}/${si_plist} /Library/${si_location}/${si_plist}

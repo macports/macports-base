@@ -117,7 +117,7 @@ proc portclean::clean_dist {args} {
 
     set count 0
     if {![info exists patchfiles]} {
-        set patchfiles ""
+        set patchfiles [list]
     }
     foreach file $patchfiles {
         set patchfile [getdistname $file]

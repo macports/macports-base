@@ -66,7 +66,7 @@ namespace eval porttrace {
     proc appendEntry {sandbox path action} {
         upvar 2 $sandbox sndbxlst
 
-        set mapping {}
+        set mapping [list]
         # Escape backslashes with backslashes
         lappend mapping "\\" "\\\\"
         # Escape colons with \:
@@ -226,7 +226,7 @@ namespace eval porttrace {
         }
 
         # Allow access to some Xcode specifics
-        set xcode_paths {}
+        set xcode_paths [list]
         lappend xcode_paths "/var/db/xcode_select_link"
         lappend xcode_paths "/var/db/mds"
         lappend xcode_paths [file normalize ~${macportsuser}/Library/Preferences/com.apple.dt.Xcode.plist]
@@ -440,8 +440,8 @@ namespace eval porttrace {
         set workpath $p_workpath
 
         # Initialize the sandbox violation lists
-        set sandbox_violation_list {}
-        set sandbox_unknown_list {}
+        set sandbox_violation_list [list]
+        set sandbox_unknown_list [list]
 
         # Create the socket
         tracelib setname $fifo

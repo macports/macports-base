@@ -587,13 +587,13 @@ namespace eval reclaim {
             set portname [$port name]
             lappend ports_for_name($portname) $port
             if {![info exists dependents($portname)]} {
-                set dependents($portname) {}
+                set dependents($portname) [list]
                 foreach result [$port dependents] {
                     lappend dependents($portname) [$result name]
                 }
             }
         }
-        set ret {}
+        set ret [list]
         foreach port $portlist {
             sortdependents_helper $port ports_for_name dependents seen ret
         }

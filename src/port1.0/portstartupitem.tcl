@@ -201,8 +201,8 @@ proc portstartupitem::foreach_startupitem {body} {
 # Add user notes regarding any installed startupitem
 proc portstartupitem::add_notes {} {
     global subport startupitem_autostart
-    set autostart_names {}
-    set normal_names {}
+    set autostart_names [list]
+    set normal_names [list]
 
     foreach_startupitem {
         if {$si_type eq "none"} {
@@ -541,9 +541,9 @@ proc portstartupitem::loaded {} {
     set launchctl_path ${portutil::autoconf::launchctl_path}
     if {$launchctl_path eq ""} {
         # assuming not loaded if there's no launchctl
-        return {}
+        return [list]
     }
-    set ret {}
+    set ret [list]
     global os.major sudo_user
     foreach_startupitem {
         if {$si_type ne "launchd"} {

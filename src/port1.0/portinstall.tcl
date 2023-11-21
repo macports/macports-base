@@ -262,9 +262,9 @@ proc portinstall::create_archive {location archive.type} {
     }
 
     set have_fileIsBinary [expr {[option os.platform] eq "darwin"}]
-    set binary_files {}
+    set binary_files [list]
     # also save the contents for our own use later
-    set installPlist {}
+    set installPlist [list]
     set destpathLen [string length $destpath]
     fs-traverse -depth fullpath [list $destpath] {
         if {[file type $fullpath] eq "directory"} {

@@ -36,7 +36,7 @@ foreach portname $known_ports {
         ui_msg "$macports::ui_prefix Setting C++ stdlib usage for $portname"
         foreach entry $entries {
             registry::write {
-                set binary_files {}
+                set binary_files [list]
                 foreach filehandle [registry::file search id [$entry id] binary 1] {
                     lappend binary_files [$filehandle actual_path]
                     registry::file close $filehandle
