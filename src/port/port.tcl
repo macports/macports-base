@@ -127,8 +127,8 @@ proc composite_version {version variations {emptyVersionOkay 0}} {
     # Form a composite version out of the version and variations
 
     # Select the variations into positive and negative
-    set pos {}
-    set neg {}
+    set pos [list]
+    set neg [list]
     foreach { key val } $variations {
         if {$val eq "+"} {
             lappend pos $key
@@ -158,7 +158,7 @@ proc composite_version {version variations {emptyVersionOkay 0}} {
 
 set port_split_variants_re {([-+])([[:alpha:]_]+[\w\.]*)}
 proc split_variants {variants} {
-    set result {}
+    set result [list]
     set l [regexp -all -inline -- $::port_split_variants_re $variants]
     foreach { match sign variant } $l {
         lappend result $variant $sign
@@ -428,7 +428,7 @@ proc portlist_sortdependents { portlist } {
         }
         array unset pvals
     }
-    set ret {}
+    set ret [list]
     foreach p $portlist {
         portlist_sortdependents_helper $p entries dependents seen ret
     }
@@ -497,7 +497,7 @@ proc wrap {string maxlen {indent ""} {indentfirstline 1}} {
         set maxlen $env(COLUMNS)
     }
 
-    set splitstring {}
+    set splitstring [list]
     set indentline $indentfirstline
     foreach line [split $string "\n"] {
         lappend splitstring [wrapline $line $maxlen $indent $indentline]
@@ -574,7 +574,7 @@ proc wraplabel {label string maxlen {indent ""}} {
 # Port selection
 ##########################################
 proc unique_results_to_portlist {infos} {
-    set result {}
+    set result [list]
     array unset unique
     foreach {name info} $infos {
         array unset portinfo
@@ -636,14 +636,14 @@ proc get_current_port {} {
         return [list]
     }
 
-    set results {}
+    set results [list]
     add_to_portlist results [list url $url name $portname]
     return $results
 }
 
 
 proc get_installed_ports { {ignore_active yes} {active yes} } {
-    set ilist {}
+    set ilist [list]
     if { [catch {set ilist [registry::installed]} result] } {
         if {$result ne "Registry error: No ports registered as installed."} {
             ui_debug $::errorInfo
@@ -651,7 +651,7 @@ proc get_installed_ports { {ignore_active yes} {active yes} } {
         }
     }
 
-    set results {}
+    set results [list]
     foreach i $ilist {
         set iname [lindex $i 0]
         set iversion [lindex $i 1]
@@ -689,7 +689,7 @@ proc get_inactive_ports {} {
 proc get_actinact_ports {} {
     set inactive_ports [get_inactive_ports]
     set active_ports [get_active_ports]
-    set results {}
+    set results [list]
 
     foreach port $inactive_ports {
         array set portspec $port
@@ -717,7 +717,7 @@ proc get_actinact_ports {} {
 
 proc get_outdated_ports {} {
     # Get the list of installed ports
-    set ilist {}
+    set ilist [list]
     if { [catch {set ilist [registry::installed]} result] } {
         if {$result ne "Registry error: No ports registered as installed."} {
             ui_debug $::errorInfo
@@ -726,7 +726,7 @@ proc get_outdated_ports {} {
     }
 
     # Now process the list, keeping only those ports that are outdated
-    set results {}
+    set results [list]
     if { [llength $ilist] > 0 } {
         foreach i $ilist {
 
@@ -811,7 +811,7 @@ proc get_outdated_ports {} {
 
 proc get_obsolete_ports {} {
     set ilist [get_installed_ports]
-    set results {}
+    set results [list]
 
     foreach i $ilist {
         array set port $i
@@ -832,7 +832,7 @@ proc get_obsolete_ports {} {
 
 # return ports that have registry property $propname set to $propval
 proc get_ports_with_prop {propname propval} {
-    set ilist {}
+    set ilist [list]
     if { [catch {set ilist [registry::installed]} result] } {
         if {$result ne "Registry error: No ports registered as installed."} {
             ui_debug $::errorInfo
@@ -840,7 +840,7 @@ proc get_ports_with_prop {propname propval} {
         }
     }
 
-    set results {}
+    set results [list]
     foreach i $ilist {
         set iname [lindex $i 0]
         set iversion [lindex $i 1]
@@ -866,7 +866,7 @@ proc get_unrequested_ports {} {
 }
 
 proc get_leaves_ports {} {
-    set ilist {}
+    set ilist [list]
     if { [catch {set ilist [registry::installed]} result] } {
         if {$result ne "Registry error: No ports registered as installed."} {
             ui_debug $::errorInfo
@@ -874,7 +874,7 @@ proc get_leaves_ports {} {
         }
     }
     registry::open_dep_map
-    set results {}
+    set results [list]
     foreach i $ilist {
         set iname [lindex $i 0]
         if {[registry::list_dependents $iname] eq ""} {
@@ -893,7 +893,7 @@ proc get_rleaves_ports {} {
     }
     registry::open_dep_map
     set requested [get_requested_ports]
-    set results {}
+    set results [list]
     foreach i $ilist {
         set iname [lindex $i 9]
         set deplist [get_dependent_ports $iname 1]
@@ -908,7 +908,7 @@ proc get_dependent_ports {portname recursive} {
     registry::open_dep_map
     set deplist [registry::list_dependents $portname]
     # could return specific versions here using registry2.0 features
-    set results {}
+    set results [list]
     foreach dep $deplist {
         add_to_portlist results [list name [lindex $dep 2]]
     }
@@ -916,8 +916,8 @@ proc get_dependent_ports {portname recursive} {
     # actually do this iteratively to avoid hitting Tcl's recursion limit
     if {$recursive} {
         while 1 {
-            set rportlist {}
-            set newlist {}
+            set rportlist [list]
+            set newlist [list]
             foreach dep $deplist {
                 set depname [lindex $dep 2]
                 if {![info exists seen($depname)]} {
@@ -960,7 +960,7 @@ proc get_rdepends_ports {portname} {
         }
     }
 
-    set results {}
+    set results [list]
     set portList [list [string tolower $portname]]
     while {[llength $portList] > 0} {
         set aPort [lindex $portList 0]
@@ -1023,7 +1023,7 @@ proc get_dep_ports {portname recursive} {
     set results [list]
     set deptypes [list depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test]
 
-    set deplist {}
+    set deplist [list]
     foreach type $deptypes {
         if {[info exists portinfo($type)]} {
             foreach dep $portinfo($type) {
@@ -1036,8 +1036,8 @@ proc get_dep_ports {portname recursive} {
     # actually do this iteratively to avoid hitting Tcl's recursion limit
     if {$recursive} {
         while 1 {
-            set rportlist {}
-            set newlist {}
+            set rportlist [list]
+            set newlist [list]
             foreach dep $deplist {
                 set depname [lindex [split $dep :] end]
                 if {![info exists seen($depname)]} {
@@ -1067,7 +1067,7 @@ proc get_dep_ports {portname recursive} {
                     mportclose $mport
 
                     # collect its deps
-                    set rdeplist {}
+                    set rdeplist [list]
                     foreach type $deptypes {
                         if {[info exists portinfo($type)]} {
                             foreach rdep $portinfo($type) {
@@ -1135,7 +1135,7 @@ proc get_subports {portname} {
     mportclose $mport
 
     # gather its subports
-    set results {}
+    set results [list]
 
     if {[info exists portinfo(subports)]} {
         foreach subport $portinfo(subports) {
@@ -1171,7 +1171,7 @@ proc seqExpr { resname } {
             _EOF_   { break }
         }
 
-        set blist {}
+        set blist [list]
         set result [orExpr blist]
         if {$result} {
             # Calculate the union of result and b
@@ -1191,7 +1191,7 @@ proc orExpr { resname } {
         switch -- [lookahead] {
             or {
                     advance
-                    set blist {}
+                    set blist [list]
                     if {![andExpr blist]} {
                         return 0
                     }
@@ -1218,7 +1218,7 @@ proc andExpr { resname } {
             and {
                     advance
 
-                    set blist {}
+                    set blist [list]
                     set b [unaryExpr blist]
                     if {!$b} {
                         return 0
@@ -1245,7 +1245,7 @@ proc unaryExpr { resname } {
         !   -
         not {
                 advance
-                set blist {}
+                set blist [list]
                 set result [unaryExpr blist]
                 if {$result} {
                     set all [get_all_ports]
@@ -1490,7 +1490,7 @@ proc unique_entries { entries } {
     # Form the list of all the unique elements in the list a,
     # considering only the port fullname, and taking the first
     # found element first
-    set result {}
+    set result [list]
     array unset unique
     foreach item $entries {
         array set port $item
@@ -1509,7 +1509,7 @@ proc opUnion { a b } {
 
 
 proc opIntersection { a b } {
-    set result {}
+    set result [list]
 
     # Rules we follow in performing the intersection of two port lists:
     #
@@ -1562,7 +1562,7 @@ proc opIntersection { a b } {
 
 
 proc opComplement { a b } {
-    set result {}
+    set result [list]
 
     # Return all elements of a not matching elements in b
 
@@ -1850,7 +1850,7 @@ proc action_help { action portlist opts } {
         set pagepath ${macports::prefix}/share/man/$page
     }
 
-    if {$pagepath != ""} {
+    if {$pagepath ne ""} {
         ui_debug "Opening man page '$pagepath'"
 
         # Restore our entire environment from start time.
@@ -2159,20 +2159,20 @@ proc action_info { action portlist opts } {
         }
 
         # Spin through action options, emitting information for any found
-        set fields {}
+        set fields [list]
 
         # This contains all parameters in order given on command line
         set opts_action $global_options(options_${action}_order)
         # Get the display fields in order provided on command line
         #  ::struct::set intersect does not keep order of items
-        set opts_todo {}
+        set opts_todo [list]
         foreach elem $opts_action {
             if {[info exists options($elem)]} {
                 lappend opts_todo $elem
             }
         }
 
-        set fields_tried {}
+        set fields_tried [list]
         if {![llength $opts_todo]} {
             set opts_todo {ports_info_heading
                 ports_info_replaced_by
@@ -2248,7 +2248,7 @@ proc action_info { action portlist opts } {
 
             # Add "(" "or" ")" "and" for human-readable output
             if {$pretty_print && $ropt eq "license"} {
-                set infresult {}
+                set infresult [list]
                 foreach {e} $inf {
                     if {[llength $e] > 1} {
                         if {[llength $infresult] > 0} { lappend infresult " and " }
@@ -2263,9 +2263,9 @@ proc action_info { action portlist opts } {
 
             # Format list of maintainers
             if {$ropt eq "maintainers"} {
-                set infresult {}
+                set infresult [list]
                 foreach serialized [macports::unobscure_maintainers $inf] {
-                    set parts {}
+                    set parts [list]
                     array set maintainer $serialized
 
                     if {[info exists maintainer(email)]} {
@@ -2305,7 +2305,7 @@ proc action_info { action portlist opts } {
                 }
 
                 set pi_vars $inf
-                set inf {}
+                set inf [list]
                 foreach v [lsort $pi_vars] {
                     set varmodifier ""
                     if {[info exists variations($v)]} {
@@ -2330,7 +2330,7 @@ proc action_info { action portlist opts } {
             if {[string match "depend*" $ropt]
                         && ![macports::ui_isset ports_verbose]} {
                 set pi_deps $inf
-                set inf {}
+                set inf [list]
                 foreach d $pi_deps {
                     lappend inf [lindex [split $d :] end]
                 }
@@ -2921,7 +2921,7 @@ proc action_dependents { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
     }
-    set ilist {}
+    set ilist [list]
 
     registry::open_dep_map
 
@@ -2956,7 +2956,7 @@ proc action_dependents { action portlist opts } {
             if {$action eq "rdependents"} {
                 set toplist $deplist
                 while 1 {
-                    set newlist {}
+                    set newlist [list]
                     foreach dep $deplist {
                         set depname [lindex $dep 2]
                         if {![info exists seen($depname)]} {
@@ -3114,10 +3114,10 @@ proc action_deps { action portlist opts } {
         }
         set portname $portinfo(name)
 
-        set deplist {}
-        set deps_output {}
+        set deplist [list]
+        set deps_output [list]
         set ndeps 0
-        array set labeldict {depends_fetch Fetch depends_extract Extract depends_patch Patch depends_build Build depends_lib Library depends_run Runtime depends_test Test}
+        array set labeldict [list depends_fetch Fetch depends_extract Extract depends_patch Patch depends_build Build depends_lib Library depends_run Runtime depends_test Test]
         # get list of direct deps
         foreach type $deptypes {
             if {[info exists portinfo($type)]} {
@@ -3134,7 +3134,7 @@ proc action_deps { action portlist opts } {
                     set label "$labeldict($type) Dependencies"
                     lappend deps_output [wraplabel $label [join $deplist ", "] 0 [string repeat " " 22]]
                     incr ndeps [llength $deplist]
-                    set deplist {}
+                    set deplist [list]
                 }
             }
         }
@@ -3162,7 +3162,7 @@ proc action_deps { action portlist opts } {
         set toplist $deplist
         # gather all the deps
         while 1 {
-            set newlist {}
+            set newlist [list]
             foreach dep $deplist {
                 set depname [lindex [split $dep :] end]
                 if {![info exists seen($depname)]} {
@@ -3193,7 +3193,7 @@ proc action_deps { action portlist opts } {
                     }
 
                     # get list of the dep's deps
-                    set rdeplist {}
+                    set rdeplist [list]
                     foreach type $deptypes {
                         if {[info exists portinfo($type)]} {
                             foreach rdep $portinfo($type) {
@@ -3316,7 +3316,7 @@ proc action_installed { action portlist opts } {
     global private_options
     set status 0
     set restrictedList 0
-    set ilist {}
+    set ilist [list]
 
     if { [llength $portlist] || (![info exists private_options(ports_no_args)] || $private_options(ports_no_args) eq "no")} {
         set restrictedList 1
@@ -3388,7 +3388,7 @@ proc action_outdated { action portlist opts } {
     set status 0
 
     # If port names were supplied, limit ourselves to those ports, else check all installed ports
-    set ilist {}
+    set ilist [list]
     set restrictedList 0
     if { [llength $portlist] || (![info exists private_options(ports_no_args)] || $private_options(ports_no_args) eq "no")} {
         set restrictedList 1
@@ -3614,7 +3614,7 @@ proc action_space {action portlist opts} {
                 }
                 if {![info exists options(ports_space_total)] || $options(ports_space_total) ne "yes"} {
                     set msg "[bytesize $space $units] $portname"
-                    if { $portversion != {} } {
+                    if { $portversion ne {} } {
                         append msg " @$portversion"
                     }
                     puts $msg
@@ -3828,7 +3828,7 @@ proc action_search { action portlist opts } {
             set matchstyle glob
         }
 
-        set res {}
+        set res [list]
         set portfound 0
         foreach { opt } [array names filters] {
             # Map from friendly name
@@ -3839,7 +3839,7 @@ proc action_search { action portlist opts } {
                 break_softcontinue "search for name $portname failed: $result" 1 status
             }
 
-            set tmp {}
+            set tmp [list]
             foreach {name info} $matches {
                 add_to_portlist tmp [concat [list name $name] $info]
             }
@@ -3963,7 +3963,7 @@ proc action_echo { action portlist opts } {
     # Simply echo back the port specs given to this command
     foreachport $portlist {
         if {![macports::ui_isset ports_quiet]} {
-            set opts {}
+            set opts [list]
             foreach { key value } [array get options] {
                 if {![info exists global_options($key)]} {
                     lappend opts "$key=$value"
@@ -4560,10 +4560,10 @@ proc cmd_option_matches {action option} {
     # but that's only available as of Tcl 8.5
 
     if {![info exists cmd_opts_array($action)]} {
-        return {}
+        return [list]
     }
 
-    set result {}
+    set result [list]
 
     foreach item $cmd_opts_array($action) {
         if {[llength $item] == 1} {
@@ -4616,7 +4616,7 @@ proc parse_options { action ui_options_name global_options_name } {
                     if {[llength $kopts] == 0} {
                         return -code error "${action} does not accept --${key}"
                     } elseif {[llength $kopts] > 1} {
-                        set errlst {}
+                        set errlst [list]
                         foreach e $kopts {
                             lappend errlst "--[lindex $e 0]"
                         }
@@ -4628,7 +4628,7 @@ proc parse_options { action ui_options_name global_options_name } {
                         set global_options(ports_${action}_${key}) yes
                         lappend options_order(${action}) ports_${action}_${key}
                     } else {
-                        set args {}
+                        set args [list]
                         while {[moreargs] && $kargc > 0} {
                             advance
                             lappend args [lookahead]
@@ -4848,7 +4848,7 @@ proc process_cmd { argv } {
         # Parse action arguments, setting a special flag if there were none
         # We otherwise can't tell the difference between arguments that evaluate
         # to the empty set, and the empty set itself.
-        set portlist {}
+        set portlist [list]
         switch -- [lookahead] {
             ;       -
             _EOF_ {
@@ -4899,7 +4899,7 @@ proc complete_portname { text state } {
 
     if {$state == 0} {
         set complete_position 0
-        set complete_choices {}
+        set complete_choices [list]
 
         # Build a list of ports with text as their prefix
         if {[catch {set res [mportsearch "${text}*" false glob]} result]} {
@@ -5680,12 +5680,12 @@ namespace eval portclient::questions {
             signal -restart error {TERM INT}
             # check if input is non-empty and otherwise fine
             if {$input eq ""} {
-                return []
+                return [list]
             }
 
             if {[string equal -nocase $input "all"]} {
                 set count 0
-                set options_seq []
+                set options_seq [list]
                 foreach port $ports {
                     lappend options_seq $count
                     incr count
@@ -5698,7 +5698,7 @@ namespace eval portclient::questions {
                 continue
             }
 
-            set selected_opt []
+            set selected_opt [list]
 
             set err_flag 1
             set range_re {(\d+)-(\d+)}
