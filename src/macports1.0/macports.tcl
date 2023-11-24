@@ -4450,7 +4450,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     }
 
     if {!$will_install} {
-        # nothing to do for this port, so just check if we have to do dependents
+        # not upgrading this port, so just update its metadata
+        _upgrade_metadata $mport $regref $is_dryrun
+        # check if we have to do dependents
         if {[info exists options(ports_do_dependents)]} {
             # We do dependents ..
             set options(ports_nodeps) 1
@@ -4807,6 +4809,104 @@ proc macports::_upgrade_dependencies {portinfoname depscachename variationslistn
         set options(ports_do_dependents) yes
     }
     return $status
+}
+
+# update certain metadata if changed in the portfile since installation
+proc macports::_upgrade_metadata {mport regref is_dryrun} {
+    set workername [ditem_key $mport workername]
+    array set portinfo [mportinfo $mport]
+
+    # Sanity check
+    if {$portinfo(canonical_active_variants) ne [$regref variants]} {
+        ui_debug "$portinfo(name): Registry variants '[$regref variants]' don't match port variants '$portinfo(canonical_active_variants)'"
+        ui_debug "Not attempting to update metadata for $portinfo(name)"
+        return
+    }
+
+    # Update runtime dependencies if needed.
+    # First get the deps from the Portfile and from the registry.
+    array set deps_in_tree {}
+    foreach dtype [list depends_lib depends_run] {
+        if {[info exists portinfo($dtype)]} {
+            foreach dep $portinfo($dtype) {
+                set dname [$workername eval [list _get_dep_port $dep]]
+                if {$dname ne ""} {
+                    set deps_in_tree($dname) 1
+                }
+            }
+        }
+    }
+    array set deps_in_reg {}
+    foreach dep_regref [$regref dependencies] {
+        set deps_in_reg([$dep_regref name]) 1
+    }
+
+    # Find the differences.
+    set removed [list]
+    foreach d [array names deps_in_reg] {
+        if {![info exists deps_in_tree($d)]} {
+            lappend removed $d
+        }
+    }
+    set added [list]
+    foreach d [array names deps_in_tree] {
+        if {![info exists deps_in_reg($d)]} {
+            lappend added $d
+        }
+    }
+
+    # Update the registry.
+    if {[llength $removed] > 0 || [llength $added] > 0} {
+        if {$is_dryrun} {
+            ui_info "Not updating dependencies for $portinfo(name) @$portinfo(version)_$portinfo(revision)$portinfo(canonical_active_variants) (dry run)"
+        } else {
+            ui_info "Updating dependencies for $portinfo(name) @$portinfo(version)_$portinfo(revision)$portinfo(canonical_active_variants)"
+            if {[llength $removed] > 0} {
+                registry::delete_dependencies $regref $removed
+            }
+            if {[llength $added] > 0} {
+                registry::write {
+                    foreach d $added {
+                        $regref depends $d
+                    }
+                }
+            }
+        }
+    }
+
+    # Update platform if it been corrected to 'any' (indicating
+    # compatibility with multiple platforms or versions).
+    # The opposite case requires a rev bump so is not handled here.
+    lassign [$workername eval [list _get_compatible_platform]] os_platform os_major
+    if {$os_major eq "any" && $os_major ne [$regref os_major]} {
+        if {$is_dryrun} {
+            ui_info "Not updating platform for $portinfo(name) @$portinfo(version)_$portinfo(revision)$portinfo(canonical_active_variants) (dry run)"
+        } else {
+            ui_info "Updating platform for $portinfo(name) @$portinfo(version)_$portinfo(revision)$portinfo(canonical_active_variants)"
+            registry::write {
+                $regref os_major $os_major
+                # No need to check for a completely different platform, since
+                # the port would be considered actually outdated in that case.
+                if {$os_platform ne [$regref os_platform]} {
+                    $regref os_platform $os_platform
+                }
+            }
+        }
+    }
+
+    # Update archs if it has been corrected to 'noarch'.
+    # Like platforms above, the opposite case requires a rev bump.
+    set archs [$workername eval [list get_canonical_archs]]
+    if {$archs eq "noarch" && $archs ne [$regref archs]} {
+        if {$is_dryrun} {
+            ui_info "Not updating archs for $portinfo(name) @$portinfo(version)_$portinfo(revision)$portinfo(canonical_active_variants) (dry run)"
+        } else {
+            ui_info "Updating archs for $portinfo(name) @$portinfo(version)_$portinfo(revision)$portinfo(canonical_active_variants)"
+            registry::write {
+                $regref archs $archs
+            }
+        }
+    }
 }
 
 # mportselect
