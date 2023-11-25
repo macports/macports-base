@@ -348,12 +348,12 @@ namespace eval reclaim {
                 set workername [ditem_key $mport workername]
 
                 # Append that port's distfiles to the list
-                set cacheinfo(dist_subdir) [$workername eval {set dist_subdir}]
-                set distfiles   [$workername eval {set distfiles}]
-                if {[catch {$workername eval {set patchfiles}} patchfiles]} {
+                set cacheinfo(dist_subdir) [$workername eval [list set dist_subdir]]
+                set distfiles [$workername eval [list set distfiles]]
+                if {[catch {$workername eval [list set patchfiles]} patchfiles]} {
                     set patchfiles [list]
                 }
-                set filespath [$workername eval {set filespath}]
+                set filespath [$workername eval [list set filespath]]
 
                 set cacheinfo(distfiles) [list]
                 foreach file [concat $distfiles $patchfiles] {

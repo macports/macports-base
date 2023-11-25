@@ -401,28 +401,28 @@ namespace eval porttrace {
         set thread [macports_create_thread]
 
         # The slave thread needs this file and macports 1.0
-        thread::send $thread "package require porttrace 1.0"
-        thread::send $thread "package require macports 1.0"
+        thread::send $thread [list package require porttrace 1.0]
+        thread::send $thread [list package require macports 1.0]
 
         # slave needs ui_{info,warn,debug,error}...
         # make sure to sync this with ../pextlib1.0/tracelib.c!
-        thread::send $thread "macports::ui_init debug"
-        thread::send $thread "macports::ui_init info"
-        thread::send $thread "macports::ui_init warn"
-        thread::send $thread "macports::ui_init error"
+        thread::send $thread [list macports::ui_init debug]
+        thread::send $thread [list macports::ui_init info]
+        thread::send $thread [list macports::ui_init warn]
+        thread::send $thread [list macports::ui_init error]
 
         # and these variables
-        thread::send $thread "set prefix \"$prefix\"; set developer_dir \"$developer_dir\""
+        thread::send $thread [list set prefix $prefix ; set developer_dir $developer_dir]
         # The slave thread requires the registry package.
-        thread::send $thread "package require registry 1.0"
+        thread::send $thread [list package require registry 1.0]
         # and an open registry
-        thread::send $thread "registry::open [file join ${registry.path} registry registry.db]"
+        thread::send $thread [list registry::open [file join ${registry.path} registry registry.db]]
 
         # Initialize the slave
-        thread::send $thread "porttrace::slave_init $fifo $workpath"
+        thread::send $thread [list porttrace::slave_init $fifo $workpath]
 
         # Run slave asynchronously
-        thread::send -async $thread "porttrace::slave_run"
+        thread::send -async $thread [list porttrace::slave_run]
     }
 
     ##
@@ -476,7 +476,7 @@ namespace eval porttrace {
     proc slave_send {command} {
         variable thread
 
-        if {[thread::send $thread "$command" result]} {
+        if {[thread::send $thread $command result]} {
             return -code error "thread::send \"$command\" failed: $result"
         }
         return $result

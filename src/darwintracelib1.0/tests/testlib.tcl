@@ -99,7 +99,7 @@ proc tracelib_setup {} {
     set fifo_mktemp_template "/tmp/macports-test-XXXXXX"
     set fifo [mktemp $fifo_mktemp_template]
 
-    set thread [thread::create -joinable {source threadsetup.tcl}]
+    set thread [thread::create -joinable [list source threadsetup.tcl]]
     thread::send $thread [list setup $fifo]
 
     tracelib setsandbox [join $sandbox :]
