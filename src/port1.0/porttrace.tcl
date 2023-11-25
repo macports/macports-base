@@ -412,7 +412,8 @@ namespace eval porttrace {
         thread::send $thread [list macports::ui_init error]
 
         # and these variables
-        thread::send $thread [list set prefix $prefix ; set developer_dir $developer_dir]
+        thread::send $thread [list set prefix ${prefix}]
+        thread::send $thread [list set developer_dir $developer_dir]
         # The slave thread requires the registry package.
         thread::send $thread [list package require registry 1.0]
         # and an open registry
