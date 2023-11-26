@@ -1707,7 +1707,6 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
 }
 
 proc portconfigure::configure_main {args} {
-    global [info globals]
     global worksrcpath use_configure use_autoreconf use_autoconf use_automake use_xmkmf \
            configure.env configure.pipe configure.libs configure.classpath configure.universal_args \
            configure.perl configure.python configure.ruby configure.install configure.awk configure.bison \
