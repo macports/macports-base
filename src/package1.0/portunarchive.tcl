@@ -135,6 +135,18 @@ proc portunarchive::unarchive_command_setup {args} {
     set unarchive.post_args {}
     set unarchive.pipe_cmd ""
     switch -regex ${unarchive.type} {
+        aar {
+            set aa "aa"
+            if {[catch {set aa [findBinary $aa ${portutil::autoconf::aa_path}]} errmsg] == 0} {
+                ui_debug "Using $aa"
+                set unarchive.cmd "$aa"
+                set unarchive.pre_args {extract -afsc-all -enable-dedup -enable-holes -v}
+                set unarchive.args "-i [shellescape ${unarchive.path}]"
+            } else {
+                ui_debug $errmsg
+                return -code error "No '$aa' was found on this system!"
+            }
+        }
         cp(io|gz) {
             set pax "pax"
             if {[catch {set pax [findBinary $pax ${portutil::autoconf::pax_path}]} errmsg] == 0} {

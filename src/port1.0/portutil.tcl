@@ -356,7 +356,7 @@ proc command_string {command} {
         append cmdstring " ${command}"
     }
 
-    foreach var "${command}.pre_args ${command}.args ${command}.post_args" {
+    foreach var [list ${command}.pre_args ${command}.args ${command}.post_args] {
         if {[info exists $var]} {
             foreach string [set ${var}] {
                 append cmdstring " ${string}"
@@ -2761,7 +2761,7 @@ proc supportedArchiveTypes {} {
     global supported_archive_types
     if {![info exists supported_archive_types]} {
         set supported_archive_types [list]
-        foreach type {tbz2 tbz tgz tar txz tlz xar zip cpgz cpio} {
+        foreach type [list tbz2 tbz tgz tar txz tlz xar zip cpgz cpio aar] {
             if {[catch {archiveTypeIsSupported $type}] == 0} {
                 lappend supported_archive_types $type
             }
@@ -2797,6 +2797,12 @@ proc find_portarchive_path {} {
 proc archiveTypeIsSupported {type} {
     set errmsg ""
     switch -regex $type {
+        aar {
+            set aa "aa"
+            if {[catch {set aa [findBinary $aa ${portutil::autoconf::aa_path}]} errmsg] == 0} {
+                return 0
+            }
+        }
         cp(io|gz) {
             set pax "pax"
             if {[catch {set pax [findBinary $pax ${portutil::autoconf::pax_path}]} errmsg] == 0} {
@@ -2866,7 +2872,8 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
     switch -- $archive_type {
         xar -
         cpgz -
-        cpio {
+        cpio -
+        aar {
             set twostep 1
             global workpath
             if {[file isdirectory ${workpath}/.tmp]} {
@@ -2906,10 +2913,13 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
         cpio {
             system -W ${tempdir} "[findBinary pax ${portutil::autoconf::pax_path}] -rf [shellescape $archive_location] +CONTENTS"
         }
+        aar {
+            system -W ${tempdir} "[findBinary aa ${portutil::autoconf::aa_path}] extract -i [shellescape $archive_location] -include-path +CONTENTS"
+        }
     }
     if {[info exists twostep]} {
         set fd [open "${tempdir}/+CONTENTS"]
-        set raw_contents [read $fd]
+        set raw_contents [read -nonewline $fd]
         close $fd
         file delete -force $tempdir
     }

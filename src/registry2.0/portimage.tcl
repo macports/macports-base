@@ -392,6 +392,18 @@ proc extract_archive_to_tmpdir {location} {
         set unarchive.pipe_cmd ""
         set unarchive.type [::file extension $location]
         switch -regex ${unarchive.type} {
+            aar {
+                set aa "aa"
+                if {[catch {set aa [macports::findBinary $aa ${macports::autoconf::aa_path}]} errmsg] == 0} {
+                    ui_debug "Using $aa"
+                    set unarchive.cmd "$aa"
+                    set unarchive.pre_args {extract -afsc-all -enable-dedup -enable-holes -v}
+                    set unarchive.args "-i [macports::shellescape ${location}]"
+                } else {
+                    ui_debug $errmsg
+                    return -code error "No '$aa' was found on this system!"
+                }
+            }
             cp(io|gz) {
                 set pax "pax"
                 if {[catch {set pax [macports::findBinary $pax ${macports::autoconf::pax_path}]} errmsg] == 0} {

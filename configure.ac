@@ -132,6 +132,7 @@ MP_TOOL_PATH(XAR, [xar])
 MP_TOOL_PATH(XZ, [xz])
 
 # Search for tool paths. Any set above (via --with-pkg=PATH) will be retained
+AC_PATH_PROG(AA, [aa], [])
 AC_PATH_PROGS(BSDMAKE, [bsdmake pmake], [])
 AC_PATH_PROG(BZIP2_BIN, [bzip2], [])
 AC_PATH_PROG(BZR, [bzr], [])
