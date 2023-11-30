@@ -31,9 +31,13 @@
 package provide restore 1.0
 
 package require macports 1.0
+package require macports_dlist 1.0
 package require migrate 1.0
 package require registry 1.0
 package require snapshot 1.0
+
+package require struct::graph
+package require struct::graph::op
 
 namespace eval restore {
     proc main {opts} {
@@ -62,11 +66,11 @@ namespace eval restore {
         if {[info exists options(ports_restore_snapshot-id)]} {
             # use the specified snapshot
             set snapshot [fetch_snapshot $options(ports_restore_snapshot-id)]
-            ui_msg "Deactivating all ports installed.."
-            deactivate_all
         } elseif {[info exists options(ports_restore_last)]} {
+            # use the last snapshot
             set snapshot [fetch_snapshot_last]
         } else {
+            # ask the user to select a snapshot
             set snapshots [list_snapshots]
             set human_readable_snapshots {}
             foreach snapshot $snapshots {
@@ -80,18 +84,17 @@ namespace eval restore {
 
             set retstring [$macports::ui_options(questions_singlechoice) "Select any one snapshot to restore:" "" $human_readable_snapshots]
             set snapshot [lindex $snapshots $retstring]
-
-            ui_msg "Deactivating all ports installed.."
-            deactivate_all
         }
 
-        ui_msg "Restoring snapshot '[$snapshot note]' created at [$snapshot created_at]"
+        ui_msg "$macports::ui_prefix Deactivating all installed ports"
+        deactivate_all
 
-        ui_msg "Fetching ports to install..."
+        ui_msg "$macports::ui_prefix Restoring snapshot '[$snapshot note]' created at [$snapshot created_at]"
         set snapshot_portlist [$snapshot ports]
-
-        ui_msg "Restoring the selected snapshot.."
         restore_state [$snapshot ports]
+
+        # TODO Check whether all ports have been restored; print an analysis of
+        # ports that have not been restored if errors did occur.
 
         return 0
     }
@@ -108,197 +111,293 @@ namespace eval restore {
         return [registry::snapshot get_all]
     }
 
-    proc portlist_sort_dependencies_later {portlist} {
+    ##
+    # Sorts a list of port references such that ports come before their
+    # dependencies. Ideal for uninstalling all ports.
+    #
+    # Args:
+    #       portlist - the list of port references
+    #
+    # Returns:
+    #       the list in order such that leaves are first
+    proc deactivation_order {portlist} {
+        # Create a graph where each edge means "is dependent of". A topological
+        # sort of this graph should return leaves (i.e., ports which have no
+        # dependents) first.
+        #
+        # We're going to use Tarjan's algorithm for this, which also deals
+        # which potential cycles.
 
-        # Sorts a list of port references such that ports come before
-        # their dependencies. Ideal for uninstalling a port.
-        #
-        # Args:
-        #       portlist - the list of port references
-        #
-        # Returns:
-        #       the list in dependency-sorted order
+        set dependents [::struct::graph]
+
+        array set entries {}
 
         foreach port $portlist {
             set portname [$port name]
-            lappend entries($portname) $port
-            # Avoid adding ports in loop
-            if {![info exists dependents($portname)]} {
-                set dependents($portname) {}
-                foreach result [$port dependents] {
-                    lappend dependents($portname) [$result name]
+            set entries($portname) $port
+
+            if {![$dependents node exists $portname]} {
+                $dependents node insert $portname
+            }
+
+            foreach dependent [$port dependents] {
+                set dependent_name [$dependent name]
+                if {![$dependents node exists $dependent_name]} {
+                    $dependents node insert $dependent_name
                 }
+
+                $dependents arc insert $portname $dependent_name
             }
         }
-        set ret {}
-        foreach port $portlist {
-            portlist_sort_dependencies_later_helper $port entries dependents seen ret
+
+        # Compute a list of strongly connected components using Tarjan's
+        # algorithm. This list should contain one-element lists (unless there
+        # are dependency cycles).
+        set portlist_sccs [::struct::graph::op::tarjan $dependents]
+        set operations {}
+
+        foreach scc $portlist_sccs {
+            foreach portname $scc {
+                lappend operations $entries($portname)
+            }
         }
-        return $ret
+
+        $dependents destroy
+
+        return $operations
     }
 
-    proc portlist_sort_dependencies_later_helper {port up_entries up_dependents up_seen up_retlist} {
-        upvar 1 $up_seen seen
-        if {![info exists seen($port)]} {
-            set seen($port) 1
-            upvar 1 $up_entries entries $up_dependents dependents $up_retlist retlist
-            set name [$port name]
-            foreach dependent $dependents($name) {
-                if {[info exists entries($dependent)]} {
-                    foreach entry $entries($dependent) {
-                        portlist_sort_dependencies_later_helper $entry entries dependents seen retlist
+    ##
+    # Deactivate all installed ports in reverse dependency order so that as few
+    # warnings as possible will be printed.
+    proc deactivate_all {} {
+        set portlist [deactivation_order [registry::entry imaged]]
+
+        foreach port $portlist {
+            if {[$port state] eq "installed"} {
+                if {![registry::run_target $port deactivate {ports_force 1}]} {
+                    if {[catch {portimage::deactivate [$port name] [$port version] [$port revision] [$port variants] {ports_force 1}} result]} {
+                        ui_debug $::errorInfo
+                        ui_warn "Failed to deactivate [$port name]: $result"
                     }
                 }
             }
-            lappend retlist $port
         }
     }
 
-    proc deactivate_all {} {
-        set portlist [portlist_sort_dependencies_later [registry::entry imaged]]
-        foreach port $portlist {
-            ui_msg "Deactivating: [$port name]"
-            if {[$port state] eq "installed"} {
-                if {[registry::run_target $port deactivate {}]} {
-                    continue
-                }
-            }
+    ##
+    # Convert a variant string into a serialized array of variations suitable for passing to mportopen
+    proc variants_to_variations_arr {variantstr} {
+        set split_variants_re {([-+])([[:alpha:]_]+[\w\.]*)}
+        set result {}
+
+        foreach {match sign variant} [regexp -all -inline -- $split_variants_re $variantstr] {
+            lappend result $variant $sign
         }
+
+        return $result
     }
 
-    proc portlist_sort_dependencies_first {portlist} {
+    ##
+    # Sorts a list of port references such that ports appear after their
+    # dependencies. Ideal for installing a port.
+    #
+    # Args:
+    #       portlist - the list of port references
+    #
+    # Returns:
+    #       the list in dependency-sorted order
+    proc resolve_dependencies {portlist} {
+        array set ports {}
+        array set dep_ports {}
+        set dependencies [::struct::graph]
 
-        # Sorts a list of port references such that ports appear after
-        # their dependencies. Ideal for installing a port.
-        #
-        # Args:
-        #       portlist - the list of port references
-        #
-        # Returns:
-        #       the list in dependency-sorted order
+        ui_msg -nonewline "$macports::ui_prefix Computing dependency order. This will take a while, please be patient"
+        flush stdout
+        if {[macports::ui_isset ports_debug]} {
+            ui_msg {}
+        }
 
-        array set port_installed {}
-        array set port_deps {}
-        array set port_in_list {}
-
-        set new_list [list]
-
+        # Populate $ports so that we can look up requested variants given the
+        # port name.
         foreach port $portlist {
+            lassign $port name requested active _ variants
 
-            set name [lindex $port 0]
-            set requested [lindex $port 1]
-            if {$requested eq 0} {
+            # bool-ify active
+            set active [expr {$active eq "installed"}]
+            set ports($name) [list $requested $active $variants]
+        }
+
+        # Iterate over the requested ports to calculate the dependency tree.
+        # Use a worklist so that we can push items to the front to do
+        # depth-first dependency resolution.
+        set worklist [list]
+        set seen [list]
+        foreach port $portlist {
+            lassign $port name requested _ _ _
+
+            if {!$requested} {
                 continue
             }
-            set active 0
-            if {[lindex $port 2] eq "installed"} {
-                set active 1
-            }
-            set requested_variants [lindex $port 4]
-            if {![info exists port_in_list($name)]} {
-                set port_in_list($name) 1
-                set port_installed($name) 0
-            } else {
-                incr port_in_list($name)
-            }
 
-            if {![info exists port_deps(${name},${requested_variants})]} {
-                set port_deps(${name},${requested_variants}) [portlist_sort_dependencies_first_helper $name $requested_variants]
-            }
-            lappend new_list [list $name $requested_variants $active]
+            lappend worklist $name
         }
+        while {[llength $worklist] > 0} {
+            set worklist [lassign $worklist portname]
 
-        set operation_list [list]
-        while {[llength $new_list] > 0} {
+            # If we've already seen this port, continue
+            if {[lsearch -sorted -exact $seen $portname] != -1} {
+                continue
+            }
+            lappend seen $portname
+            set seen [lsort -ascii $seen]
 
-            set oldLen [llength $new_list]
-            foreach port $new_list {
-                lassign $port name requested_variants active
+            ui_debug "Dependency calculation for port $portname"
 
-                if {$active && $port_installed($name) < ($port_in_list($name) - 1)} {
-                    continue
-                }
-                set installable 1
-                foreach dep $port_deps(${name},${requested_variants}) {
-                    if {[info exists port_installed($dep)] && $port_installed($dep) == 0} {
-                        set installable 0
+            # Find the port
+            set port [mportlookup $portname]
+            if {[llength $port] < 2} {
+                ui_warn "Port $portname not found, skipping"
+                continue
+            }
+
+            if {[info exists ports($portname)]} {
+                lassign $ports($portname) requested _ variants
+            } elseif {[info exists dep_ports($portname)]} {
+                set variants $dep_ports($portname)
+                set requested 0
+            } else {
+                set variants ""
+                set requested 0
+            }
+            if {($requested || [macports::ui_isset ports_verbose]) && ![macports::ui_isset ports_debug]} {
+                # Print a progress indicator if this is a requested port (or
+                # for every port if in verbose mode).
+                ui_msg -nonewline "."
+                flush stdout
+            }
+
+            # Open the port with the requested variants from the snapshot
+            set variations [variants_to_variations_arr $variants]
+            array set portinfo [lindex $port 1]
+            if {[catch {set mport [mportopen $portinfo(porturl) [list subport $portinfo(name)] $variations]} result]} {
+                error "Unable to open port '$portname': $result"
+            }
+            array unset portinfo
+
+            # Check whether any of ports in the snapshot conflicts with this
+            # port. If that's the case, then the port in the snapshot is likely
+            # an alternative provider for the functionality of this port (like
+            # for example certsync is for curl-ca-bundle) and the user had this
+            # alternative installed.
+            array set portinfo [mportinfo $mport]
+            if {[info exists portinfo(conflicts)] && [llength $portinfo(conflicts)] > 0} {
+                set conflict_found 0
+                foreach conflictport $portinfo(conflicts) {
+                    if {[info exists ports($conflictport)]} {
+                        # The conflicting port was installed in the snapshot.
+                        # Identify all ports that depend on this port, and
+                        # change their dependency to the port in the snapshot.
+                        ui_debug "Snapshot contains $conflictport, which conflicts with dependency $portinfo(name)"
+
+                        if {![$dependencies node exists $conflictport]} {
+                            $dependencies node insert $conflictport
+                        }
+                        set arcs [$dependencies arcs -in $portinfo(name)]
+                        foreach arc $arcs {
+                            ui_debug "Changing dependency [$dependencies arc source $arc]->[$dependencies arc target $arc] to [$dependencies arc source $arc]->$conflictport"
+                            $dependencies arc move-target $arc $conflictport
+                        }
+
+                        set worklist [linsert $worklist 0 $conflictport]
+                        set conflict_found 1
                         break
                     }
                 }
-                if {$installable} {
-                    lappend operation_list [list $name $requested_variants $active]
-                    incr port_installed($name)
-                    set index [lsearch $new_list [list $name $requested_variants $active]]
-                    set new_list [lreplace $new_list $index $index]
+                if {$conflict_found} {
+                    mportclose $mport
+                    continue
                 }
             }
-            if {[llength $new_list] == $oldLen} {
-                return -code error "Stuck in loop"
-            }
-        }
-        return $operation_list
-    }
 
-    proc portlist_sort_dependencies_first_helper {portname requested_variants} {
-        set dependency_list [list]
-        set port_search_result [mportlookup $portname]
-        if {[llength $port_search_result] < 2} {
-            ui_warn "Skipping $portname (not in the ports tree)"
-            return $dependency_list
+            # Compute the dependencies for the 'install' target. Do not recurse
+            # into the dependencies: we'll do that here manually in order to
+            #  (1) keep our dependency graph updated
+            #  (2) use the requested variants when opening the dependencies
+            #  (3) identify if an alternative provider was used based on the
+            #  snapshot and the conflicts information (such as for example when
+            #  a port depends on curl-ca-bundle, but the snapshot contains
+            #  certsync, which conflicts with curl-ca-bundle).
+            if {[mportdepends $mport install 0] != 0} {
+                error "Unable to determine dependencies for port '$portname'"
+            }
+
+            set provides [ditem_key $mport provides]
+            if {![$dependencies node exists $provides]} {
+                $dependencies node insert $provides
+            }
+            foreach dependency [ditem_key $mport requires] {
+                if {![$dependencies node exists $dependency]} {
+                    $dependencies node insert $dependency
+                }
+                lassign [dlist_search $macports::open_mports provides $dependency] dep_ditem
+                set dependency_requested_variants [[ditem_key $dep_ditem workername] eval {set requested_variants}]
+                set dep_ports($dependency) $dependency_requested_variants
+
+                $dependencies arc insert $provides $dependency
+            }
+            set worklist [linsert $worklist 0 {*}[ditem_key $mport requires]]
+            mportclose $mport
         }
-        array set portinfo [lindex $port_search_result 1]
-        if {[catch {set mport [mportopen $portinfo(porturl) [list subport $portinfo(name)] $requested_variants]} result]} {
-            global errorInfo
-            puts stderr "$errorInfo"
-            return -code error "Unable to open port '$portname': $result"
+
+        if {![macports::ui_isset ports_debug]} {
+            ui_msg {}
         }
-        array unset portinfo
-        array set portinfo [mportinfo $mport]
-        mportclose $mport
-        set dependency_types { depends_fetch depends_extract depends_build depends_lib depends_run }
-        foreach dependency_type $dependency_types {
-            if {[info exists portinfo($dependency_type)] && [string length $portinfo($dependency_type)] > 0} {
-                foreach dependency $portinfo($dependency_type) {
-                    lappend dependency_list [lindex [split $dependency:] end]
+        ui_msg "$macports::ui_prefix Sorting dependency tree"
+
+        # Compute a list of stronly connected components using Tarjan's
+        # algorithm. The result should be a list of one-element sets (unless
+        # there are cylic dependencies, which there shouldn't be). Because of
+        # how Tarjan's algorithm works, this list should be in topological
+        # order, though. This is what we need for installation.
+        set portlist_sccs [::struct::graph::op::tarjan $dependencies]
+        set operations {}
+
+        foreach scc $portlist_sccs {
+            foreach name $scc {
+                if {[info exists ports($name)]} {
+                    lappend operations [list $name {*}$ports($name)]
+                } elseif {[info exists dep_ports($name)]} {
+                    lappend operations [list $name 0 1 $dep_ports($name)]
+                } else {
+                    lappend operations [list $name 0 1 {}]
                 }
             }
         }
-        return $dependency_list
+
+        $dependencies destroy
+
+        return $operations
     }
 
     proc restore_state {snapshot_portlist} {
-        ui_msg "Installing ports:"
-        set snapshot_portlist [lsort -index 0 -nocase $snapshot_portlist]
+        set sorted_snapshot_portlist [resolve_dependencies $snapshot_portlist]
 
-        foreach port $snapshot_portlist {
-            # 0: port name
-            # 1: requested (0/1)
-            # 2: state (imaged/installed, i.e. inactive/active)
-            # 3: variants
-            # 4: requested_variants
-            if {[lindex $port 1] == 1} {
-                # Hide unrequested ports
-                if {[lindex $port 2] eq "installed"} {
-                    ui_msg "   [lindex $port 0] [lindex $port 3] (requested: [lindex $port 4])"
-                } else {
-                    ui_msg "   [lindex $port 0] [lindex $port 3] (requested: [lindex $port 4]) (inactive)"
-                }
-            }
-        }
-
-        set sorted_snapshot_portlist [portlist_sort_dependencies_first $snapshot_portlist]
+        set index 0
+        set length [llength $sorted_snapshot_portlist]
         foreach port $sorted_snapshot_portlist {
+            incr index
+            lassign $port name requested active variants
 
-            set name [string trim [lindex $port 0]]
-            set variations [lindex $port 1]
-            set active [lindex $port 2]
-
+            if {$variants ne ""} {
+                ui_msg "$macports::ui_prefix $index/$length Restoring $name $variants from snapshot"
+            } else {
+                ui_msg "$macports::ui_prefix $index/$length Restoring $name from snapshot"
+            }
             if {!$active} {
                 set target install
-                ui_msg "Installing (not activating): $name $variations"
             } else {
                 set target activate
-                ui_msg "Installing (and activating): $name $variations"
             }
 
             if {[catch {set res [mportlookup $name]} result]} {
@@ -314,8 +413,9 @@ namespace eval restore {
             array set portinfo [lindex $res 1]
             set porturl $portinfo(porturl)
 
-            set options(ports_requested) 1
+            set options(ports_requested) $requested
             set options(subport) $portinfo(name)
+            set variations [variants_to_variations_arr $variants]
 
             if {[catch {set workername [mportopen $porturl [array get options] $variations]} result]} {
                 global errorInfo
@@ -331,7 +431,6 @@ namespace eval restore {
             } else {
                 mportclose $workername
             }
-            # TODO: some ports may get re-activated to fulfil dependencies - recheck?
         }
     }
 }
