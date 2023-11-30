@@ -2,6 +2,87 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.9.0 (unreleased)
+    - Upgrade will now update registry metadata if needed for ports
+      that are not outdated. This should hopefully cut down on revision
+      increases requiring a rebuild just to do things like add or
+      remove dependencies. (jmr in bec110b)
+
+    - Added new option 'startupitem.logfile.stderr'.
+      (#67955, mascguy in e70a512)
+
+    - Many single-letter command line options should now work when
+      given after the action name, and apply only to that action. A few
+      like -N can't easily be turned on and off internally, so if in
+      doubt, keep putting single-letter options before the action.
+      (jmr in aec0601)
+
+    - Ports that set platforms containing 'any' are now not considered
+      outdated after major OS updates. (#68256, jmr in 1b4db00)
+
+    - Dependencies installed for the first time when upgrading a port
+      no longer inherit all variants from the dependent port. Arch
+      checking is now done in this case so +universal is added to the
+      dependency iff needed. (#67637, jmr in 7be167c)
+
+    - Prevented rev-upgrade from complaining about weakly-linked libs
+      that are not present. (#52700, chrstphrchvz in 77e333a)
+
+    - Avoid installing build-time dependencies when force-upgrading an
+      installed port for which a binary archive will be used.
+      (#67017, jmr in a9597dc)
+
+    - Fixed error when running upgrade with -R and -u options.
+      (#68019, jmr in 980a5c1)
+
+    - Fixed rev-upgrade potentially trying to access registry entries
+      that have been uninstalled as a result of a rebuild.
+      (#66186, jmr in 1abd73a)
+
+    - Fixed missing make command potentially causing some ports to fail
+      to parse. (#60881, jmr in 1b4e6a1)
+
+    - Prevented destroot.keepdirs from creating files outside the
+      destroot. (#55673, jmr in 8db11c8)
+
+    - Running 'port install' on a port that is already installed will
+      set the requested flag for that port. (#55085, jmr in 7ed853d)
+
+    - Fixed trace mode on Intel macOS 13. (#66358, cal in 4a1b0c7)
+
+    - Fixed incorrect trace mode handling of setuid/setgid binaries.
+      (cal in 9cc9afc)
+
+    - Fixed the deactivate and uninstall actions sometimes not handling
+      multiple ports in correct dependency order if one or more of them
+      was specified with non-canonical case. (#60446, jmr in 772a9cc)
+
+    - Fixed port names that differ only in case not being considered
+      to be the same when evaulating boolean expressions.
+      (#50518, jmr in bd02a2f)
+
+    - Fixed some issues that could occur in the unusual case that a
+      mirror has an archive but not its corresponding signature.
+      (jmr in a774938, f7828b8)
+
+    - If the macports user has an incorrect home directory set somehow,
+      the installer should now fix it. (#49101, jmr in 128e8ce)
+
+    - Skip vacuuming the registry database on shutdown (after
+      uninstalling one or more ports) if it would not save signficant
+      space. (jmr in c82a269)
+
+    - Clean up the SQLite write-ahead log file when closing the
+      registry. (jmr in 9bb06b9)
+
+    - Added a simple default test phase for all ports, which currently
+      just checks the architectures of installed files. 'test.run yes'
+      enables the tests defined by the Portfile, as before. It should
+      always be safe to run 'port test' now, and if it fails it means
+      a test didn't pass. (jmr in ddc2655)
+
+    - Using multiple threads for portindex. (jmr in f00bf80)
+
 Release 2.8.1 (2023-01-31 by jmr)
     - Fixed 'port lint' complaining about 'platforms any'.
       (jmr in 84d8683)
