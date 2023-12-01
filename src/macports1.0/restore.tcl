@@ -212,11 +212,24 @@ namespace eval restore {
         array set dep_ports {}
         set dependencies [::struct::graph]
 
-        ui_msg -nonewline "$macports::ui_prefix Computing dependency order. This will take a while, please be patient"
-        flush stdout
-        if {[macports::ui_isset ports_debug]} {
-            ui_msg {}
+        set requested_counter 0
+        set requested_total 0
+
+        set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists macports::ui_options(progress_generic)]}]
+        if {$fancy_output} {
+            set progress $macports::ui_options(progress_generic)
+        } else {
+            proc noop {args} {}
+            set progress noop
         }
+
+        if {$fancy_output} {
+            ui_msg "$macports::ui_prefix Computing dependency order"
+        } else {
+            ui_msg "$macports::ui_prefix Computing dependency order. This will take a while, please be patient"
+            flush stdout
+        }
+        $progress start
 
         # Populate $ports so that we can look up requested variants given the
         # port name.
@@ -226,7 +239,13 @@ namespace eval restore {
             # bool-ify active
             set active [expr {$active eq "installed"}]
             set ports($name) [list $requested $active $variants]
+
+            if {$requested} {
+                incr requested_total
+            }
         }
+
+        $progress update $requested_counter $requested_total
 
         # Iterate over the requested ports to calculate the dependency tree.
         # Use a worklist so that we can push items to the front to do
@@ -258,7 +277,9 @@ namespace eval restore {
             # Find the port
             set port [mportlookup $portname]
             if {[llength $port] < 2} {
+                $progress intermission
                 ui_warn "Port $portname not found, skipping"
+                $progress update $requested_counter $requested_total
                 continue
             }
 
@@ -271,17 +292,12 @@ namespace eval restore {
                 set variants ""
                 set requested 0
             }
-            if {($requested || [macports::ui_isset ports_verbose]) && ![macports::ui_isset ports_debug]} {
-                # Print a progress indicator if this is a requested port (or
-                # for every port if in verbose mode).
-                ui_msg -nonewline "."
-                flush stdout
-            }
 
             # Open the port with the requested variants from the snapshot
             set variations [variants_to_variations_arr $variants]
             array set portinfo [lindex $port 1]
             if {[catch {set mport [mportopen $portinfo(porturl) [list subport $portinfo(name)] $variations]} result]} {
+                $progress intermission
                 error "Unable to open port '$portname': $result"
             }
             array unset portinfo
@@ -294,6 +310,7 @@ namespace eval restore {
             #  (such as for example when a port depends on curl-ca-bundle, but the snapshot contains certsync, which
             #  conflicts with curl-ca-bundle).
             if {[mportdepends $mport install 0] != 0} {
+                $progress intermission
                 error "Unable to determine dependencies for port '$portname'"
             }
 
@@ -321,7 +338,9 @@ namespace eval restore {
                             if {![info exists seen_conflicts($portinfo(name),$conflict)]} {
                                 set seen_conflicts($portinfo(name),$conflict) 1
 
+                                $progress intermission
                                 ui_warn "Snapshot contains $conflict, which conflicts with dependency $portinfo(name); assuming $conflict provides the functionality of $portinfo(name)"
+                                $progress update $requested_counter $requested_total
                             }
 
                             if {![$dependencies node exists $conflict]} {
@@ -351,11 +370,16 @@ namespace eval restore {
                 set worklist [linsert $worklist 0 $dependency]
             }
             mportclose $mport
+
+            if {$requested} {
+                # Print a progress indicator if this is a requested port (or for every port if in verbose mode).
+                incr requested_counter
+            }
+            $progress update $requested_counter $requested_total
         }
 
-        if {![macports::ui_isset ports_debug]} {
-            ui_msg {}
-        }
+        $progress finish
+
         ui_msg "$macports::ui_prefix Sorting dependency tree"
 
         # Compute a list of stronly connected components using Tarjan's
