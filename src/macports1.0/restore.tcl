@@ -233,6 +233,7 @@ namespace eval restore {
         # depth-first dependency resolution.
         set worklist [list]
         set seen [list]
+        array set seen_conflicts {}
         foreach port $portlist {
             lassign $port name requested _ _ _
 
@@ -285,49 +286,13 @@ namespace eval restore {
             }
             array unset portinfo
 
-            # Check whether any of ports in the snapshot conflicts with this
-            # port. If that's the case, then the port in the snapshot is likely
-            # an alternative provider for the functionality of this port (like
-            # for example certsync is for curl-ca-bundle) and the user had this
-            # alternative installed.
-            array set portinfo [mportinfo $mport]
-            if {[info exists portinfo(conflicts)] && [llength $portinfo(conflicts)] > 0} {
-                set conflict_found 0
-                foreach conflictport $portinfo(conflicts) {
-                    if {[info exists ports($conflictport)]} {
-                        # The conflicting port was installed in the snapshot.
-                        # Identify all ports that depend on this port, and
-                        # change their dependency to the port in the snapshot.
-                        ui_debug "Snapshot contains $conflictport, which conflicts with dependency $portinfo(name)"
-
-                        if {![$dependencies node exists $conflictport]} {
-                            $dependencies node insert $conflictport
-                        }
-                        set arcs [$dependencies arcs -in $portinfo(name)]
-                        foreach arc $arcs {
-                            ui_debug "Changing dependency [$dependencies arc source $arc]->[$dependencies arc target $arc] to [$dependencies arc source $arc]->$conflictport"
-                            $dependencies arc move-target $arc $conflictport
-                        }
-
-                        set worklist [linsert $worklist 0 $conflictport]
-                        set conflict_found 1
-                        break
-                    }
-                }
-                if {$conflict_found} {
-                    mportclose $mport
-                    continue
-                }
-            }
-
-            # Compute the dependencies for the 'install' target. Do not recurse
-            # into the dependencies: we'll do that here manually in order to
+            # Compute the dependencies for the 'install' target. Do not recurse into the dependencies: we'll do that
+            # here manually in order to
             #  (1) keep our dependency graph updated
             #  (2) use the requested variants when opening the dependencies
-            #  (3) identify if an alternative provider was used based on the
-            #  snapshot and the conflicts information (such as for example when
-            #  a port depends on curl-ca-bundle, but the snapshot contains
-            #  certsync, which conflicts with curl-ca-bundle).
+            #  (3) identify if an alternative provider was used based on the snapshot and the conflicts information
+            #  (such as for example when a port depends on curl-ca-bundle, but the snapshot contains certsync, which
+            #  conflicts with curl-ca-bundle).
             if {[mportdepends $mport install 0] != 0} {
                 error "Unable to determine dependencies for port '$portname'"
             }
@@ -337,16 +302,54 @@ namespace eval restore {
                 $dependencies node insert $provides
             }
             foreach dependency [ditem_key $mport requires] {
+                lassign [dlist_search $macports::open_mports provides $dependency] dep_ditem
+
+                set conflict_found 0
+                array set portinfo [mportinfo $dep_ditem]
+                if {[info exists portinfo(conflicts)] && [llength $portinfo(conflicts)] > 0} {
+                    foreach conflict $portinfo(conflicts) {
+                        if {[info exists ports($conflict)]} {
+                            # The conflicting port was installed in the snapshot. Assume that this happened because the
+                            # conflicting port is an alternative provider for this dependency (e.g., curl-ca-bundle and
+                            # certsync, or a -devel port replacing its non-devel variant).
+                            #
+                            # Do not add the dependency that mportdepends computed, but instead replace this dependency
+                            # with the conflicting port.
+                            #
+                            # Warn only once for every combination, otherwise users might see the same message multiple
+                            # times.
+                            if {![info exists seen_conflicts($portinfo(name),$conflict)]} {
+                                set seen_conflicts($portinfo(name),$conflict) 1
+
+                                ui_warn "Snapshot contains $conflict, which conflicts with dependency $portinfo(name); assuming $conflict provides the functionality of $portinfo(name)"
+                            }
+
+                            if {![$dependencies node exists $conflict]} {
+                                $dependencies node insert $conflict
+                            }
+
+                            $dependencies arc insert $provides $conflict
+
+                            set worklist [linsert $worklist 0 $conflict]
+                            set conflict_found 1
+                            break
+                        }
+                    }
+                }
+                array unset portinfo
+                if {$conflict_found} {
+                    continue
+                }
+
                 if {![$dependencies node exists $dependency]} {
                     $dependencies node insert $dependency
                 }
-                lassign [dlist_search $macports::open_mports provides $dependency] dep_ditem
                 set dependency_requested_variants [[ditem_key $dep_ditem workername] eval {set requested_variants}]
                 set dep_ports($dependency) $dependency_requested_variants
 
                 $dependencies arc insert $provides $dependency
+                set worklist [linsert $worklist 0 $dependency]
             }
-            set worklist [linsert $worklist 0 {*}[ditem_key $mport requires]]
             mportclose $mport
         }
 
