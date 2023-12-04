@@ -278,8 +278,8 @@ proc portfetch::checkfiles {urls} {
     global global_mirror_site ports_fetch_no-mirrors license
     upvar $urls fetch_urls
 
-    set sites [list patch_sites {} \
-                    master_sites {}]
+    set sites [list patch_sites [list] \
+                    master_sites [list]]
     if {(![info exists ports_fetch_no-mirrors] || ${ports_fetch_no-mirrors} eq "no") \
             && [lsearch -exact -nocase $license "nomirror"] == -1} {
         set sites [list patch_sites [list $global_mirror_site PATCH_SITE_LOCAL] \

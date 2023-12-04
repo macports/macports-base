@@ -74,13 +74,13 @@ test worker_init {
     if {$name ne "interp0"} {
         return "FAIL: wrong workername"
     }
-    if {[catch {$name eval source Portfile} result]} {
+    if {[catch {$name eval [list source Portfile]} result]} {
         return "FAIL: cannot load Portfile"
     }
-    if {[$name eval findBinary ls] ne "/bin/ls"} {
+    if {[$name eval [list findBinary ls]] ne "/bin/ls"} {
         return "FAIL: alias not created"
     }
-    if {[$name eval return \$os_arch] ne $macports::os_arch} {
+    if {[$name eval [list set os_arch]] ne $macports::os_arch} {
         return "FAIL: var not set"
     }
     return "Worker init successful."

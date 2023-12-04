@@ -356,7 +356,7 @@ proc command_string {command} {
         append cmdstring " ${command}"
     }
 
-    foreach var "${command}.pre_args ${command}.args ${command}.post_args" {
+    foreach var [list ${command}.pre_args ${command}.args ${command}.post_args] {
         if {[info exists $var]} {
             foreach string [set ${var}] {
                 append cmdstring " ${string}"
@@ -591,7 +591,7 @@ proc variant {args} {
     #   * is_default: This key exists iff the variant is a default variant.
     #   * requires
     if {![info exists PortInfo(vinfo)]} {
-        set PortInfo(vinfo) {}
+        set PortInfo(vinfo) [list]
     }
     array set vinfo $PortInfo(vinfo)
 
@@ -640,7 +640,7 @@ proc variant {args} {
     } else {
         # Create an array to contain the variant's information.
         if {![info exists vinfo($variant_provides)]} {
-            set vinfo($variant_provides) {}
+            set vinfo($variant_provides) [list]
         }
         array set variant $vinfo($variant_provides)
 
@@ -895,19 +895,25 @@ proc _handle_platforms {option action args} {
     }
 }
 
-# Platform specifier for binary archive name
-# "any" in platforms means the built archive will work on any OS
+# Platform and major version this port will be compatible with in built form
+# "any" in platforms means the built port will work on any OS
 # "darwin any" means it will work on any darwin version
-proc _get_archive_platform {} {
-    global platforms os.platform os.subplatform os.major
-    foreach p $platforms {
+# Returns a list: {platform major}
+proc _get_compatible_platform {} {
+    global os.platform
+    foreach p [option platforms] {
         if {$p eq "any"} {
-            return any_any
-        } elseif {[lindex $p 0] in [list ${os.platform} ${os.subplatform}] && [lindex $p 1] eq "any"} {
-            return ${os.platform}_any
+            return [list any any]
+        } elseif {[lindex $p 0] in [list ${os.platform} [option os.subplatform]] && [lindex $p 1] eq "any"} {
+            return [list ${os.platform} any]
         }
     }
-    return ${os.platform}_${os.major}
+    return [list ${os.platform} [option os.major]]
+}
+
+# Platform specifier string for binary archive name
+proc _get_archive_platform {} {
+    return [join [_get_compatible_platform] _]
 }
 
 # Portfiles may define more than one port.
@@ -1081,18 +1087,13 @@ proc reinplace {args}  {
         # absolute path, otherwise it is $dir/$file
         set file [file join $dir $file]
 
-        if {[catch {set tmpfile [mkstemp "${tempdir}/[file tail $file].sed.XXXXXXXX"]} error]} {
+        if {[catch {set tmpfd [file tempfile tmpfile "${tempdir}/[file tail $file].sed.XXXXXXXX"]} error]} {
             ui_debug $::errorInfo
             ui_error "reinplace: $error"
             return -code error "reinplace failed"
-        } else {
-            # Extract the Tcl Channel number
-            set tmpfd [lindex $tmpfile 0]
-            # Set tmpfile to only the file name
-            set tmpfile [join [lrange $tmpfile 1 end]]
         }
 
-        set cmdline {}
+        set cmdline [list]
         lappend cmdline $portutil::autoconf::sed_command
         if {$extended} {
             lappend cmdline -E
@@ -1529,31 +1530,31 @@ proc target_run {ditem} {
                     set tracing yes
 
                     # collect deps
-                    set depends {}
-                    set deptypes {}
+                    set depends [list]
+                    set deptypes [list]
 
                     # Determine deptypes to look for based on target
                     switch $target {
                         fetch       -
-                        checksum    { set deptypes "depends_fetch" }
-                        extract     { set deptypes "depends_fetch depends_extract" }
-                        patch       { set deptypes "depends_fetch depends_extract depends_patch" }
+                        checksum    { set deptypes [list depends_fetch] }
+                        extract     { set deptypes [list depends_fetch depends_extract] }
+                        patch       { set deptypes [list depends_fetch depends_extract depends_patch] }
                         configure   -
-                        build       { set deptypes "depends_fetch depends_extract depends_patch depends_lib depends_build" }
-                        test        { set deptypes "depends_fetch depends_extract depends_patch depends_lib depends_build depends_run depends_test" }
+                        build       { set deptypes [list depends_fetch depends_extract depends_patch depends_lib depends_build] }
+                        test        { set deptypes [list depends_fetch depends_extract depends_patch depends_lib depends_build depends_run depends_test] }
                         destroot    -
                         dmg         -
                         pkg         -
                         portpkg     -
                         mpkg        -
                         mdmg        -
-                        ""          { set deptypes "depends_fetch depends_extract depends_patch depends_lib depends_build depends_run" }
+                        ""          { set deptypes [list depends_fetch depends_extract depends_patch depends_lib depends_build depends_run] }
 
                         # install may be run given an archive, which means
                         # depends_fetch, _extract, _build dependencies have
                         # never been installed
                         activate    -
-                        install     { set deptypes "depends_lib depends_run" }
+                        install     { set deptypes [list depends_lib depends_run] }
                     }
 
                     # Gather the dependencies for deptypes
@@ -1742,6 +1743,10 @@ proc eval_targets {target} {
             return 0
         } elseif {$target eq "activate"} {
             set regref [registry_open $subport $version $revision $portvariants ""]
+            # Set requested flag in the registry if in options
+            if {[info exists ::user_options(ports_requested)]} {
+                registry_prop_store $regref requested $::user_options(ports_requested)
+            }
             if {[registry_prop_retr $regref active] != 0} {
                 # Something to close the registry entry may be called here, if it existed.
                 ui_debug "Skipping $target ($subport @${version}_${revision}${portvariants}) since this port is already active"
@@ -1833,7 +1838,7 @@ proc open_statefile {args} {
             return -code error "$statefile is not writable - check permission on port directory"
         }
         if {[file mtime ${portpath}/Portfile] > [clock seconds]} {
-            return -code error "Portfile is from the future - check date and time of your system"
+            return -code error "Portfile for $subport is from the future - check date and time of your system"
         }
         if {![tbool ports_ignore_different]} {
             # start by assuming the statefile is current
@@ -1883,13 +1888,13 @@ proc open_statefile {args} {
             }
             if {[tbool portfile_changed]} {
                 if {![tbool ports_dryrun]} {
-                    ui_notice "Portfile changed since last build; discarding previous state."
+                    ui_notice "Portfile for $subport changed since last build; discarding previous state."
                     chownAsRoot $subbuildpath
                     delete $workpath
                     file mkdir $workpath
                     set fresh_build yes
                 } else {
-                    ui_notice "Portfile changed since last build but not discarding previous state (dry run)"
+                    ui_notice "Portfile for $subport changed since last build but not discarding previous state (dry run)"
                 }
             }
             close $readfd
@@ -2149,7 +2154,7 @@ proc eval_variants {variations} {
     foreach dvar $newlist {
         set thevar [ditem_key $dvar provides]
         if {[info exists upvariations($thevar)] && $upvariations($thevar) eq "-"} {
-            set chosenlist ""
+            set chosenlist [list]
             foreach choice $chosen {
                 lappend chosenlist +[ditem_key $choice provides]
             }
@@ -2376,7 +2381,7 @@ proc handle_default_variants {option action {value ""}} {
         set|append {
             # Retrieve the information associated with each variant.
             if {![info exists PortInfo(vinfo)]} {
-                set PortInfo(vinfo) {}
+                set PortInfo(vinfo) [list]
             }
             array set vinfo $PortInfo(vinfo)
             set re {([-+])([-A-Za-z0-9_.]+)}
@@ -2750,8 +2755,8 @@ proc get_portimage_path {} {
 proc supportedArchiveTypes {} {
     global supported_archive_types
     if {![info exists supported_archive_types]} {
-        set supported_archive_types {}
-        foreach type {tbz2 tbz tgz tar txz tlz xar zip cpgz cpio} {
+        set supported_archive_types [list]
+        foreach type [list tbz2 tbz tgz tar txz tlz xar zip cpgz cpio aar] {
             if {[catch {archiveTypeIsSupported $type}] == 0} {
                 lappend supported_archive_types $type
             }
@@ -2787,6 +2792,12 @@ proc find_portarchive_path {} {
 proc archiveTypeIsSupported {type} {
     set errmsg ""
     switch -regex $type {
+        aar {
+            set aa "aa"
+            if {[catch {set aa [findBinary $aa ${portutil::autoconf::aa_path}]} errmsg] == 0} {
+                return 0
+            }
+        }
         cp(io|gz) {
             set pax "pax"
             if {[catch {set pax [findBinary $pax ${portutil::autoconf::pax_path}]} errmsg] == 0} {
@@ -2856,7 +2867,8 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
     switch -- $archive_type {
         xar -
         cpgz -
-        cpio {
+        cpio -
+        aar {
             set twostep 1
             global workpath
             if {[file isdirectory ${workpath}/.tmp]} {
@@ -2896,10 +2908,13 @@ proc extract_archive_metadata {archive_location archive_type metadata_type} {
         cpio {
             system -W ${tempdir} "[findBinary pax ${portutil::autoconf::pax_path}] -rf [shellescape $archive_location] +CONTENTS"
         }
+        aar {
+            system -W ${tempdir} "[findBinary aa ${portutil::autoconf::aa_path}] extract -i [shellescape $archive_location] -include-path +CONTENTS"
+        }
     }
     if {[info exists twostep]} {
         set fd [open "${tempdir}/+CONTENTS"]
-        set raw_contents [read $fd]
+        set raw_contents [read -nonewline $fd]
         close $fd
         file delete -force $tempdir
     }
@@ -3001,11 +3016,11 @@ proc merge {base} {
     global destroot configure.universal_archs
 
     # test which architectures are available, set one as base-architecture
-    set archs ""
+    set archs [list]
     set base_arch ""
     foreach arch ${configure.universal_archs} {
         if {[file exists "${base}/${arch}"]} {
-            set archs [concat ${archs} ${arch}]
+            lappend archs ${arch}
             set base_arch ${arch}
         }
     }
@@ -3458,12 +3473,17 @@ proc _check_xcode_version {} {
             13 {
                 set min 14.1
                 set ok 14.1
-                set rec 14.2
+                set rec 14.3.1
+            }
+            14 {
+                set min 15.0
+                set ok 15.0
+                set rec 15.0
             }
             default {
-                set min 14.1
-                set ok 14.1
-                set rec 14.2
+                set min 15.0
+                set ok 15.0
+                set rec 15.0
             }
         }
         if {$xcodeversion eq "none"} {
@@ -3597,7 +3617,8 @@ proc _archive_available {} {
     ui_debug "Fetching $archivename archive size"
     # curl getsize can return -1 instead of throwing an error for
     # nonexistent files on FTP sites.
-    if {![catch {curl getsize $url} size] && $size > 0} {
+    if {![catch {curl getsize $url} size] && $size > 0
+          && ![catch {curl getsize ${url}.rmd160} sigsize] && $sigsize > 0} {
         set archive_available_result 1
         return 1
     }

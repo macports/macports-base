@@ -161,17 +161,17 @@ void UpdateStringOfFilemap(Tcl_Obj* inObjPtr);
 int SetFilemapFromAny(Tcl_Interp* inInterp, Tcl_Obj* inObjPtr);
 int SetResultFromErrorCode(Tcl_Interp* interp, int inErrorCode);
 SFilemapObject* GetObjectFromVarName(Tcl_Interp* interp, Tcl_Obj* inVarName);
-int FilemapCloseCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
-int FilemapCreateCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
-int FilemapExistsCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
-int FilemapGetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
-int FilemapIsReadOnlyCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
-int FilemapListCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
-int FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
-int FilemapRevertCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
-int FilemapSaveCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
-int FilemapSetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
-int FilemapUnsetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+int FilemapCloseCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
+int FilemapCreateCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
+int FilemapExistsCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
+int FilemapGetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
+int FilemapIsReadOnlyCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
+int FilemapListCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
+int FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
+int FilemapRevertCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
+int FilemapSaveCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
+int FilemapSetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
+int FilemapUnsetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
 
 /* ------------------------------------------------------------------------- **
  * ObjType definition
@@ -1125,7 +1125,7 @@ Delete(SNode** ioRoot, const char* inPath)
 void
 FreeFilemapInternalRep(Tcl_Obj* inObjPtr)
 {
-	SFilemapObject* theObject = (SFilemapObject*) inObjPtr->internalRep.otherValuePtr;
+	SFilemapObject* theObject = inObjPtr->internalRep.otherValuePtr;
 	if ((--theObject->fRefCount) == 0)
 	{
 		SNode* theRoot = theObject->fRoot;
@@ -1155,11 +1155,11 @@ void
 DupFilemapInternalRep(Tcl_Obj* inSrcPtr, Tcl_Obj* inDupPtr)
 {
 	/* increment the ref count */
-	SFilemapObject* theObject = (SFilemapObject*) inSrcPtr->internalRep.otherValuePtr;
+	SFilemapObject* theObject = inSrcPtr->internalRep.otherValuePtr;
 	theObject->fRefCount++;
 	
 	/* duplicate the Tcl's obj stuff */
-	inDupPtr->internalRep.otherValuePtr = (VOID*) theObject;
+	inDupPtr->internalRep.otherValuePtr = theObject;
 	inDupPtr->typePtr = inSrcPtr->typePtr;
 }
 
@@ -1299,8 +1299,7 @@ GetObjectFromVarName(Tcl_Interp* interp, Tcl_Obj* inVarName)
 		{
 			Tcl_SetResult(interp, "variable is not a filemap", TCL_STATIC);
 		} else {
-			theResult =
-				(SFilemapObject*) theTclObject->internalRep.otherValuePtr;
+			theResult = theTclObject->internalRep.otherValuePtr;
 		}
 	}
 	
@@ -1315,7 +1314,7 @@ GetObjectFromVarName(Tcl_Interp* interp, Tcl_Obj* inVarName)
  * @param objv			parameters
  */
 int
-FilemapCloseCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+FilemapCloseCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theResult = TCL_OK;
 
@@ -1368,7 +1367,7 @@ FilemapCloseCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
  * @param objv			parameters
  */
 int
-FilemapCreateCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+FilemapCreateCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	Tcl_Obj* theObject;
 	SFilemapObject* theFilemapObject;
@@ -1392,7 +1391,7 @@ FilemapCreateCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 	theFilemapObject->fIsReadOnly = 0;
 	theFilemapObject->fIsRAMOnly = 1;
 	theFilemapObject->fIsDirty = 0;
-	theObject->internalRep.otherValuePtr = (VOID*) theFilemapObject;
+	theObject->internalRep.otherValuePtr = theFilemapObject;
 	theObject->typePtr = &tclFilemapType;
 	
 	/* Save it in global variable */
@@ -1414,7 +1413,7 @@ FilemapCreateCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
  * @param objv			parameters
  */
 int
-FilemapExistsCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+FilemapExistsCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theResult = TCL_OK;
 
@@ -1456,7 +1455,7 @@ FilemapExistsCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
  * @param objv			parameters
  */
 int
-FilemapGetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+FilemapGetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theResult = TCL_OK;
 
@@ -1498,7 +1497,7 @@ FilemapGetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
  * @param objv			parameters
  */
 int
-FilemapIsReadOnlyCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+FilemapIsReadOnlyCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theResult = TCL_OK;
 
@@ -1535,7 +1534,7 @@ FilemapIsReadOnlyCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
  * @param objv			parameters
  */
 int
-FilemapListCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+FilemapListCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theResult = TCL_OK;
 
@@ -1577,7 +1576,7 @@ FilemapListCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
  * @param objv			parameters
  */
 int
-FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theErr = 0;
 	char isReadOnly = 0;
@@ -1692,7 +1691,7 @@ FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		theFilemapObject->fIsReadOnly = isReadOnly;
 		theFilemapObject->fIsDirty = 0;
 		theFilemapObject->fIsRAMOnly = 0;
-		theObject->internalRep.otherValuePtr = (VOID*) theFilemapObject;
+		theObject->internalRep.otherValuePtr = theFilemapObject;
 		theObject->typePtr = &tclFilemapType;
 		
 		/* Save it in global variable */
@@ -1715,7 +1714,7 @@ FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
  * @param objv			parameters
  */
 int
-FilemapRevertCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+FilemapRevertCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theResult = TCL_OK;
 
@@ -1768,7 +1767,7 @@ FilemapRevertCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
  * @param objv			parameters
  */
 int
-FilemapSaveCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+FilemapSaveCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theResult = TCL_OK;
 
@@ -1826,7 +1825,7 @@ FilemapSaveCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
  * @param objv			parameters
  */
 int
-FilemapSetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+FilemapSetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theResult = TCL_OK;
 
@@ -1880,7 +1879,7 @@ FilemapSetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
  * @param objv			parameters
  */
 int
-FilemapUnsetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+FilemapUnsetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* const objv[])
 {
 	int theResult = TCL_OK;
 
@@ -1937,7 +1936,7 @@ FilemapCmd(
 		ClientData clientData UNUSED,
 		Tcl_Interp* interp,
 		int objc, 
-		Tcl_Obj* CONST objv[])
+		Tcl_Obj* const objv[])
 {
     typedef enum {
     	kFilemapClose,

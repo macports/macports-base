@@ -40,7 +40,7 @@ test pkg_main {
     set workername [ditem_key $mport workername]
 
 } -body {
-    if {[$workername eval eval_targets pkg] != 0} {
+    if {[$workername eval [list eval_targets pkg]] != 0} {
         return "FAIL: cannot create pkg. Maybe should update ports tree ?"
     }
 

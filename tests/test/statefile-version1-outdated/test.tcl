@@ -34,7 +34,7 @@ test warning_check {
     Regression test for statefile-v1-outdated discard prev version.
 } -body {
     state_v1 yes
-} -result "portfile changed since last build; discarding previous state."
+} -result "portfile for statefile-version1-outdated changed since last build; discarding previous state."
 
 test output_check {
     Regression test for statefile-v1-outdated output.

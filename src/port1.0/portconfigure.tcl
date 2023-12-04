@@ -432,7 +432,7 @@ proc portconfigure::choose_supported_archs {archs} {
         if {[vercmp ${configure.sdk_version} 11] >= 0} {
             set sdk_archs [list arm64 x86_64]
         } elseif {[vercmp ${configure.sdk_version} 10.14] >= 0} {
-            set sdk_archs x86_64
+            set sdk_archs [list x86_64]
         } elseif {[vercmp ${configure.sdk_version} 10.7] >= 0} {
             set sdk_archs [list x86_64 i386]
         } elseif {[vercmp ${configure.sdk_version} 10.6] >= 0} {
@@ -458,7 +458,7 @@ proc portconfigure::choose_supported_archs {archs} {
             }
             if {$intersection_archs eq ""} {
                 # No archs in common.
-                return ""
+                return [list]
             }
         }
     } elseif {$supported_archs eq ""} {
@@ -1189,7 +1189,7 @@ proc portconfigure::get_apple_compilers_os_version {} {
 }
 # utility procedure: get Clang compilers based on os.major
 proc portconfigure::get_clang_compilers {} {
-    global os.major porturl
+    global os.major os.platform porturl
     set compilers [list]
     set compiler_file [getportresourcepath $porturl "port1.0/compilers/clang_compilers.tcl"]
     if {[file exists ${compiler_file}]} {
@@ -1197,47 +1197,62 @@ proc portconfigure::get_clang_compilers {} {
     } else {
         ui_debug "clang_compilers.tcl not found in ports tree, using built-in selections"
 
-        # clang 11  and older build on 10.6+  (darwin 10)
-        # clang 7.0 and older build on 10.5+  (darwin 9)
-        # clang 3.4 and older build on 10.4+  (darwin 8)
-        # Clang 11 and newer only on Apple Silicon
-        # Clang 9.0 and newer only on 11+ (Darwin 20)
-
-        if {${os.major} >= 11} {
-            lappend compilers macports-clang-13 macports-clang-12
+        if {${os.major} >= 11 || ${os.platform} ne "darwin"} {
+            if {[option compiler.cxx_standard] >= 2014 && ${os.major} >= 22} {
+                # For now limit exposure of clang-17 to ports needing c++14 or newer
+                # and only on macOS13 or newer due to issues like
+                # https://github.com/macports/macports-ports/pull/21051
+                # https://trac.macports.org/ticket/68640
+                lappend compilers macports-clang-17
+            }
+            lappend compilers macports-clang-16 \
+                              macports-clang-15 \
+                              macports-clang-14
+            if {${os.major} < 23 || ${os.platform} ne "darwin"} {
+                # https://trac.macports.org/ticket/68257
+                # Versions of clang older than clang-14 probably have build issues on
+                # macOS14+. Until resolved do not append to fallback list.
+                lappend compilers macports-clang-13 \
+                                  macports-clang-12
+            }
         }
-        if {${os.major} >= 10} {
-            lappend compilers macports-clang-11
-            if {[option build_arch] ne "arm64"} {
-                lappend compilers macports-clang-10 macports-clang-9.0
-                if {${os.major} < 20} {
-                    lappend compilers macports-clang-8.0
+
+        if {${os.platform} eq "darwin"} {
+
+            if {${os.major} >= 10} {
+                lappend compilers macports-clang-11
+                if {[option build_arch] ne "arm64"} {
+                    lappend compilers macports-clang-10 macports-clang-9.0
+                    if {${os.major} < 20} {
+                        lappend compilers macports-clang-8.0
+                    }
                 }
             }
-        }
 
-        if {${os.major} >= 9 && ${os.major} < 20} {
-            lappend compilers macports-clang-7.0 \
-                              macports-clang-6.0 \
-                              macports-clang-5.0
-        }
+            if {${os.major} >= 9 && ${os.major} < 20} {
+                lappend compilers macports-clang-7.0 \
+                    macports-clang-6.0 \
+                    macports-clang-5.0
+            }
 
-        if {${os.major} < 16} {
-            # The Sierra SDK requires a toolchain that supports class properties
-            if {${os.major} >= 9} {
-                lappend compilers macports-clang-3.7
+            if {${os.major} < 16} {
+                # The Sierra SDK requires a toolchain that supports class properties
+                if {${os.major} >= 9} {
+                    lappend compilers macports-clang-3.7
+                }
+                lappend compilers macports-clang-3.4
+                if {${os.major} < 9} {
+                    lappend compilers macports-clang-3.3
+                }
             }
-            lappend compilers macports-clang-3.4
-            if {${os.major} < 9} {
-                lappend compilers macports-clang-3.3
-            }
+
         }
     }
     return ${compilers}
 }
 # utility procedure: get GCC compilers based on os.major
 proc portconfigure::get_gcc_compilers {} {
-    global os.major os.arch porturl
+    global os.major porturl
     set compilers [list]
     set compiler_file [getportresourcepath $porturl "port1.0/compilers/gcc_compilers.tcl"]
     if {[file exists ${compiler_file}]} {
@@ -1245,20 +1260,20 @@ proc portconfigure::get_gcc_compilers {} {
     } else {
         ui_debug "gcc_compilers.tcl not found in ports tree, using built-in selections"
 
-        if {${os.major} >= 10} {
-            lappend compilers macports-gcc-11 macports-gcc-10
+        # GCC 10 and above on OSX10.6+
+        if {${os.major} >= 10 || [option os.platform] ne "darwin"} {
+            lappend compilers macports-gcc-13 macports-gcc-12 macports-gcc-11 macports-gcc-10
         }
 
-        if {${os.arch} ne "arm"} {
+        # GCC 9 and older only on OSX10.10 and older
+        if {${os.major} < 15} {
             if {${os.major} >= 10} {
                 lappend compilers macports-gcc-9 macports-gcc-8
             }
-            if {${os.major} < 20} {
-                lappend compilers macports-gcc-7 macports-gcc-6 macports-gcc-5
-            }
+            lappend compilers macports-gcc-7 macports-gcc-6 macports-gcc-5
         }
 
-        if {${os.major} >= 11} {
+        if {${os.major} >= 10} {
             lappend compilers macports-gcc-devel
         }
     }
@@ -1645,7 +1660,7 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
 
         # add C++ runtime dependency if necessary
         if {[regexp {^macports-gcc-(\d+(?:\.\d+)?)?$} ${compiler} -> gcc_version]} {
-            set libgccs ""
+            set libgccs [list]
             set dependencies_file [getportresourcepath $porturl "port1.0/compilers/gcc_dependencies.tcl"]
             if {[file exists ${dependencies_file}]} {
                 source ${dependencies_file}
@@ -1654,24 +1669,24 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
 
                 # GCC version providing the primary runtime
                 # Note settings here *must* match those in the lang/libgcc port and compilers PG
-                if {${os.major} < 10} {
+                if {[option os.platform] eq "darwin" && [option os.major] < 10} {
                     set gcc_main_version 7
                 } else {
-                    set gcc_main_version 11
+                    set gcc_main_version 13
                 }
 
                 # compiler links against libraries in libgcc\d* and/or libgcc-devel
                 if {[vercmp ${gcc_version} 4.6] < 0} {
-                    set libgccs "path:share/doc/libgcc/README:libgcc port:libgcc45"
+                    set libgccs [list path:share/doc/libgcc/README:libgcc port:libgcc45]
                 } elseif {[vercmp ${gcc_version} 7] < 0} {
-                    set libgccs "path:share/doc/libgcc/README:libgcc port:libgcc6"
+                    set libgccs [list path:share/doc/libgcc/README:libgcc port:libgcc6]
                 } elseif {[vercmp ${gcc_version} ${gcc_main_version}] < 0} {
-                    set libgccs "path:share/doc/libgcc/README:libgcc port:libgcc${gcc_version}"
+                    set libgccs [list path:share/doc/libgcc/README:libgcc port:libgcc${gcc_version}]
                 } else {
                     # Using primary GCC version
                     # Do not depend directly on primary runtime port, as implied by libgcc
                     # and doing so prevents libgcc-devel being used as an alternative.
-                    set libgccs "path:share/doc/libgcc/README:libgcc"
+                    set libgccs [list path:share/doc/libgcc/README:libgcc]
                 }
             }
             foreach libgcc_dep $libgccs {
@@ -1707,7 +1722,6 @@ proc portconfigure::add_compiler_port_dependencies {compiler} {
 }
 
 proc portconfigure::configure_main {args} {
-    global [info globals]
     global worksrcpath use_configure use_autoreconf use_autoconf use_automake use_xmkmf \
            configure.env configure.pipe configure.libs configure.classpath configure.universal_args \
            configure.perl configure.python configure.ruby configure.install configure.awk configure.bison \

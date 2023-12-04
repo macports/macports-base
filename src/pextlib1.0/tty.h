@@ -38,13 +38,13 @@
 /**
  * A wrapper for isatty(3)
  */
-int IsattyCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+int IsattyCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
 
 /**
  * Determines current size of tty
  *
  * @returns list with 2 elements, rows and columns
  */
-int TermGetSizeCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+int TermGetSizeCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);
 
 #endif /* _PEXTLIB_TTY_H */

@@ -24,6 +24,15 @@ Global variants will be applied as specified in man:variants.conf[5].
 
 OPTIONS
 -------
+*--allow-failing*::
+Attempt installation even if the specified port or one of its
+dependencies indicates that it is known to fail.
+
+*--no-replace*::
+Attempt to install the specified port even if it indicates that it is
+replaced by another port. Without this option, the replacement would be
+installed instead.
+
 *--no-rev-upgrade*::
 Do not run rev-upgrade after installation. See man:port-rev-upgrade[1] for more
 information.

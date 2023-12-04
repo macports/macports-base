@@ -83,7 +83,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
 
     if {$is_tarball} {
         # verify signature for tarball
-        global macports::archivefetch_pubkeys
+        global macports::archivefetch_pubkeys macports::hfscompression
         set openssl [macports::findBinary openssl $macports::autoconf::openssl_path]
         set tarball ${mp_source_path}/${tarfile}
         set signature ${tarball}.rmd160
@@ -103,8 +103,15 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
             return -code error "Failed to verify signature for MacPorts source!"
         }
 
+        if {${macports::hfscompression} && [getuid] == 0 &&
+                ![catch {macports::binaryInPath bsdtar}] &&
+                ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]} {
+            ui_debug "Using bsdtar with HFS+ compression (if valid)"
+            set tar "bsdtar --hfsCompression"
+        } else {
+            set tar [macports::findBinary tar $macports::autoconf::tar_path]
+        }
         # extract tarball and move into place
-        set tar [macports::findBinary tar $macports::autoconf::tar_path]
         file mkdir ${mp_source_path}/tmp
         set tar_cmd "$tar -C [macports::shellescape ${mp_source_path}/tmp] -xf [macports::shellescape $tarball]"
         macports_try -pass_signal {
@@ -193,6 +200,14 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
             set sdk_arg {}
             set jobs [macports:get_parallel_jobs yes]
             if {$::macports::os_platform eq "darwin"} {
+                catch {exec /usr/bin/cc 2>@1} output
+                set output [join [lrange [split $output "\n"] 0 end-1] "\n"]
+                if {[string match -nocase *license* $output]} {
+                    ui_error "It seems you have not accepted the Xcode license; unable to build."
+                    ui_error "Agree to the license by opening Xcode or running `sudo xcodebuild -license'."
+                    return -code error "Xcode license acceptance required"
+                }
+
                 set cc_arg "CC=/usr/bin/cc "
                 if {$::macports::os_major >= 18 || ![file exists /usr/include/sys/cdefs.h]} {
                     set cltpath /Library/Developer/CommandLineTools

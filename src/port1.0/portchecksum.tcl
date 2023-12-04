@@ -242,7 +242,7 @@ proc portchecksum::checksum_start {args} {
 # Target main procedure. Verifies the checksums of all distfiles.
 #
 proc portchecksum::checksum_main {args} {
-    global UI_PREFIX all_dist_files checksums_array portverbose checksum.skip
+    global UI_PREFIX all_dist_files checksums_array checksum.skip
 
     # If no files have been downloaded, there is nothing to checksum.
     if {![info exists all_dist_files]} {
@@ -286,7 +286,7 @@ proc portchecksum::checksum_main {args} {
             } else {
                 # retrieve the list of types/values from the array.
                 set portfile_checksums $checksums_array($distfile)
-                set calculated_checksums {}
+                set calculated_checksums [list]
 
                 # iterate on this list to check the actual values.
                 foreach {type sum} $portfile_checksums {
@@ -344,7 +344,7 @@ proc portchecksum::checksum_main {args} {
         } else {
             # Show the desired checksum line for easy cut-paste
             # based on the previously calculated values, plus our default types
-            set sums {}
+            set sums [list]
 
             foreach distfile $all_dist_files {
                 if {[llength $all_dist_files] > 1} {

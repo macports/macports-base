@@ -48,7 +48,7 @@ const char* portgroup_props[] = {
 
 /* ${portgroup} prop ?value? */
 static int portgroup_obj_prop(Tcl_Interp* interp, reg_portgroup* portgroup, int objc,
-        Tcl_Obj* CONST objv[]) {
+        Tcl_Obj* const objv[]) {
     int index;
     if (objc > 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "?value?");
@@ -97,7 +97,7 @@ static int portgroup_obj_prop(Tcl_Interp* interp, reg_portgroup* portgroup, int 
 typedef struct {
     char* name;
     int (*function)(Tcl_Interp* interp, reg_portgroup* portgroup, int objc,
-            Tcl_Obj* CONST objv[]);
+            Tcl_Obj* const objv[]);
 } portgroup_obj_cmd_type;
 
 static portgroup_obj_cmd_type portgroup_cmds[] = {
@@ -118,7 +118,7 @@ static portgroup_obj_cmd_type portgroup_cmds[] = {
  * chance to touch it.
  */
 int portgroup_obj_cmd(ClientData clientData, Tcl_Interp* interp, int objc,
-        Tcl_Obj* CONST objv[]) {
+        Tcl_Obj* const objv[]) {
     int cmd_index;
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "cmd ?arg ...?");

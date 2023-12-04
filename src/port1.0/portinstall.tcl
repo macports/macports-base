@@ -85,6 +85,18 @@ proc portinstall::create_archive {location archive.type} {
     set archive.dir ${destpath}
 
     switch -regex -- ${archive.type} {
+        aar {
+            set aa "aa"
+            if {[catch {set aa [findBinary $aa ${portutil::autoconf::aa_path}]} errmsg] == 0} {
+                ui_debug "Using $aa"
+                set archive.cmd "$aa"
+                set archive.pre_args "archive -v"
+                set archive.args "-o [shellescape ${location}] -d ."
+            } else {
+                ui_debug $errmsg
+                return -code error "No '$aa' was found on this system!"
+            }
+        }
         cp(io|gz) {
             set pax "pax"
             if {[catch {set pax [findBinary $pax ${portutil::autoconf::pax_path}]} errmsg] == 0} {
@@ -96,13 +108,13 @@ proc portinstall::create_archive {location archive.type} {
                     if {[catch {set gzip [findBinary $gzip ${portutil::autoconf::gzip_path}]} errmsg] == 0} {
                         ui_debug "Using $gzip"
                         set archive.args {.}
-                        set archive.post_args "| $gzip -c9 > ${location}"
+                        set archive.post_args "| $gzip -c9 > [shellescape ${location}]"
                     } else {
                         ui_debug $errmsg
                         return -code error "No '$gzip' was found on this system!"
                     }
                 } else {
-                    set archive.args "-f ${location} ."
+                    set archive.args "-f [shellescape ${location}] ."
                 }
             } else {
                 ui_debug $errmsg
@@ -143,13 +155,13 @@ proc portinstall::create_archive {location archive.type} {
                     if {[catch {set gzip [findBinary $gzip $hint]} errmsg] == 0} {
                         ui_debug "Using $gzip"
                         set archive.args {- .}
-                        set archive.post_args "| $gzip -c$level > ${location}"
+                        set archive.post_args "| $gzip -c$level > [shellescape ${location}]"
                     } else {
                         ui_debug $errmsg
                         return -code error "No '$gzip' was found on this system!"
                     }
                 } else {
-                    set archive.args "${location} ."
+                    set archive.args "[shellescape ${location}] ."
                 }
             } else {
                 ui_debug $errmsg
@@ -162,7 +174,7 @@ proc portinstall::create_archive {location archive.type} {
                 ui_debug "Using $xar"
                 set archive.cmd "$xar"
                 set archive.pre_args {-cvf}
-                set archive.args "${location} ."
+                set archive.args "[shellescape ${location}] ."
             } else {
                 ui_debug $errmsg
                 return -code error "No '$xar' was found on this system!"
@@ -174,7 +186,7 @@ proc portinstall::create_archive {location archive.type} {
                 ui_debug "Using $zip"
                 set archive.cmd "$zip"
                 set archive.pre_args {-ry9}
-                set archive.args "${location} ."
+                set archive.args "[shellescape ${location}] ."
             } else {
                 ui_debug $errmsg
                 return -code error "No '$zip' was found on this system!"
@@ -244,7 +256,7 @@ proc portinstall::create_archive {location archive.type} {
         }
     }
 
-    foreach key "depends_lib depends_run" {
+    foreach key [list depends_lib depends_run] {
          if {[info exists $key]} {
              foreach depspec [set $key] {
                  set depname [lindex [split $depspec :] end]
@@ -262,9 +274,9 @@ proc portinstall::create_archive {location archive.type} {
     }
 
     set have_fileIsBinary [expr {[option os.platform] eq "darwin"}]
-    set binary_files {}
+    set binary_files [list]
     # also save the contents for our own use later
-    set installPlist {}
+    set installPlist [list]
     set destpathLen [string length $destpath]
     fs-traverse -depth fullpath [list $destpath] {
         if {[file type $fullpath] eq "directory"} {
@@ -362,7 +374,7 @@ proc portinstall::install_main {args} {
 
     # can't do this inside the write transaction due to deadlock issues with _get_dep_port
     set dep_portnames [list]
-    foreach deplist {depends_lib depends_run} {
+    foreach deplist [list depends_lib depends_run] {
         if {[info exists $deplist]} {
             foreach dep [set $deplist] {
                 set dep_portname [_get_dep_port $dep]
@@ -383,8 +395,9 @@ proc portinstall::install_main {args} {
     } else {
         lappend regref requested 0
     }
-    lappend regref os_platform ${os.platform}
-    lappend regref os_major ${os.major}
+    lassign [_get_compatible_platform] os_platform os_major
+    lappend regref os_platform $os_platform
+    lappend regref os_major $os_major
     lappend regref archs [get_canonical_archs]
     if {${portinstall::actual_cxx_stdlib} ne ""} {
         lappend regref cxx_stdlib ${portinstall::actual_cxx_stdlib}

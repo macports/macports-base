@@ -1,0 +1,62 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+source "testlib.tcl"
+
+test darwintrace_hides_files_in_readdir "Test that a file on the blacklist does not show up in readdir(3)" \
+    -setup [setup [list deny "$cwd/stat.c" allow $cwd]] \
+    -cleanup [expect {}] \
+    -body {
+        set lines [split [exec -ignorestderr -- ./readdir . 2>@1] "\n"]
+        return [lsearch -all -inline $lines stat.c]
+    } \
+    -result [list]
+
+test readdir_allowed_inside_sandbox "Test that files inside the sandbox show up in readdir(3)" \
+    -setup [setup [list allow "$cwd/stat.c"]] \
+    -cleanup [expect {}] \
+    -body {
+        set lines [split [exec -ignorestderr -- ./readdir . 2>@1] "\n"]
+        return [lsearch -all -inline $lines stat.c]
+    } \
+    -result [list stat.c]
+
+test readdir_allowed_when_uninitialized "Test that files outside the sandbox show up in readdir() when darwintrace is uninitialized" \
+    -setup [setup [list deny "$cwd/stat.c" allow $cwd]] \
+    -cleanup [expect {}] \
+    -body {
+        set ::env(DARWINTRACE_UNINITIALIZE) 1
+        set lines [split [exec -ignorestderr -- ./readdir . 2>@1] "\n"]
+        unset ::env(DARWINTRACE_UNINITIALIZE)
+        return [lsearch -all -inline $lines stat.c]
+    } \
+    -result [list stat.c]
+
+test darwintrace_readdir_at_maxpathlen "Test that readdir(3) with a directory at MAXPATHLEN doesn't trigger the stack canary" \
+    -setup {
+        global dirname filename
+        set dirname [string repeat "ab/de/ghi/" 90]
+        set filename [string repeat "a" 200]
+
+        file mkdir $dirname
+
+        set saved [pwd]
+        cd $dirname
+        exec -ignorestderr -- touch $filename >/dev/null
+        cd $saved
+
+        [setup [list allow $cwd]]
+    } \
+    -cleanup {
+        exec -ignorestderr -- rm -rf ab
+        [expect]
+    } \
+    -body {
+        set lines [split [exec -ignorestderr -- ./readdir $dirname 2>@1] "\n"]
+        return [lsearch -inline -all $lines "a*"]
+    } \
+    -result [string repeat a 200]
+
+cleanupTests

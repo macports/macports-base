@@ -27,4 +27,4 @@
  * SUCH DAMAGE.
  */
 
-int InstallCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+int InstallCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);

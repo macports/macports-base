@@ -72,7 +72,7 @@ CHECKSUMFile(MD5_, MD5_CTX)
 #error CommonCrypto, libmd or libcrypto required
 #endif
 
-int MD5Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int MD5Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	char *file, *action;
 	char buf[33];

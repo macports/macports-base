@@ -31,4 +31,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-int VercompCmd(ClientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+int VercompCmd(ClientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);

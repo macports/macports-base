@@ -36,6 +36,6 @@
 void delete_entry(ClientData clientData);
 
 int entry_cmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc,
-        Tcl_Obj* CONST objv[]);
+        Tcl_Obj* const objv[]);
 
 #endif /* _ENTRY_H */

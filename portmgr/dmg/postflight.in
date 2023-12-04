@@ -205,7 +205,7 @@ function create_run_user {
             ${DSCL} -q . -create "/Users/${RUNUSR}" RealName MacPorts
         fi
     fi
-    if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" = "NFSHomeDirectory: /var/empty" ]]; then
+    if [[ "$(${DSCL} -q . -read "/Users/${RUNUSR}" NFSHomeDirectory)" != "NFSHomeDirectory: ${PREFIX}/var/macports/home" ]]; then
         echo "Updating home directory location for user \"${RUNUSR}\""
         ${DSCL} -q . -create "/Users/${RUNUSR}" NFSHomeDirectory "${PREFIX}/var/macports/home"
     fi

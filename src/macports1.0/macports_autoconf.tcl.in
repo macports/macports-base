@@ -32,6 +32,7 @@
 package provide macports 1.0
 
 namespace eval macports::autoconf {
+    variable aa_path "@AA@"
     variable bzip2_path "@BZIP2_BIN@"
     variable chown_path "@CHOWN@"
     variable gzip_path "@GZIP_BIN@"

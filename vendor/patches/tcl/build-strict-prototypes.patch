@@ -1,0 +1,13 @@
+Upstream-Status: Submitted [https://core.tcl-lang.org/tcl/info/0219fb75115b]
+
+--- vendor/tcl8.6.13/generic/tclIO.c
++++ vendor/tcl8.6.13/generic/tclIO.c
+@@ -5208,7 +5208,7 @@ FreeBinaryEncoding(
+ }
+ 
+ static Tcl_Encoding
+-GetBinaryEncoding()
++GetBinaryEncoding(void)
+ {
+     ThreadSpecificData *tsdPtr = TCL_TSD_INIT(&dataKey);
+ 

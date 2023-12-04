@@ -29,4 +29,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-int FsTraverseCmd(ClientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+int FsTraverseCmd(ClientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]);

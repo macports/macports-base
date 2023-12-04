@@ -1,0 +1,54 @@
+srcdir = @srcdir@
+VPATH  = @srcdir@
+
+include ../../../Mk/macports.autoconf.mk
+
+SRCS = \
+	access.c \
+	close.c \
+	dup2.c \
+	env.c \
+	execve.c \
+	fork.c \
+	lstat.c \
+	mkdir.c \
+	open.c \
+	posix_spawn.c \
+	readdir.c \
+	readlink.c \
+	rename.c \
+	rmdir.c \
+	stat.c \
+	unlink.c
+
+
+OBJS = $(SRCS:%.c=%.o)
+BINS = $(SRCS:%.c=%)
+TESTS = $(sort $(wildcard *.test))
+
+env: env.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+%: %.o ../darwintrace.dylib
+	$(CC) $(LDFLAGS) -o $@ $^
+
+# Generate dependency information
+%.d : %.c
+	$(CC) -MM -MP $(CPPFLAGS) $< > $@
+
+.PHONY: all clean distclean install test codesign
+all::
+
+clean::
+	rm -f $(BINS) $(OBJS) $(SRCS:%.c=%.d)
+
+distclean:: clean
+	rm -f Makefile
+
+test:: $(BINS)
+	$(foreach test,$(TESTS),DARWINTRACE_SIP_WORKAROUND_PATH=@DARWINTRACE_SIP_WORKAROUND_PATH@ LC_ALL=C $(TCLSH) "$(srcdir)/$(test)";)
+
+ifeq (,$(findstring clean,$(MAKECMDGOALS)))
+# Include dependency information
+-include $(SRCS:%.c=%.d)
+endif

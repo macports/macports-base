@@ -44,6 +44,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
@@ -61,14 +62,6 @@ static char *__env_dyld_insert_libraries;
 static char *__env_full_dyld_insert_libraries;
 
 /**
- * Copy of the DYLD_FORCE_FLAT_NAMESPACE environment variable to restore it in
- * execve(2). DYLD_FORCE_FLAT_NAMESPACE=1 is needed for the preload-based
- * sandbox to work.
- */
-static char *__env_dyld_force_flat_namespace;
-static char *__env_full_dyld_force_flat_namespace;
-
-/**
  * Copy of the DARWINTRACE_LOG environment variable to restore it in execve(2).
  * Contains the path to the unix socket used for communication with the
  * MacPorts-side of the sandbox. Since this variable is also used from
@@ -81,7 +74,7 @@ static char *__env_full_darwintrace_log;
  * Copy the environment variables, if they're defined. This is run as
  * a constructor at startup.
  */
-void __darwintrace_store_env() {
+void __darwintrace_store_env(void) {
 #define COPYENV(name, variable, valuevar) do {\
 		char *val;\
 		if (NULL != (val = getenv(#name))) {\
@@ -102,7 +95,6 @@ void __darwintrace_store_env() {
 	} while (0)
 
 	COPYENV(DYLD_INSERT_LIBRARIES, __env_full_dyld_insert_libraries, __env_dyld_insert_libraries);
-	COPYENV(DYLD_FORCE_FLAT_NAMESPACE, __env_full_dyld_force_flat_namespace, __env_dyld_force_flat_namespace);
 	COPYENV(DARWINTRACE_LOG, __env_full_darwintrace_log, __env_darwintrace_log);
 #undef COPYENV
 
@@ -132,12 +124,20 @@ static inline bool __darwintrace_strbeginswith(const char *str, const char *pref
  * library was loaded and modifies it if it doesn't. Returns a malloc(3)'d copy
  * of envp where the appropriate values have been restored. The caller should
  * pass the returned pointer to free(3) if necessary to avoid leaks.
+ *
+ * If drop_env is true, returns a copy of envp with the DYLD_INSERT_LIBRARIES
+ * and DARWINTRACE_LOG variables removed. This must be used with SUID/SGID
+ * binaries, because the kernel will otherwise kill them.
  */
-static inline char **restore_env(char *const envp[]) {
+static inline char **restore_env(char *const envp[], bool drop_env) {
 	// we can re-use pre-allocated strings from store_env
 	char *dyld_insert_libraries_ptr     = __env_full_dyld_insert_libraries;
-	char *dyld_force_flat_namespace_ptr = __env_full_dyld_force_flat_namespace;
 	char *darwintrace_log_ptr           = __env_full_darwintrace_log;
+
+	if (drop_env) {
+		dyld_insert_libraries_ptr = NULL;
+		darwintrace_log_ptr = NULL;
+	}
 
 	char *const *enviter = envp;
 	size_t envlen = 0;
@@ -149,8 +149,8 @@ static inline char **restore_env(char *const envp[]) {
 		enviter++;
 	}
 
-	// 4 is sufficient for the three variables we copy and the terminator
-	copy = malloc(sizeof(char *) * (envlen + 4));
+	// 3 is sufficient for the two variables we copy and the terminator
+	copy = malloc(sizeof(char *) * (envlen + 3));
 
 	enviter  = envp;
 	copyiter = copy;
@@ -160,9 +160,6 @@ static inline char **restore_env(char *const envp[]) {
 		if (__darwintrace_strbeginswith(val, "DYLD_INSERT_LIBRARIES=")) {
 			val = dyld_insert_libraries_ptr;
 			dyld_insert_libraries_ptr = NULL;
-		} else if (__darwintrace_strbeginswith(val, "DYLD_FORCE_FLAT_NAMESPACE=")) {
-			val = dyld_force_flat_namespace_ptr;
-			dyld_force_flat_namespace_ptr = NULL;
 		} else if (__darwintrace_strbeginswith(val, "DARWINTRACE_LOG=")) {
 			val = darwintrace_log_ptr;
 			darwintrace_log_ptr = NULL;
@@ -177,9 +174,6 @@ static inline char **restore_env(char *const envp[]) {
 
 	if (dyld_insert_libraries_ptr) {
 		*copyiter++ = dyld_insert_libraries_ptr;
-	}
-	if (dyld_force_flat_namespace_ptr) {
-		*copyiter++ = dyld_force_flat_namespace_ptr;
 	}
 	if (darwintrace_log_ptr) {
 		*copyiter++ = darwintrace_log_ptr;
@@ -196,14 +190,22 @@ static inline char **restore_env(char *const envp[]) {
  * within the sandbox bounds.
  *
  * \param[in] path The path of the file to be executed
- * \return 0, if access should be granted, a non-zero error code to be stored
- *         in \c errno otherwise
+ * \return 0, if access should be granted, -1 if this is a suid/sgid binary and
+ *         the darwintrace environment should be dropped, a non-zero error code
+ *         to be stored in \c errno otherwise
  */
 static inline int check_interpreter(const char *restrict path) {
 	int fd = open(path, O_RDONLY, 0);
 	if (fd <= 0) {
 		return errno;
 	}
+
+	struct stat st;
+	bool is_suid_sgid = false;
+	if (fstat(fd, &st) != -1 && (st.st_mode & (S_ISUID | S_ISGID)) > 0) {
+		is_suid_sgid = true;
+	}
+
 
 	char buffer[MAXPATHLEN + 1 + 2];
 	ssize_t bytes_read;
@@ -241,6 +243,12 @@ static inline int check_interpreter(const char *restrict path) {
 		}
 	}
 
+	if (is_suid_sgid) {
+		/* This is a binary (i.e. it doesn't have a shebang), and it's
+		 * SUID/SGID, we must drop the env vars or the kernel will kill this on
+		 * load */
+		return -1;
+	}
 	return 0;
 }
 
@@ -263,7 +271,7 @@ static int _dt_execve(const char *path, char *const argv[], char *const envp[]) 
 		result = -1;
 	} else {
 		int interp_result = check_interpreter(path);
-		if (interp_result != 0) {
+		if (interp_result > 0) {
 			errno = interp_result;
 			result = -1;
 		} else {
@@ -275,7 +283,7 @@ static int _dt_execve(const char *path, char *const argv[], char *const envp[]) 
 			__darwintrace_pid = (pid_t) -1;
 
 			// Call the original execve function, but restore environment
-			char **newenv = restore_env(envp);
+			char **newenv = restore_env(envp, interp_result == -1);
 			result = sip_copy_execve(path, argv, newenv);
 			free(newenv);
 		}
@@ -308,7 +316,7 @@ static int _dt_posix_spawn(pid_t *restrict pid, const char *restrict path, const
 		result = ENOENT;
 	} else {
 		int interp_result = check_interpreter(path);
-		if (interp_result != 0) {
+		if (interp_result > 0) {
 			result = interp_result;
 		} else {
 			short attrflags;
@@ -326,7 +334,7 @@ static int _dt_posix_spawn(pid_t *restrict pid, const char *restrict path, const
 			}
 
 			// call the original posix_spawn function, but restore environment
-			char **newenv = restore_env(envp);
+			char **newenv = restore_env(envp, interp_result == -1);
 			result = sip_copy_posix_spawn(pid, path, file_actions, attrp, argv, newenv);
 			free(newenv);
 		}

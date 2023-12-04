@@ -5196,7 +5196,7 @@ FreeBinaryEncoding(
 }
 
 static Tcl_Encoding
-GetBinaryEncoding()
+GetBinaryEncoding(void)
 {
     ThreadSpecificData *tsdPtr = TCL_TSD_INIT(&dataKey);
 

@@ -87,46 +87,52 @@ options build.type.add_deps
 default build.type.add_deps yes
 
 proc portbuild::build_getmaketype {args} {
-    if {[option build.type] eq "default"} {
-        return [findBinary make $portutil::autoconf::make_path]
-    }
-    switch -exact -- [option build.type] {
-        bsd {
-            if {[option os.platform] eq "darwin"} {
-                return [findBinary bsdmake $portutil::autoconf::bsdmake_path]
-            } elseif {[option os.platform] eq "freebsd"} {
-                return [findBinary make $portutil::autoconf::make_path]
-            } else {
-                return [findBinary pmake $portutil::autoconf::bsdmake_path]
-            }
+    macports_try -pass_signal {
+        if {[option build.type] eq "default"} {
+            return [findBinary make $portutil::autoconf::make_path]
         }
-        gnu {
-            if {[option os.platform] eq "darwin"} {
-                return [findBinary gnumake $portutil::autoconf::gnumake_path]
-            } elseif {[option os.platform] eq "linux"} {
-                return [findBinary make $portutil::autoconf::make_path]
-            } else {
-                return [findBinary gmake $portutil::autoconf::gnumake_path]
+        switch -exact -- [option build.type] {
+            bsd {
+                if {[option os.platform] eq "darwin"} {
+                    return [findBinary bsdmake $portutil::autoconf::bsdmake_path]
+                } elseif {[option os.platform] eq "freebsd"} {
+                    return [findBinary make $portutil::autoconf::make_path]
+                } else {
+                    return [findBinary pmake $portutil::autoconf::bsdmake_path]
+                }
             }
-        }
-        pbx -
-        xcode {
-            if {[option os.platform] ne "darwin"} {
-                return -code error "[format [msgcat::mc "This port requires 'xcodebuild', which is not available on %s."] [option os.platform]]"
+            gnu {
+                if {[option os.platform] eq "darwin"} {
+                    return [findBinary gnumake $portutil::autoconf::gnumake_path]
+                } elseif {[option os.platform] eq "linux"} {
+                    return [findBinary make $portutil::autoconf::make_path]
+                } else {
+                    return [findBinary gmake $portutil::autoconf::gnumake_path]
+                }
             }
+            pbx -
+            xcode {
+                if {[option os.platform] ne "darwin"} {
+                    error "[format [msgcat::mc "This port requires 'xcodebuild', which is not available on %s."] [option os.platform]]"
+                }
 
-            global xcodebuildcmd
-            if {$xcodebuildcmd ne "none"} {
-                return $xcodebuildcmd
-            } else {
-                return -code error "xcodebuild was not found on this system!"
+                global xcodebuildcmd
+                if {$xcodebuildcmd ne "none"} {
+                    return $xcodebuildcmd
+                } else {
+                    error "xcodebuild was not found on this system!"
+                }
+            }
+            default {
+                ui_warn "[format [msgcat::mc "Unknown build.type %s, using 'gnumake'"] [option build.type]]"
+                return [findBinary gnumake $portutil::autoconf::gnumake_path]
             }
         }
-        default {
-            ui_warn "[format [msgcat::mc "Unknown build.type %s, using 'gnumake'"] [option build.type]]"
-            return [findBinary gnumake $portutil::autoconf::gnumake_path]
-        }
+    } on error {eMessage} {
+        ui_warn $eMessage
+        ui_warn "Unable to find build command for build.type '[option build.type]'"
     }
+    return ""
 }
 
 proc portbuild::build_getjobs {args} {
@@ -188,7 +194,11 @@ proc portbuild::build_getjobsarg {args} {
 }
 
 proc portbuild::build_start {args} {
-    global UI_PREFIX
+    global UI_PREFIX build.cmd
+
+    if {${build.cmd} eq ""} {
+        error "No build command found"
+    }
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Building %s"] [option subport]]"
 }

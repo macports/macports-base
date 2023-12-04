@@ -52,6 +52,8 @@
 #include <copyfile.h>
 #endif
 
+#include "getline.h"
+
 #include "sip_copy_proc.h"
 
 #ifndef DARWINTRACE_SIP_WORKAROUND_PATH
@@ -230,7 +232,7 @@ static copy_needed_return_t copy_needed(const char *path, char *const argv[],
             free_argv(new_argv);
             return copy_not_needed;
         }
-        if ((st->st_flags & (S_ISUID | S_ISGID)) > 0) {
+        if ((st->st_mode & (S_ISUID | S_ISGID)) > 0) {
             // the binary is SUID/SGID, which would get lost when copying;
             // DYLD_ variables are stripped for SUID/SGID binaries anyway
             free_argv(new_argv);
@@ -275,6 +277,61 @@ static copy_needed_return_t copy_needed(const char *path, char *const argv[],
 
     return copy_is_needed;
 #endif /* defined(SF_RESTRICTED) */
+}
+
+static int resign(const char *filepath) {
+    int result = -1;
+    int exitstatus = 0;
+    pid_t pid = (pid_t) -1;
+    posix_spawn_file_actions_t action = NULL;
+
+    char *path = strdup(filepath);
+    if (!path) {
+        goto resign_out;
+    }
+
+    char * const argv[] = {"codesign", "-s", "-", "-f", path, NULL};
+    char * const envp[] = {NULL};
+
+    if ((errno = posix_spawn_file_actions_init(&action)) != 0) {
+        fprintf(stderr, "posix_spawn_file_actions_init() failed: %s\n", strerror(errno));
+        goto resign_out;
+    }
+    if ((errno = posix_spawn_file_actions_addopen(&action, STDOUT_FILENO, "/dev/null", O_WRONLY|O_APPEND, 0)) != 0) {
+        fprintf(stderr, "posix_spawn_file_actions_addopen(STDOUT_FILENO, /dev/null) failed: %s", strerror(errno));
+        goto resign_out;
+    }
+    if ((errno = posix_spawn_file_actions_addopen(&action, STDERR_FILENO, "/dev/null", O_WRONLY|O_APPEND, 0)) != 0) {
+        fprintf(stderr, "posix_spawn_file_actions_addopen(STDERR_FILENO, /dev/null) failed: %s", strerror(errno));
+        goto resign_out;
+    }
+
+    if (0 != (errno = posix_spawn(&pid, "/usr/bin/codesign", &action, NULL, argv, envp))) {
+        fprintf(stderr, "Failed to spawn /usr/bin/codesign -s - -f %s: %s\n", path, strerror(errno));
+        goto resign_out;
+    }
+
+    if (pid != waitpid(pid, &exitstatus, 0)) {
+        fprintf(stderr, "waitpid(%d): %s\n", pid, strerror(errno));
+        goto resign_out;
+    }
+
+    if (WIFEXITED(exitstatus) && WEXITSTATUS(exitstatus) == 0) {
+        result = 0;
+    } else {
+        if (WIFSIGNALED(exitstatus)) {
+            fprintf(stderr, "codesign %s terminated with signal %d\n", path, WTERMSIG(exitstatus));
+        } else {
+            fprintf(stderr, "codesign %s exited with non-zero status %d\n", path, WEXITSTATUS(exitstatus));
+        }
+        goto resign_out;
+    }
+
+resign_out:
+    if (action != NULL)
+        posix_spawn_file_actions_destroy(&action);
+    free(path);
+    return result;
 }
 
 static char *lazy_copy(const char *path, struct stat *in_st) {
@@ -326,8 +383,8 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
 
     // check whether copying is needed; it isn't if the file exists and the
     // modification times match
-    struct stat out_st;
-    if (   -1 != stat(target_path, &out_st)
+    struct stat out_st = {0};
+    if (-1 != stat(target_path, &out_st)
         && in_st->st_mtimespec.tv_sec == out_st.st_mtimespec.tv_sec
         && in_st->st_mtimespec.tv_nsec == out_st.st_mtimespec.tv_nsec) {
         // copying not needed
@@ -361,15 +418,6 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
     if (-1 == (outfd = open(target_path_temp, O_RDWR))) {
         fprintf(stderr, "sip_copy_proc: open(%s, O_RDWR): %s\n", target_path_temp, strerror(errno));
 #endif
-        goto lazy_copy_out;
-    }
-
-    // Since we removed COPYFILE_STAT from the copyfile(3) invocation above, we
-    // need to restore the permissions on the copy. Note that the futimes(2)
-    // later on should still succeed even if we remove write permissions here,
-    // because we already have a file descriptor open.
-    if (-1 == fchmod(outfd, in_st->st_mode)) {
-        fprintf(stderr, "sip_copy_proc: fchmod(%s, %o): %s\n", target_path_temp, in_st->st_mode, strerror(errno));
         goto lazy_copy_out;
     }
 #else /* !HAVE_COPYFILE */
@@ -434,11 +482,24 @@ static char *lazy_copy(const char *path, struct stat *in_st) {
     }
 #endif /* HAVE_COPYFILE */
 
+    if (-1 == resign(target_path_temp)) {
+        fprintf(stderr, "sip_copy_proc: resign(%s) failed\n", target_path_temp);
+        goto lazy_copy_out;
+    }
+
     struct timeval times[2];
     TIMESPEC_TO_TIMEVAL(&times[0], &in_st->st_mtimespec);
     TIMESPEC_TO_TIMEVAL(&times[1], &in_st->st_mtimespec);
-    if (-1 == futimes(outfd, times)) {
-        fprintf(stderr, "sip_copy_proc: futimes(%s): %s\n", target_path_temp, strerror(errno));
+    if (-1 == utimes(target_path_temp, times)) {
+        fprintf(stderr, "sip_copy_proc: utimes(%s): %s\n", target_path_temp, strerror(errno));
+        goto lazy_copy_out;
+    }
+
+    // Since we removed COPYFILE_STAT from the copyfile(3) invocation above, we
+    // need to restore the permissions on the copy. Keep this after the
+    // utimes(2) call, or setting the times may fail due to lack of write permissions
+    if (-1 == chmod(target_path_temp, in_st->st_mode)) {
+        fprintf(stderr, "sip_copy_proc: chmod(%s, %o): %s\n", target_path_temp, in_st->st_mode, strerror(errno));
         goto lazy_copy_out;
     }
 

@@ -497,6 +497,8 @@ int reg_vacuum(char *db_path) {
     sqlite3_stmt* stmt = NULL;
     int result = 0;
     reg_error err;
+    int r;
+    sqlite3_int64 dbsize, freesize;
 
     if (sqlite3_open(db_path, &db) == SQLITE_OK) {
         if (!init_db(db, &err)) {
@@ -507,20 +509,40 @@ int reg_vacuum(char *db_path) {
         return 0;
     }
 
-    if (sqlite3_prepare_v2(db, "VACUUM", -1, &stmt, NULL) == SQLITE_OK) {
-        int r;
-        /* XXX: Busy waiting, consider using sqlite3_busy_handler/timeout */
-        do {
+    sqlite3_busy_timeout(db, 25);
+
+    /* Get db size & size of unused space */
+    if (sqlite3_prepare_v2(db, "SELECT page_count * page_size AS dbsize,"
+            " freelist_count * page_size AS freesize FROM pragma_page_count(),"
+            " pragma_freelist_count(), pragma_page_size()",
+            -1, &stmt, NULL) == SQLITE_OK) {
+        r = sqlite3_step(stmt);
+        if (r == SQLITE_ROW) {
+            dbsize = sqlite3_column_int64(stmt, 0);
+            freesize = sqlite3_column_int64(stmt, 1);
+            result = 1;
+        }
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+
+    /* Don't vacuum unless free space is at least 1 MB and also at
+       least 1% of the total db size. */
+    if (result && freesize >= 1000000 && dbsize > 0 && ((double)freesize / (double)dbsize) >= 0.01) {
+        result = 0;
+        if (sqlite3_prepare_v2(db, "VACUUM", -1, &stmt, NULL) == SQLITE_OK) {
             sqlite3_step(stmt);
             r = sqlite3_reset(stmt);
             if (r == SQLITE_OK) {
                 result = 1;
             }
-        } while (r == SQLITE_BUSY);
+        }
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
     }
-    if (stmt) {
-        sqlite3_finalize(stmt);
-    }
+
     sqlite3_close(db);
     return result;
 }
@@ -535,10 +557,16 @@ int reg_vacuum(char *db_path) {
 int reg_checkpoint(reg_registry* reg, reg_error* errPtr) {
 
 #if SQLITE_VERSION_NUMBER >= 3022000
-    if (sqlite3_libversion_number() >= 3022000) {
-        if (sqlite3_db_readonly(reg->db, "registry") == 0
-                && sqlite3_wal_checkpoint_v2(reg->db, "registry",
-                SQLITE_CHECKPOINT_PASSIVE, NULL, NULL) != SQLITE_OK) {
+    int result;
+    if (sqlite3_libversion_number() >= 3022000
+            && sqlite3_db_readonly(reg->db, "registry") == 0) {
+        /* The busy handler (as set in reg_open) should time out if
+           exclusive write access can't be obtained quickly. In that
+           case, we should still get the effect of SQLITE_CHECKPOINT_PASSIVE
+           and a return value of SQLITE_BUSY. Call that success. */
+        result = sqlite3_wal_checkpoint_v2(reg->db, "registry",
+                SQLITE_CHECKPOINT_TRUNCATE, NULL, NULL);
+        if (result != SQLITE_OK && result != SQLITE_BUSY) {
             reg_sqlite_error(reg->db, errPtr, NULL);
             return 0;
         }

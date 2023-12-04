@@ -50,7 +50,7 @@
 
 #include "mktemp.h"
 
-int MkdtempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int MkdtempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	char *template, *sp;
 	Tcl_Obj *tcl_result;
@@ -76,7 +76,7 @@ int MkdtempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 	return TCL_OK;
 }
 
-int MktempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int MktempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	char *template, *sp;
 	Tcl_Obj *tcl_result;
@@ -98,35 +98,6 @@ int MktempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 
 	tcl_result = Tcl_NewStringObj(sp, -1);
 	Tcl_SetObjResult(interp, tcl_result);
-	free(template);
-	return TCL_OK;
-}
-
-int MkstempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	Tcl_Channel channel;
-	char *template, *channelname;
-	int fd;
-
-	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "template");
-		return TCL_ERROR;
-	}
-
-	template = strdup(Tcl_GetString(objv[1]));
-	if (template == NULL)
-		return TCL_ERROR;
-
-	if ((fd = mkstemp(template)) < 0) {
-		Tcl_AppendResult(interp, "mkstemp failed: ", strerror(errno), NULL);
-		free(template);
-		return TCL_ERROR;
-	}
-
-	channel = Tcl_MakeFileChannel((ClientData)(intptr_t)fd, TCL_READABLE|TCL_WRITABLE);
-	Tcl_RegisterChannel(interp, channel);
-	channelname = (char *)Tcl_GetChannelName(channel);
-	Tcl_AppendResult(interp, channelname, " ", template, NULL);
 	free(template);
 	return TCL_OK;
 }

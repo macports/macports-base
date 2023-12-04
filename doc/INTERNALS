@@ -53,4 +53,4 @@ supplies all these procedures, all of which are generated at run-time using
 the "options" procedure in portutil.tcl.
 
     The "pextlib" TCL library provides a variety of otherwise unavailable TCL
-procedures, such as an interface to flock(2) and mkstemp(3).
+procedures, such as an interface to flock(2).

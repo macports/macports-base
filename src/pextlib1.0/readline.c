@@ -158,7 +158,7 @@ attempted_completion_function(const char* word, int start, int end)
 		read -attempted_completion proc line ?prompt?
 		completion_matches text function
 */
-int ReadlineCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int ReadlineCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	char* action;
 	Tcl_Obj *tcl_result;
@@ -276,7 +276,7 @@ int ReadlineCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 		stifle max
 		unstifle
 */
-int RLHistoryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int RLHistoryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	char* action = NULL;
 #ifdef HAVE_LIBREADLINE

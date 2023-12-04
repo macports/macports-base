@@ -412,8 +412,7 @@ if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
     set newest 0
 }
 
-set tempportindex [mktemp "/tmp/mports.portindex.XXXXXXXX"]
-set fd [open $tempportindex w]
+set fd [file tempfile tempportindex mports.portindex.XXXXXXXX]
 set save_prefix ${macports::prefix}
 
 # keys for a normal portindex

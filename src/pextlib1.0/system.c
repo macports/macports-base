@@ -284,7 +284,7 @@ static void handle_sigint(int s) {
 }
 
 /* usage: system ?-callback proc? ?-notty? ?-nodup? ?-nice value? ?-W path? command */
-int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
     char *args[7];
     char *cmdstring;

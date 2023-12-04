@@ -36,6 +36,7 @@
 #define DARWINTRACE_USE_PRIVATE_API 1
 #include "darwintrace.h"
 #include "sandbox_actions.h"
+#include "strlcpy.h"
 
 #ifdef HAVE_STDATOMIC_H
 #include <stdatomic.h>
@@ -129,12 +130,12 @@ volatile bool __darwintrace_initialized = false;
  * interposed functions might end up being called first) we'll run them manually
  * before we interpose anything.
  */
-static void (*constructors[])() = {
+static void (*constructors[])(void) = {
 	__darwintrace_setup_tls,
 	__darwintrace_store_env,
 };
 
-void __darwintrace_run_constructors() {
+void __darwintrace_run_constructors(void) {
 	for (size_t i = 0; i < sizeof(constructors) / sizeof(*constructors); ++i) {
 		constructors[i]();
 	}
@@ -152,7 +153,7 @@ static void __darwintrace_sock_destructor(FILE *dtsock) {
  * Setup method called as constructor to set up thread-local storage for the
  * thread id and the darwintrace socket.
  */
-void __darwintrace_setup_tls() {
+void __darwintrace_setup_tls(void) {
 	if (0 != (errno = pthread_key_create(&tid_key, NULL))) {
 		perror("darwintrace: pthread_key_create");
 		abort();
@@ -175,7 +176,7 @@ static inline pthread_t __darwintrace_tid() {
 /**
  * Convenience setter function for the thread-local darwintrace socket
  */
-static inline void __darwintrace_tid_set() {
+static inline void __darwintrace_tid_set(void) {
 	if (0 != (errno = pthread_setspecific(tid_key, (const void *) pthread_self()))) {
 		perror("darwintrace: pthread_setspecific");
 		abort();
@@ -289,7 +290,7 @@ static inline char *__darwintrace_filemap_iter(char *command, filemap_iterator_t
  * Request sandbox boundaries from tracelib (the MacPorts base-controlled side
  * of the trace setup) and store it.
  */
-static void __darwintrace_get_filemap() {
+static void __darwintrace_get_filemap(void) {
 	char *newfilemap;
 #if DARWINTRACE_DEBUG && 0
 	filemap_iterator_t it;
@@ -345,7 +346,7 @@ static void __darwintrace_get_filemap() {
  * library and this library prevents closing the socket to MacPorts, we use \c
  * __darwintrace_close_sock to allow closing specific FDs.
  */
-void __darwintrace_close() {
+void __darwintrace_close(void) {
 	FILE *dtsock = __darwintrace_sock();
 	if (dtsock) {
 		__darwintrace_close_sock = fileno(dtsock);
@@ -361,7 +362,7 @@ void __darwintrace_close() {
  * called after \c fork(2), i.e. when the current PID doesn't match the one
  * stored when the function was called last.
  */
-void __darwintrace_setup() {
+void __darwintrace_setup(void) {
 	/*
 	 * Check whether this is a child process and we've inherited the socket. We
 	 * want to avoid race conditions with our parent process when communicating
@@ -713,65 +714,299 @@ static inline bool __darwintrace_sandbox_check(const char *path, int flags) {
 	return false;
 }
 
-/* Private struct for __darwintrace_is_in_sandbox */
+
+/**
+ * Structure to represent a filesystem path component, i.e., a single level of a path.
+ */
 typedef struct {
-	char *start;
+	char *path;
 	size_t len;
 } path_component_t;
 
-/*
- * Helper function for __darwintrace_is_in_sandbox.
- *
- * \param[in] token path to parse
- * \param[in] dst write position in normPath buffer
- * \param[in] numComponents number of parsed components
- * \param[in,out] pathComponents array of parsed components
- * \param[out] normPath output buffer
- * \return next numComponents
+/**
+ * Structure to represent a normalized filesystem path.
  */
-static size_t __parse_path_normalize(const char *token, char *dst, size_t numComponents, path_component_t *pathComponents, char *normPath) {
-	size_t idx;
-	while ((idx = strcspn(token, "/")) > 0) {
-		// found a token, process it
+typedef struct {
+	size_t num;
+	size_t capacity;
+	path_component_t *components;
+} path_t;
 
-		if (token[0] == '\0' || token[0] == '/') {
-			// empty entry, ignore
-		} else if (token[0] == '.' && (token[1] == '\0' || token[1] == '/')) {
-			// reference to current directory, ignore
-		} else if (token[0] == '.' && token[1] == '.' && (token[2] == '\0' || token[2] == '/')) {
-			// walk up one directory, but not if it's the last one, because /.. -> /
-			if (numComponents > 0) {
-				numComponents--;
-				if (numComponents > 0) {
-					// move dst back to the previous entry
-					path_component_t *lastComponent = pathComponents + (numComponents - 1);
-					dst = lastComponent->start + lastComponent->len + 1;
-				} else {
-					// we're at the top, move dst back to the beginning
-					dst = normPath + 1;
-				}
-			}
-		} else {
-			// copy token to normPath buffer (and null-terminate it)
-			strlcpy(dst, token, idx + 1);
-			dst[idx] = '\0';
-			// add descriptor entry for new token
-			pathComponents[numComponents].start = dst;
-			pathComponents[numComponents].len   = idx;
-			numComponents++;
+#define PATH_INITIAL_CAPACITY (PATH_MAX / 4 + 2)
 
-			// advance destination
-			dst += idx + 1;
-		}
+/**
+ * Allocate a new filesystem path structure.
+ *
+ * @return Pointer to the new path_t on success, NULL on error.
+ */
+static path_t *path_new(void) {
+	path_t *path = NULL;
 
-		if (token[idx] == '\0') {
-			break;
-		}
-		token += idx + 1;
+	path = malloc(sizeof(path_t));
+	if (!path) {
+		goto out;
 	}
 
-	return numComponents;
+	path->num = 0;
+	path->capacity = PATH_INITIAL_CAPACITY;
+	path->components = malloc(sizeof(path_component_t) * path->capacity);
+
+	if (!path->components) {
+		free(path);
+		path = NULL;
+	}
+
+out:
+	return path;
 }
+
+/**
+ * Free a filesystem path structure.
+ *
+ * @param[in] path The path to release.
+ */
+static void path_free(path_t *path) {
+	for (size_t idx = 0; idx < path->num; ++idx) {
+		free(path->components[idx].path);
+	}
+
+	free(path->components);
+	free(path);
+}
+
+/**
+ * Append a component (given as string) to an existing filesystem path while
+ * preserving normality.
+ *
+ * If the given component is empty, or ".", the path will remain unmodified. If
+ * the given component is "..", the last component of the path is deleted.
+ * Otherwise, the new component is appended to the end of the path. Note that
+ * component must NOT contain slashes.
+ *
+ * @param[in] path The path to which the component should be appended.
+ * @param[in] component The path component to append.
+ * @return true on success, false when memory allocation fails.
+ */
+static bool path_append(path_t *path, const char *component) {
+	if (*component == '\0') {
+		// ignore empty path components, i.e., consecutive slashes
+		return true;
+	} else if (component[0] == '.' && component[1] == '\0') {
+		// ignore self-referencing path components
+		return true;
+	} else if (component[0] == '.' && component[1] == '.' && component[2] == '\0') {
+		// walk up one path component, if possible
+		if (path->num > 0) {
+			free(path->components[path->num - 1].path);
+			path->num--;
+		}
+	} else {
+		if (path->num >= path->capacity) {
+			// need more space for components, realloc to make that space
+			size_t new_capacity = path->capacity + (PATH_INITIAL_CAPACITY / 2);
+			path_component_t *new_components = realloc(path->components, sizeof(path_component_t) * new_capacity);
+			if (!new_components) {
+				return false;
+			}
+
+			path->capacity = new_capacity;
+			path->components = new_components;
+		}
+
+		// initialize new path_component_t
+		size_t len = strlen(component);
+		path_component_t *new_component = &path->components[path->num];
+		new_component->len = len;
+		new_component->path = malloc(len + 1);
+		if (!new_component->path) {
+			return false;
+		}
+		strlcpy(new_component->path, component, len + 1);
+		path->num++;
+	}
+
+	return true;
+}
+
+/**
+ * Take the given input path as string, tokenize it into separate path
+ * components, then append them to the given path, normalizing the path in the
+ * process. Modifies the given inpath string.
+ *
+ * @param[in] path The path to which the new components should be appended.
+ * @param[in] inpath The string input path which will be tokenized and normalized.
+ * @return true on success, false on memory allocation failure.
+ */
+static bool path_tokenize(path_t *path, char *inpath) {
+	char *pos = inpath;
+	const char *token;
+
+	while ((token = strsep(&pos, "/")) != NULL) {
+		if (!path_append(path, token)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
+ * The the given symbolic link as string, tokenize it into separate path
+ * components and normalize it in the context of the given path. If the
+ * symbolic link is absolute, this will replace the entire path, otherwise
+ * normalize the symlink relative to the current path. Modifies the given link.
+ *
+ * @param[in] path The path relative to which the symlink should be interpreted.
+ * @param[in] link The symbolic link contents obtained from readlink(2).
+ * @return true on success, false on memory allocation failure.
+ */
+static bool path_tokenize_symlink(path_t *path, char *link) {
+	if (*link == '/') {
+		// symlink is absolute, start fresh
+		for (size_t idx = 0; idx < path->num; idx++) {
+			free(path->components[idx].path);
+		}
+		path->num = 0;
+
+		return path_tokenize(path, link + 1);
+	}
+
+	// symlink is relative, remove last component
+	if (path->num > 0) {
+		free(path->components[path->num - 1].path);
+		path->num--;
+	}
+
+	return path_tokenize(path, link);
+}
+
+/**
+ * Strip a resource fork from the end of the path, if present.
+ *
+ * @param[in] path The path which should be checked for resource forks
+ */
+static void path_strip_resource_fork(path_t *path) {
+	if (path->num >= 2) {
+		if (   strcmp(path->components[path->num - 2].path, "..namedfork") == 0
+			&& strcmp(path->components[path->num - 1].path, "rsrc") == 0) {
+			free(path->components[path->num - 2].path);
+			free(path->components[path->num - 1].path);
+			path->num -= 2;
+		}
+	}
+}
+
+/**
+ * Return the length of the given path when represented as a native filesystem
+ * path with "/" separators, excluding the terminating \0 byte.
+ *
+ * @param[in] path The path whose length should be determined.
+ * @return The length of the path.
+ */
+static size_t path_len(const path_t *path) {
+	// One slash for each component
+	size_t len = path->num;
+
+	// Plus the length for each component
+	for (size_t idx = 0; idx < path->num; ++idx) {
+		len += path->components[idx].len;
+	}
+
+	return len;
+}
+
+/**
+ * Convert the given path into a string. The returned pointer is allocated and
+ * must be released with free(3).
+ *
+ * @param[in] path The path to convert to a string.
+ * @return An allocated string representation of the path on success, NULL on error.
+ */
+static char *path_str(const path_t *path) {
+	size_t len = path_len(path);
+
+	char *out = malloc(len + 1);
+	if (!out) {
+		return NULL;
+	}
+
+	out[0] = '/';
+	out[1] = '\0';
+	char *pos = out;
+	for (size_t idx = 0; idx < path->num; idx++) {
+		*pos = '/';
+		pos++;
+
+		path_component_t *component = &path->components[idx];
+		strlcpy(pos, component->path, component->len + 1);
+		pos += component->len;
+	}
+
+	return out;
+}
+
+/**
+ * Check whether the given path is a volfs path (i.e., /.vol/$fsnum/$inode),
+ * and return a non-volfs path if possible.
+ *
+ * If the return value is not the argument, the argument was correctly freed.
+ * Always use this function as
+ *
+ *   path = path_resolve_volfs(path);
+ *
+ * for this reason.
+ *
+ * @param[in] path The path to check for volfs paths
+ * @return The orginal path if no modification was required or expansion
+ *         failed. A fresh path if the path was a volfs path and was expanded.
+ */
+static path_t *path_resolve_volfs(path_t *path) {
+#ifdef ATTR_CMN_FULLPATH
+	if (path->num >= 3 && strcmp(path->components[0].path, ".vol") == 0) {
+		struct attrlist attrlist;
+		attrlist.bitmapcount = ATTR_BIT_MAP_COUNT;
+		attrlist.reserved = 0;
+		attrlist.commonattr = ATTR_CMN_FULLPATH;
+		attrlist.volattr = 0;
+		attrlist.dirattr = 0;
+		attrlist.fileattr = 0;
+		attrlist.forkattr = 0;
+
+		char attrbuf[sizeof(uint32_t) + sizeof(attrreference_t) + (PATH_MAX + 1)];
+		/*           attrlength         attrref_t for the name     UTF-8 name up to PATH_MAX chars */
+
+		char *path_native = path_str(path);
+		if (!path_native) {
+			goto out;
+		}
+
+		if (-1 == (getattrlist(path_native, &attrlist, attrbuf, sizeof(attrbuf), FSOPT_NOFOLLOW))) {
+			perror("darwintrace: getattrlist");
+			// ignore and just return the /.vol/ path
+		} else {
+			path_t *newpath = path_new();
+			if (!newpath) {
+				goto out;
+			}
+
+			attrreference_t *nameAttrRef = (attrreference_t *) (attrbuf + sizeof(uint32_t));
+			if (!path_tokenize(newpath, ((char *) nameAttrRef) + nameAttrRef->attr_dataoffset)) {
+				path_free(newpath);
+				goto out;
+			}
+
+			path_free(path);
+			path = newpath;
+		}
+
+out:
+		free(path_native);
+	}
+#endif /* defined(ATTR_CMN_FULLPATH) */
+
+	return path;
+}
+
 
 /**
  * Check a path against the current sandbox
@@ -795,27 +1030,24 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 		return true;
 	}
 
-	char normPath[MAXPATHLEN];
-	normPath[0] = '/';
-	normPath[1] = '\0';
-
-	path_component_t pathComponents[MAXPATHLEN / 2 + 2];
-	size_t numComponents = 0;
-
-	// Make sure the path is absolute.
 	if (path == NULL || *path == '\0') {
 		// this is most certainly invalid, let the syscall deal with it
 		return true;
 	}
 
-	char *dst = NULL;
-	const char *token = NULL;
-	size_t idx;
+	path_t *normPath = path_new();
+	if (!normPath) {
+		perror("darwintrace: path_new");
+		abort();
+	}
+
+	size_t offset = 0;
+
 	if (*path != '/') {
 		/*
 		 * The path isn't absolute, start by populating pathcomponents with the
 		 * current working directory.
-		 * 
+		 *
 		 * However, we avoid getcwd(3) if we can and use getattrlist(2) with
 		 * ATTR_CMN_FULLPATH instead, because getcwd(3) will open all parent
 		 * directories, read them, search for the current component using its
@@ -833,133 +1065,67 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 		attrlist.fileattr = 0;
 		attrlist.forkattr = 0;
 
-		char attrbuf[sizeof(uint32_t) + sizeof(attrreference_t) + (PATH_MAX + 1)];
-		/*           attrlength         attrref_t for the name     UTF-8 name up to PATH_MAX chars */
+		size_t attrbufSize = sizeof(uint32_t) + sizeof(attrreference_t) + (PATH_MAX + 1);
+		/*                   attrlength         attrref_t for the name     UTF-8 name up to PATH_MAX chars */
+		char *attrbuf = malloc(attrbufSize);
+		if (attrbuf == NULL) {
+			perror("darwintrace: malloc");
+			abort();
+		}
 
 		// FIXME This sometimes violates the stack canary
-		if (-1 == (getattrlist(".", &attrlist, attrbuf, sizeof(attrbuf), FSOPT_NOFOLLOW))) {
+		if (-1 == (getattrlist(".", &attrlist, attrbuf, attrbufSize, FSOPT_NOFOLLOW))) {
 			perror("darwintrace: getattrlist");
 			abort();
 		}
 		attrreference_t *nameAttrRef = (attrreference_t *) (attrbuf + sizeof(uint32_t));
-		strlcpy(normPath, ((char *) nameAttrRef) + nameAttrRef->attr_dataoffset, sizeof(normPath));
+		if (!path_tokenize(normPath, ((char *) nameAttrRef) + nameAttrRef->attr_dataoffset)) {
+			perror("darwintrace: path_tokenize");
+			abort();
+		}
 #		else /* defined(ATTR_CMN_FULLPATH) */
-		if (getcwd(normPath, sizeof(normPath)) == NULL) {
+		char *cwd = getcwd(NULL, 0);
+		if (cwd == NULL) {
 			perror("darwintrace: getcwd");
 			abort();
 		}
+		if (!path_tokenize(normPath, cwd)) {
+			perror("darwintrace: path_tokenize");
+			abort();
+		}
+		free(cwd);
 #		endif /* defined(ATTR_CMN_FULLPATH) */
-
-		char *writableToken = normPath + 1;
-		while ((idx = strcspn(writableToken, "/")) > 0) {
-			// found a token, tokenize and store it
-			pathComponents[numComponents].start = writableToken;
-			pathComponents[numComponents].len   = idx;
-			numComponents++;
-
-			bool final = writableToken[idx] == '\0';
-			writableToken[idx] = '\0';
-			if (final) {
-				break;
-			}
-			// advance token
-			writableToken += idx + 1;
-		}
-
-		// copy path after the CWD into the buffer and normalize it
-		if (numComponents > 0) {
-			path_component_t *lastComponent = pathComponents + (numComponents - 1);
-			dst = lastComponent->start + lastComponent->len + 1;
-		} else {
-			dst = normPath + 1;
-		}
-
-		// continue parsing at the begin of path
-		token = path;
 	} else {
 		// skip leading '/'
-		dst = normPath + 1;
-		*dst = '\0';
-		token = path + 1;
+		offset = 1;
 	}
 
-	/* Make sure the path is normalized. NOTE: Do _not_ use realpath(3) here.
-	 * Doing so _will_ lead to problems. This is essentially a very simple
-	 * re-implementation of realpath(3). */
-	numComponents = __parse_path_normalize(token, dst, numComponents, pathComponents, normPath);
-
-	// strip off resource forks
-	if (numComponents >= 2 &&
-		strcmp("..namedfork", pathComponents[numComponents - 2].start) == 0 &&
-		strcmp("rsrc", pathComponents[numComponents - 1].start) == 0) {
-		numComponents -= 2;
+	char *pathcopy = strdup(path + offset);
+	if (!pathcopy) {
+		perror("darwintrace: strdup");
+		abort();
 	}
-
-#	ifdef ATTR_CMN_FULLPATH
-	if (numComponents >= 3 && strncmp(".vol", pathComponents[0].start, pathComponents[0].len) == 0) {
-		// path in VOLFS, try to get inode -> name lookup from getattrlist(2).
-
-		// Add the slashes and the terminating \0
-		for (size_t i = 0; i < numComponents; ++i) {
-			if (i == numComponents - 1) {
-				pathComponents[i].start[pathComponents[i].len] = '\0';
-			} else {
-				pathComponents[i].start[pathComponents[i].len] = '/';
-			}
-		}
-
-		struct attrlist attrlist;
-		attrlist.bitmapcount = ATTR_BIT_MAP_COUNT;
-		attrlist.reserved = 0;
-		attrlist.commonattr = ATTR_CMN_FULLPATH;
-		attrlist.volattr = 0;
-		attrlist.dirattr = 0;
-		attrlist.fileattr = 0;
-		attrlist.forkattr = 0;
-
-		char attrbuf[sizeof(uint32_t) + sizeof(attrreference_t) + (PATH_MAX + 1)];
-		/*           attrlength         attrref_t for the name     UTF-8 name up to PATH_MAX chars */
-
-		if (-1 == (getattrlist(normPath, &attrlist, attrbuf, sizeof(attrbuf), FSOPT_NOFOLLOW))) {
-			perror("darwintrace: getattrlist");
-			// ignore and just return the /.vol/ path
-		} else {
-			attrreference_t *nameAttrRef = (attrreference_t *) (attrbuf + sizeof(uint32_t));
-			strlcpy(normPath, ((char *) nameAttrRef) + nameAttrRef->attr_dataoffset, sizeof(normPath));
-
-			numComponents = 0;
-			char *writableToken = normPath + 1;
-			while ((idx = strcspn(writableToken, "/")) > 0) {
-				// found a token, tokenize and store it
-				pathComponents[numComponents].start = writableToken;
-				pathComponents[numComponents].len   = idx;
-				numComponents++;
-
-				bool final = writableToken[idx] == '\0';
-				writableToken[idx] = '\0';
-				if (final) {
-					break;
-				}
-				// advance token
-				writableToken += idx + 1;
-			}
-		}
+	if (!path_tokenize(normPath, pathcopy)) {
+		perror("darwintrace: path_tokenize");
+		abort();
 	}
-#	endif
+	free(pathcopy);
+
+	// Handle resource forks (we ignore them)
+	path_strip_resource_fork(normPath);
+
+	// Handle /.vol/$devid/$inode volfs paths
+	normPath = path_resolve_volfs(normPath);
 
 	bool pathIsSymlink;
 	size_t loopCount = 0;
+	char *path_native = path_str(normPath);
+	if (!path_native) {
+		perror("darwintrace: path_str");
+		abort();
+	}
 	do {
 		pathIsSymlink = false;
-
-		// Add the slashes and the terminating \0
-		for (size_t i = 0; i < numComponents; ++i) {
-			if (i == numComponents - 1) {
-				pathComponents[i].start[pathComponents[i].len] = '\0';
-			} else {
-				pathComponents[i].start[pathComponents[i].len] = '/';
-			}
-		}
 
 		if ((flags & DT_FOLLOWSYMS) == 0) {
 			// only expand symlinks when the DT_FOLLOWSYMS flags is set;
@@ -978,46 +1144,62 @@ bool __darwintrace_is_in_sandbox(const char *path, int flags) {
 		// whether it is in the sandbox, expand it and do the same thing again.
 		struct stat st;
 		//debug_printf("checking for symlink: %s\n", normPath);
-		if (lstat(normPath, &st) != -1 && S_ISLNK(st.st_mode)) {
-			if (!__darwintrace_sandbox_check(normPath, flags)) {
+		if (lstat(path_native, &st) != -1 && S_ISLNK(st.st_mode)) {
+			if (!__darwintrace_sandbox_check(path_native, flags)) {
+				free(path_native);
 				return false;
 			}
 
-			char link[MAXPATHLEN];
-			pathIsSymlink = true;
-
-			ssize_t linksize;
-			if (-1 == (linksize = readlink(normPath, link, sizeof(link)))) {
-				perror("darwintrace: readlink");
+			size_t maxLinkLength = MAXPATHLEN / 2;
+			char *link = malloc(maxLinkLength);
+			if (link == NULL) {
+				free(path_native);
+				perror("darwintrace: malloc");
 				abort();
 			}
-			link[linksize] = '\0';
-			//debug_printf("readlink(%s) = %s\n", normPath, link);
+			pathIsSymlink = true;
 
-			if (*link == '/') {
-				// symlink is absolute, start fresh
-				numComponents = 0;
-				token = link + 1;
-				dst = normPath + 1;
-			} else {
-				// symlink is relative, remove last component
-				token = link;
-				if (numComponents > 0) {
-					numComponents--;
-					if (numComponents > 0) {
-						// move dst back to the previous entry
-						path_component_t *lastComponent = pathComponents + (numComponents - 1);
-						dst = lastComponent->start + lastComponent->len + 1;
-					} else {
-						// we're at the top, move dst back to the beginning
-						dst = normPath + 1;
-					}
+			while (true) {
+				ssize_t linksize;
+				if (-1 == (linksize = readlink(path_native, link, maxLinkLength - 1))) {
+					free(path_native);
+					perror("darwintrace: readlink");
+					abort();
 				}
+				link[linksize] = '\0';
+				if ((size_t) linksize < maxLinkLength - 1) {
+					// The link did fit the buffer
+					break;
+				}
+
+				maxLinkLength += MAXPATHLEN;
+				char *newlink = realloc(link, maxLinkLength);
+				if (!newlink) {
+					free(path_native);
+					free(link);
+					perror("darwintrace: realloc");
+					abort();
+				}
+				link = newlink;
 			}
 
-			numComponents = __parse_path_normalize(token, dst, numComponents, pathComponents, normPath);
+			if (!path_tokenize_symlink(normPath, link)) {
+				perror("darwintrace: path_tokenize_symlink");
+				abort();
+			}
+
+			free(link);
+			free(path_native);
+			path_native = path_str(normPath);
+			if (!path_native) {
+				perror("darwintrace: path_str");
+				abort();
+			}
 		}
 	} while (pathIsSymlink);
 
-	return __darwintrace_sandbox_check(normPath, flags);
+	bool result = __darwintrace_sandbox_check(path_native, flags);
+	free(path_native);
+	path_free(normPath);
+	return result;
 }

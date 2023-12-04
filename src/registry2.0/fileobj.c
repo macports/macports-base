@@ -50,7 +50,7 @@ const char* file_props[] = {
 
 /* ${file} prop ?value? */
 static int file_obj_prop(Tcl_Interp* interp, reg_file* file, int objc,
-        Tcl_Obj* CONST objv[]) {
+        Tcl_Obj* const objv[]) {
     int index;
     if (objc > 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "?value?");
@@ -99,7 +99,7 @@ static int file_obj_prop(Tcl_Interp* interp, reg_file* file, int objc,
 typedef struct {
     char* name;
     int (*function)(Tcl_Interp* interp, reg_file* file, int objc,
-            Tcl_Obj* CONST objv[]);
+            Tcl_Obj* const objv[]);
 } file_obj_cmd_type;
 
 static file_obj_cmd_type file_cmds[] = {
@@ -120,7 +120,7 @@ static file_obj_cmd_type file_cmds[] = {
  * chance to touch it.
  */
 int file_obj_cmd(ClientData clientData, Tcl_Interp* interp, int objc,
-        Tcl_Obj* CONST objv[]) {
+        Tcl_Obj* const objv[]) {
     int cmd_index;
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "cmd ?arg ...?");

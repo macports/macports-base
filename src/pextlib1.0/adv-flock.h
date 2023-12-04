@@ -29,4 +29,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-int AdvFlockCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
+int AdvFlockCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *const objv[]);

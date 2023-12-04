@@ -54,10 +54,10 @@ test patch_main {
 
     set mport [mportopen file://.]
     set workername [ditem_key $mport workername]
-    $workername eval "set patchfiles {file.diff}"
+    $workername eval [list set patchfiles file.diff]
 
 } -body {
-    if {[$workername eval eval_targets patch]} {
+    if {[$workername eval [list eval_targets patch]]} {
         return "FAIL: cannot run patch"
     }
     if {![file exists $pwd/work/emptyport-0.2/test_patch]} {

@@ -1,0 +1,269 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+package require Pextlib 1.0
+
+source "testlib.tcl"
+
+testConstraint notarm64 [expr {[exec -ignorestderr -- /usr/bin/arch] ne "arm64"}]
+
+test execve_selfpreserving_env "Test that you cannot get out of the sandbox by unsetting environment variables" \
+    -setup [setup [list allow $cwd]] \
+    -cleanup [expect] \
+    -body {
+        set lines [split [exec -ignorestderr -- ./env DYLD_INSERT_LIBRARIES=foo DARWINTRACE_LOG=bar ./env] "\n"]
+        set result {}
+        foreach line $lines {
+            if {[string match "DYLD_INSERT_LIBRARIES=*" $line] || [string match "DARWINTRACE_LOG=*" $line]} {
+                lappend result $line
+            }
+        }
+        return [lsort $result]
+    } \
+    -match glob \
+    -result [list "DARWINTRACE_LOG=/tmp/macports-test-*" "DYLD_INSERT_LIBRARIES=$darwintrace_lib"]
+
+test execve_preserves_environment "Test that execve(2) will restore DYLD_INSERT_LIBRARIES and DARWINTRACE_LOG when deleted" \
+    -setup [setup [list allow $cwd]] \
+    -cleanup [expect] \
+    -body {
+        set lines [split [exec -ignorestderr -- ./env -u DYLD_INSERT_LIBRARIES -u DARWINTRACE_LOG ./env] "\n"]
+        set result {}
+        foreach line $lines {
+            if {[string match "DYLD_INSERT_LIBRARIES=*" $line] || [string match "DARWINTRACE_LOG=*" $line]} {
+                lappend result $line
+            }
+        }
+        return [lsort $result]
+    } \
+    -match glob \
+    -result [list "DARWINTRACE_LOG=/tmp/macports-test-*" "DYLD_INSERT_LIBRARIES=$darwintrace_lib"]
+
+test execve_outside_sandbox "Test that you cannot run tools outside of the sandbox" \
+    -setup [setup {}] \
+    -cleanup [expect "$cwd/stat"] \
+    -body {exec -ignorestderr -- ./execve ./stat ./stat.c 2>@1} \
+    -result "execve: No such file or directory"
+
+test spawn_outside_sandbox "Test that you cannot run tools outside of the sandbox with posix_spawn(2)" \
+    -setup [setup {}] \
+    -cleanup [expect "$cwd/stat"] \
+    -body {
+        set lines [list]
+        lappend lines [exec -ignorestderr -- ./posix_spawn ./stat ./stat.c 2>@1]
+
+        set ::env(DARWINTRACE_SPAWN_SETEXEC) 1
+        lappend lines [exec -ignorestderr -- ./posix_spawn ./stat ./stat.c 2>@1]
+        unset ::env(DARWINTRACE_SPAWN_SETEXEC)
+
+        return $lines
+    } \
+    -result [lrepeat 2 "posix_spawn: No such file or directory"]
+
+test execve_uninitialized "Test that execve(2) outside the sandbox succeeds if darwintrace is uninitialized" \
+    -setup [setup {}] \
+    -cleanup [expect {}] \
+    -body {
+        set ::env(DARWINTRACE_UNINITIALIZE) 1
+        set output [exec -ignorestderr -- ./execve ./stat ./stat.c 2>@1]
+        unset ::env(DARWINTRACE_UNINITIALIZE)
+        return $output
+    } \
+    -result ""
+
+test spawn_uninitialized "Test that posix_spawn(2) outside the sandbox succeeds if darwintrace is uninitialized" \
+    -setup [setup {}] \
+    -cleanup [expect {}] \
+    -body {
+        set ::env(DARWINTRACE_UNINITIALIZE) 1
+        set lines [list]
+        lappend lines [exec -ignorestderr -- ./posix_spawn ./stat ./stat.c 2>@1]
+
+        set ::env(DARWINTRACE_SPAWN_SETEXEC) 1
+        lappend lines [exec -ignorestderr -- ./posix_spawn ./stat ./stat.c 2>@1]
+        unset ::env(DARWINTRACE_SPAWN_SETEXEC)
+
+        unset ::env(DARWINTRACE_UNINITIALIZE)
+        return $lines
+    } \
+    -result [lrepeat 2 ""]
+
+test execve_inside_sandbox "Test that execve(2) inside the sandbox succeeds" \
+    -setup [setup [list deny "$cwd/stat.c" allow $cwd]] \
+    -cleanup [expect "$cwd/stat.c"] \
+    -body {exec -ignorestderr -- ./execve ./stat ./stat.c 2>@1} \
+    -result "stat: No such file or directory"
+
+test spawn_inside_sandbox "Test that posix_spawn(2) inside the sandbox succeeds" \
+    -setup [setup [list deny "$cwd/stat.c" allow $cwd]] \
+    -cleanup [expect "$cwd/stat.c"] \
+    -body {
+        set lines [list]
+        lappend lines [exec -ignorestderr -- ./posix_spawn ./stat ./stat.c 2>@1]
+
+        set ::env(DARWINTRACE_SPAWN_SETEXEC) 1
+        lappend lines [exec -ignorestderr -- ./posix_spawn ./stat ./stat.c 2>@1]
+        unset ::env(DARWINTRACE_SPAWN_SETEXEC)
+
+        return $lines
+    } \
+    -result [lrepeat 2 "stat: No such file or directory"]
+
+test execve_interpreter_outside_sandbox "Test that execve(2) on a script with an interpreter outside of the sandbox fails" \
+    -setup {
+        set fd [open "execve_script" w 0700]
+        puts $fd "#!  \t  ${cwd}/stat stat.c"
+        close $fd
+        [setup [list deny "$cwd/stat" allow $cwd]]
+    } \
+    -cleanup {
+        file delete -force execve_script
+        [expect [list "$cwd/stat"]]
+    } \
+    -body {exec -ignorestderr -- ./execve ./execve_script 2>@1} \
+    -result "execve: No such file or directory"
+
+test spawn_interpreter_outside_sandbox "Test that posix_spawn(2) on a script with an interpreter outside of the sandbox fails" \
+    -setup {
+        set fd [open "execve_script" w 0700]
+        puts $fd "#!  \t  ${cwd}/stat stat.c"
+        close $fd
+        [setup [list deny "$cwd/stat" allow $cwd]]
+    } \
+    -cleanup {
+        file delete -force execve_script
+        [expect [list "$cwd/stat"]]
+    } \
+    -body {
+        set lines [list]
+        lappend lines [exec -ignorestderr -- ./posix_spawn ./execve_script 2>@1]
+
+        set ::env(DARWINTRACE_SPAWN_SETEXEC) 1
+        lappend lines [exec -ignorestderr -- ./posix_spawn ./execve_script 2>@1]
+        unset ::env(DARWINTRACE_SPAWN_SETEXEC)
+
+        return $lines
+    } \
+    -result [lrepeat 2 "posix_spawn: No such file or directory"]
+
+test execve_non_interpreter "Test that execve(2) on a script with broken shebang does not produce violations" \
+    -setup {
+        set fd [open "execve_script" w 0700]
+        puts $fd "#"
+        close $fd
+        [setup [list allow /]]
+    } \
+    -cleanup {
+        file delete -force execve_script
+        [expect {}]
+    } \
+    -body {exec -ignorestderr -- ./execve ./execve_script 2>@1} \
+    -result "execve: Exec format error"
+
+test spawn_non_interpreter "Test that posix_spawn(2) on a script with broken shebang does not produce violations" \
+    -setup {
+        set fd [open "execve_script" w 0700]
+        puts $fd "#"
+        close $fd
+        [setup [list allow /]]
+    } \
+    -cleanup {
+        file delete -force execve_script
+        [expect {}]
+    } \
+    -body {
+        set lines [list]
+        lappend lines [exec -ignorestderr -- ./posix_spawn ./execve_script 2>@1]
+
+        set ::env(DARWINTRACE_SPAWN_SETEXEC) 1
+        lappend lines [exec -ignorestderr -- ./posix_spawn ./execve_script 2>@1]
+        unset ::env(DARWINTRACE_SPAWN_SETEXEC)
+
+        return $lines
+    } \
+    -result [lrepeat 2 "posix_spawn: Exec format error"]
+
+test execve_non_existing_inside_sandbox "Test that execve(2) on a non-existing file inside the sandbox does not produce violations" \
+    -setup [setup [list allow /]] \
+    -cleanup [expect {}] \
+    -body {exec -ignorestderr -- ./execve ./execve_non_existing_binary 2>@1} \
+    -result "execve: No such file or directory"
+
+test spawn_non_existing_inside_sandbox "Test that posix_spawn(2) on a non-existing file inside the sandbox does not produce violations" \
+    -setup [setup [list allow /]] \
+    -cleanup [expect {}] \
+    -body {
+        set lines [list]
+        lappend lines [exec -ignorestderr -- ./posix_spawn ./execve_non_existing_binary 2>@1]
+
+        set ::env(DARWINTRACE_SPAWN_SETEXEC) 1
+        lappend lines [exec -ignorestderr -- ./posix_spawn ./execve_non_existing_binary 2>@1]
+        unset ::env(DARWINTRACE_SPAWN_SETEXEC)
+
+        return $lines
+    } \
+    -result [lrepeat 2 "posix_spawn: No such file or directory"]
+
+# This test is currently broken on arm64, because Apple compiles its SIP-protected binaries with
+# pointer authenticaation using the arm64e architecture, but marks it as a preview and only allows
+# Apple-signed binaries, or arbitrary binaries on systems that are booted with
+# boot-args=-arm64e_preview_abi (which cannot be enabled without disabling SIP).
+test spawn_sip_binary "Test that posix_spawn(2) works on a SIP-protected binary (which will make a copy)" \
+    -constraints {notarm64} \
+    -setup {
+        file delete -force [file join $::env(DARWINTRACE_SIP_WORKAROUND_PATH) [getuid] usr/bin/env]
+        [setup [list allow /]]
+    } \
+    -cleanup [expect {}] \
+    -body {
+        set lines [split [exec -ignorestderr -- ./posix_spawn /usr/bin/env] "\n"]
+        set result {}
+        foreach line $lines {
+            if {[string match "DYLD_INSERT_LIBRARIES=*" $line] || [string match "DARWINTRACE_LOG=*" $line]} {
+                lappend result $line
+            }
+        }
+        return [concat [lsort $result] [file exists [file join $::env(DARWINTRACE_SIP_WORKAROUND_PATH) [getuid] usr/bin/env]]]
+    } \
+    -match glob \
+    -result [list "DARWINTRACE_LOG=/tmp/macports-test-*" "DYLD_INSERT_LIBRARIES=$darwintrace_lib" 1]
+
+# This test is currently broken on arm64, because Apple compiles its SIP-protected binaries with
+# pointer authenticaation using the arm64e architecture, but marks it as a preview and only allows
+# Apple-signed binaries, or arbitrary binaries on systems that are booted with
+# boot-args=-arm64e_preview_abi (which cannot be enabled without disabling SIP).
+test spawn_sip_script "Test that posix_spawn(2) works on a SIP-protected shell script (which will copy the interpreter)" \
+    -constraints {notarm64} \
+    -setup [setup [list allow /]] \
+    -cleanup [expect {}] \
+    -body {exec -ignorestderr -- ./posix_spawn /usr/bin/umask} \
+    -match regexp \
+    -result "0\[0-7]{3}"
+
+test spawn_sip_suid_binary "Test that posix_spawn(2) works on a SIP-protected SUID binary (which will not be copied)" \
+    -setup [setup [list allow /]] \
+    -cleanup [expect {}] \
+    -body {
+        set status 0
+        if {[catch {exec -ignorestderr -- ./posix_spawn /usr/bin/crontab -l 2>@1} results options]} {
+            if {[string match "crontab: no crontab for *" $results]} {
+                # The current user has no crontab; that will cause crontab -l
+                # to fail, but we don't care; hide the error.
+                set status 0
+            } else {
+                puts $::errorInfo
+                set details [dict get $options -errorcode]
+                if {[lindex $details 0] eq "CHILDSTATUS"} {
+                    set status [lindex $details 2]
+                } else {
+                    return -options $options -level 0 $results
+                }
+            }
+        }
+        return $status
+    } \
+    -result 0
+
+cleanupTests

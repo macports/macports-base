@@ -1,0 +1,16 @@
+access
+close
+dup2
+env
+execve
+fork
+lstat
+mkdir
+open
+posix_spawn
+readdir
+readlink
+rename
+rmdir
+stat
+unlink

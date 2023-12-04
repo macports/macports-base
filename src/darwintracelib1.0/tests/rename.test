@@ -1,0 +1,64 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+
+package require tcltest 2
+namespace import tcltest::*
+
+source "testlib.tcl"
+
+test rename_fails_source_outside_sandbox "Test that rename(2) fails if the source is outside of the sandbox" \
+    -setup {
+        exec -ignorestderr -- touch rename_src_file
+        [setup [list deny "$cwd/rename_src_file" allow $cwd]]
+    } \
+    -cleanup {
+        file delete -force rename_src_file rename_tgt_file
+        [expect [list "$cwd/rename_src_file"]]
+    } \
+    -body {exec -ignorestderr -- ./rename rename_src_file rename_tgt_file 2>@1} \
+    -result "rename(rename_src_file, rename_tgt_file): No such file or directory"
+
+test rename_fails_target_outside_sandbox "Test that rename(2) fails if the target is outside of the sandbox" \
+    -setup {
+        exec -ignorestderr -- touch rename_src_file
+        [setup [list deny "$cwd/rename_tgt_file" allow $cwd]]
+    } \
+    -cleanup {
+        file delete -force rename_src_file rename_tgt_file
+        [expect [list "$cwd/rename_tgt_file"]]
+    } \
+    -body {exec -ignorestderr -- ./rename rename_src_file rename_tgt_file 2>@1} \
+    -result "rename(rename_src_file, rename_tgt_file): Permission denied"
+
+test rename_succeeds_inside_sandbox "Test that rename(2) succeeds if source and target are inside of the sandbox" \
+    -setup {
+        exec -ignorestderr -- touch rename_src_file
+        [setup [list allow $cwd]]
+    } \
+    -cleanup {
+        file delete -force rename_src_file rename_tgt_file
+        [expect {}]
+    } \
+    -body {
+        exec -ignorestderr -- ./rename rename_src_file rename_tgt_file 2>@1
+        return [file exists rename_tgt_file]
+    } \
+    -result 1
+
+test rename_succeeds_when_uninitialized "Test that rename(2) succeeds with source and target outside of the sandbox when darwintrace is uninitialized" \
+    -setup {
+        exec -ignorestderr -- touch rename_src_file
+        [setup [list deny /]]
+    } \
+    -cleanup {
+        file delete -force rename_src_file rename_tgt_file
+        [expect {}]
+    } \
+    -body {
+        set ::env(DARWINTRACE_UNINITIALIZE) 1
+        exec -ignorestderr -- ./rename rename_src_file rename_tgt_file 2>@1
+        unset ::env(DARWINTRACE_UNINITIALIZE)
+        return [file exists rename_tgt_file]
+    } \
+    -result 1
+
+cleanupTests

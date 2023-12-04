@@ -1507,6 +1507,17 @@ macOS SDK version to build against.
 .br
 .Sy Example:
 .Dl configure.sdk_version 10.8
+.It Ic configure.sdkroot
+The path to the macOS SDK to build against.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em Automatically set by MacPorts; varies by macOS release, whether Xcode installed, etc.
+.br
+.Sy Example:
+.Dl configure.sdkroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk
 .\" FOOBAR
 .El
 .Ss UNIVERSAL TARGET HOOKS
@@ -1996,6 +2007,20 @@ standard output from the daemon may also be directed to the logfile.
 .br
 .Sy Example:
 .Dl startupitem.logfile ${prefix}/var/log/mydaemon.log
+.It Ic startupitem.logfile.stderr
+Path to a logfile for capturing standard error output from the daemon.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em startupitem.logfile
+.br
+.Sy Values:
+.Em path
+.br
+.Sy Example:
+.Dl startupitem.logfile.stderr ${prefix}/var/log/mydaemon.log
 .It Ic startupitem.logevents
 Control whether or not to log events to the log file.
 If this option is set, events with timestamps are logged to the logfile.
@@ -2026,6 +2051,34 @@ machine's network state is detected.
 .br
 .Sy Example:
 .Dl startupitem.netchange yes
+.It Ic startupitem.user
+Run the daemon via the specified user.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none
+.br
+.Sy Values:
+.Em username
+.br
+.Sy Example:
+.Dl startupitem.user my_daemon_username
+.It Ic startupitem.group
+Run the daemon via the specified group.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none
+.br
+.Sy Values:
+.Em groupname
+.br
+.Sy Example:
+.Dl startupitem.group my_daemon_groupname
 .It Ic startupitems
 Used when a port needs to install more than one startupitem, this option
 consists of a list where alternating elements represent keys and values.
@@ -2633,11 +2686,6 @@ Create a temporary file using a
 .Ar template .
 See
 .Xr mktemp 3 .
-.It Ic mkstemp Ar template
-Create a temporary file securely using a
-.Ar template .
-See
-.Xr mkstemp 3 .
 .It Ic mkdtemp Ar template
 Create a temporary directory using a
 .Ar template .

@@ -59,7 +59,7 @@ proc portmpkg::mpkg_main {args} {
 
 proc portmpkg::make_dependency_list {portname destination} {
     global requested_variations prefix package.destpath package.flat
-    set result {}
+    set result [list]
     if {[catch {set res [mport_lookup $portname]} error]} {
         ui_debug $::errorInfo
         return -code error "port lookup failed: $error"
@@ -83,7 +83,7 @@ proc portmpkg::make_dependency_list {portname destination} {
     array set portinfo [mport_info $mport]
 
     # get the union of depends_run and depends_lib
-    set depends {}
+    set depends [list]
     if {[info exists portinfo(depends_run)]} { lappend depends {*}$portinfo(depends_run) }
     if {[info exists portinfo(depends_lib)]} { lappend depends {*}$portinfo(depends_lib) }
 
@@ -140,7 +140,7 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
     system "mkdir -p -m 0755 [shellescape ${packages_path}]"
     system "mkdir -p -m 0755 [shellescape ${resources_path}]"
 
-    set dependencies {}
+    set dependencies [list]
     # get deplist
     set deps [make_dependency_list $portname $packages_path]
     set deps [lsort -unique $deps]

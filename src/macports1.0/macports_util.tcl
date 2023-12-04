@@ -50,7 +50,7 @@ namespace eval macports_util {
     # @param list A list of obscured maintainers
     # @return A list of associative arrays in serialized list format
     proc unobscure_maintainers {list} {
-        set result {}
+        set result [list]
         foreach sublist $list {
             array set maintainer {}
             foreach token $sublist {
@@ -138,7 +138,7 @@ proc ldindex {varName args} {
         }
     } else {
         set item $var
-        set var {}
+        set var [list]
     }
     return $item
 }
@@ -179,7 +179,7 @@ proc lshift {varName} {
 proc lunshift {varName args} {
     upvar 1 $varName var
     if {![info exists var]} {
-        set var {}
+        set var [list]
     }
     # the [set] in the index argument ensures the list is not shared
     set var [lreplace $var [set var -1] -1 {*}$args]

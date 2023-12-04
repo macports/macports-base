@@ -86,7 +86,7 @@ CHECKSUMEnd(SHA256_, SHA256_CTX, SHA256_DIGEST_LENGTH)
 CHECKSUMFile(SHA256_, SHA256_CTX)
 #endif
 
-int SHA256Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int SHA256Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	char *file, *action;
 	char buf[2*SHA256_DIGEST_LENGTH + 1];

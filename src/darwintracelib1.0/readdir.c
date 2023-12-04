@@ -34,13 +34,15 @@
  */
 
 #include "darwintrace.h"
+#include "strlcat.h"
 
 #include <errno.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/dirent.h>
 #include <sys/param.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <string.h>
 
 /**
  * re-implementation of getdirent(2) and __getdirent64(2) preventing paths
@@ -74,11 +76,16 @@ static size_t _dt_getdirentries64(int fd, void *buf, size_t bufsize, __darwin_of
 	__darwintrace_setup();
 
 	size_t sz = __getdirentries64(fd, buf, bufsize, basep);
-	// FIXME Support longer paths
-	char dirname[MAXPATHLEN];
+	size_t maxDirname = MAXPATHLEN + 1 + NAME_MAX;
+	char *dirname = malloc(maxDirname);
+	if (dirname == NULL) {
+		errno = ENOMEM;
+		return -1;
+	}
 	size_t dnamelen;
 
 	if (-1 == fcntl(fd, F_GETPATH, dirname)) {
+		free(dirname);
 		errno = EBADF;
 		return -1;
 	}
@@ -90,13 +97,24 @@ static size_t _dt_getdirentries64(int fd, void *buf, size_t bufsize, __darwin_of
 		dnamelen++;
 	}
 
-	dnamelen = strlen(dirname);
 	size_t offset;
 	for (offset = 0; offset < sz;) {
 		struct dirent64 *dent = (struct dirent64 *)(((char *) buf) + offset);
+		size_t dentlen = strlen(dent->d_name);
+		if (maxDirname < dnamelen + dentlen + 1) {
+			char *new = realloc(dirname, dnamelen + dentlen + 1);
+			if (new == NULL) {
+				free(dirname);
+				errno = EBADF;
+				return -1;
+			}
+			dirname = new;
+			maxDirname = dnamelen + dentlen + 1;
+		}
+
 		dirname[dnamelen] = '\0';
-		// FIXME This crashes sometimes
-		strcat(dirname, dent->d_name);
+		strlcat(dirname, dent->d_name, maxDirname);
+
 		if (!__darwintrace_is_in_sandbox(dirname, DT_ALLOWDIR)) {
 			debug_printf("__getdirentries64: filtered %s\n", dirname);
 			dent->d_ino = 0;
@@ -106,6 +124,7 @@ static size_t _dt_getdirentries64(int fd, void *buf, size_t bufsize, __darwin_of
 		offset += dent->d_reclen;
 	}
 
+	free(dirname);
 	return sz;
 }
 
@@ -134,12 +153,18 @@ static int _dt_getdirentries(int fd, char *buf, int nbytes, long *basep) {
 	__darwintrace_setup();
 
 	size_t sz = getdirentries(fd, buf, nbytes, basep);
-	char dirname[MAXPATHLEN];
+	size_t maxDirname = MAXPATHLEN + 1 + NAME_MAX;
+	char *dirname = malloc(maxDirname);
+	if (dirname == NULL) {
+		errno = ENOMEM;
+		return -1;
+	}
 	size_t dnamelen;
 
 	if (-1 == fcntl(fd, F_GETPATH, dirname)) {
+		free(dirname);
 		errno = EBADF;
-		return 0;
+		return -1;
 	}
 
 	dnamelen = strlen(dirname);
@@ -152,8 +177,21 @@ static int _dt_getdirentries(int fd, char *buf, int nbytes, long *basep) {
 	size_t offset;
 	for (offset = 0; offset < sz;) {
 		struct dirent32 *dent = (struct dirent32 *)(buf + offset);
+		size_t dentlen = strlen(dent->d_name);
+		if (maxDirname < dnamelen + dentlen + 1) {
+			char *new = realloc(dirname, dnamelen + dentlen + 1);
+			if (new == NULL) {
+				free(dirname);
+				errno = EBADF;
+				return -1;
+			}
+			dirname = new;
+			maxDirname = dnamelen + dentlen + 1;
+		}
+
 		dirname[dnamelen] = '\0';
-		strcat(dirname, dent->d_name);
+		strlcat(dirname, dent->d_name, maxDirname);
+
 		if (!__darwintrace_is_in_sandbox(dirname, DT_ALLOWDIR)) {
 			debug_printf("getdirentries: filtered %s\n", dirname);
 			dent->d_ino = 0;
@@ -163,6 +201,7 @@ static int _dt_getdirentries(int fd, char *buf, int nbytes, long *basep) {
 		offset += dent->d_reclen;
 	}
 
+	free(dirname);
 	return sz;
 }
 

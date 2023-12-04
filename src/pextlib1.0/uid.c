@@ -31,7 +31,7 @@
 	
 	synopsis: getuid
 */
-int getuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int getuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	/* Check the arg count */
 	if (objc != 1) {
@@ -48,7 +48,7 @@ int getuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	
 	synopsis: geteuid
 */
-int geteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int geteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	/* Check the arg count */
 	if (objc != 1) {
@@ -63,7 +63,7 @@ int geteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 /*
     getgid
 */
-int getgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int getgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
     if (objc != 1) {
         Tcl_WrongNumArgs(interp, 1, objv, NULL);
@@ -77,7 +77,7 @@ int getgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 /*
     getegid
 */
-int getegidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int getegidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
     if (objc != 1) {
         Tcl_WrongNumArgs(interp, 1, objv, NULL);
@@ -93,7 +93,7 @@ int getegidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 	
 	synopsis: setuid uid
 */
-int setuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int setuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	long uid = 0;
 	
@@ -123,7 +123,7 @@ int setuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	
 	synopsis: seteuid uid
 */
-int seteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int seteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	long uid = 0;
 
@@ -151,7 +151,7 @@ int seteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 /*
     setgid
 */
-int setgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int setgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
     long gid;
     
@@ -177,7 +177,7 @@ int setgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 /*
     setegid
 */
-int setegidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int setegidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
     long gid;
     
@@ -206,7 +206,7 @@ int setegidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
  * getpwuid <uid> [<field>]
  *
 */
-int getpwuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+int getpwuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
     uid_t uid;
     const char *field = NULL;
     struct passwd *pw;
@@ -310,7 +310,7 @@ int getpwuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 	
 	synopsis: name_to_uid name
 */
-int name_to_uidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int name_to_uidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	struct passwd *pwent;
 	char* name = NULL;
@@ -342,7 +342,7 @@ int name_to_uidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 	
 	synopsis: uid_to_name uid
 */
-int uid_to_nameCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int uid_to_nameCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	long uid = 0;
 	struct passwd *pwent;
@@ -371,7 +371,7 @@ int uid_to_nameCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 	synopsis: uname_to_gid name
 	this function takes a *user* name
 */
-int uname_to_gidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int uname_to_gidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	struct passwd *pwent;
 	char* name = NULL;
@@ -404,7 +404,7 @@ int uname_to_gidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, 
 	synopsis: name_to_gid name
     this function takes a *group* name
 */
-int name_to_gidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int name_to_gidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
     struct group *grent;
     char *name;
@@ -431,7 +431,7 @@ int name_to_gidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 /*
     gid_to_name
 */
-int gid_to_nameCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int gid_to_nameCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
     long gid;
     struct group *grent;

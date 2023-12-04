@@ -143,7 +143,7 @@ static int	trymmap(int);
 static void	usage(Tcl_Interp *interp);
 
 int
-InstallCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+InstallCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 	struct stat from_sb, to_sb;
 	mode_t *set;

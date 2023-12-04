@@ -764,6 +764,7 @@ CHOWN
 BZR
 BZIP2_BIN
 BSDMAKE
+AA
 SET_MAKE
 LN_S
 INSTALL_DATA
@@ -4104,6 +4105,51 @@ fi
 
 
 # Search for tool paths. Any set above (via --with-pkg=PATH) will be retained
+# Extract the first word of "aa", so it can be a program name with args.
+set dummy aa; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_AA+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  case $AA in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_AA="$AA" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_AA="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+AA=$ac_cv_path_AA
+if test -n "$AA"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $AA" >&5
+printf "%s\n" "$AA" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+
 for ac_prog in bsdmake pmake
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
@@ -9391,7 +9437,7 @@ printf "%s\n" "yes" >&6; }
 
 
 # Output
-ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/dmg/postflight setupenv.bash src/Makefile src/cregistry/Makefile src/compat/Makefile src/darwintracelib1.0/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/mpcommon1.0/Makefile src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/port/Makefile src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile tests/test.tcl tests/test/library.tcl tests/test/trace/test.tcl vendor/Makefile"
+ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/Makefile doc/base.mtree doc/macosx.mtree doc/macports.conf doc/prefix.mtree doc/pubkeys.conf portmgr/dmg/postflight setupenv.bash src/Makefile src/cregistry/Makefile src/compat/Makefile src/darwintracelib1.0/Makefile src/darwintracelib1.0/tests/Makefile src/machista1.0/Makefile src/macports1.0/Makefile src/macports1.0/macports_autoconf.tcl src/macports1.0/macports_test_autoconf.tcl src/mpcommon1.0/Makefile src/package1.0/Makefile src/package1.0/package_test_autoconf.tcl src/pextlib1.0/Makefile src/port/Makefile src/port1.0/Makefile src/port1.0/port_autoconf.tcl src/port1.0/port_test_autoconf.tcl src/programs/Makefile src/registry2.0/Makefile src/registry2.0/registry_autoconf.tcl tests/Makefile tests/test.tcl tests/test/library.tcl tests/test/trace/test.tcl vendor/Makefile"
 
 
 ac_config_files="$ac_config_files vendor/tclsh"
@@ -10109,6 +10155,7 @@ do
     "src/cregistry/Makefile") CONFIG_FILES="$CONFIG_FILES src/cregistry/Makefile" ;;
     "src/compat/Makefile") CONFIG_FILES="$CONFIG_FILES src/compat/Makefile" ;;
     "src/darwintracelib1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/darwintracelib1.0/Makefile" ;;
+    "src/darwintracelib1.0/tests/Makefile") CONFIG_FILES="$CONFIG_FILES src/darwintracelib1.0/tests/Makefile" ;;
     "src/machista1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/machista1.0/Makefile" ;;
     "src/macports1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/macports1.0/Makefile" ;;
     "src/macports1.0/macports_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_autoconf.tcl" ;;

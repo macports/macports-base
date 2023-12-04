@@ -118,11 +118,13 @@ namespace eval diagnose {
 
         # Start the checks
         check_path $config_options(macports_location) $config_options(profile_path) $config_options(shell_location)
+        check_macports_location
+        check_archs
+        check_permissions
         check_xcode config_options
         check_for_app curl
         check_for_app rsync
         check_for_app openssl
-        check_macports_location
         check_free_space
         check_for_x11
         check_for_files_in_usr_local
@@ -138,8 +140,8 @@ namespace eval diagnose {
     proc check_for_clt {} {
 
         # Checks to see if the Xcode Command Line Tools are installed by checking if the file
-        # /Library/Developer/CommandLineTools exists if the system is running 10.9, or if they're
-        # running an older version, if the command xcode-select -p outputs something.
+        # /Library/Developer/CommandLineTools exists if the system is running 10.9+, or if they're
+        # running an older version, if /usr/include exists.
         #
         # Args:
         #           None
@@ -148,26 +150,29 @@ namespace eval diagnose {
 
         output "command line tools"
 
-        if {${macports::macos_version_major} eq "10.9"} {
+        if {[vercmp ${macports::macos_version_major} >= "10.9"]} {
 
             if {![file exists "/Library/Developer/CommandLineTools/"]} {
 
-                ui_warn "Xcode Command Line Tools are not installed! To install them, please enter the command:
+                ui_warn "Xcode Command Line Tools do not appear to be installed. To install them, please enter the command:
                                     xcode-select --install"
                 success_fail 0
                 return
+            } elseif {$macports::xcodecltversion eq "none"} {
+                ui_warn "The Xcode Command Line Tools package appears to be installed, but its receipt appears to be missing."
+                ui_warn "The Command Line Tools may be outdated, which can cause problems."
+                ui_warn "Please see: <https://trac.macports.org/wiki/ProblemHotlist#reinstall-clt>"
             }
             success_fail 1
             return
 
         } else {
 
-            set xcode_select [exec xcode-select -print-path]
+            if {![file exists "/usr/include"]} {
 
-            if {$xcode_select eq ""} {
-
-                ui_warn "Xcode Command Line Tools are not installed! To install them, please enter the command:
-                                    xcode-select --install"
+                ui_warn "Xcode Command Line Tools do not appear to be installed. \
+                         To install them, please follow the instructions for your OS version at:
+                                    <https://guide.macports.org/#installing.xcode>"
                 success_fail 0
                 return
             }
@@ -763,4 +768,104 @@ namespace eval diagnose {
             }
        }
    }
+
+    proc check_permissions {} {
+        # check that everyone has rx permissions on macports directories,
+        # and that they are not world writable
+        set no_r_dirs [list]
+        set no_x_dirs [list]
+        set ww_dirs [list]
+        foreach subdir [list build distfiles incoming logs registry software] {
+            lappend check_paths [file join $macports::portdbpath $subdir]
+        }
+        while {[llength $check_paths] > 0} {
+            set path [lindex $check_paths end]
+            set check_paths [lreplace ${check_paths}[set check_paths {}] end end]
+            set perms [file attributes $path -permissions]
+            if {$perms & 0002 && $path ni $ww_dirs} {
+                lappend ww_dirs $path
+            }
+            if {!($perms & 0001) && $path ni $no_x_dirs} {
+                lappend no_x_dirs $path
+            }
+            if {!($perms & 0004) && $path ni $no_r_dirs} {
+                lappend no_r_dirs $path
+            }
+            set parent [file dirname $path]
+            if {$parent ni $check_paths && $path ne $macports::prefix && $parent ne "/"} {
+                lappend check_paths $parent
+            }
+        }
+        # don't complain about writable parent dirs of prefix or sources
+        set check_paths [list [file dirname $macports::prefix]]
+        foreach source $macports::sources {
+            set sourcedir [macports::getportdir [lindex $source 0]]
+            if {$sourcedir ni $check_paths} {
+                lappend check_paths $sourcedir
+            }
+        }
+        while {[llength $check_paths] > 0} {
+            set path [lindex $check_paths end]
+            set check_paths [lreplace ${check_paths}[set check_paths {}] end end]
+            set perms [file attributes $path -permissions]
+            if {!($perms & 0001) && $path ni $no_x_dirs} {
+                lappend no_x_dirs $path
+            }
+            if {!($perms & 0004) && $path ni $no_r_dirs} {
+                lappend no_r_dirs $path
+            }
+            set parent [file dirname $path]
+            if {$parent ni $check_paths && $parent ne "/"} {
+                lappend check_paths $parent
+            }
+        }
+        set problem 0
+        if {[llength $no_r_dirs] > 0} {
+            set problem 1
+            ui_warn "The following directories are not readable by all users:"
+            foreach p $no_r_dirs {
+                ui_msg "  $p"
+            }
+        }
+        if {[llength $no_x_dirs] > 0} {
+            set problem 1
+            ui_warn "The following directories are not searchable by all users:"
+            foreach p $no_x_dirs {
+                ui_msg "  $p"
+            }
+        }
+        if {[llength $ww_dirs] > 0} {
+            set problem 1
+            ui_warn "The following directories are writable by all users:"
+            foreach p $ww_dirs {
+                ui_msg "  $p"
+            }
+        }
+        if {$problem} {
+            ui_warn "Recommended directory permissions are 0755; use 'chmod 0755 <path>' to correct."
+        }
+    }
+
+    proc check_archs {} {
+        set known_archs [list arm64 i386 ppc ppc64 x86_64]
+        if {($macports::os_subplatform eq "macosx" && [llength $macports::build_arch] != 1)
+                || [llength $macports::build_arch] > 1} {
+            ui_warn "build_arch should contain one architecture name, but it is currently '$macports::build_arch'"
+        } elseif {$macports::build_arch ni $known_archs} {
+            ui_warn "build_arch should be one of '$known_archs', but it is currently '$macports::build_arch'"
+        }
+        if {$macports::os_subplatform eq "macosx" && [llength $macports::universal_archs] > 0} {
+            if {[llength $macports::build_arch] == 1 && $macports::build_arch ni $macports::universal_archs} {
+                ui_warn "universal_archs ($macports::universal_archs) should contain build_arch ($macports::build_arch)"
+            }
+            if {[llength $macports::universal_archs] < 2 && $macports::os_major ni [list 18 19]} {
+                ui_warn "universal_archs should contain at least 2 archs, but it is currently '$macports::universal_archs'"
+            }
+            foreach arch $macports::universal_archs {
+                if {$arch ni $known_archs} {
+                    ui_warn "universal_archs contains '$arch' which is not one of '$known_archs'"
+                }
+            }
+        }
+    }
 }

@@ -52,7 +52,7 @@
  *	Determine the file size of some resource. Try to not fetch the resource
  *  if possible. The size returned is the number of bytes.
  */
-int CurlCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+int CurlCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* const objv[]);
 
 #endif
 		/* _CURL_H */
