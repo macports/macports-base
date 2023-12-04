@@ -4816,9 +4816,11 @@ proc macports::_upgrade_metadata {mport regref is_dryrun} {
     set workername [ditem_key $mport workername]
     array set portinfo [mportinfo $mport]
 
-    # Sanity check
-    if {$portinfo(canonical_active_variants) ne [$regref variants]} {
-        ui_debug "$portinfo(name): Registry variants '[$regref variants]' don't match port variants '$portinfo(canonical_active_variants)'"
+    # Check that the version in the ports tree isn't too different
+    if {$portinfo(version) ne [$regref version]
+        || $portinfo(revision) != [$regref revision]
+        || $portinfo(canonical_active_variants) ne [$regref variants]} {
+        ui_debug "$portinfo(name): Registry '[$regref version]_[$regref revision][$regref variants]' doesn't match '$portinfo(version)_$portinfo(revision)$portinfo(canonical_active_variants)'"
         ui_debug "Not attempting to update metadata for $portinfo(name)"
         return
     }
