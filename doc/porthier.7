@@ -1,0 +1,148 @@
+.\" Copyright (c) 1990, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"	@(#)hier.7	8.1 (Berkeley) 6/5/93
+.\" $FreeBSD: src/share/man/man7/hier.7,v 1.29.2.17 2003/01/13 21:43:50 ceri Exp $
+.\" $Id$
+.\"
+.\" Take from FreeBSD and adjusted to MacPortss' needs.
+.Dd June 1, 2007
+.Dt PORTHIER 7
+.Os
+.Sh NAME
+.Nm porthier
+.Nd layout of the ports-filesystems
+.Sh DESCRIPTION
+A sketch of the filesystem hierarchy as it is applied on ports being distributed by MacPorts.
+.Bl -tag -width "/Applications/"
+.It Pa ${prefix}/
+The base of the MacPorts filesystem hierarchy. By default set to "/opt/local/"
+.Pp
+.Bl -tag -width "include/"
+.It Pa bin/
+common utilities, programming tools, and applications
+.It Pa etc/
+system configuration files and scripts
+.It Pa include/
+standard C include files
+.It Pa lib/
+archive libraries
+.It Pa libexec/
+system daemons & system utilities (executed by other programs)
+.It Pa Library/Frameworks/
+Native Mac OS X Library Frameworks
+.It Pa sbin/
+system programs and administration utilities
+.It Pa share/
+architecture-independent files
+.Pp
+.Bl -tag -width "examples/" -compact
+.It Pa doc/
+miscellaneous documentation
+.It Pa examples/
+various examples for users and programmers
+.It Pa info/
+GNU Info hypertext system
+.It Pa java/
+applications based on Java
+.It Pa locale/
+localization files
+.It Pa man/
+manual pages
+.It Pa misc/
+misc system-wide ASCII text files
+.El
+.Pp
+.It Pa src/
+source code
+.Pp
+.Bl -tag -width "macports/" -compact
+.It Pa macports/
+MacPorts package building topdir
+.Pp
+.El
+.It Pa var/
+multi-purpose log, temporary, transient, and spool files
+.Pp
+.Bl -tag -width "spool/" -compact
+.It Pa db/
+misc. automatically generated system-specific database files
+.It Pa macports/
+MacPorts runtime data
+.Bl -tag -width "build/" -compact
+.It Pa build/
+Where ports are build and destrooted
+.It Pa distfiles/
+Holds the distfiles of the fetched ports
+.It Pa packages/
+Contains archives (packages) of installed ports
+.It Pa receipts/
+Holds the registry information and receipts for the installed ports
+.It Pa software/
+In Image-mode (which is default) Holds the installed files. These
+are linked to ${prefix}.
+.It Pa sources/
+Holds the sources of both the porttree (the Portfiles) and the
+sources for the base system
+.Pp
+.El
+.It Pa spool/
+directory containing output spool files
+.It Pa log/
+misc. system log files
+.It Pa run/
+system information files describing various info about
+system since it was booted
+.El
+.Pp
+.It Pa www/
+files to be served by a http server
+.Pp
+.Bl -tag -width "cgi-bin/" -compact
+.It Pa cgi-bin/
+directory for cgi executables
+.El
+.El
+.It Pa /Applications/MacPorts/
+Native Mac OS X applications
+.Pp
+.El
+.El
+.Sh SEE ALSO
+.Xr port 1 ,
+.Xr macports.conf 5 ,
+.Xr portfile 7 ,
+.Xr portgroup 7 ,
+.Xr portstyle 7 ,
+.Xr hier 7
+.Sh HISTORY
+The
+.Nm
+manual page appeared first in MacPorts. Lots of it is based on hier(7).
+.Sh AUTHORS
+.An "Felix Kronlage" Aq fkr@opendarwin.org
+.An "Juan Manuel Palacios" Aq jmpp@macports.org

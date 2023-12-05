@@ -1,0 +1,130 @@
+.\" Copyright (c) 2002 Eric Melville <eric@opendarwin.org>
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY Eric Melville AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.Dd August 31, 2005
+.Dt PORTSTYLE 7
+.Os
+.Sh NAME
+.Nm portstyle
+.Nd style guide for ports
+.Sh DESCRIPTION
+A port consists of a directory and its contents, within a category subdirectory
+of the root of the ports tree.
+This document serves as a reference for the directory structure of a single
+port and the layout of the files within.
+.Pp
+The only required file in a port is
+.Va Portfile .
+The port file should be thought of as a set of declarations rather than a
+piece of code.
+It is best to format the port file is if it were a table consisting of keys
+and values.
+In fact, the simplest of ports will only contain a small block of values.
+Therefore, whitespace should not be strown about haphazardly.
+Nicely formatted compact tables will result in more values being visible at the
+same time.
+.Pp
+At the top of the port file is the requirement statement.
+There is a single space between the
+.Dq Li PortSystem
+statement and the version number.
+.Pp
+Use tabs to align items into columns.
+The left side should consist of single words, and will be separated from the
+more complex right side by a number of tabs that will result in all items
+begining on the same column.
+Variable assignments such as
+.Dq Li set libver
+can be considered a single word on the left side, with a single space between
+.Dq set
+and the variable name, followed by tabs to line up with the right side.
+.Pp
+The first category listed for a port is the port's primary category and should
+coincide with the subdirectory that the port resides in.
+Additional categories can be listed, but should be descriptive and accurate.
+.Pp
+Obviously a simple table of values won't do for all ports.
+More complicated ports will need to have things like multiple distribution
+files, custom targets, and variants.
+When items require multiple lines, they can be separated from the previous
+and next items with a blank line.
+Indent the additional lines to the same column that the right side begins on
+in the first line.
+Should the items require
+.Dq Li {}
+braces, the braces may appear on the first and last lines rather than on their
+own lines.
+This is done because the right side of the port file is already indented, and
+to make port file read like a table.
+Use a single space after the brace.
+Indent additional lines to this same column.
+If a single statement needs to span multiple lines, use a 2 space indentation
+from the first line for all additional lines.
+.Pp
+Variants are like any other part of the port file.
+Space, indent, and format them the same way other sections are formatted.
+The actual variant statement,
+.Dq Li variant
+followed by the name of the variant, can be treated as a single statement and
+thus placed together on the left side and separated by a single space.
+.Pp
+Sometimes it is useful to have a block of raw code for a port file.
+In these cases, either place the code at the bottom of the port file or pull it
+in from an external file, and simply format it in a well-structured manner
+with sensible indentation like any other code should be.
+.Pp
+Patch files reside in the files/ directory in the port's base directory.
+There should be one patch file for every file that needs to be patched.
+It is perfectly reasonable to use provided patches that affect multiple files,
+but do not create new patches that do so.
+Their names should begin with
+.Dq Li patch- .
+The rest of the name should come from the name of the file that they apply to.
+In many cases just the base name of the file being patched is enough.
+For files such as
+.Dq Li Makefile
+this may not be the case.
+In this case, use enough components of the file's path to uniquely distinguish
+the file.
+Separate the components with
+.Sq Li -
+characters.
+The patch should apply with
+.Dq Li patch -p0
+from the working source directory of the port.
+.Pp
+Try to adhere to these guidelines, but remember that this is only a guide.
+No set of rules can adequately cover all cases, and in some cases the best
+solution is to break the rules.
+.Sh SEE ALSO
+.Xr port 1 ,
+.Xr macports.conf 5 ,
+.Xr portfile 7 ,
+.Xr portgroup 7 ,
+.Xr porthier 7
+.Sh HISTORY
+This guide was initially written as a late addition to first release of
+MacPorts.
+.Sh AUTHORS
+.An Eric Melville Aq eric@opendarwin.org

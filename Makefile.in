@@ -1,0 +1,98 @@
+# $Id$
+
+PATH		= @PATH_CLEANED@
+SUBDIR		= doc src
+DISTDIR		= dist
+DISTVER		=
+DISTTAG		= release_${subst .,_,${DISTVER}}
+DISTNAME	= MacPorts-${DISTVER}
+DISTARCTAG	= ${DISTTAG}-archive
+DISTARCNAME	= ${DISTNAME}-archive
+SVNURL		= http://svn.macports.org/repository/macports
+
+
+include Mk/macports.autoconf.mk
+
+
+all:: Mk/macports.autoconf.mk
+
+Mk/macports.autoconf.mk: Mk/macports.autoconf.mk.in src/config.h.in Makefile.in config.status
+	./config.status
+	make clean
+
+config.status: configure
+	@if test -f ./config.status ; then	\
+		set -x ;						\
+		./config.status --recheck ;		\
+	else								\
+		set -x ;						\
+		echo "Source tree not configured. Use ./configure" ; \
+	fi
+
+include Mk/macports.subdir.mk
+
+install::
+	[ ! -f ${sysconfdir}/macports/mp_version ] || rm -vf ${sysconfdir}/macports/mp_version
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 setupenv.bash  $(DESTDIR)${datadir}/macports/
+# Only run these scripts when not building in a destroot
+ifeq ($(DESTDIR),)
+# Add [default] tag to the central MacPorts repository, if it isn't already
+	$(TCLSH) src/upgrade_sources_conf_default.tcl ${prefix}
+# Remove duplicate entries from the dependency map (could occur with 1.6 and earlier):
+	$(TCLSH) src/dep_map_clean.tcl ${TCL_PACKAGE_DIR}
+endif
+	@echo ""; echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, add ${prefix}/bin to your PATH and run:"; echo ""
+	@echo "sudo port -v selfupdate"; echo ""
+	@echo "Please read \"man port\", the MacPorts guide at http://guide.macports.org/ and Wiki at http://trac.macports.org/ for full documentation."; echo ""
+
+group::
+	@echo "creating a macports group..." && sudo dseditgroup -o create -n . macports && echo "done! use './configure --with-install-group=macports --with-shared-directory' if you haven't already"
+
+rmgroup::
+	@echo "deleting macports group..." && sudo dseditgroup -o delete -n . macports && echo "done! use 'make group' to re-create"
+
+
+clean::
+
+distclean::
+	rm -f config.log config.status configure.lineno
+	rm -rf autom4te.cache ${DISTDIR}
+	rm -f Makefile Mk/macports.autoconf.mk portmgr/freebsd/Makefile
+	rm -f Doxyfile
+	rm -f setupenv.bash
+
+_gettag:
+	cd ${DISTDIR}; svn co ${SVNURL}/tags/${SVNTAG} ${PKGNAME}-svn
+
+_pkgdist:
+	[ ! -d ${DISTDIR}/${PKGNAME} ] || rm -rf ${DISTDIR}/${PKGNAME}
+	cd ${DISTDIR}; svn export ${PKGNAME}-svn ${PKGNAME}
+	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar -c ${PKGNAME} | gzip > ${PKGNAME}.tar.gz
+	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar -c ${PKGNAME} | bzip2 > ${PKGNAME}.tar.bz2
+	cd ${DISTDIR}; for tarball in ${PKGNAME}.tar.*; do { \
+		for type in -md5 -sha1 -ripemd160; do { \
+			openssl dgst $$type $$tarball; \
+		}; done >> ${DISTNAME}.chk.txt; \
+	}; done
+
+_dopkg: _gettag _pkgdist
+
+# This target fetches a tagged distribution from svn, and generates tarballs and checksums for it
+distfromsvn:
+	@[ -n "${DISTVER}" ] || { echo Must specify DISTVER, like: make DISTVER=1.4.0 distfromsvn; exit 1; }
+	[ -d ${DISTDIR} ] || mkdir ${DISTDIR}
+	rm -f ${DISTDIR}/${DISTNAME}.chk.txt
+	${MAKE} SVNTAG=${DISTTAG}/base/ PKGNAME=${DISTNAME} _dopkg
+ifeq ($(ARC),yes) 
+	${MAKE} SVNTAG=${DISTARCTAG} PKGNAME=${DISTARCNAME} _dopkg
+endif
+
+tcldoc:
+	find src -name '*.tcl' | xargs tcldoc --verbose --title "MacPorts Documentation" --force tcldoc
+
+tcldox:
+	doxygen
+
+test::
+
+.PHONY: dist _gettag _pkgdist _dopkg tcldoc tcldox

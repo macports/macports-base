@@ -1,0 +1,40 @@
+# $Id$
+
+PortSystem 1.0
+name		cvs-and-patchsites
+version		1
+categories	test
+maintainers	pguyot@kallisys.net
+description	Test port for cvs+distant patchfiles functionalities
+homepage	http://www.macports.org/
+platforms	darwin
+
+long_description ${description}
+
+fetch.type          cvs
+cvs.root            :pserver:anonymous@common-lisp.net:/project/slime/cvsroot
+cvs.module          slime
+cvs.password        anonymous
+worksrcdir          slime
+
+patch_sites      http://home.uchicago.edu/~dgc/sw/mutt/
+patchfiles       patch-1.5.14.dgc.xlabel_ext.9
+checksums        patch-1.5.14.dgc.xlabel_ext.9 md5 c5badc733020187b6677f31b343195e8
+
+# Set depends_build to be empty to remove the dependency on cvs added by base,
+# as it is not available in the test suite. Otherwise MacPorts will try to
+# verify a cvs port exists.
+depends_build
+
+# disable the patch phase in case the cvs code gets out of sync with the patch.
+patch		{}
+extract		{}
+configure	{}
+build		{}
+destroot	{
+	system "touch ${destroot}${prefix}/lib/${name}"
+}
+
+test {
+	# test is actually running the fetch target
+}

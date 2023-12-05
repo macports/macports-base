@@ -1,0 +1,12 @@
+MacPorts is a system for compiling, installing, and managing free and
+open source software. A MacPorts "port" is a set of specifications
+contained in a Portfile that defines an application, its characteristics,
+and any files or special instructions required to install it, so MacPorts
+may automatically fetch, patch, compile, and install ported software.
+
+MacPorts may also be used to pre-compile ported software into binaries
+that may be installed on remote computers. Binaries of ported software
+may be installed very quickly since the steps required to install ports
+from source code have all been performed in advance.
+
+WWW: http://www.macports.org/

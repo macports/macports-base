@@ -1,0 +1,22 @@
+# $Id$
+
+PortSystem 1.0
+
+name		@name@
+version		1
+categories	test
+maintainers	raimue
+description	Test port for case sensitive port uninstalls
+homepage	http://www.macports.org/
+platforms	darwin
+
+long_description ${description}
+
+fetch		{}
+checksum	{}
+extract		{}
+configure	{}
+build		{}
+destroot	{
+	system "touch ${destroot}${prefix}/var/macports/case"
+}

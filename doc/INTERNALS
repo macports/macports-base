@@ -1,0 +1,56 @@
+MacPorts Internals:
+
+The MacPorts system is composed of three TCL libraries:
+	macports - public API
+	port - portfile parsing and execution
+	pextlib - necessary C extensions to TCL
+
+    These three TCL libraries are grouped as TCL "packages". They allow
+for complex versioning and have a provide/require model of use, making
+them well suited for maintaining a backwards compatable ports system.
+
+    The "macports" TCL Library provides a public API into the MacPorts
+system. Any external application wishing to manipulate a port can
+load the "macports" TCL library. 'port', the included command line port
+utility, uses only the exported "macports" API.
+
+    The "macports" API provides very simple primitives for dealing with
+ports (ie, mportexec/mportopen/mportinit). Also, the API has very little
+knowledge of the contents of a portfile; instead, it relies entirely upon
+the "port" TCL library. By keeping the high level API simple and generic,
+a revision of the underlying ports system will not necessarily require
+a revision of the high level "macports" API.
+
+    TCL packages allow for complex versioning with a strong requires/provides
+model; this means that a revision of the API at any level will not break
+backwards compatibility.
+
+    When parsing a port, the "macports" library loads the Portfile into a
+sub-interpreter. The "port" library and all port-specific code is run
+entirely within this sub-interpreter, and thus can never pollute the TCL
+space of other ports, the "macports" library, or the calling application.
+
+    The "macports" library is also responsible for loading user specified
+options into the sub-interpreter to be evaluated by the "ports" library. In
+that case it sets the variable name in the sub-interpreter and adds the
+option to the sub-interpreter's global array user_options(). User options
+are passed as part of the call to mportopen.
+
+    The "port" TCL package provides all the primitives required for a mac
+portfile to be parsed, queried, and its actions executed. It also provides
+a single procedure call that the "macports" TCL package uses to kick off
+execution: "eval_targets".
+
+    The port TCL package is loaded by every Portfile with the following line
+at the start of the Portfile:
+	PortSystem <version required>
+    The version should be set to the version of the port API required to build
+your port. Currently the only version supplied is 1.0.
+
+    Because a port is not actually parsed, but in fact executed in the TCL
+interpreter, every port option must be a TCL procedure. The ports library
+supplies all these procedures, all of which are generated at run-time using
+the "options" procedure in portutil.tcl.
+
+    The "pextlib" TCL library provides a variety of otherwise unavailable TCL
+procedures, such as an interface to flock(2) and mkstemp(3).

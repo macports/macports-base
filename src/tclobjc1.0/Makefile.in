@@ -1,0 +1,18 @@
+OBJS=		tclobjc.o tclobjc_types.o MPMethodSignatureExtensions.o objc_encoding.o
+SHLIB_NAME=	tclobjc${SHLIB_SUFFIX}
+INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/tclobjc1.0
+
+include ../../Mk/macports.autoconf.mk
+include ../../Mk/macports.tea.mk
+
+LDFLAGS+=	${OBJC_FOUNDATION_LDFLAGS}
+CPPFLAGS+=	${OBJC_FOUNDATION_CPPFLAGS}
+LIBS+=	${OBJC_FOUNDATION_LIBS}
+
+clean::
+	rm -f *.o
+
+distclean::
+	rm -f Makefile
+
+test:

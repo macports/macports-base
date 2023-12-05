@@ -1,0 +1,2 @@
+"16" = "This package is meant to be installed on Mac OS X __XVERS__.";
+"17" = "Your existing MacPorts or DarwinPorts installation is too old to be upgraded by this installer. Please install MacPorts 1.7.1 first.";

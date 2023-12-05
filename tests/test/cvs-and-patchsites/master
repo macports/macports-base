@@ -1,0 +1,8 @@
+--->  Computing dependencies for cvs-and-patchsites
+--->  Fetching cvs-and-patchsites
+--->  Attempting to fetch patch-1.5.14.dgc.xlabel_ext.9 from http://home.uchicago.edu/~dgc/sw/mutt/
+--->  Verifying checksum(s) for cvs-and-patchsites
+--->  Extracting cvs-and-patchsites
+--->  Configuring cvs-and-patchsites
+--->  Building cvs-and-patchsites
+--->  Testing cvs-and-patchsites

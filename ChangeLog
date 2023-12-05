@@ -1,0 +1,1346 @@
+###
+# This is a log of major user-visible changes in each MacPorts release.
+# $Id$
+###
+
+Release 1.9.0 (unreleased):
+
+    - Use CommonCrypto/CommonDigest instead of OpenSSL libcrypto. (toby)
+
+    - Add SHA256 checksums in addition to MD5, SHA1 and RIPEMD160. (afb)
+
+    - New "patch.type gnu" for GNU patch, similar to "build.type gnu"
+      for GNU make. Only makes a difference for BSD patch and BSD make.
+
+    - Update the FreeBSD package, drop the old Fedora/Ubuntu packages.
+      (MacPorts now requires BSD, but objc/Foundation is now optional)
+
+    - Don't use "make -j1" for build.jobs=1, but prefer "make" instead.
+      (afb in r57998)
+
+    - Add new "use_xz yes" port option to allow distfiles in xz format.
+      (afb in r57827)
+
+    - Archivemode now uses build_arch to create and extract archives.
+      This is a step in the direction of enabling binary distribution.
+      (snc in r58977)
+
+Release 1.8.1 (2009-09-28 by jmr):
+
+    - Installer error messages now display properly even from the Snow Leopard
+      MacPorts dmg. (jmr in r56448)
+
+    - 'fetch.type svn' no longer requires the installation of the subversion
+      port as of Snow Leopard. (toby in r56160; raimue in r56162)
+
+    - Updated manpages and 'port help' output (ryandesign in r56472, r56473,
+      r56474; blb in r56666, r57048, r57131)
+
+    - Fixed syncing using the daily tarball. (#21034, toby in r56889)
+
+    - Fixed 'port load' (#21128, raimue in r57055)
+
+    - Improved error message when an expression on the command line does not
+      match any ports (jmr in r57026)
+
+    - Stopped recording the completion of the install phase in the
+      statefile, which led to errors if the port was uninstalled but the work
+      dir was not cleaned, and the port was then installed again.
+      (jmr/raimue in r57801, 57820)
+
+Release 1.8.0 (2009-08-28 by jmr):
+    - There is now a 'build_arch' variable, available in portfiles and
+      configurable in macports.conf, which sets the CPU architecture that
+      ports should be compiled for (when not building universal). Its default
+      is the same as that of the Apple-supplied /usr/bin/gcc.
+      (#19874, jmr in r53217,r53386,r53420,r53494,r53860,r54236)
+
+    - MacPorts base now works on and has appropriate default settings for
+      Mac OS X 10.6 Snow Leopard. (#19874, toby/mww/jkh in r38271,r40060,
+      r40836,r43976,r52397)
+      
+    - MacPorts now requires Mac OS X 10.4 Tiger or later. (Panther is not
+      just "unsupported", it really won't work.)
+
+    - The universal_sysroot and universal_target keys have been removed from
+      macports.conf. These settings are now handled automatically.
+      (toby in r52324)
+
+    - Added a 'replaced_by' portfile option. This causes upgrade to deactivate
+      the current port and install the port specified by this option. This
+      also allows ports to be renamed. Upgrade accepts a --no-replace option
+      which disables this behaviour. (#20157, jmr in r54378)
+
+    - The upgrade action now accepts --force and --enforce-variants options.
+      The former causes ports to be rebuilt even if they are not outdated, and
+      the global -f option no longer has this effect (it had too many effects
+      already). The latter causes ports to be rebuilt if the requested
+      variants do not match those installed (even if they are not outdated).
+      (#20156, jmr in r54376)
+
+    - Dependencies can be satisfied by ports that are installed but not
+      available in the ports tree (useful for testing uncommitted ports).
+      (jmr in r52075, r52160)
+
+    - Ports that are installed but not available in the ports tree no longer
+      cause an error when running commands like 'port clean installed'. They
+      are skipped and a warning is printed. (#19253, jmr in r50865)
+
+    - Selfupdate no longer disables readline support unless readline is found
+      in /usr/local, which has historically caused failures.
+      (#19035, jmr in r50868)
+
+    - Uninstalling a port that is not installed now produces an informational
+      message rather than an error. (#18984, jmr in r53709)
+
+    - Added a 'conflicts' portfile option. Conflicting ports will be detected
+      during dependency calculation. (#18794, blb/jmr in r51525)
+
+    - 'port selfupdate' now explicitly states precisely what it does. (#18512)
+
+    - Operating system and architecture information is now shown in debug
+      output. (#18435, raimue in r46669)
+
+    - Fixed a bug that could break some symlinks to man pages. (#18302)
+
+    - Switched to a more efficient algorithm for looking up port information
+      in the index, which makes many operations faster.
+      (#18259, jmr/blb in r47110)
+
+    - MacPorts base now tries to avoid using commands that come from ports, so
+      that a broken port can't break the base code. (#18149)
+
+    - Deleting all the contents of a portfile option no longer unsets the
+      option entirely. (#17865, toby in r44901)
+
+    - Removed the code that upgrades from the old DarwinPorts filesystem
+      layout. Trying to upgrade to 1.8.0+ from a version older than 1.5.0 will
+      produce an error message saying you need to install 1.7.1 first.
+      (#17619, jmr in r53260)
+
+    - port(1) now reports its version as dotted-decimal rather than floating
+      point. (#17420)
+
+    - Dependencies are now always obtained by parsing the Portfile and not
+      from the PortIndex, since the latter can't provide expanded variables
+      like $prefix which may be used in path: depspecs. (#17182)
+
+    - Newline characters in long_description can no longer cause receipt
+      corruption. (#16619, blb in r50663)
+
+    - Now unlocking the filemap when it is not in use. This allows e.g.
+      'port contents' to be run while another port instance is performing
+      installs. Note that running more than one simultaneous port instance
+      that will modify the registry can easily fail, though hopefully
+      without corrupting anything. (#16246, jmr in r51133)
+
+    - Removed some irrelevant debug output that was being printed when a port
+      failed. (#16203, jmr in r53706)
+
+    - Added new depends_fetch and depends_extract options, for dependencies
+      that are needed to fetch or extract the port, respectively.
+      (#15161, jmr in r51780)
+
+    - Packages (including the one for MacPorts base) now correctly indicate
+      that they can only be installed on the root volume.
+      (#14809, jmr in r53250)
+
+    - Using an alternative fetch or extract type now adds appropriate
+      dependencies automatically, e.g. 'use_zip yes' adds a dep on unzip, and
+      'fetch.type svn' adds a dep on subversion. (#13981, jmr in r43782)
+
+    - port(1) should now exit with an appropriate status code when an error is
+      encountered. Use the -p option to continue despite errors.
+      (#13918, jmr in r53704)
+
+    - Proxy information can now be obtained from System Preferences and from
+      macports.conf. The older method using environment variables no longer
+      works out of the box on Leopard due to changes that Apple made to the
+      default /etc/sudoers. (#13158, blb in r47194)
+
+    - Improved handling of malformed variant definitions.
+      (#12596, jmr in r50719, r50721)
+
+    - Cope a little better with missing receipt files. (#19540, jmr in r51138)
+
+    - Fixed a major memory leak in the filemap code.
+      (#12022, pguyot in r51419)
+
+    - Improved the logic for determining whether phases can be skipped. This
+      fixes the specific problems of being unable to build packages of ports
+      that are installed, port not running specific phases (e.g. build)
+      when told to if the port is installed, and inactive dependencies being
+      rebuilt instead of simply activated. (#10881, #16260, jmr in r50490)
+
+    - When archive mode is enabled, ports will no longer be rebuilt if an
+      archive is available. (#10785, jmr in r50416)
+
+    - Activating a port will now first deactivate any other version of the
+      same port that is already active. (#10571, jmr in r53711)
+
+    - Added a 'license' portfile option, which is displayed in 'port info'
+      output. (#7493, jmr in r50801)
+
+    - port lint recognizes new top-level category php (#19329, ryandesign)
+
+    - Do not print header lines when the quiet option -q is set
+      (raimue in r48558)
+
+    - svn.tag is deprecated, use svn.revision instead (raimue in r48222-48223)
+
+    - port -i option has been removed (blb in r48218)
+
+    - ui_warn logs to stderr instead of stdout (raimue in r48217)
+
+    - Remove --pretend option for port selfupdate, use global dry-run option
+      instead (raimue in r48125)
+
+    - port(1) option -y for dry-run (#11892, gwhitney/jmr in r43726) 
+
+    - New pseudo-port 'obsolete' to identify ports which are installed but no
+      longer in the PortIndex (raimue in r47253)
+
+    - MacPorts can now perform fetch, extract, patch, configure and build in a
+      user rather than system owned location. By default, this is
+      ~/.macports/opt. This allows MacPorts to do all but the install of the
+      port without root privileges. (gsoc08-privileges)
+
+    - MacPorts can now automatically drop privileges so as to avoid running as
+      root whenever possible. To enable this, pass the desired user to run as
+      to configure with the --with-macports-user option. (gsoc08-privileges)
+
+    - The Portfile format has a number of new boolean attributes to indicate
+      when an action should or should not be run with root privileges:
+      'patch.asroot', 'build.asroot', 'configure.asroot', 'destroot.asroot',
+      and 'install.asroot'. The default for all is "no". If the prefix folder
+      (by default /opt/local) is not writable, MacPorts will attempt to
+      elevate privileges to root for the install phase. (gsoc08-privileges)
+
+    - A "make group" command has been added to the Makefile and a
+      "--with-shared-directory" switch to the configure script. Running "make
+      group" will create a macports group. "--with-shared-directory" will let
+      let the group specified by "--with-install-group" have full read write
+      access to the /opt/local hierarchy. This will allow users who are
+      members of the new macports group to have full write permissions to
+      /opt/local and its subfolders, and hence to install ports which only
+      affect that hierarchy without requiring root privileges.
+      (gsoc08-privileges)
+
+    - A switch called "--with-no-root-privileges" has been added for use by
+      user installing MacPorts for their own use only. An example configure
+      command would be "./configure
+      --prefix=/Users/{your-user-name-here}/.macports/opt
+      --with-no-root-privileges" (gsoc08-privileges)
+
+    - Add several new options to port search, looks in name and description by
+      default (#15434, raimue)
+
+    - Add xpkg package type, xar-based format with XML. (afb)
+
+    - Split portpkg creation out from portsubmit phase. (afb)
+
+    - Make dependencies displayed in port info respect variants
+      specified in variants.conf; collapse port deps to be an alias
+      for port info with appropriate flags. Note this changes output
+      format of port deps somewhat.  (#11891, gwhitney in r44340)
+
+    - Make dependencies in port upgrade respect variants as specified
+      (in order of precedence) on command line, latest installed
+      version, or variants.conf .  (#8221, gwhitney in r44362)
+
+    - Add select action, which integrates *_select tools into port.
+      (#17477, perry)
+
+    - The variants action additionally shows default variants, conflicting
+      variants and variants' dependencies. (#14178, #15628, perry)
+
+    - Implicit variants (e.g., darwin) can no longer be explicitly
+      set/unset. (#12563, perry in r46938, jmr in r53371)
+
+Release 1.7.1 (2009-03-28 by raimue):
+    - Trailing slashes are stripped from the prefix passed to configure, which
+      prevents incorrect mtree violation warnings. (#13789)
+
+    - Fix freshmeat-based livecheck (#18887)
+
+    - Fix issue on direct-mode installs where checking for installed ports
+      wasn't properly looking (it only matched for revision 0 and no
+      variants) (#17762)
+
+    - Add new "use_7z yes" port option to allow distfiles in 7z format
+      (#18521, ryandesign)
+
+    - port lint no longer requires variable master_sites if the port has no
+      distfiles (#18479, ryandesign)
+
+    - Upgrade will no longer accept ports that are not installed (but it still
+      installs new ports as dependencies if needed). In particular, this means
+      that "port upgrade all" will no longer proceed to install every
+      available port. (jmr in r46052)
+
+    - Add mkdtemp Tcl command to create temporary directories. (#17181, perry)
+
+    - Add 'apple-gcc-4.2' option to configure.compiler (#18426, ryandesign)
+
+    - Create ${applications_dir} and ${frameworks_dir} in destroot
+      automatically (r45614, raimue)
+
+    - Make the postflight procedure a bit smarter about which login files
+      to update for bash and tcsh (#17588)
+
+    - Add error messages to package installers when the wrong OS package
+      is being installed (#13141)
+
+Release 1.7.0 (2008-12-13 by blb):
+    - Global variant descriptions using variant_descriptions.conf in the new
+      resources directory in the ports tree (#14482, raimue)
+
+    - Move port resources into the ports tree (#14553, raimue and blb)
+
+    - Improve error message when "upgrade outdated" is used (#12288)
+
+    - Properly handle ports whose version evaluates to 0 (#16740, ryandesign)
+
+    - PortIndex is now regenerated atomically (#16234, blb & ryandesign)
+
+    - Improve upon 'port lint' usage by not being too overbearing unless
+      --nitpick is used (#14799)
+
+    - Fix reinplace when the filename contains spaces (#17098, ryandesign)
+
+    - Fix python port group issues (#15226)
+
+    - Make sure global variants (from variants.conf) are applied to all
+      phases (#11897)
+
+    - Allow configuring --without-objc-runtime --without-objc-foundation,
+      for building on platforms without Foundation like +puredarwin (r41015)
+
+    - Changes in loading of configuration files. Currently the global
+      configuration file is loaded first, then user defined one (if present),
+      PORTSRC environment variable is loaded last. Last defined value is used
+      for each configuration option. (#16329, contributed by Adam Byrtek)
+
+    - Ruby port group now accepts a new (optional) last parameter for the
+      ruby.setup command, "implementation". It is "ruby" by default, and
+      can be set to "ruby19". It names the ruby-implementing port, and can
+      possibly support still other rubys in the future. (#15912, febeling
+      in r38683)
+
+    - Don't use build.nice for complex build.cmd commands (#16091)
+
+    - The buildmakejobs setting now also affects ports using the scons build
+      system, so now scons-based ports can be built in parallel too. Previously
+      only automake-based ports were supported. (ryandesign in r38556)
+
+    - User-supplied port names are now treated in a fully case-insensitive
+      manner. This fixes a bug where giving the name with incorrect case when
+      deactivating/uninstalling would cause all the port's files to be left
+      behind. (#11759, jmr/raimue in r37349, r37621)
+
+    - The non-verbose output for the build phase no longer shows what target
+      was used. This makes the build phase consistent with the other phases
+      which also do not show details. If details are desired, the debug or
+      verbose switches should be used. (#15881, raimue/ryandesign in r38315)
+
+    - Make missing sed extended regexp (for reinplace -E) into a runtime error.
+      (#15577, afb in r37501)
+
+    - More helpful strings for 'port help' (needs more work #15467, raimue)
+
+    - Command line options are checked if the command accepts it before
+      running (raimue)
+
+    - We now have a mirror of (almost) all distfiles at distfiles.macports.org,
+      and it is automatically appended to master_sites and patch_sites (#15456,
+      jmr in r37217, r37255)
+
+    - port search looks now in name, description and long_description for the
+      search pattern and prints the list sorted (#15434, raimue in r37119,
+      r37121)
+
+    - Stopped 'port -R upgrade' from processing more ports than it should, and
+      from processing ports multiple times. (#10827, jmr in r37046)
+
+    - Don't include build.nice and build.jobs in destroot.cmd (#15295)
+
+    - The default universal variant is no longer added when we know it won't
+      work. (#12170, jmr in r36764)
+
+    - During upgrade, if the latest installed version of a port is not active,
+      the currently active version (if any) is now deactivated before trying
+      to activate the latest version. (#12013, jmr in r36762)
+
+    - A port with dependents can now be removed without forcing iff it is
+      inactive and there is at least one other version of the same port
+      installed (#11501, jmr in r36747)
+
+    - Duplicate entries can no longer build up in the dependency map (#8763,
+      jmr in r36745)
+
+    - In image mode, dependencies are no longer treated as being satisfied
+      when the satisfying port is not active (#7361, jmr in r36735)
+
+    - Fixed a bug where upgrade could create too many nested subdirectories
+      in distpath, archive.destpath and unarchive.srcpath (#11971, jmr in
+      r36679, r36687, r36688)
+
+    - Declaring a dependency on a nonexistent port now always causes an error
+      (#10768, jmr in r36648)
+
+    - Explicitly use unsetenv(3) on all environment variables (#13930, #16010,
+      #16233)
+
+    - Make the included tclthread compile on Leopard if configured (#13495)
+
+    - Allow distfiles to be disk images with "use_dmg yes" port option (#13509,
+      ryandesign in r36708)
+
+    - ruby.setup now takes a type 'fetch' to just fetch/extract (eridius in r35773)
+
+    - Fetch now prefers mirrors with lower ping times (#14891, jmr in r35748,
+      r35806, r35808)
+
+    - Fetching of daily snapshot tarballs of the ports tree as an alternative to rsync
+      (raimue in r35647, r35648)
+
+    - port uninstall now takes --follow-dependents to uninstall all dependents
+      (#14637, eridius/raimue in r34977, r35042, r36160)
+
+    - New fetch.type git (#14232, eridius in r34875)
+
+    - fixed "port mdmg" getting block size wrong for the disk image (#13968, afb in r34844)
+
+    - always set MACOSX_DEPLOYMENT_TARGET, to avoid bugs with older glibtool (afb in r34541)
+
+    - port lint now checks all dependencies so that the ports actually exist (#14380)
+
+    - added target_state to avoid the need for privileges for lint/livecheck (#13458)
+
+    - Overhauled output for port info/deps/dependents/search (raimue in
+      r34354, r34371, r34391, r34395, r34402, r34420)
+
+    - Revert the default +universal MDT/SDK to 10.4/10.4u on Tiger and 10.5/10.5 on Leopard
+
+    - port lint shouldn't require variable master_sites for fetch.type != standard (#14377)
+
+    - Add "tcldoc" documentation comments and "tcldox" Doxyfile for doxygen (#12048)
+
+    - Add --pretend and --nosync flags to selfupdate (raimue in r33938, r33939,
+      r33940, r33941)
+
+    - Work around autoconf X11 detection bugs on darwin (afb in r33717)
+
+    - Fix bugs with X11 lib detection on Leopard (#14089, afb in r33716)
+
+    - Add configure.{optflags,m32,m64,march,mtune} (afb in r33503, r33599)
+
+    - Add applications_dir and frameworks_dir configuration (r33499, r33722)
+
+    - Remove some hardcoded paths (such as /usr/X11R6, /usr/bin/install) (afb in r33501, r33619, r33620)
+
+    - Add configure.{universal_target,universal_sysroot,universal_archs} (afb in r33478).
+
+    - Change default +universal platform back to: 10.4/10.4u.sdk/i386 ppc (r33087, r33107).
+
+    - Add `port platform` info action that outputs current platform (#12302, afb in r32724).
+
+    - Enable 64 bit environment, ppc64 x86_64, for all +universal builds (mww in r32194).
+
+    - Add 'merge' function for merging multiple (single arch) destroots into one (universal)
+      destroot (mww in r31954).
+
+    - If checksum is mismatched, and in verbose mode, present a corrected pre-fabricated checksum statement
+      to make it easy to update a port (jberry in r32441).
+
+    - Fixed the "Error: Unable to open port: invalid command name "ui_prefix"" runtime error on Panther
+      (eridius in r32525).
+
+    - Fixed the "Error: Unable to open port: invalid command name "ui_channels"" runtime error on Panther
+      (eridius in r32514).
+
+    - "port lint" now recognizes non-canonical modelines (afb in r32480).
+
+    - "configure.pipe" is now hackable from Portfiles (afb in r32430).
+
+    - MacPorts no longer installs the "base/config/mp_version" file, as the release version is now stored
+      internally in $macports::autoconf::macports_version (jmpp in r32353).
+
+    - Bail out with a suitable message if the requested port is not installed when polling its dependents
+      (jmpp in r32336).
+
+    - Fixed a Panther build failure due to missing sqlite headers (jmpp in r32212).
+
+    - Fixed a build failure by passing the base/src/cregistry/cregistry.a archive through ranlib (jmpp in r32105).
+
+
+Release 1.6.0 (16-December-2007 by jmpp):
+
+    - Revamped the postflight script that is run by Installer.app with our pkg installer to gracefully
+      handle the addition of PATH, MANPATH and DISPLAY environment variables separately, if needed.
+      Read http://guide.macports.org/#installing.binary.postflight.details for more information
+      (jmpp in many commits directly on the release_1_6 branch).
+
+    - Remove LD_PREBIND & LD_PREBIND_ALLOW_OVERLAP variables from MacPorts' environment to prevent
+      prebinding of binaries, which can be harmful on Tiger and above (#13436, mww in r31786).
+
+    - Add 'gcc-4.2' option to the configure.compiler Portfile command (mww in r31891).
+
+    - Flush port(1) output channel after issuing prompt, when readline is not
+      available, to ensure prompt is displayed at proper time. (jberry r31338).
+
+    - readline is now disabled by default, in order to avoid support issues.
+      use --enable-readine parameter to configure to enable support for readine.
+      (#10651, jberry in r31139, r31140).
+
+    - daemondo now monitors kevents for the death of the daemon process, which means that it
+      now detects the death of processes (even those that aren't direct child processes)
+      much more reliably. Plus other daemondo logging and doc cleanups.
+      (jberry in r30313,r30332,r30333,r30334,r30335,r30364).
+
+    - dramatic speedup to file, dir, url, work actions (jberry in r31056)
+
+    - add option "extract.mkdir [no|yes]" for distfiles that would pollute ${workpath} with
+      multiple files (mww in r31028)
+
+    - add optional configure.pipe output (afb in r29604 & r30824)
+
+    - add "startupitem_type none" macports.conf configuration option (#12743, afb in r30823)
+
+    - add configure.[awk|bison|pkg_config|pkg_config_path] (r30761)
+
+    - Auto-mode for number of parallel build threads (if number of jobs is set to "0") (r30739)
+
+    - Add option use_parallel_build [yes|no] to declare if a port can be built in parallel (r30714).
+
+    - New SourceForge.jp mirrors list (r30484).
+
+    - Display warnings when using old versions of Mac OS X and Xcode Tools
+      (#12794, afb in r30338 & r30477)
+
+    - Remove configure.macosx_deployment_target, add global macosx_deployment_target
+      (eridius in r30396).
+
+    - add support for LZMA compression, for making .tlz archives (afb in r30307)
+
+    - add configure.[perl|python|ruby] for interpreters, .install for avoiding breakage
+      due to coreutils, .libs
+
+    - added startupitem.netchange boolean flag (#12931, N_Ox in r30086).
+
+    - added generic GNU livecheck (N_Ox in r29812).
+
+    - fixed bug where all .mpkg packages were missing their welcome page (afb in r29517)
+
+    - better defaults for implicit ui_channels behaviour (eridius in r29498).
+
+    - prevent creating PKG packages with /etc or /var or /tmp (#2102, afb in r29445)
+
+    - add optional configure.ccache and configure.distcc filters (#5390, afb in r29438)
+
+    - Explicitly sort fs-traverse so it behaves predictably on Linux systems
+      (#12622, eridius in r29412).
+
+    - add configure.objc/objcflags for Objective-C
+
+    - add optional build.nice (0) and build.jobs (1) modifiers (afb in r28634 & r28673)
+
+    - make tclobjc1.0 compile with GNUstep and NXConstantString class (afb in r28668)
+
+    - fix bsdmake/gnumake defaults for FreeBSD and Linux platforms (afb in r28660)
+
+    - port lint command, for Portfile verification (#463, afb in r28170)
+
+    - add configure.macosx_deployment_target for configure flags
+
+    - add configure.javac/classpath for Java
+
+    - add configure.fflags/fcflags/f90flags for Fortran flags
+
+    - Mark "python" group code as deprecated
+
+    - Add group code for Python 3.0
+
+    - Add more compiler suites for the 'configure.compiler' option
+
+    - `port variants` behaves like `port info` in that it parses the Portfile for up-to-date info.
+      `port variants` also supports the --index flag (eridius in r27919).
+
+    - Fix upgrade to properly handle installed versions beginning with letters (eridius in r27900).
+
+    - Chris Pickel's GSoC2007 work: registry2.0 & cregistry (mainly r27518 & r27520)
+
+    - Eugene Pimenov's GSoC2007 work: Trace lib on unix sockets (r26682).
+
+    - Elias Pipping's GSoC2007 work: merge.rb on his personal /users/pipping svn dir.
+
+
+Release 1.5.2 (15-August-2007 at branches/release_1_5's r27896, by jmpp):
+
+    - Fix mtree checks which inaccurately complained about files in /Applications, /Library & /Developer;
+      mtree checks now also warn the user if a port indicates an intended violation and errors are
+      temporarily non-fatal (mww & eridius in r27709, r27710, r27719, r27720 & r27773).
+
+
+Release 1.5.1 (11-August-2007 at branches/release_1_5/base's r27646, by jmpp):
+
+    - Remove sed rules taking care of dp based comments in the macports.conf file from the upgrade target in base/Makefile.in,
+      they were causing problems for people with /opt/dports or similar prefixes (jmpp in r27618).
+
+    - Facelift to the PortIndex2MySQL.tcl script to make it selfcontained and work with the new macports1.0 api to
+      generate SQL statements with information extracted from Portfiles (jmpp in r27415).
+
+    - Always print the livecheck regex in debug mode, not only when it fails (ryandesign in r27379).
+
+    - Detect some mtree violations within ${prefix}. Test can be overriden by "destroot.violate_mtree yes" in a Portfile
+      (mww in r27199).
+
+    - Fix version comparison in MacPorts initialization to properly detect Tcl versions 8.4.7 and later (sfiera in r27127).
+
+    - Fix double de-escaping of livecheck.regex inadvertently introduced in r26041 (eridius in r27079).
+
+    - Added new Portfile options to the configure stage for selecting compiler(s) (mww in r27018, r27021, r27022 and r27053)
+
+    - New logic in the upgrade target to account for cases where the old and new versions consist of different
+      numbers of segments (sfiera in r26921).
+
+    - Remove dead OpenDarwin mirrors from our mirrors list (jmpp in r26903)
+
+    - New tests for violations of common directory structure (and option to override them for special cases)
+
+    - Added new variable ${os.major} that contains the Darwin major version (eridius r26693, ticket #12224).
+
+
+Release 1.5.0 (09-July-2007 tagged at r26818 by jmpp):
+
+    - Many documentation updates and improvements, mostly thanks to Maun Suang and Brian
+      Campbell who both started work on both improving our man pages and reviving the
+      long forgotten MacPorts official guide, now nightly regen'd on an automated basis
+      and hosted at a temporary location, http://geeklair.net/macports_guide/, all
+      thanks to Daniel J. Luke (dluke).
+
+    - Improve built-in "daemondo" program logging (jberry r26537 & r26569).
+
+    - rpm target now knows how to also build universal packages if requested (afb r26470).
+
+    - The "rpmpackage" target was renamed to "rpm", and a new target "srpm" added
+      that allows packaging a Portfile (and files/distfiles) up as a source package.
+      Upgraded RPM to version 4.4.9 and changed OpenDarwin/DarwinPorts to MacPorts.
+      The default build location is now ${prefix}/src/macports instead of ${prefix}/src/apple
+      (jmpp & afb in r26465, r26496, r26536, r26543).
+
+    - Fixed a potential crasher in the delete command (ticket #12149, eridius r26397).
+
+    - 'port delete --work' now removes $portbuiltpath instead of $workpath, effectively prunning
+      empty dirs that up until now were left behind in the build directory (jmpp r26394).
+
+    - gnustep portgroup for gnustep-make-2.0 (yves r26266).
+
+    - Adding backwards compatibility glue for clients of the public (darwin|mac)ports1.0 API
+      that use now deprecated procs naming (DarwinPorts namespace) (jmpp r26392).
+
+    - Merged the dp2mp-move branch into trunk to finally move away from all
+      DarwinPorts related strings and conventions both internally and externally,
+      implying big changes in MacPorts pathnames with respect to user visible stuff.
+      Read http://trac.macports.org/projects/macports/wiki/MacPortsRenaming and
+      http://trac.macports.org/projects/macports/log/branches/dp2mp-move/base for
+      more full details and information (jmpp r26177).
+
+    - Fix livecheck to properly de-escape livecheck.url (eridius r26041).
+
+    - Add warning when it looks like PortIndex file is corrupt (eridius r26040).
+
+    - Make portindex use stderr for errors (eridius r26038, ticket #11585).
+
+    - Fix port variants calculation to properly account for negated variants and
+      to detect problems between required and negated variants
+      (ticket #11920, eridius r26036, patch by gwhitney).
+
+    - Add global methods lpush, lpop, lshift, and lunshift. Works similar to
+      lappend (in fact lpush is just lappend) and do what they sound like.
+      Also add ldindex. Works like lindex, but deletes the element from the list.
+      Documented in portfile.7 (eridius r26034).
+
+    - Add global methods try and throw. Implemented based on the specification
+      in TIP #89. Documented in portfile.7 (eridius r25979).
+
+    - Handle encodings properly now. All Portfiles and .conf files are assumed
+      to be utf-8, and reading them or calling portindex(1) should now work
+      the same on all locales (ticket #11978, eridius r25975).
+
+    - Add support for decoding of obscured maintainer addresses.
+      We support two types of obscured addresses in Portfile maintainers field:
+         (1) username ==> implies username@macports.org
+         (2) subdomain.tld:username ==> implies username@subdomain.tld
+      These are unobscured by port info, and by port submit during the submission process,
+      but are left obscured in the Portfile to avoid accidental disclosure.
+      (jberry r25795).
+
+    - Update port.1 to reflect what "port dependents" really does (markd r25787, ticket #11898).
+
+    - Distinguish a pseudo portname that evaluates to nothing from no arguments at all,
+      improving behavior of 'installed', 'active', 'list', and 'search' pseudo portnames.
+      (jberry in r25789, ticket #10674).
+
+    - Bugfix startup item generation so that launchd.plists are disabled
+      by default, as we claim they are in our documentation. (jberry r25785).
+
+    - Update adduser/addgroup to use dscl instead of niutil. Also add support
+      for realname key in addgroup (ticket #11012, eridius r25586).
+
+    - Make a correction to port(1)'s determination of whether or not a port has
+      been updated by making it compare ${version} and then ${revision} rather
+      than a single comparison of the compound ${version}_${revision}; the
+      latter reports 2.01_2 to be newer than 2.01.01a25_0 because, at the fifth
+      character, `_' comes after `.' in ASCII lexicographic order.
+      (boeyms in r25310)
+
+Release 1.4.42 (17-May-2007 tagged at r25296 by jberry):
+
+    - Fix reinplace, broken in 1.4.41 (eridius r25285).
+
+Release 1.4.41 (16-May-2007 tagged at r25266 by jberry):
+
+    - `port info` now supports new --index flag for using old behaviour (eridius r25256).
+
+    - `port info` now opens the Portfile and displays up-to-date information.
+      This allows information about variants to be displayed (e.g. dependencies).
+      Also allow `port info` to default to current directory if no name is provided
+      (eridius r25255).
+
+    - Add -E flag to reinplace, does the same thing as in sed (eridius r25251).
+
+    - Add support for [nosync] flag in sources.conf to prevent a source from syncing
+      during a `port sync` or `port selfupdate` (eridius r25236).
+      Example: file:///Users/landonf/misc/MacPorts/dports [nosync]
+
+    - Updating a file: source via svn update during port sync now uses the uid/gid
+      of the owner of the working copy (eridius r25142).
+
+    - Make port(1) convert description and long_description from lists to
+      strings before printing to stdout; this enables the proper printing of
+      semi-colons, brackets and other characters by way of Tcl escape sequences.
+      The exceptions to this are the sequences for newline and carriage return
+      (these break the flatfile PortIndex format by introducing line breaks).
+      (boeyms r25110)
+
+    - Evaluate variants at dportopen instead of dportexec. This ensures that
+      the portfile represents the proper information if queried before targets
+      are executed. It also prevents variants from being executed twice if multiple
+      targets are executed separately on the portfile (ticket #11296, eridius r25033).
+
+    - Fix copy and move commands (eridius r25024).
+
+    - Passing multiple arguments to $option-delete now works as expected
+      (ticket #11929, eridius r25006).
+
+    - fs-traverse no longer follows symlinks specified on the root. This fixes
+      the incorrect behaviour of delete seen in #11862 (eridius r25003).
+
+    - Remove bundled xar. (jberry r24913).
+
+    - Tighten checking of port name in depspecs. neither + nor / is allowed.
+      (jberry r24929, r24934, r24940).
+
+    - Restore ability for portindex lines to contain carriage returns, allowing
+      fields such as descriptions to contain line breaks. Note that any portindex
+      containing such entries will not be readable by a recent version of macports.
+      (jberry r25146)
+
+    - Add support for descriptions on variants:
+         * The syntax follows the syntax for variant depends, etc.
+         * Descriptions for variants are entirely optional
+         * The change to the portindex format to allow variant descriptions
+           should be backwards compatible. Variant descriptions are stored,
+           keyed by the variant name, in a new portinfo array named "variant_desc".
+
+        Example:
+
+            variant myvariant description "This variant does this and that" {
+                configure.args-append   --do-this --do-that
+            }
+
+        (jberry r25147)
+
+    - Only look for, or create, ~/.macports user directory if the HOME environment
+      variable is defined. (jberry r25177)
+
+
+Release 1.4.40 (7-May-2007, tagged at r24909 by jberry):
+
+    - Note the bump in version naming. To leave ourselves lots of room in our versioning
+      scheme, we've jumped from 1.4.3 to 1.4.40. The floating point represenation as
+      reported by port version (1.440) will still be the same; we're just interpreting
+      it differently.
+
+    - variable tracing now works in a much better way and handles unsets properly.
+      Similarly, ${option}-delete now works better. Depends validation no longer
+      attempts to validate when the variable is unset. Additionally, the validation
+      now actually validates each depspec instead of simply finding a single spec
+      within the list that works (ticket #11868, eridius r24678).
+
+    - macports infrastructure now easier to use from scripts.
+      ui_prefix and ui_channels have default implementations, and
+      all arguments to dportinit are now optional (ticket #11837, eridius r24460).
+
+    - ln now accepts combined flags (ex. ln -sf foo bar) (eridius r24452)
+
+    - default_variants now handles multiple values correctly (ticket #11828, eridius r24450).
+
+    - ln uses new symlink command so it can create symlinks that point to
+      files that don't actually exist (eridius r24444).
+
+    - New bare-bones Pextlib command `symlink source target` (ticket #11840, eridius r24444).
+
+    - delete reimplemented using fs-traverse (eridius r24435).
+
+    - fs-traverse now uses the fts(3) family of functions instead of readdir/opendir.
+      This fixes a couple behavioral oddities, and makes deleting during traversal work on 10.3
+      (ticket #11839, eridius r24423).
+
+    - fs-traverse now takes a list of targets rather than a variable number of arguments
+      (ticket #11836, eridius r24410).
+
+    - Fixed a potential crasher in fs-traverse when showing error message
+      (ticket #11827, eridius r24396, thanks sfiera).
+
+    - Fixed a bug where livecheck failed on ports that do not define a homepage
+      (ticket #11818, pguyot r24319).
+
+    - Added the downloads section of our repo to the macports mirrors list (jmpp r24278).
+
+    - Fixed a bug with the archive mode introduced with r23238 change (1.4.1)
+      (pguyot r24273).
+
+    - Trace mode now take dependencies into account when executing the activate
+      phase. This fixes an unwanted warning when activating ports that depend
+      on teTeX (pguyot r24199).
+
+    - Support for mpwa submit through "port submit".
+      This work is in progress. (jberry)
+       - Expose autoconf XAR variable as portutil::autoconf::xar_path. (r24194).
+       - Start to build portpkg.xar and meta data, hijacking Kevin's
+         portsubmit.tcl. (r24195-24196).
+
+    - Revise error messages in port image activation to use syntax that
+      matches port(1). (jberry r24543, r24548).
+
+    - Create new interp variable prefix_frozen, which is available to port phases
+      even when the Portfile redefines prefix. (jberry r24848-r24849)
+
+    - Search for prefix-relative commands in prefix_frozen rather than prefix.
+      Affects port submit (xar) and port fetch (svn). (jberry r24849)
+
+    - Always create a ~/.macports user directory if it doesn't yet exist. (jberry r24831)
+
+    - Move port(1) readline history file to ~/.macports/history (jberry r24832, r24843)
+
+Release 1.4.3 (17-Apr-2007):
+
+    - Fix bug in launchd support, introduced in 1.4.2. Remove remnants of
+      launchd enable flag which caused reversion to systemstarter in 1.4.2.
+      (jberry r24151).
+
+    - add functions 'backup' and 'lipo' along with some description
+      to be used for lipo-based universal variants, tested with openssl.
+      These functions should be considered test only for the time being,
+      and should not yet be adopted widely by port authors.
+      (pipping r24148).
+
+Release 1.4.2 (16-Apr-2007):
+
+    - New logic for variants overload that basically yields to listing only
+      variant +universal on ports that redefine it (pguyot in 24100).
+
+    - Implement brand new fs-traverse command in Pextlib.
+      See portfile.7 for documentation (eridius in r24079, r24080, and r24112).
+
+    - Add per-user preferences in ~/.macports/user.conf. This will be used
+      for submitter information.
+      Simplify selection of ports.conf file:
+        - ~/.portsrc is no longer supported.
+        - Search order for ports.conf is now:
+            - PORTSRC
+            - ~/.macports/ports.conf
+            - ${prefix}/etc/ports.conf
+          Only the first file found will be parsed and used.
+       (jberry r24071, r24113, r24114)
+
+    - Improvements on livecheck: fixed a report bug, improved ruby group
+      default behavior (pguyot in r24026 and r24018)
+
+    - Remove xar from the build. xar doesn't build on panther due to
+      a libxml2 lib too old for xar requirements. We'll find another
+      way to deal with xar, perhaps by requiring users to install the
+      xar port when they need its services. (jberry r24107:r24108)
+
+    - Remove configure switch for building launchd support. (jberry r24107:r24108)
+
+    - Remove compatibility upgrade for conf files from
+      darwinports 1.1 to 1.2. (jberry r24106).
+
+Release 1.4.1 (14-Apr-2007):
+
+    - Add responsive, reasonably fast http mirrors to openbsd group
+      (pipping in r23343).
+
+    - Resolved ticket #11637: livecheck incorrectly assumed that
+      master_sites was set. (pguyot in r23329).
+
+    - Add xar 1.4 into the build of MacPorts base. xar is now installed
+      into /opt/local/, which will conflict with anybody who has the xar
+      port installed. (jberry in r23687).
+
+    - Add -I${prefix}/include -L${prefix}/lib to the default configure
+      flags (pguyot in r23246 and r23291).
+
+    - New options for configure flags (C|CPP|CXX|LD)FLAGS and logic to
+      handle that and backward compatibility (pguyot in r23098, r23125,
+      r23238, r23248 and r23249).
+
+    - "port sync" now updates svn repos too (eridius in r22784).
+
+    - Default +universal variant for configure-based ports (pguyot in
+      r22313).
+
+    - Fixed use of master_site in livecheck, added support for
+      code.google.com checks, made the up to date message info (instead of
+      debug) and improved debugging output with livecheck (eridius in
+      r23888, r23889, r23890, r23894; pguyot in 23660)
+
+    - Fixed a bug where running port test would not install dependencies
+      when required. (pguyot in r23700)
+
+    - New ruby portgroup option to specify the name of the module for
+      gem-based ports. (pguyot in 23659)
+
+    - New fetch option to ignore the SSL certificate when fetching from
+      a secure site (default is to not ignore it). (pguyot in r23242)
+
+    - Bugfix #11720. Fixes for variants.conf functionality. (jberry in
+      r23967)
+
+
+Release 1.4 (26-March-2007):
+
+    - New gnupg mirrors list and general cleanups to varios other lists (pipping in r22979 through r22982,
+      r22999, r23000 & r23037).
+
+    - Python 2.4 & Python 2.5 group code now offer a "python.include" variable (mww in r22914 & r22953).
+
+    - Resolved ticket #7563: The Pextlib curl command now sends a user agent, set to
+      "MacPorts libcurl/[libcurl version]" (eridius in r22771).
+
+    - Resolved ticket #11417: No longer touch the dep map file when opening it for reading (eridius in r22769).
+
+    - Archivemode now supports both tbz2 & tbz binary archives naming variations (jmpp in r22584).
+
+    - Add new alias 'registry_active' for registry::active so portfiles can check if another port is
+      installed and activated (eridius in r22304).
+
+    - Built-in 'find' command now always expects an expression as its first argument (jkh in r22048).
+
+    - with_docs variant of GNUStep PortGroup ports now installs the latex2html port by default (yves in r22014).
+
+    - Add new 'touch' & 'ln' portfile writing commands, their usage being similar to their BSD equivalents,
+      along with 'move' and 'copy' shorthands for TCL's "file rename/copy" calls (eridius in r22007).
+
+    - Fix a dangerous bug in parsing filenames with spaces in the 'delete' command, while reworking it
+      to no longer be a plain 'system "rm -rf <path>"' call (eridius in r22007).
+
+    - Checksum phase no longer deletes distfiles upon checksums mistmatch, eliminating "file not found"
+      errors when a second run is attempted, thus making the need for a "port clean --dist" call more
+      explicit before continuing (eridius in r21967).
+
+    - Stating an empty key value in a Portfile now correctly clears it, as expected (eridius in r21950 & r21951).
+
+    - Documentation updates to the ports.conf.5 and portfile.7 man pages (markd, jmpp and others I may
+      be forgetting, sorry 'bout that, in r21998, referencing tickets #4905, #6880 & #10840).
+
+    - /Applications/DarwinPorts --> /Applications/MacPorts migration in base for aqua ports
+      (rhwood in r21852 and r21853, but other commits to this effect were also applied to trunk/dports)
+
+    - New SourceForge mirrors redirector and a few fallback geographically distributed hardcoded ones
+      to prevent disaster from happening, as suggested by Ross Turk (jkh in r21143 & jmpp in r21768).
+
+    - GNUStep PortGroup improvements and full documentation in portgroup.7 (yves in r21764).
+
+    - Xcode GroupCode improvements to ensure builds always take place inside the work dir (eridius in r21762).
+
+    - New 'macports' mirrors list, with entries pointing to svn's /distfiles/<user> &
+      /distfiles/general directories in our repo (eridius & jmpp in r21621).
+
+    - Iterate in darwinports_fastload using glob instead of hardcoding the library names (eridius in r21585).
+
+    - New Python 2.5 GroupCode (mww in r21451).
+
+    - Set upgrade.target back to archive (from unarchive) (dluke in r21110).
+
+    - rubyforge_gem fetch method for the Ruby PortGroup & livecheck support
+      (pguyot in r20544 & r20834, respectively).
+
+    - Resolved ticket #10843 (and probably #8229): initialize the portinfo array each time to improve
+      'port deps' and 'port variats' output (jberry in r19992).
+
+    - Resolved ticket #10766: improve error when no current port is available (jberry in r19665).
+
+    - Resolved ticket #8723: better messages for port outdated (jberry in r19664).
+
+
+Release 1.3.2 (9-Aug-2006):
+
+    - Fixed a bug that prevented operation of port ed with some editors.
+      The env wasn't being properly restored for the editor. (jberry)
+
+    - Fixed a bug in the creation of the portf symlink. (jmpp)
+
+    - Fixed a bug where port upgrade -uf fails because of the dirty upgrade
+      code. (pguyot)
+
+    - Port no longer warns when a shared distfile directory is emptied by a
+      clean --dist or clean --all, it now prunes the directory instead. (pguyot)
+
+    - Gem method of ruby portgroup now destroots from the worksrcdir, thus
+      avoiding an unnecessary warning with -t. (pguyot)
+
+    - Tell ld to look into /usr/local/lib when building port. This solves a
+      problem occurring when a newer version of readline is installed in
+      /usr/local. (pguyot)
+
+    - Added gnustep portgroup support. (Bugzilla #8139) (yves)
+
+    - Avoid sending Pragma: no cache when fetching files. (Bugzilla #8669)
+      (josh_root, blb)
+
+    - Changed Makefile logic to reconfigure/regenerate files when templates
+      are modified. (pguyot)
+
+    - Trace now forbids renaming files and directories as well as removing
+      directories outside the sandbox. (pguyot)
+
+    - Allow additional inserted libraries by keeping DYLD_INSERT_LIBRARIES
+      variable. (pguyot)
+
+    - Change some UI strings and documentation to read MacPorts, rather than
+      DarwinPorts. The project is adopting the new name "MacPorts", and will
+      be using the macports.org domain in the future.
+
+Release 1.3.1 (31-Jul-2006):
+
+    - Fixed a bug in livecheck sourceforge guess algorithm. (pguyot)
+
+    - Fixed an incompatibility of darwintrace.c with MacOS X 10.3. Darwintrace.c
+      now also compiles on Linux. (pguyot)
+
+    - Fixed a bug introduced by a patch to the fetch code. Now, fetch target
+      can really deal with patch files even if the main fetch method is CVS or
+      SVN. (pguyot)
+
+    - Fixed a bug, introduced in 1.3, that prevented -f selfupdate from forcing
+      a build of the fetched sources. (jberry)
+
+    - Fixed a bug, introduced in 1.3, that prevented -u uninstall from working.
+      (jberry)
+
+    - Fixed a bug in xcode portgroup. One variable used by the group conflicted
+      with global variables in port base code. (pguyot)
+
+    - Added a new test case for a cvs+remote patch file bug. (pguyot)
+
+    - Added ruby gems support for ruby group. (rcavanaugh & pguyot)
+
+    - Trace now forbids creation of directories outside the sandbox. (pguyot)
+
+    - Additions to man page for port(1): (jberry)
+       * new port options -F, -i, -x, -p
+       * mention interactive and batch modes
+       * document extensions to info command.
+
+    - Archive mode is now disabled by default. (landonf)
+
+    - The upgrade target now properly detects and uses a matching binary
+      archive if found, an uninstall && install combination needed up till
+      now to pick it up. (jmpp)
+
+Release 1.3 (27-Jul-2006):
+
+    - Fixed a bug where only the first word of configuration settings (in
+      ports.conf) was processed. This bug affected the use of extra_env.
+      (Bugzilla #9948) (pguyot)
+
+    - Fixed a bug where environment variables governing proxy were not
+      capitalized properly. (blb & jberry)
+
+    - Fixed a bug where port outdated and port ugprade didn't work in direct
+      mode. (Bugzilla 7719, 7721) (dluke & jberry)
+
+    - Fixed several problems with iteration on ports. (jberry)
+
+    - Fixed a bug where curl LDFLAGS weren't properly propagated. (landonf)
+
+    - Fixed a bug where location update routine invoked when installing DP did
+      not take the DESTDIR variable into account. (jmpp)
+
+    - Fixed a bug where patchfiles specifications could not have suffixes to
+      indicate the master site. (pguyot)
+
+    - Fixed spelling in port(1) man page. (Bugzilla 8103) (pjenvey & jberry)
+
+    - Fixed a typo and another problem in messages generated by port command.
+      (Bugzilla 6706 & 6712) (deric & jmpp)
+
+    - Fixed a typo in ports.conf. (matt & jmpp)
+
+    - Fixed several problems with launchd support (Bugzilla 8372 & 10041)
+      (jberry)
+
+    - Fixed a bug preventing the use of libmd for checksums and added an
+      informative compilation error if libcrypto and libmd cannot be found.
+      (landonf)
+
+    - Fixed a bug where thread2.6 Tcl library wasn't installed where DP is
+      installed. (jmpp)
+
+    - Fixed a bug in xcode PortGroup which prevented the use of a custom
+      project path. (pguyot)
+
+    - Fixed a bug in xcode PortGroup which made destroot to fail when there
+      were spaces in the install path. (pguyot)
+
+    - Fixed a bug in portfetch.tcl which failed to fetch patches when using
+      CVS or SVN. (Bugzilla 5269) (yeled)
+
+    - Added new command 'delete' for use in Portfiles instead of
+      'file delete' and 'system "rm.."' (mww)
+
+    - Added more information to porthier(7) about ${prefix}/var/db/dports.
+      (olegb)
+
+    - Updated Gnome, KDE and SourceForge mirror lists. (Bugzilla 8045, 9152)
+      (rwhood, blb, olegb & pguyot)
+
+    - Check earlier if there is no Portfile in a directory (especially when
+      iterating). (jberry)
+
+    - Split livecheck into distcheck and livecheck. Added two regular expression
+      modes (one line, full file), set the default to check against freshmeat
+      and defined the default for perl5 group. (pguyot)
+
+    - Discover path to rsync at autoconf time. (jberry)
+
+    - Mark CVS, TAR, GNUTAR, and RSYNC as additional precious variables that can
+      be overridden in configure environment at time of configure to customize
+      the location of these tools. Note that these tools are not found in the dp
+      prefix, as PATH is sanitized of references to prefix. But you could
+      override the precious variables to acheive that if you really want to
+      shoot yourself. (jberry)
+
+    - Set timeouts for curl transfers.  Some connections to sketchy mirror sites
+      can hang forever otherwise. (jkh)
+
+    - Shortened the time to upgrade with archive mode on by using archive as the
+      target. (Bugzilla #7891) (dluke & jberry)
+
+    - Added support for sqlite 3. (jberry)
+
+    - Major update of the trace (-t) option (pguyot):
+      * backported changes from darwinbuild's version of darwintrace, including
+        several bug fixes.
+      * cleaned up the code.
+      * writing/creating and also unlinking a file outside allowed bounds are
+        now blocked instead of being simply reported (previous version only
+        reported creations).
+      * fixed a bug where -t failed with X11 ports because ${prefix} got
+        overwritten.
+
+    - Added new native commands to handle privileges chores. (jberry)
+
+    - Add batch/interactive mode. In interactive mode, use readline when it's available.
+      Command and portname completion is available in interactive mode, as is readline
+      history. (jberry) 2005-11-07,08
+
+        * Add new option -F <filename> which specifies a command file to be
+          read and processed. Multiple such options may be given to provide
+          multiple command files. If filename is "-", then stdin is read.
+
+        * Option -i is equivilant to -F -, which forces processing of standard
+          input following any commands given as arguments.
+
+        * If port is invoked as portf, an -F is assumed as an implicit first
+          argument (so the real first argument is taken as a command file to
+          be processed). This should allow the use of a shebang line such as:
+            #!/usr/bin/env portf
+
+        * Commands starting with # are treated as comments.
+
+        * Install a symbolic link /opt/local/bin/portf --> /opt/local/bin/port.
+
+        * New command "cd" is useful to change to a new directory/port while in
+          interactive/batch mode.
+
+        * Multiple commands on a single line may be separated by a ';'
+
+        * Global command options may now be specified following a particular
+          command; they will apply only to that command rather than to all
+          command invocations. This is important for batch/interactive mode.
+
+    - Add new option -p, which ignores errors while processing within a command.
+      (this subsumes some of the work that -f was previously overloaded to do).
+      (jberry).
+
+    - Add new option -x, which exits immediately on errors while in batch mode (
+      otherwise we don't exit on errors in batch mode). (jberry)
+
+    - Refactoring of port(1) to cast actions into distinct action procs. Adds
+      the new action_array which is used for action dispatch, and also to generate
+      the list of possible commands for help and command completion. (jberry)
+
+    - Initial version of portmirror binary to build a mirror of distfiles.
+      (pguyot)
+
+    - Improvements and fixes to the tests. (pguyot)
+
+    - Added a new option (checksum.skip=yes) to bypass the checksum phase. This
+      option is mostly useful on the command line to test older distfiles.
+      (jberry)
+
+    - Added dependencies for rpm on virtual packages representing releases of
+      MacOS X. (mww)
+
+    - Add to port the ability to query for specific meta-data fields.
+      For instance: port info --maintainer --name category:java
+      When specific fields are given, the legacy generalized info is not presented, and vis-versa.
+      By default, the fields for each port are listed one-per-line, with a field label
+      in front of each. (The field label is omitted if the global -q option is given).
+      If the --line option is given, the fields are presented on one line, tab separated,
+      and with no field label: port info --name --maintainer --line tomcat5 apache2
+      Field names are those from the PortIndex, plus some convenience versions of
+      those: (such as allowing category instead of categories).
+      Fields which are actually lists (such as depends_lib) are displayed comma-separated.
+      (jberry) 2006-02-16
+
+Release 1.2.1 (10-Apr-2006):
+
+    - Changes to darwinports build infrastructure to allow for build of
+      the darwinports infrastructure as a multiarchitecture binary.
+      This allows darwinports to be built as fat, but does nothing to
+      allow ports themselves to be built as fat. To build darwinports
+      fat, configure as follows:
+        ./configure CFLAGS='-arch ppc -arch i386' SHLIB_LDFLAGS='-arch ppc -arch i386'
+                                        backported from HEAD (jberry)
+
+    - Add a hack in order attempt to detect when a sourceforge mirror
+      is actually returning an error page. If this is detected, proceed
+      to the next mirror.               backported from HEAD (jberry)
+
+Release 1.2 (14-Dec-2005):
+
+    - Syntax change to disambiguate uses of the port's version on the command
+      line, when coupled with new changes to accept multiple ports.
+      The port version must now always be prefixed with an @. Example:
+        port uninstall vim @1.0
+      This probably only affects uninstall and activate, both of which
+      require a version if there are multiple versions installed.
+
+    - gzip-compress manpages that are in the share/man/cat? directories during
+      destroot, too. (mww)
+
+    - Enhance port command such that targets that require a port to be
+      specified will now all default to a port in current directory. (jberry)
+
+    - Enhance port command to allow multiple ports per invocation.
+      Where previously one said "port install porta; port install portb",
+      one can now say "port install porta portb". (jberry)
+
+    - Enhance port command to allow use of shell-like glob patterns for
+      port selection. When a glob pattern is found, the group of ports
+      matching the glob pattern is substituted. (jberry)
+
+    - Enhance port command to allow use of "pseudo" portnames to specify
+      groups of ports.
+      When one of these pseudo portnames is specified on the command line,
+      the corresponding group of ports is substituted.
+
+      Currently defined pseudo portnames are:
+        current, all, installed, uninstalled, active, inactive, outdated.
+
+      Additional pseudo portnames can be used to select ports based on a
+      regex pattern match against certain criteria. Each port selector is
+      a name, followed by a colon, followed by the desired regex pattern.
+      The selectors are:
+      variants:, variant:, description:, portdir:, homepage:, epoch:,
+      platforms:, platform:, name:, long_description:, maintainers:, maintainer:,
+      categories:, category:, version:, and revision: (jberry)
+
+    - Enhance port command to allow use of set expressions to combine
+      ports or groups of ports.
+      Supported operators are "and", "or", "not", "!", "(", ")". (jberry)
+
+    - Enhance port command to allow a port to be specified through a file:
+      url instead of via portname. This function was previously available
+      though the -D and -u options, which make less sense now that multiple
+      ports can be specified to a target. (jberry)
+
+    - Under Tiger, startupitems are now by default generated for launchd
+      rather than systemstarter. (jberry)
+
+    - Add new startupitem keys startupitem.executable, startupitem.logfile,
+      startupitem.logevents, startupitem.pidfile, supported for both
+      systemstarter and launchd. (jberry)
+
+    - New Test framework. Running make test from base/tests/ will test
+      several features of port(1) including syntax of Portfiles. New tests
+      can easily be added by simply creating new directories in base/tests/
+      with a Portfile and a master file containing the output of port test
+      in this directory. Some tests are actually more complex. These tests
+      require the port binary to be installed in ${prefix}. (pguyot)
+
+    - svn fetching support, parallel to cvs fetching. Note that
+      this is a bit skanky as svn is not installed on the platform by default.
+      This code will error-out if svn is not installed. (jberry)
+
+    - Removal of old "fetch.args" parameter now that all Portfiles have been
+      properly moved to leverage Paul's libcurl work (yeled)
+
+    - DP now sets its own env variables instead of filtering user declared
+      ones considered harmful (blb)
+
+    - "Canonicalization" of expanded path:${prefix}/foo:bar dependencies
+      when including them in the PortIndex for better abstraction (jberry/pguyot)
+
+    - Addition of the IndexRegen.sh script that takes care of the automated
+      index thingie... (pguyot and jmpp)
+
+    - Miscellaneous cleanups:
+        - DP base is assured to respect a temporary DESTDIR installation and
+          other Makefile cleanups (toby, jmpp)
+        - s/--with-tclpackagedir/--with-tclpackage/g in autoconf error
+          reports (pguyot)
+        - fixes for the buildall.sh script (jkh)
+
+    - Some other fixes for lurking bugs, untapped by the various developments
+      that have taken place since 1.1 ("bunch of developers ;-);
+
+    - Snazzy new ChangeLog file
+
+    - Add new actions for port(1): help (get help about port),
+      echo (the expanded arguments),
+      cat (the contents of the Portfiles from the specified ports),
+      edit (also alias "ed", the contents of the Portfiles, using EDITOR or VISUAL),
+      dir (emit path to the port's directory),
+      file (emit path to the port's Portfile)
+      (jberry)
+
+    - On make install, upgrade ports.conf and sources.conf to change rsync.opendarwin.org
+      to rsync.darwinports.org. This is now our preferred rsync hostname.
+      Likewise, rename the rsync destination directories in ${prefix}/var/db/dports/sources
+      in a similar fashion (jberry)
+
+
+Release 1.1:
+
+    (information not here).
+
+Release 1.0:
+
+    (information not here).

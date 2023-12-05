@@ -1,0 +1,235 @@
+.\" Copyright (c) 2005 Matt Anton <matt@opendarwin.org>
+.\" Copyright (c) 2007 Juan Manuel Palacios <jmpp@macports.org>
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY Eric Melville AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.Dd May 22, 2007
+.Dt MACPORTS.CONF 5 "MacPorts"
+.Os 
+.Sh NAME
+macports.conf
+.Nd Configuration file of the MacPorts system
+.Sh DESCRIPTION
+.Nm macports.conf
+is the configuration file used to bootstrap the MacPorts system. This file is read by the
+.Nm port
+command and determines how it behaves. Lines beginning with '#' are comments, empty lines are ignored.
+The format is that of a simple key/value space or tab separated pair.
+.Pp
+The file contains entries of the form:
+.Pp
+.Dl Va "<key> <value>"
+.Pp
+The value of any given key can be referred to by the '${<keyname>}' abstraction, where <keyname> expands
+to the key in question.
+.Pp
+.Sh KEYS
+The following keys are used by
+.Nm port
+itself:
+.Pp
+.Bl -tag -width lc
+.It Va prefix
+Sets the directory where ports are installed. Any path may be used but those with spaces and/or non ascii
+characters should be avoided, as this can broke some ports. This key is often referred to as '${prefix}'.
+.br
+.Ic Default:
+/opt/local
+.It Va portdbpath
+Directory where MacPorts keeps working data as downloaded sources, installed ports receipts
+and the main registry. Same path restrictions apply as for '${prefix}'.
+.br
+.Ic Default:
+${prefix}/var/macports
+.It Va portdbformat
+Storage type to use for the MacPorts registry. Currently the only supported format is "flat".
+.br
+.Ic Default:
+flat
+.It Va portinstalltype
+Sets the mode in which ports are installed by MacPorts. Supported values are 'direct' or 'image'.
+The 'direct' mode is often used on systems that do not support 'image' due to limitations in their
+installed version of Tcl. In 'direct' mode ports are installed directly into '${prefix}' and only
+one flavor of a port can be installed at any given time. In 'image' mode multiple flavors of a port
+(i.e., different versions and/or any possible combination of its variants) can be installed concurrently
+into '${portdbpath}/software/${portname}' and only one can be "activated" onto '${prefix}' via soft or
+hard links from the former to the latter.
+.br
+.Ic Default:
+image
+.It Va applications_dir
+Directory containing Applications installed from ports.
+.br
+.Ic Default:
+/Applications/MacPorts
+.It Va frameworks_dir
+Directory containing Frameworks installed from ports.
+.br
+.Ic Default:
+${prefix}/Library/Frameworks
+.It Va sources_conf
+Location of the sources file. This file enables rsync synchronization of the default ports tree with the
+MacPorts rsync server (through the "sync" target of the
+.Nm port
+command) and any other local tree(s) you might have.
+.br
+.Ic Default:
+${prefix}/etc/macports/sources.conf
+.It Va variants_conf
+Location of the optional global variants definition file, listing those that should be used in all installed
+ports if available.
+.br
+.Ic Default:
+${prefix}/etc/macports/variants.conf
+.It Va portarchivemode
+Key governing the creation of binary archives of installed ports for installation/reinstallation ease.
+.br
+.Ic Default:
+yes
+.It Va portarchivepath
+Location where to store/retrieve ports binary archive files from when archive mode is active.
+.br
+.Ic Default:
+${portdbpath}/packages
+.It Va portarchivetype
+Colon or comma separated, space free list of supported formats of archives to create or read from when
+\&'${archivemode}' is set to 'yes'. Use of multiple types will cause archive creation to build all the
+specified types in one step. Unarchive uses multiple types as a search list to locate any existing archive,
+with the first found match being used.
+.br
+Supported types are: tgz, tar, tbz, tbz2, tlz, txz, xar, zip, cpgz, cpio
+.br
+.Ic Default:
+tgz
+.It Va configureccache
+Use ccache (C/C++ compiler cache). Requires that ccache has been installed.
+.br
+.Ic Default:
+no
+.It Va configuredistcc
+Use distcc (distributed compiler). Requires that distcc has been installed.
+.br
+.Ic Default:
+no
+.It Va configurepipe
+Use pipes rather than intermediate files when compiling C/C++/etc (gcc -pipe)
+.br
+.Ic Default:
+no
+.It Va buildnicevalue
+Lowered scheduling priority (0-20) to use for make when building ports
+.br
+.Ic Default:
+0
+.It Va buildmakejobs
+Number of simultaneous make jobs (commands) to use when building ports
+.br
+.Ic Default:
+1
+.It Va portautoclean
+Automatic cleaning of the build directory of a given port after it has been installed.
+.br
+.Ic Default:
+yes
+.It Va keeplogs 
+Keep logs for ports
+.br
+.Ic Default:
+yes
+.It Va build_arch
+The machine architecture to try to build for in normal use
+.br
+Regular architectures include: ppc, i386, ppc64, x86_64
+.br
+.Ic Default (10.6):
+x86_64 or i386 depending on hardware
+.br
+.Ic Default (10.5 and earlier):
+i386 or ppc depending on hardware
+.It Va universal_archs
+The machine architectures to use for +universal variant
+(multiple architecture entries should be space separated)
+.br
+Regular architectures include: ppc, i386, ppc64, x86_64
+.br
+.Ic Default (10.6):
+x86_64 i386
+.br
+.Ic Default (10.5 and earlier):
+i386 ppc
+.It Va startupitem_type
+Set the default type of startupitems to be generated, overridable by Portfiles that explicitly state a
+startupitem.type key. If set to "default", then a type will be selected that's appropriate to the OS.
+Supported types are: none, SystemStarter, launchd, default, rcNG.
+.br
+.Ic Default:
+default
+.It Va destroot_umask
+Umask value to use during the destrooting or a port.
+.br
+.Ic Default:
+022
+.It Va rsync_server
+Default rsync server to connect to when running "selfupdate" through the
+.Nm port
+command to update your entire MacPorts
+installation (spanning both the MacPorts infrastructure and the ports tree).
+.br
+.Ic Default:
+rsync.macports.org
+.It Va rsync_dir
+Rsync directory from which to pull MacPorts sources from the rsync server.
+.br
+.Ic Default:
+release/base/ (which pulls sources for the currently shipping MacPorts release)
+.It Va rsync_options
+Default rsync options to use when connecting to the rsync server.
+.br
+.Ic Default:
+-rtzv --delete-after
+.It Va binpath
+Sets the directory search path for locating system executables used by MacPorts. This variable should contain
+the paths for locating utilities such as rsync, tar, cvs and others.
+.br
+.Ic Default:
+${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin
+.It Va extra_env
+List of extra environment variables MacPorts should keep in the user's environment when sanitizing it.
+.El
+.Sh FILES
+.Bl -tag -width
+.It Va ${prefix}/etc/macports/macports.conf
+Standard system-wide MacPorts configuration file.
+.It Va ~/.macports/macports.conf
+User-specific configuration override. This file, if found, will be used instead of the default file at
+${prefix}/etc/macports/macports.conf.
+.El
+.Sh SEE ALSO
+.Xr port 1 ,
+.Xr portfile 7 ,
+.Xr portgroup 7 ,
+.Xr portstyle 7
+.Xr porthier 7 ,
+.Sh AUTHORS
+.An "Juan Manuel Palacios" Aq jmpp@macports.org
+.An "Matt Anton" Aq matt@opendarwin.org

@@ -1,0 +1,31 @@
+# $Id$
+
+PortSystem 1.0
+name		dependencies-a
+version		1
+categories	test
+maintainers	pguyot@kallisys.net
+description	Test port for dependencies
+homepage	http://www.macports.org/
+platforms	darwin
+
+long_description ${description}
+
+fetch		{}
+checksum	{}
+extract		{}
+configure	{}
+build		{}
+destroot	{
+	system "touch ${destroot}${prefix}/lib/${name}"
+}
+
+default_variants	+i_want_b
+
+variant i_want_b {
+	depends_lib-append	port:dependencies-b
+}
+
+test {
+# testing consists in processing dependencies
+}

@@ -1,0 +1,79 @@
+diff -ru src/thread2.6/Makefile.in src/thread2.6.mine/Makefile.in
+--- src/thread2.6/Makefile.in	Sat Dec 18 09:26:02 2004
++++ src/thread2.6.mine/Makefile.in	Mon Apr 17 02:42:43 2006
+@@ -67,12 +67,12 @@
+ 
+ srcdir		= @srcdir@
+ prefix		= @prefix@
+-exec_prefix	= @exec_prefix@
++exec_prefix	= @prefix@
+ 
+ bindir		= @bindir@
+-libdir		= @libdir@
++libdir		= @prefix@/share/macports/Tcl
+ datadir		= @datadir@
+-mandir		= @mandir@
++mandir		= @prefix@/share/macports/man
+ includedir	= @includedir@
+ 
+ DESTDIR		=
+diff -ru src/thread2.6/configure src/thread2.6.mine/configure
+--- src/thread2.6/configure	Thu Dec 23 05:48:44 2004
++++ src/thread2.6.mine/configure	Mon Apr 17 02:27:46 2006
+@@ -6374,13 +6374,11 @@
+    { (exit 1); exit 1; }; }
+ 	    fi
+ 	else
+-	    # Check order: pkg --prefix location, Tcl's --prefix location,
++	    # Check order:
+ 	    # directory of tclConfig.sh, and Tcl source directory.
+ 	    # Looking in the source dir is not ideal, but OK.
+ 
+-	    eval "temp_includedir=${includedir}"
+-	    list="`ls -d ${temp_includedir}      2>/dev/null` \
+-		`ls -d ${TCL_PREFIX}/include     2>/dev/null` \
++	    list="`ls -d ${TCL_PREFIX}/include     2>/dev/null` \
+ 		`ls -d ${TCL_BIN_DIR}/../include 2>/dev/null` \
+ 		`ls -d ${TCL_SRC_DIR}/generic    2>/dev/null`"
+ 	    if test "${TEA_PLATFORM}" != "windows" -o "$GCC" = "yes"; then
+diff -ru src/thread2.6/lib/ttrace.tcl src/thread2.6.mine/lib/ttrace.tcl
+--- src/thread2.6/lib/ttrace.tcl	Fri Jul 30 01:37:50 2004
++++ src/thread2.6.mine/lib/ttrace.tcl	Mon Apr 17 02:27:46 2006
+@@ -50,8 +50,8 @@
+         variable mutex ns_mutex
+         variable elock [$mutex create traceepochmutex]
+         variable store nsv_
+-    } elseif {![catch {package require Thread} version]} {
+-        variable tvers $version
++    } elseif {![catch {package require Thread} thread_pkg_version]} {
++        variable tvers $thread_pkg_version
+         variable mutex thread::mutex
+         variable elock [$mutex create]
+         variable store tsv::
+# tcl-64/tcl_ext/thread/thread.diff
+--- src/thread2.6/generic/threadPoolCmd.c.orig	2003-11-27 11:54:19.000000000 -0800
++++ src/thread2.6/generic/threadPoolCmd.c	2005-07-20 23:10:12.000000000 -0700
+@@ -1710,18 +1710,21 @@
+  *
+  *----------------------------------------------------------------------
+  */
++#ifdef __WIN32__
++#include <sys/timeb.h>
++#else
++#include <sys/time.h>
++#endif
+ static void
+ GetTime(timePtr)
+     Tcl_Time *timePtr;
+ {
+ #ifdef __WIN32__
+-#include <sys/timeb.h>
+     struct timeb tb;
+     (void)ftime(&tb);
+     timePtr->sec  = tb.time;
+     timePtr->usec = tb.millitm * 1000;
+ #else
+-#include <sys/time.h>
+     struct timeval tv;
+     (void)gettimeofday(&tv, NULL);
+     timePtr->sec  = tv.tv_sec;

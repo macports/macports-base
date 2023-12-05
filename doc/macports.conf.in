@@ -1,0 +1,143 @@
+# MacPorts system wide configuration file
+# $Id$
+
+# Set the directory in which to install ports. Must match where MacPorts itself is installed.
+prefix			@prefix_expanded@
+
+# Set the user to run MacPorts compiles, etc as when privileges are dropped during an install
+macportsuser		@RUNUSR@
+
+# Where to store MacPorts working data
+portdbpath		@localstatedir_expanded@/macports
+
+# Type of storage to use for the port registry information, "flat" or "sqlite"
+# NOTE: sqlite not yet supported.
+#portdbformat		flat
+
+# Type of installation to do for ports, "direct" or "image".  See macports.conf(5) and online documentation.
+#portinstalltype		image
+
+# PATH settings that are used for external tools (configure, make, etc.) while installing ports. The default
+# paths are given in the example; it need not be uncommented.  Customizing binpath is intended for advanced users only.
+#binpath		@prefix_expanded@/bin:@prefix_expanded@/sbin:/bin:/sbin:/usr/bin:/usr/sbin
+
+# Directory containing Xcode Tools
+developer_dir       @DEVELOPER_DIR@
+
+# Directory containing Applications from ports.
+applications_dir	@MPAPPLICATIONSDIR@
+
+# Directory containing Frameworks from ports.
+frameworks_dir		@MPFRAMEWORKSDIR@
+
+# Where to find the sources list.
+sources_conf		@MPCONFIGDIR_EXPANDED@/sources.conf
+
+# Where to find global variants definition file (optional)
+variants_conf		@MPCONFIGDIR_EXPANDED@/variants.conf
+
+# Create and use binary archive packages for installation/reinstallation ease
+#portarchivemode		no
+
+# Where to store/retrieve ports binary archive files
+#portarchivepath		@localstatedir_expanded@/macports/packages
+
+# Type of binary archive packages to create when using archive mode
+#
+# Note: Multiple types ARE allowed and must be a colon or comma
+# separated list of choices (NO spaces). Use of multiple types will
+# cause archive creation to build all the specified types in one step.
+# Unarchive uses multiple types as a search list to locate the archive,
+# first archive to match one of the specified types in order is used.
+#
+# Supported types: tgz (default), tar, tbz, tbz2, tlz, txz, xar, zip, cpgz, cpio
+#portarchivetype		tgz
+
+# CPU architecture to compile for. Defaults to i386 or ppc on Mac OS X 10.5
+# and earlier, depending on the CPU type detected at runtime. On Mac OS X 10.6
+# the default is x86_64 if the CPU supports it, i386 otherwise.
+#build_arch			@host_cpu@
+
+# CPU architectures to use for Universal Binaries (+universal variant)
+universal_archs		@UNIVERSAL_ARCHS@
+
+# Use ccache (C/C++ compiler cache) - see http://ccache.samba.org/
+#configureccache		no
+
+# Use distcc (distributed compiler) - see http://distcc.samba.org/
+#configuredistcc		no
+
+# Use pipes rather than intermediate files when compiling C/C++/etc
+#configurepipe		yes
+
+# Lowered scheduling priority (0-20) to use for make when building ports
+#buildnicevalue		0
+
+# Number of simultaneous make jobs (commands) to use when building ports. This
+# value may be set to 0 so the number of simultaneous make jobs will be set to
+# the number of CPU cores that are automatically detected, or the number of GB
+# of physical memory plus one, whichever is less.
+#buildmakejobs		0
+
+# umask value to use when a port installs its files
+#destroot_umask 022
+
+# Set whether to automatically execute "clean" after "install" of ports
+#portautoclean		yes
+
+# Uncomment if you dont want logs to be saved (but you will not be able to get 
+# help if something goes wrong)
+#keeplogs no
+
+# Rsync server to fetch MacPorts sources from. Note that this is only used
+# for selfupdate. The source(s) for the ports tree are set in sources.conf.
+# Known mirrors at time of writing (see http://trac.macports.org/wiki/Mirrors
+# for the current list):
+#   rsync.macports.org        - California, USA (master)
+#   trd.no.rsync.macports.org - Trondheim, Norway
+#rsync_server		rsync.macports.org
+
+# Rsync directory from which to pull the base/ component (infrastructure) of MacPorts
+#rsync_dir			release/base/
+
+# Rsync options
+#rsync_options		-rtzv --delete-after
+
+# Options for generated startup items
+# startupitem_type may be "default", "systemstarter", "launchd", or "none";
+# if the option is empty or "default" then a startupitem type appropriate
+# to the platform will be chosen. Mac OS X 10.4 Tiger and above will default to
+# launchd, while older Mac OS X systems will default to systemstarter. If
+# option "none" is chosen, port startupitems are ignored and no startupitems
+# are installed.
+#startupitem_type	default
+
+# Extra environment variables to keep. Any variables listed here are added
+# to the list of variables that are not removed from the environment used
+# while processing ports
+# extra_env		KEEP_THIS THIS_TOO
+
+# Proxy support
+# Precedence is: env, macports.conf, System Preferences
+# That is, if it's set in the environment, that will be used instead of
+# anything here or in System Preferences.  Setting proxy_override_env to yes
+# will cause any proxies set here (or in System Preferences if set there but
+# not here) to override what's in the environment.
+# Note that System Preferences doesn't have an rsync proxy definition.
+# Also note, on 10.5, sudo will clear many environment variables including
+# those for proxy support.
+# Equivalent environment variables: http_proxy, HTTPS_PROXY, FTP_PROXY,
+# RSYNC_PROXY, NO_PROXY
+#
+#proxy_override_env    yes
+# HTTP proxy:
+#proxy_http            hostname:12345
+# HTTPS proxy:
+#proxy_https       hostname:12345
+# FTP proxy:
+#proxy_ftp         hostname:12345
+# rsync proxy:
+#proxy_rsync       hostname:12345
+# hosts not to go through the proxy (comma-separated, applies to HTTP, HTTPS,
+# and FTP, but not rsync):
+#proxy_skip            internal1, internal2, internal3
