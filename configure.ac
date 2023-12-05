@@ -227,6 +227,13 @@ MP_CHECK_RUNUSER
 MP_DIRECTORY_MODE
 MP_SHARED_DIRECTORY
 
+# Don't set uname or gname in .mtree files unless root
+# https://trac.macports.org/ticket/49501
+if test "$DSTUSR" = "root" ; then
+    MTREE_UGNAME="uname=root gname=$DSTGRP"
+fi
+AC_SUBST(MTREE_UGNAME)
+
 # Check for default directories
 MP_PATH_APPLICATIONS
 MP_PATH_FRAMEWORKS

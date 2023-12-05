@@ -703,6 +703,7 @@ UNIVERSAL_ARCHS
 startupitem_install
 MPFRAMEWORKSDIR
 MPAPPLICATIONSDIR
+MTREE_UGNAME
 DSTMODE
 RUNUSR
 DSTGRP
@@ -7011,6 +7012,13 @@ printf %s "checking whether to share the install directory with all members of t
 printf "%s\n" "$DSTMODE" >&6; }
 
 	fi
+
+
+# Don't set uname or gname in .mtree files unless root
+# https://trac.macports.org/ticket/49501
+if test "$DSTUSR" = "root" ; then
+    MTREE_UGNAME="uname=root gname=$DSTGRP"
+fi
 
 
 # Check for default directories
