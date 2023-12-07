@@ -703,7 +703,7 @@ UNIVERSAL_ARCHS
 startupitem_install
 MPFRAMEWORKSDIR
 MPAPPLICATIONSDIR
-MTREE_UGNAME
+MTREE_GNAME
 DSTMODE
 RUNUSR
 DSTGRP
@@ -7014,10 +7014,15 @@ printf "%s\n" "$DSTMODE" >&6; }
 	fi
 
 
-# Don't set uname or gname in .mtree files unless root
+# Don't set real uname or gname in .mtree files unless root
 # https://trac.macports.org/ticket/49501
 if test "$DSTUSR" = "root" ; then
-    MTREE_UGNAME="uname=root gname=$DSTGRP"
+    MTREE_GNAME="$DSTGRP"
+else
+    # This has to be set to something or mtree won't create any directories.
+    # It doesn't matter what it's set to for non-root though, as it can't
+    # change the ownership anyway.
+    MTREE_GNAME="admin"
 fi
 
 
