@@ -3396,7 +3396,8 @@ proc check_supported_archs {} {
 
 # check if the installed xcode version is new enough
 proc _check_xcode_version {} {
-    global os.subplatform os.major macos_version_major xcodeversion use_xcode subport
+    global os.subplatform os.major macos_version_major xcodeversion \
+           xcodecltversion use_xcode subport
 
     if {${os.subplatform} eq "macosx"} {
         switch $macos_version_major {
@@ -3494,6 +3495,9 @@ proc _check_xcode_version {} {
                 ui_error "Port ${subport} requires a full Xcode installation, which was not found on your system."
                 ui_error "You can install Xcode from the Mac App Store or https://developer.apple.com/xcode/"
                 return 1
+            } elseif {$xcodecltversion eq "none"} {
+                set missingdevtools 1
+                # Deal with this below after explaining possible problems.
             }
         } elseif {[vercmp $xcodeversion $min] < 0} {
             ui_error "The installed version of Xcode (${xcodeversion}) is too old to use on the installed OS version. Version $rec or later is recommended on macOS ${macos_version_major}."
@@ -3503,7 +3507,8 @@ proc _check_xcode_version {} {
         }
 
         # Xcode 4.3 and above requires the command-line utilities package to be installed.
-        if {[vercmp $xcodeversion 4.3] >= 0 || ($xcodeversion eq "none" && [file exists "/Applications/Xcode.app"])} {
+        # This will always be the case on 10.8 and later.
+        if {${os.major} >= 12 || [vercmp $xcodeversion >= 4.3]} {
             if {[vercmp $macos_version_major 10.9] >= 0} {
                 # on Mavericks, /usr/bin/make might always installed as a shim into the command line tools installer.
                 # Let's check for /Library/Developer/CommandLineTools, installed by the
@@ -3529,7 +3534,7 @@ proc _check_xcode_version {} {
             }
 
             if {${os.major} >= 18} {
-                global xcodecltversion configure.sdk_version macosx_sdk_version
+                global configure.sdk_version macosx_sdk_version
                 if {$xcodecltversion eq "none" && [file executable [file join $cltpath usr bin make]]} {
                     ui_warn "The Xcode Command Line Tools package appears to be installed, but its receipt appears to be missing."
                     ui_warn "The Command Line Tools may be outdated, which can cause problems."
@@ -3544,6 +3549,16 @@ proc _check_xcode_version {} {
                         ui_warn "The macOS ${configure.sdk_version} SDK does not appear to be installed. This port may not build correctly."
                     }
                 }
+            }
+
+            if {[info exists missingdevtools]} {
+                ui_error "Neither Xcode nor the Command Line Tools were found."
+                ui_error "Please install at least one of them to be able to build ports."
+                return 1
+            }
+            if {![tbool use_xcode] && ${os.major} >= 12 && $xcodecltversion ne "none" && [vercmp $xcodecltversion < $min]} {
+                ui_error "The installed version of the Command Line Tools for Xcode (${xcodecltversion}) is too old to use on the installed OS version. Please install version $ok or later on macOS ${macos_version_major}."
+                return 1
             }
 
             # Check whether users have agreed to the Xcode license agreement
