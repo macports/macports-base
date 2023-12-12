@@ -9,7 +9,7 @@ port-fetch, port-checksum, port-extract, port-patch, port-configure, port-build,
 SYNOPSIS
 --------
 [cmdsynopsis]
-*port* [*-vdoy*] [*-D* 'portdir'] [*fetch* | *checksum* | *extract* | *patch* | *configure* | *build* | *destroot* | *test* ]
+*port* [*-vdoy*] [*-D* 'portdir'] [*fetch*  [--no-mirrors] | *checksum* | *extract* | *patch* | *configure* | *build* | *destroot* | *test* ]
      [['portname' | 'pseudo-portname' | 'port-expressions' | 'port-url']]
 
 DESCRIPTION
@@ -24,6 +24,11 @@ keep the current state of the ``work'' dir.
 Note that the *test* phase is special in that it will not be run by MacPorts by
 default. When supported by the given port, the *test* phase will run the
 testcases of the software.
+
+OPTIONS
+-------
+*--no-mirrors*::
+    Only fetch files from URLs in master_sites
 
 include::global-flags.txt[]
 
