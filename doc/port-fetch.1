@@ -24,7 +24,7 @@ port-fetch, port-checksum, port-extract, port-patch, port-configure, port-build,
 .SH "SYNOPSIS"
 .sp
 .nf
-\fBport\fR [\fB\-vdoy\fR] [\fB\-D\fR \fIportdir\fR] [\fBfetch\fR | \fBchecksum\fR | \fBextract\fR | \fBpatch\fR | \fBconfigure\fR | \fBbuild\fR | \fBdestroot\fR | \fBtest\fR ]
+\fBport\fR [\fB\-vdoy\fR] [\fB\-D\fR \fIportdir\fR] [\fBfetch\fR  [\-\-no\-mirrors] | \fBchecksum\fR | \fBextract\fR | \fBpatch\fR | \fBconfigure\fR | \fBbuild\fR | \fBdestroot\fR | \fBtest\fR ]
      [[\fIportname\fR | \fIpseudo\-portname\fR | \fIport\-expressions\fR | \fIport\-url\fR]]
 .fi
 .SH "DESCRIPTION"
@@ -34,6 +34,12 @@ These commands run a specific phase of a port\&. Depending phases will be execut
 If the \fIPortfile\fR has changed between multiple invocation, \fBport\fR will perform a clean before running the phase\&. The flag \fI\-o\fR can be used to ignore this and keep the current state of the \(lqwork\(rq dir\&.
 .sp
 Note that the \fBtest\fR phase is special in that it will not be run by MacPorts by default\&. When supported by the given port, the \fBtest\fR phase will run the testcases of the software\&.
+.SH "OPTIONS"
+.PP
+\fB\-\-no\-mirrors\fR
+.RS 4
+Only fetch files from URLs in master_sites
+.RE
 .SH "GLOBAL OPTIONS"
 .sp
 Please see the section \fBGLOBAL OPTIONS\fR in the \fBport\fR(1) man page for a description of global port options\&.
