@@ -3397,7 +3397,7 @@ proc check_supported_archs {} {
 # check if the installed xcode version is new enough
 proc _check_xcode_version {} {
     global os.subplatform os.major macos_version_major xcodeversion \
-           xcodecltversion use_xcode subport
+           xcodecltversion use_xcode xcode_license_unaccepted subport
 
     if {${os.subplatform} eq "macosx"} {
         switch $macos_version_major {
@@ -3561,10 +3561,7 @@ proc _check_xcode_version {} {
                 return 1
             }
 
-            # Check whether users have agreed to the Xcode license agreement
-            catch {exec [findBinary xcrun $portutil::autoconf::xcrun_path] clang 2>@1} output
-            set output [join [lrange [split $output "\n"] 0 end-1] "\n"]
-            if {[string match -nocase "*license*" $output]} {
+            if {$xcode_license_unaccepted} {
                 ui_error "It seems you have not accepted the Xcode license; most ports will fail to build."
                 ui_error "Agree to the license by opening Xcode or running `sudo xcodebuild -license'."
                 return 1

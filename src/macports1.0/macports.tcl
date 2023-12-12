@@ -50,7 +50,7 @@ namespace eval macports {
         portarchivetype hfscompression portautoclean \
         porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_autostart startupitem_type startupitem_install \
-        place_worksymlink xcodeversion xcodebuildcmd xcodecltversion \
+        place_worksymlink xcodeversion xcodebuildcmd xcodecltversion xcode_license_unaccepted \
         configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_sdk_version macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
@@ -75,7 +75,7 @@ namespace eval macports {
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
     # they are not exported to the interpreter in system_options array.
-    variable portinterp_deferred_options "developer_dir xcodeversion xcodebuildcmd xcodecltversion"
+    variable portinterp_deferred_options "developer_dir xcodeversion xcodebuildcmd xcodecltversion xcode_license_unaccepted"
 
     variable open_mports {}
 
@@ -548,6 +548,10 @@ proc macports::set_developer_dir {name1 name2 op} {
 
     trace remove variable macports::developer_dir read macports::set_developer_dir
 
+    if {[info exists developer_dir]} {
+        return
+    }
+
     # Look for xcodeselect, and make sure it has a valid value
     macports_try -pass_signal {
         set xcodeselect [findBinary xcode-select $macports::autoconf::xcode_select_path]
@@ -655,6 +659,10 @@ proc macports::set_xcodecltversion {name1 name2 op} {
 
     trace remove variable macports::xcodecltversion read macports::set_xcodecltversion
 
+    if {[info exists xcodecltversion]} {
+        return
+    }
+
     # Potential names for the CLTs pkg on different OS versions.
     set pkgnames [list CLTools_Executables CLTools_Base DeveloperToolsCLI DeveloperToolsCLILeo]
 
@@ -683,6 +691,25 @@ proc macports::set_xcodecltversion {name1 name2 op} {
     }
 
     set macports::xcodecltversion none
+}
+
+proc macports::set_xcode_license_unaccepted {name1 name2 op} {
+    global macports::xcode_license_unaccepted
+
+    trace remove variable macports::xcode_license_unaccepted read macports::set_xcode_license_unaccepted
+
+    if {[info exists xcode_license_unaccepted]} {
+        return
+    }
+
+    catch {exec [findBinary xcrun $macports::autoconf::xcrun_path] clang 2>@1} output
+    set output [join [lrange [split $output "\n"] 0 end-1] "\n"]
+    if {[string match -nocase "*license*" $output]} {
+        set macports::xcode_license_unaccepted yes
+        return
+    }
+
+    set macports::xcode_license_unaccepted no
 }
 
 
@@ -737,6 +764,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::xcodebuildcmd \
         macports::xcodeversion \
         macports::xcodecltversion \
+        macports::xcode_license_unaccepted \
         macports::configureccache \
         macports::ccache_dir \
         macports::ccache_size \
@@ -1368,6 +1396,13 @@ match macports.conf.default."
             trace add variable macports::xcodecltversion read macports::set_xcodecltversion
         } else {
             set macports::xcodecltversion {}
+        }
+    }
+    if {![info exists xcode_license_unaccepted]} {
+        if {$os_platform eq "darwin"} {
+            trace add variable macports::xcode_license_unaccepted read macports::set_xcode_license_unaccepted
+        } else {
+            set macports::xcode_license_unaccepted no
         }
     }
 
@@ -5996,7 +6031,7 @@ proc macports::get_tool_path {tool} {
     set toolpath "/usr/bin/${tool}"
     if {![file executable $toolpath]} {
         # Use xcode's xcrun to find the named tool.
-        if {[catch {exec -ignorestderr [findBinary xcrun $portutil::autoconf::xcrun_path] -find ${tool} 2> /dev/null} toolpath]} {
+        if {[catch {exec -ignorestderr [findBinary xcrun $macports::autoconf::xcrun_path] -find ${tool} 2> /dev/null} toolpath]} {
             set toolpath ""
         }
     }
