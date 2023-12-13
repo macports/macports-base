@@ -399,6 +399,13 @@ set outpath [file join $outdir PortIndex]
 # open old index for comparison
 if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
     set oldmtime [file mtime $outpath]
+    set attrlist [list -permissions]
+    if {[getuid] == 0} {
+        lappend attrlist -owner -group
+    }
+    foreach attr $attrlist {
+        lappend oldattrs $attr [file attributes $outpath $attr]
+    }
     set newest $oldmtime
     if {![catch {set oldfd [open $outpath r]}] && ![catch {set quickfd [open ${outpath}.quick r]}]} {
         if {![catch {set quicklist [read $quickfd]}]} {
@@ -410,6 +417,7 @@ if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
     }
 } else {
     set newest 0
+    set oldattrs [list -permissions 00644]
 }
 
 set fd [file tempfile tempportindex mports.portindex.XXXXXXXX]
@@ -456,6 +464,7 @@ if {$exit_fail} {
 
 file rename -force $tempportindex $outpath
 file mtime $outpath $newest
+file attributes $outpath {*}$oldattrs
 mports_generate_quickindex $outpath
 puts "\nTotal number of ports parsed:\t$stats(total)\
       \nPorts successfully parsed:\t[expr {$stats(total) - $stats(failed)}]\
