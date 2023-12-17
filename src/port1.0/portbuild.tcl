@@ -45,6 +45,7 @@ namespace eval portbuild {
 # define options
 options build.asroot \
         build.jobs \
+        build.jobs_arg \
         build.target \
         use_parallel_build
 commands build
@@ -54,6 +55,7 @@ default build.dir {${worksrcpath}}
 default build.cmd {[portbuild::build_getmaketype]}
 default build.nice {${buildnicevalue}}
 default build.jobs {[portbuild::build_getjobs]}
+default build.jobs_arg {[portbuild::build_getjobsarg]}
 default build.pre_args {[portbuild::build_getargs]}
 default build.target "all"
 default build.type "default"
@@ -204,12 +206,10 @@ proc portbuild::build_start {args} {
 }
 
 proc portbuild::build_main {args} {
-    global build.cmd
-
-    set jobs_suffix [build_getjobsarg]
+    global build.cmd build.jobs_arg
 
     set realcmd ${build.cmd}
-    set build.cmd "${build.cmd}$jobs_suffix"
+    append build.cmd ${build.jobs_arg}
     command_exec -callback portprogress::target_progress_callback build
     set build.cmd ${realcmd}
     return 0
