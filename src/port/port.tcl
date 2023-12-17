@@ -5046,6 +5046,11 @@ namespace eval portclient::notifications {
     variable notificationsToPrint [dict create]
 
     ##
+    # Notifications issues by the MacPorts ports system
+    variable systemNotifications
+    set systemNotifications {}
+
+    ##
     # Add a port to the list for printing notifications.
     #
     # @param name
@@ -5059,10 +5064,22 @@ namespace eval portclient::notifications {
     }
 
     ##
+    # Add a system notification to print later.
+    #
+    # @param note
+    #        A note to store and display later.
+    proc system_append {note} {
+        variable systemNotifications
+
+        lappend systemNotifications $note
+    }
+
+    ##
     # Print port notifications.
     #
     proc display {} {
         variable notificationsToPrint
+        variable systemNotifications
 
         # Display notes at the end of the activation phase.
         if {[dict size $notificationsToPrint] > 0} {
@@ -5076,6 +5093,20 @@ namespace eval portclient::notifications {
 
                 # Clear notes that have been displayed
                 dict unset notificationsToPrint $name
+            }
+        }
+
+        if {[llength $systemNotifications] > 0} {
+            ui_notice "--->  Note:"
+            while {[llength $systemNotifications] > 0} {
+                set systemNotifications [lassign $systemNotifications note]
+                ui_notice [wrap $note 0 "    "]
+
+                if {[llength $systemNotifications] > 0} {
+                    ui_notice {}
+                    ui_notice "---"
+                    ui_notice {}
+                }
             }
         }
     }
@@ -5464,6 +5495,7 @@ if {[isatty stdin]
 }
 
 set ui_options(notifications_append) portclient::notifications::append
+set ui_options(notifications_system) portclient::notifications::system_append
 
 # Get arguments remaining after option processing
 set remaining_args [lrange $cmd_argv $cmd_argn end]
