@@ -104,6 +104,70 @@ namespace eval restore {
             set note "Migration finished.\n"
         }
 
+        array set diff [snapshot::diff $snapshot]
+
+        foreach field {added removed changed} {
+            set result {}
+            foreach port $diff($field) {
+                lassign $port _ requested
+                if {$requested} {
+                    lappend result $port
+                }
+                set diff($field) $result
+            }
+        }
+
+        if {[llength $diff(added)] > 0} {
+            append note "The following requested ports were additionally installed:\n"
+            foreach added_port [lsort -ascii -index 0 $diff(added)] {
+                lassign $added_port name _ _ _ requested_variants
+                if {$requested_variants ne ""} {
+                    append note " - $name\n"
+                } else {
+                    append note " - $name $requested_variants\n"
+                }
+            }
+        }
+
+        if {[llength $diff(removed)] > 0} {
+            append note "The following ports could not be restored:\n"
+            foreach removed_port [lsort -ascii -index 0 $diff(removed)] {
+                lassign $removed_port name _ _ _ requested_variants
+                if {$requested_variants ne ""} {
+                    append note " - $name\n"
+                } else {
+                    append note " - $name $requested_variants\n"
+                }
+                if {[info exists failed($name)]} {
+                    lassign $failed($name) type reason
+                    switch $type {
+                        skipped {
+                            append note "   Skipped becuase its $reason\n"
+                        }
+                        failed {
+                            append note "   Failed to build: $reason\n"
+                        }
+                    }
+                }
+            }
+        }
+
+        if {[llength $diff(changed)] > 0} {
+            append note "The following ports were restored with changes:\n"
+            foreach changed_port [lsort -ascii -index 0 $diff(changed)] {
+                lassign $changed_port name _ _ _ requested_variants changes
+                if {$requested_variants ne ""} {
+                    append note " - $name\n"
+                } else {
+                    append note " - $name $requested_variants\n"
+                }
+                foreach change $changes {
+                    lassign $change field old new
+                    append note "   $field changed from '$old' to '$new'\n"
+                }
+            }
+        }
+
         if {[info exists macports::ui_options(notifications_system)]} {
             $macports::ui_options(notifications_system) $note
         } else {
