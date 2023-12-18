@@ -41,6 +41,8 @@ package require struct::graph::op 0.11
 package require lambda 1
 
 namespace eval restore {
+    variable ui_prefix
+
     proc main {opts} {
         # The main function. If the action is provided a snapshot id, then it deactivates
         # all the current ports and restores the specified snapshot.
@@ -58,6 +60,8 @@ namespace eval restore {
         #           0 if success
 
         array set options $opts
+
+        set restore::ui_prefix [string map {--- ===} $macports::ui_prefix]
 
         if {[migrate::needs_migration]} {
             ui_error "You need to run 'sudo port migrate' before running restore"
@@ -87,10 +91,10 @@ namespace eval restore {
             set snapshot [lindex $snapshots $retstring]
         }
 
-        ui_msg "$macports::ui_prefix Deactivating all installed ports"
+        ui_msg "$restore::ui_prefix Deactivating all installed ports"
         deactivate_all
 
-        ui_msg "$macports::ui_prefix Restoring snapshot '[$snapshot note]' created at [$snapshot created_at]"
+        ui_msg "$restore::ui_prefix Restoring snapshot '[$snapshot note]' created at [$snapshot created_at]"
         set snapshot_portlist [$snapshot ports]
         array set failed [restore_state [$snapshot ports]]
 
@@ -235,9 +239,9 @@ namespace eval restore {
         }
 
         if {$fancy_output} {
-            ui_msg "$macports::ui_prefix Computing dependency order"
+            ui_msg "$restore::ui_prefix Computing dependency order"
         } else {
-            ui_msg "$macports::ui_prefix Computing dependency order. This will take a while, please be patient"
+            ui_msg "$restore::ui_prefix Computing dependency order. This will take a while, please be patient"
             flush stdout
         }
         $progress start
@@ -391,7 +395,7 @@ namespace eval restore {
 
         $progress finish
 
-        ui_msg "$macports::ui_prefix Sorting dependency tree"
+        ui_msg "$restore::ui_prefix Sorting dependency tree"
 
         # Compute a list of stronly connected components using Tarjan's
         # algorithm. The result should be a list of one-element sets (unless
@@ -450,9 +454,9 @@ namespace eval restore {
             lassign $port name requested active variants
 
             if {$variants ne ""} {
-                ui_msg "$macports::ui_prefix $index/$length Restoring $name $variants from snapshot"
+                ui_msg "$restore::ui_prefix Restoring port $index of $length: $name $variants"
             } else {
-                ui_msg "$macports::ui_prefix $index/$length Restoring $name from snapshot"
+                ui_msg "$restore::ui_prefix Restoring port $index of $length: $name"
             }
 
             if {[info exists failed($name)]} {
