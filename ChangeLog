@@ -69,7 +69,7 @@ Release 2.9.0 (unreleased)
       the installer should now fix it. (#49101, jmr in 128e8ce)
 
     - Skip vacuuming the registry database on shutdown (after
-      uninstalling one or more ports) if it would not save signficant
+      uninstalling one or more ports) if it would not save significant
       space. (jmr in c82a269)
 
     - Clean up the SQLite write-ahead log file when closing the
