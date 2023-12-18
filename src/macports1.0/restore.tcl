@@ -36,8 +36,9 @@ package require migrate 1.0
 package require registry 1.0
 package require snapshot 1.0
 
-package require struct::graph
-package require struct::graph::op
+package require struct::graph 2.4
+package require struct::graph::op 0.11
+package require lambda 1
 
 namespace eval restore {
     proc main {opts} {
@@ -91,10 +92,19 @@ namespace eval restore {
 
         ui_msg "$macports::ui_prefix Restoring snapshot '[$snapshot note]' created at [$snapshot created_at]"
         set snapshot_portlist [$snapshot ports]
-        restore_state [$snapshot ports]
+        array set failed [restore_state [$snapshot ports]]
 
-        # TODO Check whether all ports have been restored; print an analysis of
-        # ports that have not been restored if errors did occur.
+        if {[array size failed] > 0} {
+            set note "Migration finished with errors.\n"
+        } else {
+            set note "Migration finished.\n"
+        }
+
+        if {[info exists macports::ui_options(notifications_system)]} {
+            $macports::ui_options(notifications_system) $note
+        } else {
+            ui_msg $note
+        }
 
         return 0
     }
@@ -206,7 +216,8 @@ namespace eval restore {
     #       portlist - the list of port references
     #
     # Returns:
-    #       the list in dependency-sorted order
+    #       The list in dependency-sorted order
+    #       The dependency graph, to be destroyed by calling $dependencies destroy
     proc resolve_dependencies {portlist} {
         array set ports {}
         array set dep_ports {}
@@ -402,13 +413,35 @@ namespace eval restore {
             }
         }
 
-        $dependencies destroy
+        return [list $operations $dependencies]
+    }
 
-        return $operations
+    proc _handle_failure {failedName dependencies portname reason} {
+        upvar $failedName failed
+
+        set failed($portname) [list "failed" $reason]
+
+        set level "#[info level]"
+
+        $dependencies walk $portname \
+            -type dfs \
+            -order pre \
+            -dir backward \
+            -command [lambda {level mode dependencies node} {
+                if {$mode eq "enter"} {
+                    uplevel $level [subst -nocommands {
+                        set failed($node) [list "skipped" "dependency \$portname failed"]
+                    }]
+                }
+            } $level]
     }
 
     proc restore_state {snapshot_portlist} {
-        set sorted_snapshot_portlist [resolve_dependencies $snapshot_portlist]
+        lassign [resolve_dependencies $snapshot_portlist] sorted_snapshot_portlist dependencies
+
+        # map from port name to an entry describing why the port failed or was
+        # skipped
+        array set failed {}
 
         set index 0
         set length [llength $sorted_snapshot_portlist]
@@ -421,6 +454,24 @@ namespace eval restore {
             } else {
                 ui_msg "$macports::ui_prefix $index/$length Restoring $name from snapshot"
             }
+
+            if {[info exists failed($name)]} {
+                lassign $failed($name) type reason
+                switch $type {
+                    skipped {
+                        ui_msg "$macports::ui_prefix Skipping $name because its $reason"
+                    }
+                    failed {
+                        ui_msg "$macports::ui_prefix Skipping $name because it failed previously: $reason"
+                    }
+                    default {
+                        ui_msg "$macports::ui_prefix Skipping $name: $reason"
+                    }
+                }
+
+                continue
+            }
+
             if {!$active} {
                 set target install
             } else {
@@ -428,12 +479,13 @@ namespace eval restore {
             }
 
             if {[catch {set res [mportlookup $name]} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
-                return -code error "lookup of port $name failed: $result"
+                ui_debug "$::errorInfo"
+                _handle_failure failed $dependencies $name "lookup of port $name failed: $result"
+                continue
             }
             if {[llength $res] < 2} {
                 # not in the index, but we already warned about that earlier
+                _handle_failure failed $dependencies $name "port $name not found in the port index"
                 continue
             }
             array unset portinfo
@@ -445,19 +497,22 @@ namespace eval restore {
             set variations [variants_to_variations_arr $variants]
 
             if {[catch {set workername [mportopen $porturl [array get options] $variations]} result]} {
-                global errorInfo
-                puts stderr "$errorInfo"
-                return -code error "Unable to open port '$name': $result"
+                ui_msg $::errorInfo
+                _handle_failure failed $dependencies $name "unable to open port $name: $result"
+                continue
             }
 
             if {[catch {set result [mportexec $workername $target]} result]} {
-                global errorInfo
-                mportclose $workername
-                ui_msg "$errorInfo"
-                return -code error "Unable to execute target 'install' for port '$name': $result"
-            } else {
-                mportclose $workername
+                ui_msg "$::errorInfo"
+                _handle_failure failed $dependencies $name "Unable to execute target $target for port $name: $result"
+            } elseif {$result != 0} {
+                _handle_failure failed $dependencies $name "Failed to $target $name"
             }
+            mportclose $workername
         }
+
+        $dependencies destroy
+
+        return [array get failed]
     }
 }
