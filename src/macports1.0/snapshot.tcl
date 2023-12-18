@@ -44,6 +44,110 @@ namespace eval snapshot {
 
         array set options $opts
 
+        if {![info exists options(options_snapshot_order)]} {
+            set operation "create"
+        } else {
+            set operation ""
+            foreach op {list create diff delete} {
+                set opname "ports_snapshot_$op"
+                if {[info exists options($opname)]} {
+                    if {$operation ne ""} {
+                        ui_error "Only one of the --list, --create, --diff, and --delete options can be specified."
+                        error "Incorrect usage, see port snapshot --help."
+                    }
+
+                    set operation $op
+                }
+            }
+        }
+
+        if {[info exists options(ports_snapshot_help)]} {
+            ui_msg "Usage: One of:"
+            ui_msg "  port snapshot \[--create\] \[--note '<message>'\]"
+            ui_msg "  port snapshot --list"
+            ui_msg "  port snapshot --diff <snapshot-id> \[--requested-only\]"
+            ui_msg "  port snapshot --delete <snapshot-id>"
+            return 0
+        }
+
+        switch $operation {
+            "create" {
+                return [create [array get options]]
+            }
+            "list" {
+                ui_error "list operation not implemented"
+            }
+            "diff" {
+                set snapshot [registry::snapshot get_by_id $options(ports_snapshot_diff)]
+                array set diff [diff $snapshot]
+                set show_all [expr {[info exists options(ports_snapshot_all)]}]
+                set note ""
+
+                if {!$show_all} {
+                    append note "Showing differences in requested ports only. Re-run with --all to see all differences.\n"
+
+                    foreach field {added removed changed} {
+                        set result {}
+                        foreach port $diff($field) {
+                            lassign $port _ requested
+                            if {$requested} {
+                                lappend result $port
+                            }
+                        }
+                        set diff($field) $result
+                    }
+                }
+
+                if {[llength $diff(added)] > 0} {
+                    append note "The following ports are installed but not in the snapshot:\n"
+                    foreach added_port [lsort -ascii -index 0 $diff(added)] {
+                        lassign $added_port name _ _ _ requested_variants
+                        if {$requested_variants ne ""} {
+                            append note " - $name\n"
+                        } else {
+                            append note " - $name $requested_variants\n"
+                        }
+                    }
+                }
+                if {[llength $diff(removed)] > 0} {
+                    append note "The following ports are in the snapshot but not installed:\n"
+                    foreach removed_port [lsort -ascii -index 0 $diff(removed)] {
+                        lassign $removed_port name _ _ _ requested_variants
+                        if {$requested_variants ne ""} {
+                            append note " - $name\n"
+                        } else {
+                            append note " - $name $requested_variants\n"
+                        }
+                    }
+                }
+
+                if {[llength $diff(changed)] > 0} {
+                    append note "The following ports are in the snapshot and installed, but with changes:\n"
+                    foreach changed_port [lsort -ascii -index 0 $diff(changed)] {
+                        lassign $changed_port name _ _ _ requested_variants changes
+                        if {$requested_variants ne ""} {
+                            append note " - $name\n"
+                        } else {
+                            append note " - $name $requested_variants\n"
+                        }
+                        foreach change $changes {
+                            lassign $change field old new
+                            append note "   $field changed from '$old' to '$new'\n"
+                        }
+                    }
+                }
+
+                ui_msg [string trimright $note "\n"]
+            }
+            "delete" {
+                ui_error "delete operation not implemented"
+            }
+        }
+    }
+
+    proc create {opts} {
+        array set options $opts
+
         registry::write {
             # An option used by user while creating snapshot manually
             # to identify a snapshot, usually followed by `port restore`
@@ -52,7 +156,7 @@ namespace eval snapshot {
             } else {
                 set note "snapshot created for migration"
             }
-            set inactive_ports  [list]
+            set inactive_ports [list]
             foreach port [registry::entry imaged] {
                 if {[$port state] eq "imaged"} {
                     lappend inactive_ports "[$port name] @[$port version]_[$port revision] [$port variants]"
@@ -75,8 +179,197 @@ namespace eval snapshot {
                 }
             }
             set snapshot [registry::snapshot create $note]
-            # TODO: catch
         }
         return $snapshot
+    }
+
+    proc _os_mismatch {iplatform iosmajor} {
+        if {($iplatform ne "" && $iosmajor != 0) && ($iplatform != $macports::os_platform || $iosmajor != $macports::os_major)} {
+            return 1
+        }
+        return 0
+    }
+
+    proc _find_best_match {port installed} {
+        lassign $port name requested active variants requested_variants
+        set active [expr {$active eq "installed"}]
+        set requested [expr {$requested == 1}]
+
+        set best_match {}
+        set best_match_score -1
+        foreach iport $installed {
+            lassign $iport iname iversion irevision ivariants iactive iepoch
+            set regref [registry::open_entry $iname $iversion $irevision $ivariants $iepoch]
+            set iplatform [registry::property_retrieve $regref os_platform]
+            set iosmajor [registry::property_retrieve $regref os_major]
+            set irequested [expr {[registry::property_retrieve $regref requested] == 1}]
+            set irequested_variants [registry::property_retrieve $regref requested_variants]
+
+            if {[_os_mismatch $iplatform $iosmajor]} {
+                # ignore ports that were not built on the current macOS version
+                continue
+            }
+
+            set score 0
+
+            if {$irequested_variants eq $requested_variants} {
+                incr score
+            }
+            if {$irequested == $requested} {
+                incr score
+            }
+            if {$ivariants eq $variants} {
+                incr score
+            }
+            if {$active == $iactive} {
+                incr score
+            }
+
+            if {$score > $best_match_score} {
+                set best_match_score $score
+                set best_match [list {*}$iport $irequested $irequested_variants]
+            }
+        }
+
+        return $best_match
+    }
+
+    ##
+    # Compute the difference between the given snapshot registry object, and
+    # the currently installed ports.
+    #
+    # Callers that do not care about differences in unrequested ports are
+    # expected to filter the results themselves.
+    #
+    # Args:
+    #       snapshot - The snapshot object
+    # Returns:
+    #       A array in list form with the three entries removed, added, and
+    #       changed. Each array value is a list with entries that were removed,
+    #       added, or changed. The format is as follows:
+    #       - Added entries: a 5-tuple of (name, requested, active, variants, requested variants)
+    #       - Removed entries: a 5-tuple of (name, requested, active, variants, requested variants)
+    #       - Changed entries: a 6-typle of (name, requested, active, variants, requested variants, changes)
+    #       where changes is a list of 3-tuples of (changed field, old value, new value)
+    proc diff {snapshot} {
+        set portlist [$snapshot ports]
+
+        set removed {}
+        set added {}
+        set changed {}
+
+        array set snapshot_ports {}
+
+        foreach port $portlist {
+            lassign $port name requested active variants requested_variants
+            set active [expr {$active eq "installed"}]
+            set requested [expr {$requested == 1}]
+
+            set snapshot_ports($name) 1
+
+            if {[catch {set installed [registry::installed $name]}]} {
+                # registry::installed failed, the port probably isn't installed
+                lappend removed $port
+                continue
+            }
+
+            if {$active} {
+                # for ports that were active in the snapshot, always compare
+                # with the installed active port, if any
+                set found 0
+                foreach installed_port $installed {
+                    lassign $installed_port iname iversion irevision ivariants iactive iepoch
+                    set regref [registry::open_entry $iname $iversion $irevision $ivariants $iepoch]
+                    set iplatform [registry::property_retrieve $regref os_platform]
+                    set iosmajor [registry::property_retrieve $regref os_major]
+                    set irequested [expr {[registry::property_retrieve $regref requested] == 1}]
+                    set irequested_variants [registry::property_retrieve $regref requested_variants]
+
+                    if {[_os_mismatch $iplatform $iosmajor]} {
+                        # ignore ports that were not built on the current macOS version
+                        continue
+                    }
+
+                    if {$iactive} {
+                        set found 1
+                        break
+                    }
+                }
+
+                if {$found} {
+                    set changes {}
+                    if {$requested_variants ne $irequested_variants} {
+                        lappend changes [list "requested variants" $requested_variants $irequested_variants]
+                    }
+                    if {$variants ne $ivariants} {
+                        lappend changes [list "variants" $variants $ivariants]
+                    }
+                    if {$requested != $irequested} {
+                        lappend changes [list "requested" \
+                            [expr {$requested == 1 ? "requested" : "unrequested"}] \
+                            [expr {$irequested == 1 ? "requested" : "unrequested"}]]
+                    }
+                    if {[llength $changes] > 0} {
+                        lappend changed [list {*}$port $changes]
+                    }
+                    continue
+                }
+            }
+
+            # Either the port wasn't active in the snapshot, or the port is now no longer active.
+            # This may still mean that it is missing completely, e.g., because only the version for an older OS is installed
+            set best_match [_find_best_match $port $installed]
+            if {[llength $best_match] <= 0} {
+                # There is no matching port, so it seems this one is actually missing
+                lappend removed $port
+                continue
+            } else {
+                lassign $best_match iname iversion irevision ivariants iactive iepoch irequested irequested_variants
+
+                set changes {}
+                if {$requested_variants ne $irequested_variants} {
+                    lappend changes [list "requested variants" $requested_variants $irequested_variants]
+                }
+                if {$variants ne $ivariants} {
+                    lappend changes [list "variants" $variants $ivariants]
+                }
+                if {$requested != $irequested} {
+                    lappend changes [list "requested" \
+                        [expr {$requested == 1 ? "requested" : "unrequested $requested"}] \
+                        [expr {$irequested == 1 ? "requested" : "unrequested $irequested"}]]
+                }
+                if {$active != $iactive} {
+                    lappend changes [list "state" \
+                        [expr {$active == 1 ? "installed" : "inactive"}] \
+                        [expr {$iactive == 1 ? "installed" : "inactive"}]]
+                }
+                if {[llength $changes] > 0} {
+                    lappend changed [list {*}$port $changes]
+                }
+            }
+        }
+
+        foreach port [registry::entry imaged] {
+            lassign $installed_port iname iversion irevision ivariants iactive iepoch
+            set regref [registry::open_entry $iname $iversion $irevision $ivariants $iepoch]
+            set iplatform [registry::property_retrieve $regref os_platform]
+            set iosmajor [registry::property_retrieve $regref os_major]
+            set irequested [registry::property_retrieve $regref requested]
+            set irequested_variants [registry::property_retrieve $regref requested_variants]
+
+            if {[_os_mismatch $iplatform $iosmajor]} {
+                # port was installed on old OS, ignore
+                continue
+            }
+            if {[info exists snapshot_ports($iname)]} {
+                # port was in the snapshot
+                continue
+            }
+
+            # port was not in the snapshot, it is new
+            lappend added [list $iname $irequested $iactive $ivariants $irequested_variants]
+        }
+
+        return [list removed $removed added $added changed $changed]
     }
 }
