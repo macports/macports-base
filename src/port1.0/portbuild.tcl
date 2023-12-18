@@ -198,15 +198,15 @@ proc portbuild::build_getjobsarg {args} {
 proc portbuild::build_start {args} {
     global UI_PREFIX build.cmd
 
-    if {${build.cmd} eq ""} {
-        error "No build command found"
-    }
-
     ui_notice "$UI_PREFIX [format [msgcat::mc "Building %s"] [option subport]]"
 }
 
 proc portbuild::build_main {args} {
     global build.cmd build.jobs_arg
+
+    if {${build.cmd} eq ""} {
+        error "No build command found"
+    }
 
     set realcmd ${build.cmd}
     append build.cmd ${build.jobs_arg}
