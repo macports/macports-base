@@ -23,7 +23,7 @@ Release 2.9.0 (unreleased)
     - Dependencies installed for the first time when upgrading a port
       no longer inherit all variants from the dependent port. Arch
       checking is now done in this case so +universal is added to the
-      dependency iff needed. (#67637, jmr in 7be167c)
+      dependency if needed. (#67637, jmr in 7be167c)
 
     - Prevented rev-upgrade from complaining about weakly-linked libs
       that are not present. (#52700, chrstphrchvz in 77e333a)
