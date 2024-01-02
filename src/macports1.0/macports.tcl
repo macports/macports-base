@@ -1125,7 +1125,8 @@ Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarbal
     # Set noninteractive mode if specified in config
     if {[info exists ui_interactive] && !$ui_interactive} {
         set macports::ui_options(ports_noninteractive) yes
-        unset -nocomplain macports::ui_options(questions_yesno) \
+        unset -nocomplain macports::ui_options(questions_input) \
+                            macports::ui_options(questions_yesno) \
                             macports::ui_options(questions_singlechoice) \
                             macports::ui_options(questions_multichoice) \
                             macports::ui_options(questions_alternative)
