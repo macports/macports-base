@@ -267,6 +267,13 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
         } else {
             ui_msg "\nThe ports tree has been updated. To upgrade your installed ports, you should run"
             ui_msg "  port upgrade outdated"
+
+            set length_outdated [llength [get_outdated_ports]]
+            if {$length_outdated == 0} {
+                ui_msg "\nAll installed ports are up to date."
+            } else {
+                ui_msg "\n$length_outdated [expr {$length_outdated == 1 ? "port is": "ports are"}] outdated. Run 'port outdated' to see them."
+            }
         }
     }
 
