@@ -2418,13 +2418,16 @@ proc action_selfupdate { action portlist opts } {
     if {[prefix_unwritable]} {
         return 1
     }
-    global global_options
+    global global_options ui_options
     set options [array get global_options]
     if {[dict exists $options ports_${action}_nosync] && [dict get $options ports_${action}_nosync] eq "yes"} {
         ui_warn "port selfupdate --nosync is deprecated, use --no-sync instead"
         dict set options ports_${action}_no-sync [dict get $options ports_${action}_nosync]
     }
-    if { [catch {macports::selfupdate $options base_updated} result ] } {
+    if {[info exists ui_options(ports_commandfiles)]} {
+        dict set options ports_${action}_presync 1
+    }
+    if { [catch {macports::selfupdate $options selfupdate_status} result] } {
         ui_debug $::errorInfo
         ui_error $result
         if {![macports::ui_isset ports_verbose]} {
@@ -2437,11 +2440,15 @@ proc action_selfupdate { action portlist opts } {
         fatal "port selfupdate failed: $result"
     }
 
-    if {$base_updated} {
-        # Base was upgraded, re-execute now to trigger sync and/or exit batch mode
+    if {[dict get $selfupdate_status base_updated]} {
+        # Base was upgraded, re-execute now to trigger sync if possible
         if {[info exists ui_options(ports_commandfiles)]} {
             # Batch mode, just exit since re-executing all commands in the file
             # may not be correct.
+            if {[dict get $selfupdate_status needed_portindex]} {
+                ui_msg "Not all sources could be fully synced using the old version of MacPorts."
+                ui_msg "Please run selfupdate again now that MacPorts base has been updated."
+            }
             return -999
         }
 
@@ -2466,6 +2473,19 @@ proc action_selfupdate { action portlist opts } {
         ui_error "Failed to re-execute selfupdate, please run 'sudo port selfupdate' manually."
         return -999
     }
+
+    if {[dict get $selfupdate_status synced]} {
+        ui_msg "\nThe ports tree has been updated."
+        set length_outdated [llength [get_outdated_ports]]
+        if {$length_outdated == 0} {
+            ui_msg "All installed ports are up to date."
+        } else {
+            ui_msg "\n$length_outdated [expr {$length_outdated == 1 ? "port is": "ports are"}] outdated. Run 'port outdated' for details."
+            ui_msg "To upgrade your installed ports, you should run"
+            ui_msg "  port upgrade outdated"
+        }
+    }
+
     return 0
 }
 
