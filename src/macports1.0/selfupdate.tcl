@@ -260,23 +260,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
         error "Couldn't change permissions of the MacPorts sources at $mp_source_path to ${sources_owner}: $eMessage"
     }
 
-    if {![info exists options(ports_selfupdate_no-sync)] || !$options(ports_selfupdate_no-sync)} {
-        dict set updatestatus needed_portindex [info exists needed_portindex]
-        if {[info exists needed_portindex]} {
-            ui_msg "Not all sources could be fully synced using the old version of MacPorts."
-            ui_msg "Please run selfupdate again now that MacPorts base has been updated."
-        } else {
-            ui_msg "\nThe ports tree has been updated. To upgrade your installed ports, you should run"
-            ui_msg "  port upgrade outdated"
-
-            set length_outdated [llength [get_outdated_ports]]
-            if {$length_outdated == 0} {
-                ui_msg "\nAll installed ports are up to date."
-            } else {
-                ui_msg "\n$length_outdated [expr {$length_outdated == 1 ? "port is": "ports are"}] outdated. Run 'port outdated' to see them."
-            }
-        }
-    }
+    dict set updatestatus needed_portindex [info exists needed_portindex]
 
     return 0
 }

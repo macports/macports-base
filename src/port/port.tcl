@@ -2798,7 +2798,23 @@ proc action_selfupdate { action portlist opts } {
         fatal "port selfupdate failed: $result"
     }
 
-    if {[dict get $selfupdate_status base_updated]} {
+    set base_updated [dict get $selfupdate_status base_updated]
+    set needed_portindex [dict get $selfupdate_status needed_portindex]
+    if {![info exists options(ports_${action}_no-sync)] || !$options(ports_${action}_no-sync)} {
+        if {$base_updated && $needed_portindex} {
+            ui_msg "Not all sources could be fully synced using the old version of MacPorts."
+            ui_msg "Please run selfupdate again now that MacPorts base has been updated."
+        } else {
+            set length_outdated [llength [get_outdated_ports]]
+            if {$length_outdated == 0} {
+                ui_msg "\nAll installed ports are up to date."
+            } else {
+                ui_msg "\n$length_outdated [expr {$length_outdated == 1 ? "port is": "ports are"}] outdated. Run 'port outdated' to see them."
+            }
+        }
+    }
+
+    if {$base_updated} {
         # exit immediately if in batch/shell mode
         return -999
     } else {
