@@ -524,10 +524,13 @@ proc selfupdate::main {{options {}} {updatestatusvar {}}} {
             macports::portdbpath \
             macports::ui_prefix
 
-    # variable that indicates whether we actually updated base
+    # variable for communicating various status information to the caller:
+    # whether we actually updated base, and if portindex is still required
     if {$updatestatusvar ne ""} {
         upvar $updatestatusvar updatestatus
-        set updatestatus no
+        set updatestatus [dict create base_updated no \
+                                      needed_portindex no \
+                                      synced no]
     }
 
     set mp_source_path [file join $portdbpath sources selfupdate]
@@ -564,6 +567,10 @@ proc selfupdate::main {{options {}} {updatestatusvar {}}} {
     # pre-syncing ports tree if needed (batch, shell modes)
     if {$comp > 0 && [dict exists $options ports_selfupdate_presync] && [dict get $options ports_selfupdate_presync]} {
         lassign [do_sync $options 1] synced need_reindex
+        if {[info exists updatestatus]} {
+            dict set updatestatus needed_portindex $need_reindex
+            dict set updatestatus synced $synced
+        }
     }
 
     # Check whether we need to re-install base because of a migration
@@ -586,13 +593,9 @@ proc selfupdate::main {{options {}} {updatestatusvar {}}} {
             install $source_code
 
             if {[info exists updatestatus]} {
-                set updatestatus yes
+                dict set updatestatus base_updated yes
             }
 
-            if {[info exists need_reindex] && $need_reindex} {
-                ui_msg "Not all sources could be fully synced using the old version of MacPorts."
-                ui_msg "Please run selfupdate again now that MacPorts base has been updated."
-            }
             cleanup_sources $mp_source_path
             # Return here, port.tcl will re-execute selfupdate with the updated
             # base to trigger sync and portindex with the new version
@@ -605,9 +608,8 @@ proc selfupdate::main {{options {}} {updatestatusvar {}}} {
     }
 
     lassign [do_sync $options 0] synced
-    if {$synced} {
-        ui_msg "\nThe ports tree has been updated. To upgrade your installed ports, you should run"
-        ui_msg "  port upgrade outdated"
+    if {[info exists updatestatus]} {
+        dict set updatestatus synced $synced
     }
 
     return 0
