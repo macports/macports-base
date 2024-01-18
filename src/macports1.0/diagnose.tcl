@@ -799,7 +799,7 @@ namespace eval diagnose {
         # don't complain about writable parent dirs of prefix or sources
         set check_paths [list [file dirname $macports::prefix]]
         foreach source $macports::sources {
-            set sourcedir [macports::getportdir [lindex $source 0]]
+            set sourcedir [file dirname [macports::getindex [lindex $source 0]]]
             if {$sourcedir ni $check_paths} {
                 lappend check_paths $sourcedir
             }
