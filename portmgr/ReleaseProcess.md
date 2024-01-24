@@ -287,6 +287,14 @@ using the [web admin interface](https://trac.macports.org/admin/ticket/versions)
 on our Trac installation.
 
 
+### Update macports-ci-files ###
+
+A new tag and release corresponding to the base release should be
+created in the [macports-ci-files](https://github.com/macports/macports-ci-files)
+repo. This will automatically build and upload binaries of base
+suitable for use by the macports-ports CI.
+
+
 ### Verify That the Public Rsync Server Has Updated ###
 
 Verify that the MacPorts version on the public rsync server has been updated:
@@ -325,6 +333,10 @@ Using new features introduced by a release should be delayed for 14 days until
 being deployed in the ports tree. This should allow users to upgrade their
 installations to the new release. This delay matches the warning about
 outdated ports tree sources.
+
+The CI configuration for the macports-ports repo should continue to use
+the previous release for the same 14 day period, so that use of new features
+too soon will cause an error.
 
 
 [autogen.sh]: /autogen.sh
