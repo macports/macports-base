@@ -51,7 +51,9 @@ be branched for a given release.
 Once master is to be used for development of the next major version, increase
 its version information to indicate it's moved past the release version by
 setting the patch-level version to 99, e.g. 2.0.99 in
-[`config/macports_version`][macports_version].
+[`config/macports_version`][macports_version]. If master has not yet diverged
+from the release branch, it can use the same version as the release until it
+does.
 
 
 ### Prepare the code for Release ###
