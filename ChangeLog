@@ -2,7 +2,7 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
-Release 2.9.0 (unreleased)
+Release 2.9.0 (2024-01-24 by jmr)
     - Upgrade will now update registry metadata if needed for ports
       that are not outdated. This should hopefully cut down on revision
       increases requiring a rebuild just to do things like add or
