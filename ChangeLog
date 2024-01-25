@@ -2,6 +2,10 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.9.1 (unreleased)
+    - Fixed installation of unneeded build-time dependencies when using
+      source-only mode. (cal in 5988c00)
+
 Release 2.9.0 (2024-01-24 by jmr)
     - Upgrade will now update registry metadata if needed for ports
       that are not outdated. This should hopefully cut down on revision
