@@ -2445,7 +2445,7 @@ proc mportexec {mport target} {
         registry::exclusive_lock
         # see if we actually need to build this port
         if {$target ni {activate install} ||
-            ![$workername eval [list registry_exists \$subport \$version \$revision \$portvariants]]} {
+            ![$workername eval {registry_exists $subport $version $revision $portvariants}]} {
 
             # upgrade dependencies that are already installed
             if {![macports::global_option_isset ports_nodeps]} {
