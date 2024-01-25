@@ -2244,7 +2244,7 @@ proc _mportsearchpath {depregex search_path {executable 0} {return_match 0}} {
 proc _mportinstalled {mport} {
     # Check for the presence of the port in the registry
     set workername [ditem_key $mport workername]
-    return [$workername eval [list registry_exists_for_name \$subport]]
+    return [$workername eval {registry_exists_for_name $subport}]
 }
 
 # Determine if a port is active
@@ -4045,7 +4045,7 @@ proc macports::_deptypes_for_target {target workername} {
         activate    -
         {}          {
             if {[global_option_isset ports_binary_only] ||
-                [$workername eval [list registry_exists \$subport \$version \$revision \$portvariants]]
+                [$workername eval {registry_exists $subport $version $revision $portvariants}]
                 || (![global_option_isset ports_source_only] && [$workername eval [list _archive_available]])} {
                 return [list depends_lib depends_run]
             } else {
