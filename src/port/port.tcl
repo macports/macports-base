@@ -169,6 +169,28 @@ proc registry_installed {portname {portversion ""}} {
     }
 }
 
+# Add the entry to the given portlist, adding default values for name,
+# porturl and options if not set.
+proc add_to_portlist_with_defaults {listname portentry} {
+    upvar $listname portlist
+
+    if {![dict exists $portentry options]} {
+        dict set portentry options [array get ::global_options]
+    }
+    # If neither portname nor url is specified, then default to the current port
+    if {![dict exists $portentry url] && ![dict exists $portentry name]} {
+        set url file://.
+        set portname [url_to_portname $url]
+        dict set portentry url $url
+        dict set portentry name $portname
+        if {$portname eq ""} {
+            ui_error "A default port name could not be supplied."
+        }
+    }
+
+    # Form portlist entry and add to portlist
+    add_to_portlist portlist $portentry
+}
 
 proc url_to_portname { url {quiet 0} } {
     # Save directory and restore the directory, since mportopen changes it
@@ -383,7 +405,7 @@ proc unique_results_to_portlist {infos} {
         array unset portinfo
         array set portinfo $info
 
-        set portentry [entry_for_portlist [list url $portinfo(porturl) name $name]]
+        set portentry [entry_for_portlist [list url $portinfo(porturl) name $name options [array get ::global_options]]]
 
         array unset entry
         array set entry $portentry
@@ -440,7 +462,7 @@ proc get_current_port {} {
     }
 
     set results [list]
-    add_to_portlist results [list url $url name $portname]
+    add_to_portlist_with_defaults results [list url $url name $portname]
     return $results
 }
 
@@ -463,7 +485,7 @@ proc get_installed_ports { {ignore_active yes} {active yes} } {
         set iactive [lindex $i 4]
 
         if { ${ignore_active} eq "yes" || (${active} eq "yes") == (${iactive} != 0) } {
-            add_to_portlist results [list name $iname version "${iversion}_${irevision}" variants $ivariants]
+            add_to_portlist_with_defaults results [list name $iname version "${iversion}_${irevision}" variants $ivariants]
         }
     }
 
@@ -603,7 +625,7 @@ proc get_outdated_ports {} {
 
             # Add outdated ports to our results list
             if { $comp_result < 0 } {
-                add_to_portlist results [list name $portname version $installed_compound variants [split_variants $installed_variants]]
+                add_to_portlist_with_defaults results [list name $portname version $installed_compound variants [split_variants $installed_variants]]
             }
         }
     }
@@ -652,7 +674,7 @@ proc get_ports_with_prop {propname propval} {
         set iepoch [lindex $i 5]
         set regref [registry::open_entry $iname $iversion $irevision $ivariants $iepoch]
         if {[registry::property_retrieve $regref $propname] eq $propval} {
-            add_to_portlist results [list name $iname version "${iversion}_${irevision}" variants [split_variants $ivariants]]
+            add_to_portlist_with_defaults results [list name $iname version "${iversion}_${irevision}" variants [split_variants $ivariants]]
         }
     }
 
@@ -681,7 +703,7 @@ proc get_leaves_ports {} {
     foreach i $ilist {
         set iname [lindex $i 0]
         if {[registry::list_dependents $iname] eq ""} {
-            add_to_portlist results [list name $iname version "[lindex $i 1]_[lindex $i 2]" variants [split_variants [lindex $i 3]]]
+            add_to_portlist_with_defaults results [list name $iname version "[lindex $i 1]_[lindex $i 2]" variants [split_variants [lindex $i 3]]]
         }
     }
     return [portlist_sort [opIntersection $results [get_unrequested_ports]]]
@@ -701,7 +723,7 @@ proc get_rleaves_ports {} {
         set iname [lindex $i 9]
         set deplist [get_dependent_ports $iname 1]
         if {$deplist eq "" || [opIntersection $deplist $requested] eq ""} {
-            add_to_portlist results $i
+            add_to_portlist_with_defaults results $i
         }
     }
     return [portlist_sort $results]
@@ -713,7 +735,7 @@ proc get_dependent_ports {portname recursive} {
     # could return specific versions here using registry2.0 features
     set results [list]
     foreach dep $deplist {
-        add_to_portlist results [list name [lindex $dep 2]]
+        add_to_portlist_with_defaults results [list name [lindex $dep 2]]
     }
 
     # actually do this iteratively to avoid hitting Tcl's recursion limit
@@ -728,7 +750,7 @@ proc get_dependent_ports {portname recursive} {
                     set rdeplist [registry::list_dependents $depname]
                     foreach rdep $rdeplist {
                         lappend newlist $rdep
-                        add_to_portlist rportlist [list name [lindex $rdep 2]]
+                        add_to_portlist_with_defaults rportlist [list name [lindex $rdep 2]]
                     }
                 }
             }
@@ -774,7 +796,7 @@ proc get_rdepends_ports {portname} {
                 if {![info exists seen($lcport)]} {
                     set seen($lcport) 1
                     lappend portList $lcport
-                    add_to_portlist results [list name $possiblyNewPort]
+                    add_to_portlist_with_defaults results [list name $possiblyNewPort]
                 }
             }
         }
@@ -830,7 +852,7 @@ proc get_dep_ports {portname recursive} {
     foreach type $deptypes {
         if {[info exists portinfo($type)]} {
             foreach dep $portinfo($type) {
-                add_to_portlist results [list name [lindex [split $dep :] end]]
+                add_to_portlist_with_defaults results [list name [lindex [split $dep :] end]]
                 lappend deplist $dep
             }
         }
@@ -874,7 +896,7 @@ proc get_dep_ports {portname recursive} {
                     foreach type $deptypes {
                         if {[info exists portinfo($type)]} {
                             foreach rdep $portinfo($type) {
-                                add_to_portlist results [list name [lindex [split $rdep :] end]]
+                                add_to_portlist_with_defaults results [list name [lindex [split $rdep :] end]]
                                 lappend rdeplist $rdep
                             }
                         }
@@ -883,7 +905,7 @@ proc get_dep_ports {portname recursive} {
                     # add them to the lists
                     foreach rdep $rdeplist {
                         lappend newlist $rdep
-                        add_to_portlist rportlist [list name [lindex [split $rdep :] end]]
+                        add_to_portlist_with_defaults rportlist [list name [lindex [split $rdep :] end]]
                     }
                 }
             }
@@ -942,7 +964,7 @@ proc get_subports {portname} {
 
     if {[info exists portinfo(subports)]} {
         foreach subport $portinfo(subports) {
-            add_to_portlist results [list name $subport]
+            add_to_portlist_with_defaults results [list name $subport]
         }
     }
 
@@ -1235,7 +1257,7 @@ proc element { resname } {
                 if {$version ne ""} {
                     lappend templist metadata [list explicit_version 1]
                 }
-                add_to_portlist reslist $templist
+                add_to_portlist_with_defaults reslist $templist
                 set el 1
             } else {
                 ui_error "Can't open URL '$token' as a port"
@@ -1255,7 +1277,7 @@ proc element { resname } {
             if {$version ne ""} {
                 lappend templist metadata [list explicit_version 1]
             }
-            add_to_portlist reslist $templist
+            add_to_portlist_with_defaults reslist $templist
             set el 1
         }
     }
@@ -3527,7 +3549,7 @@ proc action_search { action portlist opts } {
 
             set tmp [list]
             foreach {name info} $matches {
-                add_to_portlist tmp [concat [list name $name] $info]
+                add_to_portlist_with_defaults tmp [concat [list name $name] $info]
             }
             set res [opUnion $res $tmp]
         }
@@ -3607,7 +3629,7 @@ proc action_list { action portlist opts } {
 
     # Default to list all ports if no portnames are supplied
     if { ![llength $portlist] && [info exists private_options(ports_no_args)] && $private_options(ports_no_args) eq "yes"} {
-        add_to_portlist portlist [list name "-all-"]
+        add_to_portlist_with_defaults portlist [list name "-all-"]
     }
 
     foreachport $portlist {

@@ -56,8 +56,6 @@ proc split_variants {variants} {
 }
 
 proc entry_for_portlist {portentry} {
-    global global_options
-
     # Each portlist entry currently has the following elements in it:
     #   url             if any
     #   name
@@ -74,18 +72,7 @@ proc entry_for_portlist {portentry} {
     if {![info exists port(version)]}   { set port(version) "" }
     if {![info exists port(variants)]}  { set port(variants) "" }
     if {![info exists port(requested_variants)]}  { set port(requested_variants) "" }
-    if {![info exists port(options)]}   { set port(options) [array get global_options] }
-
-    # If neither portname nor url is specified, then default to the current port
-    if { $port(url) eq "" && $port(name) eq "" } {
-        set url file://.
-        set portname [url_to_portname $url]
-        set port(url) $url
-        set port(name) $portname
-        if {$portname eq ""} {
-            ui_error "A default port name could not be supplied."
-        }
-    }
+    if {![info exists port(options)]}   { set port(options) "" }
 
     # Form the fully discriminated portname: portname/version_revison+-variants
     set port(fullname) [string tolower $port(name)]/[composite_version $port(version) $port(variants)]
