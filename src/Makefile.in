@@ -7,6 +7,7 @@ TCLPKG=		cregistry \
 			port1.0 \
 			package1.0 \
 			pextlib1.0 \
+			portlist1.0 \
 			machista1.0 \
 			mpcommon1.0
 SUBDIR=		compat ${TCLPKG} port programs
