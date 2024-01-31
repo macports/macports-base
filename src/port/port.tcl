@@ -1285,29 +1285,58 @@ proc element { resname } {
     return $el
 }
 
+proc add_ports_to_portlist_with_defaults {listname ports {overrides ""}} {
+    upvar $listname portlist
+
+    if {![dict exists $overrides options]} {
+        set i 0
+        foreach port $ports {
+            if {![dict exists $port options]} {
+                dict set port options [array get ::global_options]
+                set ports [lreplace ${ports}[set ports {}] $i $i $port]
+            }
+            incr i
+        }
+    }
+    set i 0
+    foreach port $ports {
+        if {![dict exists $port url] && ![dict exists $port name]} {
+            set url file://.
+            set portname [url_to_portname $url]
+            dict set port url $url
+            dict set port name $portname
+            if {$portname eq ""} {
+                ui_error "A default port name could not be supplied."
+            }
+            set ports [lreplace ${ports}[set ports {}] $i $i $port]
+        }
+        incr i
+    }
+
+    add_ports_to_portlist portlist $ports $overrides
+}
 
 proc add_multiple_ports { resname ports {remainder ""} } {
     upvar $resname reslist
 
-    set version ""
-    array unset variants
-    array unset options
     parsePortSpec version variants options $remainder
 
-    array unset overrides
+    set overrides [dict create]
     if {$version ne ""} {
-        set overrides(version) $version
-        set overrides(metadata) [list explicit_version 1]
+        dict set overrides version $version
+        dict set overrides metadata [dict create explicit_version 1]]
     }
-    if {[array size variants]} {
+    if {[array size variants] > 0} {
         # we always record the requested variants separately,
         # but requested ones always override existing ones
-        set overrides(requested_variants) [array get variants]
-        set overrides(variants) [array get variants]
+        dict set overrides requested_variants [array get variants]
+        dict set overrides variants [array get variants]
     }
-    if {[array size options]} { set overrides(options) [array get options] }
+    if {[array size options] > 0} {
+        dict set overrides options [array get options]
+    }
 
-    add_ports_to_portlist reslist $ports [array get overrides]
+    add_ports_to_portlist_with_defaults reslist $ports $overrides
 }
 
 proc parseFullPortSpec { urlname namename vername varname optname } {
@@ -1686,7 +1715,7 @@ proc action_info { action portlist opts } {
     set separator ""
     foreachport $portlist {
         set index_only 0
-        if {[info exists options(ports_info_index)] && $options(ports_info_index)} {
+        if {[dict exists $options ports_info_index] && [dict get $options ports_info_index]} {
             set index_only 1
         }
         puts -nonewline $separator
@@ -1711,25 +1740,25 @@ proc action_info { action portlist opts } {
             # Add any global_variations to the variations
             # specified for the port (so we get e.g. dependencies right)
             array unset merged_variations
-            array set merged_variations [array get variations]
+            array set merged_variations $variations
             foreach { variation value } [array get global_variations] {
                 if { ![info exists merged_variations($variation)] } {
                     set merged_variations($variation) $value
                 }
             }
-            if {![info exists options(subport)]} {
+            if {![dict exists $options subport]} {
                 if {[info exists portinfo(name)]} {
-                    set options(subport) $portinfo(name)
+                    dict set options subport $portinfo(name)
                 } else {
-                    set options(subport) $portname
+                    dict set options subport $portname
                 }
             }
 
-            if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
+            if {[catch {set mport [mportopen $porturl $options [array get merged_variations]]} result]} {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Unable to open port: $result" 1 status
             }
-            unset options(subport)
+            dict unset options subport
             array unset portinfo
             array set portinfo [mportinfo $mport]
             mportclose $mport
@@ -1740,7 +1769,7 @@ proc action_info { action portlist opts } {
             ui_warn "no PortIndex entry found for $portname"
             continue
         }
-        array unset options ports_info_index
+        dict unset options ports_info_index
 
         # Understand which info items are actually lists by specifying
         # separators for the output. The list items correspond to the
@@ -1810,13 +1839,13 @@ proc action_info { action portlist opts } {
         }
 
         # Interpret a convenient field abbreviation
-        if {[info exists options(ports_info_depends)] && $options(ports_info_depends) eq "yes"} {
-            array unset options ports_info_depends
+        if {[dict exists $options ports_info_depends] && [dict get $options ports_info_depends] eq "yes"} {
+            dict unset options ports_info_depends
             set all_depends_options [list ports_info_depends_fetch ports_info_depends_extract \
                 ports_info_depends_patch ports_info_depends_build ports_info_depends_lib \
                 ports_info_depends_run ports_info_depends_test]
             foreach depends_option $all_depends_options {
-                set options($depends_option) yes
+                dict set options $depends_option yes
             }
             # replace all occurrences of --depends with the expanded options
             while 1 {
@@ -1837,18 +1866,18 @@ proc action_info { action portlist opts } {
         set list_map_index 0
 
         # For human-readable summary, which is the default with no options
-        if {[llength [array get options ports_info_*]] == 0} {
+        if {[llength [dict filter $options key ports_info_*]] == 0} {
             set pretty_print 1
             set list_map_index 1
-        } elseif {[info exists options(ports_info_pretty)]} {
+        } elseif {[dict exists $options ports_info_pretty]} {
             set pretty_print 1
             set list_map_index 1
-            array unset options ports_info_pretty
+            dict unset options ports_info_pretty
         }
 
         # Tune for sort(1)
-        if {[info exists options(ports_info_line)]} {
-            array unset options ports_info_line
+        if {[dict exists $options ports_info_line]} {
+            dict unset options ports_info_line
             set noseparator 1
             set show_label 0
             set field_sep "\t"
@@ -1875,7 +1904,7 @@ proc action_info { action portlist opts } {
         #  ::struct::set intersect does not keep order of items
         set opts_todo [list]
         foreach elem $opts_action {
-            if {[info exists options($elem)]} {
+            if {[dict exists $options $elem]} {
                 lappend opts_todo $elem
             }
         }
@@ -2016,9 +2045,9 @@ proc action_info { action portlist opts } {
                 set inf [list]
                 foreach v [lsort $pi_vars] {
                     set varmodifier ""
-                    if {[info exists variations($v)]} {
+                    if {[dict exists $variations $v]} {
                         # selected by command line, prefixed with +/-
-                        set varmodifier $variations($v)
+                        set varmodifier [dict get $variations $v]
                     } elseif {[info exists global_variations($v)]} {
                         # selected by variants.conf, prefixed with (+)/(-)
                         set varmodifier "($global_variations($v))"
@@ -2110,7 +2139,7 @@ proc action_location { action portlist opts } {
         return 1
     }
     foreachport $portlist {
-        if { [catch {set ilist [registry_installed $portname [composite_version $portversion [array get variations]]]} result] } {
+        if { [catch {set ilist [registry_installed $portname [composite_version $portversion $variations]]} result] } {
             ui_debug $::errorInfo
             break_softcontinue "port location failed: $result" 1 status
         } else {
@@ -2161,22 +2190,22 @@ proc action_notes { action portlist opts } {
         # Add any global_variations to the variations
         # specified for the port
         array unset merged_variations
-        array set merged_variations [array get variations]
+        array set merged_variations $variations
         foreach { variation value } [array get global_variations] {
             if { ![info exists merged_variations($variation)] } {
                 set merged_variations($variation) $value
             }
         }
-        if {![info exists options(subport)]} {
+        if {![dict exists $options subport]} {
             if {[info exists portinfo(name)]} {
-                set options(subport) $portinfo(name)
+                dict set options subport $portinfo(name)
             } else {
-                set options(subport) $portname
+                dict set options subport $portname
             }
         }
 
         # Open the Portfile associated with this port.
-        if {[catch {set mport [mportopen $porturl [array get options] \
+        if {[catch {set mport [mportopen $porturl $options \
                                          [array get merged_variations]]} \
                    result]} {
             ui_debug $::errorInfo
@@ -2257,19 +2286,19 @@ proc action_activate { action portlist opts } {
         return 1
     }
     foreachport $portlist {
-        set composite_version [composite_version $portversion [array get variations]]
-        if {![info exists options(ports_activate_no-exec)]
+        set composite_version [composite_version $portversion $variations]
+        if {![dict exists $options ports_activate_no-exec]
             && ![catch {set ilist [registry::installed $portname $composite_version]}]
             && [llength $ilist] == 1} {
 
             set i [lindex $ilist 0]
             set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
-            if {[$regref installtype] eq "image" && [registry::run_target $regref activate [array get options]]} {
+            if {[$regref installtype] eq "image" && [registry::run_target $regref activate $options]} {
                 continue
             }
         }
         if {![macports::global_option_isset ports_dryrun]} {
-            if { [catch {portimage::activate_composite $portname $composite_version [array get options]} result] } {
+            if { [catch {portimage::activate_composite $portname $composite_version $options} result] } {
                 ui_debug $::errorInfo
                 break_softcontinue "port activate failed: $result" 1 status
             }
@@ -2289,8 +2318,8 @@ proc action_deactivate { action portlist opts } {
     }
     set portlist [portlist_sortdependents $portlist]
     foreachport $portlist {
-        set composite_version [composite_version $portversion [array get variations]]
-        if {![info exists options(ports_deactivate_no-exec)]
+        set composite_version [composite_version $portversion $variations]
+        if {![dict exists $options ports_deactivate_no-exec]
             && ![catch {set ilist [registry::active $portname]}]} {
 
             set i [lindex $ilist 0]
@@ -2299,13 +2328,13 @@ proc action_deactivate { action portlist opts } {
             set ivariants [lindex $i 3]
             if {$composite_version eq "" || $composite_version eq "${iversion}_${irevision}${ivariants}"} {
                 set regref [registry::entry open $portname $iversion $irevision $ivariants [lindex $i 5]]
-                if {[$regref installtype] eq "image" && [registry::run_target $regref deactivate [array get options]]} {
+                if {[$regref installtype] eq "image" && [registry::run_target $regref deactivate $options]} {
                     continue
                 }
             }
         }
         if {![macports::global_option_isset ports_dryrun]} {
-            if { [catch {portimage::deactivate_composite $portname $composite_version [array get options]} result] } {
+            if { [catch {portimage::deactivate_composite $portname $composite_version $options} result] } {
                 ui_debug $::errorInfo
                 break_softcontinue "port deactivate failed: $result" 1 status
             }
@@ -2523,7 +2552,7 @@ proc action_setrequested { action portlist opts } {
     # set or unset?
     set val [string equal $action "setrequested"]
     foreachport $portlist {
-        set composite_version [composite_version $portversion [array get variations]]
+        set composite_version [composite_version $portversion $variations]
         if {![catch {set ilist [registry::installed $portname $composite_version]} result]} {
             ui_info "Setting requested flag for $portname to $val"
             foreach i $ilist {
@@ -2552,7 +2581,7 @@ proc action_reclaim { action portlist opts } {
     set status [macports::reclaim_main $opts]
 
     if {$status == 0 &&
-        ![info exists options(ports_upgrade_no-rev-upgrade)] &&
+        ![dict exists $opts ports_upgrade_no-rev-upgrade] &&
         ${macports::revupgrade_autorun}} {
         set status [action_revupgrade $action $portlist $opts]
     }
@@ -2571,7 +2600,7 @@ proc action_upgrade { action portlist opts } {
     set status 0
     foreachport $portlist {
         if {![info exists depscache(port:$portname)]} {
-            set status [macports::upgrade $portname "port:$portname" [array get requested_variations] [array get options] depscache]
+            set status [macports::upgrade $portname "port:$portname" $requested_variations $options depscache]
             # status 2 means the port was not found in the index,
             # status 3 means the port is not installed
             if {$status != 0 && $status != 2 && $status != 3 && ![macports::ui_isset ports_processall]} {
@@ -2583,8 +2612,7 @@ proc action_upgrade { action portlist opts } {
     if {$status != 0 && $status != 2 && $status != 3} {
         print_tickets_url
     } elseif {$status == 0} {
-        array set options $opts
-        if {![info exists options(ports_upgrade_no-rev-upgrade)] && ${macports::revupgrade_autorun} && ![macports::global_option_isset ports_dryrun]} {
+        if {![dict exists $opts ports_upgrade_no-rev-upgrade] && ${macports::revupgrade_autorun} && ![macports::global_option_isset ports_dryrun]} {
             set status [action_revupgrade $action $portlist $opts]
         }
     }
@@ -2635,7 +2663,7 @@ proc action_dependents { action portlist opts } {
 
     set status 0
     foreachport $portlist {
-        set composite_version [composite_version $portversion [array get variations]]
+        set composite_version [composite_version $portversion $variations]
         if { [catch {set ilist [registry::installed $portname $composite_version]} result] } {
             ui_debug $::errorInfo
             break_softcontinue "$result" 1 status
@@ -2701,7 +2729,7 @@ proc action_dependents { action portlist opts } {
                     set cur_port [lindex $cur_portlist $cur_pos]
                     set cur_portname [lindex $cur_port 2]
                     set spaces [string repeat " " [expr {[llength $pos_stack] * 2}]]
-                    if {![info exists seen($cur_portname)] || ([info exists options(ports_rdependents_full)] && [string is true -strict $options(ports_rdependents_full)])} {
+                    if {![info exists seen($cur_portname)] || ([dict exists $options ports_rdependents_full] && [string is true -strict [dict get $options ports_rdependents_full]])} {
                         puts "${spaces}${cur_portname}"
                         set seen($cur_portname) 1
                         incr cur_pos
@@ -2745,11 +2773,11 @@ proc action_deps { action portlist opts } {
 
     foreachport $portlist {
         set deptypes [list]
-        if {!([info exists options(ports_${action}_no-build)] && [string is true -strict $options(ports_${action}_no-build)])} {
+        if {!([dict exists $options ports_${action}_no-build] && [string is true -strict [dict get $options ports_${action}_no-build]])} {
             lappend deptypes depends_fetch depends_extract depends_patch depends_build
         }
         lappend deptypes depends_lib depends_run
-        if {!([info exists options(ports_${action}_no-test)] && [string is true -strict $options(ports_${action}_no-test)])} {
+        if {!([dict exists $options ports_${action}_no-test] && [string is true -strict [dict get $options ports_${action}_no-test]])} {
             lappend deptypes depends_test
         }
 
@@ -2792,24 +2820,24 @@ proc action_deps { action portlist opts } {
             }
         }
 
-        if {!([info exists options(ports_${action}_index)] && $options(ports_${action}_index) eq "yes")} {
+        if {!([dict exists $options ports_${action}_index] && [dict get $options ports_${action}_index] eq "yes")} {
             # Add any global_variations to the variations
             # specified for the port, so we get dependencies right
             array unset merged_variations
-            array set merged_variations [array get variations]
+            array set merged_variations $variations
             foreach { variation value } [array get global_variations] {
                 if { ![info exists merged_variations($variation)] } {
                     set merged_variations($variation) $value
                 }
             }
-            if {![info exists options(subport)]} {
+            if {![dict exists $options subport]} {
                 if {[info exists portinfo(name)]} {
-                    set options(subport) $portinfo(name)
+                    dict set options subport $portinfo(name)
                 } else {
-                    set options(subport) $portname
+                    dict set options subport $portname
                 }
             }
-            if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
+            if {[catch {set mport [mportopen $porturl $options [array get merged_variations]]} result]} {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Unable to open port: $result" 1 status
             }
@@ -2887,11 +2915,11 @@ proc action_deps { action portlist opts } {
                     array unset portinfo
                     array set portinfo [lindex $result 1]
                     set porturl $portinfo(porturl)
-                    set options(subport) $portinfo(name)
+                    dict set options subport $portinfo(name)
 
                     # open the portfile if requested
-                    if {!([info exists options(ports_${action}_index)] && $options(ports_${action}_index) eq "yes")} {
-                        if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
+                    if {!([dict exists $options ports_${action}_index] && [dict get $options ports_${action}_index] eq "yes")} {
+                        if {[catch {set mport [mportopen $porturl $options [array get merged_variations]]} result]} {
                             ui_debug "$::errorInfo"
                             break_softcontinue "Unable to open port: $result" 1 status
                         }
@@ -2942,7 +2970,7 @@ proc action_deps { action portlist opts } {
             set cur_port [lindex $cur_portlist $cur_pos]
             set cur_portname [lindex [split $cur_port :] end]
             set spaces [string repeat " " [expr {[llength $pos_stack] * 2}]]
-            if {![info exists seen($cur_portname)] || ([info exists options(ports_${action}_full)] && [string is true -strict $options(ports_${action}_full)])} {
+            if {![info exists seen($cur_portname)] || ([dict exists $options ports_${action}_full] && [string is true -strict [dict get $options ports_${action}_full]])} {
                 if {[macports::ui_isset ports_verbose]} {
                     puts "${spaces}${cur_port}"
                 } else {
@@ -2997,20 +3025,20 @@ proc action_uninstall { action portlist opts } {
             }
             continue
         }
-        set composite_version [composite_version $portversion [array get variations]]
-        if {![info exists options(ports_uninstall_no-exec)]
+        set composite_version [composite_version $portversion $variations]
+        if {![dict exists $options ports_uninstall_no-exec]
             && ![catch {set ilist [registry::installed $portname $composite_version]}]
             && [llength $ilist] == 1} {
 
             set i [lindex $ilist 0]
             set iactive [lindex $i 4]
             set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
-            if {[registry::run_target $regref uninstall [array get options]]} {
+            if {[registry::run_target $regref uninstall $options]} {
                 continue
             }
         }
 
-        if { [catch {registry_uninstall::uninstall_composite $portname $composite_version [array get options]} result] } {
+        if { [catch {registry_uninstall::uninstall_composite $portname $composite_version $options} result] } {
             ui_debug $::errorInfo
             break_softcontinue "port uninstall failed: $result" 1 status
         }
@@ -3029,7 +3057,7 @@ proc action_installed { action portlist opts } {
     if { [llength $portlist] || (![info exists private_options(ports_no_args)] || $private_options(ports_no_args) eq "no")} {
         set restrictedList 1
         foreachport $portlist {
-            set composite_version [composite_version $portversion [array get variations]]
+            set composite_version [composite_version $portversion $variations]
             if { [catch {set ilist [concat $ilist [registry::installed $portname $composite_version]]} result] } {
                 if {![string match "* not registered as installed." $result]} {
                     ui_debug $::errorInfo
@@ -3320,7 +3348,7 @@ proc action_space {action portlist opts} {
                         set space [expr {$space + [file size $file]}]
                     }
                 }
-                if {![info exists options(ports_space_total)] || $options(ports_space_total) ne "yes"} {
+                if {![dict exists $options ports_space_total] || [dict get $options ports_space_total] ne "yes"} {
                     set msg "[bytesize $space $units] $portname"
                     if { $portversion ne {} } {
                         append msg " @$portversion"
@@ -3335,7 +3363,7 @@ proc action_space {action portlist opts} {
             puts stderr "Port $portname is not installed."
         }
     }
-    if {[llength $portlist] > 1 || ([info exists options(ports_space_total)] && $options(ports_space_total) eq "yes")} {
+    if {[llength $portlist] > 1 || ([dict exists $options ports_space_total] && [dict get $options ports_space_total] eq "yes")} {
         puts "[bytesize $spaceall $units] total"
     }
     return 0
@@ -3365,24 +3393,24 @@ proc action_variants { action portlist opts } {
             set portdir $portinfo(portdir)
         }
 
-        if {!([info exists options(ports_variants_index)] && $options(ports_variants_index) eq "yes")} {
+        if {!([dict exists $options ports_variants_index] && [dict get $options ports_variants_index] eq "yes")} {
             # Add any global_variations to the variations specified for
             # the port (default variants may change based on this)
             array unset merged_variations
-            array set merged_variations [array get variations]
+            array set merged_variations $variations
             foreach {variation value} [array get global_variations] {
                 if {![info exists merged_variations($variation)]} {
                     set merged_variations($variation) $value
                 }
             }
-            if {![info exists options(subport)]} {
+            if {![dict exists $options subport]} {
                 if {[info exists portinfo(name)]} {
-                    set options(subport) $portinfo(name)
+                    dict set options subport $portinfo(name)
                 } else {
-                    set options(subport) $portname
+                    dict set options subport $portname
                 }
             }
-            if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
+            if {[catch {set mport [mportopen $porturl $options [array get merged_variations]]} result]} {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Unable to open port: $result" 1 status
             }
@@ -3430,8 +3458,8 @@ proc action_variants { action portlist opts } {
                     }
 
                     # XXX Keep these varmodifiers in sync with action_info, or create a wrapper for it
-                    if {[info exists variations($v)]} {
-                        set varmodifier "  $variations($v)"
+                    if {[dict exists $variations $v]} {
+                        set varmodifier "  [dict get $variations $v]"
                     } elseif {[info exists global_variations($v)]} {
                         # selected by variants.conf, prefixed with (+)/(-)
                         set varmodifier "($global_variations($v))"
@@ -3672,13 +3700,13 @@ proc action_echo { action portlist opts } {
     foreachport $portlist {
         if {![macports::ui_isset ports_quiet]} {
             set opts [list]
-            foreach { key value } [array get options] {
+            foreach { key value } $options {
                 if {![info exists global_options($key)]} {
                     lappend opts "$key=$value"
                 }
             }
 
-            set composite_version [composite_version $portversion [array get variations] 1]
+            set composite_version [composite_version $portversion $variations 1]
             if { $composite_version ne "" } {
                 set ver_field "@$composite_version"
             } else {
@@ -3904,29 +3932,28 @@ proc action_target { action portlist opts } {
         # being asked for a version we can't provide.
         if {[string length $portversion]} {
             if {$action eq "clean"} {
-                set options(ports_version_glob) $portversion
-            } elseif {[info exists portmetadata(explicit_version)] && [info exists portinfo(version)] \
+                dict set options ports_version_glob $portversion
+            } elseif {[dict exists $portmetadata explicit_version] && [info exists portinfo(version)] \
                     && $portversion ne "$portinfo(version)_$portinfo(revision)" && $portversion ne $portinfo(version)} {
                 break_softcontinue "$portname version $portversion is not available (current version is $portinfo(version)_$portinfo(revision))" 1 status
             }
         }
 
         # use existing variants iff none were explicitly requested
-        if {[array get requested_variations] eq "" && [array get variations] ne ""} {
-            array unset requested_variations
-            array set requested_variations [array get variations]
+        if {$requested_variations eq "" && $variations ne ""} {
+            set requested_variations $variations
         }
 
         # Add any global_variations to the variations
         # specified for the port
         foreach { variation value } [array get global_variations] {
-            if { ![info exists requested_variations($variation)] } {
-                set requested_variations($variation) $value
+            if {![dict exists $requested_variations $variation]} {
+                dict set requested_variations $variation $value
             }
         }
 
         if {$action eq "install"} {
-            if {[info exists portinfo(replaced_by)] && ![info exists options(ports_install_no-replace)]} {
+            if {[info exists portinfo(replaced_by)] && ![dict exists $options ports_install_no-replace]} {
                 ui_notice "$portname is replaced by $portinfo(replaced_by)"
                 set portname $portinfo(replaced_by)
                 array unset portinfo
@@ -3940,7 +3967,7 @@ proc action_target { action portlist opts } {
                 set porturl $portinfo(porturl)
             }
             if {[info exists portinfo(known_fail)] && [string is true -strict $portinfo(known_fail)]
-                && ![info exists options(ports_install_allow-failing)]} {
+                && ![dict exists $options ports_install_allow-failing]} {
                 if {[info exists macports::ui_options(questions_yesno)]} {
                     set retvalue [$macports::ui_options(questions_yesno) "$portname is known to fail." "KnownFail" {} {n} 0 "Try to install anyway?"]
                     if {$retvalue != 0} {
@@ -3950,12 +3977,12 @@ proc action_target { action portlist opts } {
                     break_softcontinue "$portname is known to fail (use --allow-failing to try to install anyway)" 1 status
                 }
             }
-            if {[info exists options(ports_install_allow-failing)]} {
-                set options(ignore_known_fail) 1
+            if {[dict exists $options ports_install_allow-failing]} {
+                dict set options ignore_known_fail 1
             }
             # mark the port as explicitly requested
-            if {![info exists options(ports_install_unrequested)]} {
-                set options(ports_requested) 1
+            if {![dict exists $options ports_install_unrequested]} {
+                dict set options ports_requested 1
             }
             # we actually activate as well
             set target activate
@@ -3964,14 +3991,14 @@ proc action_target { action portlist opts } {
         } else {
             set target $action
         }
-        if {![info exists options(subport)]} {
+        if {![dict exists $options subport]} {
             if {[info exists portinfo(name)]} {
-                set options(subport) $portinfo(name)
+                dict set options subport $portinfo(name)
             } else {
-                set options(subport) $portname
+                dict set options subport $portname
             }
         }
-        if {[catch {set workername [mportopen $porturl [array get options] [array get requested_variations]]} result]} {
+        if {[catch {set workername [mportopen $porturl $options $requested_variations]} result]} {
             ui_debug $::errorInfo
             break_softcontinue "Unable to open port $portname: $result" 1 status
         }
@@ -3991,8 +4018,7 @@ proc action_target { action portlist opts } {
     }
 
     if {$status == 0 && $action eq "install" && ![macports::global_option_isset ports_dryrun]} {
-        array set options $opts
-        if {![info exists options(ports_nodeps)] && ![info exists options(ports_install_no-rev-upgrade)] && ${macports::revupgrade_autorun}} {
+        if {![dict exists $opts ports_nodeps] && ![dict exists $opts ports_install_no-rev-upgrade] && ${macports::revupgrade_autorun}} {
             set status [action_revupgrade $action $portlist $opts]
         }
     }
@@ -4004,10 +4030,9 @@ proc action_target { action portlist opts } {
 proc action_mirror { action portlist opts } {
     global macports::portdbpath
     # handle --new option here so we only delete the db once
-    array set options $opts
     set mirror_filemap_path [file join $macports::portdbpath distfiles_mirror.db]
-    if {[info exists options(ports_mirror_new)]
-        && [string is true -strict $options(ports_mirror_new)]
+    if {[dict exists $opts ports_mirror_new]
+        && [string is true -strict [dict get $opts ports_mirror_new]]
         && [file exists $mirror_filemap_path]} {
             # Trash the map file if it existed.
             file delete -force $mirror_filemap_path

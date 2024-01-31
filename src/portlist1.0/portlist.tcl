@@ -66,18 +66,18 @@ proc entry_for_portlist {portentry} {
     #   fullname        (name/version_revision+-variants)
     #       Note: name always normalised to lower case in fullname
 
-    array set port $portentry
-    if {![info exists port(url)]}       { set port(url) "" }
-    if {![info exists port(name)]}      { set port(name) "" }
-    if {![info exists port(version)]}   { set port(version) "" }
-    if {![info exists port(variants)]}  { set port(variants) "" }
-    if {![info exists port(requested_variants)]}  { set port(requested_variants) "" }
-    if {![info exists port(options)]}   { set port(options) "" }
+    foreach key {url name version variants requested_variants options} {
+        if {![dict exists $portentry $key]} {
+            dict set portentry $key ""
+        }
+    }
 
     # Form the fully discriminated portname: portname/version_revison+-variants
-    set port(fullname) [string tolower $port(name)]/[composite_version $port(version) $port(variants)]
+    set normname [string tolower [dict get $portentry name]]
+    set fullvers [composite_version [dict get $portentry version] [dict get $portentry variants]]
+    dict set portentry fullname ${normname}/${fullvers}
 
-    return [array get port]
+    return $portentry
 }
 
 
@@ -89,20 +89,17 @@ proc add_to_portlist {listname portentry} {
 }
 
 
-proc add_ports_to_portlist {listname ports {overridelist ""}} {
+proc add_ports_to_portlist {listname ports {overrides ""}} {
     upvar $listname portlist
-
-    array set overrides $overridelist
 
     # Add each entry to the named portlist, overriding any values
     # specified as overrides
     foreach portentry $ports {
-        array set port $portentry
-        if {[info exists overrides(version)]}   { set port(version) $overrides(version) }
-        if {[info exists overrides(variants)]}  { set port(variants) $overrides(variants) }
-        if {[info exists overrides(requested_variants)]}  { set port(requested_variants) $overrides(requested_variants) }
-        if {[info exists overrides(options)]}   { set port(options) $overrides(options) }
-        add_to_portlist portlist [array get port]
+        # typically version, variants, requested_variants, options
+        foreach key [dict keys $overrides] {
+            dict set portentry $key [dict get $overrides $key]
+        }
+        add_to_portlist portlist $portentry
     }
 }
 
@@ -114,20 +111,16 @@ proc foreachport {portlist block} {
     foreach portspec $portlist {
 
         # Set the variables for the block
-        uplevel 1 "array unset portspec; array set portspec { $portspec }"
+        uplevel 1 [list set portspec $portspec]
         uplevel 1 {
-            set porturl $portspec(url)
-            set portname $portspec(name)
-            set portversion $portspec(version)
-            array unset variations
-            array set variations $portspec(variants)
-            array unset requested_variations
-            array set requested_variations $portspec(requested_variants)
-            array unset options
-            array set options $portspec(options)
-            array unset portmetadata
-            if {[info exists portspec(metadata)]} {
-                array set portmetadata $portspec(metadata)
+            set porturl [dict get $portspec url]
+            set portname [dict get $portspec name]
+            set portversion [dict get $portspec version]
+            set variations [dict get $portspec variants]
+            set requested_variations [dict get $portspec requested_variants]
+            set options [dict get $portspec options]
+            if {[dict exists $portspec metadata]} {
+                set portmetadata [dict get $portspec metadata]
             }
         }
 
@@ -139,6 +132,7 @@ proc foreachport {portlist block} {
         if {[file exists $savedir]} {
             cd $savedir
         } else {
+            # XXX Tcl9 unsafe
             cd ~
         }
     }
