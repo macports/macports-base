@@ -6,11 +6,6 @@ namespace eval portlist {
     variable split_variants_re {([-+])([[:alpha:]_]+[\w\.]*)}
 }
 
-proc regex_pat_sanitize {s} {
-    set sanitized [regsub -all {[\\(){}+$.^]} $s {\\&}]
-    return $sanitized
-}
-
 # Form a composite version as is sometimes used for registry functions
 # This function sorts the variants and presents them in a canonical representation
 proc composite_version {version variations {emptyVersionOkay 0}} {
@@ -140,23 +135,25 @@ proc foreachport {portlist block} {
 
 
 proc portlist_compare { a b } {
-    array set a_ $a
-    array set b_ $b
-    set namecmp [string equal -nocase $a_(name) $b_(name)]
+    set namecmp [string equal -nocase [dict get $a name] [dict get $b name]]
     if {$namecmp != 1} {
-        if {$a_(name) eq [lindex [lsort -dictionary [list $a_(name) $b_(name)]] 0]} {
+        if {[dict get $a name] eq [lindex [lsort -dictionary [list [dict get $a name] [dict get $b name]]] 0]} {
             return -1
         }
         return 1
     }
-    set avr_ [split $a_(version) "_"]
-    set bvr_ [split $b_(version) "_"]
-    set versioncmp [vercmp [lindex $avr_ 0] [lindex $bvr_ 0]]
+    # the version proper is everything up to the last underscore
+    set avr_ [split [dict get $a version] _]
+    set bvr_ [split [dict get $b version] _]
+    set av_ [join [lrange $avr_ 0 end-1] _]
+    set bv_ [join [lrange $bvr_ 0 end-1] _]
+    set versioncmp [vercmp $av_ $bv_]
     if {$versioncmp != 0} {
         return $versioncmp
     }
-    set ar_ [lindex $avr_ 1]
-    set br_ [lindex $bvr_ 1]
+    # revision comes after the last underscore
+    set ar_ [lindex $avr_ end]
+    set br_ [lindex $bvr_ end]
     if {$ar_ < $br_} {
         return -1
     } elseif {$ar_ > $br_} {
@@ -167,44 +164,42 @@ proc portlist_compare { a b } {
 }
 
 # Sort two ports in NVR (name@version_revision) order
-proc portlist_sort { list } {
-    return [lsort -command portlist_compare $list]
+proc portlist_sort {portlist} {
+    return [lsort -command portlist_compare $portlist]
 }
 
-proc portlist_compareint { a b } {
-    array set a_ [list "name" [lindex $a 0] "version" "[lindex $a 1]_[lindex $a 2]"]
-    array set b_ [list "name" [lindex $b 0] "version" "[lindex $b 1]_[lindex $b 2]"]
-    return [portlist_compare [array get a_] [array get b_]]
+proc portlist_compareint {a b} {
+    set a_ [dict create name [lindex $a 0] version [lindex $a 1]_[lindex $a 2]]
+    set b_ [dict create name [lindex $b 0] version [lindex $b 1]_[lindex $b 2]]
+    return [portlist_compare $a_ $b_]
 }
 
 # Same as portlist_sort, but with numeric indexes {name version revision}
-proc portlist_sortint { list } {
-    return [lsort -command portlist_compareint $list]
+proc portlist_sortint {portlist} {
+    return [lsort -command portlist_compareint $portlist]
 }
 
-proc unique_entries { entries } {
+proc unique_entries {entries} {
     # Form the list of all the unique elements in the list a,
     # considering only the port fullname, and taking the first
     # found element first
-    set result [list]
-    array unset unique
+    set unique [dict create]
     foreach item $entries {
-        array set port $item
-        if {[info exists unique($port(fullname))]} continue
-        set unique($port(fullname)) 1
-        lappend result $item
+        set fullname [dict get $item fullname]
+        if {[dict exists $unique $fullname]} continue
+        dict set unique $fullname $item
     }
-    return $result
+    return [dict values $unique]
 }
 
 
-proc opUnion { a b } {
+proc opUnion {a b} {
     # Return the unique elements in the combined two lists
     return [unique_entries [concat $a $b]]
 }
 
 
-proc opIntersection { a b } {
+proc opIntersection {a b} {
     set result [list]
 
     # Rules we follow in performing the intersection of two port lists:
@@ -218,36 +213,30 @@ proc opIntersection { a b } {
     #   If there's an exact match, we take it.
     #   If there's a match between simple and discriminated, we take the later.
 
-    # First create a list of the fully discriminated names in b
-    array unset bfull
-    set i 0
+    # First create a 2-level dict of the items in b.
+    # Top level keys are normalised port names.
+    # Second level is a dict mapping fully discriminated names to the
+    # corresponding full entry.
+    set bdict [dict create]
     foreach bitem [unique_entries $b] {
-        array set port $bitem
-        set bfull($port(fullname)) $i
-        incr i
+        dict set bdict [string tolower [dict get $bitem name]] [dict get $bitem fullname] $bitem
     }
 
     # Walk through each item in a, matching against b
     foreach aitem [unique_entries $a] {
-        array set port $aitem
 
-        # Quote the fullname and portname to avoid special characters messing up the regexp
-        set safefullname [regex_pat_sanitize $port(fullname)]
-
-        set simpleform [string equal -nocase "$port(name)/" $port(fullname)]
-        if {$simpleform} {
-            set pat "^${safefullname}"
-        } else {
-            set safename [regex_pat_sanitize [string tolower $port(name)]]
-            set pat "^${safefullname}$|^${safename}/$"
+        set normname [string tolower [dict get $aitem name]]
+        if {![dict exists $bdict $normname]} {
+            # this port name is not in b at all
+            continue
         }
-
-        set matches [array names bfull -regexp $pat]
-        foreach match $matches {
-            if {$simpleform} {
-                set i $bfull($match)
-                lappend result [lindex $b $i]
-            } else {
+        if {[dict get $aitem version] eq "" && [dict get $aitem variants] eq ""} {
+            # just a port name, append all entries with this name in b
+            lappend result {*}[dict values [dict get $bdict $normname]]
+        } else {
+            # append if either the fullname or a simple entry with a matching name is in b
+            set fullname [dict get $aitem fullname]
+            if {[dict exists $bdict $normname $fullname] || [dict exists $bdict $normname ${normname}/]} {
                 lappend result $aitem
             }
         }
@@ -257,40 +246,35 @@ proc opIntersection { a b } {
 }
 
 
-proc opComplement { a b } {
+proc opComplement {a b} {
     set result [list]
 
     # Return all elements of a not matching elements in b
 
-    # First create a list of the fully discriminated names in b
-    array unset bfull
-    set i 0
+    # First create a 2-level dict of the items in b.
+    # Top level keys are normalised port names.
+    # Second level is a dict mapping fully discriminated names (to empty
+    # strings since we don't need the full entries from b.)
     foreach bitem $b {
-        array set port $bitem
-        set bfull($port(fullname)) $i
-        incr i
+        dict set bdict [string tolower [dict get $bitem name]] [dict get $bitem fullname] ""
     }
 
     # Walk through each item in a, taking all those items that don't match b
     foreach aitem $a {
-        array set port $aitem
-
-        # Quote the fullname and portname to avoid special characters messing up the regexp
-        set safefullname [regex_pat_sanitize $port(fullname)]
-
-        set simpleform [string equal -nocase "$port(name)/" $port(fullname)]
-        if {$simpleform} {
-            set pat "^${safefullname}"
-        } else {
-            set safename [regex_pat_sanitize [string tolower $port(name)]]
-            set pat "^${safefullname}$|^${safename}/$"
+        set normname [string tolower [dict get $aitem name]]
+        if {![dict exists $bdict $normname]} {
+            # this port name is not in b at all
+            lappend result $aitem
+            continue
         }
 
-        set matches [array names bfull -regexp $pat]
-
-        # We copy this element to result only if it didn't match against b
-        if {![llength $matches]} {
-            lappend result $aitem
+        # We now know the port name is in b, so only fully discriminated entries might not match
+        if {[dict get $aitem version] ne "" || [dict get $aitem variants] ne ""} {
+            set fullname [dict get $aitem fullname]
+            # append if neither the fullname nor a simple entry with a matching name is in b
+            if {![dict exists $bdict $normname $fullname] && ![dict exists $bdict $normname ${normname}/]} {
+                lappend result $aitem
+            }
         }
     }
 

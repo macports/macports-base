@@ -282,6 +282,11 @@ proc portlist_sortdependents_helper {p up_entries up_dependents up_seen up_retli
     }
 }
 
+proc regex_pat_sanitize {s} {
+    set sanitized [regsub -all {[\\(){}+$.^]} $s {\\&}]
+    return $sanitized
+}
+
 ##
 # Makes sure we get the current terminal size
 proc term_init_size {} {
