@@ -43,10 +43,10 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
            macports::autoconf::tar_path
     array set options $optionslist
 
-    # variable that indicates whether we actually updated base
+    # variable that indicates whether we actually updated base and portindex is required
     if {$updatestatusvar ne ""} {
         upvar $updatestatusvar updatestatus
-        set updatestatus no
+        set updatestatus [dict create base_updated no needed_portindex no]
     }
 
     set rsync_url rsync://${rsync_server}/
@@ -242,7 +242,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
                 error "Error installing new MacPorts base: $eMessage"
             }
             if {[info exists updatestatus]} {
-                set updatestatus yes
+                dict set updatestatus base_updated yes
             }
         }
     } elseif {$comp < 0} {
@@ -260,15 +260,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
         error "Couldn't change permissions of the MacPorts sources at $mp_source_path to ${sources_owner}: $eMessage"
     }
 
-    if {![info exists options(ports_selfupdate_no-sync)] || !$options(ports_selfupdate_no-sync)} {
-        if {[info exists needed_portindex]} {
-            ui_msg "Not all sources could be fully synced using the old version of MacPorts."
-            ui_msg "Please run selfupdate again now that MacPorts base has been updated."
-        } else {
-            ui_msg "\nThe ports tree has been updated. To upgrade your installed ports, you should run"
-            ui_msg "  port upgrade outdated"
-        }
-    }
+    dict set updatestatus needed_portindex [info exists needed_portindex]
 
     return 0
 }
