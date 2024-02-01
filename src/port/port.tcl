@@ -203,8 +203,7 @@ proc url_to_portname { url {quiet 0} } {
             ui_msg "Please verify that the directory and portfile syntax are correct."
         }
     } else {
-        array set portinfo [mportinfo $ctx]
-        set portname $portinfo(name)
+        set portname [dict get [mportinfo $ctx] name]
         mportclose $ctx
     }
     cd $savedir
@@ -246,17 +245,15 @@ proc require_portlist { nameportlist {is_upgrade "no"} } {
 # sort portlist so dependents come before their dependencies
 proc portlist_sortdependents { portlist } {
     foreach p $portlist {
-        array set pvals $p
         # normalise port name to lower case
-        set norm_name [string tolower $pvals(name)]
+        set norm_name [string tolower [dict get $p name]]
         lappend entries($norm_name) $p
         if {![info exists dependents($norm_name)]} {
             set dependents($norm_name) [list]
-            foreach result [registry::list_dependents $pvals(name)] {
+            foreach result [registry::list_dependents [dict get $p name]] {
                 lappend dependents($norm_name) [string tolower [lindex $result 2]]
             }
         }
-        array unset pvals
     }
     set ret [list]
     foreach p $portlist {
@@ -270,8 +267,7 @@ proc portlist_sortdependents_helper {p up_entries up_dependents up_seen up_retli
     if {![info exists seen($p)]} {
         set seen($p) 1
         upvar $up_entries entries $up_dependents dependents $up_retlist retlist
-        array set pvals $p
-        foreach dependent $dependents([string tolower $pvals(name)]) {
+        foreach dependent $dependents([string tolower [dict get $p name]]) {
             if {[info exists entries($dependent)]} {
                 foreach entry $entries($dependent) {
                     portlist_sortdependents_helper $entry entries dependents seen retlist
@@ -404,23 +400,14 @@ proc wraplabel {label string maxlen {indent ""}} {
 # Port selection
 ##########################################
 proc unique_results_to_portlist {infos} {
-    set result [list]
-    array unset unique
-    foreach {name info} $infos {
-        array unset portinfo
-        array set portinfo $info
+    set unique [dict create]
+    foreach {name portinfo} $infos {
+        set portentry [entry_for_portlist [list url [dict get $portinfo porturl] name $name options [array get ::global_options]]]
 
-        set portentry [entry_for_portlist [list url $portinfo(porturl) name $name options [array get ::global_options]]]
-
-        array unset entry
-        array set entry $portentry
-
-        if {[info exists unique($entry(fullname))]} continue
-        set unique($entry(fullname)) 1
-
-        lappend result $portentry
+        if {[dict exists $unique [dict get $portentry fullname]]} continue
+        dict set unique [dict get $portentry fullname] $portentry
     }
-    return $result
+    return [dict values $unique]
 }
 
 
@@ -467,7 +454,7 @@ proc get_current_port {} {
     }
 
     set results [list]
-    add_to_portlist_with_defaults results [list url $url name $portname]
+    add_to_portlist_with_defaults results [dict create url $url name $portname]
     return $results
 }
 
@@ -490,7 +477,7 @@ proc get_installed_ports { {ignore_active yes} {active yes} } {
         set iactive [lindex $i 4]
 
         if { ${ignore_active} eq "yes" || (${active} eq "yes") == (${iactive} != 0) } {
-            add_to_portlist_with_defaults results [list name $iname version "${iversion}_${irevision}" variants $ivariants]
+            add_to_portlist_with_defaults results [dict create name $iname version "${iversion}_${irevision}" variants $ivariants]
         }
     }
 
@@ -521,22 +508,18 @@ proc get_actinact_ports {} {
     set active_ports [get_active_ports]
     set results [list]
 
+    set inact [dict create]
     foreach port $inactive_ports {
-        array set portspec $port
-        set portname $portspec(name)
-        lappend inact($portname) $port
+        dict lappend inact [dict get $port name] $port
     }
 
     foreach port $active_ports {
-        array set portspec $port
-        set portname $portspec(name)
-
-        if {[info exists inact($portname)]} {
-            if {![info exists added_inact($portname)]} {
-                foreach inact_spec $inact($portname) {
-                    lappend results $inact_spec
-                }
-                set added_inact($portname) 1
+        set portname [dict get $port name]
+        if {[dict exists $inact $portname]} {
+            set inact_ports [dict get $inact $portname]
+            if {$inact_ports ne ""} {
+                lappend results {*}$inact_ports
+                dict set inact $portname ""
             }
             lappend results $port
         }
@@ -630,7 +613,7 @@ proc get_outdated_ports {} {
 
             # Add outdated ports to our results list
             if { $comp_result < 0 } {
-                add_to_portlist_with_defaults results [list name $portname version $installed_compound variants [split_variants $installed_variants]]
+                add_to_portlist_with_defaults results [dict create name $portname version $installed_compound variants [split_variants $installed_variants]]
             }
         }
     }
@@ -644,9 +627,7 @@ proc get_obsolete_ports {} {
     set results [list]
 
     foreach i $ilist {
-        array set port $i
-
-        if {[catch {mportlookup $port(name)} result]} {
+        if {[catch {mportlookup [dict get $i name]} result]} {
             ui_debug "$::errorInfo"
             break_softcontinue "lookup of portname $portname failed: $result" 1 status
         }
@@ -679,7 +660,7 @@ proc get_ports_with_prop {propname propval} {
         set iepoch [lindex $i 5]
         set regref [registry::open_entry $iname $iversion $irevision $ivariants $iepoch]
         if {[registry::property_retrieve $regref $propname] eq $propval} {
-            add_to_portlist_with_defaults results [list name $iname version "${iversion}_${irevision}" variants [split_variants $ivariants]]
+            add_to_portlist_with_defaults results [dict create name $iname version "${iversion}_${irevision}" variants [split_variants $ivariants]]
         }
     }
 
@@ -708,7 +689,7 @@ proc get_leaves_ports {} {
     foreach i $ilist {
         set iname [lindex $i 0]
         if {[registry::list_dependents $iname] eq ""} {
-            add_to_portlist_with_defaults results [list name $iname version "[lindex $i 1]_[lindex $i 2]" variants [split_variants [lindex $i 3]]]
+            add_to_portlist_with_defaults results [dict create name $iname version "[lindex $i 1]_[lindex $i 2]" variants [split_variants [lindex $i 3]]]
         }
     }
     return [portlist_sort [opIntersection $results [get_unrequested_ports]]]
@@ -740,7 +721,7 @@ proc get_dependent_ports {portname recursive} {
     # could return specific versions here using registry2.0 features
     set results [list]
     foreach dep $deplist {
-        add_to_portlist_with_defaults results [list name [lindex $dep 2]]
+        add_to_portlist_with_defaults results [dict create name [lindex $dep 2]]
     }
 
     # actually do this iteratively to avoid hitting Tcl's recursion limit
@@ -755,7 +736,7 @@ proc get_dependent_ports {portname recursive} {
                     set rdeplist [registry::list_dependents $depname]
                     foreach rdep $rdeplist {
                         lappend newlist $rdep
-                        add_to_portlist_with_defaults rportlist [list name [lindex $rdep 2]]
+                        add_to_portlist_with_defaults rportlist [dict create name [lindex $rdep 2]]
                     }
                 }
             }
@@ -773,17 +754,16 @@ proc get_dependent_ports {portname recursive} {
 
 
 proc get_rdepends_ports {portname} {
-    if {![info exists ::portDependenciesArray]} {
-        # make an associative array of all the port names and their (reverse) dependencies
+    if {![info exists ::portDependenciesDict]} {
+        # make a dictionary of all the port names and their (reverse) dependencies
         # much faster to build this once than to call mportsearch thousands of times
-        set deptypes {depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test}
-        foreach {pname pinfolist} [mportlistall] {
-            array unset pinfo
-            array set pinfo $pinfolist
+        set ::portDependenciesDict [dict create]
+        set deptypes [list depends_fetch depends_extract depends_patch depends_build depends_lib depends_run depends_test]
+        foreach {pname pinfo} [mportlistall] {
             foreach dtype $deptypes {
-                if {[info exists pinfo($dtype)]} {
-                    foreach depspec $pinfo($dtype) {
-                        lappend ::portDependenciesArray([string tolower [lindex [split $depspec :] end]]) $pname
+                if {[dict exists $pinfo $dtype]} {
+                    foreach depspec [dict get $pinfo $dtype] {
+                        dict lappend ::portDependenciesDict [string tolower [lindex [split $depspec :] end]] $pname
                     }
                 }
             }
@@ -795,13 +775,13 @@ proc get_rdepends_ports {portname} {
     while {[llength $portList] > 0} {
         set aPort [lindex $portList 0]
         set portList [lreplace $portList 0 0]
-        if {[info exists ::portDependenciesArray($aPort)]} {
-            foreach possiblyNewPort $::portDependenciesArray($aPort) {
+        if {[dict exists $::portDependenciesDict $aPort]} {
+            foreach possiblyNewPort [dict get $::portDependenciesDict $aPort] {
                 set lcport [string tolower $possiblyNewPort]
                 if {![info exists seen($lcport)]} {
                     set seen($lcport) 1
                     lappend portList $lcport
-                    add_to_portlist_with_defaults results [list name $possiblyNewPort]
+                    add_to_portlist_with_defaults results [dict create name $possiblyNewPort]
                 }
             }
         }
@@ -831,22 +811,20 @@ proc get_dep_ports {portname recursive} {
             return -code error "Port $portname not found"
         }
     }
-    array unset portinfo
-    array set portinfo [lindex $result 1]
-    set porturl $portinfo(porturl)
+    set portinfo [lindex $result 1]
+    set porturl [dict get $portinfo porturl]
 
     # open portfile
-    if {[catch {set mport [mportopen $porturl [list subport $portinfo(name)] [array get global_variations]]} result]} {
+    if {[catch {set mport [mportopen $porturl [dict create subport [dict get $portinfo name]] [array get global_variations]]} result]} {
         ui_debug $::errorInfo
         if {[macports::ui_isset ports_processall]} {
-            ui_error "Unable to open port $portinfo(name): $result"
+            ui_error "Unable to open port [dict get $portinfo name]: $result"
             return [list]
         } else {
-            return -code error "Unable to open port $portinfo(name): $result"
+            return -code error "Unable to open port [dict get $portinfo name]: $result"
         }
     }
-    array unset portinfo
-    array set portinfo [mportinfo $mport]
+    set portinfo [dict merge $portinfo [mportinfo $mport]]
     mportclose $mport
 
     # gather its deps
@@ -855,9 +833,9 @@ proc get_dep_ports {portname recursive} {
 
     set deplist [list]
     foreach type $deptypes {
-        if {[info exists portinfo($type)]} {
-            foreach dep $portinfo($type) {
-                add_to_portlist_with_defaults results [list name [lindex [split $dep :] end]]
+        if {[dict exists $portinfo $type]} {
+            foreach dep [dict get $portinfo $type] {
+                add_to_portlist_with_defaults results [dict create name [lindex [split $dep :] end]]
                 lappend deplist $dep
             }
         }
@@ -882,26 +860,24 @@ proc get_dep_ports {portname recursive} {
                         ui_error "Port $depname not found"
                         continue
                     }
-                    array unset portinfo
-                    array set portinfo [lindex $result 1]
-                    set porturl $portinfo(porturl)
+                    set portinfo [lindex $result 1]
+                    set porturl [dict get $portinfo porturl]
 
                     # open its portfile
-                    if {[catch {set mport [mportopen $porturl [list subport $portinfo(name)] [array get global_variations]]} result]} {
+                    if {[catch {set mport [mportopen $porturl [dict create subport [dict get $portinfo name]] [array get global_variations]]} result]} {
                         ui_debug $::errorInfo
                         ui_error "Unable to open port $depname: $result"
                         continue
                     }
-                    array unset portinfo
-                    array set portinfo [mportinfo $mport]
+                    set portinfo [dict merge $portinfo [mportinfo $mport]]
                     mportclose $mport
 
                     # collect its deps
                     set rdeplist [list]
                     foreach type $deptypes {
-                        if {[info exists portinfo($type)]} {
-                            foreach rdep $portinfo($type) {
-                                add_to_portlist_with_defaults results [list name [lindex [split $rdep :] end]]
+                        if {[dict exists $portinfo $type]} {
+                            foreach rdep [dict get $portinfo $type] {
+                                add_to_portlist_with_defaults results [dict create name [lindex [split $rdep :] end]]
                                 lappend rdeplist $rdep
                             }
                         }
@@ -910,7 +886,7 @@ proc get_dep_ports {portname recursive} {
                     # add them to the lists
                     foreach rdep $rdeplist {
                         lappend newlist $rdep
-                        add_to_portlist_with_defaults rportlist [list name [lindex [split $rdep :] end]]
+                        add_to_portlist_with_defaults rportlist [dict create name [lindex [split $rdep :] end]]
                     }
                 }
             }
@@ -946,30 +922,28 @@ proc get_subports {portname} {
             return -code error "Port $portname not found"
         }
     }
-    array unset portinfo
-    array set portinfo [lindex $result 1]
-    set porturl $portinfo(porturl)
+    lassign $result portname portinfo
+    set porturl [dict get $portinfo porturl]
 
     # open portfile
-    if {[catch {set mport [mportopen $porturl [list subport $portinfo(name)] [array get global_variations]]} result]} {
+    if {[catch {set mport [mportopen $porturl [dict create subport $portname] [array get global_variations]]} result]} {
         ui_debug $::errorInfo
         if {[macports::ui_isset ports_processall]} {
-            ui_error "Unable to open port $portinfo(name): $result"
+            ui_error "Unable to open port $portname: $result"
             return [list]
         } else {
-            return -code error "Unable to open port $portinfo(name): $result"
+            return -code error "Unable to open port $portname: $result"
         }
     }
-    array unset portinfo
-    array set portinfo [mportinfo $mport]
+    set portinfo [array merge $portinfo [mportinfo $mport]]
     mportclose $mport
 
     # gather its subports
     set results [list]
 
-    if {[info exists portinfo(subports)]} {
-        foreach subport $portinfo(subports) {
-            add_to_portlist_with_defaults results [list name $subport]
+    if {[dict exists $portinfo subports]} {
+        foreach subport [dict get $portinfo subports] {
+            add_to_portlist_with_defaults results [dict create name $subport]
         }
     }
 
@@ -1637,11 +1611,9 @@ proc action_log { action portlist opts } {
             if {[llength $result] < 2} {
                 break_softcontinue "Port $portname not found" 1 status
             }
-            array unset portinfo
-            array set portinfo [lindex $result 1]
-            set porturl $portinfo(porturl)
-            set portdir $portinfo(portdir)
-            set portname $portinfo(name)
+            lassign $result portname portinfo
+            set porturl [dict get $portinfo porturl]
+            set portdir [dict get $portinfo portdir]
         } elseif {$porturl ne "file://."} {
             # Extract the portdir from porturl and use it to search PortIndex.
             # Only the last two elements of the path (porturl) make up the
@@ -1658,15 +1630,14 @@ proc action_log { action portlist opts } {
             if {[llength $result] < 2} {
                 break_softcontinue "Portdir $portdir not found" 1 status
             }
-            array unset portinfo
             set matchindex [lsearch -exact -nocase $result $portname]
             if {$matchindex != -1} {
-                array set portinfo [lindex $result [incr matchindex]]
+                set portinfo [lindex $result [incr matchindex]]
             } else {
                 ui_warn "Portdir $portdir doesn't seem to belong to portname $portname"
-                array set portinfo [lindex $result 1]
+                set portinfo [lindex $result 1]
             }
-            set portname $portinfo(name)
+            set portname [dict get $portinfo name]
         }
         set portpath [macports::getportdir $porturl]
         set logfile [file join [macports::getportlogpath $portpath $portname] "main.log"]
@@ -1724,7 +1695,6 @@ proc action_info { action portlist opts } {
             set index_only 1
         }
         puts -nonewline $separator
-        array unset portinfo
         # If we have a url, use that, since it's most specific
         # otherwise try to map the portname to a url
         if {$porturl eq "" || $index_only} {
@@ -1736,40 +1706,26 @@ proc action_info { action portlist opts } {
             if {[llength $result] < 2} {
                 break_softcontinue "Port $portname not found" 1 status
             }
-            array set portinfo [lindex $result 1]
-            set porturl $portinfo(porturl)
-            set portdir $portinfo(portdir)
+            lassign $result portname portinfo
+            set porturl [dict get $portinfo porturl]
         }
 
         if {!$index_only} {
             # Add any global_variations to the variations
             # specified for the port (so we get e.g. dependencies right)
-            array unset merged_variations
-            array set merged_variations $variations
-            foreach { variation value } [array get global_variations] {
-                if { ![info exists merged_variations($variation)] } {
-                    set merged_variations($variation) $value
-                }
-            }
+            set merged_variations [dict merge [array get global_variations] $variations]
+
             if {![dict exists $options subport]} {
-                if {[info exists portinfo(name)]} {
-                    dict set options subport $portinfo(name)
-                } else {
-                    dict set options subport $portname
-                }
+                dict set options subport $portname
             }
 
-            if {[catch {set mport [mportopen $porturl $options [array get merged_variations]]} result]} {
+            if {[catch {set mport [mportopen $porturl $options $merged_variations]} result]} {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Unable to open port: $result" 1 status
             }
             dict unset options subport
-            array unset portinfo
-            array set portinfo [mportinfo $mport]
+            set portinfo [dict merge $portinfo [mportinfo $mport]]
             mportclose $mport
-            if {[info exists portdir]} {
-                set portinfo(portdir) $portdir
-            }
         } elseif {![info exists portinfo]} {
             ui_warn "no PortIndex entry found for $portname"
             continue
@@ -1779,7 +1735,7 @@ proc action_info { action portlist opts } {
         # Understand which info items are actually lists by specifying
         # separators for the output. The list items correspond to the
         # normal, --pretty, and --line output formats.
-        array set list_map {
+        set list_map [dict create {*}{
             categories      {", "  ", "  ","}
             depends_fetch   {", "  ", "  ","}
             depends_extract {", "  ", "  ","}
@@ -1794,10 +1750,10 @@ proc action_info { action portlist opts } {
             conflicts       {", "  ", "  ","}
             subports        {", "  ", "  ","}
             patchfiles      {", "  ", "  ","}
-        }
+        }]
 
         # Label map for pretty printing
-        array set pretty_label {
+        set pretty_label [dict create {*}{
             heading     ""
             variants    Variants
             depends_fetch "Fetch Dependencies"
@@ -1818,10 +1774,10 @@ proc action_info { action portlist opts } {
             replaced_by "Replaced by"
             subports    "Sub-ports"
             patchfiles  "Patchfiles"
-        }
+        }]
 
         # Wrap-length map for pretty printing
-        array set pretty_wrap {
+        set pretty_wrap [dict create {*}{
             heading 0
             replaced_by 22
             variants 22
@@ -1841,7 +1797,7 @@ proc action_info { action portlist opts } {
             maintainers 22
             subports 22
             patchfiles 22
-        }
+        }]
 
         # Interpret a convenient field abbreviation
         if {[dict exists $options ports_info_depends] && [dict get $options ports_info_depends] eq "yes"} {
@@ -1916,7 +1872,8 @@ proc action_info { action portlist opts } {
 
         set fields_tried [list]
         if {![llength $opts_todo]} {
-            set opts_todo {ports_info_heading
+            set opts_todo {
+                ports_info_heading
                 ports_info_replaced_by
                 ports_info_subports
                 ports_info_variants
@@ -1942,35 +1899,35 @@ proc action_info { action portlist opts } {
             }
             # Artificial field names to reproduce prettyprinted summary
             if {$opt eq "heading"} {
-                set inf "$portinfo(name) @$portinfo(version)"
+                set inf "[dict get $portinfo name] @[dict get $portinfo version]"
                 set ropt "heading"
-                if {[info exists portinfo(revision)] && $portinfo(revision) > 0} {
-                    append inf "_$portinfo(revision)"
+                if {[dict exists $portinfo revision] && [dict get $portinfo revision] > 0} {
+                    append inf "_[dict get $portinfo revision]"
                 }
-                if {[info exists portinfo(categories)]} {
-                    append inf " ([join $portinfo(categories) ", "])"
+                if {[dict exists $portinfo categories]} {
+                    append inf " ([join [dict get $portinfo categories] ", "])"
                 }
             } elseif {$opt eq "fullname"} {
-                set inf "$portinfo(name) @"
-                append inf [composite_version $portinfo(version) $portinfo(active_variants)]
+                set inf "[dict get $portinfo name] @"
+                append inf [composite_version [dict get $portinfo version] [dict get $portinfo active_variants]]
                 set ropt "fullname"
             } else {
                 # Map from friendly name
                 set ropt [map_friendly_field_names $opt]
 
                 # If there's no such info, move on
-                if {![info exists portinfo($ropt)]} {
+                if {![dict exists $portinfo $ropt]} {
                     set inf ""
                 } else {
-                    set inf $portinfo($ropt)
+                    set inf [dict get $portinfo $ropt]
                 }
             }
 
             # Calculate field label
             set label ""
             if {$pretty_print} {
-                if {[info exists pretty_label($ropt)]} {
-                    set label $pretty_label($ropt)
+                if {[dict exists $pretty_label $ropt]} {
+                    set label [dict get $pretty_label $ropt]
                 } else {
                     set label $opt
                 }
@@ -2006,22 +1963,21 @@ proc action_info { action portlist opts } {
             # Format list of maintainers
             if {$ropt eq "maintainers"} {
                 set infresult [list]
-                foreach serialized [macports::unobscure_maintainers $inf] {
+                foreach maintainer [macports::unobscure_maintainers $inf] {
                     set parts [list]
-                    array set maintainer $serialized
 
-                    if {[info exists maintainer(email)]} {
+                    if {[dict exists $maintainer email]} {
                         set item [expr {$pretty_print ? "Email: " : ""}]
-                        append item $maintainer(email)
+                        append item [dict get $maintainer email]
                         lappend parts $item
                     }
-                    if {[info exists maintainer(github)]} {
+                    if {[dict exists $maintainer github]} {
                         set item [expr {$pretty_print ? "GitHub: " : ""}]
-                        append item $maintainer(github)
+                        append item [dict get $maintainer github]
                         lappend parts $item
                     }
-                    if {[info exists maintainer(keyword)]} {
-                        switch $maintainer(keyword) {
+                    if {[dict exists $maintainer keyword]} {
+                        switch [dict get $maintainer keyword] {
                             nomaintainer {
                                 lappend parts [expr {$pretty_print ? "none" : ""}]
                             }
@@ -2033,7 +1989,6 @@ proc action_info { action portlist opts } {
                         }
                     }
 
-                    array unset maintainer
                     lappend infresult [join $parts [expr {$pretty_print ? ", " : " "}]]
                 }
                 set inf $infresult
@@ -2041,11 +1996,6 @@ proc action_info { action portlist opts } {
 
             # Format variants
             if {$pretty_print && $ropt eq "variants"} {
-                array unset vinfo
-                if {[info exists portinfo(vinfo)]} {
-                    array set vinfo $portinfo(vinfo)
-                }
-
                 set pi_vars $inf
                 set inf [list]
                 foreach v [lsort $pi_vars] {
@@ -2057,12 +2007,8 @@ proc action_info { action portlist opts } {
                         # selected by variants.conf, prefixed with (+)/(-)
                         set varmodifier "($global_variations($v))"
                         # Retrieve additional information from the new key.
-                    } elseif {[info exists vinfo]} {
-                        array unset variant
-                        array set variant $vinfo($v)
-                        if {[info exists variant(is_default)]} {
-                            set varmodifier "\[$variant(is_default)]"
-                        }
+                    } elseif {[dict exists $portinfo vinfo $v is_default]} {
+                        set varmodifier "\[[dict get $portinfo vinfo $v is_default]]"
                     }
                     lappend inf "$varmodifier$v"
                 }
@@ -2080,8 +2026,8 @@ proc action_info { action portlist opts } {
 
             # End of special pretty-print formatting for certain fields
 
-            if {[info exists list_map($ropt)]} {
-                set field [join $inf [lindex $list_map($ropt) $list_map_index]]
+            if {[dict exists $list_map $ropt]} {
+                set field [join $inf [lindex [dict get $list_map $ropt] $list_map_index]]
             } else {
                 set field $inf
             }
@@ -2103,14 +2049,14 @@ proc action_info { action portlist opts } {
                 }
                 if {$label eq ""} {
                     set wrap_len 0
-                    if {[info exists pretty_wrap($ropt)]} {
-                        set wrap_len $pretty_wrap($ropt)
+                    if {[dict exists $pretty_wrap $ropt]} {
+                        set wrap_len [dict get $pretty_wrap $ropt]
                     }
                     lappend fields [wrap $field 0 [string repeat " " $wrap_len]]
                 } else {
                     set wrap_len [string length $label]
-                    if {[info exists pretty_wrap($ropt)]} {
-                        set wrap_len $pretty_wrap($ropt)
+                    if {[dict exists $pretty_wrap $ropt]} {
+                        set wrap_len [dict get $pretty_wrap $ropt]
                     }
                     lappend fields [wraplabel $label $field 0 [string repeat " " $wrap_len]]
                 }
@@ -3582,7 +3528,7 @@ proc action_search { action portlist opts } {
 
             set tmp [list]
             foreach {name info} $matches {
-                add_to_portlist_with_defaults tmp [concat [list name $name] $info]
+                add_to_portlist_with_defaults tmp [dict create name $name {*}$info]
             }
             set res [opUnion $res $tmp]
         }
@@ -3662,7 +3608,7 @@ proc action_list { action portlist opts } {
 
     # Default to list all ports if no portnames are supplied
     if { ![llength $portlist] && [info exists private_options(ports_no_args)] && $private_options(ports_no_args) eq "yes"} {
-        add_to_portlist_with_defaults portlist [list name "-all-"]
+        add_to_portlist_with_defaults portlist [dict create name "-all-"]
     }
 
     foreachport $portlist {
