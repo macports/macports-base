@@ -811,17 +811,17 @@ proc get_dep_ports {portname recursive} {
             return -code error "Port $portname not found"
         }
     }
-    set portinfo [lindex $result 1]
+    lassign $result portname portinfo
     set porturl [dict get $portinfo porturl]
 
     # open portfile
-    if {[catch {set mport [mportopen $porturl [dict create subport [dict get $portinfo name]] [array get global_variations]]} result]} {
+    if {[catch {set mport [mportopen $porturl [dict create subport $portname] [array get global_variations]]} result]} {
         ui_debug $::errorInfo
         if {[macports::ui_isset ports_processall]} {
-            ui_error "Unable to open port [dict get $portinfo name]: $result"
+            ui_error "Unable to open port $portname: $result"
             return [list]
         } else {
-            return -code error "Unable to open port [dict get $portinfo name]: $result"
+            return -code error "Unable to open port $portname: $result"
         }
     }
     set portinfo [dict merge $portinfo [mportinfo $mport]]
@@ -935,7 +935,7 @@ proc get_subports {portname} {
             return -code error "Unable to open port $portname: $result"
         }
     }
-    set portinfo [array merge $portinfo [mportinfo $mport]]
+    set portinfo [dict merge $portinfo [mportinfo $mport]]
     mportclose $mport
 
     # gather its subports
@@ -1695,6 +1695,7 @@ proc action_info { action portlist opts } {
             set index_only 1
         }
         puts -nonewline $separator
+        set portinfo ""
         # If we have a url, use that, since it's most specific
         # otherwise try to map the portname to a url
         if {$porturl eq "" || $index_only} {
@@ -2121,7 +2122,6 @@ proc action_notes { action portlist opts } {
 
     set status 0
     foreachport $portlist {
-        array unset portinfo
         if {$porturl eq ""} {
             # Look up the port.
             if {[catch {mportlookup $portname} result]} {
@@ -2134,53 +2134,35 @@ proc action_notes { action portlist opts } {
             }
 
             # Retrieve the port's URL.
-            array set portinfo [lindex $result 1]
-            set porturl $portinfo(porturl)
+            lassign $result portname portinfo
+            set porturl [dict get $portinfo porturl]
         }
 
         # Add any global_variations to the variations
         # specified for the port
-        array unset merged_variations
-        array set merged_variations $variations
-        foreach { variation value } [array get global_variations] {
-            if { ![info exists merged_variations($variation)] } {
-                set merged_variations($variation) $value
-            }
-        }
+        set merged_variations [dict merge [array get global_variations] $variations]
         if {![dict exists $options subport]} {
-            if {[info exists portinfo(name)]} {
-                dict set options subport $portinfo(name)
-            } else {
-                dict set options subport $portname
-            }
+            dict set options subport $portname
         }
 
         # Open the Portfile associated with this port.
         if {[catch {set mport [mportopen $porturl $options \
-                                         [array get merged_variations]]} \
+                                         $merged_variations]} \
                    result]} {
             ui_debug $::errorInfo
             break_softcontinue [concat "The URL '$porturl' could not be" \
                                        "opened: $result"] 1 status
         }
-        array unset portinfo
-        array set portinfo [mportinfo $mport]
+        set portinfo [mportinfo $mport]
         mportclose $mport
 
-        # Return the notes associated with this Portfile.
-        if {[info exists portinfo(notes)]} {
-            set portnotes $portinfo(notes)
-        } else {
-            set portnotes {}
-        }
-
         # Retrieve the port's name once more to ensure it has the proper case.
-        set portname $portinfo(name)
+        set portname [dict get $portinfo name]
 
-        # Display the notes.
-        if {$portnotes ne {}} {
+        # Display the notes associated with this Portfile (if any).
+        if {[dict exists $portinfo notes]} {
             ui_notice "$UI_PREFIX $portname has the following notes:"
-            foreach note $portnotes {
+            foreach note [dict get $portinfo notes] {
                 puts [wrap $note 0 "  " 1]
             }
         } else {
