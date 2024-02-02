@@ -2283,12 +2283,10 @@ proc action_deactivate { action portlist opts } {
 proc action_select { action portlist opts } {
     ui_debug "action_select \[$portlist] \[$opts]..."
 
-    array set opts_array $opts
-    set commands [array names opts_array ports_select_*]
-    array unset opts_array
+    set commands [dict keys $opts ports_select_*]
 
     # Error out if no group is specified or command is not --summary.
-    if {[llength $portlist] < 1 && [string map {ports_select_ ""} [lindex $commands 0]] != "summary"} {
+    if {[llength $portlist] < 1 && [string map {ports_select_ ""} [lindex $commands 0]] ne "summary"} {
         ui_error "Incorrect usage. Correct synopsis is one of:"
         ui_msg   "  port select \[--list|--show\] <group>"
         ui_msg   "  port select \[--set\] <group> <version>"
@@ -2401,8 +2399,7 @@ proc action_select { action portlist opts } {
 
             set groups [list]
             foreach pg $portgroups {
-                array set groupdesc {}
-                set groupdesc(name) [string trim $pg]
+                set groupdesc [dict create name [string trim $pg]]
 
                 if {[catch {mportselect list $pg} versions]} {
                     ui_warn "The list of options for the select group $pg could not be obtained: $versions"
@@ -2412,28 +2409,25 @@ proc action_select { action portlist opts } {
                 set noneidx [lsearch -exact $versions "none"]
                 set versions [lsort [lreplace $versions $noneidx $noneidx]]
                 lappend versions "none"
-                set groupdesc(versions) $versions
+                dict set groupdesc versions $versions
 
                 if {[catch {mportselect show $pg} selected_version]} {
                     ui_warn "The currently selected option for the select group $pg could not be obtained: $selected_version"
                     continue
                 }
-                set groupdesc(selected) $selected_version
+                dict set groupdesc selected $selected_version
 
                 set w1 [expr {max($w1, [string length $pg])}]
                 set w2 [expr {max($w2, [string length $selected_version])}]
 
-                lappend groups [array get groupdesc]
-                array unset groupdesc
+                lappend groups $groupdesc
             }
             if {![macports::ui_isset ports_quiet]} {
                 puts [format $formatStr $w1 "Name" $w2 "Selected" "Options"]
                 puts [format $formatStr $w1 "====" $w2 "========" "======="]
             }
             foreach groupdesc $groups {
-                array set groupd $groupdesc
-                puts [format $formatStr $w1 $groupd(name) $w2 $groupd(selected) [join $groupd(versions) " "]]
-                array unset groupd
+                puts [format $formatStr $w1 [dict get $groupd name] $w2 [dict get $groupd selected] [join [dict get $groupd versions] " "]]
             }
             return 0
         }
@@ -2446,16 +2440,15 @@ proc action_select { action portlist opts } {
 
 
 proc action_selfupdate { action portlist opts } {
-    global global_options
     if {[prefix_unwritable]} {
         return 1
     }
-    array set options [array get global_options]
-    if {[info exists options(ports_${action}_nosync)] && $options(ports_${action}_nosync) eq "yes"} {
+    set options [array get ::global_options]
+    if {[dict exists $options ports_${action}_nosync] && [dict get $options ports_${action}_nosync] eq "yes"} {
         ui_warn "port selfupdate --nosync is deprecated, use --no-sync instead"
-        set options(ports_${action}_no-sync) $options(ports_${action}_nosync)
+        dict set options ports_${action}_no-sync [dict get $options ports_${action}_nosync]
     }
-    if { [catch {macports::selfupdate [array get options] base_updated} result ] } {
+    if { [catch {macports::selfupdate $options base_updated} result ] } {
         ui_debug $::errorInfo
         ui_error $result
         if {![macports::ui_isset ports_verbose]} {
@@ -2697,12 +2690,12 @@ proc action_dependents { action portlist opts } {
 
 
 proc action_deps { action portlist opts } {
-    global global_variations
     set status 0
     if {[require_portlist portlist]} {
         return 1
     }
     set separator ""
+    set labeldict [dict create depends_fetch Fetch depends_extract Extract depends_patch Patch depends_build Build depends_lib Library depends_run Runtime depends_test Test]
 
     foreachport $portlist {
         set deptypes [list]
@@ -2714,7 +2707,7 @@ proc action_deps { action portlist opts } {
             lappend deptypes depends_test
         }
 
-        array unset portinfo
+        set portinfo ""
         # If we have a url, use that, since it's most specific
         # otherwise try to map the portname to a url
         if {$porturl eq ""} {
@@ -2726,8 +2719,8 @@ proc action_deps { action portlist opts } {
             if {[llength $result] < 2} {
                 break_softcontinue "Port $portname not found" 1 status
             }
-            array set portinfo [lindex $result 1]
-            set porturl $portinfo(porturl)
+            lassign $result portname portinfo
+            set porturl [dict get $portinfo porturl]
         } elseif {$porturl ne "file://."} {
             # Extract the portdir from porturl and use it to search PortIndex.
             # Only the last two elements of the path (porturl) make up the
@@ -2746,61 +2739,48 @@ proc action_deps { action portlist opts } {
             }
             set matchindex [lsearch -exact -nocase $result $portname]
             if {$matchindex != -1} {
-                array set portinfo [lindex $result [incr matchindex]]
+                lassign [lrange $result $matchindex ${matchindex}+1] portname portinfo
             } else {
                 ui_warn "Portdir $portdir doesn't seem to belong to portname $portname"
-                array set portinfo [lindex $result 1]
+                lassign $result portname portinfo
             }
         }
 
         if {!([dict exists $options ports_${action}_index] && [dict get $options ports_${action}_index] eq "yes")} {
             # Add any global_variations to the variations
             # specified for the port, so we get dependencies right
-            array unset merged_variations
-            array set merged_variations $variations
-            foreach { variation value } [array get global_variations] {
-                if { ![info exists merged_variations($variation)] } {
-                    set merged_variations($variation) $value
-                }
-            }
+            set merged_variations [dict merge [array get ::global_variations] $variations]
             if {![dict exists $options subport]} {
-                if {[info exists portinfo(name)]} {
-                    dict set options subport $portinfo(name)
-                } else {
-                    dict set options subport $portname
-                }
+                dict set options subport $portname
             }
-            if {[catch {set mport [mportopen $porturl $options [array get merged_variations]]} result]} {
+            if {[catch {set mport [mportopen $porturl $options $merged_variations]} result]} {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Unable to open port: $result" 1 status
             }
-            array unset portinfo
-            array set portinfo [mportinfo $mport]
+            set portinfo [dict merge $portinfo [mportinfo $mport]]
             mportclose $mport
-        } elseif {![info exists portinfo]} {
+        } elseif {$portinfo eq ""} {
             ui_warn "port ${action} --index does not work with the 'current' pseudo-port"
             continue
         }
-        set portname $portinfo(name)
 
         set deplist [list]
         set deps_output [list]
         set ndeps 0
-        array set labeldict [list depends_fetch Fetch depends_extract Extract depends_patch Patch depends_build Build depends_lib Library depends_run Runtime depends_test Test]
         # get list of direct deps
         foreach type $deptypes {
-            if {[info exists portinfo($type)]} {
+            if {[dict exists $portinfo $type]} {
                 if {$action eq "rdeps" || [macports::ui_isset ports_verbose]} {
-                    foreach dep $portinfo($type) {
+                    foreach dep [dict get $portinfo $type] {
                         lappend deplist $dep
                     }
                 } else {
-                    foreach dep $portinfo($type) {
+                    foreach dep [dict get $portinfo $type] {
                         lappend deplist [lindex [split $dep :] end]
                     }
                 }
                 if {$action eq "deps"} {
-                    set label "$labeldict($type) Dependencies"
+                    set label "[dict get $labeldict $type] Dependencies"
                     lappend deps_output [wraplabel $label [join $deplist ", "] 0 [string repeat " " 22]]
                     incr ndeps [llength $deplist]
                     set deplist [list]
@@ -2808,10 +2788,10 @@ proc action_deps { action portlist opts } {
             }
         }
 
-        set version $portinfo(version)
-        set revision $portinfo(revision)
-        if {[info exists portinfo(canonical_active_variants)]} {
-            set variants $portinfo(canonical_active_variants)
+        set version [dict get $portinfo version]
+        set revision [dict get $portinfo revision]
+        if {[dict exists $portinfo canonical_active_variants]} {
+            set variants [dict get $portinfo canonical_active_variants]
         } else {
             set variants {}
         }
@@ -2829,13 +2809,15 @@ proc action_deps { action portlist opts } {
         }
 
         set toplist $deplist
+        set seen [dict create]
+        set depsof [dict create]
         # gather all the deps
         while 1 {
             set newlist [list]
             foreach dep $deplist {
                 set depname [lindex [split $dep :] end]
-                if {![info exists seen($depname)]} {
-                    set seen($depname) 1
+                if {![dict exists $seen $depname]} {
+                    dict set seen $depname 1
 
                     # look up the dep
                     if {[catch {mportlookup $depname} result]} {
@@ -2845,33 +2827,31 @@ proc action_deps { action portlist opts } {
                     if {[llength $result] < 2} {
                         break_softcontinue "Port $depname not found" 1 status
                     }
-                    array unset portinfo
-                    array set portinfo [lindex $result 1]
-                    set porturl $portinfo(porturl)
-                    dict set options subport $portinfo(name)
+                    set portinfo [lindex $result 1]
+                    set porturl [dict get $portinfo porturl]
+                    dict set options subport [dict get $portinfo name]
 
                     # open the portfile if requested
                     if {!([dict exists $options ports_${action}_index] && [dict get $options ports_${action}_index] eq "yes")} {
-                        if {[catch {set mport [mportopen $porturl $options [array get merged_variations]]} result]} {
+                        if {[catch {set mport [mportopen $porturl $options $merged_variations]} result]} {
                             ui_debug "$::errorInfo"
                             break_softcontinue "Unable to open port: $result" 1 status
                         }
-                        array unset portinfo
-                        array set portinfo [mportinfo $mport]
+                        set portinfo [dict merge $portinfo [mportinfo $mport]]
                         mportclose $mport
                     }
 
                     # get list of the dep's deps
                     set rdeplist [list]
                     foreach type $deptypes {
-                        if {[info exists portinfo($type)]} {
-                            foreach rdep $portinfo($type) {
+                        if {[dict exists $portinfo $type]} {
+                            foreach rdep [dict get $portinfo $type] {
                                 lappend rdeplist $rdep
                                 lappend newlist $rdep
                             }
                         }
                     }
-                    set depsof($depname) $rdeplist
+                    dict set depsof $depname $rdeplist
                 }
             }
             if {[llength $newlist] > 0} {
@@ -2882,12 +2862,13 @@ proc action_deps { action portlist opts } {
         }
         set portstack [list $toplist]
         set pos_stack [list 0]
-        array unset seen
+        set seen [dict create]
         if {[llength $toplist] > 0} {
             ui_notice "The following ports are dependencies of $portname @${version}_${revision}${variants}:"
         } else {
             ui_notice "$portname @${version}_${revision}${variants} has no dependencies."
         }
+        set rdeps_full [expr {[dict exists $options ports_${action}_full] && [string is true -strict [dict get $options ports_${action}_full]]}]
         while 1 {
             set cur_portlist [lindex $portstack end]
             set cur_pos [lindex $pos_stack end]
@@ -2903,17 +2884,17 @@ proc action_deps { action portlist opts } {
             set cur_port [lindex $cur_portlist $cur_pos]
             set cur_portname [lindex [split $cur_port :] end]
             set spaces [string repeat " " [expr {[llength $pos_stack] * 2}]]
-            if {![info exists seen($cur_portname)] || ([dict exists $options ports_${action}_full] && [string is true -strict [dict get $options ports_${action}_full]])} {
+            if {![dict exists $seen $cur_portname] || $rdeps_full} {
                 if {[macports::ui_isset ports_verbose]} {
                     puts "${spaces}${cur_port}"
                 } else {
                     puts "${spaces}${cur_portname}"
                 }
-                set seen($cur_portname) 1
+                dict set seen $cur_portname 1
                 incr cur_pos
                 set pos_stack [lreplace $pos_stack end end $cur_pos]
-                if {[info exists depsof($cur_portname)]} {
-                    lappend portstack $depsof($cur_portname)
+                if {[dict exists $depsof $cur_portname]} {
+                    lappend portstack [dict get $depsof $cur_portname]
                     lappend pos_stack 0
                 }
                 continue
