@@ -2878,6 +2878,10 @@ proc action_deps { action portlist opts } {
                 if {[llength $portstack] <= 0} {
                     break
                 } else {
+                    # no longer processing the last port's deps
+                    set prev_port [lindex [lindex $portstack end] [lindex $pos_stack end]-1]
+                    set prev_portname [lindex [split $prev_port :] end]
+                    dict set seen $prev_portname 1
                     continue
                 }
             }
@@ -2885,17 +2889,29 @@ proc action_deps { action portlist opts } {
             set cur_portname [lindex [split $cur_port :] end]
             set spaces [string repeat " " [expr {[llength $pos_stack] * 2}]]
             if {![dict exists $seen $cur_portname] || $rdeps_full} {
-                if {[macports::ui_isset ports_verbose]} {
-                    puts "${spaces}${cur_port}"
-                } else {
-                    puts "${spaces}${cur_portname}"
+                set cyclic_marker ""
+                if {[dict exists $seen $cur_portname] && [dict get $seen $cur_portname] == 2} {
+                    # Dependency cycle, note it and don't process deps
+                    # further to avoid looping infinitely.
+                    set cyclic_marker " (cyclic dependency)"
                 }
-                dict set seen $cur_portname 1
+                if {[macports::ui_isset ports_verbose]} {
+                    puts "${spaces}${cur_port}${cyclic_marker}"
+                } else {
+                    puts "${spaces}${cur_portname}${cyclic_marker}"
+                }
                 incr cur_pos
                 set pos_stack [lreplace $pos_stack end end $cur_pos]
-                if {[dict exists $depsof $cur_portname]} {
-                    lappend portstack [dict get $depsof $cur_portname]
-                    lappend pos_stack 0
+                if {$cyclic_marker eq ""} {
+                    if {[dict exists $depsof $cur_portname]} {
+                        # Mark as currently processing this port's deps
+                        dict set seen $cur_portname 2
+                        lappend portstack [dict get $depsof $cur_portname]
+                        lappend pos_stack 0
+                    } else {
+                        # Just mark as seen
+                        dict set seen $cur_portname 1
+                    }
                 }
                 continue
             }
