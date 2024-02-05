@@ -2979,12 +2979,11 @@ proc action_uninstall { action portlist opts } {
 
 
 proc action_installed { action portlist opts } {
-    global private_options
     set status 0
     set restrictedList 0
     set ilist [list]
 
-    if { [llength $portlist] || (![info exists private_options(ports_no_args)] || $private_options(ports_no_args) eq "no")} {
+    if { [llength $portlist] || (![info exists ::private_options(ports_no_args)] || $::private_options(ports_no_args) eq "no")} {
         set restrictedList 1
         foreachport $portlist {
             set composite_version [composite_version $portversion $variations]
@@ -3050,18 +3049,16 @@ proc action_installed { action portlist opts } {
 
 
 proc action_outdated { action portlist opts } {
-    global private_options
     set status 0
 
     # If port names were supplied, limit ourselves to those ports, else check all installed ports
     set ilist [list]
     set restrictedList 0
-    if { [llength $portlist] || (![info exists private_options(ports_no_args)] || $private_options(ports_no_args) eq "no")} {
+    if { [llength $portlist] || (![info exists ::private_options(ports_no_args)] || $::private_options(ports_no_args) eq "no")} {
         set restrictedList 1
         foreach portspec $portlist {
-            array set port $portspec
-            set portname $port(name)
-            set composite_version [composite_version $port(version) $port(variants)]
+            set portname [dict get $portspec name]
+            set composite_version [composite_version [dict get $portspec version] [dict get $portspec variants]]
             if { [catch {set ilist [concat $ilist [registry::installed $portname $composite_version]]} result] } {
                 if {![string match "* not registered as installed." $result]} {
                     ui_debug $::errorInfo
@@ -3106,23 +3103,22 @@ proc action_outdated { action portlist opts } {
                 }
                 continue
             }
-            array unset portinfo
-            array set portinfo [lindex $res 1]
+            lassign $res portname portinfo
 
             # Get information about latest available version and revision
-            if {![info exists portinfo(version)]} {
+            if {![dict exists $portinfo version]} {
                 ui_warn "$portname has no version field"
                 continue
             }
-            set latest_version $portinfo(version)
+            set latest_version [dict get $portinfo version]
             set latest_revision 0
-            if {[info exists portinfo(revision)] && $portinfo(revision) > 0} {
-                set latest_revision $portinfo(revision)
+            if {[dict exists $portinfo revision] && [dict get $portinfo revision] > 0} {
+                set latest_revision [dict get $portinfo revision]
             }
             set latest_compound "${latest_version}_${latest_revision}"
             set latest_epoch 0
-            if {[info exists portinfo(epoch)]} {
-                set latest_epoch $portinfo(epoch)
+            if {[dict exists $portinfo epoch]} {
+                set latest_epoch [dict get $portinfo epoch]
             }
 
             # Compare versions, first checking epoch, then version, then revision
@@ -3201,14 +3197,13 @@ proc action_outdated { action portlist opts } {
 
 
 proc action_contents { action portlist opts } {
-    global global_options
     if {[require_portlist portlist]} {
         return 1
     }
-    if {[info exists global_options(ports_contents_size)]} {
+    if {[info exists ::global_options(ports_contents_size)]} {
         set units {}
-        if {[info exists global_options(ports_contents_units)]} {
-            set units [complete_size_units $global_options(ports_contents_units)]
+        if {[info exists ::global_options(ports_contents_units)]} {
+            set units [complete_size_units $::global_options(ports_contents_units)]
         }
         set outstring {[format "%12s $file" [filesize $file $units]]}
     } else {
@@ -3260,12 +3255,11 @@ proc complete_size_units {units} {
 
 # Show space used by the given ports' files
 proc action_space {action portlist opts} {
-    global global_options
     require_portlist portlist
 
     set units {}
-    if {[info exists global_options(ports_space_units)]} {
-        set units [complete_size_units $global_options(ports_space_units)]
+    if {[info exists ::global_options(ports_space_units)]} {
+        set units [complete_size_units $::global_options(ports_space_units)]
     }
     set spaceall 0.0
     foreachport $portlist {
@@ -3300,13 +3294,12 @@ proc action_space {action portlist opts} {
 }
 
 proc action_variants { action portlist opts } {
-    global global_variations
     set status 0
     if {[require_portlist portlist]} {
         return 1
     }
     foreachport $portlist {
-        array unset portinfo
+        set portinfo ""
         if {$porturl eq ""} {
             # look up port
             if {[catch {mportlookup $portname} result]} {
@@ -3317,87 +3310,65 @@ proc action_variants { action portlist opts } {
                 break_softcontinue "Port $portname not found" 1 status
             }
 
-            array set portinfo [lindex $result 1]
+            lassign $result portname portinfo
 
-            set porturl $portinfo(porturl)
-            set portdir $portinfo(portdir)
+            set porturl [dict get $portinfo porturl]
         }
 
         if {!([dict exists $options ports_variants_index] && [dict get $options ports_variants_index] eq "yes")} {
             # Add any global_variations to the variations specified for
             # the port (default variants may change based on this)
-            array unset merged_variations
-            array set merged_variations $variations
-            foreach {variation value} [array get global_variations] {
-                if {![info exists merged_variations($variation)]} {
-                    set merged_variations($variation) $value
-                }
-            }
+            set merged_variations [dict merge [array get ::global_variations] $variations]
             if {![dict exists $options subport]} {
-                if {[info exists portinfo(name)]} {
-                    dict set options subport $portinfo(name)
-                } else {
-                    dict set options subport $portname
-                }
+                dict set options subport $portname
             }
-            if {[catch {set mport [mportopen $porturl $options [array get merged_variations]]} result]} {
+            if {[catch {set mport [mportopen $porturl $options $merged_variations]} result]} {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Unable to open port: $result" 1 status
             }
-            array unset portinfo
-            array set portinfo [mportinfo $mport]
+            set portinfo [dict merge $portinfo [mportinfo $mport]]
             mportclose $mport
-            if {[info exists portdir]} {
-                set portinfo(portdir) $portdir
-            }
-        } elseif {![info exists portinfo]} {
+        } elseif {$portinfo eq ""} {
             ui_warn "port variants --index does not work with 'current' pseudo-port"
             continue
         }
 
         # set portname again since the one we were passed may not have had the correct case
-        set portname $portinfo(name)
+        set portname [dict get $portinfo name]
 
         # if this fails the port doesn't have any variants
-        if {![info exists portinfo(variants)]} {
+        if {![dict exists $portinfo variants]} {
             ui_notice "$portname has no variants"
         } else {
-            array unset vinfo
-            # Use the variant info if it exists.
-            if {[info exists portinfo(vinfo)]} {
-                array set vinfo $portinfo(vinfo)
-            }
-
             # print out all the variants
             ui_notice "$portname has the variants:"
-            foreach v [lsort $portinfo(variants)] {
+            foreach v [lsort [dict get $portinfo variants]] {
                 unset -nocomplain vconflicts vdescription vrequires
                 set varmodifier "   "
                 # Retrieve variants' information from the new format.
-                if {[info exists vinfo]} {
-                    array unset variant
-                    array set variant $vinfo($v)
+                if {[dict exists $portinfo vinfo $v]} {
+                    set variant [dict get $portinfo vinfo $v]
 
                     # Retrieve conflicts, description, is_default, and
                     # vrequires.
-                    if {[info exists variant(conflicts)]} {
-                        set vconflicts $variant(conflicts)
+                    if {[dict exists $variant conflicts]} {
+                        set vconflicts [dict get $variant conflicts]
                     }
-                    if {[info exists variant(description)]} {
-                        set vdescription $variant(description)
+                    if {[dict exists $variant description]} {
+                        set vdescription [dict get $variant description]
                     }
 
                     # XXX Keep these varmodifiers in sync with action_info, or create a wrapper for it
                     if {[dict exists $variations $v]} {
                         set varmodifier "  [dict get $variations $v]"
-                    } elseif {[info exists global_variations($v)]} {
+                    } elseif {[info exists ::global_variations($v)]} {
                         # selected by variants.conf, prefixed with (+)/(-)
-                        set varmodifier "($global_variations($v))"
-                    } elseif {[info exists variant(is_default)]} {
-                        set varmodifier "\[$variant(is_default)\]"
+                        set varmodifier "($::global_variations($v))"
+                    } elseif {[dict exists $variant is_default]} {
+                        set varmodifier "\[[dict get $variant is_default]\]"
                     }
-                    if {[info exists variant(requires)]} {
-                        set vrequires $variant(requires)
+                    if {[dict exists $variant requires]} {
+                        set vrequires [dict get $variant requires]
                     }
                 }
 
