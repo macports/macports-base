@@ -3616,14 +3616,12 @@ proc action_echo { action portlist opts } {
 
 proc action_portcmds { action portlist opts } {
     # Operations on the port's directory and Portfile
-    global env boot_env current_portdir
 
     set status 0
     if {[require_portlist portlist]} {
         return 1
     }
     foreachport $portlist {
-        array unset portinfo
         # If we have a url, use that, since it's most specific, otherwise try to map the portname to a url
         if {$porturl eq ""} {
 
@@ -3635,9 +3633,8 @@ proc action_portcmds { action portlist opts } {
             if {[llength $res] < 2} {
                 break_softcontinue "Port $portname not found" 1 status
             }
-            array set portinfo [lindex $res 1]
-            set porturl $portinfo(porturl)
-            set portname $portinfo(name)
+            lassign $res portname portinfo
+            set porturl [dict get $portinfo porturl]
         }
 
 
@@ -3664,6 +3661,7 @@ proc action_portcmds { action portlist opts } {
                     # Restore our entire environment from start time.
                     # We need it to evaluate the editor, and the editor
                     # may want stuff from it as well, like TERM.
+                    global env boot_env
                     set env_save [array get env]
                     array unset env *
                     array set env $boot_env
@@ -3712,7 +3710,7 @@ proc action_portcmds { action portlist opts } {
                 cd {
                     # Change to the port's directory, making it the default
                     # port for any future commands
-                    set current_portdir $portdir
+                    set ::current_portdir $portdir
                 }
 
                 url {
@@ -3738,15 +3736,15 @@ proc action_portcmds { action portlist opts } {
                     set homepage ""
 
                     # Get the homepage as read from PortIndex
-                    if {[info exists portinfo(homepage)]} {
-                        set homepage $portinfo(homepage)
+                    if {[dict exists $portinfo homepage]} {
+                        set homepage [dict get $portinfo homepage]
                     }
 
                     # If not available, get the homepage for the port by opening the Portfile
                     if {$homepage eq "" && ![catch {set ctx [mportopen $porturl]} result]} {
-                        array set portinfo [mportinfo $ctx]
-                        if {[info exists portinfo(homepage)]} {
-                            set homepage $portinfo(homepage)
+                        set portinfo [dict merge $portinfo [mportinfo $ctx]]
+                        if {[dict exists $portinfo homepage]} {
+                            set homepage [dict get $portinfo homepage]
                         }
                         mportclose $ctx
                     }
@@ -3772,10 +3770,8 @@ proc action_portcmds { action portlist opts } {
 
 
 proc action_sync { action portlist opts } {
-    global global_options
-
     set status 0
-    if {[catch {mportsync [array get global_options]} result]} {
+    if {[catch {mportsync [array get ::global_options]} result]} {
         ui_debug $::errorInfo
         ui_msg "port sync failed: $result"
         set status 1
