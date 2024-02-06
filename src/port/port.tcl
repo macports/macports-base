@@ -3782,7 +3782,6 @@ proc action_sync { action portlist opts } {
 
 
 proc action_target { action portlist opts } {
-    global global_variations
     set status 0
     if {[require_portlist portlist]} {
         return 1
@@ -3791,7 +3790,6 @@ proc action_target { action portlist opts } {
         return 1
     }
     foreachport $portlist {
-        array unset portinfo
         # If we have a url, use that, since it's most specific
         # otherwise try to map the portname to a url
         if {$porturl eq ""} {
@@ -3809,8 +3807,8 @@ proc action_target { action portlist opts } {
                     break_softcontinue "Port $portname not found" 1 status
                 }
             }
-            array set portinfo [lindex $res 1]
-            set porturl $portinfo(porturl)
+            lassign $res portname portinfo
+            set porturl [dict get $portinfo porturl]
         }
 
         # If version was specified, it can be a version glob for use
@@ -3819,9 +3817,9 @@ proc action_target { action portlist opts } {
         if {[string length $portversion]} {
             if {$action eq "clean"} {
                 dict set options ports_version_glob $portversion
-            } elseif {[dict exists $portmetadata explicit_version] && [info exists portinfo(version)] \
-                    && $portversion ne "$portinfo(version)_$portinfo(revision)" && $portversion ne $portinfo(version)} {
-                break_softcontinue "$portname version $portversion is not available (current version is $portinfo(version)_$portinfo(revision))" 1 status
+            } elseif {[dict exists $portmetadata explicit_version] && [dict exists $portinfo version] \
+                    && $portversion ne "[dict get $portinfo version]_[dict get $portinfo revision]" && $portversion ne [dict get $portinfo version]} {
+                break_softcontinue "$portname version $portversion is not available (current version is [dict get $portinfo version]_[dict get $portinfo revision])" 1 status
             }
         }
 
@@ -3832,27 +3830,22 @@ proc action_target { action portlist opts } {
 
         # Add any global_variations to the variations
         # specified for the port
-        foreach { variation value } [array get global_variations] {
-            if {![dict exists $requested_variations $variation]} {
-                dict set requested_variations $variation $value
-            }
-        }
+        set requested_variations [dict merge [array get ::global_variations] $requested_variations]
 
         if {$action eq "install"} {
-            if {[info exists portinfo(replaced_by)] && ![dict exists $options ports_install_no-replace]} {
-                ui_notice "$portname is replaced by $portinfo(replaced_by)"
-                set portname $portinfo(replaced_by)
-                array unset portinfo
+            if {[dict exists $portinfo replaced_by] && ![dict exists $options ports_install_no-replace]} {
+                ui_notice "$portname is replaced by [dict get $portinfo replaced_by]"
+                set portname [dict get $portinfo replaced_by]
                 if {[catch {mportlookup $portname} result]} {
                     ui_debug $::errorInfo
                     break_softcontinue "lookup of portname $portname failed: $result" 1 status
                 } elseif {[llength $result] < 2} {
                     break_softcontinue "Port $portname not found" 1 status
                 }
-                array set portinfo [lindex $result 1]
-                set porturl $portinfo(porturl)
+                lassign $result portname portinfo
+                set porturl [dict get $portinfo porturl]
             }
-            if {[info exists portinfo(known_fail)] && [string is true -strict $portinfo(known_fail)]
+            if {[dict exists $portinfo known_fail] && [string is true -strict [dict get $portinfo known_fail]]
                 && ![dict exists $options ports_install_allow-failing]} {
                 if {[info exists macports::ui_options(questions_yesno)]} {
                     set retvalue [$macports::ui_options(questions_yesno) "$portname is known to fail." "KnownFail" {} {n} 0 "Try to install anyway?"]
@@ -3878,11 +3871,7 @@ proc action_target { action portlist opts } {
             set target $action
         }
         if {![dict exists $options subport]} {
-            if {[info exists portinfo(name)]} {
-                dict set options subport $portinfo(name)
-            } else {
-                dict set options subport $portname
-            }
+            dict set options subport $portname
         }
         if {[catch {set workername [mportopen $porturl $options $requested_variations]} result]} {
             ui_debug $::errorInfo
