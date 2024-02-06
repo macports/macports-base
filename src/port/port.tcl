@@ -3392,36 +3392,35 @@ proc action_variants { action portlist opts } {
 
 
 proc action_search { action portlist opts } {
-    global private_options global_options
     set status 0
-    if {![llength $portlist] && [info exists private_options(ports_no_args)] && $private_options(ports_no_args) eq "yes"} {
+    if {![llength $portlist] && [info exists ::private_options(ports_no_args)] && $::private_options(ports_no_args) eq "yes"} {
         ui_error "You must specify a search pattern"
         return 1
     }
 
     # Copy global options as we are going to modify the array
-    array set options [array get global_options]
+    set options [array get ::global_options]
 
-    if {[info exists options(ports_search_depends)] && $options(ports_search_depends) eq "yes"} {
-        array unset options ports_search_depends
-        set options(ports_search_depends_fetch) yes
-        set options(ports_search_depends_extract) yes
-        set options(ports_search_depends_patch) yes
-        set options(ports_search_depends_build) yes
-        set options(ports_search_depends_lib) yes
-        set options(ports_search_depends_run) yes
-        set options(ports_search_depends_test) yes
+    if {[dict exists $options ports_search_depends] && [dict get $options ports_search_depends] eq "yes"} {
+        dict unset options ports_search_depends
+        dict set options ports_search_depends_fetch yes
+        dict set options ports_search_depends_extract yes
+        dict set options ports_search_depends_patch yes
+        dict set options ports_search_depends_build yes
+        dict set options ports_search_depends_lib yes
+        dict set options ports_search_depends_run yes
+        dict set options ports_search_depends_test yes
     }
 
-    # Array to hold given filters
-    array set filters {}
+    # Dictionary to hold given filters
+    set filters [dict create]
     # Default matchstyle
     set filter_matchstyle "none"
     set filter_case no
-    foreach { option } [array names options ports_search_*] {
+    foreach option [dict keys $options ports_search_*] {
         set opt [string range $option 13 end]
 
-        if { $options($option) ne "yes" } {
+        if {[dict get $options $option] ne "yes"} {
             continue
         }
         switch -- $opt {
@@ -3443,12 +3442,12 @@ proc action_search { action portlist opts } {
             }
         }
 
-        set filters($opt) "yes"
+        dict set filters $opt yes
     }
     # Set default search filter if none was given
-    if { [array size filters] == 0 } {
-        set filters(name) "yes"
-        set filters(description) "yes"
+    if {[dict size $filters] == 0} {
+        dict set filters name yes
+        dict set filters description yes
     }
 
     set separator ""
@@ -3467,7 +3466,7 @@ proc action_search { action portlist opts } {
 
         set res [list]
         set portfound 0
-        foreach { opt } [array names filters] {
+        foreach opt [dict keys $filters] {
             # Map from friendly name
             set opt [map_friendly_field_names $opt]
 
@@ -3485,48 +3484,48 @@ proc action_search { action portlist opts } {
         set res [portlist_sort $res]
 
         set joiner ""
-        foreach info $res {
-            array unset portinfo
-            array set portinfo $info
-
+        foreach portinfo $res {
             # XXX is this the right place to verify an entry?
-            if {![info exists portinfo(name)]} {
+            if {![dict exists $portinfo name]} {
                 puts stderr "Invalid port entry, missing portname"
                 continue
             }
-            if {![info exists portinfo(description)]} {
-                puts stderr "Invalid port entry for $portinfo(name), missing description"
+            set res_name [dict get $portinfo name]
+            if {![dict exists $portinfo description]} {
+                puts stderr "Invalid port entry for $res_name, missing description"
                 continue
             }
-            if {![info exists portinfo(version)]} {
-                puts stderr "Invalid port entry for $portinfo(name), missing version"
+            set res_description [dict get $portinfo description]
+            if {![dict exists $portinfo version]} {
+                puts stderr "Invalid port entry for $res_name, missing version"
                 continue
             }
+            set res_version [dict get $portinfo version]
 
             if {[macports::ui_isset ports_quiet]} {
-                puts $portinfo(name)
+                puts $res_name
             } else {
-                if {[info exists options(ports_search_line)]
-                        && $options(ports_search_line) eq "yes"} {
+                if {[dict exists $options ports_search_line]
+                        && [dict get $options ports_search_line] eq "yes"} {
                     # check for ports without category, e.g. replaced_by stubs
-                    if {[info exists portinfo(categories)]} {
-                        puts "$portinfo(name)\t$portinfo(version)\t$portinfo(categories)\t$portinfo(description)"
+                    if {[dict exists $portinfo categories]} {
+                        puts "${res_name}\t${res_version}\t[dict get $portinfo categories]\t$res_description"
                     } else {
                         # keep two consecutive tabs in order to provide consistent columns' content
-                        puts "$portinfo(name)\t$portinfo(version)\t\t$portinfo(description)"
+                        puts "${res_name}\t${res_version}\t\t$res_description"
                     }
                 } else {
                     puts -nonewline $joiner
 
-                    puts -nonewline "$portinfo(name) @$portinfo(version)"
-                    if {[info exists portinfo(revision)] && $portinfo(revision) > 0} {
-                        puts -nonewline "_$portinfo(revision)"
+                    puts -nonewline "$res_name @$res_version"
+                    if {[dict exists $portinfo revision] && [dict get $portinfo revision] > 0} {
+                        puts -nonewline "_[dict get $portinfo revision]"
                     }
-                    if {[info exists portinfo(categories)]} {
-                        puts -nonewline " ([join $portinfo(categories) ", "])"
+                    if {[dict exists $portinfo categories]} {
+                        puts -nonewline " ([join [dict get $portinfo categories] ", "])"
                     }
                     puts ""
-                    puts [wrap [join $portinfo(description)] 0 [string repeat " " 4]]
+                    puts [wrap [join $res_description] 0 [string repeat " " 4]]
                 }
             }
 
@@ -3536,8 +3535,8 @@ proc action_search { action portlist opts } {
         if { !$portfound } {
             ui_notice "No match for $portname found"
         } elseif {[llength $res] > 1} {
-            if {(![info exists global_options(ports_search_line)]
-                    || $global_options(ports_search_line) ne "yes")} {
+            if {(![info exists ::global_options(ports_search_line)]
+                    || $::global_options(ports_search_line) ne "yes")} {
                 ui_notice "\nFound [llength $res] ports."
             }
         }
@@ -3545,19 +3544,15 @@ proc action_search { action portlist opts } {
         set separator "--\n"
     }
 
-    array unset options
-    array unset filters
-
     return $status
 }
 
 
 proc action_list { action portlist opts } {
-    global private_options
     set status 0
 
     # Default to list all ports if no portnames are supplied
-    if { ![llength $portlist] && [info exists private_options(ports_no_args)] && $private_options(ports_no_args) eq "yes"} {
+    if { ![llength $portlist] && [info exists ::private_options(ports_no_args)] && $::private_options(ports_no_args) eq "yes"} {
         add_to_portlist_with_defaults portlist [dict create name "-all-"]
     }
 
@@ -3579,14 +3574,12 @@ proc action_list { action portlist opts } {
             }
         }
 
-        foreach {name array} $res {
-            array unset portinfo
-            array set portinfo $array
+        foreach {name portinfo} $res {
             set outdir ""
-            if {[info exists portinfo(portdir)]} {
-                set outdir $portinfo(portdir)
+            if {[dict exists $portinfo portdir]} {
+                set outdir [dict get $portinfo portdir]
             }
-            puts [format "%-30s @%-14s %s" $portinfo(name) $portinfo(version) $outdir]
+            puts [format "%-30s @%-14s %s" [dict get $portinfo name] [dict get $portinfo version] $outdir]
         }
     }
 
