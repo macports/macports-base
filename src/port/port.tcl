@@ -1572,9 +1572,9 @@ proc action_help { action portlist opts } {
         # Restore our entire environment from start time.
         # man might want to evaluate TERM
         global env boot_env
-        array unset env_save; array set env_save [array get env]
+        set env_save [array get env]
         array unset env *
-        array set env [array get boot_env]
+        array set env $boot_env
 
         if [catch {system -nodup [list ${macports::autoconf::man_path} $pagepath]} result] {
             ui_debug "$::errorInfo"
@@ -1584,7 +1584,7 @@ proc action_help { action portlist opts } {
 
         # Restore internal MacPorts environment
         array unset env *
-        array set env [array get env_save]
+        array set env $env_save
     } else {
         ui_error "Sorry, no help for this topic is available."
         return 1
@@ -3588,14 +3588,12 @@ proc action_list { action portlist opts } {
 
 
 proc action_echo { action portlist opts } {
-    global global_options
-
     # Simply echo back the port specs given to this command
     foreachport $portlist {
         if {![macports::ui_isset ports_quiet]} {
             set opts [list]
             foreach { key value } $options {
-                if {![info exists global_options($key)]} {
+                if {![info exists ::global_options($key)]} {
                     lappend opts "$key=$value"
                 }
             }
@@ -3619,8 +3617,6 @@ proc action_echo { action portlist opts } {
 proc action_portcmds { action portlist opts } {
     # Operations on the port's directory and Portfile
     global env boot_env current_portdir
-
-    array set local_options $opts
 
     set status 0
     if {[require_portlist portlist]} {
@@ -3668,15 +3664,15 @@ proc action_portcmds { action portlist opts } {
                     # Restore our entire environment from start time.
                     # We need it to evaluate the editor, and the editor
                     # may want stuff from it as well, like TERM.
-                    array unset env_save; array set env_save [array get env]
+                    set env_save [array get env]
                     array unset env *
-                    array set env [array get boot_env]
+                    array set env $boot_env
 
                     # Find an editor to edit the portfile
                     set editor ""
                     set editor_var "ports_${action}_editor"
-                    if {[info exists local_options($editor_var)]} {
-                        set editor [join $local_options($editor_var)]
+                    if {[dict exists $opts $editor_var]} {
+                        set editor [join [dict get $opts $editor_var]]
                     } else {
                         foreach ed { MP_EDITOR VISUAL EDITOR } {
                             if {[info exists env($ed)]} {
@@ -3697,7 +3693,7 @@ proc action_portcmds { action portlist opts } {
 
                     # Restore internal MacPorts environment
                     array unset env *
-                    array set env [array get env_save]
+                    array set env $env_save
                 }
 
                 dir {
@@ -4815,7 +4811,6 @@ namespace eval portclient::progress {
     #        number of units processed and $total is the total number of units
     #        to be processed. If the total is not known, it is 0.
     proc generic {action args} {
-        global env
         variable maxWidth
 
         switch -nocase -- $action {
@@ -4867,7 +4862,6 @@ namespace eval portclient::progress {
     #        size, currently transferred amount and average speed per second in
     #        bytes. Unused for "finish".
     proc download {action args} {
-        global env
         variable maxWidth
 
         switch -nocase -- $action {
@@ -5431,7 +5425,7 @@ array set private_options {}
 term_init_size
 
 # Save off a copy of the environment before mportinit monkeys with it
-array set boot_env [array get env]
+set boot_env [array get env]
 
 set cmdname [file tail $argv0]
 
