@@ -1464,18 +1464,15 @@ proc parsePortSpec { vername varname optname {remainder ""} } {
 ##########################################
 
 proc action_get_usage { action } {
-    global action_array cmd_opts_array
-
-    if {[info exists action_array($action)]} {
+    if {[dict exists $::action_array $action]} {
         set cmds ""
-        if {[info exists cmd_opts_array($action)]} {
-            foreach opt $cmd_opts_array($action) {
+        if {[dict exists $::cmd_opts_array $action]} {
+            foreach opt [dict get $::cmd_opts_array $action] {
                 if {[llength $opt] == 1} {
                     set name $opt
                     set optc 0
                 } else {
-                    set name [lindex $opt 0]
-                    set optc [lindex $opt 1]
+                    lassign $opt name optc
                 }
 
                 append cmds " --$name"
@@ -3926,15 +3923,13 @@ proc action_exit { action portlist opts } {
 # Command Parsing
 ##########################################
 proc moreargs {} {
-    global cmd_argn cmd_argc
-    return [expr {$cmd_argn < $cmd_argc}]
+    return [expr {$::cmd_argn < $::cmd_argc}]
 }
 
 
 proc lookahead {} {
-    global cmd_argn cmd_argc cmd_argv
-    if {$cmd_argn < $cmd_argc} {
-        return [lindex $cmd_argv $cmd_argn]
+    if {$::cmd_argn < $::cmd_argc} {
+        return [lindex $::cmd_argv $::cmd_argn]
     } else {
         return _EOF_
     }
@@ -3942,8 +3937,7 @@ proc lookahead {} {
 
 
 proc advance {} {
-    global cmd_argn
-    incr cmd_argn
+    incr ::cmd_argn
 }
 
 
@@ -3968,7 +3962,7 @@ const ACTION_ARGS_NONE 0
 const ACTION_ARGS_STRINGS 1
 const ACTION_ARGS_PORTS 2
 
-array set action_array [list \
+set action_array [dict create \
     usage       [list action_usage          [ACTION_ARGS_STRINGS]] \
     help        [list action_help           [ACTION_ARGS_STRINGS]] \
     \
@@ -4064,31 +4058,25 @@ set shellmode_action_list [list cd exit quit]
 # Expand "action".
 # Returns a list of matching actions.
 proc find_action { action } {
-    global action_array
-
-    if {![info exists action_array($action)]} {
+    if {![dict exists $::action_array $action]} {
         # list of actions that are valid for this mode
-        global action_list
-        if {![info exists action_list]} {
-            global ui_options shellmode_action_list
-            if {![info exists ui_options(ports_commandfiles)]} {
-                set action_list [lsearch -regexp -all -inline -not [array names action_array] ^[join $shellmode_action_list {$|^}]$]
+        if {![info exists ::action_list]} {
+            if {![info exists ::ui_options(ports_commandfiles)]} {
+                set ::action_list [lsearch -regexp -all -inline -not [dict keys $::action_array] ^[join $::shellmode_action_list {$|^}]$]
             } else {
-                set action_list [array names action_array]
+                set ::action_list [dict keys $::action_array]
             }
         }
-        return [lsearch -glob -inline -all $action_list [string tolower $action]*]
+        return [lsearch -glob -inline -all $::action_list [string tolower $action]*]
     }
 
     return $action
 }
 
 proc get_action_proc { action } {
-    global action_array
-
     set action_proc ""
-    if { [info exists action_array($action)] } {
-        set action_proc [lindex $action_array($action) 0]
+    if {[dict exists $::action_array $action]} {
+        set action_proc [lindex [dict get $::action_array $action] 0]
     }
 
     return $action_proc
@@ -4101,11 +4089,9 @@ proc get_action_proc { action } {
 #   [ACTION_ARGS_STRINGS]  Expects some strings as text argument
 #   [ACTION_ARGS_PORTS]    Wants an expanded list of ports as text argument
 proc action_needs_portlist { action } {
-    global action_array
-
     set ret 0
-    if {[info exists action_array($action)]} {
-        set ret [lindex $action_array($action) 1]
+    if {[dict exists $::action_array $action]} {
+        set ret [lindex [dict get $::action_array $action] 1]
     }
 
     return $ret
@@ -4113,10 +4099,10 @@ proc action_needs_portlist { action } {
 
 # cmd_opts_array specifies which arguments the commands accept
 # Commands not listed here do not accept any arguments
-# Syntax if {option argn}
+# Syntax is {option argn}
 # Where option is the name of the option and argn specifies how many arguments
 # this argument takes
-array set cmd_opts_array {
+set cmd_opts_array [dict create {*}{
     edit        {{editor 1}}
     info        {category categories conflicts depends_fetch depends_extract
                  depends_patch
@@ -4153,7 +4139,7 @@ array set cmd_opts_array {
     reclaim     {enable-reminders disable-reminders}
     fetch       {no-mirrors}
     bump        {patch}
-}
+}]
 
 ##
 # Checks whether the given option is valid
@@ -4162,18 +4148,16 @@ array set cmd_opts_array {
 # @param option the prefix of the option to check
 # @return list of pairs {name argc} for all matching options
 proc cmd_option_matches {action option} {
-    global cmd_opts_array
-
     # This could be so easy with lsearch -index,
     # but that's only available as of Tcl 8.5
 
-    if {![info exists cmd_opts_array($action)]} {
+    if {![dict exists $::cmd_opts_array $action]} {
         return [list]
     }
 
     set result [list]
 
-    foreach item $cmd_opts_array($action) {
+    foreach item [dict get $::cmd_opts_array $action] {
         if {[llength $item] == 1} {
             set name $item
             set argc 0
@@ -4503,24 +4487,22 @@ proc process_cmd { argv } {
 
 
 proc complete_portname { text state } {
-    global complete_choices complete_position
-
     if {$state == 0} {
-        set complete_position 0
-        set complete_choices [list]
+        set ::complete_position 0
+        set ::complete_choices [list]
 
         # Build a list of ports with text as their prefix
         if {[catch {set res [mportsearch "${text}*" false glob]} result]} {
             ui_debug $::errorInfo
-            fatal "search for portname $pattern failed: $result"
+            fatal "search for portname $text failed: $result"
         }
         foreach {name info} $res {
-            lappend complete_choices $name
+            lappend ::complete_choices $name
         }
     }
 
-    set word [lindex $complete_choices $complete_position]
-    incr complete_position
+    set word [lindex $::complete_choices $::complete_position]
+    incr ::complete_position
 
     return $word
 }
@@ -4528,15 +4510,13 @@ proc complete_portname { text state } {
 
 # return text action beginning with $text
 proc complete_action { text state } {
-    global action_array complete_choices complete_position
-
     if {$state == 0} {
-        set complete_position 0
-        set complete_choices [array names action_array "[string tolower $text]*"]
+        set ::complete_position 0
+        set ::complete_choices [dict keys $::action_array [string tolower $text]*]
     }
 
-    set word [lindex $complete_choices $complete_position]
-    incr complete_position
+    set word [lindex $::complete_choices $::complete_position]
+    incr ::complete_position
 
     return $word
 }
