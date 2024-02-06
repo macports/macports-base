@@ -5012,8 +5012,7 @@ namespace eval portclient::notifications {
     ##
     # Ports whose notifications to display; these were either installed
     # or requested to be installed.
-    variable notificationsToPrint
-    array set notificationsToPrint {}
+    variable notificationsToPrint [dict create]
 
     ##
     # Add a port to the list for printing notifications.
@@ -5025,7 +5024,7 @@ namespace eval portclient::notifications {
     proc append {name notes} {
         variable notificationsToPrint
 
-        set notificationsToPrint($name) $notes
+        dict set notificationsToPrint $name $notes
     }
 
     ##
@@ -5035,18 +5034,17 @@ namespace eval portclient::notifications {
         variable notificationsToPrint
 
         # Display notes at the end of the activation phase.
-        if {[array size notificationsToPrint] > 0} {
+        if {[dict size $notificationsToPrint] > 0} {
             ui_notice "--->  Some of the ports you installed have notes:"
-            foreach name [lsort [array names notificationsToPrint]] {
-                set notes $notificationsToPrint($name)
+            foreach name [lsort [dict keys $notificationsToPrint]] {
                 ui_notice "  $name has the following notes:"
 
-                foreach note $notes {
+                foreach note [dict get $notificationsToPrint $name] {
                     ui_notice [wrap $note 0 "    "]
                 }
 
                 # Clear notes that have been displayed
-                unset notificationsToPrint($name)
+                dict unset notificationsToPrint $name
             }
         }
     }
