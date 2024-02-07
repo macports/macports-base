@@ -146,27 +146,39 @@ proc map_friendly_field_names { field } {
 
 
 proc registry_installed {portname {portversion ""}} {
-    set ilist [registry::installed $portname $portversion]
-    if { [llength $ilist] > 1 } {
+    set possible_matches [registry::entry imaged $portname]
+    if {$portversion ne ""} {
+        set matches [list]
+        foreach p $possible_matches {
+            # Ambiguous syntax for version, may or may not include the revision
+            if {"[$p version]_[$p revision][$p variants]" eq $portversion || [$p version] eq $portversion} {
+                lappend matches $p
+            }
+        }
+    } else {
+        set matches $possible_matches
+    }
+
+    if {[llength $matches] > 1} {
         # set portname again since the one we were passed may not have had the correct case
-        set portname [lindex $ilist 0 0]
+        set portname [[lindex $matches 0] name]
         ui_notice "The following versions of $portname are currently installed:"
-        foreach i [portlist_sortint $ilist] {
-            set iname [lindex $i 0]
-            set iversion [lindex $i 1]
-            set irevision [lindex $i 2]
-            set ivariants [lindex $i 3]
-            set iactive [lindex $i 4]
-            if { $iactive == 0 } {
-                puts "  $iname @${iversion}_${irevision}${ivariants}"
-            } elseif { $iactive == 1 } {
-                puts "  $iname @${iversion}_${irevision}${ivariants} (active)"
+        foreach i $matches {
+            if {[$i state] eq "installed"} {
+                puts "  $portname @[$i version]_[$i revision][$i variants] (active)"
+            } else {
+                puts "  $portname @[$i version]_[$i revision][$i variants]"
             }
         }
         return -code error "Registry error: Please specify the full version as recorded in the port registry."
-    } else {
-        return [lindex $ilist 0]
+    } elseif {[llength $matches] == 0} {
+        if {$portversion eq ""} {
+            return -code error "Registry error: $portname not registered as installed."
+        } else {
+            return -code error "Registry error: $portname $portversion not registered as installed."
+        }
     }
+    return [lindex $matches 0]
 }
 
 # Add the entry to the given portlist, adding default values for name,
@@ -2088,22 +2100,13 @@ proc action_location { action portlist opts } {
         return 1
     }
     foreachport $portlist {
-        if { [catch {set ilist [registry_installed $portname [composite_version $portversion $variations]]} result] } {
+        if {[catch {set ref [registry_installed $portname [composite_version $portversion $variations]]} result]} {
             ui_debug $::errorInfo
             break_softcontinue "port location failed: $result" 1 status
-        } else {
-            # set portname again since the one we were passed may not have had the correct case
-            set portname [lindex $ilist 0]
-            set version [lindex $ilist 1]
-            set revision [lindex $ilist 2]
-            set variants [lindex $ilist 3]
-            set epoch [lindex $ilist 5]
         }
 
-        set ref [registry::open_entry $portname $version $revision $variants $epoch]
-        set imagedir [registry::property_retrieve $ref location]
-        ui_notice "Port $portname ${version}_${revision}${variants} is installed as an image in:"
-        puts $imagedir
+        ui_notice "Port [$ref name] [$ref version]_[$ref revision][$ref variants] is installed as an image in:"
+        puts [$ref location]
     }
 
     return $status
