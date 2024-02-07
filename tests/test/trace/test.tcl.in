@@ -57,11 +57,17 @@ proc test_trace {} {
     }
 }
 
+set trace_constraints [list tracemode_support]
+if {$::tcl_platform(machine) eq "arm64"} {
+    # Trace mode (specifically SIP workaround) is broken on arm64
+    # https://trac.macports.org/ticket/66358
+    lappend trace_constraints knownBug
+}
+
 test trace {
     Regression test for trace.
-} -constraints {
-    tracemode_support
-} -body {
+} -constraints $trace_constraints \
+-body {
     test_trace
 } -result "No errors found."
 
