@@ -472,29 +472,21 @@ proc get_current_port {} {
 
 
 proc get_installed_ports { {ignore_active yes} {active yes} } {
-    set ilist [list]
-    if { [catch {set ilist [registry::installed]} result] } {
-        if {$result ne "Registry error: No ports registered as installed."} {
-            ui_debug $::errorInfo
-            fatal "port installed failed: $result"
-        }
+    if {[catch {registry::entry imaged} results]} {
+        ui_debug $::errorInfo
+        fatal "port installed failed: $results"
     }
 
-    set results [list]
-    foreach i $ilist {
-        set iname [lindex $i 0]
-        set iversion [lindex $i 1]
-        set irevision [lindex $i 2]
-        set ivariants [split_variants [lindex $i 3]]
-        set iactive [lindex $i 4]
-
-        if { ${ignore_active} eq "yes" || (${active} eq "yes") == (${iactive} != 0) } {
-            add_to_portlist_with_defaults results [dict create name $iname version "${iversion}_${irevision}" variants $ivariants]
+    set portlist [list]
+    foreach i $results {
+        set ivariants [split_variants [$i variants]]
+        if {${ignore_active} eq "yes" || (${active} eq "yes") == ([$i state] eq "installed")} {
+            add_to_portlist_with_defaults portlist [dict create name [$i name] version [$i version]_[$i revision] variants $ivariants]
         }
     }
 
     # Return the list of ports, sorted
-    return [portlist_sort $results]
+    return [portlist_sort $portlist]
 }
 
 
@@ -542,91 +534,74 @@ proc get_actinact_ports {} {
 
 proc get_outdated_ports {} {
     # Get the list of installed ports
-    set ilist [list]
-    if { [catch {set ilist [registry::installed]} result] } {
-        if {$result ne "Registry error: No ports registered as installed."} {
-            ui_debug $::errorInfo
-            fatal "port installed failed: $result"
-        }
+    if { [catch {set ilist [registry::entry imaged]} result] } {
+        ui_debug $::errorInfo
+        fatal "getting installed ports failed: $result"
     }
 
     # Now process the list, keeping only those ports that are outdated
     set results [list]
-    if { [llength $ilist] > 0 } {
-        foreach i $ilist {
+    if {${macports::cxx_stdlib} eq "libc++"} {
+        set wrong_stdlib libstdc++
+    } else {
+        set wrong_stdlib libc++
+    }
+    foreach i $ilist {
 
-            # Get information about the installed port
-            set portname            [lindex $i 0]
-            set installed_version   [lindex $i 1]
-            set installed_revision  [lindex $i 2]
-            set installed_compound  "${installed_version}_${installed_revision}"
-            set installed_variants  [lindex $i 3]
+        # Get information about the installed port
+        set portname            [$i name]
+        set installed_compound  [$i version]_[$i revision]
 
-            set is_active           [lindex $i 4]
-            if {$is_active == 0} continue
+        if {[$i state] eq "imaged"} continue
 
-            set installed_epoch     [lindex $i 5]
-
-            # Get info about the port from the index
-            if {[catch {set res [mportlookup $portname]} result]} {
-                ui_debug $::errorInfo
-                fatal "lookup of portname $portname failed: $result"
+        # Get info about the port from the index
+        if {[catch {set res [mportlookup $portname]} result]} {
+            ui_debug $::errorInfo
+            fatal "lookup of portname $portname failed: $result"
+        }
+        if {[llength $res] < 2} {
+            if {[macports::ui_isset ports_debug]} {
+                puts stderr "$portname ($installed_compound is installed; the port was not found in the port index)"
             }
-            if {[llength $res] < 2} {
-                if {[macports::ui_isset ports_debug]} {
-                    puts stderr "$portname ($installed_compound is installed; the port was not found in the port index)"
-                }
-                continue
-            }
-            array unset portinfo
-            array set portinfo [lindex $res 1]
+            continue
+        }
+        array unset portinfo
+        array set portinfo [lindex $res 1]
 
-            # Get information about latest available version and revision
-            set latest_version $portinfo(version)
-            set latest_revision     0
-            if {[info exists portinfo(revision)] && $portinfo(revision) > 0} {
-                set latest_revision $portinfo(revision)
-            }
-            set latest_compound     "${latest_version}_${latest_revision}"
-            set latest_epoch        0
-            if {[info exists portinfo(epoch)]} {
-                set latest_epoch    $portinfo(epoch)
-            }
+        # Get information about latest available version and revision
+        set latest_version $portinfo(version)
+        set latest_revision     0
+        if {[info exists portinfo(revision)] && $portinfo(revision) > 0} {
+            set latest_revision $portinfo(revision)
+        }
+        set latest_epoch        0
+        if {[info exists portinfo(epoch)]} {
+            set latest_epoch    $portinfo(epoch)
+        }
 
-            # Compare versions, first checking epoch, then version, then revision
-            set comp_result 0
-            if {$installed_version != $latest_version} {
-                set comp_result [expr {$installed_epoch - $latest_epoch}]
-                if { $comp_result == 0 } {
-                    set comp_result [vercmp $installed_version $latest_version]
-                }
-            }
+        # Compare versions, first checking epoch, then version, then revision
+        set comp_result 0
+        if {[$i version] != $latest_version} {
+            set comp_result [expr {[$i epoch] - $latest_epoch}]
             if { $comp_result == 0 } {
-                set comp_result [expr {$installed_revision - $latest_revision}]
+                set comp_result [vercmp [$i version] $latest_version]
             }
-            if {$comp_result == 0} {
-                set regref [registry::open_entry $portname $installed_version $installed_revision $installed_variants $installed_epoch]
-                set os_platform_installed [registry::property_retrieve $regref os_platform]
-                set os_major_installed [registry::property_retrieve $regref os_major]
-                set cxx_stdlib_installed [registry::property_retrieve $regref cxx_stdlib]
-                set cxx_stdlib_overridden [registry::property_retrieve $regref cxx_stdlib_overridden]
-                if {${macports::cxx_stdlib} eq "libc++"} {
-                    set wrong_stdlib libstdc++
-                } else {
-                    set wrong_stdlib libc++
-                }
-                if {($os_platform_installed ni [list any "" 0] && $os_major_installed ni [list "" 0]
-                    && ($os_platform_installed != ${macports::os_platform} 
-                        || ($os_major_installed ne "any" && $os_major_installed != ${macports::os_major})))
-                    || ($cxx_stdlib_overridden == 0 && $cxx_stdlib_installed eq $wrong_stdlib)} {
-                    set comp_result -1
-                }
+        }
+        if { $comp_result == 0 } {
+            set comp_result [expr {[$i revision] - $latest_revision}]
+        }
+        if {$comp_result == 0} {
+            if {([$i os_platform] ni [list any "" 0] && [$i os_major] ni [list "" 0]
+                && ([$i os_platform] ne ${macports::os_platform}
+                    || ([$i os_major] ne "any" && [$i os_major] != ${macports::os_major})))
+                || ([$i cxx_stdlib_overridden] == 0 && [$i cxx_stdlib] eq $wrong_stdlib)} {
+                set comp_result -1
             }
+        }
 
-            # Add outdated ports to our results list
-            if { $comp_result < 0 } {
-                add_to_portlist_with_defaults results [dict create name $portname version $installed_compound variants [split_variants $installed_variants]]
-            }
+        # Add outdated ports to our results list
+        if { $comp_result < 0 } {
+            add_to_portlist_with_defaults results [dict create name $portname version $installed_compound variants [split_variants [$i variants]]]
         }
     }
 
