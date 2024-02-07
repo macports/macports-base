@@ -630,25 +630,14 @@ proc get_obsolete_ports {} {
 
 # return ports that have registry property $propname set to $propval
 proc get_ports_with_prop {propname propval} {
-    set ilist [list]
-    if { [catch {set ilist [registry::installed]} result] } {
-        if {$result ne "Registry error: No ports registered as installed."} {
-            ui_debug $::errorInfo
-            fatal "port installed failed: $result"
-        }
+    if {[catch {set ilist [registry::entry search $propname $propval]} result]} {
+        ui_debug $::errorInfo
+        fatal "registry search failed: $result"
     }
 
     set results [list]
     foreach i $ilist {
-        set iname [lindex $i 0]
-        set iversion [lindex $i 1]
-        set irevision [lindex $i 2]
-        set ivariants [lindex $i 3]
-        set iepoch [lindex $i 5]
-        set regref [registry::open_entry $iname $iversion $irevision $ivariants $iepoch]
-        if {[registry::property_retrieve $regref $propname] eq $propval} {
-            add_to_portlist_with_defaults results [dict create name $iname version "${iversion}_${irevision}" variants [split_variants $ivariants]]
-        }
+        add_to_portlist_with_defaults results [dict create name [$i name] version [$i version]_[$i revision] variants [split_variants [$i variants]]]
     }
 
     # Return the list of ports, sorted
