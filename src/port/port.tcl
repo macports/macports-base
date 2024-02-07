@@ -755,8 +755,6 @@ proc get_rdepends_ports {portname} {
 
 
 proc get_dep_ports {portname recursive} {
-    global global_variations
-
     # look up portname
     if {[catch {mportlookup $portname} result]} {
         ui_debug $::errorInfo
@@ -778,7 +776,7 @@ proc get_dep_ports {portname recursive} {
     set porturl [dict get $portinfo porturl]
 
     # open portfile
-    if {[catch {set mport [mportopen $porturl [dict create subport $portname] [array get global_variations]]} result]} {
+    if {[catch {set mport [mportopen $porturl [dict create subport $portname] [array get ::global_variations]]} result]} {
         ui_debug $::errorInfo
         if {[macports::ui_isset ports_processall]} {
             ui_error "Unable to open port $portname: $result"
@@ -827,7 +825,7 @@ proc get_dep_ports {portname recursive} {
                     set porturl [dict get $portinfo porturl]
 
                     # open its portfile
-                    if {[catch {set mport [mportopen $porturl [dict create subport [dict get $portinfo name]] [array get global_variations]]} result]} {
+                    if {[catch {set mport [mportopen $porturl [dict create subport [dict get $portinfo name]] [array get ::global_variations]]} result]} {
                         ui_debug $::errorInfo
                         ui_error "Unable to open port $depname: $result"
                         continue
@@ -866,8 +864,6 @@ proc get_dep_ports {portname recursive} {
 }
 
 proc get_subports {portname} {
-    global global_variations
-
     # look up portname
     if {[catch {mportlookup $portname} result]} {
         ui_debug $::errorInfo
@@ -889,7 +885,7 @@ proc get_subports {portname} {
     set porturl [dict get $portinfo porturl]
 
     # open portfile
-    if {[catch {set mport [mportopen $porturl [dict create subport $portname] [array get global_variations]]} result]} {
+    if {[catch {set mport [mportopen $porturl [dict create subport $portname] [array get ::global_variations]]} result]} {
         ui_debug $::errorInfo
         if {[macports::ui_isset ports_processall]} {
             ui_error "Unable to open port $portname: $result"
@@ -1350,11 +1346,9 @@ proc parsePortSpec { vername varname optname {remainder ""} } {
     upvar $varname portvariants
     upvar $optname portoptions
 
-    global global_options
-
     set portversion ""
     array unset portoptions
-    array set portoptions [array get global_options]
+    array set portoptions [array get ::global_options]
     array unset portvariants
 
     # Parse port version/variants/options
@@ -1555,7 +1549,6 @@ proc action_help { action portlist opts } {
 
 
 proc action_log { action portlist opts } {
-    global global_options
     if {[require_portlist portlist]} {
         return 1
     }
@@ -1608,14 +1601,14 @@ proc action_log { action portlist opts } {
             set data [read $fp]
             set data [split $data "\n"]
 
-            if {[info exists global_options(ports_log_phase)]} {
-                set phase $global_options(ports_log_phase);
+            if {[info exists ::global_options(ports_log_phase)]} {
+                set phase $::global_options(ports_log_phase);
             } else {
                 set phase "\[a-z\]*"
             }
 
-            if {[info exists global_options(ports_log_level)]} {
-                set index [lsearch -exact ${macports::ui_priorities} $global_options(ports_log_level)]
+            if {[info exists ::global_options(ports_log_level)]} {
+                set index [lsearch -exact ${macports::ui_priorities} $::global_options(ports_log_level)]
                 if {$index == -1} {
                     set prefix ""
                 } else {
@@ -1641,8 +1634,6 @@ proc action_log { action portlist opts } {
 
 
 proc action_info { action portlist opts } {
-    global global_options global_variations
-
     set status 0
     if {[require_portlist portlist]} {
         return 1
@@ -1674,7 +1665,7 @@ proc action_info { action portlist opts } {
         if {!$index_only} {
             # Add any global_variations to the variations
             # specified for the port (so we get e.g. dependencies right)
-            set merged_variations [dict merge [array get global_variations] $variations]
+            set merged_variations [dict merge [array get ::global_variations] $variations]
 
             if {![dict exists $options subport]} {
                 dict set options subport $portname
@@ -1771,9 +1762,9 @@ proc action_info { action portlist opts } {
             }
             # replace all occurrences of --depends with the expanded options
             while 1 {
-                set order_pos [lsearch -exact $global_options(options_${action}_order) ports_info_depends]
+                set order_pos [lsearch -exact $::global_options(options_${action}_order) ports_info_depends]
                 if {$order_pos != -1} {
-                    set global_options(options_${action}_order) [lreplace $global_options(options_${action}_order) \
+                    set ::global_options(options_${action}_order) [lreplace $::global_options(options_${action}_order) \
                         $order_pos $order_pos {*}$all_depends_options]
                 } else {
                     break
@@ -1821,7 +1812,7 @@ proc action_info { action portlist opts } {
         set fields [list]
 
         # This contains all parameters in order given on command line
-        set opts_action $global_options(options_${action}_order)
+        set opts_action $::global_options(options_${action}_order)
         # Get the display fields in order provided on command line
         #  ::struct::set intersect does not keep order of items
         set opts_todo [list]
@@ -1964,9 +1955,9 @@ proc action_info { action portlist opts } {
                     if {[dict exists $variations $v]} {
                         # selected by command line, prefixed with +/-
                         set varmodifier [dict get $variations $v]
-                    } elseif {[info exists global_variations($v)]} {
+                    } elseif {[info exists ::global_variations($v)]} {
                         # selected by variants.conf, prefixed with (+)/(-)
-                        set varmodifier "($global_variations($v))"
+                        set varmodifier "($::global_variations($v))"
                         # Retrieve additional information from the new key.
                     } elseif {[dict exists $portinfo vinfo $v is_default]} {
                         set varmodifier "\[[dict get $portinfo vinfo $v is_default]]"
@@ -2091,7 +2082,7 @@ proc action_notes { action portlist opts } {
 
         # Add any global_variations to the variations
         # specified for the port
-        set merged_variations [dict merge [array get global_variations] $variations]
+        set merged_variations [dict merge [array get ::global_variations] $variations]
         if {![dict exists $options subport]} {
             dict set options subport $portname
         }
