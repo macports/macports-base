@@ -653,46 +653,33 @@ proc get_unrequested_ports {} {
 }
 
 proc get_leaves_ports {} {
-    set ilist [list]
-    if { [catch {set ilist [registry::installed]} result] } {
-        if {$result ne "Registry error: No ports registered as installed."} {
-            ui_debug $::errorInfo
-            fatal "port installed failed: $result"
-        }
+    if {[catch {set ilist [registry::entry imaged]} result]} {
+        ui_debug $::errorInfo
+        fatal "getting installed ports failed: $result"
     }
-    registry::open_dep_map
     set results [list]
     foreach i $ilist {
-        set iname [lindex $i 0]
-        if {[registry::list_dependents $iname] eq ""} {
-            add_to_portlist_with_defaults results [dict create name $iname version "[lindex $i 1]_[lindex $i 2]" variants [split_variants [lindex $i 3]]]
+        if {[$i dependents] eq ""} {
+            add_to_portlist_with_defaults results [dict create name [$i name] version [$i version]_[$i revision] variants [split_variants [$i variants]]]
         }
     }
-    return [portlist_sort [opIntersection $results [get_unrequested_ports]]]
+    return [portlist_sort [opComplement $results [get_requested_ports]]]
 }
 
 proc get_rleaves_ports {} {
-    if { [catch {set ilist [get_unrequested_ports]} result] } {
-        if {$result ne "Registry error: No ports registered as installed."} {
-            ui_debug $::errorInfo
-            fatal "port installed failed: $result"
-        }
-    }
-    registry::open_dep_map
+    set ilist [get_unrequested_ports]
     set requested [get_requested_ports]
     set results [list]
     foreach i $ilist {
-        set iname [lindex $i 9]
-        set deplist [get_dependent_ports $iname 1]
+        set deplist [get_dependent_ports [dict get $i name] 1]
         if {$deplist eq "" || [opIntersection $deplist $requested] eq ""} {
-            add_to_portlist_with_defaults results $i
+            add_to_portlist results $i
         }
     }
-    return [portlist_sort $results]
+    return $results
 }
 
 proc get_dependent_ports {portname recursive} {
-    registry::open_dep_map
     set deplist [registry::list_dependents $portname]
     # could return specific versions here using registry2.0 features
     set results [list]
