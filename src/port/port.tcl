@@ -2413,11 +2413,17 @@ proc action_setrequested { action portlist opts } {
     set val [string equal $action "setrequested"]
     foreachport $portlist {
         set composite_version [composite_version $portversion $variations]
-        if {![catch {set ilist [registry::installed $portname $composite_version]} result]} {
-            ui_info "Setting requested flag for $portname to $val"
-            foreach i $ilist {
-                set regref [registry::open_entry $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
-                registry::property_store $regref requested $val
+        if {![catch {registry::entry imaged $portname} result]} {
+            foreach i $result {
+                set fullvers [$i version]_[$i revision][$i variants]
+                if {$composite_version eq "" || $composite_version eq $fullvers} {
+                    ui_info "Setting requested flag for $portname @$fullvers to $val"
+                    $i requested $val
+                    set any_match 1
+                }
+            }
+            if {![info exists any_match]} {
+                break_softcontinue "[string trim "$portname $composite_version"] is not installed" 1 status
             }
         } else {
             ui_debug $::errorInfo
