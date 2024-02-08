@@ -397,7 +397,7 @@ if {[info exists outdir]} {
 puts "Creating port index in $outdir"
 set outpath [file join $outdir PortIndex]
 # open old index for comparison
-if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
+if {[file isfile $outpath]} {
     set oldmtime [file mtime $outpath]
     set attrlist [list -permissions]
     if {[getuid] == 0} {
@@ -407,13 +407,18 @@ if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
         lappend oldattrs $attr [file attributes $outpath $attr]
     }
     set newest $oldmtime
-    if {![catch {set oldfd [open $outpath r]}] && ![catch {set quickfd [open ${outpath}.quick r]}]} {
-        if {![catch {set quicklist [read $quickfd]}]} {
-            foreach entry [split $quicklist "\n"] {
-                set qindex([lindex $entry 0]) [lindex $entry 1]
-            }
+    if {![catch {open $outpath r} oldfd]} {
+        set quicklist [list]
+        if {![file isfile ${outpath}.quick]} {
+            catch {set quicklist [mports_generate_quickindex ${outpath}]}
+        } elseif {![catch {open ${outpath}.quick r} quickfd]} {
+            catch {set quicklist [read $quickfd]}
+            close $quickfd
         }
-        close $quickfd
+        foreach entry [split $quicklist "\n"] {
+            set qindex([lindex $entry 0]) [lindex $entry 1]
+        }
+        unset quicklist
     }
 } else {
     set newest 0
