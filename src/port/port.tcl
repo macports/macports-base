@@ -2149,7 +2149,6 @@ proc action_provides { action portlist opts } {
             }
         }
     }
-    registry::close_file_map
 
     return 0
 }
@@ -2163,11 +2162,8 @@ proc action_activate { action portlist opts } {
     foreachport $portlist {
         set composite_version [composite_version $portversion $variations]
         if {![dict exists $options ports_activate_no-exec]
-            && ![catch {set ilist [registry::installed $portname $composite_version]}]
-            && [llength $ilist] == 1} {
+            && ![catch {registry_installed $portname $composite_version} regref]} {
 
-            set i [lindex $ilist 0]
-            set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
             if {[$regref installtype] eq "image" && [registry::run_target $regref activate $options]} {
                 continue
             }
@@ -2195,17 +2191,13 @@ proc action_deactivate { action portlist opts } {
     foreachport $portlist {
         set composite_version [composite_version $portversion $variations]
         if {![dict exists $options ports_deactivate_no-exec]
-            && ![catch {set ilist [registry::active $portname]}]} {
+            && ![catch {registry::entry installed $portname} ilist]
+            && [llength $ilist] == 1} {
 
-            set i [lindex $ilist 0]
-            set iversion [lindex $i 1]
-            set irevision [lindex $i 2]
-            set ivariants [lindex $i 3]
-            if {$composite_version eq "" || $composite_version eq "${iversion}_${irevision}${ivariants}"} {
-                set regref [registry::entry open $portname $iversion $irevision $ivariants [lindex $i 5]]
-                if {[$regref installtype] eq "image" && [registry::run_target $regref deactivate $options]} {
-                    continue
-                }
+            set regref [lindex $ilist 0]
+            if {($composite_version eq "" || $composite_version eq "[$regref version]_[$regref revision][$regref variants]")
+                && [$regref installtype] eq "image" && [registry::run_target $regref deactivate $options]} {
+                continue
             }
         }
         if {![macports::global_option_isset ports_dryrun]} {
@@ -3171,7 +3163,6 @@ proc action_contents { action portlist opts } {
             ui_notice "Port $portname is not installed."
         }
     }
-    registry::close_file_map
 
     return 0
 }
