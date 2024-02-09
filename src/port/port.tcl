@@ -2926,56 +2926,46 @@ proc action_installed { action portlist opts } {
         set restrictedList 1
         foreachport $portlist {
             set composite_version [composite_version $portversion $variations]
-            if { [catch {set ilist [concat $ilist [registry::installed $portname $composite_version]]} result] } {
-                if {![string match "* not registered as installed." $result]} {
-                    ui_debug $::errorInfo
-                    break_softcontinue "port installed failed: $result" 1 status
-                }
+            if {[catch {lappend ilist {*}[registry_installed $portname $composite_version no no]} result]} {
+                ui_debug $::errorInfo
+                break_softcontinue "port installed failed: $result" 1 status
             }
         }
     } else {
-        if { [catch {set ilist [registry::installed]} result] } {
-            if {$result ne "Registry error: No ports registered as installed."} {
-                ui_debug $::errorInfo
-                ui_error "port installed failed: $result"
-                set status 1
-            }
+        if {[catch {set ilist [registry::entry imaged]} result]} {
+            ui_debug $::errorInfo
+            ui_error "port installed failed: $result"
+            set status 1
         }
     }
     if { [llength $ilist] > 0 } {
         ui_notice "The following ports are currently installed:"
-        foreach i [portlist_sortint $ilist] {
-            set iname [lindex $i 0]
-            set iversion [lindex $i 1]
-            set irevision [lindex $i 2]
-            set ivariants [lindex $i 3]
-            set iactive [lindex $i 4]
+        foreach i [portlist_sortregrefs $ilist] {
             set extra ""
             if {[macports::ui_isset ports_verbose]} {
-                set regref [registry::open_entry $iname $iversion $irevision $ivariants [lindex $i 5]]
-                set rvariants [registry::property_retrieve $regref requested_variants]
+                set rvariants [$i requested_variants]
                 if {$rvariants != 0} {
                     append extra " requested_variants='$rvariants'"
                 }
-                set os_platform [registry::property_retrieve $regref os_platform]
-                set os_major [registry::property_retrieve $regref os_major]
+                set os_platform [$i os_platform]
+                set os_major [$i os_major]
                 if {$os_platform != 0 && $os_platform ne "" && $os_major != 0 && $os_major ne ""} {
                     append extra " platform='$os_platform $os_major'"
                 }
-                set archs [registry::property_retrieve $regref archs]
+                set archs [$i archs]
                 if {$archs != 0 && $archs ne ""} {
                     append extra " archs='$archs'"
                 }
-                set date [registry::property_retrieve $regref date]
+                set date [$i date]
                 if {$date ne ""} {
                     append extra " date='[clock format $date -format "%Y-%m-%dT%H:%M:%S%z"]'"
                 }
             }
-            if { $iactive == 0 } {
-                puts "  $iname @${iversion}_${irevision}${ivariants}${extra}"
-            } elseif { $iactive == 1 } {
-                puts "  $iname @${iversion}_${irevision}${ivariants} (active)${extra}"
+            set activestr ""
+            if {[$i state] eq "installed"} {
+                set activestr " (active)"
             }
+            puts "  [$i name] @[$i version]_[$i revision][$i variants]${activestr}${extra}"
         }
     } elseif { $restrictedList } {
         ui_notice "None of the specified ports are installed."
