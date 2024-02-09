@@ -145,8 +145,12 @@ proc map_friendly_field_names { field } {
 }
 
 
-proc registry_installed {portname {portversion ""}} {
-    set possible_matches [registry::entry imaged $portname]
+proc registry_installed {portname {portversion ""} {require_single yes} {only_active no}} {
+    if {!$only_active} {
+        set possible_matches [registry::entry imaged $portname]
+    } else {
+        set possible_matches [registry::entry installed $portname]
+    }
     if {$portversion ne ""} {
         set matches [list]
         foreach p $possible_matches {
@@ -157,6 +161,10 @@ proc registry_installed {portname {portversion ""}} {
         }
     } else {
         set matches $possible_matches
+    }
+
+    if {!$require_single} {
+        return $matches
     }
 
     if {[llength $matches] > 1} {
@@ -2525,45 +2533,31 @@ proc action_dependents { action portlist opts } {
     }
     set ilist [list]
 
-    registry::open_dep_map
-
     set status 0
     foreachport $portlist {
         set composite_version [composite_version $portversion $variations]
-        if { [catch {set ilist [registry::installed $portname $composite_version]} result] } {
-            ui_debug $::errorInfo
-            break_softcontinue "$result" 1 status
-        } else {
-            # choose the active version if there is one
-            set index 0
-            foreach i $ilist {
-                if {[lindex $i 4]} {
-                    set found 1
-                    break
-                }
-                incr index
-            }
-            if {![info exists found]} {
-                set index 0
-            }
-            # set portname again since the one we were passed may not have had the correct case
-            set portname [lindex $ilist $index 0]
-            set iversion [lindex $ilist $index 1]
-            set irevision [lindex $ilist $index 2]
-            set ivariants [lindex $ilist $index 3]
+        # choose the active version if there is one
+        set ilist [registry_installed $portname $composite_version no yes]
+        if {$ilist eq ""} {
+            set ilist [registry_installed $portname $composite_version no no]
         }
+        if {$ilist eq ""} {
+            break_softcontinue "[string trim "$portname $composite_version"] is not installed" 1 status
+        }
+        set regref [lindex $ilist 0]
+        set portname [$regref name]
 
-        set deplist [registry::list_dependents $portname $iversion $irevision $ivariants]
+        set deplist [portlist_sortregrefs [$regref dependents]]
         if { [llength $deplist] > 0 } {
             if {$action eq "rdependents"} {
                 set toplist $deplist
                 while 1 {
                     set newlist [list]
                     foreach dep $deplist {
-                        set depname [lindex $dep 2]
+                        set depname [$dep name]
                         if {![info exists seen($depname)]} {
                             set seen($depname) 1
-                            set rdeplist [registry::list_dependents $depname]
+                            set rdeplist [portlist_sortregrefs [$dep dependents]]
                             foreach rdep $rdeplist {
                                 lappend newlist $rdep
                             }
@@ -2579,6 +2573,7 @@ proc action_dependents { action portlist opts } {
                 set portstack [list $toplist]
                 set pos_stack [list 0]
                 array unset seen
+                set rdependents_full [expr {[dict exists $options ports_rdependents_full] && [string is true -strict [dict get $options ports_rdependents_full]]}]
                 ui_notice "The following ports are dependent on ${portname}:"
                 while 1 {
                     set cur_portlist [lindex $portstack end]
@@ -2593,10 +2588,14 @@ proc action_dependents { action portlist opts } {
                         }
                     }
                     set cur_port [lindex $cur_portlist $cur_pos]
-                    set cur_portname [lindex $cur_port 2]
+                    set cur_portname [$cur_port name]
                     set spaces [string repeat " " [expr {[llength $pos_stack] * 2}]]
-                    if {![info exists seen($cur_portname)] || ([dict exists $options ports_rdependents_full] && [string is true -strict [dict get $options ports_rdependents_full]])} {
-                        puts "${spaces}${cur_portname}"
+                    if {![info exists seen($cur_portname)] || $rdependents_full} {
+                        if {$rdependents_full || [macports::ui_isset ports_verbose]} {
+                            puts "${spaces}${cur_portname} @[$cur_port version]_[$cur_port revision][$cur_port variants]"
+                        } else {
+                            puts "${spaces}${cur_portname}"
+                        }
                         set seen($cur_portname) 1
                         incr cur_pos
                         set pos_stack [lreplace $pos_stack end end $cur_pos]
@@ -2611,13 +2610,17 @@ proc action_dependents { action portlist opts } {
                 }
             } else {
                 foreach dep $deplist {
-                    set depport [lindex $dep 2]
+                    set depportname [$dep name]
+                    if {[info exists seen($depportname)] && ([macports::ui_isset ports_quiet] || ![macports::ui_isset ports_verbose])} {
+                        continue
+                    }
+                    set seen($depportname) 1
                     if {[macports::ui_isset ports_quiet]} {
-                        ui_msg "$depport"
+                        ui_msg "$depportname"
                     } elseif {![macports::ui_isset ports_verbose]} {
-                        ui_msg "$depport depends on $portname"
+                        ui_msg "$depportname depends on $portname"
                     } else {
-                        ui_msg "$depport depends on $portname (by [lindex $dep 1]:)"
+                        ui_msg "$depportname @[$dep version]_[$dep revision][$dep variants] depends on $portname (by port:)"
                     }
                 }
             }

@@ -179,6 +179,27 @@ proc portlist_sortint {portlist} {
     return [lsort -command portlist_compareint $portlist]
 }
 
+proc portlist_compareregrefs {a b} {
+    set byname [string compare -nocase [$a name] [$b name]]
+    if {$byname != 0} {
+        return $byname
+    }
+    set byvers [vercmp [$a version] [$b version]]
+    if {$byvers != 0} {
+        return $byvers
+    }
+    set byrevision [expr {[$a revision] - [$b revision]}]
+    if {$byrevision != 0} {
+        return $byrevision
+    }
+    return [string compare -nocase [$a variants] [$b variants]]
+}
+
+# Sort a list of registry references
+proc portlist_sortregrefs {reflist} {
+    return [lsort -command portlist_compareregrefs $reflist]
+}
+
 proc unique_entries {entries} {
     # Form the list of all the unique elements in the list a,
     # considering only the port fullname, and taking the first
