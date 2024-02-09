@@ -2886,7 +2886,7 @@ proc action_uninstall { action portlist opts } {
     set portlist [portlist_sortdependents $portlist]
 
     foreachport $portlist {
-        if {![registry::entry_exists_for_name $portname]} {
+        if {[registry::entry imaged $portname] eq ""} {
             # if the code path arrives here the port either isn't installed, or
             # it doesn't exist at all. We can't be sure, but we can check the
             # portindex whether a port by that name exists (in which case not
@@ -2900,12 +2900,8 @@ proc action_uninstall { action portlist opts } {
         }
         set composite_version [composite_version $portversion $variations]
         if {![dict exists $options ports_uninstall_no-exec]
-            && ![catch {set ilist [registry::installed $portname $composite_version]}]
-            && [llength $ilist] == 1} {
+            && ![catch {registry_installed $portname $composite_version} regref]} {
 
-            set i [lindex $ilist 0]
-            set iactive [lindex $i 4]
-            set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
             if {[registry::run_target $regref uninstall $options]} {
                 continue
             }
