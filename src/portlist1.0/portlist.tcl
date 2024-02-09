@@ -116,6 +116,8 @@ proc foreachport {portlist block} {
             set options [dict get $portspec options]
             if {[dict exists $portspec metadata]} {
                 set portmetadata [dict get $portspec metadata]
+            } else {
+                set portmetadata ""
             }
         }
 
