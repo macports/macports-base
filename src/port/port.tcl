@@ -3188,27 +3188,31 @@ proc action_space {action portlist opts} {
     set spaceall 0.0
     foreachport $portlist {
         set space 0.0
-        set files [registry::port_registered $portname]
-        if { $files != 0 } {
-            if { [llength $files] > 0 } {
-                foreach file $files {
-                    catch {
-                        set space [expr {$space + [file size $file]}]
-                    }
+        set regref [lindex [registry::entry installed $portname] 0]
+        if {$regref eq ""} {
+            puts stderr "Port $portname is not active."
+            continue
+        }
+        if {$portversion ne "" && $portversion ne "[$regref version]_[$regref revision]"} {
+            ui_warn "Active version of [$regref name] is not $portversion but [$regref version]_[$regref revision]"
+        }
+        set files [$regref files]
+        if {$files != 0 && [llength $files] > 0} {
+            foreach file $files {
+                catch {
+                    set space [expr {$space + [file size $file]}]
                 }
-                if {![dict exists $options ports_space_total] || [dict get $options ports_space_total] ne "yes"} {
-                    set msg "[bytesize $space $units] $portname"
-                    if { $portversion ne {} } {
-                        append msg " @$portversion"
-                    }
-                    puts $msg
-                }
-                set spaceall [expr {$space + $spaceall}]
-            } else {
-                puts stderr "Port $portname does not contain any file or is not active."
             }
+            if {![dict exists $options ports_space_total] || [dict get $options ports_space_total] ne "yes"} {
+                set msg "[bytesize $space $units] $portname"
+                if { $portversion ne {} } {
+                    append msg " @[$regref version]_[$regref revision][$regref variants]"
+                }
+                puts $msg
+            }
+            set spaceall [expr {$space + $spaceall}]
         } else {
-            puts stderr "Port $portname is not installed."
+            puts stderr "Port $portname does not have any files registered."
         }
     }
     if {[llength $portlist] > 1 || ([dict exists $options ports_space_total] && [dict get $options ports_space_total] eq "yes")} {
