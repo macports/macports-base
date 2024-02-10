@@ -4717,17 +4717,14 @@ namespace eval portclient::progress {
                 initDelay
             }
             update {
-                # the for loop is a simple hack because Tcl 8.4 doesn't have
-                # lassign
-                foreach {now total} $args {
-                    if {[showProgress $now $total] eq "yes"} {
-                        set barPrefix "      "
-                        set barPrefixLen [string length $barPrefix]
-                        if {$total != 0} {
-                            progressbar $now $total [barWidth $barPrefixLen] $barPrefix
-                        } else {
-                            unprogressbar [barWidth $barPrefixLen] $barPrefix
-                        }
+                lassign $args now total
+                if {[showProgress $now $total] eq "yes"} {
+                    set barPrefix "      "
+                    set barPrefixLen [string length $barPrefix]
+                    if {$total != 0} {
+                        progressbar $now $total [barWidth $barPrefixLen] $barPrefix
+                    } else {
+                        unprogressbar [barWidth $barPrefixLen] $barPrefix
                     }
                 }
             }
@@ -4768,25 +4765,22 @@ namespace eval portclient::progress {
                 initDelay
             }
             update {
-                # the for loop is a simple hack because Tcl 8.4 doesn't have
-                # lassign
-                foreach {type total now speed} $args {
-                    if {[showProgress $now $total] eq "yes"} {
-                        set barPrefix "      "
-                        set barPrefixLen [string length $barPrefix]
-                        if {$total != 0} {
-                            set barSuffix [format "        speed: %-13s" "[bytesize $speed {} "%.1f"]/s"]
-                            set barSuffixLen [string length $barSuffix]
-                            set barWidth [barWidth [expr {$barPrefixLen + $barSuffixLen}]]
+                lassign $args type total now speed
+                if {[showProgress $now $total] eq "yes"} {
+                    set barPrefix "      "
+                    set barPrefixLen [string length $barPrefix]
+                    if {$total != 0} {
+                        set barSuffix [format "        speed: %-13s" "[bytesize $speed {} "%.1f"]/s"]
+                        set barSuffixLen [string length $barSuffix]
+                        set barWidth [barWidth [expr {$barPrefixLen + $barSuffixLen}]]
 
-                            progressbar $now $total $barWidth $barPrefix $barSuffix
-                        } else {
-                            set barSuffix [format " %-10s     speed: %-13s" [bytesize $now {} "%6.1f"] "[bytesize $speed {} "%.1f"]/s"]
-                            set barSuffixLen [string length $barSuffix]
-                            set barWidth [barWidth [expr {$barPrefixLen + $barSuffixLen}]]
+                        progressbar $now $total $barWidth $barPrefix $barSuffix
+                    } else {
+                        set barSuffix [format " %-10s     speed: %-13s" [bytesize $now {} "%6.1f"] "[bytesize $speed {} "%.1f"]/s"]
+                        set barSuffixLen [string length $barSuffix]
+                        set barWidth [barWidth [expr {$barPrefixLen + $barSuffixLen}]]
 
-                            unprogressbar $barWidth $barPrefix $barSuffix
-                        }
+                        unprogressbar $barWidth $barPrefix $barSuffix
                     }
                 }
             }
