@@ -9,9 +9,10 @@ package require Thread
 # Globals
 set full_reindex 0
 set permit_error 0
-set stats(total) 0
-set stats(failed) 0
-set stats(skipped) 0
+set stats [dict create \
+           total 0 \
+           failed 0 \
+           skipped 0]
 set extended_mode 0
 array set ui_options        [list ports_no_old_index_warning 1]
 array set global_options    [list ports_no_load_quick_index 1]
@@ -44,13 +45,13 @@ package require macports
 package require Thread
 
 proc _read_index {idx} {
-    set offset $::qindex($idx)
+    set offset [dict get $::qindex $idx]
     thread::mutex lock [tsv::get mutexes PortIndex]
     try {
         seek $::oldfd $offset
         gets $::oldfd in_line
 
-        set len  [lindex $in_line 1]
+        set len [lindex $in_line 1]
         set out_line [read $::oldfd [expr {$len - 1}]]
     } finally {
         thread::mutex unlock [tsv::get mutexes PortIndex]
@@ -60,54 +61,42 @@ proc _read_index {idx} {
     return [list $name $len $out_line]
 }
 
-proc _index_from_portinfo {portinfoname {is_subport no}} {
-    upvar $portinfoname portinfo
+proc _index_from_portinfo {portinfo {is_subport no}} {
 
-    array set keep_portinfo {}
-    foreach key [array names ::keepkeys] {
-        # filter keys
-        if {![info exists portinfo($key)]} {
-            continue
-        }
-
-        # copy values we want to keep
-        set keep_portinfo($key) $portinfo($key)
-    }
+    set keep_portinfo [dict filter $portinfo script {key val} {
+        dict exists $::keepkeys $key
+    }]
 
     # if this is not a subport, add the "subports" key
-    if {!$is_subport && [info exists portinfo(subports)]} {
-        set keep_portinfo(subports) $portinfo(subports)
+    if {!$is_subport && [dict exists $portinfo subports]} {
+        dict set keep_portinfo subports [dict get $portinfo subports]
     }
 
-    set output [array get keep_portinfo]
-    set len [expr {[string length $output] + 1}]
-    return [list $portinfo(name) $len $output]
+    set len [expr {[string length $keep_portinfo] + 1}]
+    return [list [dict get $portinfo name] $len $keep_portinfo]
 }
 
-proc _open_port {portinfo_name portdir absportdir port_options_name {subport {}}} {
-    upvar $portinfo_name portinfo
-    upvar $port_options_name port_options
+proc _open_port {portdir absportdir port_options {subport {}}} {
 
     # Make sure $prefix expands to '${prefix}' so that the PortIndex is
     # portable across prefixes, see https://trac.macports.org/ticket/53169 and
     # https://trac.macports.org/ticket/17182.
     macports_try -pass_signal {
         set macports::prefix {${prefix}}
-        if {$subport eq {}} {
-            set interp [mportopen file://$absportdir $port_options]
-        } else {
-            set interp [mportopen file://$absportdir [concat $port_options subport $subport]]
+        if {$subport ne {}} {
+            dict set port_options subport $subport
         }
+        set mport [mportopen file://$absportdir $port_options]
     } finally {
         # Restore prefix to the previous value
         set macports::prefix $::save_prefix
     }
 
-    array unset portinfo
-    array set portinfo [mportinfo $interp]
-    mportclose $interp
+    set portinfo [mportinfo $mport]
+    mportclose $mport
 
-    set portinfo(portdir) $portdir
+    dict set portinfo portdir $portdir
+    return $portinfo
 }
 
 proc pindex {portdir jobnum {subport {}}} {
@@ -123,16 +112,15 @@ proc pindex {portdir jobnum {subport {}}} {
             set is_subport 0
         }
         # try to reuse the existing entry if it's still valid
-        if {$::full_reindex != 1 && [info exists ::qindex($qname)]} {
+        if {$::full_reindex != 1 && [dict exists $::qindex $qname]} {
             macports_try -pass_signal {
                 set mtime [file mtime $portfile]
                 if {$::oldmtime >= $mtime} {
-                    lassign [_read_index $qname] name len line
-                    array set portinfo $line
+                    lassign [_read_index $qname] name len portinfo
 
                     # reuse entry if it was made from the same portdir
-                    if {[info exists portinfo(portdir)] && $portinfo(portdir) eq $portdir} {
-                        tsv::set output $jobnum [list $name $len $line]
+                    if {[dict exists $portinfo portdir] && [dict get $portinfo portdir] eq $portdir} {
+                        tsv::set output $jobnum [list $name $len $portinfo]
 
                         if {!$is_subport} {
                             if {[info exists ::ui_options(ports_debug)]} {
@@ -140,8 +128,8 @@ proc pindex {portdir jobnum {subport {}}} {
                             }
 
                             # report any subports
-                            if {[info exists portinfo(subports)]} {
-                                tsv::set subports $jobnum $portinfo(subports)
+                            if {[dict exists $portinfo subports]} {
+                                tsv::set subports $jobnum [dict get $portinfo subports]
                             }
                         }
 
@@ -158,19 +146,19 @@ proc pindex {portdir jobnum {subport {}}} {
         }
 
         macports_try -pass_signal {
-            _open_port portinfo $portdir $absportdir ::port_options $subport
+            set portinfo [_open_port $portdir $absportdir $::port_options $subport]
             if {$is_subport} {
                 puts "Adding subport $subport"
             } else {
                 puts "Adding port $portdir"
             }
 
-            tsv::set output $jobnum [_index_from_portinfo portinfo $is_subport]
+            tsv::set output $jobnum [_index_from_portinfo $portinfo $is_subport]
             tsv::set mtime $jobnum [file mtime $portfile]
 
             # report this portfile's subports (if any)
-            if {!$is_subport && [info exists portinfo(subports)]} {
-                tsv::set subports $jobnum $portinfo(subports)
+            if {!$is_subport && [dict exists $portinfo subports]} {
+                tsv::set subports $jobnum [dict get $portinfo subports]
             }
         } on error {eMessage} {
             if {$is_subport} {
@@ -197,8 +185,8 @@ proc pindex {portdir jobnum {subport {}}} {
 
 proc init_threads {} {
     append ::worker_init_script \
-        [list array set qindex [array get ::qindex]] \n \
-        [list array set keepkeys [array get ::keepkeys]] \n \
+        [list set qindex $::qindex] \n \
+        [list set keepkeys $::keepkeys] \n \
         [list array set ui_options [array get ::ui_options]] \n \
         [list array set global_options [array get ::global_options]] \n \
         [list set port_options $::port_options] \n \
@@ -218,25 +206,25 @@ proc init_threads {} {
     }
     set ::maxjobs [macports:get_parallel_jobs no]
     set ::poolid [tpool::create -minworkers $::maxjobs -maxworkers $::maxjobs -initcmd $::worker_init_script]
-    array set ::pending_jobs {}
+    set ::pending_jobs [dict create]
     set ::nextjobnum 0
     tsv::set mutexes PortIndex [thread::mutex create]
 }
 
 proc handle_completed_jobs {} {
-    set completed_jobs [tpool::wait $::poolid [array names ::pending_jobs]]
+    set completed_jobs [tpool::wait $::poolid [dict keys $::pending_jobs]]
     foreach completed_job $completed_jobs {
-        lassign $::pending_jobs($completed_job) jobnum portdir subport
-        unset ::pending_jobs($completed_job)
+        lassign [dict get $::pending_jobs $completed_job] jobnum portdir subport
+        dict unset ::pending_jobs $completed_job
         tsv::get status $jobnum status
         # -1 = skipped, 0 = success, 1 = fail, 99 = exit
         if {$status == 99} {
             set ::exit_fail 1
-            array unset ::pending_jobs
+            set ::pending_jobs ""
             return -code break "Interrupt"
         } elseif {$status == 1} {
-            incr ::stats(failed)
-            incr ::stats(total)
+            dict incr ::stats failed
+            dict incr ::stats total
             if {[tsv::exists output $jobnum]} {
                 tsv::unset output $jobnum
             }
@@ -246,15 +234,15 @@ proc handle_completed_jobs {} {
                 foreach nextsubport [tsv::get subports $jobnum] {
                     tsv::set status $::nextjobnum 99
                     set jobid [tpool::post -nowait $::poolid [list pindex $portdir $::nextjobnum $nextsubport]]
-                    set ::pending_jobs($jobid) [list $::nextjobnum $portdir $nextsubport]
+                    dict set ::pending_jobs $jobid [list $::nextjobnum $portdir $nextsubport]
                     incr ::nextjobnum
                 }
                 tsv::unset subports $jobnum
             }
             if {$status == -1} {
-                incr ::stats(skipped)
+                dict incr ::stats skipped
             } else {
-                incr ::stats(total)
+                dict incr ::stats total
                 tsv::get mtime $jobnum mtime
                 if {$mtime > $::newest} {
                     set ::newest $mtime
@@ -273,7 +261,7 @@ proc handle_completed_jobs {} {
 # post new job to the pool
 proc pindex_queue {portdir} {
     # Wait for a free thread
-    while {[array size ::pending_jobs] >= $::maxjobs} {
+    while {[dict size $::pending_jobs] >= $::maxjobs} {
         handle_completed_jobs
     }
     if {$::exit_fail} {
@@ -285,13 +273,13 @@ proc pindex_queue {portdir} {
     # returns due to ctrl-c etc.
     tsv::set status $::nextjobnum 99
     set jobid [tpool::post -nowait $::poolid [list pindex $portdir $::nextjobnum {}]]
-    set ::pending_jobs($jobid) [list $::nextjobnum $portdir {}]
+    dict set ::pending_jobs $jobid [list $::nextjobnum $portdir {}]
     incr ::nextjobnum
 }
 
 proc process_remaining {} {
     # let remaining jobs finish
-    while {[array size ::pending_jobs] > 0} {
+    while {[dict size $::pending_jobs] > 0} {
         handle_completed_jobs
     }
     tpool::release $::poolid
@@ -397,6 +385,7 @@ if {[info exists outdir]} {
 puts "Creating port index in $outdir"
 set outpath [file join $outdir PortIndex]
 # open old index for comparison
+set qindex ""
 if {[file isfile $outpath]} {
     set oldmtime [file mtime $outpath]
     set attrlist [list -permissions]
@@ -408,17 +397,12 @@ if {[file isfile $outpath]} {
     }
     set newest $oldmtime
     if {![catch {open $outpath r} oldfd]} {
-        set quicklist [list]
         if {![file isfile ${outpath}.quick]} {
-            catch {set quicklist [mports_generate_quickindex ${outpath}]}
+            catch {set qindex [dict create {*}[mports_generate_quickindex ${outpath}]]}
         } elseif {![catch {open ${outpath}.quick r} quickfd]} {
-            catch {set quicklist [read $quickfd]}
+            catch {set qindex [dict create {*}[read $quickfd]]}
             close $quickfd
         }
-        foreach entry [split $quicklist "\n"] {
-            set qindex([lindex $entry 0]) [lindex $entry 1]
-        }
-        unset quicklist
     }
 } else {
     set newest 0
@@ -429,18 +413,19 @@ set fd [file tempfile tempportindex mports.portindex.XXXXXXXX]
 set save_prefix ${macports::prefix}
 
 # keys for a normal portindex
+set keepkeys [dict create]
 foreach key {categories depends_fetch depends_extract depends_patch \
              depends_build depends_lib depends_run depends_test \
              description epoch homepage long_description maintainers \
              name platforms revision variants version portdir \
              replaced_by license installs_libs conflicts known_fail} {
-    set keepkeys($key) 1
+    dict set keepkeys $key 1
 }
 
 # additional keys for extended portindex (with extra information)
-if {$extended_mode eq 1 } {
+if {$extended_mode} {
     foreach key {vinfo notes} {
-        set keepkeys($key) 1
+        dict set keepkeys $key 1
     }
 }
 
@@ -471,11 +456,11 @@ file rename -force $tempportindex $outpath
 file mtime $outpath $newest
 file attributes $outpath {*}$oldattrs
 mports_generate_quickindex $outpath
-puts "\nTotal number of ports parsed:\t$stats(total)\
-      \nPorts successfully parsed:\t[expr {$stats(total) - $stats(failed)}]\
-      \nPorts failed:\t\t\t$stats(failed)\
-      \nUp-to-date ports skipped:\t$stats(skipped)\n"
+puts "\nTotal number of ports parsed:\t[dict get $stats total]\
+      \nPorts successfully parsed:\t[expr {[dict get $stats total] - [dict get $stats failed]}]\
+      \nPorts failed:\t\t\t[dict get $stats failed]\
+      \nUp-to-date ports skipped:\t[dict get $stats skipped]\n"
 
-if {${permit_error} && $stats(failed) > 0} {
+if {${permit_error} && [dict get $stats failed] > 0} {
     exit 2
 }
