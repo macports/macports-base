@@ -3730,7 +3730,7 @@ proc action_target { action portlist opts } {
             }
             if {[llength $res] < 2} {
                 # don't error for ports that are installed but not in the tree
-                if {[registry::entry_exists_for_name $portname]} {
+                if {[registry::entry imaged $portname] ne ""} {
                     ui_warn "Skipping $portname (not in the ports tree)"
                     continue
                 } else {
