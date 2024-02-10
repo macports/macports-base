@@ -5401,14 +5401,17 @@ if {[info exists global_options(ports_dir)]} {
             ui_error "port -D failed to look up $portname: no such port"
             exit 1
         }
-        array set portinfo [lindex $result 1]
-        set dir [macports::getportdir $portinfo(porturl)]
+        unset portname
+        set portinfo [lindex $result 1]
+        set dir [macports::getportdir [dict get $portinfo porturl]]
+        unset portinfo
     }
     if {[catch {cd $dir} result]} {
         ui_debug "cd $dir: $::errorCode"
         ui_error "port -D could not change directory to $dir: [lindex $::errorCode 2]"
         exit 1
     }
+    unset dir
 }
 
 # Set up some global state for our code
