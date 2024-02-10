@@ -198,7 +198,8 @@ proc add_to_portlist_with_defaults {listname portentry} {
         dict set portentry options [array get ::global_options]
     }
     # If neither portname nor url is specified, then default to the current port
-    if {![dict exists $portentry url] && ![dict exists $portentry name]} {
+    if {(![dict exists $portentry url] || [dict get $portentry url] eq "")
+             && (![dict exists $portentry name] || [dict get $portentry name] eq "")} {
         set url file://.
         set portname [url_to_portname $url]
         dict set portentry url $url
