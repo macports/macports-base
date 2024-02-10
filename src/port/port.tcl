@@ -2988,38 +2988,32 @@ proc action_outdated { action portlist opts } {
         foreach portspec $portlist {
             set portname [dict get $portspec name]
             set composite_version [composite_version [dict get $portspec version] [dict get $portspec variants]]
-            if { [catch {set ilist [concat $ilist [registry::installed $portname $composite_version]]} result] } {
-                if {![string match "* not registered as installed." $result]} {
-                    ui_debug $::errorInfo
-                    break_softcontinue "port outdated failed: $result" 1 status
-                }
-            }
-        }
-    } else {
-        if { [catch {set ilist [registry::installed]} result] } {
-            if {$result ne "Registry error: No ports registered as installed."} {
+            if {[catch {lappend ilist {*}[registry_installed $portname $composite_version no yes]} result]} {
                 ui_debug $::errorInfo
-                ui_error "port installed failed: $result"
-                set status 1
+                break_softcontinue "port outdated failed: $result" 1 status
             }
         }
+    } elseif {[catch {set ilist [registry::entry installed]} result]} {
+        ui_debug $::errorInfo
+        ui_error "port outdated failed: $result"
+        set status 1
     }
 
     set num_outdated 0
     if { [llength $ilist] > 0 } {
-        foreach i [portlist_sortint $ilist] {
+        if {${macports::cxx_stdlib} eq "libc++"} {
+            set wrong_stdlib libstdc++
+        } else {
+            set wrong_stdlib libc++
+        }
+        foreach i [portlist_sortregrefs $ilist] {
 
             # Get information about the installed port
-            set portname [lindex $i 0]
-            set installed_version [lindex $i 1]
-            set installed_revision [lindex $i 2]
+            set portname [$i name]
+            set installed_version [$i version]
+            set installed_revision [$i revision]
             set installed_compound "${installed_version}_${installed_revision}"
-
-            set is_active [lindex $i 4]
-            if {$is_active == 0} {
-                continue
-            }
-            set installed_epoch [lindex $i 5]
+            set installed_epoch [$i epoch]
 
             # Get info about the port from the index
             if {[catch {set res [mportlookup $portname]} result]} {
@@ -3063,23 +3057,16 @@ proc action_outdated { action portlist opts } {
                 }
                 set comp_result $epoch_comp_result
             } elseif {$comp_result == 0} {
-                set regref [registry::open_entry $portname $installed_version $installed_revision [lindex $i 3] $installed_epoch]
-                set os_platform_installed [registry::property_retrieve $regref os_platform]
-                set os_major_installed [registry::property_retrieve $regref os_major]
+                set os_platform_installed [$i os_platform]
+                set os_major_installed [$i os_major]
                 if {$os_platform_installed ni [list any "" 0] && $os_major_installed ni [list "" 0]
-                    && ($os_platform_installed != ${macports::os_platform} 
+                    && ($os_platform_installed ne ${macports::os_platform}
                         || ($os_major_installed ne "any" && $os_major_installed != ${macports::os_major}))} {
                     set comp_result -1
                     set reason { (platform $os_platform_installed $os_major_installed != ${macports::os_platform} ${macports::os_major})}
                 } else {
-                    set cxx_stdlib_installed [registry::property_retrieve $regref cxx_stdlib]
-                    set cxx_stdlib_overridden [registry::property_retrieve $regref cxx_stdlib_overridden]
-                    if {${macports::cxx_stdlib} eq "libc++"} {
-                        set wrong_stdlib libstdc++
-                    } else {
-                        set wrong_stdlib libc++
-                    }
-                    if {$cxx_stdlib_overridden == 0 && $cxx_stdlib_installed eq $wrong_stdlib} {
+                    set cxx_stdlib_installed [$i cxx_stdlib]
+                    if {[$i cxx_stdlib_overridden] == 0 && $cxx_stdlib_installed eq $wrong_stdlib} {
                         set comp_result -1
                         set reason { (C++ stdlib $cxx_stdlib_installed != ${macports::cxx_stdlib})}
                     }
