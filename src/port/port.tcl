@@ -745,8 +745,8 @@ proc get_rdepends_ports {portname} {
     set results [list]
     set portList [list [string tolower $portname]]
     while {[llength $portList] > 0} {
-        set aPort [lindex $portList 0]
-        set portList [lreplace $portList 0 0]
+        set aPort [lindex $portList end]
+        set portList [lreplace ${portList}[set portList {}] end end]
         if {[dict exists $::portDependenciesDict $aPort]} {
             foreach possiblyNewPort [dict get $::portDependenciesDict $aPort] {
                 set lcport [string tolower $possiblyNewPort]
@@ -2580,8 +2580,8 @@ proc action_dependents { action portlist opts } {
                     set cur_portlist [lindex $portstack end]
                     set cur_pos [lindex $pos_stack end]
                     if {$cur_pos >= [llength $cur_portlist]} {
-                        set portstack [lreplace $portstack end end]
-                        set pos_stack [lreplace $pos_stack end end]
+                        set portstack [lreplace ${portstack}[set portstack {}] end end]
+                        set pos_stack [lreplace ${pos_stack}[set pos_stack {}] end end]
                         if {[llength $portstack] <= 0} {
                             break
                         } else {
@@ -2599,7 +2599,7 @@ proc action_dependents { action portlist opts } {
                         }
                         set seen($cur_portname) 1
                         incr cur_pos
-                        set pos_stack [lreplace $pos_stack end end $cur_pos]
+                        set pos_stack [lreplace ${pos_stack}[set pos_stack {}] end end $cur_pos]
                         if {[info exists dependentsof($cur_portname)]} {
                             lappend portstack $dependentsof($cur_portname)
                             lappend pos_stack 0
@@ -2607,7 +2607,7 @@ proc action_dependents { action portlist opts } {
                         continue
                     }
                     incr cur_pos
-                    set pos_stack [lreplace $pos_stack end end $cur_pos]
+                    set pos_stack [lreplace ${pos_stack}[set pos_stack {}] end end $cur_pos]
                 }
             } else {
                 foreach dep $deplist {
@@ -2817,8 +2817,8 @@ proc action_deps { action portlist opts } {
             set cur_portlist [lindex $portstack end]
             set cur_pos [lindex $pos_stack end]
             if {$cur_pos >= [llength $cur_portlist]} {
-                set portstack [lreplace $portstack end end]
-                set pos_stack [lreplace $pos_stack end end]
+                set portstack [lreplace ${portstack}[set portstack {}] end end]
+                set pos_stack [lreplace ${pos_stack}[set pos_stack {}] end end]
                 if {[llength $portstack] <= 0} {
                     break
                 } else {
@@ -2845,7 +2845,7 @@ proc action_deps { action portlist opts } {
                     puts "${spaces}${cur_portname}${cyclic_marker}"
                 }
                 incr cur_pos
-                set pos_stack [lreplace $pos_stack end end $cur_pos]
+                set pos_stack [lreplace ${pos_stack}[set pos_stack {}] end end $cur_pos]
                 if {$cyclic_marker eq ""} {
                     if {[dict exists $depsof $cur_portname]} {
                         # Mark as currently processing this port's deps
@@ -2860,7 +2860,7 @@ proc action_deps { action portlist opts } {
                 continue
             }
             incr cur_pos
-            set pos_stack [lreplace $pos_stack end end $cur_pos]
+            set pos_stack [lreplace ${pos_stack}[set pos_stack {}] end end $cur_pos]
         }
         set separator "--\n"
     }
