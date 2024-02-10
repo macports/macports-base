@@ -3113,6 +3113,7 @@ proc action_outdated { action portlist opts } {
 
 
 proc action_contents { action portlist opts } {
+    set status 0
     if {[require_portlist portlist]} {
         return 1
     }
@@ -3127,26 +3128,34 @@ proc action_contents { action portlist opts } {
     }
 
     foreachport $portlist {
-        if { ![catch {set ilist [registry::installed $portname]} result] } {
-            # set portname again since the one we were passed may not have had the correct case
-            set portname [lindex $ilist 0 0]
+        set composite_version [composite_version $portversion $variations]
+        set ilist ""
+        if {[catch {set ilist [registry_installed $portname $composite_version no yes]} result]} {
+            ui_debug $::errorInfo
+            break_softcontinue "port contents failed: $result" 1 status
         }
-        set files [registry::port_registered $portname]
-        if { $files != 0 } {
-            if { [llength $files] > 0 } {
-                ui_notice "Port $portname contains:"
-                foreach file $files {
-                    puts [subst $outstring]
-                }
-            } else {
-                ui_notice "Port $portname does not contain any files or is not active."
+        if {$ilist ne ""} {
+            set regref [lindex $ilist 0]
+        } elseif {[catch {set regref [registry_installed $portname $composite_version yes no]} result]} {
+            ui_debug $::errorInfo
+            break_softcontinue "port contents failed: $result" 1 status
+        }
+        if {[$regref state] eq "installed"} {
+            set files [$regref files]
+        } else {
+            set files [$regref imagefiles]
+        }
+        if {$files != 0 && [llength $files] > 0} {
+            ui_notice "Port [$regref name] @[$regref version]_[$regref revision][$regref variants] contains:"
+            foreach file $files {
+                puts [subst $outstring]
             }
         } else {
-            ui_notice "Port $portname is not installed."
+            ui_notice "Port [$regref name] @[$regref version]_[$regref revision][$regref variants] does not have any files registered."
         }
     }
 
-    return 0
+    return $status
 }
 
 # expand abbreviations of size units
