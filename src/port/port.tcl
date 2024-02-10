@@ -1246,7 +1246,8 @@ proc add_ports_to_portlist_with_defaults {listname ports {overrides ""}} {
     }
     set i 0
     foreach port $ports {
-        if {![dict exists $port url] && ![dict exists $port name]} {
+        if {(![dict exists $port url] || [dict get $port url] eq "")
+                && (![dict exists $port name] || [dict get $port name] eq "")} {
             set url file://.
             set portname [url_to_portname $url]
             dict set port url $url
