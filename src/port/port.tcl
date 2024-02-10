@@ -1240,7 +1240,7 @@ proc add_ports_to_portlist_with_defaults {listname ports {overrides ""}} {
         foreach port $ports {
             if {![dict exists $port options]} {
                 dict set port options [array get ::global_options]
-                set ports [lreplace ${ports}[set ports {}] $i $i $port]
+                lset ports $i $port
             }
             incr i
         }
@@ -1256,7 +1256,7 @@ proc add_ports_to_portlist_with_defaults {listname ports {overrides ""}} {
             if {$portname eq ""} {
                 ui_error "A default port name could not be supplied."
             }
-            set ports [lreplace ${ports}[set ports {}] $i $i $port]
+            lset ports $i $port
         }
         incr i
     }
@@ -2599,7 +2599,7 @@ proc action_dependents { action portlist opts } {
                         }
                         set seen($cur_portname) 1
                         incr cur_pos
-                        set pos_stack [lreplace ${pos_stack}[set pos_stack {}] end end $cur_pos]
+                        lset pos_stack end $cur_pos
                         if {[info exists dependentsof($cur_portname)]} {
                             lappend portstack $dependentsof($cur_portname)
                             lappend pos_stack 0
@@ -2607,7 +2607,7 @@ proc action_dependents { action portlist opts } {
                         continue
                     }
                     incr cur_pos
-                    set pos_stack [lreplace ${pos_stack}[set pos_stack {}] end end $cur_pos]
+                    lset pos_stack end $cur_pos
                 }
             } else {
                 foreach dep $deplist {
@@ -2845,7 +2845,7 @@ proc action_deps { action portlist opts } {
                     puts "${spaces}${cur_portname}${cyclic_marker}"
                 }
                 incr cur_pos
-                set pos_stack [lreplace ${pos_stack}[set pos_stack {}] end end $cur_pos]
+                lset pos_stack end $cur_pos
                 if {$cyclic_marker eq ""} {
                     if {[dict exists $depsof $cur_portname]} {
                         # Mark as currently processing this port's deps
@@ -2860,7 +2860,7 @@ proc action_deps { action portlist opts } {
                 continue
             }
             incr cur_pos
-            set pos_stack [lreplace ${pos_stack}[set pos_stack {}] end end $cur_pos]
+            lset pos_stack end $cur_pos
         }
         set separator "--\n"
     }
