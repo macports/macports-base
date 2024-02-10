@@ -1039,8 +1039,6 @@ proc element { resname } {
     set url ""
     set name ""
     set version ""
-    array unset requested_variants
-    array unset options
 
     set token [lookahead]
     switch -regex -matchvar matchvar -- $token {
@@ -1194,16 +1192,17 @@ proc element { resname } {
             set name [url_to_portname $token]
             if {$name ne ""} {
                 parsePortSpec version requested_variants options
-                set templist [list url $token \
+                set tempentry [dict create \
+                  url $token \
                   name $name \
                   version $version \
-                  requested_variants [array get requested_variants] \
-                  variants [array get requested_variants] \
-                  options [array get options]]
+                  requested_variants $requested_variants \
+                  variants $requested_variants \
+                  options $options]
                 if {$version ne ""} {
-                    lappend templist metadata [list explicit_version 1]
+                    dict set tempentry metadata [dict create explicit_version 1]
                 }
-                add_to_portlist_with_defaults reslist $templist
+                add_to_portlist_with_defaults reslist $tempentry
                 set el 1
             } else {
                 ui_error "Can't open URL '$token' as a port"
@@ -1214,16 +1213,17 @@ proc element { resname } {
         default             { # Treat anything else as a portspec (portname, version, variants, options
             # or some combination thereof).
             parseFullPortSpec url name version requested_variants options
-            set templist [list url $url \
+            set tempentry [dict create \
+              url $url \
               name $name \
               version $version \
-              requested_variants [array get requested_variants] \
-              variants [array get requested_variants] \
-              options [array get options]]
+              requested_variants $requested_variants \
+              variants $requested_variants \
+              options $options]
             if {$version ne ""} {
-                lappend templist metadata [list explicit_version 1]
+                dict set tempentry metadata [dict create explicit_version 1]
             }
-            add_to_portlist_with_defaults reslist $templist
+            add_to_portlist_with_defaults reslist $tempentry
             set el 1
         }
     }
@@ -1272,14 +1272,14 @@ proc add_multiple_ports { resname ports {remainder ""} } {
         dict set overrides version $version
         dict set overrides metadata [dict create explicit_version 1]]
     }
-    if {[array size variants] > 0} {
+    if {[dict size $variants] > 0} {
         # we always record the requested variants separately,
         # but requested ones always override existing ones
-        dict set overrides requested_variants [array get variants]
-        dict set overrides variants [array get variants]
+        dict set overrides requested_variants $variants
+        dict set overrides variants $variants
     }
-    if {[array size options] > 0} {
-        dict set overrides options [array get options]
+    if {[dict size $options] > 0} {
+        dict set overrides options $options
     }
 
     add_ports_to_portlist_with_defaults reslist $ports $overrides
@@ -1294,8 +1294,8 @@ proc parseFullPortSpec { urlname namename vername varname optname } {
 
     set portname ""
     set portversion ""
-    array unset portvariants
-    array unset portoptions
+    set portvariants ""
+    set portoptions ""
 
     if { [moreargs] } {
         # Look first for a potential portname
@@ -1355,9 +1355,8 @@ proc parsePortSpec { vername varname optname {remainder ""} } {
     upvar $optname portoptions
 
     set portversion ""
-    array unset portoptions
-    array set portoptions [array get ::global_options]
-    array unset portvariants
+    set portoptions [dict create {*}[array get ::global_options]]
+    set portvariants ""
 
     # Parse port version/variants/options
     set opt $remainder
@@ -1406,12 +1405,12 @@ proc parsePortSpec { vername varname optname {remainder ""} } {
             # Look first for a variable setting: VARNAME=VALUE
             if {[regexp {^([[:alpha:]_]+[\w\.]*)=(.*)} $opt match key val] == 1} {
                 # It's a variable setting
-                set portoptions($key) $val
+                dict set portoptions $key $val
                 set opt ""
                 set consumed 1
             } elseif {[regexp {^([-+])([[:alpha:]_]+[\w\.]*)} $opt match sign variant] == 1} {
                 # It's a variant
-                set portvariants($variant) $sign
+                dict set portvariants $variant $sign
                 set opt [string range $opt [expr {[string length $variant] + 1}] end]
                 set consumed 1
             } else {
