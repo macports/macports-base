@@ -88,13 +88,10 @@ proc add_ports_to_portlist {listname ports {overrides ""}} {
     upvar $listname portlist
 
     # Add each entry to the named portlist, overriding any values
-    # specified as overrides
+    # specified as overrides (typically version, variants,
+    # requested_variants, options).
     foreach portentry $ports {
-        # typically version, variants, requested_variants, options
-        foreach key [dict keys $overrides] {
-            dict set portentry $key [dict get $overrides $key]
-        }
-        add_to_portlist portlist $portentry
+        add_to_portlist portlist [dict merge $portentry $overrides]
     }
 }
 
