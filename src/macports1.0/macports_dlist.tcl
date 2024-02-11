@@ -353,9 +353,9 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 # Anything below this point is subject to change without notice.
 #####
 
-# Each ditem is actually an array in the macports_dlist
+# Each ditem is actually a dict in the macports_dlist
 # namespace.  ditem keys correspond to the equivalent array
-# key.  A dlist is simply a list of names of ditem arrays.
+# key.  A dlist is simply a list of names of ditem dicts.
 # All private API functions exist in the macports_dlist
 # namespace.
 
@@ -368,7 +368,7 @@ proc ditem_create {} {
 	incr ditem_uniqid
 	set ditem "ditem_${ditem_uniqid}"
 	variable $ditem
-	array set $ditem [list]
+	set $ditem [dict create]
 	return $ditem
 }
 
@@ -381,60 +381,51 @@ proc ditem_key {ditem args} {
 	variable $ditem
 	set nbargs [llength $args]
 	if {$nbargs > 1} {
-		set key [lindex $args 0]
-		return [set [set ditem]($key) [lindex $args 1]]
+		lassign $args key val
+		dict set $ditem $key $val
+		return $val
 	} elseif {$nbargs == 1} {
 		set key [lindex $args 0]
-		if {[info exists [set ditem]($key)]} {
-		    return [set [set ditem]($key)]
+		if {[dict exists [set $ditem] $key]} {
+		    return [dict get [set $ditem] $key]
 		} else {
 		    return {}
 		}
 	} else {
-		return [array get $ditem]
+		return [set $ditem]
 	}
 }
 
 proc ditem_append {ditem key args} {
 	variable $ditem
-	if {[info exists [set ditem]($key)]} {
-	    set x [set [set ditem]($key)]
-	} else {
-	    set x {}
-	}
-	if {$x ne {}} {
-		lappend x {*}$args
-	} else {
-		set x $args
-	}
-	set [set ditem]($key) $x
-	return $x
+	dict lappend $ditem $key {*}$args
+	return [dict get [set $ditem] $key]
 }
 
 proc ditem_append_unique {ditem key args} {
 	variable $ditem
-	if {[info exists [set ditem]($key)]} {
-	    set x [set [set ditem]($key)]
-	} else {
-	    set x {}
+	set unique [dict create]
+	if {[dict exists [set $ditem] $key]} {
+	    foreach val [dict get [set $ditem] $key] {
+	        dict set unique $val {}
+	    }
 	}
-	if {$x ne {}} {
-		lappend x {*}$args
-		set x [lsort -unique $x]
-	} else {
-		set x $args
-	}
-	set [set ditem]($key) $x
+	foreach val $args {
+        dict set unique $val {}
+    }
+    set x [dict keys $unique]
+
+	dict set $ditem $key $x
 	return $x
 }
 
 proc ditem_contains {ditem key args} {
 	variable $ditem
 	if {[llength $args] == 0} {
-		return [info exists [set ditem]($key)]
+		return [dict exists [set $ditem] $key]
 	} else {
-		if {[info exists [set ditem]($key)]} {
-			set x [set [set ditem]($key)]
+		if {[dict exists [set $ditem] $key]} {
+			set x [dict get [set $ditem] $key]
 		} else {
 			return 0
 		}
@@ -448,7 +439,7 @@ proc ditem_contains {ditem key args} {
 
 proc ditem_as_string {ditem} {
 	variable $ditem
-	return [array get $ditem]
+	return [dict get [set $ditem]]
 }
 
 # End of macports_dlist namespace
