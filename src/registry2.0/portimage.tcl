@@ -850,26 +850,26 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     }
 }
 
-# Create a new registry entry using the given metadata array
+# Create a new registry entry using the given metadata dictionary
 proc install {metadata} {
     global macports::registry.path
-    array set m $metadata
     registry::write {
         # store portfile
-        set portfile_sha256 [sha256 file $m(portfile_path)]
-        set portfile_size [file size $m(portfile_path)]
-        set portfile_reg_dir [file join ${registry.path} registry portfiles $m(name)-$m(version)_$m(revision) ${portfile_sha256}-${portfile_size}]
+        set portfile_path [dict get $metadata portfile_path]
+        set portfile_sha256 [sha256 file $portfile_path]
+        set portfile_size [file size $portfile_path]
+        set portfile_reg_dir [file join ${registry.path} registry portfiles [dict get $metadata name]-[dict get $metadata version]_[dict get $metadata revision] ${portfile_sha256}-${portfile_size}]
         set portfile_reg_path ${portfile_reg_dir}/Portfile
         file mkdir $portfile_reg_dir
         if {![file isfile $portfile_reg_path] || [file size $portfile_reg_path] != $portfile_size
                 || [sha256 file $portfile_reg_path] ne $portfile_sha256} {
-            file copy -force $m(portfile_path) $portfile_reg_dir
+            file copy -force $portfile_path $portfile_reg_dir
             file attributes $portfile_reg_path -permissions 0644
         }
 
         # store portgroups
-        if {[info exists m(portgroups)]} {
-            foreach {pgname pgversion groupFile} $m(portgroups) {
+        if {[dict exists $metadata portgroups]} {
+            foreach {pgname pgversion groupFile} [dict get $metadata portgroups] {
                 set pgsha256 [sha256 file $groupFile]
                 set pgsize [file size $groupFile]
                 set pg_reg_dir [file join ${registry.path} registry portgroups ${pgsha256}-${pgsize}]
@@ -881,10 +881,10 @@ proc install {metadata} {
                 }
                 file attributes $pg_reg_path -permissions 0644
             }
-            unset m(portgroups)
+            dict unset metadata portgroups
         }
 
-        set regref [registry::entry create $m(name) $m(version) $m(revision) $m(variants) $m(epoch)]
+        set regref [registry::entry create [dict get $metadata name] [dict get $metadata version] [dict get $metadata revision] [dict get $metadata variants] [dict get $metadata epoch]]
         $regref installtype image
         $regref state imaged
         $regref portfile ${portfile_sha256}-${portfile_size}
@@ -893,28 +893,29 @@ proc install {metadata} {
                 $regref addgroup {*}$p
             }
         }
-        foreach dep_portname $m(depends) {
+        foreach dep_portname [dict get $metadata depends] {
             $regref depends $dep_portname
         }
-        if {[info exists m(files)]} {
+        if {[dict exists $metadata files]} {
             # register files
-            $regref map $m(files)
-            unset m(files)
+            $regref map [dict get $metadata files]
+            dict unset metadata files
         }
-        if {[info exists m(binary)]} {
-            foreach {f isbinary} $m(binary) {
+        if {[dict exists $metadata binary]} {
+            dict for {f isbinary} [dict get $metadata binary] {
                 set fileref [registry::file open [$regref id] $f]
                 $fileref binary $isbinary
                 registry::file close $fileref
             }
-            unset m(binary)
+            dict unset metadata binary
         }
-        unset m(name) m(version) m(revision) m(variants) m(epoch) m(depends) \
-              m(portfile_path)
+        foreach key {name version revision variants epoch depends portfile_path} {
+            dict unset metadata $key
+        }
 
         # remaining metadata maps directly to reg entry fields
-        foreach key [array names m] {
-            $regref $key $m($key)
+        dict for {key val} $metadata {
+            $regref $key $val
         }
     }
 }

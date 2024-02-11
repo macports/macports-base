@@ -275,6 +275,7 @@ proc portinstall::create_archive {location archive.type} {
 
     set have_fileIsBinary [expr {[option os.platform] eq "darwin"}]
     set binary_files [list]
+    set portinstall::file_is_binary [dict create]
     # also save the contents for our own use later
     set installPlist [list]
     set destpathLen [string length $destpath]
@@ -299,7 +300,7 @@ proc portinstall::create_archive {location archive.type} {
                         lappend binary_files $fullpath
                     }
                     puts $fd "@comment binary:$is_binary"
-                    set portinstall::file_is_binary($abspath) $is_binary
+                    dict set portinstall::file_is_binary $abspath $is_binary
                 }
             }
         } else {
@@ -361,7 +362,7 @@ proc portinstall::install_main {args} {
         set current_archive_type [string range [file extension $location] 1 end]
         set contents [extract_contents $location $current_archive_type]
         set installPlist [lindex $contents 0]
-        array set portinstall::file_is_binary [lindex $contents 1]
+        set portinstall::file_is_binary [lindex $contents 1]
         set cxxinfo [extract_archive_metadata $location $current_archive_type cxx_info]
         set portinstall::actual_cxx_stdlib [lindex $cxxinfo 0]
         set portinstall::cxx_stdlib_overridden [lindex $cxxinfo 1]
@@ -385,60 +386,59 @@ proc portinstall::install_main {args} {
         }
     }
 
-    lappend regref name $subport
-    lappend regref version $version
-    lappend regref revision $revision
-    lappend regref variants $portvariants
-    lappend regref epoch $epoch
+    set regref [dict create]
+    dict set regref name $subport
+    dict set regref version $version
+    dict set regref revision $revision
+    dict set regref variants $portvariants
+    dict set regref epoch $epoch
     if {[info exists user_options(ports_requested)]} {
-        lappend regref requested $user_options(ports_requested)
+        dict set regref requested $user_options(ports_requested)
     } else {
-        lappend regref requested 0
+        dict set regref requested 0
     }
     lassign [_get_compatible_platform] os_platform os_major
-    lappend regref os_platform $os_platform
-    lappend regref os_major $os_major
-    lappend regref archs [get_canonical_archs]
+    dict set regref os_platform $os_platform
+    dict set regref os_major $os_major
+    dict set regref archs [get_canonical_archs]
     if {${portinstall::actual_cxx_stdlib} ne ""} {
-        lappend regref cxx_stdlib ${portinstall::actual_cxx_stdlib}
-        lappend regref cxx_stdlib_overridden ${portinstall::cxx_stdlib_overridden}
+        dict set regref cxx_stdlib ${portinstall::actual_cxx_stdlib}
+        dict set regref cxx_stdlib_overridden ${portinstall::cxx_stdlib_overridden}
     } else {
         # no info in the archive
         global configure.cxx_stdlib cxx_stdlib
-        lappend regref cxx_stdlib_overridden [expr {${configure.cxx_stdlib} ne $cxx_stdlib}]
+        dict set regref cxx_stdlib_overridden [expr {${configure.cxx_stdlib} ne $cxx_stdlib}]
     }
     # Trick to have a portable GMT-POSIX epoch-based time.
-    lappend regref date [expr {[clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]}]
+    dict set regref date [expr {[clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]}]
     if {[info exists requested_variants]} {
-        lappend regref requested_variants $requested_variants
+        dict set regref requested_variants $requested_variants
     }
 
-    lappend regref depends $dep_portnames
+    dict set regref depends $dep_portnames
 
-    lappend regref location $location
+    dict set regref location $location
 
     if {[info exists installPlist]} {
-        lappend regref files $installPlist
-        lappend regref binary [array get portinstall::file_is_binary]
+        dict set regref files $installPlist
+        dict set regref binary $portinstall::file_is_binary
     }
 
     # portfile info
-    lappend regref portfile_path [file join $portpath Portfile]
+    dict set regref portfile_path [file join $portpath Portfile]
 
     # portgroup info
     if {[info exists PortInfo(portgroups)]} {
         set regref_pgs [list]
         foreach pg $PortInfo(portgroups) {
-            set pgname [lindex $pg 0]
-            set pgversion [lindex $pg 1]
-            set groupFile [lindex $pg 2]
+            lassign $pg pgname pgversion groupFile
             if {[file isfile $groupFile]} {
                 lappend regref_pgs $pgname $pgversion $groupFile
             } else {
                 ui_debug "install_main: no portgroup ${pgname}-${pgversion}.tcl found"
             }
         }
-        lappend regref portgroups $regref_pgs
+        dict set regref portgroups $regref_pgs
     }
 
     registry_install $regref
