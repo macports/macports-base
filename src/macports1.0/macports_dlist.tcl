@@ -391,8 +391,10 @@ proc ditem_key {ditem args} {
 		} else {
 		    return {}
 		}
-	} else {
+	} elseif {[info exists $ditem]} {
 		return [set $ditem]
+	} else {
+	    return {}
 	}
 }
 

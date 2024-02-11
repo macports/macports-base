@@ -3596,7 +3596,7 @@ proc mportclose {mport} {
         dlist_delete macports::open_mports $mport
         set workername [ditem_key $mport workername]
         interp delete $workername
-        set porturl [ditem_key $mport porturl]
+        #set porturl [ditem_key $mport porturl]
         #if {[info exists macports::extracted_portdirs($porturl)]} {
             # TODO port.tcl calls mportopen multiple times on the same port to
             # determine a number of attributes and will close the port after

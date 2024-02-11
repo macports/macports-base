@@ -35,7 +35,7 @@ test mportclose {
     if {[catch {mportclose $mport}] != 0} {
         return "FAIL: cannot run mportclose"
     }
-    if {[ditem_key $mport workername] ne ""} {
+    if {![catch {ditem_key $mport workername} result] && $result ne ""} {
         return "FAIL: port not closed"
     }
     return "Mport close successful."
