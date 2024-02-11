@@ -134,7 +134,7 @@ proc ldindex {varName args} {
             lset var $idx $list
         } else {
             set item [lindex $var $idx]
-            set var [lreplace $var $idx $idx]
+            set var [lreplace ${var}[set var {}] $idx $idx]
         }
     } else {
         set item $var
@@ -169,7 +169,7 @@ proc lshift {varName} {
     upvar 1 $varName var
     set element [lindex $var 0]
     # the [set] in the index argument ensures the list is not shared
-    set var [lreplace $var [set var 0] 0]
+    set var [lreplace ${var}[set var {}] 0 0]
     return $element
 }
 
@@ -182,7 +182,7 @@ proc lunshift {varName args} {
         set var [list]
     }
     # the [set] in the index argument ensures the list is not shared
-    set var [lreplace $var [set var -1] -1 {*}$args]
+    set var [lreplace ${var}[set var {}] -1 -1 {*}$args]
 }
 
 
@@ -293,7 +293,7 @@ namespace eval macports_util::tcl::control {
         set pass_signal no
         if {[lindex $args 0] eq "-pass_signal"} {
             set pass_signal yes
-            set args [lreplace $args 0 0]
+            set args [lreplace ${args}[set args {}] 0 0]
         }
         set trybody [lindex $args 0]
         set finallybody {}

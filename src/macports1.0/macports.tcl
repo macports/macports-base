@@ -267,7 +267,7 @@ proc macports::pop_log {} {
     }
     if {$::logenabled && [llength $::logstack] > 0} {
         close $::debuglog
-        set ::logstack [lreplace $::logstack end end]
+        set ::logstack [lreplace ${::logstack}[set ::logstack {}] end end]
         if {[llength $::logstack] > 0} {
             set top [lindex $::logstack end]
             set ::debuglog [lindex $top 0]
@@ -5760,12 +5760,12 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                     lappend topsort_ports $port
                     # remove from unsorted list
                     set index [lsearch -exact $unsorted_ports $port]
-                    set unsorted_ports [lreplace $unsorted_ports $index $index]
+                    set unsorted_ports [lreplace ${unsorted_ports}[set unsorted_ports {}] $index $index]
 
                     # remove edges
                     foreach target $revadjlist($port) {
                         set index [lsearch -exact $adjlist($target) $port]
-                        set adjlist($target) [lreplace $adjlist($target) $index $index]
+                        set adjlist($target) [lreplace $adjlist($target)[set adjlist($target) {}] $index $index]
                     }
 
                     break;
@@ -5779,11 +5779,11 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
                 lappend topsort_ports $lowest_adj_port
 
                 set index [lsearch -exact $unsorted_ports $lowest_adj_port]
-                set unsorted_ports [lreplace $unsorted_ports $index $index]
+                set unsorted_ports [lreplace ${unsorted_ports}[set unsorted_ports {}] $index $index]
 
                 foreach target $revadjlist($port) {
                     set index [lsearch -exact $adjlist($target) $lowest_adj_port]
-                    set adjlist($target) [lreplace $adjlist($target) $index $index]
+                    set adjlist($target) [lreplace $adjlist($target)[set adjlist($target) {}] $index $index]
                 }
             }
         }

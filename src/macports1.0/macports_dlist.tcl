@@ -98,7 +98,7 @@ proc dlist_delete {dlist ditem} {
 	upvar $dlist uplist
 	set ix [lsearch -exact $uplist $ditem]
 	if {$ix >= 0} {
-		set uplist [lreplace $uplist $ix $ix]
+		set uplist [lreplace ${uplist}[set uplist {}] $ix $ix]
 	}
 }
 
