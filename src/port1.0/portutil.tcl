@@ -167,18 +167,7 @@ proc handle_option-strsed {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-replace {option args} {
-    global $option user_options deprecated_options
-
-    # Deprecate -replace with only one argument, for backwards compatibility call -strsed
-    # XXX: Remove this in 2.2.0
-    if {[llength $args] == 1} {
-        if {![info exists deprecated_options(${option}-replace)]} {
-            set deprecated_options(${option}-replace) [list ${option}-strsed 0]
-        }
-        set refcount [lindex $deprecated_options(${option}-replace) 1]
-        lset deprecated_options(${option}-replace) 1 [expr {$refcount + 1}]
-        return [handle_option-strsed $option {*}$args]
-    }
+    global $option user_options
 
     if {![info exists user_options($option)] && [info exists $option]} {
         foreach {old new} $args {
