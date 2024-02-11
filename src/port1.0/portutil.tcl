@@ -102,11 +102,7 @@ proc handle_option-append {option args} {
     global $option user_options
 
     if {![info exists user_options($option)]} {
-        if {[info exists $option]} {
-            set $option [concat [set $option] $args]
-        } else {
-            set $option $args
-        }
+        lappend $option {*}$args
     }
 }
 
@@ -136,11 +132,9 @@ proc handle_option-delete {option args} {
     global $option user_options
 
     if {![info exists user_options($option)] && [info exists $option]} {
-        set temp [set $option]
         foreach val $args {
-            set temp [ldelete $temp $val]
+            set $option [ldelete [set $option][set $option {}] $val]
         }
-        set $option $temp
     }
 }
 
@@ -153,11 +147,9 @@ proc handle_option-strsed {option args} {
     global $option user_options
 
     if {![info exists user_options($option)] && [info exists $option]} {
-        set temp [set $option]
         foreach val $args {
-            set temp [strsed $temp $val]
+            set $option [strsed [set $option][set $option {}] $val]
         }
-        set $option $temp
     }
 }
 
@@ -172,10 +164,9 @@ proc handle_option-replace {option args} {
     if {![info exists user_options($option)] && [info exists $option]} {
         foreach {old new} $args {
             set index [lsearch -exact [set $option] $old]
-            if {$index == -1} {
-                continue
+            if {$index != -1} {
+                lset $option $index $new
             }
-            set $option [lreplace [set $option] $index $index $new]
         }
     }
 }
@@ -700,7 +691,7 @@ proc variant_remove_ditem {name} {
     foreach variant_item $all_variants {
         set item_provides [ditem_key $variant_item provides]
         if {$item_provides eq $name} {
-            set all_variants [lreplace $all_variants $item_index $item_index]
+            set all_variants [lreplace ${all_variants}[set all_variants {}] $item_index $item_index]
             break
         }
 
@@ -1004,7 +995,7 @@ proc tbool {key} {
 proc ldelete {list value} {
     set ix [lsearch -exact $list $value]
     if {$ix >= 0} {
-        return [lreplace $list $ix $ix]
+        return [lreplace ${list}[set ilist {}] $ix $ix]
     }
     return $list
 }
@@ -1270,7 +1261,7 @@ proc move {args} {
     set options [list]
     while {[string match "-*" [lindex $args 0]]} {
         set arg [string range [lindex $args 0] 1 end]
-        set args [lreplace $args 0 0]
+        set args [lreplace ${args}[set args {}] 0 0]
         switch -- $arg {
             force {lappend options -$arg}
             - break
@@ -1304,9 +1295,9 @@ proc ln {args} {
         if {[string length $arg] > 1} {
             set remainder -[string range $arg 1 end]
             set arg [string range $arg 0 0]
-            set args [lreplace $args 0 0 $remainder]
+            lset args 0 $remainder
         } else {
-            set args [lreplace $args 0 0]
+            set args [lreplace ${args}[set args {}] 0 0]
         }
         switch -- $arg {
             f -
