@@ -2243,8 +2243,8 @@ proc _mportsearchpath {depregex search_path {executable 0} {return_match 0}} {
 # Determine if a port is already *installed*, as in "in the registry".
 proc _mportinstalled {mport} {
     # Check for the presence of the port in the registry
-    set workername [ditem_key $mport workername]
-    return [$workername eval {registry_exists_for_name $subport}]
+    set subport [ditem_key $mport provides]
+    return [expr {[registry::entry imaged $subport] ne ""}]
 }
 
 # Determine if a port is active
