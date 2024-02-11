@@ -4258,10 +4258,14 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             set revision_installed $revision
             set variant_installed $variant
             set epoch_installed $epoch
+            if {!$anyactive} {
+                set regref $i
+            }
         }
 
         if {[$i state] eq "installed"} {
             set anyactive yes
+            set regref $i
             set version_active $version
             set revision_active $revision
             set variant_active $variant
@@ -4277,11 +4281,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         ui_debug "$portname ${version_active}_$revision_active $variant_active is active"
         # save existing variant for later use
         set oldvariant $variant_active
-        set regref [registry::entry open $portname $version_active $revision_active $variant_active $epoch_active]
     } else {
         ui_debug "no version of $portname is active"
         set oldvariant $variant_installed
-        set regref [registry::entry open $portname $version_installed $revision_installed $variant_installed $epoch_installed]
     }
     set oldrequestedvariant [$regref requested_variants]
     if {$oldrequestedvariant == 0} {
