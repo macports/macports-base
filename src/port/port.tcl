@@ -2370,7 +2370,7 @@ proc action_select { action portlist opts } {
                 puts [format $formatStr $w1 "====" $w2 "========" "======="]
             }
             foreach groupdesc $groups {
-                puts [format $formatStr $w1 [dict get $groupd name] $w2 [dict get $groupd selected] [join [dict get $groupd versions] " "]]
+                puts [format $formatStr $w1 [dict get $groupdesc name] $w2 [dict get $groupdesc selected] [join [dict get $groupdesc versions] " "]]
             }
             return 0
         }
