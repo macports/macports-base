@@ -422,8 +422,9 @@ proc wraplabel {label string maxlen {indent ""}} {
 ##########################################
 proc unique_results_to_portlist {infos} {
     set unique [dict create]
+    set opts [dict create {*}[array get ::global_options]]
     foreach {name portinfo} $infos {
-        set portentry [entry_for_portlist [list url [dict get $portinfo porturl] name $name options [array get ::global_options]]]
+        set portentry [entry_for_portlist [list url [dict get $portinfo porturl] name $name options $opts]]
 
         if {[dict exists $unique [dict get $portentry fullname]]} continue
         dict set unique [dict get $portentry fullname] $portentry
@@ -783,9 +784,10 @@ proc get_dep_ports {portname recursive} {
     }
     lassign $result portname portinfo
     set porturl [dict get $portinfo porturl]
+    set gvariations [dict create {*}[array get ::global_variations]]
 
     # open portfile
-    if {[catch {set mport [mportopen $porturl [dict create subport $portname] [array get ::global_variations]]} result]} {
+    if {[catch {set mport [mportopen $porturl [dict create subport $portname] $gvariations]} result]} {
         ui_debug $::errorInfo
         if {[macports::ui_isset ports_processall]} {
             ui_error "Unable to open port $portname: $result"
@@ -834,7 +836,7 @@ proc get_dep_ports {portname recursive} {
                     set porturl [dict get $portinfo porturl]
 
                     # open its portfile
-                    if {[catch {set mport [mportopen $porturl [dict create subport [dict get $portinfo name]] [array get ::global_variations]]} result]} {
+                    if {[catch {set mport [mportopen $porturl [dict create subport [dict get $portinfo name]] $gvariations]} result]} {
                         ui_debug $::errorInfo
                         ui_error "Unable to open port $depname: $result"
                         continue
@@ -1237,9 +1239,10 @@ proc add_ports_to_portlist_with_defaults {listname ports {overrides ""}} {
 
     if {![dict exists $overrides options]} {
         set i 0
+        set opts [dict create {*}[array get ::global_options]]
         foreach port $ports {
             if {![dict exists $port options]} {
-                dict set port options [array get ::global_options]
+                dict set port options $opts
                 lset ports $i $port
             }
             incr i
@@ -1649,6 +1652,7 @@ proc action_info { action portlist opts } {
     }
 
     set separator ""
+    set gvariations [dict create {*}[array get ::global_variations]]
     foreachport $portlist {
         set index_only 0
         if {[dict exists $options ports_info_index] && [dict get $options ports_info_index]} {
@@ -1674,7 +1678,7 @@ proc action_info { action portlist opts } {
         if {!$index_only} {
             # Add any global_variations to the variations
             # specified for the port (so we get e.g. dependencies right)
-            set merged_variations [dict merge [array get ::global_variations] $variations]
+            set merged_variations [dict merge $gvariations $variations]
 
             if {![dict exists $options subport]} {
                 dict set options subport $portname
@@ -2072,6 +2076,7 @@ proc action_notes { action portlist opts } {
     }
 
     set status 0
+    set gvariations [dict create {*}[array get ::global_variations]]
     foreachport $portlist {
         if {$porturl eq ""} {
             # Look up the port.
@@ -2091,7 +2096,7 @@ proc action_notes { action portlist opts } {
 
         # Add any global_variations to the variations
         # specified for the port
-        set merged_variations [dict merge [array get ::global_variations] $variations]
+        set merged_variations [dict merge $gvariations $variations]
         if {![dict exists $options subport]} {
             dict set options subport $portname
         }
@@ -2640,6 +2645,7 @@ proc action_deps { action portlist opts } {
     }
     set separator ""
     set labeldict [dict create depends_fetch Fetch depends_extract Extract depends_patch Patch depends_build Build depends_lib Library depends_run Runtime depends_test Test]
+    set gvariations [dict create {*}[array get ::global_variations]]
 
     foreachport $portlist {
         set deptypes [list]
@@ -2693,7 +2699,7 @@ proc action_deps { action portlist opts } {
         if {!([dict exists $options ports_${action}_index] && [dict get $options ports_${action}_index] eq "yes")} {
             # Add any global_variations to the variations
             # specified for the port, so we get dependencies right
-            set merged_variations [dict merge [array get ::global_variations] $variations]
+            set merged_variations [dict merge $gvariations $variations]
             if {![dict exists $options subport]} {
                 dict set options subport $portname
             }
@@ -3227,6 +3233,7 @@ proc action_variants { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
     }
+    set gvariations [dict create {*}[array get ::global_variations]]
     foreachport $portlist {
         set portinfo ""
         if {$porturl eq ""} {
@@ -3247,7 +3254,7 @@ proc action_variants { action portlist opts } {
         if {!([dict exists $options ports_variants_index] && [dict get $options ports_variants_index] eq "yes")} {
             # Add any global_variations to the variations specified for
             # the port (default variants may change based on this)
-            set merged_variations [dict merge [array get ::global_variations] $variations]
+            set merged_variations [dict merge $gvariations $variations]
             if {![dict exists $options subport]} {
                 dict set options subport $portname
             }
@@ -3290,9 +3297,9 @@ proc action_variants { action portlist opts } {
                     # XXX Keep these varmodifiers in sync with action_info, or create a wrapper for it
                     if {[dict exists $variations $v]} {
                         set varmodifier "  [dict get $variations $v]"
-                    } elseif {[info exists ::global_variations($v)]} {
+                    } elseif {[dict exists $gvariations $v]} {
                         # selected by variants.conf, prefixed with (+)/(-)
-                        set varmodifier "($::global_variations($v))"
+                        set varmodifier "([dict get $gvariations $v])"
                     } elseif {[dict exists $variant is_default]} {
                         set varmodifier "\[[dict get $variant is_default]\]"
                     }
@@ -3518,11 +3525,12 @@ proc action_list { action portlist opts } {
 
 proc action_echo { action portlist opts } {
     # Simply echo back the port specs given to this command
+    set gopts [dict create {*}[array get ::global_options]]
     foreachport $portlist {
         if {![macports::ui_isset ports_quiet]} {
             set opts [list]
-            foreach { key value } $options {
-                if {![info exists ::global_options($key)]} {
+            dict for {key value} $options {
+                if {![dict exists $gopts $key]} {
                     lappend opts "$key=$value"
                 }
             }
@@ -3719,6 +3727,7 @@ proc action_target { action portlist opts } {
     if {($action eq "install" || $action eq "archive") && ![macports::global_option_isset ports_dryrun] && [prefix_unwritable]} {
         return 1
     }
+    set gvariations [dict create {*}[array get ::global_variations]]
     foreachport $portlist {
         set portinfo ""
         # If we have a url, use that, since it's most specific
@@ -3761,7 +3770,7 @@ proc action_target { action portlist opts } {
 
         # Add any global_variations to the variations
         # specified for the port
-        set requested_variations [dict merge [array get ::global_variations] $requested_variations]
+        set requested_variations [dict merge $gvariations $requested_variations]
 
         if {$action eq "install"} {
             if {[dict exists $portinfo replaced_by] && ![dict exists $options ports_install_no-replace]} {
