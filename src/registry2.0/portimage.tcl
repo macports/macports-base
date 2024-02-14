@@ -76,25 +76,23 @@ proc activate_composite {name {v ""} {optionslist ""}} {
 }
 
 # Activate a "Port Image"
-proc activate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
-    global macports::registry.path registry_open UI_PREFIX
-    array set options $optionslist
+proc activate {name {version ""} {revision ""} {variants 0} {options ""}} {
     variable force
     variable noexec
 
-    if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
+    if {[dict exists $options ports_force] && [string is true -strict [dict get $options ports_force]] } {
         set force 1
     }
-    if {[info exists options(ports_activate_no-exec)]} {
-        set noexec $options(ports_activate_no-exec)
+    if {[dict exists $options ports_activate_no-exec]} {
+        set noexec [dict get $options ports_activate_no-exec]
     }
     set rename_list [list]
-    if {[info exists options(portactivate_rename_files)]} {
-        set rename_list $options(portactivate_rename_files)
+    if {[dict exists $options portactivate_rename_files]} {
+        set rename_list [dict get $options portactivate_rename_files]
     }
-    if {![info exists registry_open]} {
-        registry::open [::file join ${macports::registry.path} registry registry.db]
-        set registry_open yes
+    if {![info exists ::registry_open]} {
+        registry::open [::file join ${::macports::registry.path} registry registry.db]
+        set ::registry_open yes
     }
     set todeactivate [list]
 
@@ -143,7 +141,7 @@ proc activate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
             }
         }
 
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $specifier]"
+        ui_msg "$::UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $specifier]"
 
         _activate_contents $requested $rename_list
     } finally {
@@ -165,11 +163,9 @@ proc deactivate_composite {name {v ""} {optionslist ""}} {
     throw registry::invalid "Registry error: Invalid version '$v' specified for ${name}. Please specify a version as recorded in the port registry."
 }
 
-proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
-    global UI_PREFIX macports::registry.path registry_open
-    array set options $optionslist
+proc deactivate {name {version ""} {revision ""} {variants 0} {options ""}} {
 
-    if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
+    if {[dict exists $options ports_force] && [string is true -strict [dict get $options ports_force]] } {
         # this not using the namespace variable is correct, since activate
         # needs to be able to force deactivate independently of whether
         # the activation is being forced
@@ -177,9 +173,9 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
     } else {
         set force 0
     }
-    if {![info exists registry_open]} {
-        registry::open [::file join ${macports::registry.path} registry registry.db]
-        set registry_open yes
+    if {![info exists ::registry_open]} {
+        registry::open [::file join ${::macports::registry.path} registry registry.db]
+        set ::registry_open yes
     }
 
     if {$name eq ""} {
@@ -250,7 +246,7 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
         return -code error "Image error: ${name} @${specifier} is not active."
     }
 
-    if {![info exists options(ports_nodepcheck)] || ![string is true -strict $options(ports_nodepcheck)]} {
+    if {![dict exists $options ports_nodepcheck] || ![string is true -strict [dict get $options ports_nodepcheck]]} {
         set retvalue [registry::check_dependents $requested $force "deactivate"]
         if {$retvalue eq "quit"} {
             #registry::entry close $requested
@@ -258,7 +254,7 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
         }
     }
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $specifier]"
+    ui_msg "$::UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $specifier]"
 
     try {
         _deactivate_contents $requested [$requested files] $force
@@ -268,7 +264,6 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} 
 }
 
 proc _check_registry {name version revision variants {return_all 0}} {
-    global UI_PREFIX
 
     set searchkeys $name
     set composite_spec ""
@@ -291,7 +286,7 @@ proc _check_registry {name version revision variants {return_all 0}} {
         set portilist [list]
         set msg "The following versions of $name are currently installed:"
         if {[macports::ui_isset ports_noninteractive]} {
-            ui_msg "$UI_PREFIX [msgcat::mc $msg]"
+            ui_msg "$::UI_PREFIX [msgcat::mc $msg]"
         }
         foreach i $ilist {
             set portstr [format "%s @%s_%s%s" [$i name] [$i version] [$i revision] [$i variants]]
@@ -302,7 +297,7 @@ proc _check_registry {name version revision variants {return_all 0}} {
             if {[info exists macports::ui_options(questions_singlechoice)]} {
                 lappend portilist "$portstr"
             } else {
-                ui_msg "$UI_PREFIX     $portstr"
+                ui_msg "$::UI_PREFIX     $portstr"
             }
         }
         if {[info exists macports::ui_options(questions_singlechoice)]} {
@@ -433,13 +428,12 @@ proc extract_archive_to_tmpdir {location} {
                 }
             }
             t(ar|bz|lz|xz|gz) {
-                global macports::hfscompression
                 # Opportunistic HFS compression. bsdtar will automatically
                 # disable this if filesystem does not support compression.
                 # Don't use if not running as root, due to bugs:
                 # The system bsdtar on 10.15 suffers from https://github.com/libarchive/libarchive/issues/497
                 # Later versions fixed that problem but another remains: https://github.com/libarchive/libarchive/issues/1415 
-                if {${macports::hfscompression} && [getuid] == 0 &&
+                if {${::macports::hfscompression} && [getuid] == 0 &&
                         ![catch {macports::binaryInPath bsdtar}] &&
                         ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]} {
                     ui_debug "Using bsdtar with HFS+ compression (if valid)"
@@ -559,7 +553,7 @@ proc _activate_contents {port {rename_list {}}} {
     # Last, if the file exists, and belongs to another port, and force is set
     #  we remove the file from the file_map, take ownership of it, and
     #  clobber it
-    array set todeactivate {}
+    set todeactivate [list]
     try {
         registry::write {
             foreach file $imagefiles {
@@ -577,11 +571,10 @@ proc _activate_contents {port {rename_list {}}} {
                 if {$owner ne {} && $owner ne $port} {
                     # deactivate conflicting port if it is replaced_by this one
                     set result [mportlookup [$owner name]]
-                    array unset portinfo
-                    array set portinfo [lindex $result 1]
-                    if {[info exists portinfo(replaced_by)] && [lsearch -regexp $portinfo(replaced_by) $replaced_by_re] != -1} {
+                    set portinfo [lindex $result 1]
+                    if {[dict exists $portinfo replaced_by] && [lsearch -regexp [dict get $portinfo replaced_by] $replaced_by_re] != -1} {
                         # we'll deactivate the owner later, but before activating our files
-                        set todeactivate($owner) yes
+                        lappend todeactivate $owner
                         set owner "replaced"
                     }
                 }
@@ -639,7 +632,7 @@ proc _activate_contents {port {rename_list {}}} {
         }
 
         # deactivate ports replaced_by this one
-        foreach owner [array names todeactivate] {
+        foreach owner $todeactivate {
             if {$noexec || ![registry::run_target $owner deactivate [list ports_nodepcheck 1]]} {
                 deactivate [$owner name] "" "" 0 [list ports_nodepcheck 1]
             }
@@ -728,7 +721,7 @@ proc _activate_contents {port {rename_list {}}} {
                 ::file rename -force -- "${file}${baksuffix}" $file
             }
             # reactivate deactivated ports
-            foreach entry [array names todeactivate] {
+            foreach entry $todeactivate {
                 if {[$entry state] eq "imaged" && ($noexec || ![registry::run_target $entry activate ""])} {
                     activate [$entry name] [$entry version] [$entry revision] [$entry variants] [list ports_activate_no-exec $noexec]
                 }
@@ -741,7 +734,7 @@ proc _activate_contents {port {rename_list {}}} {
 
         throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
     } finally {
-        #foreach entry [array names todeactivate] {
+        #foreach entry $todeactivate {
         #    registry::entry close $entry
         #}
         # remove temp image dir
@@ -751,8 +744,7 @@ proc _activate_contents {port {rename_list {}}} {
 
 # These directories should not be removed during deactivation even if they are empty.
 # TODO: look into what other dirs should go here
-variable precious_dirs
-array set precious_dirs { /Library/LaunchDaemons 1 /Library/LaunchAgents 1 }
+variable precious_dirs [dict create /Library/LaunchDaemons 1 /Library/LaunchAgents 1]
 
 proc _deactivate_file {dstfile} {
     if {[catch {::file type $dstfile} filetype]} {
@@ -766,7 +758,7 @@ proc _deactivate_file {dstfile} {
         # 0 item means empty.
         if { [llength [readdir $dstfile]] == 0 } {
             variable precious_dirs
-            if {![info exists precious_dirs($dstfile)]} {
+            if {![dict exists $precious_dirs $dstfile]} {
                 ui_debug "deactivating directory: $dstfile"
                 ::file delete -- $dstfile
             } else {
