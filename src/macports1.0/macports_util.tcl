@@ -52,14 +52,14 @@ namespace eval macports_util {
     proc unobscure_maintainers {list} {
         set result [list]
         foreach sublist $list {
-            array set maintainer {}
+            set maintainer [dict create]
             foreach token $sublist {
                 if {[string index $token 0] eq "@"} {
                     # Strings starting with @ are GitHub usernames
-                    set maintainer(github) [string range $token 1 end]
+                    dict set maintainer github [string range $token 1 end]
                 } elseif {[string first "@" $token] >= 0} {
                     # Other strings that contain @ are plain email addresses
-                    set maintainer(email) $token
+                    dict set maintainer email $token
                     continue
                 } elseif {[string first ":" $token] >= 0} {
                     # Strings that contain a colon are obfuscated email
@@ -68,20 +68,18 @@ namespace eval macports_util {
                     # Split at :, assign the first part to $domain, re-assemble
                     # the rest and assign it to $localpart
                     set localpart [join [lassign [split $token ":"] domain] ":"]
-                    set maintainer(email) "${localpart}@${domain}"
+                    dict set maintainer email "${localpart}@${domain}"
                 } elseif {$token in {"openmaintainer" "nomaintainer"}} {
                     # Filter openmaintainer and nomaintainer
-                    set maintainer(keyword) $token
+                    dict set maintainer keyword $token
                 } else {
                     # All other entries must be MacPorts handles
-                    set maintainer(email) "${token}@macports.org"
+                    dict set maintainer email "${token}@macports.org"
                 }
             }
-            set serialized [array get maintainer]
-            array unset maintainer
-            if {[llength $serialized]} {
+            if {[dict size $maintainer] > 0} {
                 # Filter empty maintainers
-                lappend result $serialized
+                lappend result $maintainer
             }
         }
 
