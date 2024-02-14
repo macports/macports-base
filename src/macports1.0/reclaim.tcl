@@ -657,7 +657,9 @@ namespace eval reclaim {
                 foreach port $inactive_ports {
                     # Note: 'uninstall' takes a name, version, revision, variants and an options list.
                     macports_try -pass_signal {
-                        registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] $options
+                        if {[macports::global_option_isset ports_uninstall_no-exec] || ![registry::run_target $port uninstall $options]} {
+                            registry_uninstall::uninstall [$port name] [$port version] [$port revision] [$port variants] $options
+                        }
                     } on error {eMessage} {
                         ui_error "Error uninstalling $name: $eMessage"
                     }
