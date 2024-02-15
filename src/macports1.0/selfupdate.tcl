@@ -36,12 +36,11 @@ namespace eval selfupdate {
     namespace export main
 }
 
-proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
+proc selfupdate::main {{options {}} {updatestatusvar {}}} {
     global macports::prefix macports::portdbpath macports::rsync_server macports::rsync_dir \
            macports::rsync_options macports::autoconf::macports_version \
            macports::autoconf::rsync_path tcl_platform macports::autoconf::openssl_path \
            macports::autoconf::tar_path
-    array set options $optionslist
 
     # variable that indicates whether we actually updated base
     if {$updatestatusvar ne ""} {
@@ -129,7 +128,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
     # echo current MacPorts version
     ui_msg "MacPorts base version $macports::autoconf::macports_version installed,"
 
-    if {[info exists options(ports_force)] && $options(ports_force)} {
+    if {[dict exists $options ports_force] && [dict get $options ports_force]} {
         set use_the_force_luke yes
         ui_debug "Forcing a rebuild and reinstallation of MacPorts"
     } else {
@@ -154,21 +153,23 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
     set comp [vercmp $macports_version_new $macports::autoconf::macports_version]
 
     # syncing ports tree.
-    if {![info exists options(ports_selfupdate_no-sync)] || !$options(ports_selfupdate_no-sync)} {
+    if {![dict exists $options ports_selfupdate_no-sync] || ![dict get $options ports_selfupdate_no-sync]} {
+        set syncoptions $options
         if {$comp > 0} {
             # updated portfiles potentially need new base to parse - tell sync to try to
             # use prefabricated PortIndex files and signal if it couldn't
-            lappend optionslist no_reindex 1 needed_portindex_var needed_portindex
+            dict set syncoptions no_reindex 1
+            dict set syncoptions needed_portindex_var needed_portindex
         }
         try {
-            mportsync $optionslist
+            mportsync $syncoptions
         } on error {eMessage} {
             error "Couldn't sync the ports tree: $eMessage"
         }
     }
 
     if {$use_the_force_luke || $comp > 0} {
-        if {[info exists options(ports_dryrun)] && $options(ports_dryrun)} {
+        if {[dict exists $options ports_dryrun] && [dict get $options ports_dryrun]} {
             ui_msg "$macports::ui_prefix MacPorts base is outdated, selfupdate would install $macports_version_new (dry run)"
         } else {
             ui_msg "$macports::ui_prefix MacPorts base is outdated, installing new version $macports_version_new"
@@ -260,7 +261,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
         error "Couldn't change permissions of the MacPorts sources at $mp_source_path to ${sources_owner}: $eMessage"
     }
 
-    if {![info exists options(ports_selfupdate_no-sync)] || !$options(ports_selfupdate_no-sync)} {
+    if {![dict exists $options ports_selfupdate_no-sync] || ![dict get $options ports_selfupdate_no-sync]} {
         if {[info exists needed_portindex]} {
             ui_msg "Not all sources could be fully synced using the old version of MacPorts."
             ui_msg "Please run selfupdate again now that MacPorts base has been updated."
