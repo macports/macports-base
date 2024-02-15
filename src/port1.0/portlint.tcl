@@ -284,7 +284,7 @@ proc portlint::lint_main {args} {
     set in_description false
     set prohibit_tabs false
 
-    array set portgroups {}
+    set portgroups [dict create]
 
     set local_variants [list]
 
@@ -375,11 +375,11 @@ proc portlint::lint_main {args} {
                 ui_error "Line $lineno has unrecognized PortGroup"
                 incr errors
             } else {
-                if {[info exists portgroups($portgroup)]} {
+                if {[dict exists $portgroups $portgroup]} {
                     ui_error "Line $lineno repeats inclusion of PortGroup $portgroup"
                     incr errors
                 } else {
-                    set portgroups($portgroup) $portgroupversion
+                    dict set portgroups $portgroup $portgroupversion
                 }
             }
             set seen_portgroup true
@@ -435,7 +435,7 @@ proc portlint::lint_main {args} {
             incr warnings
         }
 
-        if {[regexp {^\s*compiler\.blacklist(?:-[a-z]+)?\s.*(["{]\S+(?:\s+\S+){2,}["}])} $line -> blacklist] && ![info exists portgroups(compiler_blacklist_versions)]} {
+        if {[regexp {^\s*compiler\.blacklist(?:-[a-z]+)?\s.*(["{]\S+(?:\s+\S+){2,}["}])} $line -> blacklist] && ![dict exists $portgroups compiler_blacklist_versions]} {
             ui_error "Line $lineno uses compiler.blacklist entry $blacklist which requires the compiler_blacklist_versions portgroup which has not been included"
             incr errors
         }
@@ -513,7 +513,7 @@ proc portlint::lint_main {args} {
 
     if {$seen_portgroup} {
         # Using a PortGroup is optional
-        foreach {portgroup portgroupversion} [array get portgroups] {
+        dict for {portgroup portgroupversion} $portgroups {
             if {![file exists [getportresourcepath $porturl "port1.0/group/${portgroup}-${portgroupversion}.tcl"]]} {
                 ui_error "Unknown PortGroup: $portgroup-$portgroupversion"
                 incr errors
@@ -684,14 +684,14 @@ proc portlint::lint_main {args} {
     # Check for multiple dependencies
     foreach deptype {depends_extract depends_patch depends_lib depends_build depends_run depends_test} {
         if {[info exists $deptype]} {
-            array set depwarned {}
+            set depwarned [dict create]
             foreach depspec [set $deptype] {
-                if {![info exists depwarned($depspec)]
+                if {![dict exists $depwarned $depspec]
                         && [llength [lsearch -exact -all [set $deptype] $depspec]] > 1} {
                     ui_warn "Dependency $depspec specified multiple times in $deptype"
                     incr warnings
                     # Report each depspec only once
-                    set depwarned($depspec) yes
+                    dict set depwarned $depspec yes
                 }
             }
         }
