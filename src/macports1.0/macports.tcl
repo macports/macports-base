@@ -2518,6 +2518,9 @@ proc mportexec {mport target} {
                     append errstring " [ditem_key $ditem provides]"
                 }
                 ui_error $errstring
+                foreach ditem $result {
+                    ui_debug "[ditem_key $ditem provides] requires: [ditem_key $ditem requires]"
+                }
             }
             foreach ditem $dlist {
                 catch {mportclose $ditem}
