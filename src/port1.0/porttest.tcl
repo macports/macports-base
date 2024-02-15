@@ -55,7 +55,7 @@ proc porttest::test_archs {} {
     if {$handle eq "NULL"} {
         error "Error creating libmachista handle"
     }
-    array set file_archs {}
+    set file_archs [dict create]
     set destrootlen [string length [option destroot]]
     fs-traverse -depth fullpath [list [option destpath]] {
         if {[file type $fullpath] ne "file"} {
@@ -65,14 +65,14 @@ proc porttest::test_archs {} {
             set archs [get_file_archs $handle $fullpath]
             if {$archs ne ""} {
                 # not guaranteed to be listed in canonical order
-                lappend file_archs([lsort -ascii $archs]) [string range $fullpath $destrootlen end]
+                dict lappend file_archs [lsort -ascii $archs] [string range $fullpath $destrootlen end]
             }
         }
     }
     set wanted_archs [get_canonical_archs]
-    set has_wanted_archs [info exists file_archs($wanted_archs)]
-    unset -nocomplain file_archs($wanted_archs)
-    if {[array names file_archs] ne ""} {
+    set has_wanted_archs [dict exists $file_archs $wanted_archs]
+    dict unset file_archs $wanted_archs
+    if {[dict size $file_archs] > 0} {
         set msg "[option name] is configured to build "
         if {$wanted_archs eq "noarch"} {
             append msg "no architecture-specific files,"
@@ -80,9 +80,9 @@ proc porttest::test_archs {} {
             append msg "for the architecture(s) '$wanted_archs',"
         }
         append msg " but installed Mach-O files built for the following archs:\n"
-        foreach a [array names file_archs] {
-            append msg [join $a ,]:\n
-            foreach f $file_archs($a) {
+        dict for {archs files} $file_archs {
+            append msg [join $archs ,]:\n
+            foreach f $files {
                 append msg "  $f\n"
             }
         }
