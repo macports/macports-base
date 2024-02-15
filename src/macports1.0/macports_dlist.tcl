@@ -121,7 +121,7 @@ proc dlist_has_pending {dlist tokens} {
 # dlist_count_unmet
 # Returns the total number of unmet dependencies in
 # the list of tokens.  If the tokens are in the status
-# dictionary with a successful result code, they are 
+# dictionary with a successful result code, they are
 # considered met.
 proc dlist_count_unmet {dlist statusdict tokens} {
 	upvar $statusdict upstatus
@@ -240,24 +240,24 @@ proc dlist_append_dependents {dlist ditem result} {
 proc dlist_get_next {dlist statusdict} {
 	upvar $statusdict upstatus
 	set nextitem {}
-	
+
 	# arbitrary large number ~ INT_MAX
 	set minfailed 2000000000
-	
+
 	foreach ditem $dlist {
 		# Skip if the ditem has unsatisfied hard dependencies
 		if {[dlist_count_unmet $dlist upstatus [ditem_key $ditem requires]]} {
 			continue
 		}
-		
+
 		# We will favor the ditem with the fewest unmet soft dependencies
 		set unmet [dlist_count_unmet $dlist upstatus [ditem_key $ditem uses]]
-		
+
 		# Delay items with unment soft dependencies that can eventually be met
 		if {$unmet > 0 && [dlist_has_pending $dlist [ditem_key $ditem uses]]} {
 			continue
 		}
-		
+
 		if {$unmet >= $minfailed} {
 			# not better than the last pick
 			continue
@@ -272,7 +272,7 @@ proc dlist_get_next {dlist statusdict} {
 
 # dlist_eval
 # Evaluate the dlist, select each eligible ditem according to
-# the optional selector argument (the default selector is 
+# the optional selector argument (the default selector is
 # dlist_get_next).  The specified handler is then invoked on
 # each ditem in the order they are selected.  When no more
 # ditems are eligible to run (the selector returns {}) then
@@ -307,7 +307,7 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 			}
 		}
 	}
-	
+
 	# Loop for as long as there are ditems in the dlist.
 	while {1} {
 		set ditem [$selector $dlist statusdict]
@@ -328,22 +328,22 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 			}
 			# No news is good news at this point.
 			if {$result eq {}} { set result 0 }
-			
+
 			foreach token [ditem_key $ditem provides] {
 				set statusdict($token) [expr {$result == 0}]
 			}
-			
+
 			# Abort if we're not allowed to fail
 			if {$canfail == 0 && $result != 0} {
 			    set reason handler
 				return $dlist
 			}
-			
+
 			# Delete the ditem from the waiting list.
 			dlist_delete dlist $ditem
 		}
 	}
-	
+
 	# Return the list of lusers
 	return $dlist
 }
