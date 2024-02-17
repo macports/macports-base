@@ -486,13 +486,13 @@ test mportopen_installed {
 test mportshutdown {
     Mport shutdown unit test.
 } -setup {
-    unset macports::ping_cache
+    set macports::ping_cache [dict create]
 
     set time [expr [clock seconds] - 86100]
     set time_exp [expr [clock seconds] - 87000]
     set macports::portdbpath $pwd/portdbpath
-    set macports::ping_cache(host1) [list test $time]
-    set macports::ping_cache(host2) [list test $time_exp]
+    dict set macports::ping_cache host1 [list test $time]
+    dict set macports::ping_cache host2 [list test $time_exp]
 
     file mkdir $macports::portdbpath
     close [open $macports::portdbpath/pingtimes w+]
@@ -961,7 +961,7 @@ test get_pingtime {
     Get ping time unit test.
 } -setup {
     set time [expr [clock seconds] - 86300]
-    set macports::ping_cache(macports.org) [list MacPorts $time]
+    dict set macports::ping_cache macports.org [list MacPorts $time]
     set macports::host_blacklist macports_blacklist
     set macports::preferred_hosts macports_pref
 } -body {
@@ -981,8 +981,9 @@ test get_pingtime {
 test set_pingtime {
     Set ping time unit test.
 } -body {
-    set macports::ping_cache(macports) {}
-    if {[lindex [macports::set_pingtime macports 007] 0] != 007} {
+    dict set macports::ping_cache macports {}
+    macports::set_pingtime macports 007
+    if {[macports::get_pingtime macports] != 007} {
         return "FAIL: ping time not set"
     }
     return "Set ping time successful."
