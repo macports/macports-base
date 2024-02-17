@@ -205,31 +205,31 @@ proc portconfigure::add_build_dep { type dep } {
 proc portconfigure::set_configure_type {option action args} {
     global autoreconf.cmd automake.cmd autoconf.cmd xmkmf.cmd
 
-    array set configure_map {
-        autoconf    {port:autoconf port:automake port:libtool}
-        xmkmf       port:imake
-    }
+    set configure_map [dict create \
+        autoconf    [list port:autoconf port:automake port:libtool] \
+        xmkmf       port:imake \
+    ]
 
     if {$action eq "set"} {
         switch $option {
             autoreconf.cmd  -
             automake.cmd    -
             autoconf.cmd {
-                depends_build-delete {*}$configure_map(autoconf)
+                depends_build-delete {*}[dict get $configure_map autoconf]
             }
             xmkmf.cmd {
-                depends_build-delete {*}$configure_map(xmkmf)
+                depends_build-delete {*}[dict get $configure_map xmkmf]
             }
             use_xmkmf {
                 if {[tbool args]} {
-                    depends_build-append {*}$configure_map(xmkmf)
+                    depends_build-append {*}[dict get $configure_map xmkmf]
                 }
             }
             default {
                 # strip "use_"
                 set type [string range $option 4 end]
                 if {[tbool args]} {
-                    add_build_dep $type $configure_map(autoconf)
+                    add_build_dep $type [dict get $configure_map autoconf]
                 }
             }
         }
@@ -473,7 +473,7 @@ proc portconfigure::choose_supported_archs {archs} {
     # supported by the SDK if needed, e.g. 64-bit to 32-bit. That means
     # e.g. if build_arch is x86_64 it's still possible to build a port
     # that sets supported_archs to "i386 ppc" if the SDK allows it.
-    array set arch_demotions [list \
+    set arch_demotions [dict create \
                                 arm64 x86_64 \
                                 x86_64 i386 \
                                 ppc64 ppc \
@@ -481,8 +481,8 @@ proc portconfigure::choose_supported_archs {archs} {
     foreach arch $archs {
         if {$arch in $intersection_archs} {
             set add_arch $arch
-        } elseif {[info exists arch_demotions($arch)] && $arch_demotions($arch) in $intersection_archs} {
-            set add_arch $arch_demotions($arch)
+        } elseif {[dict exists $arch_demotions $arch] && [dict get $arch_demotions $arch] in $intersection_archs} {
+            set add_arch [dict get $arch_demotions $arch]
         } else {
             continue
         }
