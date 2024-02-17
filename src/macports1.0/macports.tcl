@@ -1487,9 +1487,9 @@ match macports.conf.default."
     macports_try -pass_signal {
         set pingfile -1
         set pingfile [open ${macports::portdbpath}/pingtimes r]
-        array set macports::ping_cache [gets $pingfile]
+        set macports::ping_cache [dict create {*}[gets $pingfile]]
     } on error {} {
-        array set macports::ping_cache {}
+        set macports::ping_cache [dict create]
     } finally {
         if {$pingfile != -1} {
             close $pingfile
@@ -1501,7 +1501,7 @@ match macports.conf.default."
     if {![info exists macports::preferred_hosts]} {
         set macports::preferred_hosts {}
     }
-    array set macports::host_cache {}
+    set macports::host_cache [dict create]
 
     # load the quick index unless told not to
     if {![macports::global_option_isset ports_no_load_quick_index]} {
@@ -1541,16 +1541,14 @@ match macports.conf.default."
 # call this just before you exit
 proc mportshutdown {} {
     # save ping times
-    global macports::ping_cache macports::portdbpath
-    if {[file writable $macports::portdbpath]} {
+    if {[file writable $::macports::portdbpath]} {
         catch {
-            foreach host [array names ping_cache] {
-                # don't save expired entries
-                if {[clock seconds] - [lindex $ping_cache($host) 1] < 86400} {
-                    lappend pinglist_fresh $host $ping_cache($host)
-                }
-            }
-            set pingfile [open ${macports::portdbpath}/pingtimes w]
+            # don't save expired entries
+            set now [clock seconds]
+            set pinglist_fresh [dict filter $::macports::ping_cache script {host entry} {
+                expr {$now - [lindex $entry 1] < 86400}
+            }]
+            set pingfile [open ${::macports::portdbpath}/pingtimes w]
             puts $pingfile $pinglist_fresh
             close $pingfile
         }
@@ -3349,21 +3347,21 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 #         info. See the return value of mportsearch().
 # @see mportsearch()
 proc mportlookup {name} {
-    global macports::sources macports::quick_index
+    global macports::quick_index
 
     set sourceno 0
     set matches [list]
-    foreach source $sources {
+    foreach source $::macports::sources {
         set source [lindex $source 0]
         set protocol [macports::getprotocol $source]
-        if {![info exists quick_index(${sourceno},[string tolower $name])]} {
+        if {![dict exists $quick_index ${sourceno} [string tolower $name]]} {
             # no entry in this source, advance to next source
             incr sourceno 1
             continue
         }
         # The quick index is keyed on the port name, and provides the offset in
         # the main PortIndex where the given port's PortInfo line can be found.
-        set offset $quick_index(${sourceno},[string tolower $name])
+        set offset [dict get $quick_index ${sourceno} [string tolower $name]]
         incr sourceno 1
         if {[catch {set fd [open [macports::getindex $source] r]} result]} {
             ui_warn "Can't open index file for source: $source"
@@ -3481,12 +3479,12 @@ proc mportlistall {} {
 # first if necessary. Private API of macports1.0, do not use this from outside
 # macports1.0.
 proc _mports_load_quickindex {} {
-    global macports::sources macports::quick_index
+    global macports::quick_index
 
-    unset -nocomplain macports::quick_index
+    set quick_index [dict create]
 
     set sourceno 0
-    foreach source $sources {
+    foreach source $::macports::sources {
         unset -nocomplain quicklist
         # chop off any tags
         set source [lindex $source 0]
@@ -3513,13 +3511,11 @@ proc _mports_load_quickindex {} {
                 incr sourceno
                 continue
             }
-            set quicklist [read $fd]
+            set quicklist [read -nonewline $fd]
             close $fd
         }
-        foreach entry [split $quicklist \n] {
-            set quick_index(${sourceno},[lindex $entry 0]) [lindex $entry 1]
-        }
-        incr sourceno 1
+        dict set quick_index ${sourceno} [dict create {*}$quicklist]
+        incr sourceno
     }
     if {!$sourceno} {
         ui_warn "No index(es) found! Have you synced your port definitions? Try running 'port selfupdate'."
@@ -5951,28 +5947,30 @@ proc macports::revupgrade_buildgraph {port stackname adjlistname revadjlistname 
 
 # get cached ping time for host, modified by blacklist and preferred list
 proc macports::get_pingtime {host} {
-    global macports::ping_cache macports::host_cache \
-           macports::host_blacklist macports::preferred_hosts
+    global macports::ping_cache macports::host_cache
 
-    if {[info exists host_cache($host)]} {
-        return $host_cache($host)
-    }
-    foreach pattern $macports::host_blacklist {
-        if {[string match -nocase $pattern $host]} {
-            set host_cache($host) -1
-            return -1
+    if {![dict exists $host_cache $host]} {
+        foreach pattern $::macports::host_blacklist {
+            if {[string match -nocase $pattern $host]} {
+                dict set host_cache $host -1
+                return -1
+            }
         }
-    }
-    foreach pattern $macports::preferred_hosts {
-        if {[string match -nocase $pattern $host]} {
-            set host_cache($host) 1
-            return 1
+        foreach pattern $::macports::preferred_hosts {
+            if {[string match -nocase $pattern $host]} {
+                dict set host_cache $host 1
+                return 1
+            }
         }
+        dict set host_cache $host 0
     }
-    if {[info exists ping_cache($host)]} {
+    if {[dict get $host_cache $host] != 0} {
+        return [dict get $host_cache $host]
+    }
+    if {[dict exists $ping_cache $host]} {
         # expire entries after 1 day
-        if {[clock seconds] - [lindex $ping_cache($host) 1] <= 86400} {
-            return [lindex $ping_cache($host) 0]
+        if {[clock seconds] - [lindex [dict get $ping_cache $host] 1] <= 86400} {
+            return [lindex [dict get $ping_cache $host] 0]
         }
     }
     return {}
@@ -5980,8 +5978,7 @@ proc macports::get_pingtime {host} {
 
 # cache a ping time of ms for host
 proc macports::set_pingtime {host ms} {
-    global macports::ping_cache
-    set ping_cache($host) [list $ms [clock seconds]]
+    dict set ::macports::ping_cache $host [list $ms [clock seconds]]
 }
 
 # get the version of a compiler (memoized)

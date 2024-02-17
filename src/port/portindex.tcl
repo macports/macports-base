@@ -400,7 +400,7 @@ if {[file isfile $outpath]} {
         if {![file isfile ${outpath}.quick]} {
             catch {set qindex [dict create {*}[mports_generate_quickindex ${outpath}]]}
         } elseif {![catch {open ${outpath}.quick r} quickfd]} {
-            catch {set qindex [dict create {*}[read $quickfd]]}
+            catch {set qindex [dict create {*}[read -nonewline $quickfd]]}
             close $quickfd
         }
     }
