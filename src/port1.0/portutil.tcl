@@ -86,9 +86,9 @@ proc exists {option} {
 # @param option name of the option
 # @param args arguments
 proc handle_option {option args} {
-    global $option user_options
+    global $option
 
-    if {![info exists user_options($option)]} {
+    if {![info exists ::user_options($option)]} {
         set $option $args
     }
 }
@@ -99,9 +99,9 @@ proc handle_option {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-append {option args} {
-    global $option user_options
+    global $option
 
-    if {![info exists user_options($option)]} {
+    if {![info exists ::user_options($option)]} {
         lappend $option {*}$args
     }
 }
@@ -112,9 +112,9 @@ proc handle_option-append {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-prepend {option args} {
-    global $option user_options
+    global $option
 
-    if {![info exists user_options($option)]} {
+    if {![info exists ::user_options($option)]} {
         if {[info exists $option]} {
             set $option [concat $args [set $option]]
         } else {
@@ -129,9 +129,9 @@ proc handle_option-prepend {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-delete {option args} {
-    global $option user_options
+    global $option
 
-    if {![info exists user_options($option)] && [info exists $option]} {
+    if {![info exists ::user_options($option)] && [info exists $option]} {
         foreach val $args {
             set $option [ldelete [set $option][set $option {}] $val]
         }
@@ -144,9 +144,9 @@ proc handle_option-delete {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-strsed {option args} {
-    global $option user_options
+    global $option
 
-    if {![info exists user_options($option)] && [info exists $option]} {
+    if {![info exists ::user_options($option)] && [info exists $option]} {
         foreach val $args {
             set $option [strsed [set $option][set $option {}] $val]
         }
@@ -159,9 +159,9 @@ proc handle_option-strsed {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-replace {option args} {
-    global $option user_options
+    global $option
 
-    if {![info exists user_options($option)] && [info exists $option]} {
+    if {![info exists ::user_options($option)] && [info exists $option]} {
         foreach {old new} $args {
             set index [lsearch -exact [set $option] $old]
             if {$index != -1} {
@@ -258,9 +258,8 @@ proc get_deprecated_options {} {
 # @param option name of the option
 # @param newoption name of a superseding option
 proc option_deprecate {option {newoption ""} } {
-    global deprecated_options
     # If a new option is specified, default the option to $newoption
-    set deprecated_options($option) [list $newoption 0]
+    set ::deprecated_options($option) [list $newoption 0]
     # Create a normal option for compatibility
     options $option
     # Register a proc for handling the deprecation
@@ -452,7 +451,7 @@ proc command_exec {args} {
     # Call this command.
     # TODO: move that to the system native call?
     # Save the environment.
-    array set saved_env [array get env]
+    set saved_env [array get env]
     # Set the overridden variables from the portfile.
     array set env [array get ${varprefix}.env_array]
     # Call the command.
@@ -468,7 +467,7 @@ proc command_exec {args} {
 
     # Restore the environment.
     array unset env *
-    array set env [array get saved_env]
+    array set env $saved_env
 
     # Return as if system had been called directly.
     return -code $code -errorcode $errcode -errorinfo $errinfo $result
@@ -562,7 +561,7 @@ proc handle_option_string {option action args} {
 # variant <provides> [<provides> ...] [requires <requires> [<requires>]]
 # Portfile level procedure to provide support for declaring variants
 proc variant {args} {
-    global all_variants PortInfo porturl
+    global PortInfo
 
     # Each key in PortInfo(vinfo) maps to an array which contains the
     # following keys:
@@ -571,9 +570,8 @@ proc variant {args} {
     #   * is_default: This key exists iff the variant is a default variant.
     #   * requires
     if {![info exists PortInfo(vinfo)]} {
-        set PortInfo(vinfo) [list]
+        set PortInfo(vinfo) [dict create]
     }
-    array set vinfo $PortInfo(vinfo)
 
     set len [llength $args]
     if {$len < 2} {
@@ -618,16 +616,11 @@ proc variant {args} {
         # This variant was already defined. Remove it from the dlist.
         variant_remove_ditem $variant_provides
     } else {
-        # Create an array to contain the variant's information.
-        if {![info exists vinfo($variant_provides)]} {
-            set vinfo($variant_provides) [list]
-        }
-        array set variant $vinfo($variant_provides)
 
         # Set conflicts.
         set vconflicts [join [lsort [ditem_key $ditem conflicts]]]
         if {$vconflicts ne ""} {
-            array set variant [list conflicts $vconflicts]
+            dict set PortInfo(vinfo) $variant_provides conflicts $vconflicts
         }
 
         lappend PortInfo(variants) $variant_provides
@@ -635,24 +628,20 @@ proc variant {args} {
 
         # read global variant description, if none given
         if {$vdesc eq ""} {
-            set vdesc [variant_desc $porturl $variant_provides]
+            set vdesc [variant_desc $::porturl $variant_provides]
         }
 
         # Set description.
         if {$vdesc ne ""} {
-            array set variant [list description $vdesc]
+            dict set PortInfo(vinfo) $variant_provides description $vdesc
         }
 
         # Set requires.
         set vrequires [join [lsort [ditem_key $ditem requires]]]
         if {$vrequires ne ""} {
-            array set variant [list requires $vrequires]
+            dict set PortInfo(vinfo) $variant_provides requires $vrequires
         }
     }
-
-    # Add the variant (back) to PortInfo(vinfo).
-    array set vinfo [list $variant_provides [array get variant]]
-    set PortInfo(vinfo) [array get vinfo]
 
     if {[variant_isset $variant_provides]} {
         # set variants that this one requires
@@ -662,15 +651,13 @@ proc variant {args} {
     }
 
     # Finally append the ditem to the dlist.
-    lappend all_variants $ditem
+    lappend ::all_variants $ditem
 }
 
 # variant_isset name
 # Returns 1 if variant name selected, otherwise 0
 proc variant_isset {name} {
-    global variations
-
-    if {[info exists variations($name)] && $variations($name) eq "+"} {
+    if {[info exists ::variations($name)] && $::variations($name) eq "+"} {
         return 1
     }
     return 0
@@ -679,8 +666,7 @@ proc variant_isset {name} {
 # variant_set name
 # Sets variant to run for current portfile
 proc variant_set {name} {
-    global variations
-    set variations($name) +
+    set ::variations($name) +
 }
 
 # variant_remove_ditem name
@@ -707,17 +693,14 @@ proc variant_delete {name} {
         set ::PortInfo(variants) [ldelete $::PortInfo(variants) $name]
     }
     if {[info exists ::PortInfo(vinfo)]} {
-        array set vinfo $::PortInfo(vinfo)
-        unset -nocomplain vinfo($name)
-        set ::PortInfo(vinfo) [array get vinfo]
+        dict unset ::PortInfo(vinfo) $name
     }
 }
 
 # variant_exists name
 # determine if a variant exists.
 proc variant_exists {name} {
-    global PortInfo
-    if {[info exists PortInfo(variants)] && $name in $PortInfo(variants)} {
+    if {[info exists ::PortInfo(variants)] && $name in $::PortInfo(variants)} {
         return 1
     }
 
@@ -731,29 +714,29 @@ proc variant_exists {name} {
 proc load_variant_desc_file {descfile} {
     global variant_descs_global
 
-    if {![info exists variant_descs_global($descfile)]} {
-        set variant_descs_global($descfile) yes
+    if {![info exists variant_descs_global]} {
+        set variant_descs_global [dict create]
+    }
+    if {![dict exists $variant_descs_global $descfile] && [file exists $descfile]} {
+        ui_debug "Reading variant descriptions from $descfile"
 
-        if {[file exists $descfile]} {
-            ui_debug "Reading variant descriptions from $descfile"
-
-            if {[catch {set fd [open $descfile r]} err]} {
-                ui_warn "Could not open global variant description file: $err"
-                return ""
-            }
-            set lineno 0
-            while {[gets $fd line] >= 0} {
-                incr lineno
-                set name [lindex $line 0]
-                set desc [lindex $line 1]
-                if {$name ne "" && $desc ne ""} {
-                    set variant_descs_global(${descfile}_$name) $desc
-                } else {
-                    ui_warn "Invalid variant description in $descfile at line $lineno"
-                }
-            }
-            close $fd
+        dict set variant_descs_global $descfile [dict create]
+        if {[catch {set fd [open $descfile r]} err]} {
+            ui_warn "Could not open global variant description file: $err"
+            return
         }
+        set lineno 0
+        while {[gets $fd line] >= 0} {
+            incr lineno
+            set name [lindex $line 0]
+            set desc [lindex $line 1]
+            if {$name ne "" && $desc ne "" && ![dict exists $variant_descs_global $descfile $name]} {
+                dict set variant_descs_global $descfile $name $desc
+            } else {
+                ui_warn "Invalid variant description in $descfile at line $lineno"
+            }
+        }
+        close $fd
     }
 }
 
@@ -769,14 +752,14 @@ proc variant_desc {porturl variant} {
     set descfile [getportresourcepath $porturl "port1.0/variant_descriptions.conf" no]
     load_variant_desc_file $descfile
 
-    if {[info exists variant_descs_global(${descfile}_${variant})]} {
-        return $variant_descs_global(${descfile}_${variant})
+    if {[dict exists $variant_descs_global ${descfile} ${variant}]} {
+        return [dict get $variant_descs_global ${descfile} ${variant}]
     } else {
         set descfile [getdefaultportresourcepath "port1.0/variant_descriptions.conf"]
         load_variant_desc_file $descfile
 
-        if {[info exists variant_descs_global(${descfile}_${variant})]} {
-            return $variant_descs_global(${descfile}_${variant})
+        if {[dict exists $variant_descs_global ${descfile} ${variant}]} {
+            return [dict get $variant_descs_global ${descfile} ${variant}]
         }
 
         return ""
@@ -1972,7 +1955,7 @@ proc check_statefile_variants {variations oldvariations fd} {
     upvar $variations upvariations
     upvar $oldvariations upoldvariations
 
-    array set upoldvariations {}
+    set upoldvariations [dict create]
 
     set variants_found no
     set targets_found no
@@ -1981,7 +1964,7 @@ proc check_statefile_variants {variations oldvariations fd} {
     seek $fd 0
     while {[gets $fd line] >= 0} {
         if {[regexp $variant_re $line match name]} {
-            set upoldvariations([string range $name 1 end]) [string range $name 0 0]
+            dict set upoldvariations [string range $name 1 end] [string range $name 0 0]
             set variants_found yes
         }
         if {[regexp $target_re $line]} {
@@ -1995,11 +1978,11 @@ proc check_statefile_variants {variations oldvariations fd} {
     }
 
     set mismatch 0
-    if {[array size upoldvariations] != [array size upvariations]} {
+    if {[dict size $upoldvariations] != [dict size $upvariations]} {
         set mismatch 1
     } else {
-        foreach key [array names upvariations *] {
-            if {![info exists upoldvariations($key)] || $upvariations($key) ne $upoldvariations($key)} {
+        dict for {key val} $upvariations {
+            if {![dict exists $upoldvariations $key] || $val ne [dict get $upoldvariations $key]} {
                 set mismatch 1
                 break
             }
@@ -2075,11 +2058,10 @@ proc variant_run {ditem} {
     # variants in a string in a standard order as +var1+var2 etc.
     # Can also do the same for -variants, for recording the negated list.
 proc canonicalize_variants {variants {sign "+"}} {
-    array set vara $variants
     set result ""
-    set vlist [lsort -ascii [array names vara]]
+    set vlist [lsort -ascii [dict keys $variants]]
     foreach v $vlist {
-        if {$vara($v) eq $sign} {
+        if {[dict get $variants $v] eq $sign} {
             append result "${sign}${v}"
         }
     }
@@ -2087,12 +2069,10 @@ proc canonicalize_variants {variants {sign "+"}} {
 }
 
 proc eval_variants {variations} {
-    global all_variants PortInfo requested_variations portvariants requested_variants
-    set dlist $all_variants
+    global PortInfo requested_variations portvariants
+    set dlist $::all_variants
     upvar $variations upvariations
-    set chosen [choose_variants $dlist upvariations]
-    set negated [lindex $chosen 1]
-    set chosen [lindex $chosen 0]
+    lassign [choose_variants $dlist upvariations] chosen negated
     set portname [option subport]
 
     # Check to make sure the requested variations are available with this
@@ -2168,7 +2148,7 @@ proc eval_variants {variations} {
             lappend negated_list $thevar "-"
         }
     }
-    set requested_variants [canonicalize_variants $requested_list "+"][canonicalize_variants $negated_list "-"]
+    set ::requested_variants [canonicalize_variants $requested_list "+"][canonicalize_variants $negated_list "-"]
 
     return 0
 }
@@ -2176,7 +2156,7 @@ proc eval_variants {variations} {
 proc check_variants {target} {
     global targets ports_force ports_dryrun PortInfo
     set result 0
-    array set variations $PortInfo(active_variants)
+    set variations $PortInfo(active_variants)
 
     # Make sure the variations match those stored in the statefile.
     # If they don't match, print an error indicating a 'port clean'
@@ -2202,15 +2182,14 @@ proc check_variants {target} {
 
         set state_fd [open_statefile]
 
-        array set oldvariations {}
         if {![tbool ports_force] && [check_statefile_variants variations oldvariations $state_fd]} {
-            ui_error "Requested variants \"[canonicalize_variants [array get variations]]\" do not match those the build was started with: \"[canonicalize_variants [array get oldvariations]]\"."
+            ui_error "Requested variants \"[canonicalize_variants $variations]\" do not match those the build was started with: \"[canonicalize_variants $oldvariations]\"."
             ui_error "Please use the same variants again, or run 'port clean [option subport]' first to remove the existing partially completed build."
             set result 1
         } elseif {![tbool ports_dryrun]} {
             # Write variations out to the statefile
-            foreach key [array names variations *] {
-                write_statefile variant $variations($key)$key $state_fd
+            dict for {key val} $variations {
+                write_statefile variant ${val}${key} $state_fd
             }
         }
 
@@ -2249,13 +2228,12 @@ proc universal_setup {args} {
 
 # constructor for target object
 proc target_new {name procedure} {
-    global targets
     set ditem [ditem_create]
 
     ditem_key $ditem name $name
     ditem_key $ditem procedure $procedure
 
-    lappend targets $ditem
+    lappend ::targets $ditem
 
     return $ditem
 }
@@ -2357,33 +2335,21 @@ proc variant_new {name} {
 
 proc handle_default_variants {option action {value ""}} {
     global PortInfo variations
-    switch -regex $action {
-        set|append {
-            # Retrieve the information associated with each variant.
-            if {![info exists PortInfo(vinfo)]} {
-                set PortInfo(vinfo) [list]
-            }
-            array set vinfo $PortInfo(vinfo)
+    switch $action {
+        append -
+        set {
+            # Parse each value as a variant name and sign.
             set re {([-+])([-A-Za-z0-9_.]+)}
             foreach v $value {
                 if {[regexp $re $v whole val variant]} {
-                    # Retrieve the information associated with this variant.
-                    if {![info exists vinfo($variant)]} {
-                        set vinfo($variant) {}
-                    }
-                    array unset info
-                    array set info $vinfo($variant)
-                    # Set is_default and update vinfo.
-                    set info(is_default) $val
-                    array set vinfo [list $variant [array get info]]
-
+                    # Set is_default in the associated vinfo.
+                    dict set PortInfo(vinfo) $variant is_default $val
+                    # Add the default value to variations if not already set
                     if {![info exists variations($variant)]} {
                         set variations($variant) $val
                     }
                 }
             }
-            # Update PortInfo(vinfo).
-            set PortInfo(vinfo) [array get vinfo]
         }
         delete {
             # xxx
