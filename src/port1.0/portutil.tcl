@@ -59,12 +59,11 @@ proc option {option args} {
     # XXX: right now we just transparently use globals
     # eventually this will need to bridge the options between
     # the Portfile's interpreter and the target's interpreters.
-    global $option
     if {[llength $args] > 0} {
         ui_debug "setting option $option to $args"
-        set $option [lindex $args 0]
+        set ::$option [lindex $args 0]
     }
-    return [set $option]
+    return [set ::$option]
 }
 
 # exists
@@ -76,8 +75,7 @@ proc exists {option} {
     # XXX: right now we just transparently use globals
     # eventually this will need to bridge the options between
     # the Portfile's interpreter and the target's interpreters.
-    global $option
-    return [info exists $option]
+    return [info exists ::$option]
 }
 
 ##
@@ -86,10 +84,8 @@ proc exists {option} {
 # @param option name of the option
 # @param args arguments
 proc handle_option {option args} {
-    global $option
-
     if {![info exists ::user_options($option)]} {
-        set $option $args
+        set ::$option $args
     }
 }
 
@@ -99,10 +95,8 @@ proc handle_option {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-append {option args} {
-    global $option
-
     if {![info exists ::user_options($option)]} {
-        lappend $option {*}$args
+        lappend ::$option {*}$args
     }
 }
 
@@ -112,13 +106,11 @@ proc handle_option-append {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-prepend {option args} {
-    global $option
-
     if {![info exists ::user_options($option)]} {
-        if {[info exists $option]} {
-            set $option [concat $args [set $option]]
+        if {[info exists ::$option]} {
+            set ::$option [concat $args [set ::$option]]
         } else {
-            set $option $args
+            set ::$option $args
         }
     }
 }
@@ -129,11 +121,9 @@ proc handle_option-prepend {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-delete {option args} {
-    global $option
-
-    if {![info exists ::user_options($option)] && [info exists $option]} {
+    if {![info exists ::user_options($option)] && [info exists ::$option]} {
         foreach val $args {
-            set $option [ldelete [set $option][set $option {}] $val]
+            set ::$option [ldelete [set ::$option][set ::$option {}] $val]
         }
     }
 }
@@ -144,11 +134,9 @@ proc handle_option-delete {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-strsed {option args} {
-    global $option
-
-    if {![info exists ::user_options($option)] && [info exists $option]} {
+    if {![info exists ::user_options($option)] && [info exists ::$option]} {
         foreach val $args {
-            set $option [strsed [set $option][set $option {}] $val]
+            set ::$option [strsed [set ::$option][set ::$option {}] $val]
         }
     }
 }
@@ -159,13 +147,11 @@ proc handle_option-strsed {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-replace {option args} {
-    global $option
-
-    if {![info exists ::user_options($option)] && [info exists $option]} {
+    if {![info exists ::user_options($option)] && [info exists ::$option]} {
         foreach {old new} $args {
-            set index [lsearch -exact [set $option] $old]
+            set index [lsearch -exact [set ::$option] $old]
             if {$index != -1} {
-                lset $option $index $new
+                lset ::$option $index $new
             }
         }
     }
@@ -196,13 +182,12 @@ proc options {args} {
 # @param action set or delete
 # @param value the value to be set, defaults to an empty string
 proc options::export {option action {value ""}} {
-    global $option PortInfo
     switch $action {
         set {
-            set PortInfo($option) $value
+            set ::PortInfo($option) $value
         }
         delete {
-            unset -nocomplain PortInfo($option)
+            unset -nocomplain ::PortInfo($option)
         }
     }
 }
@@ -224,23 +209,21 @@ proc options_export {args} {
 # @param action read/set
 # @param value ignored
 proc handle_deprecated_option {option action {value ""}} {
-    global subport $option deprecated_options
-    set newoption [lindex $deprecated_options($option) 0]
-    set refcount  [lindex $deprecated_options($option) 1]
-    global $newoption
+    set newoption [lindex $::deprecated_options($option) 0]
+    set refcount  [lindex $::deprecated_options($option) 1]
 
     if {$newoption eq ""} {
-        ui_warn "Port $subport using deprecated option \"$option\"."
+        ui_warn "Port $::subport using deprecated option \"$option\"."
         return
     }
 
     # Increment reference counter
-    lset deprecated_options($option) 1 [expr {$refcount + 1}]
+    lset ::deprecated_options($option) 1 [expr {$refcount + 1}]
 
     if {$action ne "read"} {
-        $newoption [set $option]
+        $newoption [set ::$option]
     } else {
-        $option [set $newoption]
+        $option [set ::$newoption]
     }
 }
 
@@ -272,39 +255,37 @@ proc option_deprecate {option {newoption ""} } {
 # @param option the name of the option
 # @param args name of procs
 proc option_proc {option args} {
-    global option_procs $option
-    if {[info exists option_procs($option)]} {
-        set option_procs($option) [concat $option_procs($option) $args]
+    if {[info exists ::option_procs($option)]} {
+        set ::option_procs($option) [concat $::option_procs($option) $args]
         # we're already tracing
     } else {
-        set option_procs($option) $args
-        trace add variable $option {read write unset} option_proc_trace
+        set ::option_procs($option) $args
+        trace add variable ::$option [list read write unset] option_proc_trace
     }
 }
 
 # option_proc_trace
 # trace handler for option reads. Calls option procedures with correct arguments.
 proc option_proc_trace {optionName index op} {
-    global option_procs
-    upvar $optionName $optionName
+    set optionName [namespace tail $optionName]
     switch $op {
         write {
-            foreach p $option_procs($optionName) {
-                $p $optionName set [set $optionName]
+            foreach p $::option_procs($optionName) {
+                $p $optionName set [set ::$optionName]
             }
         }
         read {
-            foreach p $option_procs($optionName) {
+            foreach p $::option_procs($optionName) {
                 $p $optionName read
             }
         }
         unset {
-            foreach p $option_procs($optionName) {
+            foreach p $::option_procs($optionName) {
                 if {[catch {$p $optionName delete} result]} {
                     ui_debug "error during unset trace ($p): $result\n$::errorInfo"
                 }
             }
-            trace add variable $optionName {read write unset} option_proc_trace
+            trace add variable ::$optionName [list read write unset] option_proc_trace
         }
     }
 }
@@ -478,41 +459,40 @@ proc command_exec {args} {
 # and adds a variable trace. The variable traces allows for delayed
 # variable and command expansion in the variable's default value.
 proc default {option val} {
-    global $option option_defaults
-    if {[info exists option_defaults($option)]} {
+    if {[info exists ::option_defaults($option)]} {
         ui_debug "Re-registering default for $option"
         # remove the old trace
-        trace remove variable $option {read write unset} default_check
+        trace remove variable ::$option [list read write unset] default_check
     } else {
         # If option is already set and we did not set it
         # do not reset the value
-        if {[info exists $option]} {
+        if {[info exists ::$option]} {
             return
         }
     }
-    set option_defaults($option) $val
-    set $option $val
-    trace add variable $option {read write unset} default_check
+    set ::option_defaults($option) $val
+    set ::$option $val
+    trace add variable ::$option [list read write unset] default_check
 }
 
 # default_check
 # trace handler to provide delayed variable & command expansion
 # for default variable values
-proc default_check {optionName index op} {
-    global option_defaults $optionName
+proc default_check {varName index op} {
+    set optionName [namespace tail $varName]
     switch $op {
         write {
-            unset option_defaults($optionName)
-            trace remove variable $optionName {read write unset} default_check
+            unset ::option_defaults($optionName)
+            trace remove variable ::$optionName [list read write unset] default_check
             return
         }
         read {
-            uplevel #0 [list set $optionName] [subst -nocommands {[subst {$option_defaults($optionName)}]}]
+            uplevel #0 [list set $optionName] [subst -nocommands {[subst {$::option_defaults($optionName)}]}]
             return
         }
         unset {
-            unset option_defaults($optionName)
-            trace remove variable $optionName {read write unset} default_check
+            unset ::option_defaults($optionName)
+            trace remove variable ::$optionName [list read write unset] default_check
             return
         }
     }
@@ -521,8 +501,6 @@ proc default_check {optionName index op} {
 ##
 # Filter options which take strings removing indent to ease Portfile writing
 proc handle_option_string {option action args} {
-    global $option
-
     switch $action {
         set {
             set args [join $args]
@@ -553,7 +531,7 @@ proc handle_option_string {option action args} {
                 lappend fulllist $arg
             }
 
-            set $option $fulllist
+            set ::$option $fulllist
         }
     }
 }
@@ -965,10 +943,10 @@ proc getdistname {name} {
 # tbool (testbool)
 # If the variable exists in the calling procedure's namespace
 # and is set to a boolean true value, return 1. Otherwise, return 0
-proc tbool {key} {
-    upvar $key $key
-    if {[info exists $key]} {
-        return [string is true -strict [set $key]]
+proc tbool {_tbool_varname} {
+    upvar $_tbool_varname $_tbool_varname
+    if {[info exists $_tbool_varname]} {
+        return [string is true -strict [set $_tbool_varname]]
     }
     return 0
 }
