@@ -2111,23 +2111,22 @@ proc mportopen_installed {name version revision variants options} {
     set regref [lindex [registry::entry imaged $name $version $revision $variants] 0]
     set portfile_dir [file join ${registry.path} registry portfiles ${name}-${version}_${revision} [$regref portfile]]
 
-    set variations [list]
+    set variations [dict create]
     # Relies on all negated variants being at the end of requested_variants
     set minusvariant [lrange [split [$regref requested_variants] -] 1 end]
     set plusvariant [lrange [split [$regref variants] +] 1 end]
     foreach v $plusvariant {
-        lappend variations $v +
+        dict set variations $v +
     }
     foreach v $minusvariant {
         if {[string first "+" $v] == -1} {
-            lappend variations $v -
+            dict set variations $v -
         } else {
             ui_warn "Invalid negated variant for $name @${version}_${revision}${variants}: $v"
         }
     }
 
-    array set options_array $options
-    set options_array(subport) $name
+    dict set options subport $name
 
     # find portgroups in registry
     set pgdirlist [list]
@@ -2136,14 +2135,14 @@ proc mportopen_installed {name version revision variants options} {
         registry::portgroup close $pg
     }
     if {$pgdirlist ne ""} {
-        set options_array(_portgroup_search_dirs) $pgdirlist
+        dict set options _portgroup_search_dirs $pgdirlist
     }
 
     # Don't close as the reference is usually in use by the caller.
     # (Maybe this proc should take a regref as input?)
     #registry::entry close $regref
 
-    set retmport [mportopen file://${portfile_dir}/ [array get options_array] $variations]
+    set retmport [mportopen file://${portfile_dir}/ $options $variations]
     set workername [ditem_key $retmport workername]
     foreach var {version revision variants} {
         $workername eval [list set _inregistry_${var} [set $var]]
