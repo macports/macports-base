@@ -186,6 +186,21 @@ proc lunshift {varName args} {
 }
 
 
+# dictequal dictA dictB
+# Returns 0 if the two given dicts have exactly the same keys and map
+# them to exactly the same values. Returns 1 otherwise.
+proc dictequal {a b} {
+    if {[dict size $a] != [dict size $b]} {
+        return 1
+    }
+    dict for {key val} $a {
+        if {![dict exists $b $key] || $val ne [dict get $b $key]} {
+            return 1
+        }
+    }
+    return 0
+}
+
 # bytesize filesize ?unit? ?format?
 # Format an integer representing bytes using given units
 proc bytesize {siz {unit {}} {format {%.2f}}} {
