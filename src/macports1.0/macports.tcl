@@ -2037,7 +2037,8 @@ proc mportopen {porturl {options {}} {variations {}} {nocache {}}} {
     if {$nocache ne ""} {
         set mport ""
     } else {
-        set mport [dlist_match_multi $macports::open_mports [list porturl $porturl variations $variations options $options]]
+        set comparators [dict create variations dictequal options dictequal]
+        set mport [dlist_match_multi $macports::open_mports [list porturl $porturl variations $variations options $options] $comparators]
     }
     if {$mport ne ""} {
         # just in case more than one somehow matches
@@ -3769,7 +3770,8 @@ proc mportdepends {mport {target {}} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                     # we potentially leak mport references if we mportopen each time,
                     # because mportexec only closes each open mport once.
                     set matchlistname [expr {$depListName ne {} ? "depList" : "macports::open_mports"}]
-                    set depport_matches [dlist_match_multi [set $matchlistname] [list porturl $dep_portinfo(porturl) options $dep_options]]
+                    set comparators [dict create options dictequal]
+                    set depport_matches [dlist_match_multi [set $matchlistname] [list porturl $dep_portinfo(porturl) options $dep_options] $comparators]
                     # if multiple matches, the most recently opened one is more likely what we want
                     set depport [lindex $depport_matches end]
 

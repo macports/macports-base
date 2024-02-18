@@ -56,13 +56,21 @@ package provide macports_dlist 1.0
 # Returns all dependency entries for which the entry's value for 'key' exactly matches the given 'value'.
 #   dlist - the dependency list to search
 #   criteria - the key/value pairs to compare
+#   cmp - dict mapping keys to a procedure name to compare them
+#         should return 0 if equal, nonzero otherwise
+#         (simple string comparison is used for keys not in the dict)
 
-proc dlist_match_multi {dlist criteria} {
+proc dlist_match_multi {dlist criteria {cmp {}}} {
 	set result [list]
 	foreach ditem $dlist {
 		set match 1
 		foreach {key value} $criteria {
-			if {[ditem_key $ditem $key] ne $value} {
+			if {[dict exists $cmp $key]} {
+				if {[[dict get $cmp $key] [ditem_key $ditem $key] $value] != 0} {
+					set match 0
+					break
+				}
+			} elseif {[ditem_key $ditem $key] ne $value} {
 				set match 0
 				break
 			}
