@@ -5318,9 +5318,8 @@ proc macports::revupgrade_update_cxx_stdlib {fancy_output {revupgrade_progress "
 #        taken.
 # @return 1 if ports were rebuilt and this function should be called again,
 #         0 otherwise.
-proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
+proc macports::revupgrade_scanandrebuild {broken_port_counts_name options} {
     upvar $broken_port_counts_name broken_port_counts
-    array set options $opts
 
     set fancy_output [expr {![macports::ui_isset ports_debug] && [info exists macports::ui_options(progress_generic)]}]
     if {$fancy_output} {
@@ -5381,7 +5380,7 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
 
                 set architecture [$result cget -mt_archs]
                 while {$architecture ne "NULL"} {
-                    if {[info exists options(ports_rev-upgrade_id-loadcmd-check)] && $options(ports_rev-upgrade_id-loadcmd-check)} {
+                    if {[dict exists $options ports_rev-upgrade_id-loadcmd-check] && [dict get $options ports_rev-upgrade_id-loadcmd-check]} {
                         if {[$architecture cget -mat_install_name] ne "NULL" && [$architecture cget -mat_install_name] ne ""} {
                             # check if this lib's install name actually refers to this file itself
                             # if this is not the case software linking against this library might have erroneous load commands
@@ -5765,8 +5764,8 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         # shared depscache for all ports that are going to be rebuilt
         array set depscache {}
         set status 0
-        array set my_options [array get macports::global_options]
-        set my_options(ports_revupgrade) yes
+        set my_options [array get macports::global_options]
+        dict set my_options ports_revupgrade yes
 
         # Depending on the options, calling macports::upgrade could
         # uninstall later entries in this list. So get the info we need
@@ -5778,21 +5777,21 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
         }
         foreach portname $topsort_portnames {
             if {![info exists depscache(port:$portname)]} {
-                unset -nocomplain my_options(ports_revupgrade_second_run) \
-                                  my_options(ports_nodeps)
+                dict unset my_options ports_revupgrade_second_run
+                dict unset my_options ports_nodeps
                 if {$broken_port_counts($portname) > 1} {
-                    set my_options(ports_revupgrade_second_run) yes
+                    dict set my_options ports_revupgrade_second_run yes
 
                     if {$broken_port_counts($portname) > 2} {
                         # runtime deps are upgraded the first time, build deps 
                         # the second, so none left to do the third time
-                        set my_options(ports_nodeps) yes
+                        dict set my_options ports_nodeps yes
                     }
                 }
 
                 # call macports::upgrade with ports_revupgrade option to rebuild the port
                 set status [macports::upgrade $portname port:$portname \
-                    {} [array get my_options] depscache]
+                    {} $my_options depscache]
                 ui_debug "Rebuilding port $portname finished with status $status"
                 if {$status != 0} {
                     error "Error rebuilding $portname"
@@ -5800,8 +5799,8 @@ proc macports::revupgrade_scanandrebuild {broken_port_counts_name opts} {
             }
         }
 
-        if {[info exists options(ports_dryrun)] && $options(ports_dryrun)} {
-            ui_warn "If this was no dry run, rev-upgrade would now run the checks again to find unresolved and newly created problems"
+        if {[dict exists $options ports_dryrun] && [dict get $options ports_dryrun]} {
+            ui_warn "If this was not a dry run, rev-upgrade would now run the checks again to find unresolved and newly created problems"
             return 0
         }
         return 1
