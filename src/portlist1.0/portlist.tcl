@@ -199,7 +199,7 @@ proc portlist_sortregrefs {reflist} {
     return [lsort -command portlist_compareregrefs $reflist]
 }
 
-proc unique_entries {entries} {
+proc portlist::unique_entries {entries} {
     # Form the list of all the unique elements in the list a,
     # considering only the port fullname, and taking the first
     # found element first
@@ -213,13 +213,13 @@ proc unique_entries {entries} {
 }
 
 
-proc opUnion {a b} {
+proc portlist::opUnion {a b} {
     # Return the unique elements in the combined two lists
     return [unique_entries [concat $a $b]]
 }
 
 
-proc opIntersection {a b} {
+proc portlist::opIntersection {a b} {
     set result [list]
 
     # Rules we follow in performing the intersection of two port lists:
@@ -266,7 +266,7 @@ proc opIntersection {a b} {
 }
 
 
-proc opComplement {a b} {
+proc portlist::opComplement {a b} {
     set result [list]
 
     # Return all elements of a not matching elements in b

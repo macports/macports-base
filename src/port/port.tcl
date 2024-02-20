@@ -504,7 +504,7 @@ proc get_uninstalled_ports {} {
     # Return all - installed
     set all [get_all_ports]
     set installed [get_installed_ports]
-    return [opComplement $all $installed]
+    return [portlist::opComplement $all $installed]
 }
 
 
@@ -673,7 +673,7 @@ proc get_leaves_ports {} {
             add_to_portlist_with_defaults results [dict create name [$i name] version [$i version]_[$i revision] variants [split_variants [$i variants]]]
         }
     }
-    return [portlist_sort [opComplement $results [get_requested_ports]]]
+    return [portlist_sort [portlist::opComplement $results [get_requested_ports]]]
 }
 
 proc get_rleaves_ports {} {
@@ -682,7 +682,7 @@ proc get_rleaves_ports {} {
     set results [list]
     foreach i $ilist {
         set deplist [get_dependent_ports [dict get $i name] 1]
-        if {$deplist eq "" || [opIntersection $deplist $requested] eq ""} {
+        if {$deplist eq "" || [portlist::opIntersection $deplist $requested] eq ""} {
             add_to_portlist results $i
         }
     }
@@ -714,7 +714,7 @@ proc get_dependent_ports {portname recursive} {
                 }
             }
             if {[llength $rportlist] > 0} {
-                set results [opUnion $results $rportlist]
+                set results [portlist::opUnion $results $rportlist]
                 set deplist $newlist
             } else {
                 break
@@ -863,7 +863,7 @@ proc get_dep_ports {portname recursive} {
                 }
             }
             if {[llength $rportlist] > 0} {
-                set results [opUnion $results $rportlist]
+                set results [portlist::opUnion $results $rportlist]
                 set deplist $newlist
             } else {
                 break
@@ -949,7 +949,7 @@ proc seqExpr { resname } {
         set result [orExpr blist]
         if {$result} {
             # Calculate the union of result and b
-            set reslist [opUnion $reslist $blist]
+            set reslist [portlist::opUnion $reslist $blist]
         }
     }
 
@@ -971,7 +971,7 @@ proc orExpr { resname } {
                     }
 
                     # Calculate a union b
-                    set reslist [opUnion $reslist $blist]
+                    set reslist [portlist::opUnion $reslist $blist]
                 }
             default {
                     return $a
@@ -999,7 +999,7 @@ proc andExpr { resname } {
                     }
 
                     # Calculate a intersect b
-                    set reslist [opIntersection $reslist $blist]
+                    set reslist [portlist::opIntersection $reslist $blist]
                 }
             default {
                     return $a
@@ -1023,7 +1023,7 @@ proc unaryExpr { resname } {
                 set result [unaryExpr blist]
                 if {$result} {
                     set all [get_all_ports]
-                    set reslist [opComplement $all $blist]
+                    set reslist [portlist::opComplement $all $blist]
                 }
             }
         default {
@@ -2879,7 +2879,7 @@ proc action_uninstall { action portlist opts } {
     if {[macports::global_option_isset port_uninstall_old]} {
         # if -u then uninstall all inactive ports
         # (union these to any other ports user has in the port list)
-        set portlist [opUnion $portlist [get_inactive_ports]]
+        set portlist [portlist::opUnion $portlist [get_inactive_ports]]
     } else {
         # Otherwise the user hopefully supplied a portlist, or we'll default to the existing directory
         if {[require_portlist portlist]} {
@@ -3415,7 +3415,7 @@ proc action_search { action portlist opts } {
             foreach {name info} $matches {
                 add_to_portlist_with_defaults tmp [dict create name $name {*}$info]
             }
-            set res [opUnion $res $tmp]
+            set res [portlist::opUnion $res $tmp]
         }
         set res [portlist_sort $res]
 
