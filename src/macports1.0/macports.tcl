@@ -937,6 +937,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {![info exists sources_conf]} {
         return -code error "sources_conf must be set in ${macports_conf_path}/macports.conf or in your ${macports_user_dir}/macports.conf file"
     }
+    # Precompute mapping of source URLs to prefix to use for porturls (used in mportlookup etc)
+    set ::macports::porturl_prefix_map [dict create]
     set sources_conf_comment_re {^\s*#|^$}
     set sources_conf_source_re {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$}
     set fd [open $sources_conf r]
@@ -959,6 +961,18 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
                 if {[string match rsync://*rsync.macports.org/release/ports/ $url]} {
                     ui_warn "MacPorts is configured to use an unsigned source for the ports tree.\
 Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarballs/ports.tar'."
+                }
+                switch -- [macports::getprotocol $url] {
+                    rsync -
+                    https -
+                    http -
+                    ftp {
+                        # Rsync and snapshot tarballs create Portfiles in the local filesystem
+                        dict set ::macports::porturl_prefix_map $url file://[macports::getsourcepath $url]
+                    }
+                    default {
+                        dict set ::macports::porturl_prefix_map $url $url
+                    }
                 }
                 lappend sources [concat [list $url] $flags]
             } else {
@@ -3224,14 +3238,13 @@ proc mportsync {{options {}}} {
 #         <tt>array set</tt> to create an associate array where the port names
 #         are the keys and the lines from portindex are the values.
 proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}} {
-    global macports::sources
     set matches [list]
     set easy [expr {$field eq "name"}]
 
     set found 0
-    foreach source $sources {
+    foreach source $::macports::sources {
         set source [lindex $source 0]
-        set protocol [macports::getprotocol $source]
+        set porturl_prefix [dict get $::macports::porturl_prefix_map $source]
         macports_try -pass_signal {
             set fd [open [macports::getindex $source] r]
 
@@ -3280,23 +3293,8 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                     }
 
                     if {$matchres == 1} {
-                        switch -- $protocol {
-                            rsync {
-                                # Rsync files are local
-                                set source_url file://[macports::getsourcepath $source]
-                            }
-                            https -
-                            http -
-                            ftp {
-                                # snapshot tarball
-                                set source_url file://[macports::getsourcepath $source]
-                            }
-                            default {
-                                set source_url $source
-                            }
-                        }
                         if {[dict exists $portinfo portdir]} {
-                            set porturl ${source_url}/[dict get $portinfo portdir]
+                            set porturl ${porturl_prefix}/[dict get $portinfo portdir]
                             dict set portinfo porturl $porturl
                             ui_debug "Found port in $porturl"
                         } else {
@@ -3343,13 +3341,13 @@ proc mportlookup {name} {
     set matches [list]
     set normname [string tolower $name]
     foreach source $::macports::sources {
-        set source [lindex $source 0]
-        set protocol [macports::getprotocol $source]
         if {![dict exists $quick_index $sourceno $normname]} {
             # no entry in this source, advance to next source
             incr sourceno 1
             continue
         }
+        set source [lindex $source 0]
+        set porturl_prefix [dict get $::macports::porturl_prefix_map $source]
         # The quick index is keyed on the port name, and provides the offset in
         # the main PortIndex where the given port's PortInfo line can be found.
         set offset [dict get $quick_index $sourceno $normname]
@@ -3364,21 +3362,8 @@ proc mportlookup {name} {
                 set len  [lindex $line 1]
                 set portinfo [read $fd $len]
 
-                switch -- $protocol {
-                    rsync {
-                        set source_url file://[macports::getsourcepath $source]
-                    }
-                    https -
-                    http -
-                    ftp {
-                        set source_url file://[macports::getsourcepath $source]
-                    }
-                    default {
-                        set source_url $source
-                    }
-                }
                 if {[dict exists $portinfo portdir]} {
-                    dict set portinfo porturl ${source_url}/[dict get $portinfo portdir]
+                    dict set portinfo porturl ${porturl_prefix}/[dict get $portinfo portdir]
                 }
                 lappend matches $name $portinfo
             } on error {_ eOptions} {
@@ -3407,13 +3392,11 @@ proc mportlookup {name} {
 #         info. See the return value of mportsearch().
 # @see mportsearch()
 proc mportlistall {} {
-    global macports::sources
     set matches [list]
-
     set found 0
-    foreach source $sources {
+    foreach source $::macports::sources {
         set source [lindex $source 0]
-        set protocol [macports::getprotocol $source]
+        set porturl_prefix [dict get $::macports::porturl_prefix_map $source]
         macports_try -pass_signal {
             set fd [open [macports::getindex $source] r]
 
@@ -3424,21 +3407,8 @@ proc mportlistall {} {
                     set len  [lindex $line 1]
                     set portinfo [read $fd $len]
 
-                    switch -- $protocol {
-                        rsync {
-                            set source_url file://[macports::getsourcepath $source]
-                        }
-                        https -
-                        http -
-                        ftp {
-                            set source_url file://[macports::getsourcepath $source]
-                        }
-                        default {
-                            set source_url $source
-                        }
-                    }
                     if {[dict exists $portinfo portdir]} {
-                        dict set portinfo porturl ${source_url}/[dict get $portinfo portdir]
+                        dict set portinfo porturl ${porturl_prefix}/[dict get $portinfo portdir]
                     }
                     lappend matches $name $portinfo
                 }
