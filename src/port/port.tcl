@@ -993,13 +993,27 @@ proc andExpr { resname } {
                     advance
 
                     set blist [list]
+                    # Handle "and not" as a direct operation, rather
+                    # than first calculating everything that is not b.
+                    if {[lookahead] eq "not"} {
+                        advance
+                        set complement 1
+                    } else {
+                        set complement 0
+                    }
+
                     set b [unaryExpr blist]
                     if {!$b} {
                         return 0
                     }
 
-                    # Calculate a intersect b
-                    set reslist [portlist::opIntersection $reslist $blist]
+                    if {$complement} {
+                        # Calculate relative complement of b in a (AKA set difference)
+                        set reslist [portlist::opComplement $reslist $blist]
+                    } else {
+                        # Calculate a intersect b
+                        set reslist [portlist::opIntersection $reslist $blist]
+                    }
                 }
             default {
                     return $a
