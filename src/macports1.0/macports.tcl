@@ -1622,17 +1622,31 @@ match macports.conf.default."
 
 # call this just before you exit
 proc mportshutdown {} {
-    # save ping times
-    if {[file writable $::macports::portdbpath]} {
-        catch {
+    global macports::portdbpath
+    # save cached values
+    if {[file writable $portdbpath]} {
+        global macports::ping_cache macports::compiler_version_cache
+        if {[catch {
             # don't save expired entries
             set now [clock seconds]
-            set pinglist_fresh [dict filter $::macports::ping_cache script {host entry} {
+            set pinglist_fresh [dict filter $ping_cache script {host entry} {
                 expr {$now - [lindex $entry 1] < 86400}
             }]
-            set pingfile [open ${::macports::portdbpath}/pingtimes w]
+            set pingfile [open ${portdbpath}/pingtimes w]
             puts $pingfile $pinglist_fresh
             close $pingfile
+        } result]} {
+            ui_debug "Error writing ${portdbpath}/pingtimes: $result"
+        }
+        if {[info exists compiler_version_cache]} {
+            if {[catch {
+                file mkdir ${portdbpath}/cache
+                set versfile [open ${portdbpath}/cache/compiler_versions w]
+                puts $versfile $compiler_version_cache
+                close $versfile
+            } result]} {
+                ui_debug "Error writing ${portdbpath}/cache/compiler_versions: $result"
+            }
         }
     }
 
@@ -5966,20 +5980,47 @@ proc macports::set_pingtime {host ms} {
     dict set ::macports::ping_cache $host [list $ms [clock seconds]]
 }
 
-# get the version of a compiler (memoized)
-proc macports::get_compiler_version {compiler} {
-    global macports::compiler_version_cache
+# get the version of a compiler (cached)
+proc macports::get_compiler_version {compiler developer_dir} {
+    variable compiler_version_cache
 
-    if {[info exists compiler_version_cache($compiler)]} {
-        return $compiler_version_cache($compiler)
+    if {![info exists compiler_version_cache]} {
+        variable xcodeversion; variable xcodecltversion; variable portdbpath
+        macports_try -pass_signal {
+            set versfile -1
+            set versfile [open ${portdbpath}/cache/compiler_versions r]
+            set compiler_version_cache [dict create {*}[gets $versfile]]
+        } on error {errorInfo} {
+            set compiler_version_cache [dict create]
+            ui_debug "Error loading ${portdbpath}/cache/compiler_versions: $errorInfo"
+        } finally {
+            if {$versfile != -1} {
+                close $versfile
+            }
+        }
+        # Invalidate if Xcode or CLT version changed
+        if {([dict exists $compiler_version_cache xcodeversion]
+                && $xcodeversion ne [dict get $compiler_version_cache xcodeversion])
+                || ([dict exists $compiler_version_cache xcodecltversion]
+                && $xcodecltversion ne [dict get $compiler_version_cache xcodecltversion])} {
+            set compiler_version_cache [dict create]
+        }
+        if {[dict size $compiler_version_cache] == 0} {
+            dict set compiler_version_cache xcodeversion $xcodeversion
+            dict set compiler_version_cache xcodecltversion $xcodecltversion
+        }
+    }
+
+    if {[dict exists $compiler_version_cache versions $developer_dir $compiler]} {
+        return [dict get $compiler_version_cache versions $developer_dir $compiler]
     }
 
     if {![file executable ${compiler}]} {
-        set compiler_version_cache($compiler) ""
+        dict set compiler_version_cache versions $developer_dir $compiler ""
         return ""
     }
 
-    switch [file tail ${compiler}] {
+    switch -- [file tail ${compiler}] {
         clang {
             set re {clang(?:_.*)?-([0-9.]+)}
         }
@@ -5995,14 +6036,14 @@ proc macports::get_compiler_version {compiler} {
         }
     }
 
-    if {[catch {regexp ${re} [exec ${compiler} -v 2>@1] -> compiler_version}]} {
-        set compiler_version_cache($compiler) ""
+    if {[catch {regexp ${re} [exec /usr/bin/env DEVELOPER_DIR=${developer_dir} ${compiler} -v 2>@1] -> compiler_version}]} {
+        dict set compiler_version_cache versions $developer_dir $compiler ""
         return ""
     }
     if {![info exists compiler_version]} {
         return -code error "couldn't determine build number of compiler \"${compiler}\""
     }
-    set compiler_version_cache($compiler) $compiler_version
+    dict set compiler_version_cache versions $developer_dir $compiler $compiler_version
     return $compiler_version
 }
 

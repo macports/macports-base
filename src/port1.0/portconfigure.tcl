@@ -1301,8 +1301,9 @@ proc portconfigure::get_mpi_wrapper {mpi compiler} {
 }
 # utility procedure: get system compiler version by running it
 proc compiler.command_line_tools_version {compiler} {
+    global configure.developer_dir
     set cc [portconfigure::configure_get_compiler cc ${compiler}]
-    return [get_compiler_version ${cc}]
+    return [get_compiler_version ${cc} ${configure.developer_dir}]
 }
 # internal function to choose compiler fallback list based on platform
 proc portconfigure::get_compiler_fallback {} {
