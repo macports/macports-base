@@ -467,77 +467,143 @@ proc macports::getoption {name} {
 
 # deferred and on-need extraction of xcodeversion and xcodebuildcmd.
 proc macports::setxcodeinfo {name1 name2 op} {
-    global macports::xcodeversion macports::xcodebuildcmd
+    variable xcodeversion; variable xcodebuildcmd
+    variable developer_dir; variable portdbpath
 
-    trace remove variable macports::xcodeversion read macports::setxcodeinfo
-    trace remove variable macports::xcodebuildcmd read macports::setxcodeinfo
+    trace remove variable xcodeversion read macports::setxcodeinfo
+    trace remove variable xcodebuildcmd read macports::setxcodeinfo
+
+    set xcodeversion_overridden [info exists xcodeversion]
+    set xcodebuildcmd_overridden [info exists xcodebuildcmd]
+
+    # First try the cache
+    macports_try -pass_signal {
+        set versfile -1
+        set versfile [open ${portdbpath}/cache/xcodeinfo r]
+        set xcodeinfo_cache [dict create {*}[gets $versfile]]
+    } on error {errorInfo} {
+        set xcodeinfo_cache [dict create]
+        ui_debug "Error loading ${portdbpath}/cache/xcodeinfo: $errorInfo"
+    } finally {
+        if {$versfile != -1} {
+            close $versfile
+        }
+    }
+    # Figure out which file to check to see if Xcode was updated
+    if {[file extension [file dirname [file dirname $developer_dir]]] eq ".app"} {
+        # New style, Developer dir inside Xcode.app
+        set checkfile [file dirname $developer_dir]/Info.plist
+    } else {
+        # Old style, Xcode.app inside Developer dir
+        set checkfile ${developer_dir}/Applications/Xcode.app/Contents/Info.plist
+    }
+    set checkfile_found [file isfile $checkfile]
+    if {$checkfile_found && [dict exists $xcodeinfo_cache $checkfile mtime]
+            && [dict exists $xcodeinfo_cache $checkfile xcodeversion]
+            && [dict exists $xcodeinfo_cache $checkfile xcodebuildcmd]} {
+        if {[file mtime $checkfile] == [dict get $xcodeinfo_cache $checkfile mtime]} {
+            if {!${xcodeversion_overridden}} {
+                set xcodeversion [dict get $xcodeinfo_cache $checkfile xcodeversion]
+            }
+            if {!${xcodebuildcmd_overridden}} {
+                set xcodebuildcmd [dict get $xcodeinfo_cache $checkfile xcodebuildcmd]
+            }
+            return
+        } else {
+            ui_debug "Xcode mtime has changed, refreshing version info"
+        }
+    }
 
     macports_try -pass_signal {
         set xcodebuild [findBinary xcodebuild $macports::autoconf::xcodebuild_path]
-        if {![info exists xcodeversion]} {
+        if {!${xcodeversion_overridden}} {
             # Determine xcode version
-            set macports::xcodeversion 2.0orlower
+            set xcodeversion 2.0orlower
             macports_try -pass_signal {
                 set xcodebuildversion [exec -ignorestderr -- $xcodebuild -version 2> /dev/null]
                 if {[regexp {Xcode ([0-9.]+)} $xcodebuildversion - xcode_v] == 1} {
-                    set macports::xcodeversion $xcode_v
+                    set xcodeversion $xcode_v
                 } elseif {[regexp {DevToolsCore-(.*);} $xcodebuildversion - devtoolscore_v] == 1} {
                     if {$devtoolscore_v >= 1809.0} {
-                        set macports::xcodeversion 3.2.6
+                        set xcodeversion 3.2.6
                     } elseif {$devtoolscore_v >= 1763.0} {
-                        set macports::xcodeversion 3.2.5
+                        set xcodeversion 3.2.5
                     } elseif {$devtoolscore_v >= 1705.0} {
-                        set macports::xcodeversion 3.2.4
+                        set xcodeversion 3.2.4
                     } elseif {$devtoolscore_v >= 1691.0} {
-                        set macports::xcodeversion 3.2.3
+                        set xcodeversion 3.2.3
                     } elseif {$devtoolscore_v >= 1648.0} {
-                        set macports::xcodeversion 3.2.2
+                        set xcodeversion 3.2.2
                     } elseif {$devtoolscore_v >= 1614.0} {
-                        set macports::xcodeversion 3.2.1
+                        set xcodeversion 3.2.1
                     } elseif {$devtoolscore_v >= 1608.0} {
-                        set macports::xcodeversion 3.2
+                        set xcodeversion 3.2
                     } elseif {$devtoolscore_v >= 1204.0} {
-                        set macports::xcodeversion 3.1.4
+                        set xcodeversion 3.1.4
                     } elseif {$devtoolscore_v >= 1192.0} {
-                        set macports::xcodeversion 3.1.3
+                        set xcodeversion 3.1.3
                     } elseif {$devtoolscore_v >= 1148.0} {
-                        set macports::xcodeversion 3.1.2
+                        set xcodeversion 3.1.2
                     } elseif {$devtoolscore_v >= 1114.0} {
-                        set macports::xcodeversion 3.1.1
+                        set xcodeversion 3.1.1
                     } elseif {$devtoolscore_v >= 1100.0} {
-                        set macports::xcodeversion 3.1
+                        set xcodeversion 3.1
                     } elseif {$devtoolscore_v >= 921.0} {
-                        set macports::xcodeversion 3.0
+                        set xcodeversion 3.0
                     } elseif {$devtoolscore_v >= 798.0} {
-                        set macports::xcodeversion 2.5
+                        set xcodeversion 2.5
                     } elseif {$devtoolscore_v >= 762.0} {
-                        set macports::xcodeversion 2.4.1
+                        set xcodeversion 2.4.1
                     } elseif {$devtoolscore_v >= 757.0} {
-                        set macports::xcodeversion 2.4
+                        set xcodeversion 2.4
                     } elseif {$devtoolscore_v >= 747.0} {
-                        set macports::xcodeversion 2.3
+                        set xcodeversion 2.3
                     } elseif {$devtoolscore_v >= 650.0} {
-                        set macports::xcodeversion 2.2.1
+                        set xcodeversion 2.2.1
                     } elseif {$devtoolscore_v > 620.0} {
                         # XXX find actual version corresponding to 2.2
-                        set macports::xcodeversion 2.2
+                        set xcodeversion 2.2
                     } elseif {$devtoolscore_v >= 620.0} {
-                        set macports::xcodeversion 2.1
+                        set xcodeversion 2.1
                     }
                 }
             } on error {} {
-                set macports::xcodeversion none
+                set xcodeversion none
             }
         }
-        if {![info exists xcodebuildcmd]} {
-            set macports::xcodebuildcmd $xcodebuild
+        if {!${xcodebuildcmd_overridden}} {
+            set xcodebuildcmd $xcodebuild
         }
     } on error {} {
-        if {![info exists xcodeversion]} {
-            set macports::xcodeversion none
+        if {!${xcodeversion_overridden}} {
+            set xcodeversion none
         }
-        if {![info exists xcodebuildcmd]} {
-            set macports::xcodebuildcmd none
+        if {!${xcodebuildcmd_overridden}} {
+            set xcodebuildcmd none
+        }
+    }
+
+    if {[file writable $portdbpath]} {
+        if {$checkfile_found} {
+            dict unset xcodeinfo_cache $checkfile
+            # Don't cache overridden values
+            if {!${xcodeversion_overridden} && !${xcodebuildcmd_overridden}} {
+                dict set xcodeinfo_cache $checkfile xcodeversion $xcodeversion
+                dict set xcodeinfo_cache $checkfile xcodebuildcmd $xcodebuildcmd
+                dict set xcodeinfo_cache $checkfile mtime [file mtime $checkfile]
+            }
+        }
+        # Remove any entries for Xcode installations that no longer exist
+        set xcodeinfo_cache [dict filter $xcodeinfo_cache script {filename info} {
+            file isfile $filename
+        }]
+        if {[catch {
+            file mkdir ${portdbpath}/cache
+            set versfile [open ${portdbpath}/cache/xcodeinfo w]
+            puts $versfile $xcodeinfo_cache
+            close $versfile
+        } result]} {
+            ui_debug "Error writing ${portdbpath}/cache/xcodeinfo: $result"
         }
     }
 }
@@ -1612,6 +1678,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
 
     # Tell the sub interpreter about all the Tcl packages we already
     # know about so it won't glob for packages.
+    # TODO: There are a lot of these. Should we restrict it to only
+    # the packages that are likely to be needed?
     foreach pkgName [package names] {
         foreach pkgVers [package versions $pkgName] {
             set pkgLoadScript [package ifneeded $pkgName $pkgVers]
