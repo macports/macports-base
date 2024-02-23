@@ -83,6 +83,8 @@ namespace eval macports {
     variable current_phase main
 
     variable ui_prefix "---> "
+
+    variable tool_path_cache [dict create]
 }
 
 ##
@@ -6006,10 +6008,10 @@ proc macports::get_compiler_version {compiler} {
 
 # check availability and location of tool
 proc macports::get_tool_path {tool} {
-    global macports::tool_path_cache
+    variable tool_path_cache
 
-    if {[info exists tool_path_cache($tool)]} {
-        return $tool_path_cache($tool)
+    if {[dict exists $tool_path_cache $tool]} {
+        return [dict get $tool_path_cache $tool]
     }
 
     # first try /usr/bin since this doesn't move around
@@ -6021,7 +6023,7 @@ proc macports::get_tool_path {tool} {
         }
     }
 
-    set tool_path_cache($tool) $toolpath
+    dict set tool_path_cache $tool $toolpath
     return $toolpath
 }
 
