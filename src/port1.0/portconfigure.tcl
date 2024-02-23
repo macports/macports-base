@@ -1301,8 +1301,11 @@ proc portconfigure::get_mpi_wrapper {mpi compiler} {
 }
 # utility procedure: get system compiler version by running it
 proc compiler.command_line_tools_version {compiler} {
-    global configure.developer_dir
     set cc [portconfigure::configure_get_compiler cc ${compiler}]
+    if {$cc eq ""} {
+        return ""
+    }
+    global configure.developer_dir
     return [get_compiler_version ${cc} ${configure.developer_dir}]
 }
 # internal function to choose compiler fallback list based on platform
@@ -1471,11 +1474,17 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
                 set clangpp [find_developer_tool clang++]
                 if {[file executable $clangpp]} {
                     return $clangpp
+                } elseif {[option os.major] <= 12} {
+                    return [find_developer_tool llvm-g++-4.2]
                 }
-                return [find_developer_tool llvm-g++-4.2]
+                return ""
             }
         }
     } elseif {[regexp {^gcc(-3\.3|-4\.[02])?$} $compiler -> suffix]} {
+        # Only exists in Xcode < 4.2, so 10.7 and older.
+        if {[option os.major] >= 12} {
+            return ""
+        }
         switch $type {
             cc      -
             objc    { return [find_developer_tool "gcc${suffix}"] }
@@ -1484,6 +1493,10 @@ proc portconfigure::configure_get_compiler {type {compiler {}}} {
             cpp     { return [find_developer_tool "cpp${suffix}"] }
         }
     } elseif {$compiler eq "llvm-gcc-4.2"} {
+        # Only exists in Xcode < 5, so 10.8 and older.
+        if {[option os.major] >= 13} {
+            return ""
+        }
         switch $type {
             cc      -
             objc    { return [find_developer_tool llvm-gcc-4.2] }
