@@ -1644,6 +1644,10 @@ proc target_run {ditem} {
         unset env(TMPDIR)
     }
 
+    if {[geteuid] == 0} {
+        dropPrivileges
+    }
+
     return $result
 }
 
