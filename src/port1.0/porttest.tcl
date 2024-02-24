@@ -15,10 +15,11 @@ namespace eval porttest {
 }
 
 # define options
-options test.run test.target test.ignore_archs
+options test.asroot test.ignore_archs test.run test.target
 commands test
 
 # Set defaults
+default test.asroot no
 default test.dir {${build.dir}}
 default test.cmd {${build.cmd}}
 default test.pre_args {${test.target}}
