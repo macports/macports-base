@@ -1639,7 +1639,8 @@ proc mportshutdown {} {
     # save cached values
     if {[file writable $portdbpath]} {
         global macports::ping_cache macports::compiler_version_cache
-        if {[info exists ping_cache]} {
+        # Only save the cache if it was used
+        if {[trace info variable ping_cache] eq ""} {
             # don't save expired entries
             set now [clock seconds]
             set pinglist_fresh [dict filter $ping_cache script {host entry} {
@@ -1647,7 +1648,7 @@ proc mportshutdown {} {
             }]
             macports::save_cache pingtimes $pinglist_fresh
         }
-        if {[info exists compiler_version_cache]} {
+        if {[trace info variable compiler_version_cache] eq ""} {
             macports::save_cache compiler_versions $compiler_version_cache
         }
     }
