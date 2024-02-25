@@ -223,6 +223,11 @@ cleanup_man
 delete_old_tcl_package_link
 delete_old_tcl_packages
 
+# Move ping cache to new location
+if [[ -f "${PREFIX}/var/macports/pingtimes" ]]; then
+    mv "${PREFIX}/var/macports/pingtimes" "${PREFIX}/var/macports/cache/pingtimes"
+fi
+
 # Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
 # Exit nicely if the shell is any other than bash or tcsh, as that's considered non-standard.
 USHELL=$(${DSCL} . -read "/Users/${USER}" shell) || {

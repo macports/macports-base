@@ -1588,17 +1588,7 @@ match macports.conf.default."
     set env(CCACHE_DIR) $macports::ccache_dir
 
     # load cached ping times
-    macports_try -pass_signal {
-        set pingfile -1
-        set pingfile [open ${macports::portdbpath}/pingtimes r]
-        set macports::ping_cache [dict create {*}[gets $pingfile]]
-    } on error {} {
-        set macports::ping_cache [dict create]
-    } finally {
-        if {$pingfile != -1} {
-            close $pingfile
-        }
-    }
+    set macports::ping_cache [macports::load_cache pingtimes]
     if {![info exists macports::host_blacklist]} {
         set macports::host_blacklist {}
     }
@@ -1648,17 +1638,13 @@ proc mportshutdown {} {
     # save cached values
     if {[file writable $portdbpath]} {
         global macports::ping_cache macports::compiler_version_cache
-        if {[catch {
+        if {[info exists ping_cache]} {
             # don't save expired entries
             set now [clock seconds]
             set pinglist_fresh [dict filter $ping_cache script {host entry} {
                 expr {$now - [lindex $entry 1] < 86400}
             }]
-            set pingfile [open ${portdbpath}/pingtimes w]
-            puts $pingfile $pinglist_fresh
-            close $pingfile
-        } result]} {
-            ui_debug "Error writing ${portdbpath}/pingtimes: $result"
+            macports::save_cache pingtimes $pinglist_fresh
         }
         if {[info exists compiler_version_cache]} {
             macports::save_cache compiler_versions $compiler_version_cache

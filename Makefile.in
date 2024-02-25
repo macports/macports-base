@@ -33,6 +33,7 @@ include $(srcdir)/Mk/macports.subdir.mk
 
 install::
 	[ ! -f "$(DESTDIR)${sysconfdir}/macports/mp_version" ] || rm -vf "$(DESTDIR)${sysconfdir}/macports/mp_version"
+	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "$(DESTDIR)${localstatedir}/macports/cache"
 	$(INSTALL) -d -o "${DSTUSR}" -g "${DSTGRP}" -m "${DSTMODE}" "$(DESTDIR)${datadir}/macports/"
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 setupenv.bash  "$(DESTDIR)${datadir}/macports/"
 	$(INSTALL)    -o "${DSTUSR}" -g "${DSTGRP}" -m 444 $(srcdir)/macports-pubkey.pem  "$(DESTDIR)${datadir}/macports/"
@@ -92,6 +93,10 @@ ifeq ($(DESTDIR),)
         fi ; \
     else \
         echo "Can't find ${DSCL} / ${DSEDITGROUP}, not creating user \"${RUNUSR}\"" ; \
+    fi
+# Move ping cache to new location
+	@if [ -f "${localstatedir}/macports/pingtimes" ]; then \
+        mv "${localstatedir}/macports/pingtimes" "${localstatedir}/macports/cache/pingtimes"; \
     fi
 # Add [default] tag to the central MacPorts repository, if it isn't already
 	$(TCLSH) $(srcdir)/src/upgrade_sources_conf_default.tcl "${prefix}"
