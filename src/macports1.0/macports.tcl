@@ -1587,8 +1587,9 @@ match macports.conf.default."
     # add ccache to environment
     set env(CCACHE_DIR) $macports::ccache_dir
 
-    # load cached ping times
-    set macports::ping_cache [macports::load_cache pingtimes]
+    # load caches on demand
+    trace add variable macports::compiler_version_cache read macports::load_compiler_version_cache
+    trace add variable macports::ping_cache {read write} macports::load_ping_cache
     if {![info exists macports::host_blacklist]} {
         set macports::host_blacklist {}
     }
@@ -1599,7 +1600,7 @@ match macports.conf.default."
 
     # load the quick index unless told not to
     if {![macports::global_option_isset ports_no_load_quick_index]} {
-        _mports_load_quickindex
+        trace add variable macports::quick_index {read write} macports::load_quickindex
     }
 
     if {![info exists macports::ui_options(ports_no_old_index_warning)]} {
@@ -3512,6 +3513,15 @@ proc mportlistall {} {
     }
 
     return $matches
+}
+
+# Deferred loading of quick index
+proc macports::load_quickindex {name1 name2 op} {
+    variable quick_index
+    trace remove variable quick_index {read write} macports::load_quickindex
+    if {$op eq "read"} {
+        _mports_load_quickindex
+    }
 }
 
 ##
@@ -5945,6 +5955,17 @@ proc macports::revupgrade_buildgraph {port stackname adjlistname revadjlistname 
     }
 }
 
+# Deferred loading of ping times cache
+proc macports::load_ping_cache {name1 name2 op} {
+    variable ping_cache
+    trace remove variable ping_cache {read write} macports::load_ping_cache
+    if {$op eq "write"} {
+        set ping_cache [dict merge [load_cache pingtimes] $ping_cache]
+    } else {
+        set ping_cache [load_cache pingtimes]
+    }
+}
+
 # get cached ping time for host, modified by blacklist and preferred list
 proc macports::get_pingtime {host} {
     global macports::ping_cache macports::host_cache
@@ -5981,25 +6002,29 @@ proc macports::set_pingtime {host ms} {
     dict set ::macports::ping_cache $host [list $ms [clock seconds]]
 }
 
+# Deferred loading of compiler version cache
+proc macports::load_compiler_version_cache {name1 name2 op} {
+    variable compiler_version_cache; variable xcodeversion; variable xcodecltversion
+
+    trace remove variable compiler_version_cache read macports::load_compiler_version_cache
+
+    set compiler_version_cache [load_cache compiler_versions]
+    # Invalidate if Xcode or CLT version changed
+    if {([dict exists $compiler_version_cache xcodeversion]
+            && $xcodeversion ne [dict get $compiler_version_cache xcodeversion])
+            || ([dict exists $compiler_version_cache xcodecltversion]
+            && $xcodecltversion ne [dict get $compiler_version_cache xcodecltversion])} {
+        set compiler_version_cache [dict create]
+    }
+    if {[dict size $compiler_version_cache] == 0} {
+        dict set compiler_version_cache xcodeversion $xcodeversion
+        dict set compiler_version_cache xcodecltversion $xcodecltversion
+    }
+}
+
 # get the version of a compiler (cached)
 proc macports::get_compiler_version {compiler developer_dir} {
     variable compiler_version_cache
-
-    if {![info exists compiler_version_cache]} {
-        variable xcodeversion; variable xcodecltversion; variable portdbpath
-        set compiler_version_cache [load_cache compiler_versions]
-        # Invalidate if Xcode or CLT version changed
-        if {([dict exists $compiler_version_cache xcodeversion]
-                && $xcodeversion ne [dict get $compiler_version_cache xcodeversion])
-                || ([dict exists $compiler_version_cache xcodecltversion]
-                && $xcodecltversion ne [dict get $compiler_version_cache xcodecltversion])} {
-            set compiler_version_cache [dict create]
-        }
-        if {[dict size $compiler_version_cache] == 0} {
-            dict set compiler_version_cache xcodeversion $xcodeversion
-            dict set compiler_version_cache xcodecltversion $xcodecltversion
-        }
-    }
 
     if {[dict exists $compiler_version_cache versions $developer_dir $compiler]} {
         return [dict get $compiler_version_cache versions $developer_dir $compiler]
