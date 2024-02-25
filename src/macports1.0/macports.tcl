@@ -467,6 +467,46 @@ proc macports::getoption {name} {
     return [set $name]
 }
 
+# Load a cache file
+# filename: Name relative to ${portdbpath}/cache to load from
+# Returns a dict created from the file contents if successful, or an
+# empty dict otherwise.
+proc macports::load_cache {filename} {
+    variable portdbpath
+    set cachefd -1
+    macports_try -pass_signal {
+        set cachefd [open ${portdbpath}/cache/${filename} r]
+        set cache [dict create {*}[gets $cachefd]]
+    } on error {errorInfo} {
+        set cache [dict create]
+        ui_debug "Error reading ${portdbpath}/cache/${filename}: $errorInfo"
+    } finally {
+        if {$cachefd != -1} {
+            close $cachefd
+        }
+    }
+    return $cache
+}
+
+# Save a cache file
+# filename: Name relative to ${portdbpath}/cache to save to
+# cache: A dict containing the cache data
+proc macports::save_cache {filename cache} {
+    variable portdbpath
+    set cachefd -1
+    macports_try -pass_signal {
+        file mkdir ${portdbpath}/cache
+        set cachefd [open ${portdbpath}/cache/${filename} w]
+        puts $cachefd $cache
+    } on error {errorInfo} {
+        ui_debug "Error writing ${portdbpath}/cache/${filename}: $errorInfo"
+    } finally {
+        if {$cachefd != -1} {
+            close $cachefd
+        }
+    }
+}
+
 # deferred and on-need extraction of xcodeversion and xcodebuildcmd.
 proc macports::setxcodeinfo {name1 name2 op} {
     variable xcodeversion; variable xcodebuildcmd
@@ -479,18 +519,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
     set xcodebuildcmd_overridden [info exists xcodebuildcmd]
 
     # First try the cache
-    macports_try -pass_signal {
-        set versfile -1
-        set versfile [open ${portdbpath}/cache/xcodeinfo r]
-        set xcodeinfo_cache [dict create {*}[gets $versfile]]
-    } on error {errorInfo} {
-        set xcodeinfo_cache [dict create]
-        ui_debug "Error loading ${portdbpath}/cache/xcodeinfo: $errorInfo"
-    } finally {
-        if {$versfile != -1} {
-            close $versfile
-        }
-    }
+    set xcodeinfo_cache [load_cache xcodeinfo]
     # Figure out which file to check to see if Xcode was updated
     if {[file extension [file dirname [file dirname $developer_dir]]] eq ".app"} {
         # New style, Developer dir inside Xcode.app
@@ -599,14 +628,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
         set xcodeinfo_cache [dict filter $xcodeinfo_cache script {filename info} {
             file isfile $filename
         }]
-        if {[catch {
-            file mkdir ${portdbpath}/cache
-            set versfile [open ${portdbpath}/cache/xcodeinfo w]
-            puts $versfile $xcodeinfo_cache
-            close $versfile
-        } result]} {
-            ui_debug "Error writing ${portdbpath}/cache/xcodeinfo: $result"
-        }
+        save_cache xcodeinfo $xcodeinfo_cache
     }
 }
 
@@ -1639,14 +1661,7 @@ proc mportshutdown {} {
             ui_debug "Error writing ${portdbpath}/pingtimes: $result"
         }
         if {[info exists compiler_version_cache]} {
-            if {[catch {
-                file mkdir ${portdbpath}/cache
-                set versfile [open ${portdbpath}/cache/compiler_versions w]
-                puts $versfile $compiler_version_cache
-                close $versfile
-            } result]} {
-                ui_debug "Error writing ${portdbpath}/cache/compiler_versions: $result"
-            }
+            macports::save_cache compiler_versions $compiler_version_cache
         }
     }
 
@@ -5986,18 +6001,7 @@ proc macports::get_compiler_version {compiler developer_dir} {
 
     if {![info exists compiler_version_cache]} {
         variable xcodeversion; variable xcodecltversion; variable portdbpath
-        macports_try -pass_signal {
-            set versfile -1
-            set versfile [open ${portdbpath}/cache/compiler_versions r]
-            set compiler_version_cache [dict create {*}[gets $versfile]]
-        } on error {errorInfo} {
-            set compiler_version_cache [dict create]
-            ui_debug "Error loading ${portdbpath}/cache/compiler_versions: $errorInfo"
-        } finally {
-            if {$versfile != -1} {
-                close $versfile
-            }
-        }
+        set compiler_version_cache [load_cache compiler_versions]
         # Invalidate if Xcode or CLT version changed
         if {([dict exists $compiler_version_cache xcodeversion]
                 && $xcodeversion ne [dict get $compiler_version_cache xcodeversion])
