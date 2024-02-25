@@ -494,8 +494,8 @@ test mportshutdown {
     dict set macports::ping_cache host1 [list test $time]
     dict set macports::ping_cache host2 [list test $time_exp]
 
-    file mkdir $macports::portdbpath
-    close [open $macports::portdbpath/pingtimes w+]
+    file mkdir ${macports::portdbpath}/cache
+    close [open ${macports::portdbpath}/cache/pingtimes w+]
 
 } -body {
     if {[mportshutdown] ne ""} {
@@ -504,7 +504,7 @@ test mportshutdown {
 
     set res ""
     append res "host1 \{test " $time "\}"
-    set fd [open $macports::portdbpath/pingtimes r]
+    set fd [open ${macports::portdbpath}/cache/pingtimes r]
 
     if {[gets $fd] ne $res} {
         return "FAIL: wrong value saved"
