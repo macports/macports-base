@@ -44,7 +44,6 @@ package require Tclx
 package require mpcommon 1.0
 
 namespace eval macports {
-    namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
     variable bootstrap_options [dict create]
     # Config file options with no special handling
     foreach opt [list binpath auto_path extra_env portdbformat \
@@ -68,7 +67,7 @@ namespace eval macports {
     }
 
     variable user_options {}
-    variable portinterp_options "\
+    variable portinterp_options [list \
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
         registry.path registry.format user_home user_path user_ssh_auth_sock \
         portarchivetype archivefetch_pubkeys portautoclean porttrace keeplogs portverbose destroot_umask \
@@ -79,19 +78,20 @@ namespace eval macports {
         developer_dir universal_archs build_arch os_arch os_endian os_version os_major os_minor \
         os_platform os_subplatform macos_version macos_version_major macosx_version macosx_sdk_version \
         macosx_deployment_target packagemaker_path default_compilers sandbox_enable sandbox_network \
-        delete_la_files cxx_stdlib pkg_post_unarchive_deletions $user_options"
+        delete_la_files cxx_stdlib pkg_post_unarchive_deletions {*}$user_options]
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
     # they are not exported to the interpreter in system_options array.
-    variable portinterp_deferred_options "developer_dir xcodeversion xcodebuildcmd xcodecltversion xcode_license_unaccepted"
+    variable portinterp_deferred_options [list developer_dir xcodeversion xcodebuildcmd \
+                                               xcodecltversion xcode_license_unaccepted]
 
     variable open_mports {}
 
-    variable ui_priorities "error warn msg notice info debug any"
+    variable ui_priorities [list error warn msg notice info debug any]
     variable current_phase main
 
-    variable ui_prefix "---> "
+    variable ui_prefix {---> }
 
     variable tool_path_cache [dict create]
 }
