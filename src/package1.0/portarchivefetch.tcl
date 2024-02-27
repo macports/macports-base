@@ -96,10 +96,17 @@ proc portarchivefetch::filter_sites {} {
         if {$missing} {
             continue
         }
+        # The paths in the portfile vars are fully resolved, so resolve
+        # these too before comparing them.
+        foreach var {archive_prefix archive_frameworks_dir archive_applications_dir} {
+            if {[catch {set ${var}_norm [realpath [set portfetch::mirror_sites::${var}($site)]]}]} {
+                set ${var}_norm [file normalize [set portfetch::mirror_sites::${var}($site)]]
+            }
+        }
         if {$portfetch::mirror_sites::sites($site) ne {} &&
-            $portfetch::mirror_sites::archive_prefix($site) eq $prefix_frozen &&
-            $portfetch::mirror_sites::archive_frameworks_dir($site) eq $frameworks_dir_frozen &&
-            $portfetch::mirror_sites::archive_applications_dir($site) eq $applications_dir_frozen &&
+            $archive_prefix_norm eq $prefix_frozen &&
+            $archive_frameworks_dir_norm eq $frameworks_dir_frozen &&
+            $archive_applications_dir_norm eq $applications_dir_frozen &&
             $portfetch::mirror_sites::archive_cxx_stdlib($site) eq $cxx_stdlib &&
             $portfetch::mirror_sites::archive_delete_la_files($site) eq $delete_la_files &&
             ![catch {archiveTypeIsSupported $portfetch::mirror_sites::archive_type($site)}]} {
