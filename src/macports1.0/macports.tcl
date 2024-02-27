@@ -1010,10 +1010,13 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
                 if {[regexp $conf_option_re $line match option ignore val] == 1} {
                     if {[dict exists $bootstrap_options $option]} {
                         global macports::$option
+                        set val [string trim $val]
                         if {[dict exists $bootstrap_options $option is_path]} {
-                            set $option [realpath [string trim $val]]
+                            if {[catch {set $option [realpath $val]}]} {
+                                set $option [file normalize $val]
+                            }
                         } else {
-                            set $option [string trim $val]
+                            set $option $val
                         }
                     }
                 }
