@@ -45,19 +45,28 @@ package require mpcommon 1.0
 
 namespace eval macports {
     namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
-    variable bootstrap_options "\
-        portdbpath binpath auto_path extra_env sources_conf prefix portdbformat \
+    variable bootstrap_options [dict create]
+    # Config file options with no special handling
+    foreach opt [list binpath auto_path extra_env portdbformat \
         portarchivetype hfscompression portautoclean \
-        porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
+        porttrace portverbose keeplogs destroot_umask rsync_server rsync_options \
         rsync_dir startupitem_autostart startupitem_type startupitem_install \
         place_worksymlink xcodeversion xcodebuildcmd xcodecltversion xcode_license_unaccepted \
-        configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_sdk_version macosx_deployment_target \
+        configureccache ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
+        universal_archs build_arch macosx_sdk_version macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
         master_site_local patch_site_local archive_site_local buildfromsource \
         revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds \
         host_blacklist preferred_hosts sandbox_enable sandbox_network delete_la_files cxx_stdlib \
-        packagemaker_path default_compilers pkg_post_unarchive_deletions ui_interactive"
+        default_compilers pkg_post_unarchive_deletions ui_interactive] {
+            dict set bootstrap_options $opt {}
+    }
+    # Config file options that are a filesystem path and should be fully resolved
+    foreach opt [list applications_dir ccache_dir developer_dir frameworks_dir \
+                      packagemaker_path portdbpath prefix sources_conf variants_conf] {
+        dict set bootstrap_options $opt is_path 1
+    }
+
     variable user_options {}
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
@@ -999,9 +1008,13 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             set fd [open $file r]
             while {[gets $fd line] >= 0} {
                 if {[regexp $conf_option_re $line match option ignore val] == 1} {
-                    if {$option in $bootstrap_options} {
-                        set macports::$option [string trim $val]
+                    if {[dict exists $bootstrap_options $option]} {
                         global macports::$option
+                        if {[dict exists $bootstrap_options $option is_path]} {
+                            set $option [realpath [string trim $val]]
+                        } else {
+                            set $option [string trim $val]
+                        }
                     }
                 }
             }
