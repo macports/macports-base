@@ -2252,18 +2252,26 @@ proc action_select { action portlist opts } {
         ui_error "Incorrect usage. Correct synopsis is one of:"
         ui_msg   "  port select \[--list|--show\] <group>"
         ui_msg   "  port select \[--set\] <group> <version>"
+        ui_msg   "  port select \[--add\] <group> <target> <name>:<link> \[<name>:<link>...\]"
         ui_msg   "  port select --summary"
         return 1
     }
 
     set group [lindex $portlist 0]
 
-    # If no command (--set, --show, --list, --summary) is specified *but*
-    #  more than one argument is specified, default to the set command.
-    if {[llength $commands] < 1 && [llength $portlist] > 1} {
-        set command set
+    # If no command (--set, --show, --list, --summary, --add) is specified *but*
+    # more than two arguments are specified, default to the add command.
+    if {[llength $commands] < 1 && [llength $portlist] > 2} {
+        set command add
         ui_debug [concat "Although no command was specified, more than " \
-                         "one argument was specified.  Defaulting to the " \
+                         "two arguments were specified.  Defaulting to the " \
+                         "'add' command..."]
+    # If no command is specified *but* exactly two arguments are specified,
+    # default to the set command.
+    } elseif {[llength $commands] < 1 && [llength $portlist] > 1} {
+        set command set
+        ui_debug [concat "Although no command was specified, " \
+                         "two arguments were specified.  Defaulting to the " \
                          "'set' command..."]
     # If no command (--set, --show, --list) is specified *and* less than two
     # argument are specified, default to the list command.
@@ -2391,6 +2399,22 @@ proc action_select { action portlist opts } {
             foreach groupdesc $groups {
                 puts [format $formatStr $w1 [dict get $groupdesc name] $w2 [dict get $groupdesc selected] [join [dict get $groupdesc versions] " "]]
             }
+            return 0
+        }
+        add {
+            if {[llength $portlist] < 3} {
+                ui_error [concat "The 'add' command expects three or more " \
+                                 "arguments: <group>, <target>, <name>:<link>, ..."]
+                return 1
+            }
+            set target [lindex $portlist 1]
+
+            ui_msg -nonewline "Creating group '$group' for '$target' "
+            if {[catch {mportselect $command $group $target {*}[lrange $portlist 2 end]} result]} {
+                ui_msg "failed: $result"
+                return 1
+            }
+            ui_msg "succeeded."
             return 0
         }
         default {
@@ -4088,7 +4112,7 @@ set cmd_opts_array [dict create {*}{
     clean       {all archive dist work logs}
     mirror      {new}
     lint        {nitpick}
-    select      {list set show summary}
+    select      {list set show summary add}
     log         {{phase 1} {level 1}}
     upgrade     {force enforce-variants no-replace no-rev-upgrade}
     rev-upgrade {id-loadcmd-check}
