@@ -586,7 +586,7 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
                     return $::portconfigure::sdkroot_cache(macosx${try_version})
                 }
                 # negative result cached, do nothing here
-            } elseif {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx${try_version} --show-sdk-path 2> /dev/null} sdk]} {
+            } elseif {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx${try_version} --show-sdk-path 2> /dev/null} sdk] && ${sdk} ne ""} {
                 set ::portconfigure::sdkroot_cache(macosx${try_version}) $sdk
                 return $sdk
             } else {
@@ -605,7 +605,7 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
                 return $::portconfigure::sdkroot_cache(macosx)
             }
             # negative result cached, do nothing here
-        } elseif {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk]} {
+        } elseif {![catch {exec env DEVELOPER_DIR=${cltpath} xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk] && ${sdk} ne ""} {
             set ::portconfigure::sdkroot_cache(macosx) $sdk
             return $sdk
         } else {
@@ -646,7 +646,7 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
                 return $::portconfigure::sdkroot_cache(macosx${try_version},noclt)
             }
             # negative result cached, do nothing here
-        } elseif {![catch {exec xcrun --sdk macosx${try_version} --show-sdk-path 2> /dev/null} sdk]} {
+        } elseif {![catch {exec xcrun --sdk macosx${try_version} --show-sdk-path 2> /dev/null} sdk] && ${sdk} ne ""} {
             set ::portconfigure::sdkroot_cache(macosx${try_version},noclt) $sdk
             return $sdk
         } else {
@@ -681,7 +681,7 @@ proc portconfigure::configure_get_sdkroot {sdk_version} {
     if {[info exists ::portconfigure::sdkroot_cache(macosx,noclt)]} {
         # no negative-cached case here because that would mean overall failure
         return $::portconfigure::sdkroot_cache(macosx,noclt)
-    } elseif {![catch {exec xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk]} {
+    } elseif {![catch {exec xcrun --sdk macosx --show-sdk-path 2> /dev/null} sdk] && ${sdk} ne ""} {
         set ::portconfigure::sdkroot_cache(macosx,noclt) $sdk
         return $sdk
     }
