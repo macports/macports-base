@@ -80,7 +80,7 @@ proc portdestroot::destroot_getargs {args} {
 }
 
 proc portdestroot::destroot_start {args} {
-    global UI_PREFIX prefix subport porturl destroot os.platform destroot.clean portsharepath \
+    global UI_PREFIX prefix subport destroot os.platform destroot.clean portsharepath \
            destroot.umask destroot.asroot euid egid \
            applications_dir frameworks_dir
     variable oldmask
@@ -131,8 +131,7 @@ proc portdestroot::destroot_main {args} {
 
 proc portdestroot::destroot_finish {args} {
     global UI_PREFIX destroot prefix subport destroot.violate_mtree \
-           applications_dir frameworks_dir destroot.keepdirs destroot.delete_la_files \
-           os.platform os.version
+           applications_dir frameworks_dir destroot.keepdirs destroot.delete_la_files
     variable oldmask
 
     foreach fileToDelete {share/info/dir lib/charset.alias} {
@@ -333,7 +332,7 @@ proc portdestroot::destroot_finish {args} {
                 } else {
                     set dir_allowed no
                     # these files are (at least potentially) outside of the prefix
-                    foreach dir "$applications_dir $frameworks_dir /Library/LaunchAgents /Library/LaunchDaemons /Library/StartupItems" {
+                    foreach dir [list $applications_dir $frameworks_dir /Library/LaunchAgents /Library/LaunchDaemons /Library/StartupItems] {
                         if {[string equal -length [expr {[string length $dfile] + 1}] $dfile/ $dir]} {
                             # it's a prefix of one of the allowed paths
                             set dir_allowed yes
@@ -361,12 +360,12 @@ proc portdestroot::destroot_finish {args} {
 
         # abort here only so all violations can be observed
         if { ${mtree_violation} ne "no" } {
-            ui_warn "[format [msgcat::mc "%s violates the layout of the ports-filesystems!"] [option subport]]"
+            ui_warn "[format [msgcat::mc "%s violates the layout of the ports-filesystems!"] $subport]"
             ui_warn "Please fix or indicate this misbehavior (if it is intended), it will be an error in future releases!"
             # error "mtree violation!"
         }
     } else {
-        ui_warn "[format [msgcat::mc "%s installs files outside the common directory structure."] [option subport]]"
+        ui_warn "[format [msgcat::mc "%s installs files outside the common directory structure."] $subport]"
     }
 
     # Restore umask

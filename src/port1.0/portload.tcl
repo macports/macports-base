@@ -47,12 +47,13 @@ options load.asroot
 set_ui_prefix
 
 proc portload::load_main {args} {
-    global UI_PREFIX prefix subport sudo_user
-    set launchctl_path ${portutil::autoconf::launchctl_path}
+    global UI_PREFIX prefix subport sudo_user \
+           portstartupitem::load_only portstartupitem::autostart_only \
+           portutil::autoconf::launchctl_path
 
     portstartupitem::foreach_startupitem {
-        if {(![info exists ::portstartupitem::load_only] || $si_name in ${::portstartupitem::load_only})
-            && (![info exists ::portstartupitem::autostart_only] || !$::portstartupitem::autostart_only || $si_autostart)} {
+        if {(![info exists load_only] || $si_name in ${load_only})
+            && (![info exists autostart_only] || !$autostart_only || $si_autostart)} {
             if {$si_install} {
                 set path /Library/${si_location}/${si_plist}
             } else {
@@ -88,6 +89,4 @@ proc portload::load_main {args} {
             }
         }
     }
-
-    return
 }

@@ -219,7 +219,6 @@ proc portfetch::checksites {sitelists mirrorfile} {
 
 # sorts fetch_urls in order of ping time
 proc portfetch::sortsites {urls default_listvar} {
-    global $default_listvar
     upvar $urls fetch_urls
     variable urlmap
     set hostregex {[a-zA-Z]+://([a-zA-Z0-9\.\-_]+)}

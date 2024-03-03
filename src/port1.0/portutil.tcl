@@ -59,11 +59,12 @@ proc option {option args} {
     # XXX: right now we just transparently use globals
     # eventually this will need to bridge the options between
     # the Portfile's interpreter and the target's interpreters.
+    global $option
     if {[llength $args] > 0} {
         ui_debug "setting option $option to $args"
-        set ::$option [lindex $args 0]
+        set $option [lindex $args 0]
     }
-    return [set ::$option]
+    return [set $option]
 }
 
 # exists
@@ -75,7 +76,8 @@ proc exists {option} {
     # XXX: right now we just transparently use globals
     # eventually this will need to bridge the options between
     # the Portfile's interpreter and the target's interpreters.
-    return [info exists ::$option]
+    global $option
+    return [info exists $option]
 }
 
 ##
@@ -84,8 +86,10 @@ proc exists {option} {
 # @param option name of the option
 # @param args arguments
 proc handle_option {option args} {
-    if {![info exists ::user_options($option)]} {
-        set ::$option $args
+    global user_options
+    if {![info exists user_options($option)]} {
+        global $option
+        set $option $args
     }
 }
 
@@ -95,8 +99,10 @@ proc handle_option {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-append {option args} {
-    if {![info exists ::user_options($option)]} {
-        lappend ::$option {*}$args
+    global user_options
+    if {![info exists user_options($option)]} {
+        global $option
+        lappend $option {*}$args
     }
 }
 
@@ -106,11 +112,13 @@ proc handle_option-append {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-prepend {option args} {
-    if {![info exists ::user_options($option)]} {
-        if {[info exists ::$option]} {
-            set ::$option [concat $args [set ::$option]]
+    global user_options
+    if {![info exists user_options($option)]} {
+        global $option
+        if {[info exists $option]} {
+            set $option [concat $args [set $option]]
         } else {
-            set ::$option $args
+            set $option $args
         }
     }
 }
@@ -121,9 +129,10 @@ proc handle_option-prepend {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-delete {option args} {
-    if {![info exists ::user_options($option)] && [info exists ::$option]} {
+    global user_options $option
+    if {![info exists user_options($option)] && [info exists $option]} {
         foreach val $args {
-            set ::$option [ldelete [set ::$option][set ::$option {}] $val]
+            set $option [ldelete [set $option][set $option {}] $val]
         }
     }
 }
@@ -134,9 +143,10 @@ proc handle_option-delete {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-strsed {option args} {
-    if {![info exists ::user_options($option)] && [info exists ::$option]} {
+    global user_options $option
+    if {![info exists user_options($option)] && [info exists $option]} {
         foreach val $args {
-            set ::$option [strsed [set ::$option][set ::$option {}] $val]
+            set $option [strsed [set $option][set $option {}] $val]
         }
     }
 }
@@ -147,11 +157,12 @@ proc handle_option-strsed {option args} {
 # @param option name of the option
 # @param args arguments
 proc handle_option-replace {option args} {
-    if {![info exists ::user_options($option)] && [info exists ::$option]} {
+    global user_options $option
+    if {![info exists user_options($option)] && [info exists $option]} {
         foreach {old new} $args {
-            set index [lsearch -exact [set ::$option] $old]
+            set index [lsearch -exact [set $option] $old]
             if {$index != -1} {
-                lset ::$option $index $new
+                lset $option $index $new
             }
         }
     }
@@ -182,12 +193,13 @@ proc options {args} {
 # @param action set or delete
 # @param value the value to be set, defaults to an empty string
 proc options::export {option action {value ""}} {
+    global PortInfo
     switch $action {
         set {
-            set ::PortInfo($option) $value
+            set PortInfo($option) $value
         }
         delete {
-            unset -nocomplain ::PortInfo($option)
+            unset -nocomplain PortInfo($option)
         }
     }
 }
@@ -209,21 +221,25 @@ proc options_export {args} {
 # @param action read/set
 # @param value ignored
 proc handle_deprecated_option {option action {value ""}} {
-    set newoption [lindex $::deprecated_options($option) 0]
-    set refcount  [lindex $::deprecated_options($option) 1]
+    global deprecated_options
+    set newoption [lindex $deprecated_options($option) 0]
+    set refcount  [lindex $deprecated_options($option) 1]
 
     if {$newoption eq ""} {
-        ui_warn "Port $::subport using deprecated option \"$option\"."
+        global subport
+        ui_warn "Port $subport using deprecated option \"$option\"."
         return
     }
 
     # Increment reference counter
-    lset ::deprecated_options($option) 1 [expr {$refcount + 1}]
+    lset deprecated_options($option) 1 [expr {$refcount + 1}]
 
     if {$action ne "read"} {
-        $newoption [set ::$option]
+        global $option
+        $newoption [set $option]
     } else {
-        $option [set ::$newoption]
+        global $newoption
+        $option [set $newoption]
     }
 }
 
@@ -241,8 +257,9 @@ proc get_deprecated_options {} {
 # @param option name of the option
 # @param newoption name of a superseding option
 proc option_deprecate {option {newoption ""} } {
+    global deprecated_options
     # If a new option is specified, default the option to $newoption
-    set ::deprecated_options($option) [list $newoption 0]
+    set deprecated_options($option) [list $newoption 0]
     # Create a normal option for compatibility
     options $option
     # Register a proc for handling the deprecation
@@ -255,12 +272,14 @@ proc option_deprecate {option {newoption ""} } {
 # @param option the name of the option
 # @param args name of procs
 proc option_proc {option args} {
-    if {[info exists ::option_procs($option)]} {
-        set ::option_procs($option) [concat $::option_procs($option) $args]
+    global option_procs
+    if {[info exists option_procs($option)]} {
+        lappend option_procs($option) {*}$args
         # we're already tracing
     } else {
-        set ::option_procs($option) $args
-        trace add variable ::$option [list read write unset] option_proc_trace
+        global $option
+        set option_procs($option) $args
+        trace add variable $option [list read write unset] option_proc_trace
     }
 }
 
@@ -268,24 +287,27 @@ proc option_proc {option args} {
 # trace handler for option reads. Calls option procedures with correct arguments.
 proc option_proc_trace {optionName index op} {
     set optionName [namespace tail $optionName]
+    global option_procs
     switch $op {
         write {
-            foreach p $::option_procs($optionName) {
-                $p $optionName set [set ::$optionName]
+            global $optionName
+            foreach p $option_procs($optionName) {
+                $p $optionName set [set $optionName]
             }
         }
         read {
-            foreach p $::option_procs($optionName) {
+            foreach p $option_procs($optionName) {
                 $p $optionName read
             }
         }
         unset {
-            foreach p $::option_procs($optionName) {
+            global $optionName
+            foreach p $option_procs($optionName) {
                 if {[catch {$p $optionName delete} result]} {
                     ui_debug "error during unset trace ($p): $result\n$::errorInfo"
                 }
             }
-            trace add variable ::$optionName [list read write unset] option_proc_trace
+            trace add variable $optionName [list read write unset] option_proc_trace
         }
     }
 }
@@ -459,20 +481,19 @@ proc command_exec {args} {
 # and adds a variable trace. The variable traces allows for delayed
 # variable and command expansion in the variable's default value.
 proc default {option val} {
-    if {[info exists ::option_defaults($option)]} {
+    global option_defaults $option
+    if {[info exists option_defaults($option)]} {
         ui_debug "Re-registering default for $option"
         # remove the old trace
-        trace remove variable ::$option [list read write unset] default_check
-    } else {
+        trace remove variable $option [list read write unset] default_check
+    } elseif {[info exists $option]} {
         # If option is already set and we did not set it
         # do not reset the value
-        if {[info exists ::$option]} {
-            return
-        }
+        return
     }
-    set ::option_defaults($option) $val
-    set ::$option $val
-    trace add variable ::$option [list read write unset] default_check
+    set option_defaults($option) $val
+    set $option $val
+    trace add variable $option [list read write unset] default_check
 }
 
 # default_check
@@ -480,19 +501,20 @@ proc default {option val} {
 # for default variable values
 proc default_check {varName index op} {
     set optionName [namespace tail $varName]
+    global option_defaults $optionName
     switch $op {
         write {
-            unset ::option_defaults($optionName)
-            trace remove variable ::$optionName [list read write unset] default_check
+            unset option_defaults($optionName)
+            trace remove variable $optionName [list read write unset] default_check
             return
         }
         read {
-            uplevel #0 [list set $optionName] [subst -nocommands {[subst {$::option_defaults($optionName)}]}]
+            uplevel #0 [list set $optionName] [subst -nocommands {[subst {$option_defaults($optionName)}]}]
             return
         }
         unset {
-            unset ::option_defaults($optionName)
-            trace remove variable ::$optionName [list read write unset] default_check
+            unset option_defaults($optionName)
+            trace remove variable $optionName [list read write unset] default_check
             return
         }
     }
@@ -503,6 +525,7 @@ proc default_check {varName index op} {
 proc handle_option_string {option action args} {
     switch $action {
         set {
+            global $option
             set args [join $args]
 
             set fulllist [list]
@@ -531,7 +554,7 @@ proc handle_option_string {option action args} {
                 lappend fulllist $arg
             }
 
-            set ::$option $fulllist
+            set $option $fulllist
         }
     }
 }
@@ -539,18 +562,12 @@ proc handle_option_string {option action args} {
 # variant <provides> [<provides> ...] [requires <requires> [<requires>]]
 # Portfile level procedure to provide support for declaring variants
 proc variant {args} {
-    global PortInfo
-
     # Each key in PortInfo(vinfo) maps to an array which contains the
     # following keys:
     #   * conflicts
     #   * description
     #   * is_default: This key exists iff the variant is a default variant.
     #   * requires
-    if {![info exists PortInfo(vinfo)]} {
-        set PortInfo(vinfo) [dict create]
-    }
-
     set len [llength $args]
     if {$len < 2} {
         return -code error "Malformed variant specification"
@@ -594,6 +611,10 @@ proc variant {args} {
         # This variant was already defined. Remove it from the dlist.
         variant_remove_ditem $variant_provides
     } else {
+        global PortInfo
+        if {![info exists PortInfo(vinfo)]} {
+            set PortInfo(vinfo) [dict create]
+        }
 
         # Set conflicts.
         set vconflicts [join [lsort [ditem_key $ditem conflicts]]]
@@ -606,7 +627,7 @@ proc variant {args} {
 
         # read global variant description, if none given
         if {$vdesc eq ""} {
-            set vdesc [variant_desc $::porturl $variant_provides]
+            set vdesc [variant_desc $variant_provides]
         }
 
         # Set description.
@@ -629,13 +650,15 @@ proc variant {args} {
     }
 
     # Finally append the ditem to the dlist.
-    lappend ::all_variants $ditem
+    global all_variants
+    lappend all_variants $ditem
 }
 
 # variant_isset name
 # Returns 1 if variant name selected, otherwise 0
 proc variant_isset {name} {
-    if {[info exists ::variations($name)] && $::variations($name) eq "+"} {
+    global variations
+    if {[info exists variations($name)] && $variations($name) eq "+"} {
         return 1
     }
     return 0
@@ -644,7 +667,8 @@ proc variant_isset {name} {
 # variant_set name
 # Sets variant to run for current portfile
 proc variant_set {name} {
-    set ::variations($name) +
+    global variations
+    set variations($name) +
 }
 
 # variant_remove_ditem name
@@ -666,19 +690,21 @@ proc variant_remove_ditem {name} {
 # variant_delete name
 # completely delete the named variant from the port
 proc variant_delete {name} {
+    global PortInfo
     variant_remove_ditem $name
-    if {[info exists ::PortInfo(variants)]} {
-        set ::PortInfo(variants) [ldelete $::PortInfo(variants) $name]
+    if {[info exists PortInfo(variants)]} {
+        set PortInfo(variants) [ldelete $PortInfo(variants) $name]
     }
-    if {[info exists ::PortInfo(vinfo)]} {
-        dict unset ::PortInfo(vinfo) $name
+    if {[info exists PortInfo(vinfo)]} {
+        dict unset PortInfo(vinfo) $name
     }
 }
 
 # variant_exists name
 # determine if a variant exists.
 proc variant_exists {name} {
-    if {[info exists ::PortInfo(variants)] && $name in $::PortInfo(variants)} {
+    global PortInfo
+    if {[info exists PortInfo(variants)] && $name in $PortInfo(variants)} {
         return 1
     }
 
@@ -721,11 +747,10 @@ proc load_variant_desc_file {descfile} {
 ##
 # Get description for a variant from global descriptions file
 #
-# @param porturl url to a port
 # @param variant name
 # @return description from descriptions file or an empty string
-proc variant_desc {porturl variant} {
-    global variant_descs_global
+proc variant_desc {variant} {
+    global variant_descs_global porturl
 
     set descfile [getportresourcepath $porturl "port1.0/variant_descriptions.conf" no]
     load_variant_desc_file $descfile
@@ -1533,7 +1558,7 @@ proc target_run {ditem} {
                 }
 
                 # For {} blocks in the Portfile, export DEVELOPER_DIR to prevent Xcode binaries if shouldn't be used
-                set ::env(DEVELOPER_DIR) [option configure.developer_dir]
+                set env(DEVELOPER_DIR) [option configure.developer_dir]
                 if {$result == 0} {
                     foreach pre [ditem_key $ditem pre] {
                         ui_debug "Executing $pre"
@@ -1564,7 +1589,7 @@ proc target_run {ditem} {
                     }
                 }
                 # Keep the environment clean by unsetting DEVELOPER_DIR
-                unset -nocomplain ::env(DEVELOPER_DIR)
+                unset -nocomplain env(DEVELOPER_DIR)
 
                 # Check dependencies & file creations outside workpath.
                 if {[tbool ports_trace]
@@ -1689,8 +1714,9 @@ proc eval_targets {target} {
         } elseif {$target eq "activate"} {
             set regref [registry_open $subport $version $revision $portvariants ""]
             # Set requested flag in the registry if in options
-            if {[info exists ::user_options(ports_requested)]} {
-                registry_prop_store $regref requested $::user_options(ports_requested)
+            global user_options
+            if {[info exists user_options(ports_requested)]} {
+                registry_prop_store $regref requested $user_options(ports_requested)
             }
             if {[registry_prop_retr $regref active] != 0} {
                 # Something to close the registry entry may be called here, if it existed.
@@ -2018,7 +2044,7 @@ proc variant_run {ditem} {
     # test for conflicting variants
     foreach v [ditem_key $ditem conflicts] {
         if {[variant_isset $v]} {
-            ui_error "[option name]: Variant $name conflicts with $v"
+            ui_error "[option subport]: Variant $name conflicts with $v"
             return 1
         }
     }
@@ -2026,7 +2052,7 @@ proc variant_run {ditem} {
     # execute proc with same name as variant.
     if {[catch "variant-${name}" result]} {
         ui_debug $::errorInfo
-        ui_error "[option name]: Error executing $name: $result"
+        ui_error "[option subport]: Error executing $name: $result"
         return 1
     }
     return 0
@@ -2051,11 +2077,10 @@ proc canonicalize_variants {variants {sign "+"}} {
 }
 
 proc eval_variants {variations} {
-    global PortInfo requested_variations portvariants
-    set dlist $::all_variants
+    global PortInfo all_variants subport
+    set dlist $all_variants
     upvar $variations upvariations
     lassign [choose_variants $dlist upvariations] chosen negated
-    set portname [option subport]
 
     # Check to make sure the requested variations are available with this
     # port, if one is not, warn the user and remove the variant from the
@@ -2063,7 +2088,7 @@ proc eval_variants {variations} {
     foreach key [array names upvariations *] {
         if {![info exists PortInfo(variants)] ||
             $key ni $PortInfo(variants)} {
-            ui_debug "Requested variant $upvariations($key)$key is not provided by port $portname."
+            ui_debug "Requested variant $upvariations($key)$key is not provided by port $subport."
             array unset upvariations $key
         }
     }
@@ -2100,11 +2125,13 @@ proc eval_variants {variations} {
             foreach choice $chosen {
                 lappend chosenlist +[ditem_key $choice provides]
             }
-            ui_error "Inconsistent variant specification: $portname variant +$thevar is required by at least one of $chosenlist, but specified -$thevar"
+            ui_error "Inconsistent variant specification: $subport variant +$thevar is required by at least one of $chosenlist, but specified -$thevar"
             return 1
         }
         lappend activevariants $thevar "+"
     }
+
+    global requested_variations portvariants
 
     # Record a canonical variant string, used e.g. in accessing the registry
     set portvariants [canonicalize_variants $activevariants]
@@ -2130,7 +2157,8 @@ proc eval_variants {variations} {
             lappend negated_list $thevar "-"
         }
     }
-    set ::requested_variants [canonicalize_variants $requested_list "+"][canonicalize_variants $negated_list "-"]
+    global requested_variants
+    set requested_variants [canonicalize_variants $requested_list "+"][canonicalize_variants $negated_list "-"]
 
     return 0
 }
@@ -2183,22 +2211,24 @@ proc check_variants {target} {
 
 # add the default universal variant if appropriate
 proc universal_setup {args} {
+    global configure.universal_archs universal_variant os.universal_supported \
+           use_xmkmf configure.compiler
     if {[variant_exists universal]} {
-        if {[llength [option configure.universal_archs]] >= 2} {
+        if {[llength ${configure.universal_archs}] >= 2} {
             ui_debug "universal variant already exists, so not adding the default one"
         } else {
             ui_debug "removing universal variant due to < 2 supported universal_archs"
             variant_delete universal
         }
-    } elseif {[exists universal_variant] && ![option universal_variant]} {
+    } elseif {[info exists universal_variant] && !$universal_variant} {
         ui_debug "universal_variant is false, so not adding the default universal variant"
-    } elseif {[exists use_xmkmf] && [option use_xmkmf]} {
+    } elseif {[tbool use_xmkmf]} {
         ui_debug "using xmkmf, so not adding the default universal variant"
-    } elseif {![exists os.universal_supported] || ![option os.universal_supported]} {
+    } elseif {![tbool os.universal_supported]} {
         ui_debug "OS doesn't support universal builds, so not adding the default universal variant"
-    } elseif {[llength [option configure.universal_archs]] <= 1} {
+    } elseif {[llength ${configure.universal_archs}] <= 1} {
         ui_debug "only one arch supported, so not adding the default universal variant"
-    } elseif {![portconfigure::arch_flag_supported [option configure.compiler] yes]} {
+    } elseif {![portconfigure::arch_flag_supported ${configure.compiler} yes]} {
         ui_debug "Compiler doesn't support universal builds, so not adding the default universal variant"
     } else {
         ui_debug "adding the default universal variant"
@@ -2210,12 +2240,13 @@ proc universal_setup {args} {
 
 # constructor for target object
 proc target_new {name procedure} {
+    global targets
     set ditem [ditem_create]
 
     ditem_key $ditem name $name
     ditem_key $ditem procedure $procedure
 
-    lappend ::targets $ditem
+    lappend targets $ditem
 
     return $ditem
 }
@@ -3130,7 +3161,6 @@ proc validate_macportsuser {} {
 
 # run code as a specified user
 proc exec_as_uid {uid code} {
-    global macportsuser
     set oldeuid [geteuid]
     if {$oldeuid != $uid} {
         if {$oldeuid != 0} {
@@ -3306,7 +3336,7 @@ proc get_canonical_archflags {{tool cc}} {
 
 # check that the selected archs are supported
 proc check_supported_archs {} {
-    global supported_archs build_arch universal_archs configure.build_arch configure.universal_archs subport
+    global supported_archs build_arch universal_archs configure.build_arch subport
     if {$supported_archs eq "noarch"} {
         return 0
     } elseif {[variant_exists universal] && [variant_isset universal]} {
@@ -3549,10 +3579,9 @@ proc _archive_available {} {
         set site $sites_entry
     }
     if {[string index $site end] ne "/"} {
-        append site "/[option archive.subdir]"
-    } else {
-        append site [option archive.subdir]
+        append site /
     }
+    append site [option archive.subdir]
     set url [portfetch::assemble_url $site $archivename]
     ui_debug "Fetching $archivename archive size"
     # curl getsize can return -1 instead of throwing an error for

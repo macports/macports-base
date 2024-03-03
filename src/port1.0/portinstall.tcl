@@ -72,9 +72,7 @@ proc portinstall::install_start {args} {
 
 proc portinstall::create_archive {location archive.type} {
     global workpath destpath portpath subport version revision portvariants \
-           epoch configure.cxx_stdlib portinstall::actual_cxx_stdlib \
-           portinstall::file_is_binary portinstall::cxx_stdlib_overridden \
-           cxx_stdlib PortInfo installPlist \
+           epoch configure.cxx_stdlib cxx_stdlib PortInfo \
            archive.env archive.cmd archive.pre_args archive.args \
            archive.post_args archive.dir depends_lib depends_run
     set archive.env {}
@@ -248,10 +246,10 @@ proc portinstall::create_archive {location archive.type} {
     puts $fd "@portversion ${version}"
     puts $fd "@portrevision ${revision}"
     puts $fd "@archs [get_canonical_archs]"
-    array set ourvariations $PortInfo(active_variants)
-    set vlist [lsort -ascii [array names ourvariations]]
+    set ourvariations $PortInfo(active_variants)
+    set vlist [lsort -ascii [dict keys $ourvariations]]
     foreach v $vlist {
-        if {$ourvariations($v) eq "+"} {
+        if {[dict get $ourvariations $v] eq "+"} {
             puts $fd "@portvariant +${v}"
         }
     }
@@ -264,10 +262,10 @@ proc portinstall::create_archive {location archive.type} {
                  if {[llength $dep] < 2} {
                      ui_debug "Dependency $depname not found"
                  } else {
-                     array set portinfo [lindex $dep 1]
-                     set depver $portinfo(version)
-                     set deprev $portinfo(revision)
-                     puts $fd "@pkgdep $portinfo(name)-${depver}_${deprev}"
+                     lassign $dep depname dep_portinfo
+                     set depver [dict get $dep_portinfo version]
+                     set deprev [dict get $dep_portinfo revision]
+                     puts $fd "@pkgdep ${depname}-${depver}_${deprev}"
                  }
              }
          }
@@ -275,9 +273,9 @@ proc portinstall::create_archive {location archive.type} {
 
     set have_fileIsBinary [expr {[option os.platform] eq "darwin"}]
     set binary_files [list]
-    set portinstall::file_is_binary [dict create]
+    variable file_is_binary [dict create]
     # also save the contents for our own use later
-    set installPlist [list]
+    variable installPlist [list]
     set destpathLen [string length $destpath]
     fs-traverse -depth fullpath [list $destpath] {
         if {[file type $fullpath] eq "directory"} {
@@ -300,7 +298,7 @@ proc portinstall::create_archive {location archive.type} {
                         lappend binary_files $fullpath
                     }
                     puts $fd "@comment binary:$is_binary"
-                    dict set portinstall::file_is_binary $abspath $is_binary
+                    dict set file_is_binary $abspath $is_binary
                 }
             }
         } else {
@@ -311,14 +309,14 @@ proc portinstall::create_archive {location archive.type} {
         puts $fd "@ignore"
         puts $fd "$relpath"
     }
-    set portinstall::actual_cxx_stdlib [get_actual_cxx_stdlib $binary_files]
-    puts $fd "@cxx_stdlib ${portinstall::actual_cxx_stdlib}"
-    if {${portinstall::actual_cxx_stdlib} ne "none"} {
-        set portinstall::cxx_stdlib_overridden [expr {${configure.cxx_stdlib} ne $cxx_stdlib}]
+    variable actual_cxx_stdlib [get_actual_cxx_stdlib $binary_files]
+    puts $fd "@cxx_stdlib ${actual_cxx_stdlib}"
+    if {${actual_cxx_stdlib} ne "none"} {
+        variable cxx_stdlib_overridden [expr {${configure.cxx_stdlib} ne $cxx_stdlib}]
     } else {
-        set portinstall::cxx_stdlib_overridden 0
+        variable cxx_stdlib_overridden 0
     }
-    puts $fd "@cxx_stdlib_overridden ${portinstall::cxx_stdlib_overridden}"
+    puts $fd "@cxx_stdlib_overridden ${cxx_stdlib_overridden}"
     close $fd
 
     # Now create the archive
@@ -341,8 +339,11 @@ proc portinstall::extract_contents {location type} {
 proc portinstall::install_main {args} {
     global subport version portpath depends_run revision user_options \
     portvariants requested_variants depends_lib PortInfo epoch \
-    os.platform os.major portarchivetype installPlist porturl \
-    portinstall::file_is_binary portinstall::actual_cxx_stdlib portinstall::cxx_stdlib_overridden
+    portarchivetype
+    variable file_is_binary
+    variable actual_cxx_stdlib
+    variable cxx_stdlib_overridden
+    variable installPlist
 
     set oldpwd [pwd]
     if {$oldpwd eq ""} {
@@ -361,11 +362,9 @@ proc portinstall::install_main {args} {
         set location [file join $install_dir [file tail $archive_path]]
         set current_archive_type [string range [file extension $location] 1 end]
         set contents [extract_contents $location $current_archive_type]
-        set installPlist [lindex $contents 0]
-        set portinstall::file_is_binary [lindex $contents 1]
+        lassign $contents installPlist file_is_binary
         set cxxinfo [extract_archive_metadata $location $current_archive_type cxx_info]
-        set portinstall::actual_cxx_stdlib [lindex $cxxinfo 0]
-        set portinstall::cxx_stdlib_overridden [lindex $cxxinfo 1]
+        lassign $cxxinfo actual_cxx_stdlib cxx_stdlib_overridden
     } else {
         # throws an error if an unsupported value has been configured
         archiveTypeIsSupported $portarchivetype
@@ -401,9 +400,9 @@ proc portinstall::install_main {args} {
     dict set regref os_platform $os_platform
     dict set regref os_major $os_major
     dict set regref archs [get_canonical_archs]
-    if {${portinstall::actual_cxx_stdlib} ne ""} {
-        dict set regref cxx_stdlib ${portinstall::actual_cxx_stdlib}
-        dict set regref cxx_stdlib_overridden ${portinstall::cxx_stdlib_overridden}
+    if {${actual_cxx_stdlib} ne ""} {
+        dict set regref cxx_stdlib ${actual_cxx_stdlib}
+        dict set regref cxx_stdlib_overridden ${cxx_stdlib_overridden}
     } else {
         # no info in the archive
         global configure.cxx_stdlib cxx_stdlib
@@ -421,7 +420,7 @@ proc portinstall::install_main {args} {
 
     if {[info exists installPlist]} {
         dict set regref files $installPlist
-        dict set regref binary $portinstall::file_is_binary
+        dict set regref binary $file_is_binary
     }
 
     # portfile info

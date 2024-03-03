@@ -46,9 +46,9 @@ namespace eval portbump {
 # Target prerun procedure; simply prints a message about what we're doing.
 #
 proc portbump::bump_start {args} {
-    global UI_PREFIX
+    global UI_PREFIX subport
 
-    ui_notice "$UI_PREFIX [format [msgcat::mc "Bumping checksums for %s"] [option subport]]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Bumping checksums for %s"] ${subport}]"
 }
 
 # bump_main
@@ -77,7 +77,7 @@ proc portbump::bump_main {args} {
     # If everything is fine with the syntax, keep on and check the checksum of
     # the distfiles.
     if {[portchecksum::parse_checksums $checksums_str] eq "yes"} {
-        set distpath [option distpath]
+        global distpath
 
         foreach distfile $all_dist_files {
             ui_info "$UI_PREFIX [format [msgcat::mc "Checksumming %s"] $distfile]"
@@ -158,7 +158,7 @@ proc portbump::bump_main {args} {
         # Show the desired checksum line for easy cut-paste
         # based on the previously calculated values, plus our default types
 
-        global version revision
+        global version revision subport
 
         ui_msg "We will bump these:"
         foreach {type sum calculated_sum} $both_checksums {
@@ -246,7 +246,7 @@ proc portbump::bump_main {args} {
                 file attributes $portfile {*}$attributes
 
                 ui_msg "Checksums successfully bumped. Suggested commit message:"
-                ui_msg [format "%-8s%s: update to %s" "" [option subport] $version]
+                ui_msg [format "%-8s%s: update to %s" "" ${subport} $version]
             }
 
             # Delete Portfile.bump

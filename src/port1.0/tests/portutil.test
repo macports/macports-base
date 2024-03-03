@@ -538,7 +538,7 @@ test eval_targets {
 
 } -cleanup {
     mportclose $mport
-    file delete -force $filespath ${pwd}/build ${pwd}/distfiles
+    file delete -force $filespath ${pwd}/build ${pwd}/distfiles ${pwd}/cache
 
 } -result "Eval_targets successful."
 
@@ -713,8 +713,7 @@ test variant_new {
 test handle_default_variants {
     Handle default variants unit test.
 } -body {
-    global PortInfo
-    global variations
+    global PortInfo variations
 
     array set variations {}
 

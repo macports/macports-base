@@ -255,7 +255,8 @@ proc portlint::lint_start {args} {
 }
 
 proc portlint::lint_main {args} {
-    global UI_PREFIX name portpath porturl ports_lint_nitpick
+    global UI_PREFIX portpath ports_lint_nitpick lint_required lint_optional
+    global {*}$lint_required {*}$lint_optional
     set portfile ${portpath}/Portfile
     set portdirs [split ${portpath} /]
     set last [llength $portdirs]
@@ -458,7 +459,7 @@ proc portlint::lint_main {args} {
     
             if {!$hashline
                     && ![regexp {^\s*(?:PortSystem|PortGroup|version|python\.versions|(?:perl5|php|ruby)\.branch(?:es)?|license|[A-Za-z0-9_]+\.setup)\s} $line]
-                    && [string first [option version] $line] != -1} {
+                    && [string first $version $line] != -1} {
                 ui_warn "Line $lineno seems to hardcode the version number, consider using \${version} instead"
                 incr warnings
             }
@@ -492,13 +493,11 @@ proc portlint::lint_main {args} {
 
     ###################################################################
 
-    global os.platform os.arch os.version version revision epoch \
-           description long_description platforms categories all_variants \
-           maintainers license homepage master_sites checksums patchfiles \
+    global porturl all_variants patchfiles \
            depends_fetch depends_extract depends_patch \
            depends_lib depends_build depends_run \
            depends_test distfiles fetch.type lint_portsystem lint_platforms \
-           lint_required lint_optional replaced_by conflicts
+           replaced_by conflicts
     set portarch [get_canonical_archs]
 
     if {!$seen_portsystem} {
@@ -605,7 +604,7 @@ proc portlint::lint_main {args} {
             if {![info exists variantdesc] || $variantdesc eq ""} {
                 # don't warn about missing descriptions for global variants
                 if {$variantname in $local_variants &&
-                    [variant_desc $porturl $variantname] eq ""} {
+                    [variant_desc $variantname] eq ""} {
                     ui_warn "Variant $variantname does not have a description"
                     incr warnings
                     set desc_ok false
@@ -613,7 +612,7 @@ proc portlint::lint_main {args} {
                     set variantdesc "(pre-defined variant)"
                 }
             } else {
-                if {[variant_desc $porturl $variantname] ne ""} {
+                if {[variant_desc $variantname] ne ""} {
                     ui_warn "Variant $variantname overrides global description"
                     incr warnings
                 }

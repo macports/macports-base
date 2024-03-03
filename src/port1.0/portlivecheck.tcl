@@ -64,8 +64,8 @@ proc portlivecheck::livecheck_main {args} {
            livecheck.ignore_sslcert \
            livecheck.compression \
            livecheck.curloptions \
-           homepage portpath workpath \
-           master_sites name subport distfiles
+           homepage portpath \
+           master_sites name subport
 
     set updated 0
     set updated_version "unknown"

@@ -46,8 +46,8 @@ options reload.asroot
 set_ui_prefix
 
 proc portreload::reload_main {args} {
-    global UI_PREFIX prefix subport sudo_user
-    set launchctl_path ${portutil::autoconf::launchctl_path}
+    global UI_PREFIX prefix subport sudo_user \
+           portutil::autoconf::launchctl_path
 
     portstartupitem::foreach_startupitem {
         if {$si_install} {

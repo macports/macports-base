@@ -71,16 +71,14 @@ proc portdistfiles::distfiles_main {args} {
     }
 
     # get checksum data from the portfile and parse it
-    set checksums_str [option checksums]
-    set result [portchecksum::parse_checksums $checksums_str]
+    set result [portchecksum::parse_checksums [option checksums]]
 
+    global portfetch::urlmap
     foreach {url_var distfile} $fetch_urls {
-        global portfetch::urlmap
-
         ui_msg "\[$distfile\] [file join $portdbpath distfiles $dist_subdir $distfile]"
 
         # print checksums if available
-        if {$result eq "yes" && [array get checksums_array $distfile] ne ""} {
+        if {$result eq "yes" && [info exists checksums_array($distfile)]} {
             foreach {type sum} $checksums_array($distfile) {
                 ui_msg " $type: $sum"
             }
