@@ -142,16 +142,12 @@ default os.endian {$os_endian}
 
 proc portmain::report_platform_info {} {
     global os.platform os.version os.arch macos_version
-    if {![info exists os.platform]} {
-        return
-    }
     set macos_version_text {}
     if {${os.platform} eq "darwin"} {
         set macos_version_text "(macOS ${macos_version}) "
     }
     ui_debug "OS ${os.platform}/${os.version} ${macos_version_text}arch ${os.arch}"
 }
-portmain::report_platform_info
 
 default universal_variant {${use_configure}}
 

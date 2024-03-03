@@ -1725,6 +1725,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     # Create package require abstraction procedure
     $workername eval [list proc PortSystem {version} {
             package require port $version
+            portmain::report_platform_info
         }]
 
     # Clearly separate slave interpreters and the master interpreter.
