@@ -85,10 +85,10 @@ proc portarchivefetch::filter_sites {} {
     }
 
     set ret [list]
-    foreach site [array names portfetch::mirror_sites::archive_prefix] {
+    foreach site [array names archive_prefix] {
         set missing 0
         foreach var {archive_frameworks_dir archive_applications_dir archive_type archive_cxx_stdlib archive_delete_la_files} {
-            if {![info exists portfetch::mirror_sites::${var}($site)]} {
+            if {![info exists ${var}($site)]} {
                 ui_warn "no $var configured for site '$site'"
                 set missing 1
             }
@@ -99,19 +99,19 @@ proc portarchivefetch::filter_sites {} {
         # The paths in the portfile vars are fully resolved, so resolve
         # these too before comparing them.
         foreach var {archive_prefix archive_frameworks_dir archive_applications_dir} {
-            if {[catch {set ${var}_norm [realpath [set portfetch::mirror_sites::${var}($site)]]}]} {
-                set ${var}_norm [file normalize [set portfetch::mirror_sites::${var}($site)]]
+            if {[catch {set ${var}_norm [realpath [set ${var}($site)]]}]} {
+                set ${var}_norm [file normalize [set ${var}($site)]]
             }
         }
-        if {$portfetch::mirror_sites::sites($site) ne {} &&
+        if {$sites($site) ne {} &&
             $archive_prefix_norm eq $prefix_frozen &&
             $archive_frameworks_dir_norm eq $frameworks_dir_frozen &&
             $archive_applications_dir_norm eq $applications_dir_frozen &&
-            $portfetch::mirror_sites::archive_cxx_stdlib($site) eq $cxx_stdlib &&
-            $portfetch::mirror_sites::archive_delete_la_files($site) eq $delete_la_files &&
-            ![catch {archiveTypeIsSupported $portfetch::mirror_sites::archive_type($site)}]} {
+            $archive_cxx_stdlib($site) eq $cxx_stdlib &&
+            $archive_delete_la_files($site) eq $delete_la_files &&
+            ![catch {archiveTypeIsSupported $archive_type($site)}]} {
             # using the archive type as a tag
-            lappend ret ${site}::$portfetch::mirror_sites::archive_type($site)
+            lappend ret ${site}::$archive_type($site)
         }
     }
 
@@ -127,14 +127,14 @@ set_ui_prefix
 
 # Checks possible archive files to assemble url lists for later fetching
 proc portarchivefetch::checkarchivefiles {urls} {
-    global all_archive_files archivefetch.fulldestpath archive_sites
+    global all_archive_files archivefetch.fulldestpath archive_sites portdbpath
     upvar $urls fetch_urls
 
     # Define archive directory path
-    set archivefetch.fulldestpath [file join [option portdbpath] incoming/verified]
+    set archivefetch.fulldestpath [file join ${portdbpath} incoming/verified]
     set archive.rootname [file rootname [get_portimage_name]]
 
-    foreach entry [option archive_sites] {
+    foreach entry ${archive_sites} {
         # the archive type is used as a tag
         set type [lindex [split $entry :] end]
         if {![info exists seen($type)]} {
@@ -167,10 +167,10 @@ proc portarchivefetch::checkfiles {urls} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url variable and associated archive file
 proc portarchivefetch::fetchfiles {args} {
-    global archivefetch.fulldestpath UI_PREFIX \
+    global UI_PREFIX archivefetch.fulldestpath \
            archivefetch.user archivefetch.password archivefetch.use_epsv \
-           archivefetch.ignore_sslcert \
-           portverbose ports_binary_only
+           archivefetch.ignore_sslcert archive.subdir \
+           portverbose ports_binary_only portdbpath
     variable archivefetch_urls
     variable ::portfetch::urlmap
 
@@ -183,7 +183,7 @@ proc portarchivefetch::fetchfiles {args} {
             }
         }
     }
-    set incoming_path [file join [option portdbpath] incoming]
+    set incoming_path [file join ${portdbpath} incoming]
     chownAsRoot $incoming_path
     if {[info exists elevated] && $elevated eq "yes"} {
         dropPrivileges
@@ -236,10 +236,9 @@ proc portarchivefetch::fetchfiles {args} {
             set sig_fetched 0
             foreach site $urlmap($url_var) {
                 if {[string index $site end] ne "/"} {
-                    append site "/[option archive.subdir]"
-                } else {
-                    append site [option archive.subdir]
+                    append site /
                 }
+                append site ${archive.subdir}
                 set file_url [portfetch::assemble_url $site $archive]
                 # fetch archive
                 if {!$archive_fetched} {
@@ -290,7 +289,8 @@ proc portarchivefetch::fetchfiles {args} {
             if {$archive_fetched && $sig_fetched} {
                 set openssl [findBinary openssl $portutil::autoconf::openssl_path]
                 set verified 0
-                foreach pubkey [option archivefetch.pubkeys] {
+                global archivefetch.pubkeys
+                foreach pubkey ${archivefetch.pubkeys} {
                     if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature $signature "${incoming_path}/${archive}.TMP"} result]} {
                         set verified 1
                         break
@@ -326,10 +326,11 @@ proc portarchivefetch::fetchfiles {args} {
         return 0
     }
     if {([info exists ports_binary_only] && $ports_binary_only eq "yes") || [_archive_available]} {
+        global version revision portvariants
         if {[info exists lastError] && $lastError ne ""} {
-            error [msgcat::mc "version @[option version]_[option revision][option portvariants]: %s" $lastError]
+            error [msgcat::mc "version @${version}_${revision}${portvariants}: %s" $lastError]
         } else {
-            error "version @[option version]_[option revision][option portvariants]"
+            error "version @${version}_${revision}${portvariants}"
         }
     } else {
         return 0

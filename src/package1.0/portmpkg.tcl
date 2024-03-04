@@ -47,15 +47,17 @@ options package.destpath package.flat
 set_ui_prefix
 
 proc portmpkg::mpkg_main {args} {
-    if {!${::package.flat} || ${::os.major} < 10} {
+    global package.flat os.major package.destpath subport epoch version revision
+    if {!${package.flat} || ${os.major} < 10} {
         # Make sure the destination path exists.
-        file mkdir ${::package.destpath}
+        file mkdir ${package.destpath}
     }
 
-    return [package_mpkg $::subport $::epoch $::version $::revision]
+    return [package_mpkg $subport $epoch $version $revision]
 }
 
 proc portmpkg::make_dependency_list {portname destination} {
+    global prefix package.flat requested_variations
     set result [list]
     if {[catch {set res [mport_lookup $portname]} error]} {
         ui_debug $::errorInfo
@@ -68,11 +70,12 @@ proc portmpkg::make_dependency_list {portname destination} {
         set deprivileged 1
     }
 
-    set mport [mport_open [dict get $portinfo porturl] [dict create prefix $::prefix package.destpath ${destination} package.flat ${::package.flat} subport $portname] [array get ::requested_variations]]
+    set mport [mport_open [dict get $portinfo porturl] [dict create prefix $prefix package.destpath ${destination} package.flat ${package.flat} subport $portname] [array get requested_variations]]
 
     if {[info exists deprivileged]} {
-        setegid [uname_to_gid $::macportsuser]
-        seteuid [name_to_uid $::macportsuser]
+        global macportsuser
+        setegid [uname_to_gid $macportsuser]
+        seteuid [name_to_uid $macportsuser]
     }
 
     set portinfo [mport_info $mport]
@@ -107,26 +110,29 @@ proc portmpkg::make_one_package {portname mport} {
     }
 
     if {[info exists deprivileged]} {
-        setegid [uname_to_gid $::macportsuser]
-        seteuid [name_to_uid $::macportsuser]
+        global macportsuser
+        setegid [uname_to_gid $macportsuser]
+        seteuid [name_to_uid $macportsuser]
     }
 }
 
 proc portmpkg::mpkg_path {portname portversion portrevision} {
-    return "${::package.destpath}/[portpkg::image_name ${portname} ${portversion} ${portrevision}].mpkg"
+    global package.destpath
+    return ${package.destpath}/[portpkg::image_name ${portname} ${portversion} ${portrevision}].mpkg
 }
 
 proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
-    global os.major workpath description package.flat long_description homepage
+    global os.major workpath porturl description long_description homepage \
+           package.flat package.destpath
 
     set mpkgpath [portmpkg::mpkg_path $portname $portversion $portrevision]
 
     if {${package.flat} && ${os.major} >= 10} {
-        set pkgpath ${::package.destpath}/[portpkg::image_name ${portname} ${portversion} ${portrevision}]-component.pkg
+        set pkgpath ${package.destpath}/[portpkg::image_name ${portname} ${portversion} ${portrevision}]-component.pkg
         set packages_path ${workpath}/mpkg_packages
         set resources_path ${workpath}/mpkg_resources
     } else {
-        set pkgpath ${::package.destpath}/[portpkg::image_name ${portname} ${portversion} ${portrevision}].pkg
+        set pkgpath ${package.destpath}/[portpkg::image_name ${portname} ${portversion} ${portrevision}].pkg
         set packages_path ${mpkgpath}/Contents/Packages
         set resources_path ${mpkgpath}/Contents/Resources
     }
@@ -162,8 +168,9 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
     system "cp -PR [shellescape ${pkgpath}] [shellescape ${packages_path}]"
 
     if {!${package.flat} || ${os.major} < 10} {
+        global prefix
         portpkg::write_PkgInfo ${mpkgpath}/Contents/PkgInfo
-        mpkg_write_info_plist ${mpkgpath}/Contents/Info.plist $portname $portversion $portrevision $::prefix $dependencies
+        mpkg_write_info_plist ${mpkgpath}/Contents/Info.plist $portname $portversion $portrevision $prefix $dependencies
         portpkg::write_description_plist ${mpkgpath}/Contents/Resources/Description.plist $portname $portversion $description
         set resources_path ${mpkgpath}/Contents/Resources
     }
@@ -176,7 +183,7 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
         }
     }
     portpkg::write_welcome_html ${resources_path}/Welcome.html $portname $portversion $portrevision $pkg_long_description $pkg_description $pkg_homepage
-    file copy -force -- [getportresourcepath $::porturl "port1.0/package/background.tiff"] ${resources_path}/background.tiff
+    file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${resources_path}/background.tiff
 
     if {${package.flat} && ${os.major} >= 10} {
         write_distribution ${workpath}/Distribution $portname $dependencies
@@ -191,13 +198,14 @@ proc portmpkg::package_mpkg {portname portepoch portversion portrevision} {
 }
 
 proc portmpkg::write_distribution {dfile portname dependencies} {
+    global macosx_deployment_target
     set portname [xml_escape $portname]
     set dfd [open $dfile w+]
     puts $dfd "<?xml version=\"1.0\" encoding=\"utf-8\"?>
 <installer-gui-script minSpecVersion=\"1\">
     <title>${portname}</title>
     <options customize=\"never\"/>
-    <allowed-os-versions><os-version min=\"${::macosx_deployment_target}\"/></allowed-os-versions>
+    <allowed-os-versions><os-version min=\"${macosx_deployment_target}\"/></allowed-os-versions>
     <background file=\"background.tiff\" mime-type=\"image/tiff\" alignment=\"bottomleft\" scaling=\"none\"/>
     <welcome mime-type=\"text/html\" file=\"Welcome.html\"/>
     <choices-outline>

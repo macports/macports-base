@@ -69,14 +69,15 @@ default destroot.delete_la_files {${delete_la_files}}
 set_ui_prefix
 
 proc portdestroot::destroot_getargs {args} {
-    if {(([option build.type] eq "default" && [option os.platform] ne "freebsd") || \
-         ([option build.type] eq "gnu")) \
-        && [regexp "^(/\\S+/|)(g|gnu|)make(\\s+.*|)$" [option destroot.cmd]]} {
+    global build.type os.platform destroot.cmd destroot.target
+    if {((${build.type} eq "default" && ${os.platform} ne "freebsd") ||
+         (${build.type} eq "gnu"))
+        && [regexp "^(/\\S+/|)(g|gnu|)make(\\s+.*|)$" ${destroot.cmd}]} {
         # Print "Entering directory" lines for better log debugging
-        return "-w [option destroot.target]"
+        return "-w ${destroot.target}"
     }
 
-    return "[option destroot.target]"
+    return ${destroot.target}
 }
 
 proc portdestroot::destroot_start {args} {

@@ -24,9 +24,9 @@ test pkg_main {
 } -constraints {
     root darwin
 } -setup {
-    global os.platform os.major os.arch destpath package.destpath configure.build_arch
-    global subport version revision package.flat maintainers description categories
-    global supported_archs porturl
+    global os.platform os.major os.arch destpath package.destpath configure.build_arch \
+           subport version revision package.flat maintainers description categories \
+           supported_archs porturl
     env_init
 
     file mkdir $destpath
