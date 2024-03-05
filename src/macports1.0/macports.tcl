@@ -1633,9 +1633,7 @@ match macports.conf.default."
     set db_path [file join ${registry.path} registry registry.db]
     set db_exists [file exists $db_path]
     registry::open $db_path
-    # for the benefit of the portimage code that is called from multiple interpreters
-    global registry_open
-    set registry_open yes
+
     # convert any flat receipts if we just created a new db
     if {$db_exists == 0 && [file exists ${registry.path}/receipts] && [file writable $db_path]} {
         ui_warn "Converting your registry to sqlite format, this might take a while..."

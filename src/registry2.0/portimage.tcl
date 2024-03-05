@@ -90,10 +90,6 @@ proc activate {name {version ""} {revision ""} {variants 0} {options ""}} {
     if {[dict exists $options portactivate_rename_files]} {
         set rename_list [dict get $options portactivate_rename_files]
     }
-    if {![info exists ::registry_open]} {
-        registry::open [::file join ${::macports::registry.path} registry registry.db]
-        set ::registry_open yes
-    }
     set todeactivate [list]
 
     registry::read {
@@ -172,10 +168,6 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {options ""}} {
         set force 1
     } else {
         set force 0
-    }
-    if {![info exists ::registry_open]} {
-        registry::open [::file join ${::macports::registry.path} registry registry.db]
-        set ::registry_open yes
     }
 
     if {$name eq ""} {
