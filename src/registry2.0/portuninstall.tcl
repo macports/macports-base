@@ -36,9 +36,9 @@ package require registry 1.0
 package require registry2 2.0
 package require registry_util 2.0
 
-set UI_PREFIX "---> "
-
 namespace eval registry_uninstall {
+
+variable UI_PREFIX {---> }
 
 # generate list of all dependencies of the port
 proc generate_deplist {port {optslist ""}} {
@@ -74,7 +74,7 @@ proc generate_deplist {port {optslist ""}} {
             set porturl [dict get $depportinfo porturl]
             set variations [dict create]
             # Relies on all negated variants being at the end of requested_variants
-            set minusvariant [lrange [split [registry::property_retrieve $port requested_variants] -] 1 end]
+            set minusvariant [lrange [split [$port requested_variants] -] 1 end]
             set plusvariant [lrange [split [$port variants] +] 1 end]
             foreach v $plusvariant {
                 dict set variations $v "+"
@@ -131,17 +131,16 @@ proc uninstall_composite {portname {v ""} {options ""}} {
 }
 
 proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
+    variable UI_PREFIX
+
     if {[dict exists $options subport]} {
         # don't want this set when calling registry::run_target
         dict unset options subport
     }
-
-    if {![info exists ::uninstall.force]} {
-        set ::uninstall.force no
-    }
-    # If global forcing is on, make it the same as a local force flag.
-    if {[dict exists $options ports_force] && [string is true -strict [dict get $options ports_force]]} {
-        set ::uninstall.force yes
+    if {[dict exists $options ports_force]} {
+         set force [dict get $options ports_force]
+    } else {
+        set force no
     }
     # if no-exec is set for uninstall, set for deactivate too
     if {[dict exists $options ports_uninstall_no-exec]} {
@@ -166,7 +165,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
         set portname [[lindex $ilist 0] name]
         set msg "The following versions of $portname are currently installed:"
         if {[macports::ui_isset ports_noninteractive]} {
-            ui_msg "$::UI_PREFIX [msgcat::mc $msg]"
+            ui_msg "$UI_PREFIX [msgcat::mc $msg]"
         }
         set sortedlist [lsort -command cmp_regrefs $ilist]
         foreach i $sortedlist {
@@ -178,14 +177,14 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
             if {[info exists macports::ui_options(questions_multichoice)]} {
                 lappend portilist "$portstr"
             } else {
-                ui_msg "$::UI_PREFIX     $portstr"
+                ui_msg "$UI_PREFIX     $portstr"
             }
         }
         if {[info exists macports::ui_options(questions_multichoice)]} {
             set retstring [$macports::ui_options(questions_multichoice) $msg "Choice_Q2" $portilist]
             foreach index $retstring {
                 set uport [lindex $sortedlist $index]
-                uninstall [$uport name] [$uport version] [$uport revision] [$uport variants]
+                uninstall [$uport name] [$uport version] [$uport revision] [$uport variants] $options
             }
             #foreach i $ilist {
             #    registry::entry close $i
@@ -221,7 +220,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
             # make sure it's still installed, since a previous dep uninstall may have removed it
             if {[registry::entry exists $depport] && ([$depport state] eq "imaged" || [$depport state] eq "installed")} {
                 if {[dict exists $options ports_uninstall_no-exec] || ![registry::run_target $depport uninstall $options]} {
-                    registry_uninstall::uninstall [$depport name] [$depport version] [$depport revision] [$depport variants] $options
+                    uninstall [$depport name] [$depport version] [$depport revision] [$depport variants] $options
                 }
             }
             #catch {registry::entry close $depport}
@@ -231,7 +230,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
         }
     } else {
         # check its dependents
-        set userinput [registry::check_dependents $port ${::uninstall.force} "uninstall"]
+        set userinput [registry::check_dependents $port ${force} "uninstall"]
         if {$userinput eq "quit"} {
             #registry::entry close $port
             return 0
@@ -256,7 +255,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
 
     # note deps before we uninstall if we're going to uninstall them too (i.e. --follow-dependencies)
     if {[dict exists $options ports_uninstall_follow-dependencies] && [string is true -strict [dict get $options ports_uninstall_follow-dependencies]]} {
-        set all_dependencies [registry_uninstall::generate_deplist $port $options]
+        set all_dependencies [generate_deplist $port $options]
     }
 
     if {[dict exists $options ports_dryrun] && [string is true -strict [dict get $options ports_dryrun]]} {
@@ -266,7 +265,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
             set uports [list [list $portname $version $revision $variants]]
         }
     } else {
-        ui_msg "$::UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s"] $portname $composite_spec]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s"] $portname $composite_spec]"
 
         # Get the full path to the image file
         set imagefile [$port location]
@@ -289,7 +288,8 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
             registry::entry delete $port
         }
 
-        set portfile_path [file join ${::macports::registry.path} registry portfiles ${portname}-${version}_${revision} $portfile]
+        global macports::registry.path
+        set portfile_path [file join ${registry.path} registry portfiles ${portname}-${version}_${revision} $portfile]
         set other_entries [registry::entry search portfile $portfile name $portname version $version revision $revision]
         if {$other_entries eq {}} {
             file delete -force $portfile_path
@@ -299,7 +299,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
         #    registry::entry close $e
         #}
 
-        set reg_portgroups_dir [file join ${::macports::registry.path} registry portgroups]
+        set reg_portgroups_dir [file join ${registry.path} registry portgroups]
         foreach pg $portgroups {
             set pgname [lindex $pg 0]
             set pgversion [lindex $pg 1]
@@ -357,7 +357,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
             if {$uninstalling_this_dep} {
                 set deprefs [registry::entry imaged $dep]
                 foreach depref $deprefs {
-                    set depdeps [registry_uninstall::generate_deplist $depref $options]
+                    set depdeps [generate_deplist $depref $options]
                     foreach d $depdeps {
                         if {$d ni [lrange $alldeps $j+1 end]} {
                             lappend alldeps $d 
@@ -385,7 +385,7 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {options ""}} {
                 }
             } else {
                 if {[dict exists $options ports_uninstall_no-exec] || ![registry::run_target $regref uninstall $options]} {
-                    registry_uninstall::uninstall $iname $iversion $irevision $ivariants $options
+                    uninstall $iname $iversion $irevision $ivariants $options
                 }
             }
             #registry::entry close $regref

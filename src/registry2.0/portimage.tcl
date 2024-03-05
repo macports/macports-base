@@ -41,8 +41,6 @@ package require Pextlib 1.0
 
 package require Tclx
 
-set UI_PREFIX "--> "
-
 # Port Images are installations of the destroot of a port into a compressed
 # tarball in ${macports::registry.path}/software/${name}.
 # They allow the user to install multiple versions of the same port, treating
@@ -64,6 +62,7 @@ namespace eval portimage {
 
 variable force 0
 variable noexec 0
+variable UI_PREFIX {---> }
 
 # takes a composite version spec rather than separate version,revision,variants
 proc activate_composite {name {v ""} {optionslist ""}} {
@@ -79,6 +78,7 @@ proc activate_composite {name {v ""} {optionslist ""}} {
 proc activate {name {version ""} {revision ""} {variants 0} {options ""}} {
     variable force
     variable noexec
+    variable UI_PREFIX
 
     if {[dict exists $options ports_force] && [string is true -strict [dict get $options ports_force]] } {
         set force 1
@@ -137,7 +137,7 @@ proc activate {name {version ""} {revision ""} {variants 0} {options ""}} {
             }
         }
 
-        ui_msg "$::UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $specifier]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $specifier]"
 
         _activate_contents $requested $rename_list
     } finally {
@@ -160,6 +160,7 @@ proc deactivate_composite {name {v ""} {optionslist ""}} {
 }
 
 proc deactivate {name {version ""} {revision ""} {variants 0} {options ""}} {
+    variable UI_PREFIX
 
     if {[dict exists $options ports_force] && [string is true -strict [dict get $options ports_force]] } {
         # this not using the namespace variable is correct, since activate
@@ -246,7 +247,7 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {options ""}} {
         }
     }
 
-    ui_msg "$::UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $specifier]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $specifier]"
 
     try {
         _deactivate_contents $requested [$requested files] $force
@@ -256,8 +257,7 @@ proc deactivate {name {version ""} {revision ""} {variants 0} {options ""}} {
 }
 
 proc _check_registry {name version revision variants {return_all 0}} {
-
-    set searchkeys $name
+    set searchkeys [list $name]
     set composite_spec ""
     if {$version ne ""} {
         lappend searchkeys $version
@@ -275,10 +275,11 @@ proc _check_registry {name version revision variants {return_all 0}} {
     }
 
     if { [llength $ilist] > 1 } {
+        variable UI_PREFIX
         set portilist [list]
         set msg "The following versions of $name are currently installed:"
         if {[macports::ui_isset ports_noninteractive]} {
-            ui_msg "$::UI_PREFIX [msgcat::mc $msg]"
+            ui_msg "$UI_PREFIX [msgcat::mc $msg]"
         }
         foreach i $ilist {
             set portstr [format "%s @%s_%s%s" [$i name] [$i version] [$i revision] [$i variants]]
@@ -289,7 +290,7 @@ proc _check_registry {name version revision variants {return_all 0}} {
             if {[info exists macports::ui_options(questions_singlechoice)]} {
                 lappend portilist "$portstr"
             } else {
-                ui_msg "$::UI_PREFIX     $portstr"
+                ui_msg "$UI_PREFIX     $portstr"
             }
         }
         if {[info exists macports::ui_options(questions_singlechoice)]} {
@@ -425,7 +426,8 @@ proc extract_archive_to_tmpdir {location} {
                 # Don't use if not running as root, due to bugs:
                 # The system bsdtar on 10.15 suffers from https://github.com/libarchive/libarchive/issues/497
                 # Later versions fixed that problem but another remains: https://github.com/libarchive/libarchive/issues/1415 
-                if {${::macports::hfscompression} && [getuid] == 0 &&
+                global macports::hfscompression
+                if {${hfscompression} && [getuid] == 0 &&
                         ![catch {macports::binaryInPath bsdtar}] &&
                         ![catch {exec bsdtar -x --hfsCompression < /dev/null >& /dev/null}]} {
                     ui_debug "Using bsdtar with HFS+ compression (if valid)"
