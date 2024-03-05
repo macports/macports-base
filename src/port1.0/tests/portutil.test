@@ -257,6 +257,7 @@ test reinplace {
 } -setup {
     global macportsuser
     set macportsuser macports
+    set_ui_prefix
 
     set root "/tmp/macports-portutil-reinplace"
     file delete -force $root
@@ -776,11 +777,11 @@ test set_ui_prefix {
 } -body {
     set env(UI_PREFIX) MacPorts
     set_ui_prefix
-    if {$UI_PREFIX != "MacPorts"} {return "FAIL: incorrect prefix"}
+    if {$UI_PREFIX ne "MacPorts"} {return "FAIL: incorrect prefix"}
 
     unset env(UI_PREFIX)
     set_ui_prefix
-    if {$UI_PREFIX != "---> "} {return "FAIL; default prefix not set"}
+    if {$UI_PREFIX ne "---> "} {return "FAIL; default prefix not set"}
     return "Set_ui_prefix successful."
 } -result "Set_ui_prefix successful."
 

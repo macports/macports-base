@@ -989,7 +989,7 @@ proc ldelete {list value} {
 # reinplace
 # Provides "sed in place" functionality
 proc reinplace {args}  {
-    global env workpath worksrcpath
+    global UI_PREFIX env workpath worksrcpath
     set extended 0
     set suppress 0
     set quiet 0
@@ -1047,8 +1047,6 @@ proc reinplace {args}  {
     }
 
     foreach file $files {
-        global UI_PREFIX
-
         # if $file is an absolute path already, file join will just return the
         # absolute path, otherwise it is $dir/$file
         set file [file join $dir $file]
