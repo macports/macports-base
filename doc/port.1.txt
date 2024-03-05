@@ -156,7 +156,7 @@ The port command recognizes several global flags and options.
     binary archives.
 
 -b::
-    Binary-only mode, build and install from binary archives, ignore source,
+    Binary-only mode, install from binary archives, ignore source,
     abort if no archive available.
 
 .Cleaning
