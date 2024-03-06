@@ -198,7 +198,7 @@ proc selfupdate::main {{optionslist {}} {updatestatusvar {}}} {
             # Choose a sane compiler and SDK
             set cc_arg {}
             set sdk_arg {}
-            set jobs [macports:get_parallel_jobs yes]
+            set jobs [macports::get_parallel_jobs yes]
             if {$::macports::os_platform eq "darwin"} {
                 catch {exec /usr/bin/cc 2>@1} output
                 set output [join [lrange [split $output "\n"] 0 end-1] "\n"]
