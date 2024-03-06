@@ -50,8 +50,7 @@ test mportinfo {
     set mport [mportopen file://${pwd}]
 } -body {
     set res [mportinfo $mport]
-    catch {array set PortInfo $res}
-    if {![info exists PortInfo(canonical_active_variants)]} {
+    if {![dict exists $res canonical_active_variants]} {
         return "FAIL: cannot get ::PortInfo"
     }
     return "Mport info successful."

@@ -204,7 +204,7 @@ proc init_threads {} {
         append ::worker_init_script \
             [list set oldmtime $::oldmtime] \n
     }
-    set ::maxjobs [macports:get_parallel_jobs no]
+    set ::maxjobs [macports::get_parallel_jobs no]
     set ::poolid [tpool::create -minworkers $::maxjobs -maxworkers $::maxjobs -initcmd $::worker_init_script]
     set ::pending_jobs [dict create]
     set ::nextjobnum 0
