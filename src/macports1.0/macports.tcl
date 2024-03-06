@@ -855,6 +855,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::applications_dir \
         macports::applications_dir_frozen \
         macports::frameworks_dir_frozen \
+        macports::developer_dir \
         macports::xcodebuildcmd \
         macports::xcodeversion \
         macports::xcodecltversion \
