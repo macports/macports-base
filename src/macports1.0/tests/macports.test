@@ -169,12 +169,14 @@ test push_log {
     root
 } -setup {
     set mport [mportopen file://${pwd}]
-    set ::logenabled 1
+    global macports:logenabled
+    set logenabled 1
 } -body {
     if {[catch {macports::push_log $mport}] != 0} {
         return "FAIL: cannot push log"
     }
-    if {[lindex $::logstack 0] != [list $::debuglog $::debuglogname]} {
+    global macports:logstack macports:debuglog macports:debuglogname
+    if {[lindex $logstack 0] ne [list $debuglog $debuglogname]} {
         return "FAIL: incorrect logstack"
     }
     return "Push log successful."
@@ -186,23 +188,28 @@ test push_log {
 test pop_log {
     Pop log unit test.
 } -setup {
-    set ::logenabled 1
-    set ::logstack [open $pwd/logstack w+]
-    set ::debuglog [open $pwd/log w+]
+    global macports:logenabled macports:logstack macports:debuglog
+    set logenabled 1
+    set stacklog [open $pwd/logstack w+]
+    set logstack [list [list $stacklog $pwd/logstack]]
+    set debuglog [open $pwd/log w+]
+    set orig_debuglog $debuglog
     set mport [mportopen file://${pwd}]
     if {[catch {macports::push_log $mport}] != 0} {
         return "FAIL: cannot push log"
     }
 } -body {
     macports::pop_log
-    if {$::debuglog ne $::logstack} {
+    if {$debuglog ne $orig_debuglog} {
         return "FAIL: cannot pop log"
     }
     return "Pop log successful."
 } -cleanup {
-    unset ::logenabled
-    unset ::logstack
-    unset ::debuglog
+    close $debuglog
+    close $stacklog
+    unset logenabled
+    unset logstack
+    unset debuglog
     mportclose $mport
     file delete -force $pwd/log
     file delete -force $pwd/logstack
@@ -227,7 +234,7 @@ test ui_message {
     set fd2 [open $pwd/log w]
     set macports::channels(0) $fd
     set macports::current_phase test
-    set ::debuglog $fd2
+    set macports::debuglog $fd2
 } -body {
     set res [ui_message 0 prefix args]
     close $fd
