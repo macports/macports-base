@@ -627,7 +627,12 @@ proc variant {args} {
 
         # read global variant description, if none given
         if {$vdesc eq ""} {
-            set vdesc [variant_desc $variant_provides]
+            global portresourcepath
+            if {![info exists portresourcepath]} {
+                global porturl
+                set portresourcepath [getportresourcepath $porturl]
+            }
+            set vdesc [get_variant_description $variant_provides $portresourcepath]
         }
 
         # Set description.
@@ -709,64 +714,6 @@ proc variant_exists {name} {
     }
 
     return 0
-}
-
-##
-# Load the global description file for a port tree
-#
-# @param descfile path to the descriptions file
-proc load_variant_desc_file {descfile} {
-    global variant_descs_global
-
-    if {![info exists variant_descs_global]} {
-        set variant_descs_global [dict create]
-    }
-    if {![dict exists $variant_descs_global $descfile] && [file exists $descfile]} {
-        ui_debug "Reading variant descriptions from $descfile"
-
-        dict set variant_descs_global $descfile [dict create]
-        if {[catch {set fd [open $descfile r]} err]} {
-            ui_warn "Could not open global variant description file: $err"
-            return
-        }
-        set lineno 0
-        while {[gets $fd line] >= 0} {
-            incr lineno
-            set name [lindex $line 0]
-            set desc [lindex $line 1]
-            if {$name ne "" && $desc ne "" && ![dict exists $variant_descs_global $descfile $name]} {
-                dict set variant_descs_global $descfile $name $desc
-            } else {
-                ui_warn "Invalid variant description in $descfile at line $lineno"
-            }
-        }
-        close $fd
-    }
-}
-
-##
-# Get description for a variant from global descriptions file
-#
-# @param variant name
-# @return description from descriptions file or an empty string
-proc variant_desc {variant} {
-    global variant_descs_global porturl
-
-    set descfile [getportresourcepath $porturl "port1.0/variant_descriptions.conf" no]
-    load_variant_desc_file $descfile
-
-    if {[dict exists $variant_descs_global ${descfile} ${variant}]} {
-        return [dict get $variant_descs_global ${descfile} ${variant}]
-    } else {
-        set descfile [getdefaultportresourcepath "port1.0/variant_descriptions.conf"]
-        load_variant_desc_file $descfile
-
-        if {[dict exists $variant_descs_global ${descfile} ${variant}]} {
-            return [dict get $variant_descs_global ${descfile} ${variant}]
-        }
-
-        return ""
-    }
 }
 
 # platform [<os> [<release>]] [<arch>]

@@ -94,6 +94,7 @@ namespace eval macports {
     variable ui_prefix {---> }
 
     variable tool_path_cache [dict create]
+    variable variant_descriptions [dict create]
 
     variable getprotocol_re {(?x)([^:]+)://.+}
     variable file_porturl_re {^file://(.*)}
@@ -1661,6 +1662,9 @@ match macports.conf.default."
         trace add variable macports::quick_index {read write} macports::load_quickindex
     }
 
+    # load variant descriptions file on demand
+    trace add variable macports::default_variant_descriptions read macports::load_default_variant_descriptions
+
     if {![info exists ui_options(ports_no_old_index_warning)]} {
         set default_source_url [lindex $sources_default 0]
         if {[macports::getprotocol $default_source_url] eq "file" || [macports::getprotocol $default_source_url] eq "rsync"} {
@@ -1852,6 +1856,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
 
     # archive_sites.conf handling
     $workername alias get_archive_sites_conf_values macports::get_archive_sites_conf_values
+    # variant_descriptions.conf
+    $workername alias get_variant_description macports::get_variant_description
 
     # compiler version cache
     $workername alias get_compiler_version macports::get_compiler_version
@@ -6154,6 +6160,67 @@ proc macports::get_tool_path {tool} {
 
     dict set tool_path_cache $tool $toolpath
     return $toolpath
+}
+
+# Load the global description file for a port tree
+#
+# @param descfile path to the descriptions file
+# @return A dict mapping variant names to descriptions
+proc macports::load_variant_desc_file {descfile} {
+    set variant_descs [dict create]
+    if {[file exists $descfile]} {
+        ui_debug "Reading variant descriptions from $descfile"
+
+        if {[catch {set fd [open $descfile r]} err]} {
+            ui_warn "Could not open global variant description file: $err"
+            return $variant_descs
+        }
+        set lineno 0
+        while {[gets $fd line] >= 0} {
+            incr lineno
+            lassign $line name desc
+            if {$name ne "" && $desc ne ""} {
+                dict set variant_descs $name $desc
+            } else {
+                ui_warn "Invalid variant description in $descfile at line $lineno"
+            }
+        }
+        close $fd
+    }
+    return $variant_descs
+}
+
+# deferred loading of variant_descriptions.conf from default source
+proc macports::load_default_variant_descriptions {name1 name2 op} {
+    variable default_variant_descriptions
+
+    trace remove variable default_variant_descriptions read macports::load_default_variant_descriptions
+
+    set descfile [getdefaultportresourcepath port1.0/variant_descriptions.conf]
+    set default_variant_descriptions [load_variant_desc_file $descfile]
+}
+
+# get global description for a variant (called from portfile interpreters)
+# @param variant name of the variant
+# @param resourcepath dir to search for conf file
+# @return description from descriptions file or an empty string
+proc macports::get_variant_description {variant resourcepath} {
+    variable variant_descriptions
+
+    if {![dict exists $variant_descriptions $resourcepath]} {
+        variable default_variant_descriptions
+        if {$resourcepath eq [getdefaultportresourcepath]} {
+            dict set variant_descriptions $resourcepath $default_variant_descriptions
+        } else {
+            set descfile [file join $resourcepath port1.0/variant_descriptions.conf]
+            dict set variant_descriptions $resourcepath [dict merge $default_variant_descriptions [load_variant_desc_file $descfile]]
+        }
+    }
+
+    if {[dict exists $variant_descriptions $resourcepath $variant]} {
+        return [dict get $variant_descriptions $resourcepath $variant]
+    }
+    return {}
 }
 
 # read and cache archive_sites.conf (called from port1.0 code)
