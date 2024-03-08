@@ -547,6 +547,8 @@ proc macports::setxcodeinfo {name1 name2 op} {
     set xcodeversion_overridden [info exists xcodeversion]
     set xcodebuildcmd_overridden [info exists xcodebuildcmd]
 
+    # Potentially read by developer_dir trace proc
+    set xcodeversion {}
     # First try the cache
     set xcodeinfo_cache [load_cache xcodeinfo]
     # Figure out which file to check to see if Xcode was updated
@@ -746,7 +748,9 @@ proc macports::set_developer_dir {name1 name2 op} {
     # Try the default
     variable os_major
     variable xcodeversion
-    if {$os_major >= 11 && [vercmp $xcodeversion 4.3] >= 0} {
+    if {$os_major >= 11 && ([vercmp $xcodeversion 4.3] >= 0 ||
+        ($xcodeversion eq {} && [file exists /Applications/Xcode.app/Contents/Developer]))
+    } {
         set developer_dir /Applications/Xcode.app/Contents/Developer
     } else {
         set developer_dir /Developer
