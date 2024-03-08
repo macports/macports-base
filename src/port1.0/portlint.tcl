@@ -604,18 +604,16 @@ proc portlint::lint_main {args} {
             if {![info exists variantdesc] || $variantdesc eq ""} {
                 # don't warn about missing descriptions for global variants
                 if {$variantname in $local_variants &&
-                    [variant_desc $variantname] eq ""} {
+                    [get_variant_description $variantname] eq ""} {
                     ui_warn "Variant $variantname does not have a description"
                     incr warnings
                     set desc_ok false
                 } elseif {$variantdesc eq ""} {
                     set variantdesc "(pre-defined variant)"
                 }
-            } else {
-                if {[variant_desc $variantname] ne ""} {
-                    ui_warn "Variant $variantname overrides global description"
-                    incr warnings
-                }
+            } elseif {[get_variant_description $variantname] ne ""} {
+                ui_warn "Variant $variantname overrides global description"
+                incr warnings
             }
 
             # Check if conflicting variants actually exist
