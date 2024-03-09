@@ -540,6 +540,7 @@ proc macports::save_cache {filename cache} {
 proc macports::setxcodeinfo {name1 name2 op} {
     variable xcodeversion; variable xcodebuildcmd
     variable developer_dir; variable portdbpath
+    variable os_major
 
     trace remove variable xcodeversion read macports::setxcodeinfo
     trace remove variable xcodebuildcmd read macports::setxcodeinfo
@@ -551,6 +552,17 @@ proc macports::setxcodeinfo {name1 name2 op} {
     set xcodeversion {}
     # First try the cache
     set xcodeinfo_cache [load_cache xcodeinfo]
+
+    # Refresh everything if the OS major version changed
+    if {[dict exists $xcodeinfo_cache os_major]
+         && [dict get $xcodeinfo_cache os_major] != $os_major
+    } {
+        set xcodeinfo_cache [dict create]
+    }
+
+    # The same cache file is used for xcodecltversion
+    set clt_refreshed [set_xcodecltversion xcodeinfo_cache]
+
     # Figure out which file to check to see if Xcode was updated
     if {[file extension [file dirname [file dirname $developer_dir]]] eq ".app"} {
         # New style, Developer dir inside Xcode.app
@@ -560,6 +572,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
         set checkfile ${developer_dir}/Applications/Xcode.app/Contents/Info.plist
     }
     set checkfile_found [file isfile $checkfile]
+    set xcode_refresh 1
     if {$checkfile_found && [dict exists $xcodeinfo_cache $checkfile mtime]
             && [dict exists $xcodeinfo_cache $checkfile xcodeversion]
             && [dict exists $xcodeinfo_cache $checkfile xcodebuildcmd]} {
@@ -570,12 +583,16 @@ proc macports::setxcodeinfo {name1 name2 op} {
             if {!${xcodebuildcmd_overridden}} {
                 set xcodebuildcmd [dict get $xcodeinfo_cache $checkfile xcodebuildcmd]
             }
-            return
+            if {!$clt_refreshed} {
+                return
+            }
+            set xcode_refresh 0
         } else {
             ui_debug "Xcode mtime has changed, refreshing version info"
         }
     }
 
+    if {$xcode_refresh} {
     macports_try -pass_signal {
         set xcodebuild [findBinary xcodebuild $macports::autoconf::xcodebuild_path]
         if {!${xcodeversion_overridden}} {
@@ -644,6 +661,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
             set xcodebuildcmd none
         }
     }
+    }
 
     if {[file writable $portdbpath]} {
         if {$checkfile_found} {
@@ -656,9 +674,10 @@ proc macports::setxcodeinfo {name1 name2 op} {
             }
         }
         # Remove any entries for Xcode installations that no longer exist
-        set xcodeinfo_cache [dict filter $xcodeinfo_cache script {filename info} {
-            file isfile $filename
+        set xcodeinfo_cache [dict filter $xcodeinfo_cache script {key info} {
+            expr {[string index $key 0] ne "/" || [file isfile $key]}
         }]
+        dict set xcodeinfo_cache os_major $os_major
         save_cache xcodeinfo $xcodeinfo_cache
     }
 }
@@ -777,13 +796,27 @@ proc macports::_is_valid_developer_dir {dir} {
 }
 
 # deferred calculation of xcodecltversion
-proc macports::set_xcodecltversion {name1 name2 op} {
+# @return 1 if cachevar has been updated, 0 otherwise
+proc macports::set_xcodecltversion {cachevar} {
     variable xcodecltversion
 
-    trace remove variable xcodecltversion read macports::set_xcodecltversion
+    trace remove variable xcodecltversion read macports::setxcodeinfo
 
     if {[info exists xcodecltversion]} {
-        return
+        return 0
+    }
+    # Same test as used to set the default for use_xcode
+    if {![file executable /Library/Developer/CommandLineTools/usr/bin/make]} {
+        set xcodecltversion none
+        return 0
+    }
+
+    upvar $cachevar cache
+    if {[dict exists $cache clt version] && [dict exists $cache clt mtime]
+            && [dict exists $cache clt checkfile]
+            && [file mtime [dict get $cache clt checkfile]] == [dict get $cache clt mtime]} {
+        set xcodecltversion [dict get $cache clt version]
+        return 0
     }
 
     # Potential names for the CLTs pkg on different OS versions.
@@ -791,9 +824,10 @@ proc macports::set_xcodecltversion {name1 name2 op} {
 
     if {[catch {exec -ignorestderr /usr/sbin/pkgutil --pkgs=com\\.apple\\.pkg\\.([join $pkgnames |]) 2> /dev/null} result]} {
         set xcodecltversion none
-        return
+        return 0
     }
     set pkgs [split $result \n]
+    set found_pkgname {}
     # Check in order from newest to oldest, just in case something
     # stuck around from an older OS version.
     foreach pkgname $pkgnames {
@@ -804,8 +838,12 @@ proc macports::set_xcodecltversion {name1 name2 op} {
                     lassign [split $line] name val
                     if {$name eq "version:"} {
                         set xcodecltversion $val
-                        return
+                        set found_pkgname $fullpkgname
+                        break
                     }
+                }
+                if {$found_pkgname ne {}} {
+                    break
                 }
             } else {
                 ui_debug "set_xcodecltversion: Failed to get info for installed pkg ${fullpkgname}: $result"
@@ -813,7 +851,21 @@ proc macports::set_xcodecltversion {name1 name2 op} {
         }
     }
 
-    set xcodecltversion none
+    if {$found_pkgname ne {}} {
+        # TODO: See if there are more possible locations.
+        foreach dir {/Library/Apple/System/Library/Receipts /private/var/db/receipts} {
+            set checkfile ${dir}/${found_pkgname}.plist
+            if {[file exists $checkfile]} {
+                dict set cache clt checkfile $checkfile
+                dict set cache clt mtime [file mtime $checkfile]
+                dict set cache clt version $xcodecltversion
+                return 1
+            }
+        }
+    } else {
+        set xcodecltversion none
+    }
+    return 0
 }
 
 proc macports::set_xcode_license_unaccepted {name1 name2 op} {
@@ -1553,18 +1605,19 @@ match macports.conf.default."
         }
     }
 
-    if {![info exists xcodeversion] || ![info exists xcodebuildcmd]} {
-        # We'll resolve these later (if needed)
-        trace add variable xcodeversion read macports::setxcodeinfo
-        trace add variable xcodebuildcmd read macports::setxcodeinfo
-    }
-    if {![info exists xcodecltversion]} {
-        if {$os_platform eq "darwin"} {
-            trace add variable xcodecltversion read macports::set_xcodecltversion
-        } else {
-            set xcodecltversion {}
+    if {$os_platform eq "darwin"} {
+        if {![info exists xcodeversion] || ![info exists xcodebuildcmd] || ![info exists xcodecltversion]} {
+            # We'll resolve these later (if needed)
+            trace add variable xcodeversion read macports::setxcodeinfo
+            trace add variable xcodebuildcmd read macports::setxcodeinfo
+            trace add variable xcodecltversion read macports::setxcodeinfo
         }
+    } else {
+        set xcodeversion none
+        set xcodebuildcmd none
+        set xcodecltversion none
     }
+
     if {![info exists xcode_license_unaccepted]} {
         if {$os_platform eq "darwin"} {
             trace add variable xcode_license_unaccepted read macports::set_xcode_license_unaccepted
