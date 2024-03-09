@@ -853,7 +853,7 @@ proc macports::set_xcodecltversion {cachevar} {
 
     if {$found_pkgname ne {}} {
         # TODO: See if there are more possible locations.
-        foreach dir {/Library/Apple/System/Library/Receipts /private/var/db/receipts} {
+        foreach dir {/Library/Apple/System/Library/Receipts /System/Library/Receipts /private/var/db/receipts} {
             set checkfile ${dir}/${found_pkgname}.plist
             if {[file exists $checkfile]} {
                 dict set cache clt checkfile $checkfile
