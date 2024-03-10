@@ -16,11 +16,10 @@ set stats [dict create \
 set extended_mode 0
 array set ui_options        [list ports_no_old_index_warning 1]
 array set global_options    [list ports_no_load_quick_index 1]
-array set global_variations [list]
 set port_options            [list]
 
 # Pass global options into mportinit
-mportinit ui_options global_options global_variations
+mportinit ui_options global_options
 
 # Standard procedures
 proc print_usage args {
@@ -79,10 +78,11 @@ proc _index_from_portinfo {portinfo {is_subport no}} {
 }
 
 proc _open_port {portdir absportdir port_options {subport {}}} {
-    global macports::prefix save_prefix
+    global macports::prefix
     # Make sure $prefix expands to '${prefix}' so that the PortIndex is
     # portable across prefixes, see https://trac.macports.org/ticket/53169 and
     # https://trac.macports.org/ticket/17182.
+    set save_prefix $prefix
     macports_try -pass_signal {
         set prefix {${prefix}}
         if {$subport ne {}} {
@@ -188,7 +188,7 @@ proc pindex {portdir jobnum {subport {}}} {
 
 proc init_threads {} {
     global worker_init_script qindex keepkeys ui_options \
-           global_options port_options save_prefix directory \
+           global_options port_options directory \
            full_reindex oldfd oldmtime maxjobs poolid pending_jobs \
            nextjobnum
     append worker_init_script \
@@ -197,7 +197,6 @@ proc init_threads {} {
         [list array set ui_options [array get ui_options]] \n \
         [list array set global_options [array get global_options]] \n \
         [list set port_options $port_options] \n \
-        [list set save_prefix $save_prefix] \n \
         [list set directory $directory] \n \
         [list set full_reindex $full_reindex] \n \
         [list mportinit ui_options global_options] \n \
@@ -424,7 +423,6 @@ if {[file isfile $outpath]} {
 }
 
 set fd [file tempfile tempportindex mports.portindex.XXXXXXXX]
-set save_prefix ${macports::prefix}
 
 # keys for a normal portindex
 set keepkeys [dict create]
