@@ -57,8 +57,19 @@ proc porttest::test_archs {} {
     }
     array set file_archs {}
     set destrootlen [string length [option destroot]]
+
+    if {[getuid] == 0 && [geteuid] != 0} {
+        # file readable doesn't take euid into account
+        elevateToRoot test
+        set elevated 1
+    }
+
     fs-traverse -depth fullpath [list [option destpath]] {
         if {[file type $fullpath] ne "file"} {
+            continue
+        }
+        if {![file readable $fullpath]} {
+            ui_debug "Skipping unreadable file: $fullpath"
             continue
         }
         if {[fileIsBinary $fullpath]} {
@@ -69,6 +80,11 @@ proc porttest::test_archs {} {
             }
         }
     }
+
+    if {[info exists elevated]} {
+        dropPrivileges
+    }
+
     set wanted_archs [get_canonical_archs]
     set has_wanted_archs [info exists file_archs($wanted_archs)]
     unset -nocomplain file_archs($wanted_archs)
