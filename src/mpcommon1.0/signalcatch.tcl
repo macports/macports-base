@@ -14,8 +14,9 @@ if {[info commands builtin_catch] eq {}} {
         }
         set err [uplevel 1 [list builtin_catch {*}$args]]
         if {$err == 1 && !$catch_signal} {
-            set savedErrorCode $::errorCode
-            set savedErrorInfo $::errorInfo
+            global errorCode errorInfo
+            set savedErrorCode $errorCode
+            set savedErrorInfo $errorInfo
             set sigstring "POSIX SIG "
             set len [string length $sigstring]
             if {[string equal -length $len $sigstring $savedErrorCode]} {
