@@ -33,7 +33,6 @@
 package provide portconfigure 1.0
 package require portutil 1.0
 package require portprogress 1.0
-package require struct::set
 
 set org.macports.configure [target_new org.macports.configure portconfigure::configure_main]
 target_provides ${org.macports.configure} configure
@@ -1913,7 +1912,7 @@ proc portconfigure::check_implicit_function_declarations {} {
         configure.checks.implicit_function_declaration.whitelist
 
     # Map from function name to config.log that used it without declaration
-    array set undeclared_functions {}
+    set undeclared_functions [dict create]
 
     fs-traverse -tails file [list ${workpath}] {
         if {[file tail $file] in [list config.log CMakeError.log meson-log.txt] && [file isfile [file join ${workpath} $file]]} {
@@ -1936,7 +1935,7 @@ proc portconfigure::check_implicit_function_declarations {} {
                             }
                         }
                         if {!$is_whitelisted} {
-                            ::struct::set include undeclared_functions($function) $file
+                            dict set undeclared_functions $function $file 1
                         } else {
                             ui_debug [format "Ignoring implicit declaration of function '%s' because it is whitelisted" $function]
                         }
@@ -1946,10 +1945,10 @@ proc portconfigure::check_implicit_function_declarations {} {
         }
     }
 
-    if {[array size undeclared_functions] > 0} {
+    if {[dict size $undeclared_functions] > 0} {
         ui_warn "Configuration logfiles contain indications of -Wimplicit-function-declaration; check that features were not accidentally disabled:"
-        foreach {function files} [array get undeclared_functions] {
-            ui_msg [format "  %s: found in %s" $function [join $files ", "]]
+        dict for {function files} $undeclared_functions {
+            ui_msg [format "  %s: found in %s" $function [join [dict keys $files] ", "]]
         }
     }
 }
