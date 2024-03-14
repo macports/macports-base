@@ -306,9 +306,9 @@ default configure.sdk_version   {$macosx_sdk_version}
 default configure.sdkroot       {[portconfigure::configure_get_sdkroot ${configure.sdk_version}]}
 default configure.sysroot       {[expr {${configure.sdkroot} ne "" ? ${configure.sdkroot} : "/"}]}
 default configure.developer_dir {[portconfigure::configure_get_developer_dir]}
-foreach tool {cc objc f77 f90 fc} {
-    options configure.${tool}_archflags
-    default configure.${tool}_archflags  "\[portconfigure::configure_get_archflags $tool\]"
+foreach _portconfigure_tool {cc objc f77 f90 fc} {
+    options configure.${_portconfigure_tool}_archflags
+    default configure.${_portconfigure_tool}_archflags  "\[portconfigure::configure_get_archflags $_portconfigure_tool\]"
 }
 
 options configure.universal_archs configure.universal_args \
@@ -330,9 +330,10 @@ options configure.ccache configure.distcc configure.pipe configure.cc \
 default configure.ccache        {${configureccache}}
 default configure.distcc        {${configuredistcc}}
 default configure.pipe          {${configurepipe}}
-foreach tool {cc objc cpp f77 f90 fc javac} {
-    default configure.$tool     "\[portconfigure::configure_get_compiler $tool\]"
+foreach _portconfigure_tool {cc objc cpp f77 f90 fc javac} {
+    default configure.$_portconfigure_tool     "\[portconfigure::configure_get_compiler $_portconfigure_tool\]"
 }
+unset _portconfigure_tool
 default configure.compiler      {[portconfigure::configure_get_default_compiler]}
 default compiler.fallback       {[portconfigure::get_compiler_fallback]}
 default compiler.blacklist      {}
