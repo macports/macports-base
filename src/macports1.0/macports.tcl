@@ -1814,11 +1814,19 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     # cd: This is necessary for some code in port1.0, but should be hidden
     interp eval $workername [list rename cd _cd]
 
-    # Tell the sub interpreter about all the Tcl packages we already
-    # know about so it won't glob for packages.
-    # TODO: There are a lot of these. Should we restrict it to only
-    # the packages that are likely to be needed?
-    foreach pkgName [package names] {
+    # Tell the sub interpreter about commonly needed Tcl packages we
+    # already know about so it won't glob for packages.
+    foreach pkgName {port portactivate portarchivefetch portbuild portbump
+                     portchecksum portclean portconfigure portdeactivate
+                     portdepends portdestroot portdistcheck portdistfiles
+                     portdmg portextract portfetch portimage portinstall
+                     portlint portlivecheck portload portmain portmdmg
+                     portmirror portmpkg portpatch portpkg portprogress
+                     portreload portsandbox portstartupitem porttest
+                     porttrace portunarchive portuninstall portunload
+                     portutil cmdline fetch_common fileutil machista msgcat
+                     Pextlib macports_dlist macports_util mpcommon
+                     mp_package signalcatch Thread} {
         foreach pkgVers [package versions $pkgName] {
             set pkgLoadScript [package ifneeded $pkgName $pkgVers]
             $workername eval [list package ifneeded $pkgName $pkgVers $pkgLoadScript]
