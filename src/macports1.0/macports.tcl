@@ -65,6 +65,7 @@ namespace eval macports {
                       packagemaker_path portdbpath prefix sources_conf variants_conf] {
         dict set bootstrap_options $opt is_path 1
     }
+    unset opt
 
     variable user_options {}
     variable portinterp_options [list \
