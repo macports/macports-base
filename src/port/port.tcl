@@ -2096,7 +2096,7 @@ proc action_location { action portlist opts } {
 
 
 proc action_notes { action portlist opts } {
-    global UI_PREFIX global_variations
+    global macports::ui_prefix global_variations
 
     if {[require_portlist portlist]} {
         return 1
@@ -2144,12 +2144,12 @@ proc action_notes { action portlist opts } {
 
         # Display the notes associated with this Portfile (if any).
         if {[dict exists $portinfo notes]} {
-            ui_notice "$UI_PREFIX $portname has the following notes:"
+            ui_notice "$ui_prefix $portname has the following notes:"
             foreach note [dict get $portinfo notes] {
                 puts [wrap $note 0 "  " 1]
             }
         } else {
-            ui_notice "$UI_PREFIX $portname has no notes."
+            ui_notice "$ui_prefix $portname has no notes."
         }
     }
     return $status
