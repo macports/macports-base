@@ -37,6 +37,8 @@ package require tdbc::sqlite3
 
 namespace eval registry {
 
+variable UI_PREFIX {---> }
+
 ## Decodes a version specifier into its component values. Values will be
 ## returned into the variables named by `version`, `revision`, and `variants`,
 ## with `revision` and `variants` possibly being set to the empty string if none
@@ -62,7 +64,7 @@ proc decode_spec {specifier version revision variants} {
 ## @param [in] port  a registry::entry to check
 ## @param [in] force if true, continue even if there are dependents
 proc check_dependents {port force {action "uninstall/deactivate"}} {
-    global UI_PREFIX
+    variable UI_PREFIX
     set imaged [registry::entry imaged [$port name]]
     set imaged_len [llength $imaged]
     #foreach i $imaged {
