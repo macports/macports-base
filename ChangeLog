@@ -2,6 +2,17 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.9.2 (unreleased)
+    - Fixed built-in architecture test failing on unreadable files.
+      (#69478, jmr in e3468c5)
+
+    - Fixed some issues that could occur if settings like 'prefix'
+      contained symlinks, by fully resolving and normalizing paths read
+      from the config file. (#69327, jmr in b69f0cf)
+
+    - Fixed privileges sometimes not being dropped for test target.
+      (jmr in d304c0a)
+
 Release 2.9.1 (2024-01-31 by jmr)
     - Fixed installation of unneeded build-time dependencies when using
       source-only mode. (cal in 5988c00)
