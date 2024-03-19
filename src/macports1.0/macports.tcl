@@ -366,8 +366,18 @@ proc ui_message {priority prefix args} {
 # Init (or re-init) all ui channels
 proc macports::ui_init_all {} {
     variable ui_priorities
+    variable ui_options
+
     foreach priority $ui_priorities {
         ui_init $priority
+    }
+
+    foreach pname {progress_download progress_generic} {
+        if {![macports::ui_isset ports_debug] && [info exists ui_options($pname)]} {
+            interp alias {} ui_$pname {} $ui_options($pname)
+        } else {
+            interp alias {} ui_$pname {} return -level 0
+        }
     }
 }
 
@@ -1853,11 +1863,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     }
     # add the UI progress call-backs (or a no-op alias, if unavailable)
     foreach pname {progress_download progress_generic} {
-        if {[info exists ui_options($pname)]} {
-            $workername alias ui_$pname $ui_options($pname)
-        } else {
-            $workername alias ui_$pname return -level 0
-        }
+        $workername alias ui_$pname ui_$pname
     }
 
     # notifications callback
