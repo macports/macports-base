@@ -537,7 +537,16 @@ proc _extract_progress {event} {
             _progress start
         }
         stdin {
-            # we don't really care about the line, just that it exists
+            set line [string trimright [dict get $event line]]
+
+            # We only want to count files, not directories. Additionally,
+            # filter MacPorts metadata files that start with "+".
+
+            #   directories                        bsdtar output for metadata             gnutar output for metadata
+            if {[string index $line end] == "/" || [string range $line 0 4] eq "x ./+" || [string range $line 0 2] eq "./+"} {
+                return
+            }
+
             incr progress_step
             _progress update $progress_step $progress_total_steps
         }
