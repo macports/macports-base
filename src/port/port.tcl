@@ -4733,6 +4733,12 @@ namespace eval portclient::progress {
         variable showTimeThreshold
         variable showPercentageThreshold
 
+        if {![info exists startTime]} {
+            # update called without start; normally that's an error, but let's
+            # be liberal in what we accept and make the start implicit.
+            initDelay
+        }
+
         if {$show eq "yes"} {
             return yes
         } else {
