@@ -823,7 +823,16 @@ proc _deactivate_file {dstfile} {
 proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     set files [list]
 
+    # these are only used locally, so it is *not* a mistake that there is no
+    # 'variable' declaration here
+    set progress_step 0
+    set progress_total_steps [expr {[llength $imagefiles] * 2}]
+
+    _progress start
+
     foreach file $imagefiles {
+        incr progress_step
+        _progress update $progress_step $progress_total_steps
         if { [::file exists $file] || (![catch {::file type $file} ft] && $ft eq "link") } {
             # Normalize the file path to avoid removing the intermediate
             # symlinks (remove the empty directories instead)
@@ -842,6 +851,7 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
             # as well.
             while {$directory ni $files} {
                 lappend files $directory
+                incr progress_total_steps
                 set directory [::file dirname $directory]
             }
         } else {
@@ -853,6 +863,8 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     # Since the list is sorted in reverse order, we're sure that directories
     # are after their elements.
     set files [lsort -decreasing -unique $files]
+
+    set progress_total_steps [expr {[llength $imagefiles] + [llength $files]}]
 
     # Avoid interruptions while removing the files and updating the database to
     # prevent inconsistencies from forming between filesystem and database.
@@ -872,6 +884,9 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
                 $port deactivate $imagefiles
                 foreach file $files {
                     _deactivate_file $file
+
+                    incr progress_step
+                    _progress update $progress_step $progress_total_steps
                 }
 
                 # Update the port's state in the same transaction as the file
@@ -881,11 +896,16 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
         } else {
             foreach file $files {
                 _deactivate_file $file
+
+                incr progress_step
+                _progress update $progress_step $progress_total_steps
             }
+
         }
     } finally {
         # restore the signal block state
         signal set $osignals
+        _progress finish
     }
 }
 
