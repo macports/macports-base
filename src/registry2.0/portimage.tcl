@@ -516,7 +516,7 @@ proc extract_archive_to_tmpdir {location} {
         } else {
             set cmdstring "${unarchive.pipe_cmd} ( ${unarchive.cmd} ${unarchive.pre_args} ${unarchive.args} )"
         }
-        system $cmdstring
+        system -callback portimage::_extract_progress $cmdstring
     } on error {_ eOptions} {
         ::file delete -force $extractdir
         throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
@@ -527,15 +527,47 @@ proc extract_archive_to_tmpdir {location} {
     return $extractdir
 }
 
+proc _extract_progress {event} {
+    variable progress_step
+    variable progress_total_steps
+
+    switch -- [dict get $event type] {
+        exec {
+            set progress_step 0
+            _progress start
+        }
+        stdin {
+            # we don't really care about the line, just that it exists
+            incr progress_step
+            _progress update $progress_step $progress_total_steps
+        }
+        exit {
+            # no cleanup, we pick up the progress where this one ended
+        }
+    }
+}
+
+proc _progress {args} {
+    if {[macports::ui_isset ports_verbose]} {
+        return
+    }
+
+    ui_progress_generic {*}${args}
+}
+
 ## Activates the contents of a port
 proc _activate_contents {port {rename_list {}}} {
     variable force
     variable noexec
+    variable progress_step
+    variable progress_total_steps
 
     set files [list]
     set baksuffix .mp_[clock seconds]
     set location [$port location]
     set imagefiles [$port imagefiles]
+    set num_imagefiles [llength $imagefiles]
+    set progress_total_steps [expr {$num_imagefiles * 3}]
     set extracted_dir [extract_archive_to_tmpdir $location]
     set replaced_by_re "(?i)^[$port name]\$"
 
@@ -550,7 +582,11 @@ proc _activate_contents {port {rename_list {}}} {
     set todeactivate [list]
     try {
         registry::write {
+            # extract phase complete, assume 1/3 is done
+            set progress_step $num_imagefiles
             foreach file $imagefiles {
+                incr progress_step
+                _progress update $progress_step $progress_total_steps
                 set srcfile "${extracted_dir}${file}"
 
                 # To be able to install links, we test if we can lstat the file to
@@ -580,6 +616,7 @@ proc _activate_contents {port {rename_list {}}} {
                         # registry
                         if { ![catch {::file type $file}] } {
                             set bakfile "${file}${baksuffix}"
+                            _progress intermission
                             ui_warn "File $file already exists.  Moving to: $bakfile."
                             ::file rename -force -- $file $bakfile
                             lappend backups $file
@@ -617,6 +654,13 @@ proc _activate_contents {port {rename_list {}}} {
                 set directory [::file dirname $file]
                 while {$directory ni $files} {
                     lappend files $directory
+                    # Any add here will mean an additional step in the second
+                    # phase of activation. We could just update this once after
+                    # this foreach loop is complete, but that could make the
+                    # progress bar jump from 66 % down to 65. Doing it
+                    # incrementally here will hopefully hide the increase in
+                    # noise.
+                    incr progress_total_steps
                     set directory [::file dirname $directory]
                 }
 
@@ -627,6 +671,7 @@ proc _activate_contents {port {rename_list {}}} {
 
         # deactivate ports replaced_by this one
         foreach owner $todeactivate {
+            _progress intermission
             if {$noexec || ![registry::run_target $owner deactivate [list ports_nodepcheck 1]]} {
                 deactivate [$owner name] "" "" 0 [list ports_nodepcheck 1]
             }
@@ -651,12 +696,16 @@ proc _activate_contents {port {rename_list {}}} {
 
         registry::write {
             # Activate it, and catch errors so we can roll-back
+
             try {
                 $port activate $imagefiles
                 foreach file $files {
                     if {[_activate_file "${extracted_dir}${file}" $file] == 1} {
                         lappend rollback_filelist $file
                     }
+
+                    _progress update $progress_step $progress_total_steps
+                    incr progress_step
                 }
                 foreach {src dest} $confirmed_rename_list {
                     $port deactivate [list $src]
@@ -670,15 +719,19 @@ proc _activate_contents {port {rename_list {}}} {
                 # here so that this information cannot be inconsistent with the
                 # state of the files on disk.
                 $port state installed
+
+                _progress finish
             } trap {POSIX SIG SIGINT} {_ eOptions} {
                 # Pressing ^C will (often?) print "^C" to the terminal; send
                 # a linebreak so our message appears after that.
+                _progress intermission
                 ui_msg ""
                 ui_msg "Control-C pressed, rolling back, please wait."
                 # can't do it here since we're already inside a transaction
                 set deactivate_this yes
                 throw [dict get $eOptions -errorcode] [dict get $eOptions -errorinfo]
             } trap {POSIX SIG SIGTERM} {_ eOptions} {
+                _progress intermission
                 ui_msg "SIGTERM received, rolling back, please wait."
                 # can't do it here since we're already inside a transaction
                 set deactivate_this yes
