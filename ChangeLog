@@ -14,6 +14,9 @@ Release 2.10.0 (unreleased)
       boolean expressions and Portfile parsing. (jmr in a28e81c,
       169b1ed, 2f3d072, c97e75d, 341d9a0, 46bc1af, etc.)
 
+	- Add progress bars to slow activation and deactivation operations.
+	  (cal in b78e320b1, 5e669e4a0, 31c285116, cb3305837, effd43526)
+
 Release 2.9.2 (unreleased)
     - Fixed built-in architecture test failing on unreadable files.
       (#69478, jmr in e3468c5)
