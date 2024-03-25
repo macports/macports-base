@@ -89,7 +89,7 @@ proc porttest::test_archs {} {
     set has_wanted_archs [info exists file_archs($wanted_archs)]
     unset -nocomplain file_archs($wanted_archs)
     if {[array names file_archs] ne ""} {
-        set msg "[option name] is configured to build "
+        set msg "[option subport] is configured to build "
         if {$wanted_archs eq "noarch"} {
             append msg "no architecture-specific files,"
         } else {
@@ -104,7 +104,7 @@ proc porttest::test_archs {} {
         }
         ui_warn $msg
     } elseif {$wanted_archs ne "noarch" && !${has_wanted_archs}} {
-        ui_warn "[option name] is configured to build for the architecture(s) '$wanted_archs',\
+        ui_warn "[option subport] is configured to build for the architecture(s) '$wanted_archs',\
                     but did not install any Mach-O files."
     }
     machista::destroy_handle $handle
@@ -116,7 +116,7 @@ proc porttest::test_start {args} {
 }
 
 proc porttest::test_main {args} {
-    global subport test.run
+    global test.run
 
     # built-in tests
     porttest::test_archs
