@@ -601,17 +601,23 @@ proc portlint::lint_main {args} {
                 set name_ok false
             }
 
+            global portresourcepath
+            if {![info exists portresourcepath]} {
+                global porturl
+                set portresourcepath [getportresourcepath $porturl]
+            }
+
             if {![info exists variantdesc] || $variantdesc eq ""} {
                 # don't warn about missing descriptions for global variants
                 if {$variantname in $local_variants &&
-                    [get_variant_description $variantname] eq ""} {
+                    [get_variant_description $variantname $portresourcepath] eq ""} {
                     ui_warn "Variant $variantname does not have a description"
                     incr warnings
                     set desc_ok false
                 } elseif {$variantdesc eq ""} {
                     set variantdesc "(pre-defined variant)"
                 }
-            } elseif {[get_variant_description $variantname] ne ""} {
+            } elseif {[get_variant_description $variantname $portresourcepath] ne ""} {
                 ui_warn "Variant $variantname overrides global description"
                 incr warnings
             }
