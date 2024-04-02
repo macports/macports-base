@@ -4,47 +4,47 @@
    files before executing */
 #undef DARWINTRACE_SIP_WORKAROUND_PATH
 
-/* Define to 1 if you have the `clearenv' function. */
+/* Define to 1 if you have the 'clearenv' function. */
 #undef HAVE_CLEARENV
 
 /* Define if CommonCrypto is available. */
 #undef HAVE_COMMONCRYPTO_COMMONDIGEST_H
 
-/* Define to 1 if you have the `copyfile' function. */
+/* Define to 1 if you have the 'copyfile' function. */
 #undef HAVE_COPYFILE
 
 /* Define to 1 if you have the <crt_externs.h> header file. */
 #undef HAVE_CRT_EXTERNS_H
 
 /* Define to 1 if you have the declaration of
-   `atomic_compare_exchange_strong_explicit', and to 0 if you don't. */
+   'atomic_compare_exchange_strong_explicit', and to 0 if you don't. */
 #undef HAVE_DECL_ATOMIC_COMPARE_EXCHANGE_STRONG_EXPLICIT
 
-/* Define to 1 if you have the declaration of `completion_matches', and to 0
+/* Define to 1 if you have the declaration of 'completion_matches', and to 0
    if you don't. */
 #undef HAVE_DECL_COMPLETION_MATCHES
 
-/* Define to 1 if you have the declaration of `filename_completion_function',
+/* Define to 1 if you have the declaration of 'filename_completion_function',
    and to 0 if you don't. */
 #undef HAVE_DECL_FILENAME_COMPLETION_FUNCTION
 
-/* Define to 1 if you have the declaration of `rl_completion_matches', and to
+/* Define to 1 if you have the declaration of 'rl_completion_matches', and to
    0 if you don't. */
 #undef HAVE_DECL_RL_COMPLETION_MATCHES
 
 /* Define to 1 if you have the declaration of
-   `rl_filename_completion_function', and to 0 if you don't. */
+   'rl_filename_completion_function', and to 0 if you don't. */
 #undef HAVE_DECL_RL_FILENAME_COMPLETION_FUNCTION
 
 /* Define to 1 if you have the declaration of
-   `rl_username_completion_function', and to 0 if you don't. */
+   'rl_username_completion_function', and to 0 if you don't. */
 #undef HAVE_DECL_RL_USERNAME_COMPLETION_FUNCTION
 
-/* Define to 1 if you have the declaration of `SHA1_File', and to 0 if you
+/* Define to 1 if you have the declaration of 'SHA1_File', and to 0 if you
    don't. */
 #undef HAVE_DECL_SHA1_FILE
 
-/* Define to 1 if you have the declaration of `username_completion_function',
+/* Define to 1 if you have the declaration of 'username_completion_function',
    and to 0 if you don't. */
 #undef HAVE_DECL_USERNAME_COMPLETION_FUNCTION
 
@@ -54,10 +54,10 @@
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
-/* Define to 1 if you have the `flock' function. */
+/* Define to 1 if you have the 'flock' function. */
 #undef HAVE_FLOCK
 
-/* Define to 1 if you have the `fls' function. */
+/* Define to 1 if you have the 'fls' function. */
 #undef HAVE_FLS
 
 /* Define if CoreFoundation framework is available */
@@ -73,19 +73,19 @@
    CoreFoundation framework */
 #undef HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER
 
-/* Define to 1 if you have the `getdelim' function. */
+/* Define to 1 if you have the 'getdelim' function. */
 #undef HAVE_GETDELIM
 
-/* Define to 1 if you have the `getline' function. */
+/* Define to 1 if you have the 'getline' function. */
 #undef HAVE_GETLINE
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `kevent' function. */
+/* Define to 1 if you have the 'kevent' function. */
 #undef HAVE_KEVENT
 
-/* Define to 1 if you have the `kqueue' function. */
+/* Define to 1 if you have the 'kqueue' function. */
 #undef HAVE_KQUEUE
 
 /* Define if you have the `crypto' library (-lcrypto). */
@@ -118,19 +118,19 @@
 /* Define to 1 if you have the <openssl/sha.h> header file. */
 #undef HAVE_OPENSSL_SHA_H
 
-/* Define to 1 if you have the `OSAtomicCompareAndSwap32' function. */
+/* Define to 1 if you have the 'OSAtomicCompareAndSwap32' function. */
 #undef HAVE_OSATOMICCOMPAREANDSWAP32
 
-/* Define to 1 if you have the `OSAtomicCompareAndSwap64' function. */
+/* Define to 1 if you have the 'OSAtomicCompareAndSwap64' function. */
 #undef HAVE_OSATOMICCOMPAREANDSWAP64
 
-/* Define to 1 if you have the `OSAtomicCompareAndSwapPtr' function. */
+/* Define to 1 if you have the 'OSAtomicCompareAndSwapPtr' function. */
 #undef HAVE_OSATOMICCOMPAREANDSWAPPTR
 
 /* Define to 1 if you have the <paths.h> header file. */
 #undef HAVE_PATHS_H
 
-/* Define to 1 if you have the `posix_spawn' function. */
+/* Define to 1 if you have the 'posix_spawn' function. */
 #undef HAVE_POSIX_SPAWN
 
 /* Define to 1 if you have the <pwd.h> header file. */
@@ -145,13 +145,13 @@
 /* Define to 1 if you have the <ripemd.h> header file. */
 #undef HAVE_RIPEMD_H
 
-/* Define to 1 if you have the `setmode' function. */
+/* Define to 1 if you have the 'setmode' function. */
 #undef HAVE_SETMODE
 
 /* Define to 1 if you have the <sha256.h> header file. */
 #undef HAVE_SHA256_H
 
-/* Define to 1 if you have the `SHA256_Update' function. */
+/* Define to 1 if you have the 'SHA256_Update' function. */
 #undef HAVE_SHA256_UPDATE
 
 /* Define to 1 if you have the <sha.h> header file. */
@@ -178,13 +178,13 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
-/* Define to 1 if you have the `strlcat' function. */
+/* Define to 1 if you have the 'strlcat' function. */
 #undef HAVE_STRLCAT
 
-/* Define to 1 if you have the `strlcpy' function. */
+/* Define to 1 if you have the 'strlcpy' function. */
 #undef HAVE_STRLCPY
 
-/* Define to 1 if you have the `sysctlbyname' function. */
+/* Define to 1 if you have the 'sysctlbyname' function. */
 #undef HAVE_SYSCTLBYNAME
 
 /* Define to 1 if you have the <sys/cdefs.h> header file. */
@@ -223,10 +223,10 @@
 /* Define to 1 if you have the <utime.h> header file. */
 #undef HAVE_UTIME_H
 
-/* Define to 1 if you have the `_dyld_shared_cache_contains_path' function. */
+/* Define to 1 if you have the '_dyld_shared_cache_contains_path' function. */
 #undef HAVE__DYLD_SHARED_CACHE_CONTAINS_PATH
 
-/* Define to 1 if you have the `__getdirentries64' function. */
+/* Define to 1 if you have the '__getdirentries64' function. */
 #undef HAVE___GETDIRENTRIES64
 
 /* Lowest non-system-reserved GID. */
@@ -256,7 +256,7 @@
 /* Define to 1 if static build is requested */
 #undef STATIC_BUILD
 
-/* Define to 1 if all of the C90 standard headers exist (not just the ones
+/* Define to 1 if all of the C89 standard headers exist (not just the ones
    required in a freestanding environment). This macro is provided for
    backward compatibility; new code need not use it. */
 #undef STDC_HEADERS
