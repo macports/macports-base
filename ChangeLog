@@ -9,13 +9,13 @@ Release 2.10.0 (unreleased)
 
     - Prevented 'port rdeps --full' from looping infinitely when there
       are circular dependencies. (#62711, jmr in 49df406)
- 
+
     - Performance improvements for many operations, particularly
       boolean expressions and Portfile parsing. (jmr in a28e81c,
       169b1ed, 2f3d072, c97e75d, 341d9a0, 46bc1af, etc.)
 
-	- Add progress bars to slow activation and deactivation operations.
-	  (cal in b78e320b1, 5e669e4a0, 31c285116, cb3305837, effd43526)
+    - Add progress bars to slow activation and deactivation operations.
+      (cal in b78e320b1, 5e669e4a0, 31c285116, cb3305837, effd43526)
 
 Release 2.9.3 (2024-04-04 by jmr)
     - Fixed error due to insufficient privileges to create the work
