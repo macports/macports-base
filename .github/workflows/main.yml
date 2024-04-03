@@ -32,7 +32,7 @@ jobs:
       - name: Configure MacPorts Base
         run: |
           set -eu
-          ./configure
+          env PATH=/usr/bin:/bin:/usr/sbin:/sbin CFLAGS="-pipe -Os" ./configure
       - name: Build MacPorts Base
         run: |
           set -eu
