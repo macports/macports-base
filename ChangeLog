@@ -17,6 +17,10 @@ Release 2.10.0 (unreleased)
 	- Add progress bars to slow activation and deactivation operations.
 	  (cal in b78e320b1, 5e669e4a0, 31c285116, cb3305837, effd43526)
 
+Release 2.9.3 (2024-04-04 by jmr)
+    - Fixed error due to insufficient privileges to create the work
+      symlink in some circumstances. (jmr in 51511c8)
+
 Release 2.9.2 (2024-04-02 by jmr)
     - Fixed built-in architecture test failing on unreadable files.
       (#69478, jmr in e3468c5)
