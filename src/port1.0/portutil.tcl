@@ -1736,6 +1736,9 @@ proc open_statefile {args} {
         }
         # Create a symlink to the workpath for port authors
         if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
+            if {[getuid] == 0 && [geteuid] != 0} {
+                elevateToRoot place_worksymlink
+            }
             ui_debug "Attempting ln -sf $workpath $worksymlink"
             ln -sf $workpath $worksymlink
         }
