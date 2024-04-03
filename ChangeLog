@@ -2,6 +2,10 @@
 # This is a log of major user-visible changes in each MacPorts release.
 ###
 
+Release 2.9.3 (2024-04-04 by jmr)
+    - Fixed error due to insufficient privileges to create the work
+      symlink in some circumstances. (jmr in 51511c8)
+
 Release 2.9.2 (2024-04-02 by jmr)
     - Fixed built-in architecture test failing on unreadable files.
       (#69478, jmr in e3468c5)
