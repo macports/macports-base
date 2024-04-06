@@ -1048,26 +1048,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         if {[file isdirectory /System/Library/Frameworks/Carbon.framework]} {
             # macOS
             set os_subplatform macosx
-            if {[file executable /usr/bin/sw_vers]} {
-                macports_try -pass_signal {
-                    set macos_version [exec -ignorestderr /usr/bin/sw_vers -productVersion 2> /dev/null]
-                } on error {eMessage} {
-                    ui_debug "sw_vers exists but running it failed: $eMessage"
-                }
-            }
         } else {
             # PureDarwin
             set os_subplatform puredarwin
         }
     }
-    if {[vercmp $macos_version 11] >= 0} {
-        # Big Sur is apparently any 11.x version
-        set macos_version_major [lindex [split $macos_version .] 0]
-    } else {
-        set macos_version_major [join [lrange [split $macos_version .] 0 1] .]
-    }
-    # backward compatibility synonym
-    set macosx_version $macos_version_major
 
     # Check that the current platform is the one we were configured for, otherwise need to do migration
     if {($os_platform ne $macports::autoconf::os_platform) || ($os_platform eq "darwin" && $os_major != $macports::autoconf::os_major)} {
@@ -1277,6 +1262,46 @@ Please edit sources.conf and change '$url' to '[string range $url 0 end-6]tarbal
             return -code error "$portdbpath is not a directory. Please create the directory $portdbpath and try again"
         }
     }
+
+    # Get macOS version (done here because caches can't be used before portdbpath is known)
+    if {$os_subplatform eq "macosx"} {
+        # load cached macOS version
+        set macos_version_cache [macports::load_cache macos_version]
+        set checkfile /System/Library/CoreServices/SystemVersion.plist
+        set checkfile_mtime [expr {[file isfile $checkfile] ? [file mtime $checkfile] : {}}]
+        if {[dict exists $macos_version_cache macos_version]
+                && [dict exists $macos_version_cache mtime]
+                && $checkfile_mtime == [dict get $macos_version_cache mtime]} {
+            set macos_version [dict get $macos_version_cache macos_version]
+        } elseif {[file executable /usr/bin/sw_vers]} {
+            ui_debug "Refreshing cached macOS version"
+            set macos_version_cache [dict create]
+            macports_try -pass_signal {
+                set macos_version [exec -ignorestderr /usr/bin/sw_vers -productVersion 2> /dev/null]
+                # Only update cache if it can be written out
+                if {$checkfile_mtime ne {} && [file writable $portdbpath]} {
+                    dict set macos_version_cache mtime $checkfile_mtime
+                    dict set macos_version_cache macos_version $macos_version
+                }
+            } on error {eMessage} {
+                ui_debug "sw_vers exists but running it failed: $eMessage"
+            }
+            if {[dict exists $macos_version_cache macos_version]
+                 && [dict exists $macos_version_cache mtime]} {
+                macports::save_cache macos_version $macos_version_cache
+            }
+        } else {
+            ui_debug "sw_vers executable not found; can't get macOS version"
+        }
+    }
+    if {[vercmp $macos_version 11] >= 0} {
+        # Big Sur is apparently any 11.x version
+        set macos_version_major [lindex [split $macos_version .] 0]
+    } else {
+        set macos_version_major [join [lrange [split $macos_version .] 0 1] .]
+    }
+    # backward compatibility synonym
+    set macosx_version $macos_version_major
 
     set env(HOME) [file join $portdbpath home]
     set registry.path $portdbpath
