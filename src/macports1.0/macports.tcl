@@ -94,6 +94,7 @@ namespace eval macports {
 
     variable ui_prefix {---> }
 
+    variable cache_dirty [dict create]
     variable tool_path_cache [dict create]
     variable variant_descriptions [dict create]
 
@@ -1791,9 +1792,10 @@ proc mportshutdown {} {
     global macports::portdbpath
     # save cached values
     if {[file writable $portdbpath]} {
-        global macports::ping_cache macports::compiler_version_cache
-        # Only save the cache if it was used
-        if {[trace info variable ping_cache] eq ""} {
+        global macports::ping_cache macports::compiler_version_cache \
+               macports::cache_dirty
+        # Only save the cache if it was updated
+        if {[dict exists $cache_dirty pingtimes]} {
             # don't save expired entries
             set now [clock seconds]
             set pinglist_fresh [dict filter $ping_cache script {host entry} {
@@ -1801,7 +1803,7 @@ proc mportshutdown {} {
             }]
             macports::save_cache pingtimes $pinglist_fresh
         }
-        if {[trace info variable compiler_version_cache] eq ""} {
+        if {[dict exists $cache_dirty compiler_versions]} {
             macports::save_cache compiler_versions $compiler_version_cache
         }
     }
@@ -6176,6 +6178,8 @@ proc macports::get_pingtime {host} {
 proc macports::set_pingtime {host ms} {
     variable ping_cache
     dict set ping_cache $host [list $ms [clock seconds]]
+    variable cache_dirty
+    dict set cache_dirty pingtimes 1
 }
 
 # Deferred loading of compiler version cache
@@ -6235,6 +6239,8 @@ proc macports::get_compiler_version {compiler developer_dir} {
         return -code error "couldn't determine build number of compiler \"${compiler}\""
     }
     dict set compiler_version_cache versions $developer_dir $compiler $compiler_version
+    variable cache_dirty
+    dict set cache_dirty compiler_versions 1
     return $compiler_version
 }
 
