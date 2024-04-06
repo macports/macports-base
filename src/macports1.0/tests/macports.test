@@ -499,6 +499,7 @@ test mportshutdown {
     set macports::portdbpath $pwd/portdbpath
     dict set macports::ping_cache host1 [list test $time]
     dict set macports::ping_cache host2 [list test $time_exp]
+    dict set macports::cache_dirty pingtimes 1
 
     file mkdir ${macports::portdbpath}/cache
     close [open ${macports::portdbpath}/cache/pingtimes w+]
