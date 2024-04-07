@@ -3901,6 +3901,26 @@ proc action_mirror { action portlist opts } {
     action_target $action $portlist $opts
 }
 
+proc action_vercmp { action portlist opts } {
+    if {[llength $portlist] != 2} {
+        ui_error "Usage: port vercmp versionA versionB"
+        return 1
+    }
+    set versionA [lindex $portlist 0]
+    set versionB [lindex $portlist 1]
+    set result [vercmp $versionA $versionB]
+    ui_msg -nonewline "MacPorts considers $versionA to be "
+    if {$result < 0} {
+        ui_msg -nonewline "less than"
+    } elseif {$result == 0} {
+        ui_msg -nonewline "equal to"
+    } else {
+        ui_msg -nonewline "greater than"
+    }
+    ui_msg " $versionB"
+    return 0
+}
+
 proc action_exit { action portlist opts } {
     # Return a semaphore telling the main loop to quit
     return -999
@@ -4038,6 +4058,8 @@ set action_array [dict create \
     mdmg        [list action_target         [ACTION_ARGS_PORTS]] \
     mpkg        [list action_target         [ACTION_ARGS_PORTS]] \
     pkg         [list action_target         [ACTION_ARGS_PORTS]] \
+    \
+    vercmp      [list action_vercmp         [ACTION_ARGS_STRINGS]] \
     \
     quit        [list action_exit           [ACTION_ARGS_NONE]] \
     exit        [list action_exit           [ACTION_ARGS_NONE]] \
