@@ -52,18 +52,18 @@ options destroot.target destroot.destdir destroot.clean destroot.keepdirs destro
 commands destroot
 
 # Set defaults
-default destroot.asroot no
+set destroot.asroot no
 default destroot.dir {${build.dir}}
 default destroot.cmd {${build.cmd}}
 default destroot.pre_args {[portdestroot::destroot_getargs]}
-default destroot.target install
+set destroot.target install
 default destroot.post_args {${destroot.destdir}}
 default destroot.destdir {DESTDIR=${destroot}}
 default destroot.nice {${buildnicevalue}}
 default destroot.umask {$system_options(destroot_umask)}
-default destroot.clean no
-default destroot.keepdirs ""
-default destroot.violate_mtree no
+set destroot.clean no
+set destroot.keepdirs {}
+set destroot.violate_mtree no
 default destroot.delete_la_files {${delete_la_files}}
 
 set_ui_prefix

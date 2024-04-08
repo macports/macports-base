@@ -48,7 +48,7 @@ namespace eval portactivate {
 }
 
 options activate.asroot
-default activate.asroot no
+set activate.asroot no
 
 proc portactivate::activate_start {args} {
     global prefix_frozen

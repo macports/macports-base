@@ -45,7 +45,7 @@ namespace eval portdeactivate {
 }
 
 options deactivate.asroot
-default deactivate.asroot no
+set deactivate.asroot no
 
 proc portdeactivate::deactivate_start {args} {
     global prefix
