@@ -105,32 +105,32 @@ proc portmain::get_subbuildpath {} {
     return [file normalize [file join $portbuildpath $subdir]]
 }
 default workpath {[getportworkpath_from_buildpath $subbuildpath]}
-set prefix /opt/local
-set applications_dir /Applications/MacPorts
+defaultc prefix /opt/local
+defaultc applications_dir /Applications/MacPorts
 default frameworks_dir {${prefix}/Library/Frameworks}
-set destdir destroot
+defaultc destdir destroot
 default destpath {${workpath}/${destdir}}
 # destroot is provided as a clearer name for the "destpath" variable
 default destroot {${destpath}}
-set filesdir files
-set revision 0
-set epoch 0
-set license unknown
+defaultc filesdir files
+defaultc revision 0
+defaultc epoch 0
+defaultc license unknown
 default distname {${name}-${version}}
 default worksrcdir {$distname}
 default filespath {[file join $portpath [join $filesdir]]}
 default worksrcpath {[file join $workpath [join $worksrcdir]]}
 # empty list means all archs are supported
-set supported_archs {}
-set depends_skip_archcheck {}
-set add_users {}
+defaultc supported_archs {}
+defaultc depends_skip_archcheck {}
+defaultc add_users {}
 
 # Configure settings
 default install.user {${portutil::autoconf::install_user}}
 default install.group {${portutil::autoconf::install_group}}
 
 # Platform Settings
-set platforms darwin
+defaultc platforms darwin
 option_proc platforms _handle_platforms
 default os.platform {$os_platform}
 default os.subplatform {$os_subplatform}
@@ -157,10 +157,10 @@ default universal_possible {[expr {${os.universal_supported} && [llength ${confi
 
 default compiler.cpath {${prefix}/include}
 default compiler.library_path {${prefix}/lib}
-set compiler.log_verbose_output yes
-set compiler.limit_flags no
-set compiler.support_environment_paths no
-set compiler.support_environment_sdkroot no
+defaultc compiler.log_verbose_output yes
+defaultc compiler.limit_flags no
+defaultc compiler.support_environment_paths no
+defaultc compiler.support_environment_sdkroot no
 
 # Record initial euid/egid
 set euid [geteuid]

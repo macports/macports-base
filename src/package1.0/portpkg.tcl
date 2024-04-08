@@ -52,7 +52,7 @@ default package.resources {${workpath}/pkg_resources}
 default package.scripts  {${workpath}/pkg_scripts}
 # Need productbuild to make flat packages really work
 default package.flat     {[expr {[vercmp $macosx_deployment_target 10.6] >= 0}]}
-set pkg.asroot no
+defaultc pkg.asroot no
 
 set_ui_prefix
 

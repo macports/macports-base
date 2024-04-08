@@ -48,7 +48,7 @@ namespace eval portdistcheck {
 options distcheck.type
 
 # defaults
-set distcheck.type moddate
+defaultc distcheck.type moddate
 
 proc portdistcheck::distcheck_main {args} {
     global distcheck.type fetch.type fetch.ignore_sslcert \

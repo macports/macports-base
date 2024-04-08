@@ -51,17 +51,17 @@ options archive_sites archivefetch.user archivefetch.password \
     archive.subdir
 
 # user name & password
-set archivefetch.user {}
-set archivefetch.password {}
+defaultc archivefetch.user {}
+defaultc archivefetch.password {}
 # Use EPSV for FTP transfers
-set archivefetch.use_epsv no
+defaultc archivefetch.use_epsv no
 # Ignore SSL certificate
-set archivefetch.ignore_sslcert no
+defaultc archivefetch.ignore_sslcert no
 default archivefetch.pubkeys {$archivefetch_pubkeys}
 
 default archive_sites {[portarchivefetch::filter_sites]}
-set archive_sites.listfile archive_sites.tcl
-set archive_sites.listpath port1.0/fetch
+defaultc archive_sites.listfile archive_sites.tcl
+defaultc archive_sites.listpath port1.0/fetch
 default archive.subdir {${subport}}
 
 proc portarchivefetch::filter_sites {} {

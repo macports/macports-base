@@ -160,27 +160,27 @@ proc portconfigure::configure_get_cxx_stdlib {} {
 options                            \
     compiler.require_fortran       \
     compiler.fortran_fallback
-set compiler.require_fortran      no
+defaultc compiler.require_fortran      no
 default compiler.fortran_fallback    {[portconfigure::get_fortran_fallback]}
 # ********** End Fortran **********
 
 # define options
 commands configure autoreconf automake autoconf xmkmf
 # defaults
-set configure.env       {}
+defaultc configure.env       {}
 default configure.pre_args  {--prefix=${prefix}}
-set configure.cmd       ./configure
+defaultc configure.cmd       ./configure
 default configure.nice      {${buildnicevalue}}
 default configure.dir       {${worksrcpath}}
 default autoreconf.dir      {${worksrcpath}}
-set autoreconf.args     {--install --verbose}
+defaultc autoreconf.args     {--install --verbose}
 default autoconf.dir        {${worksrcpath}}
-set autoconf.args       --verbose
+defaultc autoconf.args       --verbose
 default automake.dir        {${worksrcpath}}
-set automake.args       --verbose
-set xmkmf.cmd           xmkmf
+defaultc automake.args       --verbose
+defaultc xmkmf.cmd           xmkmf
 default xmkmf.dir           {${worksrcpath}}
-set use_configure       yes
+defaultc use_configure       yes
 
 option_proc use_autoreconf  portconfigure::set_configure_type
 option_proc use_automake    portconfigure::set_configure_type
@@ -242,13 +242,13 @@ proc portconfigure::set_configure_type {option action args} {
 }
 
 options configure.asroot
-set configure.asroot no
+defaultc configure.asroot no
 
 # Configure special environment variables.
 # We could have m32/m64/march/mtune be global configurable at some point.
 options configure.m32 configure.m64 configure.march configure.mtune
-set configure.march     {}
-set configure.mtune     {}
+defaultc configure.march     {}
+defaultc configure.mtune     {}
 # We could have debug/optimizations be global configurable at some point.
 options configure.optflags \
         configure.cflags \
@@ -257,7 +257,7 @@ options configure.optflags \
         configure.fflags configure.f90flags configure.fcflags \
         configure.classpath
 # compiler flags section
-set configure.optflags      -Os
+defaultc configure.optflags      -Os
 default configure.cflags        {${configure.optflags}}
 default configure.objcflags     {${configure.optflags}}
 default configure.cppflags      {[portconfigure::configure_get_cppflags]}
@@ -278,24 +278,24 @@ proc portconfigure::configure_get_ldflags {} {
         return "-L${prefix}/lib -Wl,-headerpad_max_install_names"
     }
 }
-set configure.libs          {}
+defaultc configure.libs          {}
 default configure.fflags        {${configure.optflags}}
 default configure.f90flags      {${configure.optflags}}
 default configure.fcflags       {${configure.optflags}}
-set configure.classpath     {}
+defaultc configure.classpath     {}
 
 # tools section
 options configure.perl configure.python configure.ruby \
         configure.install configure.awk configure.bison \
         configure.pkg_config configure.pkg_config_path
-set configure.perl              {}
-set configure.python            {}
-set configure.ruby              {}
+defaultc configure.perl              {}
+defaultc configure.python            {}
+defaultc configure.ruby              {}
 default configure.install           {${portutil::autoconf::install_command}}
-set configure.awk               {}
-set configure.bison             {}
-set configure.pkg_config        {}
-set configure.pkg_config_path   {}
+defaultc configure.awk               {}
+defaultc configure.bison             {}
+defaultc configure.pkg_config        {}
+defaultc configure.pkg_config_path   {}
 
 options configure.build_arch configure.ld_archflags \
         configure.sdk_version configure.sdkroot \
@@ -316,10 +316,10 @@ options configure.universal_archs configure.universal_args \
         configure.universal_objcflags \
         configure.universal_cppflags configure.universal_ldflags
 default configure.universal_archs       {[portconfigure::choose_supported_archs ${universal_archs}]}
-set configure.universal_args        --disable-dependency-tracking
+defaultc configure.universal_args        --disable-dependency-tracking
 default configure.universal_cflags      {[portconfigure::configure_get_universal_archflags]}
 default configure.universal_objcflags   {${configure.universal_cflags}}
-set configure.universal_cppflags    {}
+defaultc configure.universal_cppflags    {}
 default configure.universal_ldflags     {[portconfigure::configure_get_universal_archflags]}
 
 # Select a distinct compiler (C, C preprocessor, C++)
@@ -336,8 +336,8 @@ foreach _portconfigure_tool {cc objc cpp f77 f90 fc javac} {
 unset _portconfigure_tool
 default configure.compiler      {[portconfigure::configure_get_default_compiler]}
 default compiler.fallback       {[portconfigure::get_compiler_fallback]}
-set compiler.blacklist      {}
-set compiler.whitelist      {}
+defaultc compiler.blacklist      {}
+defaultc compiler.whitelist      {}
 
 # Compiler Restrictions
 #   compiler.c_standard            Standard for the C programming language (1989, 1999, 2011, etc.)
@@ -354,9 +354,9 @@ options                            \
 
 default compiler.c_standard            {[expr {$supported_archs ne "noarch" ? 1989 : ""}]}
 default compiler.cxx_standard          {[expr {$supported_archs ne "noarch" ? 1998 : ""}]}
-set compiler.openmp_version        {}
-set compiler.mpi                   {}
-set compiler.thread_local_storage  no
+defaultc compiler.openmp_version        {}
+defaultc compiler.mpi                   {}
+defaultc compiler.thread_local_storage  no
 
 set_ui_prefix
 
@@ -1666,7 +1666,7 @@ proc portconfigure::add_automatic_compiler_dependencies {} {
 port::register_callback portconfigure::add_automatic_compiler_dependencies
 # and an option to turn it off if required
 options configure.compiler.add_deps
-set configure.compiler.add_deps yes
+defaultc configure.compiler.add_deps yes
 # helper function to add dependencies for a given compiler
 proc portconfigure::add_compiler_port_dependencies {compiler} {
     global os.major porturl
@@ -1904,7 +1904,7 @@ proc portconfigure::configure_main {args} {
 
 options configure.checks.implicit_function_declaration \
         configure.checks.implicit_function_declaration.whitelist
-set configure.checks.implicit_function_declaration yes
+defaultc configure.checks.implicit_function_declaration yes
 default configure.checks.implicit_function_declaration.whitelist {[portconfigure::load_implicit_function_declaration_whitelist ${configure.sdk_version}]}
 
 proc portconfigure::check_implicit_function_declarations {} {

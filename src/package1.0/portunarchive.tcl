@@ -47,16 +47,16 @@ namespace eval portunarchive {
 
 # defaults
 default unarchive.dir {${destpath}}
-set unarchive.env {}
-set unarchive.cmd {}
-set unarchive.pre_args {}
-set unarchive.args {}
-set unarchive.post_args {}
+defaultc unarchive.env {}
+defaultc unarchive.cmd {}
+defaultc unarchive.pre_args {}
+defaultc unarchive.args {}
+defaultc unarchive.post_args {}
 
-set unarchive.type {}
-set unarchive.file {}
-set unarchive.path {}
-set unarchive.skip 0
+defaultc unarchive.type {}
+defaultc unarchive.file {}
+defaultc unarchive.path {}
+defaultc unarchive.skip 0
 
 set_ui_prefix
 

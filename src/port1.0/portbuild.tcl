@@ -50,16 +50,16 @@ options build.asroot \
         use_parallel_build
 commands build
 # defaults
-set build.asroot no
+defaultc build.asroot no
 default build.dir {${worksrcpath}}
 default build.cmd {[portbuild::build_getmaketype]}
 default build.nice {${buildnicevalue}}
 default build.jobs {[portbuild::build_getjobs]}
 default build.jobs_arg {[portbuild::build_getjobsarg]}
 default build.pre_args {[portbuild::build_getargs]}
-set build.target all
-set build.type default
-set use_parallel_build yes
+defaultc build.target all
+defaultc build.type default
+defaultc use_parallel_build yes
 
 set_ui_prefix
 
@@ -85,7 +85,7 @@ proc portbuild::add_automatic_buildsystem_dependencies {} {
 port::register_callback portbuild::add_automatic_buildsystem_dependencies
 # and an option to turn it off if required
 options build.type.add_deps
-set build.type.add_deps yes
+defaultc build.type.add_deps yes
 
 proc portbuild::build_getmaketype {args} {
     global build.type os.platform

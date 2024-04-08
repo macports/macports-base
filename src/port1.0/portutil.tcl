@@ -497,6 +497,16 @@ proc default {option val} {
     trace add variable $option [list read write unset] default_check
 }
 
+# defaultc
+# Sets a variable to the supplied default if it does not exist.
+# No trace is set, so this is suitable only for constant values.
+proc defaultc {option val} {
+    global $option
+    if {![info exists $option]} {
+        set $option $val
+    }
+}
+
 # default_check
 # trace handler to provide delayed variable & command expansion
 # for default variable values

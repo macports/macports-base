@@ -98,30 +98,30 @@ options startupitems startupitem.autostart startupitem.debug \
         startupitem.stop startupitem.type startupitem.uniquename \
         startupitem.user startupitem.daemondo.verbosity
 
-set startupitem.autostart   no
-set startupitem.custom_file {}
-set startupitem.debug       no
-set startupitem.executable  {}
-set startupitem.group       {}
-set startupitem.init        {}
+defaultc startupitem.autostart   no
+defaultc startupitem.custom_file {}
+defaultc startupitem.debug       no
+defaultc startupitem.executable  {}
+defaultc startupitem.group       {}
+defaultc startupitem.init        {}
 default startupitem.install     {$system_options(startupitem_install)}
-set startupitem.location    LaunchDaemons
-set startupitem.logevents   no
-set startupitem.logfile     {}
+defaultc startupitem.location    LaunchDaemons
+defaultc startupitem.logevents   no
+defaultc startupitem.logfile     {}
 default startupitem.logfile.stderr {${startupitem.logfile}}
 default startupitem.name        {${subport}}
-set startupitem.netchange   no
-set startupitem.pidfile     {}
+defaultc startupitem.netchange   no
+defaultc startupitem.pidfile     {}
 default startupitem.plist       {${startupitem.uniquename}.plist}
-set startupitem.requires    {}
-set startupitem.restart     {}
-set startupitem.start       {}
-set startupitem.stop        {}
+defaultc startupitem.requires    {}
+defaultc startupitem.restart     {}
+defaultc startupitem.start       {}
+defaultc startupitem.stop        {}
 default startupitem.type        {[portstartupitem::get_startupitem_type]}
 default startupitem.uniquename  {org.macports.${startupitem.name}}
-set startupitem.user        {}
+defaultc startupitem.user        {}
 
-set startupitem.daemondo.verbosity  1
+defaultc startupitem.daemondo.verbosity  1
 
 set_ui_prefix
 

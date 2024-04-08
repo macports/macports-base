@@ -62,63 +62,63 @@ commands cvs
 commands svn
 
 # Defaults
-set extract.suffix .tar.gz
-set fetch.type standard
+defaultc extract.suffix .tar.gz
+defaultc fetch.type standard
 
 default bzr.cmd {[findBinary bzr $portutil::autoconf::bzr_path]}
 default bzr.dir {${workpath}}
-set bzr.revision -1
-set bzr.pre_args {--builtin --no-aliases checkout --lightweight --verbose}
-set bzr.args {}
+defaultc bzr.revision -1
+defaultc bzr.pre_args {--builtin --no-aliases checkout --lightweight --verbose}
+defaultc bzr.args {}
 default bzr.post_args {-r ${bzr.revision} ${bzr.url} ${worksrcdir}}
 
 default cvs.cmd {[findBinary cvs $portutil::autoconf::cvs_path]}
-set cvs.password {}
+defaultc cvs.password {}
 default cvs.dir {${workpath}}
-set cvs.method export
+defaultc cvs.method export
 default cvs.module {$distname}
-set cvs.tag {}
-set cvs.date {}
+defaultc cvs.tag {}
+defaultc cvs.date {}
 default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
 default cvs.pre_args {-z9 -f -d ${cvs.root}}
-set cvs.args {}
+defaultc cvs.args {}
 default cvs.post_args {${cvs.module}}
 
 default svn.cmd {${prefix_frozen}/bin/svn}
 default svn.dir {${workpath}}
-set svn.method export
-set svn.revision {}
-set svn.env {}
-set svn.pre_args --non-interactive
-set svn.args {}
-set svn.post_args {}
+defaultc svn.method export
+defaultc svn.revision {}
+defaultc svn.env {}
+defaultc svn.pre_args --non-interactive
+defaultc svn.args {}
+defaultc svn.post_args {}
 
 default git.cmd {[portfetch::find_git_path]}
 default git.dir {${workpath}}
-set git.branch {}
+defaultc git.branch {}
 
 default hg.cmd {[findBinary hg $portutil::autoconf::hg_path]}
 default hg.dir {${workpath}}
-set hg.tag tip
+defaultc hg.tag tip
 
 # Set distfiles
 default distfiles {[list [portfetch::suffix [join $distname]]]}
 default dist_subdir {${name}}
 
 # user name & password
-set fetch.user {}
-set fetch.password {}
+defaultc fetch.user {}
+defaultc fetch.password {}
 # Use EPSV for FTP transfers
-set fetch.use_epsv yes
+defaultc fetch.use_epsv yes
 # Ignore SSL certificate
-set fetch.ignore_sslcert no
+defaultc fetch.ignore_sslcert no
 # Use remote timestamps
-set fetch.remote_time no
-set fetch.user_agent {}
+defaultc fetch.remote_time no
+defaultc fetch.user_agent {}
 
-set global_mirror_site macports_distfiles
-set mirror_sites.listfile mirror_sites.tcl
-set mirror_sites.listpath port1.0/fetch
+defaultc global_mirror_site macports_distfiles
+defaultc mirror_sites.listfile mirror_sites.tcl
+defaultc mirror_sites.listpath port1.0/fetch
 
 # Option-executed procedures
 option_proc use_tar   portfetch::set_extract_type

@@ -55,8 +55,8 @@ namespace eval portchecksum {
 options checksums checksum.skip
 
 # Defaults
-set checksums {}
-set checksum.skip false
+defaultc checksums {}
+defaultc checksum.skip false
 
 set_ui_prefix
 
