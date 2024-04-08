@@ -105,32 +105,32 @@ proc portmain::get_subbuildpath {} {
     return [file normalize [file join $portbuildpath $subdir]]
 }
 default workpath {[getportworkpath_from_buildpath $subbuildpath]}
-default prefix /opt/local
-default applications_dir /Applications/MacPorts
+set prefix /opt/local
+set applications_dir /Applications/MacPorts
 default frameworks_dir {${prefix}/Library/Frameworks}
-default destdir destroot
+set destdir destroot
 default destpath {${workpath}/${destdir}}
 # destroot is provided as a clearer name for the "destpath" variable
 default destroot {${destpath}}
-default filesdir files
-default revision 0
-default epoch 0
-default license unknown
+set filesdir files
+set revision 0
+set epoch 0
+set license unknown
 default distname {${name}-${version}}
 default worksrcdir {$distname}
 default filespath {[file join $portpath [join $filesdir]]}
 default worksrcpath {[file join $workpath [join $worksrcdir]]}
 # empty list means all archs are supported
-default supported_archs {}
-default depends_skip_archcheck {}
-default add_users {}
+set supported_archs {}
+set depends_skip_archcheck {}
+set add_users {}
 
 # Configure settings
 default install.user {${portutil::autoconf::install_user}}
 default install.group {${portutil::autoconf::install_group}}
 
 # Platform Settings
-default platforms darwin
+set platforms darwin
 option_proc platforms _handle_platforms
 default os.platform {$os_platform}
 default os.subplatform {$os_subplatform}
@@ -157,10 +157,10 @@ default universal_possible {[expr {${os.universal_supported} && [llength ${confi
 
 default compiler.cpath {${prefix}/include}
 default compiler.library_path {${prefix}/lib}
-default compiler.log_verbose_output yes
-default compiler.limit_flags no
-default compiler.support_environment_paths no
-default compiler.support_environment_sdkroot no
+set compiler.log_verbose_output yes
+set compiler.limit_flags no
+set compiler.support_environment_paths no
+set compiler.support_environment_sdkroot no
 
 # Record initial euid/egid
 set euid [geteuid]

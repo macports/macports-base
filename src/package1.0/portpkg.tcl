@@ -43,8 +43,8 @@ namespace eval portpkg {
 }
 
 # define options
-options package.type package.destpath package.flat package.resources package.scripts
-options pkg.asroot
+options package.type package.destpath package.flat package.resources \
+        package.scripts pkg.asroot
 
 # Set defaults
 default package.destpath {${workpath}}
@@ -52,7 +52,7 @@ default package.resources {${workpath}/pkg_resources}
 default package.scripts  {${workpath}/pkg_scripts}
 # Need productbuild to make flat packages really work
 default package.flat     {[expr {[vercmp $macosx_deployment_target 10.6] >= 0}]}
-default pkg.asroot no
+set pkg.asroot no
 
 set_ui_prefix
 
