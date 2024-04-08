@@ -105,7 +105,7 @@ proc portmain::get_subbuildpath {} {
     return [file normalize [file join $portbuildpath $subdir]]
 }
 default workpath {[getportworkpath_from_buildpath $subbuildpath]}
-defaultc prefix ${portutil::autoconf::prefix}
+defaultc prefix /opt/local
 defaultc applications_dir /Applications/MacPorts
 default frameworks_dir {${prefix}/Library/Frameworks}
 defaultc destdir destroot
@@ -126,8 +126,8 @@ defaultc depends_skip_archcheck {}
 defaultc add_users {}
 
 # Configure settings
-defaultc install.user ${portutil::autoconf::install_user}
-defaultc install.group ${portutil::autoconf::install_group}
+default install.user {${portutil::autoconf::install_user}}
+default install.group {${portutil::autoconf::install_group}}
 
 # Platform Settings
 defaultc platforms darwin

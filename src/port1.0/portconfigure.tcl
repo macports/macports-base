@@ -291,7 +291,7 @@ options configure.perl configure.python configure.ruby \
 defaultc configure.perl              {}
 defaultc configure.python            {}
 defaultc configure.ruby              {}
-defaultc configure.install           ${portutil::autoconf::install_command}
+default configure.install           {${portutil::autoconf::install_command}}
 defaultc configure.awk               {}
 defaultc configure.bison             {}
 defaultc configure.pkg_config        {}
