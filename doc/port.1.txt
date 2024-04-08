@@ -366,7 +366,7 @@ copy with the user set to the owner of the working copy.
 +
 
 outdated::
-    Lists the installed ports which need a 'upgrade'.
+    Lists the installed ports which need an 'upgrade'.
 
 upgrade::
     The upgrade action works on a port and its dependencies. If you want to
