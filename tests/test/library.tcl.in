@@ -51,7 +51,7 @@ proc set_dir {} {
 
 # Run portindex
 proc port_index {} {
-    global bindir datadir cpwd
+    global bindir cpwd
 
     # Move up 2 level to run portindex.
     set path [pwd]
@@ -69,7 +69,7 @@ proc port_index {} {
 
 # Executes port clean.
 proc port_clean {pwd} {
-    global bindir datadir portsrc
+    global bindir portsrc
 
     set back [pwd]
     cd $pwd
@@ -80,7 +80,7 @@ proc port_clean {pwd} {
 
 # Runs the portfile.
 proc port_run {pwd} {
-    global bindir datadir portsrc
+    global bindir portsrc
 
     set back [pwd]
     cd $pwd
@@ -92,7 +92,7 @@ proc port_run {pwd} {
 
 # Runs port trace.
 proc port_trace {pwd} {
-    global bindir datadir portsrc
+    global bindir portsrc
 
     set back [pwd]
     cd $pwd
@@ -112,7 +112,7 @@ proc port_install {{name "current"}} {
 
 # Run configure command.
 proc port_config {pwd} {
-    global path bindir portsrc
+    global bindir portsrc
 
     set result [catch {exec -ignorestderr env PORTSRC=${portsrc} ${bindir}/port configure 2>@1} ]
     return $result
