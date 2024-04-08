@@ -195,11 +195,11 @@ option_proc xmkmf.cmd       portconfigure::set_configure_type
 ##
 # Local helper proc
 proc portconfigure::add_build_dep { type dep } {
-    global ${type}.cmd option_defaults
+    global ${type}.cmd options::option_defaults
 
     if {![info exists ${type}.cmd] || (
-        ([info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] eq $option_defaults(${type}.cmd)) ||
-        (![info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] eq ${type})
+        ([dict exists $option_defaults ${type}.cmd] && [set ${type}.cmd] eq [dict get $option_defaults ${type}.cmd]) ||
+        (![dict exists $option_defaults ${type}.cmd] && [set ${type}.cmd] eq ${type})
         )} {
             # Add dependencies if they are not already in the list
             depends_build-delete {*}$dep

@@ -46,6 +46,7 @@ set all_variants [list]
 ########### External High Level Procedures ###########
 
 namespace eval options {
+    variable option_defaults [dict create]
 }
 
 # option
@@ -481,8 +482,8 @@ proc command_exec {args} {
 # and adds a variable trace. The variable traces allows for delayed
 # variable and command expansion in the variable's default value.
 proc default {option val} {
-    global option_defaults $option
-    if {[info exists option_defaults($option)]} {
+    global options::option_defaults $option
+    if {[dict exists $option_defaults $option]} {
         ui_debug "Re-registering default for $option"
         # remove the old trace
         trace remove variable $option [list read write unset] default_check
@@ -491,7 +492,7 @@ proc default {option val} {
         # do not reset the value
         return
     }
-    set option_defaults($option) $val
+    dict set option_defaults $option $val
     set $option $val
     trace add variable $option [list read write unset] default_check
 }
@@ -501,19 +502,19 @@ proc default {option val} {
 # for default variable values
 proc default_check {varName index op} {
     set optionName [namespace tail $varName]
-    global option_defaults $optionName
+    global options::option_defaults $optionName
     switch $op {
         write {
-            unset option_defaults($optionName)
+            dict unset option_defaults $optionName
             trace remove variable $optionName [list read write unset] default_check
             return
         }
         read {
-            uplevel #0 [list set $optionName] [subst -nocommands {[subst {$option_defaults($optionName)}]}]
+            uplevel #0 [list set $optionName [uplevel #0 [list subst [dict get $option_defaults $optionName]]]]
             return
         }
         unset {
-            unset option_defaults($optionName)
+            dict unset option_defaults $optionName
             trace remove variable $optionName [list read write unset] default_check
             return
         }
