@@ -45,7 +45,7 @@ namespace eval portuninstall {
 }
 
 options uninstall.asroot
-defaultc uninstall.asroot no
+default uninstall.asroot no
 
 proc portuninstall::uninstall_start {args} {
     global prefix ports_dryrun

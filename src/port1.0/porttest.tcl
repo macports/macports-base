@@ -19,12 +19,12 @@ options test.asroot test.ignore_archs test.run test.target
 commands test
 
 # Set defaults
-defaultc test.asroot no
+default test.asroot no
 default test.dir {${build.dir}}
 default test.cmd {${build.cmd}}
 default test.pre_args {${test.target}}
-defaultc test.target test
-defaultc test.ignore_archs no
+default test.target test
+default test.ignore_archs no
 
 set_ui_prefix
 

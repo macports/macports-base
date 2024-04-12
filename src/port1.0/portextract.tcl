@@ -47,17 +47,17 @@ options extract.only extract.mkdir extract.rename extract.asroot
 commands extract
 
 # Set up defaults
-defaultc extract.asroot no
+default extract.asroot no
 # XXX call out to code in portutil.tcl XXX
 # This cleans the distfiles list of all site tags
 default extract.only {[portextract::disttagclean $distfiles]}
 
 default extract.dir {${workpath}}
 default extract.cmd {[findBinary gzip ${portutil::autoconf::gzip_path}]}
-defaultc extract.pre_args -dc
+default extract.pre_args -dc
 default extract.post_args {| ${portutil::autoconf::tar_command} -xf -}
-defaultc extract.mkdir no
-defaultc extract.rename no
+default extract.mkdir no
+default extract.rename no
 
 set_ui_prefix
 

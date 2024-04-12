@@ -47,6 +47,7 @@ set all_variants [list]
 
 namespace eval options {
     variable option_defaults [dict create]
+    variable defaults_const [dict create]
 }
 
 # option
@@ -482,11 +483,13 @@ proc command_exec {args} {
 # and adds a variable trace. The variable traces allows for delayed
 # variable and command expansion in the variable's default value.
 proc default {option val} {
-    global options::option_defaults $option
+    global options::option_defaults options::defaults_const $option
     if {[dict exists $option_defaults $option]} {
         ui_debug "Re-registering default for $option"
         # remove the old trace
-        trace remove variable $option [list read write unset] default_check
+        set is_const [expr {[dict exists $defaults_const $option] && [dict get $defaults_const $option]}]
+        set oplist [expr {$is_const ? [list write unset] : [list read write unset]}]
+        trace remove variable $option $oplist default_check
     } elseif {[info exists $option]} {
         # If option is already set and we did not set it
         # do not reset the value
@@ -494,17 +497,13 @@ proc default {option val} {
     }
     dict set option_defaults $option $val
     set $option $val
-    trace add variable $option [list read write unset] default_check
-}
-
-# defaultc
-# Sets a variable to the supplied default if it does not exist.
-# No trace is set, so this is suitable only for constant values.
-proc defaultc {option val} {
-    global $option
-    if {![info exists $option]} {
-        set $option $val
-    }
+    # Not completely accurate, but should match all simple constants,
+    # and unnecessarily setting the trace on complicated ones with
+    # backslashes, braces etc still gives correct results.
+    set is_const [expr {[string first {$} $val] == -1 && [string first {[} $val] == -1}]
+    dict set defaults_const $option $is_const
+    set oplist [expr {$is_const ? [list write unset] : [list read write unset]}]
+    trace add variable $option $oplist default_check
 }
 
 # default_check
@@ -514,18 +513,17 @@ proc default_check {varName index op} {
     set optionName [namespace tail $varName]
     global options::option_defaults $optionName
     switch $op {
-        write {
-            dict unset option_defaults $optionName
-            trace remove variable $optionName [list read write unset] default_check
-            return
-        }
         read {
             uplevel #0 [list set $optionName [uplevel #0 [list subst [dict get $option_defaults $optionName]]]]
             return
         }
-        unset {
+        unset -
+        write {
+            global options::defaults_const
+            set is_const [expr {[dict exists $defaults_const $optionName] && [dict get $defaults_const $optionName]}]
+            set oplist [expr {$is_const ? [list write unset] : [list read write unset]}]
             dict unset option_defaults $optionName
-            trace remove variable $optionName [list read write unset] default_check
+            trace remove variable $optionName $oplist default_check
             return
         }
     }

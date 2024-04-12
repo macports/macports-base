@@ -48,7 +48,7 @@ namespace eval portinstall {
 options install.asroot
 
 # Set defaults
-defaultc install.asroot no
+default install.asroot no
 
 set_ui_prefix
 

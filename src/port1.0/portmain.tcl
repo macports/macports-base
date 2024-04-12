@@ -105,32 +105,32 @@ proc portmain::get_subbuildpath {} {
     return [file normalize [file join $portbuildpath $subdir]]
 }
 default workpath {[getportworkpath_from_buildpath $subbuildpath]}
-defaultc prefix /opt/local
-defaultc applications_dir /Applications/MacPorts
+default prefix /opt/local
+default applications_dir /Applications/MacPorts
 default frameworks_dir {${prefix}/Library/Frameworks}
-defaultc destdir destroot
+default destdir destroot
 default destpath {${workpath}/${destdir}}
 # destroot is provided as a clearer name for the "destpath" variable
 default destroot {${destpath}}
-defaultc filesdir files
-defaultc revision 0
-defaultc epoch 0
-defaultc license unknown
+default filesdir files
+default revision 0
+default epoch 0
+default license unknown
 default distname {${name}-${version}}
 default worksrcdir {$distname}
 default filespath {[file join $portpath [join $filesdir]]}
 default worksrcpath {[file join $workpath [join $worksrcdir]]}
 # empty list means all archs are supported
-defaultc supported_archs {}
-defaultc depends_skip_archcheck {}
-defaultc add_users {}
+default supported_archs {}
+default depends_skip_archcheck {}
+default add_users {}
 
 # Configure settings
 default install.user {${portutil::autoconf::install_user}}
 default install.group {${portutil::autoconf::install_group}}
 
 # Platform Settings
-defaultc platforms darwin
+default platforms darwin
 option_proc platforms _handle_platforms
 default os.platform {$os_platform}
 default os.subplatform {$os_subplatform}
@@ -157,10 +157,10 @@ default universal_possible {[expr {${os.universal_supported} && [llength ${confi
 
 default compiler.cpath {${prefix}/include}
 default compiler.library_path {${prefix}/lib}
-defaultc compiler.log_verbose_output yes
-defaultc compiler.limit_flags no
-defaultc compiler.support_environment_paths no
-defaultc compiler.support_environment_sdkroot no
+default compiler.log_verbose_output yes
+default compiler.limit_flags no
+default compiler.support_environment_paths no
+default compiler.support_environment_sdkroot no
 
 # Record initial euid/egid
 set euid [geteuid]
