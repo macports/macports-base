@@ -217,13 +217,16 @@ E-mail address(es) of port maintainer(s).
 Declares which platforms are supported by the port.
 .br
 .Sy Type:
-.Em required
+.Em optional
 .br
 .Sy Values:
 .Em darwin freebsd
 .br
+.Sy Default:
+.Em darwin
+.br
 .Sy Example:
-.Dl platforms darwin
+.Dl platforms darwin freebsd
 .It Ic supported_archs
 The CPU architectures for which this port can be built.
 Archs currently supported by macOS are:
